@@ -14,7 +14,7 @@
 
 export { Storage } from './storage';
 export { DataAccess } from './data_access';
-export { Blocks as BlocksCache } from './cache';
+export { BlockCache } from './cache';
 export {
 	TransactionInterfaceAdapter,
 	RegisteredTransactions,

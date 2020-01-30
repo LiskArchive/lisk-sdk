@@ -35,9 +35,9 @@ export class Storage {
 	*/
 
 	public async getBlockHeaderByID(id: string): Promise<BlockJSON> {
-		const blocks = await this._storage.entities.Block.getOne({ id });
+		const [block] = await this._storage.entities.Block.get({ id });
 
-		return blocks;
+		return block;
 	}
 
 	public async getBlockHeadersByIDs(
@@ -52,7 +52,7 @@ export class Storage {
 	}
 
 	public async getBlockHeaderByHeight(height: number): Promise<BlockJSON> {
-		const [block] = await this._storage.entities.Block.get({ height }, {});
+		const [block] = await this._storage.entities.Block.get({ height });
 
 		return block;
 	}
@@ -63,7 +63,8 @@ export class Storage {
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ height_gte: fromHeight, height_lte: toHeight },
-			{ limit: undefined, sort: 'height:desc' },
+			// tslint:disable-next-line:no-null-keyword
+			{ limit: null, sort: 'height:desc' },
 		);
 
 		return blocks;
@@ -118,7 +119,7 @@ export class Storage {
 	*/
 
 	public async getBlockByID(id: string): Promise<BlockJSON> {
-		const block = await this._storage.entities.Block.getOne(
+		const [block] = await this._storage.entities.Block.get(
 			{ id },
 			{ extended: true },
 		);
@@ -171,7 +172,8 @@ export class Storage {
 	public async getTempBlocks(): Promise<TempBlock[]> {
 		const tempBlocks = await this._storage.entities.TempBlock.get(
 			{},
-			{ sort: 'height:asc' },
+			// tslint:disable-next-line:no-null-keyword
+			{ sort: 'height:asc', limit: null },
 		);
 
 		return tempBlocks;
@@ -220,7 +222,7 @@ export class Storage {
 	): Promise<Account[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ publicKey_in: arrayOfPublicKeys },
-			{},
+			{ limit: arrayOfPublicKeys.length },
 			tx,
 		);
 
@@ -233,7 +235,7 @@ export class Storage {
 	): Promise<Account[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ address_in: arrayOfAddresses },
-			{},
+			{ limit: arrayOfAddresses.length },
 			tx,
 		);
 
@@ -263,9 +265,12 @@ export class Storage {
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<string>,
 	): Promise<TransactionJSON[]> {
-		const transactions = await this._storage.entities.Transaction.get({
-			id_in: arrayOfTransactionIds,
-		});
+		const transactions = await this._storage.entities.Transaction.get(
+			{
+				id_in: arrayOfTransactionIds,
+			},
+			{ limit: arrayOfTransactionIds.length },
+		);
 
 		return transactions;
 	}

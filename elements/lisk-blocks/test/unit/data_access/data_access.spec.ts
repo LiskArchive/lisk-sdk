@@ -26,6 +26,7 @@ describe('data_access.storage', () => {
 			entities: {
 				Block: {
 					get: jest.fn().mockResolvedValue([{ height: 1 }]),
+					getOne: jest.fn().mockResolvedValue([{ height: 1 }]),
 					count: jest.fn(),
 					getFirstBlockIdOfLastRounds: jest.fn(),
 					isPersisted: jest.fn(),
@@ -124,6 +125,7 @@ describe('data_access.storage', () => {
 	describe('#getBlockHeadersByHeightBetween', () => {
 		it('should not call storage if cache exists', async () => {
 			// Arrange
+			dataAccess.addBlockHeader({ ...block, height: 0 });
 			dataAccess.addBlockHeader(block);
 
 			// Act
@@ -388,7 +390,6 @@ describe('data_access.storage', () => {
 					timestamp: 107102856,
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
-					fee: '10000000',
 					signature:
 						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
 					signatures: [],
@@ -406,6 +407,8 @@ describe('data_access.storage', () => {
 				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
 			id: '7360015088758644957',
 			previousBlockId: '10620616195853047363',
+			maxHeightPreviouslyForged: 1,
+			maxHeightPrevoted: 0,
 		} as BlockJSON;
 
 		it('should convert big number field to be instance', () => {

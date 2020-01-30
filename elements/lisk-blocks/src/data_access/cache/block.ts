@@ -49,10 +49,6 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items.find(block => block.id === id);
 	}
 
-	public getByHeight(height: number): BlockHeader | undefined {
-		return this.items.find(block => block.height === height);
-	}
-
 	public getByIDs(ids: ReadonlyArray<string>): BlockHeader[] {
 		const blocks = this.items.filter(block => ids.includes(block.id));
 
@@ -61,6 +57,10 @@ export class BlockCache extends Base<BlockHeader> {
 		}
 
 		return [];
+	}
+
+	public getByHeight(height: number): BlockHeader | undefined {
+		return this.items.find(block => block.height === height);
 	}
 
 	public getByHeights(heightList: ReadonlyArray<number>): BlockHeader[] {
@@ -81,8 +81,9 @@ export class BlockCache extends Base<BlockHeader> {
 		toHeight: number,
 	): BlockHeader[] {
 		if (
-			this.items.find(b => b.height === fromHeight) ||
-			this.items.find(b => b.height === toHeight)
+			toHeight >= fromHeight &&
+			this.items.length &&
+			fromHeight >= this.first.height && toHeight <= this.last.height
 		) {
 			return this.items.filter(
 				block => block.height >= fromHeight && block.height <= toHeight,
@@ -90,21 +91,5 @@ export class BlockCache extends Base<BlockHeader> {
 		}
 
 		return [];
-	}
-
-	public getLastBlockHeader(): BlockHeader {
-		return this.last;
-	}
-
-	public getLastCommonBlockHeader(
-		ids: ReadonlyArray<string>,
-	): BlockHeader | undefined {
-		const blocks = this.getByIDs(ids);
-
-		if (!blocks.length) {
-			return undefined;
-		}
-
-		return blocks[blocks.length - 1];
 	}
 }

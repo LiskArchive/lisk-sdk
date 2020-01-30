@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Blocks } from '../../../../src/data_access/cache';
+import { BlockCache } from '../../../../src/data_access/cache';
 import { BlockHeader as BlockHeaderInstance } from '../../../fixtures/block';
 
-describe('data_access.blocksCache.blocks', () => {
+describe('data_access.cache.block', () => {
 	const DEFAULT_CACHE_SIZE = 500;
-	let blocksCache: Blocks;
+	let blocksCache: BlockCache;
 
 	beforeEach(() => {
-		blocksCache = new Blocks(DEFAULT_CACHE_SIZE);
+		blocksCache = new BlockCache(DEFAULT_CACHE_SIZE);
 	});
 
 	describe('constructor', () => {
@@ -150,6 +150,8 @@ describe('data_access.blocksCache.blocks', () => {
 
 			expect(blocksCache.items).toStrictEqual(blocks);
 			expect(blocksCache.getByHeightBetween(0, 99)).toBeEmpty();
+			expect(blocksCache.getByHeightBetween(-100, 99)).toBeEmpty();
+			expect(blocksCache.getByHeightBetween(10, 11)).toBeEmpty();
 		});
 
 		it('should return all the blocks for given block height range', () => {
@@ -157,40 +159,19 @@ describe('data_access.blocksCache.blocks', () => {
 				blocksCache.add(BlockHeaderInstance({ height: i + 1 })),
 			);
 			const heights = blocks.map(b => b.height);
+			const fromHeight = heights[0];
+			const toHeight = heights.length;
 
 			expect(blocksCache.items).toStrictEqual(blocks);
 			expect(
-				blocksCache.getByHeightBetween(heights[0], heights.length),
+				blocksCache.getByHeightBetween(fromHeight, toHeight),
 			).toStrictEqual(blocks);
-		});
-	});
-
-	describe('getLastCommonBlockHeader', () => {
-		it('should return empty array if the cache is empty', () => {
-			expect(blocksCache.getLastCommonBlockHeader(['123'])).toBeUndefined();
-		});
-
-		it('should return empty array if matching block ids does not exists', () => {
-			const [blocks] = Array.from({ length: 10 }, (_, i) =>
-				blocksCache.add(BlockHeaderInstance({ height: i })),
-			);
-			const blockIds = blocks.map(b => b.id);
-
-			expect(blocksCache.items).toStrictEqual(blocks);
 			expect(
-				blocksCache.getLastCommonBlockHeader([...blockIds, '111111']),
-			).toBeUndefined();
-		});
-
-		it('should return all the blocks for given block ids', () => {
-			const [blocks] = Array.from({ length: 10 }, (_, i) =>
-				blocksCache.add(BlockHeaderInstance({ height: i })),
-			);
-			const blockIds = blocks.map(b => b.id);
-
-			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(blocksCache.getLastCommonBlockHeader(blockIds)).toStrictEqual(
-				blocks[blocks.length - 1],
+				blocksCache.getByHeightBetween(fromHeight + 2, toHeight - 5),
+			).toStrictEqual(
+				blocks.filter(
+					b => b.height >= fromHeight + 2 && b.height <= toHeight - 5,
+				),
 			);
 		});
 	});

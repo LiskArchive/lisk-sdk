@@ -28,7 +28,6 @@ import {
 import {
 	applyConfirmedGenesisStep,
 	applyConfirmedStep,
-	deleteLastBlock,
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
@@ -58,7 +57,6 @@ import {
 	SignatureObject,
 	Storage,
 	StorageTransaction,
-	TempBlock,
 } from './types';
 import * as blocksUtils from './utils';
 import {
@@ -336,18 +334,33 @@ export class Blocks extends EventEmitter {
 		await undoConfirmedStep(blockInstance, stateStore, this.exceptions);
 	}
 
+	private async deleteLastBlock(
+		lastBlock: BlockInstance,
+		tx?: StorageTransaction,
+	): Promise<BlockInstance> {
+		if (lastBlock.height === 1) {
+			throw new Error('Cannot delete genesis block');
+		}
+		const block = await this.dataAccess.getBlockByID(
+			lastBlock.previousBlockId as string,
+		);
+
+		if (!block) {
+			throw new Error('PreviousBlock is null');
+		}
+
+		await this.storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
+
+		return block;
+	}
+
 	public async remove(
 		block: BlockInstance,
 		blockJSON: BlockJSON,
-		{ saveTempBlock } = { saveTempBlock: false },
 		tx: StorageTransaction,
+		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		const secondLastBlock = await deleteLastBlock(
-			this.storage,
-			this.dataAccess,
-			block,
-			tx,
-		);
+		const secondLastBlock = await this.deleteLastBlock(block, tx);
 
 		if (saveTempBlock) {
 			const blockTempEntry = {
@@ -375,17 +388,6 @@ export class Blocks extends EventEmitter {
 		} catch (err) {
 			return true;
 		}
-	}
-
-	public async loadBlocksFromLastBlockId(
-		lastBlockId: string,
-		limit: number = 1,
-	): Promise<BlockInstance[]> {
-		return blocksUtils.loadBlocksFromLastBlockId(
-			this.dataAccess,
-			lastBlockId,
-			limit,
-		);
 	}
 
 	public async getHighestCommonBlock(

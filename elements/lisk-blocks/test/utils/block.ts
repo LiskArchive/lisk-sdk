@@ -131,7 +131,7 @@ const getKeyPair = () => {
 	};
 };
 
-const calculateTransactionsInfo = (block: BlockJSON) => {
+const calculateTransactionsInfo = (block: BlockInstance) => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
 	let totalFee = BigInt(0);
@@ -167,7 +167,9 @@ const calculateTransactionsInfo = (block: BlockJSON) => {
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
+export const newBlock = (
+	block?: Partial<BlockJSON | BlockInstance>,
+): BlockInstance => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
@@ -185,7 +187,7 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 	};
 
 	const transactionsInfo = calculateTransactionsInfo(
-		blockWithDefaultValues as BlockJSON,
+		blockWithDefaultValues as BlockInstance,
 	);
 	const blockWithCalculatedProperties = {
 		...transactionsInfo,

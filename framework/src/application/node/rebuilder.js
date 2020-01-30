@@ -117,7 +117,9 @@ class Rebuilder {
 			}
 		}
 
-		await this.blocksModule.deleteAfter(lastBlock);
+		await this.storage.entities.Block.delete({
+			height_gt: lastBlock.height,
+		});
 
 		return lastBlock;
 	}

@@ -13,39 +13,6 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 
-import { DataAccess } from './data_access';
-
-export const loadBlocksFromLastBlockId = async (
-	dataAccess: DataAccess,
-	lastBlockId: string,
-	limit: number,
-) => {
-	if (!lastBlockId) {
-		throw new Error('lastBlockId needs to be specified');
-	}
-	if (!limit) {
-		throw new Error('Limit needs to be specified');
-	}
-
-	// Get height of block with supplied ID
-	const [lastBlock] = await dataAccess.getBlockHeadersByIDs([lastBlockId]);
-	if (!lastBlock) {
-		throw new Error(`Invalid lastBlockId requested: ${lastBlockId}`);
-	}
-
-	const lastBlockHeight = lastBlock.height;
-
-	// Calculate max block height for database query
-	const fetchUntilHeight = lastBlockHeight + limit;
-
-	const blocks = await dataAccess.getBlocksByHeightBetween(
-		lastBlockHeight + 1,
-		fetchUntilHeight,
-	);
-
-	return blocks;
-};
-
 export const getId = (blockBytes: Buffer): string => {
 	const hashedBlock = hash(blockBytes);
 	// tslint:disable-next-line no-magic-numbers

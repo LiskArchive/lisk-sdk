@@ -80,7 +80,7 @@ export class DataAccess {
 		}
 		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
 
-		return blocks?.map(block => this.deserializeBlockHeader(block));
+		return blocks.map(block => this.deserializeBlockHeader(block));
 	}
 
 	public async getBlockHeaderByHeight(
@@ -114,7 +114,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		return blocks?.map(block => this.deserializeBlockHeader(block));
+		return blocks.map(block => this.deserializeBlockHeader(block));
 	}
 
 	public async getBlockHeadersWithHeights(
@@ -128,11 +128,11 @@ export class DataAccess {
 
 		const blocks = await this._storage.getBlockHeadersWithHeights(heightList);
 
-		return blocks?.map(block => this.deserializeBlockHeader(block));
+		return blocks.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getLastBlockHeader(): Promise<BlockHeader | undefined> {
-		const cachedBlock = this._blocksCache.getLastBlockHeader();
+	public async getLastBlockHeader(): Promise<BlockHeader> {
+		const cachedBlock = this._blocksCache.last;
 
 		if (cachedBlock) {
 			return cachedBlock;
@@ -140,15 +140,14 @@ export class DataAccess {
 
 		const block = await this._storage.getLastBlockHeader();
 
-		return block && this.deserializeBlockHeader(block);
+		return this.deserializeBlockHeader(block);
 	}
 
 	public async getLastCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockHeader | undefined> {
-		const cachedBlock = this._blocksCache.getLastCommonBlockHeader(
-			arrayOfBlockIds,
-		);
+		const blocks = this._blocksCache.getByIDs(arrayOfBlockIds);
+		const cachedBlock = blocks[blocks.length - 1];
 
 		if (cachedBlock) {
 			return cachedBlock;
@@ -156,7 +155,7 @@ export class DataAccess {
 
 		const block = await this._storage.getLastCommonBlockHeader(arrayOfBlockIds);
 
-		return block && this.deserializeBlockHeader(block);
+		return block ? this.deserializeBlockHeader(block) : undefined;
 	}
 
 	/** Begin: BlockHeaders */
@@ -169,10 +168,10 @@ export class DataAccess {
 		return blocksCount;
 	}
 
-	public async getBlockByID(id: string): Promise<BlockInstance> {
+	public async getBlockByID(id: string): Promise<BlockInstance | undefined> {
 		const blockJSON = await this._storage.getBlockByID(id);
 
-		return this.deserialize(blockJSON);
+		return blockJSON ? this.deserialize(blockJSON) : undefined;
 	}
 
 	public async getBlocksByIDs(
@@ -180,7 +179,7 @@ export class DataAccess {
 	): Promise<BlockInstance[]> {
 		const blocks = await this._storage.getBlocksByIDs(arrayOfBlockIds);
 
-		return blocks?.map(block => this.deserialize(block));
+		return blocks.map(block => this.deserialize(block));
 	}
 
 	public async getBlockByHeight(
@@ -188,7 +187,7 @@ export class DataAccess {
 	): Promise<BlockHeader | undefined> {
 		const block = await this._storage.getBlockByHeight(height);
 
-		return block && this.deserialize(block);
+		return block ? this.deserialize(block) : undefined;
 	}
 
 	public async getBlocksByHeightBetween(
@@ -200,7 +199,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		return blocks?.map(block => this.deserialize(block));
+		return blocks.map(block => this.deserialize(block));
 	}
 
 	public async getBlocksWithLimitAndOffset(
