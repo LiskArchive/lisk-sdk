@@ -565,7 +565,7 @@ class Application {
 		const node = new Node({
 			channel: this.channel,
 			options: {
-				...this.config.modules.chain, // TODO: Will change it in upcoming PR
+				...this.config.app.node,
 				genesisBlock: this.genesisBlock,
 				constants: this.constants,
 				registeredTransactions: this.getTransactions(),
