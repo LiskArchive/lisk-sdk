@@ -106,7 +106,7 @@ describe('fast_chain_switching_mechanism', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
-		blocksModule.getTempBlocks = jest.fn();
+		blocksModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
 			storage: storageMock,
@@ -897,7 +897,9 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 				];
 
-				blocksModule.getTempBlocks.mockResolvedValue(blocksInTempTable);
+				blocksModule.dataAccess.getTempBlocks.mockResolvedValue(
+					blocksInTempTable,
+				);
 
 				const processingError = new Errors.BlockProcessingError();
 				processorModule.processValidated.mockRejectedValueOnce(processingError);

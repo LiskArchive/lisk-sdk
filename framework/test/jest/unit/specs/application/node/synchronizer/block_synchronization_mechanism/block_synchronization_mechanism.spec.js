@@ -123,7 +123,7 @@ describe('block_synchronization_mechanism', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
-		blocksModule.getTempBlocks = jest.fn();
+		blocksModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
 			storage: storageMock,
@@ -983,7 +983,7 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValueOnce(newBlock({ height: 2 }))
 						.mockResolvedValueOnce(newBlock({ height: 1 }));
 
-					when(blocksModule.getTempBlocks)
+					when(blocksModule.dataAccess.getTempBlocks)
 						.calledWith(
 							{},
 							{
