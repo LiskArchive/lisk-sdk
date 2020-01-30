@@ -335,8 +335,8 @@ class Network {
 
 		const enableForgingPromises = [];
 		this.configurations.forEach(configuration => {
-			configuration.modules.chain.forging.delegates
-				.filter(() => !configuration.modules.chain.forging.force)
+			configuration.app.node.forging.delegates
+				.filter(() => !configuration.app.node.forging.force)
 				.map(keys => {
 					const enableForgingPromise = utils.http.enableForging({
 						keys,

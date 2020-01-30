@@ -4,23 +4,8 @@
 			"REWARDS": {
 				"OFFSET": 1451520
 			}
-		}
-	},
-	"components": {
-		"logger": {
-			"logFileName": "logs/mainnet/lisk.log"
 		},
-		"storage": {
-			"database": "lisk_main",
-			"logFileName": "logs/mainnet/lisk_db.log"
-		},
-		"cache": {}
-	},
-	"modules": {
-		"http_api": {
-			"httpPort": 8000
-		},
-		"chain": {
+		"node": {
 			"exceptions": {
 				"rounds": {
 					"27040": {
@@ -185,6 +170,21 @@
 				}
 			],
 			"wsPort": 8001
+		}
+	},
+	"components": {
+		"logger": {
+			"logFileName": "logs/mainnet/lisk.log"
+		},
+		"storage": {
+			"database": "lisk_main",
+			"logFileName": "logs/mainnet/lisk_db.log"
+		},
+		"cache": {}
+	},
+	"modules": {
+		"http_api": {
+			"httpPort": 8000
 		}
 	}
 }
