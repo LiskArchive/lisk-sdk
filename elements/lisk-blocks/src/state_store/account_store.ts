@@ -108,9 +108,10 @@ export class AccountStore {
 			{ limit: null },
 			this._tx,
 		);
-		this._data.push(elementFromDB);
 
 		if (elementFromDB) {
+			this._data.push(elementFromDB);
+
 			return cloneDeep(elementFromDB);
 		}
 

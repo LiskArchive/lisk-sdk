@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { when } from 'jest-when';
 import { StateStore } from '../../src';
 
 describe('state store / account', () => {
@@ -91,6 +92,7 @@ describe('state store / account', () => {
 		beforeEach(async () => {
 			// Arrange
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
+
 			const filter = [
 				{ address: defaultAccounts[0].address },
 				{ address: defaultAccounts[1].address },
@@ -106,6 +108,9 @@ describe('state store / account', () => {
 		});
 
 		it('should throw an error if not exist', async () => {
+			when(storageStub.entities.Account.get)
+				.calledWith({ address: '123L' })
+				.mockResolvedValue([] as never);
 			// Act && Assert
 			await expect(stateStore.account.get('123L')).rejects.toThrow(
 				'does not exist',
