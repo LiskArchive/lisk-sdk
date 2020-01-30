@@ -25,7 +25,7 @@ import {
 	TempBlock,
 } from '../types';
 
-import { Blocks as BlocksCache } from './cache';
+import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
 import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 
@@ -38,7 +38,7 @@ interface DAConstructor {
 }
 export class DataAccess {
 	private readonly _storage: StorageAccess;
-	private readonly _blocksCache: BlocksCache;
+	private readonly _blocksCache: BlockCache;
 	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 
 	public constructor({
@@ -47,7 +47,7 @@ export class DataAccess {
 		registeredTransactions,
 	}: DAConstructor) {
 		this._storage = new StorageAccess(dbStorage);
-		this._blocksCache = new BlocksCache();
+		this._blocksCache = new BlockCache();
 		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
@@ -58,11 +58,18 @@ export class DataAccess {
 		return this._blocksCache.add(blockHeader);
 	}
 
-	public get transactionAdapter(): TransactionInterfaceAdapter {
-		return this._transactionAdapter;
+	/** Begin: BlockHeaders */
+	public async getBlockHeaderByID(id: string): Promise<BlockHeader> {
+		const cachedBlock = this._blocksCache.getByID(id);
+
+		if (cachedBlock) {
+			return cachedBlock;
+		}
+		const blockJSON = await this._storage.getBlockHeaderByID(id);
+
+		return this.deserializeBlockHeader(blockJSON);
 	}
 
-	/** Begin: BlockHeaders */
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockHeader[]> {
@@ -160,6 +167,12 @@ export class DataAccess {
 		const blocksCount = await this._storage.getBlocksCount();
 
 		return blocksCount;
+	}
+
+	public async getBlockByID(id: string): Promise<BlockInstance> {
+		const blockJSON = await this._storage.getBlockByID(id);
+
+		return this.deserialize(blockJSON);
 	}
 
 	public async getBlocksByIDs(

@@ -28,12 +28,11 @@ import {
 import {
 	applyConfirmedGenesisStep,
 	applyConfirmedStep,
-	deleteFromBlockId,
 	deleteLastBlock,
 	saveBlock,
 	undoConfirmedStep,
 } from './chain';
-import { DataAccess, TransactionInterfaceAdapter } from './data_access';
+import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
@@ -109,7 +108,7 @@ export class Blocks extends EventEmitter {
 	private readonly logger: Logger;
 	private readonly storage: Storage;
 	private readonly dataAccess: DataAccess;
-	private readonly slots: Slots;
+	public readonly slots: Slots;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockInstance;
@@ -127,15 +126,6 @@ export class Blocks extends EventEmitter {
 	public readonly blockReward: {
 		readonly [key: string]: (height: number) => number | bigint;
 	};
-	public readonly deserialize: (blockJSON: BlockJSON) => BlockInstance;
-	public readonly serialize: (blockInstance: BlockInstance) => BlockJSON;
-	public readonly deserializeBlockHeader: (
-		blockHeader: BlockHeaderJSON,
-	) => BlockHeader;
-	public readonly deserializeTransaction: (
-		transactionJSON: TransactionJSON,
-	) => BaseTransaction;
-	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 
 	public constructor({
 		// Components
@@ -171,15 +161,7 @@ export class Blocks extends EventEmitter {
 			registeredTransactions,
 		});
 
-		// Binding data access to allow access to its scope accessibility
-		this._transactionAdapter = this.dataAccess.transactionAdapter;
-		this.deserialize = this.dataAccess.deserialize.bind(this);
-		this.serialize = this.dataAccess.serialize;
-		this.deserializeBlockHeader = this.dataAccess.deserializeBlockHeader;
-		this.deserializeTransaction = this.dataAccess.deserializeTransaction.bind(
-			this,
-		);
-		const genesisInstance = this.deserialize(genesisBlock);
+		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
 		this._lastBlock = genesisInstance;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
@@ -215,15 +197,29 @@ export class Blocks extends EventEmitter {
 		});
 	}
 
-	public get transactionAdapter(): TransactionInterfaceAdapter {
-		return this._transactionAdapter;
-	}
-
 	public get lastBlock(): BlockInstance {
 		// Remove receivedAt property..
 		const { receivedAt, ...block } = this._lastBlock;
 
 		return block;
+	}
+
+	public deserialize(blockJSON: BlockJSON): BlockInstance {
+		return this.dataAccess.deserialize(blockJSON);
+	}
+
+	public serialize(blockJSON: BlockInstance): BlockJSON {
+		return this.dataAccess.serialize(blockJSON);
+	}
+
+	public deserializeBlockHeader(blockJSON: BlockHeaderJSON): BlockHeader {
+		return this.dataAccess.deserializeBlockHeader(blockJSON);
+	}
+
+	public deserializeTransaction(
+		transactionJSON: TransactionJSON,
+	): BaseTransaction {
+		return this.dataAccess.deserializeTransaction(transactionJSON);
 	}
 
 	public async init(): Promise<void> {
@@ -234,9 +230,9 @@ export class Blocks extends EventEmitter {
 			throw new Error('Failed to load genesis block');
 		}
 
-		const isGenesisBlock = this.blocksVerify.matchGenesisBlock(genesisBlock);
+		const genesisBlockMatch = this.blocksVerify.matchGenesisBlock(genesisBlock);
 
-		if (!isGenesisBlock) {
+		if (!genesisBlockMatch) {
 			throw new Error('Genesis block does not match');
 		}
 
@@ -344,11 +340,13 @@ export class Blocks extends EventEmitter {
 		block: BlockInstance,
 		blockJSON: BlockJSON,
 		{ saveTempBlock } = { saveTempBlock: false },
+		tx: StorageTransaction,
 	): Promise<void> {
 		const secondLastBlock = await deleteLastBlock(
 			this.storage,
 			this.dataAccess,
 			block,
+			tx,
 		);
 
 		if (saveTempBlock) {
@@ -357,7 +355,7 @@ export class Blocks extends EventEmitter {
 				height: blockJSON.height,
 				fullBlock: blockJSON,
 			};
-			await this.storage.entities.TempBlock.create(blockTempEntry, {});
+			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
 		this._lastBlock = secondLastBlock;
 	}
@@ -369,12 +367,6 @@ export class Blocks extends EventEmitter {
 		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
 	}
 
-	public async getTempBlocks(): Promise<TempBlock[]> {
-		const tempBlocks = await this.dataAccess.getTempBlocks();
-
-		return tempBlocks;
-	}
-
 	public async exists(block: BlockInstance): Promise<boolean> {
 		try {
 			await verifyBlockNotExists(this.storage, block);
@@ -383,10 +375,6 @@ export class Blocks extends EventEmitter {
 		} catch (err) {
 			return true;
 		}
-	}
-
-	public async deleteAfter(block: BlockInstance): Promise<void> {
-		return deleteFromBlockId(this.storage, this.dataAccess, block.id);
 	}
 
 	public async getBlocksWithLimitAndOffset(
@@ -426,8 +414,8 @@ export class Blocks extends EventEmitter {
 	): Promise<BlockHeader | undefined> {
 		try {
 			const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-			const sortedBlocks = [...blocks].sort((a: BlockHeader, b: BlockHeader) =>
-				a.height > b.height ? -1 : 1,
+			const sortedBlocks = [...blocks].sort(
+				(a: BlockHeader, b: BlockHeader) => b.height - a.height,
 			);
 			const highestCommonBlock = sortedBlocks.shift();
 

@@ -51,33 +51,39 @@ export const deleteLastBlock = async (
 	storage: Storage,
 	dataAccess: DataAccess,
 	lastBlock: BlockInstance,
+	tx: StorageTransaction,
 ): Promise<BlockInstance> => {
 	if (lastBlock.height === 1) {
 		throw new Error('Cannot delete genesis block');
 	}
-	const [storageBlock] = await dataAccess.getBlocksByIDs([
+	const block = await dataAccess.getBlockByID(
 		lastBlock.previousBlockId as string,
-	]);
+	);
 
-	if (!storageBlock) {
+	if (!block) {
 		throw new Error('PreviousBlock is null');
 	}
 
-	await storage.entities.Block.delete({ id: lastBlock.id }, {});
+	await storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
 
-	return storageBlock;
+	return block;
 };
 
-export const deleteFromBlockId = async (
+export const deleteBlocksAfterBlockId = async (
 	storage: Storage,
 	dataAccess: DataAccess,
 	blockId: string,
+	tx: StorageTransaction,
 ) => {
-	const [block] = await dataAccess.getBlockHeadersByIDs([blockId]);
+	const block = await dataAccess.getBlockHeaderByID(blockId);
 
-	return storage.entities.Block.delete({
-		height_gt: block.height,
-	});
+	return storage.entities.Block.delete(
+		{
+			height_gt: block.height,
+		},
+		{},
+		tx,
+	);
 };
 
 export const applyConfirmedStep = async (

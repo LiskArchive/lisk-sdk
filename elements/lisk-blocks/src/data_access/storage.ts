@@ -34,12 +34,18 @@ export class Storage {
 		Block headers
 	*/
 
+	public async getBlockHeaderByID(id: string): Promise<BlockJSON> {
+		const blocks = await this._storage.entities.Block.getOne({ id });
+
+		return blocks;
+	}
+
 	public async getBlockHeadersByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{ id_in: arrayOfBlockIds },
-			{},
+			{ limit: arrayOfBlockIds.length },
 		);
 
 		return blocks;
@@ -110,6 +116,15 @@ export class Storage {
 	/*
 		Extended blocks with transaction payload
 	*/
+
+	public async getBlockByID(id: string): Promise<BlockJSON> {
+		const block = await this._storage.entities.Block.getOne(
+			{ id },
+			{ extended: true },
+		);
+
+		return block;
+	}
 
 	public async getBlocksByIDs(
 		arrayOfBlockIds: ReadonlyArray<string>,
