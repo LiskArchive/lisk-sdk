@@ -71,8 +71,8 @@ export type BlockRound = Pick<BlockHeaderJSON, 'id' | 'height'> & {
 };
 
 export interface BlockJSON extends BlockHeaderJSON {
-	// tslint:disable-next-line no-any readonly-keyword
-	transactions: any[];
+	// tslint:disable-next-line readonly-keyword
+	transactions: ReadonlyArray<TransactionJSON>;
 }
 
 type Modify<T, R> = Omit<T, keyof R> & R;
@@ -241,57 +241,6 @@ export interface Storage {
 		readonly TempBlock: TempBlockStorageEntity;
 		readonly RoundDelegates: RoundDelegatesEntity;
 	};
-}
-
-export interface StorageAccess {
-	readonly getBlockHeadersByIDs: (
-		arrayOfBlockIds: Readonly<string>,
-	) => Promise<BlockJSON[]>;
-	readonly getBlockHeadersByHeightBetween: (
-		fromHeight: number,
-		toHeight: number,
-	) => Promise<BlockJSON[]>;
-	readonly getBlockHeadersWithHeights: (
-		heightList: ReadonlyArray<number>,
-	) => Promise<BlockJSON[]>;
-	readonly getBlockHeadersWithInterval: (
-		fromHeight: number,
-		toHeight: number,
-		numberOfActiveDelegates: number,
-	) => Promise<BlockJSON[]>;
-	readonly getLastBlockHeader: () => Promise<BlockJSON>;
-	readonly getLastCommonBlockHeader: (
-		arrayOfBlockIds: ReadonlyArray<string>,
-	) => Promise<BlockJSON>;
-	readonly getBlockCount: () => Promise<number>;
-	readonly getExtendedBlocksById: (
-		arrayOfBlockIds: ReadonlyArray<string>,
-	) => Promise<BlockJSON[]>;
-	readonly getExtendedBlocksByHeightBetween: (
-		fromHeight: number,
-		toHeight: number,
-	) => Promise<BlockJSON[]>;
-	readonly getExtendedLastBlock: () => Promise<BlockJSON>;
-	readonly getTempBlocks: (tx: StorageTransaction) => Promise<TempBlock[]>;
-	readonly isTempBlockEmpty: () => Promise<boolean>;
-	readonly clearTempBlocks: () => void;
-	readonly getFirstBlockIdWithInterval: () => Promise<
-		Array<Partial<BlockJSON>>
-	>;
-	readonly getAccountsByPublicKey: (
-		arrayOfPublicKeys: ReadonlyArray<string>,
-		tx?: StorageTransaction,
-	) => Promise<Account[]>;
-	readonly getAccountsByAddress: (
-		arrayOfAddresses: ReadonlyArray<string>,
-		tx?: StorageTransaction,
-	) => Promise<Account[]>;
-	readonly getDelegateAccounts: (tx?: StorageTransaction) => Promise<Account[]>;
-	readonly getTransactionsByIDs: (
-		arrayOfTransactionIds: ReadonlyArray<string>,
-	) => Promise<TransactionJSON[]>;
-	readonly isTransactionPersisted: (transactionId: string) => Promise<boolean>;
-	readonly resetAccountMemTables: () => Promise<void>;
 }
 
 export interface ExceptionOptions {
