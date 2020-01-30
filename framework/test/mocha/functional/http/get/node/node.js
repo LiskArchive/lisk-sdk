@@ -127,7 +127,7 @@ describe('GET /node', () => {
 			it('using no params should return full list of internal forgers', async () => {
 				return forgingEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.app.node.forging.delegates.length,
 					);
 				});
 			});
@@ -150,7 +150,7 @@ describe('GET /node', () => {
 
 			it('using existing publicKey should be ok', async () => {
 				const publicKey =
-					__testContext.config.modules.chain.forging.delegates[0].publicKey;
+					__testContext.config.app.node.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data).to.have.length(1);
@@ -160,7 +160,7 @@ describe('GET /node', () => {
 
 			it('using available publicKey should be ok', async () => {
 				const publicKey =
-					__testContext.config.modules.chain.forging.delegates[0].publicKey;
+					__testContext.config.app.node.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
@@ -177,7 +177,7 @@ describe('GET /node', () => {
 			it('should return only forging delegates', async () => {
 				return forgingEndpoint.makeRequest({ forging: true }, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.app.node.forging.delegates.length,
 					);
 					expect(
 						res.body.data.filter(d => d.forging === false).length,

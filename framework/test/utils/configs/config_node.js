@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,8 +14,17 @@
 
 'use strict';
 
-const config = require('./config');
+const {
+	default: {
+		app: { node: defaultNodeConfig },
+	},
+} = require('../../../src/application/schema/application_config_schema');
+
+const nodeConfig = (overriddenConfigProperties = {}) => ({
+	...defaultNodeConfig,
+	...overriddenConfigProperties,
+});
 
 module.exports = {
-	config,
+	nodeConfig,
 };
