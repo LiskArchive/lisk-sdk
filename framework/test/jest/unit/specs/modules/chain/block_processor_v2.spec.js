@@ -109,6 +109,7 @@ describe('block processor v2', () => {
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
 				'maxHeightPreviouslyForged',
 			);
+			// previousBlock.height + 1
 			expect(block.maxHeightPreviouslyForged).toBe(0);
 		});
 
@@ -135,7 +136,38 @@ describe('block processor v2', () => {
 			expect(block.maxHeightPreviouslyForged).toBe(previouslyForgedHeight);
 		});
 
-		it('should set maxPreviouslyForgedHeight to previously forged height', async () => {
+		it('should update maxPreviouslyForgedHeight to the next higher one but not change for other delegates', async () => {
+			// Arrange
+			const list = {
+				[defaultKeyPair.publicKey.toString('hex')]: 5,
+				a: 4,
+				b: 6,
+				c: 7,
+				x: 8,
+			};
+			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
+				JSON.stringify(list),
+			);
+			// Act
+			block = await blockProcessor.create.run({
+				keypair: defaultKeyPair,
+				timestamp: 10,
+				transactions: [],
+				previousBlock: {
+					height: 10,
+				},
+			});
+			const maxHeightResult = JSON.stringify({
+				...list,
+				[defaultKeyPair.publicKey.toString('hex')]: 11,
+			});
+			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				'maxHeightPreviouslyForged',
+				maxHeightResult,
+			);
+		});
+
+		it('should set maxPreviouslyForgedHeight to forging height', async () => {
 			// Act
 			block = await blockProcessor.create.run({
 				keypair: defaultKeyPair,
@@ -152,6 +184,25 @@ describe('block processor v2', () => {
 				'maxHeightPreviouslyForged',
 				maxHeightResult,
 			);
+		});
+
+		it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {
+			// Arrange
+			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
+				JSON.stringify({
+					[defaultKeyPair.publicKey.toString('hex')]: 15,
+				}),
+			);
+			// Act
+			block = await blockProcessor.create.run({
+				keypair: defaultKeyPair,
+				timestamp: 10,
+				transactions: [],
+				previousBlock: {
+					height: 10,
+				},
+			});
+			expect(storageStub.entities.ForgerInfo.setKey).not.toHaveBeenCalled();
 		});
 
 		it('should return a block', async () => {

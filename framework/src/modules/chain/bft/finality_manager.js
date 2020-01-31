@@ -304,10 +304,31 @@ class FinalityManager extends EventEmitter {
 			return true;
 		}
 
+		// Order the two block headers such that earlierBlock must be forged first
+		let earlierBlock = delegateLastBlock;
+		let laterBlock = blockHeader;
+		const higherMaxHeightPreviouslyForgerd =
+			earlierBlock.maxHeightPreviouslyForged >
+			laterBlock.maxHeightPreviouslyForged;
+		const sameMaxHeightPreviouslyForgerd =
+			earlierBlock.maxHeightPreviouslyForged ===
+			laterBlock.maxHeightPreviouslyForged;
+		const higherMaxHeightPrevoted =
+			earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted;
+		const sameMaxHeightPrevoted =
+			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted;
+		const higherHeight = earlierBlock.height > laterBlock.height;
 		if (
-			delegateLastBlock.maxHeightPreviouslyForged ===
-				blockHeader.maxHeightPreviouslyForged &&
-			delegateLastBlock.height >= blockHeader.height
+			higherMaxHeightPreviouslyForgerd ||
+			(sameMaxHeightPreviouslyForgerd && higherMaxHeightPrevoted) ||
+			(sameMaxHeightPreviouslyForgerd && sameMaxHeightPrevoted && higherHeight)
+		) {
+			[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
+		}
+
+		if (
+			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted &&
+			earlierBlock.height >= laterBlock.height
 		) {
 			// Violation of the fork choice rule as delegate moved to different chain
 			// without strictly larger maxHeightPreviouslyForged or larger height as
@@ -315,11 +336,11 @@ class FinalityManager extends EventEmitter {
 			throw new BFTForkChoiceRuleError();
 		}
 
-		if (delegateLastBlock.height > blockHeader.maxHeightPreviouslyForged) {
+		if (earlierBlock.height > laterBlock.maxHeightPreviouslyForged) {
 			throw new BFTChainDisjointError();
 		}
 
-		if (delegateLastBlock.maxHeightPrevoted > blockHeader.maxHeightPrevoted) {
+		if (earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted) {
 			throw new BFTLowerChainBranchError();
 		}
 

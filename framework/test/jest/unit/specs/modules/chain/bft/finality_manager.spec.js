@@ -130,16 +130,18 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if same delegate forged block on different height', async () => {
-				const maxHeightPreviouslyForged = 10;
+				const maxHeightPrevoted = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
 					delegatePublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					maxHeightPreviouslyForged: 5,
+					maxHeightPrevoted,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
 					delegatePublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					maxHeightPrevoted,
+					maxHeightPreviouslyForged: 6,
 					height: 9,
 				});
 
