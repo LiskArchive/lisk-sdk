@@ -44,6 +44,7 @@ describe('delegate', () => {
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 			]);
 		}).then(async () => {
+			library.modules.blocks.resetBlockHeaderCache();
 			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			done();
 		});

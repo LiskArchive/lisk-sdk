@@ -20,6 +20,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+import { DataAccess } from '../data_access';
 import { Slots } from '../slots';
 import { StateStore } from '../state_store';
 import {
@@ -27,7 +28,6 @@ import {
 	ExceptionOptions,
 	MatcherTransaction,
 	SignatureObject,
-	Storage,
 	WriteableTransactionResponse,
 } from '../types';
 
@@ -97,7 +97,7 @@ export const verifyTotalSpending = async (
 		// Initialize the sender spending with zero
 		senderSpending[senderId] = BigInt(0);
 
-		senderTransactions[senderId].forEach(transaction => {
+		senderTransactions[senderId].forEach((transaction: BaseTransaction) => {
 			const senderTotalSpending =
 				senderSpending[senderId] +
 				// tslint:disable-next-line no-any
@@ -211,7 +211,7 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	};
 };
 
-export const checkPersistedTransactions = (storage: Storage) => async (
+export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 ) => {
 	if (!transactions.length) {
@@ -220,12 +220,12 @@ export const checkPersistedTransactions = (storage: Storage) => async (
 		};
 	}
 
-	const confirmedTransactions = await storage.entities.Transaction.get({
-		id_in: transactions.map(transaction => transaction.id),
-	});
+	const confirmedTransactions = await dataAccess.getTransactionsByIDs(
+		transactions.map(transaction => transaction.id),
+	);
 
 	const persistedTransactionIds = confirmedTransactions.map(
-		transaction => transaction.id,
+		(transaction: TransactionJSON) => transaction.id,
 	);
 	const persistedTransactions = transactions.filter(transaction =>
 		persistedTransactionIds.includes(transaction.id),

@@ -124,7 +124,7 @@ describe('block_synchronization_mechanism', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
-		blocksModule.getTempBlocks = jest.fn();
+		blocksModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
 			storage: storageMock,
@@ -191,6 +191,15 @@ describe('block_synchronization_mechanism', () => {
 		// blocksModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 		const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
+		when(storageMock.entities.Block.get)
+			.calledWith(
+				{ height_gte: 1, height_lte: 2 },
+				{ limit: null, sort: 'height:desc' },
+			)
+			.mockResolvedValue([lastBlock]);
+		when(storageMock.entities.Block.get)
+			.calledWith({ height: 1 }, { extended: true })
+			.mockResolvedValue([genesisBlockDevnet]);
 		when(storageMock.entities.Block.get)
 			.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 			.mockResolvedValue([lastBlock]);
@@ -655,6 +664,13 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 						.mockResolvedValue([lastBlock]);
 
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{ height_gte: 1501, height_lte: 2001 },
+							{ limit: null, sort: 'height:desc' },
+						)
+						.mockResolvedValue([]);
+
 					// BFT loads blocks from storage and extracts their headers
 					when(storageMock.entities.Block.get)
 						.calledWith(
@@ -981,7 +997,7 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValueOnce(newBlock({ height: 2 }))
 						.mockResolvedValueOnce(newBlock({ height: 1 }));
 
-					when(blocksModule.getTempBlocks)
+					when(blocksModule.dataAccess.getTempBlocks)
 						.calledWith(
 							{},
 							{

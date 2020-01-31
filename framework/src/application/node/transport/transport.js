@@ -118,7 +118,25 @@ class Transport {
 			throw new Error(error);
 		}
 
-		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);
+		// Get height of block with supplied ID
+		const lastBlock = await this.blocksModule.dataAccess.getBlockHeaderByID(
+			data.blockId,
+		);
+		if (!lastBlock) {
+			throw new Error(`Invalid blockId requested: ${data.blockId}`);
+		}
+
+		const lastBlockHeight = lastBlock.height;
+
+		// Calculate max block height for database query
+		const fetchUntilHeight = lastBlockHeight + 34;
+
+		const blocks = await this.blocksModule.dataAccess.getBlocksByHeightBetween(
+			lastBlockHeight + 1,
+			fetchUntilHeight,
+		);
+
+		return blocks && blocks.map(block => this.blocksModule.serialize(block));
 	}
 
 	async handleRPCGetGetHighestCommonBlock(data, peerId) {

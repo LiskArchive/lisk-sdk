@@ -127,6 +127,7 @@ describe('blocks/verify', () => {
 
 	afterEach(() => {
 		library.modules.blocks._lastBlock = genesisBlock;
+		library.modules.blocks.resetBlockHeaderCache();
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
@@ -245,10 +246,6 @@ describe('blocks/verify', () => {
 	describe('verifyReceipt', () => {});
 
 	describe('verifyBlock', () => {});
-
-	describe('addBlockProperties', () => {});
-
-	describe('deleteBlockProperties', () => {});
 
 	// Sends a block to network, save it locally
 	describe('processBlock for valid block {broadcast: true, saveBlock: true}', () => {

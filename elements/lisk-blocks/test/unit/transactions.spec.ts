@@ -140,14 +140,14 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
+				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -269,14 +269,14 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
+				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -413,14 +413,14 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any)._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any)._transactionAdapter._transactionClassMap.set(
+				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
