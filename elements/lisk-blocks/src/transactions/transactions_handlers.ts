@@ -87,7 +87,7 @@ export const verifyTotalSpending = async (
 		// tslint:disable-next-line no-magic-numbers
 		if (senderTransactions[senderId].length < 2) {
 			// tslint:disable-next-line: return-undefined
-			break;
+			continue;
 		}
 
 		// Grab the sender balance
