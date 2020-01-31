@@ -35,7 +35,7 @@ interface DAConstructor {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	readonly maxBlockHeaderCache: number;
+	readonly maxBlockHeaderCache?: number;
 }
 
 export class DataAccess {

@@ -110,7 +110,6 @@ describe('blocks/header', () => {
 			slots,
 			exceptions,
 			...constants,
-			maxBlockHeaderCache: 500,
 		});
 		(blocksInstance as any)._lastBlock = {
 			...genesisBlock,

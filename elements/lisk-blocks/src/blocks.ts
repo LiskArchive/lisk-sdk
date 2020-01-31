@@ -101,7 +101,7 @@ interface BlocksConfig {
 	readonly rewardMileStones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
-	readonly maxBlockHeaderCache: number;
+	readonly maxBlockHeaderCache?: number;
 }
 
 const debug = Debug('lisk:blocks');

@@ -169,6 +169,12 @@ describe('Synchronizer', () => {
 			when(storageMock.entities.Account.get)
 				.calledWith({ isDelegate: true }, { limit: null })
 				.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
+			when(storageMock.entities.Block.get)
+				.calledWith(
+					{ height_gte: 1, height_lte: 2 },
+					{ limit: null, sort: 'height:desc' },
+				)
+				.mockResolvedValue([]);
 		});
 
 		describe('given that the blocks temporary table is not empty', () => {
@@ -198,6 +204,12 @@ describe('Synchronizer', () => {
 					blocksTempTableEntries,
 				);
 				// To load storage tip block into lastBlock in memory variable
+				when(storageMock.entities.Block.get)
+					.calledWith(
+						{ height_gte: 1, height_lte: 4 },
+						{ limit: null, sort: 'height:desc' },
+					)
+					.mockResolvedValue([initialLastBlock]);
 				when(storageMock.entities.Block.get)
 					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 					.mockResolvedValue([initialLastBlock]);
@@ -367,6 +379,7 @@ describe('Synchronizer', () => {
 				blocksTempTableEntries,
 			);
 			// To load storage tip block into lastBlock in memory variable
+			// tslint:disable-next-line:no-null-keyword
 			when(storageMock.entities.Block.get)
 				.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 				.mockResolvedValue([initialLastBlock]);

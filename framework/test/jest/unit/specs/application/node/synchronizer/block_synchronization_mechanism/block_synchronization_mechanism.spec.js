@@ -191,6 +191,12 @@ describe('block_synchronization_mechanism', () => {
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 		const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
 		when(storageMock.entities.Block.get)
+			.calledWith(
+				{ height_gte: 1, height_lte: 2 },
+				{ limit: null, sort: 'height:desc' },
+			)
+			.mockResolvedValue([lastBlock]);
+		when(storageMock.entities.Block.get)
 			.calledWith({ height: 1 }, { extended: true })
 			.mockResolvedValue([genesisBlockDevnet]);
 		when(storageMock.entities.Block.get)
@@ -656,6 +662,13 @@ describe('block_synchronization_mechanism', () => {
 					when(storageMock.entities.Block.get)
 						.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 						.mockResolvedValue([lastBlock]);
+
+					when(storageMock.entities.Block.get)
+						.calledWith(
+							{ height_gte: 1501, height_lte: 2001 },
+							{ limit: null, sort: 'height:desc' },
+						)
+						.mockResolvedValue([]);
 
 					// BFT loads blocks from storage and extracts their headers
 					when(storageMock.entities.Block.get)
