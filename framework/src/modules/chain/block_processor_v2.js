@@ -281,12 +281,16 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.create.pipe([
 			// Create a block with with basic block and bft properties
 			async data => {
-				const previouslyForged = await this._getPreviouslyForgedMap();
+				const previouslyForgedMap = await this._getPreviouslyForgedMap();
 				const delegatePublicKey = data.keypair.publicKey.toString('hex');
+				const height = data.previousBlock.height + 1;
+				const previousBlockId = data.previousBlock.id;
 				const maxHeightPreviouslyForged =
-					previouslyForged[delegatePublicKey] || 0;
+					previouslyForgedMap[delegatePublicKey] || height;
 				const block = this._create({
 					...data,
+					height,
+					previousBlockId,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
 				});
@@ -294,6 +298,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				await this._saveMaxHeightPreviouslyForged(
 					block.generatorPublicKey,
 					block.height,
+					previouslyForgedMap,
 				);
 				return block;
 			},
@@ -307,15 +312,14 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 	_create({
 		transactions,
-		previousBlock,
+		height,
+		previousBlockId,
 		keypair,
 		timestamp,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
 	}) {
-		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
-
-		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
+		const reward = this.blocksModule.blockReward.calculateReward(height);
 		let totalFee = new BigNum(0);
 		let totalAmount = new BigNum(0);
 		let size = 0;
@@ -353,10 +357,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
-			previousBlockId: previousBlock.id,
+			previousBlockId,
 			generatorPublicKey: keypair.publicKey.toString('hex'),
 			transactions: blockTransactions,
-			height: nextHeight,
+			height,
 			maxHeightPreviouslyForged,
 			maxHeightPrevoted,
 		};
@@ -386,8 +390,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
 	 * so it needs to be outside of the DB transaction
 	 */
-	async _saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
-		const previouslyForgedMap = await this._getPreviouslyForgedMap();
+	async _saveMaxHeightPreviouslyForged(
+		delegatePublicKey,
+		height,
+		previouslyForgedMap,
+	) {
+		// In order to compare with the minimum height in case of the first block, here it should be 0
 		const previouslyForgedHeightByDelegate =
 			previouslyForgedMap[delegatePublicKey] || 0;
 		// previously forged height only saves maximum forged height
