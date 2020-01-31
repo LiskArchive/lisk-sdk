@@ -17,6 +17,7 @@
 const assert = require('assert');
 const debug = require('debug')('lisk:bft:consensus_manager');
 const EventEmitter = require('events');
+const { BFT_ROUND_THRESHOLD } = require('./constant');
 const { HeadersList } = require('./headers_list');
 const { validateBlockHeader } = require('./utils');
 const {
@@ -45,7 +46,7 @@ class FinalityManager extends EventEmitter {
 		this.preCommitThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
 		// Limit for blocks to make perform verification or pre-vote/pre-commit (1 block less than 3 rounds)
-		this.processingThreshold = this.activeDelegates * 3 - 1;
+		this.processingThreshold = this.activeDelegates * BFT_ROUND_THRESHOLD - 1;
 
 		// Maximum headers to store (5 rounds)
 		this.maxHeaders = this.activeDelegates * 5;

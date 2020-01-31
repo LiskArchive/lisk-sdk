@@ -112,6 +112,10 @@ class HeadersList {
 	top(size) {
 		assert(size, 'Please provide the size');
 
+		if (this.length <= size) {
+			return [...this._items];
+		}
+
 		return this.items.slice(this.length - size, this.length + 1);
 	}
 
