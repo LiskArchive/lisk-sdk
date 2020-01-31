@@ -307,19 +307,23 @@ class FinalityManager extends EventEmitter {
 		// Order the two block headers such that earlierBlock must be forged first
 		let earlierBlock = delegateLastBlock;
 		let laterBlock = blockHeader;
-		if (
+		const higherMaxHeightPreviouslyForgerd =
 			earlierBlock.maxHeightPreviouslyForged >
-				laterBlock.maxHeightPreviouslyForged ||
-			(earlierBlock.maxHeightPreviouslyForged ===
-				laterBlock.maxHeightPreviouslyForged &&
-				earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted) ||
-			(earlierBlock.maxHeightPreviouslyForged ===
-				laterBlock.maxHeightPreviouslyForged &&
-				earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted &&
-				earlierBlock.height > laterBlock.height)
+			laterBlock.maxHeightPreviouslyForged;
+		const sameMaxHeightPreviouslyForgerd =
+			earlierBlock.maxHeightPreviouslyForged ===
+			laterBlock.maxHeightPreviouslyForged;
+		const higherMaxHeightPrevoted =
+			earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted;
+		const sameMaxHeightPrevoted =
+			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted;
+		const higherHeight = earlierBlock.height > laterBlock.height;
+		if (
+			higherMaxHeightPreviouslyForgerd ||
+			(sameMaxHeightPreviouslyForgerd && higherMaxHeightPrevoted) ||
+			(sameMaxHeightPreviouslyForgerd && sameMaxHeightPrevoted && higherHeight)
 		) {
-			earlierBlock = blockHeader;
-			laterBlock = delegateLastBlock;
+			[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
 		}
 
 		if (
