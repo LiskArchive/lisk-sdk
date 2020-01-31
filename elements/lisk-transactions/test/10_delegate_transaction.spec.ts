@@ -176,7 +176,7 @@ describe('Delegate registration transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -193,19 +193,19 @@ describe('Delegate registration transaction class', () => {
 			const { isDelegate, username, ...strippedSender } = sender;
 			storeAccountGetStub.mockReturnValue(strippedSender);
 			storeAccountFindStub.mockReturnValue(false);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when username is taken', async () => {
 			storeAccountFindStub.mockReturnValue(true);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(2);
 			expect(errors[0].dataPath).toBe('.asset.username');
 		});
 
 		it('should return an error when account is already delegate', async () => {
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).toHaveLength(2);
 			expect(errors[0].dataPath).toBe('.asset.username');
@@ -214,7 +214,7 @@ describe('Delegate registration transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -228,7 +228,7 @@ describe('Delegate registration transaction class', () => {
 
 		it('should return no errors', async () => {
 			storeAccountGetStub.mockReturnValue(sender);
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 	});

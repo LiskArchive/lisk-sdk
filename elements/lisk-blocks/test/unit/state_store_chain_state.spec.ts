@@ -22,6 +22,7 @@ describe('state store / chain_state', () => {
 			entities: {
 				ChainState: {
 					get: jest.fn(),
+					getKey: jest.fn(),
 					setKey: jest.fn(),
 				},
 			},
@@ -39,8 +40,36 @@ describe('state store / chain_state', () => {
 			// Act
 			await stateStore.chainState.cache();
 			// Assert
-			expect(stateStore.chainState.get('key1')).toBe('value1');
-			expect(stateStore.chainState.get('key2')).toBe('value2');
+			expect(await stateStore.chainState.get('key1')).toBe('value1');
+			expect(await stateStore.chainState.get('key2')).toBe('value2');
+		});
+	});
+
+	describe('get', () => {
+		it('should get value from cache', async () => {
+			// Arrange
+			storageStub.entities.ChainState.get.mockResolvedValue([
+				{ key: 'key1', value: 'value1' },
+				{ key: 'key2', value: 'value2' },
+			]);
+			await stateStore.chainState.cache();
+			// Act & Assert
+			expect(await stateStore.chainState.get('key1')).toEqual('value1');
+		});
+
+		it('should try to get value from database if not in cache', async () => {
+			// Arrange
+			storageStub.entities.ChainState.get.mockResolvedValue([
+				{ key: 'key1', value: 'value1' },
+				{ key: 'key2', value: 'value2' },
+			]);
+			await stateStore.chainState.cache();
+			// Act
+			await stateStore.chainState.get('key3');
+			// Assert
+			expect(storageStub.entities.ChainState.getKey.mock.calls[0]).toEqual([
+				'key3',
+			]);
 		});
 	});
 
@@ -49,7 +78,7 @@ describe('state store / chain_state', () => {
 			// Act
 			await stateStore.chainState.set('key3', 'value3');
 			// Assert
-			expect(stateStore.chainState.get('key3')).toBe('value3');
+			expect(await stateStore.chainState.get('key3')).toBe('value3');
 			expect((stateStore.chainState as any)._updatedKeys.size).toBe(1);
 		});
 
@@ -58,7 +87,7 @@ describe('state store / chain_state', () => {
 			await stateStore.chainState.set('key3', 'value3');
 			await stateStore.chainState.set('key3', 'value4');
 			// Assert
-			expect(stateStore.chainState.get('key3')).toBe('value4');
+			expect(await stateStore.chainState.get('key3')).toBe('value4');
 			expect((stateStore.chainState as any)._updatedKeys.size).toBe(1);
 		});
 	});

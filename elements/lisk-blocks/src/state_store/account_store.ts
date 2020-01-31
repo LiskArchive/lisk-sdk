@@ -90,26 +90,61 @@ export class AccountStore {
 		this._originalUpdatedKeys = {};
 	}
 
-	public get(primaryValue: string): Account {
+	public async get(primaryValue: string): Promise<Account> {
+		// Account was cached previously so we can return it from memory
 		const element = this._data.find(
 			item => item[this._primaryKey] === primaryValue,
 		);
-		if (!element) {
-			throw new Error(
-				`${this._name} with ${this._primaryKey} = ${primaryValue} does not exist`,
-			);
+
+		if (element) {
+			return cloneDeep(element);
 		}
 
-		return cloneDeep(element);
+		// Account was not cached previously so we try to fetch it from db
+		// tslint:disable-next-line no-null-keyword
+		const [elementFromDB] = await this._account.get(
+			{ [this._primaryKey]: primaryValue },
+			// tslint:disable-next-line no-null-keyword
+			{ limit: null },
+			this._tx,
+		);
+
+		if (elementFromDB) {
+			this._data.push(elementFromDB);
+
+			return cloneDeep(elementFromDB);
+		}
+
+		// Account does not exist we can not continue
+		throw new Error(
+			`${this._name} with ${this._primaryKey} = ${primaryValue} does not exist`,
+		);
 	}
 
-	public getOrDefault(primaryValue: string): Account {
+	public async getOrDefault(primaryValue: string): Promise<Account> {
+		// Account was cached previously so we can return it from memory
 		const element = this._data.find(
 			item => item[this._primaryKey] === primaryValue,
 		);
 		if (element) {
 			return element;
 		}
+
+		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
+		// tslint:disable-next-line no-null-keyword
+		const [elementFromDB] = await this._account.get(
+			{ [this._primaryKey]: primaryValue },
+			// tslint:disable-next-line no-null-keyword
+			{ limit: null },
+			this._tx,
+		);
+
+		if (elementFromDB) {
+			this._data.push(elementFromDB);
+
+			return cloneDeep(elementFromDB);
+		}
+
 		const defaultElement: Account = {
 			...defaultAccount,
 			[this._primaryKey]: primaryValue,

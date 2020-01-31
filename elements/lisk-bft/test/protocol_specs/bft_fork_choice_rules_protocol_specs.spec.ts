@@ -44,6 +44,7 @@ describe('bft', () => {
 					},
 					ChainState: {
 						get: jest.fn(),
+						getKey: jest.fn(),
 					},
 				},
 			};

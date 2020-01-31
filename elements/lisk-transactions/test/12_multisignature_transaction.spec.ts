@@ -279,7 +279,9 @@ describe('Multisignature transaction class', () => {
 				networkIdentifier,
 			});
 
-			const { status, errors } = transaction.processMultisignatures(store);
+			const { status, errors } = await transaction.processMultisignatures(
+				store,
+			);
 
 			expect(status).toBe(Status.OK);
 			expect(errors).toHaveLength(0);
@@ -298,7 +300,9 @@ describe('Multisignature transaction class', () => {
 				networkIdentifier,
 			});
 
-			const { status, errors } = transaction.processMultisignatures(store);
+			const { status, errors } = await transaction.processMultisignatures(
+				store,
+			);
 			expect(status).toBe(Status.PENDING);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.signatures');
@@ -315,7 +319,9 @@ describe('Multisignature transaction class', () => {
 				networkIdentifier,
 			});
 
-			const { status, errors } = transaction.processMultisignatures(store);
+			const { status, errors } = await transaction.processMultisignatures(
+				store,
+			);
 			expect(status).toBe(Status.PENDING);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.signatures');
@@ -335,7 +341,9 @@ describe('Multisignature transaction class', () => {
 				networkIdentifier,
 			});
 
-			const { status, errors } = transaction.processMultisignatures(store);
+			const { status, errors } = await transaction.processMultisignatures(
+				store,
+			);
 			expect(status).toBe(Status.FAIL);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.signatures');
@@ -344,7 +352,7 @@ describe('Multisignature transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -355,14 +363,14 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when account is already multisignature', async () => {
 			storeAccountGetStub.mockReturnValue(multisignatureSender);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.signatures');
 		});
@@ -376,7 +384,7 @@ describe('Multisignature transaction class', () => {
 				],
 			};
 			storeAccountGetStub.mockReturnValue(invalidSender);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.signatures');
 		});
@@ -384,7 +392,7 @@ describe('Multisignature transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -400,7 +408,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 	});
@@ -441,7 +449,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should add signature to transaction', async () => {
-			const { status } = multisigTrs.addMultisignature(
+			const { status } = await multisigTrs.addMultisignature(
 				store,
 				membersSignatures[0],
 			);
@@ -453,12 +461,12 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should fail when valid signature already present and sent again', async () => {
-			const { status: arrangeStatus } = multisigTrs.addMultisignature(
+			const { status: arrangeStatus } = await multisigTrs.addMultisignature(
 				store,
 				membersSignatures[0],
 			);
 
-			const { status, errors } = multisigTrs.addMultisignature(
+			const { status, errors } = await multisigTrs.addMultisignature(
 				store,
 				membersSignatures[0],
 			);
@@ -473,7 +481,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should fail to add invalid signature to transaction', async () => {
-			const { status, errors } = multisigTrs.addMultisignature(store, {
+			const { status, errors } = await multisigTrs.addMultisignature(store, {
 				transactionId: multisigTrs.id,
 				publicKey:
 					'bb7ef62be03d5c195a132efe82796420abae04638cd3f6321532a5d33031b30c',
@@ -500,7 +508,7 @@ describe('Multisignature transaction class', () => {
 			const expectedError =
 				"Public Key 'cba7d88c54f3844bbab2c64b712e0ba3144921fe7a76c5f9df80b28ab702a35b' is not a member.";
 
-			const { status, errors } = multisigTrs.addMultisignature(
+			const { status, errors } = await multisigTrs.addMultisignature(
 				store,
 				nonMemberSignature,
 			);
@@ -511,7 +519,7 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('status should remain pending when invalid signature sent', async () => {
-			const { status: arrangeStatus } = multisigTrs.addMultisignature(
+			const { status: arrangeStatus } = await multisigTrs.addMultisignature(
 				store,
 				membersSignatures[0],
 			);

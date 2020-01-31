@@ -152,7 +152,7 @@ describe('Second signature registration transaction class', () => {
 
 	describe('#validateAsset', () => {
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).validateAsset();
+			const errors = await (validTestTransaction as any).validateAsset();
 
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
@@ -165,7 +165,7 @@ describe('Second signature registration transaction class', () => {
 				},
 			};
 			const transaction = new SecondSignatureTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
+			const errors = await (transaction as any).validateAsset();
 
 			expect(Object.keys(errors)).toHaveLength(1);
 		});
@@ -173,7 +173,7 @@ describe('Second signature registration transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -185,7 +185,7 @@ describe('Second signature registration transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
@@ -194,7 +194,7 @@ describe('Second signature registration transaction class', () => {
 				...sender,
 				secondPublicKey: '123',
 			});
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).toContain(
 				'Register second signature only allowed once per account.',
 			);
@@ -203,7 +203,7 @@ describe('Second signature registration transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);

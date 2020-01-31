@@ -54,7 +54,15 @@ export class ChainStateStore {
 		this._updatedKeys = clone(this._originalUpdatedKeys);
 	}
 
-	public get(key: string): string {
+	public async get(key: string): Promise<string> {
+		const value = this._data[key];
+
+		if (value) {
+			return value;
+		}
+
+		this._data[key] = await this._chainState.getKey(key);
+
 		return this._data[key];
 	}
 
