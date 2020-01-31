@@ -92,7 +92,7 @@ describe('block processor v2', () => {
 	describe('create', () => {
 		let block;
 
-		it('should set maxPreviouslyForgedHeight to height when the delegate did not forge before', async () => {
+		it('should set maxPreviouslyForgedHeight to zero when the delegate did not forge before', async () => {
 			// Arrange
 			const maxHeightResult = JSON.stringify({});
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(maxHeightResult);
