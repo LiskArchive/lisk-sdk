@@ -54,12 +54,12 @@ const revertVotes = (votes: ReadonlyArray<string>) =>
 		return `${sign}${vote.slice(1)}`;
 	});
 
-const updateDelegateVote = (
+const updateDelegateVote = async (
 	stateStore: StateStore,
 	{ delegatePublicKey, amount, add }: DelegateCalculateInput,
 ) => {
 	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
-	const delegateAccount = stateStore.account.get(delegateAddress);
+	const delegateAccount = await stateStore.account.get(delegateAddress);
 	const voteBigInt = BigInt(delegateAccount.voteWeight || '0');
 	const voteWeight = add
 		? voteBigInt + BigInt(amount)
@@ -121,7 +121,7 @@ const revertVotedDelegatePublicKeys = (
 		.concat(unvotedPublicKeys);
 };
 
-const updateRecipientDelegateVotes = (
+const updateRecipientDelegateVotes = async (
 	stateStore: StateStore,
 	transaction: BaseTransaction,
 	isUndo = false,
@@ -132,22 +132,22 @@ const updateRecipientDelegateVotes = (
 		return false;
 	}
 
-	const account = stateStore.account.get(address);
+	const account = await stateStore.account.get(address);
 	const add = isUndo ? false : true;
 	const votedDelegatesPublicKeys = account.votedDelegatesPublicKeys || [];
 
-	votedDelegatesPublicKeys.forEach(delegatePublicKey => {
-		updateDelegateVote(stateStore, {
+	for (const delegatePublicKey of votedDelegatesPublicKeys) {
+		await updateDelegateVote(stateStore, {
 			delegatePublicKey,
 			amount: (transaction.asset as TransferAsset).amount,
 			add,
 		});
-	});
+	}
 
 	return true;
 };
 
-const updateSenderDelegateVotes = (
+const updateSenderDelegateVotes = async (
 	stateStore: StateStore,
 	transaction: BaseTransaction,
 	exceptions: ExceptionOptions,
@@ -158,7 +158,9 @@ const updateSenderDelegateVotes = (
 		BigInt(transaction.fee) +
 		BigInt((transaction.asset as TransferAsset).amount || 0);
 	const add = isUndo ? true : false;
-	const senderAccount = stateStore.account.getOrDefault(transaction.senderId);
+	const senderAccount = await stateStore.account.getOrDefault(
+		transaction.senderId,
+	);
 	// tslint:disable-next-line no-let
 	let votedDelegatesPublicKeys = senderAccount.votedDelegatesPublicKeys || [];
 
@@ -190,14 +192,14 @@ const updateSenderDelegateVotes = (
 		);
 	}
 
-	votedDelegatesPublicKeys.forEach(delegatePublicKey => {
-		updateDelegateVote(stateStore, { delegatePublicKey, amount, add });
-	});
+	for (const delegatePublicKey of votedDelegatesPublicKeys) {
+		await updateDelegateVote(stateStore, { delegatePublicKey, amount, add });
+	}
 
 	return true;
 };
 
-const updateDelegateVotes = (
+const updateDelegateVotes = async (
 	stateStore: StateStore,
 	transaction: BaseTransaction,
 	isUndo = false,
@@ -213,71 +215,71 @@ const updateDelegateVotes = (
 		? revertVotes((transaction.asset as VoteAsset).votes)
 		: (transaction.asset as VoteAsset).votes;
 
-	votes
-		.map<DelegateCalculateInput>(vote => {
-			const add = vote[0] === '+' ? true : false;
-			const delegatePublicKey = vote.slice(1);
+	for (const vote of votes) {
+		const add = vote[0] === '+' ? true : false;
+		const delegatePublicKey = vote.slice(1);
 
-			const senderAccount = stateStore.account.get(transaction.senderId);
-			const amount = BigInt(senderAccount.balance).toString();
+		const senderAccount = await stateStore.account.get(transaction.senderId);
+		const amount = BigInt(senderAccount.balance).toString();
 
-			return {
-				delegatePublicKey,
-				amount,
-				add,
-			};
-		})
-		.forEach(data => {
-			updateDelegateVote(stateStore, data);
+		await updateDelegateVote(stateStore, {
+			delegatePublicKey,
+			amount,
+			add,
 		});
+	}
 
 	return true;
 };
 
-export const apply = (
+export const apply = async (
 	stateStore: StateStore,
 	transaction: BaseTransaction,
 	exceptions: ExceptionOptions = {},
 ) => {
-	updateRecipientDelegateVotes(stateStore, transaction);
-	updateSenderDelegateVotes(stateStore, transaction, exceptions);
-	updateDelegateVotes(stateStore, transaction);
+	await updateRecipientDelegateVotes(stateStore, transaction);
+	await updateSenderDelegateVotes(stateStore, transaction, exceptions);
+	await updateDelegateVotes(stateStore, transaction);
 };
 
-export const undo = (
+export const undo = async (
 	stateStore: StateStore,
 	transaction: BaseTransaction,
 	exceptions: ExceptionOptions = {},
 ) => {
-	updateRecipientDelegateVotes(stateStore, transaction, true);
-	updateSenderDelegateVotes(stateStore, transaction, exceptions, true);
-	updateDelegateVotes(stateStore, transaction, true);
+	await updateRecipientDelegateVotes(stateStore, transaction, true);
+	await updateSenderDelegateVotes(stateStore, transaction, exceptions, true);
+	await updateDelegateVotes(stateStore, transaction, true);
 };
 
 export const prepare = async (
 	stateStore: StateStore,
 	transactions: ReadonlyArray<BaseTransaction>,
 ) => {
-	const publicKeys = transactions.map(transaction => {
+	const publicKeys = [];
+	for (const transaction of transactions) {
 		// Get delegate public keys whom sender voted for
+		const senderVotedAccount = await stateStore.account.getOrDefault(
+			transaction.senderId,
+		);
 		const senderVotedPublicKeys =
-			stateStore.account.getOrDefault(transaction.senderId)
-				.votedDelegatesPublicKeys || [];
+			senderVotedAccount.votedDelegatesPublicKeys || [];
 
 		const recipientId = getRecipientAddress(stateStore, transaction);
 
 		// Get delegate public keys whom recipient voted for
+		const recipientVotedAccount =
+			recipientId && (await stateStore.account.getOrDefault(recipientId));
 		const recipientVotedPublicKeys =
-			(recipientId &&
-				stateStore.account.getOrDefault(recipientId)
-					.votedDelegatesPublicKeys) ||
+			(recipientVotedAccount &&
+				recipientVotedAccount.votedDelegatesPublicKeys) ||
 			[];
 
-		return {
+		publicKeys.push({
 			senderVotedPublicKeys,
 			recipientVotedPublicKeys,
-		};
-	});
+		});
+	}
 
 	const publicKeySet = new Set<string>();
 	for (const publicKey of publicKeys) {

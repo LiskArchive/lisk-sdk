@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { when } from 'jest-when';
 import { StateStore } from '../../src';
 
 describe('state store / account', () => {
@@ -18,6 +19,25 @@ describe('state store / account', () => {
 		{ address: '1276152240083265771L', balance: '100' },
 		{ address: '11237980039345381032L', balance: '555' },
 	];
+
+	const defaultAccount = {
+		publicKey: undefined,
+		secondPublicKey: undefined,
+		secondSignature: 0,
+		username: undefined,
+		isDelegate: 0,
+		balance: '0',
+		missedBlocks: 0,
+		producedBlocks: 0,
+		fees: '0',
+		rewards: '0',
+		voteWeight: '0',
+		nameExist: false,
+		multiMin: 0,
+		multiLifetime: 0,
+		votedDelegatesPublicKeys: undefined,
+		asset: {},
+	};
 
 	let stateStore: StateStore;
 	let storageStub: any;
@@ -71,6 +91,7 @@ describe('state store / account', () => {
 		beforeEach(async () => {
 			// Arrange
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
+
 			const filter = [
 				{ address: defaultAccounts[0].address },
 				{ address: defaultAccounts[1].address },
@@ -80,14 +101,30 @@ describe('state store / account', () => {
 
 		it('should get the account', async () => {
 			// Act
-			const account = stateStore.account.get(defaultAccounts[0].address);
+			const account = await stateStore.account.get(defaultAccounts[0].address);
 			// Assert
 			expect(account).toStrictEqual(defaultAccounts[0]);
 		});
 
+		it('should try to get account from db if not found in memory', async () => {
+			// Act
+			await stateStore.account.get('321L');
+			// Assert
+			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
+				{ address: '321L' },
+				{ limit: null },
+				undefined,
+			]);
+		});
+
 		it('should throw an error if not exist', async () => {
+			when(storageStub.entities.Account.get)
+				.calledWith({ address: '123L' })
+				.mockResolvedValue([] as never);
 			// Act && Assert
-			expect(() => stateStore.account.get('123L')).toThrow('does not exist');
+			await expect(stateStore.account.get('123L')).rejects.toThrow(
+				'does not exist',
+			);
 		});
 	});
 
@@ -104,18 +141,31 @@ describe('state store / account', () => {
 
 		it('should get the account', async () => {
 			// Act
-			const account = stateStore.account.getOrDefault(
+			const account = await stateStore.account.getOrDefault(
 				defaultAccounts[0].address,
 			);
 			// Assert
 			expect(account).toStrictEqual(defaultAccounts[0]);
 		});
 
-		it('should get the default account', async () => {
+		it('should try to get account from db if not found in memory', async () => {
 			// Act
-			const account = stateStore.account.getOrDefault('123L');
+			await stateStore.account.getOrDefault('321L');
 			// Assert
-			expect(account.balance).toBe('0');
+			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
+				{ address: '321L' },
+				{ limit: null },
+				undefined,
+			]);
+		});
+
+		it('should get the default account', async () => {
+			// Arrange
+			storageStub.entities.Account.get.mockResolvedValueOnce([]);
+			// Act
+			const account = await stateStore.account.getOrDefault('123L');
+			// Assert
+			expect(account).toEqual({ ...defaultAccount, address: '123L' });
 		});
 	});
 
@@ -138,21 +188,26 @@ describe('state store / account', () => {
 
 		it('should set the updated values for the account', async () => {
 			// Act
-			const updatedAccount = stateStore.account.get(defaultAccounts[0].address);
+			const updatedAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
 
 			(updatedAccount as any).secondPublicKey = secondPublicKey;
 			(updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
-			// Assert
-			expect(stateStore.account.get(defaultAccounts[0].address)).toStrictEqual(
-				updatedAccount,
+			const updatedAcountAfterSet = await stateStore.account.get(
+				defaultAccounts[0].address,
 			);
+			// Assert
+			expect(updatedAcountAfterSet).toStrictEqual(updatedAccount);
 		});
 
 		it('should update the updateKeys property', async () => {
 			const updatedKeys = ['secondPublicKey', 'secondSignature'];
-			const updatedAccount = stateStore.account.get(defaultAccounts[0].address);
+			const updatedAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
 
 			(updatedAccount as any).secondPublicKey = secondPublicKey;
 			(updatedAccount as any).secondSignature = secondSignature;
@@ -183,7 +238,7 @@ describe('state store / account', () => {
 			];
 			await stateStore.account.cache(filter);
 
-			updatedAccount = stateStore.account.get(defaultAccounts[0].address);
+			updatedAccount = await stateStore.account.get(defaultAccounts[0].address);
 
 			(updatedAccount as any).secondPublicKey = secondPublicKey;
 			(updatedAccount as any).secondSignature = secondSignature;

@@ -99,9 +99,11 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 		// Check if secondPublicKey already exists on account
 		if (sender.secondPublicKey) {
 			errors.push(
@@ -122,8 +124,10 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.account.get(this.senderId);
 		const resetSender = {
 			...sender,
 			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4

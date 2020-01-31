@@ -165,9 +165,11 @@ export class TransferTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		const balanceError = verifyAmountBalance(
 			this.id,
@@ -187,7 +189,7 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.asset.recipientId);
+		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
 		const updatedRecipientBalance =
 			BigInt(recipient.balance) + BigInt(this.asset.amount);
@@ -212,9 +214,11 @@ export class TransferTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 		const updatedSenderBalance =
 			BigInt(sender.balance) + BigInt(this.asset.amount);
 
@@ -234,7 +238,7 @@ export class TransferTransaction extends BaseTransaction {
 			balance: updatedSenderBalance.toString(),
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.asset.recipientId);
+		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
 		const balanceError = verifyBalance(this.id, recipient, this.asset.amount);
 

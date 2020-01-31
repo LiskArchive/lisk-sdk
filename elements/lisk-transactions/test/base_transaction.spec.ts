@@ -247,7 +247,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return true on verification of non-multisignature transaction', async () => {
-			validTestTransaction.apply(store);
+			await validTestTransaction.apply(store);
 			expect(validTestTransaction.isReady()).toBe(true);
 		});
 
@@ -571,7 +571,7 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validMultisignatureTransaction.processMultisignatures(store);
+			} = await validMultisignatureTransaction.processMultisignatures(store);
 
 			expect(id).toEqual(validMultisignatureTransaction.id);
 			expect(errors).toEqual([]);
@@ -594,7 +594,7 @@ describe('Base transaction class', () => {
 				id,
 				status,
 				errors,
-			} = validMultisignatureTransaction.processMultisignatures(store);
+			} = await validMultisignatureTransaction.processMultisignatures(store);
 
 			expect(id).toEqual(validMultisignatureTransaction.id);
 			expect(errors).toEqual(pendingErrors);
@@ -660,7 +660,7 @@ describe('Base transaction class', () => {
 			const {
 				status,
 				errors,
-			} = transferFromMultiSigAccountTrs.addMultisignature(
+			} = await transferFromMultiSigAccountTrs.addMultisignature(
 				store,
 				multisigMember,
 			);
@@ -675,7 +675,7 @@ describe('Base transaction class', () => {
 		it('should fail when valid signature already present and sent again', async () => {
 			const {
 				status: arrangeStatus,
-			} = transferFromMultiSigAccountTrs.addMultisignature(
+			} = await transferFromMultiSigAccountTrs.addMultisignature(
 				store,
 				multisigMember,
 			);
@@ -685,7 +685,7 @@ describe('Base transaction class', () => {
 			const {
 				status,
 				errors,
-			} = transferFromMultiSigAccountTrs.addMultisignature(
+			} = await transferFromMultiSigAccountTrs.addMultisignature(
 				store,
 				multisigMember,
 			);
@@ -698,7 +698,7 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should fail to add invalid signature to transaction from multisig account', () => {
+		it('should fail to add invalid signature to transaction from multisig account', async () => {
 			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
 			const transferFromMultiSigAccountTrs = new TransferTransaction({
@@ -716,7 +716,7 @@ describe('Base transaction class', () => {
 			const {
 				status,
 				errors,
-			} = transferFromMultiSigAccountTrs.addMultisignature(
+			} = await transferFromMultiSigAccountTrs.addMultisignature(
 				store,
 				multisigMember,
 			);
@@ -728,7 +728,7 @@ describe('Base transaction class', () => {
 			expect(transferFromMultiSigAccountTrs.signatures).toHaveLength(0);
 		});
 
-		it('should fail with signature not part of the group', () => {
+		it('should fail with signature not part of the group', async () => {
 			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
 			const transferFromMultiSigAccountTrs = new TransferTransaction({
@@ -746,7 +746,7 @@ describe('Base transaction class', () => {
 			const {
 				status,
 				errors,
-			} = transferFromMultiSigAccountTrs.addMultisignature(
+			} = await transferFromMultiSigAccountTrs.addMultisignature(
 				store,
 				multisigMember,
 			);
@@ -763,7 +763,7 @@ describe('Base transaction class', () => {
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
 			store.account.getOrDefault = () => defaultSenderAccount;
-			const { id, status, errors } = validTestTransaction.apply(store);
+			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.OK);
@@ -775,7 +775,7 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				balance: '0',
 			});
-			const { id, status, errors } = validTestTransaction.apply(store);
+			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.FAIL);
@@ -790,7 +790,7 @@ describe('Base transaction class', () => {
 
 	describe('#undo', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
-			const { id, status, errors } = validTestTransaction.undo(store);
+			const { id, status, errors } = await validTestTransaction.undo(store);
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.OK);
 			expect(errors).toEqual([]);
@@ -801,7 +801,7 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				balance: MAX_TRANSACTION_AMOUNT.toString(),
 			});
-			const { id, status, errors } = validTestTransaction.undo(store);
+			const { id, status, errors } = await validTestTransaction.undo(store);
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.FAIL);
 			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(

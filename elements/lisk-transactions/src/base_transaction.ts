@@ -53,23 +53,28 @@ export interface TransactionResponse {
 }
 
 export interface StateStoreGetter<T> {
-	get(key: string): T;
+	get(key: string): Promise<T>;
 	find(func: (item: T) => boolean): T | undefined;
 }
 
 export interface StateStoreDefaultGetter<T> {
-	getOrDefault(key: string): T;
+	getOrDefault(key: string): Promise<T>;
 }
 
 export interface StateStoreSetter<T> {
 	set(key: string, value: T): void;
 }
 
+export interface StateStoreTransactionGetter<T> {
+	get(key: string): T;
+	find(func: (item: T) => boolean): T | undefined;
+}
+
 export interface StateStore {
 	readonly account: StateStoreGetter<Account> &
 		StateStoreDefaultGetter<Account> &
 		StateStoreSetter<Account>;
-	readonly transaction: StateStoreGetter<TransactionJSON>;
+	readonly transaction: StateStoreTransactionGetter<TransactionJSON>;
 }
 
 export interface StateStoreCache<T> {
@@ -120,10 +125,10 @@ export abstract class BaseTransaction {
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 	protected abstract undoAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -296,12 +301,12 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public apply(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
+	public async apply(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = this.processMultisignatures(store);
+		const { errors: multiSigError } = await this.processMultisignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
@@ -313,7 +318,7 @@ export abstract class BaseTransaction {
 			publicKey: sender.publicKey || this.senderPublicKey,
 		};
 		store.account.set(updatedSender.address, updatedSender);
-		const assetErrors = this.applyAsset(store);
+		const assetErrors = await this.applyAsset(store);
 
 		errors.push(...assetErrors);
 
@@ -332,8 +337,8 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public undo(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
+	public async undo(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.account.getOrDefault(this.senderId);
 		const updatedBalance = BigInt(sender.balance) + this.fee;
 		const updatedAccount = {
 			...sender,
@@ -353,7 +358,7 @@ export abstract class BaseTransaction {
 						),
 				  ];
 		store.account.set(updatedAccount.address, updatedAccount);
-		const assetErrors = this.undoAsset(store);
+		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
@@ -367,12 +372,12 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public addMultisignature(
+	public async addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
-	): TransactionResponse {
+	): Promise<TransactionResponse> {
 		// Get the account
-		const account = store.account.get(this.senderId);
+		const account = await store.account.get(this.senderId);
 		// Validate signature key belongs to account's multisignature group
 		if (
 			account.membersPublicKeys &&
@@ -449,8 +454,10 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public processMultisignatures(store: StateStore): TransactionResponse {
-		const sender = store.account.get(this.senderId);
+	public async processMultisignatures(
+		store: StateStore,
+	): Promise<TransactionResponse> {
+		const sender = await store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
 		if (
 			this._networkIdentifier === undefined ||

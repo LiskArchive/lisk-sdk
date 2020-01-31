@@ -59,7 +59,7 @@ export interface HeightOfDelegates {
 export interface StateStore {
 	readonly chainState: {
 		readonly set: (key: string | number, value: string | number) => boolean;
-		readonly get: (key: string | number) => string;
+		readonly get: (key: string | number) => Promise<string>;
 		readonly cache: () => void;
 	};
 }
@@ -78,6 +78,7 @@ export interface ChainState {
 		options?: object,
 		tx?: object,
 	) => Promise<object[]>;
+	readonly getKey: (key: string, tx?: object) => Promise<object[]>;
 }
 
 export interface Storage {
