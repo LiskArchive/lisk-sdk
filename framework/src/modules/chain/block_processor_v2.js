@@ -286,7 +286,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const height = data.previousBlock.height + 1;
 				const previousBlockId = data.previousBlock.id;
 				const maxHeightPreviouslyForged =
-					previouslyForgedMap[delegatePublicKey] || height;
+					previouslyForgedMap[delegatePublicKey] || 0;
 				const block = this._create({
 					...data,
 					height,

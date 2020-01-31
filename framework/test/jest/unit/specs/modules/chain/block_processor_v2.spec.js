@@ -110,7 +110,7 @@ describe('block processor v2', () => {
 				'maxHeightPreviouslyForged',
 			);
 			// previousBlock.height + 1
-			expect(block.maxHeightPreviouslyForged).toBe(11);
+			expect(block.maxHeightPreviouslyForged).toBe(0);
 		});
 
 		it('should save maxPreviouslyForgedHeight as the block height created', async () => {
