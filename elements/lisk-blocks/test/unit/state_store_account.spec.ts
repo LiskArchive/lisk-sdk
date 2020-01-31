@@ -47,7 +47,6 @@ describe('state store / account', () => {
 			entities: {
 				Account: {
 					get: jest.fn(),
-					getOne: jest.fn(),
 					upsert: jest.fn(),
 				},
 			},
@@ -107,6 +106,17 @@ describe('state store / account', () => {
 			expect(account).toStrictEqual(defaultAccounts[0]);
 		});
 
+		it('should try to get account from db if not found in memory', async () => {
+			// Act
+			await stateStore.account.get('321L');
+			// Assert
+			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
+				{ address: '321L' },
+				{ limit: null },
+				undefined,
+			]);
+		});
+
 		it('should throw an error if not exist', async () => {
 			when(storageStub.entities.Account.get)
 				.calledWith({ address: '123L' })
@@ -136,6 +146,17 @@ describe('state store / account', () => {
 			);
 			// Assert
 			expect(account).toStrictEqual(defaultAccounts[0]);
+		});
+
+		it('should try to get account from db if not found in memory', async () => {
+			// Act
+			await stateStore.account.getOrDefault('321L');
+			// Assert
+			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
+				{ address: '321L' },
+				{ limit: null },
+				undefined,
+			]);
 		});
 
 		it('should get the default account', async () => {
