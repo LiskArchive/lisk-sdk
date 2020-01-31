@@ -886,7 +886,6 @@ describe('transactions', () => {
 				[trs1, trs2],
 				stateStoreMock,
 			);
-			console.log(result);
 			expect(result).toEqual([]);
 		});
 
