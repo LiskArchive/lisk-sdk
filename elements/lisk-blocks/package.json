@@ -36,6 +36,7 @@
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.4.1",
 		"@liskhq/lisk-transactions": "3.0.1",
+		"debug": "4.1.1",
 		"@types/node": "12.12.11",
 		"lodash": "4.17.15"
 	},
@@ -46,6 +47,7 @@
 		"@types/jest-when": "2.7.0",
 		"@types/lodash": "4.14.149",
 		"@types/randomstring": "1.1.6",
+		"@types/debug": "4.1.5",
 		"@types/faker": "4.1.9",
 		"jest": "24.9.0",
 		"jest-extended": "0.11.2",

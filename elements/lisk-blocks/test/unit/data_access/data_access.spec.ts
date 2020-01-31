@@ -51,6 +51,7 @@ describe('data_access.storage', () => {
 			dbStorage: storageMock,
 			networkIdentifier: 'TEST',
 			registeredTransactions: { '8': TransferTransaction },
+			maxBlockHeaderCache: 500,
 		});
 		block = {
 			...BlockHeaderInstance({ height: 1 }),

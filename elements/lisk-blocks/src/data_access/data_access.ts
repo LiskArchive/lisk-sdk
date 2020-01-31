@@ -35,7 +35,9 @@ interface DAConstructor {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
+	readonly maxBlockHeaderCache: number;
 }
+
 export class DataAccess {
 	private readonly _storage: StorageAccess;
 	private readonly _blocksCache: BlockCache;
@@ -45,20 +47,26 @@ export class DataAccess {
 		dbStorage,
 		networkIdentifier,
 		registeredTransactions,
+		maxBlockHeaderCache,
 	}: DAConstructor) {
 		this._storage = new StorageAccess(dbStorage);
-		this._blocksCache = new BlockCache();
+		this._blocksCache = new BlockCache(maxBlockHeaderCache);
 		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
 		);
 	}
 
+	// BlockHeaders are all the block properties included for block signature + signature of block
+	/** Begin: BlockHeaders */
 	public addBlockHeader(blockHeader: BlockHeader): BlockHeader[] {
 		return this._blocksCache.add(blockHeader);
 	}
 
-	/** Begin: BlockHeaders */
+	public removeBlockHeader(id: string): BlockHeader[] {
+		return this._blocksCache.remove(id);
+	}
+
 	public async getBlockHeaderByID(id: string): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.getByID(id);
 
@@ -75,7 +83,7 @@ export class DataAccess {
 	): Promise<BlockHeader[]> {
 		const cachedBlocks = this._blocksCache.getByIDs(arrayOfBlockIds);
 
-		if (cachedBlocks?.length) {
+		if (cachedBlocks.length) {
 			return cachedBlocks;
 		}
 		const blocks = await this._storage.getBlockHeadersByIDs(arrayOfBlockIds);
@@ -105,7 +113,7 @@ export class DataAccess {
 			toHeight,
 		);
 
-		if (cachedBlocks?.length) {
+		if (cachedBlocks.length) {
 			return cachedBlocks;
 		}
 
@@ -158,7 +166,7 @@ export class DataAccess {
 		return block ? this.deserializeBlockHeader(block) : undefined;
 	}
 
-	/** Begin: BlockHeaders */
+	/** End: BlockHeaders */
 
 	/** Begin: Blocks */
 
@@ -213,11 +221,12 @@ export class DataAccess {
 
 		// Loads extended blocks from storage
 		const blocks = await this.getBlocksByHeightBetween(offset, toHeightLT);
-
 		// Return blocks in ascending order
-		return blocks.sort(
+		const sortedBlocks = [...blocks].sort(
 			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
 		);
+
+		return sortedBlocks;
 	}
 
 	public async getLastBlock(): Promise<BlockInstance | undefined> {
@@ -259,8 +268,9 @@ export class DataAccess {
 	public clearTempBlocks(): void {
 		this._storage.clearTempBlocks();
 	}
-	/** Begin: Blocks */
+	/** End: Blocks */
 
+	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
 		tx?: StorageTransaction,
@@ -293,6 +303,12 @@ export class DataAccess {
 		return accounts;
 	}
 
+	public async resetAccountMemTables(): Promise<void> {
+		await this._storage.resetAccountMemTables();
+	}
+	/** End: Accounts */
+
+	/** Begin: Transactions */
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<string>,
 	): Promise<TransactionJSON[]> {
@@ -310,10 +326,7 @@ export class DataAccess {
 
 		return isPersisted;
 	}
-
-	public async resetAccountMemTables(): Promise<void> {
-		await this._storage.resetAccountMemTables();
-	}
+	/** End: Transactions */
 
 	// tslint:disable-next-line:prefer-function-over-method
 	public serialize(blockInstance: BlockInstance): BlockJSON {

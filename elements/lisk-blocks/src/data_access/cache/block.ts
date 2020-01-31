@@ -27,7 +27,7 @@ export class BlockCache extends Base<BlockHeader> {
 			assert(
 				blockHeader.height === this.last.height + 1,
 				`Block header with height ${this.last.height +
-					1} can only be added, insted received ${blockHeader.height} height`,
+					1} can only be added, instead received height ${blockHeader.height}`,
 			);
 		}
 
@@ -41,6 +41,18 @@ export class BlockCache extends Base<BlockHeader> {
 		if (this.items.length > this.size) {
 			this.items.shift();
 		}
+
+		return this.items;
+	}
+
+	public remove(id: string): BlockHeader[] {
+		if (this.items.length && this.last.id !== id) {
+			assert(
+				this.last.id === id,
+				`Failed to remove the block id: ${id} which is not the last block header cached`,
+			);
+		}
+		this.items.pop();
 
 		return this.items;
 	}
@@ -83,7 +95,8 @@ export class BlockCache extends Base<BlockHeader> {
 		if (
 			toHeight >= fromHeight &&
 			this.items.length &&
-			fromHeight >= this.first.height && toHeight <= this.last.height
+			fromHeight >= this.first.height &&
+			toHeight <= this.last.height
 		) {
 			return this.items.filter(
 				block => block.height >= fromHeight && block.height <= toHeight,

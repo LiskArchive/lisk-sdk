@@ -84,7 +84,7 @@ describe('data_access.cache.block', () => {
 			expect(() => {
 				blocksCache.add(newBlock);
 			}).toThrow(
-				'Block header with height 510 can only be added, insted received 11 height',
+				'Block header with height 510 can only be added, instead received height 11',
 			);
 		});
 	});

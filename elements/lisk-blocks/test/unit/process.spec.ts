@@ -110,6 +110,7 @@ describe('blocks/header', () => {
 			slots,
 			exceptions,
 			...constants,
+			maxBlockHeaderCache: 500,
 		});
 		(blocksInstance as any)._lastBlock = {
 			...genesisBlock,
@@ -769,7 +770,10 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const nextBlock = newBlock({ transactions: [newTx] });
+				const nextBlock = newBlock({
+					height: blocksInstance.lastBlock.height + 1,
+					transactions: [newTx],
+				});
 				await blocksInstance.apply(nextBlock, stateStore);
 				// expect
 				// it should decrease by fee

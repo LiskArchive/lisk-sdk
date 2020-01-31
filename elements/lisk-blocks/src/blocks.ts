@@ -18,6 +18,7 @@ import {
 	TransactionJSON,
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
+import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import {
@@ -72,6 +73,8 @@ import {
 	verifyPreviousBlockId,
 } from './verify';
 
+const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
+
 interface BlocksConfig {
 	// Components
 	readonly logger: Logger;
@@ -98,7 +101,10 @@ interface BlocksConfig {
 	readonly rewardMileStones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
+	readonly maxBlockHeaderCache: number;
 }
+
+const debug = Debug('lisk:blocks');
 
 export class Blocks extends EventEmitter {
 	private _lastBlock: BlockInstance;
@@ -148,6 +154,7 @@ export class Blocks extends EventEmitter {
 		rewardMileStones,
 		totalAmount,
 		blockSlotWindow,
+		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: BlocksConfig) {
 		super();
 
@@ -157,6 +164,7 @@ export class Blocks extends EventEmitter {
 			dbStorage: storage,
 			networkIdentifier,
 			registeredTransactions,
+			maxBlockHeaderCache,
 		});
 
 		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
@@ -239,7 +247,39 @@ export class Blocks extends EventEmitter {
 			throw new Error('Failed to load last block');
 		}
 
+		if (storageLastBlock.height !== genesisBlock.height) {
+			await this.cacheBlockHeaders(storageLastBlock);
+		}
+
 		this._lastBlock = storageLastBlock;
+	}
+
+	public async cacheBlockHeaders(
+		storageLastBlock: BlockInstance,
+	): Promise<void> {
+		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
+		const fromHeight = Math.max(
+			storageLastBlock.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
+			1,
+		);
+		const toHeight = storageLastBlock.height;
+
+		debug(
+			{ h: storageLastBlock.height, fromHeight, toHeight },
+			'Cache block headers during blocks init',
+		);
+		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
+			fromHeight,
+			toHeight,
+		);
+		const sortedBlockHeaders = [...blockHeaders].sort(
+			(a: BlockHeader, b: BlockHeader) => a.height - b.height,
+		);
+
+		for (const blockHeader of sortedBlockHeaders) {
+			debug({ height: blockHeader.height }, 'Add block header to cache');
+			this.dataAccess.addBlockHeader(blockHeader);
+		}
 	}
 
 	public validateBlockHeader(
@@ -308,6 +348,7 @@ export class Blocks extends EventEmitter {
 	): Promise<void> {
 		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
 
+		this.dataAccess.addBlockHeader(blockInstance);
 		this._lastBlock = blockInstance;
 	}
 
@@ -317,6 +358,7 @@ export class Blocks extends EventEmitter {
 	): Promise<void> {
 		await applyConfirmedGenesisStep(blockInstance, stateStore);
 
+		this.dataAccess.addBlockHeader(blockInstance);
 		this._lastBlock = blockInstance;
 	}
 
@@ -334,7 +376,7 @@ export class Blocks extends EventEmitter {
 		await undoConfirmedStep(blockInstance, stateStore, this.exceptions);
 	}
 
-	private async deleteLastBlock(
+	private async _deleteLastBlock(
 		lastBlock: BlockInstance,
 		tx?: StorageTransaction,
 	): Promise<BlockInstance> {
@@ -360,7 +402,7 @@ export class Blocks extends EventEmitter {
 		tx: StorageTransaction,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		const secondLastBlock = await this.deleteLastBlock(block, tx);
+		const secondLastBlock = await this._deleteLastBlock(block, tx);
 
 		if (saveTempBlock) {
 			const blockTempEntry = {
@@ -370,6 +412,8 @@ export class Blocks extends EventEmitter {
 			};
 			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 		}
+
+		this.dataAccess.removeBlockHeader(block.id);
 		this._lastBlock = secondLastBlock;
 	}
 
