@@ -248,13 +248,17 @@ export class Blocks extends EventEmitter {
 		}
 
 		if (storageLastBlock.height !== genesisBlock.height) {
-			await this.cacheBlockHeaders(storageLastBlock);
+			await this._cacheBlockHeaders(storageLastBlock);
 		}
 
 		this._lastBlock = storageLastBlock;
 	}
 
-	public async cacheBlockHeaders(
+	public resetBlockHeaderCache(): void {
+		this.dataAccess.resetBlockHeaderCache();
+	}
+
+	private async _cacheBlockHeaders(
 		storageLastBlock: BlockInstance,
 	): Promise<void> {
 		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)

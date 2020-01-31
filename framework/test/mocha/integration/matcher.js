@@ -223,6 +223,7 @@ describe('matcher', () => {
 			CUSTOM_TRANSACTION_TYPE,
 		);
 
+		scope.modules.blocks.resetBlockHeaderCache();
 		// Reset transaction pool so it starts fresh back again with no transactions.
 		transactionPool._resetPool();
 

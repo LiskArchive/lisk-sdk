@@ -127,6 +127,7 @@ describe('blocks/verify', () => {
 
 	afterEach(() => {
 		library.modules.blocks._lastBlock = genesisBlock;
+		library.modules.blocks.resetBlockHeaderCache();
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
 

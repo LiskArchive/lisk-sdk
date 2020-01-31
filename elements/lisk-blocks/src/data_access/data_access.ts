@@ -67,6 +67,10 @@ export class DataAccess {
 		return this._blocksCache.remove(id);
 	}
 
+	public resetBlockHeaderCache(): void {
+		this._blocksCache.empty();
+	}
+
 	public async getBlockHeaderByID(id: string): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.getByID(id);
 
