@@ -33,29 +33,19 @@ const createStateStore = (list: ForgersList = []) => {
 };
 
 describe('dpos.getMinActiveHeightsOfDelegates()', () => {
-	const stubs = {} as any;
 	let dpos: Dpos;
 	let height: number;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 
 	beforeEach(() => {
 		// Arrange
-		stubs.logger = {
-			debug: jest.fn(),
-			log: jest.fn(),
-			error: jest.fn(),
-		};
-
-		stubs.tx = jest.fn();
-
 		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
 		const blocks = {
 			slots,
 		};
 
 		dpos = new Dpos({
-			...stubs,
-			blocks,
+			blocks: blocks as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
 		});

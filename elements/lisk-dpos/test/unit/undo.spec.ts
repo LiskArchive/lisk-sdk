@@ -44,7 +44,6 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 describe('dpos.undo()', () => {
 	let dpos: Dpos;
 	let blocksStub: any;
-	let loggerStub: any;
 	let stateStore: StateStoreMock;
 
 	beforeEach(() => {
@@ -58,15 +57,8 @@ describe('dpos.undo()', () => {
 			},
 		};
 
-		loggerStub = {
-			debug: jest.fn(),
-			log: jest.fn(),
-			error: jest.fn(),
-		};
-
 		dpos = new Dpos({
 			blocks: blocksStub,
-			logger: loggerStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -487,7 +479,6 @@ describe('dpos.undo()', () => {
 
 				dpos = new Dpos({
 					blocks: blocksStub,
-					logger: loggerStub,
 					activeDelegates: ACTIVE_DELEGATES,
 					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,

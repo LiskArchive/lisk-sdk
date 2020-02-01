@@ -61,13 +61,6 @@ export interface ParsedAccount
 	rewards: bigint;
 }
 
-export interface Logger {
-	// tslint:disable-next-line no-any
-	readonly debug: (...input: any[]) => void;
-	// tslint:disable-next-line no-any
-	readonly error: (...input: any[]) => void;
-}
-
 export interface DPoSProcessingOptions {
 	readonly delegateListRoundOffset: number;
 	readonly undo?: boolean;

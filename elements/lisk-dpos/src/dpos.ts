@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { EventEmitter } from 'events';
 
 import { CHAIN_STATE_FORGERS_LIST_KEY } from './constants';
@@ -28,7 +27,6 @@ import {
 	Blocks,
 	DPoSProcessingOptions,
 	ForgersList,
-	Logger,
 	RoundException,
 	StateStore,
 } from './types';
@@ -41,7 +39,6 @@ interface ActiveDelegates {
 interface DposConstructor {
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
-	readonly logger: Logger;
 	readonly blocks: Blocks;
 	readonly exceptions?: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
@@ -62,7 +59,6 @@ export class Dpos {
 	public constructor({
 		activeDelegates,
 		delegateListRoundOffset,
-		logger,
 		blocks,
 		exceptions = {},
 	}: DposConstructor) {
@@ -85,7 +81,6 @@ export class Dpos {
 			blocks: this.blocks,
 			rounds: this.rounds,
 			activeDelegates,
-			logger,
 			events: this.events,
 			delegatesList: this.delegatesList,
 			exceptions,

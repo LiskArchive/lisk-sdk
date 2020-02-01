@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
@@ -27,16 +28,16 @@ import {
 	Blocks,
 	DPoSProcessingOptions,
 	Earnings,
-	Logger,
 	RoundException,
 	StateStore,
 } from './types';
+
+const debug = Debug('lisk:dpos:delegate_info');
 
 interface DelegatesInfoConstructor {
 	readonly blocks: Blocks;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
-	readonly logger: Logger;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
 	readonly exceptions: {
@@ -177,7 +178,6 @@ export class DelegatesInfo {
 	private readonly blocks: Blocks;
 	private readonly rounds: Rounds;
 	private readonly activeDelegates: number;
-	private readonly logger: Logger;
 	private readonly events: EventEmitter;
 	private readonly delegatesList: DelegatesList;
 	private readonly exceptions: {
@@ -188,7 +188,6 @@ export class DelegatesInfo {
 		rounds,
 		blocks,
 		activeDelegates,
-		logger,
 		events,
 		delegatesList,
 		exceptions,
@@ -196,7 +195,6 @@ export class DelegatesInfo {
 		this.blocks = blocks;
 		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
-		this.logger = logger;
 		this.events = events;
 		this.delegatesList = delegatesList;
 		this.exceptions = exceptions;
@@ -312,7 +310,7 @@ export class DelegatesInfo {
 	 */
 	private async _summarizeRound(block: BlockHeader): Promise<RoundSummary> {
 		const round = this.rounds.calcRound(block.height);
-		this.logger.debug('Calculating rewards and fees for round: ', round);
+		debug('Calculating rewards and fees for round', round);
 
 		const heightFrom = this.rounds.calcRoundStartHeight(round);
 		const heightTo = this.rounds.calcRoundStartHeight(round) - 1;
@@ -361,29 +359,26 @@ export class DelegatesInfo {
 			},
 		);
 
-		try {
-			// Aggregate forger infor into one object
-			const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
-				(forgerInfo: ForgerInfo) => ({
-					...forgerInfo,
-					earnings: this._calculateRewardAndFeeForDelegate({
-						totalFee,
-						forgerInfo,
-						round,
-					}),
-					delegateAddress: getAddressFromPublicKey(forgerInfo.publicKey),
+		// Aggregate forger infor into one object
+		const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
+			(forgerInfo: ForgerInfo) => ({
+				...forgerInfo,
+				earnings: this._calculateRewardAndFeeForDelegate({
+					totalFee,
+					forgerInfo,
+					round,
 				}),
-			);
+				delegateAddress: getAddressFromPublicKey(forgerInfo.publicKey),
+			}),
+		);
 
-			return {
-				round,
-				totalFee,
-				uniqForgersInfo,
-			};
-		} catch (error) {
-			this.logger.error({ error, round }, 'Failed to sum round');
-			throw error;
-		}
+		debug('Summed round', round, totalFee, uniqForgersInfo);
+
+		return {
+			round,
+			totalFee,
+			uniqForgersInfo,
+		};
 	}
 
 	/**

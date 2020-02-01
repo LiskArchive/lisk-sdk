@@ -27,7 +27,6 @@ import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
 	let blocksStub: any;
-	let loggerStub: any;
 
 	beforeEach(() => {
 		// Arrange
@@ -42,15 +41,8 @@ describe('dpos.verifyBlockForger()', () => {
 			},
 		};
 
-		loggerStub = {
-			debug: jest.fn(),
-			log: jest.fn(),
-			error: jest.fn(),
-		};
-
 		dpos = new Dpos({
 			blocks: blocksStub,
-			logger: loggerStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
