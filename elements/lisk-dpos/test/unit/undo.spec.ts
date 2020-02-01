@@ -122,7 +122,7 @@ describe('dpos.undo()', () => {
 			// Act
 			await dpos.undo(block, stateStore);
 
-			const account = stateStore.account.get(generator.address);
+			const account = await stateStore.account.get(generator.address);
 			// Assert
 			expect(account.producedBlocks).toEqual(0);
 		});
@@ -146,7 +146,7 @@ describe('dpos.undo()', () => {
 			// Act
 			await dpos.undo(block, stateStore);
 
-			const account = stateStore.account.get(generator.address);
+			const account = await stateStore.account.get(generator.address);
 			// Assert
 			expect(account.missedBlocks).toEqual(generator.missedBlocks);
 			expect(account.voteWeight).toEqual(generator.voteWeight);
@@ -169,7 +169,7 @@ describe('dpos.undo()', () => {
 			// Act
 			await dpos.undo(block, stateStore);
 
-			const chainState = stateStore.chainState.get(
+			const chainState = await stateStore.chainState.get(
 				CHAIN_STATE_FORGERS_LIST_KEY,
 			);
 			const res = JSON.parse(chainState as string);
@@ -257,7 +257,7 @@ describe('dpos.undo()', () => {
 
 			expect.assertions(delegatesWhoForgedNone.length);
 			for (const delegate of delegatesWhoForgedNone) {
-				const account = stateStore.account.get(delegate.address);
+				const account = await stateStore.account.get(delegate.address);
 				// Assert
 				expect(delegate.missedBlocks).toEqual(account.missedBlocks + 1);
 			}
@@ -272,7 +272,7 @@ describe('dpos.undo()', () => {
 
 			// Assert Group 1/2
 			for (const delegate of uniqueDelegatesWhoForged) {
-				const account = stateStore.account.get(delegate.address);
+				const account = await stateStore.account.get(delegate.address);
 				const { reward, fee } = getTotalEarningsOfDelegate(account);
 				expect(account.rewards).toEqual(
 					(BigInt(delegate.rewards) - reward).toString(),
@@ -280,7 +280,7 @@ describe('dpos.undo()', () => {
 				expect(account.fees).toEqual((BigInt(delegate.fees) - fee).toString());
 			}
 			for (const delegate of delegatesWhoForgedNone) {
-				const account = stateStore.account.get(delegate.address);
+				const account = await stateStore.account.get(delegate.address);
 				expect(account.rewards).toEqual(delegate.rewards);
 				expect(account.fees).toEqual(delegate.fees);
 			}
@@ -294,7 +294,7 @@ describe('dpos.undo()', () => {
 			expect.assertions(delegatesWhoForgedOnceMissedOnce.length * 2);
 
 			for (const delegate of delegatesWhoForgedOnceMissedOnce) {
-				const account = stateStore.account.get(delegate.address);
+				const account = await stateStore.account.get(delegate.address);
 				const { reward, fee } = getTotalEarningsOfDelegate(account);
 				// Assert
 				expect(account.rewards).toEqual(
@@ -311,7 +311,7 @@ describe('dpos.undo()', () => {
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length * 3);
 			for (const delegate of uniqueDelegatesWhoForged) {
-				const account = stateStore.account.get(delegate.address);
+				const account = await stateStore.account.get(delegate.address);
 				const { reward, fee } = getTotalEarningsOfDelegate(account);
 				const amount = fee + reward;
 				const data = {
@@ -349,7 +349,7 @@ describe('dpos.undo()', () => {
 
 			// Assert
 			expect.assertions(uniqueDelegatesWhoForged.length);
-			const lastDelegate = stateStore.account.get(
+			const lastDelegate = await stateStore.account.get(
 				delegateWhoForgedLast.address,
 			);
 			expect(lastDelegate.fees).toEqual(
@@ -365,7 +365,7 @@ describe('dpos.undo()', () => {
 				const blockCount = delegatesWhoForged.filter(
 					d => d.publicKey === delegate.publicKey,
 				).length;
-				const account = stateStore.account.get(delegate.address);
+				const account = await stateStore.account.get(delegate.address);
 				expect(account.fees).toEqual(
 					(
 						BigInt(delegate.fees) -
@@ -398,7 +398,7 @@ describe('dpos.undo()', () => {
 			expect.assertions(publicKeysToUpdate.length);
 			for (const publicKey of Object.keys(publicKeysToUpdate)) {
 				const amount = publicKeysToUpdate[publicKey].toString();
-				const account = stateStore.account.get(
+				const account = await stateStore.account.get(
 					getAddressFromPublicKey(publicKey),
 				);
 				// Assuming that the initial value was 0
@@ -415,7 +415,7 @@ describe('dpos.undo()', () => {
 
 			// Assert
 			const chainState =
-				stateStore.chainState.get(CHAIN_STATE_FORGERS_LIST_KEY) ?? '[]';
+				(await stateStore.chainState.get(CHAIN_STATE_FORGERS_LIST_KEY)) ?? '[]';
 			const forgersList = JSON.parse(chainState as string) as ForgersList;
 			const filteredList = forgersList.filter(
 				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
@@ -446,7 +446,7 @@ describe('dpos.undo()', () => {
 				await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
 				for (const delegate of delegatesWhoForgedNone) {
-					const account = stateStore.account.get(delegate.address);
+					const account = await stateStore.account.get(delegate.address);
 					expect(account.missedBlocks).toEqual(delegate.missedBlocks - 1);
 				}
 			});
@@ -507,7 +507,7 @@ describe('dpos.undo()', () => {
 					const rewards = (
 						BigInt(delegate.rewards) + exceptionReward
 					).toString();
-					const account = stateStore.account.get(delegate.address);
+					const account = await stateStore.account.get(delegate.address);
 					expect(account.rewards).toEqual(rewards);
 				}
 			});
@@ -529,7 +529,7 @@ describe('dpos.undo()', () => {
 						(exceptionTotalFee / BigInt(ACTIVE_DELEGATES)) * BigInt(blockCount);
 
 					const fees = (BigInt(delegate.fees) - earnedFee).toString();
-					const account = stateStore.account.get(delegate.address);
+					const account = await stateStore.account.get(delegate.address);
 					expect(account.fees).toEqual(fees);
 				}
 			});

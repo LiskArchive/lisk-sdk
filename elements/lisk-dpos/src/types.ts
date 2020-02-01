@@ -14,12 +14,12 @@
 
 export interface StateStore {
 	readonly account: {
-		readonly get: (primaryValue: string) => Account;
+		readonly get: (primaryValue: string) => Promise<Account>;
 		readonly getUpdated: () => Account[];
 		readonly set: (primaryValue: string, account: Account) => void;
 	};
 	readonly chainState: {
-		readonly get: (key: string) => string | undefined;
+		readonly get: (key: string) => Promise<string | undefined>;
 		readonly set: (key: string, value: string) => void;
 	};
 }

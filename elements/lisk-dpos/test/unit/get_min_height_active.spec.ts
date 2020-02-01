@@ -67,9 +67,9 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given roundDelegates entity returns empty results', () => {
 		it('should throw exception', async () => {
 			// Act
-			expect(() =>
+			await expect(
 				dpos.getMinActiveHeight(height, defaultPublicKey, createStateStore()),
-			).toThrow('No delegate list found in the database.');
+			).rejects.toThrow('No delegate list found in the database.');
 		});
 	});
 
@@ -88,7 +88,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -113,7 +113,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -138,7 +138,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -163,7 +163,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -188,7 +188,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -213,7 +213,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -236,7 +236,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -259,7 +259,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),
@@ -282,7 +282,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			});
 
 			// Act
-			const minActiveHeights = dpos.getMinActiveHeight(
+			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
 				defaultPublicKey,
 				createStateStore(lists),

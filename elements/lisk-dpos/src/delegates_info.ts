@@ -87,16 +87,16 @@ const _hasVotedDelegatesPublicKeys = (account: Account) =>
 	account.votedDelegatesPublicKeys.length > 0;
 
 // Update balance, rewards and fees to the forging delegates
-const _updateBalanceRewardsAndFees = (
+const _updateBalanceRewardsAndFees = async (
 	{ uniqForgersInfo }: RoundSummary,
 	stateStore: StateStore,
 	undo?: boolean,
-): void => {
+): Promise<void> => {
 	for (const {
 		delegateAddress,
 		earnings: { fee, reward },
 	} of uniqForgersInfo) {
-		const account = stateStore.account.get(delegateAddress);
+		const account = await stateStore.account.get(delegateAddress);
 
 		const factor = undo ? BigInt(-1) : BigInt(1);
 		const amount = fee + reward;
@@ -114,18 +114,18 @@ const _updateBalanceRewardsAndFees = (
 };
 
 // Update VoteWeight to accounts voted by delegates who forged
-const _updateVotedDelegatesVoteWeight = (
+const _updateVotedDelegatesVoteWeight = async (
 	{ uniqForgersInfo }: RoundSummary,
 	stateStore: StateStore,
 	undo?: boolean,
-): void => {
+): Promise<void> => {
 	for (const { delegateAddress, earnings } of uniqForgersInfo) {
-		const forger = stateStore.account.get(delegateAddress);
+		const forger = await stateStore.account.get(delegateAddress);
 		if (!_hasVotedDelegatesPublicKeys(forger)) {
 			continue;
 		}
 		for (const votedDelegatePublicKey of forger.votedDelegatesPublicKeys) {
-			const account = stateStore.account.get(
+			const account = await stateStore.account.get(
 				getAddressFromPublicKey(votedDelegatePublicKey),
 			);
 			const amount = earnings.fee + earnings.reward;
@@ -139,11 +139,11 @@ const _updateVotedDelegatesVoteWeight = (
 	}
 };
 
-const _getMissedBlocksDelegatePublicKeys = (
+const _getMissedBlocksDelegatePublicKeys = async (
 	stateStore: StateStore,
 	{ round, uniqForgersInfo }: RoundSummary,
-): string[] => {
-	const expectedForgingPublicKeys = getForgerPublicKeysForRound(
+): Promise<string[]> => {
+	const expectedForgingPublicKeys = await getForgerPublicKeysForRound(
 		round,
 		stateStore,
 	);
@@ -154,12 +154,12 @@ const _getMissedBlocksDelegatePublicKeys = (
 	);
 };
 
-const _updateMissedBlocks = (
+const _updateMissedBlocks = async (
 	roundSummary: RoundSummary,
 	stateStore: StateStore,
 	undo?: boolean,
-): void => {
-	const missedBlocksDelegatePublicKeys = _getMissedBlocksDelegatePublicKeys(
+): Promise<void> => {
+	const missedBlocksDelegatePublicKeys = await _getMissedBlocksDelegatePublicKeys(
 		stateStore,
 		roundSummary,
 	);
@@ -170,7 +170,7 @@ const _updateMissedBlocks = (
 
 	for (const publicKey of missedBlocksDelegatePublicKeys) {
 		const address = getAddressFromPublicKey(publicKey);
-		const account = stateStore.account.get(address);
+		const account = await stateStore.account.get(address);
 		account.missedBlocks += undo ? -1 : 1;
 		stateStore.account.set(address, account);
 	}
@@ -235,7 +235,7 @@ export class DelegatesInfo {
 		stateStore: StateStore,
 		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
 	): Promise<boolean> {
-		this._updateProducedBlocks(block, stateStore, undo);
+		await this._updateProducedBlocks(block, stateStore, undo);
 		if (_isGenesisBlock(block)) {
 			const intialRound = 1;
 			for (
@@ -260,9 +260,9 @@ export class DelegatesInfo {
 		const roundSummary = await this._summarizeRound(block);
 
 		// Can NOT execute in parallel as _updateVotedDelegatesVoteWeight uses data updated on _updateBalanceRewardsAndFees
-		_updateMissedBlocks(roundSummary, stateStore, undo);
-		_updateBalanceRewardsAndFees(roundSummary, stateStore, undo);
-		_updateVotedDelegatesVoteWeight(roundSummary, stateStore, undo);
+		await _updateMissedBlocks(roundSummary, stateStore, undo);
+		await _updateBalanceRewardsAndFees(roundSummary, stateStore, undo);
+		await _updateVotedDelegatesVoteWeight(roundSummary, stateStore, undo);
 
 		if (undo) {
 			const previousRound = round + 1;
@@ -270,7 +270,10 @@ export class DelegatesInfo {
 				oldRound: previousRound,
 				newRound: round,
 			});
-			deleteDelegateListAfterRound(round + delegateListRoundOffset, stateStore);
+			await deleteDelegateListAfterRound(
+				round + delegateListRoundOffset,
+				stateStore,
+			);
 		} else {
 			const nextRound = round + 1;
 			this.events.emit(EVENT_ROUND_CHANGED, {
@@ -287,12 +290,12 @@ export class DelegatesInfo {
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
-	private _updateProducedBlocks(
+	private async _updateProducedBlocks(
 		block: Block,
 		stateStore: StateStore,
 		undo?: boolean,
-	): void {
-		const generator = stateStore.account.get(
+	): Promise<void> {
+		const generator = await stateStore.account.get(
 			getAddressFromPublicKey(block.generatorPublicKey),
 		);
 		generator.producedBlocks += undo ? -1 : 1;

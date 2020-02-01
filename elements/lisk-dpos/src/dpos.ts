@@ -120,16 +120,16 @@ export class Dpos {
 		return shuffleDelegateListForRound(round, delegatePublicKeys);
 	}
 
-	public onBlockFinalized(
+	public async onBlockFinalized(
 		stateStore: StateStore,
 		finalizedHeight: number,
-	): void {
+	): Promise<void> {
 		const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
 		const disposableDelegateList =
 			finalizedBlockRound -
 			this.delegateListRoundOffset -
 			this.delegateActiveRoundLimit;
-		deleteDelegateListUntilRound(disposableDelegateList, stateStore);
+		await deleteDelegateListUntilRound(disposableDelegateList, stateStore);
 	}
 
 	public async getMinActiveHeightsOfDelegates(
@@ -137,7 +137,7 @@ export class Dpos {
 		stateStore: StateStore,
 		numberOfRounds = 1,
 	): Promise<ActiveDelegates> {
-		const forgersList = getForgersList(stateStore);
+		const forgersList = await getForgersList(stateStore);
 		if (!forgersList.length) {
 			throw new Error('No delegate list found in the database.');
 		}
@@ -192,13 +192,13 @@ export class Dpos {
 		return delegates;
 	}
 
-	public getMinActiveHeight(
+	public async getMinActiveHeight(
 		height: number,
 		publicKey: string,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
-	): number {
-		const forgersList = getForgersList(stateStore);
+	): Promise<number> {
+		const forgersList = await getForgersList(stateStore);
 		if (!forgersList.length) {
 			throw new Error('No delegate list found in the database.');
 		}

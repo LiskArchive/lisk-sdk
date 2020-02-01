@@ -14,13 +14,13 @@
 import { Account } from '../../src/types';
 
 interface AccountStoreMock {
-	get: (address: string) => Account;
+	get: (address: string) => Promise<Account>;
 	getUpdated: () => Account[];
 	set: (address: string, account: Account) => void;
 }
 
 interface ChainStateStoreMock {
-	get: (address: string) => string | undefined;
+	get: (address: string) => Promise<string | undefined>;
 	set: (key: string, v: string) => void;
 }
 
@@ -43,7 +43,7 @@ export class StateStoreMock {
 		this.chainStateData = initialState ? { ...initialState } : {};
 
 		this.account = {
-			get: (address: string) => {
+			get: async (address: string): Promise<Account> => {
 				const account = this.accountData.find(acc => acc.address === address);
 				if (!account) {
 					throw new Error('Account not defined');
@@ -63,7 +63,7 @@ export class StateStoreMock {
 			getUpdated: () => this.accountData,
 		};
 		this.chainState = {
-			get: (key: string): string | undefined => {
+			get: async (key: string): Promise<string | undefined> => {
 				return this.chainStateData[key];
 			},
 			set: (key: string, val: string): void => {

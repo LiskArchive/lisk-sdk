@@ -36,8 +36,10 @@ interface DelegatesListConstructor {
 	};
 }
 
-export const getForgersList = (stateStore: StateStore): ForgersList => {
-	const forgersListStr = stateStore.chainState.get(
+export const getForgersList = async (
+	stateStore: StateStore,
+): Promise<ForgersList> => {
+	const forgersListStr = await stateStore.chainState.get(
 		CHAIN_STATE_FORGERS_LIST_KEY,
 	);
 	if (!forgersListStr) {
@@ -55,20 +57,20 @@ const _setForgersList = (
 	stateStore.chainState.set(CHAIN_STATE_FORGERS_LIST_KEY, forgersListStr);
 };
 
-export const deleteDelegateListUntilRound = (
+export const deleteDelegateListUntilRound = async (
 	round: number,
 	stateStore: StateStore,
-): void => {
-	const forgersList = getForgersList(stateStore);
+): Promise<void> => {
+	const forgersList = await getForgersList(stateStore);
 	const newForgersList = forgersList.filter(fl => fl.round >= round);
 	_setForgersList(stateStore, newForgersList);
 };
 
-export const deleteDelegateListAfterRound = (
+export const deleteDelegateListAfterRound = async (
 	round: number,
 	stateStore: StateStore,
-): void => {
-	const forgersList = getForgersList(stateStore);
+): Promise<void> => {
+	const forgersList = await getForgersList(stateStore);
 	const newForgersList = forgersList.filter(fl => fl.round < round);
 	_setForgersList(stateStore, newForgersList);
 };
@@ -101,11 +103,11 @@ export const shuffleDelegateListForRound = (
  * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
  * The list of delegates used is the one computed at the begging of the round `r - delegateListRoundOffset`
  */
-export const getForgerPublicKeysForRound = (
+export const getForgerPublicKeysForRound = async (
 	round: number,
 	stateStore: StateStore,
-): ReadonlyArray<string> => {
-	const forgersList = getForgersList(stateStore);
+): Promise<ReadonlyArray<string>> => {
+	const forgersList = await getForgersList(stateStore);
 	const delegatePublicKeys = forgersList.find(fl => fl.round === round)
 		?.delegates;
 
@@ -161,7 +163,7 @@ export class DelegatesList {
 		round: number,
 		stateStore: StateStore,
 	): Promise<void> {
-		const forgersList = getForgersList(stateStore);
+		const forgersList = await getForgersList(stateStore);
 		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
 		// This gets the list before current block is executed
 		const delegateAccounts = await this.getDelegatePublicKeysSortedByVoteWeight();
