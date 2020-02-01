@@ -28,9 +28,8 @@ const forkStatusList = [
 ];
 
 class Processor {
-	constructor({ channel, storage, logger, blocksModule }) {
+	constructor({ channel, logger, blocksModule }) {
 		this.channel = channel;
-		this.storage = storage;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.sequence = new Sequence();
@@ -60,7 +59,6 @@ class Processor {
 		});
 		await this.blocksModule.init();
 		const stateStore = this.blocksModule.newStateStore();
-		await stateStore.chainState.cache();
 		for (const processor of Object.values(this.processors)) {
 			await processor.init.run({ stateStore });
 		}
@@ -277,9 +275,6 @@ class Processor {
 		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
 	) {
 		const stateStore = this.blocksModule.newStateStore();
-		// initialize chain state
-		await stateStore.chainState.cache();
-		await stateStore.account.cache({ publicKey: block.generatorPublicKey });
 
 		await processor.verify.run({
 			block,
@@ -345,8 +340,9 @@ class Processor {
 			stateStore,
 		});
 		await this.blocksModule.remove(block, stateStore, { saveTempBlock });
+		const blockJSON = await this.serialize(block);
 		this.channel.publish('app:processor:deleteBlock', {
-			block: this.serialize(block),
+			block: blockJSON,
 		});
 	}
 

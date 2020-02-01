@@ -40,8 +40,12 @@ describe('block processor v2', () => {
 
 	beforeEach(async () => {
 		blocksModuleStub = {
+			newStateStore: jest.fn().mockReturnValue({}),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
+			},
+			lastBlock: {
+				height: 102,
 			},
 		};
 		bftModuleStub = {
@@ -85,7 +89,7 @@ describe('block processor v2', () => {
 			// Assert
 			expect(
 				dposModuleStub.getMinActiveHeightsOfDelegates,
-			).toHaveBeenCalledWith(2);
+			).toHaveBeenCalledWith(102, stateStore, 2);
 		});
 	});
 
