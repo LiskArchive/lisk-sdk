@@ -373,21 +373,18 @@ export class Blocks extends EventEmitter {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		return this.storage.entities.Block.begin(
-			'Chain:processGenesisBlock',
-			async tx => {
-				await stateStore.finalize(tx);
-				const blockJSON = this.serialize(blockInstance);
-				if (!skipSave) {
-					await saveBlock(this.storage, blockJSON, tx);
-				}
-				if (removeFromTempTable) {
-					await this.removeBlockFromTempTable(blockInstance.id, tx);
-				}
-				this.dataAccess.addBlockHeader(blockInstance);
-				this._lastBlock = blockInstance;
-			},
-		);
+		return this.storage.entities.Block.begin('saveBlock', async tx => {
+			await stateStore.finalize(tx);
+			const blockJSON = this.serialize(blockInstance);
+			if (!skipSave) {
+				await saveBlock(this.storage, blockJSON, tx);
+			}
+			if (removeFromTempTable) {
+				await this.removeBlockFromTempTable(blockInstance.id, tx);
+			}
+			this.dataAccess.addBlockHeader(blockInstance);
+			this._lastBlock = blockInstance;
+		});
 	}
 
 	public async undo(
@@ -422,18 +419,18 @@ export class Blocks extends EventEmitter {
 		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		await this.storage.entities.Block.begin('Chain:revertBlock', async tx => {
+		await this.storage.entities.Block.begin('revertBlock', async tx => {
 			const secondLastBlock = await this._deleteLastBlock(block, tx);
 			const blockJSON = this.serialize(block);
 
 			if (saveTempBlock) {
-			const blockTempEntry = {
-				id: blockJSON.id,
-				height: blockJSON.height,
-				fullBlock: blockJSON,
-			};
-			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
-		}
+				const blockTempEntry = {
+					id: blockJSON.id,
+					height: blockJSON.height,
+					fullBlock: blockJSON,
+				};
+				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
+			}
 			await stateStore.finalize(tx);
 			this.dataAccess.removeBlockHeader(block.id);
 			this._lastBlock = secondLastBlock;

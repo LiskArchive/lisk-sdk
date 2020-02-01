@@ -358,6 +358,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getDelegateAccounts', () => {
+		const DEFAULT_LIMIT = 101;
 		beforeEach(async () => {
 			// Arrange
 			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
@@ -365,11 +366,16 @@ describe('data access - storage', () => {
 
 		it('should call storage.Account.get and return accounts', async () => {
 			// Act
-			const delegateAccountsInStorage = await storageAccess.getDelegateAccounts();
+			const delegateAccountsInStorage = await storageAccess.getDelegateAccounts(
+				DEFAULT_LIMIT,
+			);
 
 			// Assert
 			expect(delegateAccountsInStorage).toEqual(defaultAccounts);
-			expect(storageMock.entities.Account.get).toHaveBeenCalled();
+			expect(storageMock.entities.Account.get).toHaveBeenCalledWith(
+				{ isDelegate: true },
+				{ limit: DEFAULT_LIMIT, sort: ['voteWeight:desc', 'publicKey:asc'] },
+			);
 		});
 	});
 
