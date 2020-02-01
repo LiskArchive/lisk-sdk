@@ -274,6 +274,12 @@ export class DataAccess {
 	}
 	/** End: Blocks */
 
+	/** Begin: ChainState */
+	public async getChainState(key: string): Promise<string | undefined> {
+		return this._storage.getChainState(key);
+	}
+	/** End: ChainState */
+
 	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
@@ -299,10 +305,8 @@ export class DataAccess {
 		return accounts;
 	}
 
-	public async getDelegateAccounts(
-		tx?: StorageTransaction,
-	): Promise<Account[]> {
-		const accounts = await this._storage.getDelegateAccounts(tx);
+	public async getDelegateAccounts(limit: number): Promise<Account[]> {
+		const accounts = await this._storage.getDelegateAccounts(limit);
 
 		return accounts;
 	}

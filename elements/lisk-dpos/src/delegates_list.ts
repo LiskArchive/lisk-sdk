@@ -18,19 +18,17 @@ import { CHAIN_STATE_FORGERS_LIST_KEY } from './constants';
 import { Rounds } from './rounds';
 import {
 	Account,
-	Block,
+	BlockHeader,
 	Blocks,
 	ForgerList,
 	ForgersList,
 	StateStore,
-	Storage,
 } from './types';
 
 interface DelegatesListConstructor {
-	readonly storage: Storage;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
-	readonly blocksModule: Blocks;
+	readonly blocks: Blocks;
 	readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
@@ -119,40 +117,23 @@ export const getForgerPublicKeysForRound = async (
 };
 
 export class DelegatesList {
-	private readonly storage: Storage;
 	private readonly rounds: Rounds;
-	private readonly blocksModule: Blocks;
+	private readonly blocks: Blocks;
 	private readonly activeDelegates: number;
 	private readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
 
 	public constructor({
-		storage,
 		activeDelegates,
 		rounds,
-		blocksModule,
+		blocks,
 		exceptions,
 	}: DelegatesListConstructor) {
-		this.storage = storage;
 		this.activeDelegates = activeDelegates;
 		this.rounds = rounds;
 		this.exceptions = exceptions;
-		this.blocksModule = blocksModule;
-	}
-
-	// TODO: Update to use the blocks library
-	public async getDelegatePublicKeysSortedByVoteWeight(): Promise<
-		ReadonlyArray<Account>
-	> {
-		const filters = { isDelegate: true };
-		const options = {
-			limit: this.activeDelegates,
-			sort: ['voteWeight:desc', 'publicKey:asc'],
-		};
-		const accounts = await this.storage.entities.Account.get(filters, options);
-
-		return accounts;
+		this.blocks = blocks;
 	}
 
 	/**
@@ -166,7 +147,9 @@ export class DelegatesList {
 		const forgersList = await getForgersList(stateStore);
 		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
 		// This gets the list before current block is executed
-		const delegateAccounts = await this.getDelegatePublicKeysSortedByVoteWeight();
+		const delegateAccounts = await this.blocks.dataAccess.getDelegateAccounts(
+			this.activeDelegates,
+		);
 		const updatedAccounts = stateStore.account.getUpdated();
 		// tslint:disable-next-line readonly-keyword
 		const updatedAccountsMap: { [address: string]: Account } = {};
@@ -210,11 +193,11 @@ export class DelegatesList {
 		_setForgersList(stateStore, forgersList);
 	}
 
-	public async verifyBlockForger(block: Block): Promise<boolean> {
-		const currentSlot = this.blocksModule.slots.getSlotNumber(block.timestamp);
+	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
+		const currentSlot = this.blocks.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.rounds.calcRound(block.height);
 
-		const forgersListStr = await this.storage.entities.ChainState.getKey(
+		const forgersListStr = await this.blocks.dataAccess.getChainState(
 			CHAIN_STATE_FORGERS_LIST_KEY,
 		);
 		const forgersList =

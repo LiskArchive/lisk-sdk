@@ -24,14 +24,13 @@ import {
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
-	Block,
+	BlockHeader,
 	Blocks,
 	DPoSProcessingOptions,
 	ForgersList,
 	Logger,
 	RoundException,
 	StateStore,
-	Storage,
 } from './types';
 
 interface ActiveDelegates {
@@ -40,7 +39,6 @@ interface ActiveDelegates {
 }
 
 interface DposConstructor {
-	readonly storage: Storage;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
@@ -55,7 +53,6 @@ interface DposConstructor {
 export class Dpos {
 	public readonly rounds: Rounds;
 
-	private readonly storage: Storage;
 	private readonly events: EventEmitter;
 	private readonly delegateListRoundOffset: number;
 	private readonly delegateActiveRoundLimit: number;
@@ -64,14 +61,12 @@ export class Dpos {
 	private readonly blocks: Blocks;
 
 	public constructor({
-		storage,
 		activeDelegates,
 		delegateListRoundOffset,
 		logger,
 		blocks,
 		exceptions = {},
 	}: DposConstructor) {
-		this.storage = storage;
 		this.events = new EventEmitter();
 		this.delegateListRoundOffset = delegateListRoundOffset;
 		// @todo consider making this a constant and reuse it in BFT module.
@@ -81,15 +76,14 @@ export class Dpos {
 		this.rounds = new Rounds({ blocksPerRound: activeDelegates });
 
 		this.delegatesList = new DelegatesList({
-			storage,
 			rounds: this.rounds,
 			activeDelegates,
-			blocksModule: this.blocks,
+			blocks: this.blocks,
 			exceptions,
 		});
 
 		this.delegatesInfo = new DelegatesInfo({
-			storage,
+			blocks: this.blocks,
 			rounds: this.rounds,
 			activeDelegates,
 			logger,
@@ -103,7 +97,7 @@ export class Dpos {
 	public async getForgerPublicKeysForRound(
 		round: number,
 	): Promise<ReadonlyArray<string>> {
-		const forgersListStr = await this.storage.entities.ChainState.getKey(
+		const forgersListStr = await this.blocks.dataAccess.getChainState(
 			CHAIN_STATE_FORGERS_LIST_KEY,
 		);
 		const forgersList =
@@ -255,12 +249,12 @@ export class Dpos {
 		return lists[lists.length - 1].round;
 	}
 
-	public async verifyBlockForger(block: Block): Promise<boolean> {
+	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
 		return this.delegatesList.verifyBlockForger(block);
 	}
 
 	public async apply(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions = {
 			delegateListRoundOffset: this.delegateListRoundOffset,
@@ -272,7 +266,7 @@ export class Dpos {
 	}
 
 	public async undo(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions = {
 			delegateListRoundOffset: this.delegateListRoundOffset,

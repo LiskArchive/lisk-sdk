@@ -101,7 +101,6 @@ export class AccountStore {
 			{ [this._primaryKey]: primaryValue },
 			// tslint:disable-next-line no-null-keyword
 			{ limit: null },
-			this._tx,
 		);
 
 		if (elementFromDB) {
@@ -131,7 +130,6 @@ export class AccountStore {
 			{ [this._primaryKey]: primaryValue },
 			// tslint:disable-next-line no-null-keyword
 			{ limit: null },
-			this._tx,
 		);
 
 		if (elementFromDB) {

@@ -213,9 +213,17 @@ export class Storage {
 	}
 
 	/*
+		ChainState
+	*/
+	public async getChainState(key: string): Promise<string | undefined> {
+		const value = await this._storage.entities.ChainState.getKey(key);
+
+		return value;
+	}
+
+	/*
 		Accounts
 	*/
-
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
 		tx?: StorageTransaction,
@@ -242,13 +250,10 @@ export class Storage {
 		return accounts;
 	}
 
-	public async getDelegateAccounts(
-		tx?: StorageTransaction,
-	): Promise<Account[]> {
+	public async getDelegateAccounts(limit: number): Promise<Account[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ isDelegate: true },
-			{ limit: 101, sort: ['voteWeight:desc', 'publicKey:asc'] },
-			tx,
+			{ limit, sort: ['voteWeight:desc', 'publicKey:asc'] },
 		);
 
 		return accounts;
@@ -261,7 +266,6 @@ export class Storage {
 	/*
 		Transactions
 	*/
-
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<string>,
 	): Promise<TransactionJSON[]> {

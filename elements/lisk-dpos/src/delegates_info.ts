@@ -23,19 +23,17 @@ import {
 import { Rounds } from './rounds';
 import {
 	Account,
-	Block,
-	BlockJSON,
+	BlockHeader,
+	Blocks,
 	DPoSProcessingOptions,
 	Earnings,
 	Logger,
 	RoundException,
 	StateStore,
-	Storage,
-	StorageTransaction,
 } from './types';
 
 interface DelegatesInfoConstructor {
-	readonly storage: Storage;
+	readonly blocks: Blocks;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly logger: Logger;
@@ -57,7 +55,6 @@ interface RoundSummary {
 	readonly round: number;
 	readonly uniqForgersInfo: ReadonlyArray<UniqueForgerInfo>;
 	readonly totalFee: bigint;
-	readonly tx?: StorageTransaction;
 }
 
 interface ForgerInfo {
@@ -80,7 +77,7 @@ interface AccountSummary {
 	totalFee: bigint;
 }
 
-const _isGenesisBlock = (block: Block) => block.height === 1;
+const _isGenesisBlock = (block: BlockHeader) => block.height === 1;
 
 const _hasVotedDelegatesPublicKeys = (account: Account) =>
 	!!account.votedDelegatesPublicKeys &&
@@ -177,7 +174,7 @@ const _updateMissedBlocks = async (
 };
 
 export class DelegatesInfo {
-	private readonly storage: Storage;
+	private readonly blocks: Blocks;
 	private readonly rounds: Rounds;
 	private readonly activeDelegates: number;
 	private readonly logger: Logger;
@@ -188,15 +185,15 @@ export class DelegatesInfo {
 	};
 
 	public constructor({
-		storage,
 		rounds,
+		blocks,
 		activeDelegates,
 		logger,
 		events,
 		delegatesList,
 		exceptions,
 	}: DelegatesInfoConstructor) {
-		this.storage = storage;
+		this.blocks = blocks;
 		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
 		this.logger = logger;
@@ -206,7 +203,7 @@ export class DelegatesInfo {
 	}
 
 	public async apply(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
@@ -216,7 +213,7 @@ export class DelegatesInfo {
 	}
 
 	public async undo(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
@@ -231,7 +228,7 @@ export class DelegatesInfo {
 	}
 
 	private async _update(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
 	): Promise<boolean> {
@@ -291,7 +288,7 @@ export class DelegatesInfo {
 
 	// tslint:disable-next-line prefer-function-over-method
 	private async _updateProducedBlocks(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		undo?: boolean,
 	): Promise<void> {
@@ -302,7 +299,7 @@ export class DelegatesInfo {
 		stateStore.account.set(generator.address, generator);
 	}
 
-	private _isLastBlockOfTheRound(block: Block): boolean {
+	private _isLastBlockOfTheRound(block: BlockHeader): boolean {
 		const round = this.rounds.calcRound(block.height);
 		const nextRound = this.rounds.calcRound(block.height + 1);
 
@@ -313,18 +310,15 @@ export class DelegatesInfo {
 	 * Return an object that contains the summary of round information
 	 * as delegates who forged, their earnings and accounts
 	 */
-	private async _summarizeRound(block: Block): Promise<RoundSummary> {
+	private async _summarizeRound(block: BlockHeader): Promise<RoundSummary> {
 		const round = this.rounds.calcRound(block.height);
 		this.logger.debug('Calculating rewards and fees for round: ', round);
 
-		const blocksInRounds: Array<
-			Block | BlockJSON
-		> = await this.storage.entities.Block.get(
-			{
-				height_gte: this.rounds.calcRoundStartHeight(round),
-				height_lt: this.rounds.calcRoundEndHeight(round),
-			},
-			{ limit: this.activeDelegates, sort: 'height:asc' },
+		const heightFrom = this.rounds.calcRoundStartHeight(round);
+		const heightTo = this.rounds.calcRoundStartHeight(round) - 1;
+		const blocksInRounds = await this.blocks.dataAccess.getBlockHeadersByHeightBetween(
+			heightFrom,
+			heightTo,
 		);
 
 		// The blocksInRounds does not contain the last block
@@ -337,7 +331,7 @@ export class DelegatesInfo {
 		}
 
 		const { uniqDelegateListWithRewardsInfo, totalFee } = blocksInRounds.reduce(
-			(acc: AccountSummary, fetchedBlock: Block | BlockJSON, i) => {
+			(acc: AccountSummary, fetchedBlock: BlockHeader, i) => {
 				acc.totalFee = acc.totalFee + BigInt(fetchedBlock.totalFee);
 
 				const delegate = acc.uniqDelegateListWithRewardsInfo.find(

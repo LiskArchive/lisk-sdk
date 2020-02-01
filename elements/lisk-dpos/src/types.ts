@@ -24,110 +24,12 @@ export interface StateStore {
 	};
 }
 
-// Storage
-export interface StorageFilter {
-	readonly [key: string]:
-		| string
-		| number
-		| boolean
-		| string[]
-		| number[]
-		| undefined;
-}
-
-export type StorageFilters =
-	| StorageFilter
-	| StorageFilter[]
-	| ReadonlyArray<StorageFilter>;
-
-export interface StorageOptions {
-	readonly limit?: number | null;
-	readonly extended?: boolean;
-	readonly offset?: number;
-	readonly sort?: string | string[];
-}
-
-export interface StorageTransaction {
-	// tslint:disable-next-line no-any
-	readonly batch: <T = any>(input: any[]) => Promise<T>;
-}
-
-export interface StorageEntity<T> {
-	readonly get: (
-		filters?: StorageFilters,
-		options?: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-	readonly create: (
-		filters?: StorageFilters,
-		options?: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-	readonly update: (
-		filters: StorageFilters,
-		data: UpdateAccountData,
-		options: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-	readonly delete: (
-		filters?: StorageFilters,
-		options?: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-}
-
-export interface ChainStateEntity {
-	readonly getKey: (key: string) => Promise<string | undefined>;
-}
-
-export interface Storage {
-	readonly entities: {
-		readonly Account: AccountEntity;
-		readonly Block: BlockEntity;
-		readonly ChainState: ChainStateEntity;
-	};
-}
-
-// Entity
-export interface BlockEntity {
-	readonly get: (
-		filters: StorageFilters,
-		options: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<BlockJSON[]>;
-}
-
-export interface AccountEntity extends StorageEntity<Account> {
-	readonly decreaseFieldBy: (
-		filters: StorageFilters,
-		field: string,
-		value: string,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<Account>>;
-	readonly increaseFieldBy: (
-		filters: StorageFilters,
-		field: string,
-		value: string,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<Account>>;
-}
-
-export interface BlockJSON {
-	readonly id: number;
-	readonly height: number;
-	readonly generatorPublicKey: string;
-	readonly totalFee: string;
-	readonly timestamp: number;
-	readonly fee: string;
-	readonly reward: string;
-}
-
 export interface Earnings {
 	readonly fee: bigint;
 	readonly reward: bigint;
 }
 
-export interface Block extends Earnings {
+export interface BlockHeader extends Earnings {
 	readonly id: number;
 	readonly height: number;
 	readonly generatorPublicKey: string;
@@ -159,12 +61,6 @@ export interface ParsedAccount
 	rewards: bigint;
 }
 
-interface UpdateAccountData {
-	readonly balance?: string;
-	readonly fees?: string;
-	readonly rewards?: string;
-}
-
 export interface Logger {
 	// tslint:disable-next-line no-any
 	readonly debug: (...input: any[]) => void;
@@ -185,6 +81,14 @@ export interface RoundException {
 
 export interface Blocks {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
+	readonly dataAccess: {
+		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
+		readonly getChainState: (key: string) => Promise<string | undefined>;
+		readonly getBlockHeadersByHeightBetween: (
+			fromHeight: number,
+			toHeight: number,
+		) => Promise<BlockHeader[]>;
+	};
 }
 
 export interface ForgerList {

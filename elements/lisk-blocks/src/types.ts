@@ -149,7 +149,10 @@ export interface ChainStateEntity {
 		options?: StorageOptions,
 		tx?: StorageTransaction,
 	) => Promise<ChainState[]>;
-	readonly getKey: (key: string, tx?: StorageTransaction) => Promise<string>;
+	readonly getKey: (
+		key: string,
+		tx?: StorageTransaction,
+	) => Promise<string | string>;
 	readonly setKey: (
 		key: string,
 		value: string,
