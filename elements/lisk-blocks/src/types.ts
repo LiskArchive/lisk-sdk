@@ -110,8 +110,8 @@ export type MatcherTransaction = BaseTransaction & {
 };
 
 export interface ChainState {
-	// tslint:disable-next-line readonly-keyword
-	[key: string]: string;
+	readonly key: string;
+	readonly value: string;
 }
 
 export interface StorageTransaction {
@@ -152,7 +152,7 @@ export interface ChainStateEntity {
 	readonly getKey: (
 		key: string,
 		tx?: StorageTransaction,
-	) => Promise<string | string>;
+	) => Promise<string | undefined>;
 	readonly setKey: (
 		key: string,
 		value: string,
