@@ -184,7 +184,7 @@ describe('processor', () => {
 				expect(blocksModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
-					{ skipSave: false },
+					{ saveOnlyState: false },
 				);
 			});
 		});
@@ -1253,7 +1253,7 @@ describe('processor', () => {
 					blockV0,
 					stateStoreStub,
 					{
-						skipSave: true,
+						saveOnlyState: true,
 						removeFromTempTable: false,
 					},
 				);
@@ -1435,7 +1435,7 @@ describe('processor', () => {
 				expect(blocksModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
-					{ skipSave: true },
+					{ saveOnlyState: true },
 				);
 			});
 		});
@@ -1455,7 +1455,7 @@ describe('processor', () => {
 				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
-			it('should not save genesis block with skipSave', async () => {
+			it('should not save genesis block with saveOnlyState', async () => {
 				expect(blocksModuleStub.save).not.toHaveBeenCalled();
 			});
 		});

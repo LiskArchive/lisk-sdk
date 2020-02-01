@@ -368,15 +368,15 @@ export class Blocks extends EventEmitter {
 	public async save(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
-		{ skipSave, removeFromTempTable } = {
-			skipSave: false,
+		{ saveOnlyState, removeFromTempTable } = {
+			saveOnlyState: false,
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
 		return this.storage.entities.Block.begin('saveBlock', async tx => {
 			await stateStore.finalize(tx);
 			const blockJSON = this.serialize(blockInstance);
-			if (!skipSave) {
+			if (!saveOnlyState) {
 				await saveBlock(this.storage, blockJSON, tx);
 			}
 			if (removeFromTempTable) {

@@ -55,7 +55,7 @@ class Processor {
 		// do init check for block state. We need to load the blockchain
 		const blockProcessor = this._getBlockProcessor(genesisBlock);
 		await this._processGenesis(genesisBlock, blockProcessor, {
-			skipSave: false,
+			saveOnlyState: false,
 		});
 		await this.blocksModule.init();
 		const stateStore = this.blocksModule.newStateStore();
@@ -243,7 +243,7 @@ class Processor {
 			const { lastBlock } = this.blocksModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
-				skipSave: true,
+				saveOnlyState: true,
 				skipBroadcast: true,
 			});
 		});
@@ -265,21 +265,21 @@ class Processor {
 	async applyGenesisBlock(block) {
 		this.logger.info({ id: block.id }, 'Applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
-		return this._processGenesis(block, blockProcessor, { skipSave: true });
+		return this._processGenesis(block, blockProcessor, { saveOnlyState: true });
 	}
 
 	async _processValidated(
 		block,
 		lastBlock,
 		processor,
-		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
+		{ saveOnlyState, skipBroadcast, removeFromTempTable = false } = {},
 	) {
 		const stateStore = this.blocksModule.newStateStore();
 
 		await processor.verify.run({
 			block,
 			lastBlock,
-			skipExistingCheck: skipSave,
+			skipExistingCheck: saveOnlyState,
 			stateStore,
 		});
 
@@ -295,17 +295,17 @@ class Processor {
 		await processor.apply.run({
 			block,
 			lastBlock,
-			skipExistingCheck: skipSave,
+			skipExistingCheck: saveOnlyState,
 			stateStore,
 		});
 
 		await this.blocksModule.save(block, stateStore, {
-			skipSave,
+			saveOnlyState,
 			removeFromTempTable,
 		});
 
 		// Should only publish 'app:processor:newBlock' if saved AND applied successfully
-		if (!skipSave) {
+		if (!saveOnlyState) {
 			this.channel.publish('app:processor:newBlock', {
 				block: blockJSON,
 			});
@@ -314,21 +314,25 @@ class Processor {
 		return block;
 	}
 
-	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
+	async _processGenesis(
+		block,
+		processor,
+		{ saveOnlyState } = { saveOnlyState: false },
+	) {
 		const stateStore = this.blocksModule.newStateStore();
 		const isPersisted = await this.blocksModule.exists(block);
-		if (skipSave && !isPersisted) {
+		if (saveOnlyState && !isPersisted) {
 			throw new Error('Genesis block is not persisted but skipping to save');
 		}
 		// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
-		if (isPersisted && !skipSave) {
+		if (isPersisted && !saveOnlyState) {
 			return block;
 		}
 		await processor.applyGenesis.run({
 			block,
 			stateStore,
 		});
-		await this.blocksModule.save(block, stateStore, { skipSave });
+		await this.blocksModule.save(block, stateStore, { saveOnlyState });
 
 		return block;
 	}
