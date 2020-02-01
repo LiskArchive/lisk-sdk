@@ -313,7 +313,8 @@ export class DelegatesInfo {
 		debug('Calculating rewards and fees for round', round);
 
 		const heightFrom = this.rounds.calcRoundStartHeight(round);
-		const heightTo = this.rounds.calcRoundStartHeight(round) - 1;
+		const heightTo = this.rounds.calcRoundEndHeight(round) - 1;
+
 		const blocksInRounds = await this.blocks.dataAccess.getBlockHeadersByHeightBetween(
 			heightFrom,
 			heightTo,

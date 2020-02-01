@@ -21,7 +21,6 @@ import {
 	BlockJSON,
 	BlockRound,
 	Storage as DBStorage,
-	StorageTransaction,
 	TempBlock,
 } from '../types';
 
@@ -283,11 +282,9 @@ export class DataAccess {
 	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	): Promise<Account[]> {
 		const accounts = await this._storage.getAccountsByPublicKey(
 			arrayOfPublicKeys,
-			tx,
 		);
 
 		return accounts;
@@ -295,12 +292,8 @@ export class DataAccess {
 
 	public async getAccountsByAddress(
 		arrayOfAddresses: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	): Promise<Account[]> {
-		const accounts = await this._storage.getAccountsByAddress(
-			arrayOfAddresses,
-			tx,
-		);
+		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
 		return accounts;
 	}
