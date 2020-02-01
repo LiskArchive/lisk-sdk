@@ -29,28 +29,27 @@ import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
  * the list accordingly.
  */
 describe('dpos.getForgerPublicKeysForRound()', () => {
-	const stubs = {} as any;
 	let dpos: Dpos;
+	let blocksStub: any;
+	let loggerStub: any;
 
 	beforeEach(() => {
 		// Arrange
-		stubs.storage = {
-			entities: {
-				Account: {
-					get: jest.fn(),
-				},
-				ChainState: {
-					getKey: jest
-						.fn()
-						.mockResolvedValue(
-							JSON.stringify([{ round: 11, delegates: delegatePublicKeys }]),
-						),
-				},
+		blocksStub = {
+			dataAccess: {
+				getChainState: jest.fn(),
+				getDelegateAccounts: jest.fn(),
 			},
+		};
+		loggerStub = {
+			debug: jest.fn(),
+			log: jest.fn(),
+			error: jest.fn(),
 		};
 
 		dpos = new Dpos({
-			...stubs,
+			blocks: blocksStub,
+			logger: loggerStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -60,7 +59,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 		// Arrange
-		when(stubs.storage.entities.ChainState.getKey)
+		when(blocksStub.dataAccess.getChainState)
 			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(
 				JSON.stringify([{ round, delegates: delegatePublicKeys }]),
@@ -75,10 +74,10 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should throw error when chain state is empty', async () => {
 		// Arrange
-		when(stubs.storage.entities.ChainState.getKey)
+		when(blocksStub.dataAccess.getChainState)
 			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(undefined);
-		stubs.storage.entities.Account.get.mockReturnValue(delegateAccounts);
+		blocksStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
 
 		// Act && Assert
 		return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(
@@ -88,12 +87,12 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should throw error when round is not in the chain state', async () => {
 		// Arrange
-		when(stubs.storage.entities.ChainState.getKey)
+		when(blocksStub.dataAccess.getChainState)
 			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(
 				JSON.stringify([{ round: 7, delegates: delegatePublicKeys }]),
 			);
-		stubs.storage.entities.Account.get.mockReturnValue(delegateAccounts);
+		blocksStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
 
 		// Act && Assert
 		return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(

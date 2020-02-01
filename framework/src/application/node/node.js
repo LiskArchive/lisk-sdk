@@ -333,12 +333,11 @@ module.exports = class Node {
 
 		this.slots = this.blocks.slots;
 		this.dpos = new Dpos({
-			storage: this.storage,
+			blocks: this.blocks,
 			logger: this.logger,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: this.options.constants
 				.DELEGATE_LIST_ROUND_OFFSET,
-			blocks: this.blocks,
 			exceptions: this.options.exceptions,
 		});
 

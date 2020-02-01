@@ -31,47 +31,42 @@ import {
 	sortedDelegateAccounts,
 	votedDelegates,
 } from '../utils/round_delegates';
-import { Block, Account, ForgersList } from '../../src/types';
+import {
+	BlockHeader,
+	Account,
+	ForgersList,
+	RoundException,
+} from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.undo()', () => {
-	const stubs = {} as any;
 	let dpos: Dpos;
+	let blocksStub: any;
+	let loggerStub: any;
 	let stateStore: StateStoreMock;
 
-	let slots: Slots;
 	beforeEach(() => {
 		// Arrange
-		stubs.storage = {
-			entities: {
-				Account: {
-					get: jest.fn().mockResolvedValue([]),
-					update: jest.fn(),
-				},
-				Block: {
-					get: jest.fn().mockResolvedValue([]),
-				},
+		blocksStub = {
+			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			dataAccess: {
+				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
+				getChainState: jest.fn().mockResolvedValue(undefined),
+				getDelegateAccounts: jest.fn().mockResolvedValue([]),
 			},
 		};
 
-		stubs.logger = {
+		loggerStub = {
 			debug: jest.fn(),
 			log: jest.fn(),
 			error: jest.fn(),
 		};
 
-		stubs.tx = jest.fn();
-
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
-		const blocks = {
-			slots,
-		};
-
 		dpos = new Dpos({
-			blocks,
-			...stubs,
+			blocks: blocksStub,
+			logger: loggerStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -79,7 +74,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 		let stateStore: StateStoreMock;
 		let generator: Account;
 
@@ -88,7 +83,7 @@ describe('dpos.undo()', () => {
 			// Arrange
 			genesisBlock = {
 				height: 1,
-			} as Block;
+			} as BlockHeader;
 			stateStore = new StateStoreMock(
 				[generator, ...sortedDelegateAccounts],
 				{},
@@ -112,7 +107,7 @@ describe('dpos.undo()', () => {
 			const block = ({
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block) as Block;
+			} as BlockHeader) as BlockHeader;
 
 			stateStore = new StateStoreMock(
 				[generator, ...sortedDelegateAccounts],
@@ -137,7 +132,7 @@ describe('dpos.undo()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 			stateStore = new StateStoreMock(
 				[generator, ...sortedDelegateAccounts],
 				{},
@@ -160,7 +155,7 @@ describe('dpos.undo()', () => {
 			const block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 			stateStore = new StateStoreMock([generator, ...sortedDelegateAccounts], {
 				[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 					{ round: 2, delegates: [] },
@@ -179,7 +174,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: Block;
+		let lastBlockOfTheRoundNine: BlockHeader;
 		let feePerDelegate: bigint;
 		let rewardPerDelegate: bigint;
 		let totalFee: bigint;
@@ -238,7 +233,7 @@ describe('dpos.undo()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
-			} as Block;
+			} as BlockHeader;
 			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
 				totalFee: feePerDelegate,
@@ -248,7 +243,9 @@ describe('dpos.undo()', () => {
 
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
+			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				forgedBlocks,
+			);
 		});
 
 		it('should decrease "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
@@ -336,13 +333,15 @@ describe('dpos.undo()', () => {
 			}));
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
+			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				forgedBlocks,
+			);
 			lastBlockOfTheRoundNine = {
 				height: 909,
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: BigInt(feePerDelegate) + BigInt(remainingFee),
 				reward: rewardPerDelegate,
-			} as Block;
+			} as BlockHeader;
 
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
@@ -456,7 +455,9 @@ describe('dpos.undo()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				stubs.storage.entities.Block.get.mockRejectedValue(err);
+				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
+					err,
+				);
 
 				// Act && Assert
 				await expect(
@@ -466,7 +467,7 @@ describe('dpos.undo()', () => {
 		});
 
 		describe('Given the provided block is in an exception round', () => {
-			let exceptionFactors: { [key: string]: number };
+			let exceptionFactors: RoundException;
 			beforeEach(() => {
 				// Arrange
 				exceptionFactors = {
@@ -485,8 +486,8 @@ describe('dpos.undo()', () => {
 				};
 
 				dpos = new Dpos({
-					slots,
-					...stubs,
+					blocks: blocksStub,
+					logger: loggerStub,
 					activeDelegates: ACTIVE_DELEGATES,
 					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,

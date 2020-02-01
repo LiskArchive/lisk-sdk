@@ -15,7 +15,12 @@
 import { when } from 'jest-when';
 import { Dpos, constants } from '../../src';
 import { Slots } from '../../../lisk-blocks/src/slots';
-import { Block, Account, ForgersList } from '../../src/types';
+import {
+	Account,
+	ForgersList,
+	BlockHeader,
+	RoundException,
+} from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -39,38 +44,31 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.apply()', () => {
-	const stubs = {} as any;
 	let dpos: Dpos;
+	let blocksStub: any;
+	let loggerStub: any;
 	let stateStore: StateStoreMock;
 
 	beforeEach(() => {
 		// Arrange
-		stubs.storage = {
-			entities: {
-				Account: {
-					get: jest.fn().mockResolvedValue([]),
-					update: jest.fn(),
-				},
-				Block: {
-					get: jest.fn().mockResolvedValue([]),
-				},
+		blocksStub = {
+			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			dataAccess: {
+				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
+				getChainState: jest.fn().mockResolvedValue(undefined),
+				getDelegateAccounts: jest.fn().mockResolvedValue([]),
 			},
 		};
 
-		stubs.logger = {
+		loggerStub = {
 			debug: jest.fn(),
 			log: jest.fn(),
 			error: jest.fn(),
 		};
 
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
-		const blocks = {
-			slots,
-		};
-
 		dpos = new Dpos({
-			blocks,
-			...stubs,
+			blocks: blocksStub,
+			logger: loggerStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -79,7 +77,7 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 		let stateStore: StateStoreMock;
 		let generator: Account;
 
@@ -89,23 +87,15 @@ describe('dpos.apply()', () => {
 			genesisBlock = {
 				height: 1,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 
 			stateStore = new StateStoreMock(
 				[generator, ...sortedDelegateAccounts],
 				{},
 			);
 
-			when(stubs.storage.entities.Account.get)
-				.calledWith(
-					{
-						isDelegate: true,
-					},
-					{
-						limit: ACTIVE_DELEGATES,
-						sort: ['voteWeight:desc', 'publicKey:asc'],
-					},
-				)
+			when(blocksStub.dataAccess.getDelegateAccounts)
+				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue([]);
 		});
 
@@ -114,12 +104,8 @@ describe('dpos.apply()', () => {
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			expect(stubs.storage.entities.Account.get).toHaveBeenCalledWith(
-				{ isDelegate: true },
-				{
-					limit: ACTIVE_DELEGATES,
-					sort: ['voteWeight:desc', 'publicKey:asc'],
-				},
+			expect(blocksStub.dataAccess.getDelegateAccounts).toHaveBeenCalledWith(
+				ACTIVE_DELEGATES,
 			);
 			let forgerslList = [];
 			for (let i = 0; i <= DELEGATE_LIST_ROUND_OFFSET; i++) {
@@ -155,7 +141,7 @@ describe('dpos.apply()', () => {
 
 	describe('Given block height is greater than "1" (NOT the genesis block)', () => {
 		let generator: Account;
-		let block: Block;
+		let block: BlockHeader;
 
 		beforeEach(() => {
 			generator = { ...delegateAccounts[1] };
@@ -163,18 +149,10 @@ describe('dpos.apply()', () => {
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 
-			when(stubs.storage.entities.Account.get)
-				.calledWith(
-					{
-						isDelegate: true,
-					},
-					{
-						limit: ACTIVE_DELEGATES,
-						sort: ['voteWeight:desc', 'publicKey:asc'],
-					},
-				)
+			when(blocksStub.dataAccess.getDelegateAccounts)
+				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 		});
 
@@ -192,7 +170,7 @@ describe('dpos.apply()', () => {
 
 	describe('Given block is NOT the last block of the round', () => {
 		let generator: Account;
-		let block: Block;
+		let block: BlockHeader;
 		let forgersList: ForgersList;
 
 		beforeEach(() => {
@@ -201,7 +179,7 @@ describe('dpos.apply()', () => {
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 
 			forgersList = [
 				{
@@ -218,16 +196,8 @@ describe('dpos.apply()', () => {
 				[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
 			});
 
-			when(stubs.storage.entities.Account.get)
-				.calledWith(
-					{
-						isDelegate: true,
-					},
-					{
-						limit: ACTIVE_DELEGATES,
-						sort: ['voteWeight:desc', 'publicKey:asc'],
-					},
-				)
+			when(blocksStub.dataAccess.getDelegateAccounts)
+				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 		});
 
@@ -256,7 +226,7 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: Block;
+		let lastBlockOfTheRoundNine: BlockHeader;
 		let feePerDelegate: bigint;
 		let rewardPerDelegate: bigint;
 		let totalFee: bigint;
@@ -288,16 +258,8 @@ describe('dpos.apply()', () => {
 					]),
 				},
 			);
-			when(stubs.storage.entities.Account.get)
-				.calledWith(
-					{
-						isDelegate: true,
-					},
-					{
-						limit: ACTIVE_DELEGATES,
-						sort: ['voteWeight:desc', 'publicKey:asc'],
-					},
-				)
+			when(blocksStub.dataAccess.getDelegateAccounts)
+				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 
 			feePerDelegate = BigInt(randomInt(10, 100));
@@ -332,9 +294,11 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
-			} as Block;
+			} as BlockHeader;
 
-			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
+			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				forgedBlocks,
+			);
 		});
 
 		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
@@ -430,10 +394,12 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: BigInt(feePerDelegate) + BigInt(remainingFee),
 				reward: rewardPerDelegate,
-			} as Block;
+			} as BlockHeader;
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
+			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				forgedBlocks,
+			);
 
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
@@ -591,17 +557,19 @@ describe('dpos.apply()', () => {
 				}));
 				forgedBlocks.splice(forgedBlocks.length - 1);
 
-				stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
+				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+					forgedBlocks,
+				);
 
-				when(stubs.storage.entities.Account.get)
-					.calledWith(
-						{
-							publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
-						},
-						{},
-						stubs.tx,
-					)
-					.mockResolvedValue(delegateAccounts as never);
+				// when(stubs.storage.entities.Account.get)
+				// 	.calledWith(
+				// 		{
+				// 			publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
+				// 		},
+				// 		{},
+				// 		stubs.tx,
+				// 	)
+				// 	.mockResolvedValue(delegateAccounts as never);
 
 				// Act
 				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
@@ -616,7 +584,9 @@ describe('dpos.apply()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				stubs.storage.entities.Block.get.mockRejectedValue(err);
+				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
+					err,
+				);
 
 				// Act && Assert
 				await expect(
@@ -650,9 +620,11 @@ describe('dpos.apply()', () => {
 					generatorPublicKey: delegateWhoForgedLast.publicKey,
 					totalFee: feePerDelegate,
 					reward: rewardPerDelegate,
-				} as Block;
+				} as BlockHeader;
 
-				stubs.storage.entities.Block.get.mockReturnValue(forgedBlocks);
+				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+					forgedBlocks,
+				);
 
 				getTotalEarningsOfDelegate = account => {
 					const blockCount = delegatesWhoForged.filter(
@@ -700,7 +672,8 @@ describe('dpos.apply()', () => {
 		});
 
 		describe('Given the provided block is in an exception round', () => {
-			let exceptionFactors: { [key: string]: number };
+			let exceptionFactors: RoundException;
+
 			beforeEach(() => {
 				// Arrange
 				exceptionFactors = {
@@ -708,27 +681,19 @@ describe('dpos.apply()', () => {
 					fees_factor: 2,
 					// setting bonus to a dividable amount
 					fees_bonus: ACTIVE_DELEGATES * 123,
-				};
-				const exceptionRound = (dpos as any).rounds.calcRound(
-					lastBlockOfTheRoundNine.height,
-				);
+				} as RoundException;
+				const exceptionRound = dpos.rounds
+					.calcRound(lastBlockOfTheRoundNine.height)
+					.toString();
 				const exceptions = {
 					rounds: {
 						[exceptionRound]: exceptionFactors,
 					},
 				};
 
-				const slots = new Slots({
-					epochTime: EPOCH_TIME,
-					interval: BLOCK_TIME,
-				});
-				const blocks = {
-					slots,
-				};
-
 				dpos = new Dpos({
-					blocks,
-					...stubs,
+					blocks: blocksStub,
+					logger: loggerStub,
 					activeDelegates: ACTIVE_DELEGATES,
 					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,

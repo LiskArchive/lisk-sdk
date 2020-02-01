@@ -39,7 +39,6 @@ interface ActiveDelegates {
 }
 
 interface DposConstructor {
-	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
 	readonly logger: Logger;

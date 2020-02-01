@@ -21,41 +21,36 @@ import {
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
-import { Block } from '../../src/types';
+import { BlockHeader } from '../../src/types';
 import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 
 describe('dpos.verifyBlockForger()', () => {
-	const stubs = {} as any;
 	let dpos: Dpos;
+	let blocksStub: any;
+	let loggerStub: any;
 
 	beforeEach(() => {
 		// Arrange
-		stubs.storage = {
-			entities: {
-				ChainState: {
-					getKey: jest
-						.fn()
-						.mockResolvedValue(
-							JSON.stringify([{ round: 3, delegates: delegatePublicKeys }]),
-						),
-				},
+		blocksStub = {
+			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			dataAccess: {
+				getChainState: jest
+					.fn()
+					.mockResolvedValue(
+						JSON.stringify([{ round: 3, delegates: delegatePublicKeys }]),
+					),
 			},
 		};
 
-		stubs.logger = {
+		loggerStub = {
 			debug: jest.fn(),
 			log: jest.fn(),
 			error: jest.fn(),
 		};
 
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
-		const blocks = {
-			slots,
-		};
-
 		dpos = new Dpos({
-			blocks,
-			...stubs,
+			blocks: blocksStub,
+			logger: loggerStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -68,7 +63,7 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
-		} as Block;
+		} as BlockHeader;
 
 		// Act
 		const result = await dpos.verifyBlockForger(block);
@@ -79,7 +74,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should call the chain state to get the list', async () => {
 		// Arrange
-		stubs.storage.entities.ChainState.getKey.mockResolvedValue(
+		blocksStub.dataAccess.getChainState.mockResolvedValue(
 			JSON.stringify([{ round: 1, delegates: delegatePublicKeys }]),
 		);
 		const block = {
@@ -87,13 +82,13 @@ describe('dpos.verifyBlockForger()', () => {
 			timestamp: 23450,
 			generatorPublicKey:
 				'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
-		} as Block;
+		} as BlockHeader;
 
 		// Act
 		await dpos.verifyBlockForger(block);
 
 		// Assert
-		expect(stubs.storage.entities.ChainState.getKey).toHaveBeenCalledWith(
+		expect(blocksStub.dataAccess.getChainState).toHaveBeenCalledWith(
 			CHAIN_STATE_FORGERS_LIST_KEY,
 		);
 	});
@@ -104,7 +99,7 @@ describe('dpos.verifyBlockForger()', () => {
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
-		} as Block;
+		} as BlockHeader;
 
 		const expectedSlot = (dpos as any).blocks.slots.getSlotNumber(
 			block.timestamp,
@@ -119,13 +114,13 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should throw error if no delegate list is found', async () => {
 		// Arrange
-		stubs.storage.entities.ChainState.getKey.mockResolvedValue(undefined);
+		blocksStub.dataAccess.getChainState.mockResolvedValue(undefined);
 		const block = {
 			id: 1234,
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey: 'xxx',
-		} as Block;
+		} as BlockHeader;
 
 		const expectedRound = dpos.rounds.calcRound(block.height);
 
