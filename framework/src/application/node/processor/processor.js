@@ -290,7 +290,7 @@ class Processor {
 
 		const blockJSON = await this.serialize(block);
 		if (!skipBroadcast) {
-			this.channel.publish('chain:processor:broadcast', {
+			this.channel.publish('app:processor:broadcast', {
 				block: blockJSON,
 			});
 		}
@@ -309,9 +309,9 @@ class Processor {
 			removeFromTempTable,
 		});
 
-		// Should only publish 'chain:processor:newBlock' if saved AND applied successfully
+		// Should only publish 'app:processor:newBlock' if saved AND applied successfully
 		if (!skipSave) {
-			this.channel.publish('chain:processor:newBlock', {
+			this.channel.publish('app:processor:newBlock', {
 				block: blockJSON,
 			});
 		}
@@ -345,7 +345,7 @@ class Processor {
 			stateStore,
 		});
 		await this.blocksModule.remove(block, stateStore, { saveTempBlock });
-		this.channel.publish('chain:processor:deleteBlock', {
+		this.channel.publish('app:processor:deleteBlock', {
 			block: this.serialize(block),
 		});
 	}

@@ -170,7 +170,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
-					this.blocksModule.lastBlock,
+					this.blocksModule.lastBlock.height,
 					stateStore,
 					numberOfRounds,
 				);
@@ -238,7 +238,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				// fetching only the latest active delegate list would be enough.
 				const numberOfRounds = 1;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
-					block,
+					block.height,
 					stateStore,
 					numberOfRounds,
 				);
@@ -257,18 +257,18 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				return this.bftModule.addNewBlock(blockHeader, stateStore);
 			},
 			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
-		]);
-
-		this.applyGenesis.pipe([
-			({ block, stateStore }) =>
-				this.blocksModule.applyGenesis(block, stateStore),
-			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 			({ stateStore }) => {
 				this.dposModule.onBlockFinalized(
 					stateStore,
 					this.bftModule.finalizedHeight,
 				);
 			},
+		]);
+
+		this.applyGenesis.pipe([
+			({ block, stateStore }) =>
+				this.blocksModule.applyGenesis(block, stateStore),
+			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 		]);
 
 		this.undo.pipe([
@@ -278,7 +278,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
-					block,
+					block.height,
 					stateStore,
 					numberOfRounds,
 				);
