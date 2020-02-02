@@ -54,7 +54,7 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 		height = 15 * ACTIVE_DELEGATES;
 	});
 
-	describe('Given roundDelegates entity returns empty results', () => {
+	describe('Given empty forgers list', () => {
 		it('should throw exception', async () => {
 			// Arrange
 			const numberOfRounds = 1;

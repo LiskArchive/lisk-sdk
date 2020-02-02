@@ -20,7 +20,6 @@ const AccountEntity = require('./account');
 const BlockEntity = require('./block');
 const ChainStateEntity = require('./chain_state');
 const ForgerInfoEntity = require('./forger_info');
-const RoundDelegatesEntity = require('./round_delegates');
 const TempBlockEntity = require('./temp_block.js');
 const TransactionEntity = require('./transaction');
 
@@ -31,7 +30,6 @@ module.exports = {
 	BlockEntity,
 	ChainStateEntity,
 	ForgerInfoEntity,
-	RoundDelegatesEntity,
 	TempBlockEntity,
 	TransactionEntity,
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,8 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-INSERT INTO round_delegates (
-	${fields:raw}
-) VALUES
-	${createSet:raw}
-;
+DROP TABLE round_delegates;

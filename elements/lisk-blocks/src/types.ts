@@ -224,18 +224,6 @@ export interface TempBlockStorageEntity extends StorageEntity<TempBlock> {
 	readonly truncate: () => void;
 }
 
-export interface RoundDelegates {
-	readonly round: number;
-	readonly delegatePublicKeys: string[];
-}
-
-export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
-	readonly getActiveDelegatesForRound: (
-		roundWithOffset: number,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<string>>;
-}
-
 export interface Storage {
 	readonly entities: {
 		readonly Block: BlockStorageEntity;
@@ -243,7 +231,6 @@ export interface Storage {
 		readonly Transaction: StorageEntity<TransactionJSON>;
 		readonly ChainState: ChainStateEntity;
 		readonly TempBlock: TempBlockStorageEntity;
-		readonly RoundDelegates: RoundDelegatesEntity;
 	};
 }
 

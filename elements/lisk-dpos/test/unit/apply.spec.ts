@@ -483,7 +483,7 @@ describe('dpos.apply()', () => {
 			expect(forgers?.round).toEqual(nextRound + DELEGATE_LIST_ROUND_OFFSET);
 		});
 
-		it('should delete RoundDelegates entities older than (finalizedBlockRound - 2)', async () => {
+		it('should delete forgers list older than (finalizedBlockRound - 2)', async () => {
 			// Arrange
 			const finalizedBlockHeight = 1213;
 			const finalizedBlockRound = Math.ceil(
