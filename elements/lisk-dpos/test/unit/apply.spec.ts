@@ -477,10 +477,10 @@ describe('dpos.apply()', () => {
 			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
 
 			const forgers = forgersList.find(
-				fl => fl.round === currentRound + DELEGATE_LIST_ROUND_OFFSET,
+				fl => fl.round === nextRound + DELEGATE_LIST_ROUND_OFFSET,
 			);
 
-			expect(forgers?.round).toEqual(currentRound + DELEGATE_LIST_ROUND_OFFSET);
+			expect(forgers?.round).toEqual(nextRound + DELEGATE_LIST_ROUND_OFFSET);
 		});
 
 		it('should delete RoundDelegates entities older than (finalizedBlockRound - 2)', async () => {
@@ -552,16 +552,6 @@ describe('dpos.apply()', () => {
 				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 					forgedBlocks,
 				);
-
-				// when(stubs.storage.entities.Account.get)
-				// 	.calledWith(
-				// 		{
-				// 			publicKey_in: delegateAccounts.map(({ publicKey }) => publicKey),
-				// 		},
-				// 		{},
-				// 		stubs.tx,
-				// 	)
-				// 	.mockResolvedValue(delegateAccounts as never);
 
 				// Act
 				await dpos.apply(lastBlockOfTheRoundNine, stateStore);

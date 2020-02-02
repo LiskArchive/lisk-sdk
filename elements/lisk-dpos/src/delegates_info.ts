@@ -265,6 +265,7 @@ export class DelegatesInfo {
 				oldRound: previousRound,
 				newRound: round,
 			});
+			debug('Deleting delegate list after ', round + delegateListRoundOffset);
 			await deleteDelegateListAfterRound(
 				round + delegateListRoundOffset,
 				stateStore,
@@ -275,8 +276,9 @@ export class DelegatesInfo {
 				oldRound: round,
 				newRound: nextRound,
 			});
+			debug('Creating delegate list for', round + delegateListRoundOffset);
 			await this.delegatesList.createRoundDelegateList(
-				round + delegateListRoundOffset,
+				nextRound + delegateListRoundOffset,
 				stateStore,
 			);
 		}
@@ -373,7 +375,7 @@ export class DelegatesInfo {
 			}),
 		);
 
-		debug('Summed round', round, totalFee, uniqForgersInfo);
+		debug('Summed round %s with total fee %d', round, totalFee);
 
 		return {
 			round,

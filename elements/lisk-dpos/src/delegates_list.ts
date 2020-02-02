@@ -13,6 +13,7 @@
  */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import * as Debug from 'debug';
 
 import { CHAIN_STATE_FORGERS_LIST_KEY } from './constants';
 import { Rounds } from './rounds';
@@ -24,6 +25,8 @@ import {
 	ForgersList,
 	StateStore,
 } from './types';
+
+const debug = Debug('lisk:dpos:delegate_list');
 
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
@@ -59,6 +62,7 @@ export const deleteDelegateListUntilRound = async (
 	round: number,
 	stateStore: StateStore,
 ): Promise<void> => {
+	debug('Deleting list until round: ', round);
 	const forgersList = await getForgersList(stateStore);
 	const newForgersList = forgersList.filter(fl => fl.round >= round);
 	_setForgersList(stateStore, newForgersList);
@@ -68,8 +72,9 @@ export const deleteDelegateListAfterRound = async (
 	round: number,
 	stateStore: StateStore,
 ): Promise<void> => {
+	debug('Deleting list after round: ', round);
 	const forgersList = await getForgersList(stateStore);
-	const newForgersList = forgersList.filter(fl => fl.round < round);
+	const newForgersList = forgersList.filter(fl => fl.round <= round);
 	_setForgersList(stateStore, newForgersList);
 };
 
@@ -144,6 +149,7 @@ export class DelegatesList {
 		round: number,
 		stateStore: StateStore,
 	): Promise<void> {
+		debug(`Creating delegate list for ${round}`);
 		const forgersList = await getForgersList(stateStore);
 		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
 		// This gets the list before current block is executed
@@ -173,6 +179,10 @@ export class DelegatesList {
 				return -1;
 			}
 
+			if (!a.publicKey) {
+				return 0;
+			}
+
 			// In the tie break compare publicKey
 			return a.publicKey.localeCompare(b.publicKey);
 		});
@@ -191,6 +201,7 @@ export class DelegatesList {
 			forgersList.push(forgerList);
 		}
 		_setForgersList(stateStore, forgersList);
+		debug(`Created delegate list for ${round} with ${forgersList.length}`);
 	}
 
 	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {

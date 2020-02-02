@@ -322,6 +322,12 @@ export class Blocks extends EventEmitter {
 		block.id = blocksUtils.getId(blockBytes);
 	}
 
+	public async resetState(): Promise<void> {
+		await this.storage.entities.Account.resetMemTables();
+		await this.storage.entities.ChainState.delete();
+		this.dataAccess.resetBlockHeaderCache();
+	}
+
 	public verifyInMemory(block: BlockInstance, lastBlock: BlockInstance): void {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);

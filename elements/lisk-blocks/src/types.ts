@@ -158,6 +158,7 @@ export interface ChainStateEntity {
 		value: string,
 		tx?: StorageTransaction,
 	) => Promise<void>;
+	readonly delete: () => Promise<void>;
 }
 
 export interface StorageEntity<T> {
