@@ -19,24 +19,26 @@ import {
 
 export interface AccountJSON {
 	readonly address: string;
-	readonly balance: string;
-	readonly missedBlocks: number;
-	readonly producedBlocks: number;
+	readonly balance: string | bigint;
+	readonly missedBlocks?: number;
+	readonly producedBlocks?: number;
 	readonly publicKey?: string;
 	readonly secondPublicKey?: string;
-	readonly secondSignature?: number;
+	readonly secondSignature?: boolean;
 	readonly username?: string;
 	readonly isDelegate?: number;
-	readonly fees: string;
-	readonly rewards: string;
+	readonly fees?: string | bigint;
+	readonly rewards?: string | bigint;
 	// tslint:disable-next-line readonly-keyword
-	voteWeight: string;
-	readonly nameExist: false;
-	readonly multiMin: number;
-	readonly multiLifetime: number;
-	readonly asset: object;
+	voteWeight?: string | bigint;
+	readonly nameExist?: false;
+	readonly multiMin?: number;
+	readonly multiLifetime?: number;
+	readonly asset?: object;
 	// tslint:disable-next-line readonly-keyword
 	votedDelegatesPublicKeys?: string[];
+	// tslint:disable-next-line readonly-keyword
+	membersPublicKeys?: ReadonlyArray<string>;
 }
 
 export interface Context {
@@ -203,7 +205,7 @@ export interface StorageEntity<T> {
 	) => Promise<void>;
 }
 
-export interface AccountStorageEntity extends StorageEntity<Account> {
+export interface AccountStorageEntity extends StorageEntity<AccountJSON> {
 	readonly resetMemTables: () => Promise<void>;
 }
 
