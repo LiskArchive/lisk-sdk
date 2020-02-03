@@ -328,7 +328,6 @@ class BFT extends EventEmitter {
 
 	reset() {
 		this.finalityManager.headers.empty();
-		this.finalityManager.headers.empty();
 		this.finalityManager.recompute();
 	}
 }
