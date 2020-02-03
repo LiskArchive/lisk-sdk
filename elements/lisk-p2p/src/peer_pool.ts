@@ -607,7 +607,7 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.has(peerId);
 	}
 
-	public removePeer(peerId: string, code: number, reason: string): boolean {
+	public removePeer(peerId: string, code?: number, reason?: string): boolean {
 		const peer = this._peerMap.get(peerId);
 		if (peer) {
 			peer.disconnect(code, reason);

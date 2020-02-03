@@ -389,6 +389,10 @@ export class P2P extends EventEmitter {
 		this._handleBanPeer = (peerId: string): void => {
 			const banTime = this._config.peerBanTime || DEFAULT_BAN_TIME;
 
+			if (this._peerPool.hasPeer(peerId)) {
+				this._peerPool.removePeer(peerId);
+			}
+
 			this._peerBook.addBannedPeer(peerId, banTime);
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.

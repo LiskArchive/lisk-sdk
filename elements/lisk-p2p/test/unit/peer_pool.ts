@@ -145,6 +145,7 @@ describe('peerPool', () => {
 	});
 
 	afterEach(async () => {
+		peerPool.removeAllPeers();
 		jest.clearAllTimers();
 	});
 
@@ -804,6 +805,26 @@ describe('peerPool', () => {
 			peerPool.applyPenalty({ peerId, penalty });
 
 			expect(peerObject.applyPenalty).toBeCalled;
+		});
+	});
+
+	describe('#Ban Peer', () => {
+		beforeEach(async () => {
+			(peerPool as any)._peerMap = new Map([[peerId, peerObject]]);
+		});
+
+		it('should call _banPeer on peer', async () => {
+			const penalty = 100;
+			peerPool.applyPenalty({ peerId, penalty });
+
+			expect((peerObject as any)._banPeer).toBeCalled;
+		});
+
+		it('should re-emit _handleBanPeer on PeerPool', async () => {
+			const penalty = 100;
+			peerPool.applyPenalty({ peerId, penalty });
+
+			expect((peerPool as any)._handleBanPeer).toBeCalled;
 		});
 	});
 

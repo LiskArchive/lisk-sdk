@@ -91,6 +91,16 @@ describe('Peer banning mechanism', () => {
 			);
 		});
 
+		it(`should add Peer IP address into PeerBook BannedIPs`, async () => {
+			expect((p2pNodeList[0] as any)._peerBook.bannedIPs).toEqual(
+				new Set([badPeer.ipAddress]),
+			);
+		});
+
+		it(`should unbanTimer into PeerBook `, async () => {
+			expect((p2pNodeList[0] as any)._peerBook._unbanTimers).toHaveLength(1);
+		});
+
 		it(`should fire ${EVENT_CLOSE_INBOUND} event`, async () => {
 			expect(collectedEvents.get('EVENT_CLOSE_INBOUND')).toBeDefined();
 		});
