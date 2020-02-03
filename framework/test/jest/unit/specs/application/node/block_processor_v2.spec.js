@@ -85,14 +85,12 @@ describe('block processor v2', () => {
 	});
 
 	describe('init', () => {
-		it('should get activeSince from dpos for 3 rounds', async () => {
+		it('should initialize BFT module', async () => {
 			// Arrange & Act
 			const stateStore = new StateStore(storageStub);
 			await blockProcessor.init.run({ stateStore });
 			// Assert
-			expect(
-				dposModuleStub.getMinActiveHeightsOfDelegates,
-			).toHaveBeenCalledWith(102, stateStore, 3);
+			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
 		});
 	});
 

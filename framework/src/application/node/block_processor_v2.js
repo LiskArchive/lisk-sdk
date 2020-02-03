@@ -163,19 +163,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.constants = constants;
 		this.exceptions = exceptions;
 
-		this.init.pipe([
-			async ({ stateStore }) => {
-				// minActiveHeightsOfDelegates will be used to load 303 blocks from the storage
-				// That's why we need to get the delegates who were active in the last 3 rounds.
-				const numberOfRounds = 3;
-				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
-					this.chainModule.lastBlock.height,
-					stateStore,
-					numberOfRounds,
-				);
-				await this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
-			},
-		]);
+		this.init.pipe([({ stateStore }) => this.bftModule.init(stateStore)]);
 
 		this.deserialize.pipe([({ block }) => this.chainModule.deserialize(block)]);
 
@@ -187,11 +175,14 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) => {
+			async ({ block }) => {
 				let expectedReward = this.chainModule.blockReward.calculateReward(
 					block.height,
 				);
-				if (!this.bftModule.isBFTProtocolCompliant(block)) {
+				const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
+					block,
+				);
+				if (!isBFTProtocolCompliant) {
 					expectedReward /= BigInt(4);
 				}
 				this.chainModule.validateBlockHeader(
@@ -229,30 +220,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.apply.pipe([
 			({ block, stateStore }) => this.chainModule.apply(block, stateStore),
-			async ({ block, stateStore }) => {
-				// We only need activeMinHeight value of the delegate who is forging the block.
-				// Since the block is always the latest,
-				// fetching only the latest active delegate list would be enough.
-				const numberOfRounds = 1;
-				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
-					block.height,
-					stateStore,
-					numberOfRounds,
-				);
-
-				const [delegateMinHeightActive] = minActiveHeightsOfDelegates[
-					block.generatorPublicKey
-				];
-
-				const blockHeader = {
-					...block,
-					// This parameter injected to block object to avoid big refactoring
-					// for the moment. `delegateMinHeightActive` will be removed from the block
-					// object with https://github.com/LiskHQ/lisk-sdk/issues/4413
-					delegateMinHeightActive,
-				};
-				return this.bftModule.addNewBlock(blockHeader, stateStore);
-			},
+			async ({ block, stateStore }) =>
+				this.bftModule.addNewBlock(block, stateStore),
 			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 			({ stateStore }) => {
 				this.dposModule.onBlockFinalized(
@@ -270,17 +239,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.undo.pipe([
 			({ block, stateStore }) => this.chainModule.undo(block, stateStore),
-			async ({ block, stateStore }) => {
-				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
-				// That's why we need to get the delegates who were active in the last 2 rounds.
-				const numberOfRounds = 3;
-				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
-					block.height,
-					stateStore,
-					numberOfRounds,
-				);
-				await this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
-			},
+			({ block, stateStore }) =>
+				this.bftModule.deleteBlocks([block], stateStore),
 			({ block, stateStore }) => this.dposModule.undo(block, stateStore),
 		]);
 
@@ -293,7 +253,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const previousBlockId = data.previousBlock.id;
 				const forgerInfo = previouslyForgedMap[delegatePublicKey] || {};
 				const maxHeightPreviouslyForged = forgerInfo.height || 0;
-				const block = this._create({
+				const block = await this._create({
 					...data,
 					height,
 					previousBlockId,
@@ -312,7 +272,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		return 2;
 	}
 
-	_create({
+	async _create({
 		transactions,
 		height,
 		previousBlockId,
@@ -367,8 +327,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			maxHeightPrevoted,
 		};
 
+		const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
+			block,
+		);
+
 		// Reduce reward based on BFT rules
-		if (!this.bftModule.isBFTProtocolCompliant(block)) {
+		if (!isBFTProtocolCompliant) {
 			block.reward /= BigInt(4);
 		}
 

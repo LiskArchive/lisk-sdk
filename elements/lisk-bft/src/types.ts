@@ -13,15 +13,6 @@
  */
 
 export interface BlockHeader {
-	readonly blockId: string;
-	readonly height: number;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
-	readonly delegateMinHeightActive: number;
-	readonly delegatePublicKey: string;
-}
-
-export interface Block {
 	readonly height: number;
 	readonly id: string;
 	readonly generatorPublicKey: string;
@@ -29,9 +20,35 @@ export interface Block {
 	readonly timestamp: number;
 	readonly receivedAt?: number;
 	readonly maxHeightPrevoted: number;
-	readonly maxHeightPreviouslyForged?: number;
-	readonly delegateMinHeightActive?: number;
+	readonly maxHeightPreviouslyForged: number;
 	readonly version: number;
+}
+
+export interface DPoS {
+	readonly getMinActiveHeight: (
+		height: number,
+		publicKey: string,
+		stateStore: StateStore,
+		delegateActiveRoundLimit?: number,
+	) => Promise<number>;
+}
+
+export interface Chain {
+	readonly dataAccess: {
+		readonly getBlockHeadersByHeightBetween: (
+			from: number,
+			to: number,
+		) => Promise<ReadonlyArray<BlockHeader>>;
+		readonly getLastBlockHeader: () => Promise<BlockHeader>;
+	};
+	readonly slots: {
+		readonly getSlotNumber: (timestamp: number) => number;
+		readonly isWithinTimeslot: (
+			slotNumber: number,
+			receivedAt: number | undefined,
+		) => boolean;
+		readonly getEpochTime: (time?: number) => number;
+	};
 }
 
 export enum ForkStatus {
@@ -43,48 +60,10 @@ export enum ForkStatus {
 	DISCARD = 6,
 }
 
-export interface Slots {
-	readonly getSlotNumber: (timestamp: number) => number;
-	readonly isWithinTimeslot: (
-		slotNumber: number,
-		receivedAt: number | undefined,
-	) => boolean;
-	readonly getEpochTime: (time?: number) => number;
-}
-
-export interface HeightOfDelegates {
-	readonly [key: string]: number[];
-}
-
 export interface StateStore {
 	readonly chainState: {
-		readonly set: (key: string | number, value: string | number) => boolean;
-		readonly get: (key: string | number) => Promise<string>;
-		readonly cache: () => void;
-	};
-}
-
-export interface BlockEntity {
-	readonly get: (
-		filters: object,
-		options?: object,
-		tx?: object,
-	) => Promise<Block[]>;
-}
-
-export interface ChainState {
-	readonly get: (
-		filters: object,
-		options?: object,
-		tx?: object,
-	) => Promise<object[]>;
-	readonly getKey: (key: string, tx?: object) => Promise<object[]>;
-}
-
-export interface Storage {
-	readonly entities: {
-		readonly Block: BlockEntity;
-		readonly ChainState: ChainState;
+		readonly set: (key: string, value: string) => void;
+		readonly get: (key: string) => Promise<string | undefined>;
 	};
 }
 
@@ -115,9 +94,3 @@ export class BFTForkChoiceRuleError extends BFTError {
 }
 
 export class BFTInvalidAttributeError extends BFTError {}
-
-export interface Rounds {
-	readonly calcRound: (height: number) => number;
-	readonly calcRoundStartHeight: (round: number) => number;
-	readonly calcRoundEndHeight: (round: number) => number;
-}

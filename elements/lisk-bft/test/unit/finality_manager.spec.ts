@@ -13,20 +13,16 @@
  */
 
 import { FinalityManager } from '../../src/finality_manager';
-
 import {
 	BFTChainDisjointError,
-	BFTLowerChainBranchError,
 	BFTForkChoiceRuleError,
 	BFTInvalidAttributeError,
+	BFTLowerChainBranchError,
+	BlockHeader,
 } from '../../src/types';
-
-import * as utils from '../../src/utils';
-
-import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
 import { Account as accountFixture } from '../fixtures/accounts';
-
-jest.mock('../../src/utils');
+import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
+import { StateStoreMock } from './state_store_mock';
 
 const generateValidHeaders = (count: number) => {
 	return [...Array(count)].map((_, index) => {
@@ -39,7 +35,6 @@ const generateValidHeaders = (count: number) => {
 
 describe('finality_manager', () => {
 	describe('FinalityManager', () => {
-		let finalityManager: FinalityManager;
 		const finalizedHeight = 0;
 		const activeDelegates = 101;
 		const preVoteThreshold = 68;
@@ -47,12 +42,45 @@ describe('finality_manager', () => {
 		const processingThreshold = 302;
 		const maxHeaders = 505;
 
+		let finalityManager: FinalityManager;
+		let chainStub: {
+			dataAccess: {
+				getBlockHeadersByHeightBetween: jest.Mock;
+				getLastBlockHeader: jest.Mock;
+			};
+			slots: {
+				getSlotNumber: jest.Mock;
+				isWithinTimeslot: jest.Mock;
+				getEpochTime: jest.Mock;
+			};
+		};
+		let dposStub: {
+			getMinActiveHeight: jest.Mock;
+		};
+
 		beforeEach(async () => {
+			chainStub = {
+				dataAccess: {
+					getBlockHeadersByHeightBetween: jest.fn(),
+					getLastBlockHeader: jest.fn(),
+				},
+				slots: {
+					getSlotNumber: jest.fn(),
+					isWithinTimeslot: jest.fn(),
+					getEpochTime: jest.fn(),
+				},
+			};
+
+			dposStub = {
+				getMinActiveHeight: jest.fn(),
+			};
+
 			finalityManager = new FinalityManager({
+				chain: chainStub,
+				dpos: dposStub,
 				finalizedHeight,
 				activeDelegates,
 			});
-			jest.spyOn(finalityManager.headers, 'top');
 		});
 
 		describe('constructor', () => {
@@ -69,7 +97,13 @@ describe('finality_manager', () => {
 
 			it('should throw error if activeDelegates is not positive', async () => {
 				expect(
-					() => new FinalityManager({ finalizedHeight, activeDelegates: 0 }),
+					() =>
+						new FinalityManager({
+							chain: chainStub,
+							dpos: dposStub,
+							finalizedHeight,
+							activeDelegates: 0,
+						}),
 				).toThrow('Must provide a positive activeDelegates');
 			});
 		});
@@ -77,186 +111,172 @@ describe('finality_manager', () => {
 		describe('verifyBlockHeaders', () => {
 			it('should throw error if maxHeightPrevoted is not accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				generateValidHeaders(finalityManager.processingThreshold + 1).forEach(
-					header => {
-						finalityManager.headers.add(header);
-					},
+				const bftHeaders = generateValidHeaders(
+					finalityManager.processingThreshold + 1,
 				);
+
 				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
 
-				expect(() => finalityManager.verifyBlockHeaders(header)).toThrow(
-					BFTInvalidAttributeError,
+				expect(() =>
+					finalityManager.verifyBlockHeaders(header, bftHeaders),
+				).toThrow(
+					new BFTInvalidAttributeError(
+						'Wrong prevotedConfirmedHeight in blockHeader.',
+					),
 				);
 			});
 
 			it('should not throw error if maxHeightPrevoted is accurate', async () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
-				generateValidHeaders(finalityManager.processingThreshold + 1).forEach(
-					header => {
-						finalityManager.headers.add(header);
-					},
+				const bftHeaders = generateValidHeaders(
+					finalityManager.processingThreshold + 1,
 				);
 				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
 				finalityManager.chainMaxHeightPrevoted = 10;
 
-				expect(() => finalityManager.verifyBlockHeaders(header)).not.toThrow();
+				expect(() =>
+					finalityManager.verifyBlockHeaders(header, bftHeaders),
+				).not.toThrow();
 			});
 
 			it("should return true if delegate didn't forge any block previously", async () => {
 				const header = blockHeaderFixture();
-				(finalityManager as any).headers.top.mockReturnValue([]);
 
-				expect(finalityManager.verifyBlockHeaders(header)).toBeTruthy();
+				expect(finalityManager.verifyBlockHeaders(header, [])).toBeTruthy();
 			});
 
 			it('should throw error if same delegate forged block on different height', async () => {
-				const maxHeightPrevoted = 10;
+				const maxHeightPreviouslyForged = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged: 5,
-					maxHeightPrevoted,
+					generatorPublicKey: delegateAccount.publicKey,
+					maxHeightPreviouslyForged,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted,
-					maxHeightPreviouslyForged: 6,
+					generatorPublicKey: delegateAccount.publicKey,
+					maxHeightPreviouslyForged,
 					height: 9,
 				});
 
-				(finalityManager as any).headers.top.mockReturnValue([lastBlock]);
-
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTForkChoiceRuleError,
-				);
+				expect(() =>
+					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
+				).toThrow(BFTForkChoiceRuleError);
 			});
 
 			it('should throw error if delegate forged block on same height', async () => {
 				const maxHeightPreviouslyForged = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
+					generatorPublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
+					generatorPublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged,
 					height: 10,
 				});
 
-				(finalityManager as any).headers.top.mockReturnValue([lastBlock]);
-
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTForkChoiceRuleError,
-				);
+				expect(() =>
+					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
+				).toThrow(BFTForkChoiceRuleError);
 			});
 
 			it('should throw error if maxHeightPreviouslyForged has wrong value', async () => {
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
+					generatorPublicKey: delegateAccount.publicKey,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
+					generatorPublicKey: delegateAccount.publicKey,
 					maxHeightPreviouslyForged: 9,
 				});
 
-				(finalityManager as any).headers.top.mockReturnValue([lastBlock]);
-
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTChainDisjointError,
-				);
+				expect(() =>
+					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
+				).toThrow(BFTChainDisjointError);
 			});
 
 			it('should throw error if maxHeightPrevoted has wrong value', async () => {
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
+					generatorPublicKey: delegateAccount.publicKey,
 					maxHeightPrevoted: 10,
 					height: 9,
 				});
 				const currentBlock = blockHeaderFixture({
-					delegatePublicKey: delegateAccount.publicKey,
+					generatorPublicKey: delegateAccount.publicKey,
 					maxHeightPrevoted: 9,
 					maxHeightPreviouslyForged: 9,
 					height: 10,
 				});
 
-				(finalityManager as any).headers.top.mockReturnValue([lastBlock]);
-
-				expect(() => finalityManager.verifyBlockHeaders(currentBlock)).toThrow(
-					BFTLowerChainBranchError,
-				);
+				expect(() =>
+					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
+				).toThrow(BFTLowerChainBranchError);
 			});
 
 			it('should return true if headers are valid', async () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
-				(finalityManager as any).headers.top.mockReturnValue([lastBlock]);
 
-				expect(finalityManager.verifyBlockHeaders(currentBlock)).toBeTruthy();
+				expect(
+					finalityManager.verifyBlockHeaders(currentBlock, [lastBlock]),
+				).toBeTruthy();
 			});
 		});
 
 		describe('addBlockHeader', () => {
-			beforeEach(async () => {
-				jest.spyOn(utils, 'validateBlockHeader');
+			let stateStore: StateStoreMock;
+			let bftHeaders: ReadonlyArray<BlockHeader>;
 
-				(utils as any).validateBlockHeader.mockReset();
+			beforeEach(async () => {
+				stateStore = new StateStoreMock();
+				bftHeaders = generateValidHeaders(
+					finalityManager.processingThreshold + 1,
+				);
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
+					bftHeaders,
+				);
 			});
 
 			it('should call validateBlockHeader with the provided header', async () => {
-				const header1 = blockHeaderFixture({
-					height: 1,
-					maxHeightPreviouslyForged: 0,
-				});
-				// jest.spyOn(finalityManager, 'validateBlockHeader');
-				finalityManager.addBlockHeader(header1);
-
-				expect(utils.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(utils.validateBlockHeader).toHaveBeenCalledWith(header1);
+				await expect(
+					finalityManager.addBlockHeader({} as BlockHeader, stateStore),
+				).rejects.toThrow('should have required property');
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {
 				const header1 = blockHeaderFixture({
-					height: 1,
-					maxHeightPreviouslyForged: 0,
-				});
-				finalityManager.addBlockHeader(header1);
-
-				expect(utils.validateBlockHeader).toHaveBeenCalledTimes(1);
-				expect(utils.validateBlockHeader).toHaveBeenCalledWith(header1);
-			});
-
-			it('should add headers to list', async () => {
-				const header1 = blockHeaderFixture({
-					height: 1,
-					maxHeightPreviouslyForged: 0,
-				});
-				const header2 = blockHeaderFixture({
 					height: 2,
-					maxHeightPreviouslyForged: 1,
+					maxHeightPreviouslyForged: 0,
 				});
-				finalityManager.addBlockHeader(header1).addBlockHeader(header2);
-				expect(finalityManager.headers).toHaveLength(2);
-				expect(finalityManager.headers.items).toEqual([header1, header2]);
+				jest.spyOn(finalityManager, 'verifyBlockHeaders');
+				await finalityManager.addBlockHeader(header1, stateStore);
+
+				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledTimes(1);
+				expect(finalityManager.verifyBlockHeaders).toHaveBeenCalledWith(
+					header1,
+					bftHeaders,
+				);
 			});
 
 			it('should call updatePreVotesPreCommits with the provided header', async () => {
 				const header1 = blockHeaderFixture({
-					height: 1,
+					height: 2,
 					maxHeightPreviouslyForged: 0,
 				});
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
-				finalityManager.addBlockHeader(header1);
+				await finalityManager.addBlockHeader(header1, stateStore);
 
 				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
 					1,
 				);
 				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
 					header1,
+					stateStore,
+					bftHeaders,
 				);
 			});
 
@@ -283,9 +303,10 @@ describe('finality_manager', () => {
 					headers.push(header);
 				}
 				headers.push(header2);
-				expect(() => {
-					headers.forEach(header => finalityManager.addBlockHeader(header));
-				}).toThrow('Violation of disjointness condition.');
+
+				for (const header of headers) {
+					await expect(finalityManager.addBlockHeader(header, stateStore)).rejects.toThrow('Violation of disjointness condition.');
+				}
 			});
 		});
 

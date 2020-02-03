@@ -15,23 +15,14 @@
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
-import { BFT_MIGRATION_ROUND_OFFSET, BFT_ROUND_THRESHOLD } from './constant';
+import { BFT_MIGRATION_ROUND_OFFSET } from './constant';
 import {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
 } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
-import {
-	Block,
-	BlockEntity,
-	ForkStatus,
-	HeightOfDelegates,
-	Rounds,
-	Slots,
-	StateStore,
-	Storage,
-} from './types';
-import { extractBFTBlockHeaderFromBlock, validateBlockHeader } from './utils';
+import { BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
+import { validateBlockHeader } from './utils';
 
 export const CHAIN_STATE_FINALIZED_HEIGHT_KEY = 'BFT.finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
@@ -41,45 +32,34 @@ export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
  */
 export class BFT extends EventEmitter {
 	private _finalityManager?: FinalityManager;
-	public readonly storage: Storage;
-	public readonly rounds: Rounds;
-	public readonly slots: Slots;
+	private readonly _chain: Chain;
+	private readonly _dpos: DPoS;
 	public readonly constants: {
 		activeDelegates: number;
 		startingHeight: number;
 	};
 
-	private readonly blockEntity: BlockEntity;
-
 	public constructor({
-		storage,
-		rounds,
-		slots,
+		chain,
+		dpos,
 		activeDelegates,
 		startingHeight,
 	}: {
-		readonly storage: Storage;
-		readonly rounds: Rounds;
-		readonly slots: Slots;
+		readonly chain: Chain;
+		readonly dpos: DPoS;
 		readonly activeDelegates: number;
 		readonly startingHeight: number;
 	}) {
 		super();
-		this.storage = storage;
-		this.slots = slots;
-		this.rounds = rounds;
+		this._chain = chain;
+		this._dpos = dpos;
 		this.constants = {
 			activeDelegates,
 			startingHeight,
 		};
-
-		this.blockEntity = this.storage.entities.Block;
 	}
 
-	public async init(
-		stateStore: StateStore,
-		minActiveHeightsOfDelegates: HeightOfDelegates = {},
-	): Promise<void> {
+	public async init(stateStore: StateStore): Promise<void> {
 		this._finalityManager = await this._initFinalityManager(stateStore);
 
 		this.finalityManager.on(
@@ -88,27 +68,12 @@ export class BFT extends EventEmitter {
 				this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, updatedFinalizedHeight);
 			},
 		);
-		const { finalizedHeight } = this.finalityManager;
-		const lastBlockHeight = await this._getLastBlockHeight();
-
-		const loadFromHeight = Math.max(
-			finalizedHeight,
-			// Search is inclusive, therefore, it should start from one above (ex: 288 - 500, which results total 303)
-			lastBlockHeight -
-				this.constants.activeDelegates * BFT_ROUND_THRESHOLD +
-				1,
-			this.constants.startingHeight,
-		);
-
-		await this._loadBlocksFromStorage({
-			fromHeight: loadFromHeight,
-			tillHeight: lastBlockHeight,
-			minActiveHeightsOfDelegates,
-		});
+		const lastBlock = await this._chain.dataAccess.getLastBlockHeader();
+		await this.finalityManager.recompute(lastBlock.height, stateStore);
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
-	public serialize(blockInstance: Block): Block {
+	public serialize(blockInstance: BlockHeader): BlockHeader {
 		return {
 			...blockInstance,
 			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
@@ -121,8 +86,8 @@ export class BFT extends EventEmitter {
 	}
 
 	public async deleteBlocks(
-		blocks: ReadonlyArray<Block>,
-		minActiveHeightsOfDelegates: HeightOfDelegates = {},
+		blocks: ReadonlyArray<BlockHeader>,
+		stateStore: StateStore,
 	): Promise<void> {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
@@ -137,36 +102,37 @@ export class BFT extends EventEmitter {
 			'Can not delete block below or same as finalized height',
 		);
 
-		const removeFromHeight = Math.min(...blockHeights);
+		const minimumHeight = Math.min(...blockHeights);
 
-		this.finalityManager.removeBlockHeaders({
-			aboveHeight: removeFromHeight - 1,
-		});
-		// Make sure there are BFT_ROUND_THRESHOLD rounds of block headers available
-		await this._fillCache(minActiveHeightsOfDelegates);
+		await this.finalityManager.recompute(minimumHeight - 1, stateStore);
 	}
 
-	public addNewBlock(block: Block, stateStore: StateStore): boolean {
-		this.finalityManager.addBlockHeader(extractBFTBlockHeaderFromBlock(block));
+	public async addNewBlock(
+		block: BlockHeader,
+		stateStore: StateStore,
+	): Promise<void> {
+		await this.finalityManager.addBlockHeader(block, stateStore);
 		const { finalizedHeight } = this.finalityManager;
 
-		return stateStore.chainState.set(
+		stateStore.chainState.set(
 			CHAIN_STATE_FINALIZED_HEIGHT_KEY,
-			finalizedHeight,
+			String(finalizedHeight),
 		);
 	}
 
-	public verifyNewBlock(block: Block): boolean {
-		return this.finalityManager.verifyBlockHeaders(
-			extractBFTBlockHeaderFromBlock(block),
+	public async verifyNewBlock(blockHeader: BlockHeader): Promise<boolean> {
+		const bftHeaders = await this.finalityManager.getBFTApplicableBlockHeaders(
+			blockHeader.height - 1,
 		);
+
+		return this.finalityManager.verifyBlockHeaders(blockHeader, bftHeaders);
 	}
 
-	public forkChoice(block: Block, lastBlock: Block): ForkStatus {
+	public forkChoice(block: BlockHeader, lastBlock: BlockHeader): ForkStatus {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
 			...block,
-			receivedAt: this.slots.getEpochTime(),
+			receivedAt: this._chain.slots.getEpochTime(),
 		};
 
 		/* Cases are numbered following LIP-0014 Fork choice rule.
@@ -192,7 +158,7 @@ export class BFT extends EventEmitter {
 
 		if (
 			forkChoiceRule.isTieBreak({
-				slots: this.slots,
+				slots: this._chain.slots,
 				lastAppliedBlock: lastBlock,
 				receivedBlock,
 			})
@@ -215,11 +181,12 @@ export class BFT extends EventEmitter {
 		stateStore: StateStore,
 	): Promise<FinalityManager> {
 		// Check what finalized height was stored last time
-		const finalizedHeightStored =
-			parseInt(
-				await stateStore.chainState.get(CHAIN_STATE_FINALIZED_HEIGHT_KEY),
-				10,
-			) || 1;
+		const storedFinalizedHeight = await stateStore.chainState.get(
+			CHAIN_STATE_FINALIZED_HEIGHT_KEY,
+		);
+		const finalizedHeightStored = storedFinalizedHeight
+			? parseInt(storedFinalizedHeight, 10)
+			: 1;
 
 		/* Check BFT migration height
 		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
@@ -232,109 +199,32 @@ export class BFT extends EventEmitter {
 
 		// Initialize consensus manager
 		return new FinalityManager({
+			chain: this._chain,
+			dpos: this._dpos,
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,
 		});
 	}
 
-	private async _getLastBlockHeight(): Promise<number> {
-		const lastBlock = await this.blockEntity.get(
-			{},
-			{ limit: 1, sort: 'height:desc' },
-		);
-
-		return lastBlock.length ? lastBlock[0].height : 0;
-	}
-
-	private async _loadBlocksFromStorage({
-		fromHeight,
-		tillHeight,
-		minActiveHeightsOfDelegates,
-	}: {
-		readonly fromHeight: number;
-		readonly tillHeight: number;
-		readonly minActiveHeightsOfDelegates: HeightOfDelegates;
-	}): Promise<void> {
-		// If blocks to be loaded on tail
-		const sortOrder =
-			this.finalityManager.minHeight === Math.max(fromHeight, tillHeight) + 1
-				? 'height:desc'
-				: 'height:asc';
-
-		const rows = await this.blockEntity.get(
-			{ height_gte: fromHeight, height_lte: tillHeight },
-			// tslint:disable-next-line no-null-keyword
-			{ limit: null, sort: sortOrder },
-		);
-
-		const BLOCK_VERSION2 = 2;
-
-		rows.forEach(row => {
-			if (row.height !== 1 && row.version !== BLOCK_VERSION2) {
-				return;
-			}
-
-			// If it's genesis block, skip the logic and set
-			// `delegateMinHeightActive` to 1.
-			if (row.height === 1) {
-				this.finalityManager.addBlockHeader(
-					extractBFTBlockHeaderFromBlock({
-						...row,
-						delegateMinHeightActive: 1,
-					}),
-				);
-
-				return;
-			}
-
-			const activeHeights = minActiveHeightsOfDelegates[row.generatorPublicKey];
-			if (!activeHeights) {
-				throw new Error(
-					`Minimum active heights were not found for delegate "${row.generatorPublicKey}".`,
-				);
-			}
-
-			// If there is no minHeightActive until this point, we can set the value to 0
-			const activeHeightThreshold = 3;
-			const minimumPossibleActiveHeight = this.rounds.calcRoundStartHeight(
-				this.rounds.calcRound(
-					Math.max(
-						row.height - this.constants.activeDelegates * activeHeightThreshold,
-						1,
-					),
-				),
-			);
-			const [delegateMinHeightActive] = activeHeights.filter(
-				height => height >= minimumPossibleActiveHeight,
-			);
-
-			const blockHeaders = {
-				...row,
-				delegateMinHeightActive,
-			};
-
-			this.finalityManager.addBlockHeader(
-				extractBFTBlockHeaderFromBlock(blockHeaders),
-			);
-		});
-	}
-
-	public isBFTProtocolCompliant(block: Block): boolean {
-		assert(block, 'No block was provided to be verified');
+	public async isBFTProtocolCompliant(
+		blockHeader: BlockHeader,
+	): Promise<boolean> {
+		assert(blockHeader, 'No block was provided to be verified');
 
 		const roundsThreshold = 3;
 		const heightThreshold = this.constants.activeDelegates * roundsThreshold;
-		const blockHeader = extractBFTBlockHeaderFromBlock(block);
 
 		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
 		if (blockHeader.maxHeightPreviouslyForged === 0) {
 			return true;
 		}
 
-		const bftHeaders = this.finalityManager.headers;
+		const bftHeaders = await this.finalityManager.getBFTApplicableBlockHeaders(
+			blockHeader.height - 1,
+		);
 
-		const maxHeightPreviouslyForgedBlock = bftHeaders.get(
-			blockHeader.maxHeightPreviouslyForged,
+		const maxHeightPreviouslyForgedBlock = bftHeaders.find(
+			bftHeader => bftHeader.height === blockHeader.maxHeightPreviouslyForged,
 		);
 
 		if (
@@ -342,8 +232,8 @@ export class BFT extends EventEmitter {
 			blockHeader.maxHeightPreviouslyForged >= blockHeader.height ||
 			(blockHeader.height - blockHeader.maxHeightPreviouslyForged <=
 				heightThreshold &&
-				blockHeader.delegatePublicKey !==
-					maxHeightPreviouslyForgedBlock.delegatePublicKey)
+				blockHeader.generatorPublicKey !==
+					maxHeightPreviouslyForgedBlock.generatorPublicKey)
 		) {
 			return false;
 		}
@@ -360,79 +250,11 @@ export class BFT extends EventEmitter {
 	}
 
 	public reset(): void {
-		this.finalityManager.headers.empty();
-		this.finalityManager.recompute();
-	}
-
-	private async _fillCache(
-		minActiveHeightsOfDelegates: HeightOfDelegates,
-	): Promise<void> {
-		if (
-			this.finalityManager.maxHeight - this.finalityManager.minHeight >=
-			this.constants.activeDelegates * BFT_ROUND_THRESHOLD
-		) {
-			return;
-		}
-
-		const tillHeight = this.finalityManager.minHeight - 1;
-		const fromHeight =
-			this.finalityManager.maxHeight -
-			// Search is inclusive, therefore, it should start from one above (ex: 288 - 500, which results total 303)
-			this.constants.activeDelegates * BFT_ROUND_THRESHOLD +
-			1;
-		const blocksJSON = await this.blockEntity.get(
-			{ height_gte: fromHeight, height_lte: tillHeight },
-			// tslint:disable-next-line no-null-keyword
-			{ limit: null, sort: 'height:desc' },
-		);
-		for (const blockJSON of blocksJSON) {
-			if (blockJSON.height === 1) {
-				this.finalityManager.headers.add(
-					extractBFTBlockHeaderFromBlock({
-						...blockJSON,
-						delegateMinHeightActive: 1,
-					}),
-				);
-
-				return;
-			}
-
-			const activeHeights =
-				minActiveHeightsOfDelegates[blockJSON.generatorPublicKey];
-			if (!activeHeights) {
-				throw new Error(
-					`Minimum active heights were not found for delegate "${blockJSON.generatorPublicKey}".`,
-				);
-			}
-
-			// If there is no minHeightActive until this point,
-			// We can set the value to 0
-			const minimumPossibleActiveHeight = this.rounds.calcRoundStartHeight(
-				this.rounds.calcRound(
-					Math.max(
-						blockJSON.height -
-							this.constants.activeDelegates * BFT_ROUND_THRESHOLD,
-						1,
-					),
-				),
-			);
-			const [delegateMinHeightActive] = activeHeights.filter(
-				height => height >= minimumPossibleActiveHeight,
-			);
-
-			const blockHeader = {
-				...blockJSON,
-				delegateMinHeightActive,
-			};
-			this.finalityManager.headers.add(
-				extractBFTBlockHeaderFromBlock(blockHeader),
-			);
-		}
-		this.finalityManager.recompute();
+		this.finalityManager.reset();
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
-	public validateBlock(block: Block): boolean {
-		return validateBlockHeader(extractBFTBlockHeaderFromBlock(block));
+	public validateBlock(block: BlockHeader): void {
+		validateBlockHeader(block);
 	}
 }
