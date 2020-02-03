@@ -17,7 +17,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
-export interface Account {
+export interface AccountJSON {
 	readonly address: string;
 	readonly balance: string;
 	readonly missedBlocks: number;
