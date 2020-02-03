@@ -37,7 +37,7 @@ export interface Account {
 	// tslint:disable-next-line readonly-keyword
 	membersPublicKeys?: ReadonlyArray<string>;
 	// tslint:disable-next-line:no-mixed-interface
-	readonly addBalance: (fees: bigint) => void;
+	readonly addBalance?: (fees: bigint) => void;
 }
 
 export interface Delegate {
