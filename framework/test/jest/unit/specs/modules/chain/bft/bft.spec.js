@@ -208,7 +208,7 @@ describe('bft', () => {
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
-					fromHeight: lastBlockHeight - activeDelegates * 3,
+					fromHeight: lastBlockHeight - activeDelegates * 3 + 1,
 					tillHeight: lastBlockHeight,
 					minActiveHeightsOfDelegates,
 				});
@@ -412,7 +412,7 @@ describe('bft', () => {
 				);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenLastCalledWith(
-					{ height_lte: 400, height_gte: 450 - activeDelegates * 3 },
+					{ height_lte: 400, height_gte: 450 - activeDelegates * 3 + 1 },
 					{ limit: null, sort: 'height:desc' },
 				);
 			});
@@ -712,7 +712,7 @@ describe('bft', () => {
 				expect(finalityManager).toBeInstanceOf(FinalityManager);
 				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
 				expect(finalityManager.finalizedHeight).toEqual(
-					startingHeightHigher - activeDelegates * 3,
+					startingHeightHigher - activeDelegates * 2,
 				);
 			});
 		});

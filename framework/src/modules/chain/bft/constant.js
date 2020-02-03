@@ -16,4 +16,5 @@
 
 module.exports = {
 	BFT_ROUND_THRESHOLD: 3,
+	BFT_MIGRATION_ROUND_OFFSET: 2,
 };
