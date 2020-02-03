@@ -15,7 +15,7 @@
 import { BFT } from '../../src/bft';
 import { Slots as SlotType } from '../../src/types';
 import { Rounds } from '@liskhq/lisk-dpos';
-import { Slots } from '@liskhq/lisk-blocks';
+import { Slots } from '@liskhq/lisk-chain';
 
 const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
