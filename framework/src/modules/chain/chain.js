@@ -192,8 +192,6 @@ module.exports = class Chain {
 				this.options.broadcasts.active = false;
 				this.options.syncing.active = false;
 
-				// Need to reset the BFT to rebuild from start of the chain
-				this.bft.reset();
 				await this.rebuilder.rebuild(
 					this.options.loading.rebuildUpToRound,
 					this.options.loading.loadPerIteration,
@@ -472,6 +470,7 @@ module.exports = class Chain {
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
+			bftModule: this.bft,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.scope.modules.rebuilder = this.rebuilder;

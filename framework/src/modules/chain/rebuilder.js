@@ -29,6 +29,7 @@ class Rebuilder {
 		// Modules
 		processorModule,
 		blocksModule,
+		bftModule,
 		// Constants
 		activeDelegates,
 	}) {
@@ -42,6 +43,7 @@ class Rebuilder {
 
 		this.processorModule = processorModule;
 		this.blocksModule = blocksModule;
+		this.bftModule = bftModule;
 		this.constants = {
 			activeDelegates,
 		};
@@ -82,6 +84,10 @@ class Rebuilder {
 		const limit = loadPerIteration;
 		await this.storage.entities.Account.resetMemTables();
 		await this.storage.entities.RoundDelegates.resetRoundDelegates();
+
+		// Need to reset the BFT to rebuild from start of the chain
+		this.bftModule.reset();
+
 		let { lastBlock } = this.blocksModule;
 		for (
 			let currentHeight = 0;
