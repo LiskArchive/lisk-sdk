@@ -285,6 +285,8 @@ class FinalityManager extends EventEmitter {
 
 	verifyBlockHeaders(blockHeader) {
 		debug('verifyBlockHeaders invoked');
+		debug(blockHeader);
+
 		// We need minimum processingThreshold to decide
 		// if maxHeightPrevoted is correct
 		if (
@@ -292,7 +294,7 @@ class FinalityManager extends EventEmitter {
 			blockHeader.maxHeightPrevoted !== this.prevotedConfirmedHeight
 		) {
 			throw new BFTInvalidAttributeError(
-				'Wrong prevotedConfirmedHeight in blockHeader.',
+				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, prevotedConfirmedHeight: ${this.prevotedConfirmedHeight}`,
 			);
 		}
 

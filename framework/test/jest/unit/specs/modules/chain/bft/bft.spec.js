@@ -35,6 +35,15 @@ const generateBlocks = ({ startHeight, numberOfBlocks }) =>
 			blockFixture({ height: startHeight + index, version: 2 }),
 		);
 
+const extractBFTInfo = bft => ({
+	finalizedHeight: bft.finalizedHeight,
+	maxHeightPrevoted: bft.maxHeightPrevoted,
+	headers: [...bft.finalityManager.headers.items],
+	preVotes: { ...bft.finalityManager.preVotes },
+	preCommits: { ...bft.finalityManager.preCommits },
+	state: { ...bft.finalityManager.state },
+});
+
 describe('bft', () => {
 	describe('extractBFTBlockHeaderFromBlock', () => {
 		it('should extract particular headers for bft', async () => {
@@ -640,6 +649,44 @@ describe('bft', () => {
 					// Act & Assert
 					expect(bft.isBFTProtocolCompliant(block)).toBe(true);
 				});
+			});
+		});
+
+		describe('#reset', () => {
+			it('should reset headers and related stats to initial state', async () => {
+				// Arrange
+				storageMock.entities.Block.get.mockReturnValue([]);
+				storageMock.entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				const stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
+				const bft = new BFT(bftParams);
+				await bft.init(stateStore);
+				const initialInfo = extractBFTInfo(bft);
+				const numberOfBlocks = 500;
+				const blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+				for (const block of blocks) {
+					await bft.addNewBlock(
+						{
+							...block,
+							maxHeightPrevoted: bft.finalityManager.prevotedConfirmedHeight,
+						},
+						stateStore,
+					);
+				}
+				const beforeResetInfo = extractBFTInfo(bft);
+
+				// Act
+				bft.reset();
+				const afterResetInfo = extractBFTInfo(bft);
+
+				// Assert
+				expect(beforeResetInfo).not.toEqual(initialInfo);
+				expect(afterResetInfo).toEqual(initialInfo);
 			});
 		});
 

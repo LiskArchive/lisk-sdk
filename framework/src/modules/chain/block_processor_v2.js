@@ -173,7 +173,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 				);
-				this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
+				await this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
 			},
 		]);
 

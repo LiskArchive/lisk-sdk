@@ -74,8 +74,6 @@ const defaultConfig = {
 				},
 			},
 			maximum: 4,
-			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		// Warning! Beware of declaring only trustworthy peers in this array as these could attack a
 		// node with a denial-of-service attack because the banning mechanism is deactivated.
@@ -95,8 +93,6 @@ const defaultConfig = {
 					},
 				},
 			},
-			env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-			arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' },
 		},
 		peerBanTime: {
 			type: 'integer',
