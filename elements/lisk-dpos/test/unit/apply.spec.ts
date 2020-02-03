@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { Dpos, constants } from '../../src';
-import { Slots } from '../../../lisk-blocks/src/slots';
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	Account,
 	ForgersList,

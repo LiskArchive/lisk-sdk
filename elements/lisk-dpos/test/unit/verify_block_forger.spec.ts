@@ -13,7 +13,7 @@
  */
 
 import { Dpos } from '../../src';
-import { Slots } from '../../../lisk-blocks/src/slots';
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	EPOCH_TIME,
 	BLOCK_TIME,

@@ -13,7 +13,7 @@
  */
 
 import { Dpos } from '../../src';
-import { Slots } from '../../../lisk-blocks/src/slots';
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
