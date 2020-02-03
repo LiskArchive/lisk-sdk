@@ -16,7 +16,7 @@
 
 const { cloneDeep } = require('lodash');
 const { when } = require('jest-when');
-const { Blocks, StateStore } = require('@liskhq/lisk-blocks');
+const { Blocks, StateStore } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 
@@ -56,7 +56,7 @@ const ChannelMock = jest.genMockFromModule(
 describe('block_synchronization_mechanism', () => {
 	let bftModule;
 	let blockProcessorV2;
-	let blocksModule;
+	let chainModule;
 	let dpos;
 	let processorModule;
 	let blockSynchronizationMechanism;
@@ -104,7 +104,7 @@ describe('block_synchronization_mechanism', () => {
 		};
 		channelMock = new ChannelMock();
 
-		blocksModule = new Blocks({
+		chainModule = new Blocks({
 			logger: loggerMock,
 			storage: storageMock,
 			slots,
@@ -124,14 +124,14 @@ describe('block_synchronization_mechanism', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
-		blocksModule.dataAccess.getTempBlocks = jest.fn();
+		chainModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
 			storage: storageMock,
 			logger: loggerMock,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
-			blocks: blocksModule,
+			blocks: chainModule,
 			exceptions: {},
 		});
 
@@ -139,13 +139,13 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			logger: loggerMock,
 			rounds: dpos.rounds,
-			slots: blocksModule.slots,
+			slots: chainModule.slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
-			blocksModule,
+			chainModule,
 			bftModule,
 			dposModule: dposModuleMock,
 			logger: loggerMock,
@@ -156,7 +156,7 @@ describe('block_synchronization_mechanism', () => {
 		processorModule = new Processor({
 			channel: channelMock,
 			storage: storageMock,
-			blocksModule,
+			chainModule,
 			logger: loggerMock,
 		});
 		processorModule.processValidated = jest.fn();
@@ -169,9 +169,9 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			logger: loggerMock,
 			channel: channelMock,
-			slots: blocksModule.slots,
+			slots: chainModule.slots,
 			rounds: dpos.rounds,
-			blocks: blocksModule,
+			blocks: chainModule,
 			bft: bftModule,
 			processorModule,
 			activeDelegates: constants.ACTIVE_DELEGATES,
@@ -180,7 +180,7 @@ describe('block_synchronization_mechanism', () => {
 
 	beforeEach(async () => {
 		aBlock = newBlock({ height: 10, maxHeightPrevoted: 0 });
-		// blocksModule.init will check whether the genesisBlock in storage matches the genesisBlock in
+		// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 		// memory. The following mock fakes this to be true
 		when(storageMock.entities.Block.begin)
 			.calledWith('loader:checkMemTables')
@@ -188,7 +188,7 @@ describe('block_synchronization_mechanism', () => {
 		when(storageMock.entities.Account.get)
 			.calledWith({ isDelegate: true }, { limit: null })
 			.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
-		// blocksModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
+		// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 		const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
 		when(storageMock.entities.Block.get)
@@ -243,7 +243,7 @@ describe('block_synchronization_mechanism', () => {
 			{},
 		);
 
-		await blocksModule.init();
+		await chainModule.init();
 		const stateStore = new StateStore(storageMock);
 		await stateStore.chainState.cache();
 		await bftModule.init(stateStore, minActiveHeightsOfDelegates);
@@ -253,7 +253,7 @@ describe('block_synchronization_mechanism', () => {
 			bftModule.finalizedHeight,
 			constants.ACTIVE_DELEGATES,
 			10,
-			dpos.rounds.calcRound(blocksModule.lastBlock.height),
+			dpos.rounds.calcRound(chainModule.lastBlock.height),
 		);
 
 		blockList = [genesisBlockDevnet];
@@ -320,7 +320,7 @@ describe('block_synchronization_mechanism', () => {
 			})
 			.mockResolvedValueOnce(genesisBlockDevnet);
 
-		blocksModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
+		chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
 	});
 
 	describe('async run()', () => {
@@ -612,7 +612,7 @@ describe('block_synchronization_mechanism', () => {
 
 					const receivedBlock = newBlock({
 						height: lastBlock.height + 304,
-						reward: blocksModule.blockReward
+						reward: chainModule.blockReward
 							.calculateReward(lastBlock.height + 304)
 							.toString(),
 					});
@@ -689,7 +689,7 @@ describe('block_synchronization_mechanism', () => {
 						[lastBlock.generatorPublicKey]: [1],
 					};
 
-					await blocksModule.init();
+					await chainModule.init();
 					const stateStore = new StateStore(storageMock);
 					await stateStore.chainState.cache();
 					await bftModule.init(stateStore, minActiveHeightsOfDelegates);
@@ -715,7 +715,7 @@ describe('block_synchronization_mechanism', () => {
 						bftModule.finalizedHeight,
 						constants.ACTIVE_DELEGATES,
 						10,
-						dpos.rounds.calcRound(blocksModule.lastBlock.height),
+						dpos.rounds.calcRound(chainModule.lastBlock.height),
 					);
 
 					blockList = [genesisBlockDevnet];
@@ -777,7 +777,7 @@ describe('block_synchronization_mechanism', () => {
 						)
 						.mockResolvedValueOnce(blockList);
 
-					blocksModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
+					chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
 
 					await blockSynchronizationMechanism.run(aBlock);
 
@@ -997,7 +997,7 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValueOnce(newBlock({ height: 2 }))
 						.mockResolvedValueOnce(newBlock({ height: 1 }));
 
-					when(blocksModule.dataAccess.getTempBlocks)
+					when(chainModule.dataAccess.getTempBlocks)
 						.calledWith(
 							{},
 							{
@@ -1024,7 +1024,7 @@ describe('block_synchronization_mechanism', () => {
 
 					expect(loggerMock.debug).toHaveBeenCalledWith(
 						{
-							currentTip: blocksModule.lastBlock.id,
+							currentTip: chainModule.lastBlock.id,
 							previousTip: expect.anything(),
 						},
 						'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
@@ -1116,7 +1116,7 @@ describe('block_synchronization_mechanism', () => {
 					const processingError = new Error('Error processing blocks');
 					processorModule.process.mockRejectedValueOnce(processingError);
 
-					blocksModule._lastBlock = aBlock;
+					chainModule._lastBlock = aBlock;
 
 					await blockSynchronizationMechanism.run(aBlock);
 
@@ -1132,7 +1132,7 @@ describe('block_synchronization_mechanism', () => {
 					expect(loggerMock.debug).toHaveBeenNthCalledWith(
 						15,
 						{
-							currentTip: blocksModule.lastBlock.id,
+							currentTip: chainModule.lastBlock.id,
 							previousTip: previousTip.id,
 						},
 						'Current tip of the chain has preference over previous tip',

@@ -73,7 +73,7 @@ describe('forge', () => {
 				transactionPoolModule: {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
 				},
-				blocksModule: {
+				chainModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
 					slots: {
 						getSlotNumber: sinonSandbox.stub(),
@@ -766,9 +766,9 @@ describe('forge', () => {
 			};
 
 			beforeEach(async () => {
-				forgeModule.blocksModule.lastBlock = lastBlock;
+				forgeModule.chainModule.lastBlock = lastBlock;
 				forgeModule.processorModule.create.resolves(forgedBlock);
-				getSlotNumberStub = forgeModule.blocksModule.slots.getSlotNumber;
+				getSlotNumberStub = forgeModule.chainModule.slots.getSlotNumber;
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
@@ -842,7 +842,7 @@ describe('forge', () => {
 					shouldAdvanceTime: true,
 				});
 
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 				getSlotNumberStub
@@ -873,7 +873,7 @@ describe('forge', () => {
 
 				const changedLastBlockSlot = currentSlot - 2;
 
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(changedLastBlockSlot);
@@ -895,7 +895,7 @@ describe('forge', () => {
 				});
 
 				const lastBlockSlotChanged = currentSlot - 1;
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(lastBlockSlotChanged);

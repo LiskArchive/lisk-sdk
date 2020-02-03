@@ -164,7 +164,7 @@ describe('transport', () => {
 				processUnconfirmedTransaction: sinonSandbox.stub(),
 				findInTransactionPool: sinonSandbox.stub(),
 			},
-			blocksModule: {
+			chainModule: {
 				lastBlock: sinonSandbox
 					.stub()
 					.returns({ height: 1, version: 1, timestamp: 1 }),
@@ -342,14 +342,14 @@ describe('transport', () => {
 
 			it('should call validateTransactions', async () => {
 				await transportModule._receiveTransaction(transaction);
-				return expect(transportModule.blocksModule.validateTransactions).to.be
+				return expect(transportModule.chainModule.validateTransactions).to.be
 					.calledOnce;
 			});
 
 			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule._receiveTransaction(transaction);
 				return expect(
-					transportModule.blocksModule.validateTransactions,
+					transportModule.chainModule.validateTransactions,
 				).to.have.been.calledWith([transaction]);
 			});
 
@@ -358,7 +358,7 @@ describe('transport', () => {
 					'Transaction type 0 is currently not allowed.',
 				);
 
-				transportModule.blocksModule.validateTransactions.resolves({
+				transportModule.chainModule.validateTransactions.resolves({
 					transactionsResponses: [
 						{
 							errors: [errorMessage],
@@ -394,7 +394,7 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
-					transportModule.blocksModule.validateTransactions.resolves({
+					transportModule.chainModule.validateTransactions.resolves({
 						transactionsResponses: [
 							{
 								status: 1,
@@ -657,11 +657,10 @@ describe('transport', () => {
 
 							await transportModule.handleRPCGetBlocksFromId(query);
 							expect(
-								transportModule.blocksModule.dataAccess.getBlockHeaderByID,
+								transportModule.chainModule.dataAccess.getBlockHeaderByID,
 							).to.be.calledWith(query.blockId);
 							return expect(
-								transportModule.blocksModule.dataAccess
-									.getBlocksByHeightBetween,
+								transportModule.chainModule.dataAccess.getBlocksByHeightBetween,
 							).to.be.calledWith(3, 36);
 						});
 					});
@@ -675,7 +674,7 @@ describe('transport', () => {
 							const errorMessage = 'Failed to load blocks...';
 							const loadBlockFailed = new Error(errorMessage);
 
-							transportModule.blocksModule.loadBlocksFromLastBlockId.rejects(
+							transportModule.chainModule.loadBlocksFromLastBlockId.rejects(
 								loadBlockFailed,
 							);
 

@@ -20,7 +20,7 @@ const {
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const { Rounds } = require('@liskhq/lisk-dpos');
 const localCommon = require('../../common');
 const {

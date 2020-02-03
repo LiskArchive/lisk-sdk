@@ -17,7 +17,7 @@
 const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const apiHelpers = require('../http/api');
 
 const { ACTIVE_DELEGATES } = global.constants;

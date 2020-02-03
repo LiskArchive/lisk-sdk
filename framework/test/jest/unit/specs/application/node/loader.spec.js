@@ -19,7 +19,7 @@ const { Loader } = require('../../../../../../src/application/node/loader');
 describe('Loader', () => {
 	let loader;
 	let channelStub;
-	let blocksModuleStub;
+	let chainModuleStub;
 	let transactionPoolModuleStub;
 
 	beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('Loader', () => {
 			warn: jest.fn(),
 			debug: jest.fn(),
 		};
-		blocksModuleStub = {
+		chainModuleStub = {
 			recoverChain: jest.fn(),
 			lastBlock: {
 				id: 'blockID',
@@ -55,7 +55,7 @@ describe('Loader', () => {
 			logger: loggerStub,
 			channel: channelStub,
 			transactionPoolModule: transactionPoolModuleStub,
-			blocksModule: blocksModuleStub,
+			chainModule: chainModuleStub,
 		});
 	});
 
@@ -139,7 +139,7 @@ describe('Loader', () => {
 
 			it('should not call recoverChain of blocks module', async () => {
 				await loader._loadBlocksFromNetwork();
-				expect(blocksModuleStub.recoverChain).not.toHaveBeenCalled();
+				expect(chainModuleStub.recoverChain).not.toHaveBeenCalled();
 			});
 		});
 	});

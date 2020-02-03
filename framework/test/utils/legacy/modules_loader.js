@@ -175,7 +175,7 @@ const modulesLoader = new (function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('@liskhq/lisk-blocks') },
+				{ blocks: require('@liskhq/lisk-chain') },
 				{ loader: require('../../../src/application/node/loader') },
 				{
 					transport: require('../../../src/application/node/transport'),

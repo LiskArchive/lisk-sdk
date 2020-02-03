@@ -24,7 +24,7 @@ const {
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const { Rounds } = require('@liskhq/lisk-dpos');
 const {
 	sortTransactions,
