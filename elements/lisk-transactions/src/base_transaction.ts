@@ -353,7 +353,7 @@ export abstract class BaseTransaction {
 							'Invalid balance amount',
 							this.id,
 							'.balance',
-							sender.balance,
+							sender.balance.toString(),
 							updatedBalance.toString(),
 						),
 				  ];
