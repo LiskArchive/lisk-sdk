@@ -110,8 +110,8 @@ export type MatcherTransaction = BaseTransaction & {
 };
 
 export interface ChainState {
-	// tslint:disable-next-line readonly-keyword
-	[key: string]: string;
+	readonly key: string;
+	readonly value: string;
 }
 
 export interface StorageTransaction {
@@ -149,12 +149,16 @@ export interface ChainStateEntity {
 		options?: StorageOptions,
 		tx?: StorageTransaction,
 	) => Promise<ChainState[]>;
-	readonly getKey: (key: string, tx?: StorageTransaction) => Promise<string>;
+	readonly getKey: (
+		key: string,
+		tx?: StorageTransaction,
+	) => Promise<string | undefined>;
 	readonly setKey: (
 		key: string,
 		value: string,
 		tx?: StorageTransaction,
 	) => Promise<void>;
+	readonly delete: () => Promise<void>;
 }
 
 export interface StorageEntity<T> {
@@ -220,18 +224,6 @@ export interface TempBlockStorageEntity extends StorageEntity<TempBlock> {
 	readonly truncate: () => void;
 }
 
-export interface RoundDelegates {
-	readonly round: number;
-	readonly delegatePublicKeys: string[];
-}
-
-export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
-	readonly getActiveDelegatesForRound: (
-		roundWithOffset: number,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<string>>;
-}
-
 export interface Storage {
 	readonly entities: {
 		readonly Block: BlockStorageEntity;
@@ -239,7 +231,6 @@ export interface Storage {
 		readonly Transaction: StorageEntity<TransactionJSON>;
 		readonly ChainState: ChainStateEntity;
 		readonly TempBlock: TempBlockStorageEntity;
-		readonly RoundDelegates: RoundDelegatesEntity;
 	};
 }
 

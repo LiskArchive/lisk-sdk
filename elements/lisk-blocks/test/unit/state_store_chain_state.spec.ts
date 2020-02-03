@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { StateStore } from '../../src';
+import { StorageTransaction } from '../../src/types';
 
 describe('state store / chain_state', () => {
 	let stateStore: StateStore;
@@ -93,9 +94,11 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('finalize', () => {
+		let txStub = {} as StorageTransaction;
+
 		it('should not call storage if nothing is set', async () => {
 			// Act
-			await stateStore.chainState.finalize();
+			await stateStore.chainState.finalize(txStub);
 			// Assert
 			expect(storageStub.entities.ChainState.setKey).not.toHaveBeenCalled();
 		});
@@ -105,17 +108,17 @@ describe('state store / chain_state', () => {
 			await stateStore.chainState.set('key3', 'value3');
 			await stateStore.chainState.set('key3', 'value4');
 			await stateStore.chainState.set('key4', 'value5');
-			await stateStore.chainState.finalize();
+			await stateStore.chainState.finalize(txStub);
 			// Assert
 			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
 				'key3',
 				'value4',
-				undefined,
+				txStub,
 			);
 			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
 				'key4',
 				'value5',
-				undefined,
+				txStub,
 			);
 		});
 
@@ -127,7 +130,7 @@ describe('state store / chain_state', () => {
 			// Act
 			await stateStore.chainState.set('key3', 'value3');
 			// Assert
-			return expect(stateStore.chainState.finalize()).rejects.toThrow(
+			return expect(stateStore.chainState.finalize(txStub)).rejects.toThrow(
 				'Fake storage layer error',
 			);
 		});

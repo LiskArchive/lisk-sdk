@@ -27,7 +27,6 @@ const {
 	AccountEntity,
 	BlockEntity,
 	TransactionEntity,
-	RoundDelegatesEntity,
 	ChainStateEntity,
 	ForgerInfoEntity,
 	TempBlockEntity,
@@ -101,7 +100,6 @@ class StorageSandbox extends Storage {
 		this.registerEntity('Account', AccountEntity);
 		this.registerEntity('Block', BlockEntity);
 		this.registerEntity('Transaction', TransactionEntity);
-		this.registerEntity('RoundDelegates', RoundDelegatesEntity);
 
 		// Custom entitties
 		this.registerEntity('Migration', MigrationEntity);

@@ -323,12 +323,17 @@ describe('data_access.storage', () => {
 	});
 
 	describe('#getDelegateAccounts', () => {
+		const DEFAULT_LIMIT = 101;
+
 		it('should call storage.getDelegateAccounts', async () => {
 			// Act
-			await dataAccess.getDelegateAccounts();
+			await dataAccess.getDelegateAccounts(DEFAULT_LIMIT);
 
 			// Assert
-			expect(storageMock.entities.Account.get).toHaveBeenCalled();
+			expect(storageMock.entities.Account.get).toHaveBeenCalledWith(
+				{ isDelegate: true },
+				{ limit: DEFAULT_LIMIT, sort: ['voteWeight:desc', 'publicKey:asc'] },
+			);
 		});
 	});
 

@@ -37,8 +37,6 @@ describe('rebuilding', () => {
 		library.modules.blocks.blockReward.rewardOffset = 150;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
-		library.modules.blocks.resetBlockHeaderCache();
-
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge,
 		);

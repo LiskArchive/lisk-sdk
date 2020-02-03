@@ -258,6 +258,10 @@ export class Blocks extends EventEmitter {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
+	public newStateStore(): StateStore {
+		return new StateStore(this.storage);
+	}
+
 	private async _cacheBlockHeaders(
 		storageLastBlock: BlockInstance,
 	): Promise<void> {
@@ -318,6 +322,12 @@ export class Blocks extends EventEmitter {
 		block.id = blocksUtils.getId(blockBytes);
 	}
 
+	public async resetState(): Promise<void> {
+		await this.storage.entities.Account.resetMemTables();
+		await this.storage.entities.ChainState.delete();
+		this.dataAccess.resetBlockHeaderCache();
+	}
+
 	public verifyInMemory(block: BlockInstance, lastBlock: BlockInstance): void {
 		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
 		validateBlockSlot(block, lastBlock, this.slots);
@@ -351,26 +361,36 @@ export class Blocks extends EventEmitter {
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
-
-		this.dataAccess.addBlockHeader(blockInstance);
-		this._lastBlock = blockInstance;
 	}
 
+	// tslint:disable-next-line prefer-function-over-method
 	public async applyGenesis(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedGenesisStep(blockInstance, stateStore);
-
-		this.dataAccess.addBlockHeader(blockInstance);
-		this._lastBlock = blockInstance;
 	}
 
 	public async save(
-		blockJSON: BlockJSON,
-		tx: StorageTransaction,
+		blockInstance: BlockInstance,
+		stateStore: StateStore,
+		{ saveOnlyState, removeFromTempTable } = {
+			saveOnlyState: false,
+			removeFromTempTable: false,
+		},
 	): Promise<void> {
-		await saveBlock(this.storage, blockJSON, tx);
+		return this.storage.entities.Block.begin('saveBlock', async tx => {
+			await stateStore.finalize(tx);
+			if (!saveOnlyState) {
+				const blockJSON = this.serialize(blockInstance);
+				await saveBlock(this.storage, blockJSON, tx);
+			}
+			if (removeFromTempTable) {
+				await this.removeBlockFromTempTable(blockInstance.id, tx);
+			}
+			this.dataAccess.addBlockHeader(blockInstance);
+			this._lastBlock = blockInstance;
+		});
 	}
 
 	public async undo(
@@ -402,23 +422,25 @@ export class Blocks extends EventEmitter {
 
 	public async remove(
 		block: BlockInstance,
-		blockJSON: BlockJSON,
-		tx: StorageTransaction,
+		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		const secondLastBlock = await this._deleteLastBlock(block, tx);
+		await this.storage.entities.Block.begin('revertBlock', async tx => {
+			const secondLastBlock = await this._deleteLastBlock(block, tx);
 
-		if (saveTempBlock) {
-			const blockTempEntry = {
-				id: blockJSON.id,
-				height: blockJSON.height,
-				fullBlock: blockJSON,
-			};
-			await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
-		}
-
-		this.dataAccess.removeBlockHeader(block.id);
-		this._lastBlock = secondLastBlock;
+			if (saveTempBlock) {
+				const blockJSON = this.serialize(block);
+				const blockTempEntry = {
+					id: blockJSON.id,
+					height: blockJSON.height,
+					fullBlock: blockJSON,
+				};
+				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
+			}
+			await stateStore.finalize(tx);
+			this.dataAccess.removeBlockHeader(block.id);
+			this._lastBlock = secondLastBlock;
+		});
 	}
 
 	public async removeBlockFromTempTable(

@@ -43,7 +43,6 @@ const {
 	BlockEntity,
 	ChainStateEntity,
 	ForgerInfoEntity,
-	RoundDelegatesEntity,
 	TempBlockEntity,
 	TransactionEntity,
 } = require('../application/storage/entities');
@@ -400,7 +399,6 @@ class Application {
 		});
 		storage.registerEntity('ChainState', ChainStateEntity);
 		storage.registerEntity('ForgerInfo', ForgerInfoEntity);
-		storage.registerEntity('RoundDelegates', RoundDelegatesEntity);
 		storage.registerEntity('TempBlock', TempBlockEntity);
 
 		storage.entities.Account.extendDefaultOptions({

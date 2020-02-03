@@ -21,7 +21,6 @@ import {
 	BlockJSON,
 	BlockRound,
 	Storage as DBStorage,
-	StorageTransaction,
 	TempBlock,
 } from '../types';
 
@@ -274,14 +273,18 @@ export class DataAccess {
 	}
 	/** End: Blocks */
 
+	/** Begin: ChainState */
+	public async getChainState(key: string): Promise<string | undefined> {
+		return this._storage.getChainState(key);
+	}
+	/** End: ChainState */
+
 	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	): Promise<Account[]> {
 		const accounts = await this._storage.getAccountsByPublicKey(
 			arrayOfPublicKeys,
-			tx,
 		);
 
 		return accounts;
@@ -289,20 +292,14 @@ export class DataAccess {
 
 	public async getAccountsByAddress(
 		arrayOfAddresses: ReadonlyArray<string>,
-		tx?: StorageTransaction,
 	): Promise<Account[]> {
-		const accounts = await this._storage.getAccountsByAddress(
-			arrayOfAddresses,
-			tx,
-		);
+		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
 		return accounts;
 	}
 
-	public async getDelegateAccounts(
-		tx?: StorageTransaction,
-	): Promise<Account[]> {
-		const accounts = await this._storage.getDelegateAccounts(tx);
+	public async getDelegateAccounts(limit: number): Promise<Account[]> {
+		const accounts = await this._storage.getDelegateAccounts(limit);
 
 		return accounts;
 	}

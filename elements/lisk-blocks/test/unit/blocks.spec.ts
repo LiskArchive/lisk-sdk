@@ -14,7 +14,7 @@
 
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Blocks } from '../../src';
+import { Blocks, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
@@ -349,25 +349,30 @@ describe('blocks', () => {
 	});
 
 	describe('save', () => {
+		let stateStoreStub: StateStore;
+
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation((promises: any) =>
 				Promise.all(promises),
 			);
+			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
+				(_: any, callback: any) => callback.call(blocksInstance, stubs.tx),
+			);
+			stateStoreStub = {
+				finalize: jest.fn(),
+			} as any;
 		});
 
 		it('should throw error when block create fails', async () => {
 			// Arrange
 			const block = newBlock();
 			const blockCreateError = 'block create error';
-			stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
-				blockCreateError,
-			);
-			expect.assertions(1);
+			stubs.tx.batch.mockRejectedValue(blockCreateError);
 
 			// Act & Assert
-			await expect(
-				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
-			).rejects.toEqual(blockCreateError);
+			await expect(blocksInstance.save(block, stateStoreStub)).rejects.toEqual(
+				blockCreateError,
+			);
 		});
 
 		it('should throw error when transaction create fails', async () => {
@@ -381,9 +386,9 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act & Assert
-			await expect(
-				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
-			).rejects.toEqual(transactionCreateError);
+			await expect(blocksInstance.save(block, stateStoreStub)).rejects.toEqual(
+				transactionCreateError,
+			);
 		});
 
 		it('should call Block.create with correct parameters', async () => {
@@ -397,12 +402,12 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act
-			await blocksInstance.save(blockJSON, stubs.tx);
+			await blocksInstance.save(block, stateStoreStub);
 
 			// Assert
 			expect(
 				stubs.dependencies.storage.entities.Block.create,
-			).toHaveBeenCalledWith(blockJSON, {}, stubs.tx);
+			).toHaveBeenCalledWith(blockJSON, {}, expect.any(Object));
 		});
 
 		it('should not call Transaction.create with if block has no transactions', async () => {
@@ -410,7 +415,7 @@ describe('blocks', () => {
 			const block = newBlock();
 
 			// Act
-			await blocksInstance.save(blocksInstance.serialize(block), stubs.tx);
+			await blocksInstance.save(block, stateStoreStub);
 
 			// Assert
 			expect(
@@ -426,12 +431,22 @@ describe('blocks', () => {
 			const transactionJSON = transaction.toJSON();
 
 			// Act
-			await blocksInstance.save(blocksInstance.serialize(block), stubs.tx);
+			await blocksInstance.save(block, stateStoreStub);
 
 			// Assert
 			expect(
 				stubs.dependencies.storage.entities.Transaction.create,
 			).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
+		});
+
+		it('should call state store finalize', async () => {
+			// Arrange
+			const block = newBlock();
+
+			// Act & Assert
+			await blocksInstance.save(block, stateStoreStub),
+				expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
+			expect(stateStoreStub.finalize).toHaveBeenCalledWith(stubs.tx);
 		});
 
 		it('should resolve when blocks module successfully performs save', async () => {
@@ -441,9 +456,9 @@ describe('blocks', () => {
 			// Act & Assert
 			expect.assertions(1);
 
-			await expect(
-				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
-			).resolves.toEqual(undefined);
+			await expect(blocksInstance.save(block, stateStoreStub)).resolves.toEqual(
+				undefined,
+			);
 		});
 
 		it('should throw error when storage create fails', async () => {
@@ -457,14 +472,25 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act & Assert
-			await expect(
-				blocksInstance.save(blocksInstance.serialize(block), stubs.tx),
-			).rejects.toBe(blockCreateError);
+			await expect(blocksInstance.save(block, stateStoreStub)).rejects.toBe(
+				blockCreateError,
+			);
 		});
 	});
 
 	describe('remove', () => {
+		let stateStoreStub: StateStore;
+
 		beforeEach(async () => {
+			stateStoreStub = {
+				finalize: jest.fn(),
+			} as any;
+			stubs.tx.batch.mockImplementation((promises: any) =>
+				Promise.all(promises),
+			);
+			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
+				(_: any, callback: any) => callback.call(blocksInstance, stubs.tx),
+			);
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 				genesisBlock,
 			]);
@@ -476,8 +502,7 @@ describe('blocks', () => {
 			await expect(
 				blocksInstance.remove(
 					blocksInstance.deserialize(genesisBlock),
-					genesisBlock,
-					stubs.tx,
+					stateStoreStub,
 				),
 			).rejects.toThrow('Cannot delete genesis block');
 		});
@@ -488,7 +513,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			// Act & Assert
 			await expect(
-				blocksInstance.remove(block, blocksInstance.serialize(block), stubs.tx),
+				blocksInstance.remove(block, stateStoreStub),
 			).rejects.toThrow('PreviousBlock is null');
 		});
 
@@ -504,7 +529,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			// Act & Assert
 			await expect(
-				blocksInstance.remove(block, blocksInstance.serialize(block), stubs.tx),
+				blocksInstance.remove(block, stateStoreStub),
 			).rejects.toEqual(deleteBlockError);
 		});
 
@@ -512,11 +537,7 @@ describe('blocks', () => {
 			// Arrange
 			const block = newBlock();
 			// Act
-			await blocksInstance.remove(
-				block,
-				blocksInstance.serialize(block),
-				stubs.tx,
-			);
+			await blocksInstance.remove(block, stateStoreStub);
 			// Assert
 			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
 			expect(
@@ -540,14 +561,9 @@ describe('blocks', () => {
 				);
 				// Act & Assert
 				await expect(
-					blocksInstance.remove(
-						block,
-						blocksInstance.serialize(block),
-						stubs.tx,
-						{
-							saveTempBlock: true,
-						},
-					),
+					blocksInstance.remove(block, stateStoreStub, {
+						saveTempBlock: true,
+					}),
 				).rejects.toEqual(tempBlockCreateError);
 			});
 
@@ -558,7 +574,7 @@ describe('blocks', () => {
 				(transaction as any).blockId = block.id;
 				const blockJSON = blocksInstance.serialize(block);
 				// Act
-				await blocksInstance.remove(block, blockJSON, stubs.tx, {
+				await blocksInstance.remove(block, stateStoreStub, {
 					saveTempBlock: true,
 				});
 				// Assert

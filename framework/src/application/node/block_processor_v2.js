@@ -170,6 +170,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
+					this.blocksModule.lastBlock.height,
+					stateStore,
 					numberOfRounds,
 				);
 				this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
@@ -230,15 +232,15 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.apply.pipe([
 			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
-			({ block, tx }) => this.dposModule.apply(block, { tx }),
-			async ({ block, tx, stateStore }) => {
+			async ({ block, stateStore }) => {
 				// We only need activeMinHeight value of the delegate who is forging the block.
 				// Since the block is always the latest,
 				// fetching only the latest active delegate list would be enough.
 				const numberOfRounds = 1;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
+					block.height,
+					stateStore,
 					numberOfRounds,
-					{ tx },
 				);
 
 				const [delegateMinHeightActive] = minActiveHeightsOfDelegates[
@@ -254,27 +256,35 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				};
 				return this.bftModule.addNewBlock(blockHeader, stateStore);
 			},
+			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
+			({ stateStore }) => {
+				this.dposModule.onBlockFinalized(
+					stateStore,
+					this.bftModule.finalizedHeight,
+				);
+			},
 		]);
 
 		this.applyGenesis.pipe([
 			({ block, stateStore }) =>
 				this.blocksModule.applyGenesis(block, stateStore),
-			({ block, tx }) => this.dposModule.apply(block, { tx }),
+			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 		]);
 
 		this.undo.pipe([
 			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
-			({ block, tx }) => this.dposModule.undo(block, { tx }),
-			async ({ block, tx }) => {
+			async ({ block, stateStore }) => {
 				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
+					block.height,
+					stateStore,
 					numberOfRounds,
-					{ tx },
 				);
 				this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
 			},
+			({ block, stateStore }) => this.dposModule.undo(block, stateStore),
 		]);
 
 		this.create.pipe([
