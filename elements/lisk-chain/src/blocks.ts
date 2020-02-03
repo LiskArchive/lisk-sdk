@@ -26,21 +26,18 @@ import {
 	calculateReward,
 	calculateSupply,
 } from './block_reward';
-import {
-	applyConfirmedGenesisStep,
-	applyConfirmedStep,
-	saveBlock,
-	undoConfirmedStep,
-} from './chain';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
+	applyGenesisTransactions,
 	applyTransactions,
 	checkAllowedTransactions,
+	checkIfTransactionIsInert,
 	checkPersistedTransactions,
 	composeTransactionSteps,
 	processSignature,
+	undoTransactions,
 	validateTransactions,
 	verifyTransactions,
 } from './transactions';
@@ -73,8 +70,6 @@ import {
 	verifyPreviousBlockId,
 } from './verify';
 
-const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
-
 interface BlocksConfig {
 	// Components
 	readonly logger: Logger;
@@ -103,6 +98,103 @@ interface BlocksConfig {
 	readonly blockSlotWindow: number;
 	readonly maxBlockHeaderCache?: number;
 }
+
+const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
+
+// tslint:disable-next-line no-magic-numbers
+const TRANSACTION_TYPES_VOTE = [3, 11];
+
+const saveBlock = async (
+	storage: Storage,
+	blockJSON: BlockJSON,
+	tx: StorageTransaction,
+): Promise<void> => {
+	if (!tx) {
+		throw new Error('Block should only be saved in a database tx');
+	}
+	// If there is already a running transaction use it
+	const promises = [storage.entities.Block.create(blockJSON, {}, tx)];
+
+	if (blockJSON.transactions.length) {
+		promises.push(
+			storage.entities.Transaction.create(blockJSON.transactions, {}, tx),
+		);
+	}
+
+	return tx.batch(promises);
+};
+
+const applyConfirmedStep = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+	exceptions: ExceptionOptions,
+) => {
+	if (blockInstance.transactions.length <= 0) {
+		return;
+	}
+	const nonInertTransactions = blockInstance.transactions.filter(
+		transaction => !checkIfTransactionIsInert(transaction, exceptions),
+	);
+
+	const { transactionsResponses } = await applyTransactions(exceptions)(
+		nonInertTransactions,
+		stateStore,
+	);
+
+	const unappliableTransactionsResponse = transactionsResponses.filter(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
+	);
+
+	if (unappliableTransactionsResponse.length > 0) {
+		throw unappliableTransactionsResponse[0].errors;
+	}
+};
+
+const applyConfirmedGenesisStep = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+): Promise<BlockInstance> => {
+	blockInstance.transactions.sort(a => {
+		if (TRANSACTION_TYPES_VOTE.includes(a.type)) {
+			return 1;
+		}
+
+		return 0;
+	});
+	const sortedTransactionInstances = [...blockInstance.transactions];
+	await applyGenesisTransactions()(sortedTransactionInstances, stateStore);
+
+	return blockInstance;
+};
+
+const undoConfirmedStep = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+	exceptions: ExceptionOptions,
+): Promise<void> => {
+	if (blockInstance.transactions.length === 0) {
+		return;
+	}
+
+	const nonInertTransactions = blockInstance.transactions.filter(
+		transaction =>
+			!exceptions.inertTransactions ||
+			!exceptions.inertTransactions.includes(transaction.id),
+	);
+
+	const { transactionsResponses } = await undoTransactions(exceptions)(
+		nonInertTransactions,
+		stateStore,
+	);
+
+	const unappliedTransactionResponse = transactionsResponses.find(
+		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
+	);
+
+	if (unappliedTransactionResponse) {
+		throw unappliedTransactionResponse.errors;
+	}
+};
 
 const debug = Debug('lisk:blocks');
 
