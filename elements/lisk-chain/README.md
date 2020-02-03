@@ -1,11 +1,11 @@
-# @liskhq/lisk-blocks
+# @liskhq/lisk-chain
 
-@liskhq/lisk-blocks implements blocks and state management that are used for block processing according to the Lisk protocol.
+@liskhq/lisk-chain implements blocks and state management that are used for block processing according to the Lisk protocol.
 
 ## Installation
 
 ```sh
-$ npm install --save @liskhq/lisk-blocks
+$ npm install --save @liskhq/lisk-chain
 ```
 
 ## License
