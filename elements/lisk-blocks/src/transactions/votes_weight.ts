@@ -67,7 +67,7 @@ const updateDelegateVote = async (
 		: voteBigInt - BigInt(amount);
 
 	const updatedDelegatedAccount = new Account(delegateAccount);
-	updatedDelegatedAccount.voteWeight = BigInt(voteWeight.toString());
+	updatedDelegatedAccount.voteWeight = voteWeight;
 	stateStore.account.set(delegateAddress, updatedDelegatedAccount);
 };
 
