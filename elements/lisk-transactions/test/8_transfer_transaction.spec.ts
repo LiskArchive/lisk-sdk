@@ -24,8 +24,8 @@ describe('Transfer transaction class', () => {
 	const validTransferTransaction = fixture.testCases[0].output;
 	const validTransferAccount = fixture.testCases[0].input.account;
 	let validTransferTestTransaction: TransferTransaction;
-	let sender: Account;
-	let recipient: Account;
+	let sender: Partial<Account>;
+	let recipient: Partial<Account>;
 	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountGetOrDefaultStub: jest.SpyInstance;
@@ -35,8 +35,8 @@ describe('Transfer transaction class', () => {
 		validTransferTestTransaction = new TransferTransaction(
 			validTransferTransaction,
 		);
-		sender = { ...validTransferAccount, balance: '10000000000' };
-		recipient = { ...validTransferAccount, balance: '10000000000' };
+		sender = { ...validTransferAccount, balance: BigInt('10000000000') };
+		recipient = { ...validTransferAccount, balance: BigInt('10000000000') };
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'get')
@@ -247,20 +247,18 @@ describe('Transfer transaction class', () => {
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
 				...sender,
-				balance: (
+				balance:
 					BigInt(sender.balance) -
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
+					BigInt(validTransferTestTransaction.asset.amount),
 			});
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
 				...recipient,
-				balance: (
+				balance:
 					BigInt(recipient.balance) -
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
+					BigInt(validTransferTestTransaction.asset.amount),
 			});
 		});
 
@@ -298,20 +296,18 @@ describe('Transfer transaction class', () => {
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
 				...sender,
-				balance: (
+				balance:
 					BigInt(sender.balance) +
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
+					BigInt(validTransferTestTransaction.asset.amount),
 			});
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
 				...recipient,
-				balance: (
+				balance:
 					BigInt(recipient.balance) -
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
+					BigInt(validTransferTestTransaction.asset.amount),
 			});
 		});
 

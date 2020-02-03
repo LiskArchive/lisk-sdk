@@ -17,27 +17,27 @@ import { TransactionError } from './errors';
 export interface Account {
 	readonly address: string;
 	readonly balance: bigint;
-	readonly missedBlocks?: number;
-	readonly producedBlocks?: number;
-	readonly publicKey?: string;
-	readonly secondPublicKey?: string | null;
-	readonly secondSignature?: boolean | number;
-	readonly username?: string | null;
-	readonly isDelegate?: number;
-	readonly fees?: bigint;
-	readonly rewards?: bigint;
+	readonly missedBlocks: number;
+	readonly producedBlocks: number;
+	readonly publicKey: string;
+	readonly secondPublicKey: string | null;
+	readonly secondSignature: number;
+	readonly username: string | null;
+	readonly isDelegate: number;
+	readonly fees: bigint;
+	readonly rewards: bigint;
 	// tslint:disable-next-line readonly-keyword
-	voteWeight?: bigint;
-	readonly nameExist?: false;
-	readonly multiMin?: number;
-	readonly multiLifetime?: number;
-	readonly asset?: object;
+	voteWeight: bigint;
+	readonly nameExist: false;
+	readonly multiMin: number;
+	readonly multiLifetime: number;
+	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
-	votedDelegatesPublicKeys?: string[];
+	votedDelegatesPublicKeys: string[];
 	// tslint:disable-next-line readonly-keyword
-	membersPublicKeys?: ReadonlyArray<string>;
+	membersPublicKeys: ReadonlyArray<string>;
 	// tslint:disable-next-line:no-mixed-interface
-	readonly addBalance?: (fees: bigint) => void;
+	readonly addBalance: (fees: bigint) => void;
 }
 
 export interface Delegate {

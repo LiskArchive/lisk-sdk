@@ -311,10 +311,10 @@ export abstract class BaseTransaction {
 			errors.push(...multiSigError);
 		}
 
-		const updatedBalance = BigInt(sender.balance) - BigInt(this.fee);
+		const updatedBalance = sender.balance - this.fee;
 		const updatedSender = {
 			...sender,
-			balance: updatedBalance.toString(),
+			balance: updatedBalance,
 			publicKey: sender.publicKey || this.senderPublicKey,
 		};
 		store.account.set(updatedSender.address, updatedSender);
@@ -339,14 +339,14 @@ export abstract class BaseTransaction {
 
 	public async undo(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
-		const updatedBalance = BigInt(sender.balance) + this.fee;
+		const updatedBalance = sender.balance + this.fee;
 		const updatedAccount = {
 			...sender,
-			balance: updatedBalance.toString(),
+			balance: updatedBalance,
 			publicKey: sender.publicKey || this.senderPublicKey,
 		};
 		const errors =
-			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
+			BigInt(updatedBalance) <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
 				: [
 						new TransactionError(
