@@ -40,10 +40,10 @@ describe('Transfer transaction class', () => {
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'get')
-			.mockReturnValue(sender);
+			.mockResolvedValue(sender);
 		storeAccountGetOrDefaultStub = jest
 			.spyOn(store.account, 'getOrDefault')
-			.mockReturnValue(recipient);
+			.mockResolvedValue(recipient);
 		storeAccountSetStub = jest.spyOn(store.account, 'set');
 	});
 
@@ -241,7 +241,7 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should call state store', async () => {
-			(validTransferTestTransaction as any).applyAsset(store);
+			await (validTransferTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
@@ -269,7 +269,9 @@ describe('Transfer transaction class', () => {
 				...sender,
 				balance: BigInt(10000000),
 			});
-			const errors = (validTransferTestTransaction as any).applyAsset(store);
+			const errors = await (validTransferTestTransaction as any).applyAsset(
+				store,
+			);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
 				`Account does not have enough LSK: ${sender.address}, balance: 0.2`,
@@ -281,14 +283,16 @@ describe('Transfer transaction class', () => {
 				...sender,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
-			const errors = (validTransferTestTransaction as any).applyAsset(store);
+			const errors = await (validTransferTestTransaction as any).applyAsset(
+				store,
+			);
 			expect(errors[0].message).toEqual('Invalid amount');
 		});
 	});
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTransferTestTransaction as any).undoAsset(store);
+			await (validTransferTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
@@ -316,7 +320,9 @@ describe('Transfer transaction class', () => {
 				...recipient,
 				balance: BigInt('0'),
 			});
-			const errors = (validTransferTestTransaction as any).undoAsset(store);
+			const errors = await (validTransferTestTransaction as any).undoAsset(
+				store,
+			);
 			expect(errors[0].message).toBe(
 				`Account does not have enough LSK: ${recipient.address}, balance: 0`,
 			);
@@ -327,7 +333,9 @@ describe('Transfer transaction class', () => {
 				...recipient,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
-			const errors = (validTransferTestTransaction as any).undoAsset(store);
+			const errors = await (validTransferTestTransaction as any).undoAsset(
+				store,
+			);
 			expect(errors[0].message).toEqual('Invalid amount');
 		});
 	});

@@ -46,39 +46,6 @@ export const saveBlock = async (
 	return tx.batch(promises);
 };
 
-export const deleteLastBlock = async (
-	storage: Storage,
-	lastBlock: BlockJSON,
-	tx: StorageTransaction,
-): Promise<BlockJSON> => {
-	if (lastBlock.height === 1) {
-		throw new Error('Cannot delete genesis block');
-	}
-	const [storageBlock] = await storage.entities.Block.get(
-		{ id: lastBlock.previousBlockId as string },
-		{ extended: true },
-		tx,
-	);
-
-	if (!storageBlock) {
-		throw new Error('PreviousBlock is null');
-	}
-
-	await storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
-
-	return storageBlock;
-};
-
-export const deleteFromBlockId = async (storage: Storage, blockId: string) => {
-	const block = await storage.entities.Block.getOne({
-		id: blockId,
-	});
-
-	return storage.entities.Block.delete({
-		height_gt: block.height,
-	});
-};
-
 export const applyConfirmedStep = async (
 	blockInstance: BlockInstance,
 	stateStore: StateStore,

@@ -35,7 +35,7 @@ describe('transactions', () => {
 		blockTimestamp: 123,
 	};
 
-	let storageMock: any;
+	let dataAccessMock: any;
 	let stateStoreMock: any;
 
 	beforeEach(async () => {
@@ -59,8 +59,8 @@ describe('transactions', () => {
 			createSnapshot: jest.fn(),
 			restoreSnapshot: jest.fn(),
 			account: {
-				get: jest.fn().mockReturnValue({ balance: '100000000000' }),
-				getOrDefault: jest.fn().mockReturnValue({}),
+				get: jest.fn().mockResolvedValue({ balance: '100000000000' }),
+				getOrDefault: jest.fn().mockResolvedValue({}),
 				createSnapshot: jest.fn(),
 				restoreSnapshot: jest.fn(),
 			},
@@ -69,15 +69,8 @@ describe('transactions', () => {
 			},
 		};
 
-		storageMock = {
-			entities: {
-				Transaction: {
-					get: jest.fn(),
-				},
-				Account: {
-					get: jest.fn().mockReturnValue([]),
-				},
-			},
+		dataAccessMock = {
+			getTransactionsByIDs: jest.fn().mockReturnValue([]),
 		};
 	});
 
@@ -262,32 +255,33 @@ describe('transactions', () => {
 	describe('#checkPersistedTransactions', () => {
 		it('should resolve in empty response if called with empty array', async () => {
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock,
+				dataAccessMock,
 			)([]);
 
 			expect(result).toEqual({ transactionsResponses: [] });
 		});
 
 		it('should invoke entities.Transaction to check persistence of transactions', async () => {
-			storageMock.entities.Transaction.get.mockResolvedValue([trs1, trs2]);
+			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1, trs2]);
 
-			await transactionHandlers.checkPersistedTransactions(storageMock)([
+			await transactionHandlers.checkPersistedTransactions(dataAccessMock)([
 				trs1,
 				trs2,
 			]);
 
-			expect(storageMock.entities.Transaction.get).toHaveBeenCalledTimes(1);
-			expect(storageMock.entities.Transaction.get).toHaveBeenCalledWith({
-				id_in: [trs1.id, trs2.id],
-			});
+			expect(dataAccessMock.getTransactionsByIDs).toHaveBeenCalledTimes(1);
+			expect(dataAccessMock.getTransactionsByIDs).toHaveBeenCalledWith([
+				trs1.id,
+				trs2.id,
+			]);
 		});
 
 		it('should return TransactionStatus.OK for non-persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			storageMock.entities.Transaction.get.mockResolvedValue([trs1]);
+			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock,
+				dataAccessMock,
 			)([trs1, trs2]);
 
 			const transactionResponse = result.transactionsResponses.find(
@@ -300,10 +294,10 @@ describe('transactions', () => {
 
 		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			storageMock.entities.Transaction.get.mockResolvedValue([trs1]);
+			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1]);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
-				storageMock,
+				dataAccessMock,
 			)([trs1, trs2]);
 
 			const transactionResponse = result.transactionsResponses.find(
@@ -882,11 +876,10 @@ describe('transactions', () => {
 			trs1.senderId = account1.address;
 			trs2.senderId = account2.address;
 
-			const result = transactionHandlers.verifyTotalSpending(
+			const result = await transactionHandlers.verifyTotalSpending(
 				[trs1, trs2],
 				stateStoreMock,
 			);
-
 			expect(result).toEqual([]);
 		});
 
@@ -920,22 +913,22 @@ describe('transactions', () => {
 				inValidTransaction2, // Invalid: Spend 5 + 2 = 7 while balance is 6
 			];
 
-			const result = transactionHandlers.verifyTotalSpending(
+			const result = await transactionHandlers.verifyTotalSpending(
 				transactions as any,
 				stateStoreMock,
 			);
 
 			expect(result).toHaveLength(2);
 
-			expect(result[0].id).toEqual(inValidTransaction1.id);
-			expect(result[0].status).toEqual(TransactionStatus.FAIL);
-			expect(result[0].errors[0].message).toEqual(
+			expect(result && result[0].id).toEqual(inValidTransaction1.id);
+			expect(result && result[0].status).toEqual(TransactionStatus.FAIL);
+			expect(result && result[0].errors[0].message).toEqual(
 				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 10`,
 			);
 
-			expect(result[1].id).toEqual(inValidTransaction2.id);
-			expect(result[1].status).toEqual(TransactionStatus.FAIL);
-			expect(result[1].errors[0].message).toEqual(
+			expect(result && result[1].id).toEqual(inValidTransaction2.id);
+			expect(result && result[1].status).toEqual(TransactionStatus.FAIL);
+			expect(result && result[1].errors[0].message).toEqual(
 				`Account does not have enough LSK for total spending. balance: ${accountBalance}, spending: 7`,
 			);
 		});
@@ -962,7 +955,7 @@ describe('transactions', () => {
 				validTransaction1, // Valid: Spend 4 while balance 8
 				validTransaction2, // Valid: Spend 4 + 4 while balance 8
 			];
-			const result = transactionHandlers.verifyTotalSpending(
+			const result = await transactionHandlers.verifyTotalSpending(
 				transactions as any,
 				stateStoreMock,
 			);
@@ -992,7 +985,7 @@ describe('transactions', () => {
 				validTransaction1, // Valid: Spend 4 while balance 10
 				validTransaction2, // Valid: Spend 4 + 4 while balance 10
 			];
-			const result = transactionHandlers.verifyTotalSpending(
+			const result = await transactionHandlers.verifyTotalSpending(
 				transactions as any,
 				stateStoreMock,
 			);

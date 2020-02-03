@@ -103,9 +103,11 @@ export class DelegateTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		const usernameExists = store.account.find(
 			(account: Account) => account.username === this.asset.username,
@@ -140,8 +142,10 @@ export class DelegateTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.account.get(this.senderId);
 		const { username, ...strippedSender } = sender;
 		const resetSender = {
 			...sender,

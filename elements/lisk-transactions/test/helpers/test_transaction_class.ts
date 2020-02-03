@@ -37,11 +37,11 @@ export class TestTransaction extends BaseTransaction {
 		return [];
 	}
 
-	public applyAsset() {
+	public async applyAsset() {
 		return [];
 	}
 
-	public undoAsset() {
+	public async undoAsset() {
 		return [];
 	}
 
@@ -61,11 +61,11 @@ export class TestTransactionBasicImpl extends BaseTransaction {
 		return [];
 	}
 
-	public applyAsset() {
+	public async applyAsset() {
 		return [];
 	}
 
-	public undoAsset() {
+	public async undoAsset() {
 		return [];
 	}
 }

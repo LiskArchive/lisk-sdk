@@ -17,13 +17,13 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import * as transactionsModule from './transactions';
 import {
 	BlockHeader,
 	BlockInstance,
-	BlockJSON,
 	Context,
 	ExceptionOptions,
 	MatcherTransaction,
@@ -32,7 +32,7 @@ import {
 
 export const verifyBlockNotExists = async (
 	storage: Storage,
-	block: BlockJSON,
+	block: BlockInstance,
 ) => {
 	const isPersisted = await storage.entities.Block.isPersisted({
 		id: block.id,
@@ -43,9 +43,9 @@ export const verifyBlockNotExists = async (
 };
 
 export const verifyPreviousBlockId = (
-	block: BlockJSON,
-	lastBlock: BlockJSON,
-	genesisBlock: BlockJSON,
+	block: BlockInstance,
+	lastBlock: BlockInstance,
+	genesisBlock: BlockInstance,
 ) => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -62,43 +62,44 @@ export const verifyPreviousBlockId = (
 };
 
 interface BlockVerifyInput {
-	readonly storage: Storage;
+	readonly dataAccess: DataAccess;
 	readonly slots: Slots;
 	readonly exceptions: ExceptionOptions;
 	readonly genesisBlock: BlockHeader;
 }
 
 export class BlocksVerify {
-	private readonly storage: Storage;
+	private readonly dataAccess: DataAccess;
 	private readonly slots: Slots;
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockHeader;
 
 	public constructor({
-		storage,
+		dataAccess,
 		exceptions,
 		slots,
 		genesisBlock,
 	}: BlockVerifyInput) {
-		this.storage = storage;
+		this.dataAccess = dataAccess;
 		this.slots = slots;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 	}
 
-	public async checkExists(block: BlockJSON): Promise<void> {
-		const isPersisted = await this.storage.entities.Block.isPersisted({
-			id: block.id,
-		});
+	public async checkExists(block: BlockInstance): Promise<void> {
+		const isPersisted = await this.dataAccess.isBlockPersisted(block.id);
 		if (isPersisted) {
 			throw new Error(`Block ${block.id} already exists`);
 		}
 		if (!block.transactions.length) {
 			return;
 		}
-		const persistedTransactions = await this.storage.entities.Transaction.get({
-			id_in: block.transactions.map(transaction => transaction.id),
-		});
+		const transactionIDs = block.transactions.map(
+			transaction => transaction.id,
+		);
+		const persistedTransactions = await this.dataAccess.getTransactionsByIDs(
+			transactionIDs,
+		);
 
 		if (persistedTransactions.length > 0) {
 			throw new Error(
@@ -159,7 +160,7 @@ export class BlocksVerify {
 		}
 	}
 
-	public matchGenesisBlock(block: BlockJSON): boolean {
+	public matchGenesisBlock(block: BlockHeader): boolean {
 		return (
 			block.id === this.genesisBlock.id &&
 			block.payloadHash === this.genesisBlock.payloadHash &&

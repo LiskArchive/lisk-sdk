@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { Blocks } from '../../src';
@@ -172,43 +171,15 @@ describe('blocks', () => {
 			);
 		});
 
-		describe('loadMemTables', () => {
-			it('should throw when entities.Block.count fails', async () => {
-				expect.assertions(1);
-				// Arrange
-				const error = new Error('Count Error');
-				stubs.dependencies.storage.entities.Block.count.mockRejectedValue(
-					error,
-				);
-				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
-			});
-
-			it('should throw when entities.Block.getOne fails', async () => {
-				// Arrange
-				const error = new Error('getOne Error');
-				stubs.dependencies.storage.entities.Block.count.mockRejectedValue(
-					error,
-				);
-				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
-			});
-
-			it('should throw when entities.Block.getUniqueRounds fails', async () => {
-				// Arrange
-				const error = new Error('getUniqueRounds Error');
-				stubs.dependencies.storage.entities.Block.count.mockRejectedValue(
-					error,
-				);
-				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
-			});
-
-			it.todo('should throw when tx.batch fails');
-			it.todo('should not throw when tx.batch succeeds');
-		});
-
 		describe('matchGenesisBlock', () => {
+			it('should throw an error when failed to load genesis block', async () => {
+				// Arrange
+				const error = new Error('Failed to load genesis block');
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
+				// Act & Assert
+				await expect(blocksInstance.init()).rejects.toEqual(error);
+			});
+
 			it('should throw an error if the genesis block id is different', async () => {
 				// Arrange
 				const error = new Error('Genesis block does not match');
@@ -216,9 +187,10 @@ describe('blocks', () => {
 					...genesisBlock,
 					id: genesisBlock.id.replace('0', '1'),
 				};
-				stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 					mutatedGenesisBlock,
-				);
+				]);
+
 				// Act & Assert
 				await expect(blocksInstance.init()).rejects.toEqual(error);
 			});
@@ -230,9 +202,9 @@ describe('blocks', () => {
 					...genesisBlock,
 					payloadHash: genesisBlock.payloadHash.replace('0', '1'),
 				};
-				stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 					mutatedGenesisBlock,
-				);
+				]);
 				// Act & Assert
 				await expect(blocksInstance.init()).rejects.toEqual(error);
 			});
@@ -244,9 +216,9 @@ describe('blocks', () => {
 					...genesisBlock,
 					blockSignature: genesisBlock.blockSignature.replace('0', '1'),
 				};
-				stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 					mutatedGenesisBlock,
-				);
+				]);
 				// Act & Assert
 				await expect(blocksInstance.init()).rejects.toEqual(error);
 			});
@@ -270,8 +242,10 @@ describe('blocks', () => {
 			it('should throw an error when Block.get returns empty array', async () => {
 				// Arrange
 				const errorMessage = 'Failed to load last block';
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
-				expect.assertions(1);
+				stubs.dependencies.storage.entities.Block.get
+					.mockReturnValueOnce([genesisBlock])
+					.mockReturnValueOnce([]);
+
 				// Act && Assert
 				await expect(blocksInstance.init()).rejects.toThrow(errorMessage);
 			});
@@ -335,7 +309,6 @@ describe('blocks', () => {
 					timestamp: 107102856,
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
-					fee: '10000000',
 					signature:
 						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
 					signatures: [],
@@ -353,6 +326,8 @@ describe('blocks', () => {
 				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
 			id: '7360015088758644957',
 			previousBlockId: '10620616195853047363',
+			maxHeightPreviouslyForged: 1,
+			maxHeightPrevoted: 0,
 		} as BlockJSON;
 
 		it('should convert big number field to be instance', () => {
@@ -414,9 +389,9 @@ describe('blocks', () => {
 		it('should call Block.create with correct parameters', async () => {
 			// Arrange
 			const block = newBlock({
-				reward: BigInt('0'),
-				totalAmount: BigInt('0'),
-				totalFee: BigInt('0'),
+				reward: '0',
+				totalAmount: '0',
+				totalFee: '0',
 			});
 			const blockJSON = blocksInstance.serialize(block);
 			expect.assertions(1);
@@ -569,7 +544,9 @@ describe('blocks', () => {
 						block,
 						blocksInstance.serialize(block),
 						stubs.tx,
-						{ saveTempBlock: true },
+						{
+							saveTempBlock: true,
+						},
 					),
 				).rejects.toEqual(tempBlockCreateError);
 			});
@@ -615,18 +592,6 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('getTempBlocks()', () => {
-		it('should retrieve all blocks from temp_blocks table', async () => {
-			// Act
-			await blocksInstance.getTempBlocks({}, {}, stubs.tx);
-
-			// Assert
-			expect(
-				stubs.dependencies.storage.entities.TempBlock.get,
-			).toHaveBeenCalledWith({}, {}, stubs.tx);
-		});
-	});
-
 	describe('exists()', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
@@ -664,123 +629,66 @@ describe('blocks', () => {
 		});
 	});
 
-	describe('filterReadyTransactions', () => {});
-
-	describe('loadBlocksFromLastBlockId', () => {
-		describe('when called without lastBlockId', () => {
-			it('should reject with error', async () => {
-				await expect(
-					blocksInstance.loadBlocksFromLastBlockId(undefined as any),
-				).rejects.toThrow('lastBlockId needs to be specified');
-			});
-		});
-
-		describe('when called without limit', () => {
-			const validLastBlock = {
-				height: 100,
-				id: 'block-id',
-			};
+	describe('getBlocksWithLimitAndOffset', () => {
+		describe('when called without offset', () => {
+			const validBlocks = [
+				{
+					height: 100,
+					id: 'block-id',
+				},
+			];
 
 			beforeEach(async () => {
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-					validLastBlock,
-				]);
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
+					validBlocks,
+				);
 			});
 
 			it('should use limit 1 as default', async () => {
-				await blocksInstance.loadBlocksFromLastBlockId('block-id');
+				await blocksInstance.dataAccess.getBlocksWithLimitAndOffset(1);
+
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
-					{
-						height_gt: 100,
-						height_lte: 101,
-					},
-					{
-						extended: true,
-						limit: 1,
-						sort: ['height'],
-					},
+					{ height_gte: 0, height_lte: 0 },
+					{ extended: true, limit: null, sort: 'height:desc' },
 				);
 			});
 		});
 
-		describe('when called with invalid lastBlockId', () => {
-			beforeEach(async () => {
-				when<any, any>(stubs.dependencies.storage.entities.Block.get)
-					.calledWith({ id: 'block-id' })
-					.mockResolvedValue([]);
-			});
-
-			it('should reject with error', async () => {
-				// Act && Assert
-				await expect(
-					blocksInstance.loadBlocksFromLastBlockId('block-id'),
-				).rejects.toThrow('Invalid lastBlockId requested: block-id');
-			});
-		});
-
-		describe('when called with valid lastBlockId and limit', () => {
-			const validLastBlock = {
-				height: 100,
-				id: 'block-id',
-			};
-
-			const validBlocksFromStorage = [
-				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
-			];
+		describe('when blocks received in desending order', () => {
 			const validBlocks = [
-				{ height: 101, id: 'block-id-1', previousBlockId: 'block-id' },
+				{
+					height: 101,
+					id: 'block-id1',
+				},
+				{
+					height: 100,
+					id: 'block-id2',
+				},
 			];
 
 			beforeEach(async () => {
-				when<any, any>(stubs.dependencies.storage.entities.Block.get)
-					.calledWith({ id: 'block-id' })
-					.mockResolvedValue([validLastBlock]);
-				when<any, any>(stubs.dependencies.storage.entities.Block.get)
-					.calledWith(
-						{
-							height_gt: 100,
-							height_lte: 134,
-						},
-						{
-							extended: true,
-							limit: 34,
-							sort: ['height'],
-						},
-					)
-					.mockResolvedValue(validBlocksFromStorage);
-			});
-
-			it('should call storage for the lastBlockId', async () => {
-				await blocksInstance.loadBlocksFromLastBlockId('block-id', 34);
-
-				expect(
-					stubs.dependencies.storage.entities.Block.get,
-				).toHaveBeenCalledWith({
-					id: 'block-id',
-				});
-			});
-
-			it('should use the storage with correct filter', async () => {
-				const blocks = await blocksInstance.loadBlocksFromLastBlockId(
-					'block-id',
-					34,
+				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
+					validBlocks,
 				);
+			});
+
+			it('should be sorted ascending by height', async () => {
+				const blocks = await blocksInstance.dataAccess.getBlocksWithLimitAndOffset(
+					2,
+					100,
+				);
+
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
-					{
-						height_gt: 100,
-						height_lte: 134,
-					},
-					{
-						extended: true,
-						limit: 34,
-						sort: ['height'],
-					},
+					{ height_gte: 100, height_lte: 101 },
+					{ extended: true, limit: null, sort: 'height:desc' },
 				);
-				expect(blocks).toEqual(validBlocks);
+				expect(blocks.map(b => b.height)).toEqual(
+					validBlocks.map(b => b.height).sort((a, b) => a - b),
+				);
 			});
 		});
 	});
@@ -797,14 +705,6 @@ describe('blocks', () => {
 
 			// Assert
 			expect(result).toEqual(block);
-			expect(
-				stubs.dependencies.storage.entities.Block.get,
-			).toHaveBeenCalledWith(
-				{
-					id_in: ids,
-				},
-				{ sort: 'height:desc', limit: 1 },
-			);
 		});
 		it('should throw error if unable to get blocks from the storage', async () => {
 			// Arrange

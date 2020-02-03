@@ -180,6 +180,16 @@ describe('transport', () => {
 					.stub()
 					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
 				deserializeTransaction: sinonSandbox.stub().callsFake(val => val),
+				dataAccess: {
+					getBlockHeaderByID: sinonSandbox
+						.stub()
+						.returns({ height: 2, version: 1, timestamp: 1 }),
+					getBlocksByHeightBetween: sinonSandbox.stub().returns([
+						{ height: 3, version: 1, timestamp: 1 },
+						{ height: 37, version: 1, timestamp: 1 },
+					]),
+				},
+				serialize: sinonSandbox.stub(),
 			},
 			processorModule: {
 				validate: sinonSandbox.stub(),
@@ -646,9 +656,13 @@ describe('transport', () => {
 							};
 
 							await transportModule.handleRPCGetBlocksFromId(query);
+							expect(
+								transportModule.blocksModule.dataAccess.getBlockHeaderByID,
+							).to.be.calledWith(query.blockId);
 							return expect(
-								transportModule.blocksModule.loadBlocksFromLastBlockId,
-							).to.be.calledWith(query.blockId, 34);
+								transportModule.blocksModule.dataAccess
+									.getBlocksByHeightBetween,
+							).to.be.calledWith(3, 36);
 						});
 					});
 

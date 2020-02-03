@@ -45,6 +45,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 			]);
 		});
+		library.modules.blocks.resetBlockHeaderCache();
 		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 	});
 
@@ -221,6 +222,7 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 						storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 					]);
 				});
+				library.modules.blocks.resetBlockHeaderCache();
 				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			});
 		});

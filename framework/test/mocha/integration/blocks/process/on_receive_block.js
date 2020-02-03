@@ -56,6 +56,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			]);
 		})
 			.then(() => {
+				library.modules.blocks.resetBlockHeaderCache();
 				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 			})
 			.catch(err => {

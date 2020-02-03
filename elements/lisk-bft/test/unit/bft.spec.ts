@@ -70,6 +70,7 @@ describe('bft', () => {
 					},
 					ChainState: {
 						get: jest.fn().mockResolvedValue([]),
+						getKey: jest.fn(),
 					},
 				},
 			};

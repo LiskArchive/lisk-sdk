@@ -87,6 +87,7 @@ describe.skip('validateOwnChain', () => {
 					await library.modules.blocks.blocksVerify.requireBlockRewind(
 						library.modules.blocks.lastBlock,
 					);
+					library.modules.blocks.resetBlockHeaderCache();
 					library.modules.blocks._lastBlock = await library.modules.blocks.blocksProcess.recoverInvalidOwnChain(
 						library.modules.blocks.lastBlock,
 						() => {},

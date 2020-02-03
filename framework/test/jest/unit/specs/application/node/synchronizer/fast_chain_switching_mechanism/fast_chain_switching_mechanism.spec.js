@@ -82,6 +82,7 @@ describe('fast_chain_switching_mechanism', () => {
 				},
 				ChainState: {
 					get: jest.fn(),
+					getKey: jest.fn(),
 				},
 			},
 		};
@@ -106,7 +107,7 @@ describe('fast_chain_switching_mechanism', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
-		blocksModule.getTempBlocks = jest.fn();
+		blocksModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
 			storage: storageMock,
@@ -222,6 +223,15 @@ describe('fast_chain_switching_mechanism', () => {
 			// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
 			when(storageMock.entities.Block.get)
+				.calledWith({ height: 1 }, { extended: true })
+				.mockResolvedValue([genesisBlockDevnet]);
+			when(storageMock.entities.Block.get)
+				.calledWith(
+					{ height_gte: 1, height_lte: 2 },
+					{ limit: null, sort: 'height:desc' },
+				)
+				.mockResolvedValue([lastBlock]);
+			when(storageMock.entities.Block.get)
 				.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 				.mockResolvedValue([lastBlock]);
 			// Same thing but for BFT module,as it doesn't use extended flag set to true
@@ -308,7 +318,7 @@ describe('fast_chain_switching_mechanism', () => {
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(14); // 10 + 4 from beforeEach hooks
 				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(9);
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				checkApplyPenaltyAndRestartIsCalled(
@@ -463,6 +473,13 @@ describe('fast_chain_switching_mechanism', () => {
 
 					return acc;
 				}, {});
+
+				when(storageMock.entities.Block.get)
+					.calledWith(
+						{ height_gte: 1, height_lte: 205 },
+						{ limit: null, sort: 'height:desc' },
+					)
+					.mockResolvedValue([]);
 
 				await blocksModule.init(); // Loads last block among other checks
 				const stateStore = new StateStore(storageMock);
@@ -894,7 +911,9 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 				];
 
-				blocksModule.getTempBlocks.mockResolvedValue(blocksInTempTable);
+				blocksModule.dataAccess.getTempBlocks.mockResolvedValue(
+					blocksInTempTable,
+				);
 
 				const processingError = new Errors.BlockProcessingError();
 				processorModule.processValidated.mockRejectedValueOnce(processingError);

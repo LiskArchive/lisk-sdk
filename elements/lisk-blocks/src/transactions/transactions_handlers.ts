@@ -20,6 +20,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+import { DataAccess } from '../data_access';
 import { Slots } from '../slots';
 import { StateStore } from '../state_store';
 import {
@@ -27,7 +28,6 @@ import {
 	ExceptionOptions,
 	MatcherTransaction,
 	SignatureObject,
-	Storage,
 	WriteableTransactionResponse,
 } from '../types';
 
@@ -63,7 +63,7 @@ export const validateTransactions = (exceptions?: ExceptionOptions) => (
  * credit transactions settling the balance. In one block total speding must be
  * less than the total balance
  */
-export const verifyTotalSpending = (
+export const verifyTotalSpending = async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ) => {
@@ -81,21 +81,23 @@ export const verifyTotalSpending = (
 	// So we can't sum up all transactions together at once
 	// tslint:disable-next-line readonly-keyword
 	const senderSpending: { [key: string]: bigint } = {};
-	Object.keys(senderTransactions).forEach(senderId => {
+	for (const senderId of Object.keys(senderTransactions)) {
 		// We don't need to perform spending check if account have only one transaction
 		// Its balance check will be performed by transaction processing
 		// tslint:disable-next-line no-magic-numbers
 		if (senderTransactions[senderId].length < 2) {
-			return;
+			// tslint:disable-next-line: return-undefined
+			continue;
 		}
 
 		// Grab the sender balance
-		const senderBalance = BigInt(stateStore.account.get(senderId).balance);
+		const account = await stateStore.account.get(senderId);
+		const senderBalance = BigInt(account.balance);
 
 		// Initialize the sender spending with zero
 		senderSpending[senderId] = BigInt(0);
 
-		senderTransactions[senderId].forEach(transaction => {
+		senderTransactions[senderId].forEach((transaction: BaseTransaction) => {
 			const senderTotalSpending =
 				senderSpending[senderId] +
 				// tslint:disable-next-line no-any
@@ -118,7 +120,7 @@ export const verifyTotalSpending = (
 				senderSpending[senderId] = senderTotalSpending;
 			}
 		});
-	});
+	}
 
 	return spendingErrors;
 };
@@ -134,20 +136,20 @@ export const applyGenesisTransactions = () => async (
 
 	await votesWeight.prepare(stateStore, transactions);
 
-	const transactionsResponses = transactions.map(transaction => {
+	const transactionsResponses: TransactionResponse[] = [];
+	for (const transaction of transactions) {
 		// Fee is handled by Elements now so we set it to zero here. LIP-0012
 		transaction.fee = BigInt(0);
-		const transactionResponse = transaction.apply(stateStore);
+		const transactionResponse = await transaction.apply(stateStore);
 
-		votesWeight.apply(stateStore, transaction);
+		await votesWeight.apply(stateStore, transaction);
 		stateStore.transaction.add(transaction as TransactionJSON);
 
 		// We are overriding the status of transaction because it's from genesis block
 		(transactionResponse as WriteableTransactionResponse).status =
 			TransactionStatus.OK;
-
-		return transactionResponse;
-	});
+		transactionsResponses.push(transactionResponse);
+	}
 
 	return {
 		transactionsResponses,
@@ -166,7 +168,7 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	await votesWeight.prepare(stateStore, transactions);
 
 	// Verify total spending of per account accumulative
-	const transactionsResponseWithSpendingErrors = verifyTotalSpending(
+	const transactionsResponseWithSpendingErrors = await verifyTotalSpending(
 		transactions,
 		stateStore,
 	);
@@ -178,31 +180,28 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 				.includes(transaction.id),
 	);
 
-	const transactionsResponses = transactionsWithoutSpendingErrors.map(
-		transaction => {
-			stateStore.account.createSnapshot();
-			const transactionResponse = transaction.apply(stateStore);
-			if (transactionResponse.status !== TransactionStatus.OK) {
-				// Update transaction response mutates the transaction response object
-				exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
-					[transactionResponse],
-					transactionsWithoutSpendingErrors,
-					exceptions,
-				);
-			}
+	const transactionsResponses: TransactionResponse[] = [];
+	for (const transaction of transactionsWithoutSpendingErrors) {
+		stateStore.account.createSnapshot();
+		const transactionResponse = await transaction.apply(stateStore);
+		if (transactionResponse.status !== TransactionStatus.OK) {
+			// Update transaction response mutates the transaction response object
+			exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
+				[transactionResponse],
+				transactionsWithoutSpendingErrors,
+				exceptions,
+			);
+		}
+		if (transactionResponse.status === TransactionStatus.OK) {
+			await votesWeight.apply(stateStore, transaction, exceptions);
+			stateStore.transaction.add(transaction as TransactionJSON);
+		}
 
-			if (transactionResponse.status === TransactionStatus.OK) {
-				votesWeight.apply(stateStore, transaction, exceptions);
-				stateStore.transaction.add(transaction as TransactionJSON);
-			}
-
-			if (transactionResponse.status !== TransactionStatus.OK) {
-				stateStore.account.restoreSnapshot();
-			}
-
-			return transactionResponse;
-		},
-	);
+		if (transactionResponse.status !== TransactionStatus.OK) {
+			stateStore.account.restoreSnapshot();
+		}
+		transactionsResponses.push(transactionResponse);
+	}
 
 	return {
 		transactionsResponses: [
@@ -212,7 +211,7 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	};
 };
 
-export const checkPersistedTransactions = (storage: Storage) => async (
+export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 ) => {
 	if (!transactions.length) {
@@ -221,12 +220,12 @@ export const checkPersistedTransactions = (storage: Storage) => async (
 		};
 	}
 
-	const confirmedTransactions = await storage.entities.Transaction.get({
-		id_in: transactions.map(transaction => transaction.id),
-	});
+	const confirmedTransactions = await dataAccess.getTransactionsByIDs(
+		transactions.map(transaction => transaction.id),
+	);
 
 	const persistedTransactionIds = confirmedTransactions.map(
-		transaction => transaction.id,
+		(transaction: TransactionJSON) => transaction.id,
 	);
 	const persistedTransactions = transactions.filter(transaction =>
 		persistedTransactionIds.includes(transaction.id),
@@ -293,12 +292,12 @@ export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 
 	await votesWeight.prepare(stateStore, transactions);
 
-	const transactionsResponses = transactions.map(transaction => {
-		const transactionResponse = transaction.undo(stateStore);
-		votesWeight.undo(stateStore, transaction, exceptions);
-
-		return transactionResponse;
-	});
+	const transactionsResponses = [];
+	for (const transaction of transactions) {
+		const transactionResponse = await transaction.undo(stateStore);
+		await votesWeight.undo(stateStore, transaction, exceptions);
+		transactionsResponses.push(transactionResponse);
+	}
 
 	const nonUndoableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
@@ -323,10 +322,10 @@ export const verifyTransactions = (
 	stateStore: StateStore,
 ): Promise<TransactionHandledResult> => {
 	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-
-	const transactionsResponses = transactions.map(transaction => {
+	const transactionsResponses = [];
+	for (const transaction of transactions) {
 		stateStore.createSnapshot();
-		const transactionResponse = transaction.apply(stateStore);
+		const transactionResponse = await transaction.apply(stateStore);
 		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
 			(transactionResponse as WriteableTransactionResponse).status =
 				TransactionStatus.FAIL;
@@ -339,9 +338,8 @@ export const verifyTransactions = (
 			);
 		}
 		stateStore.restoreSnapshot();
-
-		return transactionResponse;
-	});
+		transactionsResponses.push(transactionResponse);
+	}
 
 	const unverifiableTransactionsResponse = transactionsResponses.filter(
 		transactionResponse => transactionResponse.status !== TransactionStatus.OK,

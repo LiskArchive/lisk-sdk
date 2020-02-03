@@ -29,7 +29,7 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-export const getBytes = (block: BlockJSON): Buffer => {
+export const getBytes = (block: BlockInstance): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -131,7 +131,7 @@ const getKeyPair = () => {
 	};
 };
 
-const calculateTransactionsInfo = (block: BlockJSON) => {
+const calculateTransactionsInfo = (block: BlockInstance) => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
 	let totalFee = BigInt(0);
@@ -167,7 +167,9 @@ const calculateTransactionsInfo = (block: BlockJSON) => {
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
+export const newBlock = (
+	block?: Partial<BlockJSON | BlockInstance>,
+): BlockInstance => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
@@ -176,7 +178,7 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 		previousBlockId: genesisBlock.id,
 		keypair: getKeyPair(),
 		transactions: [],
-		reward: '0',
+		reward: BigInt(0),
 		timestamp: 1000,
 	};
 	const blockWithDefaultValues = {
@@ -185,7 +187,7 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 	};
 
 	const transactionsInfo = calculateTransactionsInfo(
-		blockWithDefaultValues as BlockJSON,
+		blockWithDefaultValues as BlockInstance,
 	);
 	const blockWithCalculatedProperties = {
 		...transactionsInfo,
@@ -202,11 +204,11 @@ export const newBlock = (block?: Partial<BlockJSON>): BlockInstance => {
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(getBytes(blockWithCalculatedProperties as BlockJSON)),
+			hash(getBytes(blockWithCalculatedProperties as BlockInstance)),
 			keypair.privateKey,
 		),
 	};
-	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockJSON));
+	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockInstance));
 
 	const temp = Buffer.alloc(8);
 	// eslint-disable-next-line no-plusplus

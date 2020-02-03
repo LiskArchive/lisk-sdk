@@ -11,19 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { hash } from '@liskhq/lisk-cryptography';
 
-export const getId = (blockBytes: Buffer): string => {
-	const hashedBlock = hash(blockBytes);
-	// tslint:disable-next-line no-magic-numbers
-	const temp = Buffer.alloc(8);
-	// tslint:disable-next-line no-magic-numbers no-let
-	for (let i = 0; i < 8; i += 1) {
-		// tslint:disable-next-line no-magic-numbers
-		temp[i] = hashedBlock[7 - i];
-	}
-
-	const id = temp.readBigUInt64BE().toString();
-
-	return id;
-};
+export { Storage } from './storage';
+export { DataAccess } from './data_access';
+export { BlockCache } from './cache';
+export {
+	TransactionInterfaceAdapter,
+	RegisteredTransactions,
+} from './transaction_interface_adapter';

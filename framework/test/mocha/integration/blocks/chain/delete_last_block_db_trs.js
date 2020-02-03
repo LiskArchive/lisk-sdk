@@ -45,6 +45,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				storage.adapter.db.none('UPDATE mem_accounts SET "producedBlocks" = 0'),
 			]);
 		});
+		library.modules.blocks.resetBlockHeaderCache();
 		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
 	});
 
@@ -76,6 +77,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {
 				beforeEach(async () => {
 					block.previousBlockId = null;
+					library.modules.blocks.resetBlockHeaderCache();
 					library.modules.blocks._lastBlock = block;
 				});
 

@@ -45,8 +45,7 @@ export interface Context {
 	readonly blockTimestamp: number;
 }
 export type Contexter = (() => Context) | Context;
-
-export interface BlockJSON {
+export interface BlockHeaderJSON {
 	/* tslint:disable:readonly-keyword */
 	id: string;
 	height: number;
@@ -58,21 +57,35 @@ export interface BlockJSON {
 	numberOfTransactions: number;
 	payloadLength: number;
 	payloadHash: string;
-	totalAmount: string | bigint;
-	totalFee: string | bigint;
-	reward: string | bigint;
+	totalAmount: string;
+	totalFee: string;
+	reward: string;
 	maxHeightPreviouslyForged: number;
 	maxHeightPrevoted: number;
-	// tslint:disable-next-line no-any
-	transactions: any[];
 	/* tslint:enable:readonly-keyword */
 }
 
-export interface BlockHeader extends BlockJSON {
-	readonly totalAmount: bigint;
-	readonly totalFee: bigint;
-	readonly reward: bigint;
+export type BlockRound = Pick<BlockHeaderJSON, 'id' | 'height'> & {
+	// tslint:disable-next-line readonly-keyword
+	round?: number;
+};
+
+export interface BlockJSON extends BlockHeaderJSON {
+	// tslint:disable-next-line readonly-keyword
+	transactions: ReadonlyArray<TransactionJSON>;
 }
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+// All the block properties excluding transactions
+export type BlockHeader = Modify<
+	BlockHeaderJSON,
+	{
+		readonly totalAmount: bigint;
+		readonly totalFee: bigint;
+		readonly reward: bigint;
+	}
+>;
 
 export interface BlockRewardOptions {
 	readonly totalAmount: string;
@@ -107,7 +120,15 @@ export interface StorageTransaction {
 }
 
 export interface StorageFilter {
-	readonly [key: string]: string | number | string[] | number[] | null;
+	readonly [key: string]:
+		| string
+		| number
+		| string[]
+		| ReadonlyArray<string>
+		| number[]
+		| ReadonlyArray<number>
+		| boolean
+		| null;
 }
 
 export type StorageFilters =
@@ -178,25 +199,47 @@ export interface StorageEntity<T> {
 	) => Promise<void>;
 }
 
+export interface AccountStorageEntity extends StorageEntity<Account> {
+	readonly resetMemTables: () => Promise<void>;
+}
+
 export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 	readonly getFirstBlockIdOfLastRounds: (input: {
 		readonly height: number;
 		readonly numberOfRounds: number;
 		readonly numberOfDelegates: number;
-	}) => Promise<BlockJSON[]>;
+	}) => Promise<BlockRound[]>;
 	readonly begin: <T>(
 		name: string,
 		fn: (tx: StorageTransaction) => Promise<T>,
 	) => Promise<T>;
 }
 
+export interface TempBlockStorageEntity extends StorageEntity<TempBlock> {
+	readonly isEmpty: () => Promise<boolean>;
+	readonly truncate: () => void;
+}
+
+export interface RoundDelegates {
+	readonly round: number;
+	readonly delegatePublicKeys: string[];
+}
+
+export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
+	readonly getActiveDelegatesForRound: (
+		roundWithOffset: number,
+		tx?: StorageTransaction,
+	) => Promise<ReadonlyArray<string>>;
+}
+
 export interface Storage {
 	readonly entities: {
 		readonly Block: BlockStorageEntity;
-		readonly Account: StorageEntity<Account>;
+		readonly Account: AccountStorageEntity;
 		readonly Transaction: StorageEntity<TransactionJSON>;
 		readonly ChainState: ChainStateEntity;
-		readonly TempBlock: StorageEntity<TempBlock>;
+		readonly TempBlock: TempBlockStorageEntity;
+		readonly RoundDelegates: RoundDelegatesEntity;
 	};
 }
 
