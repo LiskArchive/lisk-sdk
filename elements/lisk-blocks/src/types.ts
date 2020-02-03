@@ -20,25 +20,25 @@ import {
 export interface AccountJSON {
 	readonly address: string;
 	readonly balance: string | bigint;
-	readonly missedBlocks?: number;
-	readonly producedBlocks?: number;
-	readonly publicKey?: string;
-	readonly secondPublicKey?: string;
-	readonly secondSignature?: boolean;
-	readonly username?: string;
-	readonly isDelegate?: number;
-	readonly fees?: string | bigint;
-	readonly rewards?: string | bigint;
+	readonly missedBlocks: number;
+	readonly producedBlocks: number;
+	readonly publicKey: string | undefined;
+	readonly secondPublicKey: string | null;
+	readonly secondSignature: number;
+	readonly username: string | null;
+	readonly isDelegate: number;
+	readonly fees: string | bigint;
+	readonly rewards: string | bigint;
 	// tslint:disable-next-line readonly-keyword
-	voteWeight?: string | bigint;
-	readonly nameExist?: false;
-	readonly multiMin?: number;
-	readonly multiLifetime?: number;
-	readonly asset?: object;
+	voteWeight: string | bigint;
+	readonly nameExist: boolean;
+	readonly multiMin: number;
+	readonly multiLifetime: number;
+	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
-	votedDelegatesPublicKeys?: string[];
+	votedDelegatesPublicKeys: string[];
 	// tslint:disable-next-line readonly-keyword
-	membersPublicKeys?: ReadonlyArray<string>;
+	membersPublicKeys: string[];
 }
 
 export interface Context {

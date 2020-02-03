@@ -16,22 +16,22 @@ import { AccountJSON } from './types';
 export class Account {
 	public address: string;
 	public balance: bigint;
-	public fees?: bigint;
-	public rewards?: bigint;
-	public voteWeight?: bigint;
-	public missedBlocks?: number;
-	public producedBlocks?: number;
-	public publicKey?: string;
-	public secondPublicKey?: string;
-	public secondSignature?: boolean;
-	public username?: string;
-	public isDelegate?: number;
-	public nameExist?: false;
-	public multiMin?: number;
-	public multiLifetime?: number;
-	public asset?: object;
-	public membersPublicKeys?: ReadonlyArray<string>;
-	public votedDelegatesPublicKeys?: string[];
+	public fees: bigint;
+	public rewards: bigint;
+	public voteWeight: bigint;
+	public missedBlocks: number;
+	public producedBlocks: number;
+	public publicKey: string | undefined;
+	public secondPublicKey: string | null;
+	public secondSignature: number;
+	public username: string | null;
+	public isDelegate: number;
+	public nameExist: boolean;
+	public multiMin: number;
+	public multiLifetime: number;
+	public asset: object;
+	public membersPublicKeys: string[];
+	public votedDelegatesPublicKeys: string[];
 
 	public constructor(accountInfo: AccountJSON) {
 		this.address = accountInfo.address;
@@ -64,9 +64,11 @@ export class Account {
 		new Account({
 			address,
 			publicKey: undefined,
-			secondPublicKey: undefined,
-			secondSignature: false,
-			username: undefined,
+			// tslint:disable-next-line:no-null-keyword
+			secondPublicKey: null,
+			secondSignature: 0,
+			// tslint:disable-next-line:no-null-keyword
+			username: null,
 			isDelegate: 0,
 			balance: BigInt(0),
 			missedBlocks: 0,
@@ -77,7 +79,7 @@ export class Account {
 			nameExist: false,
 			multiMin: 0,
 			multiLifetime: 0,
-			votedDelegatesPublicKeys: undefined,
+			votedDelegatesPublicKeys: [],
 			asset: {},
 			membersPublicKeys: [],
 		});

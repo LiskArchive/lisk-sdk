@@ -19,11 +19,12 @@ import { Account } from '../../src';
 describe('state store / account', () => {
 	const defaultAccount = {
 		publicKey: undefined,
-		secondPublicKey: undefined,
-		secondSignature: false,
-		username: undefined,
+		secondPublicKey: null,
+		secondSignature: 0,
+		username: null,
 		isDelegate: 0,
 		balance: BigInt(0),
+		nameExist: false,
 		missedBlocks: 0,
 		producedBlocks: 0,
 		fees: BigInt(0),
@@ -31,7 +32,7 @@ describe('state store / account', () => {
 		voteWeight: BigInt(0),
 		multiMin: 0,
 		multiLifetime: 0,
-		votedDelegatesPublicKeys: undefined,
+		votedDelegatesPublicKeys: [],
 		asset: {},
 		membersPublicKeys: [],
 	};
@@ -195,13 +196,13 @@ describe('state store / account', () => {
 
 	describe('set', () => {
 		let secondPublicKey: string;
-		let secondSignature: boolean;
+		let secondSignature: number;
 
 		beforeEach(async () => {
 			// Arrange
 			secondPublicKey =
 				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
-			secondSignature = true;
+			secondSignature = 1;
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 			const filter = [
 				{ address: defaultAccounts[0].address },
@@ -254,12 +255,12 @@ describe('state store / account', () => {
 		let existingAccount;
 		let updatedAccount;
 		let secondPublicKey: string;
-		let secondSignature: boolean;
+		let secondSignature: number;
 
 		beforeEach(async () => {
 			secondPublicKey =
 				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
-			secondSignature = true;
+			secondSignature = 1;
 
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 

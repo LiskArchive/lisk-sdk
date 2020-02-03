@@ -19,7 +19,7 @@ export interface Account {
 	readonly balance: bigint;
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
-	readonly publicKey: string;
+	readonly publicKey: string | undefined;
 	readonly secondPublicKey: string | null;
 	readonly secondSignature: number;
 	readonly username: string | null;
@@ -28,14 +28,14 @@ export interface Account {
 	readonly rewards: bigint;
 	// tslint:disable-next-line readonly-keyword
 	voteWeight: bigint;
-	readonly nameExist: false;
+	readonly nameExist: boolean;
 	readonly multiMin: number;
 	readonly multiLifetime: number;
 	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
 	votedDelegatesPublicKeys: string[];
 	// tslint:disable-next-line readonly-keyword
-	membersPublicKeys: ReadonlyArray<string>;
+	membersPublicKeys: string[];
 	// tslint:disable-next-line:no-mixed-interface
 	readonly addBalance: (fees: bigint) => void;
 }
