@@ -81,6 +81,7 @@ class Rebuilder {
 
 		const limit = loadPerIteration;
 		await this.storage.entities.Account.resetMemTables();
+		await this.storage.entities.RoundDelegates.resetRoundDelegates();
 		let { lastBlock } = this.blocksModule;
 		for (
 			let currentHeight = 0;
