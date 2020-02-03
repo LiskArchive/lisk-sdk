@@ -12,11 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-/*
-  DESCRIPTION: ?
-
-  PARAMETERS: None
-*/
-
 DELETE FROM round_delegates;
