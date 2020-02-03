@@ -70,8 +70,6 @@ export const applyConfirmedStep = async (
 	if (unappliableTransactionsResponse.length > 0) {
 		throw unappliableTransactionsResponse[0].errors;
 	}
-
-	await stateStore.finalize();
 };
 
 export const applyConfirmedGenesisStep = async (
@@ -90,7 +88,6 @@ export const applyConfirmedGenesisStep = async (
 		sortedTransactionInstances,
 		stateStore,
 	);
-	await stateStore.finalize();
 
 	return blockInstance;
 };
@@ -121,6 +118,4 @@ export const undoConfirmedStep = async (
 	if (unappliedTransactionResponse) {
 		throw unappliedTransactionResponse.errors;
 	}
-
-	await stateStore.finalize();
 };

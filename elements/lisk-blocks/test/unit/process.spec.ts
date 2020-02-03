@@ -605,10 +605,6 @@ describe('blocks/header', () => {
 			it('should not call account update', async () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
-
-			it('should set the block to the last block', async () => {
-				expect(blocksInstance.lastBlock).toStrictEqual(block);
-			});
 		});
 
 		describe('when transaction is inert', () => {
@@ -636,10 +632,6 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction', async () => {
 				expect(txApplySpy).not.toHaveBeenCalled();
-			});
-
-			it('should set the block to the last block', async () => {
-				expect(blocksInstance.lastBlock).toStrictEqual(block);
 			});
 		});
 
@@ -754,8 +746,8 @@ describe('blocks/header', () => {
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});
 
-			it('should call account update', async () => {
-				expect(storageStub.entities.Account.upsert).toHaveBeenCalledTimes(4);
+			it('should not call account update', async () => {
+				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
 			it('should update vote weight on voted delegate', async () => {
@@ -786,10 +778,6 @@ describe('blocks/header', () => {
 				expect(delegateOne.voteWeight).toBe('9879999900');
 				expect(deletateTwo.voteWeight).toBe('9879999900');
 			});
-
-			it('should set the block to the last block', async () => {
-				expect(blocksInstance.lastBlock).toStrictEqual(block);
-			});
 		});
 	});
 
@@ -815,12 +803,8 @@ describe('blocks/header', () => {
 				expect(genesisAccountFromStore.balance).toBe('10000000000000000');
 			});
 
-			it('should call account update', async () => {
-				expect(storageStub.entities.Account.upsert).toHaveBeenCalledTimes(103);
-			});
-
-			it('should set the block to the last block', async () => {
-				expect(blocksInstance.lastBlock).toStrictEqual(genesisInstance);
+			it('should not call account update', async () => {
+				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 		});
 	});
@@ -944,8 +928,8 @@ describe('blocks/header', () => {
 				expect(validTx2UndoSpy).toHaveBeenCalledTimes(1);
 			});
 
-			it('should call account update', async () => {
-				expect(storageStub.entities.Account.upsert).toHaveBeenCalledTimes(4);
+			it('should not call account update', async () => {
+				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
 			it('should update vote weight on voted delegate', async () => {

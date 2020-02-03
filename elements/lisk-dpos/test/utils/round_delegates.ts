@@ -11,29 +11,63 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import {
+	getAddressFromPublicKey,
+	getAddressAndPublicKeyFromPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { randomInt } from './random_int';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Account } from '../../src/types';
 
 export { delegatePublicKeys };
 
-export const delegateAccounts = delegatePublicKeys.map((pk, index) => {
-	const balance = BigInt(randomInt(100, 1000));
-	const rewards = BigInt(randomInt(100, 500));
-	const voteWeight = BigInt(randomInt(10000, 50000));
-	return {
+export const votedDelegates: Account[] = [];
+for (
+	let index = 0;
+	index < delegatePublicKeys.length * 2 + delegatePublicKeys.length;
+	index += 1
+) {
+	const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(
+		`${index}`,
+	);
+	const balance = String(randomInt(100, 1000));
+	votedDelegates.push({
+		address,
+		publicKey,
+		producedBlocks: 0,
+		missedBlocks: 0,
 		balance,
-		rewards,
-		voteWeight,
-		fees: balance - rewards,
-		publicKey: pk,
-		votedDelegatesPublicKeys: [
-			`abc${index}`,
-			`def${index}`,
-			`xyz${index % 10}`,
-		], // array with 2 uniq and one shared public key
-	};
-});
+		fees: '0',
+		rewards: '0',
+		voteWeight: '0',
+		votedDelegatesPublicKeys: [],
+	});
+}
+
+export const delegateAccounts = delegatePublicKeys.map(
+	(pk, index): Account => {
+		const balance = String(randomInt(500, 1000));
+		const rewards = String(randomInt(100, 500));
+		const voteWeight = String(randomInt(10000, 50000));
+		// array with 2 uniq and one shared public key
+		const votedDelegatesPublicKeys = [
+			votedDelegates[index].publicKey,
+			votedDelegates[index + 1].publicKey,
+			votedDelegates[index % 10].publicKey,
+		];
+		return {
+			address: getAddressFromPublicKey(pk),
+			balance,
+			producedBlocks: 0,
+			missedBlocks: 0,
+			rewards,
+			voteWeight,
+			fees: (BigInt(balance) - BigInt(rewards)).toString(),
+			publicKey: pk,
+			votedDelegatesPublicKeys,
+		};
+	},
+);
 
 const missedDelegateCount = 5;
 
@@ -95,11 +129,11 @@ export const sortedDelegateAccounts = delegateAccounts.sort(
 			return a.publicKey.localeCompare(b.publicKey); // publicKey sorted by ascending
 		}
 
-		if (b.voteWeight > a.voteWeight) {
+		if (BigInt(b.voteWeight) > BigInt(a.voteWeight)) {
 			return 1; // voteWeight sorted by descending
 		}
 
-		if (b.voteWeight < a.voteWeight) {
+		if (BigInt(b.voteWeight) < BigInt(a.voteWeight)) {
 			return -1;
 		}
 

@@ -23,16 +23,10 @@ export class StateStore {
 	public readonly transaction: TransactionStore;
 	public readonly chainState: ChainStateStore;
 
-	public constructor(
-		storage: Storage,
-		options: { readonly tx?: StorageTransaction } = {},
-	) {
-		this.account = new AccountStore(storage.entities.Account, options);
-		this.transaction = new TransactionStore(
-			storage.entities.Transaction,
-			options,
-		);
-		this.chainState = new ChainStateStore(storage.entities.ChainState, options);
+	public constructor(storage: Storage) {
+		this.account = new AccountStore(storage.entities.Account);
+		this.transaction = new TransactionStore(storage.entities.Transaction);
+		this.chainState = new ChainStateStore(storage.entities.ChainState);
 	}
 
 	public createSnapshot(): void {
@@ -47,7 +41,10 @@ export class StateStore {
 		this.chainState.restoreSnapshot();
 	}
 
-	public async finalize(): Promise<void> {
-		await Promise.all([this.account.finalize(), this.chainState.finalize()]);
+	public async finalize(tx: StorageTransaction): Promise<void> {
+		await Promise.all([
+			this.account.finalize(tx),
+			this.chainState.finalize(tx),
+		]);
 	}
 }

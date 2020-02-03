@@ -307,9 +307,7 @@ describe('rounds', () => {
 				return Promise.join(
 					getMemAccounts(),
 					getDelegates(),
-					library.modules.dpos.getForgerPublicKeysForRound(tick.before.round, {
-						delegateListRoundOffset: 0,
-					}),
+					library.modules.dpos.getForgerPublicKeysForRound(tick.before.round),
 					Queries.getDelegatesOrderedByVoteWeight(),
 					(_accounts, _delegates, _delegatesList, _delegatesOrderedByVote) => {
 						tick.before.accounts = _.cloneDeep(_accounts);
@@ -335,7 +333,6 @@ describe('rounds', () => {
 								getDelegates(),
 								library.modules.dpos.getForgerPublicKeysForRound(
 									rounds.calcRound(tick.after.block.height + 1),
-									{ delegateListRoundOffset: 0 },
 								),
 								Queries.getDelegatesOrderedByVoteWeight(),
 								(
@@ -461,7 +458,6 @@ describe('rounds', () => {
 				getDelegates(),
 				library.modules.dpos.getForgerPublicKeysForRound(
 					rounds.calcRound(lastBlock.height),
-					{ delegateListRoundOffset: 0 },
 				),
 				(_accounts, _delegates, _delegatesList) => {
 					// Get genesis accounts address - should be senderId from first transaction
@@ -630,7 +626,6 @@ describe('rounds', () => {
 				const lastBlock = library.modules.blocks.lastBlock;
 				const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 					rounds.calcRound(lastBlock.height + 1),
-					{ delegateListRoundOffset: 0 },
 				);
 
 				return expect(delegatesList).to.not.deep.equal(round.delegatesList);
@@ -677,7 +672,6 @@ describe('rounds', () => {
 				const freshLastBlock = library.modules.blocks.lastBlock;
 				const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 					rounds.calcRound(freshLastBlock.height + 1),
-					{ delegateListRoundOffset: 0 },
 				);
 				return expect(delegatesList).to.deep.equal(round.delegatesList);
 			});
@@ -702,7 +696,6 @@ describe('rounds', () => {
 				const lastBlock = library.modules.blocks.lastBlock;
 				const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 					rounds.calcRound(lastBlock.height + 1),
-					{ delegateListRoundOffset: 0 },
 				);
 				return expect(delegatesList).to.deep.equal(round.delegatesList);
 			});
@@ -787,7 +780,6 @@ describe('rounds', () => {
 					const freshLastBlock = library.modules.blocks.lastBlock;
 					const delegatesList = await library.modules.dpos.getForgerPublicKeysForRound(
 						rounds.calcRound(freshLastBlock.height + 1),
-						{ delegateListRoundOffset: 0 },
 					);
 					return expect(delegatesList).to.not.deep.equal(round.delegatesList);
 				});
@@ -811,7 +803,6 @@ describe('rounds', () => {
 						return library.modules.dpos
 							.getForgerPublicKeysForRound(
 								rounds.calcRound(freshLastBlock.height),
-								{ delegateListRoundOffset: 0 },
 							)
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -917,7 +908,6 @@ describe('rounds', () => {
 						getDelegates(),
 						library.modules.dpos.getForgerPublicKeysForRound(
 							rounds.calcRound(lastBlock.height + 1),
-							{ delegateListRoundOffset: 0 },
 						),
 						(_delegates, _delegatesList) => {
 							delegatesList = _delegatesList;
@@ -968,9 +958,7 @@ describe('rounds', () => {
 					return library.modules.processor.deleteLastBlock().then(() => {
 						lastBlock = _.cloneDeep(library.modules.blocks.lastBlock);
 						return library.modules.dpos
-							.getForgerPublicKeysForRound(rounds.calcRound(lastBlock.height), {
-								delegateListRoundOffset: 0,
-							})
+							.getForgerPublicKeysForRound(rounds.calcRound(lastBlock.height))
 							.then(delegatesList => {
 								expect(delegatesList).to.deep.equal(round.delegatesList);
 							});

@@ -13,6 +13,7 @@
  */
 import { when } from 'jest-when';
 import { StateStore } from '../../src';
+import { StorageTransaction } from '../../src/types';
 
 describe('state store / account', () => {
 	const defaultAccounts = [
@@ -113,7 +114,6 @@ describe('state store / account', () => {
 			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
 				{ address: '321L' },
 				{ limit: null },
-				undefined,
 			]);
 		});
 
@@ -155,7 +155,6 @@ describe('state store / account', () => {
 			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
 				{ address: '321L' },
 				{ limit: null },
-				undefined,
 			]);
 		});
 
@@ -221,6 +220,7 @@ describe('state store / account', () => {
 	});
 
 	describe('finalize', () => {
+		let txStub = {} as StorageTransaction;
 		let updatedAccount;
 		let secondPublicKey: string;
 		let secondSignature: boolean;
@@ -247,13 +247,13 @@ describe('state store / account', () => {
 		});
 
 		it('should save the account state in the database', async () => {
-			await stateStore.account.finalize();
+			await stateStore.account.finalize(txStub);
 
 			expect(storageStub.entities.Account.upsert).toHaveBeenCalledWith(
 				{ address: defaultAccounts[0].address },
 				{ secondPublicKey, secondSignature },
 				null,
-				undefined,
+				txStub,
 			);
 		});
 	});

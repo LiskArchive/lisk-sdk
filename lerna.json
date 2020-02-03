@@ -5,7 +5,14 @@
 	"stream": true,
 	"command": {
 		"bootstrap": {
-			"nohoist": ["@types/mocha", "fancy-test", "@oclif/test"]
+			"nohoist": [
+				"@types/mocha",
+				"fancy-test",
+				"@oclif/test",
+				"@types/jest",
+				"@types/jest-when",
+				"jest-extended"
+			]
 		}
 	}
 }
