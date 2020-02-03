@@ -16,18 +16,26 @@ import { TransactionError } from './errors';
 
 export interface Account {
 	readonly address: string;
-	readonly balance: string;
-	readonly delegate?: Delegate;
+	readonly balance: string | bigint;
+	readonly missedBlocks?: number;
+	readonly producedBlocks?: number;
 	readonly publicKey?: string;
 	readonly secondPublicKey?: string | null;
-	readonly secondSignature?: number;
-	readonly membersPublicKeys?: ReadonlyArray<string>;
+	readonly secondSignature?: boolean | number;
+	readonly username?: string | null;
+	readonly isDelegate?: number;
+	readonly fees?: string | bigint;
+	readonly rewards?: string | bigint;
+	// tslint:disable-next-line readonly-keyword
+	voteWeight?: string | bigint;
+	readonly nameExist?: false;
 	readonly multiMin?: number;
 	readonly multiLifetime?: number;
-	readonly username?: string | null;
-	readonly votedDelegatesPublicKeys?: ReadonlyArray<string>;
-	readonly isDelegate?: number;
-	readonly vote?: number;
+	readonly asset?: object;
+	// tslint:disable-next-line readonly-keyword
+	votedDelegatesPublicKeys?: string[];
+	// tslint:disable-next-line readonly-keyword
+	membersPublicKeys?: ReadonlyArray<string>;
 }
 
 export interface Delegate {
