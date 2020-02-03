@@ -171,25 +171,6 @@ module.exports = class Chain {
 				this.options.genesisBlock,
 			);
 
-			// Deactivate broadcast and syncing during snapshotting process
-			if (this.options.loading.rebuildUpToRound) {
-				this.options.broadcasts.active = false;
-				this.options.syncing.active = false;
-				await this.rebuilder.rebuild(
-					this.options.loading.rebuildUpToRound,
-					this.options.loading.loadPerIteration,
-				);
-				this.logger.info(
-					{
-						rebuildUpToRound: this.options.loading.rebuildUpToRound,
-						loadPerIteration: this.options.loading.loadPerIteration,
-					},
-					'Successfully rebuild the blockchain',
-				);
-				process.emit('cleanup');
-				return;
-			}
-
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.scope.applicationState, event.data);
 			});
@@ -205,6 +186,28 @@ module.exports = class Chain {
 				maxHeightPrevoted: this.blocks.lastBlock.maxHeightPrevoted || 0,
 				blockVersion: this.blocks.lastBlock.version,
 			});
+
+			// Deactivate broadcast and syncing during snapshotting process
+			if (this.options.loading.rebuildUpToRound) {
+				this.options.broadcasts.active = false;
+				this.options.syncing.active = false;
+
+				// Need to reset the BFT to rebuild from start of the chain
+				this.bft.reset();
+				await this.rebuilder.rebuild(
+					this.options.loading.rebuildUpToRound,
+					this.options.loading.loadPerIteration,
+				);
+				this.logger.info(
+					{
+						rebuildUpToRound: this.options.loading.rebuildUpToRound,
+						loadPerIteration: this.options.loading.loadPerIteration,
+					},
+					'Successfully rebuild the blockchain',
+				);
+				process.emit('cleanup');
+				return;
+			}
 
 			this._subscribeToEvents();
 
