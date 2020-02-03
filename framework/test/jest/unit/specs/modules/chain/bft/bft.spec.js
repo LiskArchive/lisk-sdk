@@ -196,7 +196,7 @@ describe('bft', () => {
 				});
 			});
 
-			it('should invoke loadBlocksFromStorage() for lastBlockHeight - TWO_ROUNDS if its highest', async () => {
+			it('should invoke loadBlocksFromStorage() for lastBlockHeight - THREE_ROUNDS if its highest', async () => {
 				bft.constants.startingHeight = 0;
 				const finalizedHeight = 200;
 				const lastBlockHeight = 600;
@@ -217,7 +217,7 @@ describe('bft', () => {
 
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledTimes(1);
 				expect(bft._loadBlocksFromStorage).toHaveBeenCalledWith({
-					fromHeight: lastBlockHeight - activeDelegates * 2,
+					fromHeight: lastBlockHeight - activeDelegates * 3 + 1,
 					tillHeight: lastBlockHeight,
 					minActiveHeightsOfDelegates,
 				});
@@ -374,7 +374,7 @@ describe('bft', () => {
 				]);
 			});
 
-			it('should load more blocks from storage if remaining in headers list is less than 2 rounds', async () => {
+			it('should load more blocks from storage if remaining in headers list is less than 3 rounds', async () => {
 				// Arrange
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
@@ -421,12 +421,12 @@ describe('bft', () => {
 				);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenLastCalledWith(
-					{ height_lte: 400, height_gte: 450 - activeDelegates * 2 },
+					{ height_lte: 400, height_gte: 450 - activeDelegates * 3 + 1 },
 					{ limit: null, sort: 'height:desc' },
 				);
 			});
 
-			it('should not load more blocks from storage if remaining in headers list is more than 2 rounds', async () => {
+			it('should not load more blocks from storage if remaining in headers list is more than 3 rounds', async () => {
 				// Arrange
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
@@ -435,8 +435,8 @@ describe('bft', () => {
 					startHeight: 1,
 					numberOfBlocks,
 				});
-				// Last 300 blocks from height 201 to 500
-				const blocksInBft = blocks.slice(200);
+				// Last 400 blocks from height 101 to 500
+				const blocksInBft = blocks.slice(100);
 
 				// Last 50 blocks from height 451 to 500
 				const blocksToDelete = blocks.slice(-numberOfBlocksToDelete);
@@ -449,10 +449,10 @@ describe('bft', () => {
 					return acc;
 				}, {});
 
-				// Load last 300 blocks to bft (201 to 500)
-				// eslint-disable-next-line no-restricted-syntax
+				// Load last 400 blocks to bft (101 to 500)
 				for (const block of blocksInBft) {
-					// eslint-disable-next-line no-await-in-loop
+					// This value is mutated to pass the prevotedConfirmedHeight validation
+					block.maxHeightPrevoted = bft.finalityManager.prevotedConfirmedHeight;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -461,11 +461,11 @@ describe('bft', () => {
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(450);
-				expect(bft.finalityManager.minHeight).toEqual(201);
+				expect(bft.finalityManager.minHeight).toEqual(101);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
 			});
 
-			it('should not load more blocks from storage if remaining in headers list is exactly 2 rounds', async () => {
+			it('should not load more blocks from storage if remaining in headers list is exactly 3 rounds', async () => {
 				// Arrange
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
@@ -473,26 +473,24 @@ describe('bft', () => {
 					startHeight: 1,
 					numberOfBlocks,
 				});
-				// Last 300 blocks from height 201 to 500
-				const blocksInBft = blocks.slice(200);
+				// Last 300 blocks from height 100 to 500
+				const blocksInBft = blocks.slice(99);
 
-				// Delete blocks keeping exactly two rounds in the list from (201 to 298)
-				const blocksToDelete = blocks.slice(
-					-1 * (300 - activeDelegates * 2 - 1),
-				);
+				// Delete blocks keeping exactly 3 rounds in the list from (201 to 298)
+				const blocksToDelete = blocks.slice(-97);
 
 				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
 				const minActiveHeightsOfDelegates = blocks.reduce((acc, block) => {
 					// the value is not important in this test.
-					acc[block.generatorPublicKey] = [1];
+					acc[block.generatorPublicKey] = [0];
 					return acc;
 				}, {});
 
 				// Load last 300 blocks to bft (201 to 500)
-				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
-					// eslint-disable-next-line no-await-in-loop
+					// This value is mutated to pass the prevotedConfirmedHeight validation
+					block.maxHeightPrevoted = bft.finalityManager.prevotedConfirmedHeight;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -501,9 +499,7 @@ describe('bft', () => {
 
 				// Assert
 				expect(bft.finalityManager.maxHeight).toEqual(403);
-				expect(bft.finalityManager.minHeight).toEqual(
-					403 - activeDelegates * 2,
-				);
+				expect(bft.finalityManager.minHeight).toEqual(100);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
 			});
 		});
@@ -743,9 +739,9 @@ describe('bft', () => {
 				expect(finalityManager.finalizedHeight).toEqual(finalizedHeight);
 			});
 
-			it('should initialize finalityManager with stored startingHeight - TWO_ROUNDS if its highest', async () => {
+			it('should initialize finalityManager with stored startingHeight - THREE_ROUNDS if its highest', async () => {
 				// Arrange
-				const finalizedHeight = 500;
+				const finalizedHeight = 400;
 				const startingHeightHigher = 800;
 				storageMock.entities.ChainState.get.mockResolvedValue([
 					{ key: 'BFT.finalizedHeight', value: finalizedHeight },

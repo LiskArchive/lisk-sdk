@@ -167,9 +167,9 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.init.pipe([
 			async ({ stateStore }) => {
-				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
-				// That's why we need to get the delegates who were active in the last 2 rounds.
-				const numberOfRounds = 2;
+				// minActiveHeightsOfDelegates will be used to load 303 blocks from the storage
+				// That's why we need to get the delegates who were active in the last 3 rounds.
+				const numberOfRounds = 3;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 				);

@@ -22,6 +22,10 @@ const {
 } = require('./finality_manager');
 const forkChoiceRule = require('./fork_choice_rule');
 const { validateBlockHeader } = require('./utils');
+const {
+	BFT_MIGRATION_ROUND_OFFSET,
+	BFT_ROUND_THRESHOLD,
+} = require('./constant');
 
 const CHAIN_STATE_FINALIZED_HEIGHT = 'BFT.finalizedHeight';
 const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
@@ -72,7 +76,10 @@ class BFT extends EventEmitter {
 
 		const loadFromHeight = Math.max(
 			finalizedHeight,
-			lastBlockHeight - this.constants.activeDelegates * 2,
+			// Search is inclusive, therefore, it should start from one above (ex: 288 - 500, which results total 303)
+			lastBlockHeight -
+				this.constants.activeDelegates * BFT_ROUND_THRESHOLD +
+				1,
 			this.constants.startingHeight,
 		);
 
@@ -112,14 +119,17 @@ class BFT extends EventEmitter {
 			aboveHeight: removeFromHeight - 1,
 		});
 
-		// Make sure there are 2 rounds of block headers available
+		// Make sure there are BFT_ROUND_THRESHOLD rounds of block headers available
 		if (
 			this.finalityManager.maxHeight - this.finalityManager.minHeight <
-			this.constants.activeDelegates * 2
+			this.constants.activeDelegates * BFT_ROUND_THRESHOLD
 		) {
 			const tillHeight = this.finalityManager.minHeight - 1;
 			const fromHeight =
-				this.finalityManager.maxHeight - this.constants.activeDelegates * 2;
+				this.finalityManager.maxHeight -
+				// Search is inclusive, therefore, it should start from one above (ex: 288 - 500, which results total 303)
+				this.constants.activeDelegates * BFT_ROUND_THRESHOLD +
+				1;
 			await this._loadBlocksFromStorage({
 				fromHeight,
 				tillHeight,
@@ -197,7 +207,8 @@ class BFT extends EventEmitter {
 		// Check BFT migration height
 		// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility
 		const bftMigrationHeight =
-			this.constants.startingHeight - this.constants.activeDelegates * 2;
+			this.constants.startingHeight -
+			this.constants.activeDelegates * BFT_MIGRATION_ROUND_OFFSET;
 
 		// Choose max between stored finalized height or migration height
 		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
