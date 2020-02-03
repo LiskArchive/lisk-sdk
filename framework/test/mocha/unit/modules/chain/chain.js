@@ -56,7 +56,10 @@ describe('Chain', () => {
 		stubs.storage = {
 			cleanup: sinonSandbox.stub(),
 			entities: {
-				Block: { get: sinonSandbox.stub().resolves([]) },
+				Block: {
+					get: sinonSandbox.stub().resolves([]),
+					count: sinonSandbox.stub().resolves(0),
+				},
 				ChainMeta: { getKey: sinonSandbox.stub() },
 			},
 		};
@@ -223,13 +226,13 @@ describe('Chain', () => {
 			return expect(global.exceptions).to.be.equal(chainOptions.exceptions);
 		});
 
-		describe('when options.loading.rebuildUpToRound is truthy', () => {
+		describe('when options.loading.rebuildUpToRound is set to an integer value', () => {
 			beforeEach(async () => {
 				// Arrange
 				chain = new Chain(stubs.channel, {
 					...chainOptions,
 					loading: {
-						rebuildUpToRound: true,
+						rebuildUpToRound: 0,
 					},
 					broadcasts: {},
 					syncing: {},
