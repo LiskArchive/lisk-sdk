@@ -14,7 +14,7 @@
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 
 import {
-	Account,
+	AccountJSON,
 	BlockHeader,
 	BlockHeaderJSON,
 	BlockInstance,
