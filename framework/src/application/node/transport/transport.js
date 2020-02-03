@@ -29,7 +29,6 @@ class Transport {
 		// components
 		channel,
 		logger,
-		storage,
 		// Unique requirements
 		applicationState,
 		exceptions,
@@ -45,7 +44,6 @@ class Transport {
 
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
 		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
@@ -63,7 +61,6 @@ class Transport {
 			transactionPool: this.transactionPoolModule,
 			logger: this.logger,
 			channel: this.channel,
-			storage: this.storage,
 		});
 
 		// Rate limit for certain endpoints
@@ -343,9 +340,8 @@ class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
-				{ id_in: idsNotInPool },
-				{ limit: this.constants.broadcasts.releaseLimit },
+			const transactionsFromDatabase = await this.blocksModule.dataAccess.getTransactionsByIDs(
+				idsNotInPool,
 			);
 
 			return {
@@ -438,13 +434,8 @@ class Transport {
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions = await this.storage.entities.Transaction.get(
-				{
-					id_in: unknownTransactionsIDs,
-				},
-				{
-					limit: this.constants.broadcasts.releaseLimit,
-				},
+			const existingTransactions = await this.blocksModule.dataAccess.getTransactionsByIDs(
+				unknownTransactionsIDs,
 			);
 
 			return unknownTransactionsIDs.filter(

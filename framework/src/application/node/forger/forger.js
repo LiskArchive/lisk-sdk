@@ -46,7 +46,6 @@ class Forger {
 		// components
 		channel,
 		logger,
-		storage,
 		// Modules
 		processorModule,
 		dposModule,
@@ -63,7 +62,6 @@ class Forger {
 		this.keypairs = {};
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
 		this.config = {
 			forging: {
 				delegates: forgingDelegates,
@@ -124,11 +122,11 @@ class Forger {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const filters = {
-			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
-		};
+		const address = getAddressFromPublicKey(keypair.publicKey.toString('hex'));
 
-		const [account] = await this.storage.entities.Account.get(filters);
+		const [account] = this.blocksModule.dataAccess.getAccountsByAddress(
+			address,
+		);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -191,11 +189,13 @@ class Forger {
 				);
 			}
 
-			const filters = {
-				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
-			};
+			const address = getAddressFromPublicKey(
+				keypair.publicKey.toString('hex'),
+			);
+			const [account] = this.blocksModule.dataAccess.getAccountsByAddress(
+				address,
+			);
 
-			const [account] = await this.storage.entities.Account.get(filters);
 			if (!account) {
 				throw new Error(
 					`Account with public key: ${keypair.publicKey.toString(

@@ -30,7 +30,6 @@ const {
 
 class FastChainSwitchingMechanism extends BaseSynchronizer {
 	constructor({
-		storage,
 		logger,
 		channel,
 		blocks,
@@ -39,7 +38,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		dpos,
 		activeDelegates,
 	}) {
-		super(storage, logger, channel);
+		super(logger, channel);
 		this.dpos = dpos;
 		this.blocks = blocks;
 		this.bft = bft;
@@ -221,11 +220,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			'Validating blocks',
 		);
 		try {
-			const commonFullBlock = await this.storage.entities.Block.getOne(
-				{
-					id_eql: commonBlock.id,
-				},
-				{ extended: true },
+			const commonFullBlock = await this.blocks.dataAccess.getBlockByID(
+				commonBlock.id,
 			);
 			let previousBlock = await this.processor.deserialize(commonFullBlock);
 			for (const block of blocks) {
@@ -328,7 +324,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			}
 		} finally {
 			this.logger.debug('Cleaning blocks temp table');
-			await clearBlocksTempTable(this.storage);
+			await clearBlocksTempTable(this.blocks);
 		}
 	}
 
@@ -357,15 +353,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		while (numberOfRequests < requestLimit) {
 			const blockIds = (
-				await this.storage.entities.Block.get(
-					{
-						height_in: heightList,
-					},
-					{
-						sort: 'height:asc',
-						limit: heightList.length,
-					},
-				)
+				await this.blocks.dataAccess.getBlockHeadersWithHeights(heightList)
 			).map(block => block.id);
 
 			// Request the highest common block with the previously computed list

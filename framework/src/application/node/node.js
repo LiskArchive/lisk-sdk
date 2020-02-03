@@ -87,7 +87,7 @@ module.exports = class Node {
 			this.registeredTransactions = this.options.registeredTransactions;
 
 			this.components = {
-				storage: this.storage,
+				storage: this.blocks.dataAccess,
 				logger: this.logger,
 			};
 
@@ -104,7 +104,6 @@ module.exports = class Node {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
 				dposModule: this.dpos,
-				storage: this.storage,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
@@ -333,10 +332,11 @@ module.exports = class Node {
 
 		this.slots = this.blocks.slots;
 		this.dpos = new Dpos({
-			blocks: this.blocks,
+			logger: this.logger,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: this.options.constants
 				.DELEGATE_LIST_ROUND_OFFSET,
+			blocks: this.blocks,
 			exceptions: this.options.exceptions,
 		});
 
@@ -371,7 +371,6 @@ module.exports = class Node {
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
-			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
 			blocks: this.blocks,
@@ -385,14 +384,12 @@ module.exports = class Node {
 			logger: this.logger,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
-			storageModule: this.storage,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
 		this.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
-			storage: this.storage,
 			blocks: this.blocks,
 			slots: this.blocks.slots,
 			exceptions: this.options.exceptions,
@@ -418,7 +415,6 @@ module.exports = class Node {
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
@@ -444,7 +440,6 @@ module.exports = class Node {
 		this.transport = new Transport({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
 			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,

@@ -18,13 +18,7 @@ const assert = require('assert');
 const utils = require('./utils');
 
 class Synchronizer {
-	constructor({
-		logger,
-		blocksModule,
-		processorModule,
-		storageModule,
-		mechanisms = [],
-	}) {
+	constructor({ logger, blocksModule, processorModule, mechanisms = [] }) {
 		assert(
 			Array.isArray(mechanisms),
 			'mechanisms should be an array of mechanisms',
@@ -33,7 +27,6 @@ class Synchronizer {
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
-		this.storageModule = storageModule;
 		this.active = false;
 
 		this._checkMechanismsInterfaces();
@@ -53,14 +46,13 @@ class Synchronizer {
 	}
 
 	async init() {
-		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
+		const isEmpty = await this.blocksModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
 				await utils.restoreBlocksUponStartup(
 					this.logger,
 					this.blocksModule,
 					this.processorModule,
-					this.storageModule,
 				);
 			} catch (err) {
 				this.logger.error(
