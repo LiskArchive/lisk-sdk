@@ -181,18 +181,17 @@ export class TransferTransaction extends BaseTransaction {
 			errors.push(balanceError);
 		}
 
-		const updatedSenderBalance =
-			BigInt(sender.balance) - BigInt(this.asset.amount);
+		const updatedSenderBalance = sender.balance - BigInt(this.asset.amount);
 
 		const updatedSender = {
 			...sender,
-			balance: updatedSenderBalance.toString(),
+			balance: updatedSenderBalance,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
 		const updatedRecipientBalance =
-			BigInt(recipient.balance) + BigInt(this.asset.amount);
+			recipient.balance + BigInt(this.asset.amount);
 
 		if (updatedRecipientBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
@@ -207,7 +206,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		const updatedRecipient = {
 			...recipient,
-			balance: updatedRecipientBalance.toString(),
+			balance: updatedRecipientBalance,
 		};
 		store.account.set(updatedRecipient.address, updatedRecipient);
 
@@ -219,8 +218,7 @@ export class TransferTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
-		const updatedSenderBalance =
-			BigInt(sender.balance) + BigInt(this.asset.amount);
+		const updatedSenderBalance = sender.balance + BigInt(this.asset.amount);
 
 		if (updatedSenderBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
@@ -235,7 +233,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		const updatedSender = {
 			...sender,
-			balance: updatedSenderBalance.toString(),
+			balance: updatedSenderBalance,
 		};
 		store.account.set(updatedSender.address, updatedSender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
@@ -247,11 +245,11 @@ export class TransferTransaction extends BaseTransaction {
 		}
 
 		const updatedRecipientBalance =
-			BigInt(recipient.balance) - BigInt(this.asset.amount);
+			recipient.balance - BigInt(this.asset.amount);
 
 		const updatedRecipient = {
 			...recipient,
-			balance: updatedRecipientBalance.toString(),
+			balance: updatedRecipientBalance,
 		};
 
 		store.account.set(updatedRecipient.address, updatedRecipient);

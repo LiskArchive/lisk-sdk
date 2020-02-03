@@ -16,7 +16,7 @@ import { TransactionError } from './errors';
 
 export interface Account {
 	readonly address: string;
-	readonly balance: string | bigint;
+	readonly balance: bigint;
 	readonly missedBlocks?: number;
 	readonly producedBlocks?: number;
 	readonly publicKey?: string;
@@ -24,10 +24,10 @@ export interface Account {
 	readonly secondSignature?: boolean | number;
 	readonly username?: string | null;
 	readonly isDelegate?: number;
-	readonly fees?: string | bigint;
-	readonly rewards?: string | bigint;
+	readonly fees?: bigint;
+	readonly rewards?: bigint;
 	// tslint:disable-next-line readonly-keyword
-	voteWeight?: string | bigint;
+	voteWeight?: bigint;
 	readonly nameExist?: false;
 	readonly multiMin?: number;
 	readonly multiLifetime?: number;
