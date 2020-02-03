@@ -14,40 +14,16 @@
 
 import { cloneDeep, isEqual, pick, uniq, uniqBy } from 'lodash';
 
+import { Account } from '../account';
 import {
-	Account,
+	AccountJSON,
 	StorageEntity,
 	StorageFilters,
 	StorageTransaction,
 } from '../types';
 
-type AccountWithoutAddress = Omit<Account, 'address'>;
-// tslint:disable-next-line no-null-keyword no-null-undefined-union
-type AccountKeys = Account & {
-	readonly [key: string]: string | number | boolean | null;
-};
-
-const defaultAccount: AccountWithoutAddress = {
-	publicKey: undefined,
-	secondPublicKey: undefined,
-	secondSignature: 0,
-	username: undefined,
-	isDelegate: 0,
-	balance: '0',
-	missedBlocks: 0,
-	producedBlocks: 0,
-	fees: '0',
-	rewards: '0',
-	voteWeight: '0',
-	nameExist: false,
-	multiMin: 0,
-	multiLifetime: 0,
-	votedDelegatesPublicKeys: undefined,
-	asset: {},
-};
-
 export class AccountStore {
-	private readonly _account: StorageEntity<Account>;
+	private readonly _account: StorageEntity<AccountJSON>;
 	private _data: Account[];
 	private _originalData: Account[];
 	private _updatedKeys: { [key: number]: string[] } = {};
@@ -68,9 +44,16 @@ export class AccountStore {
 	public async cache(filter: StorageFilters): Promise<ReadonlyArray<Account>> {
 		// tslint:disable-next-line no-null-keyword
 		const result = await this._account.get(filter, { limit: null });
-		this._data = uniqBy([...this._data, ...result], this._primaryKey);
+		const resultAccountObjects = result.map(
+			accountJSON => new Account(accountJSON),
+		);
 
-		return cloneDeep(result) as ReadonlyArray<Account>;
+		this._data = uniqBy(
+			[...this._data, ...resultAccountObjects],
+			this._primaryKey,
+		);
+
+		return resultAccountObjects;
 	}
 
 	public createSnapshot(): void {
@@ -104,9 +87,9 @@ export class AccountStore {
 		);
 
 		if (elementFromDB) {
-			this._data.push(elementFromDB);
+			this._data.push(new Account(elementFromDB));
 
-			return cloneDeep(elementFromDB);
+			return cloneDeep(new Account(elementFromDB));
 		}
 
 		// Account does not exist we can not continue
@@ -133,20 +116,20 @@ export class AccountStore {
 		);
 
 		if (elementFromDB) {
-			this._data.push(elementFromDB);
+			this._data.push(new Account(elementFromDB));
 
-			return cloneDeep(elementFromDB);
+			return cloneDeep(new Account(elementFromDB));
 		}
 
-		const defaultElement: Account = {
-			...defaultAccount,
+		const defaultElement: Account = new Account({
+			...Account.defaultAccount,
 			[this._primaryKey]: primaryValue,
-		};
+		});
 
 		const newElementIndex = this._data.push(defaultElement) - 1;
 		this._updatedKeys[newElementIndex] = Object.keys(defaultElement);
 
-		return cloneDeep(defaultElement);
+		return defaultElement;
 	}
 
 	public getUpdated(): ReadonlyArray<Account> {
@@ -156,7 +139,12 @@ export class AccountStore {
 	public find(
 		fn: (value: Account, index: number, obj: Account[]) => unknown,
 	): Account | undefined {
-		return this._data.find(fn);
+		const foundAccount = this._data.find(fn);
+		if (!foundAccount) {
+			return undefined;
+		}
+
+		return foundAccount;
 	}
 
 	public set(primaryValue: string, updatedElement: Account): void {
@@ -172,8 +160,9 @@ export class AccountStore {
 
 		const updatedKeys = Object.entries(updatedElement).reduce(
 			(existingUpdatedKeys, [key, value]) => {
-				const account = this._data[elementIndex] as AccountKeys;
-				if (!isEqual(value, account[key])) {
+				const account = this._data[elementIndex];
+				// tslint:disable-next-line:no-any
+				if (!isEqual(value, (account as any)[key])) {
 					existingUpdatedKeys.push(key);
 				}
 
