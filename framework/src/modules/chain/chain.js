@@ -188,7 +188,7 @@ module.exports = class Chain {
 			});
 
 			// Deactivate broadcast and syncing during snapshotting process
-			if (this.options.loading.rebuildUpToRound) {
+			if (this.options.loading.rebuildUpToRound !== null) {
 				this.options.broadcasts.active = false;
 				this.options.syncing.active = false;
 
