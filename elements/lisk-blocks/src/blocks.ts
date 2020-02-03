@@ -381,8 +381,8 @@ export class Blocks extends EventEmitter {
 	): Promise<void> {
 		return this.storage.entities.Block.begin('saveBlock', async tx => {
 			await stateStore.finalize(tx);
-			const blockJSON = this.serialize(blockInstance);
 			if (!saveOnlyState) {
+				const blockJSON = this.serialize(blockInstance);
 				await saveBlock(this.storage, blockJSON, tx);
 			}
 			if (removeFromTempTable) {
@@ -427,9 +427,9 @@ export class Blocks extends EventEmitter {
 	): Promise<void> {
 		await this.storage.entities.Block.begin('revertBlock', async tx => {
 			const secondLastBlock = await this._deleteLastBlock(block, tx);
-			const blockJSON = this.serialize(block);
 
 			if (saveTempBlock) {
+				const blockJSON = this.serialize(block);
 				const blockTempEntry = {
 					id: blockJSON.id,
 					height: blockJSON.height,

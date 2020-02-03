@@ -13,13 +13,11 @@
  */
 import { EventEmitter } from 'events';
 
-import { CHAIN_STATE_FORGERS_LIST_KEY } from './constants';
 import { DelegatesInfo } from './delegates_info';
 import {
 	DelegatesList,
 	deleteDelegateListUntilRound,
 	getForgersList,
-	shuffleDelegateListForRound,
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
@@ -87,25 +85,10 @@ export class Dpos {
 		});
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
 	public async getForgerPublicKeysForRound(
 		round: number,
 	): Promise<ReadonlyArray<string>> {
-		const forgersListStr = await this.blocks.dataAccess.getChainState(
-			CHAIN_STATE_FORGERS_LIST_KEY,
-		);
-		const forgersList =
-			forgersListStr !== undefined
-				? (JSON.parse(forgersListStr) as ForgersList)
-				: [];
-		const delegatePublicKeys = forgersList.find(fl => fl.round === round)
-			?.delegates;
-
-		if (!delegatePublicKeys) {
-			throw new Error(`No delegate list found for round: ${round}`);
-		}
-
-		return shuffleDelegateListForRound(round, delegatePublicKeys);
+		return this.delegatesList.getShuffledDelegateList(round);
 	}
 
 	public async onBlockFinalized(

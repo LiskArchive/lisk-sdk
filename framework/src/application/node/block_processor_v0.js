@@ -183,7 +183,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		]);
 
 		this.applyGenesis.pipe([
-			async ({ block, stateStore }) =>
+			({ block, stateStore }) =>
 				this.blocksModule.applyGenesis(block, stateStore),
 			({ block, stateStore }) =>
 				this.dposModule.apply(block, stateStore, {

@@ -149,7 +149,7 @@ export class DelegatesList {
 		round: number,
 		stateStore: StateStore,
 	): Promise<void> {
-		debug(`Creating delegate list for ${round}`);
+		debug(`Creating delegate list for round: ${round}`);
 		const forgersList = await getForgersList(stateStore);
 		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
 		// This gets the list before current block is executed
@@ -201,13 +201,12 @@ export class DelegatesList {
 			forgersList.push(forgerList);
 		}
 		_setForgersList(stateStore, forgersList);
-		debug(`Created delegate list for ${round} with ${forgersList.length}`);
+		debug(`Created delegate list for round: ${round}`);
 	}
 
-	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
-		const currentSlot = this.blocks.slots.getSlotNumber(block.timestamp);
-		const currentRound = this.rounds.calcRound(block.height);
-
+	public async getShuffledDelegateList(
+		round: number,
+	): Promise<ReadonlyArray<string>> {
 		const forgersListStr = await this.blocks.dataAccess.getChainState(
 			CHAIN_STATE_FORGERS_LIST_KEY,
 		);
@@ -215,17 +214,21 @@ export class DelegatesList {
 			forgersListStr !== undefined
 				? (JSON.parse(forgersListStr) as ForgersList)
 				: [];
-		const delegatePublicKeys = forgersList.find(fl => fl.round === currentRound)
+		const delegatePublicKeys = forgersList.find(fl => fl.round === round)
 			?.delegates;
 
 		if (!delegatePublicKeys) {
-			throw new Error(`No delegate list found for round: ${currentRound}`);
+			throw new Error(`No delegate list found for round: ${round}`);
 		}
 
-		const delegateList = shuffleDelegateListForRound(
-			currentRound,
-			delegatePublicKeys,
-		);
+		return shuffleDelegateListForRound(round, delegatePublicKeys);
+	}
+
+	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
+		const currentSlot = this.blocks.slots.getSlotNumber(block.timestamp);
+		const currentRound = this.rounds.calcRound(block.height);
+
+		const delegateList = await this.getShuffledDelegateList(currentRound);
 
 		if (!delegateList.length) {
 			throw new Error(

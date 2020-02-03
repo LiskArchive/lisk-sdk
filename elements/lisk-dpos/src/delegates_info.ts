@@ -117,7 +117,10 @@ const _updateVotedDelegatesVoteWeight = async (
 	stateStore: StateStore,
 	undo?: boolean,
 ): Promise<void> => {
-	for (const { delegateAddress, earnings } of uniqForgersInfo) {
+	for (const {
+		delegateAddress,
+		earnings: { fee, reward },
+	} of uniqForgersInfo) {
 		const forger = await stateStore.account.get(delegateAddress);
 		if (!_hasVotedDelegatesPublicKeys(forger)) {
 			continue;
@@ -126,7 +129,7 @@ const _updateVotedDelegatesVoteWeight = async (
 			const account = await stateStore.account.get(
 				getAddressFromPublicKey(votedDelegatePublicKey),
 			);
-			const amount = earnings.fee + earnings.reward;
+			const amount = fee + reward;
 			const factor = undo ? BigInt(-1) : BigInt(1);
 			const updatedAccount: Account = {
 				...account,
