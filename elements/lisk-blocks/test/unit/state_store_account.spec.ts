@@ -14,30 +14,53 @@
 import { when } from 'jest-when';
 import { StateStore } from '../../src';
 import { StorageTransaction } from '../../src/types';
+import { Account } from '../../src';
 
 describe('state store / account', () => {
 	const defaultAccounts = [
-		{ address: '1276152240083265771L', balance: '100' },
-		{ address: '11237980039345381032L', balance: '555' },
+		{
+			...Account.defaultAccount,
+			address: '1276152240083265771L',
+			balance: '100',
+		},
+		{
+			...Account.defaultAccount,
+			address: '11237980039345381032L',
+			balance: '555',
+		},
+	];
+
+	const stateStoreAccounts = [
+		new Account({
+			...Account.defaultAccount,
+			address: '1276152240083265771L',
+			balance: BigInt(100),
+		}),
+		new Account({
+			...Account.defaultAccount,
+			address: '11237980039345381032L',
+			balance: BigInt(555),
+		}),
 	];
 
 	const defaultAccount = {
 		publicKey: undefined,
 		secondPublicKey: undefined,
-		secondSignature: 0,
+		secondSignature: false,
 		username: undefined,
 		isDelegate: 0,
-		balance: '0',
+		balance: BigInt(0),
 		missedBlocks: 0,
 		producedBlocks: 0,
-		fees: '0',
-		rewards: '0',
-		voteWeight: '0',
+		fees: BigInt(0),
+		rewards: BigInt(0),
+		voteWeight: BigInt(0),
 		nameExist: false,
 		multiMin: 0,
 		multiLifetime: 0,
 		votedDelegatesPublicKeys: undefined,
 		asset: {},
+		membersPublicKeys: [],
 	};
 
 	let stateStore: StateStore;
@@ -84,7 +107,9 @@ describe('state store / account', () => {
 			];
 			await stateStore.account.cache(filter);
 			// Assert
-			expect((stateStore.account as any)._data).toStrictEqual(defaultAccounts);
+			expect((stateStore.account as any)._data).toStrictEqual(
+				stateStoreAccounts,
+			);
 		});
 	});
 
@@ -104,7 +129,7 @@ describe('state store / account', () => {
 			// Act
 			const account = await stateStore.account.get(defaultAccounts[0].address);
 			// Assert
-			expect(account).toStrictEqual(defaultAccounts[0]);
+			expect(account).toStrictEqual(stateStoreAccounts[0]);
 		});
 
 		it('should try to get account from db if not found in memory', async () => {
@@ -145,7 +170,7 @@ describe('state store / account', () => {
 				defaultAccounts[0].address,
 			);
 			// Assert
-			expect(account).toStrictEqual(defaultAccounts[0]);
+			expect(account).toStrictEqual(stateStoreAccounts[0]);
 		});
 
 		it('should try to get account from db if not found in memory', async () => {
@@ -165,6 +190,7 @@ describe('state store / account', () => {
 			const account = await stateStore.account.getOrDefault('123L');
 			// Assert
 			expect(account).toEqual({ ...defaultAccount, address: '123L' });
+			expect(account.balance).toBe(BigInt(0));
 		});
 	});
 
@@ -204,12 +230,17 @@ describe('state store / account', () => {
 
 		it('should update the updateKeys property', async () => {
 			const updatedKeys = ['secondPublicKey', 'secondSignature'];
-			const updatedAccount = await stateStore.account.get(
+			const existingAccount = await stateStore.account.get(
 				defaultAccounts[0].address,
 			);
+			const updatedAccount = new Account({
+				...existingAccount,
+				secondPublicKey,
+				secondSignature,
+			});
 
-			(updatedAccount as any).secondPublicKey = secondPublicKey;
-			(updatedAccount as any).secondSignature = secondSignature;
+			// updatedAccount.secondPublicKey = secondPublicKey;
+			// (updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
 
@@ -221,6 +252,7 @@ describe('state store / account', () => {
 
 	describe('finalize', () => {
 		let txStub = {} as StorageTransaction;
+		let existingAccount;
 		let updatedAccount;
 		let secondPublicKey: string;
 		let secondSignature: boolean;
@@ -238,10 +270,14 @@ describe('state store / account', () => {
 			];
 			await stateStore.account.cache(filter);
 
-			updatedAccount = await stateStore.account.get(defaultAccounts[0].address);
-
-			(updatedAccount as any).secondPublicKey = secondPublicKey;
-			(updatedAccount as any).secondSignature = secondSignature;
+			existingAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
+			updatedAccount = new Account({
+				...existingAccount,
+				secondPublicKey,
+				secondSignature,
+			});
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);
 		});
