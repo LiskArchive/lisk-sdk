@@ -2,13 +2,8 @@
 	"extends": "../tsconfig",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"noEmit": true,
-		"typeRoots": [
-			"../types",
-			"../node_modules/@types",
-			"../../node_modules/@types"
-		]
+		"noEmit": true
 	},
 	"references": [{ "path": ".." }],
-	"include": ["./**/*", "../types/**/*", "../src/**/*"]
+	"include": ["./**/*", "../types/**/*"]
 }

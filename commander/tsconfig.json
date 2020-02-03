@@ -6,13 +6,8 @@
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"rootDir": "src",
-		"outDir": "dist",
-		"typeRoots": [
-			"../types",
-			"../node_modules/@types",
-			"../../node_modules/@types"
-		]
+		"outDir": "dist"
 	},
-	"include": ["src/**/*", "types/**/*", "../types/**/*"],
-	"files": ["src/default_config.json"]
+	"include": ["src/**/*", "types/**/*"],
+	"files": ["./src/default_config.json"]
 }
