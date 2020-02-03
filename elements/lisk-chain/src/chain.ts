@@ -70,7 +70,7 @@ import {
 	verifyPreviousBlockId,
 } from './verify';
 
-interface BlocksConfig {
+interface ChainConstructor {
 	// Components
 	readonly logger: Logger;
 	readonly storage: Storage;
@@ -196,9 +196,9 @@ const undoConfirmedStep = async (
 	}
 };
 
-const debug = Debug('lisk:blocks');
+const debug = Debug('lisk:chain');
 
-export class Blocks extends EventEmitter {
+export class Chain extends EventEmitter {
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
 	private readonly logger: Logger;
@@ -247,7 +247,7 @@ export class Blocks extends EventEmitter {
 		totalAmount,
 		blockSlotWindow,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
-	}: BlocksConfig) {
+	}: ChainConstructor) {
 		super();
 
 		this.logger = logger;
@@ -366,7 +366,7 @@ export class Blocks extends EventEmitter {
 
 		debug(
 			{ h: storageLastBlock.height, fromHeight, toHeight },
-			'Cache block headers during blocks init',
+			'Cache block headers during chain init',
 		);
 		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
 			fromHeight,
