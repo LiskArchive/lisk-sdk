@@ -15,7 +15,7 @@
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 import {
-	Account,
+	AccountJSON,
 	BlockJSON,
 	BlockRound,
 	Storage as DBStorage,
