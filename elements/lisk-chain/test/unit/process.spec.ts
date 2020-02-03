@@ -21,7 +21,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { newBlock, getBytes } from '../utils/block';
-import { Blocks, StateStore } from '../../src';
+import { Chain, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
@@ -58,7 +58,7 @@ describe('blocks/header', () => {
 	);
 
 	let exceptions: ExceptionOptions = {};
-	let blocksInstance: Blocks;
+	let chainInstance: Chain;
 	let storageStub: any;
 	let loggerStub: Logger;
 	let slots: Slots;
@@ -103,7 +103,7 @@ describe('blocks/header', () => {
 		});
 		exceptions = {};
 
-		blocksInstance = new Blocks({
+		chainInstance = new Chain({
 			storage: storageStub,
 			logger: loggerStub,
 			genesisBlock,
@@ -113,7 +113,7 @@ describe('blocks/header', () => {
 			exceptions,
 			...constants,
 		});
-		(blocksInstance as any)._lastBlock = {
+		(chainInstance as any)._lastBlock = {
 			...genesisBlock,
 			receivedAt: new Date(),
 		};
@@ -129,7 +129,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow('Invalid previous block');
 			});
 		});
@@ -140,7 +140,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow('Invalid block signature');
 			});
 		});
@@ -152,7 +152,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, '5'),
+					chainInstance.validateBlockHeader(block, blockBytes, '5'),
 				).toThrow('Invalid block reward');
 			});
 		});
@@ -160,7 +160,7 @@ describe('blocks/header', () => {
 		describe('when a transaction included is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
-				const invalidTx = blocksInstance.deserializeTransaction(
+				const invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -173,7 +173,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow();
 			});
 		});
@@ -181,9 +181,9 @@ describe('blocks/header', () => {
 		describe('when payload length exceeds maximum allowed', () => {
 			it('should throw error', async () => {
 				// Arrange
-				(blocksInstance as any).constants.maxPayloadLength = 100;
+				(chainInstance as any).constants.maxPayloadLength = 100;
 				const txs = new Array(200).fill(0).map((_, v) =>
-					blocksInstance.deserializeTransaction(
+					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
@@ -196,7 +196,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow('Payload length is too long');
 			});
 		});
@@ -205,7 +205,7 @@ describe('blocks/header', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(30).fill(0).map((_, v) =>
-					blocksInstance.deserializeTransaction(
+					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
@@ -218,7 +218,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow('Number of transactions exceeds maximum per block');
 			});
 		});
@@ -227,7 +227,7 @@ describe('blocks/header', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map((_, v) =>
-					blocksInstance.deserializeTransaction(
+					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
@@ -240,7 +240,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow(
 					'Included transactions do not match block transactions count',
 				);
@@ -251,7 +251,7 @@ describe('blocks/header', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map((_, v) =>
-					blocksInstance.deserializeTransaction(
+					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
@@ -264,7 +264,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow('Invalid payload hash');
 			});
 		});
@@ -273,7 +273,7 @@ describe('blocks/header', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map((_, v) =>
-					blocksInstance.deserializeTransaction(
+					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
@@ -286,7 +286,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					blocksInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toResolve();
 			});
 		});
@@ -299,7 +299,7 @@ describe('blocks/header', () => {
 				block = newBlock({ previousBlockId: '123' });
 				// Act & assert
 				await expect(() =>
-					blocksInstance.verifyInMemory(block, blocksInstance.lastBlock),
+					chainInstance.verifyInMemory(block, chainInstance.lastBlock),
 				).toThrow('Invalid previous block');
 			});
 		});
@@ -312,7 +312,7 @@ describe('blocks/header', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(() =>
-					blocksInstance.verifyInMemory(block, genesisBlock as any),
+					chainInstance.verifyInMemory(block, genesisBlock as any),
 				).toThrow('Invalid block timestamp');
 			});
 
@@ -322,7 +322,7 @@ describe('blocks/header', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(() =>
-					blocksInstance.verifyInMemory(block, genesisBlock as any),
+					chainInstance.verifyInMemory(block, genesisBlock as any),
 				).toThrow('Invalid block timestamp');
 			});
 
@@ -336,7 +336,7 @@ describe('blocks/header', () => {
 				expect.assertions(1);
 				// Act & Assert
 				await expect(() =>
-					blocksInstance.verifyInMemory(block, lastBlock),
+					chainInstance.verifyInMemory(block, lastBlock),
 				).toThrow('Invalid block timestamp');
 			});
 		});
@@ -348,7 +348,7 @@ describe('blocks/header', () => {
 				// Act & assert
 				let err;
 				try {
-					await blocksInstance.verifyInMemory(block, blocksInstance.lastBlock);
+					await chainInstance.verifyInMemory(block, chainInstance.lastBlock);
 				} catch (error) {
 					err = error;
 				}
@@ -364,7 +364,7 @@ describe('blocks/header', () => {
 
 			beforeEach(async () => {
 				// Arrage
-				validTx = blocksInstance.deserializeTransaction(
+				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -373,11 +373,11 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				txApplySpy = jest.spyOn(validTx, 'apply');
-				(blocksInstance as any).exceptions.inertTransactions = [validTx.id];
+				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
 				const stateStore = new StateStore(storageStub);
-				await blocksInstance.verify(block, stateStore, {
+				await chainInstance.verify(block, stateStore, {
 					skipExistingCheck: true,
 				});
 			});
@@ -402,7 +402,7 @@ describe('blocks/header', () => {
 
 			beforeEach(async () => {
 				// Arrage
-				notAllowedTx = blocksInstance.deserializeTransaction(
+				notAllowedTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -410,7 +410,7 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				originalClass = transactionClass;
@@ -418,7 +418,7 @@ describe('blocks/header', () => {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
+				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
@@ -439,7 +439,7 @@ describe('blocks/header', () => {
 
 				// Act && Assert
 				await expect(
-					blocksInstance.verify(block, stateStore, {
+					chainInstance.verify(block, stateStore, {
 						skipExistingCheck: true,
 					}),
 				).rejects.toMatchObject([
@@ -459,7 +459,7 @@ describe('blocks/header', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '0' },
 				]);
-				invalidTx = blocksInstance.deserializeTransaction(
+				invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -475,7 +475,7 @@ describe('blocks/header', () => {
 				const stateStore = new StateStore(storageStub);
 
 				await expect(
-					blocksInstance.verify(block, stateStore, {
+					chainInstance.verify(block, stateStore, {
 						skipExistingCheck: true,
 					}),
 				).rejects.toMatchObject([
@@ -496,7 +496,7 @@ describe('blocks/header', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000000000' },
 				]);
-				invalidTx = blocksInstance.deserializeTransaction(
+				invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -512,7 +512,7 @@ describe('blocks/header', () => {
 				const stateStore = new StateStore(storageStub);
 				let err;
 				try {
-					await blocksInstance.verify(block, stateStore, {
+					await chainInstance.verify(block, stateStore, {
 						skipExistingCheck: true,
 					});
 				} catch (errors) {
@@ -529,7 +529,7 @@ describe('blocks/header', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -546,7 +546,7 @@ describe('blocks/header', () => {
 
 				// Act && Assert
 				await expect(
-					blocksInstance.verify(block, stateStore, {
+					chainInstance.verify(block, stateStore, {
 						skipExistingCheck: false,
 					}),
 				).rejects.toThrow('already exists');
@@ -559,7 +559,7 @@ describe('blocks/header', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -577,7 +577,7 @@ describe('blocks/header', () => {
 
 				// Act && Assert
 				await expect(
-					blocksInstance.verify(block, stateStore, {
+					chainInstance.verify(block, stateStore, {
 						skipExistingCheck: false,
 					}),
 				).rejects.toMatchObject([
@@ -599,7 +599,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub);
 				// Arrage
 				block = newBlock();
-				await blocksInstance.apply(block, stateStore);
+				await chainInstance.apply(block, stateStore);
 			});
 
 			it('should not call account update', async () => {
@@ -614,7 +614,7 @@ describe('blocks/header', () => {
 
 			beforeEach(async () => {
 				// Arrage
-				validTx = blocksInstance.deserializeTransaction(
+				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -623,11 +623,11 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				txApplySpy = jest.spyOn(validTx, 'apply');
-				(blocksInstance as any).exceptions.inertTransactions = [validTx.id];
+				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
 				stateStore = new StateStore(storageStub);
-				await blocksInstance.apply(block, stateStore);
+				await chainInstance.apply(block, stateStore);
 			});
 
 			it('should not call apply for the transaction', async () => {
@@ -644,7 +644,7 @@ describe('blocks/header', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '0' },
 				]);
-				validTx = blocksInstance.deserializeTransaction(
+				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -659,7 +659,7 @@ describe('blocks/header', () => {
 
 			it('should throw error', async () => {
 				await expect(
-					blocksInstance.apply(block, stateStore),
+					chainInstance.apply(block, stateStore),
 				).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining(
@@ -670,7 +670,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not set the block to the last block', async () => {
-				expect(blocksInstance.lastBlock).toStrictEqual(genesisBlock);
+				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock);
 			});
 		});
 
@@ -718,14 +718,14 @@ describe('blocks/header', () => {
 					.mockResolvedValue([] as never);
 
 				// Act
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -738,7 +738,7 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: [validTx, validTx2] });
 				// Act
 				stateStore = new StateStore(storageStub);
-				await blocksInstance.apply(block, stateStore);
+				await chainInstance.apply(block, stateStore);
 			});
 
 			it('should call apply for the transaction', async () => {
@@ -758,7 +758,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should update vote weight on sender and recipient', async () => {
-				const newTx = blocksInstance.deserializeTransaction(
+				const newTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: genesisAccount.address,
@@ -767,10 +767,10 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				const nextBlock = newBlock({
-					height: blocksInstance.lastBlock.height + 1,
+					height: chainInstance.lastBlock.height + 1,
 					transactions: [newTx],
 				});
-				await blocksInstance.apply(nextBlock, stateStore);
+				await chainInstance.apply(nextBlock, stateStore);
 				// expect
 				// it should decrease by fee
 				const delegateOne = await stateStore.account.get(delegate1.address);
@@ -789,10 +789,10 @@ describe('blocks/header', () => {
 			// Arrage
 			storageStub.entities.Account.get.mockResolvedValue([]);
 			// Act
-			genesisInstance = blocksInstance.deserialize(genesisBlock);
+			genesisInstance = chainInstance.deserialize(genesisBlock);
 			// Act
 			stateStore = new StateStore(storageStub);
-			await blocksInstance.applyGenesis(genesisInstance, stateStore);
+			await chainInstance.applyGenesis(genesisInstance, stateStore);
 		});
 
 		describe('when transactions are all valid', () => {
@@ -817,7 +817,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub);
 				// Arrage
 				block = newBlock();
-				await blocksInstance.undo(block, stateStore);
+				await chainInstance.undo(block, stateStore);
 			});
 
 			it('should not call account update', async () => {
@@ -832,7 +832,7 @@ describe('blocks/header', () => {
 
 			beforeEach(async () => {
 				// Arrage
-				validTx = blocksInstance.deserializeTransaction(
+				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -841,11 +841,11 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				txUndoSpy = jest.spyOn(validTx, 'undo');
-				(blocksInstance as any).exceptions.inertTransactions = [validTx.id];
+				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
 				stateStore = new StateStore(storageStub);
-				await blocksInstance.undo(block, stateStore);
+				await chainInstance.undo(block, stateStore);
 			});
 
 			it('should not call undo for the transaction', async () => {
@@ -899,14 +899,14 @@ describe('blocks/header', () => {
 					delegate2,
 					recipient,
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -920,7 +920,7 @@ describe('blocks/header', () => {
 
 				// Act
 				stateStore = new StateStore(storageStub);
-				await blocksInstance.undo(block, stateStore);
+				await chainInstance.undo(block, stateStore);
 			});
 
 			it('should call undo for the transaction', async () => {

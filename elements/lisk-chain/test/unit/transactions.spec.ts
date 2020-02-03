@@ -21,7 +21,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Blocks } from '../../src';
+import { Chain } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
@@ -57,7 +57,7 @@ describe('blocks/transactions', () => {
 	);
 
 	let exceptions = {};
-	let blocksInstance: Blocks;
+	let chainInstance: Chain;
 	let storageStub: any;
 	let loggerStub: Logger;
 	let slots: Slots;
@@ -102,7 +102,7 @@ describe('blocks/transactions', () => {
 			transactions: [],
 		};
 
-		blocksInstance = new Blocks({
+		chainInstance = new Chain({
 			storage: storageStub,
 			logger: loggerStub,
 			genesisBlock,
@@ -112,7 +112,7 @@ describe('blocks/transactions', () => {
 			exceptions,
 			...constants,
 		});
-		(blocksInstance as any)._lastBlock = {
+		(chainInstance as any)._lastBlock = {
 			...genesisBlock,
 			receivedAt: new Date(),
 		};
@@ -125,7 +125,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -133,26 +133,26 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const notAllowedTx = blocksInstance.deserializeTransaction(
+				const notAllowedTx = chainInstance.deserializeTransaction(
 					registerSecondPassphrase({
 						passphrase: genesisAccount.passphrase,
 						secondPassphrase: 'second-passphrase',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
+				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
 				// Act
-				const result = await blocksInstance.filterReadyTransactions(
+				const result = await chainInstance.filterReadyTransactions(
 					[validTx, notAllowedTx],
 					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
 				);
@@ -168,7 +168,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000100' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -176,7 +176,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const notAllowedTx = blocksInstance.deserializeTransaction(
+				const notAllowedTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -185,7 +185,7 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				// Act
-				const result = await blocksInstance.filterReadyTransactions(
+				const result = await chainInstance.filterReadyTransactions(
 					[validTx, notAllowedTx],
 					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
 				);
@@ -207,7 +207,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000' },
 				]);
-				validTx = blocksInstance.deserializeTransaction(
+				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -215,7 +215,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				validTx2 = blocksInstance.deserializeTransaction(
+				validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -226,7 +226,7 @@ describe('blocks/transactions', () => {
 				validTxSpy = jest.spyOn(validTx, 'apply');
 				validTx2Spy = jest.spyOn(validTx2, 'apply');
 				// Act
-				result = await blocksInstance.filterReadyTransactions(
+				result = await chainInstance.filterReadyTransactions(
 					[validTx, validTx2],
 					{ blockTimestamp: 0, blockHeight: 1, blockVersion: 1 },
 				);
@@ -254,7 +254,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -262,28 +262,28 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const notAllowedTx = blocksInstance.deserializeTransaction(
+				const notAllowedTx = chainInstance.deserializeTransaction(
 					registerSecondPassphrase({
 						passphrase: genesisAccount.passphrase,
 						secondPassphrase: 'second-passphrase',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
+				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.validateTransactions([validTx, notAllowedTx]);
+				} = await chainInstance.validateTransactions([validTx, notAllowedTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -305,7 +305,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -313,7 +313,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const notAllowedTx = blocksInstance.deserializeTransaction(
+				const notAllowedTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -325,7 +325,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.validateTransactions([validTx, notAllowedTx]);
+				} = await chainInstance.validateTransactions([validTx, notAllowedTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -351,7 +351,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -359,7 +359,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -372,7 +372,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.validateTransactions([validTx, validTx2]);
+				} = await chainInstance.validateTransactions([validTx, validTx2]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
@@ -398,7 +398,7 @@ describe('blocks/transactions', () => {
 					{ address: genesisAccount.address, balance: '10000000000' },
 				]);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -406,28 +406,28 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const notAllowedTx = blocksInstance.deserializeTransaction(
+				const notAllowedTx = chainInstance.deserializeTransaction(
 					registerSecondPassphrase({
 						passphrase: genesisAccount.passphrase,
 						secondPassphrase: 'second-passphrase',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const transactionClass = (blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
+				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
 					get: () => () => false,
 					configurable: true,
 				});
-				(blocksInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
+				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
 					notAllowedTx.type,
 					transactionClass,
 				);
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.verifyTransactions([validTx, notAllowedTx]);
+				} = await chainInstance.verifyTransactions([validTx, notAllowedTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -449,7 +449,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -457,7 +457,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -469,7 +469,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.verifyTransactions([validTx, validTx2]);
+				} = await chainInstance.verifyTransactions([validTx, validTx2]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -491,7 +491,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000100' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -499,7 +499,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const invalidTx = blocksInstance.deserializeTransaction(
+				const invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -511,7 +511,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.verifyTransactions([validTx, invalidTx]);
+				} = await chainInstance.verifyTransactions([validTx, invalidTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -531,7 +531,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '1000000000' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -539,7 +539,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const invalidTx = blocksInstance.deserializeTransaction(
+				const invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -552,7 +552,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.verifyTransactions([validTx, invalidTx]);
+				} = await chainInstance.verifyTransactions([validTx, invalidTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -580,7 +580,7 @@ describe('blocks/transactions', () => {
 				]);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				// Act
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -588,7 +588,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -601,7 +601,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.verifyTransactions([validTx, validTx2]);
+				} = await chainInstance.verifyTransactions([validTx, validTx2]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
@@ -626,7 +626,7 @@ describe('blocks/transactions', () => {
 					{ address: genesisAccount.address, balance: '100000000' },
 				]);
 
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -635,7 +635,7 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -648,7 +648,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.processTransactions([validTx, validTx2]);
+				} = await chainInstance.processTransactions([validTx, validTx2]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 
@@ -673,7 +673,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000100' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -681,7 +681,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				const invalidTx = blocksInstance.deserializeTransaction(
+				const invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -693,7 +693,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.processTransactions([validTx, invalidTx]);
+				} = await chainInstance.processTransactions([validTx, invalidTx]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -743,14 +743,14 @@ describe('blocks/transactions', () => {
 				]);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				// Act
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
-				const validTx2 = blocksInstance.deserializeTransaction(
+				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
@@ -763,7 +763,7 @@ describe('blocks/transactions', () => {
 				// Act
 				const {
 					transactionsResponses,
-				} = await blocksInstance.processTransactions([validTx, validTx2]);
+				} = await chainInstance.processTransactions([validTx, validTx2]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
@@ -787,7 +787,7 @@ describe('blocks/transactions', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '10000100' },
 				]);
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
@@ -804,7 +804,7 @@ describe('blocks/transactions', () => {
 						'a8872f1ad9fb6603e233565d336dad80e43fb598f2461b955eed4b4eec544ef5fe7f88a54fed31a8e90f3565bf3ed48b1b5e5bdf4488312ba449eebbcff98f0d',
 				};
 				// Act
-				const transactionResponse = await blocksInstance.processSignature(
+				const transactionResponse = await chainInstance.processSignature(
 					validTx,
 					signatureObject,
 				);
@@ -840,7 +840,7 @@ describe('blocks/transactions', () => {
 					amount: '100',
 					networkIdentifier,
 				});
-				const validTx = blocksInstance.deserializeTransaction(
+				const validTx = chainInstance.deserializeTransaction(
 					transactionJSON as TransactionJSON,
 				);
 				const signatureObject = createSignatureObject({
@@ -849,7 +849,7 @@ describe('blocks/transactions', () => {
 					networkIdentifier,
 				});
 				// Act
-				const transactionResponse = await blocksInstance.processSignature(
+				const transactionResponse = await chainInstance.processSignature(
 					validTx,
 					signatureObject,
 				);
