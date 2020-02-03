@@ -325,6 +325,12 @@ class BFT extends EventEmitter {
 	get maxHeightPrevoted() {
 		return this.finalityManager.prevotedConfirmedHeight;
 	}
+
+	reset() {
+		this.finalityManager.headers.empty();
+		this.finalityManager.headers.empty();
+		this.finalityManager.recompute();
+	}
 }
 
 module.exports = {
