@@ -19,9 +19,11 @@ import * as url from 'url';
 
 import {
 	ConnectionKind,
+	DEFAULT_CONTROL_MESSAGE_LIMIT,
 	DEFAULT_HTTP_PATH,
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	DEFAULT_NODE_HOST_IP,
+	DEFAULT_RATE_CALCULATION_INTERVAL,
 	DUPLICATE_CONNECTION,
 	DUPLICATE_CONNECTION_REASON,
 	FORBIDDEN_CONNECTION,
@@ -36,8 +38,11 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from '../constants';
+import { PeerInboundHandshakeError } from '../errors';
 import {
+	EVENT_BAN_PEER,
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_NEW_INBOUND_PEER,
 } from '../events';
 import {
@@ -54,8 +59,6 @@ import {
 	validatePeerInfo,
 } from '../utils';
 
-import { PeerInboundHandshakeError } from './../errors';
-
 interface SCServerUpdated extends SCServer {
 	readonly isReady: boolean;
 }
@@ -71,6 +74,8 @@ export class PeerServer extends EventEmitter {
 	private readonly _httpServer: http.Server;
 	private readonly _scServer: SCServerUpdated;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
+	protected _invalidMessageInterval?: NodeJS.Timer;
+	protected _invalidMessageCounter: Map<string, number>;
 
 	public constructor(config: PeerServerConfig) {
 		super();
@@ -87,236 +92,65 @@ export class PeerServer extends EventEmitter {
 		}) as SCServerUpdated;
 		this._maxPeerInfoSize = config.maxPeerInfoSize;
 		this._peerHandshakeCheck = config.peerHandshakeCheck;
-	}
-
-	private async _stopHTTPServer(): Promise<void> {
-		return new Promise<void>(resolve => {
-			this._httpServer.close(() => {
-				resolve();
-			});
-		});
-	}
-
-	private async _stopWSServer(): Promise<void> {
-		return new Promise<void>(resolve => {
-			this._scServer.close(() => {
-				resolve();
-			});
-		});
+		this._invalidMessageCounter = new Map();
 	}
 
 	public async stop(): Promise<void> {
+		if (this._invalidMessageInterval) {
+			clearTimeout(this._invalidMessageInterval);
+		}
+
 		await this._stopWSServer();
 		await this._stopHTTPServer();
 	}
 
 	public async start(): Promise<void> {
+		this._invalidMessageInterval = setInterval(() => {
+			this._invalidMessageCounter = new Map();
+		}, DEFAULT_RATE_CALCULATION_INTERVAL);
+
+		this._scServer.addMiddleware(
+			this._scServer.MIDDLEWARE_HANDSHAKE_WS,
+			(
+				req: http.IncomingMessage,
+				next: SCServer.nextMiddlewareFunction,
+			): void => {
+				// Decline connections from banned IPs
+				if (this._peerBook.bannedIPs.has(req.socket.remoteAddress as string)) {
+					next(
+						new PeerInboundHandshakeError(
+							FORBIDDEN_CONNECTION_REASON,
+							FORBIDDEN_CONNECTION,
+							req.socket.remoteAddress as string,
+						),
+					);
+
+					return;
+				}
+
+				next();
+
+				return;
+			},
+		);
+
 		this._scServer.on('handshake', (socket: SCServerSocket): void => {
-			// Terminate the connection the moment it receive ping frame
-			(socket as any).socket.on('ping', () => {
-				(socket as any).socket.terminate();
-
-				return;
-			});
-			// Terminate the connection the moment it receive pong frame
-			(socket as any).socket.on('pong', () => {
-				(socket as any).socket.terminate();
-
-				return;
-			});
-
 			if (this._peerBook.bannedIPs.has(socket.remoteAddress)) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					FORBIDDEN_CONNECTION,
-					FORBIDDEN_CONNECTION_REASON,
-				);
-
-				return;
+				if ((socket as any).socket) {
+					(socket as any).socket.terminate();
+				}
 			}
+
+			this._bindInvalidControlFrameEvents(socket);
+		});
+
+		// Handle incoming invalid payload
+		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
+			this._handleIncomingPayload(ws, req);
 		});
 
 		this._scServer.on('connection', (socket: SCServerSocket): void => {
-			if (!socket.request.url) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_URL_CODE,
-					INVALID_CONNECTION_URL_REASON,
-				);
-
-				return;
-			}
-			const queryObject = url.parse(socket.request.url, true).query;
-
-			if (queryObject.nonce === this._nodeInfo.nonce) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_SELF_CODE,
-					INVALID_CONNECTION_SELF_REASON,
-				);
-
-				const selfWSPort = queryObject.wsPort
-					? +queryObject.wsPort
-					: this._nodeInfo.wsPort;
-
-				// Delete you peerinfo from both the lists
-				this._peerBook.removePeer({
-					peerId: constructPeerId(socket.remoteAddress, selfWSPort),
-					ipAddress: socket.remoteAddress,
-					wsPort: selfWSPort,
-				});
-
-				return;
-			}
-
-			if (
-				typeof queryObject.wsPort !== 'string' ||
-				typeof queryObject.version !== 'string' ||
-				typeof queryObject.networkId !== 'string'
-			) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_QUERY_CODE,
-					INVALID_CONNECTION_QUERY_REASON,
-				);
-
-				return;
-			}
-
-			const remoteWSPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-			const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
-
-			// tslint:disable-next-line no-let
-			let queryOptions;
-
-			try {
-				queryOptions =
-					typeof queryObject.options === 'string'
-						? JSON.parse(queryObject.options)
-						: undefined;
-			} catch (error) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INVALID_CONNECTION_QUERY_CODE,
-					INVALID_CONNECTION_QUERY_REASON,
-				);
-
-				return;
-			}
-
-			// Remove these wsPort and ip from the query object
-			const {
-				wsPort,
-				ipAddress,
-				advertiseAddress,
-				...restOfQueryObject
-			} = queryObject;
-
-			const peerInPeerBook = this._peerBook.getPeer({
-				peerId,
-				ipAddress: socket.remoteAddress,
-				wsPort: remoteWSPort,
-			});
-
-			const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
-				? {
-						...peerInPeerBook,
-						sharedState: {
-							...peerInPeerBook.sharedState,
-							...restOfQueryObject,
-							...queryOptions,
-							height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-							protocolVersion: queryObject.protocolVersion,
-						},
-						internalState: {
-							...(peerInPeerBook.internalState
-								? peerInPeerBook.internalState
-								: assignInternalInfo(peerInPeerBook, this._secret)),
-							advertiseAddress: advertiseAddress !== 'false',
-							connectionKind: ConnectionKind.INBOUND,
-						},
-				  }
-				: {
-						sharedState: {
-							...restOfQueryObject,
-							...queryOptions,
-							height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
-							protocolVersion: queryObject.protocolVersion,
-						},
-						internalState: {
-							...assignInternalInfo(
-								{
-									peerId,
-									ipAddress: socket.remoteAddress,
-									wsPort: remoteWSPort,
-								},
-								this._secret,
-							),
-							advertiseAddress: advertiseAddress !== 'false',
-							connectionKind: ConnectionKind.INBOUND,
-						},
-						peerId,
-						ipAddress: socket.remoteAddress,
-						wsPort: remoteWSPort,
-				  };
-
-			try {
-				validatePeerInfo(
-					incomingPeerInfo,
-					this._maxPeerInfoSize
-						? this._maxPeerInfoSize
-						: DEFAULT_MAX_PEER_INFO_SIZE,
-				);
-			} catch (error) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INCOMPATIBLE_PEER_INFO_CODE,
-					error,
-				);
-			}
-
-			const { success, error } = this._peerHandshakeCheck(
-				incomingPeerInfo,
-				this._nodeInfo,
-			);
-
-			if (!success) {
-				const incompatibilityReason = error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
-
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					INCOMPATIBLE_PEER_CODE,
-					incompatibilityReason,
-				);
-
-				return;
-			}
-
-			try {
-				const incomingPeerConnection: IncomingPeerConnection = {
-					peerInfo: incomingPeerInfo,
-					socket,
-				};
-
-				this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection);
-			} catch (err) {
-				this._disconnectSocketDueToFailedHandshake(
-					socket,
-					DUPLICATE_CONNECTION,
-					DUPLICATE_CONNECTION_REASON,
-				);
-
-				return;
-			}
-
-			if (this._peerBook.hasPeer(incomingPeerInfo)) {
-				return;
-			}
-
-			this._peerBook.addPeer({
-				...incomingPeerInfo,
-				sourceAddress: socket.remoteAddress,
-			});
+			this._handleIncomingConnection(socket);
 		});
 
 		this._httpServer.listen(
@@ -335,12 +169,32 @@ export class PeerServer extends EventEmitter {
 		});
 	}
 
+	private _terminateIncomingSocket(
+		socket: SCServerSocket,
+		error: Error | string,
+		addToBannedPeers?: boolean,
+	): void {
+		if ((socket as any).socket) {
+			(socket as any).socket.terminate();
+		}
+		// Re-emit the message to allow it to bubble up the class hierarchy.
+		this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
+
+		// If the socket needs to be permanently banned
+		if (addToBannedPeers) {
+			const peerId = `${socket.remoteAddress}:${socket.remotePort}`;
+
+			this.emit(EVENT_BAN_PEER, peerId);
+		}
+	}
+
 	private _disconnectSocketDueToFailedHandshake(
 		socket: SCServerSocket,
 		statusCode: number,
 		closeReason: string,
 	): void {
 		socket.disconnect(statusCode, closeReason);
+
 		this.emit(
 			EVENT_FAILED_TO_ADD_INBOUND_PEER,
 			new PeerInboundHandshakeError(
@@ -350,5 +204,278 @@ export class PeerServer extends EventEmitter {
 				socket.request.url,
 			),
 		);
+	}
+
+	private _handleIncomingConnection(socket: SCServerSocket): void {
+		if (!socket.request.url) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_URL_CODE,
+				INVALID_CONNECTION_URL_REASON,
+			);
+
+			return;
+		}
+		const queryObject = url.parse(socket.request.url, true).query;
+
+		if (queryObject.nonce === this._nodeInfo.nonce) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_SELF_CODE,
+				INVALID_CONNECTION_SELF_REASON,
+			);
+
+			const selfWSPort = queryObject.wsPort
+				? +queryObject.wsPort
+				: this._nodeInfo.wsPort;
+
+			// Delete you peerInfo from both the lists
+			this._peerBook.removePeer({
+				peerId: constructPeerId(socket.remoteAddress, selfWSPort),
+				ipAddress: socket.remoteAddress,
+				wsPort: selfWSPort,
+			});
+
+			return;
+		}
+
+		if (
+			typeof queryObject.wsPort !== 'string' ||
+			typeof queryObject.version !== 'string' ||
+			typeof queryObject.networkId !== 'string'
+		) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_QUERY_CODE,
+				INVALID_CONNECTION_QUERY_REASON,
+			);
+
+			return;
+		}
+
+		const remoteWSPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
+		const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
+
+		// tslint:disable-next-line no-let
+		let queryOptions;
+
+		try {
+			queryOptions =
+				typeof queryObject.options === 'string'
+					? JSON.parse(queryObject.options)
+					: undefined;
+		} catch (error) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INVALID_CONNECTION_QUERY_CODE,
+				INVALID_CONNECTION_QUERY_REASON,
+			);
+
+			return;
+		}
+
+		// Remove these wsPort and ip from the query object
+		const {
+			wsPort,
+			ipAddress,
+			advertiseAddress,
+			...restOfQueryObject
+		} = queryObject;
+
+		const peerInPeerBook = this._peerBook.getPeer({
+			peerId,
+			ipAddress: socket.remoteAddress,
+			wsPort: remoteWSPort,
+		});
+
+		const incomingPeerInfo: P2PPeerInfo = peerInPeerBook
+			? {
+					...peerInPeerBook,
+					sharedState: {
+						...peerInPeerBook.sharedState,
+						...restOfQueryObject,
+						...queryOptions,
+						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+						protocolVersion: queryObject.protocolVersion,
+					},
+					internalState: {
+						...(peerInPeerBook.internalState
+							? peerInPeerBook.internalState
+							: assignInternalInfo(peerInPeerBook, this._secret)),
+						advertiseAddress: advertiseAddress !== 'false',
+						connectionKind: ConnectionKind.INBOUND,
+					},
+			  }
+			: {
+					sharedState: {
+						...restOfQueryObject,
+						...queryOptions,
+						height: queryObject.height ? +queryObject.height : 0, // TODO: Remove the usage of height for choosing among peers having same ipAddress, instead use productivity and reputation
+						protocolVersion: queryObject.protocolVersion,
+					},
+					internalState: {
+						...assignInternalInfo(
+							{
+								peerId,
+								ipAddress: socket.remoteAddress,
+								wsPort: remoteWSPort,
+							},
+							this._secret,
+						),
+						advertiseAddress: advertiseAddress !== 'false',
+						connectionKind: ConnectionKind.INBOUND,
+					},
+					peerId,
+					ipAddress: socket.remoteAddress,
+					wsPort: remoteWSPort,
+			  };
+
+		try {
+			validatePeerInfo(
+				incomingPeerInfo,
+				this._maxPeerInfoSize
+					? this._maxPeerInfoSize
+					: DEFAULT_MAX_PEER_INFO_SIZE,
+			);
+		} catch (error) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INCOMPATIBLE_PEER_INFO_CODE,
+				error,
+			);
+		}
+
+		const { success, error } = this._peerHandshakeCheck(
+			incomingPeerInfo,
+			this._nodeInfo,
+		);
+
+		if (!success) {
+			const errorReason = error || INCOMPATIBLE_PEER_UNKNOWN_REASON;
+
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				INCOMPATIBLE_PEER_CODE,
+				errorReason,
+			);
+
+			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, errorReason);
+
+			return;
+		}
+
+		try {
+			const incomingPeerConnection: IncomingPeerConnection = {
+				peerInfo: incomingPeerInfo,
+				socket,
+			};
+
+			this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection);
+		} catch (err) {
+			this._disconnectSocketDueToFailedHandshake(
+				socket,
+				DUPLICATE_CONNECTION,
+				DUPLICATE_CONNECTION_REASON,
+			);
+
+			return;
+		}
+
+		if (!this._peerBook.hasPeer(incomingPeerInfo)) {
+			this._peerBook.addPeer({
+				...incomingPeerInfo,
+				sourceAddress: socket.remoteAddress,
+			});
+		}
+
+		return;
+	}
+
+	private _bindInvalidControlFrameEvents(socket: SCServerSocket): void {
+		// Terminate the connection the moment it receive ping frame
+		(socket as any).socket.on('ping', () => {
+			this._terminateIncomingSocket(
+				socket,
+				`Terminated connection peer: ${socket.remoteAddress}, reason: malicious ping control frames`,
+				true,
+			);
+		});
+		// Terminate the connection the moment it receive pong frame
+		(socket as any).socket.on('pong', () => {
+			this._terminateIncomingSocket(
+				socket,
+				`Terminated connection peer: ${socket.remoteAddress}, reason: malicious pong control frames`,
+				true,
+			);
+		});
+	}
+
+	private _handleIncomingPayload(ws: any, _req: any): void {
+		ws.on('message', (message: any) => {
+			// Pong message
+			if (message === '#2') {
+				return;
+			}
+
+			const MAX_EVENT_NAME_LENGTH = 128;
+
+			const peerIpAddress = ws._socket._peername.address;
+
+			const peerId = `${peerIpAddress}:${ws._socket._peername.port}`;
+
+			try {
+				const parsed = JSON.parse(message);
+
+				const invalidEvents: Set<string> = new Set([
+					'#authenticate',
+					'#removeAuthToken',
+					'#subscribe',
+					'#unsubscribe',
+					'#publish',
+				]);
+
+				if (
+					(parsed.event && typeof parsed.event !== 'string') ||
+					invalidEvents.has(parsed.event) ||
+					parsed.event.length > MAX_EVENT_NAME_LENGTH
+				) {
+					throw new Error('Received invalid payload');
+				}
+
+				if (parsed.event === '#disconnect') {
+					const count =
+						(this._invalidMessageCounter.get(peerIpAddress) || 0) + 1;
+					this._invalidMessageCounter.set(peerIpAddress, count);
+
+					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {
+						throw new Error('Received invalid payload');
+					}
+				}
+			} catch (error) {
+				ws.terminate();
+
+				this.emit(EVENT_BAN_PEER, peerId);
+				this.emit(
+					EVENT_INBOUND_SOCKET_ERROR,
+					`Banned peer with Ip: ${peerIpAddress}, reason: ${error}, message: ${message}`,
+				);
+			}
+		});
+	}
+
+	private async _stopHTTPServer(): Promise<void> {
+		return new Promise<void>(resolve => {
+			this._httpServer.close(() => {
+				resolve();
+			});
+		});
+	}
+
+	private async _stopWSServer(): Promise<void> {
+		return new Promise<void>(resolve => {
+			this._scServer.close(() => {
+				resolve();
+			});
+		});
 	}
 }

@@ -14,7 +14,7 @@
  */
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
-import { DEFAULT_WS_MAX_PAYLOAD, DEFAULT_HTTP_PATH } from '../../src/constants';
+import { DEFAULT_WS_MAX_PAYLOAD } from '../../src/constants';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
@@ -53,13 +53,7 @@ describe('p2p', () => {
 			return expect(P2PNode).toEqual(expect.any(Object));
 		});
 
-		it('should set the path to the default http path', () => {
-			return expect((P2PNode as any)._scServer.options.path).toEqual(
-				DEFAULT_HTTP_PATH,
-			);
-		});
-
-		it('should be an instance of P2P blockchain', () => {
+		it('should be an instance of P2P', () => {
 			return expect(P2PNode).toBeInstanceOf(P2P);
 		});
 
@@ -73,14 +67,6 @@ describe('p2p', () => {
 					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
 					.map(peer => peer.peerId),
 			);
-		});
-
-		it('should configure Websocket options', async () => {
-			const websocketOptions = (P2PNode as any)._scServer.wsServer.options;
-
-			expect(websocketOptions).toMatchObject({
-				maxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
-			});
 		});
 
 		it('should reject at multiple start attempt', async () => {

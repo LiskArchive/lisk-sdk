@@ -47,6 +47,7 @@ import {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_DISCOVERED_PEER,
 	EVENT_FAILED_PEER_INFO_UPDATE,
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
 	EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
 	EVENT_FAILED_TO_FETCH_PEER_INFO,
 	EVENT_FAILED_TO_FETCH_PEERS,
@@ -172,7 +173,6 @@ export class P2P extends EventEmitter {
 	private _isActive: boolean;
 	private _hasConnected: boolean;
 	private readonly _peerBook: PeerBook;
-	private _peerServer: PeerServer | undefined;
 	private readonly _populatorInterval: number;
 	private _nextSeedPeerDiscovery: number;
 	private readonly _fallbackSeedPeerDiscoveryInterval: number;
@@ -180,6 +180,7 @@ export class P2P extends EventEmitter {
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _secret: number;
+	private _peerServer?: PeerServer;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
 	private readonly _handlePeerPoolMessage: (message: P2PMessagePacket) => void;
@@ -208,6 +209,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
+	private readonly _handleFailedAddInbound: (error: Error) => void;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -242,7 +244,6 @@ export class P2P extends EventEmitter {
 		this._config = config;
 		this._isActive = false;
 		this._hasConnected = false;
-		this._peerServer = undefined;
 		this._peerBook = new PeerBook({
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
@@ -324,13 +325,23 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 
+		this._handleFailedAddInbound = (err: Error) => {
+			// Re-emit the message to allow it to bubble up the class hierarchy.
+			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
+		};
+
 		this._handleInboundPeerConnect = (
 			incomingPeerConnection: IncomingPeerConnection,
 		) => {
-			this._peerPool.addInboundPeer(
-				incomingPeerConnection.peerInfo,
-				incomingPeerConnection.socket,
-			);
+			try {
+				this._peerPool.addInboundPeer(
+					incomingPeerConnection.peerInfo,
+					incomingPeerConnection.socket,
+				);
+			} catch (err) {
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
+			}
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection.peerInfo);
@@ -376,6 +387,10 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleBanPeer = (peerId: string): void => {
+			const banTime = this._config.peerBanTime || DEFAULT_BAN_TIME;
+
+			this._peerBook.addBannedPeer(peerId, banTime);
+
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -647,7 +662,7 @@ export class P2P extends EventEmitter {
 			throw new Error('Node cannot start because it is already active.');
 		}
 
-		if (this._config.maxOutboundConnections !== 0) {
+		if (this._config.maxInboundConnections !== 0) {
 			this._peerServer = new PeerServer({
 				nodeInfo: this._nodeInfo,
 				hostIp: this._config.hostIp || DEFAULT_NODE_HOST_IP,
@@ -740,6 +755,12 @@ export class P2P extends EventEmitter {
 	}
 
 	private _bindHandlersToPeerServer(peerServer: PeerServer): void {
+		peerServer.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peerServer.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
+		peerServer.on(
+			EVENT_FAILED_TO_ADD_INBOUND_PEER,
+			this._handleFailedAddInbound,
+		);
 		peerServer.on(EVENT_NEW_INBOUND_PEER, this._handleInboundPeerConnect);
 	}
 	// tslint:disable-next-line:max-file-line-count
