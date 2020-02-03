@@ -232,7 +232,7 @@ export class VoteTransaction extends BaseTransaction {
 		}
 		const updatedSender = {
 			...sender,
-			votedDelegatesPublicKeys,
+			votedDelegatesPublicKeys: votedDelegatesPublicKeys as string[],
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
@@ -270,7 +270,7 @@ export class VoteTransaction extends BaseTransaction {
 
 		const updatedSender = {
 			...sender,
-			votedDelegatesPublicKeys,
+			votedDelegatesPublicKeys: votedDelegatesPublicKeys as string[],
 		};
 		store.account.set(updatedSender.address, updatedSender);
 
