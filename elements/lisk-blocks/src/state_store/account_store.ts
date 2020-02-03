@@ -22,6 +22,27 @@ import {
 	StorageTransaction,
 } from '../types';
 
+export const sanitizeAccountForStorage = (
+	account: Partial<Account>,
+): Partial<AccountJSON> => {
+	const {
+		addBalance,
+		balance,
+		voteWeight,
+		fees,
+		rewards,
+		...restOfAccount
+	} = account;
+
+	return {
+		...restOfAccount,
+		balance: balance?.toString(),
+		voteWeight: voteWeight?.toString(),
+		fees: fees?.toString(),
+		rewards: rewards?.toString(),
+	};
+};
+
 export class AccountStore {
 	private readonly _account: StorageEntity<AccountJSON>;
 	private _data: Account[];
@@ -121,10 +142,7 @@ export class AccountStore {
 			return cloneDeep(new Account(elementFromDB));
 		}
 
-		const defaultElement: Account = new Account({
-			...Account.defaultAccount,
-			[this._primaryKey]: primaryValue,
-		});
+		const defaultElement: Account = Account.getDefaultAccount(primaryValue);
 
 		const newElementIndex = this._data.push(defaultElement) - 1;
 		this._updatedKeys[newElementIndex] = Object.keys(defaultElement);
@@ -190,8 +208,13 @@ export class AccountStore {
 				const filter = { [this._primaryKey]: updatedItem[this._primaryKey] };
 				const updatedData = pick(updatedItem, updatedKeys);
 
-				// tslint:disable-next-line no-null-keyword
-				return this._account.upsert(filter, updatedData, null, tx);
+				return this._account.upsert(
+					filter,
+					sanitizeAccountForStorage(updatedData),
+					// tslint:disable-next-line:no-null-keyword
+					null,
+					tx,
+				);
 			},
 		);
 

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { AccountJSON } from './types';
-export type AccountInfoWithoutAddress = Omit<AccountJSON, 'address'>;
 
 export class Account {
 	public address: string;
@@ -61,25 +60,27 @@ export class Account {
 		this.membersPublicKeys = accountInfo.membersPublicKeys;
 	}
 
-	public static defaultAccount: AccountInfoWithoutAddress = {
-		publicKey: undefined,
-		secondPublicKey: undefined,
-		secondSignature: false,
-		username: undefined,
-		isDelegate: 0,
-		balance: BigInt(0),
-		missedBlocks: 0,
-		producedBlocks: 0,
-		fees: BigInt(0),
-		rewards: BigInt(0),
-		voteWeight: BigInt(0),
-		nameExist: false,
-		multiMin: 0,
-		multiLifetime: 0,
-		votedDelegatesPublicKeys: undefined,
-		asset: {},
-		membersPublicKeys: [],
-	};
+	public static getDefaultAccount = (address: string): Account =>
+		new Account({
+			address,
+			publicKey: undefined,
+			secondPublicKey: undefined,
+			secondSignature: false,
+			username: undefined,
+			isDelegate: 0,
+			balance: BigInt(0),
+			missedBlocks: 0,
+			producedBlocks: 0,
+			fees: BigInt(0),
+			rewards: BigInt(0),
+			voteWeight: BigInt(0),
+			nameExist: false,
+			multiMin: 0,
+			multiLifetime: 0,
+			votedDelegatesPublicKeys: undefined,
+			asset: {},
+			membersPublicKeys: [],
+		});
 
 	public addBalance(balance: string | BigInt): void {
 		this.balance = this.balance + BigInt(balance);

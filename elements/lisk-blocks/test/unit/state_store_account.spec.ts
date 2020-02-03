@@ -17,32 +17,6 @@ import { StorageTransaction } from '../../src/types';
 import { Account } from '../../src';
 
 describe('state store / account', () => {
-	const defaultAccounts = [
-		{
-			...Account.defaultAccount,
-			address: '1276152240083265771L',
-			balance: '100',
-		},
-		{
-			...Account.defaultAccount,
-			address: '11237980039345381032L',
-			balance: '555',
-		},
-	];
-
-	const stateStoreAccounts = [
-		new Account({
-			...Account.defaultAccount,
-			address: '1276152240083265771L',
-			balance: BigInt(100),
-		}),
-		new Account({
-			...Account.defaultAccount,
-			address: '11237980039345381032L',
-			balance: BigInt(555),
-		}),
-	];
-
 	const defaultAccount = {
 		publicKey: undefined,
 		secondPublicKey: undefined,
@@ -55,13 +29,38 @@ describe('state store / account', () => {
 		fees: BigInt(0),
 		rewards: BigInt(0),
 		voteWeight: BigInt(0),
-		nameExist: false,
 		multiMin: 0,
 		multiLifetime: 0,
 		votedDelegatesPublicKeys: undefined,
 		asset: {},
 		membersPublicKeys: [],
 	};
+
+	const defaultAccounts = [
+		{
+			...defaultAccount,
+			address: '1276152240083265771L',
+			balance: '100',
+		},
+		{
+			...defaultAccount,
+			address: '11237980039345381032L',
+			balance: '555',
+		},
+	];
+
+	const stateStoreAccounts = [
+		new Account({
+			...defaultAccount,
+			address: '1276152240083265771L',
+			balance: BigInt(100),
+		}),
+		new Account({
+			...defaultAccount,
+			address: '11237980039345381032L',
+			balance: BigInt(555),
+		}),
+	];
 
 	let stateStore: StateStore;
 	let storageStub: any;
