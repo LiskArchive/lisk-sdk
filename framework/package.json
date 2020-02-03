@@ -46,7 +46,7 @@
 		"mocha:network": "node test/mocha/common/lisk-mocha-runner network"
 	},
 	"dependencies": {
-		"@liskhq/lisk-blocks": "0.1.0",
+		"@liskhq/lisk-chain": "0.1.0",
 		"@liskhq/lisk-bft": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.4.1",
 		"@liskhq/lisk-p2p": "0.4.1",

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { baseBlockSchema } = require('@liskhq/lisk-blocks');
+const { baseBlockSchema } = require('@liskhq/lisk-chain');
 const {
 	BIG_ENDIAN,
 	hash,

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { Blocks } = require('@liskhq/lisk-blocks');
+const { Chain } = require('@liskhq/lisk-chain');
 const {
 	Dpos,
 	constants: { EVENT_ROUND_CHANGED },
@@ -101,7 +101,7 @@ module.exports = class Node {
 
 			// Prepare dependency
 			const processorDependencies = {
-				blocksModule: this.blocks,
+				chainModule: this.chain,
 				bftModule: this.bft,
 				dposModule: this.dpos,
 				storage: this.storage,
@@ -165,10 +165,10 @@ module.exports = class Node {
 
 			// Update Application State after processor is initialized
 			this.channel.invoke('app:updateApplicationState', {
-				height: this.blocks.lastBlock.height,
-				lastBlockId: this.blocks.lastBlock.id,
-				maxHeightPrevoted: this.blocks.lastBlock.maxHeightPrevoted || 0,
-				blockVersion: this.blocks.lastBlock.version,
+				height: this.chain.lastBlock.height,
+				lastBlockId: this.chain.lastBlock.id,
+				maxHeightPrevoted: this.chain.lastBlock.maxHeightPrevoted || 0,
+				blockVersion: this.chain.lastBlock.version,
 			});
 
 			this._subscribeToEvents();
@@ -226,11 +226,11 @@ module.exports = class Node {
 	get actions() {
 		return {
 			calculateSupply: action =>
-				this.blocks.blockReward.calculateSupply(action.params.height),
+				this.chain.blockReward.calculateSupply(action.params.height),
 			calculateMilestone: action =>
-				this.blocks.blockReward.calculateMilestone(action.params.height),
+				this.chain.blockReward.calculateMilestone(action.params.height),
 			calculateReward: action =>
-				this.blocks.blockReward.calculateReward(action.params.height),
+				this.chain.blockReward.calculateReward(action.params.height),
 			getForgerPublicKeysForRound: async action =>
 				this.dpos.getForgerPublicKeysForRound(action.params.round),
 			updateForgingStatus: async action =>
@@ -255,18 +255,18 @@ module.exports = class Node {
 				this.transport.handleEventPostTransaction(action.params),
 			getSlotNumber: async action =>
 				action.params
-					? this.blocks.slots.getSlotNumber(action.params.epochTime)
-					: this.blocks.slots.getSlotNumber(),
+					? this.chain.slots.getSlotNumber(action.params.epochTime)
+					: this.chain.slots.getSlotNumber(),
 			calcSlotRound: async action =>
 				this.dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getCount(),
-				secondsSinceEpoch: this.blocks.slots.getEpochTime(),
-				lastBlock: this.blocks.lastBlock,
+				secondsSinceEpoch: this.chain.slots.getEpochTime(),
+				lastBlock: this.chain.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
 			}),
-			getLastBlock: async () => this.processor.serialize(this.blocks.lastBlock),
+			getLastBlock: async () => this.processor.serialize(this.chain.lastBlock),
 			getBlocksFromId: async action =>
 				this.transport.handleRPCGetBlocksFromId(
 					action.params.data,
@@ -308,7 +308,7 @@ module.exports = class Node {
 	async _initModules() {
 		this.modules = {};
 
-		this.blocks = new Blocks({
+		this.chain = new Chain({
 			logger: this.logger,
 			storage: this.storage,
 			sequence: this.sequence,
@@ -331,9 +331,9 @@ module.exports = class Node {
 			blockTime: this.options.constants.BLOCK_TIME,
 		});
 
-		this.slots = this.blocks.slots;
+		this.slots = this.chain.slots;
 		this.dpos = new Dpos({
-			blocks: this.blocks,
+			blocks: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: this.options.constants
 				.DELEGATE_LIST_ROUND_OFFSET,
@@ -344,7 +344,7 @@ module.exports = class Node {
 			storage: this.storage,
 			logger: this.logger,
 			rounds: this.dpos.rounds,
-			slots: this.blocks.slots,
+			slots: this.chain.slots,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
@@ -357,7 +357,7 @@ module.exports = class Node {
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
-			blocksModule: this.blocks,
+			chainModule: this.chain,
 		});
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
@@ -365,7 +365,7 @@ module.exports = class Node {
 			bft: this.bft,
 			rounds: this.dpos.rounds,
 			channel: this.channel,
-			blocks: this.blocks,
+			blocks: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			processorModule: this.processor,
 		});
@@ -374,7 +374,7 @@ module.exports = class Node {
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
-			blocks: this.blocks,
+			blocks: this.chain,
 			bft: this.bft,
 			dpos: this.dpos,
 			processor: this.processor,
@@ -383,18 +383,18 @@ module.exports = class Node {
 
 		this.synchronizer = new Synchronizer({
 			logger: this.logger,
-			blocksModule: this.blocks,
+			chainModule: this.chain,
 			processorModule: this.processor,
 			storageModule: this.storage,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
-		this.modules.blocks = this.blocks;
+		this.modules.blocks = this.chain;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			storage: this.storage,
-			blocks: this.blocks,
-			slots: this.blocks.slots,
+			blocks: this.chain,
+			slots: this.chain.slots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
@@ -411,7 +411,7 @@ module.exports = class Node {
 			logger: this.logger,
 			processorModule: this.processor,
 			transactionPoolModule: this.transactionPool,
-			blocksModule: this.blocks,
+			chainModule: this.chain,
 			loadPerIteration: this.options.loading.loadPerIteration,
 			syncingActive: this.options.syncing.active,
 		});
@@ -420,7 +420,7 @@ module.exports = class Node {
 			logger: this.logger,
 			storage: this.storage,
 			genesisBlock: this.options.genesisBlock,
-			blocksModule: this.blocks,
+			chainModule: this.chain,
 			processorModule: this.processor,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
@@ -432,7 +432,7 @@ module.exports = class Node {
 			dposModule: this.dpos,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
-			blocksModule: this.blocks,
+			chainModule: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			maxTransactionsPerBlock: this.options.constants
 				.MAX_TRANSACTIONS_PER_BLOCK,
@@ -450,7 +450,7 @@ module.exports = class Node {
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
-			blocksModule: this.blocks,
+			chainModule: this.chain,
 			loaderModule: this.loader,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
@@ -513,7 +513,7 @@ module.exports = class Node {
 				if (block.transactions.length) {
 					const transactions = block.transactions
 						.reverse()
-						.map(tx => this.blocks.deserializeTransaction(tx));
+						.map(tx => this.chain.deserializeTransaction(tx));
 					this.transactionPool.onDeletedTransactions(transactions);
 					this.channel.publish(
 						'app:transactions:confirmed:change',
@@ -531,7 +531,7 @@ module.exports = class Node {
 		this.channel.subscribe('app:processor:newBlock', ({ data: { block } }) => {
 			if (block.transactions.length) {
 				this.transactionPool.onConfirmedTransactions(
-					block.transactions.map(tx => this.blocks.deserializeTransaction(tx)),
+					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
 				);
 				this.channel.publish(
 					'app:transactions:confirmed:change',
@@ -590,7 +590,7 @@ module.exports = class Node {
 
 	_unsubscribeToEvents() {
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-		this.blocks.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
-		this.blocks.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
+		this.chain.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
+		this.chain.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };
