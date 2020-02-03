@@ -15,6 +15,7 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
+import { Account } from '../account';
 import { StateStore } from '../state_store';
 import { ExceptionOptions } from '../types';
 
@@ -64,8 +65,10 @@ const updateDelegateVote = async (
 	const voteWeight = add
 		? voteBigInt + BigInt(amount)
 		: voteBigInt - BigInt(amount);
-	delegateAccount.voteWeight = voteWeight.toString();
-	stateStore.account.set(delegateAddress, delegateAccount);
+
+	const updatedDelegatedAccount = new Account(delegateAccount);
+	updatedDelegatedAccount.voteWeight = BigInt(voteWeight.toString());
+	stateStore.account.set(delegateAddress, updatedDelegatedAccount);
 };
 
 const getRecipientAddress = (
@@ -220,7 +223,7 @@ const updateDelegateVotes = async (
 		const delegatePublicKey = vote.slice(1);
 
 		const senderAccount = await stateStore.account.get(transaction.senderId);
-		const amount = BigInt(senderAccount.balance).toString();
+		const amount = senderAccount.balance.toString();
 
 		await updateDelegateVote(stateStore, {
 			delegatePublicKey,

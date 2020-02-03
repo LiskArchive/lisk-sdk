@@ -92,7 +92,7 @@ export const verifyTotalSpending = async (
 
 		// Grab the sender balance
 		const account = await stateStore.account.get(senderId);
-		const senderBalance = BigInt(account.balance);
+		const senderBalance = account.balance;
 
 		// Initialize the sender spending with zero
 		senderSpending[senderId] = BigInt(0);
