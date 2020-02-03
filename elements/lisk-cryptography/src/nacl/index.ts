@@ -22,9 +22,8 @@ try {
 		// tslint:disable-next-line no-var-requires no-require-imports
 		lib = require('./fast');
 	}
-} catch (err) {
-	process.env.NACL_FAST = 'disable';
-}
+	// tslint:disable-next-line no-empty
+} catch (err) {}
 
 export const NACL_SIGN_PUBLICKEY_LENGTH = 32;
 
