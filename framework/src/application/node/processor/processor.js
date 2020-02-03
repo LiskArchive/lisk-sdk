@@ -28,10 +28,10 @@ const forkStatusList = [
 ];
 
 class Processor {
-	constructor({ channel, logger, blocksModule }) {
+	constructor({ channel, logger, chainModule }) {
 		this.channel = channel;
 		this.logger = logger;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.sequence = new Sequence();
 		this.processors = {};
 		this.matchers = {};
@@ -57,8 +57,8 @@ class Processor {
 		await this._processGenesis(genesisBlock, blockProcessor, {
 			saveOnlyState: false,
 		});
-		await this.blocksModule.init();
-		const stateStore = this.blocksModule.newStateStore();
+		await this.chainModule.init();
+		const stateStore = this.chainModule.newStateStore();
 		for (const processor of Object.values(this.processors)) {
 			await processor.init.run({ stateStore });
 		}
@@ -85,7 +85,7 @@ class Processor {
 				'Starting to process block',
 			);
 			const blockProcessor = this._getBlockProcessor(block);
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 
 			const forkStatus = await blockProcessor.forkStatus.run({
 				block,
@@ -147,7 +147,7 @@ class Processor {
 				});
 				const previousLastBlock = cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock, blockProcessor);
-				const newLastBlock = this.blocksModule.lastBlock;
+				const newLastBlock = this.chainModule.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
 				} catch (err) {
@@ -182,7 +182,7 @@ class Processor {
 
 		return blockProcessor.forkStatus.run({
 			block: receivedBlock,
-			lastBlock: lastBlock || this.blocksModule.lastBlock,
+			lastBlock: lastBlock || this.chainModule.lastBlock,
 		});
 	}
 
@@ -194,7 +194,7 @@ class Processor {
 	}
 
 	// validate checks the block statically
-	async validate(block, { lastBlock } = this.blocksModule) {
+	async validate(block, { lastBlock } = this.chainModule) {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
 			'Validating block',
@@ -224,7 +224,7 @@ class Processor {
 				{ id: block.id, height: block.height },
 				'Processing validated block',
 			);
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
 				skipBroadcast: true,
@@ -240,7 +240,7 @@ class Processor {
 				{ id: block.id, height: block.height },
 				'Applying block',
 			);
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
 				saveOnlyState: true,
@@ -251,14 +251,14 @@ class Processor {
 
 	async deleteLastBlock({ saveTempBlock = false } = {}) {
 		return this.sequence.add(async () => {
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 			this.logger.debug(
 				{ id: lastBlock.id, height: lastBlock.height },
 				'Deleting last block',
 			);
 			const blockProcessor = this._getBlockProcessor(lastBlock);
 			await this._deleteBlock(lastBlock, blockProcessor, saveTempBlock);
-			return this.blocksModule.lastBlock;
+			return this.chainModule.lastBlock;
 		});
 	}
 
@@ -274,7 +274,7 @@ class Processor {
 		processor,
 		{ saveOnlyState, skipBroadcast, removeFromTempTable = false } = {},
 	) {
-		const stateStore = this.blocksModule.newStateStore();
+		const stateStore = this.chainModule.newStateStore();
 
 		await processor.verify.run({
 			block,
@@ -299,7 +299,7 @@ class Processor {
 			stateStore,
 		});
 
-		await this.blocksModule.save(block, stateStore, {
+		await this.chainModule.save(block, stateStore, {
 			saveOnlyState,
 			removeFromTempTable,
 		});
@@ -319,8 +319,8 @@ class Processor {
 		processor,
 		{ saveOnlyState } = { saveOnlyState: false },
 	) {
-		const stateStore = this.blocksModule.newStateStore();
-		const isPersisted = await this.blocksModule.exists(block);
+		const stateStore = this.chainModule.newStateStore();
+		const isPersisted = await this.chainModule.exists(block);
 		if (saveOnlyState && !isPersisted) {
 			throw new Error('Genesis block is not persisted but skipping to save');
 		}
@@ -332,18 +332,18 @@ class Processor {
 			block,
 			stateStore,
 		});
-		await this.blocksModule.save(block, stateStore, { saveOnlyState });
+		await this.chainModule.save(block, stateStore, { saveOnlyState });
 
 		return block;
 	}
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
-		const stateStore = this.blocksModule.newStateStore();
+		const stateStore = this.chainModule.newStateStore();
 		await processor.undo.run({
 			block,
 			stateStore,
 		});
-		await this.blocksModule.remove(block, stateStore, { saveTempBlock });
+		await this.chainModule.remove(block, stateStore, { saveTempBlock });
 		const blockJSON = await this.serialize(block);
 		this.channel.publish('app:processor:deleteBlock', {
 			block: blockJSON,

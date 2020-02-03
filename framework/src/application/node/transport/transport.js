@@ -36,7 +36,7 @@ class Transport {
 		// Modules
 		synchronizer,
 		transactionPoolModule,
-		blocksModule,
+		chainModule,
 		processorModule,
 		// Constants
 		broadcasts,
@@ -55,7 +55,7 @@ class Transport {
 		};
 
 		this.transactionPoolModule = transactionPoolModule;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.processorModule = processorModule;
 
 		this.broadcaster = new Broadcaster({
@@ -119,7 +119,7 @@ class Transport {
 		}
 
 		// Get height of block with supplied ID
-		const lastBlock = await this.blocksModule.dataAccess.getBlockHeaderByID(
+		const lastBlock = await this.chainModule.dataAccess.getBlockHeaderByID(
 			data.blockId,
 		);
 		if (!lastBlock) {
@@ -131,12 +131,12 @@ class Transport {
 		// Calculate max block height for database query
 		const fetchUntilHeight = lastBlockHeight + 34;
 
-		const blocks = await this.blocksModule.dataAccess.getBlocksByHeightBetween(
+		const blocks = await this.chainModule.dataAccess.getBlocksByHeightBetween(
 			lastBlockHeight + 1,
 			fetchUntilHeight,
 		);
 
-		return blocks && blocks.map(block => this.blocksModule.serialize(block));
+		return blocks && blocks.map(block => this.chainModule.serialize(block));
 	}
 
 	async handleRPCGetGetHighestCommonBlock(data, peerId) {
@@ -162,7 +162,7 @@ class Transport {
 			throw new Error(error);
 		}
 
-		const commonBlock = await this.blocksModule.getHighestCommonBlock(data.ids);
+		const commonBlock = await this.chainModule.getHighestCommonBlock(data.ids);
 
 		return commonBlock;
 	}
@@ -462,12 +462,12 @@ class Transport {
 		const id = transactionJSON ? transactionJSON.id : 'null';
 		let transaction;
 		try {
-			transaction = this.blocksModule.deserializeTransaction(transactionJSON);
+			transaction = this.chainModule.deserializeTransaction(transactionJSON);
 
 			// Composed transaction checks are all static, so it does not need state store
 			const {
 				transactionsResponses,
-			} = await this.blocksModule.validateTransactions([transaction]);
+			} = await this.chainModule.validateTransactions([transaction]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;

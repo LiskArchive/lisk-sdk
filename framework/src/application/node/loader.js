@@ -28,7 +28,7 @@ class Loader {
 		// Modules
 		processorModule,
 		transactionPoolModule,
-		blocksModule,
+		chainModule,
 		// Constants
 		loadPerIteration,
 		syncingActive,
@@ -48,7 +48,7 @@ class Loader {
 
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 	}
 
 	async loadUnconfirmedTransactions() {
@@ -94,13 +94,13 @@ class Loader {
 		}
 
 		const transactions = result.transactions.map(tx =>
-			this.blocksModule.deserializeTransaction(tx),
+			this.chainModule.deserializeTransaction(tx),
 		);
 
 		try {
 			const {
 				transactionsResponses,
-			} = await this.blocksModule.validateTransactions(transactions);
+			} = await this.chainModule.validateTransactions(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,
@@ -141,7 +141,7 @@ class Loader {
 	}
 
 	async _getBlocksFromNetwork() {
-		const { lastBlock } = this.blocksModule;
+		const { lastBlock } = this.chainModule;
 		// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 		// TODO: Rename procedure to include target module name. E.g. chain:blocks
 		const { data } = await this.channel.invokeFromNetwork(
@@ -179,7 +179,7 @@ class Loader {
 	}
 
 	async _getValidatedBlocksFromNetwork(blocks) {
-		const { lastBlock } = this.blocksModule;
+		const { lastBlock } = this.chainModule;
 		let lastValidBlock = lastBlock;
 		for (const block of blocks) {
 			const parsedBlock = await this.processorModule.deserialize(block);

@@ -20,7 +20,7 @@ const utils = require('./utils');
 class Synchronizer {
 	constructor({
 		logger,
-		blocksModule,
+		chainModule,
 		processorModule,
 		storageModule,
 		mechanisms = [],
@@ -31,7 +31,7 @@ class Synchronizer {
 		);
 		this.mechanisms = mechanisms;
 		this.logger = logger;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.processorModule = processorModule;
 		this.storageModule = storageModule;
 		this.active = false;
@@ -58,7 +58,7 @@ class Synchronizer {
 			try {
 				await utils.restoreBlocksUponStartup(
 					this.logger,
-					this.blocksModule,
+					this.chainModule,
 					this.processorModule,
 					this.storageModule,
 				);
@@ -116,8 +116,8 @@ class Synchronizer {
 
 			return this.logger.info(
 				{
-					lastBlockHeight: this.blocksModule.lastBlock.height,
-					lastBlockId: this.blocksModule.lastBlock.id,
+					lastBlockHeight: this.chainModule.lastBlock.height,
+					lastBlockId: this.chainModule.lastBlock.id,
 					mechanism: validMechanism.constructor.name,
 				},
 				'Synchronization finished',
