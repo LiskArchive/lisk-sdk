@@ -16,7 +16,7 @@
 
 const { cloneDeep } = require('lodash');
 const { when } = require('jest-when');
-const { Blocks, StateStore } = require('@liskhq/lisk-chain');
+const { Chain, StateStore } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 
@@ -104,7 +104,7 @@ describe('block_synchronization_mechanism', () => {
 		};
 		channelMock = new ChannelMock();
 
-		chainModule = new Blocks({
+		chainModule = new Chain({
 			logger: loggerMock,
 			storage: storageMock,
 			slots,

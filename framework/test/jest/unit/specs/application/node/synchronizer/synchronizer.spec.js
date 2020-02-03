@@ -15,7 +15,7 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { Blocks } = require('@liskhq/lisk-chain');
+const { Chain } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Rounds } = require('@liskhq/lisk-dpos');
 
@@ -89,7 +89,7 @@ describe('Synchronizer', () => {
 
 		rounds = new Rounds({ blocksPerRound: constants.ACTIVE_DELEGATES });
 
-		chainModule = new Blocks({
+		chainModule = new Chain({
 			logger: loggerMock,
 			storage: storageMock,
 			sequence: new Sequence(),

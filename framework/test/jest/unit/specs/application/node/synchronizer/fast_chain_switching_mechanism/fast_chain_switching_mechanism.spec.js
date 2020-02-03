@@ -15,7 +15,7 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { Blocks, StateStore } = require('@liskhq/lisk-chain');
+const { Chain, StateStore } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 
@@ -88,7 +88,7 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 		channelMock = new ChannelMock();
 
-		chainModule = new Blocks({
+		chainModule = new Chain({
 			logger: loggerMock,
 			storage: storageMock,
 			registeredTransactions,
