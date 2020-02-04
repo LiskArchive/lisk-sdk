@@ -33,7 +33,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		storage,
 		logger,
 		channel,
-		blocks,
+		chain,
 		bft,
 		processor,
 		dpos,
@@ -41,7 +41,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}) {
 		super(storage, logger, channel);
 		this.dpos = dpos;
-		this.blocks = blocks;
+		this.chain = chain;
 		this.bft = bft;
 		this.processor = processor;
 		this.constants = {
@@ -109,7 +109,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	async isValidFor(receivedBlock) {
-		const { lastBlock } = this.blocks;
+		const { lastBlock } = this.chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
 		const twoRounds = this.constants.activeDelegates * 2;
@@ -174,7 +174,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 
 		if (
-			this.blocks.lastBlock.height - highestCommonBlock.height >
+			this.chain.lastBlock.height - highestCommonBlock.height >
 				this.constants.activeDelegates * 2 ||
 			receivedBlock.height - highestCommonBlock.height >
 				this.constants.activeDelegates * 2
@@ -271,12 +271,12 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		);
 		await deleteBlocksAfterHeight(
 			this.processor,
-			this.blocks,
+			this.chain,
 			this.logger,
 			highestCommonBlock.height,
 		);
 		this.logger.debug('Restoring blocks from temporary table');
-		await restoreBlocks(this.blocks, this.processor);
+		await restoreBlocks(this.chain, this.processor);
 		throw new ApplyPenaltyAndRestartError(
 			peerId,
 			'Detected invalid block while processing list of requested blocks',
@@ -292,7 +292,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		await deleteBlocksAfterHeight(
 			this.processor,
-			this.blocks,
+			this.chain,
 			this.logger,
 			highestCommonBlock.height,
 			true,
@@ -311,7 +311,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			await this._applyBlocks(blocksToApply);
 			this.logger.info(
 				{
-					currentHeight: this.blocks.lastBlock.height,
+					currentHeight: this.chain.lastBlock.height,
 					highestCommonBlockHeight: highestCommonBlock.height,
 				},
 				'Successfully switched chains. Node is now up to date',
@@ -334,13 +334,10 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	_computeLastTwoRoundsHeights() {
 		return new Array(
-			Math.min(
-				this.constants.activeDelegates * 2,
-				this.blocks.lastBlock.height,
-			),
+			Math.min(this.constants.activeDelegates * 2, this.chain.lastBlock.height),
 		)
 			.fill(0)
-			.map((_, index) => this.blocks.lastBlock.height - index);
+			.map((_, index) => this.chain.lastBlock.height - index);
 	}
 
 	/**

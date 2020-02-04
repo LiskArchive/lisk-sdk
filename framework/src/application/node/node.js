@@ -389,11 +389,11 @@ module.exports = class Node {
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
-		this.modules.blocks = this.chain;
+		this.modules.chain = this.chain;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			storage: this.storage,
-			blocks: this.chain,
+			chain: this.chain,
 			slots: this.chain.slots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions

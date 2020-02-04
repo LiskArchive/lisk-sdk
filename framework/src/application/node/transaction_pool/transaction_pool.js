@@ -49,7 +49,7 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 class TransactionPool extends EventEmitter {
 	constructor({
 		storage,
-		blocks,
+		chain,
 		slots,
 		logger,
 		broadcastInterval,
@@ -60,7 +60,7 @@ class TransactionPool extends EventEmitter {
 		maxTransactionsPerBlock,
 	}) {
 		super();
-		this.blocks = blocks;
+		this.chain = chain;
 		this.storage = storage;
 		this.logger = logger;
 		this.slots = slots;
@@ -72,11 +72,11 @@ class TransactionPool extends EventEmitter {
 		this.bundleLimit = releaseLimit;
 
 		this.validateTransactions = transactions =>
-			this.blocks.validateTransactions(transactions);
+			this.chain.validateTransactions(transactions);
 		this.verifyTransactions = transactions =>
-			this.blocks.verifyTransactions(transactions);
+			this.chain.verifyTransactions(transactions);
 		this.processTransactions = transactions =>
-			this.blocks.processTransactions(transactions);
+			this.chain.processTransactions(transactions);
 
 		this._resetPool();
 	}
@@ -167,7 +167,7 @@ class TransactionPool extends EventEmitter {
 			throw [new TransactionError(message, '', '.signature')];
 		}
 
-		const transactionResponse = await this.blocks.processSignature(
+		const transactionResponse = await this.chain.processSignature(
 			transaction,
 			signature,
 		);

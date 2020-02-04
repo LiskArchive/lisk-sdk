@@ -38,14 +38,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		channel,
 		rounds,
 		bft,
-		blocks,
+		chain,
 		processorModule,
 		activeDelegates,
 	}) {
 		super(storage, logger, channel);
 		this.bft = bft;
 		this.rounds = rounds;
-		this.blocks = blocks;
+		this.chain = chain;
 		this.processorModule = processorModule;
 		this.constants = {
 			activeDelegates,
@@ -101,10 +101,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const finalizedBlock = await this.storage.entities.Block.getOne({
 			height_eql: this.bft.finalizedHeight,
 		});
-		const finalizedBlockSlot = this.blocks.slots.getSlotNumber(
+		const finalizedBlockSlot = this.chain.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);
-		const currentBlockSlot = this.blocks.slots.getSlotNumber();
+		const currentBlockSlot = this.chain.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
@@ -152,7 +152,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					throw new BlockProcessingError();
 				}
 
-				finished = this.blocks.lastBlock.id === toId;
+				finished = this.chain.lastBlock.id === toId;
 			} else {
 				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
 			}
@@ -190,7 +190,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 		// Check if the new tip has priority over the last tip we had before applying
 		const forkStatus = await this.processorModule.forkStatus(
-			this.blocks.lastBlock, // New tip of the chain
+			this.chain.lastBlock, // New tip of the chain
 			tipBeforeApplyingInstance, // Previous tip of the chain
 		);
 
@@ -199,7 +199,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		if (!newTipHasPreference) {
 			this.logger.debug(
 				{
-					currentTip: this.blocks.lastBlock.id,
+					currentTip: this.chain.lastBlock.id,
 					previousTip: tipBeforeApplyingInstance.id,
 				},
 				'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
@@ -211,12 +211,12 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				);
 				await deleteBlocksAfterHeight(
 					this.processorModule,
-					this.blocks,
+					this.chain,
 					this.logger,
 					lastCommonBlock.height,
 				);
 				this.logger.debug('Restoring blocks from temporary table');
-				await restoreBlocks(this.blocks, this.processorModule);
+				await restoreBlocks(this.chain, this.processorModule);
 
 				this.logger.debug('Cleaning blocks temp table');
 				await clearBlocksTempTable(this.storage);
@@ -234,7 +234,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this.logger.debug(
 			{
-				currentTip: this.blocks.lastBlock.id,
+				currentTip: this.chain.lastBlock.id,
 				previousTip: tipBeforeApplyingInstance.id,
 			},
 			'Current tip of the chain has preference over previous tip',
@@ -329,14 +329,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		await deleteBlocksAfterHeight(
 			this.processorModule,
-			this.blocks,
+			this.chain,
 			this.logger,
 			lastCommonBlock.height,
 			true,
 		);
 
 		this.logger.debug(
-			{ lastBlockId: this.blocks.lastBlock.id },
+			{ lastBlockId: this.chain.lastBlock.id },
 			'Successfully deleted blocks',
 		);
 
@@ -354,7 +354,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = this.rounds.calcRound(this.blocks.lastBlock.height); // Holds the current round number
+		let currentRound = this.rounds.calcRound(this.chain.lastBlock.height); // Holds the current round number
 		let currentHeight = currentRound * this.constants.activeDelegates;
 
 		while (
@@ -455,7 +455,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const inDifferentChain =
 			forkStatus === ForkStatus.DIFFERENT_CHAIN ||
-			networkLastBlock.id === this.blocks.lastBlock.id;
+			networkLastBlock.id === this.chain.lastBlock.id;
 		if (!validBlock || !inDifferentChain) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
