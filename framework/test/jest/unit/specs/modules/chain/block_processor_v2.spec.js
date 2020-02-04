@@ -40,6 +40,7 @@ describe('block processor v2', () => {
 
 	beforeEach(async () => {
 		blocksModuleStub = {
+			undo: jest.fn(),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
 			},
@@ -51,6 +52,7 @@ describe('block processor v2', () => {
 		};
 
 		dposModuleStub = {
+			undo: jest.fn(),
 			getMinActiveHeightsOfDelegates: jest.fn(),
 		};
 		storageStub = {
@@ -86,6 +88,18 @@ describe('block processor v2', () => {
 			expect(
 				dposModuleStub.getMinActiveHeightsOfDelegates,
 			).toHaveBeenCalledWith(3);
+		});
+	});
+
+	describe('undo', () => {
+		it('should reject the promise', async () => {
+			const stateStore = new StateStore(storageStub);
+			dposModuleStub.getMinActiveHeightsOfDelegates.mockRejectedValue(
+				new Error('Invalid error'),
+			);
+			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
+				'Invalid error',
+			);
 		});
 	});
 
