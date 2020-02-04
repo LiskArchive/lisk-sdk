@@ -31,12 +31,16 @@ describe('account', () => {
 			expect(defaultAccount).toHaveProperty('fees');
 			expect(defaultAccount).toHaveProperty('voteWeight');
 			expect(defaultAccount).toHaveProperty('rewards');
-			expect(defaultAccount.balance).toEqual(accountDefaultValues.balance);
-			expect(defaultAccount.fees).toEqual(accountDefaultValues.fees);
-			expect(defaultAccount.voteWeight).toEqual(
-				accountDefaultValues.voteWeight,
+			expect(defaultAccount.balance).toEqual(
+				BigInt(accountDefaultValues.balance),
 			);
-			expect(defaultAccount.rewards).toEqual(accountDefaultValues.rewards);
+			expect(defaultAccount.fees).toEqual(BigInt(accountDefaultValues.fees));
+			expect(defaultAccount.voteWeight).toEqual(
+				BigInt(accountDefaultValues.voteWeight),
+			);
+			expect(defaultAccount.rewards).toEqual(
+				BigInt(accountDefaultValues.rewards),
+			);
 		});
 	});
 

@@ -753,8 +753,8 @@ describe('blocks/header', () => {
 			it('should update vote weight on voted delegate', async () => {
 				const delegateOne = await stateStore.account.get(delegate1.address);
 				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight?.toString()).toBe('9889999900');
-				expect(deletateTwo.voteWeight?.toString()).toBe('9889999900');
+				expect(delegateOne.voteWeight).toBe(BigInt('9889999900'));
+				expect(deletateTwo.voteWeight).toBe(BigInt('9889999900'));
 			});
 
 			it('should update vote weight on sender and recipient', async () => {
@@ -774,9 +774,7 @@ describe('blocks/header', () => {
 				// expect
 				// it should decrease by fee
 				const delegateOne = await stateStore.account.get(delegate1.address);
-				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight?.toString()).toBe('9879999900');
-				expect(deletateTwo.voteWeight?.toString()).toBe('9879999900');
+				expect(delegateOne.voteWeight).toBe(BigInt('9879999900'));
 			});
 		});
 	});
@@ -800,8 +798,8 @@ describe('blocks/header', () => {
 				const genesisAccountFromStore = await stateStore.account.get(
 					genesisAccount.address,
 				);
-				expect(genesisAccountFromStore.balance.toString()).toBe(
-					'10000000000000000',
+				expect(genesisAccountFromStore.balance).toBe(
+					BigInt('10000000000000000'),
 				);
 			});
 
@@ -937,8 +935,8 @@ describe('blocks/header', () => {
 			it('should update vote weight on voted delegate', async () => {
 				const delegateOne = await stateStore.account.get(delegate1.address);
 				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight?.toString()).toBe('0');
-				expect(deletateTwo.voteWeight?.toString()).toBe('0');
+				expect(delegateOne.voteWeight).toBe(BigInt('0'));
+				expect(deletateTwo.voteWeight).toBe(BigInt('0'));
 			});
 		});
 	});
