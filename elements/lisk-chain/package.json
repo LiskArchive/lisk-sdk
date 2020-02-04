@@ -41,7 +41,6 @@
 		"lodash": "4.17.15"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-dpos": "0.1.0",
 		"@liskhq/lisk-passphrase": "3.0.0",
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",
