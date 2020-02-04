@@ -323,6 +323,10 @@ describe('block_synchronization_mechanism', () => {
 		blocksModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
 	});
 
+	afterEach(() => {
+		blocksModule.resetBlockHeaderCache();
+	});
+
 	describe('async run()', () => {
 		const expectApplyPenaltyAndRestartIsCalled = (receivedBlock, reason) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
@@ -966,22 +970,15 @@ describe('block_synchronization_mechanism', () => {
 							.mockResolvedValue({ data: requestedBlocks });
 					}
 
-					when(storageMock.entities.TempBlock.get)
-						.calledWith(
-							{},
-							{
-								sort: 'height:desc',
-								limit: 1,
-								extended: true,
-							},
-						)
-						.mockResolvedValue([
+					blocksModule.dataAccess.getTempBlocks
+						.mockResolvedValueOnce([
 							{
 								fullBlock: previousTip,
 								height: previousTip.height,
 								version: previousTip.version,
 							},
-						]);
+						])
+						.mockResolvedValueOnce(tempTableBlocks);
 
 					when(processorModule.deleteLastBlock)
 						.calledWith({
@@ -996,17 +993,6 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValueOnce(newBlock({ height: 3 }))
 						.mockResolvedValueOnce(newBlock({ height: 2 }))
 						.mockResolvedValueOnce(newBlock({ height: 1 }));
-
-					when(blocksModule.dataAccess.getTempBlocks)
-						.calledWith(
-							{},
-							{
-								sort: 'height:asc',
-								limit: null,
-							},
-							null,
-						)
-						.mockResolvedValue(tempTableBlocks);
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.process.mockRejectedValueOnce(processingError);
@@ -1096,22 +1082,13 @@ describe('block_synchronization_mechanism', () => {
 							.mockResolvedValue({ data: requestedBlocks });
 					}
 
-					when(storageMock.entities.TempBlock.get)
-						.calledWith(
-							{},
-							{
-								sort: 'height:desc',
-								limit: 1,
-								extended: true,
-							},
-						)
-						.mockResolvedValue([
-							{
-								fullBlock: previousTip,
-								height: previousTip.height,
-								version: previousTip.version,
-							},
-						]);
+					blocksModule.dataAccess.getTempBlocks.mockResolvedValue([
+						{
+							fullBlock: previousTip,
+							height: previousTip.height,
+							version: previousTip.version,
+						},
+					]);
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.process.mockRejectedValueOnce(processingError);
@@ -1156,22 +1133,20 @@ describe('block_synchronization_mechanism', () => {
 
 	describe('isValidFor', () => {
 		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than ACTIVE_DELEGATES*3', async () => {
-			when(storageMock.entities.Block.getOne)
+			when(storageMock.entities.Block.get)
 				.calledWith({
-					height_eql: bftModule.finalizedHeight,
+					height: bftModule.finalizedHeight,
 				})
-				.mockResolvedValue(genesisBlockDevnet);
+				.mockResolvedValue([genesisBlockDevnet]);
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeTruthy();
 		});
 
 		it('should return false if the difference in block slots between the current block slot and the finalized block slot of the system is smaller than ACTIVE_DELEGATES*3', async () => {
-			when(storageMock.entities.Block.getOne)
-				.calledWith({
-					height_eql: bftModule.finalizedHeight,
-				})
-				.mockResolvedValue({ ...genesisBlockDevnet, timestamp: Date.now() });
+			storageMock.entities.Block.get.mockResolvedValue([
+				{ ...genesisBlockDevnet, timestamp: Date.now() },
+			]);
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeFalsy();

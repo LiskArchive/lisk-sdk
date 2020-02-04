@@ -129,7 +129,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const blocks = [];
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
 		let lastFetchedID = fromId;
-
 		while (failedAttempts < maxFailedAttempts) {
 			const { data: chunkOfBlocks } = await this.channel.invokeFromNetwork(
 				'requestFromPeer',
