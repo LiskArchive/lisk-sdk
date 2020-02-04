@@ -346,7 +346,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
-					expect(account.votedDelegatesPublicKeys).to.be.null;
+					expect(account.votedDelegatesPublicKeys).eql([]);
 				});
 
 				it('should forge a block', done => {
@@ -422,7 +422,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.publicKey).to.be.null;
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.be.null;
+					expect(account.membersPublicKeys).eql([]);
 				});
 
 				it('should forge a block', done => {
