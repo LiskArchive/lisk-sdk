@@ -83,11 +83,6 @@ describe('blocks', () => {
 					},
 				},
 			},
-			logger: {
-				debug: jest.fn(),
-				log: jest.fn(),
-				error: jest.fn(),
-			},
 		};
 
 		slots = new Slots({
