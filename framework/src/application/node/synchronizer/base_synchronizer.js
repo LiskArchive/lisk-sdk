@@ -16,8 +16,7 @@
 'use strict';
 
 class BaseSynchronizer {
-	constructor(storage, logger, channel) {
-		this.storage = storage;
+	constructor(logger, channel) {
 		this.logger = logger;
 		this.channel = channel;
 	}
