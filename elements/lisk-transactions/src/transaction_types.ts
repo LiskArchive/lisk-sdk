@@ -36,6 +36,8 @@ export interface Account {
 	votedDelegatesPublicKeys: string[];
 	// tslint:disable-next-line readonly-keyword
 	membersPublicKeys: string[];
+	// tslint:disable-next-line:no-mixed-interface
+	readonly toJSON: () => object;
 }
 
 export interface Delegate {

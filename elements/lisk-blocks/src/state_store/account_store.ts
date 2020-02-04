@@ -145,7 +145,10 @@ export class AccountStore {
 	}
 
 	public set(primaryValue: string, updatedElement: Account): void {
-		const updatedElementObj = new Account(updatedElement);
+		const updatedElementObj =
+			updatedElement instanceof Account
+				? updatedElement
+				: new Account(updatedElement);
 
 		const elementIndex = this._data.findIndex(
 			item => item[this._primaryKey] === primaryValue,

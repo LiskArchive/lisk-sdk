@@ -21,12 +21,12 @@ export const accountDefaultValues = {
 	// tslint:disable-next-line:no-null-keyword
 	username: null,
 	isDelegate: 0,
-	balance: BigInt(0),
+	balance: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
-	fees: BigInt(0),
-	rewards: BigInt(0),
-	voteWeight: BigInt(0),
+	fees: '0',
+	rewards: '0',
+	voteWeight: '0',
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
@@ -34,6 +34,7 @@ export const accountDefaultValues = {
 	asset: {},
 	membersPublicKeys: [],
 };
+
 export class Account {
 	public address: string;
 	public balance: bigint;

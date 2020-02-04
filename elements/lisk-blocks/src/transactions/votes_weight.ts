@@ -221,7 +221,7 @@ const updateDelegateVotes = async (
 		const delegatePublicKey = vote.slice(1);
 
 		const senderAccount = await stateStore.account.get(transaction.senderId);
-		const amount = senderAccount.balance.toString();
+		const amount = senderAccount.balance;
 
 		await updateDelegateVote(stateStore, {
 			delegatePublicKey,

@@ -19,7 +19,7 @@ import {
 
 export interface AccountJSON {
 	readonly address: string;
-	readonly balance: string | bigint;
+	readonly balance: string;
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
 	readonly publicKey: string | undefined;
@@ -27,18 +27,18 @@ export interface AccountJSON {
 	readonly secondSignature: number;
 	readonly username: string | null;
 	readonly isDelegate: number;
-	readonly fees: string | bigint;
-	readonly rewards: string | bigint;
+	readonly fees: string;
+	readonly rewards: string;
 	// tslint:disable-next-line readonly-keyword
-	voteWeight: string | bigint;
+	readonly voteWeight: string;
 	readonly nameExist: boolean;
 	readonly multiMin: number;
 	readonly multiLifetime: number;
 	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
-	votedDelegatesPublicKeys: string[] | null;
+	readonly votedDelegatesPublicKeys: string[] | null;
 	// tslint:disable-next-line readonly-keyword
-	membersPublicKeys: string[] | null;
+	readonly membersPublicKeys: string[] | null;
 }
 
 export interface Context {
