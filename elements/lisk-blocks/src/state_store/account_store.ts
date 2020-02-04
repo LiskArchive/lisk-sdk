@@ -145,11 +145,6 @@ export class AccountStore {
 	}
 
 	public set(primaryValue: string, updatedElement: Account): void {
-		const updatedElementObj =
-			updatedElement instanceof Account
-				? updatedElement
-				: new Account(updatedElement);
-
 		const elementIndex = this._data.findIndex(
 			item => item[this._primaryKey] === primaryValue,
 		);
@@ -160,7 +155,7 @@ export class AccountStore {
 			);
 		}
 
-		const updatedKeys = Object.entries(updatedElementObj).reduce(
+		const updatedKeys = Object.entries(updatedElement).reduce(
 			(existingUpdatedKeys, [key, value]) => {
 				const account = this._data[elementIndex];
 				// tslint:disable-next-line:no-any
@@ -173,7 +168,7 @@ export class AccountStore {
 			[] as string[],
 		);
 
-		this._data[elementIndex] = updatedElementObj;
+		this._data[elementIndex] = updatedElement;
 		this._updatedKeys[elementIndex] = this._updatedKeys[elementIndex]
 			? uniq([...this._updatedKeys[elementIndex], ...updatedKeys])
 			: updatedKeys;
