@@ -13,33 +13,30 @@
  *
  */
 import { TransactionError } from './errors';
-
+// tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
-	readonly balance: bigint;
-	readonly missedBlocks: number;
-	readonly producedBlocks: number;
-	readonly publicKey: string | undefined;
-	readonly secondPublicKey: string | null;
-	readonly secondSignature: number;
-	readonly username: string | null;
-	readonly isDelegate: number;
-	readonly fees: bigint;
-	readonly rewards: bigint;
-	// tslint:disable-next-line readonly-keyword
+	balance: bigint;
+	missedBlocks: number;
+	producedBlocks: number;
+	publicKey: string | undefined;
+	secondPublicKey: string | null;
+	secondSignature: number;
+	username: string | null;
+	isDelegate: number;
+	fees: bigint;
+	rewards: bigint;
 	voteWeight: bigint;
-	readonly nameExist: boolean;
-	readonly multiMin: number;
-	readonly multiLifetime: number;
-	readonly asset: object;
-	// tslint:disable-next-line readonly-keyword
+	nameExist: boolean;
+	multiMin: number;
+	multiLifetime: number;
+	asset: object;
 	votedDelegatesPublicKeys: string[];
-	// tslint:disable-next-line readonly-keyword
 	membersPublicKeys: string[];
 	// tslint:disable-next-line:no-mixed-interface
 	readonly toJSON: () => object;
 }
-
+// tslint:enable readonly-keyword
 export interface Delegate {
 	readonly username: string;
 }

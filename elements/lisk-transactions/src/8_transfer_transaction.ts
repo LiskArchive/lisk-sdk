@@ -182,12 +182,8 @@ export class TransferTransaction extends BaseTransaction {
 		}
 
 		const updatedSenderBalance = sender.balance - this.asset.amount;
-
-		const updatedSender = {
-			...sender,
-			balance: updatedSenderBalance,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.balance = updatedSenderBalance;
+		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
 		const updatedRecipientBalance = recipient.balance + this.asset.amount;
@@ -202,12 +198,8 @@ export class TransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		const updatedRecipient = {
-			...recipient,
-			balance: updatedRecipientBalance,
-		};
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		recipient.balance = updatedRecipientBalance;
+		store.account.set(recipient.address, recipient);
 
 		return errors;
 	}
@@ -230,11 +222,8 @@ export class TransferTransaction extends BaseTransaction {
 			);
 		}
 
-		const updatedSender = {
-			...sender,
-			balance: updatedSenderBalance,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.balance = updatedSenderBalance;
+		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
 		const balanceError = verifyBalance(this.id, recipient, this.asset.amount);
@@ -244,13 +233,9 @@ export class TransferTransaction extends BaseTransaction {
 		}
 
 		const updatedRecipientBalance = recipient.balance - this.asset.amount;
+		recipient.balance = updatedRecipientBalance;
 
-		const updatedRecipient = {
-			...recipient,
-			balance: updatedRecipientBalance,
-		};
-
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		store.account.set(recipient.address, recipient);
 
 		return errors;
 	}

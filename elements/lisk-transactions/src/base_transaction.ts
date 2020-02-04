@@ -312,12 +312,9 @@ export abstract class BaseTransaction {
 		}
 
 		const updatedBalance = sender.balance - this.fee;
-		const updatedSender = {
-			...sender,
-			balance: updatedBalance,
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
+		store.account.set(sender.address, sender);
 		const assetErrors = await this.applyAsset(store);
 
 		errors.push(...assetErrors);
@@ -340,11 +337,8 @@ export abstract class BaseTransaction {
 	public async undo(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const updatedBalance = sender.balance + this.fee;
-		const updatedAccount = {
-			...sender,
-			balance: updatedBalance,
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		const errors =
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
@@ -357,7 +351,7 @@ export abstract class BaseTransaction {
 							updatedBalance.toString(),
 						),
 				  ];
-		store.account.set(updatedAccount.address, updatedAccount);
+		store.account.set(sender.address, sender);
 		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 

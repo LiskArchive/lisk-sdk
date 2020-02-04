@@ -114,12 +114,10 @@ export class SecondSignatureTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const updatedSender = {
-			...sender,
-			secondPublicKey: this.asset.publicKey,
-			secondSignature: 1,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+
+		sender.secondPublicKey = this.asset.publicKey;
+		sender.secondSignature = 1;
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}
@@ -128,14 +126,11 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
-		const resetSender = {
-			...sender,
-			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
-			secondPublicKey: null,
-			secondSignature: 0,
-		};
+		// tslint:disable-next-line:no-null-keyword
+		sender.secondPublicKey = null;
+		sender.secondSignature = 0;
 
-		store.account.set(resetSender.address, resetSender);
+		store.account.set(sender.address, sender);
 
 		return [];
 	}
