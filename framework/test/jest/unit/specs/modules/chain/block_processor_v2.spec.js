@@ -47,6 +47,7 @@ describe('block processor v2', () => {
 		};
 		bftModuleStub = {
 			init: jest.fn(),
+			deleteBlocks: jest.fn(),
 			maxHeightPrevoted: 0,
 			isBFTProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
@@ -92,11 +93,19 @@ describe('block processor v2', () => {
 	});
 
 	describe('undo', () => {
-		it('should reject the promise', async () => {
+		it('should reject the promise when dpos getMinActiveHeightsOfDelegates fails', async () => {
 			const stateStore = new StateStore(storageStub);
 			dposModuleStub.getMinActiveHeightsOfDelegates.mockRejectedValue(
 				new Error('Invalid error'),
 			);
+			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
+				'Invalid error',
+			);
+		});
+
+		it('should reject the promise when bft deleteBlocks fails', async () => {
+			const stateStore = new StateStore(storageStub);
+			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
 			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
 				'Invalid error',
 			);
