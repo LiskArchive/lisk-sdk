@@ -36,10 +36,10 @@ export const sanitizeAccountForStorage = (
 
 	return {
 		...restOfAccount,
-		balance: balance?.toString(),
-		voteWeight: voteWeight?.toString(),
-		fees: fees?.toString(),
-		rewards: rewards?.toString(),
+		balance: balance ? balance.toString() : '0',
+		voteWeight: voteWeight ? voteWeight.toString() : '0',
+		fees: fees ? fees.toString() : '0',
+		rewards: rewards ? rewards.toString() : '0',
 	};
 };
 
