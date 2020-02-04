@@ -86,11 +86,6 @@ module.exports = class Node {
 			this.genesisBlock = { block: this.config.genesisBlock };
 			this.registeredTransactions = this.options.registeredTransactions;
 
-			this.components = {
-				storage: this.blocks.dataAccess,
-				logger: this.logger,
-			};
-
 			this.sequence = new Sequence({
 				onWarning(current) {
 					this.components.logger.warn('Main queue', current);
@@ -98,6 +93,10 @@ module.exports = class Node {
 			});
 
 			await this._initModules();
+
+			this.components = {
+				logger: this.logger,
+			};
 
 			// Prepare dependency
 			const processorDependencies = {
