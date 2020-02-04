@@ -274,7 +274,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					numberOfRounds,
 					{ tx },
 				);
-				this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
+				await this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
 			},
 		]);
 

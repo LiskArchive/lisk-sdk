@@ -40,17 +40,20 @@ describe('block processor v2', () => {
 
 	beforeEach(async () => {
 		blocksModuleStub = {
+			undo: jest.fn(),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
 			},
 		};
 		bftModuleStub = {
 			init: jest.fn(),
+			deleteBlocks: jest.fn(),
 			maxHeightPrevoted: 0,
 			isBFTProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
 
 		dposModuleStub = {
+			undo: jest.fn(),
 			getMinActiveHeightsOfDelegates: jest.fn(),
 		};
 		storageStub = {
@@ -86,6 +89,26 @@ describe('block processor v2', () => {
 			expect(
 				dposModuleStub.getMinActiveHeightsOfDelegates,
 			).toHaveBeenCalledWith(3);
+		});
+	});
+
+	describe('undo', () => {
+		it('should reject the promise when dpos getMinActiveHeightsOfDelegates fails', async () => {
+			const stateStore = new StateStore(storageStub);
+			dposModuleStub.getMinActiveHeightsOfDelegates.mockRejectedValue(
+				new Error('Invalid error'),
+			);
+			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
+				'Invalid error',
+			);
+		});
+
+		it('should reject the promise when bft deleteBlocks fails', async () => {
+			const stateStore = new StateStore(storageStub);
+			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
+			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
+				'Invalid error',
+			);
 		});
 	});
 
