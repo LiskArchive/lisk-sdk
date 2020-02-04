@@ -35,8 +35,8 @@ describe.skip('validateOwnChain', () => {
 
 	describe('forge 2 rounds (202 blocks) with version = 0', () => {
 		before(() => {
-			library.modules.blocks.blocksVerify.exceptions = {
-				...library.modules.blocks.exceptions,
+			library.modules.chain.blocksVerify.exceptions = {
+				...library.modules.chain.exceptions,
 				blockVersions: {
 					0: {
 						start: 1,
@@ -52,7 +52,7 @@ describe.skip('validateOwnChain', () => {
 		});
 
 		it('blockchain should be at height 202', async () => {
-			const lastBlock = library.modules.blocks.lastBlock;
+			const lastBlock = library.modules.chain.lastBlock;
 			return expect(lastBlock.height).to.eql(202);
 		});
 
@@ -71,8 +71,8 @@ describe.skip('validateOwnChain', () => {
 
 			before(async () => {
 				// Set proper exceptions for blocks versions
-				library.modules.blocks.blocksVerify.exceptions = {
-					...library.modules.blocks.exceptions,
+				library.modules.chain.blocksVerify.exceptions = {
+					...library.modules.chain.exceptions,
 					blockVersions: {
 						0: {
 							start: 1,
@@ -82,8 +82,8 @@ describe.skip('validateOwnChain', () => {
 				};
 
 				try {
-					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock,
+					await library.modules.chain.blocksVerify.requireBlockRewind(
+						library.modules.chain.lastBlock,
 					);
 				} catch (error) {
 					validateOwnChainError = error;
@@ -95,7 +95,7 @@ describe.skip('validateOwnChain', () => {
 			});
 
 			it('blockchain should be at height 202', async () => {
-				const lastBlock = library.modules.blocks.lastBlock;
+				const lastBlock = library.modules.chain.lastBlock;
 				return expect(lastBlock.height).to.eql(202);
 			});
 
@@ -115,7 +115,7 @@ describe.skip('validateOwnChain', () => {
 				});
 
 				it('blockchain should be at height 207', async () => {
-					const lastBlock = library.modules.blocks.lastBlock;
+					const lastBlock = library.modules.chain.lastBlock;
 					return expect(lastBlock.height).to.eql(207);
 				});
 

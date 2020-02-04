@@ -114,7 +114,7 @@ describe('fast_chain_switching_mechanism', () => {
 			logger: loggerMock,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
-			blocks: chainModule,
+			chain: chainModule,
 			exceptions: {},
 		});
 
@@ -152,7 +152,7 @@ describe('fast_chain_switching_mechanism', () => {
 			logger: loggerMock,
 			channel: channelMock,
 			rounds: dpos.rounds,
-			blocks: chainModule,
+			chain: chainModule,
 			bft: bftModule,
 			processor: processorModule,
 			dpos: dposModuleMock,

@@ -35,8 +35,8 @@ describe.skip('validateOwnChain', () => {
 
 	describe('forge 3 rounds (303 blocks) with version = 0', () => {
 		before(() => {
-			library.modules.blocks.blocksVerify.exceptions = {
-				...library.modules.blocks.exceptions,
+			library.modules.chain.blocksVerify.exceptions = {
+				...library.modules.chain.exceptions,
 				blockVersions: {
 					0: {
 						start: 1,
@@ -52,7 +52,7 @@ describe.skip('validateOwnChain', () => {
 		});
 
 		it('blockchain should be at height 303', async () => {
-			const lastBlock = library.modules.blocks.lastBlock;
+			const lastBlock = library.modules.chain.lastBlock;
 			return expect(lastBlock.height).to.eql(303);
 		});
 
@@ -73,8 +73,8 @@ describe.skip('validateOwnChain', () => {
 
 			before(async () => {
 				// Set proper exceptions for blocks versions
-				library.modules.blocks.blocksVerify.exceptions = {
-					...library.modules.blocks.exceptions,
+				library.modules.chain.blocksVerify.exceptions = {
+					...library.modules.chain.exceptions,
 					blockVersions: {
 						0: {
 							start: 1,
@@ -84,12 +84,12 @@ describe.skip('validateOwnChain', () => {
 				};
 
 				try {
-					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock,
+					await library.modules.chain.blocksVerify.requireBlockRewind(
+						library.modules.chain.lastBlock,
 					);
-					library.modules.blocks.resetBlockHeaderCache();
-					library.modules.blocks._lastBlock = await library.modules.blocks.blocksProcess.recoverInvalidOwnChain(
-						library.modules.blocks.lastBlock,
+					library.modules.chain.resetBlockHeaderCache();
+					library.modules.chain._lastBlock = await library.modules.chain.blocksProcess.recoverInvalidOwnChain(
+						library.modules.chain.lastBlock,
 						() => {},
 					);
 				} catch (error) {

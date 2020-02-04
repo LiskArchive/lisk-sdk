@@ -50,8 +50,8 @@ describe('integration test (type 1) - second signature transactions from pool an
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 			]);
 		}).then(() => {
-			library.modules.blocks.resetBlockHeaderCache();
-			library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+			library.modules.chain.resetBlockHeaderCache();
+			library.modules.chain._lastBlock = __testContext.config.genesisBlock;
 			done();
 		});
 	});

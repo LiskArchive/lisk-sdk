@@ -138,7 +138,7 @@ describe('Node', () => {
 	describe('actions', () => {
 		beforeEach(async () => {
 			node.modules = {
-				blocks: {
+				chain: {
 					getHighestCommonBlock: sinonSandbox.stub(),
 				},
 			};

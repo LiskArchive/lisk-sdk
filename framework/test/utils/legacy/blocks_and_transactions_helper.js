@@ -116,7 +116,7 @@ class BlocksTransactionsHelper {
 	}
 
 	getTransactionsInLastBlock() {
-		const { lastBlock } = this._library.modules.blocks;
+		const { lastBlock } = this._library.modules.chain;
 
 		// We return only transaction ID, amount (in string format), sender and recipient
 		return lastBlock.transactions.map(formatTransaction);
@@ -127,7 +127,7 @@ class BlocksTransactionsHelper {
 			// Get only transactions marked as valid
 			.filter(t => t.expect === EXPECT.OK)
 			// Amounts have to be instances of BigInt for sorting
-			.map(t => this._library.modules.blocks.deserializeTransaction(t.data));
+			.map(t => this._library.modules.chain.deserializeTransaction(t.data));
 
 		// Sort transactions the same way as they are sorted in a block
 		const sortedTransactions = sortTransactions(validTransactions);
@@ -193,7 +193,7 @@ class BlocksTransactionsHelper {
 		const keypairs = this._library.modules.forger.getForgersKeyPairs();
 		const delegate = await promisifyGetNextForger(this._library, null);
 
-		const { lastBlock } = this._library.modules.blocks;
+		const { lastBlock } = this._library.modules.chain;
 		const lastBlockSlot = this._library.slots.getSlotNumber(
 			lastBlock.timestamp,
 		);
@@ -201,7 +201,7 @@ class BlocksTransactionsHelper {
 		const timestamp = this._library.slots.getSlotTime(lastBlockSlot + 1);
 
 		const transactions = this._transactions.map(t =>
-			this._library.modules.blocks.deserializeTransaction(t.data),
+			this._library.modules.chain.deserializeTransaction(t.data),
 		);
 
 		const sortedTransactions = sortTransactions(transactions);

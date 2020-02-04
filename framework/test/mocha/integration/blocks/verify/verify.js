@@ -68,14 +68,14 @@ async function createBlock(
 		privateKey: keypairBytes.privateKeyBytes,
 	};
 	transactions = transactions.map(transaction =>
-		library.modules.blocks.deserializeTransaction(transaction),
+		library.modules.chain.deserializeTransaction(transaction),
 	);
-	library.modules.blocks._lastBlock = previousBlockArgs;
+	library.modules.chain._lastBlock = previousBlockArgs;
 	const blockProcessorV1 = library.modules.processor.processors[1];
 	const newBlock = await blockProcessorV1.create.run({
 		keypair,
 		timestamp,
-		previousBlock: library.modules.blocks.lastBlock,
+		previousBlock: library.modules.chain.lastBlock,
 		transactions,
 		maxHeightPreviouslyForged: 1,
 		maxHeightPrevoted: 1,
@@ -111,8 +111,8 @@ describe('blocks/verify', () => {
 		storage = scope.components.storage;
 
 		// Set current block version to 0
-		scope.modules.blocks.blocksVerify.exceptions = {
-			...scope.modules.blocks.exceptions,
+		scope.modules.chain.blocksVerify.exceptions = {
+			...scope.modules.chain.exceptions,
 			blockVersions: {
 				0: {
 					start: 1,
@@ -122,12 +122,12 @@ describe('blocks/verify', () => {
 		};
 
 		library = scope;
-		library.modules.blocks._lastBlock = genesisBlock;
+		library.modules.chain._lastBlock = genesisBlock;
 	});
 
 	afterEach(() => {
-		library.modules.blocks._lastBlock = genesisBlock;
-		library.modules.blocks.resetBlockHeaderCache();
+		library.modules.chain._lastBlock = genesisBlock;
+		library.modules.chain.resetBlockHeaderCache();
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
 

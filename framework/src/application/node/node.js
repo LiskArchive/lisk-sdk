@@ -333,7 +333,7 @@ module.exports = class Node {
 
 		this.slots = this.chain.slots;
 		this.dpos = new Dpos({
-			blocks: this.chain,
+			chain: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: this.options.constants
 				.DELEGATE_LIST_ROUND_OFFSET,
@@ -365,7 +365,7 @@ module.exports = class Node {
 			bft: this.bft,
 			rounds: this.dpos.rounds,
 			channel: this.channel,
-			blocks: this.chain,
+			chain: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			processorModule: this.processor,
 		});
@@ -374,7 +374,7 @@ module.exports = class Node {
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
-			blocks: this.chain,
+			chain: this.chain,
 			bft: this.bft,
 			dpos: this.dpos,
 			processor: this.processor,

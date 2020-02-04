@@ -34,7 +34,7 @@ describe('rebuilding', () => {
 	localCommon.beforeBlock('rebuilding', lib => {
 		library = lib;
 		// Set rewards start at 150-th block
-		library.modules.blocks.blockReward.rewardOffset = 150;
+		library.modules.chain.blockReward.rewardOffset = 150;
 		Queries = new QueriesHelper(lib, lib.components.storage);
 
 		addTransactionsAndForgePromise = Promise.promisify(
@@ -95,7 +95,7 @@ describe('rebuilding', () => {
 		});
 
 		it('mem_accounts states after rebuilding should match copy taken after round 2', async () => {
-			const lastBlock = library.modules.blocks.lastBlock;
+			const lastBlock = library.modules.chain.lastBlock;
 			expect(lastBlock.height).to.eql(303);
 
 			await library.modules.rebuilder.rebuild(2);

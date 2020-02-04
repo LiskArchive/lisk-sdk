@@ -51,7 +51,7 @@ const { ACTIVE_DELEGATES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 
 function getDelegateForSlot(library, slot, cb) {
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const round = rounds.calcRound(lastBlock.height + 1);
 	library.modules.forger
 		.loadDelegates()
@@ -84,12 +84,12 @@ async function createBlock(
 	previousBlock,
 ) {
 	transactions = transactions.map(transaction =>
-		library.modules.blocks.deserializeTransaction(transaction),
+		library.modules.chain.deserializeTransaction(transaction),
 	);
 	// TODO Remove hardcoded values and use from BFT class
 	const blockProcessorV1 = library.modules.processor.processors[1];
 	const block = await blockProcessorV1.create.run({
-		blockReward: library.modules.blocks.blockReward,
+		blockReward: library.modules.chain.blockReward,
 		keypair,
 		timestamp,
 		previousBlock,
@@ -109,7 +109,7 @@ function createValidBlockWithSlotOffset(
 	exceptions,
 	cb,
 ) {
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber() - slotOffset;
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -129,7 +129,7 @@ function createValidBlockWithSlotOffset(
 }
 
 function createValidBlock(library, transactions, cb) {
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -163,7 +163,7 @@ function getBlocks(library, cb) {
 function getNextForger(library, offset, cb) {
 	offset = !offset ? 1 : offset;
 
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber(lastBlock.timestamp);
 	getDelegateForSlot(library, slot + offset, cb);
 }
@@ -187,7 +187,7 @@ function forge(library, cb) {
 				getNextForger(library, null, seriesCb);
 			},
 			function(delegate, seriesCb) {
-				let last_block = library.modules.blocks.lastBlock;
+				let last_block = library.modules.chain.lastBlock;
 				const slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				const keypair = keypairs[delegate];
 				__testContext.debug(
@@ -215,7 +215,7 @@ function forge(library, cb) {
 					})
 					.then(block => library.modules.processor.process(block))
 					.then(() => {
-						last_block = library.modules.blocks.lastBlock;
+						last_block = library.modules.chain.lastBlock;
 						library.modules.transactionPool._resetPool();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${last_block.id}`,
@@ -244,7 +244,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.modules.blocks.deserializeTransaction(transaction);
+	transaction = library.modules.chain.deserializeTransaction(transaction);
 
 	const amountNormalized = !transaction.asset.amount
 		? 0
@@ -262,7 +262,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.modules.blocks.deserializeTransaction(transaction);
+	transaction = library.modules.chain.deserializeTransaction(transaction);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => library.modules.transactionPool.fillPool())
@@ -364,7 +364,7 @@ function beforeBlock(type, cb) {
 					_node = __node;
 					cb({
 						modules: {
-							blocks: _node.blocks,
+							chain: _node.chain,
 							transactionPool: _node.transactionPool,
 							forger: _node.forger,
 							dpos: _node.dpos,

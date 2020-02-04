@@ -131,7 +131,7 @@ describe('block_synchronization_mechanism', () => {
 			logger: loggerMock,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
-			blocks: chainModule,
+			chain: chainModule,
 			exceptions: {},
 		});
 
@@ -171,7 +171,7 @@ describe('block_synchronization_mechanism', () => {
 			channel: channelMock,
 			slots: chainModule.slots,
 			rounds: dpos.rounds,
-			blocks: chainModule,
+			chain: chainModule,
 			bft: bftModule,
 			processorModule,
 			activeDelegates: constants.ACTIVE_DELEGATES,
