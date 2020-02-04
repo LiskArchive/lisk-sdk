@@ -346,7 +346,7 @@ export abstract class BaseTransaction {
 			publicKey: sender.publicKey || this.senderPublicKey,
 		};
 		const errors =
-			BigInt(updatedBalance) <= BigInt(MAX_TRANSACTION_AMOUNT)
+			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
 				: [
 						new TransactionError(

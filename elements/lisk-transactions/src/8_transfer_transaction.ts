@@ -192,7 +192,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		const updatedRecipientBalance = recipient.balance + this.asset.amount;
 
-		if (BigInt(updatedRecipientBalance) > BigInt(MAX_TRANSACTION_AMOUNT)) {
+		if (updatedRecipientBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
 				new TransactionError(
 					'Invalid amount',
@@ -219,7 +219,7 @@ export class TransferTransaction extends BaseTransaction {
 		const sender = await store.account.get(this.senderId);
 		const updatedSenderBalance = sender.balance + this.asset.amount;
 
-		if (BigInt(updatedSenderBalance) > BigInt(MAX_TRANSACTION_AMOUNT)) {
+		if (updatedSenderBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
 				new TransactionError(
 					'Invalid amount',
