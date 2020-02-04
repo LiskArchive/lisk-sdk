@@ -72,7 +72,7 @@ export interface RoundException {
 	readonly fees_bonus: number;
 }
 
-export interface Blocks {
+export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
 	readonly dataAccess: {
 		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;

@@ -43,12 +43,12 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.undo()', () => {
 	let dpos: Dpos;
-	let blocksStub: any;
+	let chainStub: any;
 	let stateStore: StateStoreMock;
 
 	beforeEach(() => {
 		// Arrange
-		blocksStub = {
+		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
@@ -58,7 +58,7 @@ describe('dpos.undo()', () => {
 		};
 
 		dpos = new Dpos({
-			blocks: blocksStub,
+			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -235,7 +235,7 @@ describe('dpos.undo()', () => {
 
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
 		});
@@ -325,7 +325,7 @@ describe('dpos.undo()', () => {
 			}));
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
 			lastBlockOfTheRoundNine = {
@@ -447,7 +447,7 @@ describe('dpos.undo()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
 					err,
 				);
 
@@ -478,7 +478,7 @@ describe('dpos.undo()', () => {
 				};
 
 				dpos = new Dpos({
-					blocks: blocksStub,
+					chain: chainStub,
 					activeDelegates: ACTIVE_DELEGATES,
 					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,

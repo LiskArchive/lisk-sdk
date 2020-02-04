@@ -30,11 +30,11 @@ import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
  */
 describe('dpos.getForgerPublicKeysForRound()', () => {
 	let dpos: Dpos;
-	let blocksStub: any;
+	let chainStub: any;
 
 	beforeEach(() => {
 		// Arrange
-		blocksStub = {
+		chainStub = {
 			dataAccess: {
 				getChainState: jest.fn(),
 				getDelegateAccounts: jest.fn(),
@@ -42,7 +42,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 		};
 
 		dpos = new Dpos({
-			blocks: blocksStub,
+			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -52,7 +52,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 		// Arrange
-		when(blocksStub.dataAccess.getChainState)
+		when(chainStub.dataAccess.getChainState)
 			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(
 				JSON.stringify([{ round, delegates: delegatePublicKeys }]),
@@ -67,10 +67,10 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should throw error when chain state is empty', async () => {
 		// Arrange
-		when(blocksStub.dataAccess.getChainState)
+		when(chainStub.dataAccess.getChainState)
 			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(undefined);
-		blocksStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
+		chainStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
 
 		// Act && Assert
 		return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(
@@ -80,12 +80,12 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should throw error when round is not in the chain state', async () => {
 		// Arrange
-		when(blocksStub.dataAccess.getChainState)
+		when(chainStub.dataAccess.getChainState)
 			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(
 				JSON.stringify([{ round: 7, delegates: delegatePublicKeys }]),
 			);
-		blocksStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
+		chainStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
 
 		// Act && Assert
 		return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(

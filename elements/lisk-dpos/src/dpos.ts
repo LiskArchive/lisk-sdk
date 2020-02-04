@@ -22,7 +22,7 @@ import {
 import { Rounds } from './rounds';
 import {
 	BlockHeader,
-	Blocks,
+	Chain,
 	DPoSProcessingOptions,
 	ForgersList,
 	RoundException,
@@ -37,7 +37,7 @@ interface ActiveDelegates {
 interface DposConstructor {
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
-	readonly blocks: Blocks;
+	readonly chain: Chain;
 	readonly exceptions?: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 		readonly rounds?: { readonly [key: string]: RoundException };
@@ -52,12 +52,12 @@ export class Dpos {
 	private readonly delegateActiveRoundLimit: number;
 	private readonly delegatesList: DelegatesList;
 	private readonly delegatesInfo: DelegatesInfo;
-	private readonly blocks: Blocks;
+	private readonly chain: Chain;
 
 	public constructor({
 		activeDelegates,
 		delegateListRoundOffset,
-		blocks,
+		chain,
 		exceptions = {},
 	}: DposConstructor) {
 		this.events = new EventEmitter();
@@ -65,18 +65,18 @@ export class Dpos {
 		// @todo consider making this a constant and reuse it in BFT module.
 		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
-		this.blocks = blocks;
+		this.chain = chain;
 		this.rounds = new Rounds({ blocksPerRound: activeDelegates });
 
 		this.delegatesList = new DelegatesList({
 			rounds: this.rounds,
 			activeDelegates,
-			blocks: this.blocks,
+			chain: this.chain,
 			exceptions,
 		});
 
 		this.delegatesInfo = new DelegatesInfo({
-			blocks: this.blocks,
+			chain: this.chain,
 			rounds: this.rounds,
 			activeDelegates,
 			events: this.events,
