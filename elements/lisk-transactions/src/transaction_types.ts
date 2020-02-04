@@ -36,8 +36,6 @@ export interface Account {
 	votedDelegatesPublicKeys: string[];
 	// tslint:disable-next-line readonly-keyword
 	membersPublicKeys: string[];
-	// tslint:disable-next-line:no-mixed-interface
-	readonly addBalance: (fees: bigint) => void;
 }
 
 export interface Delegate {

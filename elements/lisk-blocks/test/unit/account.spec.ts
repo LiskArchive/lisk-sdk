@@ -112,15 +112,4 @@ describe('account', () => {
 			expect(accountJSON.asset).toEqual({});
 		});
 	});
-
-	describe('addBalance', () => {
-		it('should update the balance by taking string or bigint', () => {
-			const balance1 = '8';
-			const balance2 = BigInt('8');
-			defaultAccount.addBalance(balance1);
-			expect(defaultAccount.balance).toEqual(BigInt(balance1));
-			defaultAccount.addBalance(balance2);
-			expect(defaultAccount.balance).toEqual(BigInt(balance1) + balance2);
-		});
-	});
 });

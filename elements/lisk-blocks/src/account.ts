@@ -123,8 +123,4 @@ export class Account {
 				this.membersPublicKeys.length > 0 ? this.membersPublicKeys : null,
 		};
 	}
-
-	public addBalance(balance: string | BigInt): void {
-		this.balance = this.balance + BigInt(balance);
-	}
 }
