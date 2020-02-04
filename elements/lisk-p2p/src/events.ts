@@ -14,6 +14,7 @@
  */
 // P2P general
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
+export const EVENT_NEW_INBOUND_PEER_CONNECTION = 'newInboundPeerConnection';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NETWORK_READY = 'networkReady';
 

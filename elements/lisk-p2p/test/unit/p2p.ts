@@ -93,7 +93,7 @@ describe('p2p', () => {
 	});
 
 	describe('#PeerServer', () => {
-		describe.only('Peer Banning', () => {
+		describe('Peer Banning', () => {
 			const peerId = constructPeerId('127.0.0.1', 6000);
 
 			it(`should Re-emit ${EVENT_BAN_PEER} Event`, async () => {

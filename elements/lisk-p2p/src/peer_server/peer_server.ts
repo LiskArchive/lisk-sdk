@@ -24,8 +24,6 @@ import {
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	DEFAULT_NODE_HOST_IP,
 	DEFAULT_RATE_CALCULATION_INTERVAL,
-	DUPLICATE_CONNECTION,
-	DUPLICATE_CONNECTION_REASON,
 	FORBIDDEN_CONNECTION,
 	FORBIDDEN_CONNECTION_REASON,
 	INCOMPATIBLE_PEER_CODE,
@@ -43,7 +41,7 @@ import {
 	EVENT_BAN_PEER,
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
 	EVENT_INBOUND_SOCKET_ERROR,
-	EVENT_NEW_INBOUND_PEER,
+	EVENT_NEW_INBOUND_PEER_CONNECTION,
 } from '../events';
 import {
 	IncomingPeerConnection,
@@ -359,34 +357,15 @@ export class PeerServer extends EventEmitter {
 				errorReason,
 			);
 
-			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, errorReason);
-
 			return;
 		}
 
-		try {
-			const incomingPeerConnection: IncomingPeerConnection = {
-				peerInfo: incomingPeerInfo,
-				socket,
-			};
+		const incomingPeerConnection: IncomingPeerConnection = {
+			peerInfo: incomingPeerInfo,
+			socket,
+		};
 
-			this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection);
-		} catch (err) {
-			this._disconnectSocketDueToFailedHandshake(
-				socket,
-				DUPLICATE_CONNECTION,
-				DUPLICATE_CONNECTION_REASON,
-			);
-
-			return;
-		}
-
-		if (!this._peerBook.hasPeer(incomingPeerInfo)) {
-			this._peerBook.addPeer({
-				...incomingPeerInfo,
-				sourceAddress: socket.remoteAddress,
-			});
-		}
+		this.emit(EVENT_NEW_INBOUND_PEER_CONNECTION, incomingPeerConnection);
 
 		return;
 	}

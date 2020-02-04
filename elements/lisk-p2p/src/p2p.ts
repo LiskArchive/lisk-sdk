@@ -38,6 +38,8 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_WS_MAX_MESSAGE_RATE_PENALTY,
 	DEFAULT_WS_MAX_PAYLOAD,
+	DUPLICATE_CONNECTION,
+	DUPLICATE_CONNECTION_REASON,
 } from './constants';
 import {
 	EVENT_BAN_PEER,
@@ -57,6 +59,7 @@ import {
 	EVENT_MESSAGE_RECEIVED,
 	EVENT_NETWORK_READY,
 	EVENT_NEW_INBOUND_PEER,
+	EVENT_NEW_INBOUND_PEER_CONNECTION,
 	EVENT_OUTBOUND_SOCKET_ERROR,
 	EVENT_REMOVE_PEER,
 	EVENT_REQUEST_RECEIVED,
@@ -339,8 +342,22 @@ export class P2P extends EventEmitter {
 					incomingPeerConnection.socket,
 				);
 			} catch (err) {
+				incomingPeerConnection.socket.disconnect(
+					DUPLICATE_CONNECTION,
+					DUPLICATE_CONNECTION_REASON,
+				);
+
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
+
+				return;
+			}
+
+			if (!this._peerBook.hasPeer(incomingPeerConnection.peerInfo)) {
+				this._peerBook.addPeer({
+					...incomingPeerConnection.peerInfo,
+					sourceAddress: incomingPeerConnection.socket.remoteAddress,
+				});
 			}
 
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -765,7 +782,10 @@ export class P2P extends EventEmitter {
 			EVENT_FAILED_TO_ADD_INBOUND_PEER,
 			this._handleFailedAddInbound,
 		);
-		peerServer.on(EVENT_NEW_INBOUND_PEER, this._handleInboundPeerConnect);
+		peerServer.on(
+			EVENT_NEW_INBOUND_PEER_CONNECTION,
+			this._handleInboundPeerConnect,
+		);
 	}
 	// tslint:disable-next-line:max-file-line-count
 }

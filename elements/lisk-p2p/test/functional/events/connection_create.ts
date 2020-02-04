@@ -35,7 +35,7 @@ const {
 	INVALID_CONNECTION_SELF_REASON,
 } = constants;
 
-describe.only(`Connection Create`, () => {
+describe(`Connection Create`, () => {
 	describe(`Events`, () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		const collectedEvents = new Map();
