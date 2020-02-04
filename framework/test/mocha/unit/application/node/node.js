@@ -88,8 +88,8 @@ describe('Node', () => {
 		/* Arranging Stubs end */
 		Node.__set__('jobQueue', stubs.jobsQueue);
 
-		const Blocks = Node.__get__('Blocks');
-		Object.defineProperty(Blocks.prototype, 'lastBlock', {
+		const Chain = Node.__get__('Chain');
+		Object.defineProperty(Chain.prototype, 'lastBlock', {
 			get: () => {
 				return {
 					height: 1,
@@ -99,7 +99,7 @@ describe('Node', () => {
 				};
 			},
 		});
-		Node.__set__('Blocks', Blocks);
+		Node.__set__('Chain', Chain);
 
 		// Act
 		const params = {
