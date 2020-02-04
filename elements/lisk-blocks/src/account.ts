@@ -93,7 +93,7 @@ export class Account {
 			...accountDefaultValues,
 		});
 
-	public getAccountJSON(): AccountJSON {
+	public toJSON(): AccountJSON {
 		return {
 			address: this.address,
 			publicKey: this.publicKey,

@@ -68,9 +68,9 @@ describe('account', () => {
 		});
 	});
 
-	describe('getAccountJSON', () => {
+	describe('toJSON', () => {
 		defaultAccount = Account.getDefaultAccount(accountAddress1);
-		const accountJSON = defaultAccount.getAccountJSON();
+		const accountJSON = defaultAccount.toJSON();
 		it('should return default account JSON object with relevant types', () => {
 			expect(accountJSON.address).toEqual(accountAddress1);
 			expect(accountJSON.balance).toBeString;

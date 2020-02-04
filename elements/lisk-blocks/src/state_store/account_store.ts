@@ -179,7 +179,7 @@ export class AccountStore {
 	public async finalize(tx: StorageTransaction): Promise<void> {
 		const affectedAccounts = Object.entries(this._updatedKeys).map(
 			([index, updatedKeys]) => ({
-				updatedItem: this._data[parseInt(index, 10)].getAccountJSON(),
+				updatedItem: this._data[parseInt(index, 10)].toJSON(),
 				updatedKeys,
 			}),
 		);
