@@ -650,7 +650,7 @@ describe('transport', () => {
 					});
 
 					describe('when query is defined', () => {
-						it('should call modules.blocks.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
+						it('should call modules.chain.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
 							query = {
 								blockId: '6258354802676165798',
 							};
@@ -665,7 +665,7 @@ describe('transport', () => {
 						});
 					});
 
-					describe('when modules.blocks.loadBlocksFromLastBlockId fails', () => {
+					describe('when modules.chain.loadBlocksFromLastBlockId fails', () => {
 						it('should throw an error', async () => {
 							query = {
 								blockId: '6258354802676165798',
@@ -750,7 +750,7 @@ describe('transport', () => {
 							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
 
 							describe('when query.block is defined', () => {
-								it('should call modules.blocks.addBlockProperties with query.block', async () => {
+								it('should call modules.chain.addBlockProperties with query.block', async () => {
 									await transportModule.handleEventPostBlock({
 										block: genesisBlock,
 									});
