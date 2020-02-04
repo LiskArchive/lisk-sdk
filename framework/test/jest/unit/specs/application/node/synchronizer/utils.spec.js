@@ -32,6 +32,7 @@ describe('#synchronizer/utils', () => {
 			lastBlock: jest.fn(),
 			dataAccess: {
 				getTempBlocks: jest.fn(),
+				clearTempBlocks: jest.fn(),
 			},
 		};
 
@@ -181,7 +182,6 @@ describe('#synchronizer/utils', () => {
 
 			// Assert
 			expect(blocksMock.dataAccess.getTempBlocks).toHaveBeenCalled();
-			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
 		it('should truncate temp_blocks table if fork status != ForkStatus.DIFFERENT_CHAIN || != ForkStatus.VALID_BLOCK', async () => {
@@ -205,8 +205,7 @@ describe('#synchronizer/utils', () => {
 			);
 
 			// Assert
-			expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
-			expect(blocksMock.dataAccess.getTempBlocks).not.toHaveBeenCalled();
+			expect(blocksMock.dataAccess.clearTempBlocks).toHaveBeenCalled();
 		});
 
 		it('should call forkStatus with lowest block object', async () => {
