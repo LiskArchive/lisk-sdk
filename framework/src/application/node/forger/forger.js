@@ -124,7 +124,7 @@ class Forger {
 
 		const address = getAddressFromPublicKey(keypair.publicKey.toString('hex'));
 
-		const [account] = this.blocksModule.dataAccess.getAccountsByAddress(
+		const [account] = await this.blocksModule.dataAccess.getAccountsByAddress(
 			address,
 		);
 
@@ -192,7 +192,7 @@ class Forger {
 			const address = getAddressFromPublicKey(
 				keypair.publicKey.toString('hex'),
 			);
-			const [account] = this.blocksModule.dataAccess.getAccountsByAddress(
+			const [account] = await this.blocksModule.dataAccess.getAccountsByAddress(
 				address,
 			);
 
