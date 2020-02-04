@@ -1,8 +1,8 @@
 ### What was the problem?
 This PR resolves #INSERT_ISSUE_NUMBER
 
-### How did I solve it?
+### How was it solved?
 <!--- Please describe your technical implementation -->
 
-### How this has been tested?
+### How was it tested?
 <!--- Please describe how you tested your changes -->
