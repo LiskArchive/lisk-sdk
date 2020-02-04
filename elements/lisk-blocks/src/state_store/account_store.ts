@@ -52,7 +52,7 @@ export class AccountStore {
 	private readonly _primaryKey = 'address';
 	private readonly _name = 'Account';
 
-	public constructor(accountEntity: StorageEntity<Account>) {
+	public constructor(accountEntity: StorageEntity<AccountJSON>) {
 		this._account = accountEntity;
 		this._data = [];
 		this._updatedKeys = {};

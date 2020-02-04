@@ -282,7 +282,7 @@ export class DataAccess {
 	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
-	): Promise<Account[]> {
+	): Promise<AccountJSON[]> {
 		const accounts = await this._storage.getAccountsByPublicKey(
 			arrayOfPublicKeys,
 		);
@@ -292,13 +292,13 @@ export class DataAccess {
 
 	public async getAccountsByAddress(
 		arrayOfAddresses: ReadonlyArray<string>,
-	): Promise<Account[]> {
+	): Promise<AccountJSON[]> {
 		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
 		return accounts;
 	}
 
-	public async getDelegateAccounts(limit: number): Promise<Account[]> {
+	public async getDelegateAccounts(limit: number): Promise<AccountJSON[]> {
 		const accounts = await this._storage.getDelegateAccounts(limit);
 
 		return accounts;

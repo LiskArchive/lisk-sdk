@@ -256,11 +256,21 @@ describe('state store / account', () => {
 		let updatedAccount;
 		let secondPublicKey: string;
 		let secondSignature: number;
+		let accountUpsertObj: object;
 
 		beforeEach(async () => {
 			secondPublicKey =
 				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
 			secondSignature = 1;
+
+			accountUpsertObj = {
+				secondPublicKey,
+				secondSignature,
+				balance: '0',
+				fees: '0',
+				rewards: '0',
+				voteWeight: '0',
+			};
 
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 
@@ -287,7 +297,7 @@ describe('state store / account', () => {
 
 			expect(storageStub.entities.Account.upsert).toHaveBeenCalledWith(
 				{ address: defaultAccounts[0].address },
-				{ secondPublicKey, secondSignature },
+				accountUpsertObj,
 				null,
 				txStub,
 			);
