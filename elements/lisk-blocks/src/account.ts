@@ -13,6 +13,27 @@
  */
 import { AccountJSON } from './types';
 
+export const accountDefaultValues = {
+	publicKey: undefined,
+	// tslint:disable-next-line:no-null-keyword
+	secondPublicKey: null,
+	secondSignature: 0,
+	// tslint:disable-next-line:no-null-keyword
+	username: null,
+	isDelegate: 0,
+	balance: BigInt(0),
+	missedBlocks: 0,
+	producedBlocks: 0,
+	fees: BigInt(0),
+	rewards: BigInt(0),
+	voteWeight: BigInt(0),
+	nameExist: false,
+	multiMin: 0,
+	multiLifetime: 0,
+	votedDelegatesPublicKeys: [],
+	asset: {},
+	membersPublicKeys: [],
+};
 export class Account {
 	public address: string;
 	public balance: bigint;
@@ -69,25 +90,7 @@ export class Account {
 	public static getDefaultAccount = (address: string): Account =>
 		new Account({
 			address,
-			publicKey: undefined,
-			// tslint:disable-next-line:no-null-keyword
-			secondPublicKey: null,
-			secondSignature: 0,
-			// tslint:disable-next-line:no-null-keyword
-			username: null,
-			isDelegate: 0,
-			balance: BigInt(0),
-			missedBlocks: 0,
-			producedBlocks: 0,
-			fees: BigInt(0),
-			rewards: BigInt(0),
-			voteWeight: BigInt(0),
-			nameExist: false,
-			multiMin: 0,
-			multiLifetime: 0,
-			votedDelegatesPublicKeys: [],
-			asset: {},
-			membersPublicKeys: [],
+			...accountDefaultValues,
 		});
 
 	public getAccountJSON(): AccountJSON {
