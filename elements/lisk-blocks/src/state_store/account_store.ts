@@ -22,27 +22,6 @@ import {
 	StorageTransaction,
 } from '../types';
 
-export const sanitizeAccountForStorage = (
-	account: Partial<Account>,
-): Partial<AccountJSON> => {
-	const {
-		addBalance,
-		balance,
-		voteWeight,
-		fees,
-		rewards,
-		...restOfAccount
-	} = account;
-
-	return {
-		...restOfAccount,
-		balance: balance ? balance.toString() : '0',
-		voteWeight: voteWeight ? voteWeight.toString() : '0',
-		fees: fees ? fees.toString() : '0',
-		rewards: rewards ? rewards.toString() : '0',
-	};
-};
-
 export class AccountStore {
 	private readonly _account: StorageEntity<AccountJSON>;
 	private _data: Account[];
@@ -166,6 +145,8 @@ export class AccountStore {
 	}
 
 	public set(primaryValue: string, updatedElement: Account): void {
+		const updatedElementObj = new Account(updatedElement);
+
 		const elementIndex = this._data.findIndex(
 			item => item[this._primaryKey] === primaryValue,
 		);
@@ -176,7 +157,7 @@ export class AccountStore {
 			);
 		}
 
-		const updatedKeys = Object.entries(updatedElement).reduce(
+		const updatedKeys = Object.entries(updatedElementObj).reduce(
 			(existingUpdatedKeys, [key, value]) => {
 				const account = this._data[elementIndex];
 				// tslint:disable-next-line:no-any
@@ -189,7 +170,7 @@ export class AccountStore {
 			[] as string[],
 		);
 
-		this._data[elementIndex] = updatedElement;
+		this._data[elementIndex] = updatedElementObj;
 		this._updatedKeys[elementIndex] = this._updatedKeys[elementIndex]
 			? uniq([...this._updatedKeys[elementIndex], ...updatedKeys])
 			: updatedKeys;
@@ -198,7 +179,7 @@ export class AccountStore {
 	public async finalize(tx: StorageTransaction): Promise<void> {
 		const affectedAccounts = Object.entries(this._updatedKeys).map(
 			([index, updatedKeys]) => ({
-				updatedItem: this._data[parseInt(index, 10)],
+				updatedItem: this._data[parseInt(index, 10)].getAccountJSON(),
 				updatedKeys,
 			}),
 		);
@@ -210,7 +191,7 @@ export class AccountStore {
 
 				return this._account.upsert(
 					filter,
-					sanitizeAccountForStorage(updatedData),
+					updatedData,
 					// tslint:disable-next-line:no-null-keyword
 					null,
 					tx,

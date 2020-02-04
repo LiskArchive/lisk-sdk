@@ -266,10 +266,6 @@ describe('state store / account', () => {
 			accountUpsertObj = {
 				secondPublicKey,
 				secondSignature,
-				balance: '0',
-				fees: '0',
-				rewards: '0',
-				voteWeight: '0',
 			};
 
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);

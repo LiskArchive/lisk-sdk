@@ -56,8 +56,14 @@ export class Account {
 		this.multiMin = accountInfo.multiMin;
 		this.multiLifetime = accountInfo.multiLifetime;
 		this.asset = accountInfo.asset;
-		this.votedDelegatesPublicKeys = accountInfo.votedDelegatesPublicKeys;
-		this.membersPublicKeys = accountInfo.membersPublicKeys;
+		this.votedDelegatesPublicKeys =
+			accountInfo.votedDelegatesPublicKeys === null
+				? []
+				: accountInfo.votedDelegatesPublicKeys;
+		this.membersPublicKeys =
+			accountInfo.membersPublicKeys === null
+				? []
+				: accountInfo.membersPublicKeys;
 	}
 
 	public static getDefaultAccount = (address: string): Account =>
@@ -83,6 +89,37 @@ export class Account {
 			asset: {},
 			membersPublicKeys: [],
 		});
+
+	public getAccountJSON(): AccountJSON {
+		return {
+			address: this.address,
+			publicKey: this.publicKey,
+			// tslint:disable-next-line:no-null-keyword
+			secondPublicKey: this.secondPublicKey,
+			secondSignature: this.secondSignature,
+			// tslint:disable-next-line:no-null-keyword
+			username: this.username,
+			isDelegate: this.isDelegate,
+			balance: this.balance.toString(),
+			missedBlocks: this.missedBlocks,
+			producedBlocks: this.producedBlocks,
+			fees: this.fees.toString(),
+			rewards: this.rewards.toString(),
+			voteWeight: this.voteWeight.toString(),
+			nameExist: this.nameExist,
+			multiMin: this.multiMin,
+			multiLifetime: this.multiLifetime,
+			votedDelegatesPublicKeys:
+				this.votedDelegatesPublicKeys.length > 0
+					? this.votedDelegatesPublicKeys
+					: // tslint:disable-next-line:no-null-keyword
+					  null,
+			asset: this.asset,
+			membersPublicKeys:
+				// tslint:disable-next-line:no-null-keyword
+				this.membersPublicKeys.length > 0 ? this.membersPublicKeys : null,
+		};
+	}
 
 	public addBalance(balance: string | BigInt): void {
 		this.balance = this.balance + BigInt(balance);
