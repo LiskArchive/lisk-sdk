@@ -30,9 +30,11 @@ export const accountDefaultValues = {
 	nameExist: false,
 	multiMin: 0,
 	multiLifetime: 0,
-	votedDelegatesPublicKeys: [],
+	// tslint:disable-next-line:no-null-keyword
+	votedDelegatesPublicKeys: null,
 	asset: {},
-	membersPublicKeys: [],
+	// tslint:disable-next-line:no-null-keyword
+	membersPublicKeys: null,
 };
 
 export class Account {
@@ -79,11 +81,12 @@ export class Account {
 		this.multiLifetime = accountInfo.multiLifetime;
 		this.asset = accountInfo.asset;
 		this.votedDelegatesPublicKeys =
+			!accountInfo.votedDelegatesPublicKeys ||
 			accountInfo.votedDelegatesPublicKeys === null
 				? []
 				: accountInfo.votedDelegatesPublicKeys;
 		this.membersPublicKeys =
-			accountInfo.membersPublicKeys === null
+			!accountInfo.membersPublicKeys || accountInfo.membersPublicKeys === null
 				? []
 				: accountInfo.membersPublicKeys;
 	}
@@ -114,14 +117,14 @@ export class Account {
 			multiMin: this.multiMin,
 			multiLifetime: this.multiLifetime,
 			votedDelegatesPublicKeys:
-				this.votedDelegatesPublicKeys.length > 0
-					? this.votedDelegatesPublicKeys
-					: // tslint:disable-next-line:no-null-keyword
-					  null,
+				this.votedDelegatesPublicKeys.length < 1
+					? // tslint:disable-next-line:no-null-keyword
+					  null
+					: this.votedDelegatesPublicKeys,
 			asset: this.asset,
 			membersPublicKeys:
 				// tslint:disable-next-line:no-null-keyword
-				this.membersPublicKeys.length > 0 ? this.membersPublicKeys : null,
+				this.membersPublicKeys.length < 1 ? null : this.membersPublicKeys,
 		};
 	}
 }
