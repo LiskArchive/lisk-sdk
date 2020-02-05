@@ -75,7 +75,7 @@ export class AccountStore {
 		);
 
 		if (element) {
-			return cloneDeep(element);
+			return new Account(element.toJSON());
 		}
 
 		// Account was not cached previously so we try to fetch it from db
@@ -89,7 +89,7 @@ export class AccountStore {
 		if (elementFromDB) {
 			this._data.push(new Account(elementFromDB));
 
-			return cloneDeep(new Account(elementFromDB));
+			return new Account(elementFromDB);
 		}
 
 		// Account does not exist we can not continue
@@ -104,7 +104,7 @@ export class AccountStore {
 			item => item[this._primaryKey] === primaryValue,
 		);
 		if (element) {
-			return element;
+			return new Account(element.toJSON());
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
@@ -118,7 +118,7 @@ export class AccountStore {
 		if (elementFromDB) {
 			this._data.push(new Account(elementFromDB));
 
-			return cloneDeep(new Account(elementFromDB));
+			return new Account(elementFromDB);
 		}
 
 		const defaultElement: Account = Account.getDefaultAccount(primaryValue);
@@ -126,7 +126,7 @@ export class AccountStore {
 		const newElementIndex = this._data.push(defaultElement) - 1;
 		this._updatedKeys[newElementIndex] = Object.keys(defaultElement);
 
-		return defaultElement;
+		return new Account(defaultElement.toJSON());
 	}
 
 	public getUpdated(): ReadonlyArray<Account> {
