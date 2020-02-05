@@ -106,6 +106,7 @@ module.exports = class Node {
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
+				storage: this.storage,
 			};
 
 			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
@@ -413,6 +414,7 @@ module.exports = class Node {
 		});
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
+			storage: this.storage,
 			logger: this.logger,
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,

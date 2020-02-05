@@ -30,6 +30,7 @@ class Rebuilder {
 		blocksModule,
 		// Constants
 		activeDelegates,
+		storage,
 	}) {
 		this.isActive = false;
 		this.isCleaning = false;
@@ -43,6 +44,7 @@ class Rebuilder {
 		this.constants = {
 			activeDelegates,
 		};
+		this.storage = storage;
 	}
 
 	cleanup() {
