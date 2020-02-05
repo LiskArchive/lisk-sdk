@@ -23,18 +23,18 @@ describe('state store / account', () => {
 		secondSignature: 0,
 		username: null,
 		isDelegate: 0,
-		balance: BigInt(0),
+		balance: '0',
 		nameExist: false,
 		missedBlocks: 0,
 		producedBlocks: 0,
-		fees: BigInt(0),
-		rewards: BigInt(0),
-		voteWeight: BigInt(0),
+		fees: '0',
+		rewards: '0',
+		voteWeight: '0',
 		multiMin: 0,
 		multiLifetime: 0,
-		votedDelegatesPublicKeys: [],
+		votedDelegatesPublicKeys: null,
 		asset: {},
-		membersPublicKeys: [],
+		membersPublicKeys: null,
 	};
 
 	const defaultAccounts = [
@@ -54,12 +54,12 @@ describe('state store / account', () => {
 		new Account({
 			...defaultAccount,
 			address: '1276152240083265771L',
-			balance: BigInt(100),
+			balance: '100',
 		}),
 		new Account({
 			...defaultAccount,
 			address: '11237980039345381032L',
-			balance: BigInt(555),
+			balance: '555',
 		}),
 	];
 
@@ -189,7 +189,9 @@ describe('state store / account', () => {
 			// Act
 			const account = await stateStore.account.getOrDefault('123L');
 			// Assert
-			expect(account).toEqual({ ...defaultAccount, address: '123L' });
+			expect(account).toEqual(
+				new Account({ ...defaultAccount, address: '123L' }),
+			);
 			expect(account.balance).toBe(BigInt(0));
 		});
 	});
@@ -234,7 +236,7 @@ describe('state store / account', () => {
 				defaultAccounts[0].address,
 			);
 			const updatedAccount = new Account({
-				...existingAccount,
+				...existingAccount.toJSON(),
 				secondPublicKey,
 				secondSignature,
 			});
@@ -280,7 +282,7 @@ describe('state store / account', () => {
 				defaultAccounts[0].address,
 			);
 			updatedAccount = new Account({
-				...existingAccount,
+				...existingAccount.toJSON(),
 				secondPublicKey,
 				secondSignature,
 			});
