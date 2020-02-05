@@ -36,10 +36,10 @@ for (
 		publicKey,
 		producedBlocks: 0,
 		missedBlocks: 0,
-		balance,
-		fees: '0',
-		rewards: '0',
-		voteWeight: '0',
+		balance: BigInt(balance),
+		fees: BigInt('0'),
+		rewards: BigInt('0'),
+		voteWeight: BigInt('0'),
 		votedDelegatesPublicKeys: [],
 	});
 }
@@ -57,12 +57,12 @@ export const delegateAccounts = delegatePublicKeys.map(
 		];
 		return {
 			address: getAddressFromPublicKey(pk),
-			balance,
+			balance: BigInt(balance),
 			producedBlocks: 0,
 			missedBlocks: 0,
-			rewards,
-			voteWeight,
-			fees: (BigInt(balance) - BigInt(rewards)).toString(),
+			rewards: BigInt(rewards),
+			voteWeight: BigInt(voteWeight),
+			fees: BigInt(balance) - BigInt(rewards),
 			publicKey: pk,
 			votedDelegatesPublicKeys,
 		};
