@@ -245,21 +245,14 @@ describe('Transfer transaction class', () => {
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				balance:
-					BigInt(sender.balance) -
-					BigInt(validTransferTestTransaction.asset.amount),
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
-				...recipient,
-				balance:
-					BigInt(recipient.balance) -
-					BigInt(validTransferTestTransaction.asset.amount),
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
+				recipient.address,
+				recipient,
+			);
 		});
 
 		it('should return error when sender balance is insufficient', async () => {
@@ -294,21 +287,15 @@ describe('Transfer transaction class', () => {
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				balance:
-					BigInt(sender.balance) +
-					BigInt(validTransferTestTransaction.asset.amount),
-			});
+
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
-				...recipient,
-				balance:
-					BigInt(recipient.balance) -
-					BigInt(validTransferTestTransaction.asset.amount),
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
+				recipient.address,
+				recipient,
+			);
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {

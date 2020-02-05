@@ -177,11 +177,7 @@ describe('Second signature registration transaction class', () => {
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				secondPublicKey: validTestTransaction.asset.publicKey,
-				secondSignature: 1,
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
 		});
 
 		it('should return no errors', async () => {

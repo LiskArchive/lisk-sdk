@@ -401,13 +401,7 @@ describe('Vote transaction class', () => {
 			expect(storeAccountFindStub).toHaveBeenCalledTimes(1);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(
 				defaultValidSender.address,
-				{
-					...defaultValidSender,
-					votedDelegatesPublicKeys: [
-						...defaultValidSender.votedDelegatesPublicKeys,
-						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
-					],
-				},
+				defaultValidSender,
 			);
 		});
 
