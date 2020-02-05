@@ -143,12 +143,11 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
-		const { username, ...strippedSender } = sender;
 		// tslint:disable-next-line:no-null-keyword
 		sender.username = null;
 		sender.isDelegate = 0;
 		sender.voteWeight = BigInt(0);
-		store.account.set(strippedSender.address, sender);
+		store.account.set(sender.address, sender);
 
 		return [];
 	}
