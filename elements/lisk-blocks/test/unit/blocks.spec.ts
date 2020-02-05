@@ -721,7 +721,7 @@ describe('blocks', () => {
 			// Arrange
 			const ids = ['1', '2'];
 			stubs.dependencies.storage.entities.Block.get.mockRejectedValue(
-				new Error('anError'),
+				new Error('Failed to fetch the highest common block'),
 			);
 
 			// Act && Assert

@@ -458,18 +458,13 @@ export class Blocks extends EventEmitter {
 	public async getHighestCommonBlock(
 		ids: string[],
 	): Promise<BlockHeader | undefined> {
-		try {
-			const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-			const sortedBlocks = [...blocks].sort(
-				(a: BlockHeader, b: BlockHeader) => b.height - a.height,
-			);
-			const highestCommonBlock = sortedBlocks.shift();
+		const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
+		const sortedBlocks = [...blocks].sort(
+			(a: BlockHeader, b: BlockHeader) => b.height - a.height,
+		);
+		const highestCommonBlock = sortedBlocks.shift();
 
-			return highestCommonBlock;
-		} catch (err) {
-			debug('Failed to fetch the highest common block', err);
-			throw new Error(err);
-		}
+		return highestCommonBlock;
 	}
 
 	public async filterReadyTransactions(
