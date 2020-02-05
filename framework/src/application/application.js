@@ -136,9 +136,6 @@ class Application {
 		this.initialState = null;
 		this.applicationState = null;
 
-		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-		global.constants = this.constants;
-
 		// Private members
 		this._modules = {};
 		this._transactions = {};

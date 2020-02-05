@@ -19,9 +19,9 @@ const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
-const { EPOCH_TIME, FEES } = global.constants;
-
 let library;
+let EPOCH_TIME;
+let FEES;
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
@@ -53,6 +53,7 @@ function NodeController(scope) {
 		lastCommitId: scope.lastCommitId,
 		buildVersion: scope.buildVersion,
 	};
+	({ EPOCH_TIME, FEES } = scope.config.constants);
 }
 
 NodeController.getConstants = async (context, next) => {

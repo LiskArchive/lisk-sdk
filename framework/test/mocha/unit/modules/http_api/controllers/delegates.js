@@ -110,6 +110,12 @@ describe('delegates/api', () => {
 				storage: storageStub,
 			},
 			channel: channelStub,
+			config: {
+				constants: {
+					EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+					ACTIVE_DELEGATES: 101,
+				},
+			},
 		});
 
 		restoreAggregateBlocksReward = DelegatesController.__set__(
