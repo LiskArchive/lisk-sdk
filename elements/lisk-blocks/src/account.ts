@@ -31,10 +31,10 @@ export const accountDefaultValues = {
 	multiMin: 0,
 	multiLifetime: 0,
 	// tslint:disable-next-line:no-null-keyword
-	votedDelegatesPublicKeys: null,
+	votedDelegatesPublicKeys: [],
 	asset: {},
 	// tslint:disable-next-line:no-null-keyword
-	membersPublicKeys: null,
+	membersPublicKeys: [],
 };
 
 export class Account {
@@ -81,12 +81,13 @@ export class Account {
 		this.multiLifetime = accountInfo.multiLifetime;
 		this.asset = accountInfo.asset;
 		this.votedDelegatesPublicKeys =
-			!accountInfo.votedDelegatesPublicKeys ||
+			accountInfo.votedDelegatesPublicKeys === undefined ||
 			accountInfo.votedDelegatesPublicKeys === null
 				? []
 				: accountInfo.votedDelegatesPublicKeys;
 		this.membersPublicKeys =
-			!accountInfo.membersPublicKeys || accountInfo.membersPublicKeys === null
+			accountInfo.membersPublicKeys === undefined ||
+			accountInfo.membersPublicKeys === null
 				? []
 				: accountInfo.membersPublicKeys;
 	}

@@ -141,7 +141,7 @@ export class AccountStore {
 			return undefined;
 		}
 
-		return foundAccount;
+		return new Account(foundAccount.toJSON());
 	}
 
 	public set(primaryValue: string, updatedElement: Account): void {
