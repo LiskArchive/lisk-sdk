@@ -466,11 +466,9 @@ export class Blocks extends EventEmitter {
 			const highestCommonBlock = sortedBlocks.shift();
 
 			return highestCommonBlock;
-		} catch (e) {
-			const errMessage = 'Failed to fetch the highest common block';
-			debug(errMessage);
-			debug(e);
-			throw new Error(errMessage);
+		} catch (err) {
+			debug('Failed to fetch the highest common block', err);
+			throw new Error(err);
 		}
 	}
 
