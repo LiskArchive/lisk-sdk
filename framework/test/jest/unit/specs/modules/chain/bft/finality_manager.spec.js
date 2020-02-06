@@ -105,7 +105,7 @@ describe('finality_manager', () => {
 
 				expect(() => finalityManager.verifyBlockHeaders(header)).toThrow(
 					BFTInvalidAttributeError,
-					'Wrong prevotedConfirmedHeight in blockHeader.',
+					'Wrong chainMaxHeightFinalized in blockHeader.',
 				);
 			});
 
@@ -117,7 +117,7 @@ describe('finality_manager', () => {
 					},
 				);
 				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
-				finalityManager.prevotedConfirmedHeight = 10;
+				finalityManager.chainMaxHeightFinalized = 10;
 
 				expect(() => finalityManager.verifyBlockHeaders(header)).not.toThrow();
 			});

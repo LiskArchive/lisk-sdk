@@ -451,8 +451,8 @@ describe('bft', () => {
 
 				// Load last 400 blocks to bft (101 to 500)
 				for (const block of blocksInBft) {
-					// This value is mutated to pass the prevotedConfirmedHeight validation
-					block.maxHeightPrevoted = bft.finalityManager.prevotedConfirmedHeight;
+					// This value is mutated to pass the chainMaxHeightFinalized validation
+					block.maxHeightPrevoted = bft.finalityManager.chainMaxHeightFinalized;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -489,8 +489,8 @@ describe('bft', () => {
 
 				// Load last 300 blocks to bft (201 to 500)
 				for (const block of blocksInBft) {
-					// This value is mutated to pass the prevotedConfirmedHeight validation
-					block.maxHeightPrevoted = bft.finalityManager.prevotedConfirmedHeight;
+					// This value is mutated to pass the chainMaxHeightFinalized validation
+					block.maxHeightPrevoted = bft.finalityManager.chainMaxHeightFinalized;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -673,7 +673,7 @@ describe('bft', () => {
 					await bft.addNewBlock(
 						{
 							...block,
-							maxHeightPrevoted: bft.finalityManager.prevotedConfirmedHeight,
+							maxHeightPrevoted: bft.finalityManager.chainMaxHeightFinalized,
 						},
 						stateStore,
 					);
