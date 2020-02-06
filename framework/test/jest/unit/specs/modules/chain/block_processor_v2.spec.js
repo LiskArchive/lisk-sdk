@@ -140,7 +140,7 @@ describe('block processor v2', () => {
 			const previouslyForgedHeight = 100;
 			// Arrange
 			const maxHeightResult = JSON.stringify({
-				[defaultKeyPair.publicKey.toString('hex')]: 100,
+				[defaultKeyPair.publicKey.toString('hex')]: { height: 100 },
 			});
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(maxHeightResult);
 			// Act
@@ -162,11 +162,11 @@ describe('block processor v2', () => {
 		it('should update maxPreviouslyForgedHeight to the next higher one but not change for other delegates', async () => {
 			// Arrange
 			const list = {
-				[defaultKeyPair.publicKey.toString('hex')]: 5,
-				a: 4,
-				b: 6,
-				c: 7,
-				x: 8,
+				[defaultKeyPair.publicKey.toString('hex')]: { height: 5 },
+				a: { height: 4 },
+				b: { height: 6 },
+				c: { height: 7 },
+				x: { height: 8 },
 			};
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
 				JSON.stringify(list),
@@ -182,7 +182,11 @@ describe('block processor v2', () => {
 			});
 			const maxHeightResult = JSON.stringify({
 				...list,
-				[defaultKeyPair.publicKey.toString('hex')]: 11,
+				[defaultKeyPair.publicKey.toString('hex')]: {
+					height: 11,
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 5,
+				},
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
 				'maxHeightPreviouslyForged',
@@ -201,7 +205,11 @@ describe('block processor v2', () => {
 				},
 			});
 			const maxHeightResult = JSON.stringify({
-				[defaultKeyPair.publicKey.toString('hex')]: 11,
+				[defaultKeyPair.publicKey.toString('hex')]: {
+					height: 11,
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
 				'maxHeightPreviouslyForged',
@@ -213,7 +221,7 @@ describe('block processor v2', () => {
 			// Arrange
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
 				JSON.stringify({
-					[defaultKeyPair.publicKey.toString('hex')]: 15,
+					[defaultKeyPair.publicKey.toString('hex')]: { height: 15 },
 				}),
 			);
 			// Act

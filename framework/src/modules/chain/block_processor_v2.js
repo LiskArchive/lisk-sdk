@@ -285,8 +285,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const delegatePublicKey = data.keypair.publicKey.toString('hex');
 				const height = data.previousBlock.height + 1;
 				const previousBlockId = data.previousBlock.id;
-				const maxHeightPreviouslyForged =
-					previouslyForgedMap[delegatePublicKey] || 0;
+				const forgerInfo = previouslyForgedMap[delegatePublicKey] || {};
+				const maxHeightPreviouslyForged = forgerInfo.height || 0;
 				const block = this._create({
 					...data,
 					height,
@@ -295,11 +295,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
 				});
 
-				await this._saveMaxHeightPreviouslyForged(
-					block.generatorPublicKey,
-					block.height,
-					previouslyForgedMap,
-				);
+				await this._saveMaxHeightPreviouslyForged(block, previouslyForgedMap);
 				return block;
 			},
 		]);
@@ -390,21 +386,27 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
 	 * so it needs to be outside of the DB transaction
 	 */
-	async _saveMaxHeightPreviouslyForged(
-		delegatePublicKey,
-		height,
-		previouslyForgedMap,
-	) {
+	async _saveMaxHeightPreviouslyForged(block, previouslyForgedMap) {
+		const {
+			generatorPublicKey,
+			height,
+			maxHeightPreviouslyForged,
+			maxHeightPrevoted,
+		} = block;
 		// In order to compare with the minimum height in case of the first block, here it should be 0
-		const previouslyForgedHeightByDelegate =
-			previouslyForgedMap[delegatePublicKey] || 0;
+		const previouslyForged = previouslyForgedMap[generatorPublicKey] || {};
+		const previouslyForgedHeightByDelegate = previouslyForged.height || 0;
 		// previously forged height only saves maximum forged height
 		if (height <= previouslyForgedHeightByDelegate) {
 			return;
 		}
 		const updatedPreviouslyForged = {
 			...previouslyForgedMap,
-			[delegatePublicKey]: height,
+			[generatorPublicKey]: {
+				height,
+				maxHeightPrevoted,
+				maxHeightPreviouslyForged,
+			},
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
 		await this.storage.entities.ForgerInfo.setKey(
