@@ -29,7 +29,6 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -172,7 +171,7 @@ module.exports = class Node {
 
 			this.channel.subscribe('app:ready', async () => {
 				await this._startForging();
-				await this._startLoader();
+				await this._startLoadTransactionsFromNetwork();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -405,15 +404,6 @@ module.exports = class Node {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.modules.transactionPool = this.transactionPool;
-		this.loader = new Loader({
-			channel: this.channel,
-			logger: this.logger,
-			processorModule: this.processor,
-			transactionPoolModule: this.transactionPool,
-			blocksModule: this.blocks,
-			loadPerIteration: this.options.loading.loadPerIteration,
-			syncingActive: this.options.syncing.active,
-		});
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
@@ -450,19 +440,17 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			blocksModule: this.blocks,
-			loaderModule: this.loader,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});
 
-		this.modules.loader = this.loader;
 		this.modules.forger = this.forger;
 		this.modules.transport = this.transport;
 		this.modules.bft = this.bft;
 		this.modules.synchronizer = this.synchronizer;
 	}
 
-	async _startLoader() {
+	async _startLoadTransactionsFromNetwork() {
 		return this.synchronizer.loadUnconfirmedTransactions();
 	}
 
