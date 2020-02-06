@@ -213,7 +213,6 @@ class Synchronizer {
 				{
 					id: error.id,
 					err: error.toString(),
-					module: 'loader',
 				},
 				'Transaction normalization failed',
 			);

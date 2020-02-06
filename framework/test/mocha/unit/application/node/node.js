@@ -374,10 +374,10 @@ describe('Node', () => {
 		});
 	});
 
-	describe('#_startLoader', () => {
+	describe('#_startLoadTransactionsFromNetwork', () => {
 		beforeEach(async () => {
 			await node.bootstrap();
-			sinonSandbox.stub(node.loader, 'loadUnconfirmedTransactions');
+			sinonSandbox.stub(node.synchronizer, 'loadUnconfirmedTransactions');
 		});
 
 		it('should return if syncing.active in config is set to false', async () => {
@@ -385,15 +385,15 @@ describe('Node', () => {
 			node.options.syncing.active = false;
 
 			// Act
-			await node._startLoader();
+			await node._startLoadTransactionsFromNetwork();
 
 			// Assert
 			expect(stubs.jobsQueue.register).to.not.be.called;
 		});
 
 		it('should load transactions and signatures', async () => {
-			await node._startLoader();
-			expect(node.loader.loadUnconfirmedTransactions).to.be.called;
+			await node._startLoadTransactionsFromNetwork();
+			expect(node.synchronizer.loadUnconfirmedTransactions).to.be.called;
 		});
 	});
 
