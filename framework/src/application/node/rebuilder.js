@@ -80,8 +80,7 @@ class Rebuilder {
 		const targetHeight = targetRound * this.constants.activeDelegates;
 
 		const limit = loadPerIteration;
-		this.blocksModule.resetBlockHeaderCache();
-		await this.blocksModule.dataAccess.resetAccountMemTables();
+		await this.blocksModule.resetState();
 		let { lastBlock } = this.blocksModule;
 		for (
 			let currentHeight = 0;
