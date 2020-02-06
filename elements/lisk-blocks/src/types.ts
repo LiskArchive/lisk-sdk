@@ -255,13 +255,6 @@ export type WriteableTransactionResponse = {
 	-readonly [P in keyof TransactionResponse]: TransactionResponse[P];
 };
 
-export interface Logger {
-	// tslint:disable-next-line no-any
-	readonly info: (...input: any[]) => void;
-	// tslint:disable-next-line no-any
-	readonly error: (...input: any[]) => void;
-}
-
 export interface SignatureObject {
 	readonly signature: string;
 	readonly transactionId: string;

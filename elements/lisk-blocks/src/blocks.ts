@@ -53,7 +53,6 @@ import {
 	BlockRewardOptions,
 	Contexter,
 	ExceptionOptions,
-	Logger,
 	MatcherTransaction,
 	SignatureObject,
 	Storage,
@@ -77,7 +76,6 @@ const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
 
 interface BlocksConfig {
 	// Components
-	readonly logger: Logger;
 	readonly storage: Storage;
 	// Unique requirements
 	readonly genesisBlock: BlockJSON;
@@ -109,7 +107,6 @@ const debug = Debug('lisk:blocks');
 export class Blocks extends EventEmitter {
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
-	private readonly logger: Logger;
 	private readonly storage: Storage;
 	public readonly dataAccess: DataAccess;
 	public readonly slots: Slots;
@@ -133,7 +130,6 @@ export class Blocks extends EventEmitter {
 
 	public constructor({
 		// Components
-		logger,
 		storage,
 		// Unique requirements
 		genesisBlock,
@@ -158,7 +154,6 @@ export class Blocks extends EventEmitter {
 	}: BlocksConfig) {
 		super();
 
-		this.logger = logger;
 		this.storage = storage;
 		this.dataAccess = new DataAccess({
 			dbStorage: storage,
@@ -463,19 +458,13 @@ export class Blocks extends EventEmitter {
 	public async getHighestCommonBlock(
 		ids: string[],
 	): Promise<BlockHeader | undefined> {
-		try {
-			const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-			const sortedBlocks = [...blocks].sort(
-				(a: BlockHeader, b: BlockHeader) => b.height - a.height,
-			);
-			const highestCommonBlock = sortedBlocks.shift();
+		const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
+		const sortedBlocks = [...blocks].sort(
+			(a: BlockHeader, b: BlockHeader) => b.height - a.height,
+		);
+		const highestCommonBlock = sortedBlocks.shift();
 
-			return highestCommonBlock;
-		} catch (e) {
-			const errMessage = 'Failed to fetch the highest common block';
-			this.logger.error({ err: e }, errMessage);
-			throw new Error(errMessage);
-		}
+		return highestCommonBlock;
 	}
 
 	public async filterReadyTransactions(

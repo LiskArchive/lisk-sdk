@@ -26,7 +26,7 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Slots } from '../../src/slots';
-import { BlockInstance, ExceptionOptions, Logger } from '../../src/types';
+import { BlockInstance, ExceptionOptions } from '../../src/types';
 
 jest.mock('events');
 
@@ -60,7 +60,6 @@ describe('blocks/header', () => {
 	let exceptions: ExceptionOptions = {};
 	let blocksInstance: Blocks;
 	let storageStub: any;
-	let loggerStub: Logger;
 	let slots: Slots;
 	let block: BlockInstance;
 	let blockBytes: Buffer;
@@ -93,10 +92,7 @@ describe('blocks/header', () => {
 				},
 			},
 		};
-		loggerStub = {
-			info: jest.fn(),
-			error: jest.fn(),
-		};
+
 		slots = new Slots({
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
@@ -105,7 +101,6 @@ describe('blocks/header', () => {
 
 		blocksInstance = new Blocks({
 			storage: storageStub,
-			logger: loggerStub,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
