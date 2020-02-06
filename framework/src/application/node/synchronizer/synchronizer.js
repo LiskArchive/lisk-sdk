@@ -151,21 +151,20 @@ class Synchronizer {
 	}
 
 	async loadUnconfirmedTransactions() {
-		await new Promise(resolve => {
-			async.retry(
-				this.retries,
-				async () => this._getUnconfirmedTransactionsFromNetwork(),
-				err => {
-					if (err) {
-						this.logger.error(
-							{ err },
-							'Failed to get transactions from network',
-						);
-					}
-					resolve();
-				},
-			);
-		});
+		for (const index of new Array(this.loadTransactionsRetries).keys()) {
+			try {
+				await this._getUnconfirmedTransactionsFromNetwork();
+
+				break;
+			} catch (err) {
+				if (err && index === this.loadTransactionsRetries - 1) {
+					this.logger.error(
+						{ err },
+						`Failed to get transactions from network after ${this.loadTransactionsRetries} retries`,
+					);
+				}
+			}
+		}
 	}
 
 	/**
