@@ -169,10 +169,6 @@ module.exports = class Node {
 
 			this._subscribeToEvents();
 
-			this.channel.subscribe('app:networkReady', async () => {
-				await this._startLoadTransactionsFromNetwork();
-			});
-
 			this.channel.subscribe('app:ready', async () => {
 				await this._startForging();
 			});
@@ -451,10 +447,6 @@ module.exports = class Node {
 		this.modules.transport = this.transport;
 		this.modules.bft = this.bft;
 		this.modules.synchronizer = this.synchronizer;
-	}
-
-	async _startLoadTransactionsFromNetwork() {
-		return this.synchronizer.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {

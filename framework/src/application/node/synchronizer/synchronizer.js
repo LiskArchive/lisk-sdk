@@ -61,6 +61,10 @@ class Synchronizer {
 	}
 
 	async init() {
+		this.channel.subscribe('app:networkReady', async () => {
+			await this.loadUnconfirmedTransactions();
+		});
+
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
 			try {
