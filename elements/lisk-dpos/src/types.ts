@@ -37,29 +37,19 @@ export interface BlockHeader extends Earnings {
 	readonly timestamp: number;
 }
 
+// tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
-	readonly balance: string;
-	// tslint:disable-next-line readonly-keyword
+	balance: bigint;
 	producedBlocks: number;
-	// tslint:disable-next-line readonly-keyword
 	missedBlocks: number;
-	readonly fees: string;
-	readonly rewards: string;
+	fees: bigint;
+	rewards: bigint;
 	readonly publicKey: string;
-	readonly voteWeight: string;
+	voteWeight: bigint;
 	readonly votedDelegatesPublicKeys: ReadonlyArray<string>;
 }
-
-export interface ParsedAccount
-	extends Omit<Account, 'balance' | 'fees' | 'rewards'> {
-	// tslint:disable-next-line readonly-keyword
-	balance: bigint;
-	// tslint:disable-next-line readonly-keyword
-	fees: bigint;
-	// tslint:disable-next-line readonly-keyword
-	rewards: bigint;
-}
+// tslint:enable readonly-keyword
 
 export interface DPoSProcessingOptions {
 	readonly delegateListRoundOffset: number;

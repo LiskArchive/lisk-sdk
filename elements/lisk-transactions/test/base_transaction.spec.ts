@@ -38,7 +38,7 @@ describe('Base transaction class', () => {
 	);
 	const defaultSenderAccount = {
 		...transferFixture.testCases[0].input.account,
-		balance: '1000000000000',
+		balance: BigInt('1000000000000'),
 	};
 	const defaultSecondSignatureTransaction = addTransactionFields(
 		validSecondSignatureTransaction,
@@ -51,7 +51,7 @@ describe('Base transaction class', () => {
 		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
 			account => account.publicKey,
 		),
-		balance: '94378900000',
+		balance: BigInt('94378900000'),
 		multiMin: 2,
 		multiLifetime: 1,
 	};
@@ -773,7 +773,7 @@ describe('Base transaction class', () => {
 		it('should return a failed transaction response with insufficient account balance', async () => {
 			storeAccountGetOrDefaultStub.mockReturnValue({
 				...defaultSenderAccount,
-				balance: '0',
+				balance: BigInt('0'),
 			});
 			const { id, status, errors } = await validTestTransaction.apply(store);
 
@@ -799,7 +799,7 @@ describe('Base transaction class', () => {
 		it('should return a failed transaction response with account balance exceeding max amount', async () => {
 			storeAccountGetOrDefaultStub.mockReturnValue({
 				...defaultSenderAccount,
-				balance: MAX_TRANSACTION_AMOUNT.toString(),
+				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
 			const { id, status, errors } = await validTestTransaction.undo(store);
 			expect(id).toEqual(validTestTransaction.id);
