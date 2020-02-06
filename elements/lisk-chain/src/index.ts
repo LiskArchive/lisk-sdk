@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+export { Account } from './account';
 export * from './block_reward';
 export { Chain } from './chain';
 export { baseBlockSchema } from './schema';

@@ -26,7 +26,6 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Slots } from '../../src/slots';
-import { Logger } from '../../src/types';
 
 jest.mock('events');
 
@@ -59,7 +58,6 @@ describe('blocks/transactions', () => {
 	let exceptions = {};
 	let chainInstance: Chain;
 	let storageStub: any;
-	let loggerStub: Logger;
 	let slots: Slots;
 
 	beforeEach(async () => {
@@ -90,10 +88,7 @@ describe('blocks/transactions', () => {
 				},
 			},
 		};
-		loggerStub = {
-			info: jest.fn(),
-			error: jest.fn(),
-		};
+
 		slots = new Slots({
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
@@ -104,7 +99,6 @@ describe('blocks/transactions', () => {
 
 		chainInstance = new Chain({
 			storage: storageStub,
-			logger: loggerStub,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
@@ -118,7 +112,7 @@ describe('blocks/transactions', () => {
 		};
 	});
 
-	describe.skip('#filterReadyTransactions', () => {
+	describe('#filterReadyTransactions', () => {
 		describe('when transactions include not allowed transaction based on the context', () => {
 			it('should return transaction which are allowed', async () => {
 				// Arrange
@@ -785,7 +779,13 @@ describe('blocks/transactions', () => {
 			it('should return invalid transaction response', async () => {
 				// Arrange
 				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000100' },
+					{
+						address: genesisAccount.address,
+						balance: '10000100',
+						membersPublicKeys: [
+							'2104c3882088fa512df4c64033a03cac911eec7e71dc03352cc2244dfc10a74c',
+						],
+					},
 				]);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({

@@ -158,7 +158,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 				});
 
 				it('should have no data in mem_account.membersPublicKeys', async () => {
-					return expect(accountRow.membersPublicKeys).to.eql([]);
+					return expect(accountRow.membersPublicKeys).to.eql(null);
 				});
 
 				it('should have multimin field set to 0 on mem_accounts', async () => {
@@ -181,7 +181,7 @@ describe('integration test (type 4) - effect of multisignature registration on m
 				});
 
 				it('should set multisignatures field to empty array on account', async () => {
-					return expect(account.membersPublicKeys).to.eql([]);
+					return expect(account.membersPublicKeys).to.eql(null);
 				});
 
 				it('should set multimin field to 0 on account', async () => {

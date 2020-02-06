@@ -318,8 +318,8 @@ describe('dpos.apply()', () => {
 				const { rewards, fees } = await stateStore.account.get(
 					delegate.address,
 				);
-				expect(rewards).toEqual((BigInt(delegate.rewards) + reward).toString());
-				expect(fees).toEqual((BigInt(delegate.fees) + fee).toString());
+				expect(rewards).toEqual(BigInt(delegate.rewards) + reward);
+				expect(fees).toEqual(BigInt(delegate.fees) + fee);
 			}
 
 			// Assert Group 2/2
@@ -344,8 +344,8 @@ describe('dpos.apply()', () => {
 				);
 				const { reward, fee } = getTotalEarningsOfDelegate(delegate);
 
-				expect(rewards).toEqual((BigInt(delegate.rewards) + reward).toString());
-				expect(fees).toEqual((BigInt(delegate.fees) + fee).toString());
+				expect(rewards).toEqual(BigInt(delegate.rewards) + reward);
+				expect(fees).toEqual(BigInt(delegate.fees) + fee);
 			}
 		});
 
@@ -359,9 +359,9 @@ describe('dpos.apply()', () => {
 				const { fee, reward } = getTotalEarningsOfDelegate(delegate);
 				const amount = fee + reward;
 				const data = {
-					balance: (BigInt(delegate.balance) + amount).toString(),
-					fees: (BigInt(delegate.fees) + fee).toString(),
-					rewards: (BigInt(delegate.rewards) + reward).toString(),
+					balance: BigInt(delegate.balance) + amount,
+					fees: BigInt(delegate.fees) + fee,
+					rewards: BigInt(delegate.rewards) + reward,
 				};
 				const account = await stateStore.account.get(delegate.address);
 
@@ -402,11 +402,9 @@ describe('dpos.apply()', () => {
 				delegateWhoForgedLast.address,
 			);
 			expect(lastDelegate.fees).toEqual(
-				(
-					BigInt(delegateWhoForgedLast.fees) +
+				BigInt(delegateWhoForgedLast.fees) +
 					feePerDelegate * BigInt(3) +
-					BigInt(remainingFee)
-				).toString(),
+					BigInt(remainingFee),
 			);
 
 			for (const delegate of uniqueDelegatesWhoForged) {
@@ -418,10 +416,7 @@ describe('dpos.apply()', () => {
 					d => d.publicKey === account.publicKey,
 				).length;
 				expect(account.fees).toEqual(
-					(
-						BigInt(delegate.fees) +
-						feePerDelegate * BigInt(blockCount)
-					).toString(),
+					BigInt(delegate.fees) + feePerDelegate * BigInt(blockCount),
 				);
 			}
 		});
@@ -446,7 +441,7 @@ describe('dpos.apply()', () => {
 			);
 
 			for (const publicKey of Object.keys(publicKeysToUpdate)) {
-				const amount = publicKeysToUpdate[publicKey].toString();
+				const amount = publicKeysToUpdate[publicKey];
 				const account = await stateStore.account.get(
 					getAddressFromPublicKey(publicKey),
 				);
@@ -644,7 +639,7 @@ describe('dpos.apply()', () => {
 				// Assert
 				expect.assertions(publicKeysToUpdate.length);
 				for (const publicKey of Object.keys(publicKeysToUpdate)) {
-					const amount = publicKeysToUpdate[publicKey].toString();
+					const amount = publicKeysToUpdate[publicKey];
 					const account = await stateStore.account.get(
 						getAddressFromPublicKey(publicKey),
 					);
@@ -691,9 +686,7 @@ describe('dpos.apply()', () => {
 					const { reward } = getTotalEarningsOfDelegate(delegate);
 					const exceptionReward =
 						reward * BigInt(exceptionFactors.rewards_factor);
-					const expectedReward = (
-						BigInt(delegate.rewards) + exceptionReward
-					).toString();
+					const expectedReward = BigInt(delegate.rewards) + exceptionReward;
 					const account = await stateStore.account.get(delegate.address);
 					expect(account.rewards).toEqual(expectedReward);
 				}
@@ -714,7 +707,7 @@ describe('dpos.apply()', () => {
 
 					const earnedFee =
 						(exceptionTotalFee / BigInt(ACTIVE_DELEGATES)) * BigInt(blockCount);
-					const expectedFee = (BigInt(delegate.fees) + earnedFee).toString();
+					const expectedFee = BigInt(delegate.fees) + earnedFee;
 					const account = await stateStore.account.get(delegate.address);
 
 					expect(account.fees).toEqual(expectedFee);

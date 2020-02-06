@@ -69,11 +69,8 @@ const setMemberAccounts = async (
 	for (const memberPublicKey of membersPublicKeys) {
 		const address = getAddressFromPublicKey(memberPublicKey);
 		const memberAccount = await store.account.getOrDefault(address);
-		const memberAccountWithPublicKey = {
-			...memberAccount,
-			publicKey: memberAccount.publicKey || memberPublicKey,
-		};
-		store.account.set(memberAccount.address, memberAccountWithPublicKey);
+		memberAccount.publicKey = memberAccount.publicKey || memberPublicKey;
+		store.account.set(memberAccount.address, memberAccount);
 	}
 };
 
@@ -250,15 +247,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 			);
 		}
 
-		const updatedSender = {
-			...sender,
-			membersPublicKeys: extractPublicKeysFromAsset(this.asset.keysgroup),
-			multiMin: this.asset.min,
-			multiLifetime: this.asset.lifetime,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.membersPublicKeys = extractPublicKeysFromAsset(this.asset.keysgroup);
+		sender.multiMin = this.asset.min;
+		sender.multiLifetime = this.asset.lifetime;
+		store.account.set(sender.address, sender);
 
-		await setMemberAccounts(store, updatedSender.membersPublicKeys);
+		await setMemberAccounts(store, sender.membersPublicKeys);
 
 		return errors;
 	}
@@ -267,15 +261,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
+		sender.membersPublicKeys = [];
+		sender.multiMin = 0;
+		sender.multiLifetime = 0;
 
-		const resetSender = {
-			...sender,
-			membersPublicKeys: [],
-			multiMin: 0,
-			multiLifetime: 0,
-		};
-
-		store.account.set(resetSender.address, resetSender);
+		store.account.set(sender.address, sender);
 
 		return [];
 	}

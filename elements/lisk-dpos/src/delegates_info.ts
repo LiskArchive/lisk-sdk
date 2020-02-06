@@ -98,16 +98,10 @@ const _updateBalanceRewardsAndFees = async (
 
 		const factor = undo ? BigInt(-1) : BigInt(1);
 		const amount = fee + reward;
-		const balance = BigInt(account.balance) + amount * factor;
-		const fees = BigInt(account.fees) + fee * factor;
-		const rewards = BigInt(account.rewards) + reward * factor;
-		const updatedAccount = {
-			...account,
-			balance: balance.toString(),
-			fees: fees.toString(),
-			rewards: rewards.toString(),
-		};
-		stateStore.account.set(account.address, updatedAccount);
+		account.balance += amount * factor;
+		account.fees += fee * factor;
+		account.rewards += reward * factor;
+		stateStore.account.set(account.address, account);
 	}
 };
 
@@ -131,11 +125,8 @@ const _updateVotedDelegatesVoteWeight = async (
 			);
 			const amount = fee + reward;
 			const factor = undo ? BigInt(-1) : BigInt(1);
-			const updatedAccount: Account = {
-				...account,
-				voteWeight: (BigInt(account.voteWeight) + amount * factor).toString(),
-			};
-			stateStore.account.set(account.address, updatedAccount);
+			account.voteWeight += amount * factor;
+			stateStore.account.set(account.address, account);
 		}
 	}
 };

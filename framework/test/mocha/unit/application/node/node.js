@@ -160,14 +160,6 @@ describe('Node', () => {
 			);
 		});
 
-		it('should set global.constants from the constants passed by options', () => {
-			return expect(global.constants).to.be.equal(nodeOptions.constants);
-		});
-
-		it('should set global.exceptions as a merger default exceptions and passed options', () => {
-			return expect(global.exceptions).to.be.equal(nodeOptions.exceptions);
-		});
-
 		describe('when options.loading.rebuildUpToRound is truthy', () => {
 			beforeEach(async () => {
 				// Arrange

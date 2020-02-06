@@ -145,7 +145,7 @@ export const verifyMultiSignatures = (
 	const { valid, errors } = validateMultisignatures(
 		sender.membersPublicKeys as ReadonlyArray<string>,
 		signatures,
-		sender.multiMin as number,
+		sender.multiMin,
 		transactionBytes,
 		id,
 	);

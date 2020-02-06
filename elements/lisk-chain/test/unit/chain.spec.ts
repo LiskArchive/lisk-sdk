@@ -83,11 +83,6 @@ describe('chain', () => {
 					},
 				},
 			},
-			logger: {
-				debug: jest.fn(),
-				log: jest.fn(),
-				error: jest.fn(),
-			},
 		};
 
 		slots = new Slots({
@@ -726,7 +721,7 @@ describe('chain', () => {
 			// Arrange
 			const ids = ['1', '2'];
 			stubs.dependencies.storage.entities.Block.get.mockRejectedValue(
-				new Error('anError'),
+				new Error('Failed to fetch the highest common block'),
 			);
 
 			// Act && Assert

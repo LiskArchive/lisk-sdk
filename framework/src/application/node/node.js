@@ -61,9 +61,6 @@ module.exports = class Node {
 	}
 
 	async bootstrap() {
-		global.constants = this.options.constants;
-		global.exceptions = this.options.exceptions;
-
 		try {
 			if (!this.options.genesisBlock) {
 				throw Error('Missing genesis block');

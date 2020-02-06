@@ -17,26 +17,28 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
-export interface Account {
+export interface AccountJSON {
 	readonly address: string;
 	readonly balance: string;
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
-	readonly publicKey?: string;
-	readonly secondPublicKey?: string;
-	readonly secondSignature?: number;
-	readonly username?: string;
-	readonly isDelegate?: number;
+	readonly publicKey: string | undefined;
+	readonly secondPublicKey: string | null;
+	readonly secondSignature: number;
+	readonly username: string | null;
+	readonly isDelegate: number;
 	readonly fees: string;
 	readonly rewards: string;
 	// tslint:disable-next-line readonly-keyword
-	voteWeight: string;
-	readonly nameExist: false;
+	readonly voteWeight: string;
+	readonly nameExist: boolean;
 	readonly multiMin: number;
 	readonly multiLifetime: number;
 	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
-	votedDelegatesPublicKeys?: string[];
+	readonly votedDelegatesPublicKeys: string[] | null;
+	// tslint:disable-next-line readonly-keyword
+	readonly membersPublicKeys: string[] | null;
 }
 
 export interface Context {
@@ -203,7 +205,7 @@ export interface StorageEntity<T> {
 	) => Promise<void>;
 }
 
-export interface AccountStorageEntity extends StorageEntity<Account> {
+export interface AccountStorageEntity extends StorageEntity<AccountJSON> {
 	readonly resetMemTables: () => Promise<void>;
 }
 
@@ -252,13 +254,6 @@ export interface ExceptionOptions {
 export type WriteableTransactionResponse = {
 	-readonly [P in keyof TransactionResponse]: TransactionResponse[P];
 };
-
-export interface Logger {
-	// tslint:disable-next-line no-any
-	readonly info: (...input: any[]) => void;
-	// tslint:disable-next-line no-any
-	readonly error: (...input: any[]) => void;
-}
 
 export interface SignatureObject {
 	readonly signature: string;
