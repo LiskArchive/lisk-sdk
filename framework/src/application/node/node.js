@@ -169,9 +169,12 @@ module.exports = class Node {
 
 			this._subscribeToEvents();
 
+			this.channel.subscribe('app:networkReady', async () => {
+				await this._startLoadTransactionsFromNetwork();
+			});
+
 			this.channel.subscribe('app:ready', async () => {
 				await this._startForging();
-				await this._startLoadTransactionsFromNetwork();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
