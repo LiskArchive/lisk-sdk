@@ -19,7 +19,6 @@ const rewire = require('rewire');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
-const im = require('istanbul-middleware');
 
 const setupServers = rewire(
 	'../../../../../../src/modules/http_api/init_steps/setup_servers',
@@ -52,7 +51,7 @@ describe('init_steps/setup_servers', () => {
 	};
 
 	beforeEach(async () => {
-		sinonSandbox.stub(im);
+		sinonSandbox.stub();
 	});
 
 	afterEach(async () => {
