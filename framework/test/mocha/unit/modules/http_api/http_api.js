@@ -175,9 +175,6 @@ describe('HttpApi', () => {
 				);
 			});
 		});
-		it('should set global.constants from the constants passed by options', async () => {
-			expect(global.constants).to.be.equal(stubs.options.constants);
-		});
 		it('should log "Initiating cache..."', async () => {
 			expect(stubs.logger.debug).to.be.calledWith('Initiating cache...');
 		});

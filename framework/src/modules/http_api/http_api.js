@@ -44,8 +44,6 @@ module.exports = class HttpApi {
 	}
 
 	async bootstrap() {
-		global.constants = this.options.constants;
-
 		// Logger
 		const loggerConfig = await this.channel.invoke(
 			'app:getComponentConfig',
@@ -139,7 +137,7 @@ module.exports = class HttpApi {
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component
-		await bootstrapStorage(this.scope, global.constants.ACTIVE_DELEGATES);
+		await bootstrapStorage(this.scope, this.options.constants.ACTIVE_DELEGATES);
 		// Set up Express and HTTP(s) and WS(s) servers
 		const { expressApp, httpServer, httpsServer, wsServer } = setupServers(
 			this.scope,
