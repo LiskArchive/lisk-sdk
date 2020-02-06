@@ -35,7 +35,7 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	const floating =
 		Number(beddowsAmountBigInt % BigInt(FIXED_POINT)) / FIXED_POINT;
 	const floatingPointsSplit = floating
-		.toLocaleString(undefined, {
+		.toLocaleString('en-US', {
 			maximumFractionDigits: LISK_MAX_DECIMAL_POINTS,
 		})
 		.split('.')[1];
