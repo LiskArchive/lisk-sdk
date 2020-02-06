@@ -1,13 +1,8 @@
 ### What was the problem?
+This PR resolves #INSERT_ISSUE_NUMBER
 
-### How did I solve it?
+### How was it solved?
+<!--- Please describe your technical implementation -->
 
-### How to manually test it?
-
-### Review checklist
-
-- [ ] The PR resolves #INSERT_ISSUE_NUMBER
-- [ ] All new code is covered with unit tests
-- [ ] Relevant integration / functional tests are added
-- [ ] Commit messages follow the [commit guidelines](CONTRIBUTING.md#git-commit-messages)
-- [ ] Documentation has been added/updated
+### How was it tested?
+<!--- Please describe how you tested your changes -->
