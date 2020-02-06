@@ -30,6 +30,7 @@ describe('data_access.storage', () => {
 					count: jest.fn(),
 					getFirstBlockIdOfLastRounds: jest.fn(),
 					isPersisted: jest.fn(),
+					delete: jest.fn(),
 				},
 				TempBlock: {
 					get: jest.fn(),
