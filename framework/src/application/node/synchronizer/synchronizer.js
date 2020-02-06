@@ -17,7 +17,7 @@
 const assert = require('assert');
 const { validator } = require('@liskhq/lisk-validator');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const definitions = require('../schema/definitions');
+const definitions = require('./schema');
 const utils = require('./utils');
 
 class Synchronizer {
@@ -61,10 +61,6 @@ class Synchronizer {
 	}
 
 	async init() {
-		this.channel.subscribe('app:networkReady', async () => {
-			await this.loadUnconfirmedTransactions();
-		});
-
 		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
 		if (!isEmpty) {
 			try {
@@ -155,13 +151,14 @@ class Synchronizer {
 	}
 
 	async loadUnconfirmedTransactions() {
-		for (const index of new Array(this.loadTransactionsRetries).keys()) {
+		// eslint-disable-next-line no-plusplus
+		for (let retry = 0; retry < this.loadTransactionsRetries; retry++) {
 			try {
 				await this._getUnconfirmedTransactionsFromNetwork();
 
 				break;
 			} catch (err) {
-				if (err && index === this.loadTransactionsRetries - 1) {
+				if (err && retry === this.loadTransactionsRetries - 1) {
 					this.logger.error(
 						{ err },
 						`Failed to get transactions from network after ${this.loadTransactionsRetries} retries`,
