@@ -379,10 +379,12 @@ module.exports = class Node {
 		});
 
 		this.synchronizer = new Synchronizer({
+			channel: this.channel,
 			logger: this.logger,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
 			storageModule: this.storage,
+			transactionPoolModule: this.transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
@@ -461,7 +463,7 @@ module.exports = class Node {
 	}
 
 	async _startLoader() {
-		return this.loader.loadUnconfirmedTransactions();
+		return this.synchronizer.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {
