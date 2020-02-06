@@ -18,7 +18,6 @@ const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
-	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const { sortTransactions } = require('./sort');
 
@@ -122,10 +121,8 @@ class Forger {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const address = getAddressFromPublicKey(keypair.publicKey.toString('hex'));
-
-		const account = await this.blocksModule.dataAccess.getAccountByAddress(
-			address,
+		const account = await this.blocksModule.dataAccess.getAccountByPublicKey(
+			keypair.publicKey.toString('hex'),
 		);
 
 		if (account && account.isDelegate) {
@@ -189,11 +186,8 @@ class Forger {
 				);
 			}
 
-			const address = getAddressFromPublicKey(
+			const account = await this.blocksModule.dataAccess.getAccountsByPublicKey(
 				keypair.publicKey.toString('hex'),
-			);
-			const account = await this.blocksModule.dataAccess.getAccountByAddress(
-				address,
 			);
 
 			if (!account) {

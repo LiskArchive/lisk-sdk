@@ -175,7 +175,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// If the list of blocks has not been fully applied
 		this.logger.debug('Failed to apply obtained blocks from peer');
 		const tempBlocks = await this.blocks.dataAccess.getTempBlocks();
-		const [tipBeforeApplying] = tempBlocks.sort((a, b) => b - a);
+		const [tipBeforeApplying] = [...tempBlocks].sort((a, b) => b - a);
 
 		if (!tipBeforeApplying) {
 			this.logger.error('Blocks temp table should not be empty');
@@ -366,7 +366,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				currentRound,
 			);
 
-			const blockIds = await this.blocks.dataAccess.getBlockHeadersWithHeights(
+			const blockHeaders = await this.blocks.dataAccess.getBlockHeadersWithHeights(
 				heightList,
 			);
 
@@ -380,7 +380,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 						procedure: 'getHighestCommonBlock',
 						peerId,
 						data: {
-							ids: blockIds.map(block => block.id),
+							ids: blockHeaders.map(block => block.id),
 						},
 					})
 				).data;
