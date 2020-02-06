@@ -15,7 +15,7 @@
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 import {
-	Account,
+	AccountJSON,
 	BlockJSON,
 	BlockRound,
 	Storage as DBStorage,
@@ -225,7 +225,7 @@ export class Storage {
 	*/
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
-	): Promise<Account[]> {
+	): Promise<AccountJSON[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ publicKey_in: arrayOfPublicKeys },
 			{ limit: arrayOfPublicKeys.length },
@@ -236,7 +236,7 @@ export class Storage {
 
 	public async getAccountsByAddress(
 		arrayOfAddresses: ReadonlyArray<string>,
-	): Promise<Account[]> {
+	): Promise<AccountJSON[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ address_in: arrayOfAddresses },
 			{ limit: arrayOfAddresses.length },
@@ -245,7 +245,7 @@ export class Storage {
 		return accounts;
 	}
 
-	public async getDelegateAccounts(limit: number): Promise<Account[]> {
+	public async getDelegateAccounts(limit: number): Promise<AccountJSON[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ isDelegate: true },
 			{ limit, sort: ['voteWeight:desc', 'publicKey:asc'] },

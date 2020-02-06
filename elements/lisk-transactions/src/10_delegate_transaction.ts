@@ -131,13 +131,10 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const updatedSender = {
-			...sender,
-			username: this.asset.username,
-			vote: 0,
-			isDelegate: 1,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.username = this.asset.username;
+		sender.isDelegate = 1;
+		sender.voteWeight = BigInt(0);
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}
@@ -146,15 +143,11 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
-		const { username, ...strippedSender } = sender;
-		const resetSender = {
-			...sender,
-			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
-			username: null,
-			vote: 0,
-			isDelegate: 0,
-		};
-		store.account.set(strippedSender.address, resetSender);
+		// tslint:disable-next-line:no-null-keyword
+		sender.username = null;
+		sender.isDelegate = 0;
+		sender.voteWeight = BigInt(0);
+		store.account.set(sender.address, sender);
 
 		return [];
 	}

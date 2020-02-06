@@ -311,13 +311,10 @@ export abstract class BaseTransaction {
 			errors.push(...multiSigError);
 		}
 
-		const updatedBalance = BigInt(sender.balance) - BigInt(this.fee);
-		const updatedSender = {
-			...sender,
-			balance: updatedBalance.toString(),
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		const updatedBalance = sender.balance - this.fee;
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
+		store.account.set(sender.address, sender);
 		const assetErrors = await this.applyAsset(store);
 
 		errors.push(...assetErrors);
@@ -339,12 +336,9 @@ export abstract class BaseTransaction {
 
 	public async undo(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
-		const updatedBalance = BigInt(sender.balance) + this.fee;
-		const updatedAccount = {
-			...sender,
-			balance: updatedBalance.toString(),
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
+		const updatedBalance = sender.balance + this.fee;
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		const errors =
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
@@ -353,11 +347,11 @@ export abstract class BaseTransaction {
 							'Invalid balance amount',
 							this.id,
 							'.balance',
-							sender.balance,
+							sender.balance.toString(),
 							updatedBalance.toString(),
 						),
 				  ];
-		store.account.set(updatedAccount.address, updatedAccount);
+		store.account.set(sender.address, sender);
 		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 

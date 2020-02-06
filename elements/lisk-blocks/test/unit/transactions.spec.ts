@@ -112,7 +112,7 @@ describe('blocks/transactions', () => {
 		};
 	});
 
-	describe.skip('#filterReadyTransactions', () => {
+	describe('#filterReadyTransactions', () => {
 		describe('when transactions include not allowed transaction based on the context', () => {
 			it('should return transaction which are allowed', async () => {
 				// Arrange
@@ -779,7 +779,13 @@ describe('blocks/transactions', () => {
 			it('should return invalid transaction response', async () => {
 				// Arrange
 				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000100' },
+					{
+						address: genesisAccount.address,
+						balance: '10000100',
+						membersPublicKeys: [
+							'2104c3882088fa512df4c64033a03cac911eec7e71dc03352cc2244dfc10a74c',
+						],
+					},
 				]);
 				const validTx = blocksInstance.deserializeTransaction(
 					transfer({

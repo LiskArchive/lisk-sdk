@@ -60,11 +60,12 @@ const updateDelegateVote = async (
 ) => {
 	const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
 	const delegateAccount = await stateStore.account.get(delegateAddress);
-	const voteBigInt = BigInt(delegateAccount.voteWeight || '0');
+	const voteBigInt = delegateAccount.voteWeight || BigInt('0');
 	const voteWeight = add
 		? voteBigInt + BigInt(amount)
 		: voteBigInt - BigInt(amount);
-	delegateAccount.voteWeight = voteWeight.toString();
+
+	delegateAccount.voteWeight = voteWeight;
 	stateStore.account.set(delegateAddress, delegateAccount);
 };
 
@@ -220,7 +221,7 @@ const updateDelegateVotes = async (
 		const delegatePublicKey = vote.slice(1);
 
 		const senderAccount = await stateStore.account.get(transaction.senderId);
-		const amount = BigInt(senderAccount.balance).toString();
+		const amount = senderAccount.balance;
 
 		await updateDelegateVote(stateStore, {
 			delegatePublicKey,
