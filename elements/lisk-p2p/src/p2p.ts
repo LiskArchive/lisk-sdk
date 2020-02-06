@@ -404,7 +404,7 @@ export class P2P extends EventEmitter {
 		};
 
 		this._handleBanPeer = (peerId: string): void => {
-			const banTime = this._config.peerBanTime || DEFAULT_BAN_TIME;
+			const banTime = this._config.peerBanTime ?? DEFAULT_BAN_TIME;
 
 			if (this._peerPool.hasPeer(peerId)) {
 				this._peerPool.removePeer(peerId);
@@ -701,15 +701,10 @@ export class P2P extends EventEmitter {
 			});
 			this._bindHandlersToPeerServer(this._peerServer);
 
-			try {
-				await this._peerServer.start();
-				this._isActive = true;
-			} catch (err) {
-				throw new Error(`PeerServer cannot start, reason: ${err}`);
-			}
-		} else {
-			this._isActive = true;
+			await this._peerServer.start();
 		}
+
+		this._isActive = true;
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
@@ -736,7 +731,10 @@ export class P2P extends EventEmitter {
 
 		if (this._peerServer) {
 			await this._peerServer.stop();
+			this._removeListeners(this._peerServer);
 		}
+
+		this._removeListeners(this._peerPool);
 	}
 
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
@@ -786,6 +784,13 @@ export class P2P extends EventEmitter {
 			EVENT_NEW_INBOUND_PEER_CONNECTION,
 			this._handleInboundPeerConnect,
 		);
+	}
+
+	// tslint:disable-next-line: prefer-function-over-method
+	private _removeListeners(emitter: PeerServer | PeerPool): void {
+		emitter.eventNames().forEach((eventName: string | symbol) => {
+			emitter.removeAllListeners(eventName);
+		});
 	}
 	// tslint:disable-next-line:max-file-line-count
 }

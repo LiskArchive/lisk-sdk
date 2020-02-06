@@ -14,18 +14,14 @@
  */
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
-import { DEFAULT_WS_MAX_PAYLOAD } from '../../src/constants';
-import { EVENT_BAN_PEER } from '../../src/events';
 
 describe('p2p', () => {
 	let P2PNode: P2P;
 
-	const generatedPeers = [...Array(10)].map((_e, i) => {
-		return {
-			ipAddress: '120.0.0.' + i,
-			wsPort: 5000 + i,
-		};
-	});
+	const generatedPeers = [...Array(10).keys()].map(i => ({
+		ipAddress: '120.0.0.' + i,
+		wsPort: 5000 + i,
+	}));
 
 	beforeEach(async () => {
 		P2PNode = new P2P({
@@ -35,7 +31,6 @@ describe('p2p', () => {
 			whitelistedPeers: generatedPeers.slice(2, 3),
 			previousPeers: generatedPeers.slice(4, 5),
 			connectTimeout: 5000,
-			wsMaxPayload: DEFAULT_WS_MAX_PAYLOAD / 2,
 			maxOutboundConnections: 20,
 			maxInboundConnections: 100,
 			nodeInfo: {
@@ -89,52 +84,6 @@ describe('p2p', () => {
 		it('should reject at multiple stop attempt', async () => {
 			await P2PNode.stop();
 			expect(P2PNode.stop()).rejects.toThrow();
-		});
-	});
-
-	describe('#PeerServer', () => {
-		describe('Peer Banning', () => {
-			const peerId = constructPeerId('127.0.0.1', 6000);
-
-			it(`should Re-emit ${EVENT_BAN_PEER} Event`, async () => {
-				// Arrange
-				const bannedPeerId: string[] = [];
-				P2PNode.on(EVENT_BAN_PEER, peerId => {
-					bannedPeerId.push(peerId);
-				});
-
-				// Act
-				(P2PNode as any)._peerServer.emit(EVENT_BAN_PEER, peerId);
-
-				// Assert
-				expect(bannedPeerId[0]).toBe(peerId);
-			});
-
-			it(`should call removePeer from PeerPool`, async () => {
-				// Arrange
-				const bannedPeerId: string[] = [];
-				P2PNode.on(EVENT_BAN_PEER, peerId => {
-					bannedPeerId.push(peerId);
-				});
-
-				jest.spyOn((P2PNode as any)._peerPool, 'hasPeer').mockReturnValue(true);
-				jest.spyOn((P2PNode as any)._peerPool, 'removePeer');
-
-				// Act
-				(P2PNode as any)._peerServer.emit(EVENT_BAN_PEER, peerId);
-
-				// Assert
-				expect((P2PNode as any)._peerPool.hasPeer).toBeCalled();
-				expect((P2PNode as any)._peerPool.removePeer).toBeCalled();
-			});
-
-			it(`should add unbanTimer into PeerBook`, async () => {
-				// Act
-				(P2PNode as any)._peerServer.emit(EVENT_BAN_PEER, peerId);
-
-				// Assert
-				expect((P2PNode as any)._peerBook._unbanTimers).toHaveLength(1);
-			});
 		});
 	});
 });
