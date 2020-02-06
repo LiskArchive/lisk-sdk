@@ -230,11 +230,8 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const updatedSender = {
-			...sender,
-			votedDelegatesPublicKeys,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.votedDelegatesPublicKeys = votedDelegatesPublicKeys as string[];
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}
@@ -268,11 +265,8 @@ export class VoteTransaction extends BaseTransaction {
 			);
 		}
 
-		const updatedSender = {
-			...sender,
-			votedDelegatesPublicKeys,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.votedDelegatesPublicKeys = votedDelegatesPublicKeys as string[];
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}

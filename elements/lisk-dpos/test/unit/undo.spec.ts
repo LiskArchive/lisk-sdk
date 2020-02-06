@@ -263,10 +263,8 @@ describe('dpos.undo()', () => {
 			for (const delegate of uniqueDelegatesWhoForged) {
 				const account = await stateStore.account.get(delegate.address);
 				const { reward, fee } = getTotalEarningsOfDelegate(account);
-				expect(account.rewards).toEqual(
-					(BigInt(delegate.rewards) - reward).toString(),
-				);
-				expect(account.fees).toEqual((BigInt(delegate.fees) - fee).toString());
+				expect(account.rewards).toEqual(BigInt(delegate.rewards) - reward);
+				expect(account.fees).toEqual(BigInt(delegate.fees) - fee);
 			}
 			for (const delegate of delegatesWhoForgedNone) {
 				const account = await stateStore.account.get(delegate.address);
@@ -286,10 +284,8 @@ describe('dpos.undo()', () => {
 				const account = await stateStore.account.get(delegate.address);
 				const { reward, fee } = getTotalEarningsOfDelegate(account);
 				// Assert
-				expect(account.rewards).toEqual(
-					(BigInt(delegate.rewards) - reward).toString(),
-				);
-				expect(account.fees).toEqual((BigInt(delegate.fees) - fee).toString());
+				expect(account.rewards).toEqual(BigInt(delegate.rewards) - reward);
+				expect(account.fees).toEqual(BigInt(delegate.fees) - fee);
 			}
 		});
 
@@ -304,9 +300,9 @@ describe('dpos.undo()', () => {
 				const { reward, fee } = getTotalEarningsOfDelegate(account);
 				const amount = fee + reward;
 				const data = {
-					balance: (BigInt(delegate.balance) - amount).toString(),
-					fees: (BigInt(delegate.fees) - fee).toString(),
-					rewards: (BigInt(delegate.rewards) - reward).toString(),
+					balance: BigInt(delegate.balance) - amount,
+					fees: BigInt(delegate.fees) - fee,
+					rewards: BigInt(delegate.rewards) - reward,
 				};
 				expect(account.rewards).toEqual(data.rewards);
 				expect(account.fees).toEqual(data.fees);
@@ -344,10 +340,8 @@ describe('dpos.undo()', () => {
 				delegateWhoForgedLast.address,
 			);
 			expect(lastDelegate.fees).toEqual(
-				(
-					BigInt(delegateWhoForgedLast.fees) -
-					(feePerDelegate * BigInt(3) + BigInt(remainingFee))
-				).toString(),
+				BigInt(delegateWhoForgedLast.fees) -
+					(feePerDelegate * BigInt(3) + BigInt(remainingFee)),
 			);
 			for (const delegate of uniqueDelegatesWhoForged) {
 				if (delegate.address === delegateWhoForgedLast.address) {
@@ -358,10 +352,7 @@ describe('dpos.undo()', () => {
 				).length;
 				const account = await stateStore.account.get(delegate.address);
 				expect(account.fees).toEqual(
-					(
-						BigInt(delegate.fees) -
-						feePerDelegate * BigInt(blockCount)
-					).toString(),
+					BigInt(delegate.fees) - feePerDelegate * BigInt(blockCount),
 				);
 			}
 		});
@@ -388,12 +379,12 @@ describe('dpos.undo()', () => {
 			// Assert
 			expect.assertions(publicKeysToUpdate.length);
 			for (const publicKey of Object.keys(publicKeysToUpdate)) {
-				const amount = publicKeysToUpdate[publicKey].toString();
+				const amount = publicKeysToUpdate[publicKey];
 				const account = await stateStore.account.get(
 					getAddressFromPublicKey(publicKey),
 				);
 				// Assuming that the initial value was 0
-				expect(account.voteWeight).toEqual(`-${amount}`);
+				expect(account.voteWeight).toEqual(BigInt(`-${amount}`));
 			}
 		});
 
@@ -496,9 +487,7 @@ describe('dpos.undo()', () => {
 					// Undo will use -1 as we're undoing
 					const exceptionReward =
 						reward * BigInt(-1 * exceptionFactors.rewards_factor);
-					const rewards = (
-						BigInt(delegate.rewards) + exceptionReward
-					).toString();
+					const rewards = BigInt(delegate.rewards) + exceptionReward;
 					const account = await stateStore.account.get(delegate.address);
 					expect(account.rewards).toEqual(rewards);
 				}
@@ -520,7 +509,7 @@ describe('dpos.undo()', () => {
 					const earnedFee =
 						(exceptionTotalFee / BigInt(ACTIVE_DELEGATES)) * BigInt(blockCount);
 
-					const fees = (BigInt(delegate.fees) - earnedFee).toString();
+					const fees = BigInt(delegate.fees) - earnedFee;
 					const account = await stateStore.account.get(delegate.address);
 					expect(account.fees).toEqual(fees);
 				}

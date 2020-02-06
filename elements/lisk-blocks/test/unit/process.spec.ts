@@ -26,7 +26,7 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Slots } from '../../src/slots';
-import { BlockInstance, ExceptionOptions, Logger } from '../../src/types';
+import { BlockInstance, ExceptionOptions } from '../../src/types';
 
 jest.mock('events');
 
@@ -60,7 +60,6 @@ describe('blocks/header', () => {
 	let exceptions: ExceptionOptions = {};
 	let blocksInstance: Blocks;
 	let storageStub: any;
-	let loggerStub: Logger;
 	let slots: Slots;
 	let block: BlockInstance;
 	let blockBytes: Buffer;
@@ -93,10 +92,7 @@ describe('blocks/header', () => {
 				},
 			},
 		};
-		loggerStub = {
-			info: jest.fn(),
-			error: jest.fn(),
-		};
+
 		slots = new Slots({
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
@@ -105,7 +101,6 @@ describe('blocks/header', () => {
 
 		blocksInstance = new Blocks({
 			storage: storageStub,
-			logger: loggerStub,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
@@ -753,8 +748,8 @@ describe('blocks/header', () => {
 			it('should update vote weight on voted delegate', async () => {
 				const delegateOne = await stateStore.account.get(delegate1.address);
 				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight).toBe('9889999900');
-				expect(deletateTwo.voteWeight).toBe('9889999900');
+				expect(delegateOne.voteWeight).toBe(BigInt('9889999900'));
+				expect(deletateTwo.voteWeight).toBe(BigInt('9889999900'));
 			});
 
 			it('should update vote weight on sender and recipient', async () => {
@@ -774,9 +769,7 @@ describe('blocks/header', () => {
 				// expect
 				// it should decrease by fee
 				const delegateOne = await stateStore.account.get(delegate1.address);
-				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight).toBe('9879999900');
-				expect(deletateTwo.voteWeight).toBe('9879999900');
+				expect(delegateOne.voteWeight).toBe(BigInt('9879999900'));
 			});
 		});
 	});
@@ -800,7 +793,9 @@ describe('blocks/header', () => {
 				const genesisAccountFromStore = await stateStore.account.get(
 					genesisAccount.address,
 				);
-				expect(genesisAccountFromStore.balance).toBe('10000000000000000');
+				expect(genesisAccountFromStore.balance).toBe(
+					BigInt('10000000000000000'),
+				);
 			});
 
 			it('should not call account update', async () => {
@@ -935,8 +930,8 @@ describe('blocks/header', () => {
 			it('should update vote weight on voted delegate', async () => {
 				const delegateOne = await stateStore.account.get(delegate1.address);
 				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight).toBe('0');
-				expect(deletateTwo.voteWeight).toBe('0');
+				expect(delegateOne.voteWeight).toBe(BigInt('0'));
+				expect(deletateTwo.voteWeight).toBe(BigInt('0'));
 			});
 		});
 	});

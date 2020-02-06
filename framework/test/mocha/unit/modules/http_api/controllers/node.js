@@ -29,7 +29,6 @@ describe('node/api', () => {
 	let cacheStub;
 	let loggerStub;
 	let storageStub;
-	let configStub;
 	let getStatus;
 
 	before(async () => {
@@ -62,7 +61,21 @@ describe('node/api', () => {
 				cache: cacheStub,
 				logger: loggerStub,
 			},
-			config: configStub,
+			config: {
+				constants: {
+					EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+					FEES: {
+						SEND: '10000000',
+						VOTE: '100000000',
+						SECOND_SIGNATURE: '500000000',
+						DELEGATE: '2500000000',
+						MULTISIGNATURE: '500000000',
+						DAPP_REGISTRATION: '2500000000',
+						DAPP_WITHDRAWAL: '10000000',
+						DAPP_DEPOSIT: '10000000',
+					},
+				},
+			},
 			channel: channelStub,
 			applicationState: {},
 		};

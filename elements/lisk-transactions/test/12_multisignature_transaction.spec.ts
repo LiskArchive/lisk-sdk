@@ -34,7 +34,7 @@ describe('Multisignature transaction class', () => {
 		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
 			account => account.publicKey,
 		),
-		balance: '94378900000',
+		balance: BigInt('94378900000'),
 		multiMin: 2,
 		multiLifetime: 22,
 	};
@@ -47,8 +47,8 @@ describe('Multisignature transaction class', () => {
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	let validTestTransaction: MultisignatureTransaction;
-	let nonMultisignatureSender: Account;
-	let multisignatureSender: Account;
+	let nonMultisignatureSender: Partial<Account>;
+	let multisignatureSender: Partial<Account>;
 	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountSetStub: jest.SpyInstance;
