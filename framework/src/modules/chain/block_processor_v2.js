@@ -269,7 +269,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			async ({ block, tx }) => {
 				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
-				const numberOfRounds = 2;
+				const numberOfRounds = 3;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					numberOfRounds,
 					{ tx },

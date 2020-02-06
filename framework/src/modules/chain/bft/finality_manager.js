@@ -98,7 +98,7 @@ class FinalityManager extends EventEmitter {
 	removeBlockHeaders({ aboveHeight }) {
 		debug('removeBlockHeaders invoked');
 
-		const removeAboveHeight = aboveHeight || this.maxHeight - 1;
+		const removeAboveHeight = aboveHeight;
 
 		// Remove block header from the list
 		this.headers.remove({ aboveHeight: removeAboveHeight });
