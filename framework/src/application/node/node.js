@@ -410,7 +410,6 @@ module.exports = class Node {
 		});
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
-			storage: this.storage,
 			logger: this.logger,
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,

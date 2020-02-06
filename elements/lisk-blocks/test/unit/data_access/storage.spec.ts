@@ -304,6 +304,16 @@ describe('data access - storage', () => {
 		});
 	});
 
+	describe('#deleteBlocksWithHeightGreaterThan', () => {
+		it('should call storage.Block.delete and return block', async () => {
+			// Act
+			await storageAccess.deleteBlocksWithHeightGreaterThan(1);
+
+			// Assert
+			expect(storageMock.entities.Block.delete).toHaveBeenCalled();
+		});
+	});
+
 	describe('#isBlockPersisted', () => {
 		beforeEach(async () => {
 			// Arrange

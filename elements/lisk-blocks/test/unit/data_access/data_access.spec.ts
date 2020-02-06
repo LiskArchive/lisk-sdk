@@ -262,6 +262,16 @@ describe('data_access.storage', () => {
 		});
 	});
 
+	describe('#deleteBlocksWithHeightGreaterThan', () => {
+		it('should call storage.Block.delete and return block', async () => {
+			// Act
+			await dataAccess.deleteBlocksWithHeightGreaterThan(1);
+
+			// Assert
+			expect(storageMock.entities.Block.delete).toHaveBeenCalled();
+		});
+	});
+
 	describe('#isBlockPersisted', () => {
 		it('should call storage.isBlockPersisted', async () => {
 			// Act

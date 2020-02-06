@@ -250,6 +250,12 @@ export class DataAccess {
 		return blockIds;
 	}
 
+	public async deleteBlocksWithHeightGreaterThan(
+		height: number,
+	): Promise<void> {
+		await this._storage.deleteBlocksWithHeightGreaterThan(height);
+	}
+
 	public async isBlockPersisted(blockId: string): Promise<boolean> {
 		const isPersisted = await this._storage.isBlockPersisted(blockId);
 
