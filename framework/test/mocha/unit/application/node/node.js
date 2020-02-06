@@ -374,29 +374,6 @@ describe('Node', () => {
 		});
 	});
 
-	describe('#_startLoadTransactionsFromNetwork', () => {
-		beforeEach(async () => {
-			await node.bootstrap();
-			sinonSandbox.stub(node.synchronizer, 'loadUnconfirmedTransactions');
-		});
-
-		it('should return if syncing.active in config is set to false', async () => {
-			// Arrange
-			node.options.syncing.active = false;
-
-			// Act
-			await node._startLoadTransactionsFromNetwork();
-
-			// Assert
-			expect(stubs.jobsQueue.register).to.not.be.called;
-		});
-
-		it('should load transactions and signatures', async () => {
-			await node._startLoadTransactionsFromNetwork();
-			expect(node.synchronizer.loadUnconfirmedTransactions).to.be.called;
-		});
-	});
-
 	describe('#_forgingTask', () => {
 		beforeEach(async () => {
 			await node.bootstrap();
