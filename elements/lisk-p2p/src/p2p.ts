@@ -344,6 +344,18 @@ export class P2P extends EventEmitter {
 					incomingPeerConnection.peerInfo,
 					incomingPeerConnection.socket,
 				);
+
+				if (!this._peerBook.hasPeer(incomingPeerConnection.peerInfo)) {
+					this._peerBook.addPeer({
+						...incomingPeerConnection.peerInfo,
+						sourceAddress: incomingPeerConnection.socket.remoteAddress,
+					});
+				}
+
+				// Re-emit the message to allow it to bubble up the class hierarchy.
+				this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection.peerInfo);
+
+				return;
 			} catch (err) {
 				if (err instanceof PeerInboundDuplicateConnectionError) {
 					incomingPeerConnection.socket.disconnect(
@@ -365,16 +377,6 @@ export class P2P extends EventEmitter {
 
 				return;
 			}
-
-			if (!this._peerBook.hasPeer(incomingPeerConnection.peerInfo)) {
-				this._peerBook.addPeer({
-					...incomingPeerConnection.peerInfo,
-					sourceAddress: incomingPeerConnection.socket.remoteAddress,
-				});
-			}
-
-			// Re-emit the message to allow it to bubble up the class hierarchy.
-			this.emit(EVENT_NEW_INBOUND_PEER, incomingPeerConnection.peerInfo);
 		};
 
 		this._handleRemovePeer = (peerId: string) => {
@@ -714,10 +716,15 @@ export class P2P extends EventEmitter {
 			});
 			this._bindHandlersToPeerServer(this._peerServer);
 
-			await this._peerServer.start();
+			try {
+				await this._peerServer.start();
+				// This is set to true when peer sever started successfully or when number of inbound connections is zero
+				this._isActive = true;
+			} catch (err) {
+				this._isActive = false;
+				throw new Error('Peer server did not start successfully');
+			}
 		}
-
-		this._isActive = true;
 
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
