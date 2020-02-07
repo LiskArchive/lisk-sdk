@@ -36,7 +36,11 @@ import {
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
 } from '../constants';
-import { PeerInboundHandshakeError } from '../errors';
+import {
+	InvalidDisconnectEventError,
+	InvalidPayloadError,
+	PeerInboundHandshakeError,
+} from '../errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
@@ -421,7 +425,7 @@ export class PeerServer extends EventEmitter {
 					invalidEvents.has(parsed.event) ||
 					parsed.event.length > MAX_EVENT_NAME_LENGTH
 				) {
-					throw new Error('Received invalid payload');
+					throw new InvalidPayloadError('Received invalid payload', parsed);
 				}
 
 				if (parsed.event === '#disconnect') {
@@ -430,7 +434,9 @@ export class PeerServer extends EventEmitter {
 					this._invalidMessageCounter.set(peerIpAddress, count);
 
 					if (count > DEFAULT_CONTROL_MESSAGE_LIMIT) {
-						throw new Error('Received invalid payload');
+						throw new InvalidDisconnectEventError(
+							`Exhausted disconnected event: peer disconnected ${count} times above the limit of ${DEFAULT_CONTROL_MESSAGE_LIMIT}`,
+						);
 					}
 				}
 			} catch (error) {

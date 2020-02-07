@@ -141,3 +141,19 @@ export class InvalidProtocolMessageError extends Error {
 		this.name = 'InvalidProtocolMessageError';
 	}
 }
+
+export class InvalidPayloadError extends Error {
+	public parsedMessage: object;
+	public constructor(message: string, parsedMessage: object) {
+		super(message);
+		this.name = 'InvalidPayloadError';
+		this.parsedMessage = parsedMessage;
+	}
+}
+
+export class InvalidDisconnectEventError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidDisconnectEventError';
+	}
+}
