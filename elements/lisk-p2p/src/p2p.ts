@@ -718,14 +718,13 @@ export class P2P extends EventEmitter {
 
 			try {
 				await this._peerServer.start();
-				// This is set to true when peer sever started successfully or when number of inbound connections is zero
-				this._isActive = true;
 			} catch (err) {
 				this._isActive = false;
 				throw new Error('Peer server did not start successfully');
 			}
 		}
-
+		// This is set to true when peer sever started successfully or when number of inbound connections is zero
+		this._isActive = true;
 		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
 		if (this._isActive) {
 			// Initial discovery and disconnect from SeedPeers (LIP-0004)

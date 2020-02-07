@@ -223,7 +223,11 @@ export class PeerServer extends EventEmitter {
 		}
 		const { query: queryObject } = url.parse(socket.request.url, true);
 
-		if (queryObject && queryObject.nonce === this._nodeInfo.nonce) {
+		if (!queryObject) {
+			return undefined;
+		}
+
+		if (queryObject.nonce === this._nodeInfo.nonce) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
 				INVALID_CONNECTION_SELF_CODE,
@@ -245,10 +249,9 @@ export class PeerServer extends EventEmitter {
 		}
 
 		if (
-			queryObject &&
-			(typeof queryObject.wsPort !== 'string' ||
-				typeof queryObject.version !== 'string' ||
-				typeof queryObject.networkId !== 'string')
+			typeof queryObject.wsPort !== 'string' ||
+			typeof queryObject.version !== 'string' ||
+			typeof queryObject.networkId !== 'string'
 		) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -267,9 +270,12 @@ export class PeerServer extends EventEmitter {
 		socket: SCServerSocket,
 	): object | undefined {
 		try {
-			return typeof queryObject.options === 'string'
-				? JSON.parse(queryObject.options)
-				: {};
+			const queryParam =
+				typeof queryObject.options === 'string'
+					? JSON.parse(queryObject.options)
+					: {};
+
+			return queryParam;
 		} catch (error) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
