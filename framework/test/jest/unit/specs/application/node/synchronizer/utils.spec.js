@@ -205,7 +205,7 @@ describe('#synchronizer/utils', () => {
 			);
 
 			// Assert
-			expect(chainMock.dataAccess.getTempBlocks).not.toHaveBeenCalled();
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 		});
 
 		it('should call forkStatus with lowest block object', async () => {

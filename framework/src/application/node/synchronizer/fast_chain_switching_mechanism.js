@@ -323,7 +323,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			}
 		} finally {
 			this.logger.debug('Cleaning blocks temp table');
-			await clearBlocksTempTable(this.blocks);
+			await clearBlocksTempTable(this.chain);
 		}
 	}
 
