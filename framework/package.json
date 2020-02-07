@@ -105,7 +105,6 @@
 		"find": "0.2.9",
 		"http-server": "0.11.1",
 		"istanbul": "1.1.0-alpha.1",
-		"istanbul-middleware": "0.2.2",
 		"jest": "24.9.0",
 		"jest-extended": "0.11.2",
 		"jest-when": "2.6.0",
