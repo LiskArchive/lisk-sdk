@@ -33,7 +33,7 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
-} from '../p2p_types';
+} from '../types';
 
 import { getByteSize, sanitizeIncomingPeerInfo } from '.';
 

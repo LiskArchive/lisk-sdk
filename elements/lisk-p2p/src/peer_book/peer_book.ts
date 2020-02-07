@@ -23,7 +23,7 @@ import {
 	PeerKind,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
-import { P2PEnhancedPeerInfo, P2PPeerInfo, PeerLists } from '../p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo, PeerLists } from '../types';
 import { assignInternalInfo, PEER_TYPE } from '../utils';
 
 import { NewList } from './new_list';

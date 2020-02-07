@@ -56,7 +56,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from '../p2p_types';
+} from '../types';
 import {
 	assignInternalInfo,
 	sanitizeIncomingPeerInfo,
@@ -289,6 +289,7 @@ export class Peer extends EventEmitter {
 	): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
+
 		if (this._socket) {
 			this._socket.destroy(code, reason);
 		}

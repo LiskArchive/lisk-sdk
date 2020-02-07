@@ -1,4 +1,4 @@
-import { P2PPeerInfo } from './p2p_types';
+import { P2PPeerInfo } from './types';
 
 /*
  * Copyright © 2019 Lisk Foundation
@@ -31,6 +31,16 @@ export class PeerInboundHandshakeError extends Error {
 		this.statusCode = statusCode;
 		this.remoteAddress = remoteAddress;
 		this.handshakeURL = handshakeURL;
+	}
+}
+
+export class PeerInboundDuplicateConnectionError extends Error {
+	public peerId: string;
+
+	public constructor(message: string, peerId: string) {
+		super(message);
+		this.name = 'PeerInboundDuplicateConnectionError';
+		this.peerId = peerId;
 	}
 }
 
@@ -129,5 +139,21 @@ export class InvalidProtocolMessageError extends Error {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidProtocolMessageError';
+	}
+}
+
+export class InvalidPayloadError extends Error {
+	public parsedMessage: object;
+	public constructor(message: string, parsedMessage: object) {
+		super(message);
+		this.name = 'InvalidPayloadError';
+		this.parsedMessage = parsedMessage;
+	}
+}
+
+export class InvalidDisconnectEventError extends Error {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InvalidDisconnectEventError';
 	}
 }

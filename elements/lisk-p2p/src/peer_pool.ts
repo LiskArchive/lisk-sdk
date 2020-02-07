@@ -30,7 +30,11 @@ import {
 	PeerKind,
 	SEED_PEER_DISCONNECTION_REASON,
 } from './constants';
-import { RequestFailError, SendFailError } from './errors';
+import {
+	PeerInboundDuplicateConnectionError,
+	RequestFailError,
+	SendFailError,
+} from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -54,6 +58,14 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
+	ConnectionState,
+	InboundPeer,
+	OutboundPeer,
+	Peer,
+	PeerConfig,
+} from './peer';
+import { PeerBook } from './peer_book/peer_book';
+import {
 	P2PClosePacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
@@ -65,15 +77,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from './p2p_types';
-import {
-	ConnectionState,
-	InboundPeer,
-	OutboundPeer,
-	Peer,
-	PeerConfig,
-} from './peer';
-import { PeerBook } from './peer_book/peer_book';
+} from './types';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
@@ -472,7 +476,10 @@ export class PeerPool extends EventEmitter {
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peerInfo.peerId)) {
-			throw new Error(`Peer ${peerInfo.peerId} was already in the peer pool`);
+			throw new PeerInboundDuplicateConnectionError(
+				`Peer ${peerInfo.peerId} was already in the peer pool`,
+				peerInfo.peerId,
+			);
 		}
 
 		const inboundPeers = this.getPeers(InboundPeer);
@@ -607,7 +614,7 @@ export class PeerPool extends EventEmitter {
 		return this._peerMap.has(peerId);
 	}
 
-	public removePeer(peerId: string, code: number, reason: string): boolean {
+	public removePeer(peerId: string, code?: number, reason?: string): boolean {
 		const peer = this._peerMap.get(peerId);
 		if (peer) {
 			peer.disconnect(code, reason);
