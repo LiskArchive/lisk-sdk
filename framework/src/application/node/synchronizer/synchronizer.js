@@ -15,14 +15,19 @@
 'use strict';
 
 const assert = require('assert');
+const { validator } = require('@liskhq/lisk-validator');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+const definitions = require('./schema');
 const utils = require('./utils');
 
 class Synchronizer {
 	constructor({
+		channel,
 		logger,
 		blocksModule,
 		processorModule,
 		storageModule,
+		transactionPoolModule,
 		mechanisms = [],
 	}) {
 		assert(
@@ -30,11 +35,14 @@ class Synchronizer {
 			'mechanisms should be an array of mechanisms',
 		);
 		this.mechanisms = mechanisms;
+		this.channel = channel;
 		this.logger = logger;
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
+		this.transactionPoolModule = transactionPoolModule;
 		this.storageModule = storageModule;
 		this.active = false;
+		this.loadTransactionsRetries = 5;
 
 		this._checkMechanismsInterfaces();
 	}
@@ -140,6 +148,94 @@ class Synchronizer {
 		}
 
 		return undefined;
+	}
+
+	async loadUnconfirmedTransactions() {
+		// eslint-disable-next-line no-plusplus
+		for (let retry = 0; retry < this.loadTransactionsRetries; retry++) {
+			try {
+				await this._getUnconfirmedTransactionsFromNetwork();
+
+				break;
+			} catch (err) {
+				if (err && retry === this.loadTransactionsRetries - 1) {
+					this.logger.error(
+						{ err },
+						`Failed to get transactions from network after ${this.loadTransactionsRetries} retries`,
+					);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Loads transactions from the network:
+	 * - Validates each transaction from the network and applies a penalty if invalid.
+	 * - Calls processUnconfirmedTransaction for each transaction.
+	 */
+	async _getUnconfirmedTransactionsFromNetwork() {
+		this.logger.info('Loading transactions from the network');
+
+		// TODO: Add target module to procedure name. E.g. chain:getTransactions
+		const { data: result } = await this.channel.invokeFromNetwork(
+			'requestFromNetwork',
+			{
+				procedure: 'getTransactions',
+			},
+		);
+
+		const validatorErrors = validator.validate(
+			definitions.WSTransactionsResponse,
+			result,
+		);
+		if (validatorErrors.length) {
+			throw validatorErrors;
+		}
+
+		const transactions = result.transactions.map(tx =>
+			this.blocksModule.deserializeTransaction(tx),
+		);
+
+		try {
+			const {
+				transactionsResponses,
+			} = await this.blocksModule.validateTransactions(transactions);
+			const invalidTransactionResponse = transactionsResponses.find(
+				transactionResponse =>
+					transactionResponse.status !== TransactionStatus.OK,
+			);
+			if (invalidTransactionResponse) {
+				throw invalidTransactionResponse.errors;
+			}
+		} catch (errors) {
+			const error =
+				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
+			this.logger.error(
+				{
+					id: error.id,
+					err: error.toString(),
+				},
+				'Transaction normalization failed',
+			);
+			throw error;
+		}
+
+		const transactionCount = transactions.length;
+		// eslint-disable-next-line no-plusplus
+		for (let i = 0; i < transactionCount; i++) {
+			const transaction = transactions[i];
+
+			try {
+				/* eslint-disable-next-line */
+				transaction.bundled = true;
+				await this.transactionPoolModule.processUnconfirmedTransaction(
+					transaction,
+				);
+			} catch (error) {
+				this.logger.error(error);
+				throw error;
+			}
+		}
 	}
 }
 
