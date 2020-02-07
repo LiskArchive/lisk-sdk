@@ -58,6 +58,14 @@ import {
 } from './events';
 import { P2PRequest } from './p2p_request';
 import {
+	ConnectionState,
+	InboundPeer,
+	OutboundPeer,
+	Peer,
+	PeerConfig,
+} from './peer';
+import { PeerBook } from './peer_book/peer_book';
+import {
 	P2PClosePacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
@@ -69,15 +77,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from './p2p_types';
-import {
-	ConnectionState,
-	InboundPeer,
-	OutboundPeer,
-	Peer,
-	PeerConfig,
-} from './peer';
-import { PeerBook } from './peer_book/peer_book';
+} from './types';
 
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;

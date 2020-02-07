@@ -13,7 +13,7 @@
  *
  */
 import { ExistingPeerError } from '../errors';
-import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../types';
 import {
 	evictPeerRandomlyFromBucket,
 	getBucketId,

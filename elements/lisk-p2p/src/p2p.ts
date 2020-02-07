@@ -71,6 +71,9 @@ import {
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
 } from './events';
 import { P2PRequest } from './p2p_request';
+import { PeerBook } from './peer_book';
+import { PeerPool, PeerPoolConfig } from './peer_pool';
+import { PeerServer } from './peer_server/';
 import {
 	IncomingPeerConnection,
 	P2PClosePacket,
@@ -83,10 +86,7 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 	ProtocolPeerInfo,
-} from './p2p_types';
-import { PeerBook } from './peer_book';
-import { PeerPool, PeerPoolConfig } from './peer_pool';
-import { PeerServer } from './peer_server/';
+} from './types';
 import {
 	assignInternalInfo,
 	constructPeerId,

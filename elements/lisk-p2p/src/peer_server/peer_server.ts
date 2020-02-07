@@ -43,14 +43,14 @@ import {
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_NEW_INBOUND_PEER_CONNECTION,
 } from '../events';
+import { PeerBook } from '../peer_book';
 import {
 	IncomingPeerConnection,
 	P2PCheckPeerCompatibility,
 	P2PNodeInfo,
 	P2PPeerInfo,
 	PeerServerConfig,
-} from '../p2p_types';
-import { PeerBook } from '../peer_book';
+} from '../types';
 import {
 	assignInternalInfo,
 	constructPeerId,

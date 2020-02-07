@@ -13,7 +13,7 @@
  *
  */
 import { DEFAULT_EVICTION_THRESHOLD_TIME } from '../constants';
-import { P2PEnhancedPeerInfo } from '../p2p_types';
+import { P2PEnhancedPeerInfo } from '../types';
 import {
 	evictPeerRandomlyFromBucket,
 	expirePeerFromBucket,

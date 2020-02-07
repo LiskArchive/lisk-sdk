@@ -56,7 +56,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from '../p2p_types';
+} from '../types';
 import {
 	assignInternalInfo,
 	sanitizeIncomingPeerInfo,

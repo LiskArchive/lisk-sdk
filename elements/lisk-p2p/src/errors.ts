@@ -1,4 +1,4 @@
-import { P2PPeerInfo } from './p2p_types';
+import { P2PPeerInfo } from './types';
 
 /*
  * Copyright © 2019 Lisk Foundation
