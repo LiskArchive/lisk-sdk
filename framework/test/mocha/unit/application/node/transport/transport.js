@@ -196,9 +196,6 @@ describe('transport', () => {
 				process: sinonSandbox.stub(),
 				deserialize: sinonSandbox.stub(),
 			},
-			loaderModule: {
-				syncing: sinonSandbox.stub().returns(false),
-			},
 			broadcasts: __testContext.config.app.node.broadcasts,
 		});
 	});

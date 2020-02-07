@@ -29,7 +29,6 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -170,9 +169,12 @@ module.exports = class Node {
 
 			this._subscribeToEvents();
 
+			this.channel.subscribe('app:networkReady', async () => {
+				await this._startLoader();
+			});
+
 			this.channel.subscribe('app:ready', async () => {
 				await this._startForging();
-				await this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -379,10 +381,12 @@ module.exports = class Node {
 		});
 
 		this.synchronizer = new Synchronizer({
+			channel: this.channel,
 			logger: this.logger,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
 			storageModule: this.storage,
+			transactionPoolModule: this.transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
@@ -403,15 +407,6 @@ module.exports = class Node {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.modules.transactionPool = this.transactionPool;
-		this.loader = new Loader({
-			channel: this.channel,
-			logger: this.logger,
-			processorModule: this.processor,
-			transactionPoolModule: this.transactionPool,
-			blocksModule: this.blocks,
-			loadPerIteration: this.options.loading.loadPerIteration,
-			syncingActive: this.options.syncing.active,
-		});
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
@@ -448,12 +443,10 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			blocksModule: this.blocks,
-			loaderModule: this.loader,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});
 
-		this.modules.loader = this.loader;
 		this.modules.forger = this.forger;
 		this.modules.transport = this.transport;
 		this.modules.bft = this.bft;
@@ -461,7 +454,7 @@ module.exports = class Node {
 	}
 
 	async _startLoader() {
-		return this.loader.loadUnconfirmedTransactions();
+		return this.synchronizer.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {
