@@ -53,7 +53,7 @@ describe('FinalityManager', () => {
 							testCase.output.finalizedHeight,
 						);
 
-						expect(myBft.prevotedConfirmedHeight).toEqual(
+						expect(myBft.chainMaxHeightPrevoted).toEqual(
 							testCase.output.preVotedConfirmedHeight,
 						);
 					});
@@ -84,7 +84,7 @@ describe('FinalityManager', () => {
 					expect(myBft.finalizedHeight).toEqual(
 						lastTestCaseOutput.finalizedHeight,
 					);
-					expect(myBft.prevotedConfirmedHeight).toEqual(
+					expect(myBft.chainMaxHeightPrevoted).toEqual(
 						lastTestCaseOutput.preVotedConfirmedHeight,
 					);
 
@@ -95,7 +95,7 @@ describe('FinalityManager', () => {
 					expect(myBft.finalizedHeight).toEqual(
 						lastTestCaseOutput.finalizedHeight,
 					);
-					expect(myBft.prevotedConfirmedHeight).toEqual(
+					expect(myBft.chainMaxHeightPrevoted).toEqual(
 						lastTestCaseOutput.preVotedConfirmedHeight,
 					);
 
@@ -143,7 +143,7 @@ describe('FinalityManager', () => {
 
 					// Assert - Values should match with out of that step
 					expect(myBft.finalizedHeight).toEqual(testCaseOutput.finalizedHeight);
-					expect(myBft.prevotedConfirmedHeight).toEqual(
+					expect(myBft.chainMaxHeightPrevoted).toEqual(
 						testCaseOutput.preVotedConfirmedHeight,
 					);
 				});

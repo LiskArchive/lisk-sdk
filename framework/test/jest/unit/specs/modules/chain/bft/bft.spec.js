@@ -376,6 +376,7 @@ describe('bft', () => {
 
 			it('should load more blocks from storage if remaining in headers list is less than 3 rounds', async () => {
 				// Arrange
+				jest.spyOn(bft.finalityManager, 'recompute');
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
 				const numberOfBlocksToDelete = 50;
@@ -415,6 +416,7 @@ describe('bft', () => {
 				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.recompute).toHaveBeenCalledTimes(2);
 				expect(bft.finalityManager.maxHeight).toEqual(450);
 				expect(bft.finalityManager.minHeight).toEqual(
 					450 - activeDelegates * 2,
@@ -428,6 +430,7 @@ describe('bft', () => {
 
 			it('should not load more blocks from storage if remaining in headers list is more than 3 rounds', async () => {
 				// Arrange
+				jest.spyOn(bft.finalityManager, 'recompute');
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
 				const numberOfBlocksToDelete = 50;
@@ -451,8 +454,8 @@ describe('bft', () => {
 
 				// Load last 400 blocks to bft (101 to 500)
 				for (const block of blocksInBft) {
-					// This value is mutated to pass the prevotedConfirmedHeight validation
-					block.maxHeightPrevoted = bft.finalityManager.prevotedConfirmedHeight;
+					// This value is mutated to pass the chainMaxHeightPrevoted validation
+					block.maxHeightPrevoted = bft.finalityManager.chainMaxHeightPrevoted;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -460,6 +463,7 @@ describe('bft', () => {
 				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.recompute).toHaveBeenCalledTimes(1);
 				expect(bft.finalityManager.maxHeight).toEqual(450);
 				expect(bft.finalityManager.minHeight).toEqual(101);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
@@ -467,6 +471,7 @@ describe('bft', () => {
 
 			it('should not load more blocks from storage if remaining in headers list is exactly 3 rounds', async () => {
 				// Arrange
+				jest.spyOn(bft.finalityManager, 'recompute');
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
 				const blocks = generateBlocks({
@@ -489,8 +494,8 @@ describe('bft', () => {
 
 				// Load last 300 blocks to bft (201 to 500)
 				for (const block of blocksInBft) {
-					// This value is mutated to pass the prevotedConfirmedHeight validation
-					block.maxHeightPrevoted = bft.finalityManager.prevotedConfirmedHeight;
+					// This value is mutated to pass the chainMaxHeightPrevoted validation
+					block.maxHeightPrevoted = bft.finalityManager.chainMaxHeightPrevoted;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -498,6 +503,7 @@ describe('bft', () => {
 				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.recompute).toHaveBeenCalledTimes(1);
 				expect(bft.finalityManager.maxHeight).toEqual(403);
 				expect(bft.finalityManager.minHeight).toEqual(100);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
@@ -673,7 +679,7 @@ describe('bft', () => {
 					await bft.addNewBlock(
 						{
 							...block,
-							maxHeightPrevoted: bft.finalityManager.prevotedConfirmedHeight,
+							maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
 						},
 						stateStore,
 					);

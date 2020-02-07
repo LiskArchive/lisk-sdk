@@ -58,7 +58,7 @@ class FinalityManager extends EventEmitter {
 		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
-		this.prevotedConfirmedHeight = 0;
+		this.chainMaxHeightPrevoted = 0;
 
 		this.state = {};
 		this.preVotes = {};
@@ -88,7 +88,7 @@ class FinalityManager extends EventEmitter {
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
-			prevotedConfirmedHeight: this.prevotedConfirmedHeight,
+			chainMaxHeightPrevoted: this.chainMaxHeightPrevoted,
 			minHeight: this.minHeight,
 			maxHeight: this.maxHeight,
 		});
@@ -98,7 +98,7 @@ class FinalityManager extends EventEmitter {
 	removeBlockHeaders({ aboveHeight }) {
 		debug('removeBlockHeaders invoked');
 
-		const removeAboveHeight = aboveHeight || this.maxHeight - 1;
+		const removeAboveHeight = aboveHeight;
 
 		// Remove block header from the list
 		this.headers.remove({ aboveHeight: removeAboveHeight });
@@ -191,9 +191,9 @@ class FinalityManager extends EventEmitter {
 			.reverse()
 			.find(key => this.preVotes[key] >= this.preVoteThreshold);
 
-		this.prevotedConfirmedHeight = highestHeightPreVoted
+		this.chainMaxHeightPrevoted = highestHeightPreVoted
 			? parseInt(highestHeightPreVoted, 10)
-			: this.prevotedConfirmedHeight;
+			: this.chainMaxHeightPrevoted;
 
 		const highestHeightPreCommitted = Object.keys(this.preCommits)
 			.reverse()
@@ -262,7 +262,7 @@ class FinalityManager extends EventEmitter {
 	recompute() {
 		this.state = {};
 		this.finalizedHeight = this._initialFinalizedHeight;
-		this.prevotedConfirmedHeight = 0;
+		this.chainMaxHeightPrevoted = 0;
 		this.preVotes = {};
 		this.preCommits = {};
 
@@ -291,10 +291,10 @@ class FinalityManager extends EventEmitter {
 		// if maxHeightPrevoted is correct
 		if (
 			this.headers.length >= this.processingThreshold &&
-			blockHeader.maxHeightPrevoted !== this.prevotedConfirmedHeight
+			blockHeader.maxHeightPrevoted !== this.chainMaxHeightPrevoted
 		) {
 			throw new BFTInvalidAttributeError(
-				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, prevotedConfirmedHeight: ${this.prevotedConfirmedHeight}`,
+				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, : ${this.chainMaxHeightPrevoted}`,
 			);
 		}
 
