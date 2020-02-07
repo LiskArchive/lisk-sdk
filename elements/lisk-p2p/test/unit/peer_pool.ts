@@ -24,7 +24,7 @@ import {
 	selectPeersForSend,
 } from '../../src/utils';
 // For stubbing
-import { P2PPeerInfo, P2PNodeInfo } from '../../src/p2p_types';
+import { P2PPeerInfo, P2PNodeInfo } from '../../src/types';
 import { initPeerList } from '../utils/peers';
 import {
 	Peer,

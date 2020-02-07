@@ -14,6 +14,7 @@
 
 import { EventEmitter } from 'events';
 import * as http from 'http';
+import { ParsedUrlQuery } from 'querystring';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
 
@@ -208,7 +209,9 @@ export class PeerServer extends EventEmitter {
 		);
 	}
 
-	private _handleIncomingConnection(socket: SCServerSocket): void {
+	private _validateQueryObject(
+		socket: SCServerSocket,
+	): ParsedUrlQuery | undefined {
 		if (!socket.request.url) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -216,7 +219,7 @@ export class PeerServer extends EventEmitter {
 				INVALID_CONNECTION_URL_REASON,
 			);
 
-			return;
+			return undefined;
 		}
 		const { query: queryObject } = url.parse(socket.request.url, true);
 
@@ -238,7 +241,7 @@ export class PeerServer extends EventEmitter {
 				wsPort: selfWSPort,
 			});
 
-			return;
+			return undefined;
 		}
 
 		if (
@@ -252,20 +255,20 @@ export class PeerServer extends EventEmitter {
 				INVALID_CONNECTION_QUERY_REASON,
 			);
 
-			return;
+			return undefined;
 		}
 
-		const remoteWSPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-		const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
+		return queryObject;
+	}
 
-		// tslint:disable-next-line no-let
-		let queryOptions;
-
+	private _checkQueryParameters(
+		queryObject: ParsedUrlQuery,
+		socket: SCServerSocket,
+	): object | undefined {
 		try {
-			queryOptions =
-				typeof queryObject.options === 'string'
-					? JSON.parse(queryObject.options)
-					: undefined;
+			return typeof queryObject.options === 'string'
+				? JSON.parse(queryObject.options)
+				: {};
 		} catch (error) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
@@ -273,8 +276,20 @@ export class PeerServer extends EventEmitter {
 				INVALID_CONNECTION_QUERY_REASON,
 			);
 
-			return;
+			return undefined;
 		}
+	}
+
+	private _constructPeerInfoForInboundConnection(
+		queryObject: ParsedUrlQuery,
+		queryOptions: object,
+		socket: SCServerSocket,
+	): P2PPeerInfo | undefined {
+		const remoteWSPort: number = parseInt(
+			queryObject.wsPort as string,
+			BASE_10_RADIX,
+		);
+		const peerId = constructPeerId(socket.remoteAddress, remoteWSPort);
 
 		// Remove these wsPort and ip from the query object
 		const {
@@ -333,22 +348,31 @@ export class PeerServer extends EventEmitter {
 			  };
 
 		try {
-			validatePeerInfo(
+			const validPeerInfo = validatePeerInfo(
 				incomingPeerInfo,
 				this._maxPeerInfoSize
 					? this._maxPeerInfoSize
 					: DEFAULT_MAX_PEER_INFO_SIZE,
 			);
+
+			return validPeerInfo;
 		} catch (error) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
 				INCOMPATIBLE_PEER_INFO_CODE,
 				error,
 			);
-		}
 
+			return undefined;
+		}
+	}
+
+	private _checkPeerCompatibility(
+		peerInfo: P2PPeerInfo,
+		socket: SCServerSocket,
+	): boolean {
 		const { success, error } = this._peerHandshakeCheck(
-			incomingPeerInfo,
+			peerInfo,
 			this._nodeInfo,
 		);
 
@@ -360,7 +384,35 @@ export class PeerServer extends EventEmitter {
 				INCOMPATIBLE_PEER_CODE,
 				errorReason,
 			);
+		}
 
+		return success;
+	}
+
+	private _handleIncomingConnection(socket: SCServerSocket): void {
+		// Validate query object from the url
+		const queryObject = this._validateQueryObject(socket);
+		if (!queryObject) {
+			return;
+		}
+		// Check if the query object has valid query parameters
+		const queryOptions = this._checkQueryParameters(queryObject, socket);
+
+		if (!queryOptions) {
+			return;
+		}
+		// Validate and construct peerInfo object for the incoming connection
+		const incomingPeerInfo = this._constructPeerInfoForInboundConnection(
+			queryObject,
+			queryOptions,
+			socket,
+		);
+
+		if (!incomingPeerInfo) {
+			return;
+		}
+		// Check for the compatibility of the peer with the node
+		if (!this._checkPeerCompatibility(incomingPeerInfo, socket)) {
 			return;
 		}
 
@@ -370,8 +422,6 @@ export class PeerServer extends EventEmitter {
 		};
 
 		this.emit(EVENT_NEW_INBOUND_PEER_CONNECTION, incomingPeerConnection);
-
-		return;
 	}
 
 	private _bindInvalidControlFrameEvents(socket: SCServerSocket): void {

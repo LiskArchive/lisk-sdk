@@ -14,7 +14,7 @@
  */
 
 import { PeerServer } from '../../../src/peer_server';
-import { P2PNodeInfo } from '../../../src/p2p_types';
+import { P2PNodeInfo } from '../../../src/types';
 import { PeerBook, PeerBookConfig } from '../../../src/peer_book';
 import { validatePeerCompatibility } from '../../../src/utils';
 import {
