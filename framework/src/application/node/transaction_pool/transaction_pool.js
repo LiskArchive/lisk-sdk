@@ -49,7 +49,6 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 class TransactionPool extends EventEmitter {
 	constructor({
 		chain,
-		slots,
 		logger,
 		broadcastInterval,
 		releaseLimit,
@@ -61,7 +60,6 @@ class TransactionPool extends EventEmitter {
 		super();
 		this.chain = chain;
 		this.logger = logger;
-		this.slots = slots;
 		this.expireTransactionsInterval = expireTransactionsInterval;
 		this.maxTransactionsPerQueue = maxTransactionsPerQueue;
 		this.maxTransactionsPerBlock = maxTransactionsPerBlock;
@@ -308,8 +306,8 @@ class TransactionPool extends EventEmitter {
 		}
 
 		if (
-			this.slots.getSlotNumber(transaction.timestamp) >
-			this.slots.getSlotNumber()
+			this.chain.slots.getSlotNumber(transaction.timestamp) >
+			this.chain.slots.getSlotNumber()
 		) {
 			throw [
 				new TransactionError(

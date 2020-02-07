@@ -391,7 +391,6 @@ module.exports = class Node {
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
 			chain: this.chain,
-			slots: this.chain.slots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
