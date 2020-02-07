@@ -46,7 +46,7 @@
 		"mocha:network": "node test/mocha/common/lisk-mocha-runner network"
 	},
 	"dependencies": {
-		"@liskhq/lisk-blocks": "0.1.0",
+		"@liskhq/lisk-chain": "0.1.0",
 		"@liskhq/lisk-bft": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.4.1",
 		"@liskhq/lisk-p2p": "0.4.1",
@@ -105,7 +105,6 @@
 		"find": "0.2.9",
 		"http-server": "0.11.1",
 		"istanbul": "1.1.0-alpha.1",
-		"istanbul-middleware": "0.2.2",
 		"jest": "24.9.0",
 		"jest-extended": "0.11.2",
 		"jest-when": "2.6.0",

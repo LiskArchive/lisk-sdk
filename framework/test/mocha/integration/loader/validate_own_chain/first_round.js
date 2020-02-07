@@ -35,8 +35,8 @@ describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () =>
 
 	describe('forge 101 blocks with version = 0', () => {
 		before(() => {
-			library.modules.blocks.blocksVerify.exceptions = {
-				...library.modules.blocks.exceptions,
+			library.modules.chain.blocksVerify.exceptions = {
+				...library.modules.chain.exceptions,
 				blockVersions: {
 					0: {
 						start: 1,
@@ -52,7 +52,7 @@ describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () =>
 		});
 
 		it('blockchain should be at height 101', async () => {
-			const lastBlock = library.modules.blocks.lastBlock;
+			const lastBlock = library.modules.chain.lastBlock;
 			return expect(lastBlock.height).to.eql(101);
 		});
 
@@ -71,8 +71,8 @@ describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () =>
 
 			before(async () => {
 				// Set proper exceptions for blocks versions
-				library.modules.blocks.blocksVerify.exceptions = {
-					...library.modules.blocks.exceptions,
+				library.modules.chain.blocksVerify.exceptions = {
+					...library.modules.chain.exceptions,
 					blockVersions: {
 						0: {
 							start: 1,
@@ -82,11 +82,12 @@ describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () =>
 				};
 
 				try {
-					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock,
+					await library.modules.chain.blocksVerify.requireBlockRewind(
+						library.modules.chain.lastBlock,
 					);
-					library.modules.blocks._lastBlock = await library.modules.blocks.blocksProcess.recoverInvalidOwnChain(
-						library.modules.blocks.lastBlock,
+					library.modules.chain.resetBlockHeaderCache();
+					library.modules.chain._lastBlock = await library.modules.chain.blocksProcess.recoverInvalidOwnChain(
+						library.modules.chain.lastBlock,
 						() => {},
 					);
 				} catch (error) {
@@ -99,7 +100,7 @@ describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () =>
 			});
 
 			it('should be at height 5 now', async () => {
-				expect(library.modules.blocks.lastBlock.height).to.equal(5);
+				expect(library.modules.chain.lastBlock.height).to.equal(5);
 			});
 
 			describe('forge 5 more blocks', () => {
@@ -110,7 +111,7 @@ describe.skip('UNSKIP ON LiskHQ/lisk-sdk/issues/4158 :: validateOwnChain', () =>
 				});
 
 				it('blockchain should be at height 10', async () => {
-					const lastBlock = library.modules.blocks.lastBlock;
+					const lastBlock = library.modules.chain.lastBlock;
 					return expect(lastBlock.height).to.eql(10);
 				});
 

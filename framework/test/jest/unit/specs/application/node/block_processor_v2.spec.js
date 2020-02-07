@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { StateStore } = require('@liskhq/lisk-blocks');
+const { StateStore } = require('@liskhq/lisk-chain');
 const {
 	BlockProcessorV2,
 } = require('../../../../../../src/application/node/block_processor_v2');
@@ -32,16 +32,20 @@ describe('block processor v2', () => {
 	};
 
 	let blockProcessor;
-	let blocksModuleStub;
+	let chainModuleStub;
 	let bftModuleStub;
 	let dposModuleStub;
 	let storageStub;
 	let loggerStub;
 
 	beforeEach(async () => {
-		blocksModuleStub = {
+		chainModuleStub = {
+			newStateStore: jest.fn().mockReturnValue({}),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
+			},
+			lastBlock: {
+				height: 102,
 			},
 		};
 		bftModuleStub = {
@@ -67,7 +71,7 @@ describe('block processor v2', () => {
 		const defaultExceptions = {};
 
 		blockProcessor = new BlockProcessorV2({
-			blocksModule: blocksModuleStub,
+			chainModule: chainModuleStub,
 			bftModule: bftModuleStub,
 			dposModule: dposModuleStub,
 			storage: storageStub,
@@ -85,7 +89,7 @@ describe('block processor v2', () => {
 			// Assert
 			expect(
 				dposModuleStub.getMinActiveHeightsOfDelegates,
-			).toHaveBeenCalledWith(2);
+			).toHaveBeenCalledWith(102, stateStore, 2);
 		});
 	});
 

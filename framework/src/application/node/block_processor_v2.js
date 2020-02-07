@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { baseBlockSchema } = require('@liskhq/lisk-blocks');
+const { baseBlockSchema } = require('@liskhq/lisk-chain');
 const { validator } = require('@liskhq/lisk-validator');
 const {
 	BIG_ENDIAN,
@@ -147,7 +147,7 @@ const validateSchema = ({ block }) => {
 
 class BlockProcessorV2 extends BaseBlockProcessor {
 	constructor({
-		blocksModule,
+		chainModule,
 		bftModule,
 		dposModule,
 		storage,
@@ -156,7 +156,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		exceptions,
 	}) {
 		super();
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
 		this.logger = logger;
@@ -170,18 +170,18 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
+					this.chainModule.lastBlock.height,
+					stateStore,
 					numberOfRounds,
 				);
 				this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
 			},
 		]);
 
-		this.deserialize.pipe([
-			({ block }) => this.blocksModule.deserialize(block),
-		]);
+		this.deserialize.pipe([({ block }) => this.chainModule.deserialize(block)]);
 
 		this.serialize.pipe([
-			({ block }) => this.blocksModule.serialize(block),
+			({ block }) => this.chainModule.serialize(block),
 			(_, updatedBlock) => this.bftModule.serialize(updatedBlock),
 		]);
 
@@ -189,20 +189,20 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => this._validateVersion(data),
 			data => validateSchema(data),
 			({ block }) => {
-				let expectedReward = this.blocksModule.blockReward.calculateReward(
+				let expectedReward = this.chainModule.blockReward.calculateReward(
 					block.height,
 				);
 				if (!this.bftModule.isBFTProtocolCompliant(block)) {
 					expectedReward /= BigInt(4);
 				}
-				this.blocksModule.validateBlockHeader(
+				this.chainModule.validateBlockHeader(
 					block,
 					getBytes(block),
 					expectedReward,
 				);
 			},
 			({ block, lastBlock }) =>
-				this.blocksModule.verifyInMemory(block, lastBlock),
+				this.chainModule.verifyInMemory(block, lastBlock),
 			({ block }) => this.dposModule.verifyBlockForger(block),
 			({ block }) => this.bftModule.validateBlock(block),
 		]);
@@ -211,7 +211,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			data => this._validateVersion(data),
 			data => validateSchema(data),
 			({ block }) =>
-				this.blocksModule.validateBlockHeader(
+				this.chainModule.validateBlockHeader(
 					block,
 					getBytes(block),
 					block.reward, // Because it cannot calculate BFT compliance, it assumes that reward is correct
@@ -225,20 +225,20 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.verify.pipe([
 			({ block }) => this.bftModule.verifyNewBlock(block),
 			({ block, stateStore, skipExistingCheck }) =>
-				this.blocksModule.verify(block, stateStore, { skipExistingCheck }),
+				this.chainModule.verify(block, stateStore, { skipExistingCheck }),
 		]);
 
 		this.apply.pipe([
-			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
-			({ block, tx }) => this.dposModule.apply(block, { tx }),
-			async ({ block, tx, stateStore }) => {
+			({ block, stateStore }) => this.chainModule.apply(block, stateStore),
+			async ({ block, stateStore }) => {
 				// We only need activeMinHeight value of the delegate who is forging the block.
 				// Since the block is always the latest,
 				// fetching only the latest active delegate list would be enough.
 				const numberOfRounds = 1;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
+					block.height,
+					stateStore,
 					numberOfRounds,
-					{ tx },
 				);
 
 				const [delegateMinHeightActive] = minActiveHeightsOfDelegates[
@@ -254,27 +254,35 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				};
 				return this.bftModule.addNewBlock(blockHeader, stateStore);
 			},
+			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
+			({ stateStore }) => {
+				this.dposModule.onBlockFinalized(
+					stateStore,
+					this.bftModule.finalizedHeight,
+				);
+			},
 		]);
 
 		this.applyGenesis.pipe([
 			({ block, stateStore }) =>
-				this.blocksModule.applyGenesis(block, stateStore),
-			({ block, tx }) => this.dposModule.apply(block, { tx }),
+				this.chainModule.applyGenesis(block, stateStore),
+			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 		]);
 
 		this.undo.pipe([
-			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
-			({ block, tx }) => this.dposModule.undo(block, { tx }),
-			async ({ block, tx }) => {
+			({ block, stateStore }) => this.chainModule.undo(block, stateStore),
+			async ({ block, stateStore }) => {
 				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
 				const numberOfRounds = 2;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
+					block.height,
+					stateStore,
 					numberOfRounds,
-					{ tx },
 				);
 				this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
 			},
+			({ block, stateStore }) => this.dposModule.undo(block, stateStore),
 		]);
 
 		this.create.pipe([
@@ -314,7 +322,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	}) {
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
 
-		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
+		const reward = this.chainModule.blockReward.calculateReward(nextHeight);
 		let totalFee = BigInt(0);
 		let totalAmount = BigInt(0);
 		let size = 0;

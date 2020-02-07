@@ -21,14 +21,14 @@ const clearDatabaseTable = require('../../../../utils/storage/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
 
-describe('integration test (blocks) - process', () => {
-	let blocksProcess;
-	let blocks;
+describe('integration test (chain) - process', () => {
+	let chainProcess;
+	let chain;
 	let storage;
 
-	localCommon.beforeBlock('blocks_process', lib => {
-		blocksProcess = lib.modules.blocks.process;
-		blocks = lib.modules.blocks;
+	localCommon.beforeBlock('chain_process', lib => {
+		chainProcess = lib.modules.chain.process;
+		chain = lib.modules.chain;
 		storage = lib.components.storage;
 	});
 
@@ -106,14 +106,20 @@ describe('integration test (blocks) - process', () => {
 
 	describe('loadBlocksWithOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', async () => {
-			const loadedBlocks = await blocks.getJSONBlocksWithLimitAndOffset(1, 2);
+			const loadedBlocks = await chain.dataAccess.getBlocksWithLimitAndOffset(
+				1,
+				2,
+			);
 
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(2);
 		});
 
 		it('should load block 3 from db: block with transactions', async () => {
-			const loadedBlocks = await blocks.getJSONBlocksWithLimitAndOffset(1, 3);
+			const loadedBlocks = await chain.dataAccess.getBlocksWithLimitAndOffset(
+				1,
+				3,
+			);
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(3);
 		});
@@ -147,9 +153,9 @@ describe('integration test (blocks) - process', () => {
 
 		// eslint-disable-next-line
 		it.skip('should load block 10 from db and return duplicated votes error', done => {
-			blocks.lastBlock.set(loadTables[0].data[7]);
+			chain.lastBlock.set(loadTables[0].data[7]);
 
-			blocksProcess.loadBlocksOffset(1, 10, (err, loadedBlock) => {
+			chainProcess.loadBlocksOffset(1, 10, (err, loadedBlock) => {
 				if (err) {
 					expect(err).equal(
 						'Failed to validate vote schema: Array items are not unique (indexes 0 and 4)',

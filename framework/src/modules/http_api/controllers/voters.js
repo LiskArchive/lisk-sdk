@@ -18,10 +18,10 @@ const _ = require('lodash');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
-const { MAX_VOTES_PER_ACCOUNT } = global.constants;
 const { generateParamsErrorObject } = swaggerHelper;
 
 let storage;
+let MAX_VOTES_PER_ACCOUNT;
 
 const getFilterAndOptionsFormParams = params => {
 	let filters = {
@@ -77,6 +77,7 @@ const validateFilters = (filters, params) => {
 
 function VotersController(scope) {
 	({ storage } = scope.components);
+	({ MAX_VOTES_PER_ACCOUNT } = scope.config.constants);
 }
 
 VotersController.getVoters = async (context, next) => {

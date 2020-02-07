@@ -35,13 +35,6 @@ describe('forge', () => {
 		warn: sinonSandbox.stub(),
 		error: sinonSandbox.stub(),
 	};
-	const mockStorage = {
-		entities: {
-			Account: {
-				get: sinonSandbox.stub(),
-			},
-		},
-	};
 	const testDelegate = genesisDelegates.delegates[0];
 	const numOfActiveDelegates = 101;
 	const forgingWaitThreshold = 2;
@@ -59,7 +52,6 @@ describe('forge', () => {
 			forgeModule = new Forger({
 				channel: mockChannel,
 				logger: mockLogger,
-				storage: mockStorage,
 				forgingDelegates: genesisDelegates.delegates,
 				forgingForce: false,
 				forgingDefaultPassword: testDelegate.password,
@@ -73,12 +65,26 @@ describe('forge', () => {
 				transactionPoolModule: {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
 				},
-				blocksModule: {
+				chainModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
 					slots: {
 						getSlotNumber: sinonSandbox.stub(),
 						getRealTime: sinonSandbox.stub(),
 						getSlotTime: sinonSandbox.stub(),
+					},
+					dataAccess: {
+						getAccountsByAddress: sinonSandbox.stub().returns([
+							{
+								isDelegate: true,
+								address: testDelegate.address,
+							},
+						]),
+						getAccountsByPublicKey: sinonSandbox.stub().returns([
+							{
+								isDelegate: true,
+								address: testDelegate.address,
+							},
+						]),
 					},
 				},
 				processorModule: {
@@ -136,7 +142,7 @@ describe('forge', () => {
 
 			it('should update forging from enabled to disabled', async () => {
 				// Arrange
-				mockStorage.entities.Account.get.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -197,7 +203,7 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
-				mockStorage.entities.Account.get.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -640,7 +646,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				mockStorage.entities.Account.get.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -667,7 +673,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				mockStorage.entities.Account.get.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -687,7 +693,7 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
-				mockStorage.entities.Account.get.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([
 					{
 						isDelegate: false,
 						address: accountFixtures.genesis.address,
@@ -766,9 +772,9 @@ describe('forge', () => {
 			};
 
 			beforeEach(async () => {
-				forgeModule.blocksModule.lastBlock = lastBlock;
+				forgeModule.chainModule.lastBlock = lastBlock;
 				forgeModule.processorModule.create.resolves(forgedBlock);
-				getSlotNumberStub = forgeModule.blocksModule.slots.getSlotNumber;
+				getSlotNumberStub = forgeModule.chainModule.slots.getSlotNumber;
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
@@ -842,7 +848,7 @@ describe('forge', () => {
 					shouldAdvanceTime: true,
 				});
 
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 				getSlotNumberStub
@@ -873,7 +879,7 @@ describe('forge', () => {
 
 				const changedLastBlockSlot = currentSlot - 2;
 
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(changedLastBlockSlot);
@@ -895,7 +901,7 @@ describe('forge', () => {
 				});
 
 				const lastBlockSlotChanged = currentSlot - 1;
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(lastBlockSlotChanged);

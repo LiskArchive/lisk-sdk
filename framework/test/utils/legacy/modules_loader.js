@@ -28,7 +28,7 @@ const modulesLoader = new (function() {
 	this.scope = {
 		lastCommit: '',
 		build: '',
-		config: __testContext.config.modules.chain,
+		config: __testContext.config.app.node,
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,
@@ -175,8 +175,7 @@ const modulesLoader = new (function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('@liskhq/lisk-blocks') },
-				{ loader: require('../../../src/application/node/loader') },
+				{ chain: require('@liskhq/lisk-chain') },
 				{
 					transport: require('../../../src/application/node/transport'),
 				},

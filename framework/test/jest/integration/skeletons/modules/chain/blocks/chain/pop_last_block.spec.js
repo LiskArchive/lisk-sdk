@@ -32,7 +32,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when deleteBlockStep fails', () => {
 				it.todo('should fail with proper error message');
 
-				it.todo('modules.blocks.chain.deleteBlock should be called once');
+				it.todo('modules.chain.deleteBlock should be called once');
 
 				it.todo('should not change balance in mem_accounts table');
 

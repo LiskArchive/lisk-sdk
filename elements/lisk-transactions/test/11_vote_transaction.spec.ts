@@ -15,7 +15,7 @@
 import { MockStateStore as store } from './helpers';
 import { VoteTransaction } from '../src/11_vote_transaction';
 import { validVoteTransactions } from '../fixtures';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON, Account } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { generateRandomPublicKeys } from './helpers/cryptography';
 
@@ -26,19 +26,11 @@ describe('Vote transaction class', () => {
 	let storeAccountSetStub: jest.SpyInstance;
 	let storeAccountFindStub: jest.SpyInstance;
 
-	const defaultValidSender = {
-		address: '8004805717140184627L',
-		balance: '100000000',
-		publicKey:
-			'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
-		votedDelegatesPublicKeys: [
-			'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
-		],
-	};
+	let defaultValidSender: Partial<Account>;
 
 	const defaultValidDependentAccounts = [
 		{
-			balance: '0',
+			balance: BigInt('0'),
 			address: '123L',
 			publicKey:
 				'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
@@ -167,6 +159,15 @@ describe('Vote transaction class', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	beforeEach(async () => {
+		defaultValidSender = {
+			address: '8004805717140184627L',
+			balance: BigInt('100000000'),
+			publicKey:
+				'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
+			votedDelegatesPublicKeys: [
+				'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+			],
+		};
 		validTestTransaction = new VoteTransaction({
 			...validVoteTransactions[2],
 			networkIdentifier,
@@ -394,34 +395,28 @@ describe('Vote transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
 			expect(storeAccountFindStub).toHaveBeenCalledTimes(1);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(
 				defaultValidSender.address,
-				{
-					...defaultValidSender,
-					votedDelegatesPublicKeys: [
-						...defaultValidSender.votedDelegatesPublicKeys,
-						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
-					],
-				},
+				defaultValidSender,
 			);
 		});
 
 		it('should return error when voted account is not a delegate', async () => {
 			const nonDelegateAccount = [
 				{
-					balance: '0',
+					balance: BigInt('0'),
 					address: '123L',
 					publicKey:
 						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				},
 			];
 			storeAccountFindStub.mockReturnValue(nonDelegateAccount[0]);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 		});
 
@@ -437,7 +432,7 @@ describe('Vote transaction class', () => {
 				],
 			};
 			storeAccountGetStub.mockReturnValue(invalidSender);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toContain('is already voted.');
 			expect(errors[0].dataPath).toBe('.asset.votes');
@@ -452,7 +447,7 @@ describe('Vote transaction class', () => {
 				votedDelegatesPublicKeys: generateRandomPublicKeys(101),
 			};
 			storeAccountGetStub.mockReturnValue(invalidSender);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toContain(
 				'Vote cannot exceed 101 but has 102.',
@@ -463,7 +458,7 @@ describe('Vote transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -475,13 +470,13 @@ describe('Vote transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when account voted for more than 101 delegates', async () => {
 			storeAccountGetStub.mockReturnValue(invalidVotesAccount);
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toEqual('Vote cannot exceed 101 but has 104.');

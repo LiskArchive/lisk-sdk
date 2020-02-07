@@ -15,7 +15,6 @@
 'use strict';
 
 const { cloneDeep } = require('lodash');
-const { StateStore } = require('@liskhq/lisk-blocks');
 const { ForkStatus } = require('@liskhq/lisk-bft');
 const { Sequence } = require('../utils/sequence');
 
@@ -29,11 +28,10 @@ const forkStatusList = [
 ];
 
 class Processor {
-	constructor({ channel, storage, logger, blocksModule }) {
+	constructor({ channel, logger, chainModule }) {
 		this.channel = channel;
-		this.storage = storage;
 		this.logger = logger;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.sequence = new Sequence();
 		this.processors = {};
 		this.matchers = {};
@@ -57,11 +55,10 @@ class Processor {
 		// do init check for block state. We need to load the blockchain
 		const blockProcessor = this._getBlockProcessor(genesisBlock);
 		await this._processGenesis(genesisBlock, blockProcessor, {
-			skipSave: false,
+			saveOnlyState: false,
 		});
-		await this.blocksModule.init();
-		const stateStore = new StateStore(this.storage);
-		await stateStore.chainState.cache();
+		await this.chainModule.init();
+		const stateStore = this.chainModule.newStateStore();
 		for (const processor of Object.values(this.processors)) {
 			await processor.init.run({ stateStore });
 		}
@@ -88,7 +85,7 @@ class Processor {
 				'Starting to process block',
 			);
 			const blockProcessor = this._getBlockProcessor(block);
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 
 			const forkStatus = await blockProcessor.forkStatus.run({
 				block,
@@ -150,7 +147,7 @@ class Processor {
 				});
 				const previousLastBlock = cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock, blockProcessor);
-				const newLastBlock = this.blocksModule.lastBlock;
+				const newLastBlock = this.chainModule.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
 				} catch (err) {
@@ -185,7 +182,7 @@ class Processor {
 
 		return blockProcessor.forkStatus.run({
 			block: receivedBlock,
-			lastBlock: lastBlock || this.blocksModule.lastBlock,
+			lastBlock: lastBlock || this.chainModule.lastBlock,
 		});
 	}
 
@@ -197,7 +194,7 @@ class Processor {
 	}
 
 	// validate checks the block statically
-	async validate(block, { lastBlock } = this.blocksModule) {
+	async validate(block, { lastBlock } = this.chainModule) {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
 			'Validating block',
@@ -227,7 +224,7 @@ class Processor {
 				{ id: block.id, height: block.height },
 				'Processing validated block',
 			);
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
 				skipBroadcast: true,
@@ -243,10 +240,10 @@ class Processor {
 				{ id: block.id, height: block.height },
 				'Applying block',
 			);
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
-				skipSave: true,
+				saveOnlyState: true,
 				skipBroadcast: true,
 			});
 		});
@@ -254,135 +251,102 @@ class Processor {
 
 	async deleteLastBlock({ saveTempBlock = false } = {}) {
 		return this.sequence.add(async () => {
-			const { lastBlock } = this.blocksModule;
+			const { lastBlock } = this.chainModule;
 			this.logger.debug(
 				{ id: lastBlock.id, height: lastBlock.height },
 				'Deleting last block',
 			);
 			const blockProcessor = this._getBlockProcessor(lastBlock);
 			await this._deleteBlock(lastBlock, blockProcessor, saveTempBlock);
-			return this.blocksModule.lastBlock;
+			return this.chainModule.lastBlock;
 		});
 	}
 
 	async applyGenesisBlock(block) {
 		this.logger.info({ id: block.id }, 'Applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
-		return this._processGenesis(block, blockProcessor, { skipSave: true });
+		return this._processGenesis(block, blockProcessor, { saveOnlyState: true });
 	}
 
 	async _processValidated(
 		block,
 		lastBlock,
 		processor,
-		{ skipSave, skipBroadcast, removeFromTempTable = false } = {},
+		{ saveOnlyState, skipBroadcast, removeFromTempTable = false } = {},
 	) {
-		await this.storage.entities.Block.begin(
-			'App:Node:processBlock',
-			async tx => {
-				const stateStore = new StateStore(this.storage, { tx });
-				// initialize chain state
-				await stateStore.chainState.cache();
+		const stateStore = this.chainModule.newStateStore();
 
-				await processor.verify.run({
-					block,
-					lastBlock,
-					skipExistingCheck: skipSave,
-					stateStore,
-					tx,
-				});
+		await processor.verify.run({
+			block,
+			lastBlock,
+			skipExistingCheck: saveOnlyState,
+			stateStore,
+		});
 
-				const blockJSON = await this.serialize(block);
-				if (!skipBroadcast) {
-					this.channel.publish('app:processor:broadcast', {
-						block: blockJSON,
-					});
-				}
+		const blockJSON = await this.serialize(block);
+		if (!skipBroadcast) {
+			this.channel.publish('app:processor:broadcast', {
+				block: blockJSON,
+			});
+		}
 
-				if (!skipSave) {
-					// TODO: After moving everything to state store, save should get the state store and finalize the state store
-					await this.blocksModule.save(blockJSON, tx);
-				}
+		// Apply should always be executed after save as it performs database calculations
+		// i.e. Dpos.apply expects to have this processing block in the database
+		await processor.apply.run({
+			block,
+			lastBlock,
+			skipExistingCheck: saveOnlyState,
+			stateStore,
+		});
 
-				// Apply should always be executed after save as it performs database calculations
-				// i.e. Dpos.apply expects to have this processing block in the database
-				await processor.apply.run({
-					block,
-					lastBlock,
-					skipExistingCheck: skipSave,
-					stateStore,
-					tx,
-				});
+		await this.chainModule.save(block, stateStore, {
+			saveOnlyState,
+			removeFromTempTable,
+		});
 
-				if (removeFromTempTable) {
-					await this.blocksModule.removeBlockFromTempTable(block.id, tx);
-					this.logger.debug(
-						{ id: block.id, height: block.height },
-						'Removed block from temp_blocks table',
-					);
-				}
+		// Should only publish 'app:processor:newBlock' if saved AND applied successfully
+		if (!saveOnlyState) {
+			this.channel.publish('app:processor:newBlock', {
+				block: blockJSON,
+			});
+		}
 
-				// Should only publish 'app:processor:newBlock' if saved AND applied successfully
-				if (!skipSave) {
-					this.channel.publish('app:processor:newBlock', {
-						block: blockJSON,
-					});
-				}
-
-				return block;
-			},
-		);
+		return block;
 	}
 
-	async _processGenesis(block, processor, { skipSave } = { skipSave: false }) {
-		return this.storage.entities.Block.begin(
-			'App:Node:processGenesisBlock',
-			async tx => {
-				const stateStore = new StateStore(this.storage, { tx });
-				// Check if genesis block ID already exists in the database
-				const isPersisted = await this.blocksModule.exists(block);
+	async _processGenesis(
+		block,
+		processor,
+		{ saveOnlyState } = { saveOnlyState: false },
+	) {
+		const stateStore = this.chainModule.newStateStore();
+		const isPersisted = await this.chainModule.exists(block);
+		if (saveOnlyState && !isPersisted) {
+			throw new Error('Genesis block is not persisted but skipping to save');
+		}
+		// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
+		if (isPersisted && !saveOnlyState) {
+			return block;
+		}
+		await processor.applyGenesis.run({
+			block,
+			stateStore,
+		});
+		await this.chainModule.save(block, stateStore, { saveOnlyState });
 
-				if (skipSave && !isPersisted) {
-					throw new Error(
-						'Genesis block is not persisted but skipping to save',
-					);
-				}
-
-				// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
-				if (isPersisted && !skipSave) {
-					return block;
-				}
-
-				await processor.applyGenesis.run({
-					block,
-					stateStore,
-					tx,
-				});
-
-				if (!skipSave) {
-					const blockJSON = await this.serialize(block);
-					// TODO: After moving everything to state store, save should get the state store and finalize the state store
-					await this.blocksModule.save(blockJSON, tx);
-				}
-
-				return block;
-			},
-		);
+		return block;
 	}
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
-		await this.storage.entities.Block.begin('app:revertBlock', async tx => {
-			const stateStore = new StateStore(this.storage, { tx });
-			await processor.undo.run({
-				block,
-				stateStore,
-				tx,
-			});
-			const blockJSON = await this.serialize(block);
-			await this.blocksModule.remove(block, blockJSON, tx, { saveTempBlock });
-			this.channel.publish('app:processor:deleteBlock', {
-				block: blockJSON,
-			});
+		const stateStore = this.chainModule.newStateStore();
+		await processor.undo.run({
+			block,
+			stateStore,
+		});
+		await this.chainModule.remove(block, stateStore, { saveTempBlock });
+		const blockJSON = await this.serialize(block);
+		this.channel.publish('app:processor:deleteBlock', {
+			block: blockJSON,
 		});
 	}
 

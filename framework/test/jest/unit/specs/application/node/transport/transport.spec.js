@@ -32,7 +32,6 @@ describe('Transport', () => {
 	let loggerStub;
 	let processorStub;
 	let channelStub;
-	let storageStub;
 
 	beforeEach(async () => {
 		// Needs to reset the job registered
@@ -49,13 +48,6 @@ describe('Transport', () => {
 			error: jest.fn(),
 			debug: jest.fn(),
 		};
-		storageStub = {
-			entities: {
-				Transaction: {
-					get: jest.fn(),
-				},
-			},
-		};
 		transactionPoolStub = {
 			transactionInPool: jest.fn().mockReturnValue(true),
 			getTransactionAndProcessSignature: jest.fn(),
@@ -70,19 +62,21 @@ describe('Transport', () => {
 			validateTransactions: jest.fn().mockResolvedValue({
 				transactionsResponses: [{ status: 1, errors: [] }],
 			}),
+			dataAccess: {
+				getTransactionsByIDs: jest.fn(),
+			},
 		};
 		processorStub = {};
 		transport = new Transport({
 			channel: channelStub,
 			logger: loggerStub,
-			storage: storageStub,
 			// Unique requirements
 			applicationState: {},
 			exceptions: {},
 			// Modules
 			synchronizer: synchronizerStub,
 			transactionPoolModule: transactionPoolStub,
-			blocksModule: blocksStub,
+			chainModule: blocksStub,
 			processorModule: processorStub,
 			// Constants
 			broadcasts: {
@@ -758,7 +752,9 @@ describe('Transport', () => {
 				when(transactionPoolStub.findInTransactionPool)
 					.calledWith(tx.id)
 					.mockReturnValue(tx);
-				storageStub.entities.Transaction.get.mockResolvedValue([txDatabase]);
+				blocksStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
+					txDatabase,
+				]);
 			});
 
 			it('should call find transactionInPool with the id', async () => {
@@ -775,13 +771,15 @@ describe('Transport', () => {
 			});
 
 			it('should return transaction in the pool', async () => {
+				blocksStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
+					txDatabase,
+				]);
 				const result = await transport.handleRPCGetTransactions(
 					{ transactionIds: [tx.id, txDatabase.id] },
 					defaultPeerId,
 				);
-				expect(storageStub.entities.Transaction.get).toHaveBeenCalledWith(
-					{ id_in: [txDatabase.id] },
-					{ limit: defaultReleaseLimit },
+				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
+					tx.id,
 				);
 				expect(result.transactions).toHaveLength(2);
 				expect(result.transactions).toStrictEqual([tx.toJSON(), txDatabase]);
@@ -873,7 +871,7 @@ describe('Transport', () => {
 		describe('when none of the transactions ids are known', () => {
 			beforeEach(async () => {
 				transactionPoolStub.transactionInPool.mockReturnValue(false);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
+				blocksStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				when(channelStub.invokeFromNetwork)
 					.calledWith('requestFromPeer', expect.anything())
 					.mockResolvedValue({
@@ -945,19 +943,18 @@ describe('Transport', () => {
 				);
 			});
 		});
-
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(async () => {
 				when(transactionPoolStub.transactionInPool)
 					.calledWith(tx.id)
 					.mockReturnValue(true);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				when(channelStub.invokeFromNetwork)
 					.calledWith('requestFromPeer', expect.anything())
 					.mockResolvedValue({
 						data: { transactions: [tx2] },
 						peerId: defaultPeerId,
 					});
+				blocksStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 			});
 
 			it('should request all the transactions', async () => {

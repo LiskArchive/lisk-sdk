@@ -24,8 +24,8 @@ describe('Transfer transaction class', () => {
 	const validTransferTransaction = fixture.testCases[0].output;
 	const validTransferAccount = fixture.testCases[0].input.account;
 	let validTransferTestTransaction: TransferTransaction;
-	let sender: Account;
-	let recipient: Account;
+	let sender: Partial<Account>;
+	let recipient: Partial<Account>;
 	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountGetOrDefaultStub: jest.SpyInstance;
@@ -35,15 +35,15 @@ describe('Transfer transaction class', () => {
 		validTransferTestTransaction = new TransferTransaction(
 			validTransferTransaction,
 		);
-		sender = { ...validTransferAccount, balance: '10000000000' };
-		recipient = { ...validTransferAccount, balance: '10000000000' };
+		sender = { ...validTransferAccount, balance: BigInt('10000000000') };
+		recipient = { ...validTransferAccount, balance: BigInt('10000000000') };
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'get')
-			.mockReturnValue(sender);
+			.mockResolvedValue(sender);
 		storeAccountGetOrDefaultStub = jest
 			.spyOn(store.account, 'getOrDefault')
-			.mockReturnValue(recipient);
+			.mockResolvedValue(recipient);
 		storeAccountSetStub = jest.spyOn(store.account, 'set');
 	});
 
@@ -241,27 +241,18 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should call state store', async () => {
-			(validTransferTestTransaction as any).applyAsset(store);
+			await (validTransferTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				balance: (
-					BigInt(sender.balance) -
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
-				...recipient,
-				balance: (
-					BigInt(recipient.balance) -
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
+				recipient.address,
+				recipient,
+			);
 		});
 
 		it('should return error when sender balance is insufficient', async () => {
@@ -269,7 +260,9 @@ describe('Transfer transaction class', () => {
 				...sender,
 				balance: BigInt(10000000),
 			});
-			const errors = (validTransferTestTransaction as any).applyAsset(store);
+			const errors = await (validTransferTestTransaction as any).applyAsset(
+				store,
+			);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
 				`Account does not have enough LSK: ${sender.address}, balance: 0.2`,
@@ -281,34 +274,28 @@ describe('Transfer transaction class', () => {
 				...sender,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
-			const errors = (validTransferTestTransaction as any).applyAsset(store);
+			const errors = await (validTransferTestTransaction as any).applyAsset(
+				store,
+			);
 			expect(errors[0].message).toEqual('Invalid amount');
 		});
 	});
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTransferTestTransaction as any).undoAsset(store);
+			await (validTransferTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				balance: (
-					BigInt(sender.balance) +
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
-			});
+
+			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
 			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(recipient.address, {
-				...recipient,
-				balance: (
-					BigInt(recipient.balance) -
-					BigInt(validTransferTestTransaction.asset.amount)
-				).toString(),
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
+				recipient.address,
+				recipient,
+			);
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {
@@ -316,7 +303,9 @@ describe('Transfer transaction class', () => {
 				...recipient,
 				balance: BigInt('0'),
 			});
-			const errors = (validTransferTestTransaction as any).undoAsset(store);
+			const errors = await (validTransferTestTransaction as any).undoAsset(
+				store,
+			);
 			expect(errors[0].message).toBe(
 				`Account does not have enough LSK: ${recipient.address}, balance: 0`,
 			);
@@ -327,7 +316,9 @@ describe('Transfer transaction class', () => {
 				...recipient,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
-			const errors = (validTransferTestTransaction as any).undoAsset(store);
+			const errors = await (validTransferTestTransaction as any).undoAsset(
+				store,
+			);
 			expect(errors[0].message).toEqual('Invalid amount');
 		});
 	});

@@ -29,11 +29,15 @@ describe('Delegate registration transaction class', () => {
 	} = protocolSpecTransferFixture.testCases[0].input;
 
 	let validTestTransaction: DelegateTransaction;
-	let sender: Account;
+	let sender: Partial<Account>;
 	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountSetStub: jest.SpyInstance;
 	let storeAccountFindStub: jest.SpyInstance;
+	const validDelegateAccountObj = {
+		...validDelegateAccount,
+		balance: BigInt(validDelegateAccount.balance),
+	};
 
 	beforeEach(async () => {
 		validTestTransaction = new DelegateTransaction({
@@ -44,7 +48,7 @@ describe('Delegate registration transaction class', () => {
 			protocolSpecDelegateFixture.testCases[0].input.account.passphrase,
 		);
 
-		sender = validDelegateAccount;
+		sender = validDelegateAccountObj;
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'get')
@@ -176,7 +180,7 @@ describe('Delegate registration transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
@@ -184,7 +188,7 @@ describe('Delegate registration transaction class', () => {
 			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				isDelegate: 1,
-				vote: 0,
+				voteWeight: BigInt(0),
 				username: validTestTransaction.asset.username,
 			});
 		});
@@ -193,19 +197,19 @@ describe('Delegate registration transaction class', () => {
 			const { isDelegate, username, ...strippedSender } = sender;
 			storeAccountGetStub.mockReturnValue(strippedSender);
 			storeAccountFindStub.mockReturnValue(false);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when username is taken', async () => {
 			storeAccountFindStub.mockReturnValue(true);
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(2);
 			expect(errors[0].dataPath).toBe('.asset.username');
 		});
 
 		it('should return an error when account is already delegate', async () => {
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).toHaveLength(2);
 			expect(errors[0].dataPath).toBe('.asset.username');
@@ -214,21 +218,21 @@ describe('Delegate registration transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
 			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				isDelegate: 0,
-				vote: 0,
+				voteWeight: BigInt(0),
 				username: null,
 			});
 		});
 
 		it('should return no errors', async () => {
 			storeAccountGetStub.mockReturnValue(sender);
-			const errors = (validTestTransaction as any).undoAsset(store);
+			const errors = await (validTestTransaction as any).undoAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 	});

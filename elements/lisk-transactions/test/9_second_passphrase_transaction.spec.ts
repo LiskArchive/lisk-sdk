@@ -16,8 +16,7 @@ import { MockStateStore as store } from './helpers';
 import { SecondSignatureTransaction } from '../src/9_second_signature_transaction';
 import * as protocolSpecSecondSignatureFixture from '../fixtures/transaction_network_id_and_change_order/second_signature_transaction_validate.json';
 import * as protocolSpecTransferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
-
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON, Account } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
@@ -39,16 +38,7 @@ describe('Second signature registration transaction class', () => {
 	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountSetStub: jest.SpyInstance;
-
-	const sender = {
-		address: '10020978176543317477L',
-		balance: '32981247530771',
-		publicKey:
-			'8aceda0f39b35d778f55593227f97152f0b5a78b80b5c4ae88979909095d6204',
-		secondPublicKey: null,
-		secondSignature: 0,
-	};
-
+	let sender: Partial<Account>;
 	beforeEach(async () => {
 		validTestTransaction = new SecondSignatureTransaction({
 			...validRegisterSecondSignatureTransaction,
@@ -57,7 +47,14 @@ describe('Second signature registration transaction class', () => {
 		validTestTransaction.sign(
 			protocolSpecSecondSignatureFixture.testCases[0].input.account.passphrase,
 		);
-
+		sender = {
+			address: '10020978176543317477L',
+			balance: BigInt('32981247530771'),
+			publicKey:
+				'8aceda0f39b35d778f55593227f97152f0b5a78b80b5c4ae88979909095d6204',
+			secondPublicKey: null,
+			secondSignature: 0,
+		};
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'get')
@@ -152,7 +149,7 @@ describe('Second signature registration transaction class', () => {
 
 	describe('#validateAsset', () => {
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).validateAsset();
+			const errors = await (validTestTransaction as any).validateAsset();
 
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
@@ -165,7 +162,7 @@ describe('Second signature registration transaction class', () => {
 				},
 			};
 			const transaction = new SecondSignatureTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
+			const errors = await (transaction as any).validateAsset();
 
 			expect(Object.keys(errors)).toHaveLength(1);
 		});
@@ -173,19 +170,21 @@ describe('Second signature registration transaction class', () => {
 
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).applyAsset(store);
+			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				secondPublicKey: validTestTransaction.asset.publicKey,
-				secondSignature: 1,
-			});
+			expect(storeAccountSetStub).toHaveBeenCalledWith(
+				sender.address,
+				expect.objectContaining({
+					secondSignature: 1,
+					secondPublicKey: validTestTransaction.asset.publicKey,
+				}),
+			);
 		});
 
 		it('should return no errors', async () => {
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
@@ -194,7 +193,7 @@ describe('Second signature registration transaction class', () => {
 				...sender,
 				secondPublicKey: '123',
 			});
-			const errors = (validTestTransaction as any).applyAsset(store);
+			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors[0].message).toContain(
 				'Register second signature only allowed once per account.',
 			);
@@ -203,7 +202,7 @@ describe('Second signature registration transaction class', () => {
 
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
-			(validTestTransaction as any).undoAsset(store);
+			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);

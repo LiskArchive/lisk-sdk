@@ -29,14 +29,13 @@ class Transport {
 		// components
 		channel,
 		logger,
-		storage,
 		// Unique requirements
 		applicationState,
 		exceptions,
 		// Modules
 		synchronizer,
 		transactionPoolModule,
-		blocksModule,
+		chainModule,
 		processorModule,
 		// Constants
 		broadcasts,
@@ -45,7 +44,6 @@ class Transport {
 
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
 		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
 		this.exceptions = exceptions;
@@ -55,7 +53,7 @@ class Transport {
 		};
 
 		this.transactionPoolModule = transactionPoolModule;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.processorModule = processorModule;
 
 		this.broadcaster = new Broadcaster({
@@ -63,7 +61,6 @@ class Transport {
 			transactionPool: this.transactionPoolModule,
 			logger: this.logger,
 			channel: this.channel,
-			storage: this.storage,
 		});
 
 		// Rate limit for certain endpoints
@@ -118,7 +115,25 @@ class Transport {
 			throw new Error(error);
 		}
 
-		return this.blocksModule.loadBlocksFromLastBlockId(data.blockId, 34);
+		// Get height of block with supplied ID
+		const lastBlock = await this.chainModule.dataAccess.getBlockHeaderByID(
+			data.blockId,
+		);
+		if (!lastBlock) {
+			throw new Error(`Invalid blockId requested: ${data.blockId}`);
+		}
+
+		const lastBlockHeight = lastBlock.height;
+
+		// Calculate max block height for database query
+		const fetchUntilHeight = lastBlockHeight + 34;
+
+		const blocks = await this.chainModule.dataAccess.getBlocksByHeightBetween(
+			lastBlockHeight + 1,
+			fetchUntilHeight,
+		);
+
+		return blocks && blocks.map(block => this.chainModule.serialize(block));
 	}
 
 	async handleRPCGetGetHighestCommonBlock(data, peerId) {
@@ -144,7 +159,7 @@ class Transport {
 			throw new Error(error);
 		}
 
-		const commonBlock = await this.blocksModule.getHighestCommonBlock(data.ids);
+		const commonBlock = await this.chainModule.getHighestCommonBlock(data.ids);
 
 		return commonBlock;
 	}
@@ -325,9 +340,8 @@ class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase = await this.storage.entities.Transaction.get(
-				{ id_in: idsNotInPool },
-				{ limit: this.constants.broadcasts.releaseLimit },
+			const transactionsFromDatabase = await this.chainModule.dataAccess.getTransactionsByIDs(
+				idsNotInPool,
 			);
 
 			return {
@@ -420,13 +434,8 @@ class Transport {
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions = await this.storage.entities.Transaction.get(
-				{
-					id_in: unknownTransactionsIDs,
-				},
-				{
-					limit: this.constants.broadcasts.releaseLimit,
-				},
+			const existingTransactions = await this.chainModule.dataAccess.getTransactionsByIDs(
+				unknownTransactionsIDs,
 			);
 
 			return unknownTransactionsIDs.filter(
@@ -444,12 +453,12 @@ class Transport {
 		const id = transactionJSON ? transactionJSON.id : 'null';
 		let transaction;
 		try {
-			transaction = this.blocksModule.deserializeTransaction(transactionJSON);
+			transaction = this.chainModule.deserializeTransaction(transactionJSON);
 
 			// Composed transaction checks are all static, so it does not need state store
 			const {
 				transactionsResponses,
-			} = await this.blocksModule.validateTransactions([transaction]);
+			} = await this.chainModule.validateTransactions([transaction]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;

@@ -45,7 +45,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 				storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 			]);
 		});
-		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+		library.modules.chain.resetBlockHeaderCache();
+		library.modules.chain._lastBlock = __testContext.config.genesisBlock;
 	});
 
 	let blockAccount1;
@@ -221,7 +222,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 						storage.adapter.db.none('DELETE FROM blocks WHERE "height" > 1;'),
 					]);
 				});
-				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+				library.modules.chain.resetBlockHeaderCache();
+				library.modules.chain._lastBlock = __testContext.config.genesisBlock;
 			});
 		});
 

@@ -33,19 +33,18 @@ const {
 
 class BlockSynchronizationMechanism extends BaseSynchronizer {
 	constructor({
-		storage,
 		logger,
 		channel,
 		rounds,
 		bft,
-		blocks,
+		chain,
 		processorModule,
 		activeDelegates,
 	}) {
-		super(storage, logger, channel);
+		super(logger, channel);
 		this.bft = bft;
 		this.rounds = rounds;
-		this.blocks = blocks;
+		this.chain = chain;
 		this.processorModule = processorModule;
 		this.constants = {
 			activeDelegates,
@@ -98,13 +97,13 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	// eslint-disable-next-line no-unused-vars
 	async isValidFor() {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
-		const finalizedBlock = await this.storage.entities.Block.getOne({
-			height_eql: this.bft.finalizedHeight,
-		});
-		const finalizedBlockSlot = this.blocks.slots.getSlotNumber(
+		const finalizedBlock = await this.chain.dataAccess.getBlockHeaderByHeight(
+			this.bft.finalizedHeight,
+		);
+		const finalizedBlockSlot = this.chain.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);
-		const currentBlockSlot = this.blocks.slots.getSlotNumber();
+		const currentBlockSlot = this.chain.slots.getSlotNumber();
 		const threeRounds = this.constants.activeDelegates * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
@@ -152,7 +151,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 					throw new BlockProcessingError();
 				}
 
-				finished = this.blocks.lastBlock.id === toId;
+				finished = this.chain.lastBlock.id === toId;
 			} else {
 				failedAttempts += 1; // It's only considered a failed attempt if the target peer doesn't provide any blocks on a single request
 			}
@@ -175,10 +174,8 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	async _handleBlockProcessingError(lastCommonBlock, peerId) {
 		// If the list of blocks has not been fully applied
 		this.logger.debug('Failed to apply obtained blocks from peer');
-		const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
-			{},
-			{ sort: 'height:desc', limit: 1, extended: true },
-		);
+		const tempBlocks = await this.chain.dataAccess.getTempBlocks();
+		const [tipBeforeApplying] = [...tempBlocks].sort((a, b) => b - a);
 
 		if (!tipBeforeApplying) {
 			this.logger.error('Blocks temp table should not be empty');
@@ -190,7 +187,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 		// Check if the new tip has priority over the last tip we had before applying
 		const forkStatus = await this.processorModule.forkStatus(
-			this.blocks.lastBlock, // New tip of the chain
+			this.chain.lastBlock, // New tip of the chain
 			tipBeforeApplyingInstance, // Previous tip of the chain
 		);
 
@@ -199,7 +196,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		if (!newTipHasPreference) {
 			this.logger.debug(
 				{
-					currentTip: this.blocks.lastBlock.id,
+					currentTip: this.chain.lastBlock.id,
 					previousTip: tipBeforeApplyingInstance.id,
 				},
 				'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
@@ -211,15 +208,15 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				);
 				await deleteBlocksAfterHeight(
 					this.processorModule,
-					this.blocks,
+					this.chain,
 					this.logger,
 					lastCommonBlock.height,
 				);
 				this.logger.debug('Restoring blocks from temporary table');
-				await restoreBlocks(this.blocks, this.processorModule);
+				await restoreBlocks(this.chain, this.processorModule);
 
 				this.logger.debug('Cleaning blocks temp table');
-				await clearBlocksTempTable(this.storage);
+				await clearBlocksTempTable(this.chain);
 			} catch (error) {
 				this.logger.error(
 					{ err: error },
@@ -234,14 +231,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this.logger.debug(
 			{
-				currentTip: this.blocks.lastBlock.id,
+				currentTip: this.chain.lastBlock.id,
 				previousTip: tipBeforeApplyingInstance.id,
 			},
 			'Current tip of the chain has preference over previous tip',
 		);
 
 		this.logger.debug('Cleaning blocks temporary table');
-		await clearBlocksTempTable(this.storage);
+		await clearBlocksTempTable(this.chain);
 
 		this.logger.info('Restarting block synchronization');
 
@@ -284,7 +281,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		this.logger.debug('Cleaning up blocks temporary table');
-		await clearBlocksTempTable(this.storage);
+		await clearBlocksTempTable(this.chain);
 
 		this.logger.debug(
 			{ peerId },
@@ -329,14 +326,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		await deleteBlocksAfterHeight(
 			this.processorModule,
-			this.blocks,
+			this.chain,
 			this.logger,
 			lastCommonBlock.height,
 			true,
 		);
 
 		this.logger.debug(
-			{ lastBlockId: this.blocks.lastBlock.id },
+			{ lastBlockId: this.chain.lastBlock.id },
 			'Successfully deleted blocks',
 		);
 
@@ -354,7 +351,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = this.rounds.calcRound(this.blocks.lastBlock.height); // Holds the current round number
+		let currentRound = this.rounds.calcRound(this.chain.lastBlock.height); // Holds the current round number
 		let currentHeight = currentRound * this.constants.activeDelegates;
 
 		while (
@@ -369,17 +366,9 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				currentRound,
 			);
 
-			const blockIds = (
-				await this.storage.entities.Block.get(
-					{
-						height_in: heightList,
-					},
-					{
-						sort: 'height:asc',
-						limit: heightList.length,
-					},
-				)
-			).map(block => block.id);
+			const blockHeaders = await this.chain.dataAccess.getBlockHeadersWithHeights(
+				heightList,
+			);
 
 			let data;
 
@@ -391,7 +380,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 						procedure: 'getHighestCommonBlock',
 						peerId,
 						data: {
-							ids: blockIds,
+							ids: blockHeaders.map(block => block.id),
 						},
 					})
 				).data;
@@ -455,7 +444,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const inDifferentChain =
 			forkStatus === ForkStatus.DIFFERENT_CHAIN ||
-			networkLastBlock.id === this.blocks.lastBlock.id;
+			networkLastBlock.id === this.chain.lastBlock.id;
 		if (!validBlock || !inDifferentChain) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,

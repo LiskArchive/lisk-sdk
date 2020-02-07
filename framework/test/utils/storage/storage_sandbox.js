@@ -27,7 +27,6 @@ const {
 	AccountEntity,
 	BlockEntity,
 	TransactionEntity,
-	RoundDelegatesEntity,
 	ChainStateEntity,
 	ForgerInfoEntity,
 	TempBlockEntity,
@@ -43,7 +42,7 @@ const {
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
-modulesMigrations.chain = nodeMigrations();
+modulesMigrations.node = nodeMigrations();
 modulesMigrations.network = networkMigrations();
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
@@ -101,7 +100,6 @@ class StorageSandbox extends Storage {
 		this.registerEntity('Account', AccountEntity);
 		this.registerEntity('Block', BlockEntity);
 		this.registerEntity('Transaction', TransactionEntity);
-		this.registerEntity('RoundDelegates', RoundDelegatesEntity);
 
 		// Custom entitties
 		this.registerEntity('Migration', MigrationEntity);

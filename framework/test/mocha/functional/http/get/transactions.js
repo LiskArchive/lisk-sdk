@@ -21,7 +21,7 @@ const {
 	registerSecondPassphrase,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');

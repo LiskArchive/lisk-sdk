@@ -119,9 +119,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -203,11 +203,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock(
-						library.modules.blocks.lastBlock,
+						library.modules.chain.lastBlock,
 					);
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -289,9 +289,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -346,7 +346,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
-					expect(account.votedDelegatesPublicKeys).to.be.null;
+					expect(account.votedDelegatesPublicKeys).eql(null);
 				});
 
 				it('should forge a block', done => {
@@ -371,9 +371,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -386,7 +386,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.votedDelegatesPublicKeys).to.eql([]);
+					expect(account.votedDelegatesPublicKeys).to.eql(null);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -422,7 +422,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.publicKey).to.be.null;
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.be.null;
+					expect(account.membersPublicKeys).eql(null);
 				});
 
 				it('should forge a block', done => {
@@ -463,9 +463,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -480,7 +480,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.eql([]);
+					expect(account.membersPublicKeys).to.eql(null);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -543,11 +543,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
+						const transactions = library.modules.chain.lastBlock.transactions;
 						await library.modules.processor.deleteLastBlock(
-							library.modules.blocks.lastBlock,
+							library.modules.chain.lastBlock,
 						);
-						const newLastBlock = library.modules.blocks.lastBlock;
+						const newLastBlock = library.modules.chain.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);
@@ -608,9 +608,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
+						const transactions = library.modules.chain.lastBlock.transactions;
 						await library.modules.processor.deleteLastBlock();
-						const newLastBlock = library.modules.blocks.lastBlock;
+						const newLastBlock = library.modules.chain.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);
@@ -675,11 +675,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
+						const transactions = library.modules.chain.lastBlock.transactions;
 						await library.modules.processor.deleteLastBlock(
-							library.modules.blocks.lastBlock,
+							library.modules.chain.lastBlock,
 						);
-						const newLastBlock = library.modules.blocks.lastBlock;
+						const newLastBlock = library.modules.chain.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);

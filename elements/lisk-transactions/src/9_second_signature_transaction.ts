@@ -99,9 +99,11 @@ export class SecondSignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 		// Check if secondPublicKey already exists on account
 		if (sender.secondPublicKey) {
 			errors.push(
@@ -112,26 +114,23 @@ export class SecondSignatureTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const updatedSender = {
-			...sender,
-			secondPublicKey: this.asset.publicKey,
-			secondSignature: 1,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+
+		sender.secondPublicKey = this.asset.publicKey;
+		sender.secondSignature = 1;
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
-		const resetSender = {
-			...sender,
-			// tslint:disable-next-line no-null-keyword - Exception for compatibility with Core 1.4
-			secondPublicKey: null,
-			secondSignature: 0,
-		};
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.account.get(this.senderId);
+		// tslint:disable-next-line:no-null-keyword
+		sender.secondPublicKey = null;
+		sender.secondSignature = 0;
 
-		store.account.set(resetSender.address, resetSender);
+		store.account.set(sender.address, sender);
 
 		return [];
 	}

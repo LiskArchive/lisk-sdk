@@ -19,7 +19,6 @@ const rewire = require('rewire');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
-const im = require('istanbul-middleware');
 
 const setupServers = rewire(
 	'../../../../../../src/modules/http_api/init_steps/setup_servers',
@@ -31,9 +30,7 @@ describe('init_steps/setup_servers', () => {
 	let socketIOStub;
 	const stub = {
 		components: {
-			logger: {
-				debug: sinonSandbox.stub(),
-			},
+			logger: {},
 		},
 		config: {
 			coverage: false,
@@ -50,10 +47,6 @@ describe('init_steps/setup_servers', () => {
 			},
 		},
 	};
-
-	beforeEach(async () => {
-		sinonSandbox.stub(im);
-	});
 
 	afterEach(async () => {
 		sinonSandbox.restore();
@@ -93,9 +86,6 @@ describe('init_steps/setup_servers', () => {
 			expect(servers.wsServer).to.equal('socket');
 			expect(servers.wssServer).to.equal(undefined);
 		});
-
-		it('should enable coverage if enabled in config', async () =>
-			expect(stub.components.logger.debug).to.be.called);
 
 		it('should call express.enable("trustProxy") if trustProxy is enabled in config', async () =>
 			expect(expressStub.enable).to.be.calledOnce);

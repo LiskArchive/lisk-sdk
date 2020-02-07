@@ -39,7 +39,7 @@
 		"@liskhq/lisk-validator": "0.3.0"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-blocks": "0.1.0",
+		"@liskhq/lisk-chain": "0.1.0",
 		"@liskhq/lisk-dpos": "0.1.0",
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",

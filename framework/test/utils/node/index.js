@@ -16,14 +16,12 @@
 'use strict';
 
 const accountUtils = require('./account');
-const blockUtils = require('./block');
 const nodeUtils = require('./node');
 const transactionUtils = require('./transaction');
 const delegateUtils = require('./delegate');
 
 module.exports = {
 	...accountUtils,
-	...blockUtils,
 	...nodeUtils,
 	...delegateUtils,
 	...transactionUtils,

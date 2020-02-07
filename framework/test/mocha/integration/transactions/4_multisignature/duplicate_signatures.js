@@ -222,7 +222,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock;
+						const lastBlock = library.modules.chain.lastBlock;
 						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.multisignature.id,
@@ -327,7 +327,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock;
+						const lastBlock = library.modules.chain.lastBlock;
 						// Block should contain transaction sent from multisignature account
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.transfer.id,
@@ -411,7 +411,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock;
+						const lastBlock = library.modules.chain.lastBlock;
 						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.multisignature.id,
@@ -531,7 +531,7 @@ describe('duplicate_signatures', () => {
 				it('should forge a block', async () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
-						const lastBlock = library.modules.blocks.lastBlock;
+						const lastBlock = library.modules.chain.lastBlock;
 						// Block should contain transaction sent from multisignature account
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.transfer.id,

@@ -165,9 +165,11 @@ export class TransferTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		const balanceError = verifyAmountBalance(
 			this.id,
@@ -179,18 +181,12 @@ export class TransferTransaction extends BaseTransaction {
 			errors.push(balanceError);
 		}
 
-		const updatedSenderBalance =
-			BigInt(sender.balance) - BigInt(this.asset.amount);
+		const updatedSenderBalance = sender.balance - this.asset.amount;
+		sender.balance = updatedSenderBalance;
+		store.account.set(sender.address, sender);
+		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
-		const updatedSender = {
-			...sender,
-			balance: updatedSenderBalance.toString(),
-		};
-		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.asset.recipientId);
-
-		const updatedRecipientBalance =
-			BigInt(recipient.balance) + BigInt(this.asset.amount);
+		const updatedRecipientBalance = recipient.balance + this.asset.amount;
 
 		if (updatedRecipientBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
@@ -202,21 +198,18 @@ export class TransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-
-		const updatedRecipient = {
-			...recipient,
-			balance: updatedRecipientBalance.toString(),
-		};
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		recipient.balance = updatedRecipientBalance;
+		store.account.set(recipient.address, recipient);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
-		const updatedSenderBalance =
-			BigInt(sender.balance) + BigInt(this.asset.amount);
+		const sender = await store.account.get(this.senderId);
+		const updatedSenderBalance = sender.balance + this.asset.amount;
 
 		if (updatedSenderBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
@@ -229,12 +222,9 @@ export class TransferTransaction extends BaseTransaction {
 			);
 		}
 
-		const updatedSender = {
-			...sender,
-			balance: updatedSenderBalance.toString(),
-		};
-		store.account.set(updatedSender.address, updatedSender);
-		const recipient = store.account.getOrDefault(this.asset.recipientId);
+		sender.balance = updatedSenderBalance;
+		store.account.set(sender.address, sender);
+		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
 		const balanceError = verifyBalance(this.id, recipient, this.asset.amount);
 
@@ -242,15 +232,10 @@ export class TransferTransaction extends BaseTransaction {
 			errors.push(balanceError);
 		}
 
-		const updatedRecipientBalance =
-			BigInt(recipient.balance) - BigInt(this.asset.amount);
+		const updatedRecipientBalance = recipient.balance - this.asset.amount;
+		recipient.balance = updatedRecipientBalance;
 
-		const updatedRecipient = {
-			...recipient,
-			balance: updatedRecipientBalance.toString(),
-		};
-
-		store.account.set(updatedRecipient.address, updatedRecipient);
+		store.account.set(recipient.address, recipient);
 
 		return errors;
 	}

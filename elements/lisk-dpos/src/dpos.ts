@@ -11,21 +11,22 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { EventEmitter } from 'events';
 
-import { EVENT_ROUND_CHANGED } from './constants';
 import { DelegatesInfo } from './delegates_info';
-import { DelegatesList } from './delegates_list';
+import {
+	DelegatesList,
+	deleteDelegateListUntilRound,
+	getForgersList,
+} from './delegates_list';
 import { Rounds } from './rounds';
 import {
-	Block,
-	Blocks,
+	BlockHeader,
+	Chain,
 	DPoSProcessingOptions,
-	Logger,
-	RoundDelegates,
+	ForgersList,
 	RoundException,
-	Storage,
+	StateStore,
 } from './types';
 
 interface ActiveDelegates {
@@ -34,12 +35,9 @@ interface ActiveDelegates {
 }
 
 interface DposConstructor {
-	readonly storage: Storage;
-	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
-	readonly logger: Logger;
-	readonly blocks: Blocks;
+	readonly chain: Chain;
 	readonly exceptions?: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 		readonly rounds?: { readonly [key: string]: RoundException };
@@ -47,180 +45,152 @@ interface DposConstructor {
 }
 
 export class Dpos {
-	private readonly events: EventEmitter;
-	private readonly delegateListRoundOffset: number;
-	private finalizedBlockRound: number;
-	private readonly delegateActiveRoundLimit: number;
-	private readonly storage: Storage;
-	private readonly delegatesList: DelegatesList;
-	private readonly delegatesInfo: DelegatesInfo;
-	private readonly logger: Logger;
-	private readonly blocks: Blocks;
 	public readonly rounds: Rounds;
 
+	private readonly events: EventEmitter;
+	private readonly delegateListRoundOffset: number;
+	private readonly delegateActiveRoundLimit: number;
+	private readonly delegatesList: DelegatesList;
+	private readonly delegatesInfo: DelegatesInfo;
+	private readonly chain: Chain;
+
 	public constructor({
-		storage,
 		activeDelegates,
 		delegateListRoundOffset,
-		logger,
-		blocks,
+		chain,
 		exceptions = {},
 	}: DposConstructor) {
 		this.events = new EventEmitter();
 		this.delegateListRoundOffset = delegateListRoundOffset;
-		this.finalizedBlockRound = 0;
 		// @todo consider making this a constant and reuse it in BFT module.
 		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
-		this.storage = storage;
-		this.logger = logger;
-		this.blocks = blocks;
+		this.chain = chain;
 		this.rounds = new Rounds({ blocksPerRound: activeDelegates });
 
 		this.delegatesList = new DelegatesList({
-			storage,
 			rounds: this.rounds,
 			activeDelegates,
-			blocksModule: this.blocks,
+			chain: this.chain,
 			exceptions,
 		});
 
 		this.delegatesInfo = new DelegatesInfo({
-			storage,
+			chain: this.chain,
 			rounds: this.rounds,
 			activeDelegates,
-			logger,
 			events: this.events,
 			delegatesList: this.delegatesList,
 			exceptions,
-		});
-
-		this.events.on(EVENT_ROUND_CHANGED, async () => {
-			try {
-				await this.onRoundFinish();
-			} catch (err) {
-				this.logger.error({ err }, 'Failed to apply round finish');
-			}
 		});
 	}
 
 	public async getForgerPublicKeysForRound(
 		round: number,
-		{
-			tx,
-			delegateListRoundOffset = this.delegateListRoundOffset,
-		}: DPoSProcessingOptions = {},
 	): Promise<ReadonlyArray<string>> {
-		return this.delegatesList.getForgerPublicKeysForRound(
-			round,
-			delegateListRoundOffset,
-			tx,
-		);
+		return this.delegatesList.getShuffledDelegateList(round);
 	}
 
-	public onBlockFinalized({ height }: { readonly height: number }): void {
-		this.finalizedBlockRound = this.rounds.calcRound(height);
-	}
-
-	public async onRoundFinish(): Promise<void> {
+	public async onBlockFinalized(
+		stateStore: StateStore,
+		finalizedHeight: number,
+	): Promise<void> {
+		const finalizedBlockRound = this.rounds.calcRound(finalizedHeight);
 		const disposableDelegateList =
-			this.finalizedBlockRound -
+			finalizedBlockRound -
 			this.delegateListRoundOffset -
 			this.delegateActiveRoundLimit;
-		await this.delegatesList.deleteDelegateListUntilRound(
-			disposableDelegateList,
-		);
+		await deleteDelegateListUntilRound(disposableDelegateList, stateStore);
 	}
 
 	public async getMinActiveHeightsOfDelegates(
+		height: number,
+		stateStore: StateStore,
 		numberOfRounds = 1,
-		{
-			tx,
-			delegateListRoundOffset = this.delegateListRoundOffset,
-		}: DPoSProcessingOptions = {},
 	): Promise<ActiveDelegates> {
-		const limit =
-			numberOfRounds + this.delegateActiveRoundLimit + delegateListRoundOffset;
-
-		// TODO: Discuss reintroducing a caching mechanism to avoid fetching
-		// Active delegate lists multiple times.
-		// tslint:disable-next-line:no-let
-		let delegateLists = await this.storage.entities.RoundDelegates.get(
-			{},
-			{
-				// IMPORTANT! All logic below based on ordering rounds in
-				// Descending order. Change it at your own discretion!
-				sort: 'round:desc',
-				limit,
-			},
-			tx,
-		);
-
-		if (!delegateLists.length) {
+		const forgersList = await getForgersList(stateStore);
+		if (!forgersList.length) {
 			throw new Error('No delegate list found in the database.');
 		}
+		// IMPORTANT! All logic below based on ordering rounds in
+		// Descending order. Change it at your own discretion!
+		forgersList.sort((a, b) => b.round - a.round);
 
-		// The latest record in db is also the actual active round on the network.
-		const latestRound = delegateLists[0].round;
+		// Remove the future rounds
+		const currentRound = this.rounds.calcRound(height);
+		const limit = currentRound - numberOfRounds - this.delegateActiveRoundLimit;
+		// tslint:disable-next-line:no-let
+		let currentForgersList = forgersList.filter(
+			fl => fl.round <= currentRound && fl.round > limit,
+		);
 
-		if (numberOfRounds > latestRound && latestRound > 1) {
+		if (numberOfRounds > currentRound && currentRound > 1) {
 			throw new Error(
 				'Number of rounds requested is higher than number of existing rounds.',
 			);
 		}
 
-		// We need to remove redundant lists that we fetch because of delegateListRoundOffset
-		const numberOfListsToRemove = Math.min(
-			Math.max(delegateLists.length + 1 - delegateListRoundOffset, 0),
-			delegateListRoundOffset,
-		);
-		delegateLists = delegateLists.slice(numberOfListsToRemove);
-
 		const delegates: ActiveDelegates = {};
 
-		const loops = Math.min(delegateLists.length, numberOfRounds);
+		const loops = Math.min(currentForgersList.length, numberOfRounds);
 
 		// tslint:disable-next-line:no-let
 		for (let i = 0; i < loops; i += 1) {
-			const activeRound = latestRound - i;
-			const [activeList, ...previousLists] = delegateLists;
+			const [activeList, ...previousLists] = currentForgersList;
 
-			for (const publicKey of activeList.delegatePublicKeys) {
+			for (const publicKey of activeList.delegates) {
 				if (!delegates[publicKey]) {
 					delegates[publicKey] = [];
 				}
 
-				const earliestListRound =
-					this._findEarliestActiveListRound(publicKey, previousLists) ||
-					activeList.round;
+				const earliestListRound = this._findEarliestActiveListRound(
+					publicKey,
+					previousLists,
+				);
 
-				/**
-				 * In order to calculate the correct min height we need the real round number.
-				 * That's why we need to add `delegateListRoundOffset` to the `earliestListRound`.
-				 *
-				 * Please note that first 5 rounds are exceptions.
-				 * For the active round 5 and the delegate is continuously active;
-				 * That means `earliestListRound` is 1.
-				 * Since we are using the first list for first 3 rounds, we can simply
-				 * return 1 as `earliestActiveRound`.
-				 */
-				const earliestActiveRound =
-					earliestListRound === 1
-						? Math.max(activeRound - this.delegateActiveRoundLimit, 1)
-						: earliestListRound + delegateListRoundOffset;
 				const lastActiveMinHeight = this.rounds.calcRoundStartHeight(
-					earliestActiveRound,
+					earliestListRound,
 				);
 
 				if (!delegates[publicKey].includes(lastActiveMinHeight)) {
 					delegates[publicKey].push(lastActiveMinHeight);
 				}
 
-				delegateLists = previousLists;
+				currentForgersList = previousLists;
 			}
 		}
 
 		return delegates;
+	}
+
+	public async getMinActiveHeight(
+		height: number,
+		publicKey: string,
+		stateStore: StateStore,
+		delegateActiveRoundLimit?: number,
+	): Promise<number> {
+		const forgersList = await getForgersList(stateStore);
+		if (!forgersList.length) {
+			throw new Error('No delegate list found in the database.');
+		}
+		// IMPORTANT! All logic below based on ordering rounds in
+		// Descending order. Change it at your own discretion!
+		forgersList.sort((a, b) => b.round - a.round);
+
+		// Remove the future rounds
+		const currentRound = this.rounds.calcRound(height);
+		// It should not consider current round
+		const previousForgersList = forgersList.filter(
+			fl => fl.round < currentRound,
+		);
+
+		const activeRounds = this._findEarliestActiveListRound(
+			publicKey,
+			previousForgersList,
+			delegateActiveRoundLimit,
+		);
+
+		return this.rounds.calcRoundStartHeight(activeRounds);
 	}
 
 	/**
@@ -229,20 +199,21 @@ export class Dpos {
 	 */
 	private _findEarliestActiveListRound(
 		delegatePublicKey: string,
-		previousLists: ReadonlyArray<RoundDelegates>,
+		previousLists: ForgersList,
+		delegateActiveRoundLimit: number = this.delegateActiveRoundLimit,
 	): number {
 		if (!previousLists.length) {
 			return 0;
 		}
 
 		// Checking the latest 303 blocks is enough
-		const lists = previousLists.slice(0, this.delegateActiveRoundLimit);
+		const lists = previousLists.slice(0, delegateActiveRoundLimit);
 
 		// tslint:disable-next-line:no-let prefer-for-of
 		for (let i = 0; i < lists.length; i += 1) {
-			const { round, delegatePublicKeys } = lists[i];
+			const { round, delegates } = lists[i];
 
-			if (delegatePublicKeys.indexOf(delegatePublicKey) === -1) {
+			if (delegates.indexOf(delegatePublicKey) === -1) {
 				// Since we are iterating backwards,
 				// If the delegate is not in this list
 				// That means delegate was in the next round :)
@@ -255,36 +226,31 @@ export class Dpos {
 		return lists[lists.length - 1].round;
 	}
 
-	public async verifyBlockForger(
-		block: Block,
-		{
-			tx,
-			delegateListRoundOffset = this.delegateListRoundOffset,
-		}: DPoSProcessingOptions = {},
+	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
+		return this.delegatesList.verifyBlockForger(block);
+	}
+
+	public async apply(
+		block: BlockHeader,
+		stateStore: StateStore,
+		{ delegateListRoundOffset }: DPoSProcessingOptions = {
+			delegateListRoundOffset: this.delegateListRoundOffset,
+		},
 	): Promise<boolean> {
-		return this.delegatesList.verifyBlockForger(block, {
-			tx,
+		return this.delegatesInfo.apply(block, stateStore, {
 			delegateListRoundOffset,
 		});
 	}
 
-	public async apply(
-		block: Block,
-		{
-			tx,
-			delegateListRoundOffset = this.delegateListRoundOffset,
-		}: DPoSProcessingOptions = {},
-	): Promise<boolean> {
-		return this.delegatesInfo.apply(block, { tx, delegateListRoundOffset });
-	}
-
 	public async undo(
-		block: Block,
-		{
-			tx,
-			delegateListRoundOffset = this.delegateListRoundOffset,
-		}: DPoSProcessingOptions = {},
+		block: BlockHeader,
+		stateStore: StateStore,
+		{ delegateListRoundOffset }: DPoSProcessingOptions = {
+			delegateListRoundOffset: this.delegateListRoundOffset,
+		},
 	): Promise<boolean> {
-		return this.delegatesInfo.undo(block, { tx, delegateListRoundOffset });
+		return this.delegatesInfo.undo(block, stateStore, {
+			delegateListRoundOffset,
+		});
 	}
 }

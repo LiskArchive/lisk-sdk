@@ -157,9 +157,11 @@ export class VoteTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		this.asset.votes.forEach(actionVotes => {
 			const vote = actionVotes.substring(1);
@@ -228,18 +230,17 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-		const updatedSender = {
-			...sender,
-			votedDelegatesPublicKeys,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.votedDelegatesPublicKeys = votedDelegatesPublicKeys as string[];
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		const upvotes = this.asset.votes
 			.filter(vote => vote.charAt(0) === PREFIX_UPVOTE)
@@ -264,11 +265,8 @@ export class VoteTransaction extends BaseTransaction {
 			);
 		}
 
-		const updatedSender = {
-			...sender,
-			votedDelegatesPublicKeys,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.votedDelegatesPublicKeys = votedDelegatesPublicKeys as string[];
+		store.account.set(sender.address, sender);
 
 		return errors;
 	}

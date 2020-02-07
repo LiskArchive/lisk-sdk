@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 
 const accountFixtures = require('../../../../fixtures/accounts');
 const waitFor = require('../../../../utils/legacy/wait_for');

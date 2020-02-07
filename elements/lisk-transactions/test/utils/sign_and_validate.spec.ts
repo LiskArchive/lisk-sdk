@@ -18,7 +18,6 @@ import { validateMultisignatures, validateSignature } from '../../src/utils';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
-import { Account } from '../../src/transaction_types';
 import {
 	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
@@ -142,7 +141,7 @@ describe('signAndVerify module', () => {
 
 		const {
 			membersPublicKeys: memberPublicKeys,
-		} = defaultMultisignatureAccount as Account;
+		} = defaultMultisignatureAccount;
 
 		it('should return a valid response with valid signatures', async () => {
 			const { valid } = validateMultisignatures(

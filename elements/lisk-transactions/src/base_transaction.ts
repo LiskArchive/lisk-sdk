@@ -53,23 +53,28 @@ export interface TransactionResponse {
 }
 
 export interface StateStoreGetter<T> {
-	get(key: string): T;
+	get(key: string): Promise<T>;
 	find(func: (item: T) => boolean): T | undefined;
 }
 
 export interface StateStoreDefaultGetter<T> {
-	getOrDefault(key: string): T;
+	getOrDefault(key: string): Promise<T>;
 }
 
 export interface StateStoreSetter<T> {
 	set(key: string, value: T): void;
 }
 
+export interface StateStoreTransactionGetter<T> {
+	get(key: string): T;
+	find(func: (item: T) => boolean): T | undefined;
+}
+
 export interface StateStore {
 	readonly account: StateStoreGetter<Account> &
 		StateStoreDefaultGetter<Account> &
 		StateStoreSetter<Account>;
-	readonly transaction: StateStoreGetter<TransactionJSON>;
+	readonly transaction: StateStoreTransactionGetter<TransactionJSON>;
 }
 
 export interface StateStoreCache<T> {
@@ -120,10 +125,10 @@ export abstract class BaseTransaction {
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 	protected abstract undoAsset(
 		store: StateStore,
-	): ReadonlyArray<TransactionError>;
+	): Promise<ReadonlyArray<TransactionError>>;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
@@ -296,24 +301,21 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public apply(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
+	public async apply(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = this.processMultisignatures(store);
+		const { errors: multiSigError } = await this.processMultisignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
 
-		const updatedBalance = BigInt(sender.balance) - BigInt(this.fee);
-		const updatedSender = {
-			...sender,
-			balance: updatedBalance.toString(),
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
-		store.account.set(updatedSender.address, updatedSender);
-		const assetErrors = this.applyAsset(store);
+		const updatedBalance = sender.balance - this.fee;
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
+		store.account.set(sender.address, sender);
+		const assetErrors = await this.applyAsset(store);
 
 		errors.push(...assetErrors);
 
@@ -332,14 +334,11 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public undo(store: StateStore): TransactionResponse {
-		const sender = store.account.getOrDefault(this.senderId);
-		const updatedBalance = BigInt(sender.balance) + this.fee;
-		const updatedAccount = {
-			...sender,
-			balance: updatedBalance.toString(),
-			publicKey: sender.publicKey || this.senderPublicKey,
-		};
+	public async undo(store: StateStore): Promise<TransactionResponse> {
+		const sender = await store.account.getOrDefault(this.senderId);
+		const updatedBalance = sender.balance + this.fee;
+		sender.balance = updatedBalance;
+		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		const errors =
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
@@ -348,12 +347,12 @@ export abstract class BaseTransaction {
 							'Invalid balance amount',
 							this.id,
 							'.balance',
-							sender.balance,
+							sender.balance.toString(),
 							updatedBalance.toString(),
 						),
 				  ];
-		store.account.set(updatedAccount.address, updatedAccount);
-		const assetErrors = this.undoAsset(store);
+		store.account.set(sender.address, sender);
+		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
@@ -367,12 +366,12 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public addMultisignature(
+	public async addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
-	): TransactionResponse {
+	): Promise<TransactionResponse> {
 		// Get the account
-		const account = store.account.get(this.senderId);
+		const account = await store.account.get(this.senderId);
 		// Validate signature key belongs to account's multisignature group
 		if (
 			account.membersPublicKeys &&
@@ -449,8 +448,10 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public processMultisignatures(store: StateStore): TransactionResponse {
-		const sender = store.account.get(this.senderId);
+	public async processMultisignatures(
+		store: StateStore,
+	): Promise<TransactionResponse> {
+		const sender = await store.account.get(this.senderId);
 		const transactionBytes = this.getBasicBytes();
 		if (
 			this._networkIdentifier === undefined ||

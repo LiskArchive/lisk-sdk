@@ -23,7 +23,8 @@ const { calculateApproval } = require('../helpers/utils');
 let storage;
 let logger;
 let channel;
-const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
+let EPOCH_TIME;
+let ACTIVE_DELEGATES;
 
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
@@ -215,6 +216,7 @@ async function _getForgingStatistics(filters) {
 }
 
 function DelegatesController(scope) {
+	({ EPOCH_TIME, ACTIVE_DELEGATES } = scope.config.constants);
 	({
 		components: { storage, logger },
 		channel,

@@ -88,8 +88,8 @@ describe('Node', () => {
 		/* Arranging Stubs end */
 		Node.__set__('jobQueue', stubs.jobsQueue);
 
-		const Blocks = Node.__get__('Blocks');
-		Object.defineProperty(Blocks.prototype, 'lastBlock', {
+		const Chain = Node.__get__('Chain');
+		Object.defineProperty(Chain.prototype, 'lastBlock', {
 			get: () => {
 				return {
 					height: 1,
@@ -99,7 +99,7 @@ describe('Node', () => {
 				};
 			},
 		});
-		Node.__set__('Blocks', Blocks);
+		Node.__set__('Chain', Chain);
 
 		// Act
 		const params = {
@@ -138,7 +138,7 @@ describe('Node', () => {
 	describe('actions', () => {
 		beforeEach(async () => {
 			node.modules = {
-				blocks: {
+				chain: {
 					getHighestCommonBlock: sinonSandbox.stub(),
 				},
 			};
@@ -158,14 +158,6 @@ describe('Node', () => {
 			return expect(node.bootstrap.constructor.name).to.be.equal(
 				'AsyncFunction',
 			);
-		});
-
-		it('should set global.constants from the constants passed by options', () => {
-			return expect(global.constants).to.be.equal(nodeOptions.constants);
-		});
-
-		it('should set global.exceptions as a merger default exceptions and passed options', () => {
-			return expect(global.exceptions).to.be.equal(nodeOptions.exceptions);
 		});
 
 		describe('when options.loading.rebuildUpToRound is truthy', () => {
@@ -270,16 +262,11 @@ describe('Node', () => {
 			);
 		});
 
-		it('should create storage component', () => {
-			return expect(node.components.storage).to.be.equal(stubs.storage);
-		});
-
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
 			expect(node).to.have.property('config');
 			expect(node).to.have.nested.property('genesisBlock.block');
 			expect(node).to.have.property('sequence');
-			expect(node).to.have.nested.property('components.storage');
 			expect(node).to.have.nested.property('components.logger');
 			expect(node).to.have.property('channel');
 			expect(node).to.have.property('applicationState');
@@ -379,29 +366,6 @@ describe('Node', () => {
 			// Assert
 			expect(stubs.modules.module1.cleanup).to.have.been.called;
 			return expect(stubs.modules.module2.cleanup).to.have.been.called;
-		});
-	});
-
-	describe('#_startLoader', () => {
-		beforeEach(async () => {
-			await node.bootstrap();
-			sinonSandbox.stub(node.loader, 'loadUnconfirmedTransactions');
-		});
-
-		it('should return if syncing.active in config is set to false', async () => {
-			// Arrange
-			node.options.syncing.active = false;
-
-			// Act
-			await node._startLoader();
-
-			// Assert
-			expect(stubs.jobsQueue.register).to.not.be.called;
-		});
-
-		it('should load transactions and signatures', async () => {
-			await node._startLoader();
-			expect(node.loader.loadUnconfirmedTransactions).to.be.called;
 		});
 	});
 

@@ -12,110 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// Storage
-export interface StorageFilter {
-	readonly [key: string]:
-		| string
-		| number
-		| boolean
-		| string[]
-		| number[]
-		| undefined;
-}
-
-export type StorageFilters =
-	| StorageFilter
-	| StorageFilter[]
-	| ReadonlyArray<StorageFilter>;
-
-export interface StorageOptions {
-	readonly limit?: number | null;
-	readonly extended?: boolean;
-	readonly offset?: number;
-	readonly sort?: string | string[];
-}
-
-export interface StorageTransaction {
-	// tslint:disable-next-line no-any
-	readonly batch: <T = any>(input: any[]) => Promise<T>;
-}
-
-export interface StorageEntity<T> {
-	readonly get: (
-		filters?: StorageFilters,
-		options?: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-	readonly create: (
-		filters?: StorageFilters,
-		options?: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-	readonly update: (
-		filters: StorageFilters,
-		data: UpdateAccountData,
-		options: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-	readonly delete: (
-		filters?: StorageFilters,
-		options?: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<T[]>;
-}
-
-export interface Storage {
-	readonly entities: {
-		readonly Account: AccountEntity;
-		readonly Block: BlockEntity;
-		readonly RoundDelegates: RoundDelegatesEntity;
+export interface StateStore {
+	readonly account: {
+		readonly get: (primaryValue: string) => Promise<Account>;
+		readonly getUpdated: () => Account[];
+		readonly set: (primaryValue: string, account: Account) => void;
 	};
-}
-
-// Entity
-export interface BlockEntity {
-	readonly get: (
-		filters: StorageFilters,
-		options: StorageOptions,
-		tx?: StorageTransaction,
-	) => Promise<BlockJSON[]>;
-}
-
-export interface AccountEntity extends StorageEntity<Account> {
-	readonly decreaseFieldBy: (
-		filters: StorageFilters,
-		field: string,
-		value: string,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<Account>>;
-	readonly increaseFieldBy: (
-		filters: StorageFilters,
-		field: string,
-		value: string,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<Account>>;
-}
-
-export interface RoundDelegates {
-	readonly round: number;
-	readonly delegatePublicKeys: string[];
-}
-
-export interface RoundDelegatesEntity extends StorageEntity<RoundDelegates> {
-	readonly getActiveDelegatesForRound: (
-		roundWithOffset: number,
-		tx?: StorageTransaction,
-	) => Promise<ReadonlyArray<string>>;
-}
-
-export interface BlockJSON {
-	readonly id: number;
-	readonly height: number;
-	readonly generatorPublicKey: string;
-	readonly totalFee: string;
-	readonly timestamp: number;
-	readonly fee: string;
-	readonly reward: string;
+	readonly chainState: {
+		readonly get: (key: string) => Promise<string | undefined>;
+		readonly set: (key: string, value: string) => void;
+	};
 }
 
 export interface Earnings {
@@ -123,7 +29,7 @@ export interface Earnings {
 	readonly reward: bigint;
 }
 
-export interface Block extends Earnings {
+export interface BlockHeader extends Earnings {
 	readonly id: number;
 	readonly height: number;
 	readonly generatorPublicKey: string;
@@ -131,33 +37,22 @@ export interface Block extends Earnings {
 	readonly timestamp: number;
 }
 
+// tslint:disable readonly-keyword
 export interface Account {
-	readonly balance: bigint;
-	readonly fees: bigint;
-	readonly rewards: bigint;
+	readonly address: string;
+	balance: bigint;
+	producedBlocks: number;
+	missedBlocks: number;
+	fees: bigint;
+	rewards: bigint;
 	readonly publicKey: string;
-	readonly voteWeight: bigint;
+	voteWeight: bigint;
 	readonly votedDelegatesPublicKeys: ReadonlyArray<string>;
 }
-
-interface UpdateAccountData {
-	readonly balance?: string;
-	readonly fees?: string;
-	readonly rewards?: string;
-}
-
-export interface Logger {
-	// tslint:disable-next-line no-any
-	readonly debug: (...input: any[]) => void;
-	// tslint:disable-next-line no-any
-	readonly error: (...input: any[]) => void;
-}
+// tslint:enable readonly-keyword
 
 export interface DPoSProcessingOptions {
-	readonly tx?: StorageTransaction;
-	readonly delegateListRoundOffset?: number;
-}
-export interface DPoSProcessingUndoOptions extends DPoSProcessingOptions {
+	readonly delegateListRoundOffset: number;
 	readonly undo?: boolean;
 }
 
@@ -167,6 +62,21 @@ export interface RoundException {
 	readonly fees_bonus: number;
 }
 
-export interface Blocks {
+export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
+	readonly dataAccess: {
+		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
+		readonly getChainState: (key: string) => Promise<string | undefined>;
+		readonly getBlockHeadersByHeightBetween: (
+			fromHeight: number,
+			toHeight: number,
+		) => Promise<BlockHeader[]>;
+	};
 }
+
+export interface ForgerList {
+	readonly round: number;
+	readonly delegates: ReadonlyArray<string>;
+}
+
+export type ForgersList = ForgerList[];

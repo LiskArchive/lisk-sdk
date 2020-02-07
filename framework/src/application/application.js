@@ -43,7 +43,6 @@ const {
 	BlockEntity,
 	ChainStateEntity,
 	ForgerInfoEntity,
-	RoundDelegatesEntity,
 	TempBlockEntity,
 	TransactionEntity,
 } = require('../application/storage/entities');
@@ -136,9 +135,6 @@ class Application {
 		this.channel = null;
 		this.initialState = null;
 		this.applicationState = null;
-
-		// TODO: This should be removed after https://github.com/LiskHQ/lisk/pull/2980
-		global.constants = this.constants;
 
 		// Private members
 		this._modules = {};
@@ -290,7 +286,7 @@ class Application {
 
 		// Have to keep it consistent until update migration namespace in database
 		await this.storage.entities.Migration.applyAll({
-			chain: nodeMigrations(),
+			node: nodeMigrations(),
 			network: networkMigrations(),
 		});
 
@@ -400,7 +396,6 @@ class Application {
 		});
 		storage.registerEntity('ChainState', ChainStateEntity);
 		storage.registerEntity('ForgerInfo', ForgerInfoEntity);
-		storage.registerEntity('RoundDelegates', RoundDelegatesEntity);
 		storage.registerEntity('TempBlock', TempBlockEntity);
 
 		storage.entities.Account.extendDefaultOptions({
@@ -424,6 +419,7 @@ class Application {
 				'ready',
 				'state:updated',
 				'networkEvent',
+				'networkReady',
 				'blocks:change',
 				'transactions:confirmed:change',
 				'signature:change',
@@ -565,7 +561,7 @@ class Application {
 		const node = new Node({
 			channel: this.channel,
 			options: {
-				...this.config.modules.chain, // TODO: Will change it in upcoming PR
+				...this.config.app.node,
 				genesisBlock: this.genesisBlock,
 				constants: this.constants,
 				registeredTransactions: this.getTransactions(),
