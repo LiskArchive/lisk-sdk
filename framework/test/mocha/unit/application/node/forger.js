@@ -79,6 +79,12 @@ describe('forge', () => {
 								address: testDelegate.address,
 							},
 						]),
+						getAccountsByPublicKey: sinonSandbox.stub().returns([
+							{
+								isDelegate: true,
+								address: testDelegate.address,
+							},
+						]),
 					},
 				},
 				processorModule: {
@@ -640,7 +646,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([]);
+				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -667,7 +673,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([]);
+				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -687,7 +693,7 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
+				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([
 					{
 						isDelegate: false,
 						address: accountFixtures.genesis.address,
