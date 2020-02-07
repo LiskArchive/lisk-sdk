@@ -33,7 +33,6 @@ const {
 
 class BlockSynchronizationMechanism extends BaseSynchronizer {
 	constructor({
-		storage,
 		logger,
 		channel,
 		rounds,
@@ -42,7 +41,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		processorModule,
 		activeDelegates,
 	}) {
-		super(storage, logger, channel);
+		super(logger, channel);
 		this.bft = bft;
 		this.rounds = rounds;
 		this.blocks = blocks;
@@ -98,9 +97,9 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	// eslint-disable-next-line no-unused-vars
 	async isValidFor() {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
-		const finalizedBlock = await this.storage.entities.Block.getOne({
-			height_eql: this.bft.finalizedHeight,
-		});
+		const finalizedBlock = await this.blocks.dataAccess.getBlockHeaderByHeight(
+			this.bft.finalizedHeight,
+		);
 		const finalizedBlockSlot = this.blocks.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);
@@ -175,10 +174,8 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	async _handleBlockProcessingError(lastCommonBlock, peerId) {
 		// If the list of blocks has not been fully applied
 		this.logger.debug('Failed to apply obtained blocks from peer');
-		const [tipBeforeApplying] = await this.storage.entities.TempBlock.get(
-			{},
-			{ sort: 'height:desc', limit: 1, extended: true },
-		);
+		const tempBlocks = await this.blocks.dataAccess.getTempBlocks();
+		const [tipBeforeApplying] = [...tempBlocks].sort((a, b) => b - a);
 
 		if (!tipBeforeApplying) {
 			this.logger.error('Blocks temp table should not be empty');
@@ -219,7 +216,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				await restoreBlocks(this.blocks, this.processorModule);
 
 				this.logger.debug('Cleaning blocks temp table');
-				await clearBlocksTempTable(this.storage);
+				await clearBlocksTempTable(this.blocks);
 			} catch (error) {
 				this.logger.error(
 					{ err: error },
@@ -241,7 +238,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 
 		this.logger.debug('Cleaning blocks temporary table');
-		await clearBlocksTempTable(this.storage);
+		await clearBlocksTempTable(this.blocks);
 
 		this.logger.info('Restarting block synchronization');
 
@@ -284,7 +281,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		this.logger.debug('Cleaning up blocks temporary table');
-		await clearBlocksTempTable(this.storage);
+		await clearBlocksTempTable(this.blocks);
 
 		this.logger.debug(
 			{ peerId },
@@ -369,17 +366,9 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				currentRound,
 			);
 
-			const blockIds = (
-				await this.storage.entities.Block.get(
-					{
-						height_in: heightList,
-					},
-					{
-						sort: 'height:asc',
-						limit: heightList.length,
-					},
-				)
-			).map(block => block.id);
+			const blockHeaders = await this.blocks.dataAccess.getBlockHeadersWithHeights(
+				heightList,
+			);
 
 			let data;
 
@@ -391,7 +380,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 						procedure: 'getHighestCommonBlock',
 						peerId,
 						data: {
-							ids: blockIds,
+							ids: blockHeaders.map(block => block.id),
 						},
 					})
 				).data;

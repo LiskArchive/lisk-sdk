@@ -18,7 +18,6 @@ const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
-	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const { sortTransactions } = require('./sort');
 
@@ -46,7 +45,6 @@ class Forger {
 		// components
 		channel,
 		logger,
-		storage,
 		// Modules
 		processorModule,
 		dposModule,
@@ -63,7 +61,6 @@ class Forger {
 		this.keypairs = {};
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
 		this.config = {
 			forging: {
 				delegates: forgingDelegates,
@@ -124,11 +121,11 @@ class Forger {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const filters = {
-			address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
-		};
-
-		const [account] = await this.storage.entities.Account.get(filters);
+		const [
+			account,
+		] = await this.blocksModule.dataAccess.getAccountsByPublicKey([
+			keypair.publicKey.toString('hex'),
+		]);
 
 		if (account && account.isDelegate) {
 			if (forging) {
@@ -191,11 +188,12 @@ class Forger {
 				);
 			}
 
-			const filters = {
-				address: getAddressFromPublicKey(keypair.publicKey.toString('hex')),
-			};
+			const [
+				account,
+			] = await this.blocksModule.dataAccess.getAccountsByPublicKey([
+				keypair.publicKey.toString('hex'),
+			]);
 
-			const [account] = await this.storage.entities.Account.get(filters);
 			if (!account) {
 				throw new Error(
 					`Account with public key: ${keypair.publicKey.toString(

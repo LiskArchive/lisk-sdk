@@ -40,8 +40,8 @@ const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	return true;
 };
 
-const clearBlocksTempTable = storageModule =>
-	storageModule.entities.TempBlock.truncate();
+const clearBlocksTempTable = blocksModule =>
+	blocksModule.dataAccess.clearTempBlocks();
 
 const deleteBlocksAfterHeight = async (
 	processorModule,
@@ -84,16 +84,9 @@ const restoreBlocksUponStartup = async (
 	logger,
 	blocksModule,
 	processorModule,
-	storageModule,
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
-	const tempBlocks = await storageModule.entities.TempBlock.get(
-		{},
-		{
-			sort: 'height:asc',
-			limit: null,
-		},
-	);
+	const tempBlocks = await blocksModule.dataAccess.getTempBlocks();
 	const blockLowestHeight = tempBlocks[0];
 	const blockHighestHeight = tempBlocks[tempBlocks.length - 1];
 
@@ -120,7 +113,7 @@ const restoreBlocksUponStartup = async (
 		logger.info('Chain successfully restored');
 	} else {
 		// Not different chain - Delete remaining blocks from temp_blocks table
-		await clearBlocksTempTable(storageModule);
+		await clearBlocksTempTable(blocksModule);
 	}
 };
 

@@ -82,11 +82,6 @@ module.exports = class Node {
 			this.genesisBlock = { block: this.config.genesisBlock };
 			this.registeredTransactions = this.options.registeredTransactions;
 
-			this.components = {
-				storage: this.storage,
-				logger: this.logger,
-			};
-
 			this.sequence = new Sequence({
 				onWarning(current) {
 					this.components.logger.warn('Main queue', current);
@@ -95,15 +90,19 @@ module.exports = class Node {
 
 			await this._initModules();
 
+			this.components = {
+				logger: this.logger,
+			};
+
 			// Prepare dependency
 			const processorDependencies = {
 				blocksModule: this.blocks,
 				bftModule: this.bft,
 				dposModule: this.dpos,
-				storage: this.storage,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
+				storage: this.storage,
 			};
 
 			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
@@ -332,10 +331,10 @@ module.exports = class Node {
 
 		this.slots = this.blocks.slots;
 		this.dpos = new Dpos({
-			blocks: this.blocks,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: this.options.constants
 				.DELEGATE_LIST_ROUND_OFFSET,
+			blocks: this.blocks,
 			exceptions: this.options.exceptions,
 		});
 
@@ -370,7 +369,6 @@ module.exports = class Node {
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
-			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
 			blocks: this.blocks,
@@ -385,7 +383,6 @@ module.exports = class Node {
 			logger: this.logger,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
-			storageModule: this.storage,
 			transactionPoolModule: this.transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
@@ -393,7 +390,6 @@ module.exports = class Node {
 		this.modules.blocks = this.blocks;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
-			storage: this.storage,
 			blocks: this.blocks,
 			slots: this.blocks.slots,
 			exceptions: this.options.exceptions,
@@ -410,7 +406,6 @@ module.exports = class Node {
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
 			genesisBlock: this.options.genesisBlock,
 			blocksModule: this.blocks,
 			processorModule: this.processor,
@@ -436,7 +431,6 @@ module.exports = class Node {
 		this.transport = new Transport({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
 			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
