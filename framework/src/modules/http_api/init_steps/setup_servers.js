@@ -15,7 +15,6 @@
 'use strict';
 
 const fs = require('fs');
-const path = require('path');
 const express = require('express');
 const http = require('http');
 const https = require('https');
@@ -24,18 +23,6 @@ const swStats = require('swagger-stats');
 
 module.exports = ({ components: { logger }, config }) => {
 	const expressApp = express();
-
-	if (config.coverage) {
-		// eslint-disable-next-line import/no-extraneous-dependencies,global-require
-		const im = require('istanbul-middleware');
-		logger.debug(
-			'Hook loader for coverage - Do not use in production environment!',
-		);
-		/** @TODO hookLoader path must be updated
-		 * to be able to dynamically find the root folder */
-		im.hookLoader(path.join(__dirname, '../../../'));
-		expressApp.use('/coverage', im.createHandler());
-	}
 
 	if (config.trustProxy) {
 		expressApp.enable('trust proxy');
