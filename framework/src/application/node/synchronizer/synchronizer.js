@@ -59,7 +59,7 @@ class Synchronizer {
 	}
 
 	async init() {
-		const isEmpty = await this.blocksModule.dataAccess.isTempBlockEmpty();
+		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
 				await utils.restoreBlocksUponStartup(
@@ -190,13 +190,13 @@ class Synchronizer {
 		}
 
 		const transactions = result.transactions.map(tx =>
-			this.blocksModule.deserializeTransaction(tx),
+			this.chainModule.deserializeTransaction(tx),
 		);
 
 		try {
 			const {
 				transactionsResponses,
-			} = await this.blocksModule.validateTransactions(transactions);
+			} = await this.chainModule.validateTransactions(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,

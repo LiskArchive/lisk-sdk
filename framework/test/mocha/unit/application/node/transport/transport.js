@@ -220,7 +220,7 @@ describe('transport', () => {
 					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 						.stub()
 						.returns(false);
-					transportModule.blocksModule.dataAccess.getTransactionsByIDs = sinonSandbox
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox
 						.stub()
 						.resolves([]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
@@ -236,9 +236,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule.blocksModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
+				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
 					expect(
-						transportModule.blocksModule.dataAccess.getTransactionsByIDs,
+						transportModule.chainModule.dataAccess.getTransactionsByIDs,
 					).to.be.calledWithExactly(transactionsList.map(tx => tx.id));
 				});
 
@@ -254,7 +254,7 @@ describe('transport', () => {
 					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 						.stub()
 						.returns(true);
-					transportModule.blocksModule.dataAccess.getTransactionsByIDs = sinonSandbox.stub();
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox.stub();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.transactionIds,
 					);
@@ -268,9 +268,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should not call transportModule.blocksModule.dataAccess.getTransactionsByIDs', async () =>
-					expect(transportModule.blocksModule.dataAccess.getTransactionsByIDs)
-						.to.have.not.been.called);
+				it('should not call transportModule.chainModule.dataAccess.getTransactionsByIDs', async () =>
+					expect(transportModule.chainModule.dataAccess.getTransactionsByIDs).to
+						.have.not.been.called);
 
 				it('should return empty array', async () =>
 					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
@@ -281,7 +281,7 @@ describe('transport', () => {
 					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 						.stub()
 						.returns(false);
-					transportModule.blocksModule.dataAccess.getTransactionsByIDs = sinonSandbox
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox
 						.stub()
 						.resolves(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
@@ -297,9 +297,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule.blocksModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
+				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
 					expect(
-						transportModule.blocksModule.dataAccess.getTransactionsByIDs,
+						transportModule.chainModule.dataAccess.getTransactionsByIDs,
 					).to.be.calledWithExactly(transactionsList.map(tx => tx.id));
 				});
 

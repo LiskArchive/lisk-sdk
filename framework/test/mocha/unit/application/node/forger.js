@@ -142,7 +142,7 @@ describe('forge', () => {
 
 			it('should update forging from enabled to disabled', async () => {
 				// Arrange
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -203,7 +203,7 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -646,7 +646,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -673,7 +673,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -693,7 +693,7 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
-				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([
 					{
 						isDelegate: false,
 						address: accountFixtures.genesis.address,

@@ -564,9 +564,9 @@ describe('Synchronizer', () => {
 	});
 
 	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
-		let blocksModuleStub;
+		let chainModuleStub;
 		beforeEach(async () => {
-			blocksModuleStub = {
+			chainModuleStub = {
 				recoverChain: jest.fn(),
 				lastBlock: {
 					id: 'blockID',
@@ -586,7 +586,7 @@ describe('Synchronizer', () => {
 				channel: channelMock,
 				logger: loggerMock,
 				processorModule,
-				blocksModule: blocksModuleStub,
+				chainModule: chainModuleStub,
 				storageModule: storageMock,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [syncMechanism1, syncMechanism2],

@@ -121,9 +121,7 @@ class Forger {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const [
-			account,
-		] = await this.blocksModule.dataAccess.getAccountsByPublicKey([
+		const [account] = await this.chainModule.dataAccess.getAccountsByPublicKey([
 			keypair.publicKey.toString('hex'),
 		]);
 
@@ -190,7 +188,7 @@ class Forger {
 
 			const [
 				account,
-			] = await this.blocksModule.dataAccess.getAccountsByPublicKey([
+			] = await this.chainModule.dataAccess.getAccountsByPublicKey([
 				keypair.publicKey.toString('hex'),
 			]);
 

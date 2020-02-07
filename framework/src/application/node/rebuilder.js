@@ -52,7 +52,7 @@ class Rebuilder {
 	}
 
 	async rebuild(rebuildUpToRound, loadPerIteration = 1000) {
-		const blocksCount = await this.blocksModule.dataAccess.getBlocksCount();
+		const blocksCount = await this.chainModule.dataAccess.getBlocksCount();
 		this.logger.info(
 			{ rebuildUpToRound, blocksCount },
 			'Rebuild process started',
@@ -117,7 +117,7 @@ class Rebuilder {
 			}
 		}
 
-		await this.blocksModule.dataAccess.deleteBlocksWithHeightGreaterThan(
+		await this.chainModule.dataAccess.deleteBlocksWithHeightGreaterThan(
 			lastBlock.height,
 		);
 

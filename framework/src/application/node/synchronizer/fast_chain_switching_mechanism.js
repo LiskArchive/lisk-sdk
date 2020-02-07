@@ -219,7 +219,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			'Validating blocks',
 		);
 		try {
-			const commonFullBlock = await this.blocks.dataAccess.getBlockByID(
+			const commonFullBlock = await this.chain.dataAccess.getBlockByID(
 				commonBlock.id,
 			);
 			let previousBlock = await this.processor.deserialize(commonFullBlock);
@@ -349,7 +349,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		while (numberOfRequests < requestLimit) {
 			const blockIds = (
-				await this.blocks.dataAccess.getBlockHeadersWithHeights(heightList)
+				await this.chain.dataAccess.getBlockHeadersWithHeights(heightList)
 			).map(block => block.id);
 
 			// Request the highest common block with the previously computed list

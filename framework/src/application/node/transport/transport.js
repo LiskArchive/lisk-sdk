@@ -340,7 +340,7 @@ class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase = await this.blocksModule.dataAccess.getTransactionsByIDs(
+			const transactionsFromDatabase = await this.chainModule.dataAccess.getTransactionsByIDs(
 				idsNotInPool,
 			);
 
@@ -434,7 +434,7 @@ class Transport {
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions = await this.blocksModule.dataAccess.getTransactionsByIDs(
+			const existingTransactions = await this.chainModule.dataAccess.getTransactionsByIDs(
 				unknownTransactionsIDs,
 			);
 
