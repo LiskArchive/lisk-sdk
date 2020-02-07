@@ -214,9 +214,9 @@ export class PeerServer extends EventEmitter {
 
 			return;
 		}
-		const queryObject = url.parse(socket.request.url, true).query;
+		const { query: queryObject } = url.parse(socket.request.url, true);
 
-		if (queryObject.nonce === this._nodeInfo.nonce) {
+		if (queryObject && queryObject.nonce === this._nodeInfo.nonce) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
 				INVALID_CONNECTION_SELF_CODE,
@@ -398,9 +398,12 @@ export class PeerServer extends EventEmitter {
 
 			const MAX_EVENT_NAME_LENGTH = 128;
 
-			const peerIpAddress = ws._socket._peername.address;
+			const {
+				address: peerIpAddress,
+				port: wsPort,
+			} = ws._socket._peername.address;
 
-			const peerId = `${peerIpAddress}:${ws._socket._peername.port}`;
+			const peerId = constructPeerId(peerIpAddress, wsPort);
 
 			try {
 				const parsed = JSON.parse(message);
