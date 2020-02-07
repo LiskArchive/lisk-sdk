@@ -590,16 +590,16 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				when(storageMock.entities.Block.getOne)
+				when(storageMock.entities.Block.get)
 					.calledWith(
 						{
-							id_eql: highestCommonBlock.id,
+							id: highestCommonBlock.id,
 						},
 						{
 							extended: true,
 						},
 					)
-					.mockResolvedValue(highestCommonBlock);
+					.mockResolvedValue([highestCommonBlock]);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
@@ -759,16 +759,16 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				when(storageMock.entities.Block.getOne)
+				when(storageMock.entities.Block.get)
 					.calledWith(
 						{
-							id_eql: highestCommonBlock.id,
+							id: highestCommonBlock.id,
 						},
 						{
 							extended: true,
 						},
 					)
-					.mockResolvedValue(highestCommonBlock);
+					.mockResolvedValue([highestCommonBlock]);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
@@ -883,16 +883,16 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				when(storageMock.entities.Block.getOne)
+				when(storageMock.entities.Block.get)
 					.calledWith(
 						{
-							id_eql: highestCommonBlock.id,
+							id: highestCommonBlock.id,
 						},
 						{
 							extended: true,
 						},
 					)
-					.mockResolvedValue(highestCommonBlock);
+					.mockResolvedValue([highestCommonBlock]);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,

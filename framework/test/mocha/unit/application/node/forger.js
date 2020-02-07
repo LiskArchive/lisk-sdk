@@ -35,13 +35,6 @@ describe('forge', () => {
 		warn: sinonSandbox.stub(),
 		error: sinonSandbox.stub(),
 	};
-	const mockStorage = {
-		entities: {
-			Account: {
-				get: sinonSandbox.stub(),
-			},
-		},
-	};
 	const testDelegate = genesisDelegates.delegates[0];
 	const numOfActiveDelegates = 101;
 	const forgingWaitThreshold = 2;
@@ -59,7 +52,6 @@ describe('forge', () => {
 			forgeModule = new Forger({
 				channel: mockChannel,
 				logger: mockLogger,
-				storage: mockStorage,
 				forgingDelegates: genesisDelegates.delegates,
 				forgingForce: false,
 				forgingDefaultPassword: testDelegate.password,
@@ -79,6 +71,20 @@ describe('forge', () => {
 						getSlotNumber: sinonSandbox.stub(),
 						getRealTime: sinonSandbox.stub(),
 						getSlotTime: sinonSandbox.stub(),
+					},
+					dataAccess: {
+						getAccountsByAddress: sinonSandbox.stub().returns([
+							{
+								isDelegate: true,
+								address: testDelegate.address,
+							},
+						]),
+						getAccountsByPublicKey: sinonSandbox.stub().returns([
+							{
+								isDelegate: true,
+								address: testDelegate.address,
+							},
+						]),
 					},
 				},
 				processorModule: {
@@ -136,7 +142,7 @@ describe('forge', () => {
 
 			it('should update forging from enabled to disabled', async () => {
 				// Arrange
-				mockStorage.entities.Account.get.resolves([
+				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -197,7 +203,7 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
-				mockStorage.entities.Account.get.resolves([
+				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -640,7 +646,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				mockStorage.entities.Account.get.resolves([]);
+				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -667,7 +673,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				mockStorage.entities.Account.get.resolves([]);
+				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -687,7 +693,7 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
-				mockStorage.entities.Account.get.resolves([
+				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([
 					{
 						isDelegate: false,
 						address: accountFixtures.genesis.address,

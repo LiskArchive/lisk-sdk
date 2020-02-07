@@ -48,7 +48,6 @@ const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
 
 class TransactionPool extends EventEmitter {
 	constructor({
-		storage,
 		chain,
 		slots,
 		logger,
@@ -61,7 +60,6 @@ class TransactionPool extends EventEmitter {
 	}) {
 		super();
 		this.chain = chain;
-		this.storage = storage;
 		this.logger = logger;
 		this.slots = slots;
 		this.expireTransactionsInterval = expireTransactionsInterval;

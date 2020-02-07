@@ -29,7 +29,6 @@ const {
 	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Loader } = require('./loader');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -83,11 +82,6 @@ module.exports = class Node {
 			this.genesisBlock = { block: this.config.genesisBlock };
 			this.registeredTransactions = this.options.registeredTransactions;
 
-			this.components = {
-				storage: this.storage,
-				logger: this.logger,
-			};
-
 			this.sequence = new Sequence({
 				onWarning(current) {
 					this.components.logger.warn('Main queue', current);
@@ -96,15 +90,19 @@ module.exports = class Node {
 
 			await this._initModules();
 
+			this.components = {
+				logger: this.logger,
+			};
+
 			// Prepare dependency
 			const processorDependencies = {
 				chainModule: this.chain,
 				bftModule: this.bft,
 				dposModule: this.dpos,
-				storage: this.storage,
 				logger: this.logger,
 				constants: this.options.constants,
 				exceptions: this.options.exceptions,
+				storage: this.storage,
 			};
 
 			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
@@ -170,9 +168,12 @@ module.exports = class Node {
 
 			this._subscribeToEvents();
 
+			this.channel.subscribe('app:networkReady', async () => {
+				await this._startLoader();
+			});
+
 			this.channel.subscribe('app:ready', async () => {
 				await this._startForging();
-				await this._startLoader();
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
@@ -368,7 +369,6 @@ module.exports = class Node {
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
-			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
 			chain: this.chain,
@@ -379,19 +379,19 @@ module.exports = class Node {
 		});
 
 		this.synchronizer = new Synchronizer({
+			channel: this.channel,
 			logger: this.logger,
 			chainModule: this.chain,
 			processorModule: this.processor,
-			storageModule: this.storage,
+			transactionPoolModule: this.transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
 		this.modules.chain = this.chain;
 		this.transactionPool = new TransactionPool({
 			logger: this.logger,
-			storage: this.storage,
 			chain: this.chain,
-			slots: this.chain.slots,
+			slots: this.blocks.slots,
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
@@ -403,19 +403,9 @@ module.exports = class Node {
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
 		this.modules.transactionPool = this.transactionPool;
-		this.loader = new Loader({
-			channel: this.channel,
-			logger: this.logger,
-			processorModule: this.processor,
-			transactionPoolModule: this.transactionPool,
-			chainModule: this.chain,
-			loadPerIteration: this.options.loading.loadPerIteration,
-			syncingActive: this.options.syncing.active,
-		});
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
 			genesisBlock: this.options.genesisBlock,
 			chainModule: this.chain,
 			processorModule: this.processor,
@@ -441,19 +431,16 @@ module.exports = class Node {
 		this.transport = new Transport({
 			channel: this.channel,
 			logger: this.logger,
-			storage: this.storage,
 			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
 			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			loaderModule: this.loader,
 			broadcasts: this.options.broadcasts,
 			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
 		});
 
-		this.modules.loader = this.loader;
 		this.modules.forger = this.forger;
 		this.modules.transport = this.transport;
 		this.modules.bft = this.bft;
@@ -461,7 +448,7 @@ module.exports = class Node {
 	}
 
 	async _startLoader() {
-		return this.loader.loadUnconfirmedTransactions();
+		return this.synchronizer.loadUnconfirmedTransactions();
 	}
 
 	async _forgingTask() {

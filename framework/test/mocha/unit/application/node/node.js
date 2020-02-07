@@ -262,16 +262,11 @@ describe('Node', () => {
 			);
 		});
 
-		it('should create storage component', () => {
-			return expect(node.components.storage).to.be.equal(stubs.storage);
-		});
-
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
 			expect(node).to.have.property('config');
 			expect(node).to.have.nested.property('genesisBlock.block');
 			expect(node).to.have.property('sequence');
-			expect(node).to.have.nested.property('components.storage');
 			expect(node).to.have.nested.property('components.logger');
 			expect(node).to.have.property('channel');
 			expect(node).to.have.property('applicationState');
@@ -371,29 +366,6 @@ describe('Node', () => {
 			// Assert
 			expect(stubs.modules.module1.cleanup).to.have.been.called;
 			return expect(stubs.modules.module2.cleanup).to.have.been.called;
-		});
-	});
-
-	describe('#_startLoader', () => {
-		beforeEach(async () => {
-			await node.bootstrap();
-			sinonSandbox.stub(node.loader, 'loadUnconfirmedTransactions');
-		});
-
-		it('should return if syncing.active in config is set to false', async () => {
-			// Arrange
-			node.options.syncing.active = false;
-
-			// Act
-			await node._startLoader();
-
-			// Assert
-			expect(stubs.jobsQueue.register).to.not.be.called;
-		});
-
-		it('should load transactions and signatures', async () => {
-			await node._startLoader();
-			expect(node.loader.loadUnconfirmedTransactions).to.be.called;
 		});
 	});
 

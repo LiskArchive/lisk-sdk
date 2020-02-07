@@ -23,7 +23,6 @@ class Rebuilder {
 		// components
 		channel,
 		logger,
-		storage,
 		// Unique requirements
 		genesisBlock,
 		// Modules
@@ -31,13 +30,13 @@ class Rebuilder {
 		chainModule,
 		// Constants
 		activeDelegates,
+		storage,
 	}) {
 		this.isActive = false;
 		this.isCleaning = false;
 
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
 		this.genesisBlock = genesisBlock;
 
 		this.processorModule = processorModule;
@@ -45,6 +44,7 @@ class Rebuilder {
 		this.constants = {
 			activeDelegates,
 		};
+		this.storage = storage;
 	}
 
 	cleanup() {
@@ -52,7 +52,7 @@ class Rebuilder {
 	}
 
 	async rebuild(rebuildUpToRound, loadPerIteration = 1000) {
-		const blocksCount = await this.storage.entities.Block.count({}, {});
+		const blocksCount = await this.blocksModule.dataAccess.getBlocksCount();
 		this.logger.info(
 			{ rebuildUpToRound, blocksCount },
 			'Rebuild process started',
@@ -117,9 +117,9 @@ class Rebuilder {
 			}
 		}
 
-		await this.storage.entities.Block.delete({
-			height_gt: lastBlock.height,
-		});
+		await this.blocksModule.dataAccess.deleteBlocksWithHeightGreaterThan(
+			lastBlock.height,
+		);
 
 		return lastBlock;
 	}
