@@ -17,7 +17,6 @@ import { TransactionJSON } from '@liskhq/lisk-transactions';
 import {
 	AccountJSON,
 	BlockJSON,
-	BlockRound,
 	Storage as DBStorage,
 	TempBlock,
 } from '../types';
@@ -186,21 +185,6 @@ export class Storage {
 
 	public clearTempBlocks(): void {
 		this._storage.entities.TempBlock.truncate();
-	}
-
-	public async getFirstBlockIdWithInterval(
-		height: number,
-		interval: number,
-	): Promise<BlockRound[]> {
-		const rows: BlockRound[] = await this._storage.entities.Block.getFirstBlockIdOfLastRounds(
-			{
-				height,
-				numberOfRounds: 5,
-				numberOfDelegates: interval,
-			},
-		);
-
-		return rows;
 	}
 
 	public async deleteBlocksWithHeightGreaterThan(

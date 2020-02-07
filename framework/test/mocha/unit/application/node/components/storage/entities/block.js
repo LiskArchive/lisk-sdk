@@ -42,7 +42,7 @@ describe('Block', () => {
 		);
 		await storage.bootstrap();
 
-		validBlockSQLs = ['create', 'delete', 'getFirstBlockIdOfLastRounds'];
+		validBlockSQLs = ['create', 'delete'];
 
 		invalidFilter = {
 			invalid: true,
@@ -284,9 +284,5 @@ describe('Block', () => {
 			// Assert
 			expect(remainingBlock).to.be.empty;
 		});
-	});
-
-	describe('getFirstBlockIdOfLastRounds', () => {
-		it('should get first block id of last rounds');
 	});
 });

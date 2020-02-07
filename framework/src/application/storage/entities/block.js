@@ -47,7 +47,6 @@ const createFields = [
 const sqlFiles = {
 	create: 'blocks/create.sql',
 	delete: 'blocks/delete.sql',
-	getFirstBlockIdOfLastRounds: 'blocks/get_first_block_id_of_last_rounds.sql',
 };
 
 class ChainBlock extends BlockEntity {
@@ -124,25 +123,6 @@ class ChainBlock extends BlockEntity {
 				tx,
 			)
 			.then(result => result);
-	}
-
-	getFirstBlockIdOfLastRounds(filters) {
-		assert(
-			filters && filters.height && filters.numberOfDelegates,
-			'filters must be an object and contain height and numberOfDelegates',
-		);
-
-		const parseFilters = {
-			height: filters.height,
-			numberOfDelegates: filters.numberOfDelegates,
-			numberOfRounds: filters.numberOfRounds || 5,
-		};
-
-		return this.adapter.executeFile(
-			this.SQLs.getFirstBlockIdOfLastRounds,
-			parseFilters,
-			{},
-		);
 	}
 }
 
