@@ -67,11 +67,6 @@ export interface BlockHeaderJSON {
 	/* tslint:enable:readonly-keyword */
 }
 
-export type BlockRound = Pick<BlockHeaderJSON, 'id' | 'height'> & {
-	// tslint:disable-next-line readonly-keyword
-	round?: number;
-};
-
 export interface BlockJSON extends BlockHeaderJSON {
 	// tslint:disable-next-line readonly-keyword
 	transactions: ReadonlyArray<TransactionJSON>;
