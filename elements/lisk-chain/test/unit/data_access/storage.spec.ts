@@ -58,7 +58,6 @@ describe('data access - storage', () => {
 				Block: {
 					get: jest.fn(),
 					count: jest.fn(),
-					getFirstBlockIdOfLastRounds: jest.fn(),
 					isPersisted: jest.fn(),
 					delete: jest.fn(),
 				},
@@ -278,30 +277,6 @@ describe('data access - storage', () => {
 
 			// Assert
 			expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
-		});
-	});
-
-	describe('#getFirstBlockIdWithInterval', () => {
-		beforeEach(async () => {
-			// Arrange
-			storageMock.entities.Block.getFirstBlockIdOfLastRounds.mockResolvedValue([
-				2,
-				3,
-			]);
-		});
-
-		it('should call storage.Block.getFirstBlockIdOfLastRounds and return block IDs', async () => {
-			// Act
-			const blocksFromStorage = await storageAccess.getFirstBlockIdWithInterval(
-				10,
-				5,
-			);
-
-			// Assert
-			expect(blocksFromStorage).toEqual([2, 3]);
-			expect(
-				storageMock.entities.Block.getFirstBlockIdOfLastRounds,
-			).toHaveBeenCalled();
 		});
 	});
 

@@ -19,7 +19,6 @@ import {
 	BlockHeaderJSON,
 	BlockInstance,
 	BlockJSON,
-	BlockRound,
 	Storage as DBStorage,
 	TempBlock,
 } from '../types';
@@ -236,18 +235,6 @@ export class DataAccess {
 		const block = await this._storage.getLastBlock();
 
 		return block && this.deserialize(block);
-	}
-
-	public async getFirstBlockIdWithInterval(
-		height: number,
-		interval: number,
-	): Promise<BlockRound[]> {
-		const blockIds = await this._storage.getFirstBlockIdWithInterval(
-			height,
-			interval,
-		);
-
-		return blockIds;
 	}
 
 	public async deleteBlocksWithHeightGreaterThan(

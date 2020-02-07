@@ -210,11 +210,6 @@ export interface AccountStorageEntity extends StorageEntity<AccountJSON> {
 }
 
 export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
-	readonly getFirstBlockIdOfLastRounds: (input: {
-		readonly height: number;
-		readonly numberOfRounds: number;
-		readonly numberOfDelegates: number;
-	}) => Promise<BlockRound[]>;
 	readonly begin: <T>(
 		name: string,
 		fn: (tx: StorageTransaction) => Promise<T>,
