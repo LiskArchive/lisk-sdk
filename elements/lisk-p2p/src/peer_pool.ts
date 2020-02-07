@@ -30,7 +30,11 @@ import {
 	PeerKind,
 	SEED_PEER_DISCONNECTION_REASON,
 } from './constants';
-import { RequestFailError, SendFailError } from './errors';
+import {
+	PeerInboundDuplicateConnectionError,
+	RequestFailError,
+	SendFailError,
+} from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -472,7 +476,10 @@ export class PeerPool extends EventEmitter {
 	public addInboundPeer(peerInfo: P2PPeerInfo, socket: SCServerSocket): Peer {
 		// Throw an error because adding a peer multiple times is a common developer error which is very difficult to identify and debug.
 		if (this._peerMap.has(peerInfo.peerId)) {
-			throw new Error(`Peer ${peerInfo.peerId} was already in the peer pool`);
+			throw new PeerInboundDuplicateConnectionError(
+				`Peer ${peerInfo.peerId} was already in the peer pool`,
+				peerInfo.peerId,
+			);
 		}
 
 		const inboundPeers = this.getPeers(InboundPeer);

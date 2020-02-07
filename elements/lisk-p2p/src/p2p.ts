@@ -40,7 +40,10 @@ import {
 	DEFAULT_WS_MAX_PAYLOAD,
 	DUPLICATE_CONNECTION,
 	DUPLICATE_CONNECTION_REASON,
+	INCOMPATIBLE_PEER_CODE,
+	INCOMPATIBLE_PEER_UNKNOWN_REASON,
 } from './constants';
+import { PeerInboundDuplicateConnectionError } from './errors';
 import {
 	EVENT_BAN_PEER,
 	EVENT_CLOSE_INBOUND,
@@ -212,7 +215,7 @@ export class P2P extends EventEmitter {
 	private readonly _handleBanPeer: (peerId: string) => void;
 	private readonly _handleOutboundSocketError: (error: Error) => void;
 	private readonly _handleInboundSocketError: (error: Error) => void;
-	private readonly _handleFailedAddInbound: (error: Error) => void;
+	private readonly _handleFailedInboundPeerConnect: (error: Error) => void;
 
 	public constructor(config: P2PConfig) {
 		super();
@@ -328,7 +331,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 
-		this._handleFailedAddInbound = (err: Error) => {
+		this._handleFailedInboundPeerConnect = (err: Error) => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
 		};
@@ -342,9 +345,19 @@ export class P2P extends EventEmitter {
 					incomingPeerConnection.socket,
 				);
 			} catch (err) {
+				if (err instanceof PeerInboundDuplicateConnectionError) {
+					incomingPeerConnection.socket.disconnect(
+						DUPLICATE_CONNECTION,
+						DUPLICATE_CONNECTION_REASON,
+					);
+					// Re-emit the message to allow it to bubble up the class hierarchy.
+					this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
+
+					return;
+				}
 				incomingPeerConnection.socket.disconnect(
-					DUPLICATE_CONNECTION,
-					DUPLICATE_CONNECTION_REASON,
+					INCOMPATIBLE_PEER_CODE,
+					INCOMPATIBLE_PEER_UNKNOWN_REASON,
 				);
 
 				// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -778,7 +791,7 @@ export class P2P extends EventEmitter {
 		peerServer.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
 		peerServer.on(
 			EVENT_FAILED_TO_ADD_INBOUND_PEER,
-			this._handleFailedAddInbound,
+			this._handleFailedInboundPeerConnect,
 		);
 		peerServer.on(
 			EVENT_NEW_INBOUND_PEER_CONNECTION,

@@ -34,6 +34,16 @@ export class PeerInboundHandshakeError extends Error {
 	}
 }
 
+export class PeerInboundDuplicateConnectionError extends Error {
+	public peerId: string;
+
+	public constructor(message: string, peerId: string) {
+		super(message);
+		this.name = 'PeerInboundDuplicateConnectionError';
+		this.peerId = peerId;
+	}
+}
+
 export class RPCResponseError extends Error {
 	public peerId: string;
 
