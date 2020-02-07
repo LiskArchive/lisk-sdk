@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { baseBlockSchema } = require('@liskhq/lisk-blocks');
+const { baseBlockSchema } = require('@liskhq/lisk-chain');
 const {
 	BIG_ENDIAN,
 	hash,
@@ -108,7 +108,7 @@ const validateSchema = ({ block }) => {
 
 class BlockProcessorV0 extends BaseBlockProcessor {
 	constructor({
-		blocksModule,
+		chainModule,
 		dposModule,
 		bftModule,
 		logger,
@@ -117,7 +117,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 	}) {
 		super();
 		const delegateListRoundOffset = 0;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.dposModule = dposModule;
 		this.bftModule = bftModule;
 		this.logger = logger;
@@ -125,7 +125,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.exceptions = exceptions;
 
 		this.deserialize.pipe([
-			({ block }) => this.blocksModule.deserialize(block),
+			({ block }) => this.chainModule.deserialize(block),
 			(_, updatedBlock) => ({
 				...updatedBlock,
 				maxHeightPreviouslyForged:
@@ -134,31 +134,29 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 			}),
 		]);
 
-		this.serialize.pipe([({ block }) => this.blocksModule.serialize(block)]);
+		this.serialize.pipe([({ block }) => this.chainModule.serialize(block)]);
 
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) =>
-				this.blocksModule.blockReward.calculateReward(block.height),
+			({ block }) => this.chainModule.blockReward.calculateReward(block.height),
 			({ block }, expectedReward) =>
-				this.blocksModule.validateBlockHeader(
+				this.chainModule.validateBlockHeader(
 					block,
 					getBytes(block),
 					expectedReward,
 				),
 			({ block, lastBlock }) =>
-				this.blocksModule.verifyInMemory(block, lastBlock),
+				this.chainModule.verifyInMemory(block, lastBlock),
 			({ block }) => this.dposModule.verifyBlockForger(block),
 		]);
 
 		this.validateDetached.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			({ block }) =>
-				this.blocksModule.blockReward.calculateReward(block.height),
+			({ block }) => this.chainModule.blockReward.calculateReward(block.height),
 			({ block }, expectedReward) =>
-				this.blocksModule.validateBlockHeader(
+				this.chainModule.validateBlockHeader(
 					block,
 					getBytes(block),
 					expectedReward,
@@ -171,11 +169,11 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.verify.pipe([
 			({ block, stateStore, skipExistingCheck }) =>
-				this.blocksModule.verify(block, stateStore, { skipExistingCheck }),
+				this.chainModule.verify(block, stateStore, { skipExistingCheck }),
 		]);
 
 		this.apply.pipe([
-			({ block, stateStore }) => this.blocksModule.apply(block, stateStore),
+			({ block, stateStore }) => this.chainModule.apply(block, stateStore),
 			({ block, stateStore }) =>
 				this.dposModule.apply(block, stateStore, {
 					delegateListRoundOffset,
@@ -184,7 +182,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 		this.applyGenesis.pipe([
 			({ block, stateStore }) =>
-				this.blocksModule.applyGenesis(block, stateStore),
+				this.chainModule.applyGenesis(block, stateStore),
 			({ block, stateStore }) =>
 				this.dposModule.apply(block, stateStore, {
 					delegateListRoundOffset,
@@ -192,7 +190,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		]);
 
 		this.undo.pipe([
-			({ block, stateStore }) => this.blocksModule.undo(block, stateStore),
+			({ block, stateStore }) => this.chainModule.undo(block, stateStore),
 			({ block, stateStore }) =>
 				this.dposModule.undo(block, stateStore, {
 					delegateListRoundOffset,
@@ -209,7 +207,7 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 
 	_create({ transactions, previousBlock, keypair, timestamp }) {
 		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
-		const reward = this.blocksModule.blockReward.calculateReward(nextHeight);
+		const reward = this.chainModule.blockReward.calculateReward(nextHeight);
 		let totalFee = BigInt(0);
 		let totalAmount = BigInt(0);
 		let size = 0;

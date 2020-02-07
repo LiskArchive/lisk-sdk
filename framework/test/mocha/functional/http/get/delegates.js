@@ -21,7 +21,7 @@ const {
 	registerSecondPassphrase,
 	registerDelegate,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');

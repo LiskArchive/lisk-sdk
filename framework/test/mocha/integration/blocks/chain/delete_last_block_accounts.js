@@ -119,9 +119,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -203,11 +203,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock(
-						library.modules.blocks.lastBlock,
+						library.modules.chain.lastBlock,
 					);
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -289,9 +289,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -371,9 +371,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -463,9 +463,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -543,11 +543,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
+						const transactions = library.modules.chain.lastBlock.transactions;
 						await library.modules.processor.deleteLastBlock(
-							library.modules.blocks.lastBlock,
+							library.modules.chain.lastBlock,
 						);
-						const newLastBlock = library.modules.blocks.lastBlock;
+						const newLastBlock = library.modules.chain.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);
@@ -608,9 +608,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
+						const transactions = library.modules.chain.lastBlock.transactions;
 						await library.modules.processor.deleteLastBlock();
-						const newLastBlock = library.modules.blocks.lastBlock;
+						const newLastBlock = library.modules.chain.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);
@@ -675,11 +675,11 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					});
 
 					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
+						const transactions = library.modules.chain.lastBlock.transactions;
 						await library.modules.processor.deleteLastBlock(
-							library.modules.blocks.lastBlock,
+							library.modules.chain.lastBlock,
 						);
-						const newLastBlock = library.modules.blocks.lastBlock;
+						const newLastBlock = library.modules.chain.lastBlock;
 						library.modules.transactionPool.onDeletedTransactions(
 							transactions.reverse(),
 						);

@@ -36,7 +36,7 @@ describe('processor', () => {
 	let processor;
 	let channelStub;
 	let loggerStub;
-	let blocksModuleStub;
+	let chainModuleStub;
 	let blockProcessorV0;
 	let stateStoreStub;
 
@@ -56,20 +56,20 @@ describe('processor', () => {
 				cache: jest.fn(),
 			},
 		};
-		blocksModuleStub = {
+		chainModuleStub = {
 			init: jest.fn(),
 			save: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
 			newStateStore: jest.fn().mockReturnValue(stateStoreStub),
 		};
-		Object.defineProperty(blocksModuleStub, 'lastBlock', {
+		Object.defineProperty(chainModuleStub, 'lastBlock', {
 			get: jest.fn().mockReturnValue(defaultLastBlock),
 		});
 		processor = new Processor({
 			channel: channelStub,
 			logger: loggerStub,
-			blocksModule: blocksModuleStub,
+			chainModule: chainModuleStub,
 		});
 
 		blockProcessorV0 = new FakeBlockProcessorV0();
@@ -94,7 +94,7 @@ describe('processor', () => {
 			});
 
 			it('should assign blocks module to its context', async () => {
-				expect(processor.blocksModule).toBe(blocksModuleStub);
+				expect(processor.chainModule).toBe(chainModuleStub);
 			});
 
 			it('should assign logger to its context', async () => {
@@ -158,17 +158,17 @@ describe('processor', () => {
 
 		describe('when genesis block does not exist on the storage', () => {
 			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(false);
+				chainModuleStub.exists.mockResolvedValue(false);
 
 				await processor.init(genesisBlock);
 			});
 
-			it('should call blocksModule init', async () => {
-				expect(blocksModuleStub.init).toHaveBeenCalledTimes(1);
+			it('should call chainModule init', async () => {
+				expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 			});
 
 			it('should check if genesis block exists', async () => {
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call all of the apply genesis steps', async () => {
@@ -181,7 +181,7 @@ describe('processor', () => {
 			});
 
 			it('should save the genesis block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
 					{ saveOnlyState: false },
@@ -191,17 +191,17 @@ describe('processor', () => {
 
 		describe('when the genesis block already exists', () => {
 			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(true);
+				chainModuleStub.exists.mockResolvedValue(true);
 
 				await processor.init(genesisBlock);
 			});
 
-			it('should call blocksModule init', async () => {
-				expect(blocksModuleStub.init).toHaveBeenCalledTimes(1);
+			it('should call chainModule init', async () => {
+				expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 			});
 
 			it('should check if genesis block exists', async () => {
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
 			it('should not call any of the apply genesis steps', async () => {
@@ -211,7 +211,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the genesis block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 
@@ -342,7 +342,7 @@ describe('processor', () => {
 			});
 
 			it('should not save block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not publish any event', async () => {
@@ -375,7 +375,7 @@ describe('processor', () => {
 			});
 
 			it('should not save block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not publish any event', async () => {
@@ -411,7 +411,7 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+				expect(chainModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
 					{ saveTempBlock: false },
@@ -454,7 +454,7 @@ describe('processor', () => {
 			});
 
 			it('should save the block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
 					{ removeFromTempTable: false },
@@ -506,7 +506,7 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+				expect(chainModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
 					{ saveTempBlock: false },
@@ -560,7 +560,7 @@ describe('processor', () => {
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should save the last block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
 				);
@@ -602,7 +602,7 @@ describe('processor', () => {
 			});
 
 			it('should not save block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should publish sync', async () => {
@@ -637,7 +637,7 @@ describe('processor', () => {
 			});
 
 			it('should not save block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not publish any event', async () => {
@@ -670,7 +670,7 @@ describe('processor', () => {
 			});
 
 			it('should save block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledTimes(1);
+				expect(chainModuleStub.save).toHaveBeenCalledTimes(1);
 			});
 
 			it('should broadcast with the block', async () => {
@@ -858,7 +858,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not broadcast the block', async () => {
@@ -920,7 +920,7 @@ describe('processor', () => {
 
 		describe('when block cannot be saved', () => {
 			beforeEach(async () => {
-				blocksModuleStub.save.mockRejectedValue(new Error('Invalid block'));
+				chainModuleStub.save.mockRejectedValue(new Error('Invalid block'));
 				try {
 					await processor.processValidated(blockV0);
 				} catch (error) {
@@ -970,7 +970,7 @@ describe('processor', () => {
 			});
 
 			it('should remove block from temp_blocks table', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
 					{ removeFromTempTable: true },
@@ -1010,7 +1010,7 @@ describe('processor', () => {
 			});
 
 			it('should save the block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
 					{ removeFromTempTable: false },
@@ -1101,7 +1101,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
 			it('should not broadcast the block', async () => {
@@ -1164,7 +1164,7 @@ describe('processor', () => {
 
 		describe('when block cannot be saved', () => {
 			beforeEach(async () => {
-				blocksModuleStub.save.mockRejectedValue(new Error('Invalid block'));
+				chainModuleStub.save.mockRejectedValue(new Error('Invalid block'));
 				try {
 					await processor.apply(blockV0);
 				} catch (error) {
@@ -1249,7 +1249,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
 					{
@@ -1296,8 +1296,8 @@ describe('processor', () => {
 				}
 			});
 
-			it('should not call remove of blocksModule', async () => {
-				expect(blocksModuleStub.remove).not.toHaveBeenCalled();
+			it('should not call remove of chainModule', async () => {
+				expect(chainModuleStub.remove).not.toHaveBeenCalled();
 			});
 
 			it('should not publish event deleteBlock', async () => {
@@ -1310,7 +1310,7 @@ describe('processor', () => {
 
 		describe('when removing block fails', () => {
 			beforeEach(async () => {
-				blocksModuleStub.remove.mockRejectedValue(new Error('Invalid block'));
+				chainModuleStub.remove.mockRejectedValue(new Error('Invalid block'));
 				try {
 					await processor.deleteLastBlock();
 				} catch (error) {
@@ -1355,8 +1355,8 @@ describe('processor', () => {
 				});
 			});
 
-			it('should call remove from blocksModule', async () => {
-				expect(blocksModuleStub.remove).toHaveBeenCalledWith(
+			it('should call remove from chainModule', async () => {
+				expect(chainModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
 					{ saveTempBlock: false },
@@ -1391,10 +1391,10 @@ describe('processor', () => {
 
 		describe('when genesis block is not stored yet', () => {
 			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(false);
+				chainModuleStub.exists.mockResolvedValue(false);
 			});
 
-			it('should call exists on blocksModule', async () => {
+			it('should call exists on chainModule', async () => {
 				try {
 					await processor.applyGenesisBlock(genesisBlock, true);
 				} catch (err) {
@@ -1402,7 +1402,7 @@ describe('processor', () => {
 				}
 
 				// Assert && Act
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
 			it('should throw an error', async () => {
@@ -1414,12 +1414,12 @@ describe('processor', () => {
 
 		describe('when genesis block is stored already (rebuilding)', () => {
 			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(true);
+				chainModuleStub.exists.mockResolvedValue(true);
 				await processor.applyGenesisBlock(genesisBlock, true);
 			});
 
-			it('should call exists on blocksModule', async () => {
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			it('should call exists on chainModule', async () => {
+				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
 			it('should apply genesis block', async () => {
@@ -1432,7 +1432,7 @@ describe('processor', () => {
 			});
 
 			it('should not save the block', async () => {
-				expect(blocksModuleStub.save).toHaveBeenCalledWith(
+				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
 					{ saveOnlyState: true },
@@ -1442,7 +1442,7 @@ describe('processor', () => {
 
 		describe('when apply fails when skip is false and genesis block is not stored', () => {
 			beforeEach(async () => {
-				blocksModuleStub.exists.mockResolvedValue(false);
+				chainModuleStub.exists.mockResolvedValue(false);
 				applyGenesisSteps[0].mockRejectedValue(new Error('apply error'));
 				try {
 					await processor.applyGenesisBlock(genesisBlock, false);
@@ -1451,12 +1451,12 @@ describe('processor', () => {
 				}
 			});
 
-			it('should call exists on blocksModule', async () => {
-				expect(blocksModuleStub.exists).toHaveBeenCalledTimes(1);
+			it('should call exists on chainModule', async () => {
+				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
 			it('should not save genesis block with saveOnlyState', async () => {
-				expect(blocksModuleStub.save).not.toHaveBeenCalled();
+				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 	});

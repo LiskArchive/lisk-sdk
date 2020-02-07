@@ -22,7 +22,7 @@ import {
 } from '../../src/fork_choice_rule';
 import { Block, Slots as SlotType } from '../../src/types';
 
-import { Slots } from '@liskhq/lisk-blocks';
+import { Slots } from '@liskhq/lisk-chain';
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;

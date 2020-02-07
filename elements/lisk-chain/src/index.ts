@@ -13,7 +13,7 @@
  */
 export { Account } from './account';
 export * from './block_reward';
-export { Blocks } from './blocks';
+export { Chain } from './chain';
 export { baseBlockSchema } from './schema';
 export { StateStore } from './state_store';
 export { Slots } from './slots';

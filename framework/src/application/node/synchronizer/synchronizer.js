@@ -24,7 +24,7 @@ class Synchronizer {
 	constructor({
 		channel,
 		logger,
-		blocksModule,
+		chainModule,
 		processorModule,
 		transactionPoolModule,
 		mechanisms = [],
@@ -36,7 +36,7 @@ class Synchronizer {
 		this.mechanisms = mechanisms;
 		this.channel = channel;
 		this.logger = logger;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.active = false;
@@ -59,12 +59,12 @@ class Synchronizer {
 	}
 
 	async init() {
-		const isEmpty = await this.blocksModule.dataAccess.isTempBlockEmpty();
+		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
 				await utils.restoreBlocksUponStartup(
 					this.logger,
-					this.blocksModule,
+					this.chainModule,
 					this.processorModule,
 				);
 			} catch (err) {
@@ -121,8 +121,8 @@ class Synchronizer {
 
 			return this.logger.info(
 				{
-					lastBlockHeight: this.blocksModule.lastBlock.height,
-					lastBlockId: this.blocksModule.lastBlock.id,
+					lastBlockHeight: this.chainModule.lastBlock.height,
+					lastBlockId: this.chainModule.lastBlock.id,
 					mechanism: validMechanism.constructor.name,
 				},
 				'Synchronization finished',
@@ -190,13 +190,13 @@ class Synchronizer {
 		}
 
 		const transactions = result.transactions.map(tx =>
-			this.blocksModule.deserializeTransaction(tx),
+			this.chainModule.deserializeTransaction(tx),
 		);
 
 		try {
 			const {
 				transactionsResponses,
-			} = await this.blocksModule.validateTransactions(transactions);
+			} = await this.chainModule.validateTransactions(transactions);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,

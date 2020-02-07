@@ -50,7 +50,10 @@ describe('transactionPool', () => {
 		},
 	};
 
-	const blocksStub = {
+	const chainStub = {
+		slots: {
+			getSlotNumber: sinonSandbox.stub(),
+		},
 		lastBlock: {
 			get: sinonSandbox.stub(),
 		},
@@ -59,18 +62,13 @@ describe('transactionPool', () => {
 			.resolves({ transactionsResponses: [] }),
 	};
 
-	const slotsStub = {
-		getSlotNumber: sinonSandbox.stub(),
-	};
-
 	let transactionPool;
 	let dummyTransactions;
 
 	beforeEach(async () => {
 		transactionPool = new TransactionPool({
 			storage,
-			blocks: blocksStub,
-			slots: slotsStub,
+			chain: chainStub,
 			logger,
 			broadcastInterval,
 			releaseLimit,
@@ -406,7 +404,7 @@ describe('transactionPool', () => {
 
 		describe('when signature already exists in transaction', () => {
 			beforeEach(async () => {
-				blocksStub.processSignature.returns(
+				chainStub.processSignature.returns(
 					sinonSandbox.stub().resolves({
 						...transactionResponse,
 						status: 0,
@@ -429,7 +427,7 @@ describe('transactionPool', () => {
 					).to.have.been.calledWith(signatureObject.transactionId);
 					expect(transactionPool.getMultisignatureTransaction).to.have.been
 						.calledOnce;
-					expect(blocksStub.processSignature).to.have.been.calledOnce;
+					expect(chainStub.processSignature).to.have.been.calledOnce;
 					expect(errors[0]).to.be.an.instanceof(TransactionError);
 					expect(errors[0].message).to.eql(
 						'Signature already present in transaction.',
@@ -440,7 +438,7 @@ describe('transactionPool', () => {
 
 		describe('events', () => {
 			beforeEach(async () => {
-				blocksStub.processSignature.returns(
+				chainStub.processSignature.returns(
 					sinonSandbox.stub().resolves({
 						...transactionResponse,
 						status: 2,

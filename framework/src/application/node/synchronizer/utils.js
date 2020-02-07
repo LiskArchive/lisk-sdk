@@ -17,8 +17,8 @@
 const { maxBy } = require('lodash');
 const { ForkStatus } = require('@liskhq/lisk-bft');
 
-const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
-	const tempBlocks = await blocksModule.dataAccess.getTempBlocks(
+const restoreBlocks = async (chainModule, processorModule, tx = null) => {
+	const tempBlocks = await chainModule.dataAccess.getTempBlocks(
 		{},
 		{ sort: 'height:asc', limit: null },
 		tx,
@@ -40,17 +40,17 @@ const restoreBlocks = async (blocksModule, processorModule, tx = null) => {
 	return true;
 };
 
-const clearBlocksTempTable = blocksModule =>
-	blocksModule.dataAccess.clearTempBlocks();
+const clearBlocksTempTable = chainModule =>
+	chainModule.dataAccess.clearTempBlocks();
 
 const deleteBlocksAfterHeight = async (
 	processorModule,
-	blocksModule,
+	chainModule,
 	logger,
 	desiredHeight,
 	backup = false,
 ) => {
-	let { height: currentHeight } = blocksModule.lastBlock;
+	let { height: currentHeight } = chainModule.lastBlock;
 	logger.debug(
 		{ desiredHeight, lastBlockHeight: currentHeight },
 		'Deleting blocks after height',
@@ -58,8 +58,8 @@ const deleteBlocksAfterHeight = async (
 	while (desiredHeight < currentHeight) {
 		logger.trace(
 			{
-				height: blocksModule.lastBlock.height,
-				blockId: blocksModule.lastBlock.id,
+				height: chainModule.lastBlock.height,
+				blockId: chainModule.lastBlock.id,
 			},
 			'Deleting block and backing it up to temporary table',
 		);
@@ -82,11 +82,11 @@ const deleteBlocksAfterHeight = async (
  */
 const restoreBlocksUponStartup = async (
 	logger,
-	blocksModule,
+	chainModule,
 	processorModule,
 ) => {
 	// Get all blocks and find lowest height (next one to be applied)
-	const tempBlocks = await blocksModule.dataAccess.getTempBlocks();
+	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
 	const blockLowestHeight = tempBlocks[0];
 	const blockHighestHeight = tempBlocks[tempBlocks.length - 1];
 
@@ -103,17 +103,17 @@ const restoreBlocksUponStartup = async (
 		logger.info('Restoring blocks from temporary table');
 		await deleteBlocksAfterHeight(
 			processorModule,
-			blocksModule,
+			chainModule,
 			logger,
 			blockLowestHeight.height - 1,
 			false,
 		);
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_blocks table
-		await restoreBlocks(blocksModule, processorModule);
+		await restoreBlocks(chainModule, processorModule);
 		logger.info('Chain successfully restored');
 	} else {
 		// Not different chain - Delete remaining blocks from temp_blocks table
-		await clearBlocksTempTable(blocksModule);
+		await clearBlocksTempTable(chainModule);
 	}
 };
 

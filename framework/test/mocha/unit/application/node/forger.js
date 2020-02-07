@@ -65,7 +65,7 @@ describe('forge', () => {
 				transactionPoolModule: {
 					getUnconfirmedTransactionList: sinonSandbox.stub(),
 				},
-				blocksModule: {
+				chainModule: {
 					filterReadyTransactions: sinonSandbox.stub().returns([]),
 					slots: {
 						getSlotNumber: sinonSandbox.stub(),
@@ -142,7 +142,7 @@ describe('forge', () => {
 
 			it('should update forging from enabled to disabled', async () => {
 				// Arrange
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -203,7 +203,7 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
-				forgeModule.blocksModule.dataAccess.getAccountsByAddress.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
 					{
 						isDelegate: true,
 						address: testDelegate.address,
@@ -646,7 +646,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -673,7 +673,7 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
@@ -693,7 +693,7 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
-				forgeModule.blocksModule.dataAccess.getAccountsByPublicKey.resolves([
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([
 					{
 						isDelegate: false,
 						address: accountFixtures.genesis.address,
@@ -772,9 +772,9 @@ describe('forge', () => {
 			};
 
 			beforeEach(async () => {
-				forgeModule.blocksModule.lastBlock = lastBlock;
+				forgeModule.chainModule.lastBlock = lastBlock;
 				forgeModule.processorModule.create.resolves(forgedBlock);
-				getSlotNumberStub = forgeModule.blocksModule.slots.getSlotNumber;
+				getSlotNumberStub = forgeModule.chainModule.slots.getSlotNumber;
 
 				getSlotNumberStub.withArgs().returns(currentSlot);
 				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
@@ -848,7 +848,7 @@ describe('forge', () => {
 					shouldAdvanceTime: true,
 				});
 
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 				getSlotNumberStub
@@ -879,7 +879,7 @@ describe('forge', () => {
 
 				const changedLastBlockSlot = currentSlot - 2;
 
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(changedLastBlockSlot);
@@ -901,7 +901,7 @@ describe('forge', () => {
 				});
 
 				const lastBlockSlotChanged = currentSlot - 1;
-				forgeModule.blocksModule.slots.getRealTime.returns(currentSlotTime);
+				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
 				getSlotNumberStub
 					.withArgs(lastBlock.timestamp)
 					.returns(lastBlockSlotChanged);

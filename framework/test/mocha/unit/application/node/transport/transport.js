@@ -150,7 +150,7 @@ describe('transport', () => {
 				processUnconfirmedTransaction: sinonSandbox.stub(),
 				findInTransactionPool: sinonSandbox.stub(),
 			},
-			blocksModule: {
+			chainModule: {
 				lastBlock: sinonSandbox
 					.stub()
 					.returns({ height: 1, version: 1, timestamp: 1 }),
@@ -220,7 +220,7 @@ describe('transport', () => {
 					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 						.stub()
 						.returns(false);
-					transportModule.blocksModule.dataAccess.getTransactionsByIDs = sinonSandbox
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox
 						.stub()
 						.resolves([]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
@@ -236,9 +236,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule.blocksModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
+				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
 					expect(
-						transportModule.blocksModule.dataAccess.getTransactionsByIDs,
+						transportModule.chainModule.dataAccess.getTransactionsByIDs,
 					).to.be.calledWithExactly(transactionsList.map(tx => tx.id));
 				});
 
@@ -254,7 +254,7 @@ describe('transport', () => {
 					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 						.stub()
 						.returns(true);
-					transportModule.blocksModule.dataAccess.getTransactionsByIDs = sinonSandbox.stub();
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox.stub();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.transactionIds,
 					);
@@ -268,9 +268,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should not call transportModule.blocksModule.dataAccess.getTransactionsByIDs', async () =>
-					expect(transportModule.blocksModule.dataAccess.getTransactionsByIDs)
-						.to.have.not.been.called);
+				it('should not call transportModule.chainModule.dataAccess.getTransactionsByIDs', async () =>
+					expect(transportModule.chainModule.dataAccess.getTransactionsByIDs).to
+						.have.not.been.called);
 
 				it('should return empty array', async () =>
 					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
@@ -281,7 +281,7 @@ describe('transport', () => {
 					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
 						.stub()
 						.returns(false);
-					transportModule.blocksModule.dataAccess.getTransactionsByIDs = sinonSandbox
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox
 						.stub()
 						.resolves(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
@@ -297,9 +297,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule.blocksModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
+				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
 					expect(
-						transportModule.blocksModule.dataAccess.getTransactionsByIDs,
+						transportModule.chainModule.dataAccess.getTransactionsByIDs,
 					).to.be.calledWithExactly(transactionsList.map(tx => tx.id));
 				});
 
@@ -317,14 +317,14 @@ describe('transport', () => {
 
 			it('should call validateTransactions', async () => {
 				await transportModule._receiveTransaction(transaction);
-				return expect(transportModule.blocksModule.validateTransactions).to.be
+				return expect(transportModule.chainModule.validateTransactions).to.be
 					.calledOnce;
 			});
 
 			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule._receiveTransaction(transaction);
 				return expect(
-					transportModule.blocksModule.validateTransactions,
+					transportModule.chainModule.validateTransactions,
 				).to.have.been.calledWith([transaction]);
 			});
 
@@ -333,7 +333,7 @@ describe('transport', () => {
 					'Transaction type 0 is currently not allowed.',
 				);
 
-				transportModule.blocksModule.validateTransactions.resolves({
+				transportModule.chainModule.validateTransactions.resolves({
 					transactionsResponses: [
 						{
 							errors: [errorMessage],
@@ -369,7 +369,7 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
-					transportModule.blocksModule.validateTransactions.resolves({
+					transportModule.chainModule.validateTransactions.resolves({
 						transactionsResponses: [
 							{
 								status: 1,
@@ -625,23 +625,22 @@ describe('transport', () => {
 					});
 
 					describe('when query is defined', () => {
-						it('should call modules.blocks.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
+						it('should call modules.chain.loadBlocksFromLastBlockId with lastBlockId and limit 34', async () => {
 							query = {
 								blockId: '6258354802676165798',
 							};
 
 							await transportModule.handleRPCGetBlocksFromId(query);
 							expect(
-								transportModule.blocksModule.dataAccess.getBlockHeaderByID,
+								transportModule.chainModule.dataAccess.getBlockHeaderByID,
 							).to.be.calledWith(query.blockId);
 							return expect(
-								transportModule.blocksModule.dataAccess
-									.getBlocksByHeightBetween,
+								transportModule.chainModule.dataAccess.getBlocksByHeightBetween,
 							).to.be.calledWith(3, 36);
 						});
 					});
 
-					describe('when modules.blocks.loadBlocksFromLastBlockId fails', () => {
+					describe('when modules.chain.loadBlocksFromLastBlockId fails', () => {
 						it('should throw an error', async () => {
 							query = {
 								blockId: '6258354802676165798',
@@ -650,7 +649,7 @@ describe('transport', () => {
 							const errorMessage = 'Failed to load blocks...';
 							const loadBlockFailed = new Error(errorMessage);
 
-							transportModule.blocksModule.loadBlocksFromLastBlockId.rejects(
+							transportModule.chainModule.loadBlocksFromLastBlockId.rejects(
 								loadBlockFailed,
 							);
 
@@ -726,7 +725,7 @@ describe('transport', () => {
 							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
 
 							describe('when query.block is defined', () => {
-								it('should call modules.blocks.addBlockProperties with query.block', async () => {
+								it('should call modules.chain.addBlockProperties with query.block', async () => {
 									await transportModule.handleEventPostBlock({
 										block: genesisBlock,
 									});

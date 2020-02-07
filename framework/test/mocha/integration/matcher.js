@@ -23,7 +23,7 @@ const {
 	TransferTransaction,
 	transfer,
 } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const {
 	addTransaction,
 	forge: commonForge,
@@ -136,11 +136,11 @@ function createRawCustomTransaction({ passphrase, senderId, senderPublicKey }) {
 }
 
 async function createRawBlock(library, rawTransactions) {
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	const transactions = rawTransactions.map(rawTransaction =>
-		library.modules.blocks.deserializeTransaction(rawTransaction),
+		library.modules.chain.deserializeTransaction(rawTransaction),
 	);
 
 	const delegateKey = await new Promise((resolve, reject) => {
@@ -154,13 +154,13 @@ async function createRawBlock(library, rawTransactions) {
 
 	const blockProcessorV1 = library.modules.processor.processors[1];
 	const block = await blockProcessorV1.create.run({
-		blockReward: library.modules.blocks.blockReward,
+		blockReward: library.modules.chain.blockReward,
 		keypair: keypairs[delegateKey],
 		timestamp: slots.getSlotTime(slot),
 		previousBlock: lastBlock,
 		transactions,
 		maxTransactionPerBlock:
-			library.modules.blocks.constants.maxTransactionPerBlock,
+			library.modules.chain.constants.maxTransactionPerBlock,
 		maxHeightPreviouslyForged: 1,
 		maxHeightPrevoted: 1,
 	});
@@ -178,7 +178,7 @@ function setMatcherAndRegisterTx(scope, transactionClass, matcher) {
 		configurable: true,
 	});
 
-	scope.modules.blocks.dataAccess._transactionAdapter._transactionClassMap.set(
+	scope.modules.chain.dataAccess._transactionAdapter._transactionClassMap.set(
 		CUSTOM_TRANSACTION_TYPE,
 		CustomTransationClass,
 	);
@@ -207,7 +207,7 @@ describe('matcher', () => {
 		be bigger than 7, so for this tests transaction type 7 can be removed from
 		registered transactions map so the CustomTransaction can be added with that
 		id. Type 7 is not used anyways. */
-		scope.modules.blocks.dataAccess._transactionAdapter._transactionClassMap.delete(
+		scope.modules.chain.dataAccess._transactionAdapter._transactionClassMap.delete(
 			7,
 		);
 		transactionPool = scope.modules.transactionPool;
@@ -219,11 +219,11 @@ describe('matcher', () => {
 	afterEach(async () => {
 		// Delete the custom transaction type from the registered transactions list
 		// So it can be registered again with the same type and maybe a different implementation in a different test.
-		scope.modules.blocks.dataAccess._transactionAdapter._transactionClassMap.delete(
+		scope.modules.chain.dataAccess._transactionAdapter._transactionClassMap.delete(
 			CUSTOM_TRANSACTION_TYPE,
 		);
 
-		scope.modules.blocks.resetBlockHeaderCache();
+		scope.modules.chain.resetBlockHeaderCache();
 		// Reset transaction pool so it starts fresh back again with no transactions.
 		transactionPool._resetPool();
 
@@ -236,7 +236,7 @@ describe('matcher', () => {
 					),
 				]);
 			});
-			scope.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+			scope.modules.chain._lastBlock = __testContext.config.genesisBlock;
 		} catch (err) {
 			__testContext.debug(err.stack);
 		}
@@ -290,11 +290,11 @@ describe('matcher', () => {
 			const jsonTransaction = createRawCustomTransaction(commonTransactionData);
 			const rawBlock = await createRawBlock(scope, [jsonTransaction]);
 			try {
-				await scope.modules.blocks.receiveBlockFromNetwork(rawBlock);
+				await scope.modules.chain.receiveBlockFromNetwork(rawBlock);
 			} catch (err) {
 				// Expected err
 			}
-			expect(scope.modules.blocks.lastBlock.height).to.equal(1);
+			expect(scope.modules.chain.lastBlock.height).to.equal(1);
 		});
 
 		it('should accept the block if it contains allowed transactions for the given block context', async () => {
@@ -312,7 +312,7 @@ describe('matcher', () => {
 				});
 			});
 			await scope.modules.processor.process(newBlock);
-			expect(scope.modules.blocks.lastBlock.height).to.equal(2);
+			expect(scope.modules.chain.lastBlock.height).to.equal(2);
 		});
 	});
 
@@ -358,7 +358,7 @@ describe('matcher', () => {
 				// Attempt to forge again and include CustomTransaction in the block.
 				await forge(scope);
 
-				const lastBlock = scope.modules.blocks.lastBlock;
+				const lastBlock = scope.modules.chain.lastBlock;
 				expect(
 					lastBlock.transactions.some(
 						transation => transation.id === jsonTransaction.id,
@@ -379,7 +379,7 @@ describe('matcher', () => {
 			// Act: forge
 			await forge(scope);
 
-			const lastBlock = scope.modules.blocks.lastBlock;
+			const lastBlock = scope.modules.chain.lastBlock;
 			expect(
 				lastBlock.transactions.some(
 					transation => transation.id === jsonTransaction.id,

@@ -1,5 +1,5 @@
 {
-	"name": "@liskhq/lisk-blocks",
+	"name": "@liskhq/lisk-chain",
 	"version": "0.1.0",
 	"description": "Blocks and state management implementation that are used for block processing according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -8,7 +8,7 @@
 		"lisk",
 		"blockchain"
 	],
-	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-blocks#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-sdk/tree/master/elements/lisk-chain#readme",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/LiskHQ/lisk-sdk.git"
@@ -41,7 +41,6 @@
 		"lodash": "4.17.15"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-dpos": "0.1.0",
 		"@liskhq/lisk-passphrase": "3.0.0",
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",

@@ -14,7 +14,7 @@
 
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Blocks, StateStore } from '../../src';
+import { Chain, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
@@ -29,7 +29,7 @@ const networkIdentifier = getNetworkIdentifier(
 	'Lisk',
 );
 
-describe('blocks', () => {
+describe('chain', () => {
 	const stubs = {} as any;
 	const constants = {
 		blockReceiptTimeout: 20,
@@ -52,7 +52,7 @@ describe('blocks', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	let exceptions = {};
-	let blocksInstance: Blocks;
+	let chainInstance: Chain;
 	let slots: Slots;
 
 	beforeEach(() => {
@@ -98,7 +98,7 @@ describe('blocks', () => {
 			batch: jest.fn(),
 		};
 
-		blocksInstance = new Blocks({
+		chainInstance = new Chain({
 			...stubs.dependencies,
 			genesisBlock,
 			networkIdentifier,
@@ -113,24 +113,24 @@ describe('blocks', () => {
 		it('should initialize private variables correctly', async () => {
 			// Assert stubbed values are assigned
 			Object.entries(stubs.dependencies).forEach(([stubName, stubValue]) => {
-				expect((blocksInstance as any)[stubName]).toEqual(stubValue);
+				expect((chainInstance as any)[stubName]).toEqual(stubValue);
 			});
 			// Assert constants
 			Object.entries(
-				(blocksInstance as any).constants,
+				(chainInstance as any).constants,
 			).forEach(([constantName, constantValue]) =>
 				expect((constants as any)[constantName]).toEqual(constantValue),
 			);
 			// Assert miscellaneous
-			expect(slots).toEqual((blocksInstance as any).slots);
-			expect(blocksInstance.blockReward).toBeDefined();
-			expect((blocksInstance as any).blocksVerify).toBeDefined();
+			expect(slots).toEqual((chainInstance as any).slots);
+			expect(chainInstance.blockReward).toBeDefined();
+			expect((chainInstance as any).blocksVerify).toBeDefined();
 		});
 	});
 
 	describe('lastBlock', () => {
 		beforeEach(() => {
-			(blocksInstance as any)._lastBlock = {
+			(chainInstance as any)._lastBlock = {
 				...genesisBlock,
 				receivedAt: new Date(),
 			};
@@ -139,14 +139,14 @@ describe('blocks', () => {
 			// Arrange
 			const { receivedAt, ...block } = genesisBlock as any;
 			// Assert
-			expect(blocksInstance.lastBlock).toEqual(block);
+			expect(chainInstance.lastBlock).toEqual(block);
 		});
 	});
 
 	describe('init', () => {
 		beforeEach(async () => {
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_: any, callback: any) => callback.call(blocksInstance, stubs.tx),
+				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
 			);
 			stubs.dependencies.storage.entities.Block.count.mockResolvedValue(5);
 			stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
@@ -172,7 +172,7 @@ describe('blocks', () => {
 				const error = new Error('Failed to load genesis block');
 				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
 				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
+				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
 			it('should throw an error if the genesis block id is different', async () => {
@@ -187,7 +187,7 @@ describe('blocks', () => {
 				]);
 
 				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
+				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
 			it('should throw an error if the genesis block payloadHash is different', async () => {
@@ -201,7 +201,7 @@ describe('blocks', () => {
 					mutatedGenesisBlock,
 				]);
 				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
+				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
 			it('should throw an error if the genesis block signature is different', async () => {
@@ -215,12 +215,12 @@ describe('blocks', () => {
 					mutatedGenesisBlock,
 				]);
 				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
+				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
 			it('should not throw when genesis block matches', async () => {
 				// Act & Assert
-				await expect(blocksInstance.init()).resolves.toEqual(undefined);
+				await expect(chainInstance.init()).resolves.toEqual(undefined);
 			});
 		});
 
@@ -231,7 +231,7 @@ describe('blocks', () => {
 				stubs.dependencies.storage.entities.Block.get.mockRejectedValue(error);
 
 				// Act & Assert
-				await expect(blocksInstance.init()).rejects.toEqual(error);
+				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
 			it('should throw an error when Block.get returns empty array', async () => {
@@ -242,7 +242,7 @@ describe('blocks', () => {
 					.mockReturnValueOnce([]);
 
 				// Act && Assert
-				await expect(blocksInstance.init()).rejects.toThrow(errorMessage);
+				await expect(chainInstance.init()).rejects.toThrow(errorMessage);
 			});
 			// TODO: The tests are minimal due to the changes we expect as part of https://github.com/LiskHQ/lisk-sdk/issues/4131
 			describe('when Block.get returns rows', () => {
@@ -253,19 +253,19 @@ describe('blocks', () => {
 						newBlock(),
 					]);
 					// Act
-					await blocksInstance.init();
+					await chainInstance.init();
 
 					// Assert
-					expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
+					expect(chainInstance.lastBlock.id).toEqual(genesisBlock.id);
 				});
 			});
 		});
 
 		it('should initialize the processor', async () => {
 			// Act
-			await blocksInstance.init();
+			await chainInstance.init();
 			// Assert
-			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
+			expect(chainInstance.lastBlock.id).toEqual(genesisBlock.id);
 		});
 	});
 
@@ -274,14 +274,14 @@ describe('blocks', () => {
 		const block = newBlock({ transactions: [transaction] });
 
 		it('should convert all the field to be JSON format', () => {
-			const blockInstance = blocksInstance.serialize(block);
+			const blockInstance = chainInstance.serialize(block);
 			expect(blockInstance.reward).toBe(block.reward.toString());
 			expect(blockInstance.totalFee).toBe(block.totalFee.toString());
 			expect(blockInstance.totalAmount).toBe(block.totalAmount.toString());
 		});
 
 		it('should have only previousBlockId property', () => {
-			const blockInstance = blocksInstance.serialize(block);
+			const blockInstance = chainInstance.serialize(block);
 			expect(blockInstance.previousBlockId).toBeString();
 		});
 	});
@@ -326,19 +326,19 @@ describe('blocks', () => {
 		} as BlockJSON;
 
 		it('should convert big number field to be instance', () => {
-			const blockInstance = blocksInstance.deserialize(blockJSON);
+			const blockInstance = chainInstance.deserialize(blockJSON);
 			expect(typeof blockInstance.totalAmount).toBe('bigint');
 			expect(typeof blockInstance.totalFee).toBe('bigint');
 			expect(typeof blockInstance.reward).toBe('bigint');
 		});
 
 		it('should convert transaction to be a class', () => {
-			const blockInstance = blocksInstance.deserialize(blockJSON);
+			const blockInstance = chainInstance.deserialize(blockJSON);
 			expect(blockInstance.transactions[0]).toBeInstanceOf(TransferTransaction);
 		});
 
 		it('should have only previousBlockId property', () => {
-			const blockInstance = blocksInstance.deserialize(blockJSON);
+			const blockInstance = chainInstance.deserialize(blockJSON);
 			expect(blockInstance.previousBlockId).toBeString();
 		});
 	});
@@ -351,7 +351,7 @@ describe('blocks', () => {
 				Promise.all(promises),
 			);
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_: any, callback: any) => callback.call(blocksInstance, stubs.tx),
+				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
 			);
 			stateStoreStub = {
 				finalize: jest.fn(),
@@ -365,7 +365,7 @@ describe('blocks', () => {
 			stubs.tx.batch.mockRejectedValue(blockCreateError);
 
 			// Act & Assert
-			await expect(blocksInstance.save(block, stateStoreStub)).rejects.toEqual(
+			await expect(chainInstance.save(block, stateStoreStub)).rejects.toEqual(
 				blockCreateError,
 			);
 		});
@@ -381,7 +381,7 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act & Assert
-			await expect(blocksInstance.save(block, stateStoreStub)).rejects.toEqual(
+			await expect(chainInstance.save(block, stateStoreStub)).rejects.toEqual(
 				transactionCreateError,
 			);
 		});
@@ -393,11 +393,11 @@ describe('blocks', () => {
 				totalAmount: '0',
 				totalFee: '0',
 			});
-			const blockJSON = blocksInstance.serialize(block);
+			const blockJSON = chainInstance.serialize(block);
 			expect.assertions(1);
 
 			// Act
-			await blocksInstance.save(block, stateStoreStub);
+			await chainInstance.save(block, stateStoreStub);
 
 			// Assert
 			expect(
@@ -410,7 +410,7 @@ describe('blocks', () => {
 			const block = newBlock();
 
 			// Act
-			await blocksInstance.save(block, stateStoreStub);
+			await chainInstance.save(block, stateStoreStub);
 
 			// Assert
 			expect(
@@ -426,7 +426,7 @@ describe('blocks', () => {
 			const transactionJSON = transaction.toJSON();
 
 			// Act
-			await blocksInstance.save(block, stateStoreStub);
+			await chainInstance.save(block, stateStoreStub);
 
 			// Assert
 			expect(
@@ -439,7 +439,7 @@ describe('blocks', () => {
 			const block = newBlock();
 
 			// Act & Assert
-			await blocksInstance.save(block, stateStoreStub),
+			await chainInstance.save(block, stateStoreStub),
 				expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 			expect(stateStoreStub.finalize).toHaveBeenCalledWith(stubs.tx);
 		});
@@ -451,7 +451,7 @@ describe('blocks', () => {
 			// Act & Assert
 			expect.assertions(1);
 
-			await expect(blocksInstance.save(block, stateStoreStub)).resolves.toEqual(
+			await expect(chainInstance.save(block, stateStoreStub)).resolves.toEqual(
 				undefined,
 			);
 		});
@@ -467,7 +467,7 @@ describe('blocks', () => {
 			expect.assertions(1);
 
 			// Act & Assert
-			await expect(blocksInstance.save(block, stateStoreStub)).rejects.toBe(
+			await expect(chainInstance.save(block, stateStoreStub)).rejects.toBe(
 				blockCreateError,
 			);
 		});
@@ -484,7 +484,7 @@ describe('blocks', () => {
 				Promise.all(promises),
 			);
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_: any, callback: any) => callback.call(blocksInstance, stubs.tx),
+				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
 			);
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 				genesisBlock,
@@ -495,8 +495,8 @@ describe('blocks', () => {
 		it('should throw an error when removing genesis block', async () => {
 			// Act & Assert
 			await expect(
-				blocksInstance.remove(
-					blocksInstance.deserialize(genesisBlock),
+				chainInstance.remove(
+					chainInstance.deserialize(genesisBlock),
 					stateStoreStub,
 				),
 			).rejects.toThrow('Cannot delete genesis block');
@@ -507,9 +507,9 @@ describe('blocks', () => {
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
 			const block = newBlock();
 			// Act & Assert
-			await expect(
-				blocksInstance.remove(block, stateStoreStub),
-			).rejects.toThrow('PreviousBlock is null');
+			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toThrow(
+				'PreviousBlock is null',
+			);
 		});
 
 		it('should throw an error when deleting block fails', async () => {
@@ -523,18 +523,18 @@ describe('blocks', () => {
 			);
 			const block = newBlock();
 			// Act & Assert
-			await expect(
-				blocksInstance.remove(block, stateStoreStub),
-			).rejects.toEqual(deleteBlockError);
+			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toEqual(
+				deleteBlockError,
+			);
 		});
 
 		it('should not create entry in temp block table when saveToTemp flag is false', async () => {
 			// Arrange
 			const block = newBlock();
 			// Act
-			await blocksInstance.remove(block, stateStoreStub);
+			await chainInstance.remove(block, stateStoreStub);
 			// Assert
-			expect(blocksInstance.lastBlock.id).toEqual(genesisBlock.id);
+			expect(chainInstance.lastBlock.id).toEqual(genesisBlock.id);
 			expect(
 				stubs.dependencies.storage.entities.TempBlock.create,
 			).not.toHaveBeenCalled();
@@ -556,7 +556,7 @@ describe('blocks', () => {
 				);
 				// Act & Assert
 				await expect(
-					blocksInstance.remove(block, stateStoreStub, {
+					chainInstance.remove(block, stateStoreStub, {
 						saveTempBlock: true,
 					}),
 				).rejects.toEqual(tempBlockCreateError);
@@ -567,9 +567,9 @@ describe('blocks', () => {
 				const transaction = new TransferTransaction(randomUtils.transaction());
 				const block = newBlock({ transactions: [transaction] });
 				(transaction as any).blockId = block.id;
-				const blockJSON = blocksInstance.serialize(block);
+				const blockJSON = chainInstance.serialize(block);
 				// Act
-				await blocksInstance.remove(block, stateStoreStub, {
+				await chainInstance.remove(block, stateStoreStub, {
 					saveTempBlock: true,
 				});
 				// Assert
@@ -594,7 +594,7 @@ describe('blocks', () => {
 			const block = newBlock();
 
 			// Act
-			await blocksInstance.removeBlockFromTempTable(block.id, stubs.tx);
+			await chainInstance.removeBlockFromTempTable(block.id, stubs.tx);
 
 			// Assert
 			expect(
@@ -615,7 +615,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			expect.assertions(2);
 			// Act & Assert
-			expect(await blocksInstance.exists(block)).toEqual(true);
+			expect(await chainInstance.exists(block)).toEqual(true);
 			expect(
 				stubs.dependencies.storage.entities.Block.isPersisted,
 			).toHaveBeenCalledWith({
@@ -631,7 +631,7 @@ describe('blocks', () => {
 			const block = newBlock();
 			expect.assertions(2);
 			// Act & Assert
-			expect(await blocksInstance.exists(block)).toEqual(false);
+			expect(await chainInstance.exists(block)).toEqual(false);
 			expect(
 				stubs.dependencies.storage.entities.Block.isPersisted,
 			).toHaveBeenCalledWith({
@@ -656,7 +656,7 @@ describe('blocks', () => {
 			});
 
 			it('should use limit 1 as default', async () => {
-				await blocksInstance.dataAccess.getBlocksWithLimitAndOffset(1);
+				await chainInstance.dataAccess.getBlocksWithLimitAndOffset(1);
 
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
@@ -686,7 +686,7 @@ describe('blocks', () => {
 			});
 
 			it('should be sorted ascending by height', async () => {
-				const blocks = await blocksInstance.dataAccess.getBlocksWithLimitAndOffset(
+				const blocks = await chainInstance.dataAccess.getBlocksWithLimitAndOffset(
 					2,
 					100,
 				);
@@ -712,7 +712,7 @@ describe('blocks', () => {
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([block]);
 
 			// Act
-			const result = await blocksInstance.getHighestCommonBlock(ids);
+			const result = await chainInstance.getHighestCommonBlock(ids);
 
 			// Assert
 			expect(result).toEqual(block);
@@ -725,7 +725,7 @@ describe('blocks', () => {
 			);
 
 			// Act && Assert
-			await expect(blocksInstance.getHighestCommonBlock(ids)).rejects.toThrow(
+			await expect(chainInstance.getHighestCommonBlock(ids)).rejects.toThrow(
 				'Failed to fetch the highest common block',
 			);
 		});

@@ -35,8 +35,8 @@ describe.skip('validateOwnChain', () => {
 
 	describe('forge 150 blocks with version = 0', () => {
 		before(() => {
-			library.modules.blocks.blocksVerify.exceptions = {
-				...library.modules.blocks.exceptions,
+			library.modules.chain.blocksVerify.exceptions = {
+				...library.modules.chain.exceptions,
 				blockVersions: {
 					0: {
 						start: 1,
@@ -52,7 +52,7 @@ describe.skip('validateOwnChain', () => {
 		});
 
 		it('blockchain should be at height 150', async () => {
-			const lastBlock = library.modules.blocks.lastBlock;
+			const lastBlock = library.modules.chain.lastBlock;
 			return expect(lastBlock.height).to.eql(150);
 		});
 
@@ -70,8 +70,8 @@ describe.skip('validateOwnChain', () => {
 			let validateOwnChainError = null;
 
 			before(async () => {
-				library.modules.blocks.blocksVerify.exceptions = {
-					...library.modules.blocks.exceptions,
+				library.modules.chain.blocksVerify.exceptions = {
+					...library.modules.chain.exceptions,
 					blockVersions: {
 						0: {
 							start: 1,
@@ -81,8 +81,8 @@ describe.skip('validateOwnChain', () => {
 				};
 
 				try {
-					await library.modules.blocks.blocksVerify.requireBlockRewind(
-						library.modules.blocks.lastBlock,
+					await library.modules.chain.blocksVerify.requireBlockRewind(
+						library.modules.chain.lastBlock,
 					);
 				} catch (error) {
 					validateOwnChainError = error;
@@ -94,7 +94,7 @@ describe.skip('validateOwnChain', () => {
 			});
 
 			it('blockchain should be at height 150', async () => {
-				const lastBlock = library.modules.blocks.lastBlock;
+				const lastBlock = library.modules.chain.lastBlock;
 				return expect(lastBlock.height).to.eql(150);
 			});
 
@@ -114,7 +114,7 @@ describe.skip('validateOwnChain', () => {
 				});
 
 				it('blockchain should be at height 155', async () => {
-					const lastBlock = library.modules.blocks.lastBlock;
+					const lastBlock = library.modules.chain.lastBlock;
 					return expect(lastBlock.height).to.eql(155);
 				});
 

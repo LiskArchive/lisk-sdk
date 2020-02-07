@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { Dpos, constants } from '../../src';
-import { Slots } from '../../../lisk-blocks/src/slots';
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	Account,
 	ForgersList,
@@ -45,12 +45,12 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.apply()', () => {
 	let dpos: Dpos;
-	let blocksStub: any;
+	let chainStub: any;
 	let stateStore: StateStoreMock;
 
 	beforeEach(() => {
 		// Arrange
-		blocksStub = {
+		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
@@ -60,7 +60,7 @@ describe('dpos.apply()', () => {
 		};
 
 		dpos = new Dpos({
-			blocks: blocksStub,
+			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -86,7 +86,7 @@ describe('dpos.apply()', () => {
 				{},
 			);
 
-			when(blocksStub.dataAccess.getDelegateAccounts)
+			when(chainStub.dataAccess.getDelegateAccounts)
 				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue([]);
 		});
@@ -96,7 +96,7 @@ describe('dpos.apply()', () => {
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			expect(blocksStub.dataAccess.getDelegateAccounts).toHaveBeenCalledWith(
+			expect(chainStub.dataAccess.getDelegateAccounts).toHaveBeenCalledWith(
 				ACTIVE_DELEGATES,
 			);
 			let forgerslList = [];
@@ -143,7 +143,7 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: generator.publicKey,
 			} as BlockHeader;
 
-			when(blocksStub.dataAccess.getDelegateAccounts)
+			when(chainStub.dataAccess.getDelegateAccounts)
 				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 		});
@@ -188,7 +188,7 @@ describe('dpos.apply()', () => {
 				[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
 			});
 
-			when(blocksStub.dataAccess.getDelegateAccounts)
+			when(chainStub.dataAccess.getDelegateAccounts)
 				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 		});
@@ -250,7 +250,7 @@ describe('dpos.apply()', () => {
 					]),
 				},
 			);
-			when(blocksStub.dataAccess.getDelegateAccounts)
+			when(chainStub.dataAccess.getDelegateAccounts)
 				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 
@@ -288,7 +288,7 @@ describe('dpos.apply()', () => {
 				reward: rewardPerDelegate,
 			} as BlockHeader;
 
-			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
 		});
@@ -389,7 +389,7 @@ describe('dpos.apply()', () => {
 			} as BlockHeader;
 			forgedBlocks.splice(forgedBlocks.length - 1);
 
-			blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
 
@@ -544,7 +544,7 @@ describe('dpos.apply()', () => {
 				}));
 				forgedBlocks.splice(forgedBlocks.length - 1);
 
-				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 					forgedBlocks,
 				);
 
@@ -561,7 +561,7 @@ describe('dpos.apply()', () => {
 			it('should throw the error message coming from summedRound method and not perform any update', async () => {
 				// Arrange
 				const err = new Error('dummyError');
-				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
 					err,
 				);
 
@@ -599,7 +599,7 @@ describe('dpos.apply()', () => {
 					reward: rewardPerDelegate,
 				} as BlockHeader;
 
-				blocksStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 					forgedBlocks,
 				);
 
@@ -669,7 +669,7 @@ describe('dpos.apply()', () => {
 				};
 
 				dpos = new Dpos({
-					blocks: blocksStub,
+					chain: chainStub,
 					activeDelegates: ACTIVE_DELEGATES,
 					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 					exceptions,

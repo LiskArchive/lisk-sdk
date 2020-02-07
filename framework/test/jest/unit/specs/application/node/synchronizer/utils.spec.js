@@ -21,14 +21,14 @@ const {
 } = require('../../../../../../../src/application/node/synchronizer/utils');
 
 describe('#synchronizer/utils', () => {
-	let blocksMock;
+	let chainMock;
 	let processorMock;
 	let storageMock;
 	let loggerMock;
 	const stubs = {};
 
 	beforeEach(async () => {
-		blocksMock = {
+		chainMock = {
 			lastBlock: jest.fn(),
 			dataAccess: {
 				getTempBlocks: jest.fn(),
@@ -65,10 +65,10 @@ describe('#synchronizer/utils', () => {
 		it('should return true on success', async () => {
 			// Arrange
 			const blocks = [{ id: 'block1' }, { id: 'block2' }];
-			blocksMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
+			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
-			const result = await restoreBlocks(blocksMock, processorMock, stubs.tx);
+			const result = await restoreBlocks(chainMock, processorMock, stubs.tx);
 
 			// Assert
 			expect(result).toBeTruthy();
@@ -80,13 +80,13 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize
 				.mockResolvedValueOnce(blocks[0])
 				.mockResolvedValueOnce(blocks[1]);
-			blocksMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
+			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
-			await restoreBlocks(blocksMock, processorMock, stubs.tx);
+			await restoreBlocks(chainMock, processorMock, stubs.tx);
 
 			// Assert
-			expect(blocksMock.dataAccess.getTempBlocks).toHaveBeenCalledWith(
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalledWith(
 				{},
 				{ sort: 'height:asc', limit: null },
 				stubs.tx,
@@ -106,14 +106,14 @@ describe('#synchronizer/utils', () => {
 
 		it('should return false when temp_blocks table is empty', async () => {
 			// Arrange
-			blocksMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue([]);
+			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue([]);
 
 			// Act
-			const result = await restoreBlocks(blocksMock, processorMock, stubs.tx);
+			const result = await restoreBlocks(chainMock, processorMock, stubs.tx);
 
 			// Assert
 			expect(result).toBeFalsy();
-			expect(blocksMock.dataAccess.getTempBlocks).toHaveBeenCalledWith(
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalledWith(
 				{},
 				{ sort: 'height:asc', limit: null },
 				stubs.tx,
@@ -144,7 +144,7 @@ describe('#synchronizer/utils', () => {
 				},
 			];
 			storageMock.entities.TempBlock.get.mockResolvedValue(tempBlocks);
-			blocksMock.dataAccess.getTempBlocks.mockResolvedValue(tempBlocks);
+			chainMock.dataAccess.getTempBlocks.mockResolvedValue(tempBlocks);
 		});
 
 		it('should restore blocks if fork status = ForkStatus.DIFFERENT_CHAIN', async () => {
@@ -156,13 +156,13 @@ describe('#synchronizer/utils', () => {
 			// Act
 			await restoreBlocksUponStartup(
 				loggerMock,
-				blocksMock,
+				chainMock,
 				processorMock,
 				storageMock,
 			);
 
 			// Assert
-			expect(blocksMock.dataAccess.getTempBlocks).toHaveBeenCalled();
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
@@ -175,13 +175,13 @@ describe('#synchronizer/utils', () => {
 			// Act
 			await restoreBlocksUponStartup(
 				loggerMock,
-				blocksMock,
+				chainMock,
 				processorMock,
 				storageMock,
 			);
 
 			// Assert
-			expect(blocksMock.dataAccess.getTempBlocks).toHaveBeenCalled();
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 		});
 
 		it('should truncate temp_blocks table if fork status != ForkStatus.DIFFERENT_CHAIN || != ForkStatus.VALID_BLOCK', async () => {
@@ -189,23 +189,23 @@ describe('#synchronizer/utils', () => {
 			processorMock.forkStatus.mockResolvedValue(ForkStatus.DISCARD);
 			processorMock.deleteLastBlock.mockResolvedValue({ height: 0 });
 
-			blocksMock.lastBlock = {
+			chainMock.lastBlock = {
 				id: 999999,
 				height: 1,
 			};
 
-			processorMock.deserialize.mockResolvedValue(blocksMock.lastBlock);
+			processorMock.deserialize.mockResolvedValue(chainMock.lastBlock);
 
 			// Act
 			await restoreBlocksUponStartup(
 				loggerMock,
-				blocksMock,
+				chainMock,
 				processorMock,
 				storageMock,
 			);
 
 			// Assert
-			expect(blocksMock.dataAccess.clearTempBlocks).toHaveBeenCalled();
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 		});
 
 		it('should call forkStatus with lowest block object', async () => {
@@ -217,7 +217,7 @@ describe('#synchronizer/utils', () => {
 			// Act
 			await restoreBlocksUponStartup(
 				loggerMock,
-				blocksMock,
+				chainMock,
 				processorMock,
 				storageMock,
 			);

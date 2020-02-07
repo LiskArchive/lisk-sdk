@@ -25,7 +25,7 @@ import { Rounds } from './rounds';
 import {
 	Account,
 	BlockHeader,
-	Blocks,
+	Chain,
 	DPoSProcessingOptions,
 	Earnings,
 	RoundException,
@@ -35,7 +35,7 @@ import {
 const debug = Debug('lisk:dpos:delegate_info');
 
 interface DelegatesInfoConstructor {
-	readonly blocks: Blocks;
+	readonly chain: Chain;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
 	readonly events: EventEmitter;
@@ -169,7 +169,7 @@ const _updateMissedBlocks = async (
 };
 
 export class DelegatesInfo {
-	private readonly blocks: Blocks;
+	private readonly chain: Chain;
 	private readonly rounds: Rounds;
 	private readonly activeDelegates: number;
 	private readonly events: EventEmitter;
@@ -180,13 +180,13 @@ export class DelegatesInfo {
 
 	public constructor({
 		rounds,
-		blocks,
+		chain,
 		activeDelegates,
 		events,
 		delegatesList,
 		exceptions,
 	}: DelegatesInfoConstructor) {
-		this.blocks = blocks;
+		this.chain = chain;
 		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
 		this.events = events;
@@ -311,7 +311,7 @@ export class DelegatesInfo {
 		const heightFrom = this.rounds.calcRoundStartHeight(round);
 		const heightTo = this.rounds.calcRoundEndHeight(round) - 1;
 
-		const blocksInRounds = await this.blocks.dataAccess.getBlockHeadersByHeightBetween(
+		const blocksInRounds = await this.chain.dataAccess.getBlockHeadersByHeightBetween(
 			heightFrom,
 			heightTo,
 		);

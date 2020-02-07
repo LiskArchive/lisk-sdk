@@ -76,7 +76,7 @@ describe('Transport', () => {
 			// Modules
 			synchronizer: synchronizerStub,
 			transactionPoolModule: transactionPoolStub,
-			blocksModule: blocksStub,
+			chainModule: blocksStub,
 			processorModule: processorStub,
 			// Constants
 			broadcasts: {

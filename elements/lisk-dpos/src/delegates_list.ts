@@ -20,7 +20,7 @@ import { Rounds } from './rounds';
 import {
 	Account,
 	BlockHeader,
-	Blocks,
+	Chain,
 	ForgerList,
 	ForgersList,
 	StateStore,
@@ -31,7 +31,7 @@ const debug = Debug('lisk:dpos:delegate_list');
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
-	readonly blocks: Blocks;
+	readonly chain: Chain;
 	readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
@@ -123,7 +123,7 @@ export const getForgerPublicKeysForRound = async (
 
 export class DelegatesList {
 	private readonly rounds: Rounds;
-	private readonly blocks: Blocks;
+	private readonly chain: Chain;
 	private readonly activeDelegates: number;
 	private readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
@@ -132,13 +132,13 @@ export class DelegatesList {
 	public constructor({
 		activeDelegates,
 		rounds,
-		blocks,
+		chain,
 		exceptions,
 	}: DelegatesListConstructor) {
 		this.activeDelegates = activeDelegates;
 		this.rounds = rounds;
 		this.exceptions = exceptions;
-		this.blocks = blocks;
+		this.chain = chain;
 	}
 
 	/**
@@ -153,7 +153,7 @@ export class DelegatesList {
 		const forgersList = await getForgersList(stateStore);
 		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
 		// This gets the list before current block is executed
-		const delegateAccounts = await this.blocks.dataAccess.getDelegateAccounts(
+		const delegateAccounts = await this.chain.dataAccess.getDelegateAccounts(
 			this.activeDelegates,
 		);
 		const updatedAccounts = stateStore.account.getUpdated();
@@ -207,7 +207,7 @@ export class DelegatesList {
 	public async getShuffledDelegateList(
 		round: number,
 	): Promise<ReadonlyArray<string>> {
-		const forgersListStr = await this.blocks.dataAccess.getChainState(
+		const forgersListStr = await this.chain.dataAccess.getChainState(
 			CHAIN_STATE_FORGERS_LIST_KEY,
 		);
 		const forgersList =
@@ -225,7 +225,7 @@ export class DelegatesList {
 	}
 
 	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
-		const currentSlot = this.blocks.slots.getSlotNumber(block.timestamp);
+		const currentSlot = this.chain.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.rounds.calcRound(block.height);
 
 		const delegateList = await this.getShuffledDelegateList(currentRound);

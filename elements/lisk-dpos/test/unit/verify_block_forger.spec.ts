@@ -13,7 +13,7 @@
  */
 
 import { Dpos } from '../../src';
-import { Slots } from '../../../lisk-blocks/src/slots';
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	EPOCH_TIME,
 	BLOCK_TIME,
@@ -26,11 +26,11 @@ import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
-	let blocksStub: any;
+	let chainStub: any;
 
 	beforeEach(() => {
 		// Arrange
-		blocksStub = {
+		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
 				getChainState: jest
@@ -42,7 +42,7 @@ describe('dpos.verifyBlockForger()', () => {
 		};
 
 		dpos = new Dpos({
-			blocks: blocksStub,
+			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
@@ -66,7 +66,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should call the chain state to get the list', async () => {
 		// Arrange
-		blocksStub.dataAccess.getChainState.mockResolvedValue(
+		chainStub.dataAccess.getChainState.mockResolvedValue(
 			JSON.stringify([{ round: 1, delegates: delegatePublicKeys }]),
 		);
 		const block = {
@@ -80,7 +80,7 @@ describe('dpos.verifyBlockForger()', () => {
 		await dpos.verifyBlockForger(block);
 
 		// Assert
-		expect(blocksStub.dataAccess.getChainState).toHaveBeenCalledWith(
+		expect(chainStub.dataAccess.getChainState).toHaveBeenCalledWith(
 			CHAIN_STATE_FORGERS_LIST_KEY,
 		);
 	});
@@ -93,7 +93,7 @@ describe('dpos.verifyBlockForger()', () => {
 			generatorPublicKey: 'xxx',
 		} as BlockHeader;
 
-		const expectedSlot = (dpos as any).blocks.slots.getSlotNumber(
+		const expectedSlot = (dpos as any).chain.slots.getSlotNumber(
 			block.timestamp,
 		);
 
@@ -106,7 +106,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should throw error if no delegate list is found', async () => {
 		// Arrange
-		blocksStub.dataAccess.getChainState.mockResolvedValue(undefined);
+		chainStub.dataAccess.getChainState.mockResolvedValue(undefined);
 		const block = {
 			id: 1234,
 			height: 302,

@@ -22,7 +22,7 @@ const PQ = require('pg-promise').ParameterizedQuery;
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const { Slots } = require('@liskhq/lisk-blocks');
+const { Slots } = require('@liskhq/lisk-chain');
 const { Rounds } = require('@liskhq/lisk-dpos');
 const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
@@ -56,8 +56,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			]);
 		})
 			.then(() => {
-				library.modules.blocks.resetBlockHeaderCache();
-				library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+				library.modules.chain.resetBlockHeaderCache();
+				library.modules.chain._lastBlock = __testContext.config.genesisBlock;
 			})
 			.catch(err => {
 				__testContext.debug(err.stack);
@@ -100,7 +100,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function forge(forgingSlot, cb) {
-		let last_block = library.modules.blocks.lastBlock;
+		let last_block = library.modules.chain.lastBlock;
 		const slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
 		let delegate;
 
@@ -152,11 +152,11 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							keypair,
 							timestamp: slots.getSlotTime(slot) + 5,
 							transactions,
-							previousBlock: library.modules.blocks.lastBlock,
+							previousBlock: library.modules.chain.lastBlock,
 						})
 						.then(block => library.modules.processor.process(block))
 						.then(() => {
-							last_block = library.modules.blocks.lastBlock;
+							last_block = library.modules.chain.lastBlock;
 							__testContext.debug(
 								`New last block height: ${last_block.height} New last block ID: ${last_block.id}`,
 							);
@@ -194,7 +194,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 	}
 
 	function getValidKeypairForSlot(slot) {
-		const lastBlock = library.modules.blocks.lastBlock;
+		const lastBlock = library.modules.chain.lastBlock;
 		const round = rounds.calcRound(lastBlock.height);
 
 		return library.modules.dpos
@@ -233,7 +233,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 			let block;
 
 			before(async () => {
-				lastBlock = library.modules.blocks.lastBlock;
+				lastBlock = library.modules.chain.lastBlock;
 				const slot = slots.getSlotNumber();
 				const keypair = await getValidKeypairForSlot(slot);
 				block = await createBlock(
@@ -241,8 +241,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					slots.getSlotTime(slot),
 					keypair,
 					lastBlock,
-					library.modules.blocks.blockReward,
-					library.modules.blocks.constants.maxPayloadLength,
+					library.modules.chain.blockReward,
+					library.modules.chain.constants.maxPayloadLength,
 				);
 			});
 
@@ -265,7 +265,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					let block;
 
 					beforeEach(async () => {
-						lastBlock = library.modules.blocks.lastBlock;
+						lastBlock = library.modules.chain.lastBlock;
 						const slot = slots.getSlotNumber();
 						const nonDelegateKeypair = getKeypair(
 							accountFixtures.genesis.passphrase,
@@ -275,8 +275,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							slots.getSlotTime(slot),
 							nonDelegateKeypair,
 							lastBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 					});
 
@@ -297,7 +297,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 					let block;
 
 					beforeEach(async () => {
-						lastBlock = library.modules.blocks.lastBlock;
+						lastBlock = library.modules.chain.lastBlock;
 						// Using last block's slot
 						const slot = slots.getSlotNumber() - 1;
 						const keypair = await getValidKeypairForSlot(slot - 1);
@@ -306,8 +306,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							slots.getEpochTime(),
 							keypair,
 							lastBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 					});
 
@@ -362,8 +362,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							slots.getSlotTime(slot) + 7,
 							keypair,
 							dummyBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 						return library.modules.processor.process(blockWithGreaterTimestamp);
 					});
@@ -401,8 +401,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							slots.getSlotTime(slot),
 							keypair,
 							dummyBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 
 						library.modules.processor.process(blockWithLowerTimestamp);
@@ -515,8 +515,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								slots.getSlotTime(slot),
 								keypair,
 								dummyBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength,
+								library.modules.chain.blockReward,
+								library.modules.chain.constants.maxPayloadLength,
 							);
 							library.modules.processor.process(blockFromFutureSlot);
 						});
@@ -574,8 +574,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							timestamp,
 							keypair,
 							secondLastBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 						library.modules.processor.process(blockWithGreaterTimestamp);
 						getBlocks((err, blockIds) => {
@@ -606,8 +606,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								timestamp,
 								keypair,
 								secondLastBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength,
+								library.modules.chain.blockReward,
+								library.modules.chain.constants.maxPayloadLength,
 							);
 							library.modules.processor.process(blockWithGreaterTimestamp);
 							getBlocks((err, blockIds) => {
@@ -645,8 +645,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								timestamp,
 								keypair,
 								secondLastBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength,
+								library.modules.chain.blockReward,
+								library.modules.chain.constants.maxPayloadLength,
 							);
 							library.modules.processor.process(blockWithInvalidSlot);
 							getBlocks((err, blockIds) => {
@@ -669,8 +669,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								timestamp,
 								keypair,
 								secondLastBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength,
+								library.modules.chain.blockReward,
+								library.modules.chain.constants.maxPayloadLength,
 							);
 							library.modules.processor.process(blockWithLowerTimestamp);
 							getBlocks((err, blockIds) => {
@@ -708,8 +708,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									timestamp,
 									keypair,
 									secondLastBlock,
-									library.modules.blocks.blockReward,
-									library.modules.blocks.constants.maxPayloadLength,
+									library.modules.chain.blockReward,
+									library.modules.chain.constants.maxPayloadLength,
 								);
 								library.modules.processor.process(
 									blockWithDifferentKeyAndTimestamp,
@@ -745,8 +745,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 									auxTimestamp,
 									keypair,
 									secondLastBlock,
-									library.modules.blocks.blockReward,
-									library.modules.blocks.constants.maxPayloadLength,
+									library.modules.chain.blockReward,
+									library.modules.chain.constants.maxPayloadLength,
 								);
 								await library.modules.processor.process(
 									blockWithDifferentKeyAndTimestamp,
@@ -788,8 +788,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 								slots.getSlotTime(slot + 2),
 								nextSlotKeypair,
 								lastBlock,
-								library.modules.blocks.blockReward,
-								library.modules.blocks.constants.maxPayloadLength,
+								library.modules.chain.blockReward,
+								library.modules.chain.constants.maxPayloadLength,
 							);
 
 							function sendSkippedSlotBlock() {
@@ -818,8 +818,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							slots.getSlotTime(slot + 1),
 							keypair,
 							lastBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 						library.modules.processor.process(blockWithUnskippedSlot);
 						getBlocks((err, blockIds) => {
@@ -866,8 +866,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 							slots.getSlotTime(slot),
 							keypair,
 							secondLastBlock,
-							library.modules.blocks.blockReward,
-							library.modules.blocks.constants.maxPayloadLength,
+							library.modules.chain.blockReward,
+							library.modules.chain.constants.maxPayloadLength,
 						);
 						done();
 					});
@@ -895,7 +895,7 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 				let block;
 
 				beforeEach(done => {
-					lastBlock = library.modules.blocks.lastBlock;
+					lastBlock = library.modules.chain.lastBlock;
 					forge(null, (err, forgedBlock) => {
 						block = forgedBlock;
 						done();
@@ -930,8 +930,8 @@ describe('integration test (blocks) - process receiveBlockFromNetwork()', () => 
 						slots.getSlotTime(10),
 						keypair,
 						dummyLastBlock,
-						library.modules.blocks.blockReward,
-						library.modules.blocks.constants.maxPayloadLength,
+						library.modules.chain.blockReward,
+						library.modules.chain.constants.maxPayloadLength,
 					);
 					done();
 				});

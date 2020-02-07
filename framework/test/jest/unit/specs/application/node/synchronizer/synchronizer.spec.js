@@ -15,7 +15,7 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { Blocks } = require('@liskhq/lisk-blocks');
+const { Chain } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Rounds } = require('@liskhq/lisk-dpos');
 
@@ -47,7 +47,7 @@ const ChannelMock = jest.genMockFromModule(
 describe('Synchronizer', () => {
 	let bftModule;
 	let blockProcessorV2;
-	let blocksModule;
+	let chainModule;
 	let processorModule;
 	let synchronizer;
 	let syncMechanism1;
@@ -93,7 +93,7 @@ describe('Synchronizer', () => {
 
 		rounds = new Rounds({ blocksPerRound: constants.ACTIVE_DELEGATES });
 
-		blocksModule = new Blocks({
+		chainModule = new Chain({
 			logger: loggerMock,
 			storage: storageMock,
 			sequence: new Sequence(),
@@ -117,13 +117,13 @@ describe('Synchronizer', () => {
 			storage: storageMock,
 			logger: loggerMock,
 			rounds,
-			slots: blocksModule.slots,
+			slots: chainModule.slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
-			blocksModule,
+			chainModule,
 			bftModule,
 			dposModule: dposModuleMock,
 			logger: loggerMock,
@@ -134,7 +134,7 @@ describe('Synchronizer', () => {
 		processorModule = new Processor({
 			channel: channelMock,
 			storage: storageMock,
-			blocksModule,
+			chainModule,
 			logger: loggerMock,
 		});
 		processorModule.processValidated = jest.fn();
@@ -154,7 +154,7 @@ describe('Synchronizer', () => {
 			channel: channelMock,
 			logger: loggerMock,
 			processorModule,
-			blocksModule,
+			chainModule,
 			storageModule: storageMock,
 			transactionPoolModule: transactionPoolModuleStub,
 			mechanisms: [syncMechanism1, syncMechanism2],
@@ -225,7 +225,7 @@ describe('Synchronizer', () => {
 					})
 					.mockResolvedValueOnce({ height: initialLastBlock.height - 1 })
 					.mockResolvedValueOnce({ height: initialLastBlock.height - 2 });
-				await blocksModule.init();
+				await chainModule.init();
 
 				// Act
 				await synchronizer.init();
@@ -287,7 +287,7 @@ describe('Synchronizer', () => {
 				when(storageMock.entities.Block.get)
 					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 					.mockResolvedValue([initialLastBlock]);
-				await blocksModule.init();
+				await chainModule.init();
 
 				// Act
 				await synchronizer.init();
@@ -342,7 +342,7 @@ describe('Synchronizer', () => {
 				when(storageMock.entities.Block.get)
 					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
 					.mockResolvedValue([initialLastBlock]);
-				await blocksModule.init();
+				await chainModule.init();
 
 				// Act
 				await synchronizer.init();
@@ -393,7 +393,7 @@ describe('Synchronizer', () => {
 			const error = new Error('error while deleting last block');
 			processorModule.processValidated.mockRejectedValue(error);
 
-			await blocksModule.init();
+			await chainModule.init();
 
 			// Act
 			await synchronizer.init();
@@ -537,8 +537,8 @@ describe('Synchronizer', () => {
 			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				3,
 				{
-					lastBlockHeight: blocksModule.lastBlock.height,
-					lastBlockId: blocksModule.lastBlock.id,
+					lastBlockHeight: chainModule.lastBlock.height,
+					lastBlockId: chainModule.lastBlock.id,
 					mechanism: syncMechanism1.constructor.name,
 				},
 				'Synchronization finished',
@@ -564,9 +564,9 @@ describe('Synchronizer', () => {
 	});
 
 	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
-		let blocksModuleStub;
+		let chainModuleStub;
 		beforeEach(async () => {
-			blocksModuleStub = {
+			chainModuleStub = {
 				recoverChain: jest.fn(),
 				lastBlock: {
 					id: 'blockID',
@@ -586,7 +586,7 @@ describe('Synchronizer', () => {
 				channel: channelMock,
 				logger: loggerMock,
 				processorModule,
-				blocksModule: blocksModuleStub,
+				chainModule: chainModuleStub,
 				storageModule: storageMock,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [syncMechanism1, syncMechanism2],

@@ -14,7 +14,7 @@
 
 import { Block as blockFixture } from '../fixtures/blocks';
 import { FinalityManager } from '../../src/finality_manager';
-const { StateStore } = require('@liskhq/lisk-blocks');
+const { StateStore } = require('@liskhq/lisk-chain');
 
 import {
 	BFT,
@@ -24,7 +24,7 @@ import {
 
 import { Storage, StateStore as StateStoreType, Block } from '../../src/types';
 
-import { Slots } from '@liskhq/lisk-blocks';
+import { Slots } from '@liskhq/lisk-chain';
 import { Rounds } from '@liskhq/lisk-dpos';
 
 const constants = {

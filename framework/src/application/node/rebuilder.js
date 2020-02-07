@@ -27,7 +27,7 @@ class Rebuilder {
 		genesisBlock,
 		// Modules
 		processorModule,
-		blocksModule,
+		chainModule,
 		// Constants
 		activeDelegates,
 		storage,
@@ -40,7 +40,7 @@ class Rebuilder {
 		this.genesisBlock = genesisBlock;
 
 		this.processorModule = processorModule;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 		this.constants = {
 			activeDelegates,
 		};
@@ -52,7 +52,7 @@ class Rebuilder {
 	}
 
 	async rebuild(rebuildUpToRound, loadPerIteration = 1000) {
-		const blocksCount = await this.blocksModule.dataAccess.getBlocksCount();
+		const blocksCount = await this.chainModule.dataAccess.getBlocksCount();
 		this.logger.info(
 			{ rebuildUpToRound, blocksCount },
 			'Rebuild process started',
@@ -80,8 +80,8 @@ class Rebuilder {
 		const targetHeight = targetRound * this.constants.activeDelegates;
 
 		const limit = loadPerIteration;
-		await this.blocksModule.resetState();
-		let { lastBlock } = this.blocksModule;
+		await this.chainModule.resetState();
+		let { lastBlock } = this.chainModule;
 		for (
 			let currentHeight = 0;
 			currentHeight < targetHeight;
@@ -91,7 +91,7 @@ class Rebuilder {
 				break;
 			}
 			// if rebuildUptoRound is undefined, use the highest height
-			const blocks = await this.blocksModule.dataAccess.getBlocksWithLimitAndOffset(
+			const blocks = await this.chainModule.dataAccess.getBlocksWithLimitAndOffset(
 				limit,
 				currentHeight,
 			);
@@ -104,20 +104,20 @@ class Rebuilder {
 				if (block.id === this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
 					await this.processorModule.applyGenesisBlock(block);
-					({ lastBlock } = this.blocksModule);
+					({ lastBlock } = this.chainModule);
 					this.channel.publish('app:rebuild', { block: lastBlock });
 				}
 
 				if (block.id !== this.genesisBlock.id) {
 					// eslint-disable-next-line no-await-in-loop
 					await this.processorModule.apply(block);
-					({ lastBlock } = this.blocksModule);
+					({ lastBlock } = this.chainModule);
 				}
 				this.channel.publish('app:rebuild', { block: lastBlock });
 			}
 		}
 
-		await this.blocksModule.dataAccess.deleteBlocksWithHeightGreaterThan(
+		await this.chainModule.dataAccess.deleteBlocksWithHeightGreaterThan(
 			lastBlock.height,
 		);
 

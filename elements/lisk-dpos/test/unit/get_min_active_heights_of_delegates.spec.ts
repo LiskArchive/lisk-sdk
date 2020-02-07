@@ -14,7 +14,7 @@
 
 // import { when } from 'jest-when';
 import { Dpos } from '../../src';
-import { Slots } from '../../../lisk-blocks/src/slots';
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
@@ -40,12 +40,12 @@ describe('dpos.getMinActiveHeightsOfDelegates()', () => {
 	beforeEach(() => {
 		// Arrange
 		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
-		const blocks = {
+		const chain = {
 			slots,
 		};
 
 		dpos = new Dpos({
-			blocks: blocks as any,
+			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
 		});

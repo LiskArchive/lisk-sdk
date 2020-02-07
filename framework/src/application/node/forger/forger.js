@@ -49,7 +49,7 @@ class Forger {
 		processorModule,
 		dposModule,
 		transactionPoolModule,
-		blocksModule,
+		chainModule,
 		// constants
 		activeDelegates,
 		maxTransactionsPerBlock,
@@ -77,7 +77,7 @@ class Forger {
 		this.processorModule = processorModule;
 		this.dposModule = dposModule;
 		this.transactionPoolModule = transactionPoolModule;
-		this.blocksModule = blocksModule;
+		this.chainModule = chainModule;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -121,9 +121,7 @@ class Forger {
 			throw new Error('Invalid password and public key combination');
 		}
 
-		const [
-			account,
-		] = await this.blocksModule.dataAccess.getAccountsByPublicKey([
+		const [account] = await this.chainModule.dataAccess.getAccountsByPublicKey([
 			keypair.publicKey.toString('hex'),
 		]);
 
@@ -190,7 +188,7 @@ class Forger {
 
 			const [
 				account,
-			] = await this.blocksModule.dataAccess.getAccountsByPublicKey([
+			] = await this.chainModule.dataAccess.getAccountsByPublicKey([
 				keypair.publicKey.toString('hex'),
 			]);
 
@@ -221,15 +219,15 @@ class Forger {
 
 	// eslint-disable-next-line class-methods-use-this
 	async forge() {
-		const currentSlot = this.blocksModule.slots.getSlotNumber();
-		const currentSlotTime = this.blocksModule.slots.getRealTime(
-			this.blocksModule.slots.getSlotTime(currentSlot),
+		const currentSlot = this.chainModule.slots.getSlotNumber();
+		const currentSlotTime = this.chainModule.slots.getRealTime(
+			this.chainModule.slots.getSlotTime(currentSlot),
 		);
 
 		const currentTime = new Date().getTime();
 		const waitThreshold = this.config.forging.waitThreshold * 1000;
-		const { lastBlock } = this.blocksModule;
-		const lastBlockSlot = this.blocksModule.slots.getSlotNumber(
+		const { lastBlock } = this.chainModule;
+		const lastBlockSlot = this.chainModule.slots.getSlotNumber(
 			lastBlock.timestamp,
 		);
 
@@ -243,7 +241,7 @@ class Forger {
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 		const round = this.dposModule.rounds.calcRound(
-			this.blocksModule.lastBlock.height + 1,
+			this.chainModule.lastBlock.height + 1,
 		);
 
 		let delegateKeypair;
@@ -263,7 +261,7 @@ class Forger {
 
 		if (delegateKeypair === null) {
 			this.logger.trace(
-				{ currentSlot: this.blocksModule.slots.getSlotNumber() },
+				{ currentSlot: this.chainModule.slots.getSlotNumber() },
 				'Waiting for delegate slot',
 			);
 			return;
@@ -290,13 +288,13 @@ class Forger {
 				this.constants.maxTransactionsPerBlock,
 			) || [];
 
-		const timestamp = this.blocksModule.slots.getSlotTime(currentSlot);
-		const previousBlock = this.blocksModule.lastBlock;
+		const timestamp = this.chainModule.slots.getSlotTime(currentSlot);
+		const previousBlock = this.chainModule.lastBlock;
 
 		const context = {
 			blockTimestamp: timestamp,
 		};
-		const readyTransactions = await this.blocksModule.filterReadyTransactions(
+		const readyTransactions = await this.chainModule.filterReadyTransactions(
 			transactions,
 			context,
 		);
@@ -316,7 +314,7 @@ class Forger {
 				id: forgedBlock.id,
 				height: forgedBlock.height,
 				round: this.dposModule.rounds.calcRound(forgedBlock.height),
-				slot: this.blocksModule.slots.getSlotNumber(forgedBlock.timestamp),
+				slot: this.chainModule.slots.getSlotNumber(forgedBlock.timestamp),
 				reward: forgedBlock.reward.toString(),
 			},
 			'Forged new block',
