@@ -118,15 +118,8 @@ class BFT extends EventEmitter {
 		this.finalityManager.removeBlockHeaders({
 			aboveHeight: removeFromHeight - 1,
 		});
-
 		// Make sure there are BFT_ROUND_THRESHOLD rounds of block headers available
-		if (
-			this.finalityManager.maxHeight - this.finalityManager.minHeight <
-			this.constants.activeDelegates * BFT_ROUND_THRESHOLD
-		) {
-			await this._fillCache(minActiveHeightsOfDelegates);
-			this.finalityManager.recompute();
-		}
+		await this._fillCache(minActiveHeightsOfDelegates);
 	}
 
 	addNewBlock(block, stateStore) {
@@ -334,6 +327,13 @@ class BFT extends EventEmitter {
 	}
 
 	async _fillCache(minActiveHeightsOfDelegates) {
+		if (
+			this.finalityManager.maxHeight - this.finalityManager.minHeight >=
+			this.constants.activeDelegates * BFT_ROUND_THRESHOLD
+		) {
+			return;
+		}
+
 		const tillHeight = this.finalityManager.minHeight - 1;
 		const fromHeight =
 			this.finalityManager.maxHeight -
@@ -382,6 +382,7 @@ class BFT extends EventEmitter {
 				extractBFTBlockHeaderFromBlock(blockHeader),
 			);
 		}
+		this.finalityManager.recompute();
 	}
 }
 
