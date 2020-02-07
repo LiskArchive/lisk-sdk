@@ -245,9 +245,10 @@ export class PeerServer extends EventEmitter {
 		}
 
 		if (
-			typeof queryObject.wsPort !== 'string' ||
-			typeof queryObject.version !== 'string' ||
-			typeof queryObject.networkId !== 'string'
+			queryObject &&
+			(typeof queryObject.wsPort !== 'string' ||
+				typeof queryObject.version !== 'string' ||
+				typeof queryObject.networkId !== 'string')
 		) {
 			this._disconnectSocketDueToFailedHandshake(
 				socket,
