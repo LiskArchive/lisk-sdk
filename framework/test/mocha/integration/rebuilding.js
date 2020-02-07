@@ -104,7 +104,7 @@ describe('rebuilding', () => {
 		});
 
 		it('should not have more blocks than 2 rounds', async () => {
-			const count = await library.modules.blocks.dataAccess.getBlocksCount();
+			const count = await library.modules.chain.dataAccess.getBlocksCount();
 			expect(count).to.deep.equal(202);
 		});
 	});

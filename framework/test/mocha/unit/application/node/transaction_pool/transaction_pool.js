@@ -51,16 +51,15 @@ describe('transactionPool', () => {
 	};
 
 	const chainStub = {
+		slots: {
+			getSlotNumber: sinonSandbox.stub(),
+		},
 		lastBlock: {
 			get: sinonSandbox.stub(),
 		},
 		processSignature: sinonSandbox
 			.stub()
 			.resolves({ transactionsResponses: [] }),
-	};
-
-	const slotsStub = {
-		getSlotNumber: sinonSandbox.stub(),
 	};
 
 	let transactionPool;
@@ -70,7 +69,6 @@ describe('transactionPool', () => {
 		transactionPool = new TransactionPool({
 			storage,
 			chain: chainStub,
-			slots: slotsStub,
 			logger,
 			broadcastInterval,
 			releaseLimit,
