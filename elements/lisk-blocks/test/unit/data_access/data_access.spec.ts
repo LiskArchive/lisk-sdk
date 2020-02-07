@@ -30,6 +30,7 @@ describe('data_access.storage', () => {
 					count: jest.fn(),
 					getFirstBlockIdOfLastRounds: jest.fn(),
 					isPersisted: jest.fn(),
+					delete: jest.fn(),
 				},
 				TempBlock: {
 					get: jest.fn(),
@@ -259,6 +260,16 @@ describe('data_access.storage', () => {
 			expect(
 				storageMock.entities.Block.getFirstBlockIdOfLastRounds,
 			).toHaveBeenCalled();
+		});
+	});
+
+	describe('#deleteBlocksWithHeightGreaterThan', () => {
+		it('should call storage.Block.delete and return block', async () => {
+			// Act
+			await dataAccess.deleteBlocksWithHeightGreaterThan(1);
+
+			// Assert
+			expect(storageMock.entities.Block.delete).toHaveBeenCalled();
 		});
 	});
 

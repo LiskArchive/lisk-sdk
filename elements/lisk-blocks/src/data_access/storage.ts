@@ -203,6 +203,14 @@ export class Storage {
 		return rows;
 	}
 
+	public async deleteBlocksWithHeightGreaterThan(
+		height: number,
+	): Promise<void> {
+		await this._storage.entities.Block.delete({
+			height_gt: height,
+		});
+	}
+
 	public async isBlockPersisted(blockId: string): Promise<boolean> {
 		const isPersisted = await this._storage.entities.Block.isPersisted({
 			blockId,

@@ -262,16 +262,11 @@ describe('Node', () => {
 			);
 		});
 
-		it('should create storage component', () => {
-			return expect(node.components.storage).to.be.equal(stubs.storage);
-		});
-
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
 			expect(node).to.have.property('config');
 			expect(node).to.have.nested.property('genesisBlock.block');
 			expect(node).to.have.property('sequence');
-			expect(node).to.have.nested.property('components.storage');
 			expect(node).to.have.nested.property('components.logger');
 			expect(node).to.have.property('channel');
 			expect(node).to.have.property('applicationState');

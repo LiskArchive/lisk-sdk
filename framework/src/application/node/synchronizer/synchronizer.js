@@ -26,7 +26,6 @@ class Synchronizer {
 		logger,
 		blocksModule,
 		processorModule,
-		storageModule,
 		transactionPoolModule,
 		mechanisms = [],
 	}) {
@@ -40,7 +39,6 @@ class Synchronizer {
 		this.blocksModule = blocksModule;
 		this.processorModule = processorModule;
 		this.transactionPoolModule = transactionPoolModule;
-		this.storageModule = storageModule;
 		this.active = false;
 		this.loadTransactionsRetries = 5;
 
@@ -61,14 +59,13 @@ class Synchronizer {
 	}
 
 	async init() {
-		const isEmpty = await this.storageModule.entities.TempBlock.isEmpty();
+		const isEmpty = await this.blocksModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
 				await utils.restoreBlocksUponStartup(
 					this.logger,
 					this.blocksModule,
 					this.processorModule,
-					this.storageModule,
 				);
 			} catch (err) {
 				this.logger.error(
