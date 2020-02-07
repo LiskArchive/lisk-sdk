@@ -419,6 +419,7 @@ class Application {
 				'ready',
 				'state:updated',
 				'networkEvent',
+				'networkReady',
 				'blocks:change',
 				'transactions:confirmed:change',
 				'signature:change',
