@@ -325,7 +325,7 @@ class BFT extends EventEmitter {
 	}
 
 	get maxHeightPrevoted() {
-		return this.finalityManager.chainMaxHeightFinalized;
+		return this.finalityManager.chainMaxHeightPrevoted;
 	}
 
 	reset() {

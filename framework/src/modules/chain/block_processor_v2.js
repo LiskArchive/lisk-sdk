@@ -27,7 +27,7 @@ const {
 const { baseBlockSchema } = require('./blocks');
 const { BaseBlockProcessor } = require('./processor');
 
-const FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED = 'previouslyForged';
+const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'previouslyForged';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -376,7 +376,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 	async _getPreviouslyForgedMap() {
 		const previouslyForgedStr = await this.storage.entities.ForgerInfo.getKey(
-			FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED,
+			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 		);
 		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
 	}
@@ -409,7 +409,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
 		await this.storage.entities.ForgerInfo.setKey(
-			FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED,
+			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 			previouslyForgedStr,
 		);
 	}

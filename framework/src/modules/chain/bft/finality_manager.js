@@ -58,7 +58,7 @@ class FinalityManager extends EventEmitter {
 		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
-		this.chainMaxHeightFinalized = 0;
+		this.chainMaxHeightPrevoted = 0;
 
 		this.state = {};
 		this.preVotes = {};
@@ -88,7 +88,7 @@ class FinalityManager extends EventEmitter {
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
-			chainMaxHeightFinalized: this.chainMaxHeightFinalized,
+			chainMaxHeightPrevoted: this.chainMaxHeightPrevoted,
 			minHeight: this.minHeight,
 			maxHeight: this.maxHeight,
 		});
@@ -191,9 +191,9 @@ class FinalityManager extends EventEmitter {
 			.reverse()
 			.find(key => this.preVotes[key] >= this.preVoteThreshold);
 
-		this.chainMaxHeightFinalized = highestHeightPreVoted
+		this.chainMaxHeightPrevoted = highestHeightPreVoted
 			? parseInt(highestHeightPreVoted, 10)
-			: this.chainMaxHeightFinalized;
+			: this.chainMaxHeightPrevoted;
 
 		const highestHeightPreCommitted = Object.keys(this.preCommits)
 			.reverse()
@@ -262,7 +262,7 @@ class FinalityManager extends EventEmitter {
 	recompute() {
 		this.state = {};
 		this.finalizedHeight = this._initialFinalizedHeight;
-		this.chainMaxHeightFinalized = 0;
+		this.chainMaxHeightPrevoted = 0;
 		this.preVotes = {};
 		this.preCommits = {};
 
@@ -291,10 +291,10 @@ class FinalityManager extends EventEmitter {
 		// if maxHeightPrevoted is correct
 		if (
 			this.headers.length >= this.processingThreshold &&
-			blockHeader.maxHeightPrevoted !== this.chainMaxHeightFinalized
+			blockHeader.maxHeightPrevoted !== this.chainMaxHeightPrevoted
 		) {
 			throw new BFTInvalidAttributeError(
-				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, : ${this.chainMaxHeightFinalized}`,
+				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, : ${this.chainMaxHeightPrevoted}`,
 			);
 		}
 
