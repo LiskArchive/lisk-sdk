@@ -126,6 +126,12 @@ class HeadersList {
 	}
 
 	get(height) {
+		if (
+			this.length === 0 ||
+			this._items[height - this.first.height] === undefined
+		) {
+			throw new Error(`Cannot get cache with height ${height}`);
+		}
 		return this._items[height - this.first.height];
 	}
 }

@@ -137,8 +137,9 @@ class FinalityManager extends EventEmitter {
 		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
 			header.delegateMinHeightActive,
-			validMinHeightToVoteAndCommit,
+			validMinHeightToVoteAndCommit + 1,
 			delegateState.maxPreCommitHeight + 1,
+			header.height - this.processingThreshold,
 		);
 
 		// Delegate can't pre-commit the blocks on tip of the chain
@@ -237,7 +238,13 @@ class FinalityManager extends EventEmitter {
 			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
 			// maxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
 			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
-				const previousBlockHeader = this.headers.get(needleHeight);
+				let previousBlockHeader;
+				try {
+					previousBlockHeader = this.headers.get(needleHeight);
+				} catch (err) {
+					debug('Fail to get cached block header', err);
+					return -1;
+				}
 
 				// Was the previous block suggested by current block header
 				// was actually forged by same delegate? If not then just return from here
@@ -252,16 +259,14 @@ class FinalityManager extends EventEmitter {
 				// Move the needle to previous block and consider it current for next iteration
 				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
-			} else {
-				needleHeight -= 1;
 			}
+			needleHeight -= 1;
 		}
 		return needleHeight;
 	}
 
 	recompute() {
 		this.state = {};
-		this.finalizedHeight = this._initialFinalizedHeight;
 		this.chainMaxHeightPrevoted = 0;
 		this.preVotes = {};
 		this.preCommits = {};
