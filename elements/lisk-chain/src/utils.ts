@@ -27,3 +27,13 @@ export const getId = (blockBytes: Buffer): string => {
 
 	return id;
 };
+
+export const uniqBy = (
+	// tslint:disable-next-line no-any
+	arr: ReadonlyArray<any>,
+	property: string,
+	set = new Set(),
+) =>
+	arr.filter(element =>
+		(value => !set.has(value) && set.add(value))(element[property]),
+	);

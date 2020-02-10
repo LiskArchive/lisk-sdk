@@ -11,8 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { cloneDeep, isEqual, pick, uniq, uniqBy } from 'lodash';
+// tslint:disable-next-line no-require-imports
+import cloneDeep = require('lodash.clonedeep');
+// tslint:disable-next-line no-require-imports
+import isEqual = require('lodash.isequal');
 
 import { Account } from '../account';
 import {
@@ -21,6 +23,7 @@ import {
 	StorageFilters,
 	StorageTransaction,
 } from '../types';
+import { uniqBy } from '../utils';
 
 export class AccountStore {
 	private readonly _account: StorageEntity<AccountJSON>;
@@ -170,7 +173,7 @@ export class AccountStore {
 
 		this._data[elementIndex] = updatedElement;
 		this._updatedKeys[elementIndex] = this._updatedKeys[elementIndex]
-			? uniq([...this._updatedKeys[elementIndex], ...updatedKeys])
+			? [...new Set([...this._updatedKeys[elementIndex], ...updatedKeys])]
 			: updatedKeys;
 	}
 
@@ -185,7 +188,13 @@ export class AccountStore {
 		const updateToAccounts = affectedAccounts.map(
 			async ({ updatedItem, updatedKeys }) => {
 				const filter = { [this._primaryKey]: updatedItem[this._primaryKey] };
-				const updatedData = pick(updatedItem, updatedKeys);
+				const updatedData = updatedKeys.reduce((data, key) => {
+					// tslint:disable-next-line:no-any
+					data[key] = (updatedItem as any)[key];
+
+					return data;
+					// tslint:disable-next-line:no-any
+				}, {} as any);
 
 				return this._account.upsert(
 					filter,

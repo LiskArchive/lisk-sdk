@@ -11,11 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { TransactionJSON } from '@liskhq/lisk-transactions';
-import { clone, cloneDeep, uniqBy } from 'lodash';
+// tslint:disable-next-line no-require-imports
+import cloneDeep = require('lodash.clonedeep');
 
 import { StorageEntity, StorageFilters } from '../types';
+import { uniqBy } from '../utils';
 
 export class TransactionStore {
 	private readonly _primaryKey = 'id';
@@ -50,13 +51,13 @@ export class TransactionStore {
 	}
 
 	public createSnapshot(): void {
-		this._originalData = clone(this._data);
-		this._originalUpdatedKeys = clone(this._updatedKeys);
+		this._originalData = { ...this._data };
+		this._originalUpdatedKeys = { ...this._updatedKeys };
 	}
 
 	public restoreSnapshot(): void {
-		this._data = clone(this._originalData);
-		this._updatedKeys = clone(this._originalUpdatedKeys);
+		this._data = { ...this._originalData };
+		this._updatedKeys = { ...this._originalUpdatedKeys };
 	}
 
 	public get(primaryValue: string): TransactionJSON {
