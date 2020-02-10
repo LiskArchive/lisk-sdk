@@ -13,7 +13,7 @@
  *
  */
 import { BaseList } from '../../../src/peer_book/base_list';
-import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../../../src/p2p_types';
+import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../../../src/types';
 import { initPeerInfoList } from '../../utils/peers';
 import { PEER_TYPE } from '../../../src/utils';
 import {
