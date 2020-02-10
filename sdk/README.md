@@ -6,7 +6,6 @@
 ![npm](https://img.shields.io/npm/v/lisk-sdk?style=plastic)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
 ![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=LiskHQ_lisk-sdk&metric=alert_status)](https://sonarcloud.io/dashboard?id=LiskHQ_lisk-sdk)
 [![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8869/branches/113509/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=6759&pid=8869&bid=113509)
 ![GitHub issues](https://img.shields.io/github/issues-raw/liskhq/lisk-sdk)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/liskhq/lisk-sdk)
