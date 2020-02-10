@@ -213,6 +213,14 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
+	/**
+	 * Get the min height from which a delegate can make pre-commits
+	 *
+	 * The flow is as following:
+	 * - We search backward from top block to bottom block in the chain
+	 * - We can search down to current block height - processingThreshold(302)
+	 * -
+	 */
 	_getMinValidHeightToPreCommit(header) {
 		// We search backward from top block to bottom block in the chain
 
@@ -253,12 +261,13 @@ class FinalityManager extends EventEmitter {
 					return needleHeight + 1;
 				}
 				// Move the needle to previous block and consider it current for next iteration
-				// needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
+				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
+			} else {
+				needleHeight -= 1;
 			}
-			needleHeight -= 1;
 		}
-		return needleHeight + 1;
+		return Math.max(needleHeight + 1, searchTillHeight);
 	}
 
 	recompute() {
