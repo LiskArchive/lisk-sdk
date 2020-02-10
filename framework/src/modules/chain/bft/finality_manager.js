@@ -128,14 +128,16 @@ class FinalityManager extends EventEmitter {
 			maxPreCommitHeight: 0,
 		};
 
-		const heightNotPrevoted = this._getHeightNotPrevoted(header);
+		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(
+			header,
+		);
 
 		// If delegate is new then first block of the round will be considered
 		// if it forged before then we probably have the last commit height
 		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
 			header.delegateMinHeightActive,
-			heightNotPrevoted + 1,
+			minValidHeightToPreCommit,
 			delegateState.maxPreCommitHeight + 1,
 		);
 
@@ -211,7 +213,7 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	_getHeightNotPrevoted(header) {
+	_getMinValidHeightToPreCommit(header) {
 		// We search backward from top block to bottom block in the chain
 
 		// We should search down to the height we have in our headers list
@@ -238,7 +240,7 @@ class FinalityManager extends EventEmitter {
 				const previousBlockHeader = this.headers.get(needleHeight);
 				if (!previousBlockHeader) {
 					debug('Fail to get cached block header');
-					return -1;
+					return 0;
 				}
 
 				// Was the previous block suggested by current block header
@@ -248,14 +250,15 @@ class FinalityManager extends EventEmitter {
 					previousBlockHeader.delegatePublicKey !== header.delegatePublicKey ||
 					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
 				) {
-					return needleHeight;
+					return needleHeight + 1;
 				}
 				// Move the needle to previous block and consider it current for next iteration
+				// needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
 			}
 			needleHeight -= 1;
 		}
-		return needleHeight;
+		return needleHeight + 1;
 	}
 
 	recompute() {
