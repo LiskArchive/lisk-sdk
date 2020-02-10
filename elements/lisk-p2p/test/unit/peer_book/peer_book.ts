@@ -26,7 +26,7 @@ import {
 	DEFAULT_BAN_TIME,
 	PeerKind,
 } from '../../../src/constants';
-import { P2PPeerInfo } from '../../../src/p2p_types';
+import { P2PPeerInfo } from '../../../src/types';
 import { PEER_TYPE } from '../../../src/utils';
 import { ExistingPeerError } from '../../../src/errors';
 
