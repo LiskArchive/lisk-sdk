@@ -130,7 +130,7 @@ const middleware = {
 
 		if (
 			!config.access.public &&
-			!checkIpInList(config.access.whiteList, req.ip)
+			!checkIpInList(config.access.whiteList.map(e => e.ip), req.ip)
 		) {
 			return res.status(apiCodes.FORBIDDEN).send({
 				message: 'API access denied',

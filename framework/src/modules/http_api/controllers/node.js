@@ -299,7 +299,10 @@ NodeController.getStatus = async (context, next) => {
  */
 NodeController.getForgingStatus = async (context, next) => {
 	if (
-		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
+		!checkIpInList(
+			library.config.forging.access.whiteList.map(e => e.ip),
+			context.request.ip,
+		)
 	) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
@@ -323,7 +326,10 @@ NodeController.getForgingStatus = async (context, next) => {
  */
 NodeController.updateForgingStatus = async (context, next) => {
 	if (
-		!checkIpInList(library.config.forging.access.whiteList, context.request.ip)
+		!checkIpInList(
+			library.config.forging.access.whiteList.map(e => e.ip),
+			context.request.ip,
+		)
 	) {
 		context.statusCode = apiCodes.FORBIDDEN;
 		return next(new Error('Access Denied'));
