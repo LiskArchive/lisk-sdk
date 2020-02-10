@@ -18,8 +18,11 @@ import { BlockHeader } from '../../types';
 import { Base } from './base';
 
 export class BlockCache extends Base<BlockHeader> {
-	public constructor(size: number = 500) {
-		super(size);
+	public constructor(
+		minCachedItems: number = 303,
+		maxCachedItems: number = 505,
+	) {
+		super(minCachedItems, maxCachedItems);
 	}
 
 	public add(blockHeader: BlockHeader): BlockHeader[] {
@@ -38,7 +41,7 @@ export class BlockCache extends Base<BlockHeader> {
 		}
 
 		// If the list size is already full remove one item
-		if (this.items.length > this.size) {
+		if (this.items.length > this.maxCachedItems) {
 			this.items.shift();
 		}
 
@@ -53,6 +56,10 @@ export class BlockCache extends Base<BlockHeader> {
 			);
 		}
 		this.items.pop();
+		// If less than the minimum configured cached items remain we need to flag re-fill
+		if (this.items.length < this.minCachedItems) {
+			this.needsRefill = true;
+		}
 
 		return this.items;
 	}

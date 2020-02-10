@@ -94,9 +94,11 @@ interface ChainConstructor {
 	readonly rewardMileStones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
+	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
 
+const DEFAULT_MIN_BLOCK_HEADER_CACHE = 303;
 const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
 
 // tslint:disable-next-line no-magic-numbers
@@ -242,6 +244,7 @@ export class Chain extends EventEmitter {
 		rewardMileStones,
 		totalAmount,
 		blockSlotWindow,
+		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
 		super();
@@ -251,6 +254,7 @@ export class Chain extends EventEmitter {
 			dbStorage: storage,
 			networkIdentifier,
 			registeredTransactions,
+			minBlockHeaderCache,
 			maxBlockHeaderCache,
 		});
 

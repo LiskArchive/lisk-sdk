@@ -33,6 +33,7 @@ interface DAConstructor {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
+	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
 
@@ -45,10 +46,14 @@ export class DataAccess {
 		dbStorage,
 		networkIdentifier,
 		registeredTransactions,
+		minBlockHeaderCache,
 		maxBlockHeaderCache,
 	}: DAConstructor) {
 		this._storage = new StorageAccess(dbStorage);
-		this._blocksCache = new BlockCache(maxBlockHeaderCache);
+		this._blocksCache = new BlockCache(
+			minBlockHeaderCache,
+			maxBlockHeaderCache,
+		);
 		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
