@@ -128,18 +128,15 @@ class FinalityManager extends EventEmitter {
 			maxPreCommitHeight: 0,
 		};
 
-		const validMinHeightToVoteAndCommit = this._getValidMinHeightToCommit(
-			header,
-		);
+		const heightNotPrevoted = this._getHeightNotPrevoted(header);
 
 		// If delegate is new then first block of the round will be considered
 		// if it forged before then we probably have the last commit height
 		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
 			header.delegateMinHeightActive,
-			validMinHeightToVoteAndCommit + 1,
+			heightNotPrevoted + 1,
 			delegateState.maxPreCommitHeight + 1,
-			header.height - this.processingThreshold,
 		);
 
 		// Delegate can't pre-commit the blocks on tip of the chain
@@ -214,7 +211,7 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	_getValidMinHeightToCommit(header) {
+	_getHeightNotPrevoted(header) {
 		// We search backward from top block to bottom block in the chain
 
 		// We should search down to the height we have in our headers list

@@ -126,10 +126,7 @@ class HeadersList {
 	}
 
 	get(height) {
-		if (
-			this.length === 0 ||
-			this._items[height - this.first.height] === undefined
-		) {
+		if (this.length === 0) {
 			return undefined;
 		}
 		return this._items[height - this.first.height];
