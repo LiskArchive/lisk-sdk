@@ -130,7 +130,7 @@ class HeadersList {
 			this.length === 0 ||
 			this._items[height - this.first.height] === undefined
 		) {
-			throw new Error(`Cannot get cache with height ${height}`);
+			return undefined;
 		}
 		return this._items[height - this.first.height];
 	}

@@ -238,11 +238,9 @@ class FinalityManager extends EventEmitter {
 			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
 			// maxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
 			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
-				let previousBlockHeader;
-				try {
-					previousBlockHeader = this.headers.get(needleHeight);
-				} catch (err) {
-					debug('Fail to get cached block header', err);
+				const previousBlockHeader = this.headers.get(needleHeight);
+				if (!previousBlockHeader) {
+					debug('Fail to get cached block header');
 					return -1;
 				}
 
@@ -255,9 +253,7 @@ class FinalityManager extends EventEmitter {
 				) {
 					return needleHeight;
 				}
-
 				// Move the needle to previous block and consider it current for next iteration
-				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
 			}
 			needleHeight -= 1;
