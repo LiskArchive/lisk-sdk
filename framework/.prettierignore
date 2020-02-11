@@ -22,3 +22,5 @@ tmp/
 .DS_Store
 .log
 .pid
+.coverage
+dist-node

@@ -43,6 +43,7 @@ class Cache {
 				// Called if the "error" event occurred before "ready" event
 				this.logger.warn({ err }, 'App was unable to connect to Cache server');
 				// Error handler needs to exist to ignore the error
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
 				this.client.on('error', () => {});
 				resolve();
 			});

@@ -45,6 +45,7 @@ const createNode = ({ storage, logger, channel, options = {} }) => {
 	});
 };
 
+/* eslint-disable @typescript-eslint/no-empty-function */
 const fakeLogger = {
 	trace: () => {},
 	debug: () => {},
@@ -53,6 +54,7 @@ const fakeLogger = {
 	warn: () => {},
 	fatal: () => {},
 };
+/* eslint-enable @typescript-eslint/no-empty-function */
 
 const createAndLoadNode = async (
 	storage,

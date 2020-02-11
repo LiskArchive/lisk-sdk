@@ -23,6 +23,8 @@
 		"chai-expect/missing-assertion": "error",
 		"chai-expect/no-inner-compare": "error",
 		"space-before-function-paren": "off",
+		"@typescript-eslint/no-empty-function": ["warn"],
+		"require-atomic-updates": ["warn"],
 		"import/no-extraneous-dependencies": [
 			"error",
 			{

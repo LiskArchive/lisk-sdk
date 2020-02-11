@@ -23,7 +23,7 @@
 		"node": ">=12.13.0 <=12",
 		"npm": ">=6.12.0"
 	},
-	"main": "src/index.js",
+	"main": "dist-node/index.js",
 	"scripts": {
 		"start": "node src/index.js",
 		"start:test:app": "node test/test_app",
@@ -32,6 +32,7 @@
 		"format": "prettier --write '**/*'",
 		"test": "npm run jest:unit",
 		"mocha": "mocha",
+		"build": "tsc",
 		"jest:unit": "jest --config=./test/jest/unit/jest.config.js",
 		"jest:integration": "jest --config=./test/jest/integration/jest.config.js",
 		"jest:functional": "jest --config=./test/jest/functional/jest.config.js --passWithNoTests",
@@ -85,6 +86,10 @@
 		"z-schema": "4.2.2"
 	},
 	"devDependencies": {
+		"@typescript-eslint/parser": "2.19.2",
+		"@typescript-eslint/eslint-plugin": "2.19.2",
+		"@types/lodash": "4.14.149",
+		"@types/node": "12.12.11",
 		"@liskhq/lisk-passphrase": "3.0.1-alpha.0",
 		"async": "3.2.0",
 		"bluebird": "3.7.2",
@@ -97,6 +102,7 @@
 		"eslint-plugin-import": "2.20.1",
 		"eslint-plugin-jest": "23.8.2",
 		"eslint-plugin-mocha": "6.3.0",
+		"eslint-config-prettier": "6.10.0",
 		"faker": "4.1.0",
 		"find": "0.3.0",
 		"http-server": "0.12.1",
@@ -114,6 +120,9 @@
 		"sinon": "9.0.0",
 		"sinon-chai": "3.5.0",
 		"stampit": "4.3.1",
-		"supertest": "4.0.2"
+		"supertest": "3.3.0",
+		"ts-jest": "24.2.0",
+		"ts-node": "8.5.2",
+		"typescript": "3.7.2"
 	}
 }

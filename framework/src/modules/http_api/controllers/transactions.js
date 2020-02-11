@@ -124,6 +124,7 @@ TransactionsController.postTransaction = async (context, next) => {
 		);
 	}
 
+	// eslint-disable-next-line require-atomic-updates
 	context.statusCode = error.code;
 	return next(error);
 };

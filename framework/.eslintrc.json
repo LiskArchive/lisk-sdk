@@ -1,5 +1,14 @@
 {
-	"extends": ["../.eslintrc.json"],
+	"parser": "@typescript-eslint/parser",
+	"plugins": ["@typescript-eslint"],
+	"extends": [
+		"../.eslintrc.json",
+		"eslint:recommended",
+		"plugin:@typescript-eslint/eslint-recommended",
+		"plugin:@typescript-eslint/recommended",
+		"prettier",
+		"prettier/@typescript-eslint"
+	],
 	"rules": {
 		"camelcase": ["warn", { "properties": "never" }],
 		"strict": "off",
@@ -7,6 +16,9 @@
 		"no-underscore-dangle": "off",
 		"space-before-function-paren": ["warn"],
 		"no-param-reassign": ["warn"],
-		"no-throw-literal": ["warn"]
+		"no-throw-literal": ["warn"],
+		"@typescript-eslint/no-var-requires": ["warn"],
+		"@typescript-eslint/camelcase": ["warn"],
+		"@typescript-eslint/no-this-alias": ["warn"]
 	}
 }

@@ -2135,16 +2135,16 @@ definitions:
       delegate:
         $ref: '#/definitions/Delegate'
       isDelegate:
-          type: boolean
-          description: The value indicating if the account is a deleage or not.
+        type: boolean
+        description: The value indicating if the account is a deleage or not.
       username:
-          type: string
-          example: onedelegate
-          description: If the account is a delegate, it displays the username for it.
+        type: string
+        example: onedelegate
+        description: If the account is a delegate, it displays the username for it.
       unlocking:
         type: array
         items:
-            $ref: '#/definitions/Unlocking'
+          $ref: '#/definitions/Unlocking'
       keys:
         $ref: '#/definitions/MultisignatureAsset'
       totalVotesReceived:
@@ -2196,7 +2196,6 @@ definitions:
         type: number
         example: 14.22
         description: Percentage of the voters weight that the delegate owns in relation to the total supply of Lisk.
-
 
   DelegateWithVoters:
     type: object
@@ -2342,25 +2341,25 @@ definitions:
         description: Delegate properties of the delegate for this vote.
 
   Unlocking:
-      type: object
-      required:
-        - delegateAddress
-        - amount
-        - unvoteHeight
-      properties:
-        delegateAddress:
-          type: string
-          format: address
-          example: 12668885769632475474L
-          description: Lisk address of the delegate the queried account unvoted.
-        amount:
-          type: string
-          example: 1000000000000
-          description: Amount the account voted the delegate for in multiples of 10 Lisk.
-        unvoteHeight:
-          type: number
-          example: 50000
-          description: Height at which the unvote should be valid.
+    type: object
+    required:
+      - delegateAddress
+      - amount
+      - unvoteHeight
+    properties:
+      delegateAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+        description: Lisk address of the delegate the queried account unvoted.
+      amount:
+        type: string
+        example: 1000000000000
+        description: Amount the account voted the delegate for in multiples of 10 Lisk.
+      unvoteHeight:
+        type: number
+        example: 50000
+        description: Height at which the unvote should be valid.
 
   MultisignatureAsset:
     type: object
