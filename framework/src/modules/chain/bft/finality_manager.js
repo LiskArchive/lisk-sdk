@@ -128,7 +128,7 @@ class FinalityManager extends EventEmitter {
 			maxPreCommitHeight: 0,
 		};
 
-		const validMinHeightToVoteAndCommit = this._getValidMinHeightToCommit(
+		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(
 			header,
 		);
 
@@ -137,7 +137,7 @@ class FinalityManager extends EventEmitter {
 		// delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
 			header.delegateMinHeightActive,
-			validMinHeightToVoteAndCommit,
+			minValidHeightToPreCommit,
 			delegateState.maxPreCommitHeight + 1,
 		);
 
@@ -213,7 +213,15 @@ class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	_getValidMinHeightToCommit(header) {
+	/**
+	 * Get the min height from which a delegate can make pre-commits
+	 *
+	 * The flow is as following:
+	 * - We search backward from top block to bottom block in the chain
+	 * - We can search down to current block height - processingThreshold(302)
+	 * -
+	 */
+	_getMinValidHeightToPreCommit(header) {
 		// We search backward from top block to bottom block in the chain
 
 		// We should search down to the height we have in our headers list
@@ -238,6 +246,10 @@ class FinalityManager extends EventEmitter {
 			// maxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
 			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
 				const previousBlockHeader = this.headers.get(needleHeight);
+				if (!previousBlockHeader) {
+					debug('Fail to get cached block header');
+					return 0;
+				}
 
 				// Was the previous block suggested by current block header
 				// was actually forged by same delegate? If not then just return from here
@@ -246,9 +258,8 @@ class FinalityManager extends EventEmitter {
 					previousBlockHeader.delegatePublicKey !== header.delegatePublicKey ||
 					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
 				) {
-					return needleHeight;
+					return needleHeight + 1;
 				}
-
 				// Move the needle to previous block and consider it current for next iteration
 				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
@@ -256,12 +267,11 @@ class FinalityManager extends EventEmitter {
 				needleHeight -= 1;
 			}
 		}
-		return needleHeight;
+		return Math.max(needleHeight + 1, searchTillHeight);
 	}
 
 	recompute() {
 		this.state = {};
-		this.finalizedHeight = this._initialFinalizedHeight;
 		this.chainMaxHeightPrevoted = 0;
 		this.preVotes = {};
 		this.preCommits = {};

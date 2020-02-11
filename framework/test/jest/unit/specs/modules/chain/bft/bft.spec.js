@@ -659,7 +659,7 @@ describe('bft', () => {
 		});
 
 		describe('#reset', () => {
-			it('should reset headers and related stats to initial state', async () => {
+			it('should reset headers and related stats to initial state except finality', async () => {
 				// Arrange
 				storageMock.entities.Block.get.mockReturnValue([]);
 				storageMock.entities.ChainState.get.mockResolvedValue([
@@ -692,7 +692,11 @@ describe('bft', () => {
 
 				// Assert
 				expect(beforeResetInfo).not.toEqual(initialInfo);
-				expect(afterResetInfo).toEqual(initialInfo);
+				// Finalized height should not change
+				expect(afterResetInfo).toEqual({
+					...initialInfo,
+					finalizedHeight: beforeResetInfo.finalizedHeight,
+				});
 			});
 		});
 
