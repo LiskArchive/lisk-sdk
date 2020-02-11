@@ -12,4 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './peer_server';
+export * from './master';

@@ -121,3 +121,5 @@ export enum PeerKind {
 	BLACKLISTED_PEER = 'blacklistedPeer',
 	NONE = 'NONE',
 }
+
+export const REQUEST_SOCKET_CONNECTION = 'connection';

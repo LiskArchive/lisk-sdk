@@ -44,10 +44,14 @@ import {
 } from '../errors';
 import {
 	EVENT_BAN_PEER,
+	EVENT_CLOSE_INBOUND,
 	EVENT_FAILED_TO_ADD_INBOUND_PEER,
 	EVENT_INBOUND_SOCKET_ERROR,
 	EVENT_NEW_INBOUND_PEER_CONNECTION,
+	REMOTE_SC_EVENT_MESSAGE,
+	REMOTE_SC_EVENT_RPC_REQUEST,
 } from '../events';
+import { SCServerSocketUpdated, socketErrorStatusCodes } from '../peer/base';
 import { PeerBook } from '../peer_book';
 import {
 	IncomingPeerConnection,
@@ -55,6 +59,8 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	PeerServerConfig,
+	WorkerMessage,
+	WorkerPeerServerConfig,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -68,24 +74,22 @@ interface SCServerUpdated extends SCServer {
 
 const BASE_10_RADIX = 10;
 
-export class PeerServer extends EventEmitter {
+export class WorkerPeerServer extends EventEmitter {
 	private readonly _nodeInfo: P2PNodeInfo;
 	private readonly _hostIp: string;
 	private readonly _secret: number;
 	private readonly _maxPeerInfoSize: number;
-	private readonly _peerBook: PeerBook;
 	private readonly _httpServer: http.Server;
 	private readonly _scServer: SCServerUpdated;
-	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 	protected _invalidMessageInterval?: NodeJS.Timer;
 	protected _invalidMessageCounter: Map<string, number>;
 
-	public constructor(config: PeerServerConfig) {
+	public constructor(config: WorkerPeerServerConfig) {
 		super();
 		this._nodeInfo = config.nodeInfo;
 		this._hostIp = config.hostIp;
 		this._secret = config.secret;
-		this._peerBook = config.peerBook;
+		this._maxPeerInfoSize = config.maxPeerInfoSize;
 		this._httpServer = http.createServer();
 		this._scServer = attach(this._httpServer, {
 			path: DEFAULT_HTTP_PATH,
@@ -93,8 +97,7 @@ export class PeerServer extends EventEmitter {
 				maxPayload: config.maxPayload,
 			},
 		}) as SCServerUpdated;
-		this._maxPeerInfoSize = config.maxPeerInfoSize;
-		this._peerHandshakeCheck = config.peerHandshakeCheck;
+
 		this._invalidMessageCounter = new Map();
 	}
 
@@ -522,5 +525,95 @@ export class PeerServer extends EventEmitter {
 				resolve();
 			});
 		});
+	}
+
+	/**
+	 * @param data data massage request as T
+	 * @returns type of K
+	 */
+	private _sendToServer(data: WorkerMessage): void {
+		this.sendToMaster(data);
+	}
+
+	/**
+	 * @param data data massage request as T
+	 * @returns type of K
+	 */
+	private async _requestToServer<T>(data: WorkerMessage): Promise<T> {
+		return new Promise((resolve, reject) => {
+			this.sendToMaster(data, (err: Error, res: T) => {
+				if (err) {
+					reject(err);
+
+					return;
+				}
+				resolve(res);
+			});
+		});
+	}
+
+	// All event handlers for the inbound socket should be bound in this method.
+	private _bindHandlersToInboundSocket(
+		id: string,
+		inboundSocket: SCServerSocketUpdated,
+	): void {
+		inboundSocket.on('close', (code: number, reasonMessage: string) => {
+			const reason = reasonMessage
+				? reasonMessage
+				: socketErrorStatusCodes[code] || 'Unknown reason';
+			this._sendToServer({
+				type: EVENT_CLOSE_INBOUND,
+				id,
+				data: { code, reason },
+			});
+		});
+		inboundSocket.on('error', (error: Error) => {
+			this._sendToServer({ type: 'error', id, data: { error } });
+		});
+		inboundSocket.on('message', () => {
+			this._sendToServer({ type: 'message', id });
+		});
+
+		// Bind RPC and remote event handlers
+		inboundSocket.on(REMOTE_SC_EVENT_RPC_REQUEST, (packet: unknown) => {
+			this._sendToServer({
+				type: REMOTE_SC_EVENT_RPC_REQUEST,
+				id,
+				data: packet,
+			});
+		});
+		inboundSocket.on(
+			REMOTE_SC_EVENT_RPC_REQUEST,
+			async (
+				packet: unknown,
+				respond: (responseError?: Error, responseData?: unknown) => void,
+			) => {
+				try {
+					const result = await this._requestToServer({
+						type: REMOTE_SC_EVENT_RPC_REQUEST,
+						id,
+						data: packet,
+					});
+					respond(undefined, result);
+				} catch (error) {
+					respond(error);
+				}
+			},
+		);
+		inboundSocket.on(REMOTE_SC_EVENT_MESSAGE, (packet: unknown) => {
+			this._sendToServer({ type: REMOTE_SC_EVENT_MESSAGE, id, data: packet });
+		});
+	}
+
+	// All event handlers for the inbound socket should be unbound in this method.
+	private _unbindHandlersFromInboundSocket(
+		inboundSocket: SCServerSocketUpdated,
+	): void {
+		inboundSocket.off('close');
+		inboundSocket.off('message');
+
+		// Unbind RPC and remote event handlers
+		inboundSocket.off(REMOTE_SC_EVENT_RPC_REQUEST);
+		inboundSocket.off(REMOTE_SC_EVENT_MESSAGE);
 	}
 }

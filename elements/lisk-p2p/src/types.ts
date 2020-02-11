@@ -166,6 +166,11 @@ export interface PeerServerConfig {
 	readonly peerHandshakeCheck: P2PCheckPeerCompatibility;
 }
 
+export type WorkerPeerServerConfig = Omit<
+	PeerServerConfig,
+	'peerHandshakeCheck' | 'peerBook' | 'maxPayload'
+>;
+
 export interface P2PPeerSelectionForSendInput {
 	readonly peers: ReadonlyArray<P2PPeerInfo>;
 	readonly nodeInfo?: P2PNodeInfo;
@@ -215,4 +220,36 @@ export interface PeerLists {
 	readonly fixedPeers: ReadonlyArray<P2PPeerInfo>;
 	readonly whitelisted: ReadonlyArray<P2PPeerInfo>;
 	readonly previousPeers: ReadonlyArray<P2PPeerInfo>;
+}
+
+export type ProcessCallback = (err: Error | undefined, data: object) => void;
+
+export interface SocketInfo {
+	readonly id: string;
+	readonly ipAddress: string;
+	readonly wsPort: number;
+	readonly protocolVersion: string;
+	readonly advertiseAddress: boolean;
+	readonly nonce: string;
+	readonly nethash: string;
+}
+
+export interface ProcessMessage<T> {
+	readonly type: string;
+	readonly data?: T;
+}
+
+export interface WorkerMessage {
+	readonly type: string;
+	readonly id: string;
+	readonly data?: unknown;
+}
+
+export interface NodeConfig {
+	readonly protocolVersion: string;
+	readonly nonce: string;
+	readonly nethash: string;
+	readonly wsPort: number;
+	readonly advertiseAddress: boolean;
+	readonly maxPeerInfoSize?: number;
 }
