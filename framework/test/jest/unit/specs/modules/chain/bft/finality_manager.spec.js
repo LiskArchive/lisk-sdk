@@ -105,7 +105,7 @@ describe('finality_manager', () => {
 
 				expect(() => finalityManager.verifyBlockHeaders(header)).toThrow(
 					BFTInvalidAttributeError,
-					'Wrong prevotedConfirmedHeight in blockHeader.',
+					'Wrong chainMaxHeightPrevoted in blockHeader.',
 				);
 			});
 
@@ -117,7 +117,7 @@ describe('finality_manager', () => {
 					},
 				);
 				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
-				finalityManager.prevotedConfirmedHeight = 10;
+				finalityManager.chainMaxHeightPrevoted = 10;
 
 				expect(() => finalityManager.verifyBlockHeaders(header)).not.toThrow();
 			});
@@ -130,16 +130,18 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if same delegate forged block on different height', async () => {
-				const maxHeightPreviouslyForged = 10;
+				const maxHeightPrevoted = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
 					delegatePublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					maxHeightPreviouslyForged: 5,
+					maxHeightPrevoted,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
 					delegatePublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					maxHeightPrevoted,
+					maxHeightPreviouslyForged: 6,
 					height: 9,
 				});
 
@@ -271,6 +273,34 @@ describe('finality_manager', () => {
 				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
 					header1,
 				);
+			});
+
+			it('should throw error if blockheader has conflict (Violates disjointness condition)', async () => {
+				const header1 = blockHeaderFixture({
+					height: 34624,
+					maxHeightPreviouslyForged: 34501,
+				});
+				const header2 = blockHeaderFixture({
+					height: 34666,
+					maxHeightPreviouslyForged: 34501,
+					delegatePublicKey: header1.delegatePublicKey,
+				});
+				const headers = [header1];
+				for (
+					let height = header1.height + 1;
+					height < header2.height;
+					height += 1
+				) {
+					const header = blockHeaderFixture({
+						height,
+						maxHeightPreviouslyForged: height - 129,
+					});
+					headers.push(header);
+				}
+				headers.push(header2);
+				expect(() => {
+					headers.forEach(header => finalityManager.addBlockHeader(header));
+				}).toThrow('Violation of disjointness condition.');
 			});
 		});
 

@@ -212,6 +212,7 @@ const initStepsForTest = {
 			genesisBlock: __testContext.config.genesisBlock,
 			blocksModule: modules.blocks,
 			processorModule: modules.processor,
+			bftModule: modules.bft,
 			activeDelegates: __testContext.config.constants.ACTIVE_DELEGATES,
 		});
 

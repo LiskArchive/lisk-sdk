@@ -41,11 +41,7 @@ class BFTForkChoiceRuleError extends BFTError {
 	}
 }
 
-class BFTInvalidAttributeError extends BFTError {
-	constructor() {
-		super('Invalid BFT attribute');
-	}
-}
+class BFTInvalidAttributeError extends BFTError {}
 
 module.exports = {
 	BFTError,

@@ -28,6 +28,7 @@ const sqlFiles = {
 	delete: 'round_delegates/delete.sql',
 	get: 'round_delegates/get.sql',
 	getActiveDelegatesForRound: 'round_delegates/get_round_delegates.sql',
+	resetRoundDelegates: 'round_delegates/reset_round_delegates.sql',
 };
 
 class RoundDelegates extends BaseEntity {
@@ -109,6 +110,10 @@ class RoundDelegates extends BaseEntity {
 	async getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
+	}
+
+	async resetRoundDelegates(tx) {
+		return this.adapter.executeFile(this.SQLs.resetRoundDelegates, {}, {}, tx);
 	}
 
 	_getResults(filters, options, tx, expectedResultCount) {

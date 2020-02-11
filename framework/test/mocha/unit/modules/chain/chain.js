@@ -42,6 +42,7 @@ describe('Chain', () => {
 
 		/* Arranging Stubs start */
 		stubs.logger = {
+			trace: sinonSandbox.stub(),
 			error: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
 			fatal: sinonSandbox.stub(),
@@ -55,7 +56,10 @@ describe('Chain', () => {
 		stubs.storage = {
 			cleanup: sinonSandbox.stub(),
 			entities: {
-				Block: { get: sinonSandbox.stub().resolves([]) },
+				Block: {
+					get: sinonSandbox.stub().resolves([]),
+					count: sinonSandbox.stub().resolves(0),
+				},
 				ChainMeta: { getKey: sinonSandbox.stub() },
 			},
 		};
@@ -222,13 +226,13 @@ describe('Chain', () => {
 			return expect(global.exceptions).to.be.equal(chainOptions.exceptions);
 		});
 
-		describe('when options.loading.rebuildUpToRound is truthy', () => {
+		describe('when options.loading.rebuildUpToRound is set to an integer value', () => {
 			beforeEach(async () => {
 				// Arrange
 				chain = new Chain(stubs.channel, {
 					...chainOptions,
 					loading: {
-						rebuildUpToRound: true,
+						rebuildUpToRound: 0,
 					},
 					broadcasts: {},
 					syncing: {},
@@ -481,7 +485,7 @@ describe('Chain', () => {
 			await chain._forgingTask();
 
 			// Assert
-			expect(stubs.logger.debug.getCall(1)).to.be.calledWith(
+			expect(stubs.logger.trace.getCall(0)).to.be.calledWith(
 				'No delegates are enabled',
 			);
 			expect(chain.scope.sequence.add).to.be.called;
