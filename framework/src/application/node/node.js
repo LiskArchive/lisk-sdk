@@ -132,7 +132,7 @@ module.exports = class Node {
 			);
 
 			this.channel.subscribe('app:state:updated', event => {
-				Object.assign(this.scope.applicationState, event.data);
+				Object.assign(this.applicationState, event.data);
 			});
 
 			this.logger.info('Modules ready and launched');
@@ -141,10 +141,10 @@ module.exports = class Node {
 
 			// Update Application State after processor is initialized
 			this.channel.invoke('app:updateApplicationState', {
-				height: this.blocks.lastBlock.height,
-				lastBlockId: this.blocks.lastBlock.id,
-				maxHeightPrevoted: this.blocks.lastBlock.maxHeightPrevoted || 0,
-				blockVersion: this.blocks.lastBlock.version,
+				height: this.chain.lastBlock.height,
+				lastBlockId: this.chain.lastBlock.id,
+				maxHeightPrevoted: this.chain.lastBlock.maxHeightPrevoted || 0,
+				blockVersion: this.chain.lastBlock.version,
 			});
 
 			// Deactivate broadcast and syncing during snapshotting process

@@ -85,9 +85,7 @@ describe('finality_manager', () => {
 				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
 
 				expect(() => finalityManager.verifyBlockHeaders(header)).toThrow(
-					new BFTInvalidAttributeError(
-						'Wrong chainMaxHeightPrevoted in blockHeader.',
-					),
+					BFTInvalidAttributeError,
 				);
 			});
 

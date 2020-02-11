@@ -297,8 +297,8 @@ describe('fast_chain_switching_mechanism', () => {
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(12); // 10 + 2 from beforeEach hooks
-				expect(channelMock.invoke).toHaveBeenCalledTimes(10);
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(14); // 10 + 4 from beforeEach hooks
+				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				checkApplyPenaltyAndAbortIsCalled(
 					aPeerId,
 					new Errors.ApplyPenaltyAndAbortError(

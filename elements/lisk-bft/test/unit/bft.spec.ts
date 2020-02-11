@@ -33,13 +33,13 @@ const constants = {
 	BLOCK_TIME: 10,
 };
 
-const extractBFTInfo = bft => ({
+const extractBFTInfo = (bft: BFT) => ({
 	finalizedHeight: bft.finalizedHeight,
 	maxHeightPrevoted: bft.maxHeightPrevoted,
 	headers: [...bft.finalityManager.headers.items],
-	preVotes: { ...bft.finalityManager.preVotes },
-	preCommits: { ...bft.finalityManager.preCommits },
-	state: { ...bft.finalityManager.state },
+	preVotes: { ...(bft.finalityManager as any).preVotes },
+	preCommits: { ...(bft.finalityManager as any).preCommits },
+	state: { ...(bft.finalityManager as any).state },
 });
 
 const generateBlocks = ({
@@ -205,12 +205,18 @@ describe('bft', () => {
 						return Promise.resolve([]);
 					},
 				);
+				jest
+					.spyOn(bft.finalityManager, 'verifyBlockHeaders')
+					.mockReturnValue(true);
 
 				// Act
 				await stateStore.chainState.cache();
 				await bft.init(stateStore, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.verifyBlockHeaders).toBeCalledTimes(
+					blocksToLoad.length,
+				);
 				expect(bft.finalityManager.minHeight).toBe(loadFromHeight);
 				expect(bft.finalityManager.maxHeight).toBe(loadTillHeight);
 			});

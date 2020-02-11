@@ -102,17 +102,17 @@ describe('block processor v2', () => {
 			dposModuleStub.getMinActiveHeightsOfDelegates.mockRejectedValue(
 				new Error('Invalid error'),
 			);
-			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
-				'Invalid error',
-			);
+			await expect(
+				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
+			).rejects.toThrow('Invalid error');
 		});
 
 		it('should reject the promise when bft deleteBlocks fails', async () => {
 			const stateStore = new StateStore(storageStub);
 			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
-			await expect(blockProcessor.undo.run({ stateStore })).rejects.toThrow(
-				'Invalid error',
-			);
+			await expect(
+				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
+			).rejects.toThrow('Invalid error');
 		});
 	});
 
