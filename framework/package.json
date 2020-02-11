@@ -48,6 +48,7 @@
 	"dependencies": {
 		"@liskhq/lisk-chain": "0.1.0",
 		"@liskhq/lisk-bft": "0.1.0",
+		"@liskhq/lisk-dpos": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.4.2",
 		"@liskhq/lisk-p2p": "0.4.2",
 		"@liskhq/lisk-transaction-pool": "0.2.1",
