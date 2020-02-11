@@ -16,7 +16,6 @@ import { FinalityManager } from '../../src/finality_manager';
 import {
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
-	BFTInvalidAttributeError,
 	BFTLowerChainBranchError,
 	BlockHeader,
 } from '../../src/types';
@@ -117,13 +116,14 @@ describe('finality_manager', () => {
 
 				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
 
-				expect(() =>
-					finalityManager.verifyBlockHeaders(header, bftHeaders),
-				).toThrow(
-					new BFTInvalidAttributeError(
-						'Wrong prevotedConfirmedHeight in blockHeader.',
-					),
-				);
+				expect.assertions(1);
+				try {
+					finalityManager.verifyBlockHeaders(header, bftHeaders);
+				} catch (error) {
+					expect(error.message).toContain(
+						'Wrong maxHeightPrevoted in blockHeader.',
+					);
+				}
 			});
 
 			it('should not throw error if maxHeightPrevoted is accurate', async () => {
@@ -146,16 +146,18 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if same delegate forged block on different height', async () => {
-				const maxHeightPreviouslyForged = 10;
+				const maxHeightPrevoted = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					maxHeightPreviouslyForged: 5,
+					maxHeightPrevoted,
 					height: 10,
 				});
 				const currentBlock = blockHeaderFixture({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					maxHeightPrevoted,
+					maxHeightPreviouslyForged: 6,
 					height: 9,
 				});
 
@@ -288,7 +290,7 @@ describe('finality_manager', () => {
 				const header2 = blockHeaderFixture({
 					height: 34666,
 					maxHeightPreviouslyForged: 34501,
-					delegatePublicKey: header1.delegatePublicKey,
+					generatorPublicKey: header1.generatorPublicKey,
 				});
 				const headers = [header1];
 				for (
@@ -304,8 +306,14 @@ describe('finality_manager', () => {
 				}
 				headers.push(header2);
 
-				for (const header of headers) {
-					await expect(finalityManager.addBlockHeader(header, stateStore)).rejects.toThrow('Violation of disjointness condition.');
+				try {
+					for (const header of headers) {
+						await finalityManager.addBlockHeader(header, stateStore);
+					}
+				} catch (error) {
+					expect(error.message).toContain(
+						'Violation of disjointness condition.',
+					);
 				}
 			});
 		});

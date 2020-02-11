@@ -261,7 +261,10 @@ describe('bft', () => {
 		describe('#reset', () => {
 			it('should reset headers and related stats to initial state except finality', async () => {
 				// Arrange
-				const stateStore = new StateStoreMock({ key: 'BFT.finalizedHeight', value: '5' });
+				const stateStore = new StateStoreMock({
+					key: 'BFT.finalizedHeight',
+					value: '5',
+				});
 				const bft = new BFT(bftParams);
 				await bft.init(stateStore);
 				const initialInfo = extractBFTInfo(bft);
@@ -289,8 +292,11 @@ describe('bft', () => {
 				expect(beforeResetInfo).not.toEqual(initialInfo);
 				// Finalized height should not change
 				expect(afterResetInfo).toEqual({
-					...initialInfo,
-					finalizedHeight: beforeResetInfo.finalizedHeight,
+					finalizedHeight: 1,
+					maxHeightPrevoted: 0,
+					preVotes: {},
+					preCommits: {},
+					state: {},
 				});
 			});
 		});

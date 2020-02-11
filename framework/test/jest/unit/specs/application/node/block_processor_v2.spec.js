@@ -58,7 +58,6 @@ describe('block processor v2', () => {
 
 		dposModuleStub = {
 			undo: jest.fn(),
-			getMinActiveHeightsOfDelegates: jest.fn(),
 		};
 		storageStub = {
 			entities: {
@@ -95,11 +94,9 @@ describe('block processor v2', () => {
 	});
 
 	describe('undo', () => {
-		it('should reject the promise when dpos getMinActiveHeightsOfDelegates fails', async () => {
+		it('should reject the promise when dpos undo fails', async () => {
 			const stateStore = new StateStore(storageStub);
-			dposModuleStub.getMinActiveHeightsOfDelegates.mockRejectedValue(
-				new Error('Invalid error'),
-			);
+			dposModuleStub.undo.mockRejectedValue(new Error('Invalid error'));
 			await expect(
 				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
 			).rejects.toThrow('Invalid error');
