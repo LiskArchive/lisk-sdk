@@ -48,13 +48,13 @@ Or minified:
 
 ## Packages
 
-| Package                                                  |                            Version                             | Description                                                        |
-| -------------------------------------------------------- | :------------------------------------------------------------: | ------------------------------------------------------------------ |
-| [@liskhq/lisk-api-client](../lisk-api-client)            |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
-| [@liskhq/lisk-constants](../lisk-constants)              |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
-| [@liskhq/lisk-cryptography](../lisk-cryptography)        | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
-| [@liskhq/lisk-passphrase](../lisk-passphrase)            |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
-| [@liskhq/lisk-transactions](/packages/lisk-transactions) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
+| Package                                           |                            Version                             | Description                                                        |
+| ------------------------------------------------- | :------------------------------------------------------------: | ------------------------------------------------------------------ |
+| [@liskhq/lisk-api-client](../lisk-api-client)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
+| [@liskhq/lisk-constants](../lisk-constants)       |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
+| [@liskhq/lisk-cryptography](../lisk-cryptography) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
+| [@liskhq/lisk-passphrase](../lisk-passphrase)     |  ![npm](https://img.shields.io/npm/v/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
+| [@liskhq/lisk-transactions](../lisk-transactions) | ![npm](https://img.shields.io/npm/v/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
 
 ## License
 
