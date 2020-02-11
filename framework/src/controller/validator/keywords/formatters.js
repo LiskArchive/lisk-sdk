@@ -15,6 +15,13 @@
 'use strict';
 
 module.exports = {
+	stringToIpList: value => {
+		if (typeof value === 'string') {
+			return value.split(',');
+		}
+		return [];
+	},
+
 	stringToIpPortSet: value => {
 		if (typeof value === 'string') {
 			return value.split(',').map(peer => {
