@@ -25,7 +25,7 @@ Lisk Elements supports the modular architecture of the Lisk SDK, where libraries
 | [@liskhq/lisk-p2p](lisk-p2p)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-p2p)        | _unstructured_ P2P library for the Lisk protocol                                                         |
 | [@liskhq/lisk-validator](lisk-validator)               |    ![npm](https://img.shields.io/npm/v/@liskhq/lisk-validator)     | It includes custom validations related to Lisk protocol                                                  |
 | [@liskhq/lisk-dpos](lisk-dpos)                         |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-dpos)       | DPoS consensus algorithm implementation according to the Lisk protocol                                   |
-| [@liskhq/lisk-dpos](lisk-bft)                          |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-bft)        | Byzantine fault tolerance implementation according to the Lisk protocol                                  |
+| [@liskhq/lisk-bft](lisk-bft)                           |       ![npm](https://img.shields.io/npm/v/@liskhq/lisk-bft)        | Byzantine fault tolerance implementation according to the Lisk protocol                                  |
 | [@liskhq/lisk-chain](lisk-chain)                       |      ![npm](https://img.shields.io/npm/v/@liskhq/lisk-chain)       | Implements blocks and state management that are used for block processing according to the Lisk protocol |
 
 ## Installation
