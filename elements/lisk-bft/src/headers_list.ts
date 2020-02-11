@@ -109,6 +109,12 @@ export class HeadersList {
 	}
 
 	public top(size: number): BlockHeader[] {
+		assert(size, 'Please provide the size');
+
+		if (this.length <= size) {
+			return [...this._items];
+		}
+
 		return this.items.slice(this.length - size, this.length + 1);
 	}
 
@@ -119,7 +125,11 @@ export class HeadersList {
 		return items;
 	}
 
-	public get(height: number): BlockHeader {
-		return this.items[height - this.first.height];
+	public get(height: number): BlockHeader | undefined {
+		if (this.length === 0) {
+			return undefined;
+		}
+
+		return this._items[height - this.first.height];
 	}
 }

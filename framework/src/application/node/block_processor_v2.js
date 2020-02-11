@@ -26,8 +26,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const { BaseBlockProcessor } = require('./processor');
 
-const FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED =
-	'maxHeightPreviouslyForged';
+const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'previouslyForged';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -166,15 +165,15 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.init.pipe([
 			async ({ stateStore }) => {
-				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
-				// That's why we need to get the delegates who were active in the last 2 rounds.
-				const numberOfRounds = 2;
+				// minActiveHeightsOfDelegates will be used to load 303 blocks from the storage
+				// That's why we need to get the delegates who were active in the last 3 rounds.
+				const numberOfRounds = 3;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					this.chainModule.lastBlock.height,
 					stateStore,
 					numberOfRounds,
 				);
-				this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
+				await this.bftModule.init(stateStore, minActiveHeightsOfDelegates);
 			},
 		]);
 
@@ -274,13 +273,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			async ({ block, stateStore }) => {
 				// minActiveHeightsOfDelegates will be used to load 202 blocks from the storage
 				// That's why we need to get the delegates who were active in the last 2 rounds.
-				const numberOfRounds = 2;
+				const numberOfRounds = 3;
 				const minActiveHeightsOfDelegates = await this.dposModule.getMinActiveHeightsOfDelegates(
 					block.height,
 					stateStore,
 					numberOfRounds,
 				);
-				this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
+				await this.bftModule.deleteBlocks([block], minActiveHeightsOfDelegates);
 			},
 			({ block, stateStore }) => this.dposModule.undo(block, stateStore),
 		]);
@@ -288,20 +287,21 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.create.pipe([
 			// Create a block with with basic block and bft properties
 			async data => {
-				const previouslyForged = await this._getPreviouslyForgedMap();
+				const previouslyForgedMap = await this._getPreviouslyForgedMap();
 				const delegatePublicKey = data.keypair.publicKey.toString('hex');
-				const maxHeightPreviouslyForged =
-					previouslyForged[delegatePublicKey] || 0;
+				const height = data.previousBlock.height + 1;
+				const previousBlockId = data.previousBlock.id;
+				const forgerInfo = previouslyForgedMap[delegatePublicKey] || {};
+				const maxHeightPreviouslyForged = forgerInfo.height || 0;
 				const block = this._create({
 					...data,
+					height,
+					previousBlockId,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
 				});
 
-				await this._saveMaxHeightPreviouslyForged(
-					block.generatorPublicKey,
-					block.height,
-				);
+				await this._saveMaxHeightPreviouslyForged(block, previouslyForgedMap);
 				return block;
 			},
 		]);
@@ -314,15 +314,14 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 	_create({
 		transactions,
-		previousBlock,
+		height,
+		previousBlockId,
 		keypair,
 		timestamp,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
 	}) {
-		const nextHeight = previousBlock ? previousBlock.height + 1 : 1;
-
-		const reward = this.chainModule.blockReward.calculateReward(nextHeight);
+		const reward = this.chainModule.blockReward.calculateReward(height);
 		let totalFee = BigInt(0);
 		let totalAmount = BigInt(0);
 		let size = 0;
@@ -360,10 +359,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,
-			previousBlockId: previousBlock ? previousBlock.id : null,
+			previousBlockId,
 			generatorPublicKey: keypair.publicKey.toString('hex'),
 			transactions: blockTransactions,
-			height: nextHeight,
+			height,
 			maxHeightPreviouslyForged,
 			maxHeightPrevoted,
 		};
@@ -384,7 +383,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 	async _getPreviouslyForgedMap() {
 		const previouslyForgedStr = await this.storage.entities.ForgerInfo.getKey(
-			FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED,
+			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 		);
 		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
 	}
@@ -393,21 +392,31 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
 	 * so it needs to be outside of the DB transaction
 	 */
-	async _saveMaxHeightPreviouslyForged(delegatePublicKey, height) {
-		const previouslyForgedMap = await this._getPreviouslyForgedMap();
-		const previouslyForgedHeightByDelegate =
-			previouslyForgedMap[delegatePublicKey] || 0;
+	async _saveMaxHeightPreviouslyForged(block, previouslyForgedMap) {
+		const {
+			generatorPublicKey,
+			height,
+			maxHeightPreviouslyForged,
+			maxHeightPrevoted,
+		} = block;
+		// In order to compare with the minimum height in case of the first block, here it should be 0
+		const previouslyForged = previouslyForgedMap[generatorPublicKey] || {};
+		const previouslyForgedHeightByDelegate = previouslyForged.height || 0;
 		// previously forged height only saves maximum forged height
 		if (height <= previouslyForgedHeightByDelegate) {
 			return;
 		}
 		const updatedPreviouslyForged = {
 			...previouslyForgedMap,
-			[delegatePublicKey]: height,
+			[generatorPublicKey]: {
+				height,
+				maxHeightPrevoted,
+				maxHeightPreviouslyForged,
+			},
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
 		await this.storage.entities.ForgerInfo.setKey(
-			FORGER_INFO_KEY_MAX_HEIGHT_PREVIOUSLY_FORGED,
+			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 			previouslyForgedStr,
 		);
 	}

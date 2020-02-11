@@ -131,10 +131,27 @@ module.exports = class Node {
 				this.options.genesisBlock,
 			);
 
+			this.channel.subscribe('app:state:updated', event => {
+				Object.assign(this.scope.applicationState, event.data);
+			});
+
+			this.logger.info('Modules ready and launched');
+			// After binding, it should immediately load blockchain
+			await this.processor.init(this.options.genesisBlock);
+
+			// Update Application State after processor is initialized
+			this.channel.invoke('app:updateApplicationState', {
+				height: this.blocks.lastBlock.height,
+				lastBlockId: this.blocks.lastBlock.id,
+				maxHeightPrevoted: this.blocks.lastBlock.maxHeightPrevoted || 0,
+				blockVersion: this.blocks.lastBlock.version,
+			});
+
 			// Deactivate broadcast and syncing during snapshotting process
-			if (this.options.loading.rebuildUpToRound) {
+			if (!Number.isNaN(parseInt(this.options.loading.rebuildUpToRound, 10))) {
 				this.options.broadcasts.active = false;
 				this.options.syncing.active = false;
+
 				await this.rebuilder.rebuild(
 					this.options.loading.rebuildUpToRound,
 					this.options.loading.loadPerIteration,
@@ -149,22 +166,6 @@ module.exports = class Node {
 				process.emit('cleanup');
 				return;
 			}
-
-			this.channel.subscribe('app:state:updated', event => {
-				Object.assign(this.applicationState, event.data);
-			});
-
-			this.logger.info('Modules ready and launched');
-			// After binding, it should immediately load blockchain
-			await this.processor.init(this.options.genesisBlock);
-
-			// Update Application State after processor is initialized
-			this.channel.invoke('app:updateApplicationState', {
-				height: this.chain.lastBlock.height,
-				lastBlockId: this.chain.lastBlock.id,
-				maxHeightPrevoted: this.chain.lastBlock.maxHeightPrevoted || 0,
-				blockVersion: this.chain.lastBlock.version,
-			});
 
 			this._subscribeToEvents();
 
@@ -408,6 +409,7 @@ module.exports = class Node {
 			genesisBlock: this.options.genesisBlock,
 			chainModule: this.chain,
 			processorModule: this.processor,
+			bftModule: this.bft,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.modules.rebuilder = this.rebuilder;
@@ -454,7 +456,7 @@ module.exports = class Node {
 		return this.sequence.add(async () => {
 			try {
 				if (!this.forger.delegatesEnabled()) {
-					this.logger.debug('No delegates are enabled');
+					this.logger.trace('No delegates are enabled');
 					return;
 				}
 				if (this.synchronizer.isActive) {

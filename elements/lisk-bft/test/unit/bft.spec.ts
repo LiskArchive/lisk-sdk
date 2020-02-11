@@ -33,6 +33,15 @@ const constants = {
 	BLOCK_TIME: 10,
 };
 
+const extractBFTInfo = bft => ({
+	finalizedHeight: bft.finalizedHeight,
+	maxHeightPrevoted: bft.maxHeightPrevoted,
+	headers: [...bft.finalityManager.headers.items],
+	preVotes: { ...bft.finalityManager.preVotes },
+	preCommits: { ...bft.finalityManager.preCommits },
+	state: { ...bft.finalityManager.state },
+});
+
 const generateBlocks = ({
 	startHeight,
 	numberOfBlocks,
@@ -116,7 +125,7 @@ describe('bft', () => {
 				expect(bft.finalityManager).toBeInstanceOf(FinalityManager);
 			});
 
-			it('should load blocks from lastBlockHeight - TWO_ROUNDS if its highest', async () => {
+			it('should load blocks from lastBlockHeight - THREE_ROUNDS if its highest', async () => {
 				// Arrange
 				const startingHeight = 1;
 				const finalizedHeight = 200;
@@ -127,7 +136,7 @@ describe('bft', () => {
 				const loadTillHeight = lastBlockHeight;
 				// since both limits are inclusive
 				// 5 - 3 = 2 but 3, 4, 5 are actually 3
-				const loadFromHeight = lastBlockHeight - activeDelegates * 2 + 1;
+				const loadFromHeight = lastBlockHeight - activeDelegates * 3 + 1;
 
 				const lastBlock = blockFixture({ height: lastBlockHeight });
 				const blocksToLoad = generateBlocks({
@@ -423,8 +432,9 @@ describe('bft', () => {
 				]);
 			});
 
-			it('should load more blocks from storage if remaining in headers list is less than 2 rounds', async () => {
+			it('should load more blocks from storage if remaining in headers list is less than 3 rounds', async () => {
 				// Arrange
+				jest.spyOn(bft.finalityManager, 'recompute');
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
 				const numberOfBlocksToDelete = 50;
@@ -464,19 +474,21 @@ describe('bft', () => {
 				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.recompute).toHaveBeenCalledTimes(2);
 				expect(bft.finalityManager.maxHeight).toEqual(450);
 				expect(bft.finalityManager.minHeight).toEqual(
 					450 - activeDelegates * 2,
 				);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(1);
 				expect(storageMock.entities.Block.get).toHaveBeenLastCalledWith(
-					{ height_lte: 400, height_gte: 450 - activeDelegates * 2 },
+					{ height_lte: 400, height_gte: 450 - activeDelegates * 3 + 1 },
 					{ limit: null, sort: 'height:desc' },
 				);
 			});
 
-			it('should not load more blocks from storage if remaining in headers list is more than 2 rounds', async () => {
+			it('should not load more blocks from storage if remaining in headers list is more than 3 rounds', async () => {
 				// Arrange
+				jest.spyOn(bft.finalityManager, 'recompute');
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
 				const numberOfBlocksToDelete = 50;
@@ -484,8 +496,8 @@ describe('bft', () => {
 					startHeight: 1,
 					numberOfBlocks,
 				});
-				// Last 300 blocks from height 201 to 500
-				const blocksInBft = blocks.slice(200);
+				// Last 300 blocks from height 101 to 500
+				const blocksInBft = blocks.slice(100);
 
 				// Last 50 blocks from height 451 to 500
 				const blocksToDelete = blocks.slice(-numberOfBlocksToDelete);
@@ -498,9 +510,11 @@ describe('bft', () => {
 					return acc;
 				}, {} as any);
 
-				// Load last 300 blocks to bft (201 to 500)
-				// eslint-disable-next-line no-restricted-syntax
+				// Load last 400 blocks to bft (101 to 500)
 				for (const block of blocksInBft) {
+					// This value is mutated to pass the chainMaxHeightPrevoted validation
+					(block as any).maxHeightPrevoted =
+						bft.finalityManager.chainMaxHeightPrevoted;
 					// eslint-disable-next-line no-await-in-loop
 					await bft.addNewBlock(block, stateStore);
 				}
@@ -509,26 +523,26 @@ describe('bft', () => {
 				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.recompute).toHaveBeenCalledTimes(1);
 				expect(bft.finalityManager.maxHeight).toEqual(450);
-				expect(bft.finalityManager.minHeight).toEqual(201);
+				expect(bft.finalityManager.minHeight).toEqual(101);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
 			});
 
-			it('should not load more blocks from storage if remaining in headers list is exactly 2 rounds', async () => {
+			it('should not load more blocks from storage if remaining in headers list is exactly 3 rounds', async () => {
 				// Arrange
+				jest.spyOn(bft.finalityManager, 'recompute');
 				// Generate 500 blocks
 				const numberOfBlocks = 500;
 				const blocks = generateBlocks({
 					startHeight: 1,
 					numberOfBlocks,
 				});
-				// Last 300 blocks from height 201 to 500
-				const blocksInBft = blocks.slice(200);
+				// Last 300 blocks from height 100 to 500
+				const blocksInBft = blocks.slice(99);
 
-				// Delete blocks keeping exactly two rounds in the list from (201 to 298)
-				const blocksToDelete = blocks.slice(
-					-1 * (300 - activeDelegates * 2 - 1),
-				);
+				// Delete blocks keeping exactly 3 rounds in the list from (201 to 298)
+				const blocksToDelete = blocks.slice(-97);
 
 				// minActiveHeightsOfDelegates is provided to deleteBlocks function
 				// in block_processor_v2 from DPoS module.
@@ -539,9 +553,10 @@ describe('bft', () => {
 				}, {} as any);
 
 				// Load last 300 blocks to bft (201 to 500)
-				// eslint-disable-next-line no-restricted-syntax
 				for (const block of blocksInBft) {
-					// eslint-disable-next-line no-await-in-loop
+					// This value is mutated to pass the chainMaxHeightPrevoted validation
+					(block as any).maxHeightPrevoted =
+						bft.finalityManager.chainMaxHeightPrevoted;
 					await bft.addNewBlock(block, stateStore);
 				}
 
@@ -549,11 +564,51 @@ describe('bft', () => {
 				await bft.deleteBlocks(blocksToDelete, minActiveHeightsOfDelegates);
 
 				// Assert
+				expect(bft.finalityManager.recompute).toHaveBeenCalledTimes(1);
 				expect(bft.finalityManager.maxHeight).toEqual(403);
-				expect(bft.finalityManager.minHeight).toEqual(
-					403 - activeDelegates * 2,
-				);
+				expect(bft.finalityManager.minHeight).toEqual(100);
 				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(0);
+			});
+		});
+		describe('#reset', () => {
+			it('should reset headers and related stats to initial state except finality', async () => {
+				// Arrange
+				(storageMock as any).entities.Block.get.mockReturnValue([]);
+				(storageMock as any).entities.ChainState.get.mockResolvedValue([
+					{ key: 'BFT.finalizedHeight', value: 1 },
+				]);
+				const stateStore = new StateStore(storageMock);
+				await stateStore.chainState.cache();
+				const bft = new BFT(bftParams);
+				await bft.init(stateStore);
+				const initialInfo = extractBFTInfo(bft);
+				const numberOfBlocks = 500;
+				const blocks = generateBlocks({
+					startHeight: 1,
+					numberOfBlocks,
+				});
+				for (const block of blocks) {
+					await bft.addNewBlock(
+						{
+							...block,
+							maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
+						},
+						stateStore,
+					);
+				}
+				const beforeResetInfo = extractBFTInfo(bft);
+
+				// Act
+				bft.reset();
+				const afterResetInfo = extractBFTInfo(bft);
+
+				// Assert
+				expect(beforeResetInfo).not.toEqual(initialInfo);
+				// Finalized height should not change
+				expect(afterResetInfo).toEqual({
+					...initialInfo,
+					finalizedHeight: beforeResetInfo.finalizedHeight,
+				});
 			});
 		});
 
