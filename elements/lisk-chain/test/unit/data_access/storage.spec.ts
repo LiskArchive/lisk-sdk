@@ -77,7 +77,11 @@ describe('data access - storage', () => {
 			},
 		};
 
-		storageAccess = new StorageAccess(storageMock);
+		storageAccess = new StorageAccess({
+			...storageMock,
+			minCachedItems: 3,
+			maxCachedItems: 5,
+		});
 	});
 
 	describe('#getBlockHeadersByIDs', () => {

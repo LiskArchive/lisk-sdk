@@ -99,7 +99,7 @@ interface ChainConstructor {
 }
 
 const DEFAULT_MIN_BLOCK_HEADER_CACHE = 303;
-const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
+const DEFAULT_MAX_BLOCK_HEADER_CACHE = 505;
 
 // tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];

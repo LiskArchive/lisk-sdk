@@ -33,8 +33,8 @@ interface DAConstructor {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	readonly minBlockHeaderCache?: number;
-	readonly maxBlockHeaderCache?: number;
+	readonly minBlockHeaderCache: number;
+	readonly maxBlockHeaderCache: number;
 }
 
 export class DataAccess {
@@ -69,17 +69,21 @@ export class DataAccess {
 	public async removeBlockHeader(id: string): Promise<BlockHeader[]> {
 		const cachedItems = this._blocksCache.remove(id);
 
-		if (this._blocksCache.needsRefill) {
-			// Get the height limits to fetch
-			// The method getBlocksByHeightBetween uses gte & lte so we need to adjust values
-			const upperHeightToFetch = this._blocksCache.items[0]?.height - 1 || 0;
+		if (!this._blocksCache.needsRefill) {
+			return cachedItems;
+		}
 
-			const lowerHeightToFetch = Math.max(
-				upperHeightToFetch -
-					(this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems),
-				1,
-			);
+		// Get the height limits to fetch
+		// The method getBlocksByHeightBetween uses gte & lte so we need to adjust values
+		const upperHeightToFetch = this._blocksCache.items[0]?.height - 1 || 0;
 
+		const lowerHeightToFetch = Math.max(
+			upperHeightToFetch -
+				(this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems),
+			1,
+		);
+
+		if (upperHeightToFetch - lowerHeightToFetch > 0) {
 			const blockHeaders = await this.getBlocksByHeightBetween(
 				lowerHeightToFetch,
 				upperHeightToFetch,
