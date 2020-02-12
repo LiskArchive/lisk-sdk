@@ -114,11 +114,7 @@ export class BFTForkChoiceRuleError extends BFTError {
 	}
 }
 
-export class BFTInvalidAttributeError extends BFTError {
-	public constructor(message: string) {
-		super(`Invalid BFT attribute: ${message}`);
-	}
-}
+export class BFTInvalidAttributeError extends BFTError {}
 
 export interface Rounds {
 	readonly calcRound: (height: number) => number;
