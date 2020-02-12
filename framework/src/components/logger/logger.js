@@ -56,7 +56,7 @@ class ConsoleLog {
 		try {
 			let log = util.format(
 				'%s %s %s: %s (module=%s)\n',
-				new Date(rec.time).toISOString(),
+				new Date(rec.time).toLocaleTimeString('en-US', { hour12: false }),
 				levelToName[rec.level],
 				rec.name,
 				rec.msg,
