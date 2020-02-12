@@ -28,9 +28,8 @@ export const getId = (blockBytes: Buffer): string => {
 	return id;
 };
 
-export const uniqBy = (
-	// tslint:disable-next-line no-any
-	arr: ReadonlyArray<any>,
+export const uniqBy = <T extends { readonly [key: string]: unknown }>(
+	arr: ReadonlyArray<T>,
 	property: string,
 	set = new Set(),
 ) =>
