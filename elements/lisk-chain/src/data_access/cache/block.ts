@@ -48,6 +48,14 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items;
 	}
 
+	// Refills cache up to maxCachedItems when minCachedItems is reachead
+	public refill(blockHeaders: BlockHeader[]): BlockHeader[] {
+		this.items.unshift(...blockHeaders);
+		this.needsRefill = false;
+
+		return this.items;
+	}
+
 	public remove(id: string): BlockHeader[] {
 		if (this.items.length && this.last.id !== id) {
 			assert(

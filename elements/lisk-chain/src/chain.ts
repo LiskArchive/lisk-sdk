@@ -529,7 +529,7 @@ export class Chain extends EventEmitter {
 				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 			}
 			await stateStore.finalize(tx);
-			this.dataAccess.removeBlockHeader(block.id);
+			await this.dataAccess.removeBlockHeader(block.id);
 			this._lastBlock = secondLastBlock;
 		});
 	}
