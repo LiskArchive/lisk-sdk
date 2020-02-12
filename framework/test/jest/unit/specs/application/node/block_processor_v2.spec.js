@@ -41,6 +41,7 @@ describe('block processor v2', () => {
 	beforeEach(async () => {
 		chainModuleStub = {
 			newStateStore: jest.fn().mockReturnValue({}),
+			undo: jest.fn(),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
 			},
@@ -50,11 +51,13 @@ describe('block processor v2', () => {
 		};
 		bftModuleStub = {
 			init: jest.fn(),
+			deleteBlocks: jest.fn(),
 			maxHeightPrevoted: 0,
 			isBFTProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
 
 		dposModuleStub = {
+			undo: jest.fn(),
 			getMinActiveHeightsOfDelegates: jest.fn(),
 		};
 		storageStub = {
@@ -82,14 +85,34 @@ describe('block processor v2', () => {
 	});
 
 	describe('init', () => {
-		it('should get activeSince from dpos for 2 rounds', async () => {
+		it('should get activeSince from dpos for 3 rounds', async () => {
 			// Arrange & Act
 			const stateStore = new StateStore(storageStub);
 			await blockProcessor.init.run({ stateStore });
 			// Assert
 			expect(
 				dposModuleStub.getMinActiveHeightsOfDelegates,
-			).toHaveBeenCalledWith(102, stateStore, 2);
+			).toHaveBeenCalledWith(102, stateStore, 3);
+		});
+	});
+
+	describe('undo', () => {
+		it('should reject the promise when dpos getMinActiveHeightsOfDelegates fails', async () => {
+			const stateStore = new StateStore(storageStub);
+			dposModuleStub.getMinActiveHeightsOfDelegates.mockRejectedValue(
+				new Error('Invalid error'),
+			);
+			await expect(
+				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
+			).rejects.toThrow('Invalid error');
+		});
+
+		it('should reject the promise when bft deleteBlocks fails', async () => {
+			const stateStore = new StateStore(storageStub);
+			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
+			await expect(
+				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
+			).rejects.toThrow('Invalid error');
 		});
 	});
 
@@ -111,8 +134,9 @@ describe('block processor v2', () => {
 			});
 			// Assert
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
-				'maxHeightPreviouslyForged',
+				'previouslyForged',
 			);
+			// previousBlock.height + 1
 			expect(block.maxHeightPreviouslyForged).toBe(0);
 		});
 
@@ -120,7 +144,7 @@ describe('block processor v2', () => {
 			const previouslyForgedHeight = 100;
 			// Arrange
 			const maxHeightResult = JSON.stringify({
-				[defaultKeyPair.publicKey.toString('hex')]: 100,
+				[defaultKeyPair.publicKey.toString('hex')]: { height: 100 },
 			});
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(maxHeightResult);
 			// Act
@@ -134,12 +158,23 @@ describe('block processor v2', () => {
 			});
 			// Assert
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
-				'maxHeightPreviouslyForged',
+				'previouslyForged',
 			);
 			expect(block.maxHeightPreviouslyForged).toBe(previouslyForgedHeight);
 		});
 
-		it('should set maxPreviouslyForgedHeight to previously forged height', async () => {
+		it('should update maxPreviouslyForgedHeight to the next higher one but not change for other delegates', async () => {
+			// Arrange
+			const list = {
+				[defaultKeyPair.publicKey.toString('hex')]: { height: 5 },
+				a: { height: 4 },
+				b: { height: 6 },
+				c: { height: 7 },
+				x: { height: 8 },
+			};
+			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
+				JSON.stringify(list),
+			);
 			// Act
 			block = await blockProcessor.create.run({
 				keypair: defaultKeyPair,
@@ -150,12 +185,59 @@ describe('block processor v2', () => {
 				},
 			});
 			const maxHeightResult = JSON.stringify({
-				[defaultKeyPair.publicKey.toString('hex')]: 11,
+				...list,
+				[defaultKeyPair.publicKey.toString('hex')]: {
+					height: 11,
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 5,
+				},
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
-				'maxHeightPreviouslyForged',
+				'previouslyForged',
 				maxHeightResult,
 			);
+		});
+
+		it('should set maxPreviouslyForgedHeight to forging height', async () => {
+			// Act
+			block = await blockProcessor.create.run({
+				keypair: defaultKeyPair,
+				timestamp: 10,
+				transactions: [],
+				previousBlock: {
+					height: 10,
+				},
+			});
+			const maxHeightResult = JSON.stringify({
+				[defaultKeyPair.publicKey.toString('hex')]: {
+					height: 11,
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+			});
+			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				'previouslyForged',
+				maxHeightResult,
+			);
+		});
+
+		it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {
+			// Arrange
+			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
+				JSON.stringify({
+					[defaultKeyPair.publicKey.toString('hex')]: { height: 15 },
+				}),
+			);
+			// Act
+			block = await blockProcessor.create.run({
+				keypair: defaultKeyPair,
+				timestamp: 10,
+				transactions: [],
+				previousBlock: {
+					height: 10,
+				},
+			});
+			expect(storageStub.entities.ForgerInfo.setKey).not.toHaveBeenCalled();
 		});
 
 		it('should return a block', async () => {

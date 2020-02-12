@@ -209,14 +209,6 @@ Object {
               "type": "integer",
             },
             "fixedPeers": Object {
-              "arg": Object {
-                "formatter": "stringToIpPortSet",
-                "name": "--peers,-x",
-              },
-              "env": Object {
-                "formatter": "stringToIpPortSet",
-                "variable": "LISK_PEERS",
-              },
               "items": Object {
                 "properties": Object {
                   "ip": Object {
@@ -294,14 +286,6 @@ Object {
               "type": "integer",
             },
             "whitelistedPeers": Object {
-              "arg": Object {
-                "formatter": "stringToIpPortSet",
-                "name": "--peers,-x",
-              },
-              "env": Object {
-                "formatter": "stringToIpPortSet",
-                "variable": "LISK_PEERS",
-              },
               "items": Object {
                 "properties": Object {
                   "ip": Object {
