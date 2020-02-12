@@ -23,9 +23,9 @@ export interface Indexable {
 	readonly [key: string]: unknown;
 }
 
-export type AccountType = Account & Indexable;
+export type IndexableAccount = Account & Indexable;
 
-export type TransactionType = TransactionJSON & Indexable;
+export type IndexableTransactionJSON = TransactionJSON & Indexable;
 
 export interface AccountJSON {
 	readonly address: string;

@@ -19,7 +19,7 @@ import isEqual = require('lodash.isequal');
 import { Account } from '../account';
 import {
 	AccountJSON,
-	AccountType,
+	IndexableAccount,
 	StorageEntity,
 	StorageFilters,
 	StorageTransaction,
@@ -53,7 +53,7 @@ export class AccountStore {
 		);
 
 		this._data = uniqBy(
-			[...this._data, ...resultAccountObjects] as AccountType[],
+			[...this._data, ...resultAccountObjects] as IndexableAccount[],
 			this._primaryKey,
 		);
 
@@ -191,11 +191,11 @@ export class AccountStore {
 				const filter = { [this._primaryKey]: updatedItem[this._primaryKey] };
 				const updatedData = updatedKeys.reduce((data, key) => {
 					// tslint:disable-next-line:no-any
-					data[key] = (updatedItem as any)[key];
+					(data as any)[key] = (updatedItem as any)[key];
 
 					return data;
 					// tslint:disable-next-line readonly-keyword no-object-literal-type-assertion
-				}, {} as { [key: string]: Account[] });
+				}, {} as Partial<AccountJSON>);
 
 				return this._account.upsert(
 					filter,
