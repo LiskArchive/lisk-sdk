@@ -28,9 +28,9 @@ class Rebuilder {
 		// Modules
 		processorModule,
 		chainModule,
+		bftModule,
 		// Constants
 		activeDelegates,
-		storage,
 	}) {
 		this.isActive = false;
 		this.isCleaning = false;
@@ -41,10 +41,10 @@ class Rebuilder {
 
 		this.processorModule = processorModule;
 		this.chainModule = chainModule;
+		this.bftModule = bftModule;
 		this.constants = {
 			activeDelegates,
 		};
-		this.storage = storage;
 	}
 
 	cleanup() {
@@ -81,6 +81,10 @@ class Rebuilder {
 
 		const limit = loadPerIteration;
 		await this.chainModule.resetState();
+
+		// Need to reset the BFT to rebuild from start of the chain
+		this.bftModule.reset();
+
 		let { lastBlock } = this.chainModule;
 		for (
 			let currentHeight = 0;

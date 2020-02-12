@@ -15,6 +15,7 @@
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
+import { BFT_MIGRATION_ROUND_OFFSET, BFT_ROUND_THRESHOLD } from './constant';
 import {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
@@ -90,13 +91,11 @@ export class BFT extends EventEmitter {
 		const { finalizedHeight } = this.finalityManager;
 		const lastBlockHeight = await this._getLastBlockHeight();
 
-		const loadHeightThreshold = 2;
 		const loadFromHeight = Math.max(
 			finalizedHeight,
-			// Since both limits are inclusive
-			// 5 - 3 = 2 but 3, 4, 5 are actually 3
+			// Search is inclusive, therefore, it should start from one above (ex: 288 - 500, which results total 303)
 			lastBlockHeight -
-				this.constants.activeDelegates * loadHeightThreshold +
+				this.constants.activeDelegates * BFT_ROUND_THRESHOLD +
 				1,
 			this.constants.startingHeight,
 		);
@@ -143,23 +142,8 @@ export class BFT extends EventEmitter {
 		this.finalityManager.removeBlockHeaders({
 			aboveHeight: removeFromHeight - 1,
 		});
-
-		// Make sure there are 2 rounds of block headers available
-		const minHeadersThreshold = 2;
-		if (
-			this.finalityManager.maxHeight - this.finalityManager.minHeight <
-			this.constants.activeDelegates * minHeadersThreshold
-		) {
-			const tillHeight = this.finalityManager.minHeight - 1;
-			const fromHeight =
-				this.finalityManager.maxHeight -
-				this.constants.activeDelegates * minHeadersThreshold;
-			await this._loadBlocksFromStorage({
-				fromHeight,
-				tillHeight,
-				minActiveHeightsOfDelegates,
-			});
-		}
+		// Make sure there are BFT_ROUND_THRESHOLD rounds of block headers available
+		await this._fillCache(minActiveHeightsOfDelegates);
 	}
 
 	public addNewBlock(block: Block, stateStore: StateStore): boolean {
@@ -239,10 +223,9 @@ export class BFT extends EventEmitter {
 
 		/* Check BFT migration height
 		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
-		const bftMigrationHeightThreshold = 2;
 		const bftMigrationHeight =
 			this.constants.startingHeight -
-			this.constants.activeDelegates * bftMigrationHeightThreshold;
+			this.constants.activeDelegates * BFT_MIGRATION_ROUND_OFFSET;
 
 		// Choose max between stored finalized height or migration height
 		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
@@ -373,7 +356,79 @@ export class BFT extends EventEmitter {
 	}
 
 	public get maxHeightPrevoted(): number {
-		return this.finalityManager.prevotedConfirmedHeight;
+		return this.finalityManager.chainMaxHeightPrevoted;
+	}
+
+	public reset(): void {
+		this.finalityManager.headers.empty();
+		this.finalityManager.recompute();
+	}
+
+	private async _fillCache(
+		minActiveHeightsOfDelegates: HeightOfDelegates,
+	): Promise<void> {
+		if (
+			this.finalityManager.maxHeight - this.finalityManager.minHeight >=
+			this.constants.activeDelegates * BFT_ROUND_THRESHOLD
+		) {
+			return;
+		}
+
+		const tillHeight = this.finalityManager.minHeight - 1;
+		const fromHeight =
+			this.finalityManager.maxHeight -
+			// Search is inclusive, therefore, it should start from one above (ex: 288 - 500, which results total 303)
+			this.constants.activeDelegates * BFT_ROUND_THRESHOLD +
+			1;
+		const blocksJSON = await this.blockEntity.get(
+			{ height_gte: fromHeight, height_lte: tillHeight },
+			// tslint:disable-next-line no-null-keyword
+			{ limit: null, sort: 'height:desc' },
+		);
+		for (const blockJSON of blocksJSON) {
+			if (blockJSON.height === 1) {
+				this.finalityManager.headers.add(
+					extractBFTBlockHeaderFromBlock({
+						...blockJSON,
+						delegateMinHeightActive: 1,
+					}),
+				);
+
+				return;
+			}
+
+			const activeHeights =
+				minActiveHeightsOfDelegates[blockJSON.generatorPublicKey];
+			if (!activeHeights) {
+				throw new Error(
+					`Minimum active heights were not found for delegate "${blockJSON.generatorPublicKey}".`,
+				);
+			}
+
+			// If there is no minHeightActive until this point,
+			// We can set the value to 0
+			const minimumPossibleActiveHeight = this.rounds.calcRoundStartHeight(
+				this.rounds.calcRound(
+					Math.max(
+						blockJSON.height -
+							this.constants.activeDelegates * BFT_ROUND_THRESHOLD,
+						1,
+					),
+				),
+			);
+			const [delegateMinHeightActive] = activeHeights.filter(
+				height => height >= minimumPossibleActiveHeight,
+			);
+
+			const blockHeader = {
+				...blockJSON,
+				delegateMinHeightActive,
+			};
+			this.finalityManager.headers.add(
+				extractBFTBlockHeaderFromBlock(blockHeader),
+			);
+		}
+		this.finalityManager.recompute();
 	}
 
 	// tslint:disable-next-line prefer-function-over-method

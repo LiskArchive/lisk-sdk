@@ -16,6 +16,7 @@ import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
+import { BFT_ROUND_THRESHOLD } from './constant';
 import { HeadersList } from './headers_list';
 import {
 	BFTChainDisjointError,
@@ -39,10 +40,9 @@ export class FinalityManager extends EventEmitter {
 	public readonly maxHeaders: number;
 
 	public finalizedHeight: number;
-	public prevotedConfirmedHeight: number;
+	public chainMaxHeightPrevoted: number;
 	public headers: HeadersList;
 
-	private readonly _initialFinalizedHeight: number;
 	private state: {
 		[key: string]: {
 			maxPreVoteHeight: number;
@@ -78,7 +78,7 @@ export class FinalityManager extends EventEmitter {
 		this.preCommitThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
 		// Limit for blocks to make perform verification or pre-vote/pre-commit (1 block less than 3 rounds)
-		this.processingThreshold = this.activeDelegates * 3 - 1;
+		this.processingThreshold = this.activeDelegates * BFT_ROUND_THRESHOLD - 1;
 
 		// Maximum headers to store (5 rounds)
 		this.maxHeaders = this.activeDelegates * 5;
@@ -86,11 +86,10 @@ export class FinalityManager extends EventEmitter {
 		this.headers = new HeadersList({ size: this.maxHeaders });
 
 		// Height up to which blocks are finalized
-		this._initialFinalizedHeight = finalizedHeight;
 		this.finalizedHeight = finalizedHeight;
 
 		// Height up to which blocks have pre-voted
-		this.prevotedConfirmedHeight = 0;
+		this.chainMaxHeightPrevoted = 0;
 
 		this.state = {};
 		this.preVotes = {};
@@ -107,15 +106,7 @@ export class FinalityManager extends EventEmitter {
 		validateBlockHeader(blockHeader);
 
 		// Verify the integrity of the header with chain
-		try {
-			this.verifyBlockHeaders(blockHeader);
-		} catch (error) {
-			// TODO: Remove hardcoded value of maxHeightPreviouslyForged to avoid this
-			// Https://github.com/LiskHQ/lisk-sdk/blob/fa1bb6907955c12297336f80f59951ba4754da7f/framework/src/modules/chain/blocks/process.js#L125-L126
-			if (!(error instanceof BFTChainDisjointError)) {
-				throw error;
-			}
-		}
+		this.verifyBlockHeaders(blockHeader);
 
 		// Add the header to the list
 		this.headers.add(blockHeader);
@@ -130,7 +121,7 @@ export class FinalityManager extends EventEmitter {
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
-			prevotedConfirmedHeight: this.prevotedConfirmedHeight,
+			chainMaxHeightPrevoted: this.chainMaxHeightPrevoted,
 			minHeight: this.minHeight,
 			maxHeight: this.maxHeight,
 		});
@@ -145,7 +136,7 @@ export class FinalityManager extends EventEmitter {
 	}): void {
 		debug('removeBlockHeaders invoked');
 
-		const removeAboveHeight = aboveHeight || this.maxHeight - 1;
+		const removeAboveHeight = aboveHeight;
 
 		// Remove block header from the list
 		this.headers.remove({ aboveHeight: removeAboveHeight });
@@ -175,7 +166,7 @@ export class FinalityManager extends EventEmitter {
 			maxPreCommitHeight: 0,
 		};
 
-		const validMinHeightToVoteAndCommit = this._getValidMinHeightToCommit(
+		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(
 			header,
 		);
 
@@ -184,7 +175,7 @@ export class FinalityManager extends EventEmitter {
 		// Delegate can't pre-commit a block before the above mentioned conditions
 		const minPreCommitHeight = Math.max(
 			header.delegateMinHeightActive,
-			validMinHeightToVoteAndCommit,
+			minValidHeightToPreCommit,
 			delegateState.maxPreCommitHeight + 1,
 		);
 
@@ -239,9 +230,9 @@ export class FinalityManager extends EventEmitter {
 			.reverse()
 			.find(key => this.preVotes[key] >= this.preVoteThreshold);
 
-		this.prevotedConfirmedHeight = highestHeightPreVoted
+		this.chainMaxHeightPrevoted = highestHeightPreVoted
 			? parseInt(highestHeightPreVoted, 10)
-			: this.prevotedConfirmedHeight;
+			: this.chainMaxHeightPrevoted;
 
 		const highestHeightPreCommitted = Object.keys(this.preCommits)
 			.reverse()
@@ -261,7 +252,15 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	private _getValidMinHeightToCommit(header: BlockHeader): number {
+	/**
+	 * Get the min height from which a delegate can make pre-commits
+	 *
+	 * The flow is as following:
+	 * - We search backward from top block to bottom block in the chain
+	 * - We can search down to current block height - processingThreshold(302)
+	 * -
+	 */
+	private _getMinValidHeightToPreCommit(header: BlockHeader): number {
 		// We search backward from top block to bottom block in the chain
 
 		/* We should search down to the height we have in our headers list
@@ -292,6 +291,11 @@ export class FinalityManager extends EventEmitter {
 			 */
 			if (needleHeight === currentBlockHeader.maxHeightPreviouslyForged) {
 				const previousBlockHeader = this.headers.get(needleHeight);
+				if (!previousBlockHeader) {
+					debug('Fail to get cached block header');
+
+					return 0;
+				}
 
 				/* Was the previous block suggested by current block header
 				 	was actually forged by same delegate? If not then just return from here
@@ -301,9 +305,8 @@ export class FinalityManager extends EventEmitter {
 					previousBlockHeader.delegatePublicKey !== header.delegatePublicKey ||
 					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
 				) {
-					return needleHeight;
+					return needleHeight + 1;
 				}
-
 				// Move the needle to previous block and consider it current for next iteration
 				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
 				currentBlockHeader = previousBlockHeader;
@@ -312,13 +315,12 @@ export class FinalityManager extends EventEmitter {
 			}
 		}
 
-		return needleHeight;
+		return Math.max(needleHeight + 1, searchTillHeight);
 	}
 
 	public recompute(): void {
 		this.state = {};
-		this.finalizedHeight = this._initialFinalizedHeight;
-		this.prevotedConfirmedHeight = 0;
+		this.chainMaxHeightPrevoted = 0;
 		this.preVotes = {};
 		this.preCommits = {};
 
@@ -343,14 +345,16 @@ export class FinalityManager extends EventEmitter {
 
 	public verifyBlockHeaders(blockHeader: BlockHeader): boolean {
 		debug('verifyBlockHeaders invoked');
+		debug(blockHeader);
 
-		// We need minimum processingThreshold to decide if maxHeightPrevoted is correct
+		// We need minimum processingThreshold to decide
+		// If maxHeightPrevoted is correct
 		if (
 			this.headers.length >= this.processingThreshold &&
-			blockHeader.maxHeightPrevoted !== this.prevotedConfirmedHeight
+			blockHeader.maxHeightPrevoted !== this.chainMaxHeightPrevoted
 		) {
 			throw new BFTInvalidAttributeError(
-				'Wrong prevotedConfirmedHeight in blockHeader.',
+				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, : ${this.chainMaxHeightPrevoted}`,
 			);
 		}
 
@@ -363,10 +367,33 @@ export class FinalityManager extends EventEmitter {
 			return true;
 		}
 
+		// Order the two block headers such that earlierBlock must be forged first
+		// tslint:disable-next-line no-let
+		let earlierBlock = delegateLastBlock;
+		// tslint:disable-next-line no-let
+		let laterBlock = blockHeader;
+		const higherMaxHeightPreviouslyForgerd =
+			earlierBlock.maxHeightPreviouslyForged >
+			laterBlock.maxHeightPreviouslyForged;
+		const sameMaxHeightPreviouslyForgerd =
+			earlierBlock.maxHeightPreviouslyForged ===
+			laterBlock.maxHeightPreviouslyForged;
+		const higherMaxHeightPrevoted =
+			earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted;
+		const sameMaxHeightPrevoted =
+			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted;
+		const higherHeight = earlierBlock.height > laterBlock.height;
 		if (
-			delegateLastBlock.maxHeightPreviouslyForged ===
-				blockHeader.maxHeightPreviouslyForged &&
-			delegateLastBlock.height >= blockHeader.height
+			higherMaxHeightPreviouslyForgerd ||
+			(sameMaxHeightPreviouslyForgerd && higherMaxHeightPrevoted) ||
+			(sameMaxHeightPreviouslyForgerd && sameMaxHeightPrevoted && higherHeight)
+		) {
+			[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
+		}
+
+		if (
+			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted &&
+			earlierBlock.height >= laterBlock.height
 		) {
 			/* Violation of the fork choice rule as delegate moved to different chain
 			 without strictly larger maxHeightPreviouslyForged or larger height as
@@ -374,11 +401,11 @@ export class FinalityManager extends EventEmitter {
 			throw new BFTForkChoiceRuleError();
 		}
 
-		if (delegateLastBlock.height > blockHeader.maxHeightPreviouslyForged) {
+		if (earlierBlock.height > laterBlock.maxHeightPreviouslyForged) {
 			throw new BFTChainDisjointError();
 		}
 
-		if (delegateLastBlock.maxHeightPrevoted > blockHeader.maxHeightPrevoted) {
+		if (earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted) {
 			throw new BFTLowerChainBranchError();
 		}
 

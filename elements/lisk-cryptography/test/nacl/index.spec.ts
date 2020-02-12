@@ -91,7 +91,7 @@ describe('nacl index.js', () => {
 			resetTest();
 		});
 
-		it('should set process.env.NACL_FAST to disable', async () => {
+		it('should not set process.env.NACL_FAST to disable', async () => {
 			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
 
 			when(requireMock)
@@ -101,7 +101,7 @@ describe('nacl index.js', () => {
 				});
 
 			require('../../src/nacl');
-			expect(process.env.NACL_FAST).toEqual('disable');
+			expect(process.env.NACL_FAST).not.toEqual('disable');
 		});
 
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', async () => {
