@@ -73,9 +73,12 @@ export class DataAccess {
 			// Get the height limits to fetch
 			// The method getBlocksByHeightBetween uses gte & lte so we need to adjust values
 			const upperHeightToFetch = this._blocksCache.items[0]?.height - 1 || 0;
-			const lowerHeightToFetch =
+
+			const lowerHeightToFetch = Math.max(
 				upperHeightToFetch -
-				(this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems);
+					(this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems),
+				1,
+			);
 
 			const blockHeaders = await this.getBlocksByHeightBetween(
 				lowerHeightToFetch,
