@@ -55,7 +55,7 @@ class ConsoleLog {
 	write(rec) {
 		try {
 			let log = util.format(
-				'%s [%s] %s %s (module=%s)\n',
+				'%s %s %s: %s (module=%s)\n',
 				new Date(rec.time).toISOString(),
 				levelToName[rec.level],
 				rec.name,
