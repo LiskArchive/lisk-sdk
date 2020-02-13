@@ -1,18 +1,7 @@
 {
 	"lerna": "2.11.0",
-	"packages": ["framework", "elements/*", "commander", "sdk"],
-	"version": "independent",
+	"npmClient": "yarn",
 	"stream": true,
-	"command": {
-		"bootstrap": {
-			"nohoist": [
-				"@types/mocha",
-				"fancy-test",
-				"@oclif/test",
-				"@types/jest",
-				"@types/jest-when",
-				"jest-extended"
-			]
-		}
-	}
+	"useWorkspaces": true,
+	"version": "independent"
 }
