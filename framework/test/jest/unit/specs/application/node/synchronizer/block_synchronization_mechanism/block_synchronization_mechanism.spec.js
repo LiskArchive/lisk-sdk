@@ -670,7 +670,8 @@ describe('block_synchronization_mechanism', () => {
 
 					when(storageMock.entities.Block.get)
 						.calledWith(
-							{ height_gte: 1501, height_lte: 2001 },
+							// If cache size initialization on chain changes this needs to be updated accordingly
+							{ height_gte: 1496, height_lte: 2001 },
 							{ limit: null, sort: 'height:desc' },
 						)
 						.mockResolvedValue([]);
