@@ -61,7 +61,7 @@
 		"@types/validator": "10.9.0",
 		"@types/ws": "6.0.1",
 		"jest": "24.9.0",
-		"jest-extended": "0.11.5",
+		"jest-extended": "0.11.2",
 		"jest-when": "2.6.0",
 		"prettier": "1.19.1",
 		"source-map-support": "0.5.10",

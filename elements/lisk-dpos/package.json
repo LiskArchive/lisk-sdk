@@ -39,12 +39,12 @@
 		"debug": "4.1.1"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-chain": "0.1.0",
 		"@types/debug": "4.1.5",
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",
+		"@liskhq/lisk-chain": "0.1.0",
 		"jest": "24.9.0",
-		"jest-extended": "0.11.5",
+		"jest-extended": "0.11.2",
 		"jest-when": "2.6.0",
 		"prettier": "1.19.1",
 		"source-map-support": "0.5.10",
