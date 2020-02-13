@@ -51,6 +51,8 @@ describe('data_access.storage', () => {
 			dbStorage: storageMock,
 			networkIdentifier: 'TEST',
 			registeredTransactions: { '8': TransferTransaction },
+			minBlockHeaderCache: 3,
+			maxBlockHeaderCache: 5,
 		});
 		block = {
 			...BlockHeaderInstance({ height: 1 }),
@@ -425,6 +427,40 @@ describe('data_access.storage', () => {
 		it('should convert transaction to be a class', () => {
 			const blockInstance = dataAccess.deserialize(blockJSON);
 			expect(blockInstance.transactions[0]).toBeInstanceOf(TransferTransaction);
+		});
+	});
+
+	describe('removeBlockHeader', () => {
+		it('should fetch older blocks from database when minCachedItems is below configured value', async () => {
+			// Arrange
+			jest.spyOn(dataAccess, 'getBlocksByHeightBetween');
+
+			storageMock.entities.Block.get.mockResolvedValue([
+				{ height: 9 },
+				{ height: 8 },
+				{ height: 7 },
+			]);
+
+			const blocks = [];
+			for (let i = 0; i < 5; i++) {
+				block = {
+					...BlockHeaderInstance({ height: i + 10 }),
+					totalAmount: 1,
+					totalFee: 1,
+					reward: 1,
+					transactions: [],
+				};
+				blocks.push(block);
+				dataAccess.addBlockHeader(block);
+			}
+
+			// Act
+			// Remove enough blocks for blocksCache.needsRefill to be true
+			await dataAccess.removeBlockHeader(blocks[4].id);
+			await dataAccess.removeBlockHeader(blocks[3].id);
+			await dataAccess.removeBlockHeader(blocks[2].id);
+			// Assert
+			expect(dataAccess.getBlocksByHeightBetween).toHaveBeenCalledWith(7, 9);
 		});
 	});
 });

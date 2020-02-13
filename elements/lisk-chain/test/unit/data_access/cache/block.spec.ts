@@ -16,16 +16,17 @@ import { BlockCache } from '../../../../src/data_access/cache';
 import { BlockHeader as BlockHeaderInstance } from '../../../fixtures/block';
 
 describe('data_access.cache.block', () => {
+	const MIN_CACHE_SIZE = 303;
 	const DEFAULT_CACHE_SIZE = 500;
 	let blocksCache: BlockCache;
 
 	beforeEach(() => {
-		blocksCache = new BlockCache(DEFAULT_CACHE_SIZE);
+		blocksCache = new BlockCache(MIN_CACHE_SIZE, DEFAULT_CACHE_SIZE);
 	});
 
 	describe('constructor', () => {
 		it('should initialize private variables', () => {
-			expect(blocksCache.size).toEqual(DEFAULT_CACHE_SIZE);
+			expect(blocksCache.maxCachedItems).toEqual(DEFAULT_CACHE_SIZE);
 			expect(blocksCache.length).toEqual(0);
 			expect(blocksCache.items).toEqual([]);
 		});
@@ -86,6 +87,17 @@ describe('data_access.cache.block', () => {
 			}).toThrow(
 				'Block header with height 510 can only be added, instead received height 11',
 			);
+		});
+	});
+
+	describe('remove', () => {
+		it('if the cache is emptied below the min cache size it should set needsRefill to true', () => {
+			const [blocks] = Array.from({ length: 303 }, (_, i) =>
+				blocksCache.add(BlockHeaderInstance({ height: i })),
+			);
+
+			blocksCache.remove(blocks[302].id);
+			expect(blocksCache.needsRefill).toBe(true);
 		});
 	});
 
