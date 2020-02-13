@@ -15,7 +15,11 @@ import { TransactionJSON } from '@liskhq/lisk-transactions';
 // tslint:disable-next-line no-require-imports
 import cloneDeep = require('lodash.clonedeep');
 
-import { StorageEntity, StorageFilters, TransactionType } from '../types';
+import {
+	IndexableTransactionJSON,
+	StorageEntity,
+	StorageFilters,
+} from '../types';
 import { uniqBy } from '../utils';
 
 export class TransactionStore {
@@ -42,7 +46,7 @@ export class TransactionStore {
 			{ extended: true, limit: null },
 		);
 		this._data = uniqBy(
-			[...this._data, ...result] as TransactionType[],
+			[...this._data, ...result] as IndexableTransactionJSON[],
 			this._primaryKey,
 		);
 
