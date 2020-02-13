@@ -27,3 +27,12 @@ export const getId = (blockBytes: Buffer): string => {
 
 	return id;
 };
+
+export const uniqBy = <T extends { readonly [key: string]: unknown }>(
+	arr: ReadonlyArray<T>,
+	property: string,
+	set = new Set(),
+) =>
+	arr.filter(element =>
+		(value => !set.has(value) && set.add(value))(element[property]),
+	);
