@@ -148,9 +148,8 @@ pipeline {
 			steps {
 				nvm(getNodejsVersion()) {
 					sh '''
-					npm ci
-					npm run bootstrap
-					npm run build
+					yarn
+					yarn build
 					# needed by one of the "Functional HTTP GET tests"
 					git rev-parse HEAD > framework/REVISION
 					'''
@@ -163,7 +162,7 @@ pipeline {
 				setup()
 				nvm(getNodejsVersion()) {
 					sh '''
-					npm run lint
+					yarn lint
 					'''
 				}
 			}
