@@ -16,7 +16,7 @@ import * as randomstring from 'randomstring';
 import * as stampit from 'stampit';
 import * as faker from 'faker';
 
-export const Block = stampit.compose({
+export const BlockHeader = stampit.compose({
 	props: {
 		id: '',
 		blockSignature:
@@ -32,7 +32,9 @@ export const Block = stampit.compose({
 		timestamp: 32578370,
 		totalAmount: '10000000000000000',
 		totalFee: '0',
-		version: 0,
+		version: 2,
+		maxHeightPreviouslyForged: 0,
+		maxHeightPrevoted: 0,
 	},
 	init({
 		id,
@@ -67,49 +69,12 @@ export const Block = stampit.compose({
 		this.totalAmount = faker.random
 			.number({ min: 1000, max: 10000 })
 			.toString();
-		this.version = version || 0;
+		this.version = version ?? this.version;
 
 		if (this.version === 2) {
-			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-			this.maxHeightPrevoted = maxHeightPrevoted || 0;
+			this.maxHeightPreviouslyForged =
+				maxHeightPreviouslyForged ?? this.maxHeightPreviouslyForged;
+			this.maxHeightPrevoted = maxHeightPrevoted ?? this.maxHeightPrevoted;
 		}
-	},
-});
-
-export const BlockHeader = stampit.compose({
-	props: {
-		blockId: '',
-		height: 0,
-		maxHeightPreviouslyForged: 0,
-		maxHeightPrevoted: 0,
-		delegateMinHeightActive: 203,
-		delegatePublicKey: '',
-	},
-	init({
-		height,
-		blockId,
-		delegatePublicKey,
-		delegateMinHeightActive,
-		maxHeightPreviouslyForged,
-		maxHeightPrevoted,
-	}: {
-		height: number;
-		blockId: string;
-		delegatePublicKey: string;
-		delegateMinHeightActive: number;
-		maxHeightPreviouslyForged: number;
-		maxHeightPrevoted: number;
-	}) {
-		this.blockId =
-			blockId || randomstring.generate({ charset: 'numeric', length: 19 });
-		this.height = height || Math.floor(Math.random() * Math.floor(5000));
-		this.delegatePublicKey =
-			delegatePublicKey ||
-			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 64 })
-				.toLowerCase();
-		this.delegateMinHeightActive = delegateMinHeightActive || 1;
-		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-		this.maxHeightPrevoted = maxHeightPrevoted || 0;
 	},
 });

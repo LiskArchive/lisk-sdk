@@ -340,10 +340,8 @@ module.exports = class Node {
 		});
 
 		this.bft = new BFT({
-			storage: this.storage,
-			logger: this.logger,
-			rounds: this.dpos.rounds,
-			slots: this.chain.slots,
+			dpos: this.dpos,
+			chain: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});

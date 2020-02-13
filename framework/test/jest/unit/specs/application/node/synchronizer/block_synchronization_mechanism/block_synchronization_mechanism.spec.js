@@ -127,19 +127,15 @@ describe('block_synchronization_mechanism', () => {
 		chainModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
-			storage: storageMock,
-			logger: loggerMock,
+			chain: chainModule,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
-			chain: chainModule,
 			exceptions: {},
 		});
 
 		bftModule = new BFT({
-			storage: storageMock,
-			logger: loggerMock,
-			rounds: dpos.rounds,
-			slots: chainModule.slots,
+			chain: chainModule,
+			dpos,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});
@@ -220,6 +216,14 @@ describe('block_synchronization_mechanism', () => {
 
 		storageMock.entities.ChainState.get.mockResolvedValue([
 			{ key: 'BFT.finalizedHeight', value: 0 },
+			{
+				key: 'DPoS.forgersList',
+				value: JSON.stringify([
+					{ round: 1, delegates: [] },
+					{ round: 2, delegates: [] },
+					{ round: 3, delegates: [] },
+				]),
+			},
 		]);
 		jest.spyOn(blockSynchronizationMechanism, '_requestAndValidateLastBlock');
 		jest.spyOn(blockSynchronizationMechanism, '_revertToLastCommonBlock');
@@ -232,21 +236,10 @@ describe('block_synchronization_mechanism', () => {
 			.calledWith('app:getConnectedPeers')
 			.mockResolvedValue(peersList.connectedPeers);
 
-		// minActiveHeightsOfDelegates is provided to deleteBlocks function
-		// in block_processor_v2 from DPoS module.
-		const minActiveHeightsOfDelegates = [genesisBlockDevnet, lastBlock].reduce(
-			(acc, block) => {
-				// the value is not important in this test.
-				acc[block.generatorPublicKey] = [1];
-				return acc;
-			},
-			{},
-		);
-
 		await chainModule.init();
 		const stateStore = new StateStore(storageMock);
 		await stateStore.chainState.cache();
-		await bftModule.init(stateStore, minActiveHeightsOfDelegates);
+		await bftModule.init(stateStore);
 
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(

@@ -114,9 +114,8 @@ describe('Synchronizer', () => {
 		});
 
 		bftModule = new BFT({
-			storage: storageMock,
-			logger: loggerMock,
-			rounds,
+			chain: chainModule,
+			dpos: { rounds },
 			slots: chainModule.slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,

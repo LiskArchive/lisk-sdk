@@ -29,11 +29,6 @@ import {
 	StateStore,
 } from './types';
 
-interface ActiveDelegates {
-	// tslint:disable-next-line:readonly-keyword
-	[key: string]: number[];
-}
-
 interface DposConstructor {
 	readonly activeDelegates: number;
 	readonly delegateListRoundOffset: number;
@@ -101,66 +96,6 @@ export class Dpos {
 			this.delegateListRoundOffset -
 			this.delegateActiveRoundLimit;
 		await deleteDelegateListUntilRound(disposableDelegateList, stateStore);
-	}
-
-	public async getMinActiveHeightsOfDelegates(
-		height: number,
-		stateStore: StateStore,
-		numberOfRounds = 1,
-	): Promise<ActiveDelegates> {
-		const forgersList = await getForgersList(stateStore);
-		if (!forgersList.length) {
-			throw new Error('No delegate list found in the database.');
-		}
-		// IMPORTANT! All logic below based on ordering rounds in
-		// Descending order. Change it at your own discretion!
-		forgersList.sort((a, b) => b.round - a.round);
-
-		// Remove the future rounds
-		const currentRound = this.rounds.calcRound(height);
-		const limit = currentRound - numberOfRounds - this.delegateActiveRoundLimit;
-		// tslint:disable-next-line:no-let
-		let currentForgersList = forgersList.filter(
-			fl => fl.round <= currentRound && fl.round > limit,
-		);
-
-		if (numberOfRounds > currentRound && currentRound > 1) {
-			throw new Error(
-				'Number of rounds requested is higher than number of existing rounds.',
-			);
-		}
-
-		const delegates: ActiveDelegates = {};
-
-		const loops = Math.min(currentForgersList.length, numberOfRounds);
-
-		// tslint:disable-next-line:no-let
-		for (let i = 0; i < loops; i += 1) {
-			const [activeList, ...previousLists] = currentForgersList;
-
-			for (const publicKey of activeList.delegates) {
-				if (!delegates[publicKey]) {
-					delegates[publicKey] = [];
-				}
-
-				const earliestListRound = this._findEarliestActiveListRound(
-					publicKey,
-					previousLists,
-				);
-
-				const lastActiveMinHeight = this.rounds.calcRoundStartHeight(
-					earliestListRound,
-				);
-
-				if (!delegates[publicKey].includes(lastActiveMinHeight)) {
-					delegates[publicKey].push(lastActiveMinHeight);
-				}
-
-				currentForgersList = previousLists;
-			}
-		}
-
-		return delegates;
 	}
 
 	public async getMinActiveHeight(

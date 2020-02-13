@@ -110,19 +110,15 @@ describe('fast_chain_switching_mechanism', () => {
 		chainModule.dataAccess.getTempBlocks = jest.fn();
 
 		dpos = new Dpos({
-			storage: storageMock,
-			logger: loggerMock,
+			chain: chainModule,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
-			chain: chainModule,
 			exceptions: {},
 		});
 
 		bftModule = new BFT({
-			storage: storageMock,
-			logger: loggerMock,
-			rounds: dpos.rounds,
-			slots: chainModule.slots,
+			chain: chainModule,
+			dpos,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
 		});
@@ -231,26 +227,23 @@ describe('fast_chain_switching_mechanism', () => {
 			// Simulate finalized height stored in ChainState table is 0
 			storageMock.entities.ChainState.get.mockResolvedValue([
 				{ key: 'BFT.finalizedHeight', value: 0 },
+				{
+					key: 'DPoS.forgersList',
+					value: JSON.stringify([
+						{ round: 1, delegates: [] },
+						{ round: 2, delegates: [] },
+						{ round: 3, delegates: [] },
+					]),
+				},
 			]);
 			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks');
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');
 			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks');
 
-			// minActiveHeightsOfDelegates is provided to deleteBlocks function
-			// in block_processor_v2 from DPoS module.
-			const minActiveHeightsOfDelegates = [
-				genesisBlockDevnet,
-				lastBlock,
-			].reduce((acc, block) => {
-				// the value is not important in this test.
-				acc[block.generatorPublicKey] = [1];
-				return acc;
-			}, {});
-
 			await chainModule.init();
 			const stateStore = new StateStore(storageMock);
 			await stateStore.chainState.cache();
-			await bftModule.init(stateStore, minActiveHeightsOfDelegates);
+			await bftModule.init(stateStore);
 		});
 
 		afterEach(() => {
@@ -297,7 +290,8 @@ describe('fast_chain_switching_mechanism', () => {
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(14); // 10 + 4 from beforeEach hooks
+				expect(storageMock.entities.Block.get).toHaveBeenCalledTimes(13); // 10 + 3 from beforeEach hooks
+				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(9);
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				checkApplyPenaltyAndAbortIsCalled(
 					aPeerId,

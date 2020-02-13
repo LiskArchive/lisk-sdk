@@ -15,33 +15,12 @@
 export const blockHeaderSchema = {
 	type: 'object',
 	properties: {
-		blockId: {
-			type: 'string',
-			format: 'id',
-		},
-		height: {
-			type: 'integer',
-		},
 		maxHeightPreviouslyForged: {
 			type: 'integer',
 		},
 		maxHeightPrevoted: {
 			type: 'integer',
 		},
-		delegateMinHeightActive: {
-			type: 'integer',
-		},
-		delegatePublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
 	},
-	required: [
-		'blockId',
-		'height',
-		'maxHeightPreviouslyForged',
-		'maxHeightPrevoted',
-		'delegateMinHeightActive',
-		'delegatePublicKey',
-	],
+	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted'],
 };
