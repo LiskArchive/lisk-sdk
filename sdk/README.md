@@ -165,7 +165,7 @@ To contribute to `lisk-sdk`, `framework` or `elements`:
 
 ### Testing your local `lisk-sdk` in your application.
 
-In order to link your local lisk-sdk repository and test your application which uses `lisk-sdk`, simply follow the steps below in your local `lisk-sdk` repository and run `npm link lisk-sdk` or `yarn link lisk-sdk` in the root of your application.
+In order to link your local lisk-sdk repository and test your application which uses `lisk-sdk`, simply follow the steps below in your local `lisk-sdk` repository and run `yarn link lisk-sdk` in the root of your application.
 
 1. `cd sdk`
 
