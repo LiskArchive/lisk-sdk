@@ -100,6 +100,8 @@ interface ChainConstructor {
 
 const DEFAULT_MIN_BLOCK_HEADER_CACHE = 303;
 const DEFAULT_MAX_BLOCK_HEADER_CACHE = 505;
+const EVENT_NEW_BLOCK = 'NEW_BLOCK';
+const EVENT_DELETE_BLOCK = 'DELETE_BLOCK';
 
 // tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];
@@ -198,7 +200,7 @@ const undoConfirmedStep = async (
 
 const debug = Debug('lisk:chain');
 
-export class Chain extends EventEmitter {
+export class Chain {
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
 	private readonly storage: Storage;
@@ -217,6 +219,7 @@ export class Chain extends EventEmitter {
 		readonly activeDelegates: number;
 		readonly blockSlotWindow: number;
 	};
+	private readonly events: EventEmitter;
 
 	public readonly blockReward: {
 		readonly [key: string]: (height: number) => number | bigint;
@@ -247,7 +250,7 @@ export class Chain extends EventEmitter {
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
-		super();
+		this.events = new EventEmitter();
 
 		this.storage = storage;
 		this.dataAccess = new DataAccess({
@@ -481,6 +484,11 @@ export class Chain extends EventEmitter {
 			}
 			this.dataAccess.addBlockHeader(blockInstance);
 			this._lastBlock = blockInstance;
+
+			this.events.emit(EVENT_NEW_BLOCK, {
+				block: blockInstance,
+				accounts: stateStore.account.getUpdated(),
+			});
 		});
 	}
 
@@ -531,6 +539,11 @@ export class Chain extends EventEmitter {
 			await stateStore.finalize(tx);
 			await this.dataAccess.removeBlockHeader(block.id);
 			this._lastBlock = secondLastBlock;
+
+			this.events.emit(EVENT_DELETE_BLOCK, {
+				block,
+				accounts: stateStore.account.getUpdated(),
+			});
 		});
 	}
 
