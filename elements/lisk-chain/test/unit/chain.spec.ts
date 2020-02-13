@@ -355,6 +355,9 @@ describe('chain', () => {
 			);
 			stateStoreStub = {
 				finalize: jest.fn(),
+				account: {
+					getUpdated: jest.fn(),
+				},
 			} as any;
 		});
 
@@ -479,6 +482,9 @@ describe('chain', () => {
 		beforeEach(async () => {
 			stateStoreStub = {
 				finalize: jest.fn(),
+				account: {
+					getUpdated: jest.fn(),
+				},
 			} as any;
 			stubs.tx.batch.mockImplementation((promises: any) =>
 				Promise.all(promises),
