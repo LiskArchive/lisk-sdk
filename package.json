@@ -72,6 +72,7 @@
 		"tslint": "5.20.1",
 		"tslint-config-prettier": "1.18.0",
 		"tslint-immutable": "6.0.1",
-		"typescript": "3.7.2"
+		"typescript": "3.7.2",
+		"yarn": "1.22.0"
 	}
 }
