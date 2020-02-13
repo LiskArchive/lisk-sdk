@@ -485,9 +485,13 @@ export class Chain {
 			this.dataAccess.addBlockHeader(blockInstance);
 			this._lastBlock = blockInstance;
 
+			const accounts = stateStore.account
+				.getUpdated()
+				.map(anAccount => anAccount.toJSON());
+
 			this.events.emit(EVENT_NEW_BLOCK, {
-				block: blockInstance,
-				accounts: stateStore.account.getUpdated(),
+				block: this.serialize(blockInstance),
+				accounts,
 			});
 		});
 	}
@@ -540,9 +544,13 @@ export class Chain {
 			await this.dataAccess.removeBlockHeader(block.id);
 			this._lastBlock = secondLastBlock;
 
+			const accounts = stateStore.account
+				.getUpdated()
+				.map(anAccount => anAccount.toJSON());
+
 			this.events.emit(EVENT_DELETE_BLOCK, {
-				block,
-				accounts: stateStore.account.getUpdated(),
+				block: this.serialize(block),
+				accounts,
 			});
 		});
 	}

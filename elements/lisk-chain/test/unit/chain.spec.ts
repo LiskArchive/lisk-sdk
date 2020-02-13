@@ -21,6 +21,7 @@ import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
 import { Slots } from '../../src/slots';
 import { BlockJSON } from '../../src/types';
+import { Account } from '../../src/account';
 
 jest.mock('events');
 
@@ -345,7 +346,11 @@ describe('chain', () => {
 
 	describe('save', () => {
 		let stateStoreStub: StateStore;
-		const fakeAccounts = [{ address: '1234L' }, { address: '5678L' }];
+
+		const fakeAccounts = [
+			Account.getDefaultAccount('1234L'),
+			Account.getDefaultAccount('5678L'),
+		];
 
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation((promises: any) =>
@@ -488,8 +493,8 @@ describe('chain', () => {
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
 				'NEW_BLOCK',
 				{
-					accounts: fakeAccounts,
-					block,
+					accounts: fakeAccounts.map(anAccount => anAccount.toJSON()),
+					block: chainInstance.serialize(block),
 				},
 			);
 		});
@@ -497,7 +502,10 @@ describe('chain', () => {
 
 	describe('remove', () => {
 		let stateStoreStub: StateStore;
-		const fakeAccounts = [{ address: '1234L' }, { address: '5678L' }];
+		const fakeAccounts = [
+			Account.getDefaultAccount('1234L'),
+			Account.getDefaultAccount('5678L'),
+		];
 
 		beforeEach(async () => {
 			stateStoreStub = {
@@ -625,8 +633,8 @@ describe('chain', () => {
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
 				'NEW_BLOCK',
 				{
-					accounts: fakeAccounts,
-					block,
+					accounts: fakeAccounts.map(anAccount => anAccount.toJSON()),
+					block: chainInstance.serialize(block),
 				},
 			);
 		});
