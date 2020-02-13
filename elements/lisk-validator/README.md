@@ -1,6 +1,6 @@
 # @liskhq/lisk-validator
 
-@liskhq/lisk-validator is a wrapper of validation libraries. It includes custom validations related to Lisk protocol.
+@liskhq/lisk-validator is a wrapper of validation libraries. It includes custom validations utilities related to Lisk protocol
 
 ## Installation
 

@@ -114,9 +114,8 @@ describe('Synchronizer', () => {
 		});
 
 		bftModule = new BFT({
-			storage: storageMock,
-			logger: loggerMock,
-			rounds,
+			chain: chainModule,
+			dpos: { rounds },
 			slots: chainModule.slots,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
@@ -482,13 +481,6 @@ describe('Synchronizer', () => {
 		it('should reject with error if required properties are missing (block)', async () => {
 			await expect(synchronizer.run()).rejects.toThrow(
 				'A block must be provided to the Synchronizer in order to run',
-			);
-			expect(synchronizer.active).toBeFalsy();
-		});
-
-		it('should reject with error if required properties are missing (peerId)', async () => {
-			await expect(synchronizer.run({ height: 1 })).rejects.toThrow(
-				'A peer ID from the peer sending the block must be provided to the Synchronizer in order to run',
 			);
 			expect(synchronizer.active).toBeFalsy();
 		});

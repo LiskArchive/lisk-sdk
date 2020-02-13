@@ -33,7 +33,8 @@ interface DAConstructor {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	readonly maxBlockHeaderCache?: number;
+	readonly minBlockHeaderCache: number;
+	readonly maxBlockHeaderCache: number;
 }
 
 export class DataAccess {
@@ -45,10 +46,14 @@ export class DataAccess {
 		dbStorage,
 		networkIdentifier,
 		registeredTransactions,
+		minBlockHeaderCache,
 		maxBlockHeaderCache,
 	}: DAConstructor) {
 		this._storage = new StorageAccess(dbStorage);
-		this._blocksCache = new BlockCache(maxBlockHeaderCache);
+		this._blocksCache = new BlockCache(
+			minBlockHeaderCache,
+			maxBlockHeaderCache,
+		);
 		this._transactionAdapter = new TransactionInterfaceAdapter(
 			networkIdentifier,
 			registeredTransactions,
@@ -61,8 +66,33 @@ export class DataAccess {
 		return this._blocksCache.add(blockHeader);
 	}
 
-	public removeBlockHeader(id: string): BlockHeader[] {
-		return this._blocksCache.remove(id);
+	public async removeBlockHeader(id: string): Promise<BlockHeader[]> {
+		const cachedItems = this._blocksCache.remove(id);
+
+		if (!this._blocksCache.needsRefill) {
+			return cachedItems;
+		}
+
+		// Get the height limits to fetch
+		// The method getBlocksByHeightBetween uses gte & lte so we need to adjust values
+		const upperHeightToFetch = this._blocksCache.items[0]?.height - 1 || 0;
+
+		const lowerHeightToFetch = Math.max(
+			upperHeightToFetch -
+				(this._blocksCache.maxCachedItems - this._blocksCache.minCachedItems),
+			1,
+		);
+
+		if (upperHeightToFetch - lowerHeightToFetch > 0) {
+			const blockHeaders = await this.getBlocksByHeightBetween(
+				lowerHeightToFetch,
+				upperHeightToFetch,
+			);
+			// The method returns in descending order but we need in ascending order so reverse the array
+			this._blocksCache.refill(blockHeaders.reverse());
+		}
+
+		return cachedItems;
 	}
 
 	public resetBlockHeaderCache(): void {

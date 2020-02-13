@@ -11,34 +11,70 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { when } from 'jest-when';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
 import { FinalityManager } from '../../src/finality_manager';
+import { StateStoreMock } from '../unit/state_store_mock';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
+		let chainStub: {
+			dataAccess: {
+				getBlockHeadersByHeightBetween: jest.Mock;
+				getLastBlockHeader: jest.Mock;
+			};
+			slots: {
+				getSlotNumber: jest.Mock;
+				isWithinTimeslot: jest.Mock;
+				getEpochTime: jest.Mock;
+			};
+		};
+		let dposStub: {
+			getMinActiveHeight: jest.Mock;
+		};
+		let stateStore: StateStoreMock;
+
+		beforeEach(async () => {
+			chainStub = {
+				dataAccess: {
+					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
+					getLastBlockHeader: jest.fn().mockResolvedValue([]),
+				},
+				slots: {
+					getSlotNumber: jest.fn(),
+					isWithinTimeslot: jest.fn(),
+					getEpochTime: jest.fn(),
+				},
+			};
+			dposStub = {
+				getMinActiveHeight: jest.fn(),
+			};
+			stateStore = new StateStoreMock();
+		});
+
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
 			it('should fail adding invalid block header', async () => {
 				// Arrange
 				const finalityManager = new FinalityManager({
+					chain: chainStub,
+					dpos: dposStub,
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
 					activeDelegates: invalidBlockHeaderSpec.config.activeDelegates,
 				});
-				testCase.config.blockHeaders.forEach(blockHeader => {
-					finalityManager.addBlockHeader(blockHeader);
-				});
-
-				// Arrange - Verify initial state is set
-				expect(finalityManager.headers).toHaveLength(
-					testCase.config.blockHeaders.length,
+				for (const blockHeader of testCase.config.blockHeaders) {
+					when(dposStub.getMinActiveHeight)
+						.calledWith(blockHeader.height, blockHeader.generatorPublicKey)
+						.mockResolvedValue(blockHeader.delegateMinHeightActive);
+				}
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
+					testCase.config.blockHeaders,
 				);
 
 				// Act & Assert
-				expect(() => finalityManager.addBlockHeader(testCase.input)).toThrow();
-				expect(finalityManager.headers).toHaveLength(
-					testCase.output.blockHeaders.length,
-				);
+				await expect(
+					finalityManager.addBlockHeader(testCase.input as any, stateStore),
+				).rejects.toThrow();
 			});
 		});
 	});

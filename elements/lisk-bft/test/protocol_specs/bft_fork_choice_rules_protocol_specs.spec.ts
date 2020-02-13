@@ -13,8 +13,6 @@
  */
 
 import { BFT } from '../../src/bft';
-import { Slots as SlotType } from '../../src/types';
-import { Rounds } from '@liskhq/lisk-dpos';
 import { Slots } from '@liskhq/lisk-chain';
 
 const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
@@ -27,41 +25,44 @@ const constants = {
 
 describe('bft', () => {
 	describe('forkChoice', () => {
-		let storageMock;
-
-		let rounds: Rounds;
-		let slots: SlotType;
 		let activeDelegates;
 		let startingHeight;
 		let bftParams;
 		let bftInstance: BFT;
 
+		let chainStub: {
+			dataAccess: {
+				getBlockHeadersByHeightBetween: jest.Mock;
+				getLastBlockHeader: jest.Mock;
+			};
+			slots: Slots;
+		};
+		let dposStub: {
+			getMinActiveHeight: jest.Mock;
+		};
+
 		beforeEach(async () => {
-			storageMock = {
-				entities: {
-					Block: {
-						get: jest.fn().mockResolvedValue([]),
-					},
-					ChainState: {
-						get: jest.fn(),
-						getKey: jest.fn(),
-					},
+			const slots = new Slots({
+				epochTime: constants.EPOCH_TIME,
+				interval: constants.BLOCK_TIME,
+			});
+			chainStub = {
+				dataAccess: {
+					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
+					getLastBlockHeader: jest.fn().mockResolvedValue([]),
 				},
+				slots,
+			};
+			dposStub = {
+				getMinActiveHeight: jest.fn(),
 			};
 
 			activeDelegates = 101;
 			startingHeight = 0;
 
-			slots = new Slots({
-				epochTime: constants.EPOCH_TIME,
-				interval: constants.BLOCK_TIME,
-			});
-			rounds = new Rounds({ blocksPerRound: activeDelegates });
-
 			bftParams = {
-				storage: storageMock,
-				rounds,
-				slots,
+				chain: chainStub,
+				dpos: dposStub,
 				activeDelegates,
 				startingHeight,
 			};
@@ -83,8 +84,8 @@ describe('bft', () => {
 							? testCase.config.lastBlock
 							: forkChoiceSpecs.config.lastBlock;
 
-						(slots as any).epochTime = epochTime;
-						(slots as any).interval = interval;
+						(chainStub.slots as any)._epochTime = new Date(epochTime);
+						(chainStub.slots as any)._interval = interval;
 
 						Date.now = jest.fn(
 							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,

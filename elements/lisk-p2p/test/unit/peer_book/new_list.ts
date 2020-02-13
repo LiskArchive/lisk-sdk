@@ -13,7 +13,7 @@
  *
  */
 import { NewList, NewListConfig } from '../../../src/peer_book/new_list';
-import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
+import { P2PEnhancedPeerInfo } from '../../../src/types';
 import {
 	initPeerInfoListWithSuffix,
 	initPeerInfoList,

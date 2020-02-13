@@ -12,14 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator } from '@liskhq/lisk-validator';
-
-import { blockHeaderSchema } from './schema';
-import { BlockHeader } from './types';
-
-export const validateBlockHeader = (blockHeader: BlockHeader): void => {
-	const errors = validator.validate(blockHeaderSchema, blockHeader);
-	if (errors.length) {
-		throw new Error(errors[0].message);
-	}
-};
+export const BFT_ROUND_THRESHOLD = 3;
+export const BFT_MIGRATION_ROUND_OFFSET = 2;

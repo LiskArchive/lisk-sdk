@@ -34,8 +34,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.4.1",
-		"@liskhq/lisk-transactions": "3.0.1",
+		"@liskhq/lisk-cryptography": "2.4.2",
+		"@liskhq/lisk-transactions": "3.0.2",
 		"@types/node": "12.12.11",
 		"debug": "4.1.1",
 		"lodash.clonedeep": "4.5.0",

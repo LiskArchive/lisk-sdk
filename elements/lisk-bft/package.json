@@ -36,19 +36,20 @@
 	"dependencies": {
 		"@types/node": "12.12.11",
 		"debug": "4.1.1",
-		"@liskhq/lisk-validator": "0.3.0"
+		"@liskhq/lisk-validator": "0.3.1"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-chain": "0.1.0",
 		"@liskhq/lisk-dpos": "0.1.0",
+		"@types/debug": "4.1.5",
+		"@types/faker": "4.1.9",
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",
 		"@types/jquery": "3.3.29",
-		"@types/debug": "4.1.5",
-		"@types/faker": "4.1.9",
 		"faker": "4.1.0",
 		"jest": "24.9.0",
 		"jest-extended": "0.11.2",
+		"jest-when": "2.6.0",
 		"prettier": "1.19.1",
 		"randomstring": "1.1.5",
 		"source-map-support": "0.5.10",

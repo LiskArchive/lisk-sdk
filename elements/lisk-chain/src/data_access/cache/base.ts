@@ -14,11 +14,15 @@
 
 export abstract class Base<T> {
 	private _items: T[];
-	private readonly _size: number;
+	private readonly _minCachedItems: number;
+	private readonly _maxCachedItems: number;
+	private _needsRefill: boolean;
 
-	public constructor(size: number) {
-		this._size = size;
+	public constructor(minCachedItems: number, maxCachedItems: number) {
+		this._minCachedItems = minCachedItems;
+		this._maxCachedItems = maxCachedItems;
 		this._items = [];
+		this._needsRefill = false;
 	}
 
 	public get items(): T[] {
@@ -29,8 +33,12 @@ export abstract class Base<T> {
 		return this.items.length;
 	}
 
-	public get size(): number {
-		return this._size;
+	public get maxCachedItems(): number {
+		return this._maxCachedItems;
+	}
+
+	public get minCachedItems(): number {
+		return this._minCachedItems;
 	}
 
 	public get first(): T {
@@ -47,5 +55,13 @@ export abstract class Base<T> {
 		this._items = [];
 
 		return this.items;
+	}
+
+	public set needsRefill(needRefill: boolean) {
+		this._needsRefill = needRefill;
+	}
+
+	public get needsRefill(): boolean {
+		return this._needsRefill;
 	}
 }

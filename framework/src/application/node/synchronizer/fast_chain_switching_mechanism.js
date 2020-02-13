@@ -22,7 +22,6 @@ const {
 } = require('./utils');
 const {
 	ApplyPenaltyAndAbortError,
-	ApplyPenaltyAndRestartError,
 	AbortError,
 	BlockProcessingError,
 	RestartError,
@@ -63,14 +62,6 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			await this._validateBlocks(blocks, highestCommonBlock, peerId);
 			await this._switchChain(highestCommonBlock, blocks, peerId);
 		} catch (err) {
-			if (err instanceof ApplyPenaltyAndRestartError) {
-				return this._applyPenaltyAndRestartSync(
-					err.peerId,
-					receivedBlock,
-					err.reason,
-				);
-			}
-
 			if (err instanceof ApplyPenaltyAndAbortError) {
 				this.logger.info(
 					{ err, peerId, reason: err.reason },
@@ -107,7 +98,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return true;
 	}
 
-	async isValidFor(receivedBlock) {
+	async isValidFor(receivedBlock, peerId) {
+		if (!peerId) {
+			// If peerId is not specified, fast chain switching cannot be done
+			return false;
+		}
 		const { lastBlock } = this.chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
@@ -158,14 +153,14 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	async _queryBlocks(receivedBlock, highestCommonBlock, peerId) {
 		if (!highestCommonBlock) {
-			throw new ApplyPenaltyAndRestartError(
+			throw new ApplyPenaltyAndAbortError(
 				peerId,
 				"Peer didn't return a common block",
 			);
 		}
 
 		if (highestCommonBlock.height < this.bft.finalizedHeight) {
-			throw new ApplyPenaltyAndRestartError(
+			throw new ApplyPenaltyAndAbortError(
 				peerId,
 				`Common block height ${highestCommonBlock.height} is lower than the finalized height of the chain ${this.bft.finalizedHeight}`,
 			);
@@ -199,7 +194,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		);
 
 		if (!blocks || !blocks.length) {
-			throw new ApplyPenaltyAndRestartError(
+			throw new ApplyPenaltyAndAbortError(
 				peerId,
 				`Peer didn't return any requested block within IDs ${highestCommonBlock.id} and ${receivedBlock.id}`,
 			);
@@ -272,7 +267,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		);
 		this.logger.debug('Restoring blocks from temporary table');
 		await restoreBlocks(this.chain, this.processor);
-		throw new ApplyPenaltyAndRestartError(
+		throw new ApplyPenaltyAndAbortError(
 			peerId,
 			'Detected invalid block while processing list of requested blocks',
 		);
