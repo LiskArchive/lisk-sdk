@@ -148,6 +148,7 @@ pipeline {
 			steps {
 				nvm(getNodejsVersion()) {
 					sh '''
+					npm i -g yarn
 					yarn
 					yarn build
 					# needed by one of the "Functional HTTP GET tests"
