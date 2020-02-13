@@ -573,7 +573,5 @@ module.exports = class Node {
 
 	_unsubscribeToEvents() {
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-		this.chain.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
-		this.chain.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };
