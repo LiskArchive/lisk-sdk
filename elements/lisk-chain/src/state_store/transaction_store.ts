@@ -58,12 +58,12 @@ export class TransactionStore {
 	}
 
 	public createSnapshot(): void {
-		this._originalData = { ...this._data };
+		this._originalData = [...this._data];
 		this._originalUpdatedKeys = { ...this._updatedKeys };
 	}
 
 	public restoreSnapshot(): void {
-		this._data = { ...this._originalData };
+		this._data = [...this._originalData];
 		this._updatedKeys = { ...this._originalUpdatedKeys };
 	}
 
