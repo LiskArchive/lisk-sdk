@@ -345,6 +345,7 @@ describe('chain', () => {
 
 	describe('save', () => {
 		let stateStoreStub: StateStore;
+		const fakeAccounts = [{ address: '1234L' }, { address: '5678L' }];
 
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation((promises: any) =>
@@ -356,7 +357,7 @@ describe('chain', () => {
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
-					getUpdated: jest.fn(),
+					getUpdated: jest.fn().mockReturnValue(fakeAccounts),
 				},
 			} as any;
 		});
@@ -474,16 +475,35 @@ describe('chain', () => {
 				blockCreateError,
 			);
 		});
+
+		it('should emit block and accounts', async () => {
+			// Arrange
+			jest.spyOn((chainInstance as any).events, 'emit');
+			const block = newBlock();
+
+			// Act
+			await chainInstance.save(block, stateStoreStub);
+
+			// Assert
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
+				'NEW_BLOCK',
+				{
+					accounts: fakeAccounts,
+					block,
+				},
+			);
+		});
 	});
 
 	describe('remove', () => {
 		let stateStoreStub: StateStore;
+		const fakeAccounts = [{ address: '1234L' }, { address: '5678L' }];
 
 		beforeEach(async () => {
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
-					getUpdated: jest.fn(),
+					getUpdated: jest.fn().mockReturnValue(fakeAccounts),
 				},
 			} as any;
 			stubs.tx.batch.mockImplementation((promises: any) =>
@@ -591,6 +611,24 @@ describe('chain', () => {
 					stubs.tx,
 				);
 			});
+		});
+
+		it('should emit block and accounts', async () => {
+			// Arrange
+			jest.spyOn((chainInstance as any).events, 'emit');
+			const block = newBlock();
+
+			// Act
+			await chainInstance.save(block, stateStoreStub);
+
+			// Assert
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
+				'NEW_BLOCK',
+				{
+					accounts: fakeAccounts,
+					block,
+				},
+			);
 		});
 	});
 
