@@ -238,6 +238,24 @@ module.exports = class Node {
 					action.params.password,
 					action.params.forging,
 				),
+			getAccount: async action =>
+				this.chain.dataAccess.getAccountsByAddress([action.params.address]),
+			getAccounts: async action =>
+				this.chain.dataAccess.getAccountsByAddress(action.params.address),
+			getBlockByID: async action =>
+				this.chain.dataAccess.getBlockByID(action.params.id),
+			getBlocksByIDs: async action =>
+				this.chain.dataAccess.getBlocksByIDs(action.params.ids),
+			getBlockByHeight: async action =>
+				this.chain.dataAccess.getBlockByHeight(action.params.height),
+			getBlocksByHeights: async action =>
+				this.chain.dataAccess.getBlocksByHeights(action.params.heights),
+			getBlocksByHeightBetween: async action =>
+				this.chain.dataAccess.getBlocksByHeightBetween(action.params.heights),
+			getTransactionByID: async action =>
+				this.chain.dataAccess.getTransactionByIDs([action.params.id]),
+			getTransactionsByID: async action =>
+				this.chain.dataAccess.getTransactionsByID(action.params.ids),
 			getTransactions: async action =>
 				this.transport.handleRPCGetTransactions(
 					action.params.data,

@@ -435,6 +435,15 @@ class Application {
 				'processor:deleteBlock',
 				'processor:broadcast',
 				'processor:newBlock',
+				'getAccount',
+				'getAccounts',
+				'getBlockByID',
+				'getBlocksByIDs',
+				'getBlockByHeight',
+				'getBlocksByHeights',
+				'getBlocksByHeightBetween',
+				'getTransactionByID',
+				'getTransactionsByID',
 			],
 			{
 				getComponentConfig: {
@@ -527,6 +536,37 @@ class Application {
 					handler: async action =>
 						this._node.actions.getHighestCommonBlock(action),
 					isPublic: true,
+				},
+				getAccount: {
+					handler: async action => this._node.actions.getAccount(action),
+				},
+				getAccounts: {
+					handler: async action => this._node.actions.getAccounts(action),
+				},
+				getBlockByID: {
+					handler: async action => this._node.actions.getBlockByID(action),
+				},
+				getBlocksByIDs: {
+					handler: async action => this._node.actions.getBlocksByIDs(action),
+				},
+				getBlockByHeight: {
+					handler: async action => this._node.actions.getBlockByHeight(action),
+				},
+				getBlocksByHeights: {
+					handler: async action =>
+						this._node.actions.getBlocksByHeights(action),
+				},
+				getBlocksByHeightBetween: {
+					handler: async action =>
+						this._node.actions.getBlocksByHeightBetween(action),
+				},
+				getTransactionByID: {
+					handler: async action =>
+						this._node.actions.getTransactionByID(action),
+				},
+				getTransactionsByID: {
+					handler: async action =>
+						this._node.actions.getTransactionsByID(action),
 				},
 			},
 			{ skipInternalEvents: true },
