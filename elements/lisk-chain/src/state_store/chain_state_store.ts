@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { clone } from 'lodash';
-
 import { ChainStateEntity, StorageTransaction } from '../types';
 
 interface KeyValuePair {
@@ -45,13 +43,13 @@ export class ChainStateStore {
 	}
 
 	public createSnapshot(): void {
-		this._originalData = clone(this._data);
-		this._originalUpdatedKeys = clone(this._updatedKeys);
+		this._originalData = { ...this._data };
+		this._originalUpdatedKeys = new Set(this._updatedKeys);
 	}
 
 	public restoreSnapshot(): void {
-		this._data = clone(this._originalData);
-		this._updatedKeys = clone(this._originalUpdatedKeys);
+		this._data = { ...this._originalData };
+		this._updatedKeys = new Set(this._originalUpdatedKeys);
 	}
 
 	public async get(key: string): Promise<string | undefined> {
