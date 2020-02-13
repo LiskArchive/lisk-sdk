@@ -31,7 +31,6 @@
 		"nohoist": [
 			"**@types/mocha",
 			"**@types/jest",
-			"**jest-extended",
 			"**@types/jest-when"
 		]
 	},
