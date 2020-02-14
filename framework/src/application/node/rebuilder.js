@@ -52,6 +52,7 @@ class Rebuilder {
 	}
 
 	async rebuild(rebuildUpToRound, loadPerIteration = 1000) {
+		this.isActive = true;
 		const blocksCount = await this.chainModule.dataAccess.getBlocksCount();
 		this.logger.info(
 			{ rebuildUpToRound, blocksCount },

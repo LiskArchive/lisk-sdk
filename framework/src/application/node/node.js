@@ -14,7 +14,10 @@
 
 'use strict';
 
-const { Chain } = require('@liskhq/lisk-chain');
+const {
+	Chain,
+	events: { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK },
+} = require('@liskhq/lisk-chain');
 const {
 	Dpos,
 	constants: { EVENT_ROUND_CHANGED },
@@ -330,7 +333,7 @@ module.exports = class Node {
 			blockTime: this.options.constants.BLOCK_TIME,
 		});
 
-		this.chain.events.on('NEW_BLOCK', eventData => {
+		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
 			const { block } = eventData;
 			// Publish to the outside
 			this.channel.publish('app:newBlock', eventData);
@@ -361,7 +364,7 @@ module.exports = class Node {
 			);
 		});
 
-		this.chain.events.on('DELETE_BLOCK', eventData => {
+		this.chain.events.on(EVENT_DELETE_BLOCK, eventData => {
 			const { block } = eventData;
 			// Publish to the outside
 			this.channel.publish('app:deleteBlock', eventData);

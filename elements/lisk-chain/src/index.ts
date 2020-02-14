@@ -11,9 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Chain, EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK } from './chain';
+const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
+
 export { Account } from './account';
 export * from './block_reward';
-export { Chain } from './chain';
+export { Chain, events };
 export { baseBlockSchema } from './schema';
 export { StateStore } from './state_store';
 export { Slots } from './slots';
