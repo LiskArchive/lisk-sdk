@@ -371,10 +371,6 @@ module.exports = class Node {
 					.reverse()
 					.map(tx => this.chain.deserializeTransaction(tx));
 				this.transactionPool.onDeletedTransactions(transactions);
-				this.channel.publish(
-					'app:transactions:confirmed:change',
-					block.transactions,
-				);
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },
