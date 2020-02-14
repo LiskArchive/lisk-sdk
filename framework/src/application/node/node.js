@@ -330,6 +330,58 @@ module.exports = class Node {
 			blockTime: this.options.constants.BLOCK_TIME,
 		});
 
+		this.chain.events.on('NEW_BLOCK', eventData => {
+			const { block } = eventData;
+			// Publish to the outside
+			this.channel.publish('app:newBlock', eventData);
+
+			// Remove any transactions from the pool on new block
+			if (block.transactions.length) {
+				this.transactionPool.onConfirmedTransactions(
+					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
+				);
+			}
+
+			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					lastBlockId: block.id,
+					maxHeightPrevoted: block.maxHeightPrevoted,
+					blockVersion: block.version,
+				});
+			}
+
+			this.logger.info(
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
+			);
+		});
+
+		this.chain.events.on('DELETE_BLOCK', eventData => {
+			const { block } = eventData;
+			// Publish to the outside
+			this.channel.publish('app:deleteBlock', eventData);
+
+			if (block.transactions.length) {
+				const transactions = block.transactions
+					.reverse()
+					.map(tx => this.chain.deserializeTransaction(tx));
+				this.transactionPool.onDeletedTransactions(transactions);
+				this.channel.publish(
+					'app:transactions:confirmed:change',
+					block.transactions,
+				);
+			}
+			this.logger.info(
+				{ id: block.id, height: block.height },
+				'Deleted a block from the chain',
+			);
+		});
+
 		this.slots = this.chain.slots;
 		this.dpos = new Dpos({
 			chain: this.chain,
@@ -489,57 +541,6 @@ module.exports = class Node {
 				await this.transport.handleBroadcastBlock(block);
 			},
 		);
-
-		this.channel.subscribe(
-			'app:processor:deleteBlock',
-			({ data: { block } }) => {
-				if (block.transactions.length) {
-					const transactions = block.transactions
-						.reverse()
-						.map(tx => this.chain.deserializeTransaction(tx));
-					this.transactionPool.onDeletedTransactions(transactions);
-					this.channel.publish(
-						'app:transactions:confirmed:change',
-						block.transactions,
-					);
-				}
-				this.logger.info(
-					{ id: block.id, height: block.height },
-					'Deleted a block from the chain',
-				);
-				this.channel.publish('app:blocks:change', block);
-			},
-		);
-
-		this.channel.subscribe('app:processor:newBlock', ({ data: { block } }) => {
-			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(
-					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
-				);
-				this.channel.publish(
-					'app:transactions:confirmed:change',
-					block.transactions,
-				);
-			}
-			this.logger.info(
-				{
-					id: block.id,
-					height: block.height,
-					numberOfTransactions: block.transactions.length,
-				},
-				'New block added to the chain',
-			);
-			this.channel.publish('app:blocks:change', block);
-
-			if (!this.synchronizer.isActive) {
-				this.channel.invoke('app:updateApplicationState', {
-					height: block.height,
-					lastBlockId: block.id,
-					maxHeightPrevoted: block.maxHeightPrevoted,
-					blockVersion: block.version,
-				});
-			}
-		});
 
 		this.channel.subscribe(
 			'app:processor:sync',
