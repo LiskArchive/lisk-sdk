@@ -17,6 +17,7 @@ import * as http from 'http';
 import { ParsedUrlQuery } from 'querystring';
 import { attach, SCServer, SCServerSocket } from 'socketcluster-server';
 import * as url from 'url';
+import { parentPort } from 'worker_threads';
 
 import {
 	ConnectionKind,
@@ -36,6 +37,7 @@ import {
 	INVALID_CONNECTION_SELF_REASON,
 	INVALID_CONNECTION_URL_CODE,
 	INVALID_CONNECTION_URL_REASON,
+	PEERSERVER_WORKER_STARTED,
 } from '../constants';
 import {
 	InvalidDisconnectEventError,
@@ -110,7 +112,7 @@ export class WorkerPeerServer extends EventEmitter {
 		await this._stopHTTPServer();
 	}
 
-	public async start(): Promise<void> {
+	public start(): void {
 		this._invalidMessageInterval = setInterval(() => {
 			this._invalidMessageCounter = new Map();
 		}, DEFAULT_RATE_CALCULATION_INTERVAL);
@@ -165,14 +167,23 @@ export class WorkerPeerServer extends EventEmitter {
 		);
 
 		if (this._scServer.isReady) {
+			this.postMessageToMaster(PEERSERVER_WORKER_STARTED);
+
 			return;
 		}
 
-		return new Promise<void>(resolve => {
-			this._scServer.once('ready', () => {
-				resolve();
-			});
+		this._scServer.once('ready', () => {
+			this.postMessageToMaster(PEERSERVER_WORKER_STARTED);
+
+			return;
 		});
+	}
+
+	// tslint:disable-next-line: prefer-function-over-method
+	private postMessageToMaster(event: string, data?: any): void {
+		if (parentPort) {
+			parentPort.postMessage({ event, data: { ...data } });
+		}
 	}
 
 	private _terminateIncomingSocket(

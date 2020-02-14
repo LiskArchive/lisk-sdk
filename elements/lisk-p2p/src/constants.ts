@@ -123,3 +123,4 @@ export enum PeerKind {
 }
 
 export const REQUEST_SOCKET_CONNECTION = 'connection';
+export const PEERSERVER_WORKER_STARTED = 'started';

@@ -17,7 +17,10 @@ import * as SocketCluster from 'socketcluster';
 
 import { Worker, isMainThread } from 'worker_threads';
 
-import { REQUEST_SOCKET_CONNECTION } from '../constants';
+import {
+	REQUEST_SOCKET_CONNECTION,
+	PEERSERVER_WORKER_STARTED,
+} from '../constants';
 import { REMOTE_SC_EVENT_RPC_REQUEST } from '../events';
 import {
 	NodeConfig,
@@ -45,6 +48,7 @@ export class MasterPeerServer extends EventEmitter {
 	private readonly _hostIp: string;
 	private readonly _secret: number;
 	private readonly _maxPeerInfoSize: number;
+	private readonly _maxPayload: number;
 	private readonly _peerBook: PeerBook;
 	private readonly _peerHandshakeCheck: P2PCheckPeerCompatibility;
 	private _socketMap: Map<string, InboundSocket>;
@@ -58,6 +62,7 @@ export class MasterPeerServer extends EventEmitter {
 		this._peerBook = config.peerBook;
 		this._peerHandshakeCheck = config.peerHandshakeCheck;
 		this._maxPeerInfoSize = config.maxPeerInfoSize;
+		this._maxPayload = config.maxPayload;
 		// MasterServer
 		this._socketMap = new Map();
 
@@ -94,25 +99,33 @@ export class MasterPeerServer extends EventEmitter {
 		*/
 	}
 
-	private _createWorkerData(): WorkerPeerServerConfig {
+	private _createWorkerPeerServerConfig(): WorkerPeerServerConfig {
 		return {
 			nodeInfo: this._nodeInfo,
 			hostIp: this._hostIp,
 			secret: this._secret,
 			maxPeerInfoSize: this._maxPeerInfoSize,
+			maxPayload: this._maxPayload,
 		};
 	}
 
 	public async start(): Promise<void> {
-		this._workerPeerServer = new Worker(workerPath, {
-			workerData: { config: this._createWorkerData() },
-		});
+		if (isMainThread) {
+			return new Promise(resolve => {
+				this._workerPeerServer = new Worker(workerPath, {
+					workerData: { config: this._createWorkerPeerServerConfig() },
+				});
 
-		return new Promise(resolve => {
-			this._workerPeerServer.destroy(resolve);
-		});
+				this._workerPeerServer.on('message', message => {
+					if (message.event === PEERSERVER_WORKER_STARTED) {
+						resolve();
+					}
+				});
+			});
+		}
 	}
 
+	/*
 	public async close(): Promise<void> {
 		return new Promise(resolve => {
 			this._workerPeerServer.destroy(resolve);
@@ -139,4 +152,5 @@ export class MasterPeerServer extends EventEmitter {
 	private _sendToWorker<T>(workerId: number, data: ProcessMessage<T>): void {
 		this._workerPeerServer.sendToWorker(workerId, data);
 	}
+	*/
 }

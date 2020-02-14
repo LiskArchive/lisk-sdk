@@ -168,7 +168,7 @@ export interface PeerServerConfig {
 
 export type WorkerPeerServerConfig = Omit<
 	PeerServerConfig,
-	'peerHandshakeCheck' | 'peerBook' | 'maxPayload'
+	'peerHandshakeCheck' | 'peerBook'
 >;
 
 export interface P2PPeerSelectionForSendInput {
