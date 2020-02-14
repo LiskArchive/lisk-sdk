@@ -94,10 +94,14 @@ interface ChainConstructor {
 	readonly rewardMileStones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
+	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
 
-const DEFAULT_MAX_BLOCK_HEADER_CACHE = 500;
+const DEFAULT_MIN_BLOCK_HEADER_CACHE = 303;
+const DEFAULT_MAX_BLOCK_HEADER_CACHE = 505;
+const EVENT_NEW_BLOCK = 'NEW_BLOCK';
+const EVENT_DELETE_BLOCK = 'DELETE_BLOCK';
 
 // tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];
@@ -196,7 +200,7 @@ const undoConfirmedStep = async (
 
 const debug = Debug('lisk:chain');
 
-export class Chain extends EventEmitter {
+export class Chain {
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
 	private readonly storage: Storage;
@@ -215,6 +219,7 @@ export class Chain extends EventEmitter {
 		readonly activeDelegates: number;
 		readonly blockSlotWindow: number;
 	};
+	private readonly events: EventEmitter;
 
 	public readonly blockReward: {
 		readonly [key: string]: (height: number) => number | bigint;
@@ -242,15 +247,17 @@ export class Chain extends EventEmitter {
 		rewardMileStones,
 		totalAmount,
 		blockSlotWindow,
+		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
-		super();
+		this.events = new EventEmitter();
 
 		this.storage = storage;
 		this.dataAccess = new DataAccess({
 			dbStorage: storage,
 			networkIdentifier,
 			registeredTransactions,
+			minBlockHeaderCache,
 			maxBlockHeaderCache,
 		});
 
@@ -477,6 +484,15 @@ export class Chain extends EventEmitter {
 			}
 			this.dataAccess.addBlockHeader(blockInstance);
 			this._lastBlock = blockInstance;
+
+			const accounts = stateStore.account
+				.getUpdated()
+				.map(anAccount => anAccount.toJSON());
+
+			this.events.emit(EVENT_NEW_BLOCK, {
+				block: this.serialize(blockInstance),
+				accounts,
+			});
 		});
 	}
 
@@ -525,8 +541,17 @@ export class Chain extends EventEmitter {
 				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
 			}
 			await stateStore.finalize(tx);
-			this.dataAccess.removeBlockHeader(block.id);
+			await this.dataAccess.removeBlockHeader(block.id);
 			this._lastBlock = secondLastBlock;
+
+			const accounts = stateStore.account
+				.getUpdated()
+				.map(anAccount => anAccount.toJSON());
+
+			this.events.emit(EVENT_DELETE_BLOCK, {
+				block: this.serialize(block),
+				accounts,
+			});
 		});
 	}
 

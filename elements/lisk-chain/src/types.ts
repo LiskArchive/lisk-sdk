@@ -17,6 +17,16 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+import { Account } from './account';
+
+export interface Indexable {
+	readonly [key: string]: unknown;
+}
+
+export type IndexableAccount = Account & Indexable;
+
+export type IndexableTransactionJSON = TransactionJSON & Indexable;
+
 export interface AccountJSON {
 	readonly address: string;
 	readonly balance: string;

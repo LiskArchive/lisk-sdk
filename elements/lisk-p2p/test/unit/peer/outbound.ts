@@ -27,7 +27,7 @@ import {
 	DEFAULT_WS_MAX_MESSAGE_RATE,
 	DEFAULT_HTTP_PATH,
 } from '../../../src/constants';
-import { P2PPeerInfo } from '../../../src/p2p_types';
+import { P2PPeerInfo } from '../../../src/types';
 
 describe('peer/outbound', () => {
 	let defaultPeerInfo: P2PPeerInfo;

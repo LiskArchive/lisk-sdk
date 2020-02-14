@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
 import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
@@ -27,19 +26,90 @@ const bftScenarios = [
 ];
 
 import { FinalityManager } from '../../src/finality_manager';
+import { StateStoreMock } from '../unit/state_store_mock';
+
+const pick = (calcKeyPair: { [key: string]: number }, minHeight: number) =>
+	Object.keys(calcKeyPair).reduce((prev, key) => {
+		if (parseInt(key) >= minHeight) {
+			prev[key] = calcKeyPair[key];
+		}
+		return prev;
+	}, {} as { [key: string]: number });
 
 describe('FinalityManager', () => {
+	let chainStub: {
+		dataAccess: {
+			getBlockHeadersByHeightBetween: jest.Mock;
+			getLastBlockHeader: jest.Mock;
+		};
+		slots: {
+			getSlotNumber: jest.Mock;
+			isWithinTimeslot: jest.Mock;
+			getEpochTime: jest.Mock;
+		};
+	};
+	let dposStub: {
+		getMinActiveHeight: jest.Mock;
+	};
+	let stateStore: StateStoreMock;
+
 	describe('addBlockHeader', () => {
-		bftScenarios.forEach(scenario => {
+		for (const scenario of bftScenarios) {
 			describe(`when running scenario "${scenario.handler}"`, () => {
-				const finalityManager = new FinalityManager({
-					finalizedHeight: scenario.config.finalizedHeight,
-					activeDelegates: scenario.config.activeDelegates,
+				let finalityManager: FinalityManager;
+
+				beforeAll(async () => {
+					chainStub = {
+						dataAccess: {
+							getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
+							getLastBlockHeader: jest.fn().mockResolvedValue([]),
+						},
+						slots: {
+							getSlotNumber: jest.fn(),
+							isWithinTimeslot: jest.fn(),
+							getEpochTime: jest.fn(),
+						},
+					};
+					dposStub = {
+						getMinActiveHeight: jest.fn(),
+					};
+					stateStore = new StateStoreMock();
+					finalityManager = new FinalityManager({
+						chain: chainStub,
+						dpos: dposStub,
+						finalizedHeight: scenario.config.finalizedHeight,
+						activeDelegates: scenario.config.activeDelegates,
+					});
+
+					const blockHeaders = (scenario.testCases as any).map(
+						(tc: any) => tc.input.blockHeader,
+					);
+					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
+						(from: number, to: number) => {
+							const headers = blockHeaders.filter(
+								(bf: any) => bf.height >= from && bf.height <= to,
+							);
+							headers.sort((a: any, b: any) => b.height - a.height);
+							return Promise.resolve(headers);
+						},
+					);
+					dposStub.getMinActiveHeight.mockImplementation(
+						(height: number, publicKey: string) => {
+							const header = blockHeaders.find(
+								(bh: any) =>
+									bh.height === height && bh.generatorPublicKey === publicKey,
+							);
+							return Promise.resolve(header.delegateMinHeightActive);
+						},
+					);
 				});
 
-				scenario.testCases.forEach((testCase: any) => {
+				for (const testCase of scenario.testCases) {
 					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
-						finalityManager.addBlockHeader(testCase.input.blockHeader);
+						await finalityManager.addBlockHeader(
+							testCase.input.blockHeader as any,
+							stateStore,
+						);
 
 						expect((finalityManager as any).preCommits).toEqual(
 							testCase.output.preCommits,
@@ -53,28 +123,74 @@ describe('FinalityManager', () => {
 							testCase.output.finalizedHeight,
 						);
 
-						expect(finalityManager.prevotedConfirmedHeight).toEqual(
+						expect(finalityManager.chainMaxHeightPrevoted).toEqual(
 							testCase.output.preVotedConfirmedHeight,
 						);
 					});
-				});
+				}
 			});
-		});
+		}
 	});
 
 	describe('recompute', () => {
-		bftScenarios.forEach(scenario => {
-			const finalityManager = new FinalityManager({
-				finalizedHeight: scenario.config.finalizedHeight,
-				activeDelegates: scenario.config.activeDelegates,
+		for (const scenario of bftScenarios) {
+			let finalityManager: FinalityManager;
+
+			beforeAll(async () => {
+				chainStub = {
+					dataAccess: {
+						getBlockHeadersByHeightBetween: jest.fn(),
+						getLastBlockHeader: jest.fn(),
+					},
+					slots: {
+						getSlotNumber: jest.fn(),
+						isWithinTimeslot: jest.fn(),
+						getEpochTime: jest.fn(),
+					},
+				};
+				dposStub = {
+					getMinActiveHeight: jest.fn(),
+				};
+				stateStore = new StateStoreMock();
+				finalityManager = new FinalityManager({
+					chain: chainStub,
+					dpos: dposStub,
+					finalizedHeight: scenario.config.finalizedHeight,
+					activeDelegates: scenario.config.activeDelegates,
+				});
+				const blockHeaders = (scenario.testCases as any).map(
+					(tc: any) => tc.input.blockHeader,
+				);
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
+					(from: number, to: number) => {
+						const headers = blockHeaders.filter(
+							(bf: any) => bf.height >= from && bf.height <= to,
+						);
+						headers.sort((a: any, b: any) => b.height - a.height);
+						return Promise.resolve(headers);
+					},
+				);
+				dposStub.getMinActiveHeight.mockImplementation(
+					(height: number, publicKey: string) => {
+						const header = blockHeaders.find(
+							(bh: any) =>
+								bh.height === height && bh.generatorPublicKey === publicKey,
+						);
+						return Promise.resolve(header.delegateMinHeightActive);
+					},
+				);
 			});
 
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				it('should have accurate information after recompute', async () => {
 					// Let's first compute in proper way
-					scenario.testCases.forEach((testCase: any) => {
-						finalityManager.addBlockHeader(testCase.input.blockHeader);
-					});
+					for (const testCase of scenario.testCases) {
+						await finalityManager.addBlockHeader(
+							testCase.input.blockHeader as any,
+							stateStore,
+						);
+					}
+
 					const lastTestCaseOutput =
 						scenario.testCases[scenario.testCases.length - 1].output;
 
@@ -88,18 +204,28 @@ describe('FinalityManager', () => {
 					expect(finalityManager.finalizedHeight).toEqual(
 						lastTestCaseOutput.finalizedHeight,
 					);
-					expect(finalityManager.prevotedConfirmedHeight).toEqual(
+					expect(finalityManager.chainMaxHeightPrevoted).toEqual(
 						lastTestCaseOutput.preVotedConfirmedHeight,
 					);
 
+					const heightMax = (scenario.testCases as any).reduce(
+						(prev: number, current: any) => {
+							if (current.input.blockHeader.height > prev) {
+								return current.input.blockHeader.height;
+							}
+							return prev;
+						},
+						0,
+					);
+
 					// Now recompute all information again
-					finalityManager.recompute();
+					await finalityManager.recompute(heightMax, stateStore);
 
 					// Values should match with expectations
 					expect(finalityManager.finalizedHeight).toEqual(
 						lastTestCaseOutput.finalizedHeight,
 					);
-					expect(finalityManager.prevotedConfirmedHeight).toEqual(
+					expect(finalityManager.chainMaxHeightPrevoted).toEqual(
 						lastTestCaseOutput.preVotedConfirmedHeight,
 					);
 
@@ -112,27 +238,74 @@ describe('FinalityManager', () => {
 					expect(lastTestCaseOutput.preCommits).toEqual(
 						expect.objectContaining((finalityManager as any).preCommits),
 					);
-					expect(lastTestCaseOutput.preVotes).toEqual(
-						expect.objectContaining((finalityManager as any).preVotes),
+
+					const minHeight = heightMax - finalityManager.processingThreshold;
+					expect(pick((finalityManager as any).preVotes, minHeight)).toEqual(
+						pick(lastTestCaseOutput.preVotes as any, minHeight),
 					);
 				});
 			});
-		});
+		}
 	});
 
 	describe('removeBlockHeaders', () => {
-		bftScenarios.forEach(scenario => {
-			const myBft = new FinalityManager({
-				finalizedHeight: scenario.config.finalizedHeight,
-				activeDelegates: scenario.config.activeDelegates,
+		for (const scenario of bftScenarios) {
+			let finalityManager: FinalityManager;
+
+			beforeAll(async () => {
+				chainStub = {
+					dataAccess: {
+						getBlockHeadersByHeightBetween: jest.fn(),
+						getLastBlockHeader: jest.fn(),
+					},
+					slots: {
+						getSlotNumber: jest.fn(),
+						isWithinTimeslot: jest.fn(),
+						getEpochTime: jest.fn(),
+					},
+				};
+				dposStub = {
+					getMinActiveHeight: jest.fn(),
+				};
+				stateStore = new StateStoreMock();
+				finalityManager = new FinalityManager({
+					chain: chainStub,
+					dpos: dposStub,
+					finalizedHeight: scenario.config.finalizedHeight,
+					activeDelegates: scenario.config.activeDelegates,
+				});
+				const blockHeaders = (scenario.testCases as any).map(
+					(tc: any) => tc.input.blockHeader,
+				);
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
+					(from: number, to: number) => {
+						const headers = blockHeaders.filter(
+							(bf: any) => bf.height >= from && bf.height <= to,
+						);
+						headers.sort((a: any, b: any) => b.height - a.height);
+						return Promise.resolve(headers);
+					},
+				);
+				dposStub.getMinActiveHeight.mockImplementation(
+					(height: number, publicKey: string) => {
+						const header = blockHeaders.find(
+							(bh: any) =>
+								bh.height === height && bh.generatorPublicKey === publicKey,
+						);
+						return Promise.resolve(header.delegateMinHeightActive);
+					},
+				);
 			});
 
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				it('should have accurate information after recompute', async () => {
 					// Arrange - Let's first compute in proper way
-					scenario.testCases.forEach((testCase: any) => {
-						myBft.addBlockHeader(testCase.input.blockHeader);
-					});
+					for (const testCase of scenario.testCases) {
+						await finalityManager.addBlockHeader(
+							testCase.input.blockHeader as any,
+							stateStore,
+						);
+					}
 					const testCaseInMiddle =
 						scenario.testCases[Math.ceil(scenario.testCases.length / 2)];
 					const {
@@ -141,17 +314,20 @@ describe('FinalityManager', () => {
 					} = testCaseInMiddle;
 
 					// Act - Now all headers above that step
-					myBft.removeBlockHeaders({
-						aboveHeight: testCaseInput.blockHeader.height,
-					});
+					await finalityManager.recompute(
+						testCaseInput.blockHeader.height,
+						stateStore,
+					);
 
 					// Assert - Values should match with out of that step
-					expect(myBft.finalizedHeight).toEqual(testCaseOutput.finalizedHeight);
-					expect(myBft.prevotedConfirmedHeight).toEqual(
+					expect(finalityManager.finalizedHeight).toEqual(
+						testCaseOutput.finalizedHeight,
+					);
+					expect(finalityManager.chainMaxHeightPrevoted).toEqual(
 						testCaseOutput.preVotedConfirmedHeight,
 					);
 				});
 			});
-		});
+		}
 	});
 });

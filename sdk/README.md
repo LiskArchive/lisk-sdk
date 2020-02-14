@@ -2,6 +2,14 @@
 
 # Lisk SDK
 
+[![Build Status](https://jenkins.lisk.io/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.io/job/lisk-sdk/job/development/)
+![npm](https://img.shields.io/npm/v/lisk-sdk?style=plastic)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
+![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
+[![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8869/branches/113509/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=6759&pid=8869&bid=113509)
+![GitHub issues](https://img.shields.io/github/issues-raw/liskhq/lisk-sdk)
+![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/liskhq/lisk-sdk)
+![Jenkins Coverage](https://img.shields.io/jenkins/coverage/cobertura?jobUrl=https%3A%2F%2Fjenkins.lisk.io%2Fjob%2Flisk-sdk%2Fjob%2Fdevelopment)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Alpha phase
@@ -149,39 +157,29 @@ To contribute to `lisk-sdk`, `framework` or `elements`:
 
 1. Clone the repository: `git clone https://github.com/LiskHQ/lisk-sdk.git`
 
-2. Install dependencies and build:
-   1. `npm ci`
-   2. `npm run bootstrap`
-   3. `npm run build`
+2. Install yarn globally: [Install Yarn](https://classic.yarnpkg.com/en/docs/install)
 
-### Testing local changes to `lisk-sdk/framework`
-
-Before testing local changes to `lisk-sdk/framework`, follow the above steps for installation/building of dependencies and then run:
-
-1. `npx lerna link`
-
-### Testing local changes to `lisk-sdk/elements`
-
-Before testing local changes to `lisk-sdk/elements`, follow the above steps for installation/building of dependencies and then run:
-
-1. `npx lerna link`
-
-2. Once you have linked your local repo, everytime you make changes in `lisk-sdk/elements` you must build packages before testing:
-
-   a. To build all packages: `npm run build`
-
-   b. To build specific package: `lerna run build --scope <package name>`
-   Example: `lerna run build --scope @liskhq/lisk-p2p`
-
-   c. To build packages that have been modified in your branch: `lerna run build --since <branch name>`
-   Example:`lerna run build --since development`
-
-**Note:** In case you face any issues during the installation make sure you have the right version of `npm` and `node` and try to install from scratch by running,
-`npm run clean:node_modules && rm -rf ./node_modules`.
+3. Install dependencies and build:
+   1. `yarn`
+   2. `yarn build`
 
 ### Testing your local `lisk-sdk` in your application.
 
-In order to link your local lisk-sdk repository and test your application which uses `lisk-sdk`, simply follow the steps above in your local `lisk-sdk` repository and run `npm link lisk-sdk` in the root of your application.
+In order to link your local lisk-sdk repository and test your application which uses `lisk-sdk`, simply follow the steps below in your local `lisk-sdk` repository and run `yarn link lisk-sdk` in the root of your application.
+
+1. `cd sdk`
+
+2. `yarn link`
+
+3. Once you have linked your local repo, everytime you make changes in `lisk-sdk/elements` you must build packages before testing:
+
+   a. To build all packages: `npm run build` or `yarn build`
+
+   b. To build specific package: `yarn workspace <package name> build` or go into each package folder and `yarn build` or `npm run build`
+   Example: `yarn workspace @liskhq/lisk-p2p build`
+
+**Note:** In case you face any issues during the installation make sure you have the right version of `yarn` and `node` and try to install from scratch by running,
+`yarn clean:node_modules && rm -rf ./node_modules`.
 
 ## Contributors
 

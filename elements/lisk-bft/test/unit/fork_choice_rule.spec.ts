@@ -20,28 +20,29 @@ import {
 	isTieBreak,
 	isValidBlock,
 } from '../../src/fork_choice_rule';
-import { Block, Slots as SlotType } from '../../src/types';
+import { BlockHeader } from '../../src/types';
 
 import { Slots } from '@liskhq/lisk-chain';
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
 
-const createBlock = (data: object): Block => ({
-	...{
-		height: 0,
-		id: '',
-		generatorPublicKey: '',
-		previousBlockId: 'null',
-		maxHeightPrevoted: 0,
-		timestamp: 0,
-		version: 2,
-	},
-	...data,
-});
+const createBlock = (data: object): BlockHeader =>
+	({
+		...{
+			height: 0,
+			id: '',
+			generatorPublicKey: '',
+			previousBlockId: 'null',
+			maxHeightPrevoted: 0,
+			timestamp: 0,
+			version: 2,
+		},
+		...data,
+	} as BlockHeader);
 
 describe('Fork Choice Rule', () => {
-	let slots: SlotType;
+	let slots: Slots;
 
 	beforeEach(() => {
 		slots = new Slots({

@@ -131,25 +131,6 @@ module.exports = class Node {
 				this.options.genesisBlock,
 			);
 
-			// Deactivate broadcast and syncing during snapshotting process
-			if (this.options.loading.rebuildUpToRound) {
-				this.options.broadcasts.active = false;
-				this.options.syncing.active = false;
-				await this.rebuilder.rebuild(
-					this.options.loading.rebuildUpToRound,
-					this.options.loading.loadPerIteration,
-				);
-				this.logger.info(
-					{
-						rebuildUpToRound: this.options.loading.rebuildUpToRound,
-						loadPerIteration: this.options.loading.loadPerIteration,
-					},
-					'Successfully rebuild the blockchain',
-				);
-				process.emit('cleanup');
-				return;
-			}
-
 			this.channel.subscribe('app:state:updated', event => {
 				Object.assign(this.applicationState, event.data);
 			});
@@ -165,6 +146,26 @@ module.exports = class Node {
 				maxHeightPrevoted: this.chain.lastBlock.maxHeightPrevoted || 0,
 				blockVersion: this.chain.lastBlock.version,
 			});
+
+			// Deactivate broadcast and syncing during snapshotting process
+			if (!Number.isNaN(parseInt(this.options.loading.rebuildUpToRound, 10))) {
+				this.options.broadcasts.active = false;
+				this.options.syncing.active = false;
+
+				await this.rebuilder.rebuild(
+					this.options.loading.rebuildUpToRound,
+					this.options.loading.loadPerIteration,
+				);
+				this.logger.info(
+					{
+						rebuildUpToRound: this.options.loading.rebuildUpToRound,
+						loadPerIteration: this.options.loading.loadPerIteration,
+					},
+					'Successfully rebuild the blockchain',
+				);
+				process.emit('cleanup');
+				return;
+			}
 
 			this._subscribeToEvents();
 
@@ -339,10 +340,8 @@ module.exports = class Node {
 		});
 
 		this.bft = new BFT({
-			storage: this.storage,
-			logger: this.logger,
-			rounds: this.dpos.rounds,
-			slots: this.chain.slots,
+			dpos: this.dpos,
+			chain: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
@@ -408,6 +407,7 @@ module.exports = class Node {
 			genesisBlock: this.options.genesisBlock,
 			chainModule: this.chain,
 			processorModule: this.processor,
+			bftModule: this.bft,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.modules.rebuilder = this.rebuilder;
@@ -454,7 +454,7 @@ module.exports = class Node {
 		return this.sequence.add(async () => {
 			try {
 				if (!this.forger.delegatesEnabled()) {
-					this.logger.debug('No delegates are enabled');
+					this.logger.trace('No delegates are enabled');
 					return;
 				}
 				if (this.synchronizer.isActive) {
@@ -573,7 +573,5 @@ module.exports = class Node {
 
 	_unsubscribeToEvents() {
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-		this.chain.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
-		this.chain.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };
