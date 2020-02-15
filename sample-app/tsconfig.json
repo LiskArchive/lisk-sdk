@@ -1,0 +1,10 @@
+{
+	"extends": "../tsconfig",
+	"compilerOptions": {
+		"declaration": true,
+		"importHelpers": true,
+		"outDir": "dist",
+		"rootDir": "src"
+	},
+	"include": ["src/**/*"]
+}

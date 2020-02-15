@@ -1,0 +1,12 @@
+{
+	"extends": "../tslint.json",
+	"rules": {
+		"member-access": false,
+		"no-default-export": false,
+		"no-default-import": false,
+		"no-reference": false
+	},
+	"linterOptions": {
+		"exclude": ["**/*.json"]
+	}
+}
