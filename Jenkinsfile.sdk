@@ -5,7 +5,7 @@ def setup(start_application=false) {
 	unstash 'build'
 	if(start_application) {
 		nvm(getNodejsVersion()) {
-			dir('framework') {
+			dir('sample-app') {
 				sh '''
 				# teardown_*() should have killed all node processes but we want to be sure
 				# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
@@ -14,7 +14,7 @@ def setup(start_application=false) {
 				  dropdb --if-exists $database
 				done
 				createdb lisk_dev
-				NODE_ENV=test LISK_CONSOLE_LOG_LEVEL=debug NEWRELIC_LICENSE_KEY= node test/test_app >.app.log 2>&1 &
+				./bin/run run -l debug >.app.log 2>&1 &
 				'''
 			}
 		}

@@ -1,0 +1,93 @@
+{
+	"version": "0.0.0",
+	"commands": {
+		"run": {
+			"id": "run",
+			"description": "Run the application",
+			"pluginName": "lisk-sample-app",
+			"pluginType": "core",
+			"aliases": [],
+			"examples": ["$ lisk-sample-app run devnet"],
+			"flags": {
+				"config-dir": {
+					"name": "config-dir",
+					"type": "option",
+					"char": "c",
+					"description": "Path to the config folder"
+				},
+				"seeds": {
+					"name": "seeds",
+					"type": "option",
+					"char": "s",
+					"description": "list of seed nodes to use in ip:port format"
+				},
+				"port": {
+					"name": "port",
+					"type": "option",
+					"char": "p",
+					"description": "WSPort to use"
+				},
+				"database": {
+					"name": "database",
+					"type": "option",
+					"char": "d",
+					"description": "Database name to use"
+				},
+				"console-log-level": {
+					"name": "console-log-level",
+					"type": "option",
+					"char": "l",
+					"description": "name to print"
+				},
+				"enable-http-api": {
+					"name": "enable-http-api",
+					"type": "boolean",
+					"description": "Enable HTTP API module",
+					"allowNo": false
+				}
+			},
+			"args": [{ "name": "label" }]
+		},
+		"config:generate": {
+			"id": "config:generate",
+			"description": "describe the command here",
+			"pluginName": "lisk-sample-app",
+			"pluginType": "core",
+			"aliases": [],
+			"examples": ["$ lisk-sample-app config:generate"],
+			"flags": {
+				"config-dir": {
+					"name": "config-dir",
+					"type": "option",
+					"char": "c",
+					"description": "Path to the config folder"
+				},
+				"output": {
+					"name": "output",
+					"type": "boolean",
+					"char": "o",
+					"description": "Output to file",
+					"allowNo": false
+				}
+			},
+			"args": [{ "name": "label" }]
+		},
+		"config:show": {
+			"id": "config:show",
+			"description": "describe the command here",
+			"pluginName": "lisk-sample-app",
+			"pluginType": "core",
+			"aliases": [],
+			"examples": ["$ lisk-sample-app config:show label"],
+			"flags": {
+				"config-dir": {
+					"name": "config-dir",
+					"type": "option",
+					"char": "c",
+					"description": "Path to the config folder"
+				}
+			},
+			"args": [{ "name": "label" }]
+		}
+	}
+}
