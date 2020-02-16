@@ -19,6 +19,11 @@ import * as path from 'path';
 
 import { createApp } from '../app';
 import { BaseCommand } from '../base';
+import {
+	CONFIG_FILE_NAME,
+	DEFAULT_FOLDER_NAME,
+	GENESIS_FILE_NAME,
+} from '../utils/constants';
 
 export default class Run extends BaseCommand {
 	static description = 'Run the application';
@@ -53,13 +58,19 @@ export default class Run extends BaseCommand {
 	static args = [{ name: 'label' }];
 
 	public async run(): Promise<void> {
-		const { flags: inputFlags } = this.parse(Run);
-		const configPath =
-			inputFlags['config-dir'] ?? path.join(this.config.configDir, 'default');
+		const { args, flags: inputFlags } = this.parse(Run);
+		const configDir = inputFlags['config-dir'] ?? this.config.configDir;
+		const label = args.label ?? DEFAULT_FOLDER_NAME;
+		const configPath = path.join(configDir, label);
+		const configExists = await fs.pathExists(configPath);
+		if (!configExists) {
+			throw new Error(`Path: ${configPath} does not exist.`);
+		}
+
 		const genesisBlock = await fs.readJSON(
-			path.join(configPath, 'genesis_block.json'),
+			path.join(configPath, GENESIS_FILE_NAME),
 		);
-		const config = await fs.readJSON(path.join(configPath, 'config.json'));
+		const config = await fs.readJSON(path.join(configPath, CONFIG_FILE_NAME));
 		if (inputFlags['console-log-level']) {
 			config.components.logger.consoleLogLevel =
 				inputFlags['console-log-level'];
