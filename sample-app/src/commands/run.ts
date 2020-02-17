@@ -82,6 +82,7 @@ export default class Run extends BaseCommand {
 			config.components.storage.database = inputFlags.database;
 		}
 		const app = createApp(genesisBlock, config);
+		this.log(`Starting application using ${configPath}`);
 		try {
 			await app.run();
 		} catch (err) {
