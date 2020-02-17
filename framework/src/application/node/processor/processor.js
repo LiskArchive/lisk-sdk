@@ -304,13 +304,6 @@ class Processor {
 			removeFromTempTable,
 		});
 
-		// Should only publish 'app:processor:newBlock' if saved AND applied successfully
-		if (!saveOnlyState) {
-			this.channel.publish('app:processor:newBlock', {
-				block: blockJSON,
-			});
-		}
-
 		return block;
 	}
 
@@ -344,10 +337,6 @@ class Processor {
 			stateStore,
 		});
 		await this.chainModule.remove(block, stateStore, { saveTempBlock });
-		const blockJSON = await this.serialize(block);
-		this.channel.publish('app:processor:deleteBlock', {
-			block: blockJSON,
-		});
 	}
 
 	_getBlockProcessor(block) {

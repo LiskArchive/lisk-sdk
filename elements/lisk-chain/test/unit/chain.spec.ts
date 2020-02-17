@@ -21,6 +21,7 @@ import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
 import { Slots } from '../../src/slots';
 import { BlockJSON } from '../../src/types';
+import { Account } from '../../src/account';
 
 jest.mock('events');
 
@@ -346,6 +347,11 @@ describe('chain', () => {
 	describe('save', () => {
 		let stateStoreStub: StateStore;
 
+		const fakeAccounts = [
+			Account.getDefaultAccount('1234L'),
+			Account.getDefaultAccount('5678L'),
+		];
+
 		beforeEach(async () => {
 			stubs.tx.batch.mockImplementation((promises: any) =>
 				Promise.all(promises),
@@ -355,6 +361,9 @@ describe('chain', () => {
 			);
 			stateStoreStub = {
 				finalize: jest.fn(),
+				account: {
+					getUpdated: jest.fn().mockReturnValue(fakeAccounts),
+				},
 			} as any;
 		});
 
@@ -471,14 +480,39 @@ describe('chain', () => {
 				blockCreateError,
 			);
 		});
+
+		it('should emit block and accounts', async () => {
+			// Arrange
+			jest.spyOn((chainInstance as any).events, 'emit');
+			const block = newBlock();
+
+			// Act
+			await chainInstance.save(block, stateStoreStub);
+
+			// Assert
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
+				'NEW_BLOCK',
+				{
+					accounts: fakeAccounts.map(anAccount => anAccount.toJSON()),
+					block: chainInstance.serialize(block),
+				},
+			);
+		});
 	});
 
 	describe('remove', () => {
 		let stateStoreStub: StateStore;
+		const fakeAccounts = [
+			Account.getDefaultAccount('1234L'),
+			Account.getDefaultAccount('5678L'),
+		];
 
 		beforeEach(async () => {
 			stateStoreStub = {
 				finalize: jest.fn(),
+				account: {
+					getUpdated: jest.fn().mockReturnValue(fakeAccounts),
+				},
 			} as any;
 			stubs.tx.batch.mockImplementation((promises: any) =>
 				Promise.all(promises),
@@ -585,6 +619,24 @@ describe('chain', () => {
 					stubs.tx,
 				);
 			});
+		});
+
+		it('should emit block and accounts', async () => {
+			// Arrange
+			jest.spyOn((chainInstance as any).events, 'emit');
+			const block = newBlock();
+
+			// Act
+			await chainInstance.save(block, stateStoreStub);
+
+			// Assert
+			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
+				'NEW_BLOCK',
+				{
+					accounts: fakeAccounts.map(anAccount => anAccount.toJSON()),
+					block: chainInstance.serialize(block),
+				},
+			);
 		});
 	});
 
