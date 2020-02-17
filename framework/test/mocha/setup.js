@@ -22,9 +22,18 @@ const sinonChai = require('sinon-chai');
 const chaiAsPromised = require('chai-as-promised');
 const supertest = require('supertest');
 const _ = require('lodash');
-const app = require('../test_app/app');
+const configuratior = require('../../src/application/default_configurator');
+const validator = require('../../src/application/validator');
+const { constantsSchema } = require('../../src/application/schema');
 
-app._compileAndValidateConfigurations();
+const rawConfig = require('../fixtures/config/devnet/config.json');
+const genesisBlock = require('../fixtures/config/devnet/genesis_block.json');
+
+const config = configuratior.getConfig(rawConfig, { failOnInvalidArg: false });
+const constants = {
+	...validator.parseEnvArgAndValidate(constantsSchema, {}),
+	...config.app.genesisConfig,
+};
 
 process.env.NODE_ENV = 'test';
 coMocha(mocha);
@@ -38,8 +47,6 @@ if (process.env.SILENT === 'true') {
 } else {
 	testContext.debug = console.info;
 }
-
-const config = _.cloneDeep(app.config);
 
 if (process.env.LOG_DB_EVENTS === 'true') {
 	config.components.storage.logEvents = [
@@ -55,7 +62,7 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 }
 
 testContext.config = config;
-testContext.config.constants = _.cloneDeep(app.constants);
+testContext.config.constants = _.cloneDeep(constants);
 // Set DELEGATE_LIST_ROUND_OFFSET to 0 because the mocha tests were written before this implementation
 // and expect no offset for delegate list
 testContext.config.constants.DELEGATE_LIST_ROUND_OFFSET = 0;
@@ -80,7 +87,7 @@ testContext.config.MULTISIG_CONSTRAINTS = {
 	},
 };
 
-testContext.config.genesisBlock = _.cloneDeep(app.genesisBlock);
+testContext.config.genesisBlock = _.cloneDeep(genesisBlock);
 testContext.consoleLogLevel =
 	process.env.LOG_LEVEL || config.components.logger.consoleLogLevel;
 
@@ -164,6 +171,6 @@ _.mixin(
 global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
-global.constants = _.cloneDeep(app.constants);
+global.constants = _.cloneDeep(constants);
 global.exceptions = _.cloneDeep(config.app.node.exceptions);
 global._ = _;
