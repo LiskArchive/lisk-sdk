@@ -257,8 +257,8 @@ module.exports = class Node {
 				this.chain.dataAccess.getBlocksByHeightBetween(action.params.heights),
 			getTransactionByID: async action =>
 				this.chain.dataAccess.getTransactionByIDs([action.params.id]),
-			getTransactionsByID: async action =>
-				this.chain.dataAccess.getTransactionsByID(action.params.ids),
+			getTransactionsByIDs: async action =>
+				this.chain.dataAccess.getTransactionsByIDs(action.params.ids),
 			getTransactions: async action =>
 				this.transport.handleRPCGetTransactions(
 					action.params.data,

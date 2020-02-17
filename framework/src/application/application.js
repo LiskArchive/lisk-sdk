@@ -440,7 +440,7 @@ class Application {
 				'getBlocksByHeights',
 				'getBlocksByHeightBetween',
 				'getTransactionByID',
-				'getTransactionsByID',
+				'getTransactionsByIDs',
 				'newBlock',
 				'deleteBlock',
 			],
@@ -563,9 +563,9 @@ class Application {
 					handler: async action =>
 						this._node.actions.getTransactionByID(action),
 				},
-				getTransactionsByID: {
+				getTransactionsByIDs: {
 					handler: async action =>
-						this._node.actions.getTransactionsByID(action),
+						this._node.actions.getTransactionsByIDs(action),
 				},
 			},
 			{ skipInternalEvents: true },
