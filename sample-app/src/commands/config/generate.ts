@@ -32,6 +32,7 @@ export default class Show extends BaseCommand {
 			description: 'Path to the config folder',
 		}),
 		output: flags.boolean({ char: 'o', description: 'Output to file' }),
+		force: flags.boolean({ char: 'f', description: 'Overwrite the file' }),
 	};
 
 	static args = [{ name: 'label' }];
@@ -48,7 +49,7 @@ export default class Show extends BaseCommand {
 		const label = args.label ?? DEFAULT_FOLDER_NAME;
 		const outputFile = path.join(configDir, label, CONFIG_FILE_NAME);
 		const fileAlreadyExist = await fs.pathExists(outputFile);
-		if (fileAlreadyExist) {
+		if (fileAlreadyExist && !flagsInput.force) {
 			throw new Error(`File path ${flagsInput.output} already exists`);
 		}
 		await fs.writeJSON(outputFile, config);

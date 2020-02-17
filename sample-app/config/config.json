@@ -3,9 +3,11 @@
 		"ipc": {
 			"enabled": false
 		},
-		"version": "2.1.0",
+		"version": "3.0.0",
 		"minVersion": "1.0.0",
-		"protocolVersion": "1.1",
+		"protocolVersion": "2.0",
+		"lastCommitId": "a4adbfb7651874c5746dbc389b281a111af79e96",
+		"buildVersion": "#buildVersion",
 		"label": "devnet",
 		"genesisConfig": {
 			"EPOCH_TIME": "2016-05-24T17:00:00.000Z",
