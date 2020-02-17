@@ -163,7 +163,6 @@ pipeline {
 		}
 		stage('Lint') {
 			steps {
-				setup()
 				nvm(getNodejsVersion()) {
 					sh '''
 					yarn lint
