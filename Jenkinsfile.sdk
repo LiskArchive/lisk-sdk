@@ -14,7 +14,7 @@ def setup(start_application=false) {
 				  dropdb --if-exists $database
 				done
 				createdb lisk_dev
-				./bin/run config:generate -o -f
+				./bin/run config:generate --dev -o -f
 				./bin/run run -l debug >.app.log 2>&1 &
 				'''
 			}

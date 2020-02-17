@@ -33,13 +33,24 @@ export default class Show extends BaseCommand {
 		}),
 		output: flags.boolean({ char: 'o', description: 'Output to file' }),
 		force: flags.boolean({ char: 'f', description: 'Overwrite the file' }),
+		dev: flags.boolean({ description: 'Use development setting' }),
 	};
 
 	static args = [{ name: 'label' }];
 
 	public async run(): Promise<void> {
 		const { args, flags: flagsInput } = this.parse(Show);
-		const config = configurator.getConfig({}, { failOnInvalidArg: false });
+		// tslint:disable-next-line no-let
+		let originalConfig = {};
+		if (flagsInput.dev) {
+			const devConfig = await fs.readJSON(
+				path.join(__dirname, '../../../config/config.json'),
+			);
+			originalConfig = devConfig;
+		}
+		const config = configurator.getConfig(originalConfig, {
+			failOnInvalidArg: false,
+		});
 		if (!flagsInput.output) {
 			this.log(JSON.stringify(config, undefined, '\t'));
 
