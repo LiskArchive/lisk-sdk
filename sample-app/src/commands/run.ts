@@ -28,7 +28,10 @@ import {
 export default class Run extends BaseCommand {
 	static description = 'Run the application';
 
-	static examples = ['$ lisk-sample-app run devnet'];
+	static examples = [
+		'$ lisk-sample-app run',
+		'$ lisk-sample-app run -l debug -d lisk_dev',
+	];
 
 	static flags = {
 		'config-dir': flags.string({
@@ -38,7 +41,7 @@ export default class Run extends BaseCommand {
 		}),
 		seeds: flags.string({
 			char: 's',
-			description: 'list of seed nodes to use in ip:port format',
+			description: 'List of seed nodes to use in ip:port format',
 		}),
 		port: flags.string({
 			char: 'p',
@@ -49,7 +52,8 @@ export default class Run extends BaseCommand {
 		'console-log-level': flags.string({
 			char: 'l',
 			env: 'LISK_CONSOLE_LOG_LEVEL',
-			description: 'name to print',
+			description: 'Log level to print to print',
+			options: ['fatal', 'error', 'info', 'debug', 'trace'],
 		}),
 		// Boolean flags
 		'enable-http-api': flags.boolean({ description: 'Enable HTTP API module' }),
