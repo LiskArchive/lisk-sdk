@@ -26,7 +26,6 @@
 	"main": "src/index.js",
 	"scripts": {
 		"start": "node src/index.js",
-		"start:test:app": "node test/test_app",
 		"console": "node scripts/console.js",
 		"lint": "eslint .",
 		"lint:fix": "eslint --fix .",
