@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,7 +14,9 @@
 import { Application } from 'lisk-sdk';
 
 export const createApp = (genesisBlock: JSON, config: JSON): Application => {
-    const app = new Application(genesisBlock, config);
+	const app = new Application(genesisBlock, config);
 
-    return app;
-}
+	// New transactions, default custom modules registration should happen here
+
+	return app;
+};
