@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const mocha = require('mocha');
 const coMocha = require('co-mocha');
 const chai = require('chai');
@@ -28,6 +29,14 @@ const { constantsSchema } = require('../../src/application/schema');
 
 const rawConfig = require('../fixtures/config/devnet/config.json');
 const genesisBlock = require('../fixtures/config/devnet/genesis_block.json');
+
+rawConfig.app.version = '3.0.0';
+rawConfig.app.minVersion = '1.0.0';
+rawConfig.app.protocolVersion = '2.0';
+rawConfig.app.networkId = getNetworkIdentifier(
+	genesisBlock.payloadHash,
+	genesisBlock.communityIdentifier,
+);
 
 const config = configuratior.getConfig(rawConfig, { failOnInvalidArg: false });
 const constants = {
