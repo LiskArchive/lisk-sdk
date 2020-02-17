@@ -63,6 +63,7 @@ export default class Show extends BaseCommand {
 		if (fileAlreadyExist && !flagsInput.force) {
 			throw new Error(`File path ${outputFile} already exists`);
 		}
+		await fs.ensureDir(path.join(configDir, label));
 		await fs.writeJSON(outputFile, config);
 		this.log(`Successfully saved generated config to ${outputFile}`);
 	}
