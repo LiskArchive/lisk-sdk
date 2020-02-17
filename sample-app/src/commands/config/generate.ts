@@ -39,7 +39,7 @@ export default class Show extends BaseCommand {
 
 	public async run(): Promise<void> {
 		const { args, flags: flagsInput } = this.parse(Show);
-		const config = configurator.getConfig();
+		const config = configurator.getConfig({}, { failOnInvalidArg: false });
 		if (!flagsInput.output) {
 			this.log(JSON.stringify(config, undefined, '\t'));
 
@@ -50,7 +50,7 @@ export default class Show extends BaseCommand {
 		const outputFile = path.join(configDir, label, CONFIG_FILE_NAME);
 		const fileAlreadyExist = await fs.pathExists(outputFile);
 		if (fileAlreadyExist && !flagsInput.force) {
-			throw new Error(`File path ${flagsInput.output} already exists`);
+			throw new Error(`File path ${outputFile} already exists`);
 		}
 		await fs.writeJSON(outputFile, config);
 		this.log(`Successfully saved generated config to ${outputFile}`);
