@@ -358,7 +358,7 @@ describe('Application', () => {
 			// Arrange
 			app = new Application(genesisBlock, config);
 			app.channel = app._initChannel();
-			actions = app.channel.actionsList.map(event => event.name);
+			actions = app.channel.actionsList.map(action => action.name);
 		});
 
 		it('should create getAccount action', () => {
