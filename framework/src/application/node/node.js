@@ -241,24 +241,61 @@ module.exports = class Node {
 					action.params.password,
 					action.params.forging,
 				),
-			getAccount: async action =>
-				this.chain.dataAccess.getAccountsByAddress([action.params.address]),
+			getAccount: async action => {
+				const [account] = this.chain.dataAccess.getAccountsByAddress([
+					action.params.address,
+				]);
+
+				return account;
+			},
 			getAccounts: async action =>
 				this.chain.dataAccess.getAccountsByAddress(action.params.address),
-			getBlockByID: async action =>
-				this.chain.dataAccess.getBlockByID(action.params.id),
-			getBlocksByIDs: async action =>
-				this.chain.dataAccess.getBlocksByIDs(action.params.ids),
-			getBlockByHeight: async action =>
-				this.chain.dataAccess.getBlockByHeight(action.params.height),
-			getBlocksByHeights: async action =>
-				this.chain.dataAccess.getBlocksByHeights(action.params.heights),
-			getBlocksByHeightBetween: async action =>
-				this.chain.dataAccess.getBlocksByHeightBetween(action.params.heights),
-			getTransactionByID: async action =>
-				this.chain.dataAccess.getTransactionByIDs([action.params.id]),
-			getTransactionsByIDs: async action =>
-				this.chain.dataAccess.getTransactionsByIDs(action.params.ids),
+			getBlockByID: async action => {
+				const block = this.chain.dataAccess.getBlockByID(action.params.id);
+
+				return block ? this.chain.dataAccess.deserialize(block) : undefined;
+			},
+			getBlocksByIDs: async action => {
+				const blocks = this.chain.dataAccess.getBlocksByIDs(action.params.ids);
+
+				return blocks.length > 0
+					? blocks.map(this.chain.dataAccess.deserialize)
+					: [];
+			},
+			getBlockByHeight: async action => {
+				const block = this.chain.dataAccess.getBlockByHeight(
+					action.params.height,
+				);
+
+				return block ? this.chain.dataAccess.deserialize(block) : undefined;
+			},
+			getBlocksByHeightBetween: async action => {
+				const blocks = this.chain.dataAccess.getBlocksByHeightBetween(
+					action.params.heights,
+				);
+
+				return blocks.length > 0
+					? blocks.map(this.chain.dataAccess.deserialize)
+					: [];
+			},
+			getTransactionByID: async action => {
+				const [transaction] = this.chain.dataAccess.getTransactionsByIDs(
+					action.params.id,
+				);
+
+				return transaction
+					? this.chain.dataAccess.deserializeTransaction(transaction)
+					: undefined;
+			},
+			getTransactionsByIDs: async action => {
+				const transactions = this.chain.dataAccess.getTransactionsByIDs(
+					action.params.ids,
+				);
+
+				return transactions.length > 0
+					? transactions.map(this.chain.dataAccess.deserializeTransaction)
+					: [];
+			},
 			getTransactions: async action =>
 				this.transport.handleRPCGetTransactions(
 					action.params.data,
