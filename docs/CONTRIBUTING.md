@@ -37,8 +37,8 @@ Lisk is an open-source decentralized project, there are many ways and platforms 
 
 If you prefer to chat with LiskHQ and other developers directly:
 
-* [Join the LiskHQ Gitter](https://gitter.im/LiskHQ/lisk)
-* Even though Gitter is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
+* [Join the LiskHQ Discord](https://discordapp.com/invite/7EKWJ7b)
+* Even though Discord is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
 
 ## How Can I Contribute?
 
