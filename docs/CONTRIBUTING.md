@@ -79,7 +79,7 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 
 #### How Do I Submit A (Good) Bug Report?
 
-Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you've determined [which repository](https://github.com/LiskHQ) your bug is related to, create an issue on that repository and provide the following information by filling in [the template](ISSUE_TEMPLATE.md).
+Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you've determined [which repository](https://github.com/LiskHQ) your bug is related to, create an issue on that repository and provide the following information by filling in [the template](../.github/ISSUE_TEMPLATE/bug-report.md).
 
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
@@ -88,7 +88,7 @@ Explain the problem and include additional details to help maintainers reproduce
 * **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
-* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/cgoodrich/byzanz) on Linux.
 * **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
 
 Provide more context by answering these questions:
@@ -101,7 +101,7 @@ Provide more context by answering these questions:
 
 This section guides you through submitting an enhancement suggestion for Lisk SDK, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
 
- When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](../.github/ISSUE_TEMPLATE/bug-report.md), including the steps that you imagine you would take if the feature you're requesting existed.
+ When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](../.github/ISSUE_TEMPLATE/feature-request.md), including the steps that you imagine you would take if the feature you're requesting existed.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
@@ -111,7 +111,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
 * **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
-* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Lisk SDK which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Lisk SDK which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/cgoodrich/byzanz) on Linux.
 * **Explain why this enhancement would be useful** to most Lisk and Lisk SDK users.
 * **Specify which version of Lisk and Lisk SDK you're using.**
 * **Specify the name and version of the OS you're using.**
