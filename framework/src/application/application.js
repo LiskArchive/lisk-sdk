@@ -526,6 +526,37 @@ class Application {
 						this._node.actions.getHighestCommonBlock(action),
 					isPublic: true,
 				},
+				getAccount: {
+					handler: async action => this._node.actions.getAccount(action),
+				},
+				getAccounts: {
+					handler: async action => this._node.actions.getAccounts(action),
+				},
+				getBlockByID: {
+					handler: async action => this._node.actions.getBlockByID(action),
+				},
+				getBlocksByIDs: {
+					handler: async action => this._node.actions.getBlocksByIDs(action),
+				},
+				getBlockByHeight: {
+					handler: async action => this._node.actions.getBlockByHeight(action),
+				},
+				getBlocksByHeights: {
+					handler: async action =>
+						this._node.actions.getBlocksByHeights(action),
+				},
+				getBlocksByHeightBetween: {
+					handler: async action =>
+						this._node.actions.getBlocksByHeightBetween(action),
+				},
+				getTransactionByID: {
+					handler: async action =>
+						this._node.actions.getTransactionByID(action),
+				},
+				getTransactionsByIDs: {
+					handler: async action =>
+						this._node.actions.getTransactionsByIDs(action),
+				},
 			},
 			{ skipInternalEvents: true },
 		);
