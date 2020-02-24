@@ -139,84 +139,6 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  /accounts/{address}/multisignature_groups:
-    x-swagger-router-controller: accounts
-    get:
-      tags:
-        - Accounts
-      summary: Requests multisignature groups data
-      operationId: getMultisignatureGroups
-      description: Searches for the specified account in the system and responds with a list of the multisignature groups that this account is member of.
-      produces:
-        - application/json
-      parameters:
-        - name: address
-          in: path
-          description: Lisk address of an account
-          type: string
-          format: address
-          required: true
-          minLength: 2
-          maxLength: 22
-      responses:
-        200:
-          description: List of multisignature accounts
-          schema:
-            $ref: '#/definitions/MultisignatureGroupsResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        404:
-          description: Multisignature account not found
-          schema:
-            $ref: '#/definitions/NotFoundError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /accounts/{address}/multisignature_memberships:
-    x-swagger-router-controller: accounts
-    get:
-      tags:
-        - Accounts
-      summary: Requests multisignature membership data
-      operationId: getMultisignatureMemberships
-      description: Searches for the specified multisignature group and responds with a list of all members of this particular multisignature group.
-      produces:
-        - application/json
-      parameters:
-        - name: address
-          in: path
-          description: Lisk address of a multisignature account
-          type: string
-          format: address
-          required: true
-          minLength: 2
-          maxLength: 22
-      responses:
-        200:
-          description: List of multisignature accounts
-          schema:
-            $ref: '#/definitions/MultisignatureGroupsResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
   /dapps:
     x-swagger-router-controller: dapps
     get:
@@ -1367,23 +1289,6 @@ definitions:
       links:
         type: object
 
-  MultisignatureGroupsResponse:
-    type: object
-    required:
-      - data
-      - meta
-      - links
-    properties:
-      data:
-        description: List of multisignature groups
-        type: array
-        items:
-          $ref: '#/definitions/MultisignatureGroup'
-      meta:
-        type: object
-      links:
-        type: object
-
   DappsResponse:
     description: Dapps endpoint response
     type: object
@@ -2446,54 +2351,6 @@ definitions:
       delegate:
         $ref: '#/definitions/Delegate'
 
-  MultisignatureGroup:
-    type: object
-    required:
-      - address
-      - publicKey
-      - balance
-      - min
-      - lifetime
-      - members
-    properties:
-      address:
-        type: string
-        format: address
-        example: 12668885769632475474L
-        description: |
-          The Lisk Address is the human readable representation of the accounts owners' public key.
-          It consists of 21 numbers followed by a big 'L' at the end.
-      publicKey:
-        type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: |
-          The public key is derived from the private key of the owner of the account.
-          It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
-      balance:
-        type: string
-        example: 1081560729258
-        description: The current balance of the account in Beddows.
-      secondPublicKey:
-        type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
-      min:
-        type: integer
-        example: 3
-        description: Minimum amount of signatures a transaction needs to be signed successfully by this multisignature account.
-      lifetime:
-        type: integer
-        example: 72
-        description: |
-          The maximum amount of hours, that a transaction will wait for the minimum amount of signatures to be reached.
-          If not enough members of a multisignature group sign the transaction in the defined lifespan, the transaction will be invalid.
-      members:
-        type: array
-        items:
-          $ref: '#/definitions/Account'
-
   Delegate:
     type: object
     required:
@@ -2537,6 +2394,7 @@ definitions:
         description: |
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
+
 
   DelegateWithAccount:
     type: object
