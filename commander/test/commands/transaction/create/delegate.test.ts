@@ -23,7 +23,6 @@ describe('transaction:create:delegate', () => {
 	const defaultUsername = 'user-light';
 	const defaultInputs = {
 		passphrase: '123',
-		secondPassphrase: '456',
 	};
 	const defaultTransaction = {
 		amount: '10000000000',
@@ -78,12 +77,10 @@ describe('transaction:create:delegate', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					username: defaultUsername,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
@@ -107,46 +104,10 @@ describe('transaction:create:delegate', () => {
 							source: 'pass:123',
 							repeatPrompt: true,
 						},
-						secondPassphrase: undefined,
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
-						secondPassphrase: defaultInputs.secondPassphrase,
-						username: defaultUsername,
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
-	});
-
-	describe('transaction:create:delegate username --passphrase=xxx --second-passphrase=xxx', () => {
-		setupTest()
-			.command([
-				'transaction:create:delegate',
-				defaultUsername,
-				'--passphrase=pass:123',
-				'--second-passphrase=pass:456',
-			])
-			.it(
-				'create a transaction with the username and the passphrase and second passphrase from the flag',
-				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-						secondPassphrase: {
-							source: 'pass:456',
-							repeatPrompt: true,
-						},
-					});
-					expect(transactions.registerDelegate).to.be.calledWithExactly({
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs.passphrase,
-						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
 					});
 					return expect(printMethodStub).to.be.calledWithExactly(
@@ -167,7 +128,6 @@ describe('transaction:create:delegate', () => {
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: undefined,
-					secondPassphrase: undefined,
 					username: defaultUsername,
 				});
 				expect(inputUtils.getInputsFromSources).not.to.be.called;
