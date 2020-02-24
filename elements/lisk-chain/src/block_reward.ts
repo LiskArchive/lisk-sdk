@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockRewardOptions } from './types';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+
+import { CHAIN_STATE_KEY_BURNT_FEE } from './constants';
+import { StateStore } from './state_store';
+import { BlockInstance, BlockRewardOptions } from './types';
 
 const parseHeight = (height: number): number => {
 	if (
@@ -120,4 +124,95 @@ export const calculateSupply = (
 	}
 
 	return supply;
+};
+
+export const getTotalRewardAndFees = (
+	blockInstance: BlockInstance,
+): { readonly totalFee: bigint; readonly totalBurnt: bigint } => {
+	// tslint:disable-next-line no-let
+	let totalFee = BigInt(0);
+	// tslint:disable-next-line no-let
+	let totalBurnt = BigInt(0);
+
+	for (const transaction of blockInstance.transactions) {
+		const minFee = BigInt(0); // TODO: It should get from transaction
+		totalFee += transaction.fee - minFee;
+		totalBurnt += minFee;
+	}
+
+	return {
+		totalFee,
+		totalBurnt,
+	};
+};
+
+export const applyFeeAndRewards = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+): Promise<void> => {
+	const generatorAddress = getAddressFromPublicKey(
+		blockInstance.generatorPublicKey,
+	);
+	const generator = await stateStore.account.get(generatorAddress);
+	generator.balance += blockInstance.reward;
+	generator.producedBlocks += 1;
+	// If there is no transactions, no need to give fee
+	if (!blockInstance.transactions.length) {
+		stateStore.account.set(generatorAddress, generator);
+
+		return;
+	}
+	const { totalFee, totalBurnt } = getTotalRewardAndFees(blockInstance);
+	generator.balance += totalFee;
+	const totalFeeBurntStr = await stateStore.chainState.get(
+		CHAIN_STATE_KEY_BURNT_FEE,
+	);
+	// tslint:disable-next-line no-let
+	let totalFeeBurnt = totalFeeBurntStr
+		? BigInt(parseInt(totalFeeBurntStr, 10))
+		: BigInt(0);
+	totalFeeBurnt += totalBurnt;
+
+	// Update state store
+	stateStore.account.set(generatorAddress, generator);
+	stateStore.chainState.set(
+		CHAIN_STATE_KEY_BURNT_FEE,
+		totalFeeBurnt.toString(),
+	);
+};
+
+export const undoFeeAndRewards = async (
+	blockInstance: BlockInstance,
+	stateStore: StateStore,
+): Promise<void> => {
+	const generatorAddress = getAddressFromPublicKey(
+		blockInstance.generatorPublicKey,
+	);
+	const generator = await stateStore.account.get(generatorAddress);
+	generator.balance -= blockInstance.reward;
+	generator.producedBlocks -= 1;
+	// If there is no transactions, no need to give fee
+	if (!blockInstance.transactions.length) {
+		stateStore.account.set(generatorAddress, generator);
+
+		return;
+	}
+	const { totalFee, totalBurnt } = getTotalRewardAndFees(blockInstance);
+
+	generator.balance -= totalFee;
+	const totalFeeBurntStr = await stateStore.chainState.get(
+		CHAIN_STATE_KEY_BURNT_FEE,
+	);
+	// tslint:disable-next-line no-let
+	let totalFeeBurnt = totalFeeBurntStr
+		? BigInt(parseInt(totalFeeBurntStr, 10))
+		: BigInt(0);
+	totalFeeBurnt -= totalBurnt;
+
+	// Update state store
+	stateStore.account.set(generatorAddress, generator);
+	stateStore.chainState.set(
+		CHAIN_STATE_KEY_BURNT_FEE,
+		totalFeeBurnt.toString(),
+	);
 };
