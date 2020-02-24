@@ -63,14 +63,6 @@ class Account extends BaseEntity {
 			booleanToInt,
 		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
-		this.addField('multiMin', 'number', {
-			filter: ft.NUMBER,
-			fieldName: 'multimin',
-		});
-		this.addField('multiLifetime', 'number', {
-			filter: ft.NUMBER,
-			fieldName: 'multilifetime',
-		});
 		this.addField(
 			'nameExist',
 			'boolean',
@@ -87,7 +79,7 @@ class Account extends BaseEntity {
 		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
 		this.addField('asset', 'string');
 		this.addField('votedDelegatesPublicKeys', 'string');
-		this.addField('membersPublicKeys', 'string');
+		this.addField('keys', 'string');
 
 		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
 			condition:

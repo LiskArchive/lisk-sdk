@@ -21,8 +21,6 @@ SELECT
 	"secondSignature"::int::boolean,
 	"balance",
 	"asset",
-	"multimin" as "multiMin",
-	"multilifetime" as "multiLifetime",
 	"nameexist"::int::boolean as "nameExist",
 	"missedBlocks",
 	"producedBlocks",
@@ -36,7 +34,7 @@ SELECT
 		ROUND((("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::numeric, 2)::float
 	end AS productivity,
 	"votedDelegatesPublicKeys",
-	"membersPublicKeys"
+	"keys"
 FROM
 	mem_accounts
 
