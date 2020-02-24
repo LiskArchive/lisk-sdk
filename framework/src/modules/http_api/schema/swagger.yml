@@ -414,7 +414,6 @@ paths:
           required: true
           type: string
           enum:
-            - pending
             - ready
             - received
             - validated
