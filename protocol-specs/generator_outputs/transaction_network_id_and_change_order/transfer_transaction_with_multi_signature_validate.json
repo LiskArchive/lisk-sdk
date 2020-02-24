@@ -34,7 +34,8 @@
 				"transaction": {
 					"type": 8,
 					"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"timestamp": 54316325,
+					"nonce": "2",
+					"fee": "100000000",
 					"asset": {
 						"recipientId": "18141291412139607230L",
 						"amount": "1234567890",
@@ -45,18 +46,19 @@
 			"output": {
 				"type": 8,
 				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-				"timestamp": 54316325,
+				"nonce": "2",
+				"fee": "100000000",
 				"asset": {
 					"recipientId": "18141291412139607230L",
 					"amount": "1234567890",
 					"data": "random data"
 				},
-				"signature": "b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d",
+				"signature": "b14bbbbc619cf806669228ae46fc70fffd5c4a15d0795031171c3aa4a08ba8030d783f165d3e9ce64174c32862f499980cadf42b28017a5c0e8929a6fc754101",
 				"signatures": [
-					"4424342c342093f80f52f919876fc0abada5385e98e8caf211add16d1c0f5453ef6e47fa58a454128a9640f3b6e2ade618e5ee5fa8eebc4d68460d19f042050f",
-					"014cae10ddd5f482f8b99f8eb5699721fa795be0806118555282a304ea6a84510b1e3ec8675347c2a70f6c5abc29dc17160b94cc3cedec9f88eb1acf027ced02"
+					"5886cadac0eeda3f264795d4a05dde29f3ed221b9953e4af224eb34e83a2bea1a6764d58c3a7aeb68bad7a00b34f9fca1a876112638045dc4b5a26abd51a2a0c",
+					"31111548f52c3ef09b91e185ee8cc4fe0ac0d0164d0e06447036ba2c1f0cb78cebafa18cf9f8caae1bfe933806288c3ad185d295a75140ab5e1067e061ba1507"
 				],
-				"id": "3436168030012755419"
+				"id": "11006252662233086536"
 			}
 		}
 	]
