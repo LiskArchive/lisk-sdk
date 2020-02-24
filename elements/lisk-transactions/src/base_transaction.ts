@@ -24,6 +24,7 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
+	MIN_FEE_PER_BYTE,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
@@ -123,6 +124,7 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 	protected _networkIdentifier: string;
+	protected _minFee: bigint;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -138,6 +140,7 @@ export abstract class BaseTransaction {
 			: {}) as Partial<TransactionJSON>;
 
 		this.fee = BigInt((this.constructor as typeof BaseTransaction).FEE);
+		this._minFee = BigInt(MIN_FEE_PER_BYTE * this.getBytes().length);
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
@@ -558,11 +561,13 @@ export abstract class BaseTransaction {
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+		const transactionFee = Buffer.alloc(BYTESIZES.FEE, this.fee.toString());
 
 		return Buffer.concat([
 			transactionType,
 			transactionTimestamp,
 			transactionSenderPublicKey,
+			transactionFee,
 			this.assetToBytes(),
 		]);
 	}
@@ -616,6 +621,10 @@ export abstract class BaseTransaction {
 			if (senderIdError) {
 				errors.push(senderIdError);
 			}
+		}
+
+		if (this.fee < this._minFee) {
+			errors.push();
 		}
 
 		return errors;

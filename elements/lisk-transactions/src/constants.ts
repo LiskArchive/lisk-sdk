@@ -15,6 +15,9 @@
 /* tslint:disable:no-magic-numbers */
 export const FIXED_POINT = 10 ** 8;
 
+export const MIN_FEE_PER_BYTE = FIXED_POINT * 0.00001;
+export const NAME_FEE = FIXED_POINT * 10;
+
 export const TRANSFER_FEE = FIXED_POINT * 0.1;
 export const IN_TRANSFER_FEE = FIXED_POINT * 0.1;
 export const OUT_TRANSFER_FEE = FIXED_POINT * 0.1;
@@ -31,6 +34,7 @@ export const USERNAME_MAX_LENGTH = 20;
 
 export const BYTESIZES = {
 	TYPE: 1,
+	FEE: 8,
 	TIMESTAMP: 4,
 	MULTISIGNATURE_PUBLICKEY: 32,
 	RECIPIENT_ID: 8,
