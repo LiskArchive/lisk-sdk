@@ -19,8 +19,6 @@ import { Account } from '../../src';
 describe('state store / account', () => {
 	const defaultAccount = {
 		publicKey: undefined,
-		secondPublicKey: null,
-		secondSignature: 0,
 		username: null,
 		isDelegate: 0,
 		balance: '0',
@@ -196,79 +194,14 @@ describe('state store / account', () => {
 		});
 	});
 
-	describe('set', () => {
-		let secondPublicKey: string;
-		let secondSignature: number;
-
-		beforeEach(async () => {
-			// Arrange
-			secondPublicKey =
-				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
-			secondSignature = 1;
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			await stateStore.account.cache(filter);
-		});
-
-		it('should set the updated values for the account', async () => {
-			// Act
-			const updatedAccount = await stateStore.account.get(
-				defaultAccounts[0].address,
-			);
-
-			(updatedAccount as any).secondPublicKey = secondPublicKey;
-			(updatedAccount as any).secondSignature = secondSignature;
-
-			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
-			const updatedAcountAfterSet = await stateStore.account.get(
-				defaultAccounts[0].address,
-			);
-			// Assert
-			expect(updatedAcountAfterSet).toStrictEqual(updatedAccount);
-		});
-
-		it('should update the updateKeys property', async () => {
-			const updatedKeys = ['secondPublicKey', 'secondSignature'];
-			const existingAccount = await stateStore.account.get(
-				defaultAccounts[0].address,
-			);
-			const updatedAccount = new Account({
-				...existingAccount.toJSON(),
-				secondPublicKey,
-				secondSignature,
-			});
-
-			// updatedAccount.secondPublicKey = secondPublicKey;
-			// (updatedAccount as any).secondSignature = secondSignature;
-
-			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
-
-			expect((stateStore.account as any)._updatedKeys[0]).toStrictEqual(
-				updatedKeys,
-			);
-		});
-	});
-
 	describe('finalize', () => {
 		let txStub = {} as StorageTransaction;
 		let existingAccount;
 		let updatedAccount;
-		let secondPublicKey: string;
-		let secondSignature: number;
 		let accountUpsertObj: object;
 
 		beforeEach(async () => {
-			secondPublicKey =
-				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
-			secondSignature = 1;
-
-			accountUpsertObj = {
-				secondPublicKey,
-				secondSignature,
-			};
+			accountUpsertObj = {};
 
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 
@@ -283,8 +216,6 @@ describe('state store / account', () => {
 			);
 			updatedAccount = new Account({
 				...existingAccount.toJSON(),
-				secondPublicKey,
-				secondSignature,
 			});
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);

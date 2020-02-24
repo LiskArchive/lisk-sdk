@@ -45,16 +45,13 @@ const delegateName = () => {
 
 export const account = (balance = '0', nonDelegate = false) => {
 	const passphrase = Mnemonic.generateMnemonic();
-	const secondPassphrase = Mnemonic.generateMnemonic();
 	return {
 		balance,
 		passphrase,
 		keypair: getKeys(passphrase),
-		secondPassphrase,
 		username: nonDelegate ? '' : delegateName(),
 		publicKey: getKeys(passphrase).publicKey,
 		address: getAddressFromPassphrase(passphrase),
-		secondPublicKey: getKeys(secondPassphrase).publicKey,
 	};
 };
 
