@@ -57,10 +57,8 @@ describe('Account', () => {
 		validAccountFields = [
 			'address',
 			'publicKey',
-			'secondPublicKey',
 			'username',
 			'isDelegate',
-			'secondSignature',
 			'balance',
 			'multiMin',
 			'multiLifetime',
@@ -77,10 +75,8 @@ describe('Account', () => {
 		validSimpleObjectFields = [
 			'address',
 			'publicKey',
-			'secondPublicKey',
 			'username',
 			'isDelegate',
-			'secondSignature',
 			'balance',
 			'asset',
 			'multiMin',
@@ -107,11 +103,6 @@ describe('Account', () => {
 			'publicKey_ne',
 			'publicKey_in',
 			'publicKey_like',
-			'secondPublicKey',
-			'secondPublicKey_eql',
-			'secondPublicKey_ne',
-			'secondPublicKey_in',
-			'secondPublicKey_like',
 			'username',
 			'username_eql',
 			'username_ne',
@@ -120,9 +111,6 @@ describe('Account', () => {
 			'isDelegate',
 			'isDelegate_eql',
 			'isDelegate_ne',
-			'secondSignature',
-			'secondSignature_eql',
-			'secondSignature_ne',
 			'balance',
 			'balance_eql',
 			'balance_ne',
@@ -467,11 +455,6 @@ describe('Account', () => {
 			it('should return "isDelegate" as "boolean"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].isDelegate).to.be.a('boolean');
-			});
-
-			it('should return "secondSignature" as "boolean"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].secondSignature).to.be.a('boolean');
 			});
 
 			it('should return "fees" as "bigint"', async () => {

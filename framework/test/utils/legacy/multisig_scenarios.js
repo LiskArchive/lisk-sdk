@@ -16,7 +16,6 @@
 
 const {
 	transfer,
-	registerSecondPassphrase,
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../fixtures/accounts');
@@ -72,38 +71,11 @@ function Multisig(options) {
 
 	this.multiSigTransaction = multisigTrs.toJSON();
 
-	// TODO: Remove signRawTransaction on lisk-transactions 3.0.0
-	const multisigSecondSignatureTrs = new MultisignatureTransaction({
-		networkIdentifier,
-		type: 12,
-		amount: '0',
-		fee: (
-			BigInt(FEES.MULTISIGNATURE) * BigInt(this.keysgroup.length + 1)
-		).toString(),
-		asset: {
-			keysgroup: this.keysgroup.map(key => `+${key}`),
-			lifetime: this.lifetime,
-			min: this.minimum,
-		},
-	});
-
-	multisigSecondSignatureTrs.sign(
-		this.account.passphrase,
-		this.account.secondPassphrase,
-	);
-
-	this.multiSigSecondSignatureTransaction = multisigTrs.toJSON();
-
 	this.creditTransaction = transfer({
 		networkIdentifier,
 		amount: this.amount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: this.account.address,
-	});
-	this.secondSignatureTransaction = registerSecondPassphrase({
-		networkIdentifier,
-		passphrase: this.account.passphrase,
-		secondPassphrase: this.account.secondPassphrase,
 	});
 }
 

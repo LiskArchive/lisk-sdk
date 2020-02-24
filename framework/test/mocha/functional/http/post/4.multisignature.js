@@ -640,55 +640,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 		});
 
-		it('using valid params regular_with_second_signature scenario should be ok', async () => {
-			const scenario = scenarios.regular_with_second_signature;
-			const multiSigSecondPassphraseTransaction = registerMultisignature({
-				networkIdentifier,
-				passphrase: scenario.account.passphrase,
-				secondPassphrase: scenario.account.secondPassphrase,
-				keysgroup: scenario.keysgroup,
-				lifetime: 1,
-				minimum: 2,
-			});
-
-			return sendTransactionPromise(scenario.secondSignatureTransaction)
-				.then(res => {
-					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
-
-					return waitFor.confirmations([
-						scenario.secondSignatureTransaction.id,
-					]);
-				})
-				.then(() => {
-					return sendTransactionPromise(multiSigSecondPassphraseTransaction);
-				})
-				.then(res => {
-					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
-
-					const signatureRequests = _.map(scenario.members, member => {
-						return {
-							signature: apiHelpers.createSignatureObject(
-								multiSigSecondPassphraseTransaction,
-								member,
-							),
-						};
-					});
-
-					return signatureEndpoint
-						.makeRequests(signatureRequests, 200)
-						.then(results => {
-							results.forEach(makeRequestsRes => {
-								expect(makeRequestsRes.body.meta.status).to.be.true;
-								expect(makeRequestsRes.body.data.message).to.be.equal(
-									'Signature Accepted',
-								);
-							});
-
-							goodTransactions.push(multiSigSecondPassphraseTransaction);
-						});
-				});
-		});
-
 		it('using valid params unsigned scenario should be ok and remain in pending queue', async () => {
 			const scenario = scenarios.unsigned;
 

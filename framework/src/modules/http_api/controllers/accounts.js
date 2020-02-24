@@ -71,7 +71,6 @@ AccountsController.getAccounts = async (context, next) => {
 	let filters = {
 		address_eql: params.address.value,
 		publicKey_eql: params.publicKey.value,
-		secondPublicKey_eql: params.secondPublicKey.value,
 		username_like: params.username.value,
 	};
 

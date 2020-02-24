@@ -138,7 +138,6 @@ class PgHelper {
 			ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 			"username",
 			"isDelegate",
-			"secondSignature",
 			"balance",
 			"asset",
 			"multimin" as "multiMin",

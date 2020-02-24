@@ -15,10 +15,7 @@
 
 'use strict';
 
-const {
-	BaseTransaction: Base,
-	SecondSignatureTransaction,
-} = require('@liskhq/lisk-transactions');
+const { BaseTransaction: Base } = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
@@ -278,7 +275,6 @@ describe('Application', () => {
 
 			const TransactionWithoutBase = {
 				prototype: {},
-				...SecondSignatureTransaction,
 			};
 
 			// Act && Assert
