@@ -15,7 +15,7 @@
 'use strict';
 
 const { when } = require('jest-when');
-const { Chain, StateStore } = require('@liskhq/lisk-chain');
+const { Chain } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 
@@ -26,9 +26,6 @@ const {
 	FastChainSwitchingMechanism,
 	Errors,
 } = require('../../../../../../../../src/application/node/synchronizer');
-const {
-	Sequence,
-} = require('../../../../../../../../src/application/node/utils/sequence');
 const {
 	Processor,
 } = require('../../../../../../../../src/application/node/processor');
@@ -56,7 +53,6 @@ describe('fast_chain_switching_mechanism', () => {
 	let dposModuleMock;
 	let exceptions;
 	let loggerMock;
-	let storageMock;
 	let dataAccessMock;
 
 	beforeEach(() => {
@@ -66,27 +62,8 @@ describe('fast_chain_switching_mechanism', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		storageMock = {
-			entities: {
-				TempBlock: {
-					get: jest.fn(),
-					truncate: jest.fn(),
-					isEmpty: jest.fn(),
-				},
-				Block: {
-					get: jest.fn(),
-					getOne: jest.fn(),
-					begin: jest.fn(),
-				},
-				Account: {
-					get: jest.fn(),
-				},
-				ChainState: {
-					get: jest.fn(),
-					getKey: jest.fn(),
-				},
-			},
-		};
+		const storageMock = {};
+
 		channelMock = new ChannelMock();
 
 		chainModule = new Chain({
@@ -94,7 +71,6 @@ describe('fast_chain_switching_mechanism', () => {
 			storage: storageMock,
 			registeredTransactions,
 			genesisBlock: genesisBlockDevnet,
-			sequence: new Sequence(),
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
@@ -111,6 +87,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		dataAccessMock = {
 			getTempBlocks: jest.fn(),
+			clearTempBlocks: jest.fn(),
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
@@ -118,7 +95,7 @@ describe('fast_chain_switching_mechanism', () => {
 			getBlockHeadersByHeightBetween: jest.fn(),
 			addBlockHeader: jest.fn(),
 			getLastBlockHeader: jest.fn(),
-			deserialize: jest.fn(),
+			deserialize: chainModule.dataAccess.deserialize,
 		};
 		chainModule.dataAccess = dataAccessMock;
 
@@ -134,6 +111,9 @@ describe('fast_chain_switching_mechanism', () => {
 			dpos,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
+		});
+		Object.defineProperty(bftModule, 'finalizedHeight', {
+			get: jest.fn(() => 1),
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
@@ -200,12 +180,6 @@ describe('fast_chain_switching_mechanism', () => {
 			aBlock = newBlock();
 			// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 			// memory. The following mock fakes this to be true
-			// when(storageMock.entities.Block.begin)
-			// 	.calledWith('loader:checkMemTables')
-			// 	.mockResolvedValue({ genesisBlock: genesisBlockDevnet });
-			// when(storageMock.entities.Account.get)
-			// 	.calledWith({ isDelegate: true }, { limit: null })
-			// 	.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
 			// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 			// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
@@ -228,54 +202,13 @@ describe('fast_chain_switching_mechanism', () => {
 				.calledWith([2, 1])
 				.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
-			// when(storageMock.entities.Block.get)
-			// 	.calledWith({ height: 1 }, { extended: true })
-			// 	.mockResolvedValue([genesisBlockDevnet]);
-			// when(storageMock.entities.Block.get)
-			// 	.calledWith(
-			// 		{ height_gte: 1, height_lte: 2 },
-			// 		{ limit: null, sort: 'height:desc' },
-			// 	)
-			// 	.mockResolvedValue([lastBlock]);
-			// when(storageMock.entities.Block.get)
-			// 	.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-			// 	.mockResolvedValue([lastBlock]);
-			// // Same thing but for BFT module,as it doesn't use extended flag set to true
-			// when(storageMock.entities.Block.get)
-			// 	.calledWith({}, { sort: 'height:desc', limit: 1 })
-			// 	.mockResolvedValue([lastBlock]);
-			// // BFT loads blocks from storage and extracts their headers
-			// when(storageMock.entities.Block.get)
-			// 	.calledWith(
-			// 		{
-			// 			height_gte: genesisBlockDevnet.height,
-			// 			height_lte: lastBlock.height,
-			// 		},
-			// 		{ limit: null, sort: 'height:asc' },
-			// 	)
-			// 	.mockResolvedValue([genesisBlockDevnet, lastBlock]);
-
 			// Simulate finalized height stored in ChainState table is 0
-			storageMock.entities.ChainState.get.mockResolvedValue([
-				{ key: 'BFT.finalizedHeight', value: 0 },
-				{
-					key: 'DPoS.forgersList',
-					value: JSON.stringify([
-						{ round: 1, delegates: [] },
-						{ round: 2, delegates: [] },
-						{ round: 3, delegates: [] },
-					]),
-				},
-			]);
 
 			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks');
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');
 			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks');
 
 			await chainModule.init();
-			const stateStore = new StateStore(storageMock);
-			await stateStore.chainState.cache();
-			await bftModule.init(stateStore);
 		});
 
 		afterEach(() => {
@@ -296,17 +229,6 @@ describe('fast_chain_switching_mechanism', () => {
 						id: chainModule.lastBlock.id,
 					},
 				];
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-				// 		},
-				// 		{
-				// 			sort: 'height:asc',
-				// 			limit: 2,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue(storageReturnValue);
 				// Simulate peer not sending back a common block
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
@@ -350,17 +272,6 @@ describe('fast_chain_switching_mechanism', () => {
 				const highestCommonBlock = newBlock({
 					height: bftModule.finalizedHeight - 1,
 				});
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-				// 		},
-				// 		{
-				// 			sort: 'height:asc',
-				// 			limit: 2,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue(storageReturnValue);
 
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
@@ -404,17 +315,6 @@ describe('fast_chain_switching_mechanism', () => {
 				const highestCommonBlock = newBlock({
 					height: chainModule.lastBlock.height,
 				});
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-				// 		},
-				// 		{
-				// 			sort: 'height:asc',
-				// 			limit: 2,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue(storageReturnValue);
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
@@ -481,46 +381,10 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue([genesisBlockDevnet, lastBlock]);
-				// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
-				// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-				// 	.mockResolvedValue([lastBlock]);
-
-				// BFT loads blocks from storage and extracts their headers
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		expect.objectContaining({
-				// 			height_gte: expect.any(Number),
-				// 			height_lte: expect.any(Number),
-				// 		}),
-				// 		{ limit: null, sort: 'height:asc' },
-				// 	)
-				// 	.mockResolvedValue([lastBlock]);
-
-				// minActiveHeightsOfDelegates is provided to deleteBlocks function
-				// in block_processor_v2 from DPoS module.
-				const minActiveHeightsOfDelegates = [lastBlock].reduce((acc, block) => {
-					// the value is not important in this test.
-					acc[block.generatorPublicKey] = [1];
-
-					return acc;
-				}, {});
 
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 					.calledWith(1, 205)
 					.mockResolvedValue([lastBlock]);
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{ height_gte: 1, height_lte: 205 },
-				// 		{ limit: null, sort: 'height:desc' },
-				// 	)
-				// 	.mockResolvedValue([]);
-
-				await chainModule.init(); // Loads last block among other checks
-				const stateStore = new StateStore(storageMock);
-				await stateStore.chainState.cache();
-				await bftModule.init(stateStore, minActiveHeightsOfDelegates); // Loads block headers
 
 				const heightList = new Array(
 					Math.min(
@@ -536,18 +400,6 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith(heightList)
-					.mockResolvedValue(storageReturnValue);
-
-				when(storageMock.entities.Block.get)
-					.calledWith(
-						{
-							height_in: heightList,
-						},
-						{
-							sort: 'height:asc',
-							limit: heightList.length,
-						},
-					)
 					.mockResolvedValue(storageReturnValue);
 
 				when(channelMock.invokeFromNetwork)
@@ -613,17 +465,6 @@ describe('fast_chain_switching_mechanism', () => {
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue);
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-				// 		},
-				// 		{
-				// 			sort: 'height:asc',
-				// 			limit: 2,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue(storageReturnValue);
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
@@ -633,37 +474,25 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			id: highestCommonBlock.id,
-				// 		},
-				// 		{
-				// 			extended: true,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue([highestCommonBlock]);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
 					.mockResolvedValue(genesisBlockDevnet);
 
+				when(chainModule.dataAccess.getBlockByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock);
+
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				when(chainModule.dataAccess)
-					.calledWith(highestCommonBlock)
-					.mockResolvedValue();
 				let previousBlock = await processorModule.deserialize(
 					highestCommonBlock,
 				);
 
 				for (const block of requestedBlocks) {
-					when(chainModule.dataAccess.deserialize)
-						.calledWith(block)
-						.mockResolvedValue(block);
 					const blockInstance = await processorModule.deserialize(block);
 
 					expect(processorModule.validate).toHaveBeenCalledWith(blockInstance, {
@@ -711,17 +540,6 @@ describe('fast_chain_switching_mechanism', () => {
 					.fn()
 					.mockResolvedValue(requestedBlocks);
 
-				when(storageMock.entities.Block.get)
-					.calledWith(
-						{
-							height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-						},
-						{
-							sort: 'height:asc',
-							limit: 2,
-						},
-					)
-					.mockResolvedValue(storageReturnValue);
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
@@ -731,16 +549,6 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				when(storageMock.entities.Block.getOne)
-					.calledWith(
-						{
-							id_eql: highestCommonBlock.id,
-						},
-						{
-							extended: true,
-						},
-					)
-					.mockResolvedValue(highestCommonBlock);
 				processorModule.validate.mockRejectedValue(
 					new Error('validation error'),
 				);
@@ -789,17 +597,6 @@ describe('fast_chain_switching_mechanism', () => {
 					.fn()
 					.mockResolvedValue(requestedBlocks);
 
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-				// 		},
-				// 		{
-				// 			sort: 'height:asc',
-				// 			limit: 2,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue(storageReturnValue);
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
@@ -809,27 +606,22 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				// when(storageMock.entities.Block.get)
-				// 	.calledWith(
-				// 		{
-				// 			id: highestCommonBlock.id,
-				// 		},
-				// 		{
-				// 			extended: true,
-				// 		},
-				// 	)
-				// 	.mockResolvedValue([highestCommonBlock]);
+
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
 					.mockResolvedValue(genesisBlockDevnet);
-
-				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue);
+				when(chainModule.dataAccess.getBlockByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock);
+
+				// Act
+				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+
 				// Assert
 				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
 					highestCommonBlock,
@@ -878,7 +670,7 @@ describe('fast_chain_switching_mechanism', () => {
 					expect(loggerMock.debug).toHaveBeenCalledWith(
 						'Cleaning blocks temp table',
 					);
-					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
+					expect(chainModule.dataAccess.clearTempBlocks).toHaveBeenCalled();
 					expect(loggerMock.info).toHaveBeenCalledWith(
 						{
 							currentHeight: chainModule.lastBlock.height,
@@ -915,17 +707,6 @@ describe('fast_chain_switching_mechanism', () => {
 					.fn()
 					.mockResolvedValue(requestedBlocks);
 
-				when(storageMock.entities.Block.get)
-					.calledWith(
-						{
-							height_in: [2, 1], //  We have lastBlock.height + genesisBlock.height present in DB
-						},
-						{
-							sort: 'height:asc',
-							limit: 2,
-						},
-					)
-					.mockResolvedValue(storageReturnValue);
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
@@ -935,16 +716,14 @@ describe('fast_chain_switching_mechanism', () => {
 						},
 					})
 					.mockResolvedValue({ data: highestCommonBlock });
-				when(storageMock.entities.Block.get)
-					.calledWith(
-						{
-							id: highestCommonBlock.id,
-						},
-						{
-							extended: true,
-						},
-					)
-					.mockResolvedValue([highestCommonBlock]);
+
+				when(chainModule.dataAccess.getBlockHeadersWithHeights)
+					.calledWith([2, 1])
+					.mockResolvedValue(storageReturnValue);
+				when(chainModule.dataAccess.getBlockByID)
+					.calledWith(highestCommonBlock.id)
+					.mockResolvedValue(highestCommonBlock);
+
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
@@ -1008,7 +787,7 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 				);
 				// Clear temp table:
-				expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
+				expect(chainModule.dataAccess.clearTempBlocks).toHaveBeenCalled();
 			});
 		});
 	});
