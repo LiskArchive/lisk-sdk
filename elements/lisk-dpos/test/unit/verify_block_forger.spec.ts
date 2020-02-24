@@ -108,9 +108,11 @@ describe('dpos.verifyBlockForger()', () => {
 		// Arrange
 		chainStub.dataAccess.getChainState.mockResolvedValue(undefined);
 		const block = {
-			id: 1234,
+			id: '1234',
 			height: 302,
 			timestamp: 23450,
+			reward: BigInt('500000000'),
+			totalFee: BigInt('10000000'),
 			generatorPublicKey: 'xxx',
 		} as BlockHeader;
 
