@@ -99,7 +99,11 @@ describe('dpos.undo()', () => {
 				generatorPublicKey: generator.publicKey,
 			} as Block;
 			stateStore = new StateStoreMock(
-				[generator, ...votedDelegates, ...sortedDelegateAccounts],
+				[
+					generator,
+					...votedDelegates.map(delegate => ({ ...delegate })),
+					...sortedDelegateAccounts,
+				],
 				{
 					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{
@@ -165,7 +169,10 @@ describe('dpos.undo()', () => {
 		beforeEach(() => {
 			// Arrange
 			stateStore = new StateStoreMock(
-				[...delegateAccounts, ...votedDelegates],
+				[
+					...delegateAccounts,
+					...votedDelegates.map(delegate => ({ ...delegate })),
+				],
 				{
 					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{

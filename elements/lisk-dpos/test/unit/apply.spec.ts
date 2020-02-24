@@ -150,9 +150,12 @@ describe('dpos.apply()', () => {
 				totalBurnt: BigInt(0),
 			});
 
-			stateStore = new StateStoreMock([generator, ...votedDelegates], {
-				[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
-			});
+			stateStore = new StateStoreMock(
+				[generator, ...votedDelegates.map(delegate => ({ ...delegate }))],
+				{
+					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
+				},
+			);
 
 			when(chainStub.dataAccess.getDelegateAccounts)
 				.calledWith(ACTIVE_DELEGATES)
@@ -205,7 +208,10 @@ describe('dpos.apply()', () => {
 
 		beforeEach(() => {
 			stateStore = new StateStoreMock(
-				[...delegateAccounts, ...votedDelegates],
+				[
+					...delegateAccounts,
+					...votedDelegates.map(delegate => ({ ...delegate })),
+				],
 				{
 					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{
