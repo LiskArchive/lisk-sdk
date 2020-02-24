@@ -139,7 +139,7 @@ export abstract class BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 
-		this.fee = BigInt((this.constructor as typeof BaseTransaction).FEE);
+		this.fee = tx.fee ? BigInt(tx.fee) : BigInt(0);
 		this._minFee = BigInt(MIN_FEE_PER_BYTE * this.getBytes().length);
 		this.type =
 			typeof tx.type === 'number'

@@ -17,14 +17,6 @@ export const FIXED_POINT = 10 ** 8;
 
 export const MIN_FEE_PER_BYTE = FIXED_POINT * 0.00001;
 export const NAME_FEE = FIXED_POINT * 10;
-
-export const TRANSFER_FEE = FIXED_POINT * 0.1;
-export const IN_TRANSFER_FEE = FIXED_POINT * 0.1;
-export const OUT_TRANSFER_FEE = FIXED_POINT * 0.1;
-export const SIGNATURE_FEE = FIXED_POINT * 5;
-export const DELEGATE_FEE = FIXED_POINT * 25;
-export const VOTE_FEE = FIXED_POINT * 1;
-export const MULTISIGNATURE_FEE = FIXED_POINT * 5;
 export const MULTISIGNATURE_MAX_LIFETIME = 72;
 export const MULTISIGNATURE_MIN_LIFETIME = 1;
 export const MULTISIGNATURE_MAX_KEYSGROUP = 15;

@@ -20,7 +20,6 @@ import {
 
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import {
-	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MAX_LIFETIME,
 	MULTISIGNATURE_MIN_KEYSGROUP,
@@ -37,6 +36,7 @@ export interface RegisterMultisignatureInputs {
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 	readonly networkIdentifier: string;
+	readonly fee: string;
 }
 
 const validateInputs = ({
@@ -93,12 +93,10 @@ export const registerMultisignature = (
 	} = inputs;
 
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
-	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 12,
-		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
 			min: minimum,
 			lifetime,

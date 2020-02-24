@@ -81,6 +81,8 @@ const generateValidTransferTransaction = () => {
 		type: 8,
 		senderPublicKey: accounts[0].publicKey,
 		timestamp: 54316324,
+		nonce: BigInt(1),
+		fee: BigInt(123),
 		asset: {
 			recipientId: accounts[1].address,
 			amount: '1234567890',
@@ -127,7 +129,6 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 	const tx = {
 		type: 8,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316325,
 		asset: {
 			recipientId: accounts[1].address,
 			amount: '1234567890',

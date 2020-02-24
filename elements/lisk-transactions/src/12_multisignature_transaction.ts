@@ -24,7 +24,6 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MULTISIGNATURE_FEE } from './constants';
 import { SignatureObject } from './create_signature_object';
 import {
 	convertToAssetError,
@@ -86,7 +85,6 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 12;
-	public static FEE = MULTISIGNATURE_FEE.toString();
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.PENDING;
 
@@ -96,13 +94,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || {}) as MultiSignatureAsset;
-		// Overwrite fee as it is different from the static fee
-		this.fee =
-			BigInt(MultisignatureTransaction.FEE) *
-			((this.asset.keysgroup && this.asset.keysgroup.length
-				? BigInt(this.asset.keysgroup.length)
-				: BigInt(0)) +
-				BigInt(1));
 	}
 
 	protected assetToBytes(): Buffer {

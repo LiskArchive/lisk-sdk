@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { hash, hexToBuffer, signData } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
 import {
@@ -19,55 +20,48 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MIN_FEE_PER_BYTE, NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
+import { getId } from './utils';
 
-export interface DelegateAsset {
-	readonly username: string;
+export interface SecondSignatureAsset {
+	readonly publicKey: string;
 }
 
-export const delegateAssetFormatSchema = {
+export const secondSignatureAssetFormatSchema = {
 	type: 'object',
-	required: ['username'],
+	required: ['publicKey'],
 	properties: {
-		username: {
+		publicKey: {
 			type: 'string',
-			minLength: 1,
-			maxLength: 20,
-			format: 'username',
+			format: 'publicKey',
 		},
 	},
 };
 
-export class DelegateTransaction extends BaseTransaction {
-	public readonly asset: DelegateAsset;
-	public readonly containsUniqueData: boolean;
-	public static TYPE = 10;
+export class SecondSignatureTransaction extends BaseTransaction {
+	public readonly asset: SecondSignatureAsset;
+	public static TYPE = 9;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this._minFee = BigInt(NAME_FEE + MIN_FEE_PER_BYTE * this.getBytes().length);
-		this.asset = (tx.asset || { delegate: {} }) as DelegateAsset;
-		this.containsUniqueData = true;
+		// tslint:disable-next-line no-object-literal-type-assertion
+		this.asset = (tx.asset || { signature: {} }) as SecondSignatureAsset;
 	}
 
 	protected assetToBytes(): Buffer {
-		const { username } = this.asset;
+		const { publicKey } = this.asset;
 
-		return Buffer.from(username, 'utf8');
+		return hexToBuffer(publicKey);
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
 		await store.account.cache([
 			{
 				address: this.senderId,
-			},
-			{
-				username: this.asset.username,
 			},
 		]);
 	}
@@ -83,16 +77,16 @@ export class DelegateTransaction extends BaseTransaction {
 			.map(
 				tx =>
 					new TransactionError(
-						'Register delegate only allowed once per account.',
+						'Register second signature only allowed once per account.',
 						tx.id,
-						'.asset.delegate',
+						'.asset.signature',
 					),
 			);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const schemaErrors = validator.validate(
-			delegateAssetFormatSchema,
+			secondSignatureAssetFormatSchema,
 			this.asset,
 		);
 		const errors = convertToAssetError(
@@ -108,32 +102,19 @@ export class DelegateTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
-
-		const usernameExists = store.account.find(
-			(account: Account) => account.username === this.asset.username,
-		);
-
-		if (usernameExists) {
+		// Check if secondPublicKey already exists on account
+		if (sender.secondPublicKey) {
 			errors.push(
 				new TransactionError(
-					`Username is not unique.`,
+					'Register second signature only allowed once per account.',
 					this.id,
-					'.asset.username',
+					'.secondPublicKey',
 				),
 			);
 		}
-		if (sender.isDelegate || sender.username) {
-			errors.push(
-				new TransactionError(
-					'Account is already a delegate',
-					this.id,
-					'.asset.username',
-				),
-			);
-		}
-		sender.username = this.asset.username;
-		sender.isDelegate = 1;
-		sender.voteWeight = BigInt(0);
+
+		sender.secondPublicKey = this.asset.publicKey;
+		sender.secondSignature = 1;
 		store.account.set(sender.address, sender);
 
 		return errors;
@@ -144,11 +125,26 @@ export class DelegateTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
 		// tslint:disable-next-line:no-null-keyword
-		sender.username = null;
-		sender.isDelegate = 0;
-		sender.voteWeight = BigInt(0);
+		sender.secondPublicKey = null;
+		sender.secondSignature = 0;
+
 		store.account.set(sender.address, sender);
 
 		return [];
+	}
+
+	public sign(passphrase: string): void {
+		this._signature = undefined;
+		this._signSignature = undefined;
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBytes(),
+		]);
+		this._signature = signData(
+			hash(transactionWithNetworkIdentifierBytes),
+			passphrase,
+		);
+		this._id = getId(this.getBytes());
 	}
 }

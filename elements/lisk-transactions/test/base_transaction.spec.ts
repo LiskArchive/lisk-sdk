@@ -97,7 +97,6 @@ describe('Base transaction class', () => {
 		});
 
 		it('should set default values', async () => {
-			expect(transactionWithDefaultValues.fee.toString()).toEqual('10000000');
 			expect(transactionWithDefaultValues.timestamp).toEqual(0);
 			expect(transactionWithDefaultValues.type).toEqual(8);
 			expect(transactionWithDefaultValues.confirmations).toBeUndefined();
@@ -118,12 +117,6 @@ describe('Base transaction class', () => {
 
 		it('should have fee of type bigint', async () => {
 			expect(typeof validTestTransaction.fee).toBe('bigint');
-		});
-
-		it('should have default fee if fee param is invalid', async () => {
-			const transactionWithInvalidFee = new TestTransaction({ fee: 'invalid' });
-
-			expect(transactionWithInvalidFee.fee.toString()).toEqual('10000000');
 		});
 
 		it('should have id string', async () => {
