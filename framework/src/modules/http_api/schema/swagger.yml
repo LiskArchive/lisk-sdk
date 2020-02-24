@@ -782,49 +782,6 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  /signatures:
-    x-swagger-router-controller: signatures
-    post:
-      tags:
-        - Signatures
-      summary: Submits a signature object to sign multisignature transactions
-      operationId: postSignature
-      description: |
-        Submits signature to sign a multisignature transaction.
-        Signature objects can be generated locally either by using Lisk Commander or with Lisk Elements.
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: signature
-          description: Signature object to submit to the network
-          required: true
-          schema:
-            $ref: '#/definitions/Signature'
-      responses:
-        200:
-          description: Signature is accepted by the node for processing
-          schema:
-            $ref: '#/definitions/SignatureResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        409:
-          description: Some error related to processing of request
-          schema:
-            $ref: '#/definitions/ProcessingError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
   /transactions:
     x-swagger-router-controller: transactions
     get:
@@ -1214,6 +1171,7 @@ definitions:
             example: 12668885769632475474L
             description: |
               Lisk Address of the Recipients' account.
+
   NodeStatusResponse:
     type: object
     required:
@@ -1435,34 +1393,6 @@ definitions:
           $ref: '#/definitions/Block'
       meta:
         $ref: '#/definitions/Meta'
-      links:
-        type: object
-
-  SignatureResponse:
-    description: Signature response
-    type: object
-    required:
-      - data
-      - meta
-      - links
-    properties:
-      data:
-        type: object
-        required:
-          - message
-        properties:
-          message:
-            type: string
-            minLength: 1
-      meta:
-        type: object
-        required:
-          - status
-        properties:
-          status:
-            description: Acceptance status for the signature
-            type: boolean
-            example: true
       links:
         type: object
 
