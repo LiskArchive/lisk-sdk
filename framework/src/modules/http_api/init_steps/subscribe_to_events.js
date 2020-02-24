@@ -15,14 +15,8 @@
 'use strict';
 
 module.exports = ({ channel }, { wsServer }) => {
-	channel.subscribe('app:signature:change', event => {
-		wsServer.sockets.emit('signature/change', event.data);
-	});
 	channel.subscribe('app:rounds:change', event => {
 		wsServer.sockets.emit('rounds/change', event.data);
-	});
-	channel.subscribe('app:multisignatures:signature:change', event => {
-		wsServer.sockets.emit('multisignatures/signature/change', event.data);
 	});
 	channel.subscribe('app:delegates:fork', event => {
 		wsServer.sockets.emit('delegates/fork', event.data);
