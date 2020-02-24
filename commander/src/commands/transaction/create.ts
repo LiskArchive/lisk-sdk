@@ -20,7 +20,6 @@ import { flags as commonFlags } from '../../utils/flags';
 
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
-import SecondPassphraseCommand from './create/second-passphrase';
 import TransferCommand from './create/transfer';
 import VoteCommand from './create/vote';
 
@@ -32,7 +31,6 @@ interface TypeNumberMap {
 
 const typeNumberMap: TypeNumberMap = {
 	'8': 'transfer',
-	'9': 'second-passphrase',
 	'10': 'delegate',
 	'11': 'vote',
 	'12': 'multisignature',
@@ -53,7 +51,6 @@ interface TypeClassMap {
 
 const typeClassMap: TypeClassMap = {
 	transfer: TransferCommand,
-	'second-passphrase': SecondPassphraseCommand,
 	vote: VoteCommand,
 	delegate: DelegateCommand,
 	multisignature: MultisignatureCommand,
@@ -97,7 +94,6 @@ export default class CreateCommand extends BaseCommand {
 			options,
 		}),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		votes: flagParser.string(commonFlags.votes),
 		unvotes: flagParser.string(commonFlags.unvotes),
