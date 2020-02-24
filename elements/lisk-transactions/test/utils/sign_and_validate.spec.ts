@@ -12,124 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
-import { validateMultisignatures, validateSignature } from '../../src/utils';
+import { validateMultisignatures } from '../../src/utils';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import {
 	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
-	validSecondSignatureTransaction,
 } from '../../fixtures';
 
 describe('signAndVerify module', () => {
-	describe('#validateSignature', () => {
-		const defaultSecondSignatureTransaction = addTransactionFields(
-			validSecondSignatureTransaction,
-		);
-		const defaultSecondSignatureTransactionBytes = Buffer.from(
-			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b54020000003357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
-			'hex',
-		);
-		const defaultSecondPublicKey =
-			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8';
-		const defaultTransactionBytes = Buffer.from(
-			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b5402000000',
-			'hex',
-		);
-
-		it('should call cryptography hash', async () => {
-			const cryptographyHashStub = jest
-				.spyOn(cryptography, 'hash')
-				.mockReturnValue(
-					Buffer.from(
-						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
-						'hex',
-					),
-				);
-
-			validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature,
-				defaultTransactionBytes,
-			);
-
-			expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should call cryptography verifyData', async () => {
-			const cryptographyVerifyDataStub = jest
-				.spyOn(cryptography, 'verifyData')
-				.mockReturnValue(true);
-
-			validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature,
-				defaultTransactionBytes,
-			);
-
-			expect(cryptographyVerifyDataStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return a valid response with valid signature', async () => {
-			const { valid } = validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature,
-				defaultTransactionBytes,
-			);
-
-			expect(valid).toBe(true);
-		});
-
-		it('should return an unvalid response with invalid signature', async () => {
-			const { valid, error } = validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature.replace('1', '0'),
-				Buffer.from(defaultTransactionBytes),
-			);
-
-			expect(valid).toBe(false);
-			expect(error).toBeInstanceOf(TransactionError);
-			expect(error).toHaveProperty(
-				'message',
-				`Failed to validate signature ${defaultSecondSignatureTransaction.signature.replace(
-					'1',
-					'0',
-				)}`,
-			);
-		});
-
-		it('should return a valid response with valid signSignature', async () => {
-			const { valid } = validateSignature(
-				defaultSecondPublicKey,
-				defaultSecondSignatureTransaction.signSignature,
-				defaultSecondSignatureTransactionBytes,
-			);
-
-			expect(valid).toBe(true);
-		});
-
-		it('should return an unvalid response with invalid signSignature', async () => {
-			const { valid, error } = validateSignature(
-				defaultSecondPublicKey,
-				defaultSecondSignatureTransaction.signSignature.replace('1', '0'),
-				defaultSecondSignatureTransactionBytes,
-			);
-
-			expect(valid).toBe(false);
-			expect(error).toBeInstanceOf(TransactionError);
-			expect(error).toHaveProperty(
-				'message',
-				`Failed to validate signature ${defaultSecondSignatureTransaction.signSignature.replace(
-					'1',
-					'0',
-				)}`,
-			);
-		});
-	});
-
 	describe('#validateMultisignatures', () => {
 		const defaultMultisignatureTransaction = addTransactionFields(
 			validMultisignatureTransaction,
