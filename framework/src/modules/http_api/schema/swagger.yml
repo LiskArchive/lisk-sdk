@@ -2094,7 +2094,6 @@ definitions:
     required:
       - send
       - vote
-      - secondSignature
       - delegate
       - multisignature
       - dappRegistration
@@ -2107,9 +2106,6 @@ definitions:
       vote:
         type: string
         example: '100000000'
-      secondSignature:
-        type: string
-        example: '500000000'
       delegate:
         type: string
         example: '2500000000'
