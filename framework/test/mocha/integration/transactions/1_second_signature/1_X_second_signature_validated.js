@@ -123,6 +123,7 @@ describe('integration test (type 1) - checking validated second signature regist
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
 				if (
 					key !== 'SIGNATURE' &&
+					key !== 'MULTI' &&
 					key !== 'DAPP' &&
 					key !== 'IN_TRANSFER' &&
 					key !== 'OUT_TRANSFER'

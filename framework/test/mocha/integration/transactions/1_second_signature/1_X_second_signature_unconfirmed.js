@@ -75,7 +75,12 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
 		describe('with second signature', () => {
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-				if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				if (
+					key === 'MULTI' ||
+					key === 'DAPP' ||
+					key === 'IN_TRANSFER' ||
+					key === 'OUT_TRANSFER'
+				) {
 					return true;
 				}
 				if (key === 'SIGNATURE') {
@@ -104,28 +109,6 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 							done();
 						});
 					});
-				} else if (key === 'MULTI') {
-					it(`type ${index}: ${key} should fail`, done => {
-						localCommon.loadTransactionType(
-							key,
-							account,
-							transaction,
-							null,
-							loadedTransaction => {
-								localCommon.addTransaction(library, loadedTransaction, err => {
-									const expectedErrors = [
-										`Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`,
-										`Transaction: ${loadedTransaction.id} failed at .signatures: Missing signatures `,
-									];
-									expect(err).to.equal(
-										expectedErrors.join(','),
-										// `Transaction: ${loadedTransaction.id} failed at .signSignature: Sender does not have a secondPublicKey`
-									);
-									done();
-								});
-							},
-						);
-					});
 				} else {
 					it(`type ${index}: ${key} should fail`, done => {
 						localCommon.loadTransactionType(
@@ -151,7 +134,12 @@ describe('integration test (type 1) - sending transactions on top of unconfirmed
 
 		describe('without second signature', () => {
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-				if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				if (
+					key === 'MULTI' ||
+					key === 'DAPP' ||
+					key === 'IN_TRANSFER' ||
+					key === 'OUT_TRANSFER'
+				) {
 					return true;
 				}
 				if (key !== 'SIGNATURE') {
