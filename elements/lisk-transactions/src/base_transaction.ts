@@ -105,15 +105,14 @@ export abstract class BaseTransaction {
 	public readonly height?: number;
 	public readonly confirmations?: number;
 	public readonly signatures: string[];
-	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
 	public readonly asset: object;
+	public nonce: bigint;
 	public fee: bigint;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
-	public static FEE = '0';
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
 
@@ -138,7 +137,7 @@ export abstract class BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-
+		this.nonce = tx.nonce ? BigInt(tx.nonce) : BigInt(0);
 		this.fee = tx.fee ? BigInt(tx.fee) : BigInt(0);
 		this._minFee = BigInt(MIN_FEE_PER_BYTE * this.getBytes().length);
 		this.type =
@@ -153,8 +152,6 @@ export abstract class BaseTransaction {
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
 		this._networkIdentifier = tx.networkIdentifier || '';
-
-		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
@@ -204,9 +201,9 @@ export abstract class BaseTransaction {
 			height: this.height,
 			confirmations: this.confirmations,
 			type: this.type,
-			timestamp: this.timestamp,
 			senderPublicKey: this._senderPublicKey || '',
 			senderId: this._senderPublicKey ? this.senderId : '',
+			nonce: this.nonce.toString(),
 			fee: this.fee.toString(),
 			signature: this._signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
@@ -558,14 +555,15 @@ export abstract class BaseTransaction {
 
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
+		const transactionNonce = Buffer.alloc(BYTESIZES.NONCE);
+		transactionNonce.writeBigInt64BE(this.nonce, 0);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
-		const transactionFee = Buffer.alloc(BYTESIZES.FEE, this.fee.toString());
+		const transactionFee = Buffer.alloc(BYTESIZES.FEE);
+		transactionFee.writeBigInt64BE(this.fee, 0);
 
 		return Buffer.concat([
 			transactionType,
-			transactionTimestamp,
+			transactionNonce,
 			transactionSenderPublicKey,
 			transactionFee,
 			this.assetToBytes(),

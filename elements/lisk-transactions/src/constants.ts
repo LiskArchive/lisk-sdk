@@ -26,6 +26,7 @@ export const USERNAME_MAX_LENGTH = 20;
 
 export const BYTESIZES = {
 	TYPE: 1,
+	NONCE: 8,
 	FEE: 8,
 	TIMESTAMP: 4,
 	MULTISIGNATURE_PUBLICKEY: 32,
