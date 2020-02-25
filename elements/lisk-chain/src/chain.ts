@@ -626,6 +626,7 @@ export class Chain {
 		)(transactions);
 	}
 
+	// TODO: Remove this function in #4841 as it is not needed on the new transaction pool
 	public async verifyTransactions(
 		transactions: BaseTransaction[],
 	): Promise<TransactionHandledResult> {
@@ -642,6 +643,7 @@ export class Chain {
 				};
 			}),
 			checkPersistedTransactions(this.dataAccess),
+			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
 	}
 

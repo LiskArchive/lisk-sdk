@@ -527,8 +527,8 @@ describe('blocks/transactions', () => {
 			});
 
 			it('should not call apply for all the transactions', async () => {
-				expect(validTxApplySpy).not.toHaveBeenCalled();
-				expect(validTx2ApplySpy).not.toHaveBeenCalled();
+				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
+				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});
 		});
 	});
