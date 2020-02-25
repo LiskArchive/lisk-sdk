@@ -526,7 +526,7 @@ describe('blocks/transactions', () => {
 				expect(responses.every(res => res.errors.length === 0)).toBeTrue();
 			});
 
-			it('should not call apply for all the transactions', async () => {
+			it('should call apply for all the transactions', async () => {
 				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});
