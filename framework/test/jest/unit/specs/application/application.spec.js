@@ -15,7 +15,10 @@
 
 'use strict';
 
-const { BaseTransaction: Base } = require('@liskhq/lisk-transactions');
+const {
+	BaseTransaction: Base,
+	MultisignatureTransaction,
+} = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
@@ -275,6 +278,7 @@ describe('Application', () => {
 
 			const TransactionWithoutBase = {
 				prototype: {},
+				...MultisignatureTransaction,
 			};
 
 			// Act && Assert
