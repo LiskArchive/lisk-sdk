@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { Job } from '../../src/job';
 import { Transaction, TransactionPool } from '../../src/transaction_pool';
@@ -16,7 +30,6 @@ describe('transaction pool', () => {
 	const transactions = transactionObjects.map(wrapTransaction);
 	const verifiedTransactionsProcessingInterval = 100;
 	const verifiedTransactionsLimitPerProcessing = 100;
-	const pendingTransactionsProcessingLimit = 5;
 
 	let transactionPool: TransactionPool;
 
@@ -25,7 +38,6 @@ describe('transaction pool', () => {
 	};
 
 	let checkTransactionsWithPassAndFailStub: any;
-	let checkTransactionsWithPassFailAndPendingStub: any;
 	let validateTransactionsStub: any;
 	let verifyTransactionsStub: any;
 	let processTransactionsStub: any;
@@ -64,10 +76,6 @@ describe('transaction pool', () => {
 			checkTransactions as any,
 			'checkTransactionsWithPassAndFail',
 		);
-		checkTransactionsWithPassFailAndPendingStub = jest.spyOn(
-			checkTransactions as any,
-			'checkTransactionsWithPassFailAndPending',
-		);
 		validateTransactionsStub = jest.fn().mockReturnValue({
 			transactionsResponses: [
 				{
@@ -83,7 +91,6 @@ describe('transaction pool', () => {
 		transactionPool = new TransactionPool({
 			expireTransactionsInterval,
 			maxTransactionsPerQueue,
-			pendingTransactionsProcessingLimit,
 			receivedTransactionsProcessingInterval,
 			receivedTransactionsLimitPerProcessing,
 			validateTransactions: validateTransactionsStub,
@@ -296,21 +303,8 @@ describe('transaction pool', () => {
 			...processableTransactionsInVerifiedQueue,
 			...unprocesableTransactionsInVerifiedQueue,
 		];
-		const processableTransactionsInPendingQueue = transactions.slice(2, 3);
 		const unprocessableTransactionsInPendingQueue = transactions.slice(3, 4);
-		const unprocessableUnsignedTransactionsInPendingQueue = transactions.slice(
-			4,
-			5,
-		);
-		const transactionsInPendingQueue = [
-			...processableTransactionsInPendingQueue,
-			...unprocessableTransactionsInPendingQueue,
-			...unprocessableUnsignedTransactionsInPendingQueue,
-		];
-		const signedTransactionsInPendingQueue = [
-			...processableTransactionsInPendingQueue,
-			...unprocessableTransactionsInPendingQueue,
-		];
+
 		const processableTransactionsInReadyQueue = transactions.slice(5, 6);
 		const unprocessableTransactionsInReadyQueue = transactions.slice(6, 7);
 		const transactionsInReadyQueue = [
@@ -319,7 +313,6 @@ describe('transaction pool', () => {
 		];
 		const processableTransactions = [
 			...processableTransactionsInReadyQueue,
-			...processableTransactionsInPendingQueue,
 			...processableTransactionsInVerifiedQueue,
 		];
 		const unprocessableTransactions = [
@@ -329,7 +322,6 @@ describe('transaction pool', () => {
 		];
 		const transactionsToProcess = [
 			...transactionsInReadyQueue,
-			...signedTransactionsInPendingQueue,
 			...transactionsInVerifiedQueue,
 		];
 
@@ -358,22 +350,13 @@ describe('transaction pool', () => {
 			(transactionPool.queues.verified.size as any).mockReturnValue(
 				transactionsInVerifiedQueue.length,
 			);
-			(transactionPool.queues.pending.size as any).mockReturnValue(
-				transactionsInPendingQueue.length,
-			);
 			(transactionPool.queues.verified.peekUntil as any).mockReturnValue(
 				transactionsInVerifiedQueue,
-			);
-			(transactionPool.queues.pending.peekUntil as any).mockReturnValue(
-				transactionsInPendingQueue,
 			);
 			(transactionPool.queues.ready.peekUntil as any).mockReturnValue(
 				transactionsInReadyQueue,
 			);
 
-			(transactionPool.queues.pending.filter as any).mockReturnValue(
-				signedTransactionsInPendingQueue,
-			);
 			processVerifiedTransactions = (transactionPool as any)[
 				'processVerifiedTransactions'
 			].bind(transactionPool);
@@ -390,12 +373,11 @@ describe('transaction pool', () => {
 			expect(checkTransactionsWithPassAndFailStub).not.toBeCalled;
 		});
 
-		it('should not call checkTransactionsWithPassAndFail if verified and pending queues are empty', async () => {
+		it('should not call checkTransactionsWithPassAndFail if verified queue is empty', async () => {
 			checkTransactionsWithPassAndFailStub.mockResolvedValue(
 				checkTransactionsResponseWithOnlyPassedTransactions,
 			);
 			(transactionPool.queues.verified.size as any).mockReturnValue(0);
-			(transactionPool.queues.pending.sizeBy as any).mockReturnValue(0);
 			await processVerifiedTransactions();
 			expect(checkTransactionsWithPassAndFailStub).not.toBeCalled;
 		});
@@ -415,7 +397,7 @@ describe('transaction pool', () => {
 			expect(failedTransactions).toEqual([]);
 		});
 
-		it('should remove unprocessable transactions from the verified, pending and ready queues', async () => {
+		it('should remove unprocessable transactions from the verified and ready queues', async () => {
 			checkTransactionsWithPassAndFailStub.mockResolvedValue(
 				checkTransactionsResponseWithFailedTransactions,
 			);
@@ -427,10 +409,6 @@ describe('transaction pool', () => {
 				unprocessableTransactions,
 			);
 			expect(transactionPool.queues.verified.removeFor as any).toBeCalledWith(
-				checkForTransactionUnprocessableTransactionId,
-			);
-
-			expect(transactionPool.queues.pending.removeFor as any).toBeCalledWith(
 				checkForTransactionUnprocessableTransactionId,
 			);
 
@@ -460,9 +438,6 @@ describe('transaction pool', () => {
 			(transactionPool.queues.verified.removeFor as any).mockReturnValue(
 				processableTransactions,
 			);
-			(transactionPool.queues.pending.removeFor as any).mockReturnValue(
-				processableTransactions,
-			);
 			(transactionPool.queues.ready.removeFor as any).mockReturnValue(
 				processableTransactions,
 			);
@@ -477,9 +452,6 @@ describe('transaction pool', () => {
 				processableTransactions,
 			);
 			expect(transactionPool.queues.verified.removeFor).toBeCalledWith(
-				checkForTransactionProcessableTransactionId,
-			);
-			expect(transactionPool.queues.pending.removeFor).toBeCalledWith(
 				checkForTransactionProcessableTransactionId,
 			);
 			expect(transactionPool.queues.ready.removeFor).toBeCalledWith(
@@ -676,21 +648,17 @@ describe('transaction pool', () => {
 	describe('#verifyValidatedTransactions', () => {
 		const verifiableTransactions = transactions.slice(0, 2);
 		const unverifiableTransactions = transactions.slice(2, 4);
-		const pendingTransactions = transactions.slice(4, 6);
 		const transactionsToVerify = [
 			...verifiableTransactions,
 			...unverifiableTransactions,
-			...pendingTransactions,
 		];
 		// Dummy functions to check used for assertions in tests
 		const checkForTransactionUnverifiableTransactionId = jest.fn();
 		const checkForTransactionVerifiableTransactionId = jest.fn();
-		const checkForTransactionPendingTransactionId = jest.fn();
 
-		const checkTransactionsResponse: checkTransactions.CheckTransactionsResponseWithPassFailAndPending = {
+		const checkTransactionsResponse: checkTransactions.CheckTransactionsResponseWithPassAndFail = {
 			passedTransactions: verifiableTransactions,
 			failedTransactions: unverifiableTransactions,
-			pendingTransactions: pendingTransactions,
 		};
 
 		beforeEach(async () => {
@@ -698,7 +666,7 @@ describe('transaction pool', () => {
 				transactionsToVerify,
 			);
 
-			checkTransactionsWithPassFailAndPendingStub.mockResolvedValue(
+			checkTransactionsWithPassAndFailStub.mockResolvedValue(
 				checkTransactionsResponse,
 			);
 
@@ -721,11 +689,11 @@ describe('transaction pool', () => {
 			);
 		});
 
-		it('should call checkTransactionsWithPassFailAndPendingStub with transactions and verifyTransactionsStub', async () => {
+		it('should call checkTransactionsWithPassAndFailStub with transactions and verifyTransactionsStub', async () => {
 			await (transactionPool as any).verifyValidatedTransactions();
-			expect(checkTransactionsWithPassFailAndPendingStub).toBeCalledTimes(1);
+			expect(checkTransactionsWithPassAndFailStub).toBeCalledTimes(1);
 
-			expect(checkTransactionsWithPassFailAndPendingStub).toBeCalledWith(
+			expect(checkTransactionsWithPassAndFailStub).toBeCalledWith(
 				transactionsToVerify,
 				verifyTransactionsStub,
 			);
@@ -766,42 +734,7 @@ describe('transaction pool', () => {
 			);
 		});
 
-		it('should move pending transactions to the pending queue', async () => {
-			checkerStubs.checkTransactionForId.mockReturnValue(
-				checkForTransactionPendingTransactionId,
-			);
-			(transactionPool.queues.validated.removeFor as any).mockReturnValue(
-				pendingTransactions,
-			);
-			await (transactionPool as any).verifyValidatedTransactions();
-			expect(checkerStubs.checkTransactionForId).toBeCalledWith(
-				pendingTransactions,
-			);
-			expect(transactionPool.queues.validated.removeFor as any).toBeCalledWith(
-				checkForTransactionPendingTransactionId,
-			);
-			expect(transactionPool.queues.pending.enqueueMany).toBeCalledWith(
-				pendingTransactions,
-			);
-		});
-
-		it('should not move pending transactions to the pending queue which no longer exist in the validated queue', async () => {
-			const pendingTransactionsExistingInValidatedQueue = pendingTransactions.slice(
-				1,
-			);
-			(transactionPool.queues.validated.removeFor as any).mockReturnValue(
-				pendingTransactionsExistingInValidatedQueue,
-			);
-			await (transactionPool as any).verifyValidatedTransactions();
-			expect(checkerStubs.checkTransactionForId).toBeCalledWith(
-				pendingTransactions,
-			);
-			expect(transactionPool.queues.pending.enqueueMany).toBeCalledWith(
-				pendingTransactionsExistingInValidatedQueue,
-			);
-		});
-
-		it('should return passed, failed and pending transactions', async () => {
+		it('should return passed and failed transactions', async () => {
 			expect(
 				await (transactionPool as any).verifyValidatedTransactions(),
 			).toEqual(checkTransactionsResponse);
