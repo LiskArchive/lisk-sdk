@@ -112,6 +112,8 @@ export abstract class BaseTransaction {
 
 	public static TYPE: number;
 	public static FEE = '0';
+	// Minimum remaining balance requirement for any account to perform a transaction
+	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
 
 	protected _id?: string;
 	protected _senderPublicKey?: string;
