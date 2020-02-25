@@ -313,6 +313,15 @@ export abstract class BaseTransaction {
 		}
 
 		const updatedBalance = sender.balance - this.fee;
+
+		// Validate minimum remaining balance
+		const minRemainingBalanceErrors = this._validateMinRemainingBalance(
+			updatedBalance,
+		);
+		if (minRemainingBalanceErrors.length) {
+			errors.push(...minRemainingBalanceErrors);
+		}
+
 		sender.balance = updatedBalance;
 		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		store.account.set(sender.address, sender);
@@ -602,6 +611,27 @@ export abstract class BaseTransaction {
 			if (senderIdError) {
 				errors.push(senderIdError);
 			}
+		}
+
+		return errors;
+	}
+
+	protected _validateMinRemainingBalance(
+		balance: bigint,
+	): ReadonlyArray<TransactionError> {
+		const minRemainingBalance = BigInt(
+			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
+		);
+		const errors = [];
+
+		if (balance < minRemainingBalance) {
+			errors.push(
+				new TransactionError(
+					`Balance(${balance}) does not meet MIN_REMAINING_BALANCE(${minRemainingBalance}) requirement  to process transaction.`,
+					this.id,
+					'.balance',
+				),
+			);
 		}
 
 		return errors;

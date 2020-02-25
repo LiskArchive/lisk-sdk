@@ -182,6 +182,14 @@ export class TransferTransaction extends BaseTransaction {
 		}
 
 		const updatedSenderBalance = sender.balance - this.asset.amount;
+		// Validate minimum remaining balance
+		const minRemainingBalanceErrors = this._validateMinRemainingBalance(
+			updatedSenderBalance,
+		);
+		if (minRemainingBalanceErrors.length) {
+			errors.push(...minRemainingBalanceErrors);
+		}
+
 		sender.balance = updatedSenderBalance;
 		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
