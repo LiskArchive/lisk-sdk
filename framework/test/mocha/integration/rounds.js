@@ -68,8 +68,6 @@ describe('rounds', () => {
 				acc.multiLifetime = acc.multilifetime;
 				delete acc.nameexist;
 				delete acc.multilifetime;
-				delete acc.secondPublicKey;
-				delete acc.secondSignature;
 
 				accounts[acc.address] = acc;
 			});

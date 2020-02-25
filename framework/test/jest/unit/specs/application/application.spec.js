@@ -17,7 +17,7 @@
 
 const {
 	BaseTransaction: Base,
-	MultisignatureTransaction,
+	TransferTransaction,
 } = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
@@ -278,7 +278,7 @@ describe('Application', () => {
 
 			const TransactionWithoutBase = {
 				prototype: {},
-				...MultisignatureTransaction,
+				...TransferTransaction,
 			};
 
 			// Act && Assert
