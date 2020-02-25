@@ -36,15 +36,17 @@
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.4.2",
 		"@liskhq/lisk-transactions": "3.0.2",
-		"debug": "4.1.1",
 		"@types/node": "12.12.11",
-		"lodash": "4.17.15"
+		"debug": "4.1.1",
+		"lodash.clonedeep": "4.5.0",
+		"lodash.isequal": "4.5.0"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-passphrase": "3.0.0",
 		"@types/jest": "24.9.0",
 		"@types/jest-when": "2.7.0",
-		"@types/lodash": "4.14.149",
+		"@types/lodash.clonedeep": "4.5.0",
+		"@types/lodash.isequal": "4.5.5",
 		"@types/randomstring": "1.1.6",
 		"@types/debug": "4.1.5",
 		"@types/faker": "4.1.9",

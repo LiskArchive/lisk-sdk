@@ -43,6 +43,8 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 	let library;
 	localCommon.beforeBlock('blocks_chain', lib => {
 		library = lib;
+		// Chain now emits events for block deletion/addition so we just over write emit here as this tests depends on the event not being fired
+		library.modules.chain.events.emit = sinonSandbox.stub();
 	});
 
 	describe('deleteLastBlock', () => {

@@ -349,4 +349,56 @@ describe('Application', () => {
 			expect(app.getTransaction(15)).toBe(Sample);
 		});
 	});
+
+	describe('#_initChannel', () => {
+		let app;
+		let actions;
+
+		beforeEach(() => {
+			// Arrange
+			app = new Application(genesisBlock, config);
+			app.channel = app._initChannel();
+			actions = app.channel.actionsList.map(action => action.name);
+		});
+
+		it('should create getAccount action', () => {
+			// Assert
+			expect(actions).toContain('getAccount');
+		});
+
+		it('should create getAccounts action', () => {
+			// Assert
+			expect(actions).toContain('getAccounts');
+		});
+
+		it('should create getBlockByID action', () => {
+			// Assert
+			expect(actions).toContain('getBlockByID');
+		});
+
+		it('should create getBlocksByIDs action', () => {
+			// Assert
+			expect(actions).toContain('getBlocksByIDs');
+		});
+
+		it('should create getBlockByHeight action', () => {
+			// Assert
+			expect(actions).toContain('getBlockByHeight');
+		});
+
+		it('should create getBlocksByHeightBetween action', () => {
+			// Assert
+			expect(actions).toContain('getBlocksByHeightBetween');
+		});
+
+		it('should create getTransactionByID action', () => {
+			// Assert
+			expect(actions).toContain('getTransactionByID');
+		});
+
+		it('should create getTransactionsByIDs action', () => {
+			// Assert
+			expect(actions).toContain('getTransactionsByIDs');
+		});
+	});
 });

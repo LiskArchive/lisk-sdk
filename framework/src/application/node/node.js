@@ -14,7 +14,10 @@
 
 'use strict';
 
-const { Chain } = require('@liskhq/lisk-chain');
+const {
+	Chain,
+	events: { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK },
+} = require('@liskhq/lisk-chain');
 const {
 	Dpos,
 	constants: { EVENT_ROUND_CHANGED },
@@ -238,6 +241,61 @@ module.exports = class Node {
 					action.params.password,
 					action.params.forging,
 				),
+			getAccount: async action => {
+				const [account] = this.chain.dataAccess.getAccountsByAddress([
+					action.params.address,
+				]);
+
+				return account;
+			},
+			getAccounts: async action =>
+				this.chain.dataAccess.getAccountsByAddress(action.params.address),
+			getBlockByID: async action => {
+				const block = this.chain.dataAccess.getBlockByID(action.params.id);
+
+				return block ? this.chain.dataAccess.deserialize(block) : undefined;
+			},
+			getBlocksByIDs: async action => {
+				const blocks = this.chain.dataAccess.getBlocksByIDs(action.params.ids);
+
+				return blocks.length > 0
+					? blocks.map(this.chain.dataAccess.deserialize)
+					: [];
+			},
+			getBlockByHeight: async action => {
+				const block = this.chain.dataAccess.getBlockByHeight(
+					action.params.height,
+				);
+
+				return block ? this.chain.dataAccess.deserialize(block) : undefined;
+			},
+			getBlocksByHeightBetween: async action => {
+				const blocks = this.chain.dataAccess.getBlocksByHeightBetween(
+					action.params.heights,
+				);
+
+				return blocks.length > 0
+					? blocks.map(this.chain.dataAccess.deserialize)
+					: [];
+			},
+			getTransactionByID: async action => {
+				const [transaction] = this.chain.dataAccess.getTransactionsByIDs(
+					action.params.id,
+				);
+
+				return transaction
+					? this.chain.dataAccess.deserializeTransaction(transaction)
+					: undefined;
+			},
+			getTransactionsByIDs: async action => {
+				const transactions = this.chain.dataAccess.getTransactionsByIDs(
+					action.params.ids,
+				);
+
+				return transactions.length > 0
+					? transactions.map(this.chain.dataAccess.deserializeTransaction)
+					: [];
+			},
 			getTransactions: async action =>
 				this.transport.handleRPCGetTransactions(
 					action.params.data,
@@ -328,6 +386,54 @@ module.exports = class Node {
 			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
 			epochTime: this.options.constants.EPOCH_TIME,
 			blockTime: this.options.constants.BLOCK_TIME,
+		});
+
+		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
+			const { block } = eventData;
+			// Publish to the outside
+			this.channel.publish('app:newBlock', eventData);
+
+			// Remove any transactions from the pool on new block
+			if (block.transactions.length) {
+				this.transactionPool.onConfirmedTransactions(
+					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
+				);
+			}
+
+			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
+				this.channel.invoke('app:updateApplicationState', {
+					height: block.height,
+					lastBlockId: block.id,
+					maxHeightPrevoted: block.maxHeightPrevoted,
+					blockVersion: block.version,
+				});
+			}
+
+			this.logger.info(
+				{
+					id: block.id,
+					height: block.height,
+					numberOfTransactions: block.transactions.length,
+				},
+				'New block added to the chain',
+			);
+		});
+
+		this.chain.events.on(EVENT_DELETE_BLOCK, eventData => {
+			const { block } = eventData;
+			// Publish to the outside
+			this.channel.publish('app:deleteBlock', eventData);
+
+			if (block.transactions.length) {
+				const transactions = block.transactions
+					.reverse()
+					.map(tx => this.chain.deserializeTransaction(tx));
+				this.transactionPool.onDeletedTransactions(transactions);
+			}
+			this.logger.info(
+				{ id: block.id, height: block.height },
+				'Deleted a block from the chain',
+			);
 		});
 
 		this.slots = this.chain.slots;
@@ -491,57 +597,6 @@ module.exports = class Node {
 		);
 
 		this.channel.subscribe(
-			'app:processor:deleteBlock',
-			({ data: { block } }) => {
-				if (block.transactions.length) {
-					const transactions = block.transactions
-						.reverse()
-						.map(tx => this.chain.deserializeTransaction(tx));
-					this.transactionPool.onDeletedTransactions(transactions);
-					this.channel.publish(
-						'app:transactions:confirmed:change',
-						block.transactions,
-					);
-				}
-				this.logger.info(
-					{ id: block.id, height: block.height },
-					'Deleted a block from the chain',
-				);
-				this.channel.publish('app:blocks:change', block);
-			},
-		);
-
-		this.channel.subscribe('app:processor:newBlock', ({ data: { block } }) => {
-			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(
-					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
-				);
-				this.channel.publish(
-					'app:transactions:confirmed:change',
-					block.transactions,
-				);
-			}
-			this.logger.info(
-				{
-					id: block.id,
-					height: block.height,
-					numberOfTransactions: block.transactions.length,
-				},
-				'New block added to the chain',
-			);
-			this.channel.publish('app:blocks:change', block);
-
-			if (!this.synchronizer.isActive) {
-				this.channel.invoke('app:updateApplicationState', {
-					height: block.height,
-					lastBlockId: block.id,
-					maxHeightPrevoted: block.maxHeightPrevoted,
-					blockVersion: block.version,
-				});
-			}
-		});
-
-		this.channel.subscribe(
 			'app:processor:sync',
 			({ data: { block, peerId } }) => {
 				this.synchronizer.run(block, peerId).catch(err => {
@@ -573,7 +628,5 @@ module.exports = class Node {
 
 	_unsubscribeToEvents() {
 		this.bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-		this.chain.removeAllListeners(EVENT_UNCONFIRMED_TRANSACTION);
-		this.chain.removeAllListeners(EVENT_MULTISIGNATURE_SIGNATURE);
 	}
 };

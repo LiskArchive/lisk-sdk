@@ -418,15 +418,6 @@ describe('processor', () => {
 				);
 			});
 
-			it('should emit deleteBlock event for the last block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:processor:deleteBlock',
-					{
-						block: defaultLastBlock,
-					},
-				);
-			});
-
 			it('should verify the block', async () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
@@ -459,12 +450,6 @@ describe('processor', () => {
 					stateStoreStub,
 					{ removeFromTempTable: false },
 				);
-			});
-
-			it('should emit newBlock event for the block', async () => {
-				expect(
-					channelStub.publish,
-				).toHaveBeenCalledWith('app:processor:newBlock', { block: blockV0 });
 			});
 
 			it('should emit broadcast event for the block', async () => {
@@ -513,15 +498,6 @@ describe('processor', () => {
 				);
 			});
 
-			it('should emit deleteBlock event for the last block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:processor:deleteBlock',
-					{
-						block: defaultLastBlock,
-					},
-				);
-			});
-
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should not emit broadcast event for the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
@@ -563,16 +539,6 @@ describe('processor', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
-				);
-			});
-
-			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should emit newBlock event for the last block', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:processor:newBlock',
-					{
-						block: defaultLastBlock,
-					},
 				);
 			});
 		});
@@ -677,12 +643,6 @@ describe('processor', () => {
 				expect(
 					channelStub.publish,
 				).toHaveBeenCalledWith('app:processor:broadcast', { block: blockV0 });
-			});
-
-			it('should emit newBlock event with the block', async () => {
-				expect(
-					channelStub.publish,
-				).toHaveBeenCalledWith('app:processor:newBlock', { block: blockV0 });
 			});
 		});
 	});
@@ -1023,13 +983,6 @@ describe('processor', () => {
 					expect.anything(),
 				);
 			});
-
-			it('should emit newBlock event', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:processor:newBlock',
-					expect.anything(),
-				);
-			});
 		});
 	});
 
@@ -1299,13 +1252,6 @@ describe('processor', () => {
 			it('should not call remove of chainModule', async () => {
 				expect(chainModuleStub.remove).not.toHaveBeenCalled();
 			});
-
-			it('should not publish event deleteBlock', async () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:deleteBlock',
-					expect.anything(),
-				);
-			});
 		});
 
 		describe('when removing block fails', () => {
@@ -1328,13 +1274,6 @@ describe('processor', () => {
 						undefined,
 					);
 				});
-			});
-
-			it('should not publish event deleteBlock', async () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:deleteBlock',
-					expect.anything(),
-				);
 			});
 		});
 
@@ -1360,13 +1299,6 @@ describe('processor', () => {
 					defaultLastBlock,
 					stateStoreStub,
 					{ saveTempBlock: false },
-				);
-			});
-
-			it('should publish event deleteBlock', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:processor:deleteBlock',
-					expect.anything(),
 				);
 			});
 		});
