@@ -14,7 +14,6 @@
 import {
 	transfer,
 	castVotes,
-	registerMultisignature,
 	createSignatureObject,
 	TransactionJSON,
 	BaseTransaction,
@@ -128,12 +127,10 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				const notAllowedTx = chainInstance.deserializeTransaction(
-					registerMultisignature({
+					transfer({
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
-						keysgroup: [genesisAccount.publicKey],
-						lifetime: 5,
-						minimum: 1,
+						amount: '1',
 					}) as TransactionJSON,
 				);
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
@@ -259,12 +256,10 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				const notAllowedTx = chainInstance.deserializeTransaction(
-					registerMultisignature({
+					transfer({
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
-						keysgroup: [genesisAccount.publicKey],
-						lifetime: 5,
-						minimum: 1,
+						amount: '1',
 					}) as TransactionJSON,
 				);
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
@@ -405,12 +400,10 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				const notAllowedTx = chainInstance.deserializeTransaction(
-					registerMultisignature({
+					transfer({
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
-						keysgroup: [genesisAccount.publicKey],
-						lifetime: 5,
-						minimum: 1,
+						amount: '1',
 					}) as TransactionJSON,
 				);
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(

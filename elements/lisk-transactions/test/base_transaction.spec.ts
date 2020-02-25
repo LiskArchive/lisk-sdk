@@ -801,6 +801,28 @@ describe('Base transaction class', () => {
 		});
 	});
 
+	describe('create, sign and stringify transaction', () => {
+		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
+			const newTransaction = new TransferTransaction({
+				...transferFixture.testCases[0].input.transaction,
+				networkIdentifier: transferFixture.testCases[0].input.networkIdentifier,
+			});
+			newTransaction.sign(
+				transferFixture.testCases[0].input.account.passphrase,
+			);
+
+			const stringifiedTransaction = newTransaction.stringify();
+			const parsedResponse = JSON.parse(stringifiedTransaction);
+
+			expect(parsedResponse.senderPublicKey).toEqual(
+				transferFixture.testCases[0].output.senderPublicKey,
+			);
+			expect(parsedResponse.signature).toEqual(
+				transferFixture.testCases[0].output.signature,
+			);
+		});
+	});
+
 	describe('#sign', () => {
 		const defaultPassphrase = 'passphrase';
 		const defaultSecondPassphrase = 'second-passphrase';

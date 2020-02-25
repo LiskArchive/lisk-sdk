@@ -194,14 +194,74 @@ describe('state store / account', () => {
 		});
 	});
 
+	describe('set', () => {
+		let missedBlocks: number;
+		let producedBlocks: number;
+
+		beforeEach(async () => {
+			// Arrange
+			missedBlocks = 1;
+			producedBlocks = 1;
+			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
+			const filter = [
+				{ address: defaultAccounts[0].address },
+				{ address: defaultAccounts[1].address },
+			];
+			await stateStore.account.cache(filter);
+		});
+
+		it('should set the updated values for the account', async () => {
+			// Act
+			const updatedAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
+
+			(updatedAccount as any).missedBlocks = missedBlocks;
+			(updatedAccount as any).producedBlocks = producedBlocks;
+
+			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
+			const updatedAcountAfterSet = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
+			// Assert
+			expect(updatedAcountAfterSet).toStrictEqual(updatedAccount);
+		});
+
+		it('should update the updateKeys property', async () => {
+			const updatedKeys = ['missedBlocks', 'producedBlocks'];
+			const existingAccount = await stateStore.account.get(
+				defaultAccounts[0].address,
+			);
+			const updatedAccount = new Account({
+				...existingAccount.toJSON(),
+				missedBlocks,
+				producedBlocks,
+			});
+
+			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
+
+			expect((stateStore.account as any)._updatedKeys[0]).toStrictEqual(
+				updatedKeys,
+			);
+		});
+	});
+
 	describe('finalize', () => {
 		let txStub = {} as StorageTransaction;
 		let existingAccount;
 		let updatedAccount;
+		let missedBlocks: number;
+		let producedBlocks: number;
 		let accountUpsertObj: object;
 
 		beforeEach(async () => {
-			accountUpsertObj = {};
+			missedBlocks = 1;
+			producedBlocks = 1;
+
+			accountUpsertObj = {
+				missedBlocks,
+				producedBlocks,
+			};
 
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 
@@ -216,6 +276,8 @@ describe('state store / account', () => {
 			);
 			updatedAccount = new Account({
 				...existingAccount.toJSON(),
+				missedBlocks,
+				producedBlocks,
 			});
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);

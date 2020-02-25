@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
-import { validateMultisignatures } from '../../src/utils';
+import { validateMultisignatures, validateSignature } from '../../src/utils';
 import { TransactionError, TransactionPendingError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
@@ -21,8 +22,89 @@ import {
 	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
 } from '../../fixtures';
+import * as transferFixture from '../../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import { TransferTransaction } from '../../src';
 
 describe('signAndVerify module', () => {
+	describe('#validateSignature', () => {
+		const networkIdentifier =
+			'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
+		const defaultTransferTransaction = addTransactionFields(
+			transferFixture.testCases[0].output,
+		);
+		const validTestTransaction = new TransferTransaction({
+			...defaultTransferTransaction,
+			networkIdentifier,
+		});
+
+		const defaultTransferTransactionBytes = Buffer.concat([
+			cryptography.hexToBuffer(networkIdentifier),
+			(validTestTransaction as any).getBasicBytes(),
+		]);
+
+		it('should call cryptography hash', async () => {
+			const cryptographyHashStub = jest
+				.spyOn(cryptography, 'hash')
+				.mockReturnValue(
+					Buffer.from(
+						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
+						'hex',
+					),
+				);
+
+			validateSignature(
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature,
+				defaultTransferTransactionBytes,
+			);
+
+			expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call cryptography verifyData', async () => {
+			const cryptographyVerifyDataStub = jest
+				.spyOn(cryptography, 'verifyData')
+				.mockReturnValue(true);
+
+			validateSignature(
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature,
+				defaultTransferTransactionBytes,
+			);
+
+			expect(cryptographyVerifyDataStub).toHaveBeenCalledTimes(1);
+		});
+
+		it('should return a valid response with valid signature', async () => {
+			const { valid } = validateSignature(
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature,
+				defaultTransferTransactionBytes,
+			);
+
+			expect(valid).toBe(true);
+		});
+
+		it('should return an invalid response with invalid signature', async () => {
+			const { valid, error } = validateSignature(
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature.replace('1', '0'),
+				Buffer.from(defaultTransferTransactionBytes),
+			);
+
+			expect(valid).toBe(false);
+			expect(error).toBeInstanceOf(TransactionError);
+			expect(error).toHaveProperty(
+				'message',
+				`Failed to validate signature ${defaultTransferTransaction.signature.replace(
+					'1',
+					'0',
+				)}`,
+			);
+		});
+	});
+
 	describe('#validateMultisignatures', () => {
 		const defaultMultisignatureTransaction = addTransactionFields(
 			validMultisignatureTransaction,

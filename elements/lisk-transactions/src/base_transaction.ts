@@ -502,7 +502,7 @@ export abstract class BaseTransaction {
 		return timeElapsed > timeOut;
 	}
 
-	public sign(passphrase: string, secondPassphrase?: string): void {
+	public sign(passphrase: string): void {
 		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
@@ -533,18 +533,6 @@ export abstract class BaseTransaction {
 			hash(transactionWithNetworkIdentifierBytes),
 			passphrase,
 		);
-
-		if (secondPassphrase) {
-			this._signSignature = signData(
-				hash(
-					Buffer.concat([
-						transactionWithNetworkIdentifierBytes,
-						hexToBuffer(this._signature),
-					]),
-				),
-				secondPassphrase,
-			);
-		}
 
 		this._id = getId(this.getBytes());
 	}
