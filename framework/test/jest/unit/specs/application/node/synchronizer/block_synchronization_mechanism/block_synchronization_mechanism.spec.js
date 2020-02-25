@@ -62,7 +62,6 @@ describe('block_synchronization_mechanism', () => {
 	let dposModuleMock;
 	let exceptions;
 	let loggerMock;
-	let storageMock;
 
 	let aBlock;
 	let requestedBlocks;
@@ -78,27 +77,8 @@ describe('block_synchronization_mechanism', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		storageMock = {
-			entities: {
-				TempBlock: {
-					get: jest.fn(),
-					truncate: jest.fn(),
-					isEmpty: jest.fn(),
-				},
-				Block: {
-					get: jest.fn(),
-					getOne: jest.fn(),
-					begin: jest.fn(),
-				},
-				Account: {
-					get: jest.fn(),
-				},
-				ChainState: {
-					get: jest.fn(),
-					getKey: jest.fn(),
-				},
-			},
-		};
+		const storageMock = {};
+
 		channelMock = new ChannelMock();
 
 		chainModule = new Chain({
