@@ -27,7 +27,6 @@ import {
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
-import { SignatureObject } from './create_signature_object';
 import {
 	convertToTransactionError,
 	TransactionError,
@@ -306,7 +305,7 @@ export abstract class BaseTransaction {
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = await this.processMultisignatures(store);
+		const { errors: multiSigError } = await this.verifySignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
@@ -366,76 +365,6 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public async addMultisignature(
-		store: StateStore,
-		signatureObject: SignatureObject,
-	): Promise<TransactionResponse> {
-		// Get the account
-		const account = await store.account.get(this.senderId);
-		// Validate signature key belongs to account's multisignature group
-		if (
-			account.membersPublicKeys &&
-			!account.membersPublicKeys.includes(signatureObject.publicKey)
-		) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Public Key '${signatureObject.publicKey}' is not a member for account '${account.address}'.`,
-					this.id,
-				),
-			]);
-		}
-
-		// Check if signature is not already there
-		if (this.signatures.includes(signatureObject.signature)) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Signature '${signatureObject.signature}' already present in transaction.`,
-					this.id,
-				),
-			]);
-		}
-
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to validate a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-
-		// Validate the signature using the signature sender and transaction details
-		const { valid } = validateSignature(
-			signatureObject.publicKey,
-			signatureObject.signature,
-			transactionWithNetworkIdentifierBytes,
-			this.id,
-		);
-		// If the signature is valid for the sender push it to the signatures array
-		if (valid) {
-			this.signatures.push(signatureObject.signature);
-
-			return this.processMultisignatures(store);
-		}
-
-		// Else populate errors
-		const errors = [
-			new TransactionError(
-				`Failed to add signature '${signatureObject.signature}'.`,
-				this.id,
-				'.signatures',
-			),
-		];
-
-		return createResponse(this.id, errors);
-	}
-
 	public addVerifiedMultisignature(signature: string): TransactionResponse {
 		if (!this.signatures.includes(signature)) {
 			this.signatures.push(signature);
@@ -448,7 +377,7 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public async processMultisignatures(
+	public async verifySignatures(
 		store: StateStore,
 	): Promise<TransactionResponse> {
 		const sender = await store.account.get(this.senderId);

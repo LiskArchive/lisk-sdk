@@ -28,11 +28,13 @@ export interface Account {
 	rewards: bigint;
 	voteWeight: bigint;
 	nameExist: boolean;
-	multiMin: number;
-	multiLifetime: number;
 	asset: object;
 	votedDelegatesPublicKeys: string[];
-	membersPublicKeys: string[];
+	keys: {
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+		numberOfSignatures: number;
+	};
 	// tslint:disable-next-line:no-mixed-interface
 	readonly toJSON: () => object;
 }
