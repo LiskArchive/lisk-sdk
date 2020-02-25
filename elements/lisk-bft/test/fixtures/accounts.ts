@@ -40,10 +40,8 @@ export const genesis = {
 export const mem_accountsFields = [
 	'username',
 	'isDelegate',
-	'secondSignature',
 	'address',
 	'publicKey',
-	'secondPublicKey',
 	'balance',
 	'voteWeight',
 	'delegates',
@@ -64,10 +62,8 @@ export const Account = stampit.compose({
 	props: {
 		username: '',
 		isDelegate: false,
-		secondSignature: false,
 		address: '',
 		publicKey: '',
-		secondPublicKey: null,
 		balance: '0',
 		voteWeight: '',
 		multiMin: 0,
@@ -87,7 +83,6 @@ export const Account = stampit.compose({
 		username,
 		address,
 		publicKey,
-		secondPublicKey,
 		producedBlocks,
 		missedBlocks,
 		balance,
@@ -103,7 +98,6 @@ export const Account = stampit.compose({
 			randomstring
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
-		this.secondPublicKey = secondPublicKey || null;
 		this.voteWeight = randomstring.generate({
 			charset: '123456789',
 			length: 5,
@@ -134,8 +128,6 @@ export const dbAccount = stampit.compose({
 		producedBlocks: 0,
 		publicKey: null,
 		rewards: '0',
-		secondPublicKey: null,
-		secondSignature: 0,
 		username: null,
 		voteWeight: '0',
 		asset: {},

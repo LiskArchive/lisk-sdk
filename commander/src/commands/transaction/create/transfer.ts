@@ -43,14 +43,13 @@ const processInputs = (
 	amount: string,
 	address: string,
 	data?: string,
-) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+) => ({ passphrase }: InputFromSourceOutput) =>
 	transfer({
 		networkIdentifier,
 		recipientId: address,
 		amount,
 		data,
 		passphrase,
-		secondPassphrase,
 	});
 
 export default class TransferCommand extends BaseCommand {
@@ -77,7 +76,6 @@ export default class TransferCommand extends BaseCommand {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		data: flagParser.string(dataFlag),
 	};
@@ -88,7 +86,6 @@ export default class TransferCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 				data: dataString,
 			},
@@ -113,7 +110,6 @@ export default class TransferCommand extends BaseCommand {
 		if (noSignature) {
 			const noSignatureResult = processFunction({
 				passphrase: undefined,
-				secondPassphrase: undefined,
 			});
 			this.print(noSignatureResult);
 
@@ -125,12 +121,6 @@ export default class TransferCommand extends BaseCommand {
 				source: passphraseSource,
 				repeatPrompt: true,
 			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
 		});
 		const result = processFunction(inputs);
 		this.print(result);

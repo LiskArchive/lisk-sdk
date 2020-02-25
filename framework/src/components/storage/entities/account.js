@@ -40,24 +40,9 @@ class Account extends BaseEntity {
 			},
 			stringToByte,
 		);
-		this.addField(
-			'secondPublicKey',
-			'string',
-			{
-				format: 'publicKey',
-				filter: ft.BINARY,
-			},
-			stringToByte,
-		);
 		this.addField('username', 'string', { filter: ft.TEXT });
 		this.addField(
 			'isDelegate',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt,
-		);
-		this.addField(
-			'secondSignature',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt,

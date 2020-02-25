@@ -169,10 +169,8 @@
 		"fields": [
 			"username",
 			"isDelegate",
-			"secondSignature",
 			"address",
 			"publicKey",
-			"secondPublicKey",
 			"balance",
 			"voteWeight",
 			"delegates",
@@ -189,10 +187,8 @@
 			{
 				"username": "test_blk_process_1",
 				"isDelegate": 0,
-				"secondSignature": 0,
 				"address": "2737453412992791987L",
 				"publicKey": "\\xc76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5",
-				"secondPublicKey": null,
 				"balance": "34701000000",
 				"voteWeight": "0",
 				"delegates": null,
@@ -208,10 +204,8 @@
 			{
 				"username": "test_blk_process_2",
 				"isDelegate": 0,
-				"secondSignature": 0,
 				"address": "2896019180726908125L",
 				"publicKey": "\\x684a0259a769a9bdf8b82c5fe3054182ba3e936cf027bb63be231cd25d942adb",
-				"secondPublicKey": null,
 				"balance": "119000000",
 				"voteWeight": "0",
 				"delegates": null,

@@ -16,7 +16,6 @@
 
 const {
 	TransferTransaction,
-	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
@@ -24,7 +23,6 @@ const {
 
 const registeredTransactions = {
 	8: TransferTransaction,
-	9: SecondSignatureTransaction,
 	10: DelegateTransaction,
 	11: VoteTransaction,
 	12: MultisignatureTransaction,

@@ -151,18 +151,6 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					}
 				});
 
-				it('should have pooled transactions in queued state', async () => {
-					// eslint-disable-next-line no-restricted-syntax
-					for (const account of [poolAccount3, poolAccount4]) {
-						// eslint-disable-next-line no-await-in-loop
-						const accountRow = await localCommon.getAccountFromDb(
-							library,
-							account.address,
-						);
-						expect(0).to.equal(accountRow.mem_accounts.secondSignature);
-					}
-				});
-
 				it('should revert applyconfirmedStep on block transactions', done => {
 					async.forEach(
 						[blockAccount1, blockAccount2],
@@ -239,22 +227,6 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 					} catch (error) {
 						// this error is expected
 					}
-				});
-
-				it('should have pooled transactions in queued state', done => {
-					async.forEach(
-						[poolAccount3, poolAccount4],
-						(account, eachCb) => {
-							localCommon
-								.getAccountFromDb(library, account.address)
-								.then(accountRow => {
-									expect(0).to.equal(accountRow.mem_accounts.secondSignature);
-									eachCb();
-								})
-								.catch(err => eachCb(err));
-						},
-						done,
-					);
 				});
 
 				it('should not save block in the blocks table', done => {

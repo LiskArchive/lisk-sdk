@@ -19,8 +19,6 @@ import { Account } from '../../src';
 describe('state store / account', () => {
 	const defaultAccount = {
 		publicKey: undefined,
-		secondPublicKey: null,
-		secondSignature: 0,
 		username: null,
 		isDelegate: 0,
 		balance: '0',
@@ -197,14 +195,13 @@ describe('state store / account', () => {
 	});
 
 	describe('set', () => {
-		let secondPublicKey: string;
-		let secondSignature: number;
+		let missedBlocks: number;
+		let producedBlocks: number;
 
 		beforeEach(async () => {
 			// Arrange
-			secondPublicKey =
-				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
-			secondSignature = 1;
+			missedBlocks = 1;
+			producedBlocks = 1;
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 			const filter = [
 				{ address: defaultAccounts[0].address },
@@ -219,8 +216,8 @@ describe('state store / account', () => {
 				defaultAccounts[0].address,
 			);
 
-			(updatedAccount as any).secondPublicKey = secondPublicKey;
-			(updatedAccount as any).secondSignature = secondSignature;
+			(updatedAccount as any).missedBlocks = missedBlocks;
+			(updatedAccount as any).producedBlocks = producedBlocks;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
 			const updatedAcountAfterSet = await stateStore.account.get(
@@ -231,18 +228,15 @@ describe('state store / account', () => {
 		});
 
 		it('should update the updateKeys property', async () => {
-			const updatedKeys = ['secondPublicKey', 'secondSignature'];
+			const updatedKeys = ['missedBlocks', 'producedBlocks'];
 			const existingAccount = await stateStore.account.get(
 				defaultAccounts[0].address,
 			);
 			const updatedAccount = new Account({
 				...existingAccount.toJSON(),
-				secondPublicKey,
-				secondSignature,
+				missedBlocks,
+				producedBlocks,
 			});
-
-			// updatedAccount.secondPublicKey = secondPublicKey;
-			// (updatedAccount as any).secondSignature = secondSignature;
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
 
@@ -256,18 +250,17 @@ describe('state store / account', () => {
 		let txStub = {} as StorageTransaction;
 		let existingAccount;
 		let updatedAccount;
-		let secondPublicKey: string;
-		let secondSignature: number;
+		let missedBlocks: number;
+		let producedBlocks: number;
 		let accountUpsertObj: object;
 
 		beforeEach(async () => {
-			secondPublicKey =
-				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b';
-			secondSignature = 1;
+			missedBlocks = 1;
+			producedBlocks = 1;
 
 			accountUpsertObj = {
-				secondPublicKey,
-				secondSignature,
+				missedBlocks,
+				producedBlocks,
 			};
 
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
@@ -283,8 +276,8 @@ describe('state store / account', () => {
 			);
 			updatedAccount = new Account({
 				...existingAccount.toJSON(),
-				secondPublicKey,
-				secondSignature,
+				missedBlocks,
+				producedBlocks,
 			});
 
 			stateStore.account.set(updatedAccount.address, updatedAccount);

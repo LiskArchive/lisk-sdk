@@ -37,11 +37,10 @@ const processInputs = (
 	lifetime: number,
 	minimum: number,
 	keysgroup: ReadonlyArray<string>,
-) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+) => ({ passphrase }: InputFromSourceOutput) =>
 	registerMultisignature({
 		networkIdentifier,
 		passphrase,
-		secondPassphrase,
 		keysgroup,
 		lifetime,
 		minimum,
@@ -84,7 +83,6 @@ export default class MultisignatureCommand extends BaseCommand {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 	};
 
@@ -94,7 +92,6 @@ export default class MultisignatureCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 			},
 		} = this.parse(MultisignatureCommand);
@@ -123,7 +120,6 @@ export default class MultisignatureCommand extends BaseCommand {
 		if (noSignature) {
 			const noSignatureResult = processFunction({
 				passphrase: undefined,
-				secondPassphrase: undefined,
 			});
 			this.print(noSignatureResult);
 
@@ -135,12 +131,6 @@ export default class MultisignatureCommand extends BaseCommand {
 				source: passphraseSource,
 				repeatPrompt: true,
 			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
 		});
 		const result = processFunction(inputs);
 		this.print(result);

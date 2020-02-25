@@ -38,7 +38,6 @@ describe('transaction:create:vote', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const defaultInputs = {
 		passphrase: '123',
-		secondPassphrase: '456',
 	};
 	const defaultTransaction = {
 		amount: '10000000000',
@@ -99,7 +98,6 @@ describe('transaction:create:vote', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
@@ -107,7 +105,6 @@ describe('transaction:create:vote', () => {
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: defaultVote,
 					unvotes: [],
 				});
@@ -124,14 +121,12 @@ describe('transaction:create:vote', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(inputModule.getData).to.be.calledWithExactly('file:vote.txt');
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: fileVotes,
 					unvotes: [],
 				});
@@ -153,7 +148,6 @@ describe('transaction:create:vote', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
@@ -161,7 +155,6 @@ describe('transaction:create:vote', () => {
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: [],
 					unvotes: defaultUnvote,
 				});
@@ -178,14 +171,12 @@ describe('transaction:create:vote', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(inputModule.getData).to.be.calledWithExactly('file:unvote.txt');
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: [],
 					unvotes: fileVotes,
 				});
@@ -221,7 +212,6 @@ describe('transaction:create:vote', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
@@ -232,7 +222,6 @@ describe('transaction:create:vote', () => {
 				expect(transactions.castVotes).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: defaultVote,
 					unvotes: defaultUnvote,
 				});
@@ -263,7 +252,6 @@ describe('transaction:create:vote', () => {
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
-						secondPassphrase: undefined,
 						votes: defaultVote,
 						unvotes: defaultUnvote,
 					});
@@ -290,7 +278,6 @@ describe('transaction:create:vote', () => {
 							source: 'pass:123',
 							repeatPrompt: true,
 						},
-						secondPassphrase: undefined,
 					});
 					expect(validator.validatePublicKeys).to.be.calledWithExactly(
 						defaultVote,
@@ -301,49 +288,6 @@ describe('transaction:create:vote', () => {
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
-						secondPassphrase: defaultInputs.secondPassphrase,
-						votes: defaultVote,
-						unvotes: defaultUnvote,
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
-	});
-
-	describe('transaction:create:vote --votes=xxx --unvotes=xxx --passphrase=pass:123 --second-passphrase=pass:456', () => {
-		setupStub()
-			.command([
-				'transaction:create:vote',
-				`--votes=${defaultVote.join(',')}`,
-				`--unvotes=${defaultUnvote.join(',')}`,
-				'--passphrase=pass:123',
-				'--second-passphrase=pass:456',
-			])
-			.it(
-				'should create a transaction with votes and unvotes with the passphrase and second passphrase from the flag',
-				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-						secondPassphrase: {
-							source: 'pass:456',
-							repeatPrompt: true,
-						},
-					});
-					expect(validator.validatePublicKeys).to.be.calledWithExactly(
-						defaultVote,
-					);
-					expect(validator.validatePublicKeys).to.be.calledWithExactly(
-						defaultUnvote,
-					);
-					expect(transactions.castVotes).to.be.calledWithExactly({
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs.passphrase,
-						secondPassphrase: defaultInputs.secondPassphrase,
 						votes: defaultVote,
 						unvotes: defaultUnvote,
 					});
