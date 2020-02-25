@@ -15,6 +15,7 @@
 
 import {
 	getAddressFromPublicKey,
+	hexToBuffer,
 	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
@@ -28,6 +29,7 @@ import { MULTISIGNATURE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
+import { validateSignature } from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -76,6 +78,27 @@ const setMemberAccounts = async (
 
 const extractPublicKeysFromAsset = (assetPublicKeys: ReadonlyArray<string>) =>
 	assetPublicKeys.map(key => key);
+
+const validateKeysSignatures = (
+	keys: readonly string[],
+	signatures: readonly string[],
+	transactionBytes: Buffer,
+) => {
+	const errors = [];
+	// tslint:disable-next-line: prefer-for-of no-let
+	for (let i = 0; i < keys.length; i += 1) {
+		const { valid, error } = validateSignature(
+			keys[i],
+			signatures[i],
+			transactionBytes,
+		);
+		if (!valid) {
+			errors.push(error);
+		}
+	}
+
+	return errors;
+};
 
 export interface MultiSignatureAsset {
 	readonly mandatoryKeys: ReadonlyArray<string>;
@@ -281,10 +304,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const sender = await store.account.get(this.senderId);
 
 		// Check if multisignatures already exists on account
-		if (
-			sender.keys.mandatoryKeys.length > 0 ||
-			sender.keys.optionalKeys.length > 0
-		) {
+		if (sender.keys.numberOfSignatures > 0) {
 			errors.push(
 				new TransactionError(
 					'Register multisignature only allowed once per account.',
@@ -323,9 +343,48 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return [];
 	}
 
+	// Verifies multisig signatures as per LIP-0017
 	public async verifySignatures(_: StateStore): Promise<TransactionResponse> {
-		const signatures = this.signatures;
+		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
 
-		return createResponse(`in progress ${signatures.join('')}`);
+		const { mandatoryKeys, optionalKeys } = this.asset;
+
+		// Verify first signature is from senderPublicKey
+		const { valid, error } = validateSignature(
+			this.senderPublicKey,
+			this.signatures[0],
+			transactionWithNetworkIdentifierBytes,
+		);
+
+		if (!valid) {
+			return createResponse(this.id, [error as TransactionError]);
+		}
+
+		// Verify each mandatory key signed in order
+		const mandatorySignaturesErrors = validateKeysSignatures(
+			mandatoryKeys,
+			this.signatures.slice(1, mandatoryKeys.length + 1),
+			transactionWithNetworkIdentifierBytes,
+		);
+
+		if (mandatorySignaturesErrors.length) {
+			return createResponse(this.id, [error as TransactionError]);
+		}
+		// Verify each optional key signed in order
+		const optionalSignaturesErrors = validateKeysSignatures(
+			optionalKeys,
+			this.signatures.slice(mandatoryKeys.length + 1),
+			transactionWithNetworkIdentifierBytes,
+		);
+		if (optionalSignaturesErrors.length) {
+			return createResponse(this.id, [error as TransactionError]);
+		}
+
+		return createResponse(this.id, []);
 	}
 }
