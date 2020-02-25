@@ -21,24 +21,27 @@ import { TransactionError, TransactionPendingError } from '../../src/errors';
 import {
 	validMultisignatureAccount as defaultMultisignatureAccount,
 	validMultisignatureTransaction,
-	validSecondSignatureTransaction,
 } from '../../fixtures';
+import * as transferFixture from '../../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import { TransferTransaction } from '../../src';
 
 describe('signAndVerify module', () => {
 	describe('#validateSignature', () => {
-		const defaultSecondSignatureTransaction = addTransactionFields(
-			validSecondSignatureTransaction,
+		const networkIdentifier =
+			'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
+		const defaultTransferTransaction = addTransactionFields(
+			transferFixture.testCases[0].output,
 		);
-		const defaultSecondSignatureTransactionBytes = Buffer.from(
-			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b54020000003357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
-			'hex',
-		);
-		const defaultSecondPublicKey =
-			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8';
-		const defaultTransactionBytes = Buffer.from(
-			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b5402000000',
-			'hex',
-		);
+		const validTestTransaction = new TransferTransaction({
+			...defaultTransferTransaction,
+			networkIdentifier,
+		});
+
+		const defaultTransferTransactionBytes = Buffer.concat([
+			cryptography.hexToBuffer(networkIdentifier),
+			(validTestTransaction as any).getBasicBytes(),
+		]);
 
 		it('should call cryptography hash', async () => {
 			const cryptographyHashStub = jest
@@ -51,9 +54,9 @@ describe('signAndVerify module', () => {
 				);
 
 			validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature,
-				defaultTransactionBytes,
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature,
+				defaultTransferTransactionBytes,
 			);
 
 			expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
@@ -65,9 +68,9 @@ describe('signAndVerify module', () => {
 				.mockReturnValue(true);
 
 			validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature,
-				defaultTransactionBytes,
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature,
+				defaultTransferTransactionBytes,
 			);
 
 			expect(cryptographyVerifyDataStub).toHaveBeenCalledTimes(1);
@@ -75,54 +78,26 @@ describe('signAndVerify module', () => {
 
 		it('should return a valid response with valid signature', async () => {
 			const { valid } = validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature,
-				defaultTransactionBytes,
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature,
+				defaultTransferTransactionBytes,
 			);
 
 			expect(valid).toBe(true);
 		});
 
-		it('should return an unvalid response with invalid signature', async () => {
+		it('should return an invalid response with invalid signature', async () => {
 			const { valid, error } = validateSignature(
-				defaultSecondSignatureTransaction.senderPublicKey,
-				defaultSecondSignatureTransaction.signature.replace('1', '0'),
-				Buffer.from(defaultTransactionBytes),
+				defaultTransferTransaction.senderPublicKey,
+				defaultTransferTransaction.signature.replace('1', '0'),
+				Buffer.from(defaultTransferTransactionBytes),
 			);
 
 			expect(valid).toBe(false);
 			expect(error).toBeInstanceOf(TransactionError);
 			expect(error).toHaveProperty(
 				'message',
-				`Failed to validate signature ${defaultSecondSignatureTransaction.signature.replace(
-					'1',
-					'0',
-				)}`,
-			);
-		});
-
-		it('should return a valid response with valid signSignature', async () => {
-			const { valid } = validateSignature(
-				defaultSecondPublicKey,
-				defaultSecondSignatureTransaction.signSignature,
-				defaultSecondSignatureTransactionBytes,
-			);
-
-			expect(valid).toBe(true);
-		});
-
-		it('should return an unvalid response with invalid signSignature', async () => {
-			const { valid, error } = validateSignature(
-				defaultSecondPublicKey,
-				defaultSecondSignatureTransaction.signSignature.replace('1', '0'),
-				defaultSecondSignatureTransactionBytes,
-			);
-
-			expect(valid).toBe(false);
-			expect(error).toBeInstanceOf(TransactionError);
-			expect(error).toHaveProperty(
-				'message',
-				`Failed to validate signature ${defaultSecondSignatureTransaction.signSignature.replace(
+				`Failed to validate signature ${defaultTransferTransaction.signature.replace(
 					'1',
 					'0',
 				)}`,

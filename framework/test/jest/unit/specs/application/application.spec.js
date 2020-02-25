@@ -17,7 +17,7 @@
 
 const {
 	BaseTransaction: Base,
-	SecondSignatureTransaction,
+	TransferTransaction,
 } = require('@liskhq/lisk-transactions');
 
 const _ = require('lodash');
@@ -51,7 +51,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
-	const frameworkTxTypes = ['8', '9', '10', '11', '12'];
+	const frameworkTxTypes = ['8', '10', '11', '12'];
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),
@@ -278,7 +278,7 @@ describe('Application', () => {
 
 			const TransactionWithoutBase = {
 				prototype: {},
-				...SecondSignatureTransaction,
+				...TransferTransaction,
 			};
 
 			// Act && Assert
@@ -321,19 +321,6 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow();
-		});
-
-		it('should throw error when transaction type is already registered.', () => {
-			// Arrange
-			const app = new Application(genesisBlock, config);
-
-			class Sample extends Base {}
-			Sample.TYPE = 9;
-
-			// Act && Assert
-			expect(() => app.registerTransaction(Sample)).toThrow(
-				'A transaction type "9" is already registered.',
-			);
 		});
 
 		it('should register transaction when passing a new transaction type and a transaction implementation.', () => {

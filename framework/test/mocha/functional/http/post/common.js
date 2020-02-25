@@ -16,7 +16,6 @@
 
 require('../../functional');
 const {
-	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
 	createDapp,
@@ -41,13 +40,6 @@ function invalidAssets(option, badTransactions) {
 
 		beforeEach(done => {
 			switch (option) {
-				case 'publicKey':
-					transaction = registerSecondPassphrase({
-						networkIdentifier,
-						passphrase: accountFixtures.genesis.passphrase,
-						secondPassphrase: randomUtil.password(),
-					});
-					break;
 				case 'username':
 					transaction = registerDelegate({
 						networkIdentifier,

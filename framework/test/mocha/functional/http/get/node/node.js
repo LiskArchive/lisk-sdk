@@ -76,12 +76,6 @@ describe('GET /node', () => {
 			return expect(constantsResponse.fees.vote).to.be.equal('100000000');
 		});
 
-		it('should return a result containing fees.secondSignature = 500000000', async () => {
-			return expect(constantsResponse.fees.secondSignature).to.be.equal(
-				'500000000',
-			);
-		});
-
 		it('should return a result containing fees.delegate = 2500000000', async () => {
 			return expect(constantsResponse.fees.delegate).to.be.equal('2500000000');
 		});

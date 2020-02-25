@@ -30,12 +30,10 @@ interface Args {
 
 const processInputs = (networkIdentifier: string, username: string) => ({
 	passphrase,
-	secondPassphrase,
 }: InputFromSourceOutput) =>
 	registerDelegate({
 		networkIdentifier,
 		passphrase,
-		secondPassphrase,
 		username,
 	});
 
@@ -58,7 +56,6 @@ export default class DelegateCommand extends BaseCommand {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 	};
 
@@ -68,7 +65,6 @@ export default class DelegateCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 			},
 		} = this.parse(DelegateCommand);
@@ -83,7 +79,6 @@ export default class DelegateCommand extends BaseCommand {
 		if (noSignature) {
 			const noSignatureResult = processFunction({
 				passphrase: undefined,
-				secondPassphrase: undefined,
 			});
 			this.print(noSignatureResult);
 
@@ -95,12 +90,6 @@ export default class DelegateCommand extends BaseCommand {
 				source: passphraseSource,
 				repeatPrompt: true,
 			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
 		});
 		const result = processFunction(inputs);
 		this.print(result);

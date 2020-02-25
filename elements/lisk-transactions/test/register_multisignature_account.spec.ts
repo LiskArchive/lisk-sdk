@@ -21,7 +21,6 @@ import * as time from '../src/utils/time';
 describe('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
-	const secondPassphrase = 'second secret';
 	const transactionType = 12;
 	const keys = {
 		publicKey:
@@ -180,18 +179,11 @@ describe('#registerMultisignature transaction', () => {
 			registerMultisignatureTransaction = registerMultisignature({
 				networkIdentifier,
 				passphrase,
-				secondPassphrase,
 				keysgroup,
 				lifetime,
 				minimum,
 			});
 			return Promise.resolve();
-		});
-
-		it('should have the second signature property as hex string', () => {
-			return expect(
-				registerMultisignatureTransaction.signSignature,
-			).toBeString();
 		});
 	});
 
@@ -201,7 +193,6 @@ describe('#registerMultisignature transaction', () => {
 				registerMultisignature.bind(null, {
 					networkIdentifier,
 					passphrase,
-					secondPassphrase,
 					keysgroup: tooShortPublicKeyKeysgroup,
 					lifetime,
 					minimum: 1,
@@ -218,7 +209,6 @@ describe('#registerMultisignature transaction', () => {
 				registerMultisignature.bind(null, {
 					networkIdentifier,
 					passphrase,
-					secondPassphrase,
 					keysgroup: plusPrependedPublicKeyKeysgroup,
 					lifetime,
 					minimum: 1,
@@ -233,7 +223,6 @@ describe('#registerMultisignature transaction', () => {
 				registerMultisignature.bind(null, {
 					networkIdentifier,
 					passphrase,
-					secondPassphrase,
 					keysgroup: [],
 					lifetime,
 					minimum,
@@ -261,7 +250,6 @@ describe('#registerMultisignature transaction', () => {
 				registerMultisignature.bind(null, {
 					networkIdentifier,
 					passphrase,
-					secondPassphrase,
 					keysgroup,
 					lifetime,
 					minimum,
@@ -281,7 +269,6 @@ describe('#registerMultisignature transaction', () => {
 				registerMultisignature.bind(null, {
 					networkIdentifier,
 					passphrase,
-					secondPassphrase,
 					keysgroup,
 					lifetime,
 					minimum,

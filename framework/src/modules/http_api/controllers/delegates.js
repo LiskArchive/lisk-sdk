@@ -39,7 +39,6 @@ function delegateFormatter(totalSupply, delegate) {
 	result.account = {
 		address: delegate.address,
 		publicKey: delegate.publicKey,
-		secondPublicKey: delegate.secondPublicKey || '',
 	};
 
 	result.approval = calculateApproval(result.voteWeight, totalSupply);
@@ -235,7 +234,6 @@ DelegatesController.getDelegates = async (context, next) => {
 	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
 	};
 

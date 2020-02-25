@@ -31,16 +31,6 @@ const passphraseDescription = `Specifies a source for your secret passphrase. Li
 	- --passphrase=stdin (takes one line only)
 `;
 
-const secondPassphraseDescription = `Specifies a source for your second secret passphrase. For certain commands a second passphrase is necessary, in which case Lisk Commander will prompt you for it if this option is not set. Otherwise, Lisk Commander will assume you want to use one passphrase only.
-	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
-	Examples:
-	- --second-passphrase=prompt (to force a prompt even when a second passphrase is not always necessary)
-	- --second-passphrase='pass:my second secret passphrase' (should only be used where security is not important)
-	- --second-passphrase=env:SECOND_SECRET_PASSPHRASE
-	- --second-passphrase=file:/path/to/my/secondPassphrase.txt (takes the first line only)
-	- --second-passphrase=stdin (takes one line only)
-`;
-
 const passwordDescription = `Specifies a source for your secret password. Lisk Commander will prompt you for input if this option is not set.
 	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 	Examples:
@@ -125,10 +115,6 @@ export const flags: FlagMap = {
 	passphrase: {
 		char: 'p',
 		description: passphraseDescription,
-	},
-	secondPassphrase: {
-		char: 's',
-		description: secondPassphraseDescription,
 	},
 	password: {
 		char: 'w',
