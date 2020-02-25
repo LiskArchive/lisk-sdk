@@ -126,25 +126,20 @@ export const calculateSupply = (
 	return supply;
 };
 
-export const getTotalRewardAndFees = (
+export const getTotalFees = (
 	blockInstance: BlockInstance,
-): { readonly totalFee: bigint; readonly totalBurnt: bigint } => {
-	// tslint:disable-next-line no-let
-	let totalFee = BigInt(0);
-	// tslint:disable-next-line no-let
-	let totalBurnt = BigInt(0);
+): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
+	blockInstance.transactions.reduce(
+		(prev, current) => {
+			const minFee = BigInt(0); // TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
 
-	for (const transaction of blockInstance.transactions) {
-		const minFee = BigInt(0); // TODO: It should get from transaction
-		totalFee += transaction.fee - minFee;
-		totalBurnt += minFee;
-	}
-
-	return {
-		totalFee,
-		totalBurnt,
-	};
-};
+			return {
+				totalFee: prev.totalFee + current.fee,
+				totalMinFee: prev.totalMinFee + minFee,
+			};
+		},
+		{ totalFee: BigInt(0), totalMinFee: BigInt(0) },
+	);
 
 export const applyFeeAndRewards = async (
 	blockInstance: BlockInstance,
@@ -162,16 +157,15 @@ export const applyFeeAndRewards = async (
 
 		return;
 	}
-	const { totalFee, totalBurnt } = getTotalRewardAndFees(blockInstance);
-	generator.balance += totalFee;
+	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
+	// Generator only gets total fee - min fee
+	generator.balance += totalFee - totalMinFee;
 	const totalFeeBurntStr = await stateStore.chainState.get(
 		CHAIN_STATE_KEY_BURNT_FEE,
 	);
 	// tslint:disable-next-line no-let
-	let totalFeeBurnt = totalFeeBurntStr
-		? BigInt(parseInt(totalFeeBurntStr, 10))
-		: BigInt(0);
-	totalFeeBurnt += totalBurnt;
+	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
+	totalFeeBurnt += totalMinFee;
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
@@ -197,17 +191,15 @@ export const undoFeeAndRewards = async (
 
 		return;
 	}
-	const { totalFee, totalBurnt } = getTotalRewardAndFees(blockInstance);
+	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
 
-	generator.balance -= totalFee;
+	generator.balance -= totalFee - totalMinFee;
 	const totalFeeBurntStr = await stateStore.chainState.get(
 		CHAIN_STATE_KEY_BURNT_FEE,
 	);
 	// tslint:disable-next-line no-let
-	let totalFeeBurnt = totalFeeBurntStr
-		? BigInt(parseInt(totalFeeBurntStr, 10))
-		: BigInt(0);
-	totalFeeBurnt -= totalBurnt;
+	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
+	totalFeeBurnt -= totalMinFee;
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);

@@ -26,7 +26,7 @@ import {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-	getTotalRewardAndFees,
+	getTotalFees,
 	undoFeeAndRewards,
 } from './block_reward';
 import { DataAccess } from './data_access';
@@ -679,11 +679,11 @@ export class Chain {
 	public getTotalEarningAndBurnt(
 		blockInstance: BlockInstance,
 	): { readonly totalEarning: bigint; readonly totalBurnt: bigint } {
-		const { totalFee, totalBurnt } = getTotalRewardAndFees(blockInstance);
+		const { totalFee, totalMinFee } = getTotalFees(blockInstance);
 
 		return {
-			totalEarning: blockInstance.reward + totalFee,
-			totalBurnt,
+			totalEarning: blockInstance.reward + totalFee - totalMinFee,
+			totalBurnt: totalMinFee,
 		};
 	}
 }
