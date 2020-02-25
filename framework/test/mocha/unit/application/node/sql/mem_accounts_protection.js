@@ -25,10 +25,8 @@ const validUsername = randomstring.generate(10).toLowerCase();
 let validAccount = {
 	username: validUsername,
 	isDelegate: 1,
-	secondSignature: 0,
 	address: `${randomstring.generate({ charset: 'numeric', length: 20 })}L`,
 	publicKey: randomstring.generate({ charset: '0123456789ABCDE', length: 32 }),
-	secondPublicKey: null,
 	balance: '0',
 	voteWeight: '10000000000000000',
 	delegates: null,

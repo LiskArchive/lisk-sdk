@@ -31,14 +31,12 @@ interface InputFromSourceInputs {
 	readonly data?: InputSource;
 	readonly passphrase?: InputSource;
 	readonly password?: InputSource;
-	readonly secondPassphrase?: InputSource;
 }
 
 export interface InputFromSourceOutput {
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly password?: string;
-	readonly secondPassphrase?: string;
 }
 
 interface MnemonicError {
@@ -48,22 +46,17 @@ interface MnemonicError {
 
 export const getInputsFromSources = async ({
 	passphrase: passphraseInput,
-	secondPassphrase: secondPassphraseInput,
 	password: passwordInput,
 	data: dataInput,
 }: InputFromSourceInputs): Promise<InputFromSourceOutput> => {
-	const [
-		passphraseIsRequired,
-		secondPassphraseIsRequired,
-		passwordIsRequired,
-		dataIsRequired,
-	] = [passphraseInput, secondPassphraseInput, passwordInput, dataInput].map(
-		input => !!input && input.source === 'stdin',
-	);
+	const [passphraseIsRequired, passwordIsRequired, dataIsRequired] = [
+		passphraseInput,
+		passwordInput,
+		dataInput,
+	].map(input => !!input && input.source === 'stdin');
 
 	const stdIn = await getStdIn({
 		passphraseIsRequired,
-		secondPassphraseIsRequired,
 		passwordIsRequired,
 		dataIsRequired,
 	});
@@ -75,15 +68,7 @@ export const getInputsFromSources = async ({
 			  })
 			: stdIn.passphrase || undefined;
 
-	const secondPassphrase =
-		typeof stdIn.secondPassphrase !== 'string' && secondPassphraseInput
-			? await getPassphrase(secondPassphraseInput.source, {
-					displayName: 'your second secret passphrase',
-					shouldRepeat: secondPassphraseInput.repeatPrompt,
-			  })
-			: stdIn.secondPassphrase || undefined;
-
-	const passphraseErrors = [passphrase, secondPassphrase]
+	const passphraseErrors = [passphrase]
 		.filter(Boolean)
 		.map(pass =>
 			passphraseModule.validation
@@ -122,7 +107,6 @@ export const getInputsFromSources = async ({
 
 	return {
 		passphrase,
-		secondPassphrase,
 		password,
 		data,
 	};

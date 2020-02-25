@@ -89,7 +89,6 @@ export const registerMultisignature = (
 		lifetime,
 		minimum,
 		passphrase,
-		secondPassphrase,
 		networkIdentifier,
 	} = inputs;
 
@@ -113,7 +112,7 @@ export const registerMultisignature = (
 	}
 
 	const multisignatureTransaction = new MultisignatureTransaction(transaction);
-	multisignatureTransaction.sign(passphrase, secondPassphrase);
+	multisignatureTransaction.sign(passphrase);
 
 	return multisignatureTransaction.toJSON();
 };

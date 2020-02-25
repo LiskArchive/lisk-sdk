@@ -14,7 +14,6 @@
 
 'use strict';
 
-const { TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
 const { convertErrorsToString } = require('../utils/error_handlers');
 const { InvalidTransactionError } = require('./errors');
@@ -68,11 +67,6 @@ class Transport {
 		setInterval(() => {
 			this.rateTracker = {};
 		}, DEFAULT_RATE_RESET_TIME);
-	}
-
-	handleBroadcastSignature(signature) {
-		this.broadcaster.enqueueSignatureObject(signature);
-		this.channel.publish('app:signature:change', signature);
 	}
 
 	handleBroadcastTransaction(transaction) {
@@ -200,87 +194,6 @@ class Transport {
 		const block = await this.processorModule.deserialize(data.block);
 
 		return this.processorModule.process(block, { peerId });
-	}
-
-	async handleEventPostSignature(data) {
-		const errors = validator.validate(schemas.signatureObject, data.signature);
-
-		if (errors.length) {
-			const error = new TransactionError(errors[0].message);
-			return {
-				code: 400,
-				errors: [error],
-			};
-		}
-
-		try {
-			await this.transactionPoolModule.getTransactionAndProcessSignature(
-				data.signature,
-			);
-			return {};
-		} catch (err) {
-			return {
-				code: 409,
-				errors: err,
-			};
-		}
-	}
-
-	async handleEventPostSignatures(data, peerId) {
-		await this._addRateLimit(
-			'postSignatures',
-			peerId,
-			DEFAULT_RATE_LIMIT_FREQUENCY,
-		);
-		const errors = validator.validate(schemas.postSignatureEvent, data);
-
-		if (errors.length) {
-			this.logger.warn({ err: errors }, 'Invalid signatures body');
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
-				peerId,
-				penalty: 100,
-			});
-			throw errors;
-		}
-
-		for (const signature of data.signatures) {
-			const signatureObjectErrors = validator.validate(
-				schemas.signatureObject,
-				signature,
-			);
-
-			if (signatureObjectErrors.length) {
-				await this.channel.invoke('app:applyPenaltyOnPeer', {
-					peerId,
-					penalty: 100,
-				});
-				throw signatureObjectErrors;
-			}
-
-			await this.transactionPoolModule.getTransactionAndProcessSignature(
-				signature,
-			);
-		}
-	}
-
-	handleRPCGetSignatures() {
-		const transactions = this.transactionPoolModule.getMultisignatureTransactionList(
-			true,
-			this.constants.broadcasts.releaseLimit,
-		);
-
-		const signatures = transactions
-			.filter(
-				transaction => transaction.signatures && transaction.signatures.length,
-			)
-			.map(transaction => ({
-				transaction: transaction.id,
-				signatures: transaction.signatures,
-			}));
-
-		return {
-			signatures,
-		};
 	}
 
 	async handleRPCGetTransactions(data = {}, peerId) {

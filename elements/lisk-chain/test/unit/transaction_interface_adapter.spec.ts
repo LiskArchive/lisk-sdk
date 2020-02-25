@@ -15,7 +15,6 @@
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import {
 	TransferTransaction,
-	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
@@ -33,7 +32,6 @@ describe('transactions', () => {
 	describe('TransactionInterfaceAdapter', () => {
 		const registeredTransactions = {
 			8: TransferTransaction,
-			9: SecondSignatureTransaction,
 			10: DelegateTransaction,
 			11: VoteTransaction,
 			12: MultisignatureTransaction,
@@ -57,7 +55,6 @@ describe('transactions', () => {
 			it('should have transactionClassMap property with Lisk transaction types', async () => {
 				expect([...(transactions as any)._transactionClassMap.keys()]).toEqual([
 					8,
-					9,
 					10,
 					11,
 					12,
@@ -89,28 +86,6 @@ describe('transactions', () => {
 
 				expect(transactions.fromJSON(transfer)).toBeInstanceOf(
 					TransferTransaction,
-				);
-			});
-
-			it('should initialize a second signature transaction', async () => {
-				const secondSignature = {
-					type: 9,
-					senderPublicKey:
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
-					timestamp: 54316324,
-					asset: {
-						signature: {
-							publicKey:
-								'f9666bfed9ef2ff52a04408f22f2bfffaa81384c9433463697330224f10032a4',
-						},
-					},
-					signature:
-						'69d0c7bc50b82465e2b0885cebc422aa9cd575050dc89905e22a6e2cc88802935c6809a59a2daa04ca99623a6fef76b7d03215ed7f401b74ef5301b12bfe2002',
-					id: '6998015087494860094',
-				};
-
-				expect(transactions.fromJSON(secondSignature)).toBeInstanceOf(
-					SecondSignatureTransaction,
 				);
 			});
 

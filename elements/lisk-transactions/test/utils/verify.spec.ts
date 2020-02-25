@@ -15,7 +15,6 @@
 import {
 	verifySenderPublicKey,
 	verifyBalance,
-	verifySecondSignature,
 	verifyMultiSignatures,
 } from '../../src/utils';
 import * as validator from '../../src/utils/sign_and_validate';
@@ -67,98 +66,6 @@ describe('#verify', () => {
 			);
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty('dataPath', '.balance');
-		});
-	});
-
-	describe('#verifySecondSignature', () => {
-		const defaultPublicKey = 'default-public-key';
-		const defaultAccount = {
-			balance: '1000000000',
-			secondPublicKey: defaultPublicKey,
-		} as any;
-		const defaultSignSignature = 'default-sign-signature';
-		const fakeTransactionBuffer = Buffer.from(
-			'fake transaction buffer',
-			'utf8',
-		);
-		const successResult = { valid: true, error: undefined };
-		const failResult = { valid: false, error: new TransactionError('fail') };
-
-		beforeEach(async () => {
-			jest.spyOn(validator, 'validateSignature').mockReturnValue(successResult);
-		});
-
-		it('should return TransactionError when sender does not have second signature but signSignature is provided', async () => {
-			const { secondPublicKey, ...invalidAccount } = defaultAccount;
-			const result = verifySecondSignature(
-				defaultId,
-				invalidAccount,
-				defaultSignSignature,
-				fakeTransactionBuffer,
-			);
-			expect(result).toBeInstanceOf(TransactionError);
-			expect(result).toHaveProperty('dataPath', '.signSignature');
-		});
-
-		it('should return undefined when sender does not have second public key and signSignature is not provided', async () => {
-			const { secondPublicKey, ...invalidAccount } = defaultAccount;
-			expect(
-				verifySecondSignature(
-					defaultId,
-					invalidAccount,
-					undefined,
-					fakeTransactionBuffer,
-				),
-			).toBeUndefined();
-		});
-
-		it('should call validateSignature with currect arguments', async () => {
-			verifySecondSignature(
-				defaultId,
-				defaultAccount,
-				defaultSignSignature,
-				fakeTransactionBuffer,
-			);
-			expect(validator.validateSignature).toHaveBeenCalledWith(
-				defaultPublicKey,
-				defaultSignSignature,
-				fakeTransactionBuffer,
-				defaultId,
-			);
-		});
-
-		it('should return undefined when valid', async () => {
-			expect(
-				verifySecondSignature(
-					defaultId,
-					defaultAccount,
-					defaultSignSignature,
-					fakeTransactionBuffer,
-				),
-			).toBeUndefined();
-		});
-
-		it('should return error from validateSignature when not valid', async () => {
-			(validator.validateSignature as any).mockReturnValue(failResult);
-			expect(
-				verifySecondSignature(
-					defaultId,
-					defaultAccount,
-					defaultSignSignature,
-					fakeTransactionBuffer,
-				),
-			).toBe(failResult.error);
-		});
-
-		it('should return TransactionError when sender have second public key but signSignature is not provided', async () => {
-			const result = verifySecondSignature(
-				defaultId,
-				defaultAccount,
-				undefined,
-				fakeTransactionBuffer,
-			);
-			expect(result).toBeInstanceOf(TransactionError);
-			expect(result).toHaveProperty('dataPath', '.signSignature');
 		});
 	});
 

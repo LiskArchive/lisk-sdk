@@ -67,7 +67,6 @@ describe('node/api', () => {
 					FEES: {
 						SEND: '10000000',
 						VOTE: '100000000',
-						SECOND_SIGNATURE: '500000000',
 						DELEGATE: '2500000000',
 						MULTISIGNATURE: '500000000',
 						DAPP_REGISTRATION: '2500000000',

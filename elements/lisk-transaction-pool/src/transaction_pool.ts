@@ -17,11 +17,7 @@ import { EventEmitter } from 'events';
 import {
 	CheckerFunction,
 	CheckTransactionsResponseWithPassAndFail,
-	CheckTransactionsResponseWithPassFailAndPending,
 	checkTransactionsWithPassAndFail,
-	checkTransactionsWithPassFailAndPending,
-	Status,
-	TransactionResponse,
 } from './check_transactions';
 import { Job } from './job';
 import { Queue } from './queue';
@@ -40,18 +36,11 @@ export interface TransactionObject {
 	verifiedOnce?: boolean;
 }
 
-export interface SignatureObject {
-	transactionId: string;
-	signature: string;
-	publicKey: string;
-}
-
 export interface TransactionFunctions {
 	isExpired(date: Date): boolean;
 	verifyAgainstOtherTransactions(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
-	addVerifiedSignature(signature: string): TransactionResponse;
 	isReady(): boolean;
 }
 
@@ -64,7 +53,6 @@ export interface TransactionPoolConfiguration {
 	readonly validatedTransactionsProcessingInterval: number;
 	readonly verifiedTransactionsLimitPerProcessing: number;
 	readonly verifiedTransactionsProcessingInterval: number;
-	readonly pendingTransactionsProcessingLimit: number;
 }
 
 export interface AddTransactionResult {
@@ -84,18 +72,12 @@ type TransactionPoolOptions = TransactionPoolConfiguration &
 
 export type Transaction = TransactionObject & TransactionFunctions;
 
-export type QueueNames =
-	| 'received'
-	| 'validated'
-	| 'verified'
-	| 'pending'
-	| 'ready';
+export type QueueNames = 'received' | 'validated' | 'verified' | 'ready';
 
 interface Queues {
 	readonly [queue: string]: Queue;
 }
 
-const DEFAULT_PENDING_TRANSACTIONS_PROCESSING_LIMIT = 5;
 const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
 const DEFAULT_MAX_TRANSACTIONS_PER_QUEUE = 1000;
 const DEFAULT_RECEIVED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
@@ -121,10 +103,8 @@ export const ACTION_VALIDATE_RECEIVED_TRANSACTIONS =
 export const ACTION_VERIFY_VALIDATED_TRANSACTIONS =
 	'verifyValidatedTransactions';
 export const ACTION_ADD_VERIFIED_TRANSACTIONS = 'addVerifiedTransactions';
-export const ACTION_ADD_PENDING_TRANSACTIONS = 'addPendingTransactions';
 
 export class TransactionPool extends EventEmitter {
-	private readonly _pendingTransactionsProcessingLimit: number;
 	private readonly _expireTransactionsInterval: number;
 	private readonly _expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
 	private readonly _maxTransactionsPerQueue: number;
@@ -157,20 +137,17 @@ export class TransactionPool extends EventEmitter {
 		validatedTransactionsLimitPerProcessing = DEFAULT_VALIDATED_TRANSACTIONS_LIMIT_PER_PROCESSING,
 		verifiedTransactionsProcessingInterval = DEFAULT_VERIFIED_TRANSACTIONS_PROCESSING_INTERVAL,
 		verifiedTransactionsLimitPerProcessing = DEFAULT_VERIFIED_TRANSACTIONS_LIMIT_PER_PROCESSING,
-		pendingTransactionsProcessingLimit = DEFAULT_PENDING_TRANSACTIONS_PROCESSING_LIMIT,
 		validateTransactions,
 		verifyTransactions,
 		processTransactions,
 	}: TransactionPoolOptions) {
 		super();
 		this._maxTransactionsPerQueue = maxTransactionsPerQueue;
-		this._pendingTransactionsProcessingLimit = pendingTransactionsProcessingLimit;
 
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
 			verified: new Queue(),
-			pending: new Queue(),
 			ready: new Queue(),
 		};
 		this._expireTransactionsInterval = expireTransactionsInterval;
@@ -236,12 +213,6 @@ export class TransactionPool extends EventEmitter {
 		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
 
-	public addPendingTransaction(transaction: Transaction): AddTransactionResult {
-		const pendingQueue: QueueNames = 'pending';
-
-		return this.addTransactionToQueue(pendingQueue, transaction);
-	}
-
 	public addVerifiedTransaction(
 		transaction: Transaction,
 	): AddTransactionResult {
@@ -265,7 +236,7 @@ export class TransactionPool extends EventEmitter {
 			removedTransactionsByRecipientIdFromValidatedQueue,
 		);
 
-		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
+		// Move transactions from the verified and ready queues to the validated queue where account was a receipient in the verified removed transactions
 		const removedTransactionsByRecipientIdFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForSenderIdWithRecipientIds(transactions),
@@ -283,24 +254,6 @@ export class TransactionPool extends EventEmitter {
 			to: 'verified',
 			payload: transactions,
 		});
-	}
-
-	// It is assumed that signature is verified for this transaction before this function is called
-	public addVerifiedSignature(
-		signatureObject: SignatureObject,
-	): TransactionResponse {
-		const transaction = this.findInTransactionPool(
-			signatureObject.transactionId,
-		);
-		if (transaction) {
-			return transaction.addVerifiedSignature(signatureObject.signature);
-		}
-
-		return {
-			id: signatureObject.transactionId,
-			status: Status.FAIL,
-			errors: [new Error('Could not find transaction in transaction pool')],
-		};
 	}
 
 	public existsInTransactionPool(id: string): boolean {
@@ -363,13 +316,13 @@ export class TransactionPool extends EventEmitter {
 			...removedTransactionsByTypesFromValidatedQueue,
 		]);
 
-		// Remove transactions from the verified, pending and ready queues which were sent from the accounts in the confirmed transactions
+		// Remove transactions from the verified and ready queues which were sent from the accounts in the confirmed transactions
 		const removedTransactionsBySenderPublicKeysFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForSenderPublicKey(transactions),
 		);
 
-		// Remove all transactions from the verified, pending and ready queues if they are of a type which includes unique data and that type is included in the confirmed transactions
+		// Remove all transactions from the verified and ready queues if they are of a type which includes unique data and that type is included in the confirmed transactions
 		const removedTransactionsByTypesFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForTypes(
@@ -409,7 +362,7 @@ export class TransactionPool extends EventEmitter {
 			removedTransactionsBySenderPublicKeysFromValidatedQueue,
 		);
 
-		// Move transactions from the verified, pending and ready queues to the validated queue which were sent from sender accounts
+		// Move transactions from the verified and ready queues to the validated queue which were sent from sender accounts
 		const removedTransactionsBySenderPublicKeysFromOtherQueues = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionPropertyForValues(
@@ -429,7 +382,6 @@ export class TransactionPool extends EventEmitter {
 	): boolean {
 		return transaction.verifyAgainstOtherTransactions([
 			...this.queues.ready.transactions,
-			...this.queues.pending.transactions,
 			...this.queues.verified.transactions,
 		]);
 	}
@@ -465,15 +417,10 @@ export class TransactionPool extends EventEmitter {
 		});
 
 		// If transaction is added to one of the queues which semantically mean that transactions are verified, then fire the event.
-		if (queueName === 'verified' || queueName === 'pending') {
-			this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
-				action:
-					queueName === 'verified'
-						? ACTION_ADD_VERIFIED_TRANSACTIONS
-						: ACTION_ADD_PENDING_TRANSACTIONS,
-				payload: [transaction],
-			});
-		}
+		this.emit(EVENT_VERIFIED_TRANSACTION_ONCE, {
+			action: ACTION_ADD_VERIFIED_TRANSACTIONS,
+			payload: [transaction],
+		});
 
 		return {
 			isFull: false,
@@ -501,15 +448,11 @@ export class TransactionPool extends EventEmitter {
 	> {
 		const transactionsInReadyQueue = this._queues.ready.size();
 		const transactionsInVerifiedQueue = this._queues.verified.size();
-		const processableTransactionsInPendingQueue = this._queues.pending.sizeBy(
-			transaction => transaction.isReady(),
-		);
 
 		if (
 			transactionsInReadyQueue >=
 				this._verifiedTransactionsProcessingLimitPerInterval ||
-			(transactionsInVerifiedQueue === 0 &&
-				processableTransactionsInPendingQueue === 0)
+			transactionsInVerifiedQueue === 0
 		) {
 			return {
 				passedTransactions: [],
@@ -520,30 +463,15 @@ export class TransactionPool extends EventEmitter {
 		const additionalTransactionsToProcessLimit =
 			this._verifiedTransactionsProcessingLimitPerInterval -
 			transactionsInReadyQueue;
-		const transactionsFromPendingQueueLimit = Math.min(
-			additionalTransactionsToProcessLimit,
-			this._pendingTransactionsProcessingLimit,
-		);
-		// Filter at max transactionsFromPendingQueueLimit from the pending queue which are also ready
-		const transactionsFromPendingQueue = this._queues.pending
-			.filter(transaction => transaction.isReady())
-			.slice(0, transactionsFromPendingQueueLimit);
-
-		const additionalVerifiedTransactionsToProcessLimit =
-			additionalTransactionsToProcessLimit -
-			transactionsFromPendingQueue.length;
 
 		const transactionsFromVerifiedQueue = this._queues.verified.peekUntil(
-			queueCheckers.returnTrueUntilLimit(
-				additionalVerifiedTransactionsToProcessLimit,
-			),
+			queueCheckers.returnTrueUntilLimit(additionalTransactionsToProcessLimit),
 		);
 		const transactionsFromReadyQueue = this._queues.ready.peekUntil(
 			queueCheckers.returnTrueUntilLimit(transactionsInReadyQueue),
 		);
 		const toProcessTransactions = [
 			...transactionsFromReadyQueue,
-			...transactionsFromPendingQueue,
 			...transactionsFromVerifiedQueue,
 		];
 		const {
@@ -556,7 +484,7 @@ export class TransactionPool extends EventEmitter {
 
 		const { received, validated, ...otherQueues } = this._queues;
 
-		// Remove invalid transactions from verified, pending and ready queues
+		// Remove invalid transactions from verified and ready queues
 		const removedTransactions = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForId(failedTransactions),
@@ -573,13 +501,6 @@ export class TransactionPool extends EventEmitter {
 		// Move processeable transactions from the verified queue to the ready queue
 		this._queues.ready.enqueueMany(
 			this._queues.verified.removeFor(
-				queueCheckers.checkTransactionForId(passedTransactions),
-			),
-		);
-
-		// Move processable transactions from the pending queue to the ready queue
-		this._queues.ready.enqueueMany(
-			this._queues.pending.removeFor(
 				queueCheckers.checkTransactionForId(passedTransactions),
 			),
 		);
@@ -662,7 +583,7 @@ export class TransactionPool extends EventEmitter {
 	}
 
 	private async verifyValidatedTransactions(): Promise<
-		CheckTransactionsResponseWithPassFailAndPending
+		CheckTransactionsResponseWithPassAndFail
 	> {
 		if (
 			this.queues.verified.size() >= this._maxTransactionsPerQueue ||
@@ -671,7 +592,6 @@ export class TransactionPool extends EventEmitter {
 			return {
 				passedTransactions: [],
 				failedTransactions: [],
-				pendingTransactions: [],
 			};
 		}
 
@@ -683,9 +603,8 @@ export class TransactionPool extends EventEmitter {
 
 		const {
 			failedTransactions,
-			pendingTransactions,
 			passedTransactions,
-		} = await checkTransactionsWithPassFailAndPending(
+		} = await checkTransactionsWithPassAndFail(
 			toVerifyTransactions,
 			this._verifyTransactions,
 		);
@@ -702,23 +621,15 @@ export class TransactionPool extends EventEmitter {
 			),
 		);
 
-		// Move verified pending transactions from the validated queue to the pending queue
-		this._queues.pending.enqueueMany(
-			this._queues.validated.removeFor(
-				queueCheckers.checkTransactionForId(pendingTransactions),
-			),
-		);
-
 		this.emit(EVENT_REMOVED_TRANSACTIONS, {
 			action: ACTION_VERIFY_VALIDATED_TRANSACTIONS,
 			payload: removedTransactions,
 		});
 
 		// Checking which transactions were verified for the first time, filtering them and firing an event for those transactions
-		const transactionsVerifiedForFirstTime = [
-			...pendingTransactions,
-			...passedTransactions,
-		].filter(transaction => transaction.verifiedOnce === false);
+		const transactionsVerifiedForFirstTime = [...passedTransactions].filter(
+			transaction => transaction.verifiedOnce === false,
+		);
 
 		transactionsVerifiedForFirstTime.forEach(
 			transaction => delete transaction.verifiedOnce,
@@ -732,7 +643,6 @@ export class TransactionPool extends EventEmitter {
 		return {
 			passedTransactions,
 			failedTransactions,
-			pendingTransactions,
 		};
 	}
 }

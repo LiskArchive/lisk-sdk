@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import { Transaction } from './transaction_pool';
 
 export type CheckerFunction = (
@@ -18,18 +32,11 @@ export interface TransactionResponse {
 export enum Status {
 	FAIL = 0,
 	OK = 1,
-	PENDING = 2,
 }
 
 export interface CheckTransactionsResponseWithPassAndFail {
 	failedTransactions: ReadonlyArray<Transaction>;
 	passedTransactions: ReadonlyArray<Transaction>;
-}
-
-export interface CheckTransactionsResponseWithPassFailAndPending {
-	failedTransactions: ReadonlyArray<Transaction>;
-	passedTransactions: ReadonlyArray<Transaction>;
-	pendingTransactions: ReadonlyArray<Transaction>;
 }
 
 const getTransactionByStatus = (
@@ -69,35 +76,5 @@ export const checkTransactionsWithPassAndFail = async (
 	return {
 		failedTransactions,
 		passedTransactions,
-	};
-};
-
-export const checkTransactionsWithPassFailAndPending = async (
-	transactions: ReadonlyArray<Transaction>,
-	checkerFunction: CheckerFunction,
-): Promise<CheckTransactionsResponseWithPassFailAndPending> => {
-	// Process transactions and check their validity
-	const { transactionsResponses } = await checkerFunction(transactions);
-
-	const failedTransactions = getTransactionByStatus(
-		transactions,
-		transactionsResponses,
-		Status.FAIL,
-	);
-	const passedTransactions = getTransactionByStatus(
-		transactions,
-		transactionsResponses,
-		Status.OK,
-	);
-	const pendingTransactions = getTransactionByStatus(
-		transactions,
-		transactionsResponses,
-		Status.PENDING,
-	);
-
-	return {
-		failedTransactions,
-		passedTransactions,
-		pendingTransactions,
 	};
 };

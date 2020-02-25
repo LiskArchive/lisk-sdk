@@ -17,7 +17,6 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
-import SecondPassphraseCommand from '../../../src/commands/transaction/create/second-passphrase';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
 import VoteCommand from '../../../src/commands/transaction/create/vote';
 import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
@@ -33,7 +32,6 @@ describe('transaction:create', () => {
 				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(TransferCommand, 'run', sandbox.stub())
-			.stub(SecondPassphraseCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
 			.stub(VoteCommand, 'run', sandbox.stub())
 			.stub(MultisignatureCommand, 'run', sandbox.stub());
@@ -67,20 +65,6 @@ describe('transaction:create', () => {
 			.command(['transaction:create', '--type=transfer'])
 			.it('should call type 0 command with flag type=transfer', () => {
 				return expect(TransferCommand.run).to.be.calledWithExactly([]);
-			});
-
-		setupTest()
-			.command(['transaction:create', '--type=9'])
-			.it('should call type 1 command with flag type=9', () => {
-				return expect(SecondPassphraseCommand.run).to.be.calledWithExactly([]);
-			});
-
-		setupTest()
-			.command(['transaction:create', '-t=second-passphrase', '--no-json'])
-			.it('should call type 1 command with flag type=second-passphrase', () => {
-				return expect(SecondPassphraseCommand.run).to.be.calledWithExactly([
-					'--no-json',
-				]);
 			});
 
 		setupTest()

@@ -34,11 +34,6 @@ describe('encrypt', () => {
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultPublicKey =
 		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
-	const defaultSecondPassphrase = 'second secret';
-	const defaultSecondPrivateKey =
-		'9ef4146f8166d32dc8051d3d9f3a0c4933e24aa8ccb439b5d9ad00078a89e2fc0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-	const defaultSecondPublicKey =
-		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultMessage = 'Some default text.';
 	const defaultPassword = 'myTotal53cr3t%&';
 	const customIterations = 12;
@@ -72,17 +67,10 @@ describe('encrypt', () => {
 
 		jest
 			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
-			.mockImplementation((passphrase: any) => {
-				if (passphrase === defaultPassphrase) {
-					return {
-						privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-						publicKey: Buffer.from(defaultPublicKey, 'hex'),
-					};
-				}
-
+			.mockImplementation(() => {
 				return {
-					privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
-					publicKey: Buffer.from(defaultSecondPublicKey, 'hex'),
+					privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+					publicKey: Buffer.from(defaultPublicKey, 'hex'),
 				};
 			});
 
@@ -151,7 +139,7 @@ describe('encrypt', () => {
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
 					defaultEncryptedMessageWithNonce.nonce,
-					defaultSecondPassphrase,
+					defaultPassphrase,
 					defaultPublicKey,
 				),
 			).toThrowError(

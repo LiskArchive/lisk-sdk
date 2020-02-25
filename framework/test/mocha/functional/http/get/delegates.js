@@ -16,11 +16,6 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const {
-	transfer,
-	registerSecondPassphrase,
-	registerDelegate,
-} = require('@liskhq/lisk-transactions');
 const { Slots } = require('@liskhq/lisk-chain');
 const genesisDelegates = require('../../../data/genesis_delegates.json');
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -28,16 +23,8 @@ const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/legacy/wait_for');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
 const apiHelpers = require('../../../../utils/http/api');
-const {
-	getNetworkIdentifier,
-} = require('../../../../utils/network_identifier');
-
-const networkIdentifier = getNetworkIdentifier(
-	__testContext.config.genesisBlock,
-);
 
 Promise.promisify(waitFor.newRound);
-const { FEES } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
@@ -160,85 +147,6 @@ describe('GET /delegates', () => {
 			it('using valid not existing publicKey should return an empty array', async () => {
 				return delegatesEndpoint
 					.makeRequest({ publicKey: validNotExistingPublicKey }, 200)
-					.then(res => {
-						expect(res.body.data).to.be.empty;
-					});
-			});
-		});
-
-		describe('secondPublicKey', () => {
-			const secondPassphraseAccount = randomUtil.account();
-
-			const creditTransaction = transfer({
-				networkIdentifier,
-				amount: (
-					BigInt(FEES.SECOND_SIGNATURE) + BigInt(FEES.DELEGATE)
-				).toString(),
-				passphrase: accountFixtures.genesis.passphrase,
-				recipientId: secondPassphraseAccount.address,
-			});
-			const signatureTransaction = registerSecondPassphrase({
-				networkIdentifier,
-				passphrase: secondPassphraseAccount.passphrase,
-				secondPassphrase: secondPassphraseAccount.secondPassphrase,
-			});
-			const delegateTransaction = registerDelegate({
-				networkIdentifier,
-				passphrase: secondPassphraseAccount.passphrase,
-				username: secondPassphraseAccount.username,
-			});
-
-			before(async () => {
-				const creditRes = await apiHelpers.sendTransactionPromise(
-					creditTransaction,
-				);
-				expect(creditRes.statusCode).to.be.eql(200);
-				await waitFor.confirmations([creditTransaction.id]);
-				const delegateTransactionRes = await apiHelpers.sendTransactionsPromise(
-					[delegateTransaction],
-				);
-				expect(delegateTransactionRes[0].statusCode).to.be.eql(200);
-				await waitFor.confirmations([delegateTransaction.id]);
-				const signatureTransactionRes = await apiHelpers.sendTransactionsPromise(
-					[signatureTransaction],
-				);
-				expect(signatureTransactionRes[0].statusCode).to.be.eql(200);
-				await waitFor.confirmations([signatureTransaction.id]);
-			});
-
-			it('using no secondPublicKey should return an empty array', async () => {
-				return delegatesEndpoint
-					.makeRequest({ secondPublicKey: '' }, 200)
-					.then(res => {
-						expect(res.body.data).to.be.empty;
-					});
-			});
-
-			it('using invalid secondPublicKey should fail', async () => {
-				return delegatesEndpoint
-					.makeRequest({ secondPublicKey: 'invalidAddress' }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'secondPublicKey');
-					});
-			});
-
-			it('using valid existing secondPublicKey of delegate should return the result', async () => {
-				return delegatesEndpoint
-					.makeRequest(
-						{ secondPublicKey: secondPassphraseAccount.secondPublicKey },
-						200,
-					)
-					.then(res => {
-						expect(res.body.data).to.have.length(1);
-						expect(res.body.data[0].account.secondPublicKey).to.be.eql(
-							secondPassphraseAccount.secondPublicKey,
-						);
-					});
-			});
-
-			it('using valid not existing secondPublicKey should return an empty array', async () => {
-				return delegatesEndpoint
-					.makeRequest({ secondPublicKey: validNotExistingPublicKey }, 200)
 					.then(res => {
 						expect(res.body.data).to.be.empty;
 					});

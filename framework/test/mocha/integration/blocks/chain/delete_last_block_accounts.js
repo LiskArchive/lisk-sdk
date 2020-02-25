@@ -17,7 +17,6 @@
 const expect = require('chai').expect;
 const {
 	transfer,
-	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
@@ -163,84 +162,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ address: testReceipt.address },
 					);
 					expect(account.balance).to.equal(testReceiptData.balance);
-				});
-			});
-
-			describe('(type 1) register second signature', () => {
-				before('create account with funds', done => {
-					createAccountWithFunds(done);
-				});
-
-				it('should validate account data from sender', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					testAccountData = account;
-					expect(account.publicKey).to.be.null;
-					expect(account.secondPublicKey).to.be.null;
-					expect(account.secondSignature).to.equal(false);
-				});
-
-				it('should forge a block', done => {
-					const signatureTransaction = registerSecondPassphrase({
-						networkIdentifier,
-						passphrase: testAccount.passphrase,
-						secondPassphrase: testAccount.secondPassphrase,
-					});
-					localCommon.addTransactionsAndForge(
-						library,
-						[signatureTransaction],
-						done,
-					);
-				});
-
-				it('should validate account data from sender after forging a block', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					testAccountDataAfterBlock = account;
-					expect(account.publicKey).to.not.be.null;
-					expect(account.secondPublicKey).to.not.be.null;
-					expect(account.secondSignature).to.equal(true);
-				});
-
-				it('should delete last block', async () => {
-					const transactions = library.modules.chain.lastBlock.transactions;
-					await library.modules.processor.deleteLastBlock(
-						library.modules.chain.lastBlock,
-					);
-					const newLastBlock = library.modules.chain.lastBlock;
-					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse(),
-					);
-					expect(newLastBlock).to.be.an('object');
-				});
-
-				it('should validate account data from sender after deleting the last block', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.secondPublicKey).to.be.null;
-					expect(account.secondSignature).to.equal(false);
-				});
-
-				it('should forge a block with transaction pool', done => {
-					localCommon.addTransactionsAndForge(library, [], done);
-				});
-
-				it('should validate account data from sender after forging a block with transaction pool', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
-					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey,
-					);
-					expect(account.secondPublicKey).to.equal(
-						testAccountDataAfterBlock.secondPublicKey,
-					);
-					expect(account.secondSignature).to.equal(true);
 				});
 			});
 

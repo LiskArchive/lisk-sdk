@@ -17,7 +17,6 @@ import {
 	BaseTransaction,
 	DelegateTransaction,
 	MultisignatureTransaction,
-	SecondSignatureTransaction,
 	TransactionJSON,
 	TransferTransaction,
 	VoteTransaction,
@@ -36,7 +35,6 @@ export const parseTransactionString = (transactionStr: string) => {
 // tslint:disable-next-line no-any
 const defaultTransactions: { readonly [key: number]: any } = {
 	8: TransferTransaction,
-	9: SecondSignatureTransaction,
 	10: DelegateTransaction,
 	11: VoteTransaction,
 	12: MultisignatureTransaction,

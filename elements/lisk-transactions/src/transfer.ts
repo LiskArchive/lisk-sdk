@@ -90,7 +90,6 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		amount,
 		recipientPublicKey,
 		passphrase,
-		secondPassphrase,
 		networkIdentifier,
 	} = inputs;
 
@@ -129,7 +128,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		transactionWithSenderInfo,
 	);
 
-	transferTransaction.sign(passphrase, secondPassphrase);
+	transferTransaction.sign(passphrase);
 
 	return transferTransaction.toJSON();
 };

@@ -189,32 +189,6 @@ describe('Transaction', () => {
 			);
 		});
 
-		it('should populate asset field with "signatures" json for type 1 transactions', async () => {
-			const block = seeder.getLastBlock();
-			const transactions = [];
-			for (let i = 0; i < numSeedRecords; i++) {
-				transactions.push(
-					new transactionsFixtures.Transaction({
-						blockId: block.id,
-						type: TRANSACTION_TYPES.SIGNATURE,
-					}),
-				);
-			}
-			await storage.entities.Transaction.create(transactions);
-			const transactionIds = transactions.map(({ id }) => id);
-			const result = await storage.entities.Transaction.get(
-				{ id_in: transactionIds },
-				{ extended: true },
-			);
-
-			expect(result).to.not.empty;
-			expect(result).to.have.lengthOf(numSeedRecords);
-			expect(result.map(r => r.id)).to.be.eql(transactions.map(t => t.id));
-			expect(result.map(r => r.asset.signature)).to.be.eql(
-				transactions.map(t => t.asset.signature),
-			);
-		});
-
 		it('should populate asset field with "delegates" json for type 2 transactions', async () => {
 			const block = seeder.getLastBlock();
 			const transactions = [];

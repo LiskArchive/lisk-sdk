@@ -15,10 +15,8 @@
 SELECT
 	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
-	ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 	"username",
 	"isDelegate"::int::boolean,
-	"secondSignature"::int::boolean,
 	"balance",
 	"asset",
 	"multimin" as "multiMin",
