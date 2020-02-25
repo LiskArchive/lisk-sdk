@@ -20,28 +20,39 @@ import { Status } from '../src/response';
 import { TransactionError, TransactionPendingError } from '../src/errors';
 import {
 	addTransactionFields,
-	MockStateStore as store,
 	TestTransaction,
 	TestTransactionBasicImpl,
 } from './helpers';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import * as transferSecondSignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_second_signature_validate.json';
 import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_multi_signature_validate.json';
 import * as utils from '../src/utils';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { SignatureObject } from '../src/create_signature_object';
+import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
+
+const getAccount = (account: object): any => ({
+	balance: 0,
+	producedBlocks: 0,
+	missedBlocks: 0,
+	...account,
+});
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(
 		transferFixture.testCases[0].output,
 	);
-	const defaultSenderAccount = {
+
+	const defaultSenderAccount = getAccount({
 		...transferFixture.testCases[0].input.account,
 		balance: BigInt('1000000000000'),
-	};
+	});
+
 	const defaultMultisignatureTransaction = addTransactionFields(
 		multisignatureFixture.testCases[0].output,
 	);
-	const defaultMultisignatureAccount = {
+
+	const defaultMultisignatureAccount = getAccount({
 		...multisignatureFixture.testCases[0].input.account,
 		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
 			account => account.publicKey,
@@ -49,16 +60,17 @@ describe('Base transaction class', () => {
 		balance: BigInt('94378900000'),
 		multiMin: 2,
 		multiLifetime: 1,
-	};
+	});
+
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let validTestTransaction: BaseTransaction;
 	let transactionWithDefaultValues: BaseTransaction;
 	let transactionWithBasicImpl: BaseTransaction;
-	let storeAccountGetStub: jest.SpyInstance;
-	let storeAccountGetOrDefaultStub: jest.SpyInstance;
 	let validMultisignatureTransaction: TransferTransaction;
+	let store: StateStoreMock;
+
 	beforeEach(async () => {
 		validTestTransaction = new TransferTransaction({
 			...defaultTransaction,
@@ -74,12 +86,7 @@ describe('Base transaction class', () => {
 			...defaultMultisignatureTransaction,
 			networkIdentifier,
 		});
-		storeAccountGetStub = jest
-			.spyOn(store.account, 'get')
-			.mockReturnValue(defaultSenderAccount);
-		storeAccountGetOrDefaultStub = jest
-			.spyOn(store.account, 'getOrDefault')
-			.mockReturnValue(defaultSenderAccount);
+		store = new StateStoreMock([defaultSenderAccount]);
 	});
 
 	describe('#constructor', () => {
@@ -242,7 +249,6 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return false on verification of multisignature transaction with missing signatures', async () => {
-			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const multisignaturesTransaction = new TransferTransaction({
 				...defaultMultisignatureTransaction,
 				networkIdentifier,
@@ -601,22 +607,26 @@ describe('Base transaction class', () => {
 	describe('#addMultisignature', () => {
 		let transferFromMultiSigAccountTrs: TransferTransaction;
 		let multisigMember: SignatureObject;
+
 		beforeEach(async () => {
-			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const {
 				signatures,
 				...trsWithoutSignatures
 			} = validMultisignatureTransaction.toJSON();
+
 			transferFromMultiSigAccountTrs = new TransferTransaction({
 				...trsWithoutSignatures,
 				networkIdentifier,
 			});
+
 			multisigMember = {
 				transactionId: multisignatureFixture.testCases[0].output.id,
 				publicKey:
 					multisignatureFixture.testCases[0].input.coSigners[0].publicKey,
 				signature: multisignatureFixture.testCases[0].output.signatures[0],
 			};
+
+			store = new StateStoreMock([defaultMultisignatureAccount]);
 		});
 
 		it('should add signature to transaction from multisig account', async () => {
@@ -662,7 +672,6 @@ describe('Base transaction class', () => {
 		});
 
 		it('should fail to add invalid signature to transaction from multisig account', async () => {
-			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
 			const transferFromMultiSigAccountTrs = new TransferTransaction({
 				...rawTrs,
@@ -692,7 +701,6 @@ describe('Base transaction class', () => {
 		});
 
 		it('should fail with signature not part of the group', async () => {
-			storeAccountGetStub.mockReturnValue(defaultMultisignatureAccount);
 			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
 			const transferFromMultiSigAccountTrs = new TransferTransaction({
 				...rawTrs,
@@ -734,10 +742,12 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return a failed transaction response with insufficient account balance', async () => {
-			storeAccountGetOrDefaultStub.mockReturnValue({
-				...defaultSenderAccount,
-				balance: BigInt('0'),
-			});
+			store = new StateStoreMock([
+				{
+					...defaultSenderAccount,
+					balance: BigInt('0'),
+				},
+			]);
 			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
@@ -753,12 +763,17 @@ describe('Base transaction class', () => {
 		it('should return a failed transaction response with insufficient minimum remaining balance', async () => {
 			const senderBalance =
 				BigInt((validTestTransaction as any).asset.amount) +
+				BigInt((validTestTransaction as any).fee) +
 				BaseTransaction.MIN_REMAINING_BALANCE -
 				BigInt(10000);
-			storeAccountGetStub.mockReturnValue({
-				...defaultSenderAccount,
-				balance: senderBalance,
-			});
+
+			store = new StateStoreMock([
+				{
+					...defaultSenderAccount,
+					balance: senderBalance,
+				},
+			]);
+
 			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
@@ -774,12 +789,15 @@ describe('Base transaction class', () => {
 		it('should return a successful transaction response with matching minimum remaining balance', async () => {
 			const senderBalance =
 				BigInt((validTestTransaction as any).asset.amount) +
+				BigInt((validTestTransaction as any).fee) +
 				BaseTransaction.MIN_REMAINING_BALANCE;
 
-			storeAccountGetStub.mockReturnValue({
-				...defaultSenderAccount,
-				balance: senderBalance,
-			});
+			store = new StateStoreMock([
+				{
+					...defaultSenderAccount,
+					balance: senderBalance,
+				},
+			]);
 			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
@@ -790,13 +808,16 @@ describe('Base transaction class', () => {
 		it('should return a successful transaction response with extra minimum remaining balance', async () => {
 			const senderBalance =
 				BigInt((validTestTransaction as any).asset.amount) +
+				BigInt((validTestTransaction as any).fee) +
 				BaseTransaction.MIN_REMAINING_BALANCE +
 				BigInt(10000);
 
-			storeAccountGetStub.mockReturnValue({
-				...defaultSenderAccount,
-				balance: senderBalance,
-			});
+			store = new StateStoreMock([
+				{
+					...defaultSenderAccount,
+					balance: senderBalance,
+				},
+			]);
 			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
@@ -807,17 +828,31 @@ describe('Base transaction class', () => {
 
 	describe('#undo', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
+			// Arrange
+			store = new StateStoreMock([
+				{
+					...defaultAccount,
+					address: (validTestTransaction as any).asset.recipientId,
+					balance: (validTestTransaction as any).asset.amount,
+				},
+			]);
+
+			// Act
 			const { id, status, errors } = await validTestTransaction.undo(store);
+
+			// Assert
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.OK);
 			expect(errors).toEqual([]);
 		});
 
 		it('should return a failed transaction response with account balance exceeding max amount', async () => {
-			storeAccountGetOrDefaultStub.mockReturnValue({
-				...defaultSenderAccount,
-				balance: BigInt(MAX_TRANSACTION_AMOUNT),
-			});
+			store = new StateStoreMock([
+				{
+					...defaultSenderAccount,
+					balance: BigInt(MAX_TRANSACTION_AMOUNT),
+				},
+			]);
 			const { id, status, errors } = await validTestTransaction.undo(store);
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.FAIL);
@@ -858,21 +893,22 @@ describe('Base transaction class', () => {
 	describe('create, sign and stringify transaction', () => {
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TransferTransaction({
-				...transferFixture.testCases[0].input.transaction,
-				networkIdentifier: transferFixture.testCases[0].input.networkIdentifier,
+				...transferSecondSignatureFixture.testCases[0].input.transaction,
+				networkIdentifier:
+					transferSecondSignatureFixture.testCases[0].input.networkIdentifier,
 			});
 			newTransaction.sign(
-				transferFixture.testCases[0].input.account.passphrase,
+				transferSecondSignatureFixture.testCases[0].input.account.passphrase,
 			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
 			expect(parsedResponse.senderPublicKey).toEqual(
-				transferFixture.testCases[0].output.senderPublicKey,
+				transferSecondSignatureFixture.testCases[0].output.senderPublicKey,
 			);
 			expect(parsedResponse.signature).toEqual(
-				transferFixture.testCases[0].output.signature,
+				transferSecondSignatureFixture.testCases[0].output.signature,
 			);
 		});
 	});
@@ -883,6 +919,7 @@ describe('Base transaction class', () => {
 			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02111111',
 			'hex',
 		);
+
 		const defaultSignature =
 			'dc8fe25f817c81572585b3769f3c6df13d3dc93ff470b2abe807f43a3359ed94e9406d2539013971431f2d540e42dc7d3d71c7442da28572c827d59adc5dfa08';
 
@@ -909,35 +946,6 @@ describe('Base transaction class', () => {
 
 			it('should not set signSignature property', async () => {
 				expect(transactionWithDefaultValues.signSignature).toBeUndefined();
-			});
-
-			it('should set id property', async () => {
-				expect(transactionWithDefaultValues.id).not.toBeEmpty();
-			});
-
-			it('should set senderId property', async () => {
-				expect(transactionWithDefaultValues.senderId).not.toBeEmpty();
-			});
-
-			it('should set senderPublicKey property', async () => {
-				expect(transactionWithDefaultValues.senderPublicKey).not.toBeEmpty();
-			});
-
-			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).toHaveBeenCalledWith(
-					defaultHash,
-					defaultPassphrase,
-				);
-			});
-		});
-
-		describe('when sign is called with passphrase and second passphrase', () => {
-			beforeEach(async () => {
-				transactionWithDefaultValues.sign(defaultPassphrase);
-			});
-
-			it('should set signature property', async () => {
-				expect(transactionWithDefaultValues.signature).toBe(defaultSignature);
 			});
 
 			it('should set id property', async () => {
