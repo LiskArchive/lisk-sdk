@@ -27,7 +27,6 @@ const getFilterAndOptionsFormParams = params => {
 	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
 	};
 
@@ -46,26 +45,13 @@ const getFilterAndOptionsFormParams = params => {
 };
 
 const validateFilters = (filters, params) => {
-	if (
-		!(
-			filters.username ||
-			filters.address ||
-			filters.publicKey ||
-			filters.secondPublicKey
-		)
-	) {
+	if (!(filters.username || filters.address || filters.publicKey)) {
 		const error = generateParamsErrorObject(
+			[params.address, params.publicKey, params.username],
 			[
-				params.address,
-				params.publicKey,
-				params.secondPublicKey,
-				params.username,
-			],
-			[
-				'address is required if publicKey, secondPublicKey and username not provided.',
-				'publicKey is required if address, secondPublicKey and username not provided.',
-				'secondPublicKey is required if address, publicKey and username not provided.',
-				'username is required if publicKey, secondPublicKey and address not provided.',
+				'address is required if publicKey and username not provided.',
+				'publicKey is required if address and username not provided.',
+				'username is required if publicKey and address not provided.',
 			],
 		);
 

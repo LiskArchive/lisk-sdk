@@ -32,7 +32,6 @@ function accountFormatter(totalSupply, account) {
 		'address',
 		'publicKey',
 		'balance',
-		'secondPublicKey',
 		'asset',
 	]);
 
@@ -54,7 +53,6 @@ function accountFormatter(totalSupply, account) {
 	}
 
 	formattedAccount.publicKey = formattedAccount.publicKey || '';
-	formattedAccount.secondPublicKey = formattedAccount.secondPublicKey || '';
 
 	return formattedAccount;
 }
@@ -110,28 +108,16 @@ AccountsController.getAccounts = async (context, next) => {
 };
 
 async function multiSigAccountFormatter(account) {
-	const result = _.pick(account, [
-		'address',
-		'publicKey',
-		'balance',
-		'secondPublicKey',
-	]);
+	const result = _.pick(account, ['address', 'publicKey', 'balance']);
 	result.min = account.multiMin;
 	result.lifetime = account.multiLifetime;
-
-	if (result.secondPublicKey === null) {
-		result.secondPublicKey = '';
-	}
 
 	const members = await storage.entities.Account.get({
 		publicKey_in: account.membersPublicKeys,
 	});
 
 	result.members = members.map(member => {
-		member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
-		if (member.secondPublicKey === null) {
-			member.secondPublicKey = '';
-		}
+		member = _.pick(member, ['address', 'publicKey']);
 		return member;
 	});
 

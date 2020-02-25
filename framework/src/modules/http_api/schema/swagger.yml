@@ -108,7 +108,6 @@ paths:
       parameters:
         - $ref: '#/parameters/address'
         - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
@@ -552,7 +551,6 @@ paths:
       parameters:
         - $ref: '#/parameters/address'
         - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/offset'
         - name: limit
@@ -763,7 +761,6 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/address'
         - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/limit'
         - in: query
@@ -817,7 +814,6 @@ paths:
         - $ref: '#/parameters/username'
         - $ref: '#/parameters/address'
         - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/offset'
         - name: limit
           in: query
@@ -1094,12 +1090,6 @@ parameters:
     name: publicKey
     in: query
     description: Public key to query
-    type: string
-    format: publicKey
-  secondPublicKey:
-    name: secondPublicKey
-    in: query
-    description: Second public key to query
     type: string
     format: publicKey
   username:
@@ -1679,12 +1669,6 @@ definitions:
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         description: |
           The public key of the Senders' account.
-      senderSecondPublicKey:
-        type: string
-        format: publicKey
-        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-        description: |
-          The second public key of the Senders' account, if it exists.
       signature:
         type: string
         format: signature
@@ -2399,11 +2383,6 @@ definitions:
         description: |
           The public key is derived from the private key of the owner of the account.
           It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
-      secondPublicKey:
-        type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
 
   AccountExtended:
     type: object
@@ -2430,11 +2409,6 @@ definitions:
         type: string
         example: 1081560729258
         description: The current balance of the account in Beddows.
-      secondPublicKey:
-        type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
       asset:
         type: object
         example: { 'custom': true, 'field': true }
@@ -2470,11 +2444,6 @@ definitions:
         type: string
         example: 1081560729258
         description: The current balance of the account in Beddows.
-      secondPublicKey:
-        type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
       min:
         type: integer
         example: 3
