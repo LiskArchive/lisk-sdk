@@ -22,7 +22,6 @@ import { DappsResource } from './resources/dapps';
 import { DelegatesResource } from './resources/delegates';
 import { NodeResource } from './resources/node';
 import { PeersResource } from './resources/peers';
-import { SignaturesResource } from './resources/signatures';
 import { TransactionsResource } from './resources/transactions';
 import { VotersResource } from './resources/voters';
 import { VotesResource } from './resources/votes';
@@ -92,7 +91,6 @@ export class APIClient {
 	public nodes!: ReadonlyArray<string>;
 	public peers: PeersResource;
 	public randomizeNodes!: boolean;
-	public signatures: SignaturesResource;
 	public transactions: TransactionsResource;
 	public voters: VotersResource;
 	public votes: VotesResource;
@@ -108,7 +106,6 @@ export class APIClient {
 		this.delegates = new DelegatesResource(this);
 		this.node = new NodeResource(this);
 		this.peers = new PeersResource(this);
-		this.signatures = new SignaturesResource(this);
 		this.transactions = new TransactionsResource(this);
 		this.voters = new VotersResource(this);
 		this.votes = new VotesResource(this);
