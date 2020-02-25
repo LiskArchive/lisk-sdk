@@ -16,7 +16,7 @@
 
 const { cloneDeep } = require('lodash');
 const { when } = require('jest-when');
-const { Chain, StateStore } = require('@liskhq/lisk-chain');
+const { Chain } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Dpos } = require('@liskhq/lisk-dpos');
 
@@ -33,10 +33,6 @@ const {
 const {
 	AbortError,
 } = require('../../../../../../../../src/application/node/synchronizer/errors');
-
-const {
-	Sequence,
-} = require('../../../../../../../../src/application/node/utils/sequence');
 const {
 	Processor,
 } = require('../../../../../../../../src/application/node/processor');
@@ -73,6 +69,7 @@ describe('block_synchronization_mechanism', () => {
 	let highestCommonBlock;
 	let blockIdsList;
 	let blockList;
+	let dataAccessMock;
 
 	beforeEach(() => {
 		loggerMock = {
@@ -109,7 +106,6 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			slots,
 			genesisBlock: genesisBlockDevnet,
-			sequence: new Sequence(),
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
@@ -124,7 +120,22 @@ describe('block_synchronization_mechanism', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
-		chainModule.dataAccess.getTempBlocks = jest.fn();
+
+		dataAccessMock = {
+			getTempBlocks: jest.fn(),
+			clearTempBlocks: jest.fn(),
+			getBlockHeadersWithHeights: jest.fn(),
+			getBlockByID: jest.fn(),
+			getBlockHeaderByHeight: jest.fn(),
+			getLastBlock: jest.fn(),
+			getBlockHeadersByHeightBetween: jest.fn(),
+			addBlockHeader: jest.fn(),
+			getAccountsByPublicKey: jest.fn(),
+			getLastBlockHeader: jest.fn(),
+			resetBlockHeaderCache: jest.fn(),
+			deserialize: chainModule.dataAccess.deserialize,
+		};
+		chainModule.dataAccess = dataAccessMock;
 
 		dpos = new Dpos({
 			chain: chainModule,
@@ -138,6 +149,9 @@ describe('block_synchronization_mechanism', () => {
 			dpos,
 			activeDelegates: constants.ACTIVE_DELEGATES,
 			startingHeight: 1,
+		});
+		Object.defineProperty(bftModule, 'finalizedHeight', {
+			get: jest.fn(() => 1),
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
@@ -178,53 +192,33 @@ describe('block_synchronization_mechanism', () => {
 		aBlock = newBlock({ height: 10, maxHeightPrevoted: 0 });
 		// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 		// memory. The following mock fakes this to be true
-		when(storageMock.entities.Block.begin)
-			.calledWith('loader:checkMemTables')
-			.mockResolvedValue({ genesisBlock: genesisBlockDevnet });
-		when(storageMock.entities.Account.get)
-			.calledWith({ isDelegate: true }, { limit: null })
+		when(chainModule.dataAccess.getBlockHeaderByHeight)
+			.calledWith(1)
+			.mockResolvedValue(genesisBlockDevnet);
+		when(chainModule.dataAccess.getAccountsByPublicKey)
+			.calledWith()
 			.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
 		// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 		const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
-		when(storageMock.entities.Block.get)
-			.calledWith(
-				{ height_gte: 1, height_lte: 2 },
-				{ limit: null, sort: 'height:desc' },
-			)
+		when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+			.calledWith(1, 2)
 			.mockResolvedValue([lastBlock]);
-		when(storageMock.entities.Block.get)
-			.calledWith({ height: 1 }, { extended: true })
-			.mockResolvedValue([genesisBlockDevnet]);
-		when(storageMock.entities.Block.get)
-			.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-			.mockResolvedValue([lastBlock]);
+		when(chainModule.dataAccess.getBlockHeaderByHeight)
+			.calledWith(1)
+			.mockResolvedValue(genesisBlockDevnet);
+		when(chainModule.dataAccess.getLastBlock)
+			.calledWith()
+			.mockResolvedValue(lastBlock);
 		// Same thing but for BFT module,as it doesn't use extended flag set to true
-		when(storageMock.entities.Block.get)
-			.calledWith({}, { sort: 'height:desc', limit: 1 })
-			.mockResolvedValue([lastBlock]);
+		when(chainModule.dataAccess.getLastBlockHeader)
+			.calledWith()
+			.mockResolvedValue(lastBlock);
 		// BFT loads blocks from storage and extracts their headers
-		when(storageMock.entities.Block.get)
-			.calledWith(
-				{
-					height_gte: genesisBlockDevnet.height,
-					height_lte: lastBlock.height,
-				},
-				{ limit: null, sort: 'height:asc' },
-			)
+		when(chainModule.dataAccess.getBlockHeadersWithHeights)
+			.calledWith([genesisBlockDevnet.height, lastBlock.height])
 			.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
-		storageMock.entities.ChainState.get.mockResolvedValue([
-			{ key: 'BFT.finalizedHeight', value: 0 },
-			{
-				key: 'DPoS.forgersList',
-				value: JSON.stringify([
-					{ round: 1, delegates: [] },
-					{ round: 2, delegates: [] },
-					{ round: 3, delegates: [] },
-				]),
-			},
-		]);
 		jest.spyOn(blockSynchronizationMechanism, '_requestAndValidateLastBlock');
 		jest.spyOn(blockSynchronizationMechanism, '_revertToLastCommonBlock');
 		jest.spyOn(
@@ -237,9 +231,6 @@ describe('block_synchronization_mechanism', () => {
 			.mockResolvedValue(peersList.connectedPeers);
 
 		await chainModule.init();
-		const stateStore = new StateStore(storageMock);
-		await stateStore.chainState.cache();
-		await bftModule.init(stateStore);
 
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(
@@ -294,17 +285,8 @@ describe('block_synchronization_mechanism', () => {
 				})
 				.mockResolvedValue({ data: cloneDeep(requestedBlocks) });
 		}
-
-		when(storageMock.entities.Block.get)
-			.calledWith(
-				{
-					height_in: blockHeightsList,
-				},
-				{
-					sort: 'height:asc',
-					limit: blockHeightsList.length,
-				},
-			)
+		when(chainModule.dataAccess.getBlockHeadersWithHeights)
+			.calledWith(blockHeightsList)
 			.mockResolvedValueOnce(blockList);
 
 		when(processorModule.deleteLastBlock)
@@ -645,52 +627,26 @@ describe('block_synchronization_mechanism', () => {
 							.mockResolvedValue({ data: requestedBlocks });
 					}
 
-					when(storageMock.entities.Block.get)
-						.calledWith(
-							{
-								height_in: blockHeightsList,
-							},
-							{
-								sort: 'height:asc',
-								limit: blockHeightsList.length,
-							},
-						)
+					when(chainModule.dataAccess.getBlockHeadersWithHeights)
+						.calledWith(blockHeightsList)
 						.mockResolvedValue(blockList);
 
-					when(storageMock.entities.Block.get)
-						.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-						.mockResolvedValue([lastBlock]);
+					when(chainModule.dataAccess.getLastBlock)
+						.calledWith()
+						.mockResolvedValue(lastBlock);
 
-					when(storageMock.entities.Block.get)
-						.calledWith(
-							// If cache size initialization on chain changes this needs to be updated accordingly
-							{ height_gte: 1496, height_lte: 2001 },
-							{ limit: null, sort: 'height:desc' },
-						)
+					when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+						// If cache size initialization on chain changes this needs to be updated accordingly
+						.calledWith(1496, 2001)
 						.mockResolvedValue([]);
 
 					// BFT loads blocks from storage and extracts their headers
-					when(storageMock.entities.Block.get)
-						.calledWith(
-							expect.objectContaining({
-								height_gte: expect.any(Number),
-								height_lte: expect.any(Number),
-							}),
-							{ limit: null, sort: 'height:asc' },
-						)
+					when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+						// If cache size initialization on chain changes this needs to be updated accordingly
+						.calledWith(expect.any(Number), expect.any(Number))
 						.mockResolvedValue([lastBlock]);
 
-					// minActiveHeightsOfDelegates is provided to deleteBlocks function
-					// in block_processor_v2 from DPoS module.
-					const minActiveHeightsOfDelegates = {
-						// the value is not important in this test.
-						[lastBlock.generatorPublicKey]: [1],
-					};
-
 					await chainModule.init();
-					const stateStore = new StateStore(storageMock);
-					await stateStore.chainState.cache();
-					await bftModule.init(stateStore, minActiveHeightsOfDelegates);
 
 					await blockSynchronizationMechanism.run(receivedBlock);
 
@@ -764,15 +720,8 @@ describe('block_synchronization_mechanism', () => {
 							.mockResolvedValue({ data: requestedBlocks });
 					}
 
-					when(storageMock.entities.Block.get)
-						.calledWith(
-							{
-								height_in: blockHeightsList,
-							},
-							{
-								sort: 'height:asc',
-							},
-						)
+					when(chainModule.dataAccess.getBlockHeadersWithHeights)
+						.calledWith(blockHeightsList)
 						.mockResolvedValueOnce(blockList);
 
 					chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
@@ -1034,8 +983,6 @@ describe('block_synchronization_mechanism', () => {
 						'Cleaning blocks temp table',
 					);
 
-					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
-
 					expectApplyPenaltyAndRestartIsCalled(
 						aBlock,
 						'New tip of the chain has no preference over the previous tip before synchronizing',
@@ -1113,7 +1060,6 @@ describe('block_synchronization_mechanism', () => {
 						16,
 						'Cleaning blocks temporary table',
 					);
-					expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
 
 					expect(loggerMock.info).toHaveBeenCalledWith(
 						'Restarting block synchronization',
@@ -1127,20 +1073,18 @@ describe('block_synchronization_mechanism', () => {
 
 	describe('isValidFor', () => {
 		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than ACTIVE_DELEGATES*3', async () => {
-			when(storageMock.entities.Block.get)
-				.calledWith({
-					height: bftModule.finalizedHeight,
-				})
-				.mockResolvedValue([genesisBlockDevnet]);
+			when(chainModule.dataAccess.getBlockHeaderByHeight)
+				.calledWith(bftModule.finalizedHeight)
+				.mockResolvedValue(genesisBlockDevnet);
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeTruthy();
 		});
 
 		it('should return false if the difference in block slots between the current block slot and the finalized block slot of the system is smaller than ACTIVE_DELEGATES*3', async () => {
-			storageMock.entities.Block.get.mockResolvedValue([
-				{ ...genesisBlockDevnet, timestamp: Date.now() },
-			]);
+			when(chainModule.dataAccess.getBlockHeaderByHeight)
+				.calledWith(bftModule.finalizedHeight)
+				.mockResolvedValue({ ...genesisBlockDevnet, timestamp: Date.now() });
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeFalsy();
