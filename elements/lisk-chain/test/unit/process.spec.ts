@@ -218,30 +218,6 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when numberOfTransactions is incorrect', () => {
-			it('should throw error', async () => {
-				// Arrange
-				const txs = new Array(20).fill(0).map((_, v) =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							passphrase: genesisAccount.passphrase,
-							recipientId: `${v + 1}L`,
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs, numberOfTransactions: 10 });
-				blockBytes = getBytes(block);
-				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).toThrow(
-					'Included transactions do not match block transactions count',
-				);
-			});
-		});
-
 		describe('when payload hash is incorrect', () => {
 			it('should throw error', async () => {
 				// Arrange
