@@ -15,7 +15,6 @@
 'use strict';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
-const ENDPOINT_BROADCAST_SIGNATURES = 'postSignatures';
 
 class Broadcaster {
 	constructor({ broadcasts, transactionPool, logger, channel }) {
@@ -26,7 +25,6 @@ class Broadcaster {
 
 		this.queue = [];
 		this.transactionIdQueue = [];
-		this.signatureObjectQueue = [];
 
 		if (this.config.active) {
 			setInterval(async () => {
@@ -53,18 +51,6 @@ class Broadcaster {
 		return true;
 	}
 
-	enqueueSignatureObject(signatureObject) {
-		if (
-			this.signatureObjectQueue.find(
-				obj => obj.signature === signatureObject.signature,
-			) !== undefined
-		) {
-			return false;
-		}
-		this.signatureObjectQueue.push(signatureObject);
-		return true;
-	}
-
 	async _broadcast() {
 		this.transactionIdQueue = this.transactionIdQueue.filter(id =>
 			this.transactionPool.transactionInPool(id),
@@ -82,25 +68,6 @@ class Broadcaster {
 			});
 			this.transactionIdQueue = this.transactionIdQueue.filter(
 				id => !transactionIds.includes(id),
-			);
-		}
-		// Broadcast using Elements P2P library via network module
-		if (this.signatureObjectQueue.length > 0) {
-			const signatures = this.signatureObjectQueue.slice(
-				0,
-				this.config.releaseLimit,
-			);
-			await this.channel.publishToNetwork('sendToNetwork', {
-				event: ENDPOINT_BROADCAST_SIGNATURES,
-				data: {
-					signatures,
-				},
-			});
-			this.signatureObjectQueue = this.signatureObjectQueue.filter(
-				obj =>
-					signatures.find(
-						signatureObj => signatureObj.signature === obj.signature,
-					) === undefined,
 			);
 		}
 	}

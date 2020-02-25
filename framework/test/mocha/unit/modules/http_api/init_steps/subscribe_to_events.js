@@ -49,30 +49,10 @@ describe('init_steps/subscribeToEvents', () => {
 		sinonSandbox.restore();
 	});
 
-	it('should subscribe to "signature:change" on channel and emit "signature/change" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith(
-			'app:signature:change',
-		);
-		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
-			'signature/change',
-			callbackObject.data,
-		);
-	});
-
 	it('should subscribe to "rounds:change" on channel and emit "rounds/change" event on wsServer with proper data', async () => {
 		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:rounds:change');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
 			'rounds/change',
-			callbackObject.data,
-		);
-	});
-
-	it('should subscribe to "multisignatures:signature:change" on channel and emit "multisignatures/signature/change" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith(
-			'app:multisignatures:signature:change',
-		);
-		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
-			'multisignatures/signature/change',
 			callbackObject.data,
 		);
 	});

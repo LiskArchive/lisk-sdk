@@ -24,11 +24,9 @@ const {
 const { sortBy } = require('./sort');
 
 const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
-const EVENT_MULTISIGNATURE_SIGNATURE = 'EVENT_MULTISIGNATURE_SIGNATURE';
 
 const receivedQueue = 'received';
 // TODO: Need to decide which queue will include transactions in the validated queue
-const pendingQueue = 'pending';
 const verifiedQueue = 'verified';
 const readyQueue = 'ready';
 const validatedQueue = 'validated';
@@ -87,7 +85,6 @@ class TransactionPool extends EventEmitter {
 			validatedTransactionsProcessingInterval: this.bundledInterval,
 			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
 			verifiedTransactionsProcessingInterval: this.bundledInterval,
-			pendingTransactionsProcessingLimit: this.maxTransactionsPerBlock,
 		};
 
 		const poolDependencies = {
@@ -145,47 +142,8 @@ class TransactionPool extends EventEmitter {
 		});
 	}
 
-	async getTransactionAndProcessSignature(signature) {
-		if (!signature) {
-			const message = 'Unable to process signature, signature not provided';
-			this.logger.error(message);
-			throw [new TransactionError(message, '', '.signature')];
-		}
-		// Grab transaction with corresponding ID from transaction pool
-		const transaction = this.getMultisignatureTransaction(
-			signature.transactionId,
-		);
-
-		if (!transaction) {
-			const message =
-				'Unable to process signature, corresponding transaction not found';
-			this.logger.error({ signature }, message);
-			throw [new TransactionError(message, '', '.signature')];
-		}
-
-		const transactionResponse = await this.chain.processSignature(
-			transaction,
-			signature,
-		);
-		if (
-			transactionResponse.status === TransactionStatus.FAIL &&
-			transactionResponse.errors.length > 0
-		) {
-			const { message } = transactionResponse.errors[0];
-			this.logger.error(message, { signature });
-			throw transactionResponse.errors;
-		}
-
-		this.emit(EVENT_MULTISIGNATURE_SIGNATURE, signature);
-		return transactionResponse;
-	}
-
 	transactionInPool(id) {
 		return this.pool.existsInTransactionPool(id);
-	}
-
-	getMultisignatureTransaction(id) {
-		return this.pool.queues[pendingQueue].index[id];
 	}
 
 	getUnconfirmedTransactionList(reverse, limit) {
@@ -208,15 +166,6 @@ class TransactionPool extends EventEmitter {
 		return this.getTransactionsList(receivedQueue, reverse, limit);
 	}
 
-	getMultisignatureTransactionList(reverse, limit, ready) {
-		if (ready) {
-			return this.getTransactionsList(pendingQueue, reverse).filter(
-				transaction => transaction.ready,
-			);
-		}
-		return this.getTransactionsList(pendingQueue, reverse, limit);
-	}
-
 	getCountByQueue(queueName) {
 		return this.pool.queues[queueName].size();
 	}
@@ -225,7 +174,6 @@ class TransactionPool extends EventEmitter {
 		return {
 			ready: this.getCountByQueue('ready') || 0,
 			verified: this.getCountByQueue('verified') || 0,
-			pending: this.getCountByQueue('pending') || 0,
 			validated: this.getCountByQueue('validated') || 0,
 			received: this.getCountByQueue('received') || 0,
 		};
@@ -263,14 +211,9 @@ class TransactionPool extends EventEmitter {
 			Math.min(this.maxTransactionsPerBlock, limit),
 		);
 		limit -= ready.length;
-		const pending = this.getMultisignatureTransactionList(
-			reverse,
-			Math.min(this.maxTransactionsPerBlock, limit),
-		);
-		limit -= pending.length;
 		const verified = this.getQueuedTransactionList(reverse, limit);
 
-		return [...ready, ...pending, ...verified];
+		return [...ready, ...verified];
 	}
 
 	addBundledTransaction(transaction) {
@@ -283,13 +226,6 @@ class TransactionPool extends EventEmitter {
 	addVerifiedTransaction(transaction) {
 		return handleAddTransactionResponse(
 			this.pool.addVerifiedTransaction(transaction),
-			transaction,
-		);
-	}
-
-	addMultisignatureTransaction(transaction) {
-		return handleAddTransactionResponse(
-			this.pool.addPendingTransaction(transaction),
 			transaction,
 		);
 	}
@@ -327,12 +263,8 @@ class TransactionPool extends EventEmitter {
 		if (transactionsResponses[0].status === TransactionStatus.OK) {
 			return this.addVerifiedTransaction(transaction);
 		}
-		if (transactionsResponses[0].status === TransactionStatus.PENDING) {
-			return this.addMultisignatureTransaction(transaction);
-		}
 		this.logger.info(`Transaction pool - ${transactionsResponses[0].errors}`);
 		throw transactionsResponses[0].errors;
-		// Register to braodcaster
 	}
 
 	onConfirmedTransactions(transactions) {
@@ -345,7 +277,6 @@ class TransactionPool extends EventEmitter {
 
 	getPooledTransactions(type, filters) {
 		const typeMap = {
-			pending: 'getMultisignatureTransactionList',
 			ready: 'getUnconfirmedTransactionList',
 			received: 'getReceivedTransactionList',
 			validated: 'getValidatedTransactionList',
@@ -430,5 +361,4 @@ class TransactionPool extends EventEmitter {
 module.exports = {
 	TransactionPool,
 	EVENT_UNCONFIRMED_TRANSACTION,
-	EVENT_MULTISIGNATURE_SIGNATURE,
 };

@@ -15,19 +15,12 @@
 'use strict';
 
 const pool = require('@liskhq/lisk-transaction-pool');
-const {
-	Status: TransactionStatus,
-	TransactionError,
-} = require('@liskhq/lisk-transactions');
+const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 const { expect } = require('chai');
 const {
 	TransactionPool,
 	EVENT_UNCONFIRMED_TRANSACTION,
-	EVENT_MULTISIGNATURE_SIGNATURE,
 } = require('../../../../../../src/application/node/transaction_pool/transaction_pool');
-const {
-	transactions: transactionsFixtures,
-} = require('../../../../../fixtures');
 
 describe('transactionPool', () => {
 	const broadcastInterval = 5;
@@ -211,35 +204,6 @@ describe('transactionPool', () => {
 		});
 	});
 
-	describe('getMultisignatureTransactionList', () => {
-		let getTransactionsListStub;
-
-		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox
-				.stub(transactionPool, 'getTransactionsList')
-				.returns([]);
-		});
-
-		it('should call getTransactionsList with correct params', async () => {
-			const reverse = true;
-			const limit = 10;
-			transactionPool.getMultisignatureTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly(
-				'pending',
-				reverse,
-				limit,
-			);
-		});
-
-		it('should return the value returned by pool.getTransactionsList', async () => {
-			const reverse = true;
-			const limit = 10;
-			expect(
-				transactionPool.getMultisignatureTransactionList(reverse, limit),
-			).to.eql([]);
-		});
-	});
-
 	describe('getTransactionsList', () => {
 		const queueName = 'testQueue';
 		const dummyTransactionsList = new Array(100)
@@ -274,19 +238,15 @@ describe('transactionPool', () => {
 
 	describe('getMergedTransactionList', () => {
 		let getUnconfirmedTransactionListStub;
-		let getMultisignatureTransactionListStub;
 		let getQueuedTransactionListStub;
 
 		beforeEach(async () => {
 			getUnconfirmedTransactionListStub = sinonSandbox
 				.stub(transactionPool, 'getUnconfirmedTransactionList')
 				.returns([dummyTransactions[0]]);
-			getMultisignatureTransactionListStub = sinonSandbox
-				.stub(transactionPool, 'getMultisignatureTransactionList')
-				.returns([dummyTransactions[1]]);
 			getQueuedTransactionListStub = sinonSandbox
 				.stub(transactionPool, 'getQueuedTransactionList')
-				.returns([dummyTransactions[2]]);
+				.returns([dummyTransactions[1], dummyTransactions[2]]);
 		});
 
 		it('should get transactions from queues using correct parameters', async () => {
@@ -295,13 +255,9 @@ describe('transactionPool', () => {
 				false,
 				maxSharedTransactions,
 			);
-			expect(getMultisignatureTransactionListStub).to.be.calledWithExactly(
-				false,
-				maxSharedTransactions - 1,
-			);
 			expect(getQueuedTransactionListStub).to.be.calledWithExactly(
 				false,
-				maxSharedTransactions - 2,
+				maxSharedTransactions - 1,
 			);
 		});
 
@@ -331,133 +287,6 @@ describe('transactionPool', () => {
 			expect(addVerifiedTransactionStub).to.be.calledWithExactly(
 				dummyTransactions[0],
 			);
-		});
-	});
-
-	describe('addMultisignatureTransaction', () => {
-		it('should call this.pool.addMultisignatureTransaction with tranasction as parameter', async () => {
-			const addMultisignatureTransactionStub = sinonSandbox
-				.stub(transactionPool.pool, 'addPendingTransaction')
-				.returns({ isFull: false, exists: false, queueName: 'pending' });
-			transactionPool.addMultisignatureTransaction(dummyTransactions[0]);
-			expect(addMultisignatureTransactionStub).to.be.calledWithExactly(
-				dummyTransactions[0],
-			);
-		});
-	});
-
-	describe('getTransactionAndProcessSignature', () => {
-		const TRANSACTION_TYPES_MULTI = 4;
-		let transactionResponse;
-		let transactionObject;
-		let signatureObject;
-
-		beforeEach(async () => {
-			// Set some random data used for tests
-			transactionObject = new transactionsFixtures.Transaction({
-				type: TRANSACTION_TYPES_MULTI,
-			});
-			transactionResponse = {
-				id: transactionObject.id,
-				status: 1,
-				errors: [],
-			};
-			signatureObject = {
-				transactionId: transactionObject.id,
-				publicKey: 'publicKey1',
-				signature: 'signature1',
-			};
-			transactionObject.signatures = [];
-			sinonSandbox
-				.stub(transactionPool, 'getMultisignatureTransaction')
-				.returns(transactionObject);
-		});
-
-		describe('when signature is not present', () => {
-			it('should throw a TransactionError instance', async () => {
-				try {
-					await transactionPool.getTransactionAndProcessSignature(undefined);
-				} catch (errors) {
-					expect(errors[0]).to.be.an.instanceof(TransactionError);
-					expect(errors[0].message).to.eql(
-						'Unable to process signature, signature not provided',
-					);
-				}
-			});
-		});
-
-		describe('when getMultisignatureTransaction returns no transaction', () => {
-			it('should throw an Error instance', async () => {
-				transactionPool.getMultisignatureTransaction.returns(undefined);
-				try {
-					await transactionPool.getTransactionAndProcessSignature(
-						signatureObject,
-					);
-				} catch (errors) {
-					expect(errors[0]).to.be.an.instanceof(TransactionError);
-					expect(errors[0].message).to.eql(
-						'Unable to process signature, corresponding transaction not found',
-					);
-				}
-			});
-		});
-
-		describe('when signature already exists in transaction', () => {
-			beforeEach(async () => {
-				chainStub.processSignature.returns(
-					sinonSandbox.stub().resolves({
-						...transactionResponse,
-						status: 0,
-						errors: [
-							new TransactionError('Signature already present in transaction.'),
-						],
-					}),
-				);
-			});
-
-			it('should throw an Error instance', async () => {
-				transactionObject.signatures = ['signature1'];
-				try {
-					await transactionPool.getTransactionAndProcessSignature(
-						signatureObject,
-					);
-				} catch (errors) {
-					expect(
-						transactionPool.getMultisignatureTransaction,
-					).to.have.been.calledWith(signatureObject.transactionId);
-					expect(transactionPool.getMultisignatureTransaction).to.have.been
-						.calledOnce;
-					expect(chainStub.processSignature).to.have.been.calledOnce;
-					expect(errors[0]).to.be.an.instanceof(TransactionError);
-					expect(errors[0].message).to.eql(
-						'Signature already present in transaction.',
-					);
-				}
-			});
-		});
-
-		describe('events', () => {
-			beforeEach(async () => {
-				chainStub.processSignature.returns(
-					sinonSandbox.stub().resolves({
-						...transactionResponse,
-						status: 2,
-						errors: [],
-					}),
-				);
-			});
-
-			it('should emit EVENT_MULTISIGNATURE_SIGNATURE', async () => {
-				// Act
-				await transactionPool.getTransactionAndProcessSignature(
-					signatureObject,
-				);
-				// Assert
-				expect(transactionPool.emit).to.be.calledWith(
-					EVENT_MULTISIGNATURE_SIGNATURE,
-					signatureObject,
-				);
-			});
 		});
 	});
 
@@ -507,23 +336,6 @@ describe('transactionPool', () => {
 				.resolves();
 			await transactionPool.processUnconfirmedTransaction(transaction);
 			expect(addBundledTransactionStub).to.be.calledWith(transaction);
-		});
-
-		it('should add transaction to pending when status is PENDING', async () => {
-			transactionPool.verifyTransactions.resolves({
-				transactionsResponses: [
-					{
-						status: TransactionStatus.PENDING,
-						errors: [],
-					},
-				],
-			});
-			const addMultisignatureTransactionStub = sinonSandbox.stub(
-				transactionPool,
-				'addMultisignatureTransaction',
-			);
-			await transactionPool.processUnconfirmedTransaction(transaction);
-			expect(addMultisignatureTransactionStub).to.be.calledWith(transaction);
 		});
 
 		it('should return error when when status is FAIL', async () => {
