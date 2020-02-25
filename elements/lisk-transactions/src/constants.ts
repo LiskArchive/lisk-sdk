@@ -15,7 +15,7 @@
 /* tslint:disable:no-magic-numbers */
 export const FIXED_POINT = 10 ** 8;
 
-export const MIN_FEE_PER_BYTE = FIXED_POINT * 0.00001;
+export const MIN_FEE_PER_BYTE = 1000;
 export const NAME_FEE = FIXED_POINT * 10;
 export const MULTISIGNATURE_MAX_LIFETIME = 72;
 export const MULTISIGNATURE_MIN_LIFETIME = 1;

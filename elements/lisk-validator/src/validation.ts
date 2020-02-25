@@ -24,8 +24,8 @@ import * as validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
-	MAX_INT64,
 	MAX_PUBLIC_KEY_LENGTH,
+	MAX_UINT64,
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
@@ -58,7 +58,7 @@ export const isGreaterThanZero = (amount: bigint): boolean =>
 	amount > BigInt(0);
 
 export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
-	amount > BigInt(MAX_INT64);
+	amount > BigInt(MAX_UINT64);
 
 export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
 	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
@@ -251,6 +251,9 @@ export const isValidFee = (data: string): boolean =>
 	isNumberString(data) &&
 	isGreaterThanZero(BigInt(data)) &&
 	!isGreaterThanMaxTransactionAmount(BigInt(data));
+
+export const isValidNonce = (data: string): boolean =>
+	isNumberString(data) && !isGreaterThanMaxTransactionAmount(BigInt(data));
 
 export const isCsv = (data: string): boolean => {
 	if (typeof data !== 'string') {

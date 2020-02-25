@@ -17,14 +17,16 @@ import {
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
+	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
+import { isValidFee, isValidNonce, validator } from '@liskhq/lisk-validator';
 
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
 	MIN_FEE_PER_BYTE,
+	NAME_FEE,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
@@ -115,6 +117,7 @@ export abstract class BaseTransaction {
 	public static TYPE: number;
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
+	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
 
 	protected _id?: string;
 	protected _senderPublicKey?: string;
@@ -123,7 +126,7 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 	protected _networkIdentifier: string;
-	protected _minFee: bigint;
+	protected _minFee?: bigint;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -137,17 +140,16 @@ export abstract class BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.nonce = tx.nonce ? BigInt(tx.nonce) : BigInt(0);
-		this.fee = tx.fee ? BigInt(tx.fee) : BigInt(0);
-		this._minFee = BigInt(MIN_FEE_PER_BYTE * this.getBytes().length);
+		this._senderPublicKey = tx.senderPublicKey || '';
+		this.nonce =
+			tx.nonce && isValidNonce(tx.nonce) ? BigInt(tx.nonce) : BigInt(0);
+		this.fee = tx.fee && isValidFee(tx.fee) ? BigInt(tx.fee) : BigInt(0);
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-		this._senderPublicKey = tx.senderPublicKey || '';
-
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
@@ -163,6 +165,14 @@ export abstract class BaseTransaction {
 
 	public get id(): string {
 		return this._id || 'incalculable-id';
+	}
+
+	public get minFee(): bigint {
+		if (!this._minFee) {
+			throw new Error('minFee is required to be set before use');
+		}
+
+		return this._minFee;
 	}
 
 	public get senderId(): string {
@@ -242,7 +252,38 @@ export abstract class BaseTransaction {
 			return createResponse(this.id, errors);
 		}
 
+		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
+			errors.push(
+				new TransactionError(
+					`Invalid type`,
+					this.id,
+					'.type',
+					this.type,
+					(this.constructor as typeof BaseTransaction).TYPE,
+				),
+			);
+		}
+
 		const transactionBytes = this.getBasicBytes();
+		this._minFee = BigInt(
+			// Include nameFee in minFee for delegate registration transactions
+			// tslint:disable:no-magic-numbers
+			(this.type === 10 ? NAME_FEE : 0) +
+				(this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE *
+					this.getBytes().length,
+		);
+
+		if (this.fee < this._minFee) {
+			errors.push(
+				new TransactionError(
+					'Insufficient transaction fee',
+					this.id,
+					'.fee',
+					this.fee.toString(),
+				),
+			);
+		}
+
 		if (
 			this._networkIdentifier === undefined ||
 			this._networkIdentifier === ''
@@ -271,18 +312,6 @@ export abstract class BaseTransaction {
 
 		if (!signatureValid && verificationError) {
 			errors.push(verificationError);
-		}
-
-		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
-			errors.push(
-				new TransactionError(
-					`Invalid type`,
-					this.id,
-					'.type',
-					this.type,
-					(this.constructor as typeof BaseTransaction).TYPE,
-				),
-			);
 		}
 
 		return createResponse(this.id, errors);
@@ -555,11 +584,12 @@ export abstract class BaseTransaction {
 
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionNonce = Buffer.alloc(BYTESIZES.NONCE);
-		transactionNonce.writeBigInt64BE(this.nonce, 0);
+		const transactionNonce = intToBuffer(
+			this.nonce.toString(),
+			BYTESIZES.NONCE,
+		);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
-		const transactionFee = Buffer.alloc(BYTESIZES.FEE);
-		transactionFee.writeBigInt64BE(this.fee, 0);
+		const transactionFee = intToBuffer(this.fee.toString(), BYTESIZES.FEE);
 
 		return Buffer.concat([
 			transactionType,
@@ -619,10 +649,6 @@ export abstract class BaseTransaction {
 			if (senderIdError) {
 				errors.push(senderIdError);
 			}
-		}
-
-		if (this.fee < this._minFee) {
-			errors.push();
 		}
 
 		return errors;

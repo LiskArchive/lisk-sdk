@@ -31,9 +31,9 @@ describe('format', () => {
 				'Beddows amount should not have decimal points',
 			);
 		});
-		it('should error on 9223372036854775808', () => {
+		it('should error on 18446744073709551615', () => {
 			return expect(
-				convertBeddowsToLSK.bind(null, '9223372036854775808'),
+				convertBeddowsToLSK.bind(null, '18446744073709551615'),
 			).toThrowError('Beddows amount out of range');
 		});
 		it('should convert 100000000 to 1', () => {

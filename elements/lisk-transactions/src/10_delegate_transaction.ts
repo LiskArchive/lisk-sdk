@@ -19,7 +19,6 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MIN_FEE_PER_BYTE, NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 
@@ -50,7 +49,6 @@ export class DelegateTransaction extends BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this._minFee = BigInt(NAME_FEE + MIN_FEE_PER_BYTE * this.getBytes().length);
 		this.asset = (tx.asset || { delegate: {} }) as DelegateAsset;
 		this.containsUniqueData = true;
 	}
