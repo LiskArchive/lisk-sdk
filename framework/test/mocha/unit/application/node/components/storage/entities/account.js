@@ -28,8 +28,6 @@ const accountFixtures = require('../../../../../../../fixtures').accounts;
 
 const defaultCreateValues = {
 	publicKey: null,
-	secondPublicKey: null,
-	secondSignature: 0,
 	username: null,
 	isDelegate: false,
 	balance: '0',
@@ -257,10 +255,8 @@ describe('ChainAccount', () => {
 			const expectedObject = {
 				address: account.address,
 				publicKey: null,
-				secondPublicKey: null,
 				username: null,
 				isDelegate: false,
-				secondSignature: false,
 				balance: '0',
 				multiMin: 0,
 				multiLifetime: 0,

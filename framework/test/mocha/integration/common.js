@@ -18,7 +18,6 @@ const async = require('async');
 const Promise = require('bluebird');
 const {
 	transfer,
-	registerSecondPassphrase,
 	registerDelegate,
 	registerMultisignature,
 	castVotes,
@@ -418,13 +417,6 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				recipientId: randomUtil.account().address,
-			});
-			break;
-		case 'SIGNATURE':
-			transaction = registerSecondPassphrase({
-				networkIdentifier,
-				passphrase: account.passphrase,
-				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':

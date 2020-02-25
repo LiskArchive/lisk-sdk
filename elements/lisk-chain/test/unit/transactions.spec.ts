@@ -14,10 +14,10 @@
 import {
 	transfer,
 	castVotes,
-	registerSecondPassphrase,
 	createSignatureObject,
 	TransactionJSON,
 	BaseTransaction,
+	registerDelegate,
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
@@ -128,10 +128,10 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				const notAllowedTx = chainInstance.deserializeTransaction(
-					registerSecondPassphrase({
-						passphrase: genesisAccount.passphrase,
-						secondPassphrase: 'second-passphrase',
+					registerDelegate({
 						networkIdentifier,
+						passphrase: genesisAccount.passphrase,
+						username: 'notAllowed',
 					}) as TransactionJSON,
 				);
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
@@ -259,10 +259,10 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				const notAllowedTx = chainInstance.deserializeTransaction(
-					registerSecondPassphrase({
-						passphrase: genesisAccount.passphrase,
-						secondPassphrase: 'second-passphrase',
+					registerDelegate({
 						networkIdentifier,
+						passphrase: genesisAccount.passphrase,
+						username: 'notAllowed',
 					}) as TransactionJSON,
 				);
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
@@ -403,10 +403,10 @@ describe('blocks/transactions', () => {
 					}) as TransactionJSON,
 				);
 				const notAllowedTx = chainInstance.deserializeTransaction(
-					registerSecondPassphrase({
-						passphrase: genesisAccount.passphrase,
-						secondPassphrase: 'second-passphrase',
+					registerDelegate({
 						networkIdentifier,
+						passphrase: genesisAccount.passphrase,
+						username: 'notAllowed',
 					}) as TransactionJSON,
 				);
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(

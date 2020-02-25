@@ -777,12 +777,6 @@ describe('Transaction', () => {
 			).to.be.true;
 			expect(
 				await storage.entities.Transaction.isPersisted({
-					id: transactions[1].id,
-					type: 9,
-				}),
-			).to.be.true;
-			expect(
-				await storage.entities.Transaction.isPersisted({
 					id: transactions[2].id,
 					type: 10,
 				}),

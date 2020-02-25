@@ -67,7 +67,6 @@ describe('input/utils utils', () => {
 				data: undefined,
 				passphrase: stdInContents,
 				password: undefined,
-				secondPassphrase: undefined,
 			});
 		});
 
@@ -80,20 +79,6 @@ describe('input/utils utils', () => {
 				data: undefined,
 				passphrase: undefined,
 				password: stdInContents,
-				secondPassphrase: undefined,
-			});
-		});
-
-		it('should resolve second passphrase', () => {
-			const options = {
-				secondPassphraseIsRequired: true,
-			};
-			const result = inputUtils.getStdIn(options);
-			return expect(result).to.eventually.eql({
-				data: undefined,
-				passphrase: undefined,
-				password: undefined,
-				secondPassphrase: stdInContents,
 			});
 		});
 
@@ -106,53 +91,47 @@ describe('input/utils utils', () => {
 				data: stdInContents,
 				passphrase: undefined,
 				password: undefined,
-				secondPassphrase: undefined,
 			});
 		});
 
 		describe('#getStdIn with multiline inputs', () => {
-			const multilineStdContents =
-				'passphrase\nsecondPassphrase\npassword\ndata';
+			const multilineStdContents = 'passphrase\npassword\ndata';
 			beforeEach(() => {
 				return createInterfaceStub.returns(
 					createFakeInterface(multilineStdContents),
 				);
 			});
 
-			it('should resolve all the elements in order of secondPassphrase, password from stdin and rest in the data', () => {
+			it('should resolve all the elements in order of password from stdin and rest in the data', () => {
 				const options = {
-					secondPassphraseIsRequired: true,
 					passwordIsRequired: true,
 				};
 				const expectedResults = multilineStdContents.split('\n');
 				const result = inputUtils.getStdIn(options);
 				return expect(result).to.eventually.eql({
 					passphrase: undefined,
-					secondPassphrase: expectedResults[0],
-					password: expectedResults[1],
-					data: `${expectedResults[2]}\n${expectedResults[3]}`,
+					password: expectedResults[0],
+					data: `${expectedResults[1]}\n${expectedResults[2]}`,
 				});
 			});
 
 			it('should resolve all the elements in order of passphrase, password from stdin and rest in the data', () => {
 				const options = {
-					passphraseIsRequired: true,
 					passwordIsRequired: true,
+					passphraseIsRequired: true,
 				};
 				const expectedResults = multilineStdContents.split('\n');
 				const result = inputUtils.getStdIn(options);
 				return expect(result).to.eventually.eql({
 					passphrase: expectedResults[0],
-					secondPassphrase: undefined,
 					password: expectedResults[1],
-					data: `${expectedResults[2]}\n${expectedResults[3]}`,
+					data: expectedResults[2],
 				});
 			});
 
-			it('should resolve all the elements in order of passphrase, secondPassphrase, password, data from stdin', () => {
+			it('should resolve all the elements in order of passphrase, password, data from stdin', () => {
 				const options = {
 					passphraseIsRequired: true,
-					secondPassphraseIsRequired: true,
 					passwordIsRequired: true,
 					dataIsRequired: true,
 				};
@@ -160,9 +139,8 @@ describe('input/utils utils', () => {
 				const result = inputUtils.getStdIn(options);
 				return expect(result).to.eventually.eql({
 					passphrase: expectedResults[0],
-					secondPassphrase: expectedResults[1],
-					password: expectedResults[2],
-					data: expectedResults[3],
+					password: expectedResults[1],
+					data: expectedResults[2],
 				});
 			});
 		});

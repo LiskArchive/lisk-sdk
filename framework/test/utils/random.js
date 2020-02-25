@@ -122,11 +122,9 @@ random.account = function(nonDelegate) {
 
 	account.passphrase = random.password();
 	account.keypair = getKeys(account.passphrase);
-	account.secondPassphrase = random.password();
 	account.username = nonDelegate ? '' : random.delegateName();
 	account.publicKey = getKeys(account.passphrase).publicKey;
 	account.address = getAddressFromPublicKey(account.publicKey);
-	account.secondPublicKey = getKeys(account.secondPassphrase).publicKey;
 
 	return account;
 };

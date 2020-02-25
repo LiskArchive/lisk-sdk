@@ -29,7 +29,6 @@ describe('transaction:create:multisignature', () => {
 	];
 	const defaultInputs = {
 		passphrase: '123',
-		secondPassphrase: '456',
 	};
 	const defaultTransaction = {
 		amount: '10000000000',
@@ -140,12 +139,10 @@ describe('transaction:create:multisignature', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
 					lifetime: parseInt(defaultLifetime, 10),
 					minimum: parseInt(defaultMinimum, 10),
@@ -174,12 +171,10 @@ describe('transaction:create:multisignature', () => {
 						source: 'pass:123',
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
-					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
 					lifetime: parseInt(defaultLifetime, 10),
 					minimum: parseInt(defaultMinimum, 10),
@@ -188,47 +183,6 @@ describe('transaction:create:multisignature', () => {
 					defaultTransaction,
 				);
 			});
-	});
-
-	describe('transaction:create:multisignature lifetime minimum keysgroup --passphrase=xxx --second-passphrase=xxx', () => {
-		setupTest()
-			.command([
-				'transaction:create:multisignature',
-				defaultLifetime,
-				defaultMinimum,
-				defaultKeysgroup.join(','),
-				'--passphrase=pass:123',
-				'--second-passphrase=pass:456',
-			])
-			.it(
-				'should create a multisignature transaction with the passphrase and the second passphrase from the flag',
-				() => {
-					expect(validator.validatePublicKeys).to.be.calledWithExactly(
-						defaultKeysgroup,
-					);
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-						secondPassphrase: {
-							source: 'pass:456',
-							repeatPrompt: true,
-						},
-					});
-					expect(transactions.registerMultisignature).to.be.calledWithExactly({
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs.passphrase,
-						secondPassphrase: defaultInputs.secondPassphrase,
-						keysgroup: defaultKeysgroup,
-						lifetime: parseInt(defaultLifetime, 10),
-						minimum: parseInt(defaultMinimum, 10),
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
 	});
 
 	describe('transaction:create:multisignature lifetime minimum keysgroup --no-signature', () => {
@@ -250,7 +204,6 @@ describe('transaction:create:multisignature', () => {
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
-						secondPassphrase: undefined,
 						keysgroup: defaultKeysgroup,
 						lifetime: parseInt(defaultLifetime, 10),
 						minimum: parseInt(defaultMinimum, 10),

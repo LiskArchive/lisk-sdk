@@ -14,7 +14,6 @@
 
 import {
 	TransferTransaction,
-	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
@@ -25,7 +24,6 @@ export const registeredTransactions: {
 	[key: number]: typeof BaseTransaction;
 } = {
 	8: TransferTransaction,
-	9: SecondSignatureTransaction,
 	10: DelegateTransaction,
 	11: VoteTransaction,
 	12: MultisignatureTransaction,

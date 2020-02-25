@@ -28,7 +28,6 @@ describe('transaction:create:transfer', () => {
 	const defaultInputs = {
 		networkIdentifier: testnetNetworkIdentifier,
 		passphrase: '123',
-		secondPassphrase: '456',
 	};
 	const defaultTransaction = {
 		amount: '10000000000',
@@ -101,7 +100,6 @@ describe('transaction:create:transfer', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -129,7 +127,6 @@ describe('transaction:create:transfer', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: undefined,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -177,39 +174,6 @@ describe('transaction:create:transfer', () => {
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: 'pass:123',
-						repeatPrompt: true,
-					},
-					secondPassphrase: undefined,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
-			});
-	});
-
-	describe('transaction:create:transfer amount address --passphrase=xxx --second-passphrase=xxx', () => {
-		setupTest()
-			.command([
-				'transaction:create:transfer',
-				defaultAmount,
-				defaultAddress,
-				'--passphrase=pass:123',
-				'--second-passphrase=pass:456',
-			])
-			.it('should create a transfer transaction', () => {
-				expect(validator.validateAddress).to.be.calledWithExactly(
-					defaultAddress,
-				);
-				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
-					defaultAmount,
-				);
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: 'pass:123',
-						repeatPrompt: true,
-					},
-					secondPassphrase: {
-						source: 'pass:456',
 						repeatPrompt: true,
 					},
 				});
