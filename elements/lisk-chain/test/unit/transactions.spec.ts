@@ -130,6 +130,7 @@ describe('blocks/transactions', () => {
 					transfer({
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
+						recipientId: genesisAccount.address,
 						amount: '1',
 					}) as TransactionJSON,
 				);
@@ -259,6 +260,7 @@ describe('blocks/transactions', () => {
 					transfer({
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
+						recipientId: genesisAccount.address,
 						amount: '1',
 					}) as TransactionJSON,
 				);
@@ -403,6 +405,7 @@ describe('blocks/transactions', () => {
 					transfer({
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
+						recipientId: genesisAccount.address,
 						amount: '1',
 					}) as TransactionJSON,
 				);

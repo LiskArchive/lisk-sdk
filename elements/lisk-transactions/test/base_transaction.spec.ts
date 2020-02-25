@@ -825,13 +825,8 @@ describe('Base transaction class', () => {
 
 	describe('#sign', () => {
 		const defaultPassphrase = 'passphrase';
-		const defaultSecondPassphrase = 'second-passphrase';
 		const defaultHash = Buffer.from(
 			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02111111',
-			'hex',
-		);
-		const defaultSecondHash = Buffer.from(
-			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
 			'hex',
 		);
 		const defaultSignature =
@@ -842,8 +837,7 @@ describe('Base transaction class', () => {
 		beforeEach(async () => {
 			const hashStub = jest
 				.spyOn(cryptography, 'hash')
-				.mockReturnValueOnce(defaultHash)
-				.mockReturnValueOnce(defaultSecondHash);
+				.mockReturnValueOnce(defaultHash);
 			hashStub.mockReturnValue(defaultHash);
 			signDataStub = jest
 				.spyOn(cryptography, 'signData')
@@ -885,10 +879,7 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase and second passphrase', () => {
 			beforeEach(async () => {
-				transactionWithDefaultValues.sign(
-					defaultPassphrase,
-					defaultSecondPassphrase,
-				);
+				transactionWithDefaultValues.sign(defaultPassphrase);
 			});
 
 			it('should set signature property', async () => {
@@ -911,13 +902,6 @@ describe('Base transaction class', () => {
 				expect(signDataStub).toHaveBeenCalledWith(
 					defaultHash,
 					defaultPassphrase,
-				);
-			});
-
-			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).toHaveBeenCalledWith(
-					defaultSecondHash,
-					defaultSecondPassphrase,
 				);
 			});
 		});

@@ -64,13 +64,7 @@ const validateInputs = ({
 
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const {
-		networkIdentifier,
-		passphrase,
-		secondPassphrase,
-		votes = [],
-		unvotes = [],
-	} = inputs;
+	const { networkIdentifier, passphrase, votes = [], unvotes = [] } = inputs;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
@@ -106,7 +100,7 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
-	voteTransaction.sign(passphrase, secondPassphrase);
+	voteTransaction.sign(passphrase);
 
 	return voteTransaction.toJSON();
 };
