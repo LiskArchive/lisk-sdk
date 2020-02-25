@@ -31,8 +31,6 @@ const {
 const expect = chai.expect;
 
 describe('transport', () => {
-	const { releaseLimit } = __testContext.config.app.node.broadcasts;
-
 	let loggerStub;
 	let synchronizerStub;
 	let channelStub;
@@ -41,19 +39,10 @@ describe('transport', () => {
 	let block;
 	let blocksList;
 	let transactionsList;
-	let multisignatureTransactionsList;
 	let blockMock;
 	let error;
 	let result;
 	let query = { ids: ['1', '2', '3'] };
-
-	const SAMPLE_SIGNATURE_1 = {
-		transactionId: '222675625422353767',
-		publicKey:
-			'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-		signature:
-			'32636139613731343366633732316664633534306665663839336232376538643634386432323838656661363165353632363465646630316132633233303739',
-	};
 
 	beforeEach(async () => {
 		// Recreate all the stubs and default structures before each test case to make
@@ -82,38 +71,6 @@ describe('transport', () => {
 		blockMock = new Block();
 
 		transactionsList = [transactionOne, transactionTwo];
-
-		multisignatureTransactionsList = [
-			{
-				id: '222675625422353767',
-				type: 0,
-				amount: '100',
-				fee: '10',
-				senderPublicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-				recipientId: '12668885769632475474L',
-				timestamp: 28227090,
-				asset: {},
-				signatures: [
-					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-				],
-			},
-			{
-				id: '332675625422353892',
-				type: 0,
-				amount: '1000',
-				fee: '10',
-				senderPublicKey:
-					'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-				recipientId: '12668885769632475474L',
-				timestamp: 28227090,
-				asset: {},
-				signatures: [
-					'1231d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c567',
-					'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-				],
-			},
-		];
 
 		synchronizerStub = {
 			isActive: false,
@@ -144,9 +101,7 @@ describe('transport', () => {
 			exceptions: __testContext.config.app.node.exceptions,
 			synchronizer: synchronizerStub,
 			transactionPoolModule: {
-				getMultisignatureTransactionList: sinonSandbox.stub(),
 				getMergedTransactionList: sinonSandbox.stub(),
-				getTransactionAndProcessSignature: sinonSandbox.stub(),
 				processUnconfirmedTransaction: sinonSandbox.stub(),
 				findInTransactionPool: sinonSandbox.stub(),
 			},
@@ -461,34 +416,6 @@ describe('transport', () => {
 				}
 			});
 
-			describe('onSignature', () => {
-				describe('when broadcast is defined', () => {
-					beforeEach(async () => {
-						transportModule.broadcaster = {
-							enqueueSignatureObject: sinonSandbox.stub(),
-						};
-						transportModule.handleBroadcastSignature(SAMPLE_SIGNATURE_1, true);
-					});
-
-					it('should call transportModule.broadcaster.enqueueSignatureObject with signature', () => {
-						expect(
-							transportModule.broadcaster.enqueueSignatureObject.calledOnce,
-						).to.be.true;
-						return expect(
-							transportModule.broadcaster.enqueueSignatureObject,
-						).calledWith(SAMPLE_SIGNATURE_1);
-					});
-
-					it('should call transportModule.channel.publish with "app:signature:change" and signature', async () => {
-						expect(transportModule.channel.publish).to.be.calledOnce;
-						expect(transportModule.channel.publish).to.be.calledWith(
-							'app:signature:change',
-							SAMPLE_SIGNATURE_1,
-						);
-					});
-				});
-			});
-
 			describe('onUnconfirmedTransaction', () => {
 				beforeEach(async () => {
 					transaction = new TransferTransaction({
@@ -754,98 +681,6 @@ describe('transport', () => {
 									peerId: '127.0.0.1:5000',
 								});
 							});
-						});
-					});
-				});
-
-				describe('handleEventPostSignature', () => {
-					describe('when getTransactionAndProcessSignature succeeds', () => {
-						it('should invoke resolve with empty object {}', async () => {
-							query = {
-								signature: SAMPLE_SIGNATURE_1,
-							};
-							transportModule.transactionPoolModule.getTransactionAndProcessSignature.resolves();
-							result = await transportModule.handleEventPostSignature(query);
-							return expect(result).to.eql({});
-						});
-					});
-
-					describe('when getTransactionAndProcessSignature fails', () => {
-						const receiveSignatureError = [
-							new Error('Invalid signature body ...'),
-						];
-
-						it('should invoke resolve with object { message: err }', async () => {
-							query = {
-								signature: SAMPLE_SIGNATURE_1,
-							};
-							transportModule.transactionPoolModule.getTransactionAndProcessSignature.rejects(
-								receiveSignatureError,
-							);
-							result = await transportModule.handleEventPostSignature(query);
-							return expect(result)
-								.to.have.property('errors')
-								.which.is.equal(receiveSignatureError);
-						});
-					});
-				});
-
-				describe('handleRPCGetSignatures', () => {
-					beforeEach(async () => {
-						transportModule.transactionPoolModule.getMultisignatureTransactionList = sinonSandbox
-							.stub()
-							.returns(multisignatureTransactionsList);
-
-						result = await transportModule.handleRPCGetSignatures();
-					});
-
-					it('should call modules.transactionPool.getMultisignatureTransactionList with true and releaseLimit', async () => {
-						expect(
-							transportModule.transactionPoolModule
-								.getMultisignatureTransactionList,
-						).calledWith(true, releaseLimit);
-					});
-
-					describe('when all transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature transactions', () => {
-						it('should resolve with result = {signatures: signatures} where signatures contains all transactions', async () => {
-							return expect(result)
-								.to.have.property('signatures')
-								.which.is.an('array')
-								.that.has.property('length')
-								.which.equals(2);
-						});
-					});
-
-					describe('when some transactions returned by modules.transactionPool.getMultisignatureTransactionList are multisignature registration transactions', () => {
-						beforeEach(async () => {
-							// Make it so that the first transaction in the list is a multisignature registration transaction.
-							multisignatureTransactionsList[0] = {
-								id: '222675625422353767',
-								type: 4,
-								amount: '150000000',
-								fee: '1000000',
-								senderPublicKey:
-									'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-								recipientId: '12668885769632475474L',
-								timestamp: 28227090,
-								asset: {},
-								signature:
-									'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
-							};
-
-							transportModule.transactionPoolModule.getMultisignatureTransactionList = sinonSandbox
-								.stub()
-								.returns(multisignatureTransactionsList);
-
-							result = await transportModule.handleRPCGetSignatures();
-						});
-
-						it('should resolve with result = {signatures: signatures} where signatures does not contain multisignature registration transactions', async () => {
-							return expect(result)
-								.to.have.property('signatures')
-								.which.is.an('array')
-								.that.has.property('length')
-								.which.equals(1);
 						});
 					});
 				});
