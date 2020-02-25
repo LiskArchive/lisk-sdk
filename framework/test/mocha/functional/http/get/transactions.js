@@ -24,7 +24,6 @@ const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/legacy/wait_for');
 const apiHelpers = require('../../../../utils/http/api');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
-const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');
@@ -36,9 +35,7 @@ const networkIdentifier = getNetworkIdentifier(
 const TRANSACTION_TYPES_TRANSFER = 8;
 const TRANSACTION_TYPES_DELEGATE = 10;
 const TRANSACTION_TYPES_VOTE = 11;
-const TRANSACTION_TYPES_MULTI = 12;
 
-const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
@@ -48,7 +45,6 @@ describe('GET /api/transactions', () => {
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
 	});
-	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	const transactionList = [];
 
@@ -96,17 +92,6 @@ describe('GET /api/transactions', () => {
 		networkIdentifier,
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
-	});
-	const transactionType4 = new Scenarios.Multisig({
-		networkIdentifier,
-		amount: FEES.MULTISIGNATURE * 3,
-	});
-	const transactionType4Transfer = transfer({
-		networkIdentifier,
-		amount: minAmount.toString(),
-		passphrase: accountFixtures.genesis.passphrase,
-		recipientId: transactionType4.multiSigTransaction.senderId,
-		data: 'fund acc for multisig',
 	});
 	const transactionType5 = {
 		amount: '0',
@@ -174,13 +159,11 @@ describe('GET /api/transactions', () => {
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		promises.push(apiHelpers.sendTransactionPromise(transaction5));
-		promises.push(apiHelpers.sendTransactionPromise(transactionType4Transfer));
 
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
 			transactionList.push(transaction5);
-			transactionList.push(transactionType4Transfer);
 
 			return waitFor
 				.confirmations(_.map(transactionList, 'id'))
@@ -188,9 +171,6 @@ describe('GET /api/transactions', () => {
 					Promise.all([
 						apiHelpers.sendTransactionPromise(transaction3),
 						apiHelpers.sendTransactionPromise(transactionType3),
-						apiHelpers.sendTransactionPromise(
-							transactionType4.multiSigTransaction,
-						),
 					]),
 				)
 				.then(() => {
@@ -428,37 +408,6 @@ describe('GET /api/transactions', () => {
 					});
 				});
 
-				it('using type 4 should return asset field with correct properties', async () => {
-					const signatureRequests = transactionType4.members.map(member => {
-						return {
-							signature: apiHelpers.createSignatureObject(
-								transactionType4.multiSigTransaction,
-								member,
-							),
-						};
-					});
-
-					await signatureEndpoint.makeRequests(signatureRequests, 200);
-
-					// Wait for multi-signature registration to succeed
-					await waitFor.confirmations([
-						transactionType4.multiSigTransaction.id,
-					]);
-
-					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES_MULTI },
-						200,
-					);
-
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(3);
-						expect(transaction.asset.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
-						expect(transaction.asset.lifetime).to.be.within(1, 72);
-						expect(transaction.asset.keysgroup).to.be.an('array');
-						return expect(transaction.asset.keysgroup).to.not.empty;
-					});
-				});
 				// eslint-disable-next-line
 				it.skip('using type 5 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest({ type: 5 }, 200);
