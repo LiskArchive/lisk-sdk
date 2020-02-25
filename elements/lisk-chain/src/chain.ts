@@ -39,7 +39,6 @@ import {
 	processSignature,
 	undoTransactions,
 	validateTransactions,
-	verifyTransactions,
 } from './transactions';
 import { TransactionHandledResult } from './transactions/compose_transaction_steps';
 import {
@@ -292,7 +291,6 @@ export class Chain {
 		this.blocksVerify = new BlocksVerify({
 			dataAccess: this.dataAccess,
 			exceptions: this.exceptions,
-			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 		});
 	}
@@ -429,7 +427,7 @@ export class Chain {
 
 	public async verify(
 		blockInstance: BlockInstance,
-		stateStore: StateStore,
+		_: StateStore,
 		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
 	): Promise<void> {
 		if (!skipExistingCheck) {
@@ -447,7 +445,7 @@ export class Chain {
 				throw invalidPersistedResponse.errors;
 			}
 		}
-		await this.blocksVerify.checkTransactions(blockInstance, stateStore);
+		await this.blocksVerify.checkTransactions(blockInstance);
 	}
 
 	public async apply(
@@ -644,7 +642,6 @@ export class Chain {
 				};
 			}),
 			checkPersistedTransactions(this.dataAccess),
-			verifyTransactions(this.slots, this.exceptions),
 		)(transactions, stateStore);
 	}
 

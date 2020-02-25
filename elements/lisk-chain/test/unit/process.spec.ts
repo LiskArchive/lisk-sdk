@@ -118,7 +118,7 @@ describe('blocks/header', () => {
 
 	describe('#validateBlockHeader', () => {
 		describe('when previous block property is invalid', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
 				block = newBlock({ previousBlockId: undefined, height: 3 });
 				blockBytes = getBytes(block);
@@ -128,6 +128,7 @@ describe('blocks/header', () => {
 				).toThrow('Invalid previous block');
 			});
 		});
+
 		describe('when signature is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
@@ -282,7 +283,7 @@ describe('blocks/header', () => {
 				// Act & assert
 				expect(() =>
 					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).toResolve();
+				).not.toThrow();
 			});
 		});
 	});
@@ -446,43 +447,6 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when skip existing check is true and a transaction is not verifiable', () => {
-			let invalidTx;
-
-			beforeEach(async () => {
-				// Arrage
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '0' },
-				]);
-				invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				block = newBlock({ transactions: [invalidTx] });
-			});
-
-			it('should not call apply for the transaction and throw error', async () => {
-				// Act
-				const stateStore = new StateStore(storageStub);
-
-				await expect(
-					chainInstance.verify(block, stateStore, {
-						skipExistingCheck: true,
-					}),
-				).rejects.toMatchObject([
-					expect.objectContaining({
-						message: expect.stringContaining(
-							'Account does not have enough LSK',
-						),
-					}),
-				]);
-			});
-		});
-
 		describe('when skip existing check is true and transactions are valid', () => {
 			let invalidTx;
 
@@ -505,6 +469,7 @@ describe('blocks/header', () => {
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
 				const stateStore = new StateStore(storageStub);
+				expect.assertions(1);
 				let err;
 				try {
 					await chainInstance.verify(block, stateStore, {
