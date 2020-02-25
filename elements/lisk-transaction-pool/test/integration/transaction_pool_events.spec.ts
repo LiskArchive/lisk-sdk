@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	TransactionPool,
@@ -27,7 +41,6 @@ describe('transaction pool events', () => {
 		validatedTransactionsProcessingInterval: 10000,
 		verifiedTransactionsLimitPerProcessing: 25,
 		verifiedTransactionsProcessingInterval: 10000,
-		pendingTransactionsProcessingLimit: 5,
 	};
 
 	const validateTransactionFunction = fakeCheckFunctionGenerator([]);
@@ -58,7 +71,6 @@ describe('transaction pool events', () => {
 	const transactionsInReceivedQueue = otherTransactions.slice(0, 200);
 	const transactionsInValidatedQueue = otherTransactions.slice(200, 400);
 	const transactionsInVerifiedQueue = otherTransactions.slice(400, 600);
-	const transactionsInPendingQueue = otherTransactions.slice(600, 776);
 	const transactionsInReadyQueue = otherTransactions.slice(776, 800);
 
 	beforeEach(async () => {
@@ -79,7 +91,6 @@ describe('transaction pool events', () => {
 				transactionsInValidatedQueue,
 			);
 			transactionPool.queues.verified.enqueueMany(transactionsInVerifiedQueue);
-			transactionPool.queues.pending.enqueueMany(transactionsInPendingQueue);
 			transactionPool.queues.ready.enqueueMany(transactionsInReadyQueue);
 		});
 
@@ -99,13 +110,6 @@ describe('transaction pool events', () => {
 			const unaffectedTransactionsInVerifiedQueue = transactionsInVerifiedQueue.slice(
 				8,
 			);
-			const affectedTransactionsInPendingQueue = transactionsInPendingQueue.slice(
-				0,
-				8,
-			);
-			const unaffectedTransactionsInPendingQueue = transactionsInPendingQueue.slice(
-				8,
-			);
 			const affectedTransactionsInReadyQueue = transactionsInReadyQueue.slice(
 				0,
 				8,
@@ -115,7 +119,6 @@ describe('transaction pool events', () => {
 			);
 			const transactionsToMoveToValidatedQueue = [
 				...affectedTransactionsInVerifiedQueue,
-				...affectedTransactionsInPendingQueue,
 				...affectedTransactionsInReadyQueue,
 			];
 			const transactionsToMoveToReceivedQueue = affectedTransactionsInValidatedQueue;
@@ -164,11 +167,6 @@ describe('transaction pool events', () => {
 						true,
 					),
 				);
-				unaffectedTransactionsInPendingQueue.forEach(transaction =>
-					expect(transactionPool.queues.pending.exists(transaction.id)).toBe(
-						true,
-					),
-				);
 				unaffectedTransactionsInValidatedQueue.forEach(transaction =>
 					expect(transactionPool.queues.validated.exists(transaction.id)).toBe(
 						true,
@@ -196,10 +194,6 @@ describe('transaction pool events', () => {
 				...transactionsWithAffectedTypeInVerifiedQueue
 			] = transactionsInVerifiedQueue.filter(filterForAffectedType);
 			const [
-				confirmedTransactionInPendingQueue,
-				...transactionsWithAffectedTypeInPendingQueue
-			] = transactionsInPendingQueue.filter(filterForAffectedType);
-			const [
 				confirmedTransactionInReadyQueue,
 				...transactionsWithAffectedTypeInReadyQueue
 			] = transactionsInReadyQueue.filter(filterForAffectedType);
@@ -210,7 +204,6 @@ describe('transaction pool events', () => {
 
 			const confirmedTransactions = [
 				confirmedTransactionInVerifiedQueue,
-				confirmedTransactionInPendingQueue,
 				confirmedTransactionInReadyQueue,
 				confirmedTransactionInValidatedQueue,
 			];
@@ -228,9 +221,6 @@ describe('transaction pool events', () => {
 			const transactionsWithAffectedSenderIdInVerifiedQueue = transactionsInVerifiedQueue.filter(
 				filterForAffectedTransactionsBySenderId,
 			);
-			const transactionsWithAffectedSenderIdInPendingQueue = transactionsInPendingQueue.filter(
-				filterForAffectedTransactionsBySenderId,
-			);
 			const transactionsWithAffectedSenderIdInReadyQueue = transactionsInReadyQueue.filter(
 				filterForAffectedTransactionsBySenderId,
 			);
@@ -240,10 +230,8 @@ describe('transaction pool events', () => {
 
 			const transactionsToMoveToValidatedQueue = [
 				...transactionsWithAffectedTypeInVerifiedQueue,
-				...transactionsWithAffectedTypeInPendingQueue,
 				...transactionsWithAffectedTypeInReadyQueue,
 				...transactionsWithAffectedSenderIdInVerifiedQueue,
-				...transactionsWithAffectedSenderIdInPendingQueue,
 				...transactionsWithAffectedSenderIdInReadyQueue,
 			];
 
@@ -286,14 +274,12 @@ describe('transaction pool events', () => {
 		describe('on verifying transactions from senders', () => {
 			const affectedSenderPublicKeys = [
 				transactionsInVerifiedQueue[0],
-				transactionsInPendingQueue[0],
 				transactionsInReadyQueue[0],
 				transactionsInValidatedQueue[0],
 			].map(transaction => transaction.senderPublicKey);
 
 			const transactionsToMoveToValidatedQueue = [
 				...transactionsInVerifiedQueue,
-				...transactionsInPendingQueue,
 				...transactionsInReadyQueue,
 			].filter(transaction =>
 				affectedSenderPublicKeys.includes(transaction.senderPublicKey),
@@ -328,27 +314,6 @@ describe('transaction pool events', () => {
 		});
 
 		describe('on adding transactions to transaction pool', () => {
-			it('should not fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction unable to add to the pending queue', done => {
-				transactionPool.addPendingTransaction(transactions[0]);
-				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, () => {
-					done('should not be called');
-				});
-				const { alreadyExists } = transactionPool.addPendingTransaction(
-					transactions[0],
-				);
-				expect(alreadyExists).toBe(true);
-				// wait 1 second to ensure that event is not called for transaction
-				setTimeout(done, 1000);
-			});
-
-			it('should fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction is added to the pending queue after adding transaction', done => {
-				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
-					expect(payload[0]).toEqual(transactions[0]);
-					done();
-				});
-				transactionPool.addPendingTransaction(transactions[0]);
-			});
-
 			it('should not fire event EVENT_VERIFIED_TRANSACTION_ONCE if transaction unable to add to the verified queue', done => {
 				transactionPool.addVerifiedTransaction(transactions[0]);
 				transactionPool.on(EVENT_VERIFIED_TRANSACTION_ONCE, () => {
