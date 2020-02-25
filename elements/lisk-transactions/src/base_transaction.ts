@@ -324,7 +324,8 @@ export abstract class BaseTransaction {
 		// Validate minimum remaining balance
 		const minRemainingBalanceError = verifyMinRemainingBalance(
 			this.id,
-			sender,
+			// Get updated account state
+			await store.account.get(this.senderId),
 			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
 		);
 		if (minRemainingBalanceError) {
