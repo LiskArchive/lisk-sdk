@@ -15,7 +15,6 @@
 
 'use strict';
 
-const randomstring = require('randomstring');
 const {
 	entities: { BaseEntity, Account },
 	errors: {
@@ -489,11 +488,7 @@ describe('Account', () => {
 			let validAccount = null;
 
 			beforeEach(async () => {
-				validAccount = new accountFixtures.Account({
-					secondPublicKey: randomstring
-						.generate({ charset: '0123456789ABCDEF', length: 64 })
-						.toLowerCase(),
-				});
+				validAccount = new accountFixtures.Account();
 				await AccountEntity.create(validAccount);
 				filters = { address: validAccount.address };
 			});
@@ -506,17 +501,6 @@ describe('Account', () => {
 
 				expect(accounts[0].publicKey).to.be.eql(
 					rawKey[0].publicKey.toString('hex'),
-				);
-			});
-
-			it('should always return "secondPublicKey" as "encode(secondPublicKey, \'hex\')"', async () => {
-				const accounts = await AccountEntity.get(filters, options);
-				const rawKey = await adapter.execute(
-					`SELECT "secondPublicKey" FROM mem_accounts WHERE "address" = '${validAccount.address}'`,
-				);
-
-				expect(accounts[0].secondPublicKey).to.be.eql(
-					rawKey[0].secondPublicKey.toString('hex'),
 				);
 			});
 		});

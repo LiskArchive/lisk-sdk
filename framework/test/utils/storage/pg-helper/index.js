@@ -135,7 +135,6 @@ class PgHelper {
 			`SELECT
 			"address",
 			ENCODE("publicKey", 'hex') as "publicKey",
-			ENCODE("secondPublicKey", 'hex') as "secondPublicKey",
 			"username",
 			"isDelegate",
 			"balance",

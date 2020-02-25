@@ -18,7 +18,6 @@ require('../../../functional');
 const Promise = require('bluebird');
 const {
 	transfer,
-	registerSecondPassphrase,
 	registerMultisignature,
 } = require('@liskhq/lisk-transactions');
 const apiHelpers = require('../../../../../utils/http/api');
@@ -73,28 +72,10 @@ describe('GET /api/node', () => {
 						return waitFor.confirmations([transaction.id]);
 					})
 					.then(() => {
-						// Create Second Signature for sender account
-						transaction = registerSecondPassphrase({
-							networkIdentifier,
-							passphrase: senderAccount.passphrase,
-							secondPassphrase: senderAccount.secondPassphrase,
-						});
-
-						return sendTransactionPromise(transaction);
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-
-						return waitFor.confirmations([transaction.id]);
-					})
-					.then(() => {
 						// Convert account to multisig account
 						transaction = registerMultisignature({
 							networkIdentifier,
 							passphrase: senderAccount.passphrase,
-							secondPassphrase: senderAccount.secondPassphrase,
 							keysgroup: [`${randomMember.publicKey}`],
 							lifetime: 1,
 							minimum: 1,
@@ -127,7 +108,6 @@ describe('GET /api/node', () => {
 									networkIdentifier,
 									amount: ((i + 1) * NORMALIZER).toString(),
 									passphrase: senderAccount.passphrase,
-									secondPassphrase: senderAccount.secondPassphrase,
 									recipientId: recipientAccount.address,
 								}),
 							);
