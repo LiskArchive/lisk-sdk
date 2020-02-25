@@ -95,7 +95,7 @@ export const verifyMessageWithPublicKey = ({
 	return verifyDetached(msgBytes, signatureBytes, publicKeyBytes);
 };
 
-export interface SingleOrDoubleSignedMessage {
+export interface SignedMessage {
 	readonly message: string;
 	readonly publicKey: string;
 	readonly signature: string;
@@ -105,7 +105,7 @@ export const printSignedMessage = ({
 	message,
 	signature,
 	publicKey,
-}: SingleOrDoubleSignedMessage): string =>
+}: SignedMessage): string =>
 	[
 		signedMessageHeader,
 		messageHeader,
