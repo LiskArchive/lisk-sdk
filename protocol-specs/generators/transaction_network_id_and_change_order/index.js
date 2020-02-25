@@ -91,8 +91,8 @@ const generateValidTransferTransaction = () => {
 
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.nonce, 8, 'big'),
+		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.fee, 8, 'big'),
 		intToBuffer(tx.asset.amount, 8, 'big'),
 		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
@@ -138,8 +138,8 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.nonce, 8, 'big'),
+		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.fee, 8, 'big'),
 		intToBuffer(tx.asset.amount, 8, 'big'),
 		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
@@ -204,8 +204,8 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.nonce, 8, 'big'),
+		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.fee, 8, 'big'),
 		intToBuffer(tx.asset.amount, 8, 'big'),
 		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
@@ -262,8 +262,8 @@ const generateValidDelegateTransaction = () => {
 
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.nonce, 8, 'big'),
+		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.fee, 8, 'big'),
 		Buffer.from(tx.asset.username, 'utf8'),
 	]);
@@ -309,8 +309,8 @@ const generateValidVoteTransaction = () => {
 
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.nonce, 8, 'big'),
+		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.fee, 8, 'big'),
 		Buffer.from(tx.asset.votes.join(''), 'utf8'),
 	]);
@@ -358,8 +358,8 @@ const generateValidMultisignatureTransaction = () => {
 
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.nonce, 8, 'big'),
+		hexToBuffer(tx.senderPublicKey),
 		intToBuffer(tx.fee, 8, 'big'),
 		Buffer.alloc(1, tx.asset.min),
 		Buffer.alloc(1, tx.asset.lifetime),
