@@ -138,7 +138,12 @@ describe('integration test (type 4) - checking registered multisignature transac
 
 		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(TRANSACTION_TYPES).forEach((key, index) => {
-				if (key === 'DAPP' || key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+				if (
+					key === 'SIGNATURE' ||
+					key === 'DAPP' ||
+					key === 'IN_TRANSFER' ||
+					key === 'OUT_TRANSFER'
+				) {
 					return true;
 				}
 				if (key !== 'MULTI') {

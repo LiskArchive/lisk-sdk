@@ -61,7 +61,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		}),
 		unsigned: new Scenarios.Multisig(),
 		regular: new Scenarios.Multisig(),
-		regular_with_second_signature: new Scenarios.Multisig(),
 	};
 
 	let transaction;

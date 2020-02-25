@@ -294,11 +294,7 @@ describe('GET /api/voters', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				const amount = (
-					BigInt(FEES.DELEGATE) +
-					BigInt(FEES.VOTE) +
-					BigInt(FEES.SECOND_SIGNATURE)
-				).toString();
+				const amount = (BigInt(FEES.DELEGATE) + BigInt(FEES.VOTE)).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
 					networkIdentifier,
 					amount,
