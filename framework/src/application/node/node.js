@@ -29,7 +29,6 @@ const { Sequence } = require('./utils/sequence');
 const jobQueue = require('./utils/jobs_queue');
 const {
 	TransactionPool,
-	EVENT_MULTISIGNATURE_SIGNATURE,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
 const { Forger } = require('./forger');
@@ -193,10 +192,6 @@ module.exports = class Node {
 								);
 								return;
 							}
-							if (event === 'postSignatures') {
-								await this.transport.handleEventPostSignatures(data, peerId);
-								return;
-							}
 							if (event === 'postBlock') {
 								await this.transport.handleEventPostBlock(data, peerId);
 								return;
@@ -301,9 +296,6 @@ module.exports = class Node {
 					action.params.data,
 					action.params.peerId,
 				),
-			getSignatures: () => this.transport.handleRPCGetSignatures(),
-			postSignature: async action =>
-				this.transport.handleEventPostSignature(action.params),
 			getForgingStatusForAllDelegates: async () =>
 				this.forger.getForgingStatusForAllDelegates(),
 			getTransactionsFromPool: async ({ params }) =>
@@ -615,14 +607,6 @@ module.exports = class Node {
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });
-		});
-
-		this.transactionPool.on(EVENT_MULTISIGNATURE_SIGNATURE, signature => {
-			this.logger.trace(
-				{ signature },
-				'Received EVENT_MULTISIGNATURE_SIGNATURE',
-			);
-			this.transport.handleBroadcastSignature(signature);
 		});
 	}
 
