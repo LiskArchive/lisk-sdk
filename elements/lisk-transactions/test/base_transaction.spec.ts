@@ -749,6 +749,60 @@ describe('Base transaction class', () => {
 				`Account does not have enough LSK: ${defaultSenderAccount.address}, balance: 0`,
 			);
 		});
+
+		it('should return a failed transaction response with insufficient minimum remaining balance', async () => {
+			const senderBalance =
+				BigInt((validTestTransaction as any).asset.amount) +
+				BaseTransaction.MIN_REMAINING_BALANCE -
+				BigInt(10000);
+			storeAccountGetStub.mockReturnValue({
+				...defaultSenderAccount,
+				balance: senderBalance,
+			});
+			const { id, status, errors } = await validTestTransaction.apply(store);
+
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.FAIL);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toEqual(
+				`Account does not have enough minimum remaining LSK: ${defaultSenderAccount.address}, balance: 0.0049`,
+			);
+		});
+
+		it('should return a successful transaction response with matching minimum remaining balance', async () => {
+			const senderBalance =
+				BigInt((validTestTransaction as any).asset.amount) +
+				BaseTransaction.MIN_REMAINING_BALANCE;
+
+			storeAccountGetStub.mockReturnValue({
+				...defaultSenderAccount,
+				balance: senderBalance,
+			});
+			const { id, status, errors } = await validTestTransaction.apply(store);
+
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.OK);
+			expect(Object.keys(errors)).toHaveLength(0);
+		});
+
+		it('should return a successful transaction response with extra minimum remaining balance', async () => {
+			const senderBalance =
+				BigInt((validTestTransaction as any).asset.amount) +
+				BaseTransaction.MIN_REMAINING_BALANCE +
+				BigInt(10000);
+
+			storeAccountGetStub.mockReturnValue({
+				...defaultSenderAccount,
+				balance: senderBalance,
+			});
+			const { id, status, errors } = await validTestTransaction.apply(store);
+
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.OK);
+			expect(Object.keys(errors)).toHaveLength(0);
+		});
 	});
 
 	describe('#undo', () => {

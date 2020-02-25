@@ -15,7 +15,7 @@
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
-import { convertBeddowsToLSK } from '../utils/format';
+import { convertBeddowsToLSK } from './format';
 
 import { validateMultisignatures } from './sign_and_validate';
 
@@ -61,6 +61,25 @@ export const verifyAmountBalance = (
 			`Account does not have enough LSK: ${
 				account.address
 			}, balance: ${convertBeddowsToLSK((balance + fee).toString())}`,
+			id,
+			'.balance',
+		);
+	}
+
+	return undefined;
+};
+
+export const verifyMinRemainingBalance = (
+	id: string,
+	account: Account,
+	minRemainingBalance: bigint,
+): TransactionError | undefined => {
+	const balance = BigInt(account.balance);
+	if (balance < minRemainingBalance) {
+		return new TransactionError(
+			`Account does not have enough minimum remaining LSK: ${
+				account.address
+			}, balance: ${convertBeddowsToLSK(balance.toString())}`,
 			id,
 			'.balance',
 		);
