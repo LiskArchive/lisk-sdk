@@ -820,7 +820,7 @@ describe('blocks/header', () => {
 				);
 				let expected = block.reward;
 				for (const tx of block.transactions) {
-					// TODO: substract minFee
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
 					expected += tx.fee;
 				}
 				expect(generator.balance.toString()).toEqual(expected.toString());
@@ -832,7 +832,7 @@ describe('blocks/header', () => {
 				);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
-					// TODO: substract minFee
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
 					expected += tx.fee - tx.fee;
 				}
 				expect(burntFee).toEqual(
@@ -1085,7 +1085,7 @@ describe('blocks/header', () => {
 				);
 				let expected = block.reward;
 				for (const tx of block.transactions) {
-					// TODO: substract minFee
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
 					expected += tx.fee;
 				}
 				expect(generator.balance.toString()).toEqual(
@@ -1099,7 +1099,7 @@ describe('blocks/header', () => {
 				);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
-					// TODO: substract minFee
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
 					expected += tx.fee - tx.fee;
 				}
 				expect(burntFee).toEqual(
