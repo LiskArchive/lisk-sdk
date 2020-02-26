@@ -117,9 +117,8 @@ module.exports = {
 		MAX_PAYLOAD_LENGTH: {
 			type: 'integer',
 			min: 1,
-			const: 1024 * 1024,
-			description:
-				'Maximum transaction bytes length for 25 transactions in a single block',
+			const: 15 * 1024,
+			description: 'Maximum transaction bytes length in a single block',
 		},
 		MAX_SHARED_TRANSACTIONS: {
 			type: 'integer',
@@ -222,7 +221,7 @@ module.exports = {
 			DAPP_WITHDRAWAL: '10000000',
 			DAPP_DEPOSIT: '10000000',
 		},
-		MAX_PAYLOAD_LENGTH: 1024 * 1024,
+		MAX_PAYLOAD_LENGTH: 15 * 1024,
 		MAX_SHARED_TRANSACTIONS: 100,
 		MAX_VOTES_PER_ACCOUNT: 101,
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!

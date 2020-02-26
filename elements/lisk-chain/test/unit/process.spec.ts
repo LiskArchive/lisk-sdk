@@ -195,28 +195,6 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when exceeds maximum transactions per block', () => {
-			it('should throw error', async () => {
-				// Arrange
-				const txs = new Array(30).fill(0).map((_, v) =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							passphrase: genesisAccount.passphrase,
-							recipientId: `${v + 1}L`,
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs });
-				blockBytes = getBytes(block);
-				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).toThrow('Number of transactions exceeds maximum per block');
-			});
-		});
-
 		describe('when payload hash is incorrect', () => {
 			it('should throw error', async () => {
 				// Arrange
