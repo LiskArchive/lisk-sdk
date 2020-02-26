@@ -24,17 +24,19 @@ export interface StateStore {
 	};
 }
 
-export interface Earnings {
-	readonly fee: bigint;
-	readonly reward: bigint;
-}
-
-export interface BlockHeader extends Earnings {
-	readonly id: number;
+export interface BlockHeader {
+	readonly id: string;
 	readonly height: number;
 	readonly generatorPublicKey: string;
+	readonly reward: bigint;
 	readonly totalFee: bigint;
 	readonly timestamp: number;
+}
+
+export interface Block extends BlockHeader {
+	// Temporally required to create this type, since total reward and fee are required to calculated in the DPoS for vote weight change
+	// tslint:disable-next-line: no-any
+	readonly transactions: any[];
 }
 
 // tslint:disable readonly-keyword
@@ -56,14 +58,13 @@ export interface DPoSProcessingOptions {
 	readonly undo?: boolean;
 }
 
-export interface RoundException {
-	readonly rewards_factor: number;
-	readonly fees_factor: number;
-	readonly fees_bonus: number;
-}
-
 export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
+	// tslint:disable-next-line no-mixed-interface
+	readonly getTotalEarningAndBurnt: (
+		block: BlockHeader,
+	) => { readonly totalEarning: bigint; readonly totalBurnt: bigint };
+	// tslint:disable-next-line no-mixed-interface
 	readonly dataAccess: {
 		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
 		readonly getChainState: (key: string) => Promise<string | undefined>;
