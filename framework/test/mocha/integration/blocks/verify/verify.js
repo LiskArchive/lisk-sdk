@@ -131,11 +131,6 @@ describe('blocks/verify', () => {
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
 
-	// TODO: Refactor this test, dataset being used is no longer valid because of BLOCK_SLOT_WINDOW check
-	describe('verifyReceipt', () => {});
-
-	describe('verifyBlock', () => {});
-
 	// Sends a block to network, save it locally
 	describe('processBlock for valid block {broadcast: true, saveBlock: true}', () => {
 		it('should clear database', done => {

@@ -122,31 +122,4 @@ describe('integration test (chain) - process', () => {
 			expect(block.height).to.equal(3);
 		});
 	});
-
-	describe('loadBlocksOffset() - block/transaction errors', () => {
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 4 from db and return blockSignature error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 5 from db and return payloadHash error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 6 from db and return block timestamp error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 7 from db and return unknown transaction type error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 8 from db and return block version error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlockId error (fork:1)',
-		);
-	});
 });
