@@ -22,12 +22,10 @@ const clearDatabaseTable = require('../../../../utils/storage/storage_sandbox')
 const loadTables = require('./process_tables_data.json');
 
 describe('integration test (chain) - process', () => {
-	let chainProcess;
 	let chain;
 	let storage;
 
 	localCommon.beforeBlock('chain_process', lib => {
-		chainProcess = lib.modules.chain.process;
 		chain = lib.modules.chain;
 		storage = lib.components.storage;
 	});
@@ -150,21 +148,5 @@ describe('integration test (chain) - process', () => {
 		it(
 			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlockId error (fork:1)',
 		);
-
-		// eslint-disable-next-line
-		it.skip('should load block 10 from db and return duplicated votes error', done => {
-			chain.lastBlock.set(loadTables[0].data[7]);
-
-			chainProcess.loadBlocksOffset(1, 10, (err, loadedBlock) => {
-				if (err) {
-					expect(err).equal(
-						'Failed to validate vote schema: Array items are not unique (indexes 0 and 4)',
-					);
-					return done();
-				}
-
-				return done(loadedBlock);
-			});
-		});
 	});
 });
