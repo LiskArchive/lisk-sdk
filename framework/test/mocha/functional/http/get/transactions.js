@@ -38,7 +38,6 @@ const TRANSACTION_TYPES_VOTE = 11;
 
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
 	const slots = new Slots({
@@ -74,13 +73,6 @@ describe('GET /api/transactions', () => {
 		recipientId: account2.address,
 		data: 'hey :)',
 	});
-	const transaction4 = transfer({
-		networkIdentifier,
-		amount: maxAmount.toString(),
-		passphrase: accountFixtures.genesis.passphrase,
-		recipientId: account3.address,
-		data: 'Tx4',
-	});
 	const transaction5 = transfer({
 		networkIdentifier,
 		amount: minAmount.toString(),
@@ -93,65 +85,6 @@ describe('GET /api/transactions', () => {
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
-	const transactionType5 = {
-		amount: '0',
-		recipientId: '',
-		senderPublicKey:
-			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
-		timestamp: 68943236,
-		type: 5,
-		fee: '2500000000',
-		asset: {
-			dapp: {
-				category: 4,
-				name: 'Placeholder-App',
-				description: 'Placeholder-App description',
-				tags: 'app placeholder dummy',
-				type: 0,
-				link: 'https://dummy.zip',
-				icon:
-					'https://raw.githubusercontent.com/DummyUser/blockDataDapp/master/icon.png',
-			},
-		},
-		signature:
-			'074ad8f2fc4146c1122913a147e71b67ceccbd9a45d769b4bc9ed1cdbdf4404eaa4475f30e9ea5d33d715e3208506aee18425cf03f971d85f027e5dbc0530a02',
-		id: '3173899516019557774',
-	};
-	const transactionType6 = {
-		type: 6,
-		amount: '0',
-		fee: '10000000',
-		recipientId: '',
-		senderPublicKey:
-			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
-		timestamp: 69004227,
-		asset: {
-			inTransfer: {
-				dappId: '3173899516019557774',
-			},
-		},
-		signature:
-			'89a5d3abe53815d2cc36aaf04d242735bb8eaa767c8e8d9a31c049968189b500e87b61188a5ec80a1c191aa1bcf6bb7980f726c837fa3d3d753673ce7ab3060e',
-		id: '9616264103046411489',
-	};
-	const transactionType7 = {
-		type: 7,
-		amount: '0',
-		fee: '10000000',
-		recipientId: '10881167371402274308L',
-		senderPublicKey:
-			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
-		timestamp: 69520900,
-		asset: {
-			outTransfer: {
-				dappId: '3173899516019557774',
-				transactionId: '3173899516019557774',
-			},
-		},
-		signature:
-			'8249786301f5cc7184b0681563dc5c5856568ff967bec22b778f773b0a86532b13d1ede9234f581e62388ada2d1e1366adaa03151a9e6508fb7c3a3e59425109',
-		id: '18307756018345914129',
-	};
 
 	// Crediting accounts'
 	before(() => {
@@ -405,20 +338,6 @@ describe('GET /api/transactions', () => {
 					transactionsType3.map(transaction => {
 						expect(Object.keys(transaction.asset).length).to.equal(1);
 						return expect(transaction.asset.votes.length).to.be.within(1, 33);
-					});
-				});
-
-				// eslint-disable-next-line
-				it.skip('using type 5 should return asset field with correct properties', async () => {
-					const res = await transactionsEndpoint.makeRequest({ type: 5 }, 200);
-
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(1);
-						// Required properties: name, category, type
-						expect(transaction.asset.dapp).to.have.property('name');
-						expect(transaction.asset.dapp.type).to.be.within(0, 2);
-						return expect(transaction.asset.dapp.category).to.be.within(0, 9);
 					});
 				});
 			});
@@ -1076,72 +995,5 @@ describe('GET /api/transactions', () => {
 					});
 			});
 		});
-
-		/**
-		 * This tests will fail because type 6 and type 7 transactions got disabled in Lisk Core v1.0
-		 * You can make it pass locally, by changing the value for disableDappTransfer
-		 * in config/default/exceptions to a value bigger than 0
-		 * */
-		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('dapp', () => {
-			before(() => {
-				return sendTransactionPromise(transaction4) // send type 0 transaction
-					.then(result => {
-						expect(result.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transaction4.id]); // wait for confirmation
-					})
-					.then(() => {
-						return sendTransactionPromise(transactionType5); // send type 5 transaction
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transactionType5.id]); // wait for confirmation
-					})
-					.then(() => {
-						return sendTransactionPromise(transactionType6); // send type 6 transaction
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transactionType6.id]); // wait for confirmation
-					})
-					.then(() => {
-						return sendTransactionPromise(transactionType7); // send type 7 transaction
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transactionType7.id]); // wait for confirmation
-					});
-			});
-			it('assets for type 6 transactions should contain key dappId', async () => {
-				return transactionsEndpoint.makeRequest({ type: 6 }, 200).then(res => {
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(transaction.asset).to.have.key('inTransfer');
-						return expect(transaction.asset.inTransfer).to.have.key('dappId');
-					});
-				});
-			});
-			it('assets for type 7 transactions should contain key dappId and transactionId', async () => {
-				return transactionsEndpoint.makeRequest({ type: 7 }, 200).then(res => {
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(transaction.asset).to.have.key('outTransfer');
-						return expect(transaction.asset.outTransfer).to.have.all.keys(
-							'dappId',
-							'transactionId',
-						);
-					});
-				});
-			});
-		});
-		/* eslint-enable mocha/no-skipped-tests */
 	});
 });
