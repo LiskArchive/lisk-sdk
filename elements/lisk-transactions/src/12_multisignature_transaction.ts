@@ -47,7 +47,7 @@ export const multisignatureAssetFormatSchema = {
 			maxItems: 64,
 			items: {
 				type: 'string',
-				format: 'additionPublicKey',
+				format: 'publicKey',
 			},
 		},
 		mandatoryKeys: {
@@ -57,7 +57,7 @@ export const multisignatureAssetFormatSchema = {
 			maxItems: 64,
 			items: {
 				type: 'string',
-				format: 'additionPublicKey',
+				format: 'publicKey',
 			},
 		},
 	},
@@ -188,7 +188,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		if (mandatoryKeys.length + optionalKeys.length < numberOfSignatures) {
 			errors.push(
 				new TransactionError(
-					'The count of Mandatory and Optional keys is less then the required numberOfSignatures',
+					'The numberOfSignatures is bigger than the count of Mandatory and Optional keys',
 					this.id,
 					'.asset.numberOfSignatures',
 					this.asset.numberOfSignatures,
@@ -219,7 +219,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		if (repeatedKeys.length > 0) {
 			errors.push(
 				new TransactionError(
-					'Invalid combination of Mandatory and Optional keys.',
+					'Invalid combination of Mandatory and Optional keys',
 					this.id,
 					'.asset.mandatoryKeys, .asset.optionalKeys',
 					repeatedKeys.join(', '),
@@ -254,7 +254,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			if (optionalKeys[i] !== sortedOptionalKeys[i]) {
 				errors.push(
 					new TransactionError(
-						'Mandatory keys should be sorted lexicographically',
+						'Optional keys should be sorted lexicographically',
 						this.id,
 						'.asset.optionalKeys',
 						optionalKeys.join(', '),
@@ -262,36 +262,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 				);
 				break;
 			}
-		}
-
-		// Check signatures are unique
-		const uniqueMandatoryKeys = mandatoryKeys.filter(
-			(aKey, idx) => mandatoryKeys.indexOf(aKey) === idx,
-		);
-		const uniqueOptionalKeys = optionalKeys.filter(
-			(aKey, idx) => optionalKeys.indexOf(aKey) === idx,
-		);
-
-		if (mandatoryKeys.length > uniqueMandatoryKeys.length) {
-			errors.push(
-				new TransactionError(
-					'Mandatory Keys contain duplicate entries',
-					this.id,
-					'.asset.mandatoryKeys',
-					this.asset.numberOfSignatures,
-				),
-			);
-		}
-
-		if (optionalKeys.length > uniqueOptionalKeys.length) {
-			errors.push(
-				new TransactionError(
-					'Optional Keys contain duplicate entries',
-					this.id,
-					'.asset.optionalKeys',
-					this.asset.numberOfSignatures,
-				),
-			);
 		}
 
 		return errors;
@@ -319,6 +289,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			mandatoryKeys: this.asset.mandatoryKeys as string[],
 			optionalKeys: this.asset.optionalKeys as string[],
 		};
+
 		store.account.set(sender.address, sender);
 
 		// Cache all members public keys
@@ -373,7 +344,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 		);
 
 		if (mandatorySignaturesErrors.length) {
-			return createResponse(this.id, [error as TransactionError]);
+			return createResponse(
+				this.id,
+				mandatorySignaturesErrors as TransactionError[],
+			);
 		}
 		// Verify each optional key signed in order
 		const optionalSignaturesErrors = validateKeysSignatures(
@@ -382,7 +356,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 			transactionWithNetworkIdentifierBytes,
 		);
 		if (optionalSignaturesErrors.length) {
-			return createResponse(this.id, [error as TransactionError]);
+			return createResponse(
+				this.id,
+				optionalSignaturesErrors as TransactionError[],
+			);
 		}
 
 		return createResponse(this.id, []);
