@@ -24,9 +24,7 @@ import {
 	TestTransaction,
 	TestTransactionBasicImpl,
 } from './helpers';
-import { validSecondSignatureTransaction } from '../fixtures';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
-import * as transferSecondSignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_second_signature_validate.json';
 import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_multi_signature_validate.json';
 import * as utils from '../src/utils';
 import { TransferTransaction } from '../src/8_transfer_transaction';
@@ -40,9 +38,6 @@ describe('Base transaction class', () => {
 		...transferFixture.testCases[0].input.account,
 		balance: BigInt('1000000000000'),
 	};
-	const defaultSecondSignatureTransaction = addTransactionFields(
-		validSecondSignatureTransaction,
-	);
 	const defaultMultisignatureTransaction = addTransactionFields(
 		multisignatureFixture.testCases[0].output,
 	);
@@ -61,7 +56,6 @@ describe('Base transaction class', () => {
 	let validTestTransaction: BaseTransaction;
 	let transactionWithDefaultValues: BaseTransaction;
 	let transactionWithBasicImpl: BaseTransaction;
-	let validSecondSignatureTestTransaction: BaseTransaction;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountGetOrDefaultStub: jest.SpyInstance;
 	let validMultisignatureTransaction: TransferTransaction;
@@ -74,10 +68,6 @@ describe('Base transaction class', () => {
 			networkIdentifier,
 		});
 		transactionWithBasicImpl = new TestTransactionBasicImpl({
-			networkIdentifier,
-		});
-		validSecondSignatureTestTransaction = new TransferTransaction({
-			...defaultSecondSignatureTransaction,
 			networkIdentifier,
 		});
 		validMultisignatureTransaction = new TransferTransaction({
@@ -337,22 +327,6 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should call cryptography hexToBuffer for transaction with signSignature', async () => {
-			const cryptographyHexToBufferStub = jest
-				.spyOn(cryptography, 'hexToBuffer')
-				.mockReturnValue(
-					Buffer.from(
-						'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
-						'hex',
-					),
-				);
-			validSecondSignatureTestTransaction.getBytes();
-
-			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
-				validSecondSignatureTestTransaction.signSignature,
-			);
-		});
-
 		it('should return a buffer with signature bytes', async () => {
 			const expectedBuffer = Buffer.from(
 				'08033ccd24efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d00000000499602d2fbc2d06c336d04be72616e646f6d20646174619fc2b85879b6423893841343c1d8905f3b9118b7db96bbb589df771c35ce0d05ce446951ee827c76ed1a85951af40018a007a1663f1a43a50129a0e32f26cb03',
@@ -360,17 +334,6 @@ describe('Base transaction class', () => {
 			);
 
 			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);
-		});
-
-		it('should return a buffer with signSignature bytes', async () => {
-			const expectedBuffer = Buffer.from(
-				'0004cf2945bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e800000002540be400b95af897b7e23cb93357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e0111f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
-				'hex',
-			);
-
-			expect(validSecondSignatureTestTransaction.getBytes()).toEqual(
-				expectedBuffer,
-			);
 		});
 	});
 
@@ -841,79 +804,44 @@ describe('Base transaction class', () => {
 	describe('create, sign and stringify transaction', () => {
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TransferTransaction({
-				...transferSecondSignatureFixture.testCases[0].input.transaction,
-				networkIdentifier:
-					transferSecondSignatureFixture.testCases[0].input.networkIdentifier,
+				...transferFixture.testCases[0].input.transaction,
+				networkIdentifier: transferFixture.testCases[0].input.networkIdentifier,
 			});
 			newTransaction.sign(
-				transferSecondSignatureFixture.testCases[0].input.account.passphrase,
+				transferFixture.testCases[0].input.account.passphrase,
 			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
 			expect(parsedResponse.senderPublicKey).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.senderPublicKey,
+				transferFixture.testCases[0].output.senderPublicKey,
 			);
 			expect(parsedResponse.signature).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.signature,
-			);
-		});
-
-		it('should return correct senderId/senderPublicKey when sign with passphrase and secondPassphrase', () => {
-			const newTransaction = new TransferTransaction({
-				...transferSecondSignatureFixture.testCases[0].input.transaction,
-				networkIdentifier:
-					transferSecondSignatureFixture.testCases[0].input.networkIdentifier,
-			});
-			newTransaction.sign(
-				transferSecondSignatureFixture.testCases[0].input.account.passphrase,
-				transferSecondSignatureFixture.testCases[0].input.secondPassphrase,
-			);
-
-			const stringifiedTransaction = newTransaction.stringify();
-			const parsedResponse = JSON.parse(stringifiedTransaction);
-
-			expect(parsedResponse.senderPublicKey).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.senderPublicKey,
-			);
-			expect(parsedResponse.signature).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.signature,
-			);
-			expect(parsedResponse.signSignature).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.signSignature,
+				transferFixture.testCases[0].output.signature,
 			);
 		});
 	});
 
 	describe('#sign', () => {
 		const defaultPassphrase = 'passphrase';
-		const defaultSecondPassphrase = 'second-passphrase';
 		const defaultHash = Buffer.from(
 			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02111111',
 			'hex',
 		);
-		const defaultSecondHash = Buffer.from(
-			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
-			'hex',
-		);
 		const defaultSignature =
 			'dc8fe25f817c81572585b3769f3c6df13d3dc93ff470b2abe807f43a3359ed94e9406d2539013971431f2d540e42dc7d3d71c7442da28572c827d59adc5dfa08';
-		const defaultSecondSignature =
-			'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
 
 		let signDataStub: jest.SpyInstance;
 
 		beforeEach(async () => {
 			const hashStub = jest
 				.spyOn(cryptography, 'hash')
-				.mockReturnValueOnce(defaultHash)
-				.mockReturnValueOnce(defaultSecondHash);
+				.mockReturnValueOnce(defaultHash);
 			hashStub.mockReturnValue(defaultHash);
 			signDataStub = jest
 				.spyOn(cryptography, 'signData')
-				.mockReturnValueOnce(defaultSignature)
-				.mockReturnValueOnce(defaultSecondSignature);
+				.mockReturnValueOnce(defaultSignature);
 		});
 
 		describe('when sign is called with passphrase', () => {
@@ -951,20 +879,11 @@ describe('Base transaction class', () => {
 
 		describe('when sign is called with passphrase and second passphrase', () => {
 			beforeEach(async () => {
-				transactionWithDefaultValues.sign(
-					defaultPassphrase,
-					defaultSecondPassphrase,
-				);
+				transactionWithDefaultValues.sign(defaultPassphrase);
 			});
 
 			it('should set signature property', async () => {
 				expect(transactionWithDefaultValues.signature).toBe(defaultSignature);
-			});
-
-			it('should set signSignature property', async () => {
-				expect(transactionWithDefaultValues.signSignature).toBe(
-					defaultSecondSignature,
-				);
 			});
 
 			it('should set id property', async () => {
@@ -983,13 +902,6 @@ describe('Base transaction class', () => {
 				expect(signDataStub).toHaveBeenCalledWith(
 					defaultHash,
 					defaultPassphrase,
-				);
-			});
-
-			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).toHaveBeenCalledWith(
-					defaultSecondHash,
-					defaultSecondPassphrase,
 				);
 			});
 		});

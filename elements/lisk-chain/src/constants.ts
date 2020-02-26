@@ -12,22 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-} = require('@liskhq/lisk-transactions');
-
-const registeredTransactions = {
-	8: TransferTransaction,
-	10: DelegateTransaction,
-	11: VoteTransaction,
-	12: MultisignatureTransaction,
-};
-
-module.exports = {
-	registeredTransactions,
-};
+export const CHAIN_STATE_KEY_BURNT_FEE = 'CHAIN_STATE_KEY_BURNT_FEE';

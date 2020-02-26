@@ -58,31 +58,21 @@ interface GetStdInInputs {
 	readonly dataIsRequired?: boolean;
 	readonly passphraseIsRequired?: boolean;
 	readonly passwordIsRequired?: boolean;
-	readonly secondPassphraseIsRequired?: boolean;
 }
 
 interface GetStdInOutput {
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly password?: string;
-	readonly secondPassphrase?: string;
 }
 
 export const getStdIn = async ({
 	passphraseIsRequired,
-	secondPassphraseIsRequired,
 	passwordIsRequired,
 	dataIsRequired,
 }: GetStdInInputs = {}): Promise<GetStdInOutput> => {
 	const readFromStd = new Promise<GetStdInOutput>((resolve, reject) => {
-		if (
-			!(
-				passphraseIsRequired ||
-				secondPassphraseIsRequired ||
-				passwordIsRequired ||
-				dataIsRequired
-			)
-		) {
+		if (!(passphraseIsRequired || passwordIsRequired || dataIsRequired)) {
 			resolve({});
 
 			return;
@@ -103,22 +93,14 @@ export const getStdIn = async ({
 				? lines[passphraseIndex]
 				: undefined;
 
-			const secondPassphraseIndex =
-				passphraseIndex + (passphrase !== undefined ? 1 : 0);
-			const secondPassphrase = secondPassphraseIsRequired
-				? lines[secondPassphraseIndex]
-				: undefined;
-
-			const passwordIndex =
-				secondPassphraseIndex + (secondPassphrase !== undefined ? 1 : 0);
+			const passwordIndex = passphrase === undefined ? 0 : 1;
 			const password = passwordIsRequired ? lines[passwordIndex] : undefined;
 
-			const dataStartIndex = passwordIndex + (password !== undefined ? 1 : 0);
+			const dataStartIndex = passwordIndex + (password === undefined ? 0 : 1);
 			const dataLines = lines.slice(dataStartIndex);
 
 			resolve({
 				passphrase,
-				secondPassphrase,
 				password,
 				data: dataLines.length ? dataLines.join('\n') : undefined,
 			});

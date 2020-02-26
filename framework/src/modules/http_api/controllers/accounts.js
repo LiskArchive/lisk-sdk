@@ -31,7 +31,6 @@ function accountFormatter(totalSupply, account) {
 		'address',
 		'publicKey',
 		'balance',
-		'secondPublicKey',
 		'asset',
 	]);
 
@@ -53,7 +52,6 @@ function accountFormatter(totalSupply, account) {
 	}
 
 	formattedAccount.publicKey = formattedAccount.publicKey || '';
-	formattedAccount.secondPublicKey = formattedAccount.secondPublicKey || '';
 
 	return formattedAccount;
 }
@@ -70,7 +68,6 @@ AccountsController.getAccounts = async (context, next) => {
 	let filters = {
 		address_eql: params.address.value,
 		publicKey_eql: params.publicKey.value,
-		secondPublicKey_eql: params.secondPublicKey.value,
 		username_like: params.username.value,
 	};
 

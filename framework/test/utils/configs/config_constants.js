@@ -36,7 +36,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	FEES: {
 		SEND: '10000000',
 		VOTE: '100000000',
-		SECOND_SIGNATURE: '500000000',
 		DELEGATE: '2500000000',
 		MULTISIGNATURE: '500000000',
 		DAPP_REGISTRATION: '2500000000',
@@ -50,7 +49,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	TOTAL_AMOUNT: '10000000000000000',
 	TRANSACTION_TYPES: {
 		SEND: 0,
-		SIGNATURE: 1,
 		DELEGATE: 2,
 		VOTE: 3,
 		MULTI: 4,

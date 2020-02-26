@@ -20,7 +20,6 @@ import * as time from '../src/utils/time';
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
-	const secondPassphrase = 'second secret';
 	const transactionType = 10;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -133,19 +132,14 @@ describe('#registerDelegate transaction', () => {
 		});
 	});
 
-	describe('with first and second passphrase', () => {
+	describe('with first passphrase', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
 				networkIdentifier,
 				passphrase,
 				username,
-				secondPassphrase,
 			});
 			return Promise.resolve();
-		});
-
-		it('should have the second signature property as hex string', () => {
-			return expect(registerDelegateTransaction.signSignature).toBeString();
 		});
 	});
 

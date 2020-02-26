@@ -18,8 +18,6 @@ import {
 } from '@liskhq/lisk-transactions';
 
 import { DataAccess } from './data_access';
-import { Slots } from './slots';
-import { StateStore } from './state_store';
 import * as transactionsModule from './transactions';
 import {
 	BlockHeader,
@@ -63,25 +61,21 @@ export const verifyPreviousBlockId = (
 
 interface BlockVerifyInput {
 	readonly dataAccess: DataAccess;
-	readonly slots: Slots;
 	readonly exceptions: ExceptionOptions;
 	readonly genesisBlock: BlockHeader;
 }
 
 export class BlocksVerify {
 	private readonly dataAccess: DataAccess;
-	private readonly slots: Slots;
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockHeader;
 
 	public constructor({
 		dataAccess,
 		exceptions,
-		slots,
 		genesisBlock,
 	}: BlockVerifyInput) {
 		this.dataAccess = dataAccess;
-		this.slots = slots;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 	}
@@ -108,10 +102,7 @@ export class BlocksVerify {
 		}
 	}
 
-	public async checkTransactions(
-		blockInstance: BlockInstance,
-		stateStore: StateStore,
-	): Promise<void> {
+	public async checkTransactions(blockInstance: BlockInstance): Promise<void> {
 		const { version, height, timestamp, transactions } = blockInstance;
 		if (transactions.length === 0) {
 			return;
@@ -141,22 +132,6 @@ export class BlocksVerify {
 
 		if (nonAllowedTxResponses) {
 			throw nonAllowedTxResponses.errors;
-		}
-
-		const {
-			transactionsResponses,
-		} = await transactionsModule.verifyTransactions(
-			this.slots,
-			this.exceptions,
-		)(nonInertTransactions, stateStore);
-
-		const unverifiableTransactionsResponse = transactionsResponses.filter(
-			(transactionResponse: TransactionResponse) =>
-				transactionResponse.status !== TransactionStatus.OK,
-		);
-
-		if (unverifiableTransactionsResponse.length > 0) {
-			throw unverifiableTransactionsResponse[0].errors;
 		}
 	}
 

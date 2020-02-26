@@ -33,8 +33,6 @@ export interface AccountJSON {
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
 	readonly publicKey: string | undefined;
-	readonly secondPublicKey: string | null;
-	readonly secondSignature: number;
 	readonly username: string | null;
 	readonly isDelegate: number;
 	readonly fees: string;

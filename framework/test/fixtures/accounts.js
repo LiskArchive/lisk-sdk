@@ -44,10 +44,8 @@ accounts.genesis = {
 accounts.mem_accountsFields = [
 	'username',
 	'isDelegate',
-	'secondSignature',
 	'address',
 	'publicKey',
-	'secondPublicKey',
 	'balance',
 	'voteWeight',
 	'delegates',
@@ -68,10 +66,8 @@ const Account = stampit({
 	props: {
 		username: '',
 		isDelegate: false,
-		secondSignature: false,
 		address: '',
 		publicKey: '',
-		secondPublicKey: null,
 		balance: '0',
 		voteWeight: '',
 		multiMin: 0,
@@ -91,7 +87,6 @@ const Account = stampit({
 		username,
 		address,
 		publicKey,
-		secondPublicKey,
 		producedBlocks,
 		missedBlocks,
 		balance,
@@ -107,7 +102,6 @@ const Account = stampit({
 			randomstring
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
-		this.secondPublicKey = secondPublicKey || null;
 		this.voteWeight = randomstring.generate({
 			charset: '123456789',
 			length: 5,
@@ -138,8 +132,6 @@ const dbAccount = stampit({
 		producedBlocks: 0,
 		publicKey: null,
 		rewards: '0',
-		secondPublicKey: null,
-		secondSignature: 0,
 		username: null,
 		voteWeight: '0',
 		asset: {},

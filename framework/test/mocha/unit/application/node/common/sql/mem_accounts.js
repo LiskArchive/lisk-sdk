@@ -27,10 +27,8 @@ const MemAccounts = {
 		'INSERT INTO mem_accounts (' +
 		'"username",' +
 		'"isDelegate",' +
-		'"secondSignature",' +
 		'"address",' +
 		'"publicKey",' +
-		'"secondPublicKey",' +
 		'"balance",' +
 		'"voteWeight",' +
 		'"delegates",' +
@@ -45,10 +43,8 @@ const MemAccounts = {
 		') VALUES (' +
 		'${username}, ' +
 		'${isDelegate}, ' +
-		'${secondSignature}, ' +
 		'${address}, ' +
 		'${publicKey}, ' +
-		'${secondPublicKey}, ' +
 		'${balance}, ' +
 		'${voteWeight}, ' +
 		'${delegates}, ' +

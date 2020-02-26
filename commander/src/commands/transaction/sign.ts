@@ -64,7 +64,6 @@ export default class SignCommand extends BaseCommand {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	};
 
 	async run(): Promise<void> {
@@ -73,7 +72,6 @@ export default class SignCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 			},
 		} = this.parse(SignCommand);
 
@@ -81,17 +79,11 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
-		const { passphrase, secondPassphrase } = await getInputsFromSources({
+		const { passphrase } = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,
 				repeatPrompt: true,
 			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
 		});
 
 		if (!passphrase) {
@@ -106,7 +98,7 @@ export default class SignCommand extends BaseCommand {
 			...transactionObject,
 			networkIdentifier,
 		});
-		txInstance.sign(passphrase, secondPassphrase);
+		txInstance.sign(passphrase);
 
 		const { errors } = txInstance.validate();
 

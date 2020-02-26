@@ -84,7 +84,6 @@ NodeController.getConstants = async (context, next) => {
 			fees: {
 				send: FEES.SEND.toString(),
 				vote: FEES.VOTE.toString(),
-				secondSignature: FEES.SECOND_SIGNATURE.toString(),
 				delegate: FEES.DELEGATE.toString(),
 				multisignature: FEES.MULTISIGNATURE.toString(),
 				dappRegistration: FEES.DAPP_REGISTRATION.toString(),

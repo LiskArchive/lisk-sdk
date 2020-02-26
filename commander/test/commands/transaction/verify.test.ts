@@ -37,14 +37,6 @@ describe('transaction:verify', () => {
 		id: '3436168030012755419',
 	};
 
-	const defaultSecondSignedTransaction = {
-		...defaultTransaction,
-		id: '1856045075247127242',
-		signSignature:
-			'c4b0ca84aa4596401c3041a1638e670d6278e0e18949f027b3d7ede4f2f0a1685df7aec768b1a3c49acfe7ded9e7f5230998f06b0d58371bcba5a00695fb6901',
-	};
-	const defaultSecondPublicKey =
-		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 	const invalidTransaction = 'invalid transaction';
 
 	const defaultVerifyTransactionResult = {
@@ -59,11 +51,6 @@ describe('transaction:verify', () => {
 				config,
 				'getConfig',
 				sandbox.stub().returns({ api: { network: 'test' } }),
-			)
-			.stub(
-				inputUtils,
-				'getData',
-				sandbox.stub().resolves(defaultSecondPublicKey),
 			)
 			.stdout();
 
@@ -98,40 +85,6 @@ describe('transaction:verify', () => {
 					defaultVerifyTransactionResult,
 				);
 			});
-	});
-
-	describe('transaction:verify transaction --second-public-key=xxx', () => {
-		setupTest()
-			.command([
-				'transaction:verify',
-				JSON.stringify(defaultSecondSignedTransaction),
-				'--second-public-key=file:key.txt',
-			])
-			.it(
-				'should verify transaction from arg and second public key from an external source',
-				() => {
-					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultVerifyTransactionResult,
-					);
-				},
-			);
-
-		setupTest()
-			.command([
-				'transaction:verify',
-				JSON.stringify(defaultSecondSignedTransaction),
-				`--second-public-key=${defaultSecondPublicKey}`,
-			])
-			.it(
-				'should verify transaction from arg and second public key from the flag',
-				() => {
-					expect(inputUtils.getData).not.to.be.called;
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultVerifyTransactionResult,
-					);
-				},
-			);
 	});
 
 	describe('transaction | transaction:verify', () => {
@@ -169,26 +122,5 @@ describe('transaction:verify', () => {
 					defaultVerifyTransactionResult,
 				);
 			});
-	});
-
-	describe('transaction | transaction:verify --second-public-key=xxx', () => {
-		setupTest()
-			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox
-					.stub()
-					.resolves({ data: JSON.stringify(defaultSecondSignedTransaction) }),
-			)
-			.command(['transaction:verify', '--second-public-key=file:key.txt'])
-			.it(
-				'should verify transaction from stdin and the second public key flag',
-				() => {
-					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultVerifyTransactionResult,
-					);
-				},
-			);
 	});
 });

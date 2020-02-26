@@ -101,10 +101,6 @@ export const baseTransaction = {
 			type: 'string',
 			format: 'publicKey',
 		},
-		senderSecondPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
 		signature: {
 			type: 'string',
 			format: 'signature',
