@@ -31,13 +31,12 @@ const processInputs = (
 	networkIdentifier: string,
 	votes: ReadonlyArray<string>,
 	unvotes: ReadonlyArray<string>,
-) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+) => ({ passphrase }: InputFromSourceOutput) =>
 	castVotes({
 		networkIdentifier,
 		passphrase,
 		votes,
 		unvotes,
-		secondPassphrase,
 	});
 
 const processVotesInput = async (votes: string) =>
@@ -69,7 +68,6 @@ export default class VoteCommand extends BaseCommand {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		votes: flagParser.string(commonFlags.votes),
 		unvotes: flagParser.string(commonFlags.unvotes),
@@ -80,7 +78,6 @@ export default class VoteCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 				votes,
 				unvotes,
@@ -126,7 +123,6 @@ export default class VoteCommand extends BaseCommand {
 		if (noSignature) {
 			const noSignatureResult = processFunction({
 				passphrase: undefined,
-				secondPassphrase: undefined,
 			});
 			this.print(noSignatureResult);
 
@@ -138,12 +134,6 @@ export default class VoteCommand extends BaseCommand {
 				source: passphraseSource,
 				repeatPrompt: true,
 			},
-			secondPassphrase: !secondPassphraseSource
-				? undefined
-				: {
-						source: secondPassphraseSource,
-						repeatPrompt: true,
-				  },
 		});
 
 		const result = processFunction(inputs);

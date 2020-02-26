@@ -23,8 +23,6 @@ const {
 
 const defaultCreateValues = {
 	publicKey: null,
-	secondPublicKey: null,
-	secondSignature: false,
 	username: null,
 	isDelegate: false,
 	balance: '0',

@@ -20,8 +20,6 @@ export interface Account {
 	missedBlocks: number;
 	producedBlocks: number;
 	publicKey: string | undefined;
-	secondPublicKey: string | null;
-	secondSignature: number;
 	username: string | null;
 	isDelegate: number;
 	fees: bigint;

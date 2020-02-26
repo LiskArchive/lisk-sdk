@@ -41,7 +41,6 @@ import {
 	validateSignature,
 	verifyBalance,
 	verifyMultiSignatures,
-	verifySecondSignature,
 	verifySenderPublicKey,
 } from './utils';
 
@@ -432,7 +431,7 @@ export abstract class BaseTransaction {
 		return timeElapsed > timeOut;
 	}
 
-	public sign(passphrase: string, secondPassphrase?: string): void {
+	public sign(passphrase: string): void {
 		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
 		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
@@ -463,18 +462,6 @@ export abstract class BaseTransaction {
 			hash(transactionWithNetworkIdentifierBytes),
 			passphrase,
 		);
-
-		if (secondPassphrase) {
-			this._signSignature = signData(
-				hash(
-					Buffer.concat([
-						transactionWithNetworkIdentifierBytes,
-						hexToBuffer(this._signature),
-					]),
-				),
-				secondPassphrase,
-			);
-		}
 
 		this._id = getId(this.getBytes());
 	}
@@ -510,35 +497,10 @@ export abstract class BaseTransaction {
 	}
 
 	private _verify(sender: Account): ReadonlyArray<TransactionError> {
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to verify a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-		const secondSignatureTxBytes = Buffer.concat([
-			transactionWithNetworkIdentifierBytes,
-			hexToBuffer(this.signature),
-		]);
-
 		// Verify Basic state
 		return [
 			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
 			verifyBalance(this.id, sender, this.fee),
-			verifySecondSignature(
-				this.id,
-				sender,
-				this.signSignature,
-				secondSignatureTxBytes,
-			),
 		].filter(Boolean) as ReadonlyArray<TransactionError>;
 	}
 

@@ -86,10 +86,6 @@ describe('transactions constants module', () => {
 		return expect(BYTESIZES.SIGNATURE_TRANSACTION).toBeNumber();
 	});
 
-	it('BYTESIZES.SECOND_SIGNATURE_TRANSACTION to be an integer', () => {
-		return expect(BYTESIZES.SECOND_SIGNATURE_TRANSACTION).toBeNumber();
-	});
-
 	it('BYTESIZES.DATA to be an integer', () => {
 		return expect(BYTESIZES.DATA).toBeNumber();
 	});

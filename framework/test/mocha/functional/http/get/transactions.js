@@ -16,11 +16,7 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const {
-	transfer,
-	registerSecondPassphrase,
-	castVotes,
-} = require('@liskhq/lisk-transactions');
+const { transfer, castVotes } = require('@liskhq/lisk-transactions');
 const { Slots } = require('@liskhq/lisk-chain');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -37,7 +33,6 @@ const networkIdentifier = getNetworkIdentifier(
 );
 
 const TRANSACTION_TYPES_TRANSFER = 8;
-const TRANSACTION_TYPES_SIGNATURE = 9;
 const TRANSACTION_TYPES_DELEGATE = 10;
 const TRANSACTION_TYPES_VOTE = 11;
 
@@ -56,7 +51,6 @@ describe('GET /api/transactions', () => {
 	const account = randomUtil.account();
 	const account2 = randomUtil.account();
 	const account3 = accountFixtures.existingDelegate;
-	const accountSecondPass = randomUtil.account();
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
 	const transaction1 = transfer({
@@ -91,18 +85,13 @@ describe('GET /api/transactions', () => {
 		networkIdentifier,
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
-		recipientId: accountSecondPass.address,
+		recipientId: account3.address,
 		data: 'tx 5',
 	});
 	const transactionType3 = castVotes({
 		networkIdentifier,
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
-	});
-	const transactionSecondPassphrase = registerSecondPassphrase({
-		networkIdentifier,
-		passphrase: accountSecondPass.passphrase,
-		secondPassphrase: accountSecondPass.secondPassphrase,
 	});
 	const transactionType5 = {
 		amount: '0',
@@ -182,18 +171,12 @@ describe('GET /api/transactions', () => {
 					Promise.all([
 						apiHelpers.sendTransactionPromise(transaction3),
 						apiHelpers.sendTransactionPromise(transactionType3),
-						apiHelpers.sendTransactionPromise(transactionSecondPassphrase),
 					]),
 				)
 				.then(() => {
 					transactionList.push(transaction3);
 					transactionList.push(transactionType3);
-					transactionList.push(transactionSecondPassphrase);
-					return waitFor.confirmations([
-						transaction3.id,
-						transactionType3.id,
-						transactionSecondPassphrase.id,
-					]);
+					return waitFor.confirmations([transaction3.id, transactionType3.id]);
 				});
 		});
 	});
@@ -390,18 +373,6 @@ describe('GET /api/transactions', () => {
 					expect(res.body.data).to.not.empty;
 					res.body.data.map(transaction =>
 						expect(Object.keys(transaction.asset).length).to.be.greaterThan(1),
-					);
-				});
-
-				it('using type 1 should return asset field with correct properties', async () => {
-					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES_SIGNATURE },
-						200,
-					);
-
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction =>
-						expect(transaction.asset.publicKey).to.be.a('string'),
 					);
 				});
 
@@ -1103,46 +1074,6 @@ describe('GET /api/transactions', () => {
 							);
 						});
 					});
-			});
-		});
-
-		describe('signature', () => {
-			it('should not show signSignature when empty upon registering second passphrase', async () => {
-				// Act
-				const {
-					body: { data: transactions },
-				} = await transactionsEndpoint.makeRequest(
-					{
-						type: TRANSACTION_TYPES_SIGNATURE,
-						limit: 1,
-						senderPublicKey: accountSecondPass.senderId,
-						sort: 'timestamp:desc',
-					},
-					200,
-				);
-				// Assert
-				expect(transactions[0]).to.not.have.property('signSignature');
-			});
-
-			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
-				// Prepare
-				const transaction = transfer({
-					networkIdentifier,
-					amount: '1',
-					passphrase: accountSecondPass.passphrase,
-					secondPassphrase: accountSecondPass.secondPassphrase,
-					recipientId: accountFixtures.existingDelegate.address,
-				});
-
-				await sendTransactionPromise(transaction, 200);
-				await waitFor.confirmations([transaction.id]);
-
-				// Act
-				const {
-					body: { data: transactions },
-				} = await transactionsEndpoint.makeRequest({ id: transaction.id }, 200);
-				// Assert
-				expect(transactions[0].signSignature).to.not.be.empty;
 			});
 		});
 

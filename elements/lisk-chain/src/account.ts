@@ -16,9 +16,6 @@ import { AccountJSON } from './types';
 export const accountDefaultValues = {
 	publicKey: undefined,
 	// tslint:disable-next-line:no-null-keyword
-	secondPublicKey: null,
-	secondSignature: 0,
-	// tslint:disable-next-line:no-null-keyword
 	username: null,
 	isDelegate: 0,
 	balance: '0',
@@ -47,8 +44,6 @@ export class Account {
 	public missedBlocks: number;
 	public producedBlocks: number;
 	public publicKey: string | undefined;
-	public secondPublicKey: string | null;
-	public secondSignature: number;
 	public username: string | null;
 	public isDelegate: number;
 	public nameExist: boolean;
@@ -69,8 +64,6 @@ export class Account {
 		this.producedBlocks = accountInfo.producedBlocks;
 		this.isDelegate = accountInfo.isDelegate;
 		this.publicKey = accountInfo.publicKey;
-		this.secondPublicKey = accountInfo.secondPublicKey;
-		this.secondSignature = accountInfo.secondSignature;
 		this.username = accountInfo.username;
 		this.fees = accountInfo.fees ? BigInt(accountInfo.fees) : BigInt(0);
 		this.rewards = accountInfo.rewards
@@ -107,9 +100,6 @@ export class Account {
 		return {
 			address: this.address,
 			publicKey: this.publicKey,
-			// tslint:disable-next-line:no-null-keyword
-			secondPublicKey: this.secondPublicKey,
-			secondSignature: this.secondSignature,
 			// tslint:disable-next-line:no-null-keyword
 			username: this.username,
 			isDelegate: this.isDelegate,

@@ -15,10 +15,8 @@
 
 'use strict';
 
-const { getKeys } = require('@liskhq/lisk-cryptography');
 const {
 	TransferTransaction,
-	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
@@ -28,19 +26,6 @@ const createTransferTransaction = (passphrase, recipientId, amount) => {
 	const transaction = new TransferTransaction({
 		recipientId,
 		amount,
-	});
-	transaction.sign(passphrase);
-	return transaction.toJSON();
-};
-
-const createSecondSignatureTransaction = (passphrase, secondPassphrase) => {
-	const { publicKey } = getKeys(secondPassphrase);
-	const transaction = new SecondSignatureTransaction({
-		asset: {
-			signature: {
-				publicKey,
-			},
-		},
 	});
 	transaction.sign(passphrase);
 	return transaction.toJSON();
@@ -92,7 +77,6 @@ const createMultiSignatureTransaction = (
 
 module.exports = {
 	createTransferTransaction,
-	createSecondSignatureTransaction,
 	createDelegateTransaction,
 	createVoteTransaction,
 	createMultiSignatureTransaction,

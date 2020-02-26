@@ -59,8 +59,6 @@ describe('account', () => {
 			expect(accountObj.votedDelegatesPublicKeys).toEqual([]);
 			expect(accountObj.membersPublicKeys).toEqual([]);
 			expect(accountObj.username).toBeNull;
-			expect(accountObj.secondPublicKey).toBeNull;
-			expect(accountObj.secondSignature).toEqual(0);
 			expect(accountObj.publicKey).toEqual(undefined);
 			expect(accountObj.isDelegate).toEqual(0);
 			expect(accountObj.missedBlocks).toEqual(0);
@@ -84,8 +82,6 @@ describe('account', () => {
 			expect(accountJSON.votedDelegatesPublicKeys).toBeNull;
 			expect(accountJSON.membersPublicKeys).toBeNull;
 			expect(accountJSON.username).toBeNull;
-			expect(accountJSON.secondPublicKey).toBeNull;
-			expect(accountJSON.secondSignature).toBeNumber;
 			expect(accountJSON.publicKey).toBeUndefined;
 			expect(accountJSON.isDelegate).toBeNumber;
 			expect(accountJSON.missedBlocks).toBeNumber;
@@ -104,8 +100,6 @@ describe('account', () => {
 			expect(accountJSON.votedDelegatesPublicKeys).toEqual(null);
 			expect(accountJSON.membersPublicKeys).toEqual(null);
 			expect(accountJSON.username).toBeNull;
-			expect(accountJSON.secondPublicKey).toBeNull;
-			expect(accountJSON.secondSignature).toEqual(0);
 			expect(accountJSON.publicKey).toEqual(undefined);
 			expect(accountJSON.isDelegate).toEqual(0);
 			expect(accountJSON.missedBlocks).toEqual(0);

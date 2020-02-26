@@ -17,7 +17,6 @@
 const assert = require('assert');
 const {
 	TransferTransaction,
-	SecondSignatureTransaction,
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
@@ -148,7 +147,6 @@ class Application {
 		this.storage = this._initStorage();
 
 		this.registerTransaction(TransferTransaction);
-		this.registerTransaction(SecondSignatureTransaction);
 		this.registerTransaction(DelegateTransaction);
 		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(MultisignatureTransaction);

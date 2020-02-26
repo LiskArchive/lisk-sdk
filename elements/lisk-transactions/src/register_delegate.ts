@@ -48,7 +48,7 @@ export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { username, passphrase, secondPassphrase, networkIdentifier } = inputs;
+	const { username, passphrase, networkIdentifier } = inputs;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
@@ -63,7 +63,7 @@ export const registerDelegate = (
 	}
 
 	const delegateTransaction = new DelegateTransaction(transaction);
-	delegateTransaction.sign(passphrase, secondPassphrase);
+	delegateTransaction.sign(passphrase);
 
 	return delegateTransaction.toJSON();
 };

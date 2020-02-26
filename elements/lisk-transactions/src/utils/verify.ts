@@ -17,10 +17,7 @@ import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
 import { convertBeddowsToLSK } from '../utils/format';
 
-import {
-	validateMultisignatures,
-	validateSignature,
-} from './sign_and_validate';
+import { validateMultisignatures } from './sign_and_validate';
 
 export const verifySenderPublicKey = (
 	id: string,
@@ -70,38 +67,6 @@ export const verifyAmountBalance = (
 	}
 
 	return undefined;
-};
-
-export const verifySecondSignature = (
-	id: string,
-	sender: Account,
-	signSignature: string | undefined,
-	transactionBytes: Buffer,
-): TransactionError | undefined => {
-	if (!sender.secondPublicKey && signSignature) {
-		return new TransactionError(
-			'Sender does not have a secondPublicKey',
-			id,
-			'.signSignature',
-		);
-	}
-	if (!sender.secondPublicKey) {
-		return undefined;
-	}
-	if (!signSignature) {
-		return new TransactionError('Missing signSignature', id, '.signSignature');
-	}
-	const { valid, error } = validateSignature(
-		sender.secondPublicKey,
-		signSignature,
-		transactionBytes,
-		id,
-	);
-	if (valid) {
-		return undefined;
-	}
-
-	return error;
 };
 
 export interface VerifyMultiSignatureResult {

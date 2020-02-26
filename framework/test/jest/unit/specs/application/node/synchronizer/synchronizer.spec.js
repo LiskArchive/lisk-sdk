@@ -26,9 +26,6 @@ const {
 	Synchronizer,
 } = require('../../../../../../../src/application/node/synchronizer/synchronizer');
 const {
-	Sequence,
-} = require('../../../../../../../src/application/node/utils/sequence');
-const {
 	Processor,
 } = require('../../../../../../../src/application/node/processor');
 const { constants } = require('../../../../../../utils');
@@ -59,8 +56,8 @@ describe('Synchronizer', () => {
 	let dposModuleMock;
 	let exceptions;
 	let loggerMock;
-	let storageMock;
 	let syncParameters;
+	let dataAccessMock;
 
 	beforeEach(async () => {
 		jest.spyOn(synchronizerUtils, 'restoreBlocksUponStartup');
@@ -70,22 +67,8 @@ describe('Synchronizer', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		storageMock = {
-			entities: {
-				TempBlock: {
-					get: jest.fn(),
-					truncate: jest.fn(),
-					isEmpty: jest.fn(),
-				},
-				Block: {
-					get: jest.fn(),
-					begin: jest.fn(),
-				},
-				Account: {
-					get: jest.fn(),
-				},
-			},
-		};
+		const storageMock = {};
+
 		transactionPoolModuleStub = {
 			processUnconfirmedTransaction: jest.fn(),
 		};
@@ -96,7 +79,6 @@ describe('Synchronizer', () => {
 		chainModule = new Chain({
 			logger: loggerMock,
 			storage: storageMock,
-			sequence: new Sequence(),
 			genesisBlock: genesisBlockDevnet,
 			registeredTransactions,
 			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
@@ -112,6 +94,24 @@ describe('Synchronizer', () => {
 			epochTime: constants.EPOCH_TIME,
 			blockTime: constants.BLOCK_TIME,
 		});
+
+		dataAccessMock = {
+			getTempBlocks: jest.fn(),
+			getBlockHeadersWithHeights: jest.fn(),
+			getBlockByID: jest.fn(),
+			getLastBlock: jest.fn(),
+			getBlockHeadersByHeightBetween: jest.fn(),
+			addBlockHeader: jest.fn(),
+			getLastBlockHeader: jest.fn(),
+			clearTempBlocks: jest.fn(),
+			isTempBlockEmpty: jest.fn(),
+			getAccountsByPublicKey: jest.fn(),
+			getBlockHeaderByHeight: jest.fn(),
+			deserialize: chainModule.dataAccess.deserialize,
+			serialize: chainModule.dataAccess.serialize,
+			deserializeTransaction: chainModule.dataAccess.deserializeTransaction,
+		};
+		chainModule.dataAccess = dataAccessMock;
 
 		bftModule = new BFT({
 			chain: chainModule,
@@ -165,27 +165,25 @@ describe('Synchronizer', () => {
 	describe('init()', () => {
 		beforeEach(() => {
 			// Arrange
-			when(storageMock.entities.Block.begin)
-				.calledWith('loader:checkMemTables')
-				.mockResolvedValue({ genesisBlock: genesisBlockDevnet });
-			when(storageMock.entities.Block.get)
-				.calledWith({ height: 1 }, { extended: true })
-				.mockResolvedValue([genesisBlockDevnet]);
-			when(storageMock.entities.Account.get)
-				.calledWith({ isDelegate: true }, { limit: null })
+			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
+			when(chainModule.dataAccess.getBlockHeaderByHeight)
+				.calledWith(1)
+				.mockResolvedValue(genesisBlockDevnet);
+			when(chainModule.dataAccess.getLastBlock)
+				.calledWith()
+				.mockResolvedValue(lastBlock);
+			when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+				.calledWith(1, 2)
+				.mockResolvedValue([lastBlock]);
+			when(chainModule.dataAccess.getAccountsByPublicKey)
+				.calledWith()
 				.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
-			when(storageMock.entities.Block.get)
-				.calledWith(
-					{ height_gte: 1, height_lte: 2 },
-					{ limit: null, sort: 'height:desc' },
-				)
-				.mockResolvedValue([]);
 		});
 
 		describe('given that the blocks temporary table is not empty', () => {
 			beforeEach(() => {
 				// Simulate blocks temporary table to be empty
-				storageMock.entities.TempBlock.isEmpty.mockResolvedValue(false);
+				chainModule.dataAccess.isTempBlockEmpty.mockResolvedValue(false);
 			});
 
 			it('should restore blocks from blocks temporary table into blocks table if tip of temp table chain has preference over current tip (FORK_STATUS_DIFFERENT_CHAIN)', async () => {
@@ -205,25 +203,26 @@ describe('Synchronizer', () => {
 					version: 1,
 				};
 
-				storageMock.entities.TempBlock.get.mockResolvedValue(
-					blocksTempTableEntries,
-				);
 				// To load storage tip block into lastBlock in memory variable
-				when(storageMock.entities.Block.get)
-					.calledWith(
-						{ height_gte: 1, height_lte: 4 },
-						{ limit: null, sort: 'height:desc' },
-					)
+				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
+					.calledWith(1, 4)
 					.mockResolvedValue([initialLastBlock]);
-				when(storageMock.entities.Block.get)
-					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-					.mockResolvedValue([initialLastBlock]);
+
+				when(chainModule.dataAccess.getTempBlocks)
+					.calledWith()
+					.mockResolvedValue(blocksTempTableEntries);
+
+				when(chainModule.dataAccess.getLastBlock)
+					.calledWith()
+					.mockResolvedValue(initialLastBlock);
+
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: false,
 					})
 					.mockResolvedValueOnce({ height: initialLastBlock.height - 1 })
 					.mockResolvedValueOnce({ height: initialLastBlock.height - 2 });
+
 				await chainModule.init();
 
 				// Act
@@ -238,14 +237,13 @@ describe('Synchronizer', () => {
 					2,
 					'Chain successfully restored',
 				);
-				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 				expect(processorModule.deleteLastBlock).toHaveBeenCalledTimes(2);
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
 				);
 
 				// Assert whether temp blocks are being restored to main table
-				expect.assertions(blocksTempTableEntries.length + 5);
+				expect.assertions(blocksTempTableEntries.length + 4);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
@@ -278,14 +276,14 @@ describe('Synchronizer', () => {
 						},
 					},
 				];
-				storageMock.entities.TempBlock.get.mockResolvedValue(
+				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 					blocksTempTableEntries,
 				);
-
 				// To load storage tip block into lastBlock in memory variable
-				when(storageMock.entities.Block.get)
-					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-					.mockResolvedValue([initialLastBlock]);
+				when(chainModule.dataAccess.getLastBlock)
+					.calledWith()
+					.mockResolvedValue(initialLastBlock);
+
 				await chainModule.init();
 
 				// Act
@@ -300,13 +298,13 @@ describe('Synchronizer', () => {
 					2,
 					'Chain successfully restored',
 				);
-				expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
+
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksTempTableEntries.length,
 				);
 
 				// Assert whether temp blocks are being restored to main table
-				expect.assertions(blocksTempTableEntries.length + 4);
+				expect.assertions(blocksTempTableEntries.length + 3);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
@@ -333,14 +331,14 @@ describe('Synchronizer', () => {
 						fullBlock: initialLastBlock,
 					},
 				];
-				storageMock.entities.TempBlock.get.mockResolvedValue(
+				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 					blocksTempTableEntries,
 				);
-
 				// To load storage tip block into lastBlock in memory variable
-				when(storageMock.entities.Block.get)
-					.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-					.mockResolvedValue([initialLastBlock]);
+				when(chainModule.dataAccess.getLastBlock)
+					.calledWith()
+					.mockResolvedValue(initialLastBlock);
+
 				await chainModule.init();
 
 				// Act
@@ -349,13 +347,12 @@ describe('Synchronizer', () => {
 				// Assert
 				expect(processorModule.processValidated).not.toHaveBeenCalled();
 				expect(processorModule.deleteLastBlock).not.toHaveBeenCalled();
-				expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
 			});
 		});
 
 		it('should not do anything if blocks temporary table is empty', async () => {
 			// Arrange
-			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(true);
+			chainModule.dataAccess.isTempBlockEmpty.mockResolvedValue(true);
 
 			// Act
 			await synchronizer.init();
@@ -380,14 +377,13 @@ describe('Synchronizer', () => {
 				previousBlockId: genesisBlockDevnet.id,
 				version: 1,
 			};
-			storageMock.entities.TempBlock.get.mockResolvedValue(
+			chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 				blocksTempTableEntries,
 			);
 			// To load storage tip block into lastBlock in memory variable
-			// tslint:disable-next-line:no-null-keyword
-			when(storageMock.entities.Block.get)
-				.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-				.mockResolvedValue([initialLastBlock]);
+			when(chainModule.dataAccess.getLastBlock)
+				.calledWith()
+				.mockResolvedValue(initialLastBlock);
 
 			const error = new Error('error while deleting last block');
 			processorModule.processValidated.mockRejectedValue(error);
@@ -574,6 +570,7 @@ describe('Synchronizer', () => {
 				}),
 			};
 
+			const storageMock = {};
 			syncParameters = {
 				channel: channelMock,
 				logger: loggerMock,

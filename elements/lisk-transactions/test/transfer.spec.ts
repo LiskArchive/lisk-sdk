@@ -21,7 +21,6 @@ describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const testData = 'data';
 	const passphrase = 'secret';
-	const secondPassphrase = 'second secret';
 	const transactionType = 8;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
@@ -194,7 +193,6 @@ describe('#transfer transaction', () => {
 				amount,
 				networkIdentifier,
 				passphrase,
-				secondPassphrase,
 			});
 			return Promise.resolve();
 		});
@@ -205,15 +203,10 @@ describe('#transfer transaction', () => {
 				amount,
 				networkIdentifier,
 				passphrase,
-				secondPassphrase,
 				data: testData,
 			});
 
 			return expect(transferTransaction.asset).toHaveProperty('data');
-		});
-
-		it('should have the second signature property as hex string', () => {
-			return expect(transferTransaction.signSignature).toBeString();
 		});
 	});
 
