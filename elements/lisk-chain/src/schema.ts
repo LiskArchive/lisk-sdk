@@ -32,9 +32,6 @@ export const baseBlockSchema = {
 			type: 'string',
 			format: 'publicKey',
 		},
-		numberOfTransactions: {
-			type: 'integer',
-		},
 		payloadHash: {
 			type: 'string',
 			format: 'hex',
@@ -75,7 +72,6 @@ export const baseBlockSchema = {
 	required: [
 		'blockSignature',
 		'generatorPublicKey',
-		'numberOfTransactions',
 		'payloadHash',
 		'payloadLength',
 		'timestamp',

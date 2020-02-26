@@ -66,7 +66,6 @@ export interface BlockHeaderJSON {
 	previousBlockId?: string | null;
 	blockSignature: string;
 	generatorPublicKey: string;
-	numberOfTransactions: number;
 	payloadLength: number;
 	payloadHash: string;
 	totalAmount: string;
