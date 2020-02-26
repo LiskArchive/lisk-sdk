@@ -317,15 +317,17 @@ export abstract class BaseTransaction {
 		sender.balance = updatedBalance;
 		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		store.account.set(sender.address, sender);
-		const assetErrors = await this.applyAsset(store);
 
+		const assetErrors = await this.applyAsset(store);
 		errors.push(...assetErrors);
+
+		// Get updated state for sender account, which may be modified in last step
+		const updatedSender = await store.account.get(this.senderId);
 
 		// Validate minimum remaining balance
 		const minRemainingBalanceError = verifyMinRemainingBalance(
 			this.id,
-			// Get updated account state
-			await store.account.get(this.senderId),
+			updatedSender,
 			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
 		);
 		if (minRemainingBalanceError) {

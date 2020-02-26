@@ -15,20 +15,22 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
-import { TransactionJSON } from '../src/transaction_types';
-import { Status } from '../src/response';
-import { TransactionError, TransactionPendingError } from '../src/errors';
+import {
+	TransactionJSON,
+	Status,
+	TransactionError,
+	TransactionPendingError,
+	TransferTransaction,
+	SignatureObject,
+} from '../src';
 import {
 	addTransactionFields,
 	TestTransaction,
 	TestTransactionBasicImpl,
 } from './helpers';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
-import * as transferSecondSignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_second_signature_validate.json';
 import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_multi_signature_validate.json';
 import * as utils from '../src/utils';
-import { TransferTransaction } from '../src/8_transfer_transaction';
-import { SignatureObject } from '../src/create_signature_object';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 
 const getAccount = (account: object): any => ({
@@ -893,22 +895,21 @@ describe('Base transaction class', () => {
 	describe('create, sign and stringify transaction', () => {
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TransferTransaction({
-				...transferSecondSignatureFixture.testCases[0].input.transaction,
-				networkIdentifier:
-					transferSecondSignatureFixture.testCases[0].input.networkIdentifier,
+				...transferFixture.testCases[0].input.transaction,
+				networkIdentifier: transferFixture.testCases[0].input.networkIdentifier,
 			});
 			newTransaction.sign(
-				transferSecondSignatureFixture.testCases[0].input.account.passphrase,
+				transferFixture.testCases[0].input.account.passphrase,
 			);
 
 			const stringifiedTransaction = newTransaction.stringify();
 			const parsedResponse = JSON.parse(stringifiedTransaction);
 
 			expect(parsedResponse.senderPublicKey).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.senderPublicKey,
+				transferFixture.testCases[0].output.senderPublicKey,
 			);
 			expect(parsedResponse.signature).toEqual(
-				transferSecondSignatureFixture.testCases[0].output.signature,
+				transferFixture.testCases[0].output.signature,
 			);
 		});
 	});

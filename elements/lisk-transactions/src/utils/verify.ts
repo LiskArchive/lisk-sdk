@@ -39,7 +39,7 @@ export const verifyBalance = (
 	account: Account,
 	amount: bigint,
 ): TransactionError | undefined =>
-	BigInt(account.balance) < BigInt(amount)
+	account.balance < amount
 		? new TransactionError(
 				`Account does not have enough LSK: ${
 					account.address
@@ -55,12 +55,11 @@ export const verifyAmountBalance = (
 	amount: bigint,
 	fee: bigint,
 ): TransactionError | undefined => {
-	const balance = BigInt(account.balance);
-	if (balance >= BigInt(0) && balance < BigInt(amount)) {
+	if (account.balance >= BigInt(0) && account.balance < amount) {
 		return new TransactionError(
 			`Account does not have enough LSK: ${
 				account.address
-			}, balance: ${convertBeddowsToLSK((balance + fee).toString())}`,
+			}, balance: ${convertBeddowsToLSK((account.balance + fee).toString())}`,
 			id,
 			'.balance',
 		);
@@ -74,12 +73,11 @@ export const verifyMinRemainingBalance = (
 	account: Account,
 	minRemainingBalance: bigint,
 ): TransactionError | undefined => {
-	const balance = BigInt(account.balance);
-	if (balance < minRemainingBalance) {
+	if (account.balance < minRemainingBalance) {
 		return new TransactionError(
 			`Account does not have enough minimum remaining LSK: ${
 				account.address
-			}, balance: ${convertBeddowsToLSK(balance.toString())}`,
+			}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 			id,
 			'.balance',
 		);
