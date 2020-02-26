@@ -15,8 +15,8 @@
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
-import { convertBeddowsToLSK } from './format';
 
+import { convertBeddowsToLSK } from './format';
 import { validateMultisignatures } from './sign_and_validate';
 
 export const verifySenderPublicKey = (
