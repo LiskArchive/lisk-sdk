@@ -79,15 +79,10 @@ export const validateReward = (
 
 export const validatePayload = (
 	block: BlockInstance,
-	maxTransactionsPerBlock: number,
 	maxPayloadLength: number,
 ): void => {
 	if (block.payloadLength > maxPayloadLength) {
 		throw new Error('Payload length is too long');
-	}
-
-	if (block.transactions.length > maxTransactionsPerBlock) {
-		throw new Error('Number of transactions exceeds maximum per block');
 	}
 
 	// tslint:disable-next-line no-let
