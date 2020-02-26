@@ -159,9 +159,11 @@ describe('blocks/transactions', () => {
 		describe('when transactions include not applicable transaction', () => {
 			it('should return transaction which are applicable', async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000100' },
-				]);
+				storageStub.entities.Account.get
+					.mockResolvedValueOnce([
+						{ address: genesisAccount.address, balance: '10000100' },
+					])
+					.mockResolvedValue([]);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
@@ -479,89 +481,6 @@ describe('blocks/transactions', () => {
 			});
 		});
 
-		describe('when transactions include not verifiable transaction with current state', () => {
-			it('should return status FAIL for the invalid transaction', async () => {
-				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000100' },
-				]);
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				const invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
-						amount: '500',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.verifyTransactions([validTx, invalidTx]);
-				// Assert
-				expect(transactionsResponses).toHaveLength(2);
-				const validResponse = transactionsResponses.find(
-					res => res.id === validTx.id,
-				) as TransactionResponse;
-				const invalidResponse = transactionsResponses.find(
-					res => res.id === invalidTx.id,
-				) as TransactionResponse;
-				expect(validResponse.status).toBe(1);
-				expect(validResponse.errors).toBeEmpty();
-				expect(invalidResponse.status).toBe(0);
-				expect(invalidResponse.errors).toHaveLength(1);
-			});
-
-			it('should return status FAIL for the future transaction', async () => {
-				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '1000000000' },
-				]);
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				const invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
-						amount: '500',
-						networkIdentifier,
-						timeOffset: 114748364,
-					}) as TransactionJSON,
-				);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.verifyTransactions([validTx, invalidTx]);
-				// Assert
-				expect(transactionsResponses).toHaveLength(2);
-				const validResponse = transactionsResponses.find(
-					res => res.id === validTx.id,
-				) as TransactionResponse;
-				const invalidResponse = transactionsResponses.find(
-					res => res.id === invalidTx.id,
-				) as TransactionResponse;
-				expect(validResponse.status).toBe(1);
-				expect(validResponse.errors).toBeEmpty();
-				expect(invalidResponse.status).toBe(0);
-				expect(invalidResponse.errors).toHaveLength(1);
-			});
-		});
-
 		describe('when all transactions are new and verifiable', () => {
 			let responses: TransactionResponse[];
 			let validTxApplySpy: jest.SpyInstance;
@@ -569,9 +488,11 @@ describe('blocks/transactions', () => {
 
 			beforeEach(async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000' },
-				]);
+				storageStub.entities.Account.get
+					.mockResolvedValueOnce([
+						{ address: genesisAccount.address, balance: '100000000' },
+					])
+					.mockResolvedValue([]);
 				storageStub.entities.Transaction.get.mockResolvedValue([]);
 				// Act
 				const validTx = chainInstance.deserializeTransaction(
