@@ -10,29 +10,6 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-const getter = {
-	get: () => {},
-	find: () => [],
-	cache: () => {},
-};
 
-const setter = {
-	get: () => {},
-	getOrDefault: () => {},
-	set: () => {
-		return;
-	},
-	find: () => [],
-	cache: () => {},
-};
-
-export const MockStateStore: any = {
-	account: {
-		...setter,
-	},
-	transaction: {
-		...getter,
-	},
-};
+export const CHAIN_STATE_KEY_BURNT_FEE = 'CHAIN_STATE_KEY_BURNT_FEE';

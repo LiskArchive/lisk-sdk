@@ -21,7 +21,6 @@ import {
 } from '@liskhq/lisk-transactions';
 
 import { DataAccess } from '../data_access';
-import { Slots } from '../slots';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
@@ -53,75 +52,6 @@ export const validateTransactions = (exceptions?: ExceptionOptions) => (
 	return {
 		transactionsResponses,
 	};
-};
-
-/**
- * Verify user total spending
- *
- * One user can't spend more than its balance even thought if block contains
- * credit transactions settling the balance. In one block total speding must be
- * less than the total balance
- */
-export const verifyTotalSpending = async (
-	transactions: ReadonlyArray<BaseTransaction>,
-	stateStore: StateStore,
-) => {
-	const spendingErrors: TransactionResponse[] = [];
-
-	// Group the transactions per senderId to calculate total spending
-	const senderTransactions = transactions.reduce((rv, x) => {
-		(rv[x.senderId] = rv[x.senderId] || []).push(x);
-
-		return rv;
-		// tslint:disable-next-line readonly-keyword no-object-literal-type-assertion
-	}, {} as { [key: string]: BaseTransaction[] });
-
-	// We need to get the transaction id which cause exceeding the sufficient balance
-	// So we can't sum up all transactions together at once
-	// tslint:disable-next-line readonly-keyword
-	const senderSpending: { [key: string]: bigint } = {};
-	for (const senderId of Object.keys(senderTransactions)) {
-		// We don't need to perform spending check if account have only one transaction
-		// Its balance check will be performed by transaction processing
-		// tslint:disable-next-line no-magic-numbers
-		if (senderTransactions[senderId].length < 2) {
-			// tslint:disable-next-line: return-undefined
-			continue;
-		}
-
-		// Grab the sender balance
-		const account = await stateStore.account.get(senderId);
-		const senderBalance = account.balance;
-
-		// Initialize the sender spending with zero
-		senderSpending[senderId] = BigInt(0);
-
-		senderTransactions[senderId].forEach((transaction: BaseTransaction) => {
-			const senderTotalSpending =
-				senderSpending[senderId] +
-				// tslint:disable-next-line no-any
-				BigInt((transaction.asset as any).amount || 0) +
-				BigInt(transaction.fee);
-
-			if (senderBalance < senderTotalSpending) {
-				spendingErrors.push({
-					id: transaction.id,
-					status: TransactionStatus.FAIL,
-					errors: [
-						new TransactionError(
-							`Account does not have enough LSK for total spending. balance: ${senderBalance.toString()}, spending: ${senderTotalSpending.toString()}`,
-							transaction.id,
-							'.amount',
-						),
-					],
-				});
-			} else {
-				senderSpending[senderId] = senderTotalSpending;
-			}
-		});
-	}
-
-	return spendingErrors;
 };
 
 export const applyGenesisTransactions = () => async (
@@ -166,28 +96,15 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 
 	await votesWeight.prepare(stateStore, transactions);
 
-	// Verify total spending of per account accumulative
-	const transactionsResponseWithSpendingErrors = await verifyTotalSpending(
-		transactions,
-		stateStore,
-	);
-
-	const transactionsWithoutSpendingErrors = transactions.filter(
-		transaction =>
-			!transactionsResponseWithSpendingErrors
-				.map(({ id }) => id)
-				.includes(transaction.id),
-	);
-
 	const transactionsResponses: TransactionResponse[] = [];
-	for (const transaction of transactionsWithoutSpendingErrors) {
+	for (const transaction of transactions) {
 		stateStore.account.createSnapshot();
 		const transactionResponse = await transaction.apply(stateStore);
 		if (transactionResponse.status !== TransactionStatus.OK) {
 			// Update transaction response mutates the transaction response object
 			exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 				[transactionResponse],
-				transactionsWithoutSpendingErrors,
+				transactions,
 				exceptions,
 			);
 		}
@@ -203,10 +120,7 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	}
 
 	return {
-		transactionsResponses: [
-			...transactionsResponses,
-			...transactionsResponseWithSpendingErrors,
-		],
+		transactionsResponses: [...transactionsResponses],
 	};
 };
 
@@ -304,48 +218,6 @@ export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 
 	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
 		nonUndoableTransactionsResponse,
-		transactions,
-		exceptions,
-	);
-
-	return {
-		transactionsResponses,
-	};
-};
-
-export const verifyTransactions = (
-	slots: Slots,
-	exceptions?: ExceptionOptions,
-) => async (
-	transactions: ReadonlyArray<BaseTransaction>,
-	stateStore: StateStore,
-): Promise<TransactionHandledResult> => {
-	await Promise.all(transactions.map(t => t.prepare(stateStore)));
-	const transactionsResponses = [];
-	for (const transaction of transactions) {
-		stateStore.createSnapshot();
-		const transactionResponse = await transaction.apply(stateStore);
-		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-			(transactionResponse as WriteableTransactionResponse).status =
-				TransactionStatus.FAIL;
-			(transactionResponse.errors as TransactionError[]).push(
-				new TransactionError(
-					'Invalid transaction timestamp. Timestamp is in the future',
-					transaction.id,
-					'.timestamp',
-				),
-			);
-		}
-		stateStore.restoreSnapshot();
-		transactionsResponses.push(transactionResponse);
-	}
-
-	const unverifiableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-
-	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
-		unverifiableTransactionsResponse,
 		transactions,
 		exceptions,
 	);

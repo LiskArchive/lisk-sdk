@@ -19,7 +19,10 @@ import {
 	TransactionJSON,
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import {
+	getNetworkIdentifier,
+	getAddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
 import { newBlock, getBytes } from '../utils/block';
 import { Chain, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
@@ -27,6 +30,7 @@ import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Slots } from '../../src/slots';
 import { BlockInstance, ExceptionOptions } from '../../src/types';
+import { CHAIN_STATE_KEY_BURNT_FEE } from '../../src/constants';
 
 jest.mock('events');
 
@@ -85,6 +89,11 @@ describe('blocks/header', () => {
 					get: jest.fn(),
 					create: jest.fn(),
 				},
+				ChainState: {
+					get: jest.fn(),
+					getKey: jest.fn(),
+					setKey: jest.fn(),
+				},
 				TempBlock: {
 					create: jest.fn(),
 					delete: jest.fn(),
@@ -118,7 +127,7 @@ describe('blocks/header', () => {
 
 	describe('#validateBlockHeader', () => {
 		describe('when previous block property is invalid', () => {
-			it('should throw error', () => {
+			it('should throw error', async () => {
 				// Arrange
 				block = newBlock({ previousBlockId: undefined, height: 3 });
 				blockBytes = getBytes(block);
@@ -128,6 +137,7 @@ describe('blocks/header', () => {
 				).toThrow('Invalid previous block');
 			});
 		});
+
 		describe('when signature is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
@@ -282,7 +292,7 @@ describe('blocks/header', () => {
 				// Act & assert
 				expect(() =>
 					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).toResolve();
+				).not.toThrow();
 			});
 		});
 	});
@@ -446,43 +456,6 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when skip existing check is true and a transaction is not verifiable', () => {
-			let invalidTx;
-
-			beforeEach(async () => {
-				// Arrage
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '0' },
-				]);
-				invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				block = newBlock({ transactions: [invalidTx] });
-			});
-
-			it('should not call apply for the transaction and throw error', async () => {
-				// Act
-				const stateStore = new StateStore(storageStub);
-
-				await expect(
-					chainInstance.verify(block, stateStore, {
-						skipExistingCheck: true,
-					}),
-				).rejects.toMatchObject([
-					expect.objectContaining({
-						message: expect.stringContaining(
-							'Account does not have enough LSK',
-						),
-					}),
-				]);
-			});
-		});
-
 		describe('when skip existing check is true and transactions are valid', () => {
 			let invalidTx;
 
@@ -505,6 +478,7 @@ describe('blocks/header', () => {
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
 				const stateStore = new StateStore(storageStub);
+				expect.assertions(1);
 				let err;
 				try {
 					await chainInstance.verify(block, stateStore, {
@@ -588,17 +562,38 @@ describe('blocks/header', () => {
 
 	describe('#apply', () => {
 		describe('when block does not contain transactions', () => {
-			let stateStore;
+			let stateStore: StateStore;
 
 			beforeEach(async () => {
+				block = newBlock({ reward: BigInt(500000000) });
+				storageStub.entities.Account.get.mockResolvedValue([
+					{ address: genesisAccount.address, balance: '0' },
+					{
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: '0',
+					},
+				]);
+				storageStub.entities.ChainState.getKey.mockResolvedValue('100');
 				stateStore = new StateStore(storageStub);
+				await stateStore.account.cache({
+					address_in: [
+						genesisAccount.address,
+						getAddressFromPublicKey(block.generatorPublicKey),
+					],
+				});
 				// Arrage
-				block = newBlock();
 				await chainInstance.apply(block, stateStore);
 			});
 
-			it('should not call account update', async () => {
-				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
+			it('should update generator balance to give rewards and fees - minFee', async () => {
+				const generator = await stateStore.account.get(
+					getAddressFromPublicKey(block.generatorPublicKey),
+				);
+				expect(generator.balance).toEqual(block.reward);
+			});
+
+			it('should not have updated burnt fee', async () => {
+				expect(storageStub.entities.ChainState.getKey).not.toHaveBeenCalled();
 			});
 		});
 
@@ -620,8 +615,21 @@ describe('blocks/header', () => {
 				txApplySpy = jest.spyOn(validTx, 'apply');
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: '0',
+					},
+					{ address: genesisAccount.address, balance: '0' },
+				]);
 				// Act
 				stateStore = new StateStore(storageStub);
+				await stateStore.account.cache({
+					address_in: [
+						genesisAccount.address,
+						getAddressFromPublicKey(block.generatorPublicKey),
+					],
+				});
 				await chainInstance.apply(block, stateStore);
 			});
 
@@ -636,9 +644,6 @@ describe('blocks/header', () => {
 
 			beforeEach(async () => {
 				// Arrage
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '0' },
-				]);
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
@@ -648,8 +653,18 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [validTx] });
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: '0',
+					},
+					{ address: genesisAccount.address, balance: '0' },
+				]);
 				// Act
 				stateStore = new StateStore(storageStub);
+				await stateStore.account.cache({
+					address_in: [genesisAccount.address],
+				});
 			});
 
 			it('should throw error', async () => {
@@ -661,6 +676,11 @@ describe('blocks/header', () => {
 							'Account does not have enough LSK',
 						),
 					}),
+					expect.objectContaining({
+						message: expect.stringContaining(
+							'Account does not have enough minimum remaining LSK',
+						),
+					}),
 				]);
 			});
 
@@ -670,6 +690,8 @@ describe('blocks/header', () => {
 		});
 
 		describe('when transactions are all valid', () => {
+			const defaultBurntFee = '100';
+
 			let stateStore: StateStore;
 			let delegate1: any;
 			let delegate2: any;
@@ -699,19 +721,6 @@ describe('blocks/header', () => {
 					voteWeight: '0',
 				};
 
-				when(storageStub.entities.Account.get)
-					.mockResolvedValue([
-						{
-							address: genesisAccount.address,
-							balance: '10000000000',
-							votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
-						},
-						delegate1,
-						delegate2,
-					] as never)
-					.calledWith({ address: '124L' })
-					.mockResolvedValue([] as never);
-
 				// Act
 				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
@@ -730,7 +739,30 @@ describe('blocks/header', () => {
 				);
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
-				block = newBlock({ transactions: [validTx, validTx2] });
+				block = newBlock({
+					reward: BigInt(500000000),
+					transactions: [validTx, validTx2],
+				});
+				when(storageStub.entities.Account.get)
+					.mockResolvedValue([
+						{
+							address: getAddressFromPublicKey(block.generatorPublicKey),
+							balance: '0',
+							producedBlocks: 0,
+						},
+						{
+							address: genesisAccount.address,
+							balance: '10000000000',
+							votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+						},
+						delegate1,
+						delegate2,
+					] as never)
+					.calledWith({ address: '124L' })
+					.mockResolvedValue([] as never);
+				storageStub.entities.ChainState.getKey.mockResolvedValue(
+					defaultBurntFee,
+				);
 				// Act
 				stateStore = new StateStore(storageStub);
 				await chainInstance.apply(block, stateStore);
@@ -743,6 +775,39 @@ describe('blocks/header', () => {
 
 			it('should not call account update', async () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
+			});
+
+			it('should add produced block for generator', async () => {
+				const generator = await stateStore.account.get(
+					getAddressFromPublicKey(block.generatorPublicKey),
+				);
+				expect(generator.producedBlocks).toEqual(1);
+			});
+
+			it('should update generator balance with rewards and fees - minFee', async () => {
+				const generator = await stateStore.account.get(
+					getAddressFromPublicKey(block.generatorPublicKey),
+				);
+				let expected = block.reward;
+				for (const tx of block.transactions) {
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
+					expected += tx.fee;
+				}
+				expect(generator.balance.toString()).toEqual(expected.toString());
+			});
+
+			it('should update burntFee in the chain state', async () => {
+				const burntFee = await stateStore.chainState.get(
+					CHAIN_STATE_KEY_BURNT_FEE,
+				);
+				let expected = BigInt(0);
+				for (const tx of block.transactions) {
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
+					expected += tx.fee - tx.fee;
+				}
+				expect(burntFee).toEqual(
+					(BigInt(defaultBurntFee) + expected).toString(),
+				);
 			});
 
 			it('should update vote weight on voted delegate', async () => {
@@ -765,6 +830,13 @@ describe('blocks/header', () => {
 					height: chainInstance.lastBlock.height + 1,
 					transactions: [newTx],
 				});
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(nextBlock.generatorPublicKey),
+						balance: '0',
+					},
+					{ address: genesisAccount.address, balance: '0' },
+				]);
 				await chainInstance.apply(nextBlock, stateStore);
 				// expect
 				// it should decrease by fee
@@ -805,18 +877,38 @@ describe('blocks/header', () => {
 	});
 
 	describe('#undo', () => {
+		const reward = BigInt('500000000');
+
 		describe('when block does not contain transactions', () => {
-			let stateStore;
+			let stateStore: StateStore;
 
 			beforeEach(async () => {
 				stateStore = new StateStore(storageStub);
 				// Arrage
-				block = newBlock();
+				block = newBlock({ reward });
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: reward.toString(),
+					},
+					{ address: genesisAccount.address, balance: '0' },
+				]);
 				await chainInstance.undo(block, stateStore);
 			});
 
 			it('should not call account update', async () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
+			});
+
+			it('should update generator balance to debit rewards and fees - minFee', async () => {
+				const generator = await stateStore.account.get(
+					getAddressFromPublicKey(block.generatorPublicKey),
+				);
+				expect(generator.balance.toString()).toEqual('0');
+			});
+
+			it('should not deduct burntFee from chain state', async () => {
+				expect(storageStub.entities.ChainState.getKey).not.toHaveBeenCalled();
 			});
 		});
 
@@ -838,6 +930,13 @@ describe('blocks/header', () => {
 				txUndoSpy = jest.spyOn(validTx, 'undo');
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: reward.toString(),
+					},
+					{ address: genesisAccount.address, balance: '0' },
+				]);
 				// Act
 				stateStore = new StateStore(storageStub);
 				await chainInstance.undo(block, stateStore);
@@ -849,6 +948,10 @@ describe('blocks/header', () => {
 		});
 
 		describe('when transactions are all valid', () => {
+			const defaultGeneratorBalance = BigInt(800000000);
+			const defaultBurntFee = BigInt(400000);
+			const defaultReward = BigInt(500000000);
+
 			let stateStore: StateStore;
 			let delegate1: any;
 			let delegate2: any;
@@ -881,19 +984,7 @@ describe('blocks/header', () => {
 					address: '124L',
 					balance: '100',
 				};
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: genesisAccount.address,
-						balance: '9889999900',
-						votedDelegatesPublicKeys: [
-							delegate1.publicKey,
-							delegate2.publicKey,
-						],
-					},
-					delegate1,
-					delegate2,
-					recipient,
-				]);
+
 				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
 						passphrase: genesisAccount.passphrase,
@@ -911,7 +1002,31 @@ describe('blocks/header', () => {
 				);
 				validTxUndoSpy = jest.spyOn(validTx, 'undo');
 				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');
-				block = newBlock({ transactions: [validTx, validTx2] });
+				block = newBlock({
+					reward: BigInt(defaultReward),
+					transactions: [validTx, validTx2],
+				});
+				storageStub.entities.Account.get.mockResolvedValue([
+					{
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: defaultGeneratorBalance.toString(),
+						producedBlocks: 1,
+					},
+					{
+						address: genesisAccount.address,
+						balance: '9889999900',
+						votedDelegatesPublicKeys: [
+							delegate1.publicKey,
+							delegate2.publicKey,
+						],
+					},
+					delegate1,
+					delegate2,
+					recipient,
+				]);
+				storageStub.entities.ChainState.getKey.mockResolvedValue(
+					defaultBurntFee.toString(),
+				);
 
 				// Act
 				stateStore = new StateStore(storageStub);
@@ -925,6 +1040,41 @@ describe('blocks/header', () => {
 
 			it('should not call account update', async () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
+			});
+
+			it('should reduce produced block for generator', async () => {
+				const generator = await stateStore.account.get(
+					getAddressFromPublicKey(block.generatorPublicKey),
+				);
+				expect(generator.producedBlocks).toEqual(0);
+			});
+
+			it('should debit generator balance with rewards and fees - minFee', async () => {
+				const generator = await stateStore.account.get(
+					getAddressFromPublicKey(block.generatorPublicKey),
+				);
+				let expected = block.reward;
+				for (const tx of block.transactions) {
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
+					expected += tx.fee;
+				}
+				expect(generator.balance.toString()).toEqual(
+					(defaultGeneratorBalance - expected).toString(),
+				);
+			});
+
+			it('should debit burntFee in the chain state', async () => {
+				const burntFee = await stateStore.chainState.get(
+					CHAIN_STATE_KEY_BURNT_FEE,
+				);
+				let expected = BigInt(0);
+				for (const tx of block.transactions) {
+					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
+					expected += tx.fee - tx.fee;
+				}
+				expect(burntFee).toEqual(
+					(BigInt(defaultBurntFee) - expected).toString(),
+				);
 			});
 
 			it('should update vote weight on voted delegate', async () => {

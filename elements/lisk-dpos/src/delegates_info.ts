@@ -23,12 +23,10 @@ import {
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
-	Account,
+	Block,
 	BlockHeader,
 	Chain,
 	DPoSProcessingOptions,
-	Earnings,
-	RoundException,
 	StateStore,
 } from './types';
 
@@ -40,133 +38,9 @@ interface DelegatesInfoConstructor {
 	readonly activeDelegates: number;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
-	readonly exceptions: {
-		readonly rounds?: { readonly [key: string]: RoundException };
-	};
-}
-
-interface UniqueForgerInfo {
-	/* tslint:disable:readonly-keyword */
-	delegateAddress: string;
-	earnings: Earnings;
-	publicKey: string;
-}
-
-interface RoundSummary {
-	readonly round: number;
-	readonly uniqForgersInfo: ReadonlyArray<UniqueForgerInfo>;
-	readonly totalFee: bigint;
-}
-
-interface ForgerInfo {
-	/* tslint:disable:readonly-keyword */
-	publicKey: string;
-	reward: bigint;
-	blocksForged: number;
-	isGettingRemainingFees: boolean;
-}
-
-interface RewardOptions {
-	readonly forgerInfo: ForgerInfo;
-	readonly totalFee: bigint;
-	readonly round: number;
-}
-
-interface AccountSummary {
-	readonly uniqDelegateListWithRewardsInfo: ForgerInfo[];
-	// tslint:disable-next-line:readonly-keyword
-	totalFee: bigint;
 }
 
 const _isGenesisBlock = (block: BlockHeader) => block.height === 1;
-
-const _hasVotedDelegatesPublicKeys = (account: Account) =>
-	!!account.votedDelegatesPublicKeys &&
-	account.votedDelegatesPublicKeys.length > 0;
-
-// Update balance, rewards and fees to the forging delegates
-const _updateBalanceRewardsAndFees = async (
-	{ uniqForgersInfo }: RoundSummary,
-	stateStore: StateStore,
-	undo?: boolean,
-): Promise<void> => {
-	for (const {
-		delegateAddress,
-		earnings: { fee, reward },
-	} of uniqForgersInfo) {
-		const account = await stateStore.account.get(delegateAddress);
-
-		const factor = undo ? BigInt(-1) : BigInt(1);
-		const amount = fee + reward;
-		account.balance += amount * factor;
-		account.fees += fee * factor;
-		account.rewards += reward * factor;
-		stateStore.account.set(account.address, account);
-	}
-};
-
-// Update VoteWeight to accounts voted by delegates who forged
-const _updateVotedDelegatesVoteWeight = async (
-	{ uniqForgersInfo }: RoundSummary,
-	stateStore: StateStore,
-	undo?: boolean,
-): Promise<void> => {
-	for (const {
-		delegateAddress,
-		earnings: { fee, reward },
-	} of uniqForgersInfo) {
-		const forger = await stateStore.account.get(delegateAddress);
-		if (!_hasVotedDelegatesPublicKeys(forger)) {
-			continue;
-		}
-		for (const votedDelegatePublicKey of forger.votedDelegatesPublicKeys) {
-			const account = await stateStore.account.get(
-				getAddressFromPublicKey(votedDelegatePublicKey),
-			);
-			const amount = fee + reward;
-			const factor = undo ? BigInt(-1) : BigInt(1);
-			account.voteWeight += amount * factor;
-			stateStore.account.set(account.address, account);
-		}
-	}
-};
-
-const _getMissedBlocksDelegatePublicKeys = async (
-	stateStore: StateStore,
-	{ round, uniqForgersInfo }: RoundSummary,
-): Promise<string[]> => {
-	const expectedForgingPublicKeys = await getForgerPublicKeysForRound(
-		round,
-		stateStore,
-	);
-
-	return expectedForgingPublicKeys.filter(
-		expectedPublicKey =>
-			!uniqForgersInfo.find(({ publicKey }) => publicKey === expectedPublicKey),
-	);
-};
-
-const _updateMissedBlocks = async (
-	roundSummary: RoundSummary,
-	stateStore: StateStore,
-	undo?: boolean,
-): Promise<void> => {
-	const missedBlocksDelegatePublicKeys = await _getMissedBlocksDelegatePublicKeys(
-		stateStore,
-		roundSummary,
-	);
-
-	if (!missedBlocksDelegatePublicKeys.length) {
-		return;
-	}
-
-	for (const publicKey of missedBlocksDelegatePublicKeys) {
-		const address = getAddressFromPublicKey(publicKey);
-		const account = await stateStore.account.get(address);
-		account.missedBlocks += undo ? -1 : 1;
-		stateStore.account.set(address, account);
-	}
-};
 
 export class DelegatesInfo {
 	private readonly chain: Chain;
@@ -174,9 +48,6 @@ export class DelegatesInfo {
 	private readonly activeDelegates: number;
 	private readonly events: EventEmitter;
 	private readonly delegatesList: DelegatesList;
-	private readonly exceptions: {
-		readonly rounds?: { readonly [key: string]: RoundException };
-	};
 
 	public constructor({
 		rounds,
@@ -184,18 +55,16 @@ export class DelegatesInfo {
 		activeDelegates,
 		events,
 		delegatesList,
-		exceptions,
 	}: DelegatesInfoConstructor) {
 		this.chain = chain;
 		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
 		this.events = events;
 		this.delegatesList = delegatesList;
-		this.exceptions = exceptions;
 	}
 
 	public async apply(
-		block: BlockHeader,
+		block: Block,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
@@ -205,7 +74,7 @@ export class DelegatesInfo {
 	}
 
 	public async undo(
-		block: BlockHeader,
+		block: Block,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
@@ -220,11 +89,10 @@ export class DelegatesInfo {
 	}
 
 	private async _update(
-		block: BlockHeader,
+		block: Block,
 		stateStore: StateStore,
 		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
 	): Promise<boolean> {
-		await this._updateProducedBlocks(block, stateStore, undo);
 		if (_isGenesisBlock(block)) {
 			const intialRound = 1;
 			for (
@@ -239,19 +107,17 @@ export class DelegatesInfo {
 			return false;
 		}
 
+		const round = this.rounds.calcRound(block.height);
+		// Now rewards and fees are distributed every block. Assuming the distrubution is already done
+		await this._updateVotedDelegatesVoteWeight(block, stateStore, undo);
+
+		// Below event should only happen at the end of the round
 		if (!this._isLastBlockOfTheRound(block)) {
 			return false;
 		}
 
 		// Perform updates that only happens in the end of the round
-		const round = this.rounds.calcRound(block.height);
-
-		const roundSummary = await this._summarizeRound(block);
-
-		// Can NOT execute in parallel as _updateVotedDelegatesVoteWeight uses data updated on _updateBalanceRewardsAndFees
-		await _updateMissedBlocks(roundSummary, stateStore, undo);
-		await _updateBalanceRewardsAndFees(roundSummary, stateStore, undo);
-		await _updateVotedDelegatesVoteWeight(roundSummary, stateStore, undo);
+		await this._updateMissedBlocks(block, stateStore, undo);
 
 		if (undo) {
 			const previousRound = round + 1;
@@ -280,33 +146,18 @@ export class DelegatesInfo {
 		return true;
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
-	private async _updateProducedBlocks(
-		block: BlockHeader,
+	private async _updateMissedBlocks(
+		blockHeader: BlockHeader,
 		stateStore: StateStore,
 		undo?: boolean,
 	): Promise<void> {
-		const generator = await stateStore.account.get(
-			getAddressFromPublicKey(block.generatorPublicKey),
+		const round = this.rounds.calcRound(blockHeader.height);
+		debug('Calculating missed block', round);
+
+		const expectedForgingPublicKeys = await getForgerPublicKeysForRound(
+			round,
+			stateStore,
 		);
-		generator.producedBlocks += undo ? -1 : 1;
-		stateStore.account.set(generator.address, generator);
-	}
-
-	private _isLastBlockOfTheRound(block: BlockHeader): boolean {
-		const round = this.rounds.calcRound(block.height);
-		const nextRound = this.rounds.calcRound(block.height + 1);
-
-		return round < nextRound;
-	}
-
-	/**
-	 * Return an object that contains the summary of round information
-	 * as delegates who forged, their earnings and accounts
-	 */
-	private async _summarizeRound(block: BlockHeader): Promise<RoundSummary> {
-		const round = this.rounds.calcRound(block.height);
-		debug('Calculating rewards and fees for round', round);
 
 		const heightFrom = this.rounds.calcRoundStartHeight(round);
 		const heightTo = this.rounds.calcRoundEndHeight(round) - 1;
@@ -317,7 +168,7 @@ export class DelegatesInfo {
 		);
 
 		// The blocksInRounds does not contain the last block
-		blocksInRounds.push(block);
+		blocksInRounds.push(blockHeader);
 
 		if (blocksInRounds.length !== this.activeDelegates) {
 			throw new Error(
@@ -325,100 +176,56 @@ export class DelegatesInfo {
 			);
 		}
 
-		const { uniqDelegateListWithRewardsInfo, totalFee } = blocksInRounds.reduce(
-			(acc: AccountSummary, fetchedBlock: BlockHeader, i) => {
-				acc.totalFee = acc.totalFee + BigInt(fetchedBlock.totalFee);
-
-				const delegate = acc.uniqDelegateListWithRewardsInfo.find(
-					({ publicKey }) => publicKey === fetchedBlock.generatorPublicKey,
-				);
-
-				if (!delegate) {
-					acc.uniqDelegateListWithRewardsInfo.push({
-						publicKey: fetchedBlock.generatorPublicKey,
-						blocksForged: 1,
-						reward: BigInt(fetchedBlock.reward),
-						isGettingRemainingFees: i === blocksInRounds.length - 1,
-					});
-
-					return acc;
-				}
-
-				delegate.reward = delegate.reward + BigInt(fetchedBlock.reward);
-				delegate.blocksForged += 1;
-				delegate.isGettingRemainingFees = i === blocksInRounds.length - 1;
-
-				return acc;
-			},
-			{
-				uniqDelegateListWithRewardsInfo: [],
-				totalFee: BigInt(0),
-			},
+		const forgedPublicKeys = blocksInRounds.map(
+			block => block.generatorPublicKey,
 		);
 
-		// Aggregate forger infor into one object
-		const uniqForgersInfo = uniqDelegateListWithRewardsInfo.map(
-			(forgerInfo: ForgerInfo) => ({
-				...forgerInfo,
-				earnings: this._calculateRewardAndFeeForDelegate({
-					totalFee,
-					forgerInfo,
-					round,
-				}),
-				delegateAddress: getAddressFromPublicKey(forgerInfo.publicKey),
-			}),
+		const missedBlocksDelegatePublicKeys = expectedForgingPublicKeys.filter(
+			expectedPublicKey =>
+				!forgedPublicKeys.find(publicKey => publicKey === expectedPublicKey),
 		);
 
-		debug('Summed round %s with total fee %d', round, totalFee);
+		if (!missedBlocksDelegatePublicKeys.length) {
+			return;
+		}
 
-		return {
-			round,
-			totalFee,
-			uniqForgersInfo,
-		};
+		for (const publicKey of missedBlocksDelegatePublicKeys) {
+			const address = getAddressFromPublicKey(publicKey);
+			const account = await stateStore.account.get(address);
+			account.missedBlocks += undo ? -1 : 1;
+			stateStore.account.set(address, account);
+		}
 	}
 
-	/**
-	 *  @todo `round` parameter is only necessary for handling
-	 * an exception in testnet in
-	 * `_calculateRewardAndFeePerDelegate` method. `round` argument
-	 * can be safely removed when the exception on testnet was fixed.
-	 */
-	private _calculateRewardAndFeeForDelegate({
-		forgerInfo,
-		totalFee,
-		round,
-	}: RewardOptions): Earnings {
-		const { rounds: exceptionsRounds = {} } = this.exceptions;
-		const exceptionRound = exceptionsRounds[round.toString()];
-
-		// tslint:disable-next-line:no-let
-		let { reward: delegateReward } = forgerInfo;
-		// tslint:disable-next-line:no-let
-		let calculatedTotalFee = totalFee;
-
-		if (exceptionRound) {
-			// Multiply with rewards factor
-			delegateReward = delegateReward * BigInt(exceptionRound.rewards_factor);
-			// Multiply with fees factor and add bonus
-			calculatedTotalFee =
-				calculatedTotalFee * BigInt(exceptionRound.fees_factor) +
-				BigInt(exceptionRound.fees_bonus);
+	private async _updateVotedDelegatesVoteWeight(
+		block: Block,
+		stateStore: StateStore,
+		undo?: boolean,
+	): Promise<void> {
+		const generator = await stateStore.account.get(
+			getAddressFromPublicKey(block.generatorPublicKey),
+		);
+		if (!generator.votedDelegatesPublicKeys.length) {
+			return;
 		}
-
-		const feePerDelegate = calculatedTotalFee / BigInt(this.activeDelegates);
-		// tslint:disable-next-line:no-let
-		let fee = feePerDelegate * BigInt(forgerInfo.blocksForged);
-
-		if (forgerInfo.isGettingRemainingFees) {
-			const feesRemaining =
-				calculatedTotalFee - feePerDelegate * BigInt(this.activeDelegates);
-			fee += feesRemaining;
+		for (const votedDelegatesPublicKey of generator.votedDelegatesPublicKeys) {
+			const delegate = await stateStore.account.get(
+				getAddressFromPublicKey(votedDelegatesPublicKey),
+			);
+			const { totalEarning } = this.chain.getTotalEarningAndBurnt(block);
+			if (!undo) {
+				delegate.voteWeight += totalEarning;
+			} else {
+				delegate.voteWeight -= totalEarning;
+			}
+			stateStore.account.set(delegate.address, delegate);
 		}
+	}
 
-		return {
-			fee,
-			reward: delegateReward,
-		};
+	private _isLastBlockOfTheRound(block: BlockHeader): boolean {
+		const round = this.rounds.calcRound(block.height);
+		const nextRound = this.rounds.calcRound(block.height + 1);
+
+		return round < nextRound;
 	}
 }

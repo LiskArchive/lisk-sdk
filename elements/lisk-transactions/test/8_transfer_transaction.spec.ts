@@ -17,34 +17,40 @@ import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { TransactionError } from '../src/errors';
-import { MockStateStore as store } from './helpers';
+import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 
 describe('Transfer transaction class', () => {
 	const validTransferTransaction = fixture.testCases[0].output;
 	const validTransferAccount = fixture.testCases[0].input.account;
 	let validTransferTestTransaction: TransferTransaction;
-	let sender: Partial<Account>;
-	let recipient: Partial<Account>;
-	let storeAccountCacheStub: jest.SpyInstance;
-	let storeAccountGetStub: jest.SpyInstance;
-	let storeAccountGetOrDefaultStub: jest.SpyInstance;
-	let storeAccountSetStub: jest.SpyInstance;
+	let sender: Account;
+	let recipient: Account;
+	let store: StateStoreMock;
 
 	beforeEach(async () => {
 		validTransferTestTransaction = new TransferTransaction(
 			validTransferTransaction,
 		);
-		sender = { ...validTransferAccount, balance: BigInt('10000000000') };
-		recipient = { ...validTransferAccount, balance: BigInt('10000000000') };
-		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
-		storeAccountGetStub = jest
-			.spyOn(store.account, 'get')
-			.mockResolvedValue(sender);
-		storeAccountGetOrDefaultStub = jest
-			.spyOn(store.account, 'getOrDefault')
-			.mockResolvedValue(recipient);
-		storeAccountSetStub = jest.spyOn(store.account, 'set');
+		sender = {
+			...defaultAccount,
+			...validTransferAccount,
+			balance: BigInt('10000000000'),
+			address: validTransferTestTransaction.senderId,
+		};
+		recipient = {
+			...defaultAccount,
+			...validTransferAccount,
+			balance: BigInt('10000000000'),
+			address: validTransferTestTransaction.asset.recipientId,
+		};
+
+		store = new StateStoreMock([sender, recipient]);
+
+		jest.spyOn(store.account, 'cache');
+		jest.spyOn(store.account, 'get');
+		jest.spyOn(store.account, 'getOrDefault');
+		jest.spyOn(store.account, 'set');
 	});
 
 	describe('#constructor', () => {
@@ -111,7 +117,7 @@ describe('Transfer transaction class', () => {
 	describe('#prepare', () => {
 		it('should call state store', async () => {
 			await validTransferTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).toHaveBeenCalledWith([
+			expect(store.account.cache).toHaveBeenCalledWith([
 				{ address: validTransferTestTransaction.senderId },
 				{ address: validTransferTestTransaction.asset.recipientId },
 			]);
@@ -242,21 +248,30 @@ describe('Transfer transaction class', () => {
 
 		it('should call state store', async () => {
 			await (validTransferTestTransaction as any).applyAsset(store);
-			expect(storeAccountGetStub).toHaveBeenCalledWith(
+			expect(store.account.get).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
-			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
+			expect(store.account.set).toHaveBeenCalledWith(
+				sender.address,
+				expect.objectContaining({
+					address: sender.address,
+					publicKey: sender.publicKey,
+				}),
+			);
+			expect(store.account.getOrDefault).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(
+			expect(store.account.set).toHaveBeenCalledWith(
 				recipient.address,
-				recipient,
+				expect.objectContaining({
+					address: recipient.address,
+					publicKey: recipient.publicKey,
+				}),
 			);
 		});
 
 		it('should return error when sender balance is insufficient', async () => {
-			storeAccountGetStub.mockReturnValue({
+			store.account.set(sender.address, {
 				...sender,
 				balance: BigInt(10000000),
 			});
@@ -270,8 +285,8 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return error when recipient balance is over maximum amount', async () => {
-			storeAccountGetOrDefaultStub.mockReturnValue({
-				...sender,
+			store.account.set(recipient.address, {
+				...recipient,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
 			const errors = await (validTransferTestTransaction as any).applyAsset(
@@ -284,22 +299,31 @@ describe('Transfer transaction class', () => {
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
 			await (validTransferTestTransaction as any).undoAsset(store);
-			expect(storeAccountGetStub).toHaveBeenCalledWith(
+			expect(store.account.get).toHaveBeenCalledWith(
 				validTransferTestTransaction.senderId,
 			);
 
-			expect(storeAccountSetStub).toHaveBeenCalledWith(sender.address, sender);
-			expect(storeAccountGetOrDefaultStub).toHaveBeenCalledWith(
+			expect(store.account.set).toHaveBeenCalledWith(
+				sender.address,
+				expect.objectContaining({
+					address: sender.address,
+					publicKey: sender.publicKey,
+				}),
+			);
+			expect(store.account.getOrDefault).toHaveBeenCalledWith(
 				validTransferTestTransaction.asset.recipientId,
 			);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(
+			expect(store.account.set).toHaveBeenCalledWith(
 				recipient.address,
-				recipient,
+				expect.objectContaining({
+					address: recipient.address,
+					publicKey: recipient.publicKey,
+				}),
 			);
 		});
 
 		it('should return error when recipient balance is insufficient', async () => {
-			storeAccountGetOrDefaultStub.mockReturnValue({
+			store.account.set(recipient.address, {
 				...recipient,
 				balance: BigInt('0'),
 			});
@@ -312,8 +336,8 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should return error when sender balance is over maximum amount', async () => {
-			storeAccountGetStub.mockReturnValue({
-				...recipient,
+			store.account.set(sender.address, {
+				...sender,
 				balance: BigInt(MAX_TRANSACTION_AMOUNT),
 			});
 			const errors = await (validTransferTestTransaction as any).undoAsset(

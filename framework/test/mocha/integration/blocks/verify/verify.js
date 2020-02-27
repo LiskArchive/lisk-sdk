@@ -39,7 +39,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
 
@@ -130,122 +130,6 @@ describe('blocks/verify', () => {
 		library.modules.chain.resetBlockHeaderCache();
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
-
-	// Move to unit tests (already covered)
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('__private', () => {
-		describe('verifySignature', () => {
-			it('should fail when blockSignature property is not a hex string', async () => {});
-
-			it('should fail when blockSignature property is an invalid hex string', async () => {});
-
-			it('should fail when generatorPublicKey property is not a hex string', async () => {});
-
-			it('should fail when generatorPublicKey property is an invalid hex string', async () => {});
-		});
-
-		describe('verifyPreviousBlock', () => {
-			it('should fail when previousBlockId property is missing', async () => {});
-		});
-
-		describe('verifyVersion', () => {
-			it('should fail when block version != 0', async () => {});
-		});
-
-		describe('verifyReward', () => {
-			it('should fail when block reward = 99 instead of 0', async () => {});
-		});
-
-		describe('verifyId', () => {
-			it('should reset block id when block id is an invalid alpha-numeric string value', async () => {});
-
-			it('should reset block id when block id is an invalid numeric string value', async () => {});
-
-			it('should reset block id when block id is an invalid integer value', async () => {});
-
-			it('should reset block id when block id is a valid integer value', async () => {});
-		});
-		/* eslint-enable mocha/no-skipped-tests */
-
-		describe('verifyPayload', () => {
-			it('should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value', async () => {});
-
-			it('should fail when transactions length != numberOfTransactions property', async () => {});
-
-			it('should fail when transactions length > maxTransactionsPerBlock constant value', async () => {});
-
-			it('should fail when a transaction is of an unknown type', async () => {});
-
-			it('should fail when a transaction is duplicated', async () => {});
-
-			it('should fail when payload hash is invalid', async () => {});
-
-			it('should fail when summed transaction amounts do not match totalAmount property', async () => {});
-
-			it('should fail when summed transaction fees do not match totalFee property', async () => {});
-		});
-
-		describe('verifyForkOne', () => {
-			it('should fail when previousBlockId value is invalid', async () => {});
-		});
-
-		describe('verifyBlockSlot', () => {
-			it('should fail when block timestamp < than previousBlockId timestamp', async () => {});
-		});
-
-		describe('verifyBlockSlotWindow', () => {
-			describe('for current slot number', () => {
-				it('should return empty result.errors array', async () => {});
-			});
-
-			describe(`for slot number ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
-				it('should return empty result.errors array', async () => {});
-			});
-
-			describe('for slot number in the future', () => {
-				it('should call callback with error = Block slot is in the future ', async () => {});
-			});
-
-			describe(`for slot number ${BLOCK_SLOT_WINDOW +
-				1} slots in the past`, () => {
-				it('should call callback with error = Block slot is too old', async () => {});
-			});
-		});
-
-		describe('onNewBlock', () => {
-			describe('with lastNBlockIds', () => {
-				describe('when onNewBlock function is called once', () => {
-					it('should include block in lastNBlockIds queue', async () => {});
-				});
-
-				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW}times`, () => {
-					it('should include blockId in lastNBlockIds queue', async () => {});
-				});
-
-				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
-					2} times`, () => {
-					it(`should maintain last ${BLOCK_SLOT_WINDOW} blockIds in lastNBlockIds queue`, async () => {});
-				});
-			});
-		});
-
-		describe('verifyAgainstLastNBlockIds', () => {
-			describe('when __private.lastNBlockIds', () => {
-				describe('contains block id', () => {
-					it('should return result with error = Block already exists in chain', async () => {});
-				});
-
-				describe('does not contain block id', () => {
-					it('should return result with no errors', async () => {});
-				});
-			});
-		});
-	});
-
-	// TODO: Refactor this test, dataset being used is no longer valid because of BLOCK_SLOT_WINDOW check
-	describe('verifyReceipt', () => {});
-
-	describe('verifyBlock', () => {});
 
 	// Sends a block to network, save it locally
 	describe('processBlock for valid block {broadcast: true, saveBlock: true}', () => {

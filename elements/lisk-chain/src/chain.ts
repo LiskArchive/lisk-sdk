@@ -21,9 +21,12 @@ import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import {
+	applyFeeAndRewards,
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
+	getTotalFees,
+	undoFeeAndRewards,
 } from './block_reward';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
@@ -37,7 +40,6 @@ import {
 	composeTransactionSteps,
 	undoTransactions,
 	validateTransactions,
-	verifyTransactions,
 } from './transactions';
 import { TransactionHandledResult } from './transactions/compose_transaction_steps';
 import {
@@ -289,7 +291,6 @@ export class Chain {
 		this.blocksVerify = new BlocksVerify({
 			dataAccess: this.dataAccess,
 			exceptions: this.exceptions,
-			slots: this.slots,
 			genesisBlock: this.genesisBlock,
 		});
 	}
@@ -426,7 +427,7 @@ export class Chain {
 
 	public async verify(
 		blockInstance: BlockInstance,
-		stateStore: StateStore,
+		_: StateStore,
 		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
 	): Promise<void> {
 		if (!skipExistingCheck) {
@@ -444,7 +445,7 @@ export class Chain {
 				throw invalidPersistedResponse.errors;
 			}
 		}
-		await this.blocksVerify.checkTransactions(blockInstance, stateStore);
+		await this.blocksVerify.checkTransactions(blockInstance);
 	}
 
 	public async apply(
@@ -452,6 +453,7 @@ export class Chain {
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
+		await applyFeeAndRewards(blockInstance, stateStore);
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
@@ -460,6 +462,7 @@ export class Chain {
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedGenesisStep(blockInstance, stateStore);
+		await applyFeeAndRewards(blockInstance, stateStore);
 	}
 
 	public async save(
@@ -497,6 +500,7 @@ export class Chain {
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
+		await undoFeeAndRewards(blockInstance, stateStore);
 		await undoConfirmedStep(blockInstance, stateStore, this.exceptions);
 	}
 
@@ -625,6 +629,7 @@ export class Chain {
 		)(transactions);
 	}
 
+	// TODO: Remove this function in #4841 as it is not needed on the new transaction pool
 	public async verifyTransactions(
 		transactions: BaseTransaction[],
 	): Promise<TransactionHandledResult> {
@@ -641,7 +646,7 @@ export class Chain {
 				};
 			}),
 			checkPersistedTransactions(this.dataAccess),
-			verifyTransactions(this.slots, this.exceptions),
+			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
 	}
 
@@ -654,5 +659,18 @@ export class Chain {
 			checkPersistedTransactions(this.dataAccess),
 			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
+	}
+
+	// Temporally added because DPoS uses totalEarning to calculate the vote weight change
+	// tslint:disable-next-line prefer-function-over-method
+	public getTotalEarningAndBurnt(
+		blockInstance: BlockInstance,
+	): { readonly totalEarning: bigint; readonly totalBurnt: bigint } {
+		const { totalFee, totalMinFee } = getTotalFees(blockInstance);
+
+		return {
+			totalEarning: blockInstance.reward + totalFee - totalMinFee,
+			totalBurnt: totalMinFee,
+		};
 	}
 }
