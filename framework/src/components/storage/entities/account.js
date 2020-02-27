@@ -72,12 +72,6 @@ class Account extends BaseEntity {
 				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
 		});
 
-		this.addFilter('membersPublicKeys', ft.CUSTOM, {
-			condition:
-				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."membersPublicKeys" @> ${membersPublicKeys}',
-		});
-
 		this.addFilter('asset_contains', ft.CUSTOM, {
 			condition:
 				// eslint-disable-next-line no-template-curly-in-string

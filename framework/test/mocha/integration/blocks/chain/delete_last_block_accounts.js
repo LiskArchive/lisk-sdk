@@ -338,9 +338,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
-					expect(account.multiLifetime).to.equal(0);
-					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).eql(null);
+					expect(account.keys).eql(null);
 				});
 
 				it('should forge a block', done => {
@@ -373,9 +371,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					testAccountDataAfterBlock = account;
 					expect(account.publicKey).to.not.be.null;
-					expect(account.multiLifetime).to.equal(1);
-					expect(account.multiMin).to.equal(1);
-					expect(account.membersPublicKeys[0]).to.equal(
+					expect(account.keys[0]).to.equal(
 						accountFixtures.existingDelegate.publicKey,
 					);
 				});
@@ -396,9 +392,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.multiLifetime).to.equal(0);
-					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.eql(null);
+					expect(account.keys).to.eql(null);
 				});
 
 				it('should forge a block with transaction pool', done => {
