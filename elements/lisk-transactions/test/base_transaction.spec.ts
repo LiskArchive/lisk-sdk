@@ -14,14 +14,12 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
-import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
+import { BaseTransaction } from '../src/base_transaction';
 import {
 	TransactionJSON,
 	Status,
 	TransactionError,
-	TransactionPendingError,
 	TransferTransaction,
-	SignatureObject,
 } from '../src';
 import {
 	addTransactionFields,
@@ -38,6 +36,11 @@ const getAccount = (account: object): any => ({
 	producedBlocks: 0,
 	missedBlocks: 0,
 	...account,
+	keys: {
+		mandatoryKeys: [],
+		optionalKeys: [],
+		numberOfSignatures: 0,
+	},
 });
 
 describe('Base transaction class', () => {
@@ -53,16 +56,6 @@ describe('Base transaction class', () => {
 	const defaultMultisignatureTransaction = addTransactionFields(
 		multisignatureFixture.testCases[0].output,
 	);
-
-	const defaultMultisignatureAccount = getAccount({
-		...multisignatureFixture.testCases[0].input.account,
-		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
-			account => account.publicKey,
-		),
-		balance: BigInt('94378900000'),
-		multiMin: 2,
-		multiLifetime: 1,
-	});
 
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
@@ -529,47 +522,6 @@ describe('Base transaction class', () => {
 			expect(id).toEqual(validTestTransaction.id);
 			expect(Object.keys(errors)).toHaveLength(0);
 			expect(status).toEqual(Status.OK);
-		});
-	});
-
-	describe('#processMultisignatures', () => {
-		it('should return a successful transaction response with valid signatures', async () => {
-			jest.spyOn(utils, 'verifyMultiSignatures').mockReturnValue({
-				status: MultisignatureStatus.READY,
-				errors: [],
-			});
-			const {
-				id,
-				status,
-				errors,
-			} = await validMultisignatureTransaction.processMultisignatures(store);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(errors).toEqual([]);
-			expect(status).toEqual(Status.OK);
-		});
-
-		it('should return a pending transaction response with missing signatures', async () => {
-			const pendingErrors = [
-				new TransactionPendingError(
-					`Missing signatures`,
-					validMultisignatureTransaction.id,
-					'.signatures',
-				),
-			];
-			jest.spyOn(utils, 'verifyMultiSignatures').mockReturnValue({
-				status: MultisignatureStatus.PENDING,
-				errors: pendingErrors,
-			});
-			const {
-				id,
-				status,
-				errors,
-			} = await validMultisignatureTransaction.processMultisignatures(store);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(errors).toEqual(pendingErrors);
-			expect(status).toEqual(Status.PENDING);
 		});
 	});
 
