@@ -692,6 +692,25 @@ describe('Base transaction class', () => {
 				'Invalid balance amount',
 			);
 		});
+
+		it('should decrement account nonce', async () => {
+			// Arrange
+			const accountNonce = BigInt(5);
+			const senderAccount = {
+				...defaultSenderAccount,
+				nonce: accountNonce,
+			};
+			storeAccountGetOrDefaultStub.mockReturnValue(senderAccount);
+
+			// Act
+			const { id, status, errors } = await validTestTransaction.undo(store);
+
+			// Assert
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.OK);
+			expect(Object.keys(errors)).toHaveLength(0);
+			expect(senderAccount.nonce).toEqual(accountNonce - BigInt(1));
+		});
 	});
 
 	describe('#isExpired', () => {

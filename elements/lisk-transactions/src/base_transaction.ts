@@ -397,7 +397,12 @@ export abstract class BaseTransaction {
 							updatedBalance.toString(),
 						),
 				  ];
+
+		// Decrement account nonce
+		sender.nonce -= BigInt(1);
+
 		store.account.set(sender.address, sender);
+
 		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
