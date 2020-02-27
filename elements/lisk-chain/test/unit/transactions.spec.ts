@@ -160,7 +160,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				storageStub.entities.Account.get
 					.mockResolvedValueOnce([
-						{ address: genesisAccount.address, balance: '10000100' },
+						{ address: genesisAccount.address, balance: '20000100' },
 					])
 					.mockResolvedValue([]);
 				const validTx = chainInstance.deserializeTransaction(

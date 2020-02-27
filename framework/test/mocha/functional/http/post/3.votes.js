@@ -72,6 +72,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 	// Second Scenario
 	const accountMaxVotesPerAccount = randomUtil.account();
 	const delegatesMaxVotesPerAccount = [];
+	// To validate minimum remaining balance check
+	const halfLSK = BigInt('500000');
 
 	before(() => {
 		const transactions = [];
@@ -83,7 +85,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		});
 		const transaction2 = transfer({
 			networkIdentifier,
-			amount: FEES.VOTE,
+			amount: (FEES.VOTE + halfLSK).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -134,7 +136,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					const transfer1 = transfer({
 						networkIdentifier,
-						amount: FEES.DELEGATE,
+						amount: (BigInt(FEES.DELEGATE) + halfLSK).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -165,7 +167,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					const transfer2 = transfer({
 						networkIdentifier,
-						amount: FEES.DELEGATE,
+						amount: (BigInt(FEES.DELEGATE) + halfLSK).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
