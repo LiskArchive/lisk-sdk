@@ -403,9 +403,16 @@ describe('GET /api/votes', () => {
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
+				// To validate minimum remaining balance check
+				const halfLSK = BigInt('500000');
+
 				const creditTransaction = transfer({
 					networkIdentifier,
-					amount: (BigInt(FEES.DELEGATE) + BigInt(FEES.VOTE)).toString(),
+					amount: (
+						BigInt(FEES.DELEGATE) +
+						BigInt(FEES.VOTE) +
+						halfLSK
+					).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});

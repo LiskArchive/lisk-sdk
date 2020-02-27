@@ -41,6 +41,7 @@ import {
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyBalance,
+	verifyMinRemainingBalance,
 	verifyMultiSignatures,
 	verifySenderPublicKey,
 } from './utils';
@@ -112,6 +113,8 @@ export abstract class BaseTransaction {
 
 	public static TYPE: number;
 	public static FEE = '0';
+	// Minimum remaining balance requirement for any account to perform a transaction
+	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
 
 	protected _id?: string;
 	protected _senderPublicKey?: string;
@@ -314,9 +317,22 @@ export abstract class BaseTransaction {
 		sender.balance = updatedBalance;
 		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		store.account.set(sender.address, sender);
-		const assetErrors = await this.applyAsset(store);
 
+		const assetErrors = await this.applyAsset(store);
 		errors.push(...assetErrors);
+
+		// Get updated state for sender account, which may be modified in last step
+		const updatedSender = await store.account.get(this.senderId);
+
+		// Validate minimum remaining balance
+		const minRemainingBalanceError = verifyMinRemainingBalance(
+			this.id,
+			updatedSender,
+			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
+		);
+		if (minRemainingBalanceError) {
+			errors.push(minRemainingBalanceError);
+		}
 
 		if (
 			this._multisignatureStatus === MultisignatureStatus.PENDING &&
