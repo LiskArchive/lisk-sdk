@@ -24,10 +24,6 @@ describe('transaction', () => {
 			return expect(transaction.registerMultisignature).toBeFunction();
 		});
 
-		it('should have #createSignatureObject', () => {
-			return expect(transaction.createSignatureObject).toBeFunction();
-		});
-
 		it('should have #utils', () => {
 			return expect(transaction.utils).toBeObject();
 		});
