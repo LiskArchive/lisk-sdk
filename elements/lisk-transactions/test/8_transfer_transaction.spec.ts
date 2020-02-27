@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from '../src/constants';
+import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
 import { Status } from '../src/response';
@@ -74,22 +74,6 @@ describe('Transfer transaction class', () => {
 			expect(validTransferTestTransaction.asset.recipientId).toEqual(
 				validTransferTransaction.asset.recipientId,
 			);
-		});
-
-		it('should set fee to transfer transaction fee amount', async () => {
-			expect(validTransferTestTransaction.fee.toString()).toEqual(
-				TRANSFER_FEE.toString(),
-			);
-		});
-	});
-
-	describe('#getBasicBytes', () => {
-		const expectedBytes =
-			'08033ccd24efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d00000000499602d2fbc2d06c336d04be72616e646f6d2064617461';
-		it('should return a buffer', async () => {
-			const basicBytes = (validTransferTestTransaction as any).getBasicBytes();
-
-			expect(basicBytes).toEqual(Buffer.from(expectedBytes, 'hex'));
 		});
 	});
 
@@ -185,7 +169,7 @@ describe('Transfer transaction class', () => {
 				...validTransferTransaction,
 				asset: {
 					...validTransferTransaction.asset,
-					amount: '9223372036854775808',
+					amount: '92233720368547758087823474829847337',
 				},
 			});
 			const errors = (transferTransactionWithInvalidAmount as any).validateAsset();
@@ -280,7 +264,7 @@ describe('Transfer transaction class', () => {
 			);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`Account does not have enough LSK: ${sender.address}, balance: 0.2`,
+				`Account does not have enough LSK: ${sender.address}, balance: 1.1`,
 			);
 		});
 

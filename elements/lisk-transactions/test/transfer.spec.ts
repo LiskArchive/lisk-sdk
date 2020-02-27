@@ -53,6 +53,7 @@ describe('#transfer transaction', () => {
 					amount,
 					networkIdentifier,
 					passphrase,
+					fee,
 				});
 				return Promise.resolve();
 			});

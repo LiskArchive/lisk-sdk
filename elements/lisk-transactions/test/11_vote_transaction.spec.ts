@@ -206,16 +206,6 @@ describe('Vote transaction class', () => {
 		});
 	});
 
-	describe('#getBasicBytes', () => {
-		const expectedBytes =
-			'03039d488a30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f4832b34373363333534636466363237623832653931313365303261333337343836646433616663353631356562373166666433313163356130626564613337623863';
-		it('should return valid buffer', async () => {
-			const getBasicBytes = (validTestTransaction as any).getBasicBytes();
-
-			expect(getBasicBytes).toEqual(Buffer.from(expectedBytes, 'hex'));
-		});
-	});
-
 	describe('#verifyAgainstOtherTransactions', () => {
 		it('should return status true with non conflicting transactions', async () => {
 			const {
