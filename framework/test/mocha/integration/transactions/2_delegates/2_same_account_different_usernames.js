@@ -26,8 +26,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
-
 describe('integration test (type 2) - double delegate registrations', () => {
 	let library;
 	localCommon.beforeBlock('2_2_delegates_2', lib => {
@@ -46,7 +44,9 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			const differentDelegateName = randomUtil.delegateName();
 			const transaction = transfer({
 				networkIdentifier,
-				amount: (1000 * NORMALIZER).toString(),
+				nonce: i,
+				fee: BigInt(100000000).toString(),
+				amount: BigInt(100000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -66,6 +66,8 @@ describe('integration test (type 2) - double delegate registrations', () => {
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = registerDelegate({
 						networkIdentifier,
+						nonce: i.toString(),
+						fee: BigInt(5000000000).toString(),
 						passphrase: account.passphrase,
 						username: differentDelegateName,
 					});
@@ -78,6 +80,8 @@ describe('integration test (type 2) - double delegate registrations', () => {
 				it('adding to pool delegate registration from same account and different name should be ok', done => {
 					transaction2 = registerDelegate({
 						networkIdentifier,
+						nonce: (i + 1).toString(),
+						fee: BigInt(5000000000).toString(),
 						passphrase: account.passphrase,
 						username: account.username,
 					});

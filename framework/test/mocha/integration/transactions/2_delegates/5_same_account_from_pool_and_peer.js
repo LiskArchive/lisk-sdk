@@ -27,7 +27,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
 // eslint-disable-next-line
 describe('delegate', () => {
 	let library;
@@ -57,7 +56,9 @@ describe('delegate', () => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = transfer({
 				networkIdentifier,
-				amount: (1000 * NORMALIZER).toString(),
+				nonce: '0',
+				fee: BigInt(100000000).toString(),
+				amount: BigInt(100000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
@@ -73,6 +74,8 @@ describe('delegate', () => {
 
 				delegateTransaction = registerDelegate({
 					networkIdentifier,
+					nonce: '0',
+					fee: BigInt(5000000000).toString(),
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
@@ -128,6 +131,8 @@ describe('delegate', () => {
 					username2 = randomUtil.username().toLowerCase();
 					delegateTransaction2 = registerDelegate({
 						networkIdentifier,
+						nonce: '1',
+						fee: BigInt(5000000000).toString(),
 						passphrase: delegateAccount.passphrase,
 						username: username2,
 					});

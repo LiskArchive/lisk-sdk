@@ -27,8 +27,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
-
 describe('integration test (type 2) - double delegate registrations', () => {
 	let library;
 	localCommon.beforeBlock('2_2_delegates_4', lib => {
@@ -47,7 +45,9 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			let transaction2;
 			const transaction = transfer({
 				networkIdentifier,
-				amount: (1000 * NORMALIZER).toString(),
+				nonce: i,
+				fee: BigInt(100000000).toString(),
+				amount: BigInt(100000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -67,13 +67,17 @@ describe('integration test (type 2) - double delegate registrations', () => {
 				before(done => {
 					transaction1 = transfer({
 						networkIdentifier,
-						amount: (1000 * NORMALIZER).toString(),
+						nonce: (i + 1).toString(),
+						fee: BigInt(100000000).toString(),
+						amount: BigInt(100000000000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
 					transaction2 = transfer({
 						networkIdentifier,
-						amount: (1000 * NORMALIZER).toString(),
+						nonce: (i + 2).toString(),
+						fee: BigInt(100000000).toString(),
+						amount: BigInt(100000000000).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});
@@ -87,6 +91,8 @@ describe('integration test (type 2) - double delegate registrations', () => {
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = registerDelegate({
 						networkIdentifier,
+						nonce: i.toString(),
+						fee: BigInt(5000000000).toString(),
 						passphrase: account.passphrase,
 						username: account.username,
 					});
@@ -99,6 +105,8 @@ describe('integration test (type 2) - double delegate registrations', () => {
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
 					transaction2 = registerDelegate({
 						networkIdentifier,
+						nonce: i.toString(),
+						fee: BigInt(5000000000).toString(),
 						passphrase: account2.passphrase,
 						username: account2.username,
 					});

@@ -29,11 +29,15 @@ import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier
 
 const processInputs = (
 	networkIdentifier: string,
+	nonce: string,
+	fee: string,
 	votes: ReadonlyArray<string>,
 	unvotes: ReadonlyArray<string>,
 ) => ({ passphrase }: InputFromSourceOutput) =>
 	castVotes({
 		networkIdentifier,
+		nonce,
+		fee,
 		passphrase,
 		votes,
 		unvotes,
@@ -116,6 +120,8 @@ export default class VoteCommand extends BaseCommand {
 		);
 		const processFunction = processInputs(
 			networkIdentifier,
+			'0',
+			'0',
 			validatedVotes,
 			validatedUnvotes,
 		);
