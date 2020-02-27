@@ -15,12 +15,7 @@
 import { when } from 'jest-when';
 import { Dpos, constants } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
-import {
-	Account,
-	ForgersList,
-	BlockHeader,
-	RoundException,
-} from '../../src/types';
+import { Account, ForgersList, Block } from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -33,15 +28,11 @@ import {
 	sortedDelegateAccounts,
 	delegatesWhoForged,
 	delegatesWhoForgedNone,
-	uniqueDelegatesWhoForged,
-	delegatesWhoForgedOnceMissedOnce,
 	delegateWhoForgedLast,
 	votedDelegates,
-	// votedDelegates,
 } from '../utils/round_delegates';
 import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.apply()', () => {
 	let dpos: Dpos;
@@ -52,6 +43,9 @@ describe('dpos.apply()', () => {
 		// Arrange
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			getTotalEarningAndBurnt: jest
+				.fn()
+				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getChainState: jest.fn().mockResolvedValue(undefined),
@@ -69,7 +63,7 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: BlockHeader;
+		let genesisBlock: Block;
 		let stateStore: StateStoreMock;
 		let generator: Account;
 
@@ -77,9 +71,14 @@ describe('dpos.apply()', () => {
 			generator = { ...delegateAccounts[0] };
 			// Arrange
 			genesisBlock = {
+				id: 'genesis-block',
+				timestamp: 10,
 				height: 1,
 				generatorPublicKey: generator.publicKey,
-			} as BlockHeader;
+				reward: BigInt(500000000),
+				totalFee: BigInt(100000000),
+				transactions: [],
+			} as Block;
 
 			stateStore = new StateStoreMock(
 				[generator, ...sortedDelegateAccounts],
@@ -118,51 +117,13 @@ describe('dpos.apply()', () => {
 			// Assert
 			expect(result).toBe(false);
 		});
-
-		it('should update "producedBlocks" but NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
-			// Act
-			await dpos.apply(genesisBlock, stateStore);
-
-			const generatorAccount = await stateStore.account.get(generator.address);
-			expect(generatorAccount).toEqual({
-				...generator,
-				producedBlocks: 1,
-			});
-		});
-	});
-
-	describe('Given block height is greater than "1" (NOT the genesis block)', () => {
-		let generator: Account;
-		let block: BlockHeader;
-
-		beforeEach(() => {
-			generator = { ...delegateAccounts[1] };
-			// Arrange
-			block = {
-				height: 2,
-				generatorPublicKey: generator.publicKey,
-			} as BlockHeader;
-
-			when(chainStub.dataAccess.getDelegateAccounts)
-				.calledWith(ACTIVE_DELEGATES)
-				.mockReturnValue(sortedDelegateAccounts);
-		});
-
-		it('should increase "producedBlocks" field by "1" for the generator delegate', async () => {
-			// Act
-			await dpos.apply(block, stateStore);
-
-			const generatorAccount = await stateStore.account.get(generator.address);
-			expect(generatorAccount).toEqual({
-				...generator,
-				producedBlocks: 1,
-			});
-		});
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
+		const totalEarning = BigInt(1230000000);
+
 		let generator: Account;
-		let block: BlockHeader;
+		let block: Block;
 		let forgersList: ForgersList;
 
 		beforeEach(() => {
@@ -171,7 +132,7 @@ describe('dpos.apply()', () => {
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as BlockHeader;
+			} as Block;
 
 			forgersList = [
 				{
@@ -184,16 +145,40 @@ describe('dpos.apply()', () => {
 				},
 			];
 
-			stateStore = new StateStoreMock([generator], {
-				[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
+			chainStub.getTotalEarningAndBurnt.mockReturnValue({
+				totalEarning,
+				totalBurnt: BigInt(0),
 			});
+
+			stateStore = new StateStoreMock(
+				[generator, ...votedDelegates.map(delegate => ({ ...delegate }))],
+				{
+					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
+				},
+			);
 
 			when(chainStub.dataAccess.getDelegateAccounts)
 				.calledWith(ACTIVE_DELEGATES)
 				.mockReturnValue(sortedDelegateAccounts);
 		});
 
-		it('should NOT update "missedBlocks", "voteWeight", "rewards", "fees"', async () => {
+		it('should update vote weight of accounts that delegates who forged voted for', async () => {
+			// Act
+			await dpos.apply(block, stateStore);
+
+			const votedDelegatesFromGenerator = votedDelegates.filter(delegate =>
+				generator.votedDelegatesPublicKeys.includes(delegate.publicKey),
+			);
+			expect.assertions(votedDelegatesFromGenerator.length);
+			for (const delegate of votedDelegatesFromGenerator) {
+				const votedDelegate = await stateStore.account.get(delegate.address);
+				expect(votedDelegate.voteWeight.toString()).toEqual(
+					(delegate.voteWeight + totalEarning).toString(),
+				);
+			}
+		});
+
+		it('should NOT update "missedBlocks"', async () => {
 			// Act
 			await dpos.apply(block, stateStore);
 
@@ -201,7 +186,6 @@ describe('dpos.apply()', () => {
 			// Assert
 			expect(generatorAccount).toEqual({
 				...generator,
-				producedBlocks: 1,
 			});
 		});
 
@@ -218,17 +202,16 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: BlockHeader;
+		let lastBlockOfTheRoundNine: Block;
 		let feePerDelegate: bigint;
 		let rewardPerDelegate: bigint;
-		let totalFee: bigint;
-		let getTotalEarningsOfDelegate: (
-			account: Account,
-		) => { reward: bigint; fee: bigint; blockCount: number };
 
 		beforeEach(() => {
 			stateStore = new StateStoreMock(
-				[...delegateAccounts, ...votedDelegates],
+				[
+					...delegateAccounts,
+					...votedDelegates.map(delegate => ({ ...delegate })),
+				],
 				{
 					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{
@@ -255,23 +238,9 @@ describe('dpos.apply()', () => {
 				.mockReturnValue(sortedDelegateAccounts);
 
 			feePerDelegate = BigInt(randomInt(10, 100));
-			totalFee = feePerDelegate * BigInt(ACTIVE_DELEGATES);
 
 			// Delegates who forged got their rewards
 			rewardPerDelegate = BigInt(randomInt(1, 20));
-
-			getTotalEarningsOfDelegate = account => {
-				const blockCount = delegatesWhoForged.filter(
-					d => d.publicKey === account.publicKey,
-				).length;
-				const reward = rewardPerDelegate * BigInt(blockCount);
-				const fee = feePerDelegate * BigInt(blockCount);
-				return {
-					blockCount,
-					reward,
-					fee,
-				};
-			};
 
 			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
@@ -286,7 +255,7 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: delegateWhoForgedLast.publicKey,
 				totalFee: feePerDelegate,
 				reward: rewardPerDelegate,
-			} as BlockHeader;
+			} as Block;
 
 			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
@@ -302,151 +271,6 @@ describe('dpos.apply()', () => {
 			for (const delegate of delegatesWhoForgedNone) {
 				const { missedBlocks } = await stateStore.account.get(delegate.address);
 				expect(missedBlocks).toEqual(1);
-			}
-		});
-
-		it('should distribute rewards and fees ONLY to the delegates who forged', async () => {
-			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-			// Assert
-			expect.assertions(ACTIVE_DELEGATES * 2);
-
-			// Assert Group 1/2
-			for (const delegate of uniqueDelegatesWhoForged) {
-				const { reward, fee } = getTotalEarningsOfDelegate(delegate);
-				const { rewards, fees } = await stateStore.account.get(
-					delegate.address,
-				);
-				expect(rewards).toEqual(BigInt(delegate.rewards) + reward);
-				expect(fees).toEqual(BigInt(delegate.fees) + fee);
-			}
-
-			// Assert Group 2/2
-			for (const delegate of delegatesWhoForgedNone) {
-				const { rewards, fees } = await stateStore.account.get(
-					delegate.address,
-				);
-				expect(rewards).toEqual(delegate.rewards);
-				expect(fees).toEqual(delegate.fees);
-			}
-		});
-
-		it('should distribute reward and fee for delegate who forged once but missed once', async () => {
-			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-			// Assert
-			expect.assertions(delegatesWhoForgedOnceMissedOnce.length * 2);
-			for (const delegate of delegatesWhoForgedOnceMissedOnce) {
-				const { rewards, fees } = await stateStore.account.get(
-					delegate.address,
-				);
-				const { reward, fee } = getTotalEarningsOfDelegate(delegate);
-
-				expect(rewards).toEqual(BigInt(delegate.rewards) + reward);
-				expect(fees).toEqual(BigInt(delegate.fees) + fee);
-			}
-		});
-
-		it('should distribute more rewards and fees (with correct balance) to delegates based on number of blocks they forged', async () => {
-			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-			// Assert
-			expect.assertions(uniqueDelegatesWhoForged.length * 3);
-			for (const delegate of uniqueDelegatesWhoForged) {
-				const { fee, reward } = getTotalEarningsOfDelegate(delegate);
-				const amount = fee + reward;
-				const data = {
-					balance: BigInt(delegate.balance) + amount,
-					fees: BigInt(delegate.fees) + fee,
-					rewards: BigInt(delegate.rewards) + reward,
-				};
-				const account = await stateStore.account.get(delegate.address);
-
-				expect(account.fees).toEqual(data.fees);
-				expect(account.rewards).toEqual(data.rewards);
-				expect(account.balance).toEqual(data.balance);
-			}
-		});
-
-		it('should give the remainingFee ONLY to the last delegate of the round who forged', async () => {
-			// Arrange
-			const remainingFee = randomInt(5, 10);
-			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
-				generatorPublicKey: delegate.publicKey,
-				totalFee: feePerDelegate,
-				reward: rewardPerDelegate,
-				height: 809 + i,
-			}));
-
-			lastBlockOfTheRoundNine = {
-				height: 909,
-				generatorPublicKey: delegateWhoForgedLast.publicKey,
-				totalFee: BigInt(feePerDelegate) + BigInt(remainingFee),
-				reward: rewardPerDelegate,
-			} as BlockHeader;
-			forgedBlocks.splice(forgedBlocks.length - 1);
-
-			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
-				forgedBlocks,
-			);
-
-			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-			// Assert
-			expect.assertions(uniqueDelegatesWhoForged.length);
-			const lastDelegate = await stateStore.account.get(
-				delegateWhoForgedLast.address,
-			);
-			expect(lastDelegate.fees).toEqual(
-				BigInt(delegateWhoForgedLast.fees) +
-					feePerDelegate * BigInt(3) +
-					BigInt(remainingFee),
-			);
-
-			for (const delegate of uniqueDelegatesWhoForged) {
-				if (delegate.address === delegateWhoForgedLast.address) {
-					continue;
-				}
-				const account = await stateStore.account.get(delegate.address);
-				const blockCount = delegatesWhoForged.filter(
-					d => d.publicKey === account.publicKey,
-				).length;
-				expect(account.fees).toEqual(
-					BigInt(delegate.fees) + feePerDelegate * BigInt(blockCount),
-				);
-			}
-		});
-
-		it('should update vote weight of accounts that delegates who forged voted for', async () => {
-			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-			const publicKeysToUpdate = uniqueDelegatesWhoForged.reduce(
-				(accumulator: any, account) => {
-					const { fee, reward } = getTotalEarningsOfDelegate(account);
-					account.votedDelegatesPublicKeys.forEach(publicKey => {
-						if (accumulator[publicKey]) {
-							accumulator[publicKey] = accumulator[publicKey] + fee + reward;
-						} else {
-							accumulator[publicKey] = fee + reward;
-						}
-					});
-					return accumulator;
-				},
-				{},
-			);
-
-			for (const publicKey of Object.keys(publicKeysToUpdate)) {
-				const amount = publicKeysToUpdate[publicKey];
-				const account = await stateStore.account.get(
-					getAddressFromPublicKey(publicKey),
-				);
-				// Assert
-				expect(account.voteWeight).toEqual(amount);
 			}
 		});
 
@@ -553,164 +377,6 @@ describe('dpos.apply()', () => {
 				expect.assertions(delegatesWhoForged.length);
 				for (const delegate of delegatesWhoForged) {
 					expect(delegate.missedBlocks).toEqual(0);
-				}
-			});
-		});
-
-		describe('When summarizing round fails', () => {
-			it('should throw the error message coming from summedRound method and not perform any update', async () => {
-				// Arrange
-				const err = new Error('dummyError');
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockRejectedValue(
-					err,
-				);
-
-				// Act && Assert
-				await expect(
-					dpos.apply(lastBlockOfTheRoundNine, stateStore),
-				).rejects.toBe(err);
-			});
-		});
-
-		// Reference: https://github.com/LiskHQ/lisk-sdk/issues/2423
-		describe('When summarizing round return value which is greater than Number.MAX_SAFE_INTEGER ', () => {
-			beforeEach(async () => {
-				feePerDelegate =
-					BigInt(Number.MAX_SAFE_INTEGER.toString()) +
-					BigInt(randomInt(10, 1000));
-				totalFee = BigInt(feePerDelegate) * BigInt(ACTIVE_DELEGATES);
-
-				rewardPerDelegate =
-					BigInt(Number.MAX_SAFE_INTEGER.toString()) +
-					BigInt(randomInt(10, 1000));
-
-				const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
-					generatorPublicKey: delegate.publicKey,
-					totalFee: feePerDelegate,
-					reward: rewardPerDelegate,
-					height: 809 + i,
-				}));
-				forgedBlocks.splice(forgedBlocks.length - 1);
-
-				lastBlockOfTheRoundNine = {
-					height: 909,
-					generatorPublicKey: delegateWhoForgedLast.publicKey,
-					totalFee: feePerDelegate,
-					reward: rewardPerDelegate,
-				} as BlockHeader;
-
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
-					forgedBlocks,
-				);
-
-				getTotalEarningsOfDelegate = account => {
-					const blockCount = delegatesWhoForged.filter(
-						d => d.publicKey === account.publicKey,
-					).length;
-					const reward = BigInt(rewardPerDelegate) * BigInt(blockCount);
-					const fee = BigInt(feePerDelegate) * BigInt(blockCount);
-					return {
-						blockCount,
-						reward,
-						fee,
-					};
-				};
-			});
-
-			it('should update vote weight of accounts that delegates with correct balance', async () => {
-				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-				const publicKeysToUpdate = uniqueDelegatesWhoForged.reduce(
-					(accumulator: any, account) => {
-						const { fee, reward } = getTotalEarningsOfDelegate(account);
-						account.votedDelegatesPublicKeys.forEach(publicKey => {
-							if (accumulator[publicKey]) {
-								accumulator[publicKey] = accumulator[publicKey] + fee + reward;
-							} else {
-								accumulator[publicKey] = fee + reward;
-							}
-						});
-						return accumulator;
-					},
-					{},
-				);
-
-				// Assert
-				expect.assertions(publicKeysToUpdate.length);
-				for (const publicKey of Object.keys(publicKeysToUpdate)) {
-					const amount = publicKeysToUpdate[publicKey];
-					const account = await stateStore.account.get(
-						getAddressFromPublicKey(publicKey),
-					);
-					expect(account.voteWeight).toEqual(amount);
-				}
-			});
-		});
-
-		describe('Given the provided block is in an exception round', () => {
-			let exceptionFactors: RoundException;
-
-			beforeEach(() => {
-				// Arrange
-				exceptionFactors = {
-					rewards_factor: 2,
-					fees_factor: 2,
-					// setting bonus to a dividable amount
-					fees_bonus: ACTIVE_DELEGATES * 123,
-				} as RoundException;
-				const exceptionRound = dpos.rounds
-					.calcRound(lastBlockOfTheRoundNine.height)
-					.toString();
-				const exceptions = {
-					rounds: {
-						[exceptionRound]: exceptionFactors,
-					},
-				};
-
-				dpos = new Dpos({
-					chain: chainStub,
-					activeDelegates: ACTIVE_DELEGATES,
-					delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
-					exceptions,
-				});
-			});
-
-			it('should multiply delegate reward with "rewards_factor"', async () => {
-				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-				// Assert
-				expect.assertions(uniqueDelegatesWhoForged.length);
-				for (const delegate of uniqueDelegatesWhoForged) {
-					const { reward } = getTotalEarningsOfDelegate(delegate);
-					const exceptionReward =
-						reward * BigInt(exceptionFactors.rewards_factor);
-					const expectedReward = BigInt(delegate.rewards) + exceptionReward;
-					const account = await stateStore.account.get(delegate.address);
-					expect(account.rewards).toEqual(expectedReward);
-				}
-			});
-
-			it('should multiply "totalFee" with "fee_factor" and add "fee_bonus"', async () => {
-				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-				expect.assertions(uniqueDelegatesWhoForged.length);
-				for (const delegate of uniqueDelegatesWhoForged) {
-					const blockCount = delegatesWhoForged.filter(
-						d => d.publicKey === delegate.publicKey,
-					).length;
-
-					const exceptionTotalFee: bigint =
-						totalFee * BigInt(exceptionFactors.fees_factor) +
-						BigInt(exceptionFactors.fees_bonus);
-
-					const earnedFee =
-						(exceptionTotalFee / BigInt(ACTIVE_DELEGATES)) * BigInt(blockCount);
-					const expectedFee = BigInt(delegate.fees) + earnedFee;
-					const account = await stateStore.account.get(delegate.address);
-
-					expect(account.fees).toEqual(expectedFee);
 				}
 			});
 		});

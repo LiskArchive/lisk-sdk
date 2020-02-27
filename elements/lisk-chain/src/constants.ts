@@ -12,12 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const config = require('./config');
-const shell = require('./shell');
-
-module.exports = {
-	config,
-	shell,
-};
+export const CHAIN_STATE_KEY_BURNT_FEE = 'CHAIN_STATE_KEY_BURNT_FEE';

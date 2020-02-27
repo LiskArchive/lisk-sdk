@@ -22,9 +22,12 @@ import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import {
+	applyFeeAndRewards,
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
+	getTotalFees,
+	undoFeeAndRewards,
 } from './block_reward';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
@@ -453,6 +456,7 @@ export class Chain {
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
+		await applyFeeAndRewards(blockInstance, stateStore);
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
@@ -461,6 +465,7 @@ export class Chain {
 		stateStore: StateStore,
 	): Promise<void> {
 		await applyConfirmedGenesisStep(blockInstance, stateStore);
+		await applyFeeAndRewards(blockInstance, stateStore);
 	}
 
 	public async save(
@@ -498,6 +503,7 @@ export class Chain {
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
+		await undoFeeAndRewards(blockInstance, stateStore);
 		await undoConfirmedStep(blockInstance, stateStore, this.exceptions);
 	}
 
@@ -665,5 +671,18 @@ export class Chain {
 		const stateStore = new StateStore(this.storage);
 
 		return processSignature()(transaction, signature, stateStore);
+	}
+
+	// Temporally added because DPoS uses totalEarning to calculate the vote weight change
+	// tslint:disable-next-line prefer-function-over-method
+	public getTotalEarningAndBurnt(
+		blockInstance: BlockInstance,
+	): { readonly totalEarning: bigint; readonly totalBurnt: bigint } {
+		const { totalFee, totalMinFee } = getTotalFees(blockInstance);
+
+		return {
+			totalEarning: blockInstance.reward + totalFee - totalMinFee,
+			totalBurnt: totalMinFee,
+		};
 	}
 }
