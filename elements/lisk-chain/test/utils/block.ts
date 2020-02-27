@@ -60,6 +60,12 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
+	const numTransactionsBuffer = intToBuffer(
+		block.numberOfTransactions,
+		SIZE_INT32,
+		LITTLE_ENDIAN,
+	);
+
 	const totalAmountBuffer = intToBuffer(
 		block.totalAmount.toString(),
 		SIZE_INT64,
@@ -99,6 +105,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		heightBuffer,
 		maxHeightPreviouslyForgedBuffer,
 		maxHeightPrevotedBuffer,
+		numTransactionsBuffer,
 		totalAmountBuffer,
 		totalFeeBuffer,
 		rewardBuffer,
@@ -152,6 +159,7 @@ const calculateTransactionsInfo = (block: BlockInstance) => {
 		totalAmount,
 		payloadHash,
 		payloadLength,
+		numberOfTransactions: block.transactions.length,
 	};
 };
 
