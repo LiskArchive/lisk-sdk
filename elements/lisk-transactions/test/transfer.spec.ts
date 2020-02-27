@@ -14,7 +14,6 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/transfer';
-import * as time from '../src/utils/time';
 import { TransactionJSON } from '../src/transaction_types';
 
 describe('#transfer transaction', () => {
@@ -32,19 +31,10 @@ describe('#transfer transaction', () => {
 	const amount = '1000';
 	const fee = (0.1 * fixedPoint).toString();
 	const nonce = '0';
-	const timeWithOffset = 38350076;
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-	let getTimeWithOffsetStub: jest.SpyInstance;
 	let transferTransaction: Partial<TransactionJSON>;
-
-	beforeEach(() => {
-		getTimeWithOffsetStub = jest
-			.spyOn(time, 'getTimeWithOffset')
-			.mockReturnValue(timeWithOffset);
-		return Promise.resolve();
-	});
 
 	describe('with first passphrase', () => {
 		describe('without data', () => {
@@ -62,25 +52,6 @@ describe('#transfer transaction', () => {
 
 			it('should create a transfer transaction', () => {
 				return expect(transferTransaction).toBeTruthy();
-			});
-
-			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-				return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
-			});
-
-			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
-				const offset = -10;
-				transfer({
-					recipientId,
-					amount,
-					networkIdentifier,
-					passphrase,
-					timeOffset: offset,
-					fee,
-					nonce,
-				});
-
-				return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 			});
 
 			it('should be an object', () => {
@@ -352,10 +323,6 @@ describe('#transfer transaction', () => {
 					'senderPublicKey',
 					undefined,
 				);
-			});
-
-			it('should have the timestamp', () => {
-				return expect(transferTransaction).toHaveProperty('timestamp');
 			});
 
 			it('should have the asset', () => {

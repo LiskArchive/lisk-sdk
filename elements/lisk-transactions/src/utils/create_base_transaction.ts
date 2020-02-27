@@ -15,31 +15,25 @@
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
-import { getTimeWithOffset } from './time';
-
 export interface CreateBaseTransactionInput {
 	readonly nonce: string;
 	readonly fee: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 }
 
 export const createBaseTransaction = ({
 	passphrase,
-	timeOffset,
 	nonce,
 	fee,
 }: CreateBaseTransactionInput) => {
 	const { publicKey: senderPublicKey } = passphrase
 		? getAddressAndPublicKeyFromPassphrase(passphrase)
 		: { publicKey: undefined };
-	const timestamp = getTimeWithOffset(timeOffset);
 
 	return {
 		nonce,
 		fee,
 		senderPublicKey,
-		timestamp,
 	};
 };
