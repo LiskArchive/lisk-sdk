@@ -14,9 +14,7 @@
  */
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
-export const generateRandomPublicKeys = (
-	amount: number = 1,
-): ReadonlyArray<string> =>
+export const generateRandomPublicKeys = (amount: number = 1): Array<string> =>
 	new Array(amount).fill(0).map(_ => {
 		const { publicKey } = getAddressAndPublicKeyFromPassphrase(
 			Math.random().toString(16),

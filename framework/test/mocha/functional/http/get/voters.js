@@ -294,7 +294,13 @@ describe('GET /api/voters', () => {
 			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				const amount = (BigInt(FEES.DELEGATE) + BigInt(FEES.VOTE)).toString();
+				// To by-pass minimum remaining balance limit
+				const halfLSK = BigInt('500000');
+				const amount = (
+					BigInt(FEES.DELEGATE) +
+					BigInt(FEES.VOTE) +
+					halfLSK
+				).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
 					networkIdentifier,
 					amount,

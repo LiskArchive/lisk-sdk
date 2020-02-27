@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MockStateStore as store } from './helpers';
+import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import { VoteTransaction } from '../src/11_vote_transaction';
 import { validVoteTransactions } from '../fixtures';
 import { TransactionJSON, Account } from '../src/transaction_types';
@@ -20,16 +20,14 @@ import { Status } from '../src/response';
 import { generateRandomPublicKeys } from './helpers/cryptography';
 
 describe('Vote transaction class', () => {
-	let validTestTransaction: VoteTransaction;
-	let storeAccountCacheStub: jest.SpyInstance;
-	let storeAccountGetStub: jest.SpyInstance;
-	let storeAccountSetStub: jest.SpyInstance;
-	let storeAccountFindStub: jest.SpyInstance;
+	let store: StateStoreMock;
 
-	let defaultValidSender: Partial<Account>;
+	let validTestTransaction: VoteTransaction;
+	let defaultValidSender: Account;
 
 	const defaultValidDependentAccounts = [
 		{
+			...defaultAccount,
 			balance: BigInt('0'),
 			address: '123L',
 			publicKey:
@@ -40,6 +38,7 @@ describe('Vote transaction class', () => {
 
 	// This is an account with more than 101 votes
 	const invalidVotesAccount = {
+		...defaultAccount,
 		passphrase:
 			'fly mystery then depart fantasy youth barely jazz slender disease initial food',
 		privateKey:
@@ -160,6 +159,7 @@ describe('Vote transaction class', () => {
 
 	beforeEach(async () => {
 		defaultValidSender = {
+			...defaultAccount,
 			address: '8004805717140184627L',
 			balance: BigInt('100000000'),
 			publicKey:
@@ -172,14 +172,16 @@ describe('Vote transaction class', () => {
 			...validVoteTransactions[2],
 			networkIdentifier,
 		});
-		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
-		storeAccountGetStub = jest
-			.spyOn(store.account, 'get')
-			.mockReturnValue(defaultValidSender);
-		storeAccountSetStub = jest.spyOn(store.account, 'set');
-		storeAccountFindStub = jest
-			.spyOn(store.account, 'find')
-			.mockReturnValue(defaultValidDependentAccounts[0]);
+
+		store = new StateStoreMock([
+			defaultValidSender,
+			defaultValidDependentAccounts[0],
+		]);
+
+		jest.spyOn(store.account, 'cache');
+		jest.spyOn(store.account, 'get');
+		jest.spyOn(store.account, 'set');
+		jest.spyOn(store.account, 'find');
 	});
 
 	describe('#constructor', () => {
@@ -287,7 +289,7 @@ describe('Vote transaction class', () => {
 	describe('#prepare', () => {
 		it('should call state store', async () => {
 			await validTestTransaction.prepare(store);
-			expect(storeAccountCacheStub).toHaveBeenCalledWith([
+			expect(store.account.cache).toHaveBeenCalledWith([
 				{ address: validTestTransaction.senderId },
 				{
 					publicKey:
@@ -396,11 +398,18 @@ describe('Vote transaction class', () => {
 	describe('#applyAsset', () => {
 		it('should call state store', async () => {
 			await (validTestTransaction as any).applyAsset(store);
-			expect(storeAccountGetStub).toHaveBeenCalledWith(
+
+			expect(store.account.get).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
-			expect(storeAccountFindStub).toHaveBeenCalledTimes(1);
-			expect(storeAccountSetStub).toHaveBeenCalledWith(
+			expect(store.account.find).toHaveBeenCalledTimes(1);
+
+			// Apply vote before expect
+			defaultValidSender.votedDelegatesPublicKeys.push(
+				'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
+			);
+
+			expect(store.account.set).toHaveBeenCalledWith(
 				defaultValidSender.address,
 				defaultValidSender,
 			);
@@ -415,15 +424,16 @@ describe('Vote transaction class', () => {
 						'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				},
 			];
-			storeAccountFindStub.mockReturnValue(nonDelegateAccount[0]);
+			(store.account.find as any).mockReturnValue(nonDelegateAccount[0]);
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 		});
 
 		it('should return error when the delegate is already voted', async () => {
 			const invalidSender = {
+				...defaultAccount,
 				address: '8004805717140184627L',
-				balance: '100000000',
+				balance: BigInt('100000000'),
 				publicKey:
 					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
 				votedDelegatesPublicKeys: [
@@ -431,7 +441,8 @@ describe('Vote transaction class', () => {
 					'473c354cdf627b82e9113e02a337486dd3afc5615eb71ffd311c5a0beda37b8c',
 				],
 			};
-			storeAccountGetStub.mockReturnValue(invalidSender);
+			store.account.set(invalidSender.address, invalidSender);
+
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toContain('is already voted.');
@@ -440,13 +451,15 @@ describe('Vote transaction class', () => {
 
 		it('should return error when vote exceeds maximum votes', async () => {
 			const invalidSender = {
+				...defaultAccount,
 				address: '8004805717140184627L',
-				balance: '100000000',
+				balance: BigInt('100000000'),
 				publicKey:
 					'30c07dbb72b41e3fda9f29e1a4fc0fce893bb00788515a5e6f50b80312e2f483',
 				votedDelegatesPublicKeys: generateRandomPublicKeys(101),
 			};
-			storeAccountGetStub.mockReturnValue(invalidSender);
+			store.account.set(invalidSender.address, invalidSender);
+
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toContain(
@@ -459,11 +472,11 @@ describe('Vote transaction class', () => {
 	describe('#undoAsset', () => {
 		it('should call state store', async () => {
 			await (validTestTransaction as any).undoAsset(store);
-			expect(storeAccountGetStub).toHaveBeenCalledWith(
+			expect(store.account.get).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
 
-			expect(storeAccountSetStub).toHaveBeenCalledWith(
+			expect(store.account.set).toHaveBeenCalledWith(
 				defaultValidSender.address,
 				defaultValidSender,
 			);
@@ -475,7 +488,11 @@ describe('Vote transaction class', () => {
 		});
 
 		it('should return error when account voted for more than 101 delegates', async () => {
-			storeAccountGetStub.mockReturnValue(invalidVotesAccount);
+			store.account.set(validTestTransaction.senderId, {
+				...invalidVotesAccount,
+				address: validTestTransaction.senderId,
+			});
+
 			const errors = await (validTestTransaction as any).undoAsset(store);
 
 			expect(errors).toHaveLength(1);
