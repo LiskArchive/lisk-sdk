@@ -86,7 +86,6 @@ interface ChainConstructor {
 	readonly blockReceiptTimeout: number; // Set default
 	readonly loadPerIteration: number;
 	readonly maxPayloadLength: number;
-	readonly maxTransactionsPerBlock: number;
 	readonly activeDelegates: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
@@ -213,7 +212,6 @@ export class Chain {
 		readonly blockTime: number;
 		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
-		readonly maxTransactionsPerBlock: number;
 		readonly loadPerIteration: number;
 		readonly activeDelegates: number;
 		readonly blockSlotWindow: number;
@@ -239,7 +237,6 @@ export class Chain {
 		blockReceiptTimeout, // Set default
 		loadPerIteration,
 		maxPayloadLength,
-		maxTransactionsPerBlock,
 		activeDelegates,
 		rewardDistance,
 		rewardOffset,
@@ -282,7 +279,6 @@ export class Chain {
 			blockTime,
 			blockReceiptTimeout,
 			maxPayloadLength,
-			maxTransactionsPerBlock,
 			loadPerIteration,
 			activeDelegates,
 			blockSlotWindow,
@@ -404,11 +400,7 @@ export class Chain {
 			throw invalidTransactionResponse.errors;
 		}
 
-		validatePayload(
-			block,
-			this.constants.maxTransactionsPerBlock,
-			this.constants.maxPayloadLength,
-		);
+		validatePayload(block, this.constants.maxPayloadLength);
 
 		// Update id
 		block.id = blocksUtils.getId(blockBytes);

@@ -33,8 +33,7 @@ describe('blocks/transactions', () => {
 	const constants = {
 		blockReceiptTimeout: 20,
 		loadPerIteration: 1000,
-		maxPayloadLength: 1024 * 1024,
-		maxTransactionsPerBlock: 25,
+		maxPayloadLength: 15 * 1024,
 		activeDelegates: 101,
 		rewardDistance: 3000000,
 		rewardOffset: 2160,
