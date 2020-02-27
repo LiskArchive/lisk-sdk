@@ -437,8 +437,6 @@ paths:
             - fee:desc
             - type:asc
             - type:desc
-            - timestamp:asc
-            - timestamp:desc
           default: amount:desc
       responses:
         200:
@@ -816,8 +814,6 @@ paths:
             - fee:desc
             - type:asc
             - type:desc
-            - timestamp:asc
-            - timestamp:desc
           default: amount:asc
         - name: data
           in: query
@@ -1094,7 +1090,8 @@ definitions:
       - id
       - type
       - senderPublicKey
-      - timestamp
+      - nonce
+      - fee
       - asset
       - signature
     properties:
@@ -1112,12 +1109,16 @@ definitions:
         minimum: 0
         description: |
           Describes the Transaction type.
-      timestamp:
-        type: integer
-        example: 28227090
+      nonce:
+        type: string
+        example: '0'
         description: |
-          Time when the transaction was created.
-          Unix Timestamp.
+          Nonce for the transaction.
+      fee:
+        type: string
+        example: '1000000'
+        description: |
+          Fee for the transaction.
       senderPublicKey:
         type: string
         format: publicKey

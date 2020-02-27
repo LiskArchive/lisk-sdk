@@ -130,13 +130,14 @@ random.account = function(nonDelegate) {
 };
 
 // Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
-random.transaction = function(offset) {
+random.transaction = function(nonce) {
 	return transfer({
 		networkIdentifier,
+		nonce,
+		fee: '10000000',
 		amount: '1',
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
-		timeOffset: offset,
 	});
 };
 
