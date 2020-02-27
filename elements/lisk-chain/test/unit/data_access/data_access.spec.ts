@@ -384,6 +384,7 @@ describe('data_access.storage', () => {
 			payloadHash:
 				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
 			payloadLength: 117,
+			numberOfTransactions: 1,
 			version: 2,
 			height: 2,
 			transactions: [
