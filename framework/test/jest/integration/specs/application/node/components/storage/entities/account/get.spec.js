@@ -66,8 +66,6 @@ describe('storage.entities.Account.get', () => {
 				isDelegate: false,
 				username: null,
 				asset: null,
-				multiMin: 0,
-				multiLifetime: 0,
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
@@ -76,7 +74,7 @@ describe('storage.entities.Account.get', () => {
 				voteWeight: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				membersPublicKeys: null,
+				keys: null,
 			};
 
 			await pgHelper.createAccount(account);
@@ -97,7 +95,6 @@ describe('storage.entities.Account.get', () => {
 			expect(accounts[0]).toEqual(expectedAccount);
 			// properties that comes with "{extended: true}" option.
 			expect(accounts[0]).toHaveProperty('votedDelegatesPublicKeys');
-			expect(accounts[0]).toHaveProperty('membersPublicKeys');
 		});
 	});
 
@@ -126,8 +123,6 @@ describe('storage.entities.Account.get', () => {
 				isDelegate: false,
 				username: null,
 				asset: null,
-				multiMin: 0,
-				multiLifetime: 0,
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
@@ -136,7 +131,6 @@ describe('storage.entities.Account.get', () => {
 				voteWeight: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				membersPublicKeys: null,
 			};
 
 			const expectedAccount2 = {
@@ -145,8 +139,6 @@ describe('storage.entities.Account.get', () => {
 				isDelegate: false,
 				username: null,
 				asset: null,
-				multiMin: 0,
-				multiLifetime: 0,
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
@@ -155,7 +147,6 @@ describe('storage.entities.Account.get', () => {
 				voteWeight: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				membersPublicKeys: null,
 			};
 
 			await pgHelper.createAccount(account);
