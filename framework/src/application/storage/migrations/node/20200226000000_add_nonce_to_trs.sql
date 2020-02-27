@@ -12,4 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT NOT NULL DEFAULT '0';
+ALTER TABLE "trs" ALTER COLUMN "nonce" DROP DEFAULT;
