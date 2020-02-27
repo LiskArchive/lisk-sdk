@@ -363,8 +363,12 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs1);
-			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs2);
+			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(
+				trs1.toJSON(),
+			);
+			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(
+				trs2.toJSON(),
+			);
 		});
 
 		it('should override the status of transaction to TransactionStatus.OK', async () => {

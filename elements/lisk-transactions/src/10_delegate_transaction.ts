@@ -19,6 +19,7 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
+import { DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 
@@ -43,6 +44,7 @@ export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
 	public readonly containsUniqueData: boolean;
 	public static TYPE = 10;
+	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

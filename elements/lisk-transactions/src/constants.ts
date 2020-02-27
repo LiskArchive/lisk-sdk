@@ -16,7 +16,7 @@
 export const FIXED_POINT = 10 ** 8;
 
 export const MIN_FEE_PER_BYTE = 1000;
-export const NAME_FEE = FIXED_POINT * 10;
+export const DELEGATE_NAME_FEE = 1000000000;
 export const MULTISIGNATURE_MAX_LIFETIME = 72;
 export const MULTISIGNATURE_MIN_LIFETIME = 1;
 export const MULTISIGNATURE_MAX_KEYSGROUP = 15;

@@ -26,7 +26,6 @@ import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
 	MIN_FEE_PER_BYTE,
-	NAME_FEE,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
@@ -118,6 +117,7 @@ export abstract class BaseTransaction {
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
 	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
+	public static NAME_FEE = BigInt(0);
 
 	protected _id?: string;
 	protected _senderPublicKey?: string;
@@ -265,13 +265,11 @@ export abstract class BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
-		this._minFee = BigInt(
+		this._minFee =
 			// Include nameFee in minFee for delegate registration transactions
-			// tslint:disable:no-magic-numbers
-			(this.type === 10 ? NAME_FEE : 0) +
-				(this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE *
-					this.getBytes().length,
-		);
+			(this.constructor as typeof BaseTransaction).NAME_FEE +
+			BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
+				BigInt(this.getBytes().length);
 
 		if (this.fee < this._minFee) {
 			errors.push(
