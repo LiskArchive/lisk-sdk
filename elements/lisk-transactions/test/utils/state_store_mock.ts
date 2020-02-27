@@ -35,14 +35,16 @@ export const defaultAccount = {
 	rewards: BigInt('0'),
 	voteWeight: BigInt('0'),
 	nameExist: false,
-	multiMin: 0,
-	multiLifetime: 0,
 	// tslint:disable-next-line:no-null-keyword
 	votedDelegatesPublicKeys: [],
 	asset: {},
 	// tslint:disable-next-line:no-null-keyword
-	membersPublicKeys: [],
 	toJSON: (): object => ({}),
+	keys: {
+		mandatoryKeys: [],
+		optionalKeys: [],
+		numberOfSignatures: 0,
+	},
 };
 
 export class StateStoreMock {
