@@ -14,7 +14,6 @@
 import {
 	transfer,
 	castVotes,
-	createSignatureObject,
 	TransactionJSON,
 	BaseTransaction,
 	registerDelegate,
@@ -690,92 +689,6 @@ describe('blocks/transactions', () => {
 			it('should call apply for all the transactions', async () => {
 				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
-			});
-		});
-	});
-
-	describe('#processSignature', () => {
-		describe('when transaction fails to add signature', () => {
-			it('should return invalid transaction response', async () => {
-				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: genesisAccount.address,
-						balance: '10000100',
-						membersPublicKeys: [
-							'2104c3882088fa512df4c64033a03cac911eec7e71dc03352cc2244dfc10a74c',
-						],
-					},
-				]);
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				const signatureObject = {
-					transactionId: validTx.id,
-					publicKey:
-						'2104c3882088fa512df4c64033a03cac911eec7e71dc03352cc2244dfc10a74c',
-					// Invalid signature
-					signature:
-						'a8872f1ad9fb6603e233565d336dad80e43fb598f2461b955eed4b4eec544ef5fe7f88a54fed31a8e90f3565bf3ed48b1b5e5bdf4488312ba449eebbcff98f0d',
-				};
-				// Act
-				const transactionResponse = await chainInstance.processSignature(
-					validTx,
-					signatureObject,
-				);
-				// Assert
-				expect(transactionResponse.status).toBe(0);
-				expect(transactionResponse.errors).toHaveLength(1);
-				expect(transactionResponse.errors[0].message).toContain(
-					'Failed to add signature',
-				);
-			});
-		});
-
-		describe('when transaction successfully add signature', () => {
-			const defaultSecondPassphrase = {
-				passphrase:
-					'tornado metal foster prefer crucial note slim demise vicious weasel tobacco civil',
-				publicKey:
-					'2f16cad638f254316ea077ed45c81c09c380ce9df4c7e530ff14f3a14cc49ae5',
-			};
-			it('should return success transaction response', async () => {
-				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: genesisAccount.address,
-						balance: '10000100',
-						membersPublicKeys: [defaultSecondPassphrase.publicKey],
-						multiMin: 2,
-					},
-				]);
-				const transactionJSON = transfer({
-					passphrase: genesisAccount.passphrase,
-					recipientId: '123L',
-					amount: '100',
-					networkIdentifier,
-				});
-				const validTx = chainInstance.deserializeTransaction(
-					transactionJSON as TransactionJSON,
-				);
-				const signatureObject = createSignatureObject({
-					transaction: transactionJSON as TransactionJSON,
-					passphrase: defaultSecondPassphrase.passphrase,
-					networkIdentifier,
-				});
-				// Act
-				const transactionResponse = await chainInstance.processSignature(
-					validTx,
-					signatureObject,
-				);
-				// Assert
-				expect(transactionResponse.status).toBe(2); // Pending status
-				expect(transactionResponse.errors).toHaveLength(1);
 			});
 		});
 	});
