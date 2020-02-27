@@ -20,6 +20,6 @@
 
  -- Add asset column to trs table as jsonb
 ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "keys" jsonb;
-ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "membersPublicKeys"
-ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multimin"
-ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multilifetime"
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "membersPublicKeys";
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multimin";
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multilifetime";
