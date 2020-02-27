@@ -25,6 +25,8 @@ export interface RegisterDelegateInputs {
 	readonly timeOffset?: number;
 	readonly username: string;
 	readonly networkIdentifier: string;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 const validateInputs = ({

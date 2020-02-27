@@ -27,6 +27,8 @@ import { createBaseTransaction } from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
+	readonly fee: string;
+	readonly nonce: string;
 	readonly networkIdentifier: string;
 	readonly data?: string;
 	readonly passphrase?: string;

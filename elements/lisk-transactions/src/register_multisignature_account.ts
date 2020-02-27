@@ -36,6 +36,7 @@ export interface RegisterMultisignatureInputs {
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 	readonly networkIdentifier: string;
+	readonly nonce: string;
 	readonly fee: string;
 }
 

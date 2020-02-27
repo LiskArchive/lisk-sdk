@@ -28,6 +28,8 @@ import {
 
 export interface CastVoteInputs {
 	readonly networkIdentifier: string;
+	readonly nonce: string;
+	readonly fee: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
