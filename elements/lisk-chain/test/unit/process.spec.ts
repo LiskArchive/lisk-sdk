@@ -38,8 +38,7 @@ describe('blocks/header', () => {
 	const constants = {
 		blockReceiptTimeout: 20,
 		loadPerIteration: 1000,
-		maxPayloadLength: 1024 * 1024,
-		maxTransactionsPerBlock: 25,
+		maxPayloadLength: 15 * 1024,
 		activeDelegates: 101,
 		rewardDistance: 3000000,
 		rewardOffset: 2160,
@@ -203,52 +202,6 @@ describe('blocks/header', () => {
 				expect(() =>
 					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
 				).toThrow('Payload length is too long');
-			});
-		});
-
-		describe('when exceeds maximum transactions per block', () => {
-			it('should throw error', async () => {
-				// Arrange
-				const txs = new Array(30).fill(0).map((_, v) =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							passphrase: genesisAccount.passphrase,
-							recipientId: `${v + 1}L`,
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs });
-				blockBytes = getBytes(block);
-				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).toThrow('Number of transactions exceeds maximum per block');
-			});
-		});
-
-		describe('when numberOfTransactions is incorrect', () => {
-			it('should throw error', async () => {
-				// Arrange
-				const txs = new Array(20).fill(0).map((_, v) =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							passphrase: genesisAccount.passphrase,
-							recipientId: `${v + 1}L`,
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs, numberOfTransactions: 10 });
-				blockBytes = getBytes(block);
-				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
-				).toThrow(
-					'Included transactions do not match block transactions count',
-				);
 			});
 		});
 
