@@ -57,16 +57,18 @@ describe('account', () => {
 			expect(accountObj.voteWeight).toEqual(BigInt('0'));
 			expect(accountObj.rewards).toEqual(BigInt('0'));
 			expect(accountObj.votedDelegatesPublicKeys).toEqual([]);
-			expect(accountObj.membersPublicKeys).toEqual([]);
 			expect(accountObj.username).toBeNull;
 			expect(accountObj.publicKey).toEqual(undefined);
 			expect(accountObj.isDelegate).toEqual(0);
 			expect(accountObj.missedBlocks).toEqual(0);
 			expect(accountObj.producedBlocks).toEqual(0);
 			expect(accountObj.nameExist).toEqual(false);
-			expect(accountObj.multiMin).toEqual(0);
-			expect(accountObj.multiLifetime).toEqual(0);
 			expect(accountObj.asset).toEqual({});
+			expect(accountObj.keys).toEqual({
+				mandatoryKeys: [],
+				optionalKeys: [],
+				numberOfSignatures: 0,
+			});
 		});
 	});
 
@@ -80,16 +82,16 @@ describe('account', () => {
 			expect(accountJSON.voteWeight).toBeString;
 			expect(accountJSON.rewards).toBeString;
 			expect(accountJSON.votedDelegatesPublicKeys).toBeNull;
-			expect(accountJSON.membersPublicKeys).toBeNull;
 			expect(accountJSON.username).toBeNull;
 			expect(accountJSON.publicKey).toBeUndefined;
 			expect(accountJSON.isDelegate).toBeNumber;
 			expect(accountJSON.missedBlocks).toBeNumber;
 			expect(accountJSON.producedBlocks).toBeNumber;
 			expect(accountJSON.nameExist).toBeBoolean;
-			expect(accountJSON.multiMin).toBeNumber;
-			expect(accountJSON.multiLifetime).toBeNumber;
 			expect(accountJSON.asset).toBeObject;
+			expect(accountJSON.keys?.mandatoryKeys).toBeArray;
+			expect(accountJSON.keys?.optionalKeys).toBeArray;
+			expect(accountJSON.keys?.numberOfSignatures).toBeNumber;
 		});
 		it('should return account JSON object with relevant values', () => {
 			expect(accountJSON.address).toEqual(accountAddress1);
@@ -98,16 +100,18 @@ describe('account', () => {
 			expect(accountJSON.voteWeight).toEqual('0');
 			expect(accountJSON.rewards).toEqual('0');
 			expect(accountJSON.votedDelegatesPublicKeys).toEqual(null);
-			expect(accountJSON.membersPublicKeys).toEqual(null);
 			expect(accountJSON.username).toBeNull;
 			expect(accountJSON.publicKey).toEqual(undefined);
 			expect(accountJSON.isDelegate).toEqual(0);
 			expect(accountJSON.missedBlocks).toEqual(0);
 			expect(accountJSON.producedBlocks).toEqual(0);
 			expect(accountJSON.nameExist).toEqual(false);
-			expect(accountJSON.multiMin).toEqual(0);
-			expect(accountJSON.multiLifetime).toEqual(0);
 			expect(accountJSON.asset).toEqual({});
+			expect(accountJSON.keys).toEqual({
+				mandatoryKeys: [],
+				optionalKeys: [],
+				numberOfSignatures: 0,
+			});
 		});
 	});
 });
