@@ -50,7 +50,7 @@ describe('storage.entities.Account.get', () => {
 	});
 
 	describe('Given arguments ({publicKey}, {extended: true}, tx)', () => {
-		it('should return array that contains 1 extended account object that has "votedDelegatesPublicKeys" and "membersPublicKeys" properties', async () => {
+		it('should return array that contains 1 extended account object that has "votedDelegatesPublicKeys" and "keys" properties', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
