@@ -13,7 +13,9 @@
  *
  */
 import {
+	isValidFee,
 	isValidInteger,
+	isValidNonce,
 	validateKeysgroup,
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
@@ -34,7 +36,6 @@ export interface RegisterMultisignatureInputs {
 	readonly minimum: number;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
@@ -45,7 +46,17 @@ const validateInputs = ({
 	lifetime,
 	minimum,
 	networkIdentifier,
+	fee,
+	nonce,
 }: RegisterMultisignatureInputs): void => {
+	if (!isValidNonce(nonce)) {
+		throw new Error('Nonce must be a valid number in string format.');
+	}
+
+	if (!isValidFee(fee)) {
+		throw new Error('Fee must be a valid number in string format.');
+	}
+
 	if (
 		!isValidInteger(lifetime) ||
 		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
