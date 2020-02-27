@@ -38,6 +38,11 @@ describe('Delegate registration transaction class', () => {
 		balance: BigInt(validDelegateAccount.balance),
 		address: protocolSpecDelegateFixture.testCases[0].input.account.address,
 		publicKey: protocolSpecDelegateFixture.testCases[0].input.account.publicKey,
+		keys: {
+			mandatoryKeys: [],
+			optionalKeys: [],
+			numberOfSignatures: 0,
+		},
 	};
 
 	beforeEach(async () => {

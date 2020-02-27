@@ -16,7 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
 import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
-import { MockStateStore as store } from './helpers';
+import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 /*
 @TODO once registration is working update ProtocolSpec https://github.com/LiskHQ/lisk-sdk/pull/4608/files and replace here
 import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/multi_signature_transaction_validate.json';
@@ -98,20 +98,23 @@ describe('Multisignature transaction class', () => {
 		},
 	};
 
+	let store: StateStoreMock;
+	store = new StateStoreMock();
+
 	const validMultisignatureRegistrationTransaction =
 		multisigFixture.multisigRegistration;
 
 	const targetMultisigAccount = {
+		...defaultAccount,
+		keys: {
+			...defaultAccount.keys,
+		},
 		address: multisigFixture.accounts.targetAccount.address,
 		balance: BigInt('94378900000'),
-		keys: {
-			numberOfSignatures: 0,
-			mandatoryKeys: [],
-			optionalKeys: [],
-		},
 	};
 
 	const convertedAccount = {
+		...defaultAccount,
 		address: multisigFixture.accounts.targetAccount.address,
 		balance: BigInt('94378900000'),
 		keys: {
@@ -136,14 +139,15 @@ describe('Multisignature transaction class', () => {
 
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'getOrDefault')
-			.mockReturnValue({
-				...multisigFixture.accounts.targetAccount,
-				keys: {},
+			.mockResolvedValue({
+				...defaultAccount,
+				keys: defaultAccount.keys,
+				address: multisigFixture.accounts.targetAccount.address,
 			});
 
 		storeAccountGetStub = jest
 			.spyOn(store.account, 'get')
-			.mockReturnValue(targetMultisigAccount);
+			.mockResolvedValue(targetMultisigAccount);
 
 		storeAccountSetStub = jest.spyOn(store.account, 'set');
 		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
