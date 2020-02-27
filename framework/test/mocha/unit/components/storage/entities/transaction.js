@@ -44,7 +44,7 @@ const expectValidTransaction = (result, transaction, extended = true) => {
 	expect(result.signatures).to.be.eql(transaction.signatures);
 	expect(result.amount).to.be.eql(transaction.amount);
 	expect(result.fee).to.be.eql(transaction.fee);
-	expect(result.timestamp).to.be.eql(transaction.timestamp);
+	expect(result.nonce).to.be.eql(transaction.nonce);
 	expect(result.type).to.be.eql(transaction.type);
 
 	if (extended) {
@@ -102,14 +102,11 @@ describe('Transaction', () => {
 			'type_lt',
 			'type_lte',
 			'type_in',
-			'timestamp',
-			'timestamp_eql',
-			'timestamp_ne',
-			'timestamp_gt',
-			'timestamp_gte',
-			'timestamp_lt',
-			'timestamp_lte',
-			'timestamp_in',
+			'nonce',
+			'nonce_eql',
+			'nonce_ne',
+			'nonce_in',
+			'nonce_like',
 			'senderPublicKey',
 			'senderPublicKey_eql',
 			'senderPublicKey_ne',
@@ -151,7 +148,7 @@ describe('Transaction', () => {
 			'blockId',
 			'height',
 			'type',
-			'timestamp',
+			'nonce',
 			'senderId',
 			'fee',
 			'signature',
@@ -168,7 +165,7 @@ describe('Transaction', () => {
 			'blockId',
 			'height',
 			'type',
-			'timestamp',
+			'nonce',
 			'senderId',
 			'fee',
 			'signature',
