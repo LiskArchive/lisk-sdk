@@ -41,7 +41,7 @@ describe('integration test (type 0) - double transfers', () => {
 				networkIdentifier,
 				nonce: i.toString(),
 				fee: BigInt(10000000).toString(),
-				amount: BigInt(1000000000).toString(),
+				amount: BigInt(110000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -64,7 +64,7 @@ describe('integration test (type 0) - double transfers', () => {
 					networkIdentifier,
 					nonce: i.toString(),
 					fee: BigInt(10000000).toString(),
-					amount: BigInt(1000000000).toString(),
+					amount: BigInt(100000000000).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});
@@ -79,7 +79,7 @@ describe('integration test (type 0) - double transfers', () => {
 					networkIdentifier,
 					nonce: (i + 1).toString(),
 					fee: BigInt(10000000).toString(),
-					amount: BigInt(1000000000).toString(),
+					amount: BigInt(100000000000).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});

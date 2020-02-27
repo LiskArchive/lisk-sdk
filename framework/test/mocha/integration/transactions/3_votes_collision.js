@@ -27,8 +27,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
-
 describe('integration test (type 0) - votes collision', () => {
 	let library;
 	localCommon.beforeBlock('3_votes_collision', lib => {
@@ -50,7 +48,9 @@ describe('integration test (type 0) - votes collision', () => {
 
 	const creditTransaction = transfer({
 		networkIdentifier,
-		amount: (10000 * NORMALIZER).toString(),
+		nonce: '0',
+		fee: BigInt(10000000).toString(),
+		amount: BigInt('1000000000000').toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: collisionAccount.address,
 	});
@@ -69,6 +69,8 @@ describe('integration test (type 0) - votes collision', () => {
 		let delegateRegistrationTransaction;
 		before(done => {
 			delegateRegistrationTransaction = registerDelegate({
+				nonce: '0',
+				fee: BigInt(5000000000).toString(),
 				networkIdentifier,
 				passphrase: collisionAccount.passphrase,
 				username: collisionAccount.username,
@@ -105,6 +107,8 @@ describe('integration test (type 0) - votes collision', () => {
 			before(done => {
 				voteTransactionWithCollisionPublicKey = castVotes({
 					networkIdentifier,
+					nonce: '1',
+					fee: BigInt(10000000).toString(),
 					passphrase: collisionAccount.passphrase,
 					votes: [`${collisionAccount.collisionPublicKey}`],
 				});
@@ -139,6 +143,8 @@ describe('integration test (type 0) - votes collision', () => {
 			before(done => {
 				voteTransactionWithActualPublicKey = castVotes({
 					networkIdentifier,
+					nonce: '2',
+					fee: BigInt(10000000).toString(),
 					passphrase: collisionAccount.passphrase,
 					votes: [`${collisionAccount.publicKey}`],
 				});
