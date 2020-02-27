@@ -89,6 +89,10 @@ Object {
             "minLength": 1,
             "type": "string",
           },
+          "nonce": Object {
+            "format": "amount",
+            "type": "string",
+          },
           "senderPublicKey": Object {
             "format": "publicKey",
             "type": "string",
@@ -97,19 +101,16 @@ Object {
             "format": "signature",
             "type": "string",
           },
-          "timestamp": Object {
-            "min": 0,
-            "type": "integer",
-          },
           "type": Object {
             "type": "integer",
           },
         },
         "required": Array [
           "type",
-          "timestamp",
+          "nonce",
           "senderPublicKey",
           "signature",
+          "fee",
         ],
         "type": "object",
       },
