@@ -86,6 +86,22 @@ export const verifyMinRemainingBalance = (
 	return undefined;
 };
 
+export const verifyAccountNonce = (
+	id: string,
+	account: Account,
+	nonce: bigint,
+): TransactionError | undefined => {
+	if (account.nonce !== nonce) {
+		return new TransactionError(
+			`Nonce does not match with account: ${account.address}, Nonce: ${nonce}, Account Nonce: ${account.nonce}`,
+			id,
+			'.nonce',
+		);
+	}
+
+	return undefined;
+};
+
 export interface VerifyMultiSignatureResult {
 	readonly status: MultisignatureStatus;
 	readonly errors: ReadonlyArray<TransactionError>;
