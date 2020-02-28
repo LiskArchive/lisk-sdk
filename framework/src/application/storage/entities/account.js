@@ -32,11 +32,9 @@ const defaultCreateValues = {
 	rewards: '0',
 	voteWeight: '0',
 	nameExist: false,
-	multiMin: 0,
-	multiLifetime: 0,
 	asset: {},
 	votedDelegatesPublicKeys: null,
-	membersPublicKeys: null,
+	keys: {},
 };
 
 const readOnlyFields = ['address'];

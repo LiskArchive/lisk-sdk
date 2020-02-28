@@ -633,7 +633,7 @@ describe('blocks/header', () => {
 						message: expect.stringContaining(
 							'Account does not have enough minimum remaining LSK',
 						),
-					})
+					}),
 				]);
 			});
 

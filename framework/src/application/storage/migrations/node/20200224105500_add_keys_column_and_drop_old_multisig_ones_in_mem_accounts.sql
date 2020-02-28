@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { checkIfTransactionIsInert } from './exceptions_handlers';
-export { composeTransactionSteps } from './compose_transaction_steps';
-export {
-	validateTransactions,
-	applyTransactions,
-	checkPersistedTransactions,
-	checkAllowedTransactions,
-	undoTransactions,
-	applyGenesisTransactions,
-} from './transactions_handlers';
+
+/*
+   DESCRIPTION: Add keys field for mem_accounts column
+   PARAMETERS: None
+*/
+
+ -- Add asset column to trs table as jsonb
+ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "keys" jsonb;
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "membersPublicKeys";
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multimin";
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multilifetime";

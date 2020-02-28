@@ -26,7 +26,6 @@ import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
-	SignatureObject,
 	WriteableTransactionResponse,
 } from '../types';
 
@@ -226,15 +225,4 @@ export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 	return {
 		transactionsResponses,
 	};
-};
-
-export const processSignature = () => async (
-	transaction: BaseTransaction,
-	signature: SignatureObject,
-	stateStore: StateStore,
-) => {
-	await transaction.prepare(stateStore);
-
-	// Add multisignature to transaction and process
-	return transaction.addMultisignature(stateStore, signature);
 };
