@@ -257,7 +257,7 @@ describe('ChainAccount', () => {
 				username: null,
 				isDelegate: false,
 				balance: '0',
-				keys: null,
+				keys: {},
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
