@@ -50,18 +50,24 @@ describe('transport', () => {
 		// stubs without affecting other test cases.
 
 		transaction = transfer({
+			nonce: '0',
+			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
 			recipientId: '12668885769632475474L',
 			passphrase: accountFixtures.genesis.passphrase,
 		});
 		const transactionOne = transfer({
+			nonce: '0',
+			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
 			recipientId: '12668885769632475474L',
 			passphrase: accountFixtures.genesis.passphrase,
 		});
 		const transactionTwo = transfer({
+			nonce: '0',
+			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
 			recipientId: '12668885769632475474L',
