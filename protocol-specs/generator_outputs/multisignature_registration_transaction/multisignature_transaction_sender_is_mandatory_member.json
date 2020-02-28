@@ -1,9 +1,9 @@
 {
 	"title": "Valid multi-signature registration",
-	"summary": "A valid multi-signature registration with only mandatory keys",
+	"summary": "A valid multi-signature registration sender is member of mandatory key group",
 	"config": "devnet",
-	"runner": "multisignature_transaction",
-	"handler": "multisignature_transaction_only_mandatory_members",
+	"runner": "multisignature_registration_transaction",
+	"handler": "multisignature_transaction_sender_is_mandatory_member",
 	"testCases": {
 		"input": {
 			"account": {
@@ -45,18 +45,25 @@
 				"type": 12,
 				"asset": {
 					"mandatoryKeys": [
+						"0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
 						"4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
 						"f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3"
 					],
-					"optionalKeys": [],
-					"numberOfSignatures": 2
+					"optionalKeys": [
+						"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
+					],
+					"numberOfSignatures": 4
 				},
 				"signatures": [
-					"f2428550cca7620ecde8de42018946bd17467f9e2cfd5c3ebb3b0a3eb66b89d1ed15a85541b09b6f34b81bfa3474e46402b31837b229a73f3f8d7c2d33267c0f",
-					"c271f0dc8a082147e27b287ef8e570af5c28803e5231e1f8a790a154c078e7643bf173c837702088ca6d15b5bf458624bbf340bdbc8f74c017b18bfcbc4f8909",
-					"81bc0dd8387df175fb0a297ebd4bc95f322261eb984e576f9db0723c8ca33309d7ab128934fb80d53835dd384cb59bc9e190a10aa494d1616b3dfc4061b1f30f"
+					"20267077d44ffbccfb2d25904cec4d41bb1d917181135880f8d70d0e202440e5c6400f8f53876f521e96fed8c358e753180decfb34aa7abba930a58097bb5208",
+					"20267077d44ffbccfb2d25904cec4d41bb1d917181135880f8d70d0e202440e5c6400f8f53876f521e96fed8c358e753180decfb34aa7abba930a58097bb5208",
+					"55ff4b4af593744b9a01278fb9b9d33730e3af589fffc38b18253af513f2d6e3fda0dca5fb0958cc53c5b2b0e4ddaf82f4b70360a820bfdb69fba3dad4b0fb03",
+					"885b295ddcce472b9f18d54ff6fbc9c54f09284db6006c1f5a3ebc56e53596fb1a932f275d7430d2121f36f269405afc16c3bf060498b752a1ea0e4754c04507",
+					"d73911e26c9b790933bcbd4696bc533c69c6db645a2ae33bc33cef7680d3ecff7823f3b52b8693238380aa86973b3e243c14c47880842e55afe990b45ab7c108",
+					"08fe9e624549023b04ec1f52d7dc8d03fe9ca16d003ebddfaf9cca69f31e908bbec08ebcb4f9f5cd504df63a70aa8756ef66f2fe8a61be94c561b30f8a021200"
 				],
-				"id": "9208389170624646961"
+				"id": "17009047240070516675"
 			}
 		},
 		"output": {
@@ -65,18 +72,25 @@
 			"type": 12,
 			"asset": {
 				"mandatoryKeys": [
+					"0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
 					"4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
 					"f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3"
 				],
-				"optionalKeys": [],
-				"numberOfSignatures": 2
+				"optionalKeys": [
+					"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+					"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
+				],
+				"numberOfSignatures": 4
 			},
 			"signatures": [
-				"f2428550cca7620ecde8de42018946bd17467f9e2cfd5c3ebb3b0a3eb66b89d1ed15a85541b09b6f34b81bfa3474e46402b31837b229a73f3f8d7c2d33267c0f",
-				"c271f0dc8a082147e27b287ef8e570af5c28803e5231e1f8a790a154c078e7643bf173c837702088ca6d15b5bf458624bbf340bdbc8f74c017b18bfcbc4f8909",
-				"81bc0dd8387df175fb0a297ebd4bc95f322261eb984e576f9db0723c8ca33309d7ab128934fb80d53835dd384cb59bc9e190a10aa494d1616b3dfc4061b1f30f"
+				"20267077d44ffbccfb2d25904cec4d41bb1d917181135880f8d70d0e202440e5c6400f8f53876f521e96fed8c358e753180decfb34aa7abba930a58097bb5208",
+				"20267077d44ffbccfb2d25904cec4d41bb1d917181135880f8d70d0e202440e5c6400f8f53876f521e96fed8c358e753180decfb34aa7abba930a58097bb5208",
+				"55ff4b4af593744b9a01278fb9b9d33730e3af589fffc38b18253af513f2d6e3fda0dca5fb0958cc53c5b2b0e4ddaf82f4b70360a820bfdb69fba3dad4b0fb03",
+				"885b295ddcce472b9f18d54ff6fbc9c54f09284db6006c1f5a3ebc56e53596fb1a932f275d7430d2121f36f269405afc16c3bf060498b752a1ea0e4754c04507",
+				"d73911e26c9b790933bcbd4696bc533c69c6db645a2ae33bc33cef7680d3ecff7823f3b52b8693238380aa86973b3e243c14c47880842e55afe990b45ab7c108",
+				"08fe9e624549023b04ec1f52d7dc8d03fe9ca16d003ebddfaf9cca69f31e908bbec08ebcb4f9f5cd504df63a70aa8756ef66f2fe8a61be94c561b30f8a021200"
 			],
-			"id": "9208389170624646961"
+			"id": "17009047240070516675"
 		}
 	}
 }

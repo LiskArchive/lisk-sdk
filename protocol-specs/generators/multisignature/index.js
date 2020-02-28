@@ -392,8 +392,8 @@ const validMultisignatureRegistrationSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration',
 	config: 'devnet',
-	runner: 'multisignature_transaction',
-	handler: 'multisignature_transaction',
+	runner: 'multisignature_registration_transaction',
+	handler: 'multisignature_registration_transaction',
 	testCases: generateValidMultisignatureRegistrationTransaction(),
 });
 
@@ -402,7 +402,7 @@ const validMultisignatureRegistrationSenderIsMandatoryMemberSuite = () => ({
 	summary:
 		'A valid multi-signature registration sender is member of mandatory key group',
 	config: 'devnet',
-	runner: 'multisignature_transaction',
+	runner: 'multisignature_registration_transaction',
 	handler: 'multisignature_transaction_sender_is_mandatory_member',
 	testCases: generateValidMultisignatureRegistrationSenderIsMemberTransaction(),
 });
@@ -411,7 +411,7 @@ const validMultisignatureRegistrationOnlyOptionalMembersSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration with only optional keys',
 	config: 'devnet',
-	runner: 'multisignature_transaction',
+	runner: 'multisignature_registration_transaction',
 	handler: 'multisignature_transaction_only_optional_members',
 	testCases: generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction(),
 });
@@ -420,14 +420,17 @@ const validMultisignatureRegistrationOnlyMandatoryMembersSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration with only mandatory keys',
 	config: 'devnet',
-	runner: 'multisignature_transaction',
+	runner: 'multisignature_registration_transaction',
 	handler: 'multisignature_transaction_only_mandatory_members',
 	testCases: generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction(),
 });
 
-module.exports = BaseGenerator.runGenerator('multisignature_transaction', [
-	validMultisignatureRegistrationSuite,
-	validMultisignatureRegistrationSenderIsMandatoryMemberSuite,
-	validMultisignatureRegistrationOnlyOptionalMembersSuite,
-	validMultisignatureRegistrationOnlyMandatoryMembersSuite,
-]);
+module.exports = BaseGenerator.runGenerator(
+	'multisignature_registration_transaction',
+	[
+		validMultisignatureRegistrationSuite,
+		validMultisignatureRegistrationSenderIsMandatoryMemberSuite,
+		validMultisignatureRegistrationOnlyOptionalMembersSuite,
+		validMultisignatureRegistrationOnlyMandatoryMembersSuite,
+	],
+);
