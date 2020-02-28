@@ -52,8 +52,8 @@ export interface TransactionJSON {
 	readonly type: number;
 	readonly receivedAt?: string;
 	readonly networkIdentifier?: string;
-	readonly nonce?: string;
-	readonly fee?: string;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 export interface IsValidResponse {

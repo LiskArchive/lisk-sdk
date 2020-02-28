@@ -273,7 +273,7 @@ export abstract class BaseTransaction {
 		if (this.fee < this.minFee) {
 			errors.push(
 				new TransactionError(
-					'Insufficient transaction fee',
+					`Insufficient transaction fee. Minimum required fee is: ${this.minFee.toString()}`,
 					this.id,
 					'.fee',
 					this.fee.toString(),
