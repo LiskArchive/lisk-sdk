@@ -24,6 +24,9 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 
+const networkIdentifier =
+	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
 const accounts = {
 	targetAccount: {
 		passphrase:
@@ -80,9 +83,6 @@ const sortKeysDescending = publicKeys =>
 		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) return -1;
 		return 0;
 	});
-
-const networkIdentifier =
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 const getId = transactionBytes => {
 	const transactionHash = hash(transactionBytes);
@@ -205,7 +205,134 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	};
 };
 
-const validTransferSuite = () => ({
+const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
+	// basic transaction
+	const tx = {
+		senderPublicKey:
+			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+		timestamp: 77045780,
+		type: 12,
+		asset: {
+			mandatoryKeys: [
+				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+			],
+			optionalKeys: [
+				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+				'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+			],
+			numberOfSignatures: 4,
+		},
+		signatures: [],
+	};
+
+	sortKeysDescending(tx.asset.mandatoryKeys);
+	sortKeysDescending(tx.asset.optionalKeys);
+
+	let txBuffer = serializeBasicProperties(tx);
+
+	// Sender signs
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
+	);
+	// Members sign in order
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.mandatoryTow).signature,
+	);
+	// In the case where the Sender is part of mandatory its signature should be included too;
+	// in this case given the lexicographical order it happens to be first but could be in different order
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.mandatoryTow).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalOne).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
+	);
+	txBuffer = serializeMemberSignatures(tx, txBuffer);
+
+	const id = getId(txBuffer);
+
+	tx.id = id;
+
+	return {
+		input: {
+			account: accounts.targetAccount,
+			networkIdentifier,
+			coSigners: [
+				accounts.mandatoryOne,
+				accounts.mandatoryTow,
+				accounts.optionalOne,
+				accounts.optionalTwo,
+			],
+			transaction: tx,
+		},
+		output: tx,
+	};
+};
+
+const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = () => {
+	// basic transaction
+	const tx = {
+		senderPublicKey:
+			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+		timestamp: 77045780,
+		type: 12,
+		asset: {
+			mandatoryKeys: [],
+			optionalKeys: [
+				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+				'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+			],
+			numberOfSignatures: 1,
+		},
+		signatures: [],
+	};
+
+	sortKeysDescending(tx.asset.mandatoryKeys);
+	sortKeysDescending(tx.asset.optionalKeys);
+
+	let txBuffer = serializeBasicProperties(tx);
+
+	// Sender signs
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
+	);
+	// Members sign in order
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalOne).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
+	);
+	txBuffer = serializeMemberSignatures(tx, txBuffer);
+
+	const id = getId(txBuffer);
+
+	tx.id = id;
+
+	return {
+		input: {
+			account: accounts.targetAccount,
+			networkIdentifier,
+			coSigners: [
+				accounts.mandatoryOne,
+				accounts.mandatoryTow,
+				accounts.optionalOne,
+				accounts.optionalTwo,
+			],
+			transaction: tx,
+		},
+		output: tx,
+	};
+};
+
+const validMultisignatureRegistrationSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration',
 	config: 'devnet',
@@ -214,6 +341,28 @@ const validTransferSuite = () => ({
 	testCases: generateValidMultisignatureRegistrationTransaction(),
 });
 
+const validMultisignatureRegistrationSenderIsMandatoryMemberSuite = () => ({
+	title: 'Valid multi-signature registration',
+	summary:
+		'A valid multi-signature registration sender is member of mandatory key group',
+	config: 'devnet',
+	runner: 'multisignature_transaction',
+	handler: 'multisignature_transaction_sender_is_mandatory_member',
+	testCases: generateValidMultisignatureRegistrationSenderIsMemberTransaction(),
+});
+
+const validMultisignatureRegistrationOnlyOptionalMembersSuite = () => ({
+	title: 'Valid multi-signature registration',
+	summary:
+		'A valid multi-signature registration with only optional mandatory keys',
+	config: 'devnet',
+	runner: 'multisignature_transaction',
+	handler: 'multisignature_transaction_only_optional_members',
+	testCases: generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction(),
+});
+
 module.exports = BaseGenerator.runGenerator('multisignature_transaction', [
-	validTransferSuite,
+	validMultisignatureRegistrationSuite,
+	validMultisignatureRegistrationSenderIsMandatoryMemberSuite,
+	validMultisignatureRegistrationOnlyOptionalMembersSuite,
 ]);
