@@ -146,11 +146,9 @@ describe.skip('#registerMultisignature transaction', () => {
 			});
 
 			describe('multisignature asset', () => {
-				it('should have a min number equal to provided minimum', () => {});
+				it('should have a min number equal to the provided minimum', () => {});
 
-				it('should have a lifetime number equal to provided lifetime', () => {});
-
-				it('should have a keysgroup array with plus prepended', () => {});
+				it('should have a lifetime number equal to the provided lifetime', () => {});
 			});
 		});
 	});

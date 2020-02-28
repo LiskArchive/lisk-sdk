@@ -76,9 +76,6 @@ const setMemberAccounts = async (
 	}
 };
 
-const extractPublicKeysFromAsset = (assetPublicKeys: ReadonlyArray<string>) =>
-	assetPublicKeys.map(key => key);
-
 const validateKeysSignatures = (
 	keys: readonly string[],
 	signatures: readonly string[],
@@ -110,6 +107,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 12;
 	public static FEE = MULTISIGNATURE_FEE.toString();
+	private readonly MAX_KEYS_COUNT = 64;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -121,8 +119,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected assetToBytes(): Buffer {
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = this.asset;
-		const mandatoryKeysBuffer = Buffer.from(mandatoryKeys.join(''), 'utf8');
-		const optionalKeysBuffer = Buffer.from(optionalKeys.join(''), 'utf8');
+		const mandatoryKeysBuffer = Buffer.from(mandatoryKeys.join(''), 'hex');
+		const optionalKeysBuffer = Buffer.from(optionalKeys.join(''), 'hex');
 		const assetBuffer = Buffer.concat([
 			intToBuffer(mandatoryKeys.length, 1),
 			mandatoryKeysBuffer,
@@ -135,10 +133,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
-		const membersAddresses = extractPublicKeysFromAsset([
+		const membersAddresses = [
 			...this.asset.mandatoryKeys,
 			...this.asset.optionalKeys,
-		]).map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
+		].map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
 
 		await store.account.cache([
 			{
@@ -191,6 +189,21 @@ export class MultisignatureTransaction extends BaseTransaction {
 					'The numberOfSignatures is bigger than the count of Mandatory and Optional keys',
 					this.id,
 					'.asset.numberOfSignatures',
+					this.asset.numberOfSignatures,
+				),
+			);
+		}
+
+		// Check if key count is less than 1
+		if (
+			mandatoryKeys.length + optionalKeys.length > this.MAX_KEYS_COUNT ||
+			mandatoryKeys.length + optionalKeys.length <= 0
+		) {
+			errors.push(
+				new TransactionError(
+					'The count of Mandatory and Optional keys should be between 1 and 64',
+					this.id,
+					'.asset.optionalKeys .asset.mandatoryKeys',
 					this.asset.numberOfSignatures,
 				),
 			);

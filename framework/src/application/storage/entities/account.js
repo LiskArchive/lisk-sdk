@@ -34,7 +34,7 @@ const defaultCreateValues = {
 	nameExist: false,
 	asset: {},
 	votedDelegatesPublicKeys: null,
-	keys: null,
+	keys: {},
 };
 
 const readOnlyFields = ['address'];

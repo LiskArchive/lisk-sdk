@@ -93,8 +93,8 @@ export interface VerifyMultiSignatureResult {
 
 const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
-		account.keys.mandatoryKeys.length &&
-		account.keys.optionalKeys.length > 0 &&
+		(account.keys.mandatoryKeys.length > 0 ||
+			account.keys.optionalKeys.length > 0) &&
 		account.keys.numberOfSignatures
 	);
 

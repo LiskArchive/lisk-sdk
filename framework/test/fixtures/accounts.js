@@ -130,7 +130,7 @@ const dbAccount = stampit({
 		voteWeight: '0',
 		asset: {},
 		votedDelegatesPublicKeys: null,
-		keys: null,
+		keys: {},
 	},
 	init({ address, balance }) {
 		this.address = address || this.address;
