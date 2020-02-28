@@ -517,6 +517,15 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#validateAsset', () => {
+		it('should return no errors when transaction is valid', async () => {
+			const transaction = new MultisignatureTransaction(
+				validMultisignatureRegistrationTransaction,
+			);
+			const errors = (transaction as any).validateAsset();
+
+			expect(errors).toHaveLength(0);
+		});
+
 		it('should return errors when numberOfSignatures is bigger than the sum of all keys', async () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
