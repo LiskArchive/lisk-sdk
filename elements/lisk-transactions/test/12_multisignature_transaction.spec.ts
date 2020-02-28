@@ -789,6 +789,25 @@ describe('Multisignature transaction class', () => {
 				`The count of Mandatory and Optional keys should be between 1 and 64`,
 			);
 		});
+
+		it('should return error when number of mandatory, optional and sender keys do not match the number of signatures', async () => {
+			const invalidTransaction = {
+				...validMultisignatureRegistrationTransaction,
+				asset: {
+					...validMultisignatureRegistrationTransaction.asset,
+				},
+				signatures: [...validMultisignatureRegistrationTransaction.signatures],
+			};
+			invalidTransaction.signatures.pop();
+
+			const transaction = new MultisignatureTransaction(invalidTransaction);
+			const errors = (transaction as any).validateAsset();
+
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toBe(
+				'The number of mandatory, optional and sender keys should match the number of signatures',
+			);
+		});
 	});
 
 	describe('#verifySignatures', () => {

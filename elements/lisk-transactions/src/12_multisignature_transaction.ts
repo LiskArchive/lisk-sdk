@@ -244,6 +244,19 @@ export class MultisignatureTransaction extends BaseTransaction {
 			return errors;
 		}
 
+		// Check if the lenght of mandatory, optional and sender keys matches the lenght of signatures
+		if (
+			mandatoryKeys.length + optionalKeys.length + 1 !==
+			this.signatures.length
+		) {
+			return [
+				new TransactionError(
+					'The number of mandatory, optional and sender keys should match the number of signatures',
+					this.id,
+				),
+			];
+		}
+
 		// Check keys are sorted lexicographically
 		const sortedMandatoryKeys = [...mandatoryKeys].sort();
 		const sortedOptionalKeys = [...optionalKeys].sort();
