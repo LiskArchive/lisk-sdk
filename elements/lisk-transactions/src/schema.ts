@@ -53,9 +53,6 @@ export const transactionInterface = {
 		addVerifiedMultisignature: {
 			typeof: 'function',
 		},
-		processMultisignatures: {
-			typeof: 'function',
-		},
 		isExpired: {
 			typeof: 'function',
 		},
