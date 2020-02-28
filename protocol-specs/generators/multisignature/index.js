@@ -238,7 +238,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	);
 	// Members sign in order
 	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryTow).signature,
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
 	);
 	// In the case where the Sender is part of mandatory its signature should be included too;
 	// in this case given the lexicographical order it happens to be first but could be in different order
