@@ -130,7 +130,7 @@ random.account = function(nonDelegate) {
 };
 
 // Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
-random.transaction = function(nonce) {
+random.transaction = function(nonce = '0') {
 	return transfer({
 		networkIdentifier,
 		nonce,

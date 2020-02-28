@@ -39,7 +39,7 @@ const nullChar3 = '\u0000';
 
 describe('POST /api/transactions (type 0) transfer funds', () => {
 	let transaction;
-	const goodTransaction = randomUtil.transaction(0);
+	const goodTransaction = randomUtil.transaction();
 	const badTransactions = [];
 	const goodTransactions = [];
 	// Low-frills deep copy
@@ -57,7 +57,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('with lowercase recipientId should fail', async () => {
-			transaction = randomUtil.transaction(0);
+			transaction = randomUtil.transaction();
 			transaction.asset.recipientId = transaction.asset.recipientId.toLowerCase();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
 
@@ -70,7 +70,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 	describe('transaction processing', () => {
 		it('with invalid signature should fail', async () => {
-			transaction = randomUtil.transaction(0);
+			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
 
 			return sendTransactionPromise(
@@ -89,7 +89,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('mutating data used to build the transaction id should fail', async () => {
-			transaction = randomUtil.transaction(0);
+			transaction = randomUtil.transaction();
 			transaction.nonce += 1;
 
 			return sendTransactionPromise(

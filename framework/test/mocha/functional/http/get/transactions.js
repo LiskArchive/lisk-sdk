@@ -86,7 +86,7 @@ describe('GET /api/transactions', () => {
 	const transactionType3 = castVotes({
 		networkIdentifier,
 		nonce: '5',
-		fee: BigInt(2000000000).toString(),
+		fee: BigInt(100000000).toString(),
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
