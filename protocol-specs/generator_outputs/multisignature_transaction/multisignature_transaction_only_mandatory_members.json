@@ -1,9 +1,9 @@
 {
 	"title": "Valid multi-signature registration",
-	"summary": "A valid multi-signature registration with only optional keys",
+	"summary": "A valid multi-signature registration with only mandatory keys",
 	"config": "devnet",
 	"runner": "multisignature_transaction",
-	"handler": "multisignature_transaction_only_optional_members",
+	"handler": "multisignature_transaction_only_mandatory_members",
 	"testCases": {
 		"input": {
 			"account": {
@@ -44,19 +44,19 @@
 				"timestamp": 77045780,
 				"type": 12,
 				"asset": {
-					"mandatoryKeys": [],
-					"optionalKeys": [
-						"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
-						"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
+					"mandatoryKeys": [
+						"4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+						"f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3"
 					],
-					"numberOfSignatures": 1
+					"optionalKeys": [],
+					"numberOfSignatures": 2
 				},
 				"signatures": [
-					"11b65832f68890b2ed46e3ee7f7dab0e01ec618f04c1d4c4131ddc1fd2359680ed822e52c9f801c5890898402ad972696d67a6f99f4374c1ad0e6b88782b1a04",
-					"cc3d6fe2b024679fc2958702da075da02281ecee6f1b497aabaef2600cf33f43b6e736caf2dc459879aa0d3feaef86d158480e645cd779ce7d9136ab2a5a9c00",
-					"1445dd164d1042d93e8b497714040e897ed64fa26a0d3a6aeab3e76d8ed2c13e69aba113f90c834a7cf37373f6d8fa570c36d7ad235eb49b0372b4160348f40c"
+					"f2428550cca7620ecde8de42018946bd17467f9e2cfd5c3ebb3b0a3eb66b89d1ed15a85541b09b6f34b81bfa3474e46402b31837b229a73f3f8d7c2d33267c0f",
+					"c271f0dc8a082147e27b287ef8e570af5c28803e5231e1f8a790a154c078e7643bf173c837702088ca6d15b5bf458624bbf340bdbc8f74c017b18bfcbc4f8909",
+					"81bc0dd8387df175fb0a297ebd4bc95f322261eb984e576f9db0723c8ca33309d7ab128934fb80d53835dd384cb59bc9e190a10aa494d1616b3dfc4061b1f30f"
 				],
-				"id": "8868227896167741753"
+				"id": "9208389170624646961"
 			}
 		},
 		"output": {
@@ -64,19 +64,19 @@
 			"timestamp": 77045780,
 			"type": 12,
 			"asset": {
-				"mandatoryKeys": [],
-				"optionalKeys": [
-					"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
-					"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
+				"mandatoryKeys": [
+					"4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39",
+					"f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3"
 				],
-				"numberOfSignatures": 1
+				"optionalKeys": [],
+				"numberOfSignatures": 2
 			},
 			"signatures": [
-				"11b65832f68890b2ed46e3ee7f7dab0e01ec618f04c1d4c4131ddc1fd2359680ed822e52c9f801c5890898402ad972696d67a6f99f4374c1ad0e6b88782b1a04",
-				"cc3d6fe2b024679fc2958702da075da02281ecee6f1b497aabaef2600cf33f43b6e736caf2dc459879aa0d3feaef86d158480e645cd779ce7d9136ab2a5a9c00",
-				"1445dd164d1042d93e8b497714040e897ed64fa26a0d3a6aeab3e76d8ed2c13e69aba113f90c834a7cf37373f6d8fa570c36d7ad235eb49b0372b4160348f40c"
+				"f2428550cca7620ecde8de42018946bd17467f9e2cfd5c3ebb3b0a3eb66b89d1ed15a85541b09b6f34b81bfa3474e46402b31837b229a73f3f8d7c2d33267c0f",
+				"c271f0dc8a082147e27b287ef8e570af5c28803e5231e1f8a790a154c078e7643bf173c837702088ca6d15b5bf458624bbf340bdbc8f74c017b18bfcbc4f8909",
+				"81bc0dd8387df175fb0a297ebd4bc95f322261eb984e576f9db0723c8ca33309d7ab128934fb80d53835dd384cb59bc9e190a10aa494d1616b3dfc4061b1f30f"
 			],
-			"id": "8868227896167741753"
+			"id": "9208389170624646961"
 		}
 	}
 }

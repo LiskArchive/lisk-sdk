@@ -332,6 +332,62 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	};
 };
 
+const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = () => {
+	// basic transaction
+	const tx = {
+		senderPublicKey:
+			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+		timestamp: 77045780,
+		type: 12,
+		asset: {
+			mandatoryKeys: [
+				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+			],
+			optionalKeys: [],
+			numberOfSignatures: 2,
+		},
+		signatures: [],
+	};
+
+	sortKeysDescending(tx.asset.mandatoryKeys);
+	sortKeysDescending(tx.asset.optionalKeys);
+
+	let txBuffer = serializeBasicProperties(tx);
+
+	// Sender signs
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
+	);
+	// Members sign in order
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalOne).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
+	);
+	txBuffer = serializeMemberSignatures(tx, txBuffer);
+
+	const id = getId(txBuffer);
+
+	tx.id = id;
+
+	return {
+		input: {
+			account: accounts.targetAccount,
+			networkIdentifier,
+			coSigners: [
+				accounts.mandatoryOne,
+				accounts.mandatoryTow,
+				accounts.optionalOne,
+				accounts.optionalTwo,
+			],
+			transaction: tx,
+		},
+		output: tx,
+	};
+};
+
 const validMultisignatureRegistrationSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration',
@@ -353,16 +409,25 @@ const validMultisignatureRegistrationSenderIsMandatoryMemberSuite = () => ({
 
 const validMultisignatureRegistrationOnlyOptionalMembersSuite = () => ({
 	title: 'Valid multi-signature registration',
-	summary:
-		'A valid multi-signature registration with only optional mandatory keys',
+	summary: 'A valid multi-signature registration with only optional keys',
 	config: 'devnet',
 	runner: 'multisignature_transaction',
 	handler: 'multisignature_transaction_only_optional_members',
 	testCases: generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction(),
 });
 
+const validMultisignatureRegistrationOnlyMandatoryMembersSuite = () => ({
+	title: 'Valid multi-signature registration',
+	summary: 'A valid multi-signature registration with only mandatory keys',
+	config: 'devnet',
+	runner: 'multisignature_transaction',
+	handler: 'multisignature_transaction_only_mandatory_members',
+	testCases: generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction(),
+});
+
 module.exports = BaseGenerator.runGenerator('multisignature_transaction', [
 	validMultisignatureRegistrationSuite,
 	validMultisignatureRegistrationSenderIsMandatoryMemberSuite,
 	validMultisignatureRegistrationOnlyOptionalMembersSuite,
+	validMultisignatureRegistrationOnlyMandatoryMembersSuite,
 ]);
