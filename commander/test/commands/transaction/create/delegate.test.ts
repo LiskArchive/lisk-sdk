@@ -19,18 +19,19 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 
-describe.skip('transaction:create:delegate', () => {
+describe('transaction:create:delegate', () => {
 	const defaultUsername = 'user-light';
 	const defaultInputs = {
 		passphrase: '123',
 	};
 	const defaultTransaction = {
+		nonce: '0',
+		fee: '10000000',
 		amount: '10000000000',
 		recipientId: '123L',
 		senderPublicKey: null,
 		timestamp: 66492418,
 		type: 0,
-		fee: '10000000',
 		recipientPublicKey: null,
 		asset: {},
 	};
@@ -63,14 +64,14 @@ describe.skip('transaction:create:delegate', () => {
 		setupTest()
 			.command(['transaction:create:delegate'])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 1 required arg');
+				return expect(error.message).to.contain('Missing 3 required arg');
 			})
 			.it('should throw an error');
 	});
 
 	describe('transaction:create:delegate username', () => {
 		setupTest()
-			.command(['transaction:create:delegate', defaultUsername])
+			.command(['transaction:create:delegate', '1', '100', defaultUsername])
 			.it('create a transaction with the username', () => {
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
@@ -79,6 +80,8 @@ describe.skip('transaction:create:delegate', () => {
 					},
 				});
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					username: defaultUsername,
@@ -93,6 +96,8 @@ describe.skip('transaction:create:delegate', () => {
 		setupTest()
 			.command([
 				'transaction:create:delegate',
+				'1',
+				'100',
 				defaultUsername,
 				'--passphrase=pass:123',
 			])
@@ -106,6 +111,8 @@ describe.skip('transaction:create:delegate', () => {
 						},
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
+						nonce: '1',
+						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						username: defaultUsername,
@@ -121,11 +128,15 @@ describe.skip('transaction:create:delegate', () => {
 		setupTest()
 			.command([
 				'transaction:create:delegate',
+				'1',
+				'100',
 				defaultUsername,
 				'--no-signature',
 			])
 			.it('create a transaction with the username without signature', () => {
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: undefined,
 					username: defaultUsername,

@@ -13,11 +13,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { registerMultisignature } from '@liskhq/lisk-transactions';
-import { validatePublicKeys } from '@liskhq/lisk-validator';
+import {
+	registerMultisignature,
+	utils as transactionUtils,
+} from '@liskhq/lisk-transactions';
+import {
+	isValidFee,
+	isValidNonce,
+	validatePublicKeys,
+} from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
+import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
 import { validateLifetime, validateMinimum } from '../../../utils/helpers';
 import {
@@ -27,15 +35,17 @@ import {
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 interface Args {
+	readonly nonce: string;
+	readonly fee: string;
 	readonly keysgroup: string;
 	readonly lifetime: string;
 	readonly minimum: string;
 }
 
 const processInputs = (
-	networkIdentifier: string,
 	nonce: string,
 	fee: string,
+	networkIdentifier: string,
 	lifetime: number,
 	minimum: number,
 	keysgroup: ReadonlyArray<string>,
@@ -52,6 +62,16 @@ const processInputs = (
 
 export default class MultisignatureCommand extends BaseCommand {
 	static args = [
+		{
+			name: 'nonce',
+			required: true,
+			description: 'Nonce of the transaction.',
+		},
+		{
+			name: 'fee',
+			required: true,
+			description: 'Transaction fee in LSK.',
+		},
 		{
 			name: 'lifetime',
 			required: true,
@@ -80,7 +100,7 @@ export default class MultisignatureCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:create:multisignature 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+		'transaction:create:multisignature 1 100 24 2 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 	];
 
 	static flags = {
@@ -100,14 +120,29 @@ export default class MultisignatureCommand extends BaseCommand {
 			},
 		} = this.parse(MultisignatureCommand);
 
-		const { lifetime, minimum, keysgroup: keysgroupStr }: Args = args;
+		const {
+			nonce,
+			fee,
+			lifetime,
+			minimum,
+			keysgroup: keysgroupStr,
+		}: Args = args;
 		const keysgroup = keysgroupStr.split(',');
+
+		if (!isValidNonce(nonce)) {
+			throw new ValidationError('Enter a valid nonce in number string format.');
+		}
+
+		if (!isValidFee(fee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
 
 		validatePublicKeys(keysgroup);
 
 		validateLifetime(lifetime);
 		validateMinimum(minimum);
 
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 		const transactionLifetime = parseInt(lifetime, 10);
 		const transactionMinimumConfirmations = parseInt(minimum, 10);
 		const networkIdentifier = getNetworkIdentifierWithInput(
@@ -115,9 +150,9 @@ export default class MultisignatureCommand extends BaseCommand {
 			this.userConfig.api.network,
 		);
 		const processFunction = processInputs(
+			nonce,
+			normalizedFee,
 			networkIdentifier,
-			'0',
-			'0',
 			transactionLifetime,
 			transactionMinimumConfirmations,
 			keysgroup,

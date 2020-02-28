@@ -81,7 +81,7 @@ export default class CreateCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:create --type=0 100 13356260975429434553L',
+		'transaction:create --type=8 100 13356260975429434553L',
 		'transaction:create --type=delegate lightcurve',
 	];
 
@@ -98,6 +98,8 @@ export default class CreateCommand extends BaseCommand {
 		votes: flagParser.string(commonFlags.votes),
 		unvotes: flagParser.string(commonFlags.unvotes),
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
+		nonce: flagParser.string(commonFlags.nonce),
+		fee: flagParser.string(commonFlags.fee),
 	};
 
 	async run(): Promise<void> {
