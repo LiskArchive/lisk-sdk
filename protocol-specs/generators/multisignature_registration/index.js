@@ -78,9 +78,13 @@ const accounts = {
 const sortKeysDescending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
 		// eslint-disable-next-line no-undef, new-cap
-		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) return 1;
+		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) {
+			return 1;
+		}
 		// eslint-disable-next-line no-undef, new-cap
-		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) return -1;
+		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) {
+			return -1;
+		}
 		return 0;
 	});
 
