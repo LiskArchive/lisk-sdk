@@ -24,17 +24,8 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 
-const accounts = [
-	{
-		passphrase:
-			'wear protect skill sentence lift enter wild sting lottery power floor neglect',
-		privateKey:
-			'8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-		publicKey:
-			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-		address: '2129300327344985743L',
-	},
-	{
+const accounts = {
+	targetAccount: {
 		passphrase:
 			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
 		privateKey:
@@ -43,7 +34,7 @@ const accounts = [
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		address: '18141291412139607230L',
 	},
-	{
+	mandatoryOne: {
 		passphrase:
 			'trim elegant oven term access apple obtain error grain excite lawn neck',
 		privateKey:
@@ -52,7 +43,7 @@ const accounts = [
 			'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 		address: '10481548956627905381L',
 	},
-	{
+	mandatoryTow: {
 		passphrase:
 			'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
 		privateKey:
@@ -61,7 +52,7 @@ const accounts = [
 			'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
 		address: '3372320078773139180L',
 	},
-	{
+	optionalOne: {
 		passphrase:
 			'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
 		privateKey:
@@ -70,7 +61,7 @@ const accounts = [
 			'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 		address: '7745870967079479156L',
 	},
-	{
+	optionalTwo: {
 		passphrase:
 			'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
 		privateKey:
@@ -79,14 +70,14 @@ const accounts = [
 			'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 		address: '7086965981385941478L',
 	},
-];
+};
 
 const sortKeysDescending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
 		// eslint-disable-next-line no-undef, new-cap
-		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) return 1;
+		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) return 1;
 		// eslint-disable-next-line no-undef, new-cap
-		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) return -1;
+		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) return -1;
 		return 0;
 	});
 
@@ -105,8 +96,9 @@ const getId = transactionBytes => {
 
 const assetToBytes = tx => {
 	const { mandatoryKeys, optionalKeys, numberOfSignatures } = tx.asset;
-	const mandatoryKeysBuffer = Buffer.from(mandatoryKeys.join(''), 'utf8');
-	const optionalKeysBuffer = Buffer.from(optionalKeys.join(''), 'utf8');
+	const mandatoryKeysBuffer = Buffer.from(mandatoryKeys.join(''), 'hex');
+	const optionalKeysBuffer = Buffer.from(optionalKeys.join(''), 'hex');
+
 	const assetBuffer = Buffer.concat([
 		intToBuffer(mandatoryKeys.length, 1),
 		mandatoryKeysBuffer,
@@ -114,54 +106,27 @@ const assetToBytes = tx => {
 		optionalKeysBuffer,
 		intToBuffer(numberOfSignatures, 1),
 	]);
-
 	return assetBuffer;
 };
 
 const createSignatureObject = (txBuffer, account) => ({
-	// publicKey: account.publicKey,
 	signature: signData(
 		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
 		account.passphrase,
 	),
 });
 
-const findAccountByKey = key =>
-	accounts.filter(account => account.publicKey === key);
-
 const serializeBasicProperties = tx => {
 	const transactionTimestamp = Buffer.alloc(4);
 	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
-	return Buffer.concat([
+	const buf = Buffer.concat([
 		Buffer.alloc(1, tx.type),
 		transactionTimestamp,
 		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.asset.numberOfSignatures, 1),
 		assetToBytes(tx),
 	]);
-};
 
-const createMembersSignatures = (tx, txBuffer) => {
-	let index = 0;
-	// Mandatory keys sign
-	tx.asset.mandatoryKeys.forEach(aKey => {
-		const account = findAccountByKey(aKey).pop();
-		tx.signatures.push({
-			...createSignatureObject(txBuffer, account),
-			index,
-		});
-		index += 1;
-	});
-
-	// Optional keys sign
-	tx.asset.optionalKeys.forEach(aKey => {
-		const account = findAccountByKey(aKey).pop();
-		tx.signatures.push({
-			...createSignatureObject(txBuffer, account),
-			index,
-		});
-		index += 1;
-	});
+	return buf;
 };
 
 const serializeMemberSignatures = (tx, txBuffer) => {
@@ -169,10 +134,7 @@ const serializeMemberSignatures = (tx, txBuffer) => {
 	txBuffer.copy(txBufferCopy);
 
 	tx.signatures.forEach(aSignature => {
-		const signatureBuffer = Buffer.concat([
-			Buffer.alloc(1, aSignature.index),
-			hexToBuffer(aSignature.signature),
-		]);
+		const signatureBuffer = Buffer.concat([hexToBuffer(aSignature)]);
 		txBufferCopy = Buffer.concat([txBufferCopy, signatureBuffer]);
 	});
 	return txBufferCopy;
@@ -181,13 +143,20 @@ const serializeMemberSignatures = (tx, txBuffer) => {
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const tx = {
-		senderPublicKey: accounts[1].publicKey,
+		senderPublicKey:
+			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		timestamp: 77045780,
 		type: 12,
 		asset: {
-			mandatoryKeys: [accounts[3].publicKey, accounts[2].publicKey],
-			optionalKeys: [accounts[4].publicKey, accounts[5].publicKey],
-			numberOfSignatures: 3,
+			mandatoryKeys: [
+				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+			],
+			optionalKeys: [
+				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+				'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+			],
+			numberOfSignatures: 4,
 		},
 		signatures: [],
 	};
@@ -197,29 +166,42 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 
 	let txBuffer = serializeBasicProperties(tx);
 
-	createMembersSignatures(tx, txBuffer);
-
+	// Sender signs
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
+	);
+	// Members sign in order
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.mandatoryTow).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalOne).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
+	);
 	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
-	// Sender signs whole transaction
-	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
-		accounts[0].passphrase,
-	);
+	const id = getId(txBuffer);
 
-	const signedRegistrationTx = { ...tx, signature };
-
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-	signedRegistrationTx.id = id;
+	tx.id = id;
 
 	return {
 		input: {
-			account: accounts[1],
+			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [accounts[2], accounts[3], accounts[4], accounts[5]],
+			coSigners: [
+				accounts.mandatoryOne,
+				accounts.mandatoryTow,
+				accounts.optionalOne,
+				accounts.optionalTwo,
+			],
 			transaction: tx,
 		},
-		output: signedRegistrationTx,
+		output: tx,
 	};
 };
 
