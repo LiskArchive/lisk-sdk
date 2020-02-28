@@ -12,22 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import {
-	P2P,
-	EVENT_CONNECT_OUTBOUND,
-	EVENT_DISCOVERED_PEER,
-	EVENT_FAILED_TO_ADD_INBOUND_PEER,
-	EVENT_FAILED_TO_FETCH_PEERS,
-	EVENT_NEW_INBOUND_PEER,
-	EVENT_NETWORK_READY,
-	EVENT_UPDATED_PEER_INFO,
-	EVENT_BAN_PEER,
-	EVENT_CLOSE_OUTBOUND,
-	INTENTIONAL_DISCONNECT_CODE,
-	SEED_PEER_DISCONNECTION_REASON,
-	EVENT_REQUEST_RECEIVED,
-} from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import {
@@ -40,6 +25,24 @@ import {
 } from '../utils/network_setup';
 import { constructPeerId } from '../../src/utils';
 
+const {
+	EVENT_CONNECT_OUTBOUND,
+	EVENT_DISCOVERED_PEER,
+	EVENT_FAILED_TO_ADD_INBOUND_PEER,
+	EVENT_FAILED_TO_FETCH_PEERS,
+	EVENT_NEW_INBOUND_PEER,
+	EVENT_NETWORK_READY,
+	EVENT_UPDATED_PEER_INFO,
+	EVENT_BAN_PEER,
+	EVENT_CLOSE_OUTBOUND,
+	EVENT_REQUEST_RECEIVED,
+} = events;
+
+const {
+	INTENTIONAL_DISCONNECT_CODE,
+	SEED_PEER_DISCONNECTION_REASON,
+} = constants;
+
 describe('Network discovery', () => {
 	const CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL = 400;
 	describe('Peer discovery', () => {
@@ -50,7 +53,7 @@ describe('Network discovery', () => {
 			...new Array(NETWORK_PEER_COUNT).keys(),
 		].map(index => NETWORK_START_PORT + index);
 
-		beforeEach(async () => {
+		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
 			const customConfig = () => ({
 				fallbackSeedPeerDiscoveryInterval: CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL,
@@ -97,11 +100,8 @@ describe('Network discovery', () => {
 			await wait(1000);
 		});
 
-		afterEach(async () => {
+		afterAll(async () => {
 			await destroyNetwork(p2pNodeList);
-		});
-
-		after(async () => {
 			await disconnectedNode.stop();
 			await wait(200);
 		});
@@ -118,7 +118,7 @@ describe('Network discovery', () => {
 					return port !== p2p.nodeInfo.wsPort;
 				});
 
-				expect(peerPorts).to.be.eql(expectedPeerPorts);
+				expect(peerPorts).toEqual(expectedPeerPorts);
 			}
 		});
 
@@ -128,7 +128,7 @@ describe('Network discovery', () => {
 
 				const peerPorts = newPeers.map(peerInfo => peerInfo.wsPort).sort();
 
-				expect(ALL_NODE_PORTS).to.include.members(peerPorts);
+				expect(ALL_NODE_PORTS).toIncludeAllMembers(peerPorts);
 			}
 		});
 
@@ -145,7 +145,7 @@ describe('Network discovery', () => {
 				const expectedPeerPorts = ALL_NODE_PORTS.filter(port => {
 					return port !== p2p.nodeInfo.wsPort;
 				});
-				expect(expectedPeerPorts).to.include.members(peerPorts);
+				expect(expectedPeerPorts).toEqual(peerPorts);
 			}
 		});
 
@@ -159,36 +159,37 @@ describe('Network discovery', () => {
 					.map(peerInfo => constructPeerId(peerInfo.ipAddress, peerInfo.wsPort))
 					.sort();
 
-				expect([
-					...allPeersPorts,
-					...connectedPeerPorts,
-				]).to.not.contain.members([p2p.nodeInfo.peerId]);
+				expect([...allPeersPorts, ...connectedPeerPorts]).not.toEqual(
+					expect.arrayContaining([p2p.nodeInfo.peerId]),
+				);
 			}
 		});
 
 		it('should not apply penalty or throw error Peerlist at peer discovery', async () => {
-			expect(collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS')).to.undefined;
-			expect(collectedEvents.get('EVENT_BAN_PEER')).to.undefined;
+			expect(
+				collectedEvents.get('EVENT_FAILED_TO_FETCH_PEERS'),
+			).toBeUndefined();
+			expect(collectedEvents.get('EVENT_BAN_PEER')).toBeUndefined();
 		});
 
 		it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
-			expect(collectedEvents.get('EVENT_NETWORK_READY')).to.exist;
+			expect(collectedEvents.get('EVENT_NETWORK_READY')).toBeDefined();
 		});
 
 		it(`should fire ${EVENT_NEW_INBOUND_PEER} event`, async () => {
-			expect(collectedEvents.get('EVENT_NEW_INBOUND_PEER')).to.exist;
+			expect(collectedEvents.get('EVENT_NEW_INBOUND_PEER')).toBeDefined();
 		});
 
 		it(`should fire ${EVENT_CONNECT_OUTBOUND} event`, async () => {
-			expect(collectedEvents.get('EVENT_CONNECT_OUTBOUND')).to.exist;
+			expect(collectedEvents.get('EVENT_CONNECT_OUTBOUND')).toBeDefined();
 		});
 
 		it(`should fire ${EVENT_UPDATED_PEER_INFO} event`, async () => {
-			expect(collectedEvents.get('EVENT_UPDATED_PEER_INFO')).to.exist;
+			expect(collectedEvents.get('EVENT_UPDATED_PEER_INFO')).toBeDefined();
 		});
 
 		it(`should fire ${EVENT_DISCOVERED_PEER} event`, async () => {
-			expect(collectedEvents.get('EVENT_DISCOVERED_PEER')).to.exist;
+			expect(collectedEvents.get('EVENT_DISCOVERED_PEER')).toBeDefined();
 		});
 
 		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} event`, async () => {
@@ -211,7 +212,7 @@ describe('Network discovery', () => {
 				maxInboundConnections: 0,
 				nodeInfo: {
 					wsPort: 5020,
-					nethash: 'aaa',
+					networkId: 'aaa',
 					version: '9.9.9',
 					protocolVersion: '9.9',
 					minVersion: '9.9.9',
@@ -223,7 +224,9 @@ describe('Network discovery', () => {
 			});
 			await disconnectedNode.start();
 			await wait(200);
-			expect(collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER')).to.exist;
+			expect(
+				collectedEvents.get('EVENT_FAILED_TO_ADD_INBOUND_PEER'),
+			).toBeDefined();
 		});
 	});
 
@@ -260,10 +263,10 @@ describe('Network discovery', () => {
 
 		it('should disconnecting from seed peers', async () => {
 			// Every peer should reach the Outbound Connection limit and disconnect from discoverySeedPeers
-			expect(collectedEvents).to.be.not.empty;
+			expect(Object.keys(collectedEvents)).not.toHaveLength(0);
 
 			for (const disconnectReason of collectedEvents) {
-				expect(disconnectReason).to.be.equal(SEED_PEER_DISCONNECTION_REASON);
+				expect(disconnectReason).toBe(SEED_PEER_DISCONNECTION_REASON);
 			}
 		});
 	});
@@ -308,7 +311,7 @@ describe('Network discovery', () => {
 
 		it(`should receive getPeers multiple times`, async () => {
 			// thirdP2PNode should send getPeers request 3 times (1 initial discovery + 2 fallback)
-			expect(collectedEvents.length).to.be.equal(
+			expect(collectedEvents.length).toBe(
 				1 +
 					~~(
 						NETWORK_CREATION_WAIT_TIME / CUSTOM_FALLBACK_SEED_DISCOVERY_INTERVAL

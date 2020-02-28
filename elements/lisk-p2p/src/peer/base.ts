@@ -24,7 +24,6 @@ import {
 	INTENTIONAL_DISCONNECT_CODE,
 	INVALID_PEER_INFO_PENALTY,
 	INVALID_PEER_LIST_PENALTY,
-	RCP_REQUEST_TYPE,
 } from '../constants';
 import {
 	InvalidPeerInfoError,
@@ -57,7 +56,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from '../p2p_types';
+} from '../types';
 import {
 	assignInternalInfo,
 	sanitizeIncomingPeerInfo,
@@ -290,6 +289,7 @@ export class Peer extends EventEmitter {
 	): void {
 		clearInterval(this._counterResetInterval);
 		clearInterval(this._productivityResetInterval);
+
 		if (this._socket) {
 			this._socket.destroy(code, reason);
 		}
@@ -318,7 +318,6 @@ export class Peer extends EventEmitter {
 				this._socket.emit(
 					REMOTE_SC_EVENT_RPC_REQUEST,
 					{
-						type: RCP_REQUEST_TYPE,
 						procedure: packet.procedure,
 						data: packet.data,
 					},

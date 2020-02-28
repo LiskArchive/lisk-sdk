@@ -12,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 
 import { DelegateTransaction } from './10_delegate_transaction';
 import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
-import { SecondSignatureTransaction } from './9_second_signature_transaction';
 import {
 	BaseTransaction,
 	StateStore,
@@ -38,7 +36,6 @@ import {
 } from './errors';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
-import { registerSecondPassphrase } from './register_second_passphrase';
 import { createResponse, Status, TransactionResponse } from './response';
 import { transactionInterface } from './schema';
 import { Account, TransactionJSON } from './transaction_types';
@@ -47,6 +44,7 @@ import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getId,
+	getTimeFromBlockchainEpoch,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateMultisignatures,
@@ -55,14 +53,13 @@ import {
 	verifyAmountBalance,
 	verifyBalance,
 	verifyMultiSignatures,
-	verifySecondSignature,
 	verifySenderPublicKey,
 } from './utils';
 
 const exposedUtils = {
-	BigNum,
 	convertBeddowsToLSK,
 	getId,
+	getTimeFromBlockchainEpoch,
 	convertLSKToBeddows,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
@@ -72,7 +69,6 @@ const exposedUtils = {
 	validateSenderIdAndPublicKey,
 	verifyBalance,
 	verifyMultiSignatures,
-	verifySecondSignature,
 	verifySenderPublicKey,
 };
 
@@ -83,8 +79,6 @@ export {
 	StateStorePrepare,
 	TransferTransaction,
 	transfer,
-	SecondSignatureTransaction,
-	registerSecondPassphrase,
 	DelegateTransaction,
 	registerDelegate,
 	VoteTransaction,

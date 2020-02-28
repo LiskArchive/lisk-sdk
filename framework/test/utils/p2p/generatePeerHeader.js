@@ -25,7 +25,7 @@ const generatePeerHeader = function(headers = {}) {
 	const httpPort = headers.httpPort || random.number(1025, 65536);
 
 	const defaults = {
-		nethash: testConfig.app.nethash,
+		networkId: testConfig.app.networkId,
 		height: 1,
 		wsPort: headers.wsPort || httpPort - 1,
 		httpPort,
@@ -41,8 +41,8 @@ const generatePeerHeader = function(headers = {}) {
 	};
 
 	return {
-		blacklistedPeers: [{ ipAddress: '127.1.0.1', wsPort: nodeInfo.wsPort }],
-		seedPeers: testConfig.modules.network.seedPeers.map(v => ({
+		blacklistedIPs: ['127.1.0.1'],
+		seedPeers: testConfig.app.network.seedPeers.map(v => ({
 			ipAddress: v.ip,
 			wsPort: v.wsPort,
 		})),

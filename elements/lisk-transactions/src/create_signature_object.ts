@@ -18,7 +18,6 @@ import { DelegateTransaction } from './10_delegate_transaction';
 import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
-import { SecondSignatureTransaction } from './9_second_signature_transaction';
 import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
 
@@ -31,7 +30,6 @@ export interface SignatureObject {
 // tslint:disable-next-line no-any
 const transactionMap: { readonly [key: number]: any } = {
 	8: TransferTransaction,
-	9: SecondSignatureTransaction,
 	10: DelegateTransaction,
 	11: VoteTransaction,
 	12: MultisignatureTransaction,

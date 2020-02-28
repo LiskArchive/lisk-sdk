@@ -46,11 +46,10 @@ describe('input utils', () => {
 			getStdInStub = sandbox.stub(inputUtils, 'getStdIn').resolves({
 				passphrase: undefined,
 				password: undefined,
-				secondPassphrase: undefined,
 				data: undefined,
 			});
 			sandbox.stub(inputUtils, 'getPassphrase');
-			sandbox.stub(console, 'warn').returns('');
+			sandbox.stub(console, 'warn');
 			return sandbox.stub(inputUtils, 'getData');
 		});
 
@@ -90,53 +89,6 @@ describe('input utils', () => {
 				const stdin = 'some passphrase';
 				getStdInStub.resolves({
 					passphrase: stdin,
-				});
-				await getInputsFromSources(inputs);
-				return expect(console.warn).to.be.calledWithExactly(
-					'Warning: Passphrase contains 2 words instead of expected 12. Passphrase contains 1 whitespaces instead of expected 11. ',
-				);
-			});
-		});
-
-		describe('get secondPassphrase', async () => {
-			const inputs = {
-				secondPassphrase: {
-					source: 'prompt',
-					repeatPrompt: true,
-				},
-			};
-
-			it('should call getPassphrase when std is not used', async () => {
-				await getInputsFromSources(inputs);
-				return expect(inputUtils.getPassphrase).to.be.calledWithExactly(
-					inputs.secondPassphrase.source,
-					{
-						displayName: 'your second secret passphrase',
-						shouldRepeat: true,
-					},
-				);
-			});
-
-			it('should resolve to stdin', async () => {
-				const stdin = 'some passphrase';
-				getStdInStub.resolves({
-					secondPassphrase: stdin,
-				});
-				const result = await getInputsFromSources(inputs);
-				expect(inputUtils.getPassphrase).not.to.be.called;
-				return expect(result.secondPassphrase).to.equal(stdin);
-			});
-
-			it('should resolve to undefined when input is not supplied', async () => {
-				const result = await getInputsFromSources({});
-				expect(inputUtils.getPassphrase).not.to.be.called;
-				return expect(result.secondPassphrase).to.be.undefined;
-			});
-
-			it('should print a warning if secondPassphase not in mnemonic format', async () => {
-				const stdin = 'some passphrase';
-				getStdInStub.resolves({
-					secondPassphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
 				return expect(console.warn).to.be.calledWithExactly(

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { P2P } from '../../../src/index';
 import {
 	createNetwork,
@@ -20,6 +19,7 @@ import {
 	NETWORK_START_PORT,
 	NETWORK_PEER_COUNT,
 } from '../../utils/network_setup';
+import { wait } from '../../utils/helpers';
 
 describe('PeerPool actions', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -31,6 +31,7 @@ describe('PeerPool actions', () => {
 
 		beforeEach(async () => {
 			p2pNodeList = await createNetwork();
+			await wait(1000);
 		});
 
 		afterEach(async () => {
@@ -49,7 +50,7 @@ describe('PeerPool actions', () => {
 				return port !== firstNode.nodeInfo.wsPort;
 			});
 
-			expect(peerPorts).to.be.eql(expectedPeerPorts);
+			expect(peerPorts).toEqual(expectedPeerPorts);
 		});
 	});
 
@@ -95,7 +96,9 @@ describe('PeerPool actions', () => {
 				const disconnectedPeers = p2p.getDisconnectedPeers();
 
 				for (const connectedPeer of connectedPeers) {
-					expect(disconnectedPeers).to.not.deep.include(connectedPeer);
+					expect(disconnectedPeers).toEqual(
+						expect.not.arrayContaining([connectedPeer]),
+					);
 				}
 			}
 		});

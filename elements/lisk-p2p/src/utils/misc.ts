@@ -15,7 +15,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 
-import { P2PEnhancedPeerInfo } from '../p2p_types';
+import { P2PEnhancedPeerInfo } from '../types';
 
 const BYTES_4 = 4;
 const BYTES_16 = 16;
@@ -77,7 +77,7 @@ export const isPrivate = (address: string) =>
 		(getIPGroup(address, 1) >= 16 || getIPGroup(address, 1) <= 31));
 
 export const isLocal = (address: string) =>
-	getIPGroup(address, 0) === 127 || getIPGroup(address, 0) === 0;
+	getIPGroup(address, 0) === 127 || address === '0.0.0.0';
 /* tslint:enable no-magic-numbers */
 
 export const getNetwork = (address: string): NETWORK => {

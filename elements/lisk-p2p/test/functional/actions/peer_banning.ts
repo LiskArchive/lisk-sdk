@@ -12,19 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { P2P, ProtocolPeerInfo } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
-} from 'utils/network_setup';
-import {
-	EVENT_BAN_PEER,
-	EVENT_UNBAN_PEER,
-	EVENT_CLOSE_INBOUND,
-} from '../../../src/index';
+} from '../../utils/network_setup';
+import { P2P, events, p2p_types } from '../../../src/index';
+
+const { EVENT_BAN_PEER, EVENT_CLOSE_INBOUND } = events;
 
 describe('Peer banning mechanism', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -53,22 +49,19 @@ describe('Peer banning mechanism', () => {
 			};
 			firstP2PNode.applyPenalty(peerPenalty);
 			const updatedConnectedPeers = firstP2PNode.getConnectedPeers();
-			expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
-				badPeer.wsPort,
+			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
+				expect.arrayContaining([badPeer.wsPort]),
 			);
 		});
 	});
 
 	describe('when penalty is 100 or more', () => {
-		let badPeer: ProtocolPeerInfo;
+		let badPeer: p2p_types.ProtocolPeerInfo;
 
 		beforeEach(async () => {
 			const firstNode = p2pNodeList[0];
 			firstNode.on(EVENT_BAN_PEER, peerId => {
 				collectedEvents.set('EVENT_BAN_PEER', peerId);
-			});
-			firstNode.on(EVENT_UNBAN_PEER, peerId => {
-				collectedEvents.set('EVENT_UNBAN_PEER', peerId);
 			});
 			firstNode.on(EVENT_CLOSE_INBOUND, packet => {
 				collectedEvents.set('EVENT_CLOSE_INBOUND', packet);
@@ -83,23 +76,33 @@ describe('Peer banning mechanism', () => {
 
 		it('should ban the peer', async () => {
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
-			expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.not.include(
-				badPeer.wsPort,
+			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
+				expect.not.arrayContaining([badPeer.wsPort]),
 			);
 		});
 
 		it(`should fire ${EVENT_BAN_PEER} event`, async () => {
-			expect(collectedEvents.get('EVENT_BAN_PEER')).to.exist;
+			expect(collectedEvents.get('EVENT_BAN_PEER')).toBeDefined();
 		});
 
 		it(`should fire ${EVENT_BAN_PEER} event with peerId`, async () => {
-			expect(collectedEvents.get('EVENT_BAN_PEER')).to.eql(
+			expect(collectedEvents.get('EVENT_BAN_PEER')).toEqual(
 				`${badPeer.ipAddress}:${badPeer.wsPort}`,
 			);
 		});
 
+		it(`should add Peer IP address into PeerBook BannedIPs`, async () => {
+			expect((p2pNodeList[0] as any)._peerBook.bannedIPs).toEqual(
+				new Set([badPeer.ipAddress]),
+			);
+		});
+
+		it(`should unbanTimer into PeerBook `, async () => {
+			expect((p2pNodeList[0] as any)._peerBook._unbanTimers).toHaveLength(1);
+		});
+
 		it(`should fire ${EVENT_CLOSE_INBOUND} event`, async () => {
-			expect(collectedEvents.get('EVENT_CLOSE_INBOUND')).to.exist;
+			expect(collectedEvents.get('EVENT_CLOSE_INBOUND')).toBeDefined();
 		});
 
 		it('should unban a peer after the ban period', async () => {
@@ -108,10 +111,9 @@ describe('Peer banning mechanism', () => {
 
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
 
-			expect(updatedConnectedPeers.map(peer => peer.wsPort)).to.include(
-				badPeer.wsPort,
+			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
+				expect.arrayContaining([badPeer.wsPort]),
 			);
-			expect(collectedEvents.get('EVENT_UNBAN_PEER')).to.exist;
 		});
 	});
 });

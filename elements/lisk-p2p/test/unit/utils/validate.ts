@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import {
 	validatePeerAddress,
 	validatePeerInfo,
@@ -27,13 +26,16 @@ import {
 	P2PRequestPacket,
 	P2PMessagePacket,
 	P2PNodeInfo,
-} from '../../../src/p2p_types';
-import {
+} from '../../../src/types';
+import { constants } from '../../../src';
+
+const {
 	DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 	DEFAULT_MAX_PEER_INFO_SIZE,
 	PEER_INFO_LIST_TOO_LONG_REASON,
 	INVALID_PEER_INFO_LIST_REASON,
-} from '../../../src';
+} = constants;
+
 describe('utils/validate', () => {
 	describe('#validatePeerInfo', () => {
 		describe('for valid peer response object', () => {
@@ -58,9 +60,8 @@ describe('utils/validate', () => {
 			};
 
 			it('should return P2PPeerInfo object', async () => {
-				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000))
-					.to.be.an('object')
-					.eql({
+				expect(validatePeerInfo(sanitizeIncomingPeerInfo(peer), 10000)).toEqual(
+					{
 						peerId: '12.23.54.3:5393',
 						ipAddress: '12.23.54.3',
 						wsPort: 5393,
@@ -71,7 +72,8 @@ describe('utils/validate', () => {
 							protocolVersion: '1.1',
 							httpPort: 2000,
 						},
-					});
+					},
+				);
 			});
 
 			it('should return P2PPeerInfo object with height value set to 0', async () => {
@@ -80,20 +82,18 @@ describe('utils/validate', () => {
 						sanitizeIncomingPeerInfo(peerWithInvalidHeightValue),
 						10000,
 					),
-				)
-					.to.be.an('object')
-					.eql({
-						peerId: '12.23.54.3:5393',
-						ipAddress: '12.23.54.3',
-						wsPort: 5393,
-						sharedState: {
-							height: 0,
-							os: '778',
-							version: '3.4.5-alpha.9',
-							protocolVersion: '1.1',
-							httpPort: 2000,
-						},
-					});
+				).toEqual({
+					peerId: '12.23.54.3:5393',
+					ipAddress: '12.23.54.3',
+					wsPort: 5393,
+					sharedState: {
+						height: 0,
+						os: '778',
+						version: '3.4.5-alpha.9',
+						protocolVersion: '1.1',
+						httpPort: 2000,
+					},
+				});
 			});
 		});
 
@@ -107,7 +107,7 @@ describe('utils/validate', () => {
 						sanitizeIncomingPeerInfo(peerInvalid),
 						10000,
 					),
-				).to.throw('Invalid peer object');
+				).toThrowError('Invalid peer object');
 			});
 
 			it('should throw if PeerInfo is too big', async () => {
@@ -128,7 +128,7 @@ describe('utils/validate', () => {
 						sanitizeIncomingPeerInfo(peer),
 						maximumPeerInfoSizeInBytes,
 					),
-				).to.throw(
+				).toThrowError(
 					`PeerInfo is larger than the maximum allowed size ${maximumPeerInfoSizeInBytes} bytes`,
 				);
 			});
@@ -148,7 +148,7 @@ describe('utils/validate', () => {
 						sanitizeIncomingPeerInfo(peerInvalid),
 						10000,
 					),
-				).to.throw('Invalid peer ipAddress or port');
+				).toThrowError('Invalid peer ipAddress or port');
 			});
 		});
 	});
@@ -176,7 +176,7 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					).length,
-				).to.be.eql(generatePeerInfoResponse.peers.length);
+				).toEqual(generatePeerInfoResponse.peers.length);
 			});
 		});
 
@@ -191,7 +191,7 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).to.throw(INVALID_PEER_INFO_LIST_REASON);
+				).toThrowError(INVALID_PEER_INFO_LIST_REASON);
 			});
 		});
 
@@ -206,7 +206,7 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).to.throw(INVALID_PEER_INFO_LIST_REASON);
+				).toThrowError(INVALID_PEER_INFO_LIST_REASON);
 			});
 		});
 
@@ -219,7 +219,7 @@ describe('utils/validate', () => {
 						generatePeerInfoResponse.peers.length - 1,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).to.throw(PEER_INFO_LIST_TOO_LONG_REASON);
+				).toThrowError(PEER_INFO_LIST_TOO_LONG_REASON);
 			});
 		});
 
@@ -234,7 +234,7 @@ describe('utils/validate', () => {
 						DEFAULT_MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
 						DEFAULT_MAX_PEER_INFO_SIZE,
 					),
-				).to.throw('Invalid peer object');
+				).toThrowError('Invalid peer object');
 			});
 		});
 	});
@@ -245,7 +245,7 @@ describe('utils/validate', () => {
 
 			const NodeInfo: P2PNodeInfo = {
 				os: '12.23.54.3',
-				nethash: '12.23.54.3',
+				networkId: '12.23.54.3',
 				wsPort: 5393,
 				version: '1.1.2',
 				protocolVersion: '1.1',
@@ -258,7 +258,9 @@ describe('utils/validate', () => {
 			};
 
 			it('should throw Invalid NodeInfo maximum allowed size error', async () => {
-				expect(validateNodeInfo.bind(null, NodeInfo, maximum_size)).to.throw(
+				expect(
+					validateNodeInfo.bind(null, NodeInfo, maximum_size),
+				).toThrowError(
 					`Invalid NodeInfo was larger than the maximum allowed ${maximum_size} bytes`,
 				);
 			});
@@ -272,7 +274,7 @@ describe('utils/validate', () => {
 				wsPort: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).toBe(true);
 		});
 
 		it('should return true for correct IPv6', async () => {
@@ -281,7 +283,7 @@ describe('utils/validate', () => {
 				wsPort: 4001,
 			};
 
-			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).to.be.true;
+			expect(validatePeerAddress(peer.ipAddress, peer.wsPort)).toBe(true);
 		});
 
 		it('should return false for incorrect ipAddress', async () => {
@@ -295,7 +297,7 @@ describe('utils/validate', () => {
 					peerWithIncorrectIp.ipAddress,
 					peerWithIncorrectIp.wsPort,
 				),
-			).to.be.false;
+			).toBe(false);
 		});
 
 		it('should return false for incorrect port', async () => {
@@ -309,7 +311,7 @@ describe('utils/validate', () => {
 					peerWithIncorrectPort.ipAddress,
 					peerWithIncorrectPort.wsPort,
 				),
-			).to.be.false;
+			).toBe(false);
 		});
 	});
 
@@ -317,7 +319,6 @@ describe('utils/validate', () => {
 		const validRPCRequest: unknown = {
 			data: {},
 			procedure: 'list',
-			type: '',
 		};
 		let validatedRPCRequest: P2PRequestPacket;
 
@@ -326,9 +327,9 @@ describe('utils/validate', () => {
 		});
 
 		it('should throw an error for an invalid procedure value', async () => {
-			expect(validateRPCRequest.bind(validateRPCRequest, undefined)).to.throw(
-				'Invalid request',
-			);
+			expect(
+				validateRPCRequest.bind(validateRPCRequest, undefined),
+			).toThrowError('Invalid request');
 		});
 
 		it('should throw an error for an invalid procedure value', async () => {
@@ -339,25 +340,18 @@ describe('utils/validate', () => {
 
 			expect(
 				validateRPCRequest.bind(validateRPCRequest, inValidRequest),
-			).to.throw('Request procedure name is not a string');
+			).toThrowError('Request procedure name is not a string');
 		});
 
 		it('should pass and return an object', async () => {
-			expect(validatedRPCRequest).to.be.an('object');
+			expect(validatedRPCRequest).toEqual(expect.any(Object));
 		});
 
 		it('should return a valid rpc request', async () => {
-			expect(validatedRPCRequest)
-				.to.be.an('object')
-				.has.property('data')
-				.to.be.an('object');
-			expect(validatedRPCRequest)
-				.to.be.an('object')
-				.has.property('procedure').to.be.string;
-
-			expect(validatedRPCRequest)
-				.to.be.an('object')
-				.has.property('type').to.be.string;
+			expect(validatedRPCRequest).toMatchObject({
+				procedure: expect.any(String),
+				data: expect.any(Object),
+			});
 		});
 	});
 
@@ -375,7 +369,7 @@ describe('utils/validate', () => {
 		it('should throw an error for an invalid event value type', async () => {
 			expect(
 				validateProtocolMessage.bind(validateProtocolMessage, undefined),
-			).to.throw('Invalid message');
+			).toThrowError('Invalid message');
 		});
 
 		it('should throw an error for an invalid event value type', async () => {
@@ -385,21 +379,18 @@ describe('utils/validate', () => {
 			};
 			expect(
 				validateProtocolMessage.bind(validateProtocolMessage, inValidMessage),
-			).to.throw('Protocol message is not a string');
+			).toThrowError('Protocol message is not a string');
 		});
 
 		it('should return an object', async () => {
-			expect(returnedValidatedMessage).to.be.an('object');
+			expect(returnedValidatedMessage).toEqual(expect.any(Object));
 		});
 
 		it('should return a valid protocol message object', async () => {
-			expect(returnedValidatedMessage)
-				.to.be.an('object')
-				.has.property('data');
-
-			expect(returnedValidatedMessage)
-				.to.be.an('object')
-				.has.property('data').to.be.string;
+			expect(returnedValidatedMessage).toMatchObject({
+				data: expect.any(Object),
+				event: 'newPeer',
+			});
 		});
 	});
 });

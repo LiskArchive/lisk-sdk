@@ -12,15 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { P2P, EVENT_CLOSE_OUTBOUND, EVICTED_PEER_CODE } from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const { EVENT_CLOSE_OUTBOUND } = events;
 
 describe('Outbound peer shuffling', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEventsCount = new Map();
-	const OUTBOUND_SHUFFLE_INTERVAL = 100;
+	const OUTBOUND_SHUFFLE_INTERVAL = 1000;
 
 	beforeEach(async () => {
 		const customConfig = (
@@ -34,11 +35,14 @@ describe('Outbound peer shuffling', () => {
 			fallbackSeedPeerDiscoveryInterval: 10000,
 		});
 
-		p2pNodeList = await createNetwork({ customConfig });
+		p2pNodeList = await createNetwork({
+			customConfig,
+			networkDiscoveryWaitTime: 1,
+		});
 
 		p2pNodeList.forEach(p2p => {
 			p2p.on(EVENT_CLOSE_OUTBOUND, msg => {
-				if (msg.code === EVICTED_PEER_CODE) {
+				if (msg.code === constants.EVICTED_PEER_CODE) {
 					let evictedConnections = collectedEventsCount.get(
 						p2p.nodeInfo.wsPort,
 					);
@@ -61,12 +65,12 @@ describe('Outbound peer shuffling', () => {
 	});
 
 	it('should shuffle outbound peers and close connection with evict', async () => {
-		await wait(500);
+		await wait(1500);
 
 		p2pNodeList.forEach(p2p => {
 			const evictedConnections = collectedEventsCount.get(p2p.nodeInfo.wsPort);
 
-			expect(evictedConnections).to.be.gt(0);
+			expect(evictedConnections).toBeGreaterThan(0);
 		});
 	});
 });

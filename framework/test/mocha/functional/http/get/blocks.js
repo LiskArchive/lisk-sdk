@@ -15,12 +15,12 @@
 'use strict';
 
 require('../../functional');
+const { Slots } = require('@liskhq/lisk-chain');
 
 const accountFixtures = require('../../../../fixtures/accounts');
 const waitFor = require('../../../../utils/legacy/wait_for');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
 const apiHelpers = require('../../../../utils/http/api');
-const { Slots } = require('../../../../../src/modules/chain/dpos');
 
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -28,7 +28,6 @@ describe('GET /blocks', () => {
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
-		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 	});
 	const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 

@@ -13,7 +13,7 @@
  *
  */
 import { DEFAULT_MAX_RECONNECT_TRIES } from '../constants';
-import { P2PPeerInfo } from '../p2p_types';
+import { P2PPeerInfo } from '../types';
 import { PEER_TYPE } from '../utils';
 
 import { BaseList, PeerListConfig } from './base_list';

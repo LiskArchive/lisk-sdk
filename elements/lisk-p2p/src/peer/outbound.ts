@@ -19,6 +19,7 @@ import {
 	ConnectionKind,
 	DEFAULT_ACK_TIMEOUT,
 	DEFAULT_CONNECT_TIMEOUT,
+	DEFAULT_HTTP_PATH,
 	INTENTIONAL_DISCONNECT_CODE,
 } from '../constants';
 import {
@@ -37,7 +38,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-} from '../p2p_types';
+} from '../types';
 
 import {
 	Peer,
@@ -48,6 +49,7 @@ import {
 
 interface ClientOptionsUpdated {
 	readonly hostname: string;
+	readonly path: string;
 	readonly port: number;
 	readonly query: string;
 	readonly autoConnect: boolean;
@@ -117,6 +119,7 @@ export class OutboundPeer extends Peer {
 		// Ideally, we should JSON-serialize the whole NodeInfo object but this cannot be done for compatibility reasons, so instead we put it inside an options property.
 		const clientOptions: ClientOptionsUpdated = {
 			hostname: this.ipAddress,
+			path: DEFAULT_HTTP_PATH,
 			port: this.wsPort,
 			query: querystring.stringify({
 				...this._serverNodeInfo,

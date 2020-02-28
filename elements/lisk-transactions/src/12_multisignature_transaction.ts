@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
 import {
 	getAddressFromPublicKey,
 	hexToBuffer,
@@ -63,19 +62,16 @@ export const multisignatureAssetFormatSchema = {
 	},
 };
 
-const setMemberAccounts = (
+const setMemberAccounts = async (
 	store: StateStore,
 	membersPublicKeys: ReadonlyArray<string>,
 ) => {
-	membersPublicKeys.forEach(memberPublicKey => {
+	for (const memberPublicKey of membersPublicKeys) {
 		const address = getAddressFromPublicKey(memberPublicKey);
-		const memberAccount = store.account.getOrDefault(address);
-		const memberAccountWithPublicKey = {
-			...memberAccount,
-			publicKey: memberAccount.publicKey || memberPublicKey,
-		};
-		store.account.set(memberAccount.address, memberAccountWithPublicKey);
-	});
+		const memberAccount = await store.account.getOrDefault(address);
+		memberAccount.publicKey = memberAccount.publicKey || memberPublicKey;
+		store.account.set(memberAccount.address, memberAccount);
+	}
 };
 
 const extractPublicKeysFromAsset = (assetPublicKeys: ReadonlyArray<string>) =>
@@ -101,11 +97,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || {}) as MultiSignatureAsset;
 		// Overwrite fee as it is different from the static fee
-		this.fee = new BigNum(MultisignatureTransaction.FEE).mul(
-			(this.asset.keysgroup && this.asset.keysgroup.length
-				? this.asset.keysgroup.length
-				: 0) + 1,
-		);
+		this.fee =
+			BigInt(MultisignatureTransaction.FEE) *
+			((this.asset.keysgroup && this.asset.keysgroup.length
+				? BigInt(this.asset.keysgroup.length)
+				: BigInt(0)) +
+				BigInt(1));
 	}
 
 	protected assetToBytes(): Buffer {
@@ -178,7 +175,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	public processMultisignatures(_: StateStore): TransactionResponse {
+	public async processMultisignatures(
+		_: StateStore,
+	): Promise<TransactionResponse> {
 		const transactionBytes = this.getBasicBytes();
 		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
@@ -220,9 +219,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	protected applyAsset(store: StateStore): ReadonlyArray<TransactionError> {
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = store.account.get(this.senderId);
+		const sender = await store.account.get(this.senderId);
 
 		// Check if multisignatures already exists on account
 		if (sender.membersPublicKeys && sender.membersPublicKeys.length > 0) {
@@ -246,38 +247,33 @@ export class MultisignatureTransaction extends BaseTransaction {
 			);
 		}
 
-		const updatedSender = {
-			...sender,
-			membersPublicKeys: extractPublicKeysFromAsset(this.asset.keysgroup),
-			multiMin: this.asset.min,
-			multiLifetime: this.asset.lifetime,
-		};
-		store.account.set(updatedSender.address, updatedSender);
+		sender.membersPublicKeys = extractPublicKeysFromAsset(this.asset.keysgroup);
+		sender.multiMin = this.asset.min;
+		sender.multiLifetime = this.asset.lifetime;
+		store.account.set(sender.address, sender);
 
-		setMemberAccounts(store, updatedSender.membersPublicKeys);
+		await setMemberAccounts(store, sender.membersPublicKeys);
 
 		return errors;
 	}
 
-	protected undoAsset(store: StateStore): ReadonlyArray<TransactionError> {
-		const sender = store.account.get(this.senderId);
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const sender = await store.account.get(this.senderId);
+		sender.membersPublicKeys = [];
+		sender.multiMin = 0;
+		sender.multiLifetime = 0;
 
-		const resetSender = {
-			...sender,
-			membersPublicKeys: [],
-			multiMin: 0,
-			multiLifetime: 0,
-		};
-
-		store.account.set(resetSender.address, resetSender);
+		store.account.set(sender.address, sender);
 
 		return [];
 	}
 
-	public addMultisignature(
+	public async addMultisignature(
 		store: StateStore,
 		signatureObject: SignatureObject,
-	): TransactionResponse {
+	): Promise<TransactionResponse> {
 		// Validate signature key belongs to pending multisig registration transaction
 		const keysgroup = this.asset.keysgroup.map((aKey: string) => aKey.slice(1));
 
@@ -322,15 +318,13 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Else populate errors
-		const errors = valid
-			? []
-			: [
-					new TransactionError(
-						`Failed to add signature ${signatureObject.signature}.`,
-						this.id,
-						'.signatures',
-					),
-			  ];
+		const errors = [
+			new TransactionError(
+				`Failed to add signature ${signatureObject.signature}.`,
+				this.id,
+				'.signatures',
+			),
+		];
 
 		return createResponse(this.id, errors);
 	}

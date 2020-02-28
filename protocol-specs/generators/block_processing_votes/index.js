@@ -40,7 +40,7 @@ const initialAccountsState = [
 		username: null,
 		isDelegate: false,
 		secondSignature: false,
-		balance: 9999899990000000,
+		balance: '9999899990000000',
 		multiMin: 0,
 		multiLifetime: 0,
 		nameExist: false,
@@ -49,7 +49,7 @@ const initialAccountsState = [
 		rank: null,
 		fees: 0,
 		rewards: 0,
-		vote: 0,
+		vote: '0',
 		productivity: 0,
 	},
 	...genesisDelegateAccounts,
@@ -180,16 +180,21 @@ const generateTestCasesValidBlockVotesTx = () => {
 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain.slice(0, 5),
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain.slice(0, 5),
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.chain.slice(-1),
+		input: chainAndAccountStates.chain.slice(-1)[0],
+		description: 'A valid block with votes transactions',
 		output: {
-			chain: chainAndAccountStates.chain,
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
-			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+			mutatedState: {
+				chain: chainAndAccountStates.chain,
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+				accounts: chainAndAccountStates.finalAccountsState.slice(-1)[0],
+			},
 		},
 	};
 };
@@ -239,16 +244,20 @@ const generateTestCasesInvalidBlockTooManyVotesTx = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain,
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain,
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a vote transaction that exceeds max votes',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
 			chain: chainAndAccountStates.chain,
 			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
-			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+			accounts: chainAndAccountStates.finalAccountsState.slice(-1)[0],
 		},
 	};
 };
@@ -284,8 +293,17 @@ const generateTestCasesInvalidBlockVoteNoDelegateTx = () => {
 
 	// Forge the block so as to have all delegates in the store
 	chainStateBuilder.forge();
-
-	const notAdelegate = ChainStateBuilder.createAccount();
+	// this is ok to not be in the input for the spec as is just a random/invalid account
+	const notAdelegate = {
+		passphrase:
+			'finish key enact banner crouch rice legal scan palm noise gain claw',
+		privateKey:
+			'223a1d5dafe7bb019855929b010ddebc3326ffbf0ddb4dc32779d0b41e47f9f1b2b98de6f89d708a11af0bf5866db860f0889161e27af5b6bd7bbc9ad2cd797b',
+		publicKey:
+			'b2b98de6f89d708a11af0bf5866db860f0889161e27af5b6bd7bbc9ad2cd797b',
+		address: '4786496342079411836L',
+		balance: '0',
+	};
 	// Vote for an account is not a delegate
 	chainStateBuilder
 		.castVotesFrom('2222471382442610527L')
@@ -297,16 +315,22 @@ const generateTestCasesInvalidBlockVoteNoDelegateTx = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain,
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain,
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a vote transaction that exceeds max votes',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
-			chain: chainAndAccountStates.chain,
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
-			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+			mutatedState: {
+				chain: chainAndAccountStates.chain,
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+				accounts: chainAndAccountStates.finalAccountsState.slice(-1)[0],
+			},
 		},
 	};
 };
@@ -355,16 +379,22 @@ const generateTestCasesInvalidBlockVoteAlreadyVotedDelegateTx = () => {
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain,
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain,
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a vote transaction that exceeds max votes',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
-			chain: chainAndAccountStates.chain,
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
-			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+			mutatedState: {
+				chain: chainAndAccountStates.chain,
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+				accounts: chainAndAccountStates.finalAccountsState.slice(-1)[0],
+			},
 		},
 	};
 };
@@ -480,16 +510,22 @@ const generateTestCasesInvalidBlockWithUnvoteForDelegateNotPreviouslyVoted = () 
 	const chainAndAccountStates = chainStateBuilder.getScenario();
 
 	return {
-		initialState: {
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
-			chain: chainAndAccountStates.chain,
-			accounts: chainAndAccountStates.initialAccountsState,
+		config: {
+			initialState: {
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the first accounts state
+				chain: chainAndAccountStates.chain,
+				accounts: chainAndAccountStates.initialAccountsState,
+			},
 		},
-		input: chainAndAccountStates.inputBlock,
+		description:
+			'An invalid block with a vote transaction that exceeds max votes',
+		input: chainAndAccountStates.inputBlock[0],
 		output: {
-			chain: chainAndAccountStates.chain,
-			// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
-			accounts: chainAndAccountStates.finalAccountsState.slice(-1),
+			mutatedState: {
+				chain: chainAndAccountStates.chain,
+				// Given the library chainStateBuilder saves all mutations we use slice here to pick the last account state
+				accounts: chainAndAccountStates.finalAccountsState.slice(-1)[0],
+			},
 		},
 	};
 };
@@ -497,46 +533,48 @@ const generateTestCasesInvalidBlockWithUnvoteForDelegateNotPreviouslyVoted = () 
 const validBlockWithVoteTxSuite = () => ({
 	title: 'Valid block processing',
 	summary: 'A valid block with votes transactions',
-	config: 'mainnet',
+	config: { netework: 'mainnet' },
 	runner: 'block_processing_votes',
 	handler: 'valid_block_processing_vote_all_delegates',
-	testCases: generateTestCasesValidBlockVotesTx(),
+	testCases: [generateTestCasesValidBlockVotesTx()],
 });
 
 const invalidBlockWithTooManyVotesTxSuite = () => ({
 	title: 'Invalid block processing',
 	summary: 'An invalid block with a vote transaction that exceeds max votes',
-	config: 'mainnet',
+	config: { netework: 'mainnet' },
 	runner: 'block_processing_votes',
 	handler: 'invalid_block_processing_vote_all_delegates_in_one_transaction',
-	testCases: generateTestCasesInvalidBlockTooManyVotesTx(),
+	testCases: [generateTestCasesInvalidBlockTooManyVotesTx()],
 });
 
 const invalidBlockWithVotesForNoDelegateTxSuite = () => ({
 	title: 'Invalid block processing',
 	summary: 'An invalid block with a vote transaction that exceeds max votes',
-	config: 'mainnet',
+	config: { netework: 'mainnet' },
 	runner: 'block_processing_votes',
 	handler: 'invalid_block_processing_vote_no_delegate',
-	testCases: generateTestCasesInvalidBlockVoteNoDelegateTx(),
+	testCases: [generateTestCasesInvalidBlockVoteNoDelegateTx()],
 });
 
 const invalidBlockWithVoteForVotedDelegateSuite = () => ({
 	title: 'Invalid block processing',
 	summary: 'An invalid block with a vote transaction that exceeds max votes',
-	config: 'mainnet',
+	config: { netework: 'mainnet' },
 	runner: 'block_processing_votes',
 	handler: 'invalid_block_processing_vote_already_voted_delegate',
-	testCases: generateTestCasesInvalidBlockVoteAlreadyVotedDelegateTx(),
+	testCases: [generateTestCasesInvalidBlockVoteAlreadyVotedDelegateTx()],
 });
 
 const invalidBlockWithUnvoteForDelegateNotPreviouslyVoted = () => ({
 	title: 'Invalid block processing',
 	summary: 'An invalid block with a vote transaction that exceeds max votes',
-	config: 'mainnet',
+	config: { netework: 'mainnet' },
 	runner: 'block_processing_votes',
 	handler: 'invalid_block_processing_unvote_not_voted_delegate',
-	testCases: generateTestCasesInvalidBlockWithUnvoteForDelegateNotPreviouslyVoted(),
+	testCases: [
+		generateTestCasesInvalidBlockWithUnvoteForDelegateNotPreviouslyVoted(),
+	],
 });
 
 module.exports = BaseGenerator.runGenerator('block_processing_transfers', [

@@ -1,0 +1,170 @@
+{
+	"title": "BFT processing generation",
+	"summary": "Generate set of blocks to verify fork choice rules",
+	"config": {
+		"blockInterval": 10,
+		"lastBlock": {
+			"id": "4787605425910193884",
+			"height": 10,
+			"version": 2,
+			"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
+			"maxHeightPrevoted": 1,
+			"timestamp": 90,
+			"receivedAt": 92,
+			"previousBlockId": "10639113266773617352"
+		},
+		"epochTime": 1464109200000,
+		"forkStatuses": {
+			"FORK_STATUS_IDENTICAL_BLOCK": 1,
+			"FORK_STATUS_VALID_BLOCK": 2,
+			"FORK_STATUS_DOUBLE_FORGING": 3,
+			"FORK_STATUS_TIE_BREAK": 4,
+			"FORK_STATUS_DIFFERENT_CHAIN": 5,
+			"FORK_STATUS_DISCARD": 6
+		}
+	},
+	"runner": "bft_processing",
+	"handler": "bft_fork_choice_rules",
+	"testCases": [
+		{
+			"description": "IDENTICAL_BLOCK: Received identical block, as described as \"Case 1\" in the LIP",
+			"input": {
+				"receivedBlock": {
+					"id": "4787605425910193884",
+					"height": 10,
+					"version": 2,
+					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
+					"maxHeightPrevoted": 1,
+					"timestamp": 90,
+					"receivedAt": 92,
+					"previousBlockId": "10639113266773617352"
+				}
+			},
+			"output": {
+				"forkStatus": 1
+			}
+		},
+		{
+			"description": "VALID_BLOCK: Received valid block, as described as \"Case 2\" in the LIP",
+			"input": {
+				"receivedBlock": {
+					"id": "5687604425910193884",
+					"height": 11,
+					"version": 2,
+					"generatorPublicKey": "544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435",
+					"maxHeightPrevoted": 1,
+					"timestamp": 100,
+					"receivedAt": 102,
+					"previousBlockId": "4787605425910193884"
+				}
+			},
+			"output": {
+				"forkStatus": 2
+			}
+		},
+		{
+			"description": "DISCARD: Received invalid block for current state of chain",
+			"input": {
+				"receivedBlock": {
+					"id": "5687604425910193884",
+					"height": 9,
+					"version": 2,
+					"generatorPublicKey": "544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435",
+					"maxHeightPrevoted": 1,
+					"timestamp": 100,
+					"receivedAt": 102,
+					"previousBlockId": "4787605425910193884"
+				}
+			},
+			"output": {
+				"forkStatus": 6
+			}
+		},
+		{
+			"description": "DOUBLE_FORGING: Received double forging block, as described as \"Case 3\" in the LIP",
+			"input": {
+				"receivedBlock": {
+					"id": "5687604425910193884",
+					"height": 10,
+					"version": 2,
+					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
+					"maxHeightPrevoted": 1,
+					"timestamp": 100,
+					"receivedAt": 102,
+					"previousBlockId": "10639113266773617352"
+				}
+			},
+			"output": {
+				"forkStatus": 3
+			}
+		},
+		{
+			"description": "TIE_BREAK: Received a block turn to a tie break with last block, as described as \"Case 4\" in the LIP",
+			"config": {
+				"lastBlock": {
+					"id": "4787605425910193884",
+					"height": 10,
+					"version": 2,
+					"generatorPublicKey": "774660271a533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9534",
+					"maxHeightPrevoted": 1,
+					"timestamp": 85,
+					"receivedAt": 92,
+					"previousBlockId": "10639113266773617352"
+				},
+				"epochTime": 1464109200000,
+				"blockInterval": 10
+			},
+			"input": {
+				"receivedBlock": {
+					"id": "5687604425910193884",
+					"height": 10,
+					"version": 2,
+					"generatorPublicKey": "544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435",
+					"maxHeightPrevoted": 1,
+					"timestamp": 90,
+					"receivedAt": 92,
+					"previousBlockId": "10639113266773617352"
+				}
+			},
+			"output": {
+				"forkStatus": 4
+			}
+		},
+		{
+			"description": "DIFFERENT_CHAIN: Received a block from a different chain, as described as \"Case 5\" in the LIP",
+			"input": {
+				"receivedBlock": {
+					"id": "5687604425910193884",
+					"height": 11,
+					"version": 2,
+					"generatorPublicKey": "544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435",
+					"maxHeightPrevoted": 6,
+					"timestamp": 100,
+					"receivedAt": 102,
+					"previousBlockId": "18084359649202066469"
+				}
+			},
+			"output": {
+				"forkStatus": 5
+			}
+		},
+		{
+			"description": "DIFFERENT_CHAIN: Received a block from a different chain, as described as \"Case 5\" in the LIP",
+			"input": {
+				"receivedBlock": {
+					"id": "5687604425910193884",
+					"height": 11,
+					"version": 2,
+					"generatorPublicKey": "544670271b533e02f13699d17e6fb2fccd48023685a47fd04b3eec0acf2a9435",
+					"maxHeightPrevoted": 1,
+					"timestamp": 100,
+					"receivedAt": 102,
+					"previousBlockId": "18084359649202066469"
+				}
+			},
+			"output": {
+				"forkStatus": 5
+			}
+		}
+	]
+}

@@ -12,17 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as BigNum from '@liskhq/bignum';
-
 import { MultisignatureStatus } from '../base_transaction';
 import { TransactionError, TransactionPendingError } from '../errors';
 import { Account } from '../transaction_types';
-import { convertBeddowsToLSK } from '../utils/format';
 
-import {
-	validateMultisignatures,
-	validateSignature,
-} from './sign_and_validate';
+import { convertBeddowsToLSK } from './format';
+import { validateMultisignatures } from './sign_and_validate';
 
 export const verifySenderPublicKey = (
 	id: string,
@@ -42,9 +37,9 @@ export const verifySenderPublicKey = (
 export const verifyBalance = (
 	id: string,
 	account: Account,
-	amount: BigNum,
+	amount: bigint,
 ): TransactionError | undefined =>
-	new BigNum(account.balance).lt(new BigNum(amount))
+	account.balance < amount
 		? new TransactionError(
 				`Account does not have enough LSK: ${
 					account.address
@@ -57,15 +52,14 @@ export const verifyBalance = (
 export const verifyAmountBalance = (
 	id: string,
 	account: Account,
-	amount: BigNum,
-	fee: BigNum,
+	amount: bigint,
+	fee: bigint,
 ): TransactionError | undefined => {
-	const balance = new BigNum(account.balance);
-	if (balance.gte(0) && balance.lt(new BigNum(amount))) {
+	if (account.balance >= BigInt(0) && account.balance < amount) {
 		return new TransactionError(
 			`Account does not have enough LSK: ${
 				account.address
-			}, balance: ${convertBeddowsToLSK(balance.plus(fee).toString())}`,
+			}, balance: ${convertBeddowsToLSK((account.balance + fee).toString())}`,
 			id,
 			'.balance',
 		);
@@ -74,36 +68,22 @@ export const verifyAmountBalance = (
 	return undefined;
 };
 
-export const verifySecondSignature = (
+export const verifyMinRemainingBalance = (
 	id: string,
-	sender: Account,
-	signSignature: string | undefined,
-	transactionBytes: Buffer,
+	account: Account,
+	minRemainingBalance: bigint,
 ): TransactionError | undefined => {
-	if (!sender.secondPublicKey && signSignature) {
+	if (account.balance < minRemainingBalance) {
 		return new TransactionError(
-			'Sender does not have a secondPublicKey',
+			`Account does not have enough minimum remaining LSK: ${
+				account.address
+			}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 			id,
-			'.signSignature',
+			'.balance',
 		);
 	}
-	if (!sender.secondPublicKey) {
-		return undefined;
-	}
-	if (!signSignature) {
-		return new TransactionError('Missing signSignature', id, '.signSignature');
-	}
-	const { valid, error } = validateSignature(
-		sender.secondPublicKey,
-		signSignature,
-		transactionBytes,
-		id,
-	);
-	if (valid) {
-		return undefined;
-	}
 
-	return error;
+	return undefined;
 };
 
 export interface VerifyMultiSignatureResult {
@@ -147,7 +127,7 @@ export const verifyMultiSignatures = (
 	const { valid, errors } = validateMultisignatures(
 		sender.membersPublicKeys as ReadonlyArray<string>,
 		signatures,
-		sender.multiMin as number,
+		sender.multiMin,
 		transactionBytes,
 		id,
 	);

@@ -17,11 +17,9 @@
 const expect = require('chai').expect;
 const {
 	transfer,
-	registerSecondPassphrase,
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
-	createDapp,
 	createSignatureObject,
 } = require('@liskhq/lisk-transactions');
 const accountFixtures = require('../../../../fixtures/accounts');
@@ -35,14 +33,12 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-// FIXME: this function was used from transactions library, but it doesn't exist
-const transferIntoDapp = () => {};
-const transferOutOfDapp = () => {};
-
 describe('integration test (blocks) - chain/deleteLastBlock', () => {
 	let library;
 	localCommon.beforeBlock('blocks_chain', lib => {
 		library = lib;
+		// Chain now emits events for block deletion/addition so we just over write emit here as this tests depends on the event not being fired
+		library.modules.chain.events.emit = sinonSandbox.stub();
 	});
 
 	describe('deleteLastBlock', () => {
@@ -119,9 +115,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -161,84 +157,6 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ address: testReceipt.address },
 					);
 					expect(account.balance).to.equal(testReceiptData.balance);
-				});
-			});
-
-			describe('(type 1) register second signature', () => {
-				before('create account with funds', done => {
-					createAccountWithFunds(done);
-				});
-
-				it('should validate account data from sender', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					testAccountData = account;
-					expect(account.publicKey).to.be.null;
-					expect(account.secondPublicKey).to.be.null;
-					expect(account.secondSignature).to.equal(false);
-				});
-
-				it('should forge a block', done => {
-					const signatureTransaction = registerSecondPassphrase({
-						networkIdentifier,
-						passphrase: testAccount.passphrase,
-						secondPassphrase: testAccount.secondPassphrase,
-					});
-					localCommon.addTransactionsAndForge(
-						library,
-						[signatureTransaction],
-						done,
-					);
-				});
-
-				it('should validate account data from sender after forging a block', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					testAccountDataAfterBlock = account;
-					expect(account.publicKey).to.not.be.null;
-					expect(account.secondPublicKey).to.not.be.null;
-					expect(account.secondSignature).to.equal(true);
-				});
-
-				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
-					await library.modules.processor.deleteLastBlock(
-						library.modules.blocks.lastBlock,
-					);
-					const newLastBlock = library.modules.blocks.lastBlock;
-					library.modules.transactionPool.onDeletedTransactions(
-						transactions.reverse(),
-					);
-					expect(newLastBlock).to.be.an('object');
-				});
-
-				it('should validate account data from sender after deleting the last block', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.secondPublicKey).to.be.null;
-					expect(account.secondSignature).to.equal(false);
-				});
-
-				it('should forge a block with transaction pool', done => {
-					localCommon.addTransactionsAndForge(library, [], done);
-				});
-
-				it('should validate account data from sender after forging a block with transaction pool', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-					);
-					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
-					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey,
-					);
-					expect(account.secondPublicKey).to.equal(
-						testAccountDataAfterBlock.secondPublicKey,
-					);
-					expect(account.secondSignature).to.equal(true);
 				});
 			});
 
@@ -289,9 +207,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -346,7 +264,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					);
 					testAccountData = account;
 					expect(account.publicKey).to.be.null;
-					expect(account.votedDelegatesPublicKeys).to.be.null;
+					expect(account.votedDelegatesPublicKeys).eql(null);
 				});
 
 				it('should forge a block', done => {
@@ -371,9 +289,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -386,7 +304,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 						{ extended: true },
 					);
 					expect(account.balance).to.equal(testAccountData.balance);
-					expect(account.votedDelegatesPublicKeys).to.eql([]);
+					expect(account.votedDelegatesPublicKeys).to.eql(null);
 				});
 
 				it('should forge a block with transaction pool', done => {
@@ -422,7 +340,7 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.publicKey).to.be.null;
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.be.null;
+					expect(account.membersPublicKeys).eql(null);
 				});
 
 				it('should forge a block', done => {
@@ -463,9 +381,9 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 				});
 
 				it('should delete last block', async () => {
-					const transactions = library.modules.blocks.lastBlock.transactions;
+					const transactions = library.modules.chain.lastBlock.transactions;
 					await library.modules.processor.deleteLastBlock();
-					const newLastBlock = library.modules.blocks.lastBlock;
+					const newLastBlock = library.modules.chain.lastBlock;
 					library.modules.transactionPool.onDeletedTransactions(
 						transactions.reverse(),
 					);
@@ -480,234 +398,12 @@ describe('integration test (blocks) - chain/deleteLastBlock', () => {
 					expect(account.balance).to.equal(testAccountData.balance);
 					expect(account.multiLifetime).to.equal(0);
 					expect(account.multiMin).to.equal(0);
-					expect(account.membersPublicKeys).to.eql([]);
+					expect(account.membersPublicKeys).to.eql(null);
 				});
 
 				it('should forge a block with transaction pool', done => {
 					localCommon.addTransactionsAndForge(library, [], done);
 				});
-
-				// This test will only start working after we remove the fillPool mechanism from the application
-				// eslint-disable-next-line mocha/no-skipped-tests
-				it.skip('[UNCONFIRMED STATE REMOVAL] should validate account data from sender after forging a block with transaction pool', async () => {
-					const account = await library.components.storage.entities.Account.getOne(
-						{ address: testAccount.address },
-						{ extended: true },
-					);
-					expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
-					expect(account.publicKey).to.equal(
-						testAccountDataAfterBlock.publicKey,
-					);
-					expect(account.multiLifetime).to.equal(1);
-					expect(account.multiMin).to.equal(1);
-					expect(account.membersPublicKeys[0]).to.equal(
-						accountFixtures.existingDelegate.publicKey,
-					);
-				});
-			});
-
-			describe('dapps', () => {
-				before('create account with funds', done => {
-					createAccountWithFunds(done);
-				});
-
-				/* eslint-disable mocha/no-skipped-tests */
-				describe.skip('(type 5) register dapp', () => {
-					it('should validate account data from sender after account creation', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						testAccountData = account;
-						expect(account.publicKey).to.be.null;
-					});
-
-					it('should forge a block', done => {
-						const dappTransaction = createDapp({
-							passphrase: testAccount.passphrase,
-							options: randomUtil.guestbookDapp,
-						});
-						randomUtil.guestbookDapp.id = dappTransaction.id;
-						localCommon.addTransactionsAndForge(
-							library,
-							[dappTransaction],
-							done,
-						);
-					});
-
-					it('should validate account data from sender after forging a block', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						testAccountDataAfterBlock = account;
-						expect(account.publicKey).to.not.be.null;
-					});
-
-					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
-						await library.modules.processor.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						const newLastBlock = library.modules.blocks.lastBlock;
-						library.modules.transactionPool.onDeletedTransactions(
-							transactions.reverse(),
-						);
-						expect(newLastBlock).to.be.an('object');
-					});
-
-					it('should validate account data from sender after deleting the last block', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						expect(account.balance).to.equal(testAccountData.balance);
-					});
-
-					it('should forge a block with transaction pool', done => {
-						localCommon.addTransactionsAndForge(library, [], done);
-					});
-
-					it('should validate account data from sender after forging a block with transaction pool', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
-						expect(account.publicKey).to.equal(
-							testAccountDataAfterBlock.publicKey,
-						);
-					});
-				});
-
-				/* eslint-disable mocha/no-skipped-tests */
-				describe.skip('(type 6) inTransfer dapp', () => {
-					it('should validate account data from sender after account creation', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						testAccountData = account;
-						expect(account.publicKey).to.be.null;
-					});
-
-					it('should forge a block', done => {
-						const inTransferTransaction = transferIntoDapp({
-							passphrase: testAccount.passphrase,
-							amount: (10 * 100000000).toString(),
-							dappId: randomUtil.guestbookDapp.id,
-						});
-						localCommon.addTransactionsAndForge(
-							library,
-							[inTransferTransaction],
-							done,
-						);
-					});
-
-					it('should validate account data from sender after forging a block', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						testAccountDataAfterBlock = account;
-						expect(account.publicKey).to.not.be.null;
-					});
-
-					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
-						await library.modules.processor.deleteLastBlock();
-						const newLastBlock = library.modules.blocks.lastBlock;
-						library.modules.transactionPool.onDeletedTransactions(
-							transactions.reverse(),
-						);
-						expect(newLastBlock).to.be.an('object');
-					});
-
-					it('should validate account data from sender after deleting the last block', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						expect(account.balance).to.equal(testAccountData.balance);
-					});
-
-					it('should forge a block with transaction pool', done => {
-						localCommon.addTransactionsAndForge(library, [], done);
-					});
-
-					it('should validate account data from sender after forging a block with transaction pool', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
-						expect(account.publicKey).to.equal(
-							testAccountDataAfterBlock.publicKey,
-						);
-					});
-				});
-
-				describe.skip('(type 7) outTransfer dapp', () => {
-					it('should validate account data from sender after account creation', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						testAccountData = account;
-						expect(account.publicKey).to.be.null;
-					});
-
-					it('should forge a block', done => {
-						const outTransferTransaction = transferOutOfDapp({
-							passphrase: testAccount.passphrase,
-							amount: (10 * 100000000).toString(),
-							dappId: randomUtil.guestbookDapp.id,
-							transactionId: randomUtil.transaction().id,
-							recipientId: accountFixtures.genesis.address,
-						});
-						localCommon.addTransactionsAndForge(
-							library,
-							[outTransferTransaction],
-							err => {
-								expect(err).to.equal('Transaction type 7 is frozen');
-								done();
-							},
-						);
-					});
-
-					it('should validate account data from sender after forging a block', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						testAccountDataAfterBlock = account;
-						expect(account.publicKey).to.not.be.null;
-					});
-
-					it('should delete last block', async () => {
-						const transactions = library.modules.blocks.lastBlock.transactions;
-						await library.modules.processor.deleteLastBlock(
-							library.modules.blocks.lastBlock,
-						);
-						const newLastBlock = library.modules.blocks.lastBlock;
-						library.modules.transactionPool.onDeletedTransactions(
-							transactions.reverse(),
-						);
-						expect(newLastBlock).to.be.an('object');
-					});
-
-					it('should validate account data from sender after deleting the last block', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						expect(account.balance).to.equal(testAccountData.balance);
-					});
-
-					it('should forge a block with transaction pool', done => {
-						localCommon.addTransactionsAndForge(library, [], done);
-					});
-
-					it('should validate account data from sender after forging a block with transaction pool', async () => {
-						const account = await library.components.storage.entities.Account.getOne(
-							{ address: testAccount.address },
-						);
-						expect(account.balance).to.equal(testAccountDataAfterBlock.balance);
-						expect(account.publicKey).to.equal(
-							testAccountDataAfterBlock.publicKey,
-						);
-					});
-				});
-				/* eslint-enable mocha/no-skipped-tests */
 			});
 		});
 

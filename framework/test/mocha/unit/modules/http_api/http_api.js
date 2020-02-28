@@ -58,7 +58,7 @@ describe('HttpApi', () => {
 		stubs.createStorageComponent = sinonSandbox.stub().returns(stubs.storage);
 		stubs.bootstrapCache = sinonSandbox.stub();
 		stubs.bootstrapStorage = sinonSandbox.stub();
-		stubs.setupServers = sinonSandbox.stub().resolves(stubs.servers);
+		stubs.setupServers = sinonSandbox.stub().returns(stubs.servers);
 		stubs.bootstrapSwagger = sinonSandbox.stub();
 		stubs.startListening = sinonSandbox.stub();
 		stubs.subscribeToEvents = sinonSandbox.stub();
@@ -175,9 +175,6 @@ describe('HttpApi', () => {
 				);
 			});
 		});
-		it('should set global.constants from the constants passed by options', async () => {
-			expect(global.constants).to.be.equal(stubs.options.constants);
-		});
 		it('should log "Initiating cache..."', async () => {
 			expect(stubs.logger.debug).to.be.calledWith('Initiating cache...');
 		});
@@ -236,13 +233,11 @@ describe('HttpApi', () => {
 				'app:state:updated',
 			);
 			expect(channelSubscribeStub.secondCall.args[0]).to.be.eql(
-				'chain:blocks:change',
+				'app:rounds:change',
 			);
-			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql(
-				'chain:rounds:change',
-			);
+			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql('app:newBlock');
 			expect(channelSubscribeStub.lastCall.args[0]).to.be.eql(
-				'chain:transactions:confirmed:change',
+				'app:deleteBlock',
 			);
 		});
 	});

@@ -33,7 +33,7 @@ import {
 	P2PNodeInfo,
 	P2PPeerInfo,
 	P2PRequestPacket,
-} from '../p2p_types';
+} from '../types';
 
 import { getByteSize, sanitizeIncomingPeerInfo } from '.';
 
@@ -53,11 +53,11 @@ const validateNetworkCompatibility = (
 		return false;
 	}
 
-	if (!peerInfo.sharedState.nethash) {
+	if (!peerInfo.sharedState.networkId) {
 		return false;
 	}
 
-	return (peerInfo.sharedState.nethash as string) === nodeInfo.nethash;
+	return (peerInfo.sharedState.networkId as string) === nodeInfo.networkId;
 };
 
 const validateProtocolVersionCompatibility = (

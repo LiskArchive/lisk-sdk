@@ -165,5 +165,5 @@ global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
 global.constants = _.cloneDeep(app.constants);
-global.exceptions = _.cloneDeep(config.modules.chain.exceptions);
+global.exceptions = _.cloneDeep(config.app.node.exceptions);
 global._ = _;

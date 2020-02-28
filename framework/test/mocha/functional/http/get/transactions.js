@@ -16,19 +16,14 @@
 
 require('../../functional');
 const Promise = require('bluebird');
-const {
-	transfer,
-	registerSecondPassphrase,
-	castVotes,
-} = require('@liskhq/lisk-transactions');
+const { transfer, castVotes } = require('@liskhq/lisk-transactions');
+const { Slots } = require('@liskhq/lisk-chain');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
 const waitFor = require('../../../../utils/legacy/wait_for');
 const apiHelpers = require('../../../../utils/http/api');
 const SwaggerEndpoint = require('../../../../utils/http/swagger_spec');
-const { Slots } = require('../../../../../src/modules/chain/dpos');
-const Scenarios = require('../../../../utils/legacy/multisig_scenarios');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');
@@ -38,30 +33,23 @@ const networkIdentifier = getNetworkIdentifier(
 );
 
 const TRANSACTION_TYPES_TRANSFER = 8;
-const TRANSACTION_TYPES_SIGNATURE = 9;
 const TRANSACTION_TYPES_DELEGATE = 10;
 const TRANSACTION_TYPES_VOTE = 11;
-const TRANSACTION_TYPES_MULTI = 12;
 
-const { FEES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
 	const slots = new Slots({
 		epochTime: __testContext.config.constants.EPOCH_TIME,
 		interval: __testContext.config.constants.BLOCK_TIME,
-		blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 	});
-	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	const transactionList = [];
 
 	const account = randomUtil.account();
 	const account2 = randomUtil.account();
 	const account3 = accountFixtures.existingDelegate;
-	const accountSecondPass = randomUtil.account();
 	const minAmount = 20 * NORMALIZER; // 20 LSK
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
 	const transaction1 = transfer({
@@ -85,18 +73,11 @@ describe('GET /api/transactions', () => {
 		recipientId: account2.address,
 		data: 'hey :)',
 	});
-	const transaction4 = transfer({
-		networkIdentifier,
-		amount: maxAmount.toString(),
-		passphrase: accountFixtures.genesis.passphrase,
-		recipientId: account3.address,
-		data: 'Tx4',
-	});
 	const transaction5 = transfer({
 		networkIdentifier,
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
-		recipientId: accountSecondPass.address,
+		recipientId: account3.address,
 		data: 'tx 5',
 	});
 	const transactionType3 = castVotes({
@@ -104,81 +85,6 @@ describe('GET /api/transactions', () => {
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
-	const transactionType4 = new Scenarios.Multisig({
-		networkIdentifier,
-		amount: FEES.MULTISIGNATURE * 3,
-	});
-	const transactionType4Transfer = transfer({
-		networkIdentifier,
-		amount: minAmount.toString(),
-		passphrase: accountFixtures.genesis.passphrase,
-		recipientId: transactionType4.multiSigTransaction.senderId,
-		data: 'fund acc for multisig',
-	});
-	const transactionSecondPassphrase = registerSecondPassphrase({
-		networkIdentifier,
-		passphrase: accountSecondPass.passphrase,
-		secondPassphrase: accountSecondPass.secondPassphrase,
-	});
-	const transactionType5 = {
-		amount: '0',
-		recipientId: '',
-		senderPublicKey:
-			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
-		timestamp: 68943236,
-		type: 5,
-		fee: '2500000000',
-		asset: {
-			dapp: {
-				category: 4,
-				name: 'Placeholder-App',
-				description: 'Placeholder-App description',
-				tags: 'app placeholder dummy',
-				type: 0,
-				link: 'https://dummy.zip',
-				icon:
-					'https://raw.githubusercontent.com/DummyUser/blockDataDapp/master/icon.png',
-			},
-		},
-		signature:
-			'074ad8f2fc4146c1122913a147e71b67ceccbd9a45d769b4bc9ed1cdbdf4404eaa4475f30e9ea5d33d715e3208506aee18425cf03f971d85f027e5dbc0530a02',
-		id: '3173899516019557774',
-	};
-	const transactionType6 = {
-		type: 6,
-		amount: '0',
-		fee: '10000000',
-		recipientId: '',
-		senderPublicKey:
-			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
-		timestamp: 69004227,
-		asset: {
-			inTransfer: {
-				dappId: '3173899516019557774',
-			},
-		},
-		signature:
-			'89a5d3abe53815d2cc36aaf04d242735bb8eaa767c8e8d9a31c049968189b500e87b61188a5ec80a1c191aa1bcf6bb7980f726c837fa3d3d753673ce7ab3060e',
-		id: '9616264103046411489',
-	};
-	const transactionType7 = {
-		type: 7,
-		amount: '0',
-		fee: '10000000',
-		recipientId: '10881167371402274308L',
-		senderPublicKey:
-			'32a2f261985252022b8c40b5c64f7588aced08c7cc6e48719b66808b313cacc8',
-		timestamp: 69520900,
-		asset: {
-			outTransfer: {
-				dappId: '3173899516019557774',
-				transactionId: '3173899516019557774',
-			},
-		},
-		signature:
-			'8249786301f5cc7184b0681563dc5c5856568ff967bec22b778f773b0a86532b13d1ede9234f581e62388ada2d1e1366adaa03151a9e6508fb7c3a3e59425109',
-		id: '18307756018345914129',
-	};
 
 	// Crediting accounts'
 	before(() => {
@@ -186,13 +92,11 @@ describe('GET /api/transactions', () => {
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		promises.push(apiHelpers.sendTransactionPromise(transaction5));
-		promises.push(apiHelpers.sendTransactionPromise(transactionType4Transfer));
 
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
 			transactionList.push(transaction5);
-			transactionList.push(transactionType4Transfer);
 
 			return waitFor
 				.confirmations(_.map(transactionList, 'id'))
@@ -200,21 +104,12 @@ describe('GET /api/transactions', () => {
 					Promise.all([
 						apiHelpers.sendTransactionPromise(transaction3),
 						apiHelpers.sendTransactionPromise(transactionType3),
-						apiHelpers.sendTransactionPromise(transactionSecondPassphrase),
-						apiHelpers.sendTransactionPromise(
-							transactionType4.multiSigTransaction,
-						),
 					]),
 				)
 				.then(() => {
 					transactionList.push(transaction3);
 					transactionList.push(transactionType3);
-					transactionList.push(transactionSecondPassphrase);
-					return waitFor.confirmations([
-						transaction3.id,
-						transactionType3.id,
-						transactionSecondPassphrase.id,
-					]);
+					return waitFor.confirmations([transaction3.id, transactionType3.id]);
 				});
 		});
 	});
@@ -414,18 +309,6 @@ describe('GET /api/transactions', () => {
 					);
 				});
 
-				it('using type 1 should return asset field with correct properties', async () => {
-					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES_SIGNATURE },
-						200,
-					);
-
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction =>
-						expect(transaction.asset.publicKey).to.be.a('string'),
-					);
-				});
-
 				it('using type 2 should return asset field with correct properties', async () => {
 					const res = await transactionsEndpoint.makeRequest(
 						{ type: TRANSACTION_TYPES_DELEGATE },
@@ -455,51 +338,6 @@ describe('GET /api/transactions', () => {
 					transactionsType3.map(transaction => {
 						expect(Object.keys(transaction.asset).length).to.equal(1);
 						return expect(transaction.asset.votes.length).to.be.within(1, 33);
-					});
-				});
-
-				it('using type 4 should return asset field with correct properties', async () => {
-					const signatureRequests = transactionType4.members.map(member => {
-						return {
-							signature: apiHelpers.createSignatureObject(
-								transactionType4.multiSigTransaction,
-								member,
-							),
-						};
-					});
-
-					await signatureEndpoint.makeRequests(signatureRequests, 200);
-
-					// Wait for multi-signature registration to succeed
-					await waitFor.confirmations([
-						transactionType4.multiSigTransaction.id,
-					]);
-
-					const res = await transactionsEndpoint.makeRequest(
-						{ type: TRANSACTION_TYPES_MULTI },
-						200,
-					);
-
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(3);
-						expect(transaction.asset.min).to.be.within(1, 15); // Exception: Should be 2 for multisig
-						expect(transaction.asset.lifetime).to.be.within(1, 72);
-						expect(transaction.asset.keysgroup).to.be.an('array');
-						return expect(transaction.asset.keysgroup).to.not.empty;
-					});
-				});
-				// eslint-disable-next-line
-				it.skip('using type 5 should return asset field with correct properties', async () => {
-					const res = await transactionsEndpoint.makeRequest({ type: 5 }, 200);
-
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(Object.keys(transaction.asset).length).to.equal(1);
-						// Required properties: name, category, type
-						expect(transaction.asset.dapp).to.have.property('name');
-						expect(transaction.asset.dapp.type).to.be.within(0, 2);
-						return expect(transaction.asset.dapp.category).to.be.within(0, 9);
 					});
 				});
 			});
@@ -1157,112 +995,5 @@ describe('GET /api/transactions', () => {
 					});
 			});
 		});
-
-		describe('signature', () => {
-			it('should not show signSignature when empty upon registering second passphrase', async () => {
-				// Act
-				const {
-					body: { data: transactions },
-				} = await transactionsEndpoint.makeRequest(
-					{
-						type: TRANSACTION_TYPES_SIGNATURE,
-						limit: 1,
-						senderPublicKey: accountSecondPass.senderId,
-						sort: 'timestamp:desc',
-					},
-					200,
-				);
-				// Assert
-				expect(transactions[0]).to.not.have.property('signSignature');
-			});
-
-			it('should show signSignature whem signing a transfer transaction with second passphrase', async () => {
-				// Prepare
-				const transaction = transfer({
-					networkIdentifier,
-					amount: '1',
-					passphrase: accountSecondPass.passphrase,
-					secondPassphrase: accountSecondPass.secondPassphrase,
-					recipientId: accountFixtures.existingDelegate.address,
-				});
-
-				await sendTransactionPromise(transaction, 200);
-				await waitFor.confirmations([transaction.id]);
-
-				// Act
-				const {
-					body: { data: transactions },
-				} = await transactionsEndpoint.makeRequest({ id: transaction.id }, 200);
-				// Assert
-				expect(transactions[0].signSignature).to.not.be.empty;
-			});
-		});
-
-		/**
-		 * This tests will fail because type 6 and type 7 transactions got disabled in Lisk Core v1.0
-		 * You can make it pass locally, by changing the value for disableDappTransfer
-		 * in config/default/exceptions to a value bigger than 0
-		 * */
-		/* eslint-disable mocha/no-skipped-tests */
-		describe.skip('dapp', () => {
-			before(() => {
-				return sendTransactionPromise(transaction4) // send type 0 transaction
-					.then(result => {
-						expect(result.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transaction4.id]); // wait for confirmation
-					})
-					.then(() => {
-						return sendTransactionPromise(transactionType5); // send type 5 transaction
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transactionType5.id]); // wait for confirmation
-					})
-					.then(() => {
-						return sendTransactionPromise(transactionType6); // send type 6 transaction
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transactionType6.id]); // wait for confirmation
-					})
-					.then(() => {
-						return sendTransactionPromise(transactionType7); // send type 7 transaction
-					})
-					.then(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted',
-						);
-						return waitFor.confirmations([transactionType7.id]); // wait for confirmation
-					});
-			});
-			it('assets for type 6 transactions should contain key dappId', async () => {
-				return transactionsEndpoint.makeRequest({ type: 6 }, 200).then(res => {
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(transaction.asset).to.have.key('inTransfer');
-						return expect(transaction.asset.inTransfer).to.have.key('dappId');
-					});
-				});
-			});
-			it('assets for type 7 transactions should contain key dappId and transactionId', async () => {
-				return transactionsEndpoint.makeRequest({ type: 7 }, 200).then(res => {
-					expect(res.body.data).to.not.empty;
-					res.body.data.map(transaction => {
-						expect(transaction.asset).to.have.key('outTransfer');
-						return expect(transaction.asset.outTransfer).to.have.all.keys(
-							'dappId',
-							'transactionId',
-						);
-					});
-				});
-			});
-		});
-		/* eslint-enable mocha/no-skipped-tests */
 	});
 });

@@ -45,7 +45,8 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 				storage.adapter.db.none('UPDATE mem_accounts SET "producedBlocks" = 0'),
 			]);
 		});
-		library.modules.blocks._lastBlock = __testContext.config.genesisBlock;
+		library.modules.chain.resetBlockHeaderCache();
+		library.modules.chain._lastBlock = __testContext.config.genesisBlock;
 	});
 
 	let block;
@@ -76,7 +77,8 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {
 				beforeEach(async () => {
 					block.previousBlockId = null;
-					library.modules.blocks._lastBlock = block;
+					library.modules.chain.resetBlockHeaderCache();
+					library.modules.chain._lastBlock = block;
 				});
 
 				it('should fail with proper error', async () => {
@@ -135,7 +137,7 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 			describe('when deleteBlockStep fails', () => {
 				beforeEach(async () => {
 					sinonSandbox
-						.stub(library.modules.blocks.storage.entities.Block, 'delete')
+						.stub(library.modules.chain.storage.entities.Block, 'delete')
 						.rejects(new Error('err'));
 				});
 
@@ -151,13 +153,13 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 					}
 				});
 
-				it('modules.blocks.chain.deleteBlock should be called once', async () => {
+				it('modules.chain.deleteBlock should be called once', async () => {
 					try {
 						await library.modules.processor.deleteLastBlock();
 					} catch (error) {
 						expect(error.message).to.eql('err');
 					}
-					expect(library.modules.blocks.storage.entities.Block.delete).to.be
+					expect(library.modules.chain.storage.entities.Block.delete).to.be
 						.calledOnce;
 				});
 

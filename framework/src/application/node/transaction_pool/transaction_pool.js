@@ -1,0 +1,364 @@
+/*
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+'use strict';
+
+const EventEmitter = require('events');
+const _ = require('lodash');
+const pool = require('@liskhq/lisk-transaction-pool');
+const {
+	Status: TransactionStatus,
+	TransactionError,
+} = require('@liskhq/lisk-transactions');
+const { sortBy } = require('./sort');
+
+const EVENT_UNCONFIRMED_TRANSACTION = 'EVENT_UNCONFIRMED_TRANSACTION';
+
+const receivedQueue = 'received';
+// TODO: Need to decide which queue will include transactions in the validated queue
+const verifiedQueue = 'verified';
+const readyQueue = 'ready';
+const validatedQueue = 'validated';
+
+const handleAddTransactionResponse = (addTransactionResponse, transaction) => {
+	if (addTransactionResponse.isFull) {
+		throw new Error('Transaction pool is full');
+	}
+	if (addTransactionResponse.alreadyExists) {
+		if (addTransactionResponse.queueName === readyQueue) {
+			throw new Error('Transaction is already in unconfirmed state');
+		}
+		throw new Error(`Transaction is already processed: ${transaction.id}`);
+	}
+	return addTransactionResponse;
+};
+
+class TransactionPool extends EventEmitter {
+	constructor({
+		chain,
+		logger,
+		broadcastInterval,
+		releaseLimit,
+		expireTransactionsInterval,
+		maxSharedTransactions,
+		maxTransactionsPerQueue,
+		maxTransactionsPerBlock,
+	}) {
+		super();
+		this.chain = chain;
+		this.logger = logger;
+		this.expireTransactionsInterval = expireTransactionsInterval;
+		this.maxTransactionsPerQueue = maxTransactionsPerQueue;
+		this.maxTransactionsPerBlock = maxTransactionsPerBlock;
+		this.maxSharedTransactions = maxSharedTransactions;
+		this.bundledInterval = broadcastInterval;
+		this.bundleLimit = releaseLimit;
+
+		this.validateTransactions = transactions =>
+			this.chain.validateTransactions(transactions);
+		this.verifyTransactions = transactions =>
+			this.chain.verifyTransactions(transactions);
+		this.processTransactions = transactions =>
+			this.chain.processTransactions(transactions);
+
+		this._resetPool();
+	}
+
+	_resetPool() {
+		const poolConfig = {
+			expireTransactionsInterval: this.expireTransactionsInterval,
+			maxTransactionsPerQueue: this.maxTransactionsPerQueue,
+			receivedTransactionsLimitPerProcessing: this.bundleLimit,
+			receivedTransactionsProcessingInterval: this.bundledInterval,
+			validatedTransactionsLimitPerProcessing: this.bundleLimit,
+			validatedTransactionsProcessingInterval: this.bundledInterval,
+			verifiedTransactionsLimitPerProcessing: this.maxTransactionsPerBlock,
+			verifiedTransactionsProcessingInterval: this.bundledInterval,
+		};
+
+		const poolDependencies = {
+			validateTransactions: this.validateTransactions,
+			verifyTransactions: this.verifyTransactions,
+			processTransactions: this.processTransactions,
+		};
+
+		this.pool = new pool.TransactionPool({
+			...poolConfig,
+			...poolDependencies,
+		});
+
+		this.subscribeEvents();
+	}
+
+	subscribeEvents() {
+		this.pool.on(pool.EVENT_VERIFIED_TRANSACTION_ONCE, ({ payload }) => {
+			if (payload.length > 0) {
+				payload.forEach(aTransaction =>
+					this.emit(EVENT_UNCONFIRMED_TRANSACTION, aTransaction),
+				);
+			}
+		});
+
+		this.pool.on(pool.EVENT_ADDED_TRANSACTIONS, ({ action, to, payload }) => {
+			if (payload.length > 0) {
+				this.logger.info(
+					`Transaction pool - added transactions ${
+						to ? `to ${to} queue` : ''
+					} on action: ${action} with ID(s): ${payload.map(
+						transaction => transaction.id,
+					)}`,
+				);
+			}
+		});
+
+		this.pool.on(pool.EVENT_REMOVED_TRANSACTIONS, ({ action, payload }) => {
+			if (payload.length > 0) {
+				this.logger.info(
+					`Transaction pool - removed transactions on action: ${action} with ID(s): ${payload.map(
+						transaction => transaction.id,
+					)}`,
+				);
+
+				const queueSizes = Object.keys(this.pool._queues)
+					.map(
+						queueName =>
+							`${queueName} size: ${this.pool._queues[queueName].size()}`,
+					)
+					.join(' ');
+
+				this.logger.info(`Transaction pool - ${queueSizes}`);
+			}
+		});
+	}
+
+	transactionInPool(id) {
+		return this.pool.existsInTransactionPool(id);
+	}
+
+	getUnconfirmedTransactionList(reverse, limit) {
+		return this.getTransactionsList(readyQueue, reverse, limit);
+	}
+
+	getBundledTransactionList(reverse, limit) {
+		return this.getTransactionsList(receivedQueue, reverse, limit);
+	}
+
+	getQueuedTransactionList(reverse, limit) {
+		return this.getTransactionsList(verifiedQueue, reverse, limit);
+	}
+
+	getValidatedTransactionList(reverse, limit) {
+		return this.getTransactionsList(validatedQueue, reverse, limit);
+	}
+
+	getReceivedTransactionList(reverse, limit) {
+		return this.getTransactionsList(receivedQueue, reverse, limit);
+	}
+
+	getCountByQueue(queueName) {
+		return this.pool.queues[queueName].size();
+	}
+
+	getCount() {
+		return {
+			ready: this.getCountByQueue('ready') || 0,
+			verified: this.getCountByQueue('verified') || 0,
+			validated: this.getCountByQueue('validated') || 0,
+			received: this.getCountByQueue('received') || 0,
+		};
+	}
+
+	getTransactionsList(queueName, reverse, limit) {
+		const { transactions } = this.pool.queues[queueName];
+		let transactionList = [...transactions];
+
+		transactionList = reverse ? transactionList.reverse() : transactionList;
+
+		if (limit) {
+			transactionList.splice(limit);
+		}
+
+		return transactionList;
+	}
+
+	async fillPool() {
+		await this.pool.validateReceivedTransactions();
+		await this.pool.verifyValidatedTransactions();
+		await this.pool.processVerifiedTransactions();
+	}
+
+	getMergedTransactionList(
+		reverse = false,
+		limit = this.maxSharedTransactions,
+	) {
+		if (limit > this.maxSharedTransactions) {
+			limit = this.maxSharedTransactions;
+		}
+
+		const ready = this.getUnconfirmedTransactionList(
+			reverse,
+			Math.min(this.maxTransactionsPerBlock, limit),
+		);
+		limit -= ready.length;
+		const verified = this.getQueuedTransactionList(reverse, limit);
+
+		return [...ready, ...verified];
+	}
+
+	addBundledTransaction(transaction) {
+		return handleAddTransactionResponse(
+			this.pool.addTransaction(transaction),
+			transaction,
+		);
+	}
+
+	addVerifiedTransaction(transaction) {
+		return handleAddTransactionResponse(
+			this.pool.addVerifiedTransaction(transaction),
+			transaction,
+		);
+	}
+
+	async processUnconfirmedTransaction(transaction) {
+		if (this.transactionInPool(transaction.id)) {
+			throw [
+				new TransactionError(
+					`Transaction is already processed: ${transaction.id}`,
+					transaction.id,
+					'.id',
+				),
+			];
+		}
+
+		if (
+			this.chain.slots.getSlotNumber(transaction.timestamp) >
+			this.chain.slots.getSlotNumber()
+		) {
+			throw [
+				new TransactionError(
+					'Invalid transaction timestamp. Timestamp is in the future',
+					transaction.id,
+					'.timestamp',
+				),
+			];
+		}
+
+		if (transaction.bundled) {
+			return this.addBundledTransaction(transaction);
+		}
+		const { transactionsResponses } = await this.verifyTransactions([
+			transaction,
+		]);
+		if (transactionsResponses[0].status === TransactionStatus.OK) {
+			return this.addVerifiedTransaction(transaction);
+		}
+		this.logger.info(`Transaction pool - ${transactionsResponses[0].errors}`);
+		throw transactionsResponses[0].errors;
+	}
+
+	onConfirmedTransactions(transactions) {
+		this.pool.removeConfirmedTransactions(transactions);
+	}
+
+	onDeletedTransactions(transactions) {
+		this.pool.addVerifiedRemovedTransactions(transactions);
+	}
+
+	getPooledTransactions(type, filters) {
+		const typeMap = {
+			ready: 'getUnconfirmedTransactionList',
+			received: 'getReceivedTransactionList',
+			validated: 'getValidatedTransactionList',
+			verified: 'getQueuedTransactionList',
+		};
+		const transactions = this[typeMap[type]](true);
+		let toSend = [];
+
+		// Filter transactions
+		if (
+			filters.id ||
+			filters.senderId ||
+			filters.recipientId ||
+			filters.senderPublicKey ||
+			typeof filters.type === 'number'
+		) {
+			const omittedFilters = _.omit(filters, ['limit', 'offset', 'sort']);
+			toSend = transactions.filter(tx => {
+				if (omittedFilters.recipientId) {
+					return (
+						tx.asset && tx.asset.recipientId === omittedFilters.recipientId
+					);
+				}
+
+				return Object.keys(omittedFilters).every(key => {
+					if (key === 'type') {
+						return tx.type === omittedFilters[key];
+					}
+					return tx[key] && tx[key] === omittedFilters[key];
+				});
+			});
+		} else {
+			toSend = _.cloneDeep(transactions);
+		}
+
+		// Sort the results
+		const sortAttribute = sortBy(filters.sort, { quoteField: false });
+
+		if (
+			sortAttribute.sortField === 'fee' ||
+			sortAttribute.sortField === 'amount'
+		) {
+			/**
+			 * sortOrder - Sorting by asc or desc, -1 desc order, 1 is asc order
+			 * amount and fee are bigint here, so in order to sort
+			 * we need to use bigint functions here specific to amount, fee
+			 */
+			const sortOrder =
+				sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
+			toSend = toSend.sort((a, b) => {
+				if (sortAttribute.sortField === 'fee') {
+					return Number(a.fee - b.fee) * sortOrder;
+				}
+				return (
+					Number(
+						(a.asset.amount || BigInt(0)) - BigInt(b.asset.amount || BigInt(0)),
+					) * sortOrder
+				);
+			});
+		} else {
+			toSend = _.orderBy(
+				toSend,
+				[sortAttribute.sortField],
+				[sortAttribute.sortMethod.toLowerCase()],
+			);
+		}
+
+		// Paginate filtered transactions
+		toSend = toSend.slice(filters.offset, filters.offset + filters.limit);
+
+		return {
+			transactions: toSend,
+			count: transactions.length,
+		};
+	}
+
+	findInTransactionPool(id) {
+		return this.pool.findInTransactionPool(id);
+	}
+}
+
+module.exports = {
+	TransactionPool,
+	EVENT_UNCONFIRMED_TRANSACTION,
+};

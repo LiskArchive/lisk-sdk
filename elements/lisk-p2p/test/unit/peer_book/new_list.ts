@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
 import { NewList, NewListConfig } from '../../../src/peer_book/new_list';
-import { P2PEnhancedPeerInfo } from '../../../src/p2p_types';
+import { P2PEnhancedPeerInfo } from '../../../src/types';
 import {
 	initPeerInfoListWithSuffix,
 	initPeerInfoList,
@@ -44,11 +43,11 @@ describe('New Peers List', () => {
 		});
 
 		it(`should set properties correctly and create a map of ${DEFAULT_NEW_BUCKET_COUNT} size with ${DEFAULT_NEW_BUCKET_COUNT} buckets each`, () => {
-			expect(newPeersList.newPeerConfig).to.be.eql(newPeerConfig);
-			expect(newPeersList.newPeerConfig.bucketSize).to.be.equal(
+			expect(newPeersList.newPeerConfig).toEqual(newPeerConfig);
+			expect(newPeersList.newPeerConfig.bucketSize).toBe(
 				DEFAULT_NEW_BUCKET_SIZE,
 			);
-			expect(newPeersList.newPeerConfig.numOfBuckets).to.be.equal(
+			expect(newPeersList.newPeerConfig.numOfBuckets).toBe(
 				DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});
@@ -67,7 +66,7 @@ describe('New Peers List', () => {
 		});
 
 		it('should get new peer config', () => {
-			expect(newPeersList.newPeerConfig).to.eql({
+			expect(newPeersList.newPeerConfig).toEqual({
 				...(newPeersList as any).peerListConfig,
 				evictionThresholdTime: DEFAULT_EVICTION_THRESHOLD_TIME,
 			});
@@ -76,11 +75,9 @@ describe('New Peers List', () => {
 
 	describe('#makeSpace', () => {
 		let samplePeers: ReadonlyArray<P2PEnhancedPeerInfo>;
-		let clock: sinon.SinonFakeTimers;
 		let bucket: Map<string, P2PEnhancedPeerInfo>;
-		let calculateBucketStub: any;
 		beforeEach(() => {
-			clock = sandbox.useFakeTimers();
+			jest.useFakeTimers();
 			samplePeers = initPeerInfoList().map(peerInfo => ({
 				...peerInfo,
 				dateAdded: new Date(),
@@ -93,17 +90,20 @@ describe('New Peers List', () => {
 			});
 			bucket = new Map<string, P2PEnhancedPeerInfo>();
 			bucket.set(samplePeers[1].peerId, samplePeers[2]);
-			calculateBucketStub = sandbox.stub(newPeersList, 'calculateBucket');
 		});
 
 		describe('when bucket is full', () => {
 			describe('when bucket contains old peers', () => {
 				it('should evict just one of them', () => {
-					clock.tick(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
-					calculateBucketStub.returns({ bucketId: 0, bucket });
+					jest.advanceTimersByTime(DEFAULT_EVICTION_THRESHOLD_TIME + 1);
+
+					jest
+						.spyOn(newPeersList, 'calculateBucket')
+						.mockReturnValue({ bucketId: 0, bucket });
+
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect(evictedPeer as any).to.be.eql(samplePeers[2]);
+					expect(evictedPeer as any).toEqual(samplePeers[2]);
 				});
 			});
 
@@ -111,7 +111,9 @@ describe('New Peers List', () => {
 				it('should evict one peer randomly', () => {
 					const evictedPeer = newPeersList.makeSpace(bucket);
 
-					expect(samplePeers).to.include(evictedPeer as any);
+					expect(samplePeers).toEqual(
+						expect.arrayContaining([evictedPeer as any]),
+					);
 				});
 			});
 		});
@@ -121,13 +123,12 @@ describe('New Peers List', () => {
 				bucket = new Map<string, P2PEnhancedPeerInfo>();
 				const evictedPeer = newPeersList.makeSpace(bucket);
 
-				expect(evictedPeer).to.be.undefined;
+				expect(evictedPeer).toBeUndefined();
 			});
 		});
 	});
 
 	describe('when there is a large sample of peers', () => {
-		let clock: sinon.SinonFakeTimers;
 		const samplePeersA = initPeerInfoListWithSuffix(
 			'1.222.123',
 			DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT * 2,
@@ -138,7 +139,7 @@ describe('New Peers List', () => {
 		);
 
 		beforeEach(() => {
-			clock = sandbox.useFakeTimers();
+			jest.useFakeTimers();
 			newPeerConfig = {
 				bucketSize: DEFAULT_NEW_BUCKET_SIZE,
 				numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
@@ -150,21 +151,21 @@ describe('New Peers List', () => {
 			newPeersList = new NewList(newPeerConfig);
 
 			samplePeersA.forEach(peerInfo => {
-				clock.tick(2);
+				jest.advanceTimersByTime(2);
 				newPeersList.addPeer(peerInfo);
 			});
 
-			clock.tick(600000);
+			jest.advanceTimersByTime(600000);
 
 			samplePeersB.forEach(peerInfo => {
-				clock.tick(2);
+				jest.advanceTimersByTime(2);
 				newPeersList.addPeer(peerInfo);
 			});
 		});
 
 		it(`should not allow newPeer list to grow beyond ${DEFAULT_NEW_BUCKET_SIZE *
 			DEFAULT_NEW_BUCKET_COUNT} peers`, () => {
-			expect(newPeersList.peerList.length).to.be.lte(
+			expect(newPeersList.peerList.length).toBeLessThanOrEqual(
 				DEFAULT_NEW_BUCKET_SIZE * DEFAULT_NEW_BUCKET_COUNT,
 			);
 		});

@@ -9,13 +9,14 @@
 	"handler": "7_delegates_partial_switch",
 	"testCases": [
 		{
+			"description": "When block with height 1 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
-					"blockId": "7748076420210162913",
+					"id": "7748076420210162913",
 					"height": 1,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
@@ -30,13 +31,14 @@
 			}
 		},
 		{
+			"description": "When block with height 2 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
-					"blockId": "15308683162207262446",
+					"id": "15308683162207262446",
 					"height": 2,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
@@ -52,13 +54,14 @@
 			}
 		},
 		{
+			"description": "When block with height 3 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
-					"blockId": "5622533601426856843",
+					"id": "5622533601426856843",
 					"height": 3,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
@@ -75,13 +78,14 @@
 			}
 		},
 		{
+			"description": "When block with height 4 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
-					"blockId": "5414021058608832454",
+					"id": "5414021058608832454",
 					"height": 4,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
@@ -99,13 +103,14 @@
 			}
 		},
 		{
+			"description": "When block with height 5 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
-					"blockId": "17234451680913495083",
+					"id": "17234451680913495083",
 					"height": 5,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 0
 				}
@@ -124,13 +129,14 @@
 			}
 		},
 		{
+			"description": "When block with height 6 is forged",
 			"input": {
 				"delegateName": "D6",
 				"blockHeader": {
-					"blockId": "16714758248282885559",
+					"id": "16714758248282885559",
 					"height": 6,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
+					"generatorPublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 1
 				}
@@ -152,13 +158,14 @@
 			}
 		},
 		{
+			"description": "When block with height 7 is forged",
 			"input": {
 				"delegateName": "D7",
 				"blockHeader": {
-					"blockId": "8719647946811673230",
+					"id": "8719647946811673230",
 					"height": 7,
 					"maxHeightPreviouslyForged": 0,
-					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 2
 				}
@@ -182,13 +189,14 @@
 			}
 		},
 		{
+			"description": "When block with height 8 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
-					"blockId": "3198191471355371895",
+					"id": "3198191471355371895",
 					"height": 8,
 					"maxHeightPreviouslyForged": 2,
-					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 3
 				}
@@ -214,13 +222,14 @@
 			}
 		},
 		{
+			"description": "When block with height 9 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
-					"blockId": "1826242805484023040",
+					"id": "1826242805484023040",
 					"height": 9,
 					"maxHeightPreviouslyForged": 3,
-					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 4
 				}
@@ -248,13 +257,14 @@
 			}
 		},
 		{
+			"description": "When block with height 10 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
-					"blockId": "5351644240885712040",
+					"id": "5351644240885712040",
 					"height": 10,
 					"maxHeightPreviouslyForged": 1,
-					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 5
 				}
@@ -284,13 +294,14 @@
 			}
 		},
 		{
+			"description": "When block with height 11 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
-					"blockId": "5748892369479747538",
+					"id": "5748892369479747538",
 					"height": 11,
 					"maxHeightPreviouslyForged": 4,
-					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 6
 				}
@@ -322,13 +333,14 @@
 			}
 		},
 		{
+			"description": "When block with height 12 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
-					"blockId": "7733195345837784852",
+					"id": "7733195345837784852",
 					"height": 12,
 					"maxHeightPreviouslyForged": 9,
-					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -361,13 +373,14 @@
 			}
 		},
 		{
+			"description": "When block with height 13 is forged",
 			"input": {
 				"delegateName": "D7",
 				"blockHeader": {
-					"blockId": "4601451072787876934",
+					"id": "4601451072787876934",
 					"height": 13,
 					"maxHeightPreviouslyForged": 10,
-					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -401,13 +414,14 @@
 			}
 		},
 		{
+			"description": "When block with height 14 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
-					"blockId": "9594822875653870441",
+					"id": "9594822875653870441",
 					"height": 14,
 					"maxHeightPreviouslyForged": 11,
-					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -442,13 +456,14 @@
 			}
 		},
 		{
+			"description": "When block with height 15 is forged",
 			"input": {
 				"delegateName": "D7",
 				"blockHeader": {
-					"blockId": "16585062417031443062",
+					"id": "16585062417031443062",
 					"height": 15,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -483,13 +498,14 @@
 			}
 		},
 		{
+			"description": "When block with height 16 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
-					"blockId": "12789931371912649502",
+					"id": "12789931371912649502",
 					"height": 16,
 					"maxHeightPreviouslyForged": 12,
-					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -526,13 +542,14 @@
 			}
 		},
 		{
+			"description": "When block with height 17 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
-					"blockId": "4981918036555779351",
+					"id": "4981918036555779351",
 					"height": 17,
 					"maxHeightPreviouslyForged": 14,
-					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -570,13 +587,14 @@
 			}
 		},
 		{
+			"description": "When block with height 18 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
-					"blockId": "5677167347966923126",
+					"id": "5677167347966923126",
 					"height": 18,
 					"maxHeightPreviouslyForged": 15,
-					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -615,13 +633,14 @@
 			}
 		},
 		{
+			"description": "When block with height 19 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
-					"blockId": "10664789664901441495",
+					"id": "10664789664901441495",
 					"height": 19,
 					"maxHeightPreviouslyForged": 16,
-					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -661,13 +680,14 @@
 			}
 		},
 		{
+			"description": "When block with height 20 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
-					"blockId": "17711031119314540266",
+					"id": "17711031119314540266",
 					"height": 20,
 					"maxHeightPreviouslyForged": 17,
-					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -708,13 +728,14 @@
 			}
 		},
 		{
+			"description": "When block with height 21 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
-					"blockId": "8019615789267006368",
+					"id": "8019615789267006368",
 					"height": 21,
 					"maxHeightPreviouslyForged": 18,
-					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -756,13 +777,14 @@
 			}
 		},
 		{
+			"description": "When block with height 22 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
-					"blockId": "8673720435704263435",
+					"id": "8673720435704263435",
 					"height": 22,
 					"maxHeightPreviouslyForged": 19,
-					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -805,13 +827,14 @@
 			}
 		},
 		{
+			"description": "When block with height 23 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
-					"blockId": "6007699706281844106",
+					"id": "6007699706281844106",
 					"height": 23,
 					"maxHeightPreviouslyForged": 20,
-					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -855,13 +878,14 @@
 			}
 		},
 		{
+			"description": "When block with height 24 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
-					"blockId": "13994197425134364572",
+					"id": "13994197425134364572",
 					"height": 24,
 					"maxHeightPreviouslyForged": 21,
-					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -906,13 +930,14 @@
 			}
 		},
 		{
+			"description": "When block with height 25 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
-					"blockId": "13233097926675734316",
+					"id": "13233097926675734316",
 					"height": 25,
 					"maxHeightPreviouslyForged": 22,
-					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -958,13 +983,14 @@
 			}
 		},
 		{
+			"description": "When block with height 26 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
-					"blockId": "6889463652104827991",
+					"id": "6889463652104827991",
 					"height": 26,
 					"maxHeightPreviouslyForged": 23,
-					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1011,13 +1037,14 @@
 			}
 		},
 		{
+			"description": "When block with height 27 is forged",
 			"input": {
 				"delegateName": "D7",
 				"blockHeader": {
-					"blockId": "7423746163586646358",
+					"id": "7423746163586646358",
 					"height": 27,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1064,13 +1091,14 @@
 			}
 		},
 		{
+			"description": "When block with height 28 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
-					"blockId": "6476623794736544246",
+					"id": "6476623794736544246",
 					"height": 28,
 					"maxHeightPreviouslyForged": 25,
-					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1119,13 +1147,14 @@
 			}
 		},
 		{
+			"description": "When block with height 29 is forged",
 			"input": {
 				"delegateName": "D7",
 				"blockHeader": {
-					"blockId": "3824500196583291025",
+					"id": "3824500196583291025",
 					"height": 29,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
+					"generatorPublicKey": "831381a14e90356ed8c78b5fbf15758f3c243e1eb29301f144bd5e6b474d577e",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1174,13 +1203,14 @@
 			}
 		},
 		{
+			"description": "When block with height 30 is forged",
 			"input": {
 				"delegateName": "D5",
 				"blockHeader": {
-					"blockId": "7082861240554195963",
+					"id": "7082861240554195963",
 					"height": 30,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
+					"generatorPublicKey": "e6bbdb9f6ddd65d94c52e8cb552acb8682b0aec91c9eba2dc13ed70976198807",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1230,13 +1260,14 @@
 			}
 		},
 		{
+			"description": "When block with height 31 is forged",
 			"input": {
 				"delegateName": "D2",
 				"blockHeader": {
-					"blockId": "16942035922560182651",
+					"id": "16942035922560182651",
 					"height": 31,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
+					"generatorPublicKey": "f7a73f303f46ada157ce3cea5ffff1290a291e255fcd26678a185fd8aee33054",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1287,13 +1318,14 @@
 			}
 		},
 		{
+			"description": "When block with height 32 is forged",
 			"input": {
 				"delegateName": "D3",
 				"blockHeader": {
-					"blockId": "16329097976039504304",
+					"id": "16329097976039504304",
 					"height": 32,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
+					"generatorPublicKey": "544d87cbf83b7c1572bb0d9f95abd5db89d0930bbb91980ea0dd7942a1cd38a3",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1345,13 +1377,14 @@
 			}
 		},
 		{
+			"description": "When block with height 33 is forged",
 			"input": {
 				"delegateName": "D1",
 				"blockHeader": {
-					"blockId": "14335991531000451860",
+					"id": "14335991531000451860",
 					"height": 33,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
+					"generatorPublicKey": "6352b9c9d2a263eaa701b53314e3021607d41e1ba6d799270f08adcba50841b7",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1404,13 +1437,14 @@
 			}
 		},
 		{
+			"description": "When block with height 34 is forged",
 			"input": {
 				"delegateName": "D6",
 				"blockHeader": {
-					"blockId": "9720176785496629553",
+					"id": "9720176785496629553",
 					"height": 34,
 					"maxHeightPreviouslyForged": 6,
-					"delegatePublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
+					"generatorPublicKey": "a5e64124704630218f66b2f27c913e2d37a6ae57cc717b08b829d62cbc4d79fb",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 7
 				}
@@ -1465,13 +1499,14 @@
 			}
 		},
 		{
+			"description": "When block with height 35 is forged",
 			"input": {
 				"delegateName": "D4",
 				"blockHeader": {
-					"blockId": "11462789541162015536",
+					"id": "11462789541162015536",
 					"height": 35,
 					"maxHeightPreviouslyForged": 29,
-					"delegatePublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
+					"generatorPublicKey": "c2d2f82c6015fd7ed00a9e1585927a8039d63cb7afd4f7c03ad059a93c2bd6b5",
 					"delegateMinHeightActive": 1,
 					"maxHeightPrevoted": 30
 				}

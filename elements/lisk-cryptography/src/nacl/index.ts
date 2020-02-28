@@ -14,21 +14,17 @@
  */
 import { NaclInterface } from './nacl_types';
 
-// tslint:disable-next-line no-let
-let lib: NaclInterface;
+// tslint:disable-next-line no-let no-require-imports no-var-requires
+let lib: NaclInterface = require('./slow');
 
+// Use try/catch for browser fallback support
 try {
-	if (process.env.NACL_FAST === 'disable') {
-		throw new Error('Use tweetnacl');
+	if (process.env.NACL_FAST !== 'disable') {
+		// tslint:disable-next-line no-var-requires no-require-imports
+		lib = require('./fast');
 	}
-	// Require used for conditional importing
-	// tslint:disable-next-line no-var-requires no-require-imports
-	lib = require('./fast');
-} catch (err) {
-	process.env.NACL_FAST = 'disable';
-	// tslint:disable-next-line no-var-requires no-require-imports
-	lib = require('./slow');
-}
+	// tslint:disable-next-line no-empty
+} catch (err) {}
 
 export const NACL_SIGN_PUBLICKEY_LENGTH = 32;
 

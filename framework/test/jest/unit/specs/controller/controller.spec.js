@@ -17,7 +17,6 @@
 const fs = require('fs-extra');
 const Controller = require('../../../../../src/controller/controller');
 const Bus = require('../../../../../src/controller/bus');
-const InMemoryChannel = require('../../../../../src/controller/channels/in_memory_channel');
 
 jest.mock('fs-extra');
 jest.mock('../../../../../src/controller/bus');
@@ -31,17 +30,19 @@ describe('Controller Class', () => {
 		info: jest.fn(),
 		error: jest.fn(),
 	};
+	const storage = {
+		entities: {
+			Migration: {
+				applyAll: jest.fn(),
+			},
+		},
+	};
+	const channel = {
+		registerToBus: jest.fn(),
+	};
 	const config = {
 		components: '#CONFIG',
 		tempPath: '/tmp/lisk',
-	};
-	const initialState = {
-		version: '1.0.0-beta.3',
-		wsPort: '3001',
-		httpPort: '3000',
-		minVersion: '1.0.0-beta.0',
-		protocolVersion: '1.0',
-		nethash: 'test nethash',
 	};
 	const systemDirs = {
 		temp: `${config.tempPath}/${appLabel}/`,
@@ -59,11 +60,21 @@ describe('Controller Class', () => {
 		},
 	};
 
+	const params = {
+		appLabel,
+		config,
+		logger,
+		storage,
+		channel,
+	};
+
 	let controller = null;
 
 	beforeEach(() => {
+		// Arrange
+		fs.readdirSync = jest.fn().mockReturnValue([]);
 		// Act
-		controller = new Controller(appLabel, config, initialState, logger);
+		controller = new Controller(params);
 	});
 
 	afterEach(async () => {
@@ -78,7 +89,8 @@ describe('Controller Class', () => {
 			expect(controller.appLabel).toEqual(appLabel);
 			expect(controller.config).toEqual(configController);
 			expect(controller.modules).toEqual({});
-			expect(controller.channel).toBeNull();
+			expect(controller.channel).toBe(channel);
+			expect(controller.storage).toBe(storage);
 			expect(controller.bus).toBeNull();
 		});
 	});
@@ -89,7 +101,6 @@ describe('Controller Class', () => {
 			const spies = {
 				_setupDirectories: jest.spyOn(controller, '_setupDirectories'),
 				_validatePidFile: jest.spyOn(controller, '_validatePidFile'),
-				_initState: jest.spyOn(controller, '_initState'),
 				_setupBus: jest.spyOn(controller, '_setupBus'),
 				_loadMigrations: jest
 					.spyOn(controller, '_loadMigrations')
@@ -100,7 +111,7 @@ describe('Controller Class', () => {
 			const moduleOptions = {};
 
 			// Act
-			await controller.load(modules, moduleOptions);
+			await controller.load(modules, moduleOptions, {}, {});
 
 			// Assert
 			// Order of the functions matters in load method
@@ -108,46 +119,30 @@ describe('Controller Class', () => {
 			expect(spies._validatePidFile).toHaveBeenCalledAfter(
 				spies._setupDirectories,
 			);
-			expect(spies._initState).toHaveBeenCalledAfter(spies._validatePidFile);
-			expect(spies._setupBus).toHaveBeenCalledAfter(spies._initState);
+			expect(spies._setupBus).toHaveBeenCalledAfter(spies._validatePidFile);
 			expect(spies._loadMigrations).toHaveBeenCalledAfter(spies._setupBus);
 			expect(spies._loadModules).toHaveBeenCalledAfter(spies._loadMigrations);
 			expect(spies._loadModules).toHaveBeenCalledWith(modules, moduleOptions);
 		});
 
-		// #region TODO channel.publish('app:ready')
-		it.todo(
-			'should publish "app:ready" event.',
-			/**
-			, async () => {
-				// Arrange
-				const modules = {};
-				const spies = {
-					/**
-					 * _validatePidFile is interacting with File System,
-					 * and throwing exception when we have multiple pid files,
-					 * with the same label.
-					 * /
-					_validatePidFile: jest
-						.spyOn(controller, '_validatePidFile')
-						.mockResolvedValue(''),
-				};
+		it('should log registered events and actions', async () => {
+			// Arrange
+			const modules = {};
+			const moduleOptions = {};
 
-				// Act
-				await controller.load(modules);
+			// Act
+			await controller.load(modules, moduleOptions, {}, {});
 
-				// Arrange Again
-				// Channel is established after load method was executed
-				// Therefore, we couldn't spy it before.
-				// @ToDO This initialization logic should be improved.
-				spies.channelPublish = jest.spyOn(controller.channel, 'publish');
-
-				// Assert
-				expect(spies.channelPublish).toHaveBeenCalledWith('app:ready');
-			}
-		*/
-		);
-		// #endregion
+			// Assert
+			expect(logger.debug).toHaveBeenCalledWith(
+				undefined,
+				'Bus listening to events',
+			);
+			expect(logger.debug).toHaveBeenCalledWith(
+				undefined,
+				'Bus ready for actions',
+			);
+		});
 	});
 
 	describe('#setupDirectories', () => {
@@ -160,10 +155,6 @@ describe('Controller Class', () => {
 			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.sockets);
 			expect(fs.ensureDir).toHaveBeenCalledWith(systemDirs.pids);
 		});
-	});
-
-	describe('#_initState', () => {
-		it.todo('should create application state');
 	});
 
 	describe('#_validatePidFile', () => {
@@ -199,23 +190,6 @@ describe('Controller Class', () => {
 		it('should call `controller.bus.setup()` method.', () => {
 			// Assert
 			expect(controller.bus.setup).toHaveBeenCalled();
-		});
-
-		it('should set created `InMemoryChannel` instance to `controller.channel` property.', () => {
-			// Assert
-			/**
-			 * @todo it is not possible to test the arguments at the moment.
-				expect(InMemoryChannel).toHaveBeenCalledWith(
-					'app',
-					['ready'],
-					{
-						getComponentConfig: () => {},
-					},
-					controller.bus,
-					{ skipInternalEvents: true }
-				);
-			*/
-			expect(controller.channel).toBeInstanceOf(InMemoryChannel);
 		});
 
 		it('should call `controller.channel.registerToBus()` method.', () => {

@@ -14,6 +14,7 @@
  */
 // P2P general
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
+export const EVENT_NEW_INBOUND_PEER_CONNECTION = 'newInboundPeerConnection';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NETWORK_READY = 'networkReady';
 
@@ -26,7 +27,6 @@ export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
 export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
 export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
 export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_UNBAN_PEER = 'unbanPeer';
 export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
 export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
 export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';

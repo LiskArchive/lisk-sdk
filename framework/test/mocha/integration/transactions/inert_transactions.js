@@ -39,8 +39,8 @@ describe('inert transactions', () => {
 
 	localCommon.beforeBlock('inert_transactions', lib => {
 		library = lib;
-		library.modules.blocks.exceptions = {
-			...library.modules.blocks.exceptions,
+		library.modules.chain.exceptions = {
+			...library.modules.chain.exceptions,
 			inertTransactions: [
 				transferInertTransaction.id,
 				voteInertTransaction.id,

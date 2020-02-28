@@ -12,18 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import {
-	P2P,
-	EVENT_MESSAGE_RECEIVED,
-	EVENT_REMOVE_PEER,
-} from '../../src/index';
+import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
-} from 'utils/network_setup';
+} from '../utils/network_setup';
+
+const { EVENT_MESSAGE_RECEIVED, EVENT_REMOVE_PEER } = events;
 
 describe('Message rate limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -114,8 +111,8 @@ describe('Message rate limit', () => {
 			const secondPeerRates = messageRates.get(targetPeerPort) || [];
 			const lastRate = secondPeerRates[secondPeerRates.length - 1];
 
-			expect(lastRate).to.be.gt(ratePerSecondLowerBound);
-			expect(lastRate).to.be.lt(ratePerSecondUpperBound);
+			expect(lastRate).toBeGreaterThan(ratePerSecondLowerBound);
+			expect(lastRate).toBeLessThan(ratePerSecondUpperBound);
 		});
 
 		it('should disconnect the peer if it tries to send messages at a rate above wsMaxMessageRate', async () => {
@@ -139,8 +136,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).to.contain(
-				firstP2PNode.nodeInfo.wsPort.toString(),
+			expect(removedPeers.get(secondP2PNode.nodeInfo.wsPort)).toEqual(
+				expect.arrayContaining([firstP2PNode.nodeInfo.wsPort.toString()]),
 			);
 		});
 	});
@@ -176,16 +173,16 @@ describe('Message rate limit', () => {
 
 		it('should track the request rate correctly when receiving requests', async () => {
 			const TOTAL_SENDS = 100;
-			const firstP2PNode = p2pNodeList[0];
+			const requesterP2PNode = p2pNodeList[1];
 			const ratePerSecondLowerBound = 70;
 			const ratePerSecondUpperBound = 130;
 
-			const targetPeerPort = NETWORK_START_PORT + 3;
+			const targetPeerPort = NETWORK_START_PORT;
 			const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(10);
-				firstP2PNode.requestFromPeer(
+				await requesterP2PNode.requestFromPeer(
 					{
 						procedure: 'proc',
 						data: 123456,
@@ -198,22 +195,22 @@ describe('Message rate limit', () => {
 			const secondPeerRates = requestRates.get(targetPeerPort) || [];
 			const lastRate = secondPeerRates[secondPeerRates.length - 1];
 
-			expect(lastRate).to.be.gt(ratePerSecondLowerBound);
-			expect(lastRate).to.be.lt(ratePerSecondUpperBound);
+			expect(lastRate).toBeGreaterThan(ratePerSecondLowerBound);
+			expect(lastRate).toBeLessThan(ratePerSecondUpperBound);
 		});
 
 		it('should disconnect the peer if it tries to send responses at a rate above wsMaxMessageRate', async () => {
 			const TOTAL_SENDS = 300;
-			const firstP2PNode = p2pNodeList[0];
-			const thirdP2PNode = p2pNodeList[2];
+			const requesterP2PNode = p2pNodeList[0];
+			const targetP2PNode = p2pNodeList[1];
 
-			const targetPeerId = `127.0.0.1:${thirdP2PNode.nodeInfo.wsPort}`;
+			const targetPeerId = `127.0.0.1:${targetP2PNode.nodeInfo.wsPort}`;
 
 			for (let i = 0; i < TOTAL_SENDS; i++) {
 				await wait(1);
 				(async () => {
 					try {
-						await firstP2PNode.requestFromPeer(
+						await requesterP2PNode.requestFromPeer(
 							{
 								procedure: 'proc',
 								data: 123456,
@@ -226,8 +223,8 @@ describe('Message rate limit', () => {
 
 			await wait(10);
 
-			expect(removedPeers.get(thirdP2PNode.nodeInfo.wsPort)).to.contain(
-				firstP2PNode.nodeInfo.wsPort.toString(),
+			expect(removedPeers.get(targetP2PNode.nodeInfo.wsPort)).toEqual(
+				expect.arrayContaining([requesterP2PNode.nodeInfo.wsPort.toString()]),
 			);
 		});
 	});

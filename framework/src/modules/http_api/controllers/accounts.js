@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const Promise = require('bluebird');
 const swaggerHelper = require('../helpers/swagger');
 const { calculateApproval } = require('../helpers/utils');
 
@@ -32,7 +31,6 @@ function accountFormatter(totalSupply, account) {
 		'address',
 		'publicKey',
 		'balance',
-		'secondPublicKey',
 		'asset',
 	]);
 
@@ -54,7 +52,6 @@ function accountFormatter(totalSupply, account) {
 	}
 
 	formattedAccount.publicKey = formattedAccount.publicKey || '';
-	formattedAccount.secondPublicKey = formattedAccount.secondPublicKey || '';
 
 	return formattedAccount;
 }
@@ -71,7 +68,6 @@ AccountsController.getAccounts = async (context, next) => {
 	let filters = {
 		address_eql: params.address.value,
 		publicKey_eql: params.publicKey.value,
-		secondPublicKey_eql: params.secondPublicKey.value,
 		username_like: params.username.value,
 	};
 
@@ -86,12 +82,12 @@ AccountsController.getAccounts = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const lastBlock = await channel.invoke('chain:getLastBlock');
+		const lastBlock = await channel.invoke('app:getLastBlock');
 		const data = await storage.entities.Account.get(filters, options).map(
 			accountFormatter.bind(
 				null,
 				lastBlock.height
-					? await channel.invoke('chain:calculateSupply', {
+					? await channel.invoke('app:calculateSupply', {
 							height: lastBlock.height,
 					  })
 					: 0,
@@ -107,117 +103,6 @@ AccountsController.getAccounts = async (context, next) => {
 		});
 	} catch (err) {
 		return next(err);
-	}
-};
-
-async function multiSigAccountFormatter(account) {
-	const result = _.pick(account, [
-		'address',
-		'publicKey',
-		'balance',
-		'secondPublicKey',
-	]);
-	result.min = account.multiMin;
-	result.lifetime = account.multiLifetime;
-
-	if (result.secondPublicKey === null) {
-		result.secondPublicKey = '';
-	}
-
-	const members = await storage.entities.Account.get({
-		publicKey_in: account.membersPublicKeys,
-	});
-
-	result.members = members.map(member => {
-		member = _.pick(member, ['address', 'publicKey', 'secondPublicKey']);
-		if (member.secondPublicKey === null) {
-			member.secondPublicKey = '';
-		}
-		return member;
-	});
-
-	return result;
-}
-
-AccountsController.getMultisignatureGroups = async (context, next) => {
-	const address = context.request.swagger.params.address.value;
-
-	if (!address) {
-		return next(
-			swaggerHelper.generateParamsErrorObject(
-				['address'],
-				['Invalid address specified'],
-			),
-		);
-	}
-
-	const filters = {
-		address,
-		multiMin_gt: 0,
-	};
-
-	try {
-		let account = await storage.entities.Account.getOne(filters);
-		account = await multiSigAccountFormatter(account);
-
-		return next(null, {
-			data: [account],
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-			},
-		});
-	} catch (error) {
-		// TODO: Improve it later by having custom error class from storage
-		// https://github.com/vitaly-t/pg-promise/blob/master/lib/errors/queryResult.js#L29
-		// code(0) == queryResultErrorCode.noData
-
-		if (error.code === 0) {
-			context.statusCode = 404;
-			return next(new Error('Multisignature account not found'));
-		}
-
-		return next(error);
-	}
-};
-
-AccountsController.getMultisignatureMemberships = async (context, next) => {
-	const address = context.request.swagger.params.address.value;
-
-	if (!address) {
-		return next(
-			swaggerHelper.generateParamsErrorObject(
-				['address'],
-				['Invalid address specified'],
-			),
-		);
-	}
-
-	let account;
-
-	try {
-		account = await storage.entities.Account.getOne({ address });
-	} catch (error) {
-		if (error.code === 0) {
-			context.statusCode = 404;
-			return next(new Error('Multisignature membership account not found'));
-		}
-		return next(error);
-	}
-
-	try {
-		let groups = await storage.entities.Account.get(
-			{ membersPublicKeys: `"${account.publicKey}"` }, // Need to add quotes for PSQL array search
-		);
-
-		groups = await Promise.map(groups, multiSigAccountFormatter);
-
-		return next(null, {
-			data: groups,
-			meta: {},
-		});
-	} catch (error) {
-		return next(error);
 	}
 };
 

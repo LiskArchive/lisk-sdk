@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const BigNum = require('@liskhq/bignum');
 const swaggerHelper = require('../helpers/swagger');
 const apiCodes = require('../api_codes');
 const ApiError = require('../api_error');
@@ -24,7 +23,8 @@ const { calculateApproval } = require('../helpers/utils');
 let storage;
 let logger;
 let channel;
-const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
+let EPOCH_TIME;
+let ACTIVE_DELEGATES;
 
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
@@ -39,7 +39,6 @@ function delegateFormatter(totalSupply, delegate) {
 	result.account = {
 		address: delegate.address,
 		publicKey: delegate.publicKey,
-		secondPublicKey: delegate.secondPublicKey || '',
 	};
 
 	result.approval = calculateApproval(result.voteWeight, totalSupply);
@@ -53,10 +52,10 @@ async function _getDelegates(filters, options) {
 		options,
 	);
 
-	const lastBlock = await channel.invoke('chain:getLastBlock');
+	const lastBlock = await channel.invoke('app:getLastBlock');
 
 	const supply = lastBlock.height
-		? await channel.invoke('chain:calculateSupply', {
+		? await channel.invoke('app:calculateSupply', {
 				height: lastBlock.height,
 		  })
 		: 0;
@@ -65,20 +64,20 @@ async function _getDelegates(filters, options) {
 }
 
 async function _getForgers(filters) {
-	const lastBlock = await channel.invoke('chain:getLastBlock');
+	const lastBlock = await channel.invoke('app:getLastBlock');
 
-	const lastBlockSlot = await channel.invoke('chain:getSlotNumber', {
+	const lastBlockSlot = await channel.invoke('app:getSlotNumber', {
 		epochTime: lastBlock.timestamp,
 	});
-	const currentSlot = await channel.invoke('chain:getSlotNumber');
+	const currentSlot = await channel.invoke('app:getSlotNumber');
 	const forgerKeys = [];
 
-	const currentRound = await channel.invoke('chain:calcSlotRound', {
+	const currentRound = await channel.invoke('app:calcSlotRound', {
 		height: lastBlock.height + 1,
 	});
 
 	const activeDelegates = await channel.invoke(
-		'chain:getForgerPublicKeysForRound',
+		'app:getForgerPublicKeysForRound',
 		{
 			round: currentRound,
 		},
@@ -205,21 +204,18 @@ async function _getForgingStatistics(filters) {
 		return {
 			rewards: account.rewards,
 			fees: account.fees,
-			count: new BigNum(account.producedBlocks).toFixed(),
-			forged: new BigNum(account.rewards)
-				.plus(new BigNum(account.fees))
-				.toFixed(),
+			count: BigInt(account.producedBlocks).toString(),
+			forged: (BigInt(account.rewards) + BigInt(account.fees)).toString(),
 		};
 	}
 	const reward = await _aggregateBlocksReward(filters);
-	reward.forged = new BigNum(reward.fees)
-		.plus(new BigNum(reward.rewards))
-		.toFixed();
+	reward.forged = (BigInt(reward.fees) + BigInt(reward.rewards)).toString();
 
 	return reward;
 }
 
 function DelegatesController(scope) {
+	({ EPOCH_TIME, ACTIVE_DELEGATES } = scope.config.constants);
 	({
 		components: { storage, logger },
 		channel,
@@ -238,7 +234,6 @@ DelegatesController.getDelegates = async (context, next) => {
 	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
 	};
 

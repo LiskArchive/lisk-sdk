@@ -15,39 +15,19 @@
 'use strict';
 
 const async = require('async');
-const application = require('../../../../utils/legacy/application');
+const localCommon = require('../../common');
 const modulesLoader = require('../../../../utils/legacy/modules_loader');
 const clearDatabaseTable = require('../../../../utils/storage/storage_sandbox')
 	.clearDatabaseTable;
 const loadTables = require('./process_tables_data.json');
 
-const { REWARDS } = global.constants;
-
-describe('integration test (blocks) - process', () => {
-	let blocksProcess;
-	let blocks;
+describe('integration test (chain) - process', () => {
+	let chain;
 	let storage;
-	let originalBlockRewardsOffset;
 
-	before(done => {
-		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = REWARDS.OFFSET;
-		REWARDS.OFFSET = 150;
-
-		application.init(
-			{ sandbox: { name: 'blocks_process' } },
-			(err, scopeInit) => {
-				blocksProcess = scopeInit.modules.blocks.process;
-				blocks = scopeInit.modules.blocks;
-				storage = scopeInit.components.storage;
-				done(err);
-			},
-		);
-	});
-
-	after(done => {
-		REWARDS.OFFSET = originalBlockRewardsOffset;
-		application.cleanup(done);
+	localCommon.beforeBlock('chain_process', lib => {
+		chain = lib.modules.chain;
+		storage = lib.components.storage;
 	});
 
 	beforeEach(done => {
@@ -124,59 +104,22 @@ describe('integration test (blocks) - process', () => {
 
 	describe('loadBlocksWithOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', async () => {
-			const loadedBlocks = await blocks.getJSONBlocksWithLimitAndOffset(1, 2);
+			const loadedBlocks = await chain.dataAccess.getBlocksWithLimitAndOffset(
+				1,
+				2,
+			);
 
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(2);
 		});
 
 		it('should load block 3 from db: block with transactions', async () => {
-			const loadedBlocks = await blocks.getJSONBlocksWithLimitAndOffset(1, 3);
+			const loadedBlocks = await chain.dataAccess.getBlocksWithLimitAndOffset(
+				1,
+				3,
+			);
 			const block = loadedBlocks[0];
 			expect(block.height).to.equal(3);
-		});
-	});
-
-	describe('loadBlocksOffset() - block/transaction errors', () => {
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 4 from db and return blockSignature error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 5 from db and return payloadHash error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 6 from db and return block timestamp error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 7 from db and return unknown transaction type error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 8 from db and return block version error',
-		);
-		// eslint-disable-next-line
-		it(
-			'TODO: BLOCKS REFACTOR - should load block 9 from db and return previousBlockId error (fork:1)',
-		);
-
-		// eslint-disable-next-line
-		it.skip('should load block 10 from db and return duplicated votes error', done => {
-			blocks.lastBlock.set(loadTables[0].data[7]);
-
-			blocksProcess.loadBlocksOffset(1, 10, (err, loadedBlock) => {
-				if (err) {
-					expect(err).equal(
-						'Failed to validate vote schema: Array items are not unique (indexes 0 and 4)',
-					);
-					return done();
-				}
-
-				return done(loadedBlock);
-			});
 		});
 	});
 });

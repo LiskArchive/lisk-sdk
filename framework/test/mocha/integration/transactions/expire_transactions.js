@@ -16,15 +16,10 @@
 
 const {
 	transfer,
-	registerMultisignature,
 	constants: transactionConstants,
 } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const Promise = require('bluebird');
 const randomUtil = require('../../../utils/random');
 const accountsFixtures = require('../../../fixtures/accounts');
-const QueriesHelper = require('../../common/integration/sql/queries_helper');
 const localCommon = require('../common');
 const { getNetworkIdentifier } = require('../../../utils/network_identifier');
 
@@ -32,16 +27,8 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const addTransactionsAndForgePromise = Promise.promisify(
-	localCommon.addTransactionsAndForge,
-);
-const addTransactionToUnconfirmedQueuePromise = Promise.promisify(
-	localCommon.addTransactionToUnconfirmedQueue,
-);
-
 describe('expire transactions', () => {
 	let library;
-	let queries;
 	let transactionPool;
 
 	const {
@@ -49,18 +36,12 @@ describe('expire transactions', () => {
 		UNCONFIRMED_TRANSACTION_TIME_OUT,
 	} = global.constants;
 
-	const { NORMALIZER } = global.__testContext.config;
-
 	// Override transaction expire interval to every 1 second
 	global.constants.EXPIRY_INTERVAL = 1000;
 	global.constants.UNCONFIRMED_TRANSACTION_TIMEOUT = 0;
 
 	transactionConstants.UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT = 2;
 	transactionConstants.UNCONFIRMED_TRANSACTION_TIMEOUT = 2;
-
-	const getSenderAddress = transaction =>
-		transaction.senderId ||
-		getAddressFromPublicKey(transaction.senderPublicKey);
 
 	const createTransaction = (amount, recipientId) => {
 		return transfer({
@@ -91,27 +72,12 @@ describe('expire transactions', () => {
 		);
 	};
 
-	const checkMultisignatureQueue = (transaction, cb) => {
-		localCommon.getMultisignatureTransactions(
-			library,
-			transactionFilter(transaction),
-			(err, res) => {
-				expect(err).to.be.null;
-				expect(res)
-					.to.have.property('transactions')
-					.which.is.an('Array');
-				cb(res);
-			},
-		);
-	};
-
 	localCommon.beforeBlock('expire_transactions', lib => {
 		library = lib;
 		transactionPool = library.modules.transactionPool;
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
 		transactionPool.pool._expireTransactionsInterval = 1;
-		queries = new QueriesHelper(lib, lib.components.storage);
 	});
 
 	after('reset states', done => {
@@ -161,79 +127,6 @@ describe('expire transactions', () => {
 					done();
 				});
 			}, 30000);
-		});
-	});
-
-	describe('multi-signature', () => {
-		let transaction;
-		let multiSigTransaction;
-
-		const amount = 1000 * NORMALIZER;
-		const account = randomUtil.account();
-		const signer1 = randomUtil.account();
-		const signer2 = randomUtil.account();
-		const recipientId = account.address;
-		const lifetime = 1; // minimum lifetime should be >= 1
-
-		before(() => {
-			transaction = createTransaction(amount, recipientId);
-			// Transfer balance to multi-signature account
-			// so that multi-signature account can be registered
-			return addTransactionsAndForgePromise(library, [transaction], 0);
-		});
-
-		it('should be able to add multi-signature transaction to unconfirmed queue', done => {
-			const keysgroup = [signer1.publicKey, signer2.publicKey];
-
-			multiSigTransaction = registerMultisignature({
-				networkIdentifier,
-				passphrase: account.passphrase,
-				keysgroup,
-				lifetime,
-				minimum: 2,
-			});
-
-			addTransactionToUnconfirmedQueuePromise(library, multiSigTransaction)
-				.then(() => {
-					// Verify if the multi-signature transaction was added to queue
-					checkMultisignatureQueue(multiSigTransaction, res => {
-						expect(res.transactions.length).to.equal(1);
-						expect(res.transactions[0].id).to.equal(multiSigTransaction.id);
-						done();
-					});
-				})
-				.catch(done);
-		});
-
-		it('once multi-signature transaction is expired it should be removed from queue', done => {
-			// Multi-signature transaction is created with lifetime 1
-			// and the timeout multiplier is set to 1
-			// so the time to expiry will be 1 second
-			// and extract 30 second to ensure transaction is expired and removed from queue
-			const timeout = lifetime * 1 * 1000 + 30000;
-
-			setTimeout(() => {
-				// verify if the multi-signature transaction was removed from queue
-				checkMultisignatureQueue(multiSigTransaction, res => {
-					expect(res.transactions.length).to.equal(0);
-					done();
-				});
-			}, timeout);
-		});
-
-		it('multi-signature account balance should exists with the balance', done => {
-			const senderAddress = getSenderAddress(multiSigTransaction);
-
-			queries
-				.getAccount(senderAddress)
-				.then(multiSigAccount => {
-					// Multi-signature transaction was expired, however
-					// the account still exists with the balance
-					expect(new BigNum(multiSigAccount[0].balance).equals(amount)).to.be
-						.true;
-					done();
-				})
-				.catch(done);
 		});
 	});
 });

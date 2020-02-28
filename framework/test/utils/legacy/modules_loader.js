@@ -16,9 +16,9 @@
 
 const express = require('express');
 const async = require('async');
-const { Sequence } = require('../../../src/modules/chain/utils/sequence');
+const { Sequence } = require('../../../src/application/node/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const jobsQueue = require('../../../src/modules/chain/utils/jobs_queue');
+const jobsQueue = require('../../../src/application/node/utils/jobs_queue');
 
 // TODO: Remove this file
 const modulesLoader = new (function() {
@@ -28,7 +28,7 @@ const modulesLoader = new (function() {
 	this.scope = {
 		lastCommit: '',
 		build: '',
-		config: __testContext.config.modules.chain,
+		config: __testContext.config.app.node,
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,
@@ -63,7 +63,7 @@ const modulesLoader = new (function() {
 			suscribe: sinonSandbox.stub(),
 		},
 		applicationState: {
-			nethash: __testContext.nethash,
+			networkId: __testContext.networkId,
 			version: __testContext.version,
 			wsPort: __testContext.wsPort,
 			httpPort: __testContext.httpPort,
@@ -175,10 +175,9 @@ const modulesLoader = new (function() {
 	this.initAllModules = function(cb, scope) {
 		this.initModules(
 			[
-				{ blocks: require('../../../src/modules/chain/blocks/blocks') },
-				{ loader: require('../../../src/modules/chain/loader') },
+				{ chain: require('@liskhq/lisk-chain') },
 				{
-					transport: require('../../../src/modules/chain/transport'),
+					transport: require('../../../src/application/node/transport'),
 				},
 			],
 			[],

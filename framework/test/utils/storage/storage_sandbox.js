@@ -24,30 +24,26 @@ const {
 
 // Custom entitties
 const {
-	Account,
-	Block,
-	Transaction,
-	RoundDelegates,
-	ChainState,
-	ForgerInfo,
-	TempBlock,
-} = require('../../../src/modules/chain/components/storage/entities');
+	AccountEntity,
+	BlockEntity,
+	TransactionEntity,
+	ChainStateEntity,
+	ForgerInfoEntity,
+	TempBlockEntity,
+	MigrationEntity,
+	NetworkInfoEntity,
+} = require('../../../src/application/storage/entities');
 
 const {
-	NetworkInfo,
-} = require('../../../src/modules/network/components/storage/entities');
+	networkMigrations,
+	nodeMigrations,
+} = require('../../../src/application/storage/migrations');
 
-const {
-	MigrationEntity: Migration,
-} = require('../../../src/controller/migrations');
-
-const ChainModule = require('../../../src/modules/chain');
-const NetworkModule = require('../../../src/modules/network');
 const HttpAPIModule = require('../../../src/modules/http_api');
 
 const modulesMigrations = {};
-modulesMigrations[ChainModule.alias] = ChainModule.migrations;
-modulesMigrations[NetworkModule.alias] = NetworkModule.migrations;
+modulesMigrations.node = nodeMigrations();
+modulesMigrations.network = networkMigrations();
 modulesMigrations[HttpAPIModule.alias] = HttpAPIModule.migrations;
 
 const dbNames = [];
@@ -101,17 +97,16 @@ class StorageSandbox extends Storage {
 		await this._createDB();
 		await super.bootstrap();
 
-		this.registerEntity('Account', Account);
-		this.registerEntity('Block', Block);
-		this.registerEntity('Transaction', Transaction);
-		this.registerEntity('RoundDelegates', RoundDelegates);
+		this.registerEntity('Account', AccountEntity);
+		this.registerEntity('Block', BlockEntity);
+		this.registerEntity('Transaction', TransactionEntity);
 
 		// Custom entitties
-		this.registerEntity('Migration', Migration);
-		this.registerEntity('NetworkInfo', NetworkInfo);
-		this.registerEntity('ChainState', ChainState);
-		this.registerEntity('ForgerInfo', ForgerInfo);
-		this.registerEntity('TempBlock', TempBlock);
+		this.registerEntity('Migration', MigrationEntity);
+		this.registerEntity('NetworkInfo', NetworkInfoEntity);
+		this.registerEntity('ChainState', ChainStateEntity);
+		this.registerEntity('ForgerInfo', ForgerInfoEntity);
+		this.registerEntity('TempBlock', TempBlockEntity);
 
 		await this._createSchema();
 		return true;

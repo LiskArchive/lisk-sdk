@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transaction-pool",
-	"version": "0.2.0-alpha.1",
+	"version": "0.2.1",
 	"description": "Transaction pool library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -23,47 +23,35 @@
 	"main": "dist-node/index.js",
 	"typings": "dist-node/index.d.ts",
 	"scripts": {
-		"transpile": "tsc",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/}/*.ts",
+		"test": "jest",
 		"test:watch": "npm test -- --watch",
-		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"test:node": "npm run build:check",
-		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
-		"cover:base": "nyc report",
-		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-		"cover:ci": "npm run cover:base -- --reporter=text",
-		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
-		"build:node": "npm run transpile",
-		"prebuild": "npm run prebuild:node",
-		"build": "npm run build:node",
+		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
+		"build": "tsc",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
+	"dependencies": {
+		"@liskhq/lisk-cryptography": "2.4.2"
+	},
 	"devDependencies": {
-		"@types/chai": "4.1.7",
-		"@types/expect": "1.20.3",
-		"@types/mocha": "5.2.5",
-		"@types/node": "^12.12.11",
-		"@types/sinon-chai": "3.2.2",
-		"chai": "4.2.0",
-		"mocha": "5.2.0",
-		"nyc": "14.1.1",
+		"@types/jest": "24.9.0",
+		"@types/jest-when": "2.7.0",
+		"@types/node": "12.12.11",
+		"jest": "24.9.0",
+		"jest-extended": "0.11.2",
+		"jest-when": "2.6.0",
 		"prettier": "1.19.1",
-		"sinon": "7.2.3",
-		"sinon-chai": "3.3.0",
 		"source-map-support": "0.5.10",
+		"ts-jest": "24.2.0",
 		"ts-node": "8.5.2",
 		"tsconfig-paths": "3.8.0",
 		"tslint": "5.20.1",
 		"tslint-config-prettier": "1.18.0",
 		"tslint-immutable": "6.0.1",
 		"typescript": "3.7.2"
-	},
-	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.4.0-alpha.1"
 	}
 }

@@ -14,9 +14,8 @@
 
 'use strict';
 
-const BigNum = require('@liskhq/bignum');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const application = require('../../utils/legacy/application');
+const localCommon = require('./common');
 const QueriesHelper = require('../common/integration/sql/queries_helper');
 const accountsFixtures = require('../../fixtures/accounts');
 const roundsFixtures = require('../../fixtures/rounds').rounds;
@@ -26,17 +25,9 @@ describe('app', () => {
 	let keypairs;
 	let Queries;
 
-	describe('init', () => {
-		it('should init successfully without any error', done => {
-			application.init(
-				{ sandbox: { name: 'lisk_integration_test_app' } },
-				(err, lib) => {
-					library = lib;
-					Queries = new QueriesHelper(lib, library.components.storage);
-					done(err);
-				},
-			);
-		});
+	localCommon.beforeBlock('lisk_integration_test_app', lib => {
+		library = lib;
+		Queries = new QueriesHelper(lib, library.components.storage);
 	});
 
 	describe('genesis block', () => {
@@ -170,25 +161,25 @@ describe('app', () => {
 												acc.asset.recipientId ===
 												getAddressFromPublicKey(voter.senderPublicKey)
 											) {
-												return new BigNum(reduceBalance)
-													.plus(acc.asset.amount)
-													.toString();
+												return (
+													BigInt(reduceBalance) + BigInt(acc.asset.amount)
+												).toString();
 											}
 											if (
 												getAddressFromPublicKey(acc.senderPublicKey) ===
 												getAddressFromPublicKey(voter.senderPublicKey)
 											) {
-												return new BigNum(reduceBalance)
-													.minus(acc.amount)
-													.toString();
+												return (
+													BigInt(reduceBalance) - BigInt(acc.amount)
+												).toString();
 											}
 											return reduceBalance;
 										},
 										'0',
 									);
-									voters_balance = new BigNum(voters_balance)
-										.plus(balance)
-										.toString();
+									voters_balance = (
+										BigInt(voters_balance) + BigInt(balance)
+									).toString();
 								});
 
 								expect(delegate.voteWeight).to.equal(voters_balance);
@@ -284,9 +275,9 @@ describe('app', () => {
 											getAddressFromPublicKey(acc.senderPublicKey) ===
 											genesisAccount.address
 										) {
-											return new BigNum(reduceBalance)
-												.minus(acc.asset.amount)
-												.toString();
+											return (
+												BigInt(reduceBalance) - BigInt(acc.asset.amount)
+											).toString();
 										}
 										return reduceBalance;
 									},
@@ -367,7 +358,7 @@ describe('app', () => {
 
 				it('length should match delegates length from config file', async () => {
 					return expect(Object.keys(keypairs).length).to.equal(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.app.node.forging.delegates.length,
 					);
 				});
 
@@ -380,12 +371,6 @@ describe('app', () => {
 					done();
 				});
 			});
-		});
-	});
-
-	describe('cleanup', () => {
-		it('should cleanup sandboxed application successfully', done => {
-			application.cleanup(done);
 		});
 	});
 });

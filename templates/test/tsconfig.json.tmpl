@@ -1,15 +1,7 @@
 {
 	"extends": "../tsconfig",
 	"compilerOptions": {
-		"baseUrl": ".",
-		"declaration": false,
-		"target": "es2017",
-		"typeRoots": [
-			"../types",
-			"../../../types",
-			"../node_modules/@types",
-			"../../../node_modules/@types"
-		]
+		"declaration": false
 	},
-	"include": ["../types/**/*", "../../../types/**/*", "./**/*"]
+	"include": ["./**/*", "../node_modules/jest-extended/types/**/*.ts"]
 }

@@ -18,14 +18,16 @@ const async = require('async');
 const Promise = require('bluebird');
 const {
 	transfer,
-	registerSecondPassphrase,
 	registerDelegate,
 	registerMultisignature,
 	castVotes,
 	createDapp,
 } = require('@liskhq/lisk-transactions');
-const { sortTransactions } = require('../../../src/modules/chain/forger/sort');
-const { Slots } = require('../../../src/modules/chain/dpos');
+const { Slots } = require('@liskhq/lisk-chain');
+const { Rounds } = require('@liskhq/lisk-dpos');
+const {
+	sortTransactions,
+} = require('../../../src/application/node/forger/sort');
 const application = require('../../utils/legacy/application');
 const randomUtil = require('../../utils/random');
 const accountFixtures = require('../../fixtures/accounts');
@@ -38,6 +40,9 @@ const networkIdentifier = getNetworkIdentifier(
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
+});
+
+const rounds = new Rounds({
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 });
 
@@ -45,8 +50,8 @@ const { ACTIVE_DELEGATES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 
 function getDelegateForSlot(library, slot, cb) {
-	const lastBlock = library.modules.blocks.lastBlock;
-	const round = slots.calcRound(lastBlock.height + 1);
+	const lastBlock = library.modules.chain.lastBlock;
+	const round = rounds.calcRound(lastBlock.height + 1);
 	library.modules.forger
 		.loadDelegates()
 		.then(() => {
@@ -78,12 +83,12 @@ async function createBlock(
 	previousBlock,
 ) {
 	transactions = transactions.map(transaction =>
-		library.modules.blocks.deserializeTransaction(transaction),
+		library.modules.chain.deserializeTransaction(transaction),
 	);
 	// TODO Remove hardcoded values and use from BFT class
 	const blockProcessorV1 = library.modules.processor.processors[1];
 	const block = await blockProcessorV1.create.run({
-		blockReward: library.modules.blocks.blockReward,
+		blockReward: library.modules.chain.blockReward,
 		keypair,
 		timestamp,
 		previousBlock,
@@ -103,7 +108,7 @@ function createValidBlockWithSlotOffset(
 	exceptions,
 	cb,
 ) {
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber() - slotOffset;
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -114,7 +119,6 @@ function createValidBlockWithSlotOffset(
 			slots.getSlotTime(slot),
 			keypairs[delegateKey],
 			lastBlock,
-			typeof exceptions === 'object' ? exceptions : undefined,
 		)
 			.then(block => {
 				cb(null, block);
@@ -124,7 +128,7 @@ function createValidBlockWithSlotOffset(
 }
 
 function createValidBlock(library, transactions, cb) {
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber();
 	const keypairs = library.modules.forger.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
@@ -158,7 +162,7 @@ function getBlocks(library, cb) {
 function getNextForger(library, offset, cb) {
 	offset = !offset ? 1 : offset;
 
-	const lastBlock = library.modules.blocks.lastBlock;
+	const lastBlock = library.modules.chain.lastBlock;
 	const slot = slots.getSlotNumber(lastBlock.timestamp);
 	getDelegateForSlot(library, slot + offset, cb);
 }
@@ -182,7 +186,7 @@ function forge(library, cb) {
 				getNextForger(library, null, seriesCb);
 			},
 			function(delegate, seriesCb) {
-				let last_block = library.modules.blocks.lastBlock;
+				let last_block = library.modules.chain.lastBlock;
 				const slot = slots.getSlotNumber(last_block.timestamp) + 1;
 				const keypair = keypairs[delegate];
 				__testContext.debug(
@@ -210,7 +214,7 @@ function forge(library, cb) {
 					})
 					.then(block => library.modules.processor.process(block))
 					.then(() => {
-						last_block = library.modules.blocks.lastBlock;
+						last_block = library.modules.chain.lastBlock;
 						library.modules.transactionPool._resetPool();
 						__testContext.debug(
 							`		New last block height: ${last_block.height} New last block ID: ${last_block.id}`,
@@ -239,12 +243,12 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
-	transaction = library.modules.blocks.deserializeTransaction(transaction);
+	transaction = library.modules.chain.deserializeTransaction(transaction);
 
 	const amountNormalized = !transaction.asset.amount
 		? 0
-		: transaction.asset.amount.dividedBy(NORMALIZER).toFixed();
-	const feeNormalized = transaction.fee.dividedBy(NORMALIZER).toFixed();
+		: (transaction.asset.amount / BigInt(NORMALIZER)).toString();
+	const feeNormalized = (transaction.fee / BigInt(NORMALIZER)).toString();
 	__testContext.debug(
 		`Enqueue transaction ID: ${transaction.id}, Amount: ${amountNormalized}, Fee: ${feeNormalized}, Sender: ${transaction.senderId}, Recipient: ${transaction.recipientId}`,
 	);
@@ -257,7 +261,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
-	transaction = library.modules.blocks.deserializeTransaction(transaction);
+	transaction = library.modules.chain.deserializeTransaction(transaction);
 	library.modules.transactionPool
 		.processUnconfirmedTransaction(transaction)
 		.then(() => library.modules.transactionPool.fillPool())
@@ -347,26 +351,53 @@ function getMultisignatureTransactions(library, filter, cb) {
 }
 
 function beforeBlock(type, cb) {
+	let _node;
+
 	// eslint-disable-next-line mocha/no-top-level-hooks
 	before(
 		'init sandboxed application, credit account and register dapp',
 		done => {
-			application.init(
-				{ sandbox: { name: `lisk_test_integration_${type}` } },
-				(err, library) => {
-					if (err) {
-						return done(err);
-					}
-					cb(library);
+			application
+				.initNode({}, { database: `lisk_test_integration_${type}` })
+				.then(__node => {
+					_node = __node;
+					cb({
+						modules: {
+							chain: _node.chain,
+							transactionPool: _node.transactionPool,
+							forger: _node.forger,
+							dpos: _node.dpos,
+							processor: _node.processor,
+							transport: _node.transport,
+							rebuilder: _node.rebuilder,
+						},
+						components: {
+							logger: _node.logger,
+							storage: _node.storage,
+						},
+						sequence: _node.sequence,
+						genesisBlock: _node.genesisBlock,
+						slots: _node.slots,
+						config: _node.config,
+					});
 					return done();
-				},
-			);
+				})
+				.catch(error => {
+					done(error);
+				});
 		},
 	);
 
-	// eslint-disable-next-line mocha/no-top-level-hooks
+	// eslint-disable-next-line mocha/no-top-level-hooks, consistent-return
 	after('cleanup sandboxed application', done => {
-		application.cleanup(done);
+		if (!_node) {
+			return done();
+		}
+
+		_node
+			.cleanup()
+			.then(done)
+			.catch(done);
 	});
 }
 
@@ -386,13 +417,6 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 				passphrase: accountCopy.passphrase,
 				secondPassphrase: accountCopy.secondPassphrase,
 				recipientId: randomUtil.account().address,
-			});
-			break;
-		case 'SIGNATURE':
-			transaction = registerSecondPassphrase({
-				networkIdentifier,
-				passphrase: account.passphrase,
-				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':

@@ -33,7 +33,7 @@ const nodeInfo: P2PNodeInfo = {
 	os: platform(),
 	nonce: randomBytes(8).toString('hex'),
 	wsPort: 5001,
-	nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+	networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '2.0.0',
 	httpPort: 5000,
 	broadhash: 'a3b09ed438f5b9559fc847a179f822478150bf8950687fa3a26571f05fc50eb7',

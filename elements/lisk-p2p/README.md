@@ -16,7 +16,7 @@ const { P2P } = require('@liskhq/lisk-p2p');
 const p2p = new P2P({
 	nodeInfo: {
 		wsPort: 5001,
-		nethash: '123xyz',
+		networkId: '123xyz',
 		protocolVersion: '1.1',
 	},
 });
@@ -101,7 +101,6 @@ p2p.on(EVENT_REQUEST_RECEIVED, async (request: P2PRequest) => {
 - `EVENT_OUTBOUND_SOCKET_ERROR`
 - `EVENT_REMOVE_PEER`
 - `EVENT_REQUEST_RECEIVED`
-- `EVENT_UNBAN_PEER`
 - `EVENT_UPDATED_PEER_INFO`
 
 ### Examples

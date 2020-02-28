@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { P2P } from '../../src/index';
+import { P2P, constants } from '../../src/index';
 import { wait } from './helpers';
 import { platform } from 'os';
-import {
+
+const {
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
-} from '../../src';
+} = constants;
+
 export const NETWORK_START_PORT = 5000;
 export const NETWORK_PEER_COUNT = 10;
 export const POPULATOR_INTERVAL = 50;
@@ -31,7 +33,7 @@ export const NETWORK_DESTROY_WAIT_TIME = 1000;
 export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 
 export const nodeInfoConstants = {
-	nethash: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+	networkId: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	version: '1.0.1',
 	protocolVersion: '1.1',
 	minVersion: '1.0.0',
@@ -91,7 +93,7 @@ export const createNetwork = async ({
 			fallbackSeedPeerDiscoveryInterval: FALLBACK_PEER_DISCOVER_INTERVAL,
 			nodeInfo: {
 				wsPort: nodePort,
-				nethash: nodeInfoConstants.nethash,
+				networkId: nodeInfoConstants.networkId,
 				version: nodeInfoConstants.version,
 				protocolVersion: nodeInfoConstants.protocolVersion,
 				minVersion: nodeInfoConstants.minVersion,

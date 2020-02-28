@@ -12,19 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import {
-	P2P,
-	EVENT_BAN_PEER,
-	DEFAULT_WS_MAX_MESSAGE_RATE,
-} from '../../src/index';
+import { P2P, events, constants } from '../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_CREATION_WAIT_TIME,
 	SEED_PEER_IP,
 } from '../utils/network_setup';
-import { wait } from 'utils/helpers';
+import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
 
 describe('P2P protocol message limit', () => {
@@ -36,7 +31,7 @@ describe('P2P protocol message limit', () => {
 			maxOutboundConnections: index % 2 === 1 ? 3 : 20,
 			fallbackSeedPeerDiscoveryInterval: index === 2 ? 100 : 10000,
 			rateCalculationInterval: 1000,
-			wsMaxMessageRatePenalty: DEFAULT_WS_MAX_MESSAGE_RATE,
+			wsMaxMessageRatePenalty: constants.DEFAULT_WS_MAX_MESSAGE_RATE,
 			populatorInterval: index === 2 ? 100 : 10000,
 		});
 
@@ -47,7 +42,7 @@ describe('P2P protocol message limit', () => {
 		});
 
 		for (let p2p of p2pNodeList) {
-			p2p.on(EVENT_BAN_PEER, peerId => {
+			p2p.on(events.EVENT_BAN_PEER, peerId => {
 				bannedPeer = peerId;
 			});
 		}
@@ -66,7 +61,7 @@ describe('P2P protocol message limit', () => {
 		await wait(100);
 
 		// Assert
-		expect(bannedPeer).to.be.equal(
+		expect(bannedPeer).toBe(
 			constructPeerId(SEED_PEER_IP, p2pNodeList[2].config.nodeInfo.wsPort),
 		);
 	});

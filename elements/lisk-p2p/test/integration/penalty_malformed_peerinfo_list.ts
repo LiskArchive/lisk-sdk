@@ -12,15 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { P2P, EVENT_BAN_PEER } from '../../src/index';
+import { P2P, events } from '../../src/index';
 import {
 	createNetwork,
 	destroyNetwork,
 	SEED_PEER_IP,
 } from '../utils/network_setup';
-import { wait } from 'utils/helpers';
+import { wait } from '../utils/helpers';
 import { constructPeerId } from '../../src/utils';
+
+const { EVENT_BAN_PEER } = events;
 
 describe('penalty sending malformed Peer List', () => {
 	describe('When Peer List is too long', () => {
@@ -38,7 +39,7 @@ describe('penalty sending malformed Peer List', () => {
 				customConfig,
 			});
 
-			[...new Array(1000).keys()].map(() => {
+			for (let i = 0; i < 1000; i++) {
 				const generatedIP = `${Math.floor(Math.random() * 254) +
 					1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
 					Math.random() * 254,
@@ -54,7 +55,7 @@ describe('penalty sending malformed Peer List', () => {
 						version: '1.1',
 					},
 				});
-			});
+			}
 
 			p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
 				collectedEvents.set(EVENT_BAN_PEER, peerId);
@@ -68,7 +69,7 @@ describe('penalty sending malformed Peer List', () => {
 		});
 
 		it(`should ban the emitter`, async () => {
-			expect(collectedEvents.get(EVENT_BAN_PEER)).to.eql(
+			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
 				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
 			);
 		});
@@ -106,7 +107,7 @@ describe('penalty sending malformed Peer List', () => {
 		});
 
 		it(`should ban the emitter`, async () => {
-			expect(collectedEvents.get(EVENT_BAN_PEER)).to.eql(
+			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
 				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
 			);
 		});

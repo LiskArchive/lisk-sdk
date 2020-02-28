@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { P2P, EVENT_NETWORK_READY } from '../../../src/index';
+import { P2P, events } from '../../../src/index';
 import { wait } from '../../utils/helpers';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
+const { EVENT_NETWORK_READY } = events;
 describe(`Event on ${EVENT_NETWORK_READY}`, () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	const collectedEvents = new Map();
@@ -41,6 +41,6 @@ describe(`Event on ${EVENT_NETWORK_READY}`, () => {
 	});
 
 	it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
-		expect(collectedEvents.get(EVENT_NETWORK_READY)).to.exist;
+		expect(collectedEvents.get(EVENT_NETWORK_READY)).toBeDefined();
 	});
 });

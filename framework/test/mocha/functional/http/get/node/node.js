@@ -23,6 +23,8 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 describe('GET /node', () => {
 	describe('/constants', () => {
 		const endPoint = new SwaggerEndpoint('GET /node/constants 200');
+		const devnetNetworkId =
+			'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7';
 
 		let constantsResponse;
 
@@ -32,10 +34,8 @@ describe('GET /node', () => {
 			});
 		});
 
-		it('should return a result containing nethash = "23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d"', async () => {
-			return expect(constantsResponse.nethash).to.be.equal(
-				'23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d',
-			);
+		it('should return a result containing networkId = "11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7"', async () => {
+			return expect(constantsResponse.networkId).to.be.equal(devnetNetworkId);
 		});
 
 		it('should return a result containing milestone that is a number <= 500000000', async () => {
@@ -74,12 +74,6 @@ describe('GET /node', () => {
 
 		it('should return a result containing fees.vote = 100000000', async () => {
 			return expect(constantsResponse.fees.vote).to.be.equal('100000000');
-		});
-
-		it('should return a result containing fees.secondSignature = 500000000', async () => {
-			return expect(constantsResponse.fees.secondSignature).to.be.equal(
-				'500000000',
-			);
 		});
 
 		it('should return a result containing fees.delegate = 2500000000', async () => {
@@ -127,7 +121,7 @@ describe('GET /node', () => {
 			it('using no params should return full list of internal forgers', async () => {
 				return forgingEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.app.node.forging.delegates.length,
 					);
 				});
 			});
@@ -150,7 +144,7 @@ describe('GET /node', () => {
 
 			it('using existing publicKey should be ok', async () => {
 				const publicKey =
-					__testContext.config.modules.chain.forging.delegates[0].publicKey;
+					__testContext.config.app.node.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data).to.have.length(1);
@@ -160,7 +154,7 @@ describe('GET /node', () => {
 
 			it('using available publicKey should be ok', async () => {
 				const publicKey =
-					__testContext.config.modules.chain.forging.delegates[0].publicKey;
+					__testContext.config.app.node.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data[0].publicKey).to.be.eql(publicKey);
@@ -177,7 +171,7 @@ describe('GET /node', () => {
 			it('should return only forging delegates', async () => {
 				return forgingEndpoint.makeRequest({ forging: true }, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.modules.chain.forging.delegates.length,
+						__testContext.config.app.node.forging.delegates.length,
 					);
 					expect(
 						res.body.data.filter(d => d.forging === false).length,

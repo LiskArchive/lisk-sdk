@@ -20,8 +20,9 @@ const {
 const { transfer } = require('@liskhq/lisk-transactions');
 const _ = require('lodash');
 const async = require('async');
-const BigNum = require('@liskhq/bignum');
-const application = require('../../../../utils/legacy/application');
+const { Slots } = require('@liskhq/lisk-chain');
+const { Rounds } = require('@liskhq/lisk-dpos');
+const localCommon = require('../../common');
 const {
 	clearDatabaseTable,
 } = require('../../../../utils/storage/storage_sandbox');
@@ -30,7 +31,6 @@ const random = require('../../../../utils/random');
 const accountFixtures = require('../../../../fixtures/accounts');
 const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const { Slots } = require('../../../../../src/modules/chain/dpos');
 const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');
@@ -39,13 +39,16 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 const genesisBlock = __testContext.config.genesisBlock;
 
 const slots = new Slots({
 	epochTime: __testContext.config.constants.EPOCH_TIME,
 	interval: __testContext.config.constants.BLOCK_TIME,
+});
+
+const rounds = new Rounds({
 	blocksPerRound: __testContext.config.constants.ACTIVE_DELEGATES,
 });
 
@@ -65,14 +68,14 @@ async function createBlock(
 		privateKey: keypairBytes.privateKeyBytes,
 	};
 	transactions = transactions.map(transaction =>
-		library.modules.blocks.deserializeTransaction(transaction),
+		library.modules.chain.deserializeTransaction(transaction),
 	);
-	library.modules.blocks._lastBlock = previousBlockArgs;
+	library.modules.chain._lastBlock = previousBlockArgs;
 	const blockProcessorV1 = library.modules.processor.processors[1];
 	const newBlock = await blockProcessorV1.create.run({
 		keypair,
 		timestamp,
-		previousBlock: library.modules.blocks.lastBlock,
+		previousBlock: library.modules.chain.lastBlock,
 		transactions,
 		maxHeightPreviouslyForged: 1,
 		maxHeightPrevoted: 1,
@@ -82,7 +85,7 @@ async function createBlock(
 
 function getValidKeypairForSlot(library, slot) {
 	const lastBlock = genesisBlock;
-	const round = slots.calcRound(lastBlock.height);
+	const round = rounds.calcRound(lastBlock.height);
 
 	return library.modules.dpos
 		.getForgerPublicKeysForRound(round)
@@ -103,164 +106,30 @@ describe('blocks/verify', () => {
 	let dpos;
 	let storage;
 
-	before(done => {
-		application.init(
-			{
-				sandbox: {
-					name: 'blocks_verify',
+	localCommon.beforeBlock('blocks_verify', scope => {
+		dpos = scope.modules.dpos;
+		storage = scope.components.storage;
+
+		// Set current block version to 0
+		scope.modules.chain.blocksVerify.exceptions = {
+			...scope.modules.chain.exceptions,
+			blockVersions: {
+				0: {
+					start: 1,
+					end: 150,
 				},
 			},
-			(err, scope) => {
-				dpos = scope.modules.dpos;
-				storage = scope.components.storage;
+		};
 
-				// Set current block version to 0
-				scope.modules.blocks.blocksVerify.exceptions = {
-					...scope.modules.blocks.exceptions,
-					blockVersions: {
-						0: {
-							start: 1,
-							end: 150,
-						},
-					},
-				};
-
-				library = scope;
-				library.modules.blocks._lastBlock = genesisBlock;
-				// Bus gets overwritten - waiting for mem_accounts has to be done manually
-				setTimeout(done, 5000);
-			},
-		);
+		library = scope;
+		library.modules.chain._lastBlock = genesisBlock;
 	});
 
 	afterEach(() => {
-		library.modules.blocks._lastBlock = genesisBlock;
+		library.modules.chain._lastBlock = genesisBlock;
+		library.modules.chain.resetBlockHeaderCache();
 		return storage.adapter.db.none('DELETE FROM blocks WHERE height > 1');
 	});
-
-	after(done => {
-		application.cleanup(done);
-	});
-
-	// Move to unit tests (already covered)
-	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('__private', () => {
-		describe('verifySignature', () => {
-			it('should fail when blockSignature property is not a hex string', async () => {});
-
-			it('should fail when blockSignature property is an invalid hex string', async () => {});
-
-			it('should fail when generatorPublicKey property is not a hex string', async () => {});
-
-			it('should fail when generatorPublicKey property is an invalid hex string', async () => {});
-		});
-
-		describe('verifyPreviousBlock', () => {
-			it('should fail when previousBlockId property is missing', async () => {});
-		});
-
-		describe('verifyVersion', () => {
-			it('should fail when block version != 0', async () => {});
-		});
-
-		describe('verifyReward', () => {
-			it('should fail when block reward = 99 instead of 0', async () => {});
-		});
-
-		describe('verifyId', () => {
-			it('should reset block id when block id is an invalid alpha-numeric string value', async () => {});
-
-			it('should reset block id when block id is an invalid numeric string value', async () => {});
-
-			it('should reset block id when block id is an invalid integer value', async () => {});
-
-			it('should reset block id when block id is a valid integer value', async () => {});
-		});
-		/* eslint-enable mocha/no-skipped-tests */
-
-		describe('verifyPayload', () => {
-			it('should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value', async () => {});
-
-			it('should fail when transactions length != numberOfTransactions property', async () => {});
-
-			it('should fail when transactions length > maxTransactionsPerBlock constant value', async () => {});
-
-			it('should fail when a transaction is of an unknown type', async () => {});
-
-			it('should fail when a transaction is duplicated', async () => {});
-
-			it('should fail when payload hash is invalid', async () => {});
-
-			it('should fail when summed transaction amounts do not match totalAmount property', async () => {});
-
-			it('should fail when summed transaction fees do not match totalFee property', async () => {});
-		});
-
-		describe('verifyForkOne', () => {
-			it('should fail when previousBlockId value is invalid', async () => {});
-		});
-
-		describe('verifyBlockSlot', () => {
-			it('should fail when block timestamp < than previousBlockId timestamp', async () => {});
-		});
-
-		describe('verifyBlockSlotWindow', () => {
-			describe('for current slot number', () => {
-				it('should return empty result.errors array', async () => {});
-			});
-
-			describe(`for slot number ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
-				it('should return empty result.errors array', async () => {});
-			});
-
-			describe('for slot number in the future', () => {
-				it('should call callback with error = Block slot is in the future ', async () => {});
-			});
-
-			describe(`for slot number ${BLOCK_SLOT_WINDOW +
-				1} slots in the past`, () => {
-				it('should call callback with error = Block slot is too old', async () => {});
-			});
-		});
-
-		describe('onNewBlock', () => {
-			describe('with lastNBlockIds', () => {
-				describe('when onNewBlock function is called once', () => {
-					it('should include block in lastNBlockIds queue', async () => {});
-				});
-
-				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW}times`, () => {
-					it('should include blockId in lastNBlockIds queue', async () => {});
-				});
-
-				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
-					2} times`, () => {
-					it(`should maintain last ${BLOCK_SLOT_WINDOW} blockIds in lastNBlockIds queue`, async () => {});
-				});
-			});
-		});
-
-		describe('verifyAgainstLastNBlockIds', () => {
-			describe('when __private.lastNBlockIds', () => {
-				describe('contains block id', () => {
-					it('should return result with error = Block already exists in chain', async () => {});
-				});
-
-				describe('does not contain block id', () => {
-					it('should return result with no errors', async () => {});
-				});
-			});
-		});
-	});
-
-	// TODO: Refactor this test, dataset being used is no longer valid because of BLOCK_SLOT_WINDOW check
-	describe('verifyReceipt', () => {});
-
-	describe('verifyBlock', () => {});
-
-	describe('addBlockProperties', () => {});
-
-	describe('deleteBlockProperties', () => {});
 
 	// Sends a block to network, save it locally
 	describe('processBlock for valid block {broadcast: true, saveBlock: true}', () => {
@@ -302,9 +171,9 @@ describe('blocks/verify', () => {
 			expect(block1.version).to.equal(1);
 			expect(block1.timestamp).to.equal(time);
 			expect(block1.numberOfTransactions).to.equal(0);
-			expect(block1.reward.equals('0')).to.be.true;
-			expect(block1.totalFee.equals('0')).to.be.true;
-			expect(block1.totalAmount.equals('0')).to.be.true;
+			expect(block1.reward).to.equal(BigInt(0));
+			expect(block1.totalFee).to.equal(BigInt(0));
+			expect(block1.totalAmount).to.equal(BigInt(0));
 			expect(block1.payloadLength).to.equal(0);
 			expect(block1.transactions).to.deep.equal([]);
 			expect(block1.previousBlockId).to.equal(genesisBlock.id);
@@ -351,9 +220,9 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.version).to.equal(1);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward.equals('0')).to.be.true;
-			expect(invalidBlock2.totalFee.equals('0')).to.be.true;
-			expect(invalidBlock2.totalAmount.equals('0')).to.be.true;
+			expect(invalidBlock2.reward).to.equal(BigInt(0));
+			expect(invalidBlock2.totalFee).to.equal(BigInt(0));
+			expect(invalidBlock2.totalAmount).to.equal(BigInt(0));
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.equal([]);
 			expect(invalidBlock2.previousBlockId).to.equal(genesisBlock.id);
@@ -364,7 +233,7 @@ describe('blocks/verify', () => {
 				const account = random.account();
 				const transaction = transfer({
 					networkIdentifier,
-					amount: new BigNum(NORMALIZER).times(1000).toString(),
+					amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
 				});
@@ -447,7 +316,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transferTransaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -464,9 +333,9 @@ describe('blocks/verify', () => {
 					expect(auxBlock.version).to.equal(1);
 					expect(auxBlock.timestamp).to.equal(time);
 					expect(auxBlock.numberOfTransactions).to.equal(1);
-					expect(auxBlock.reward.equals('0')).to.be.true;
-					expect(auxBlock.totalFee.equals('10000000')).to.be.true;
-					expect(auxBlock.totalAmount.equals('100000000000')).to.be.true;
+					expect(auxBlock.reward).to.equal(BigInt(0));
+					expect(auxBlock.totalFee).to.equal(BigInt(10000000));
+					expect(auxBlock.totalAmount).to.equal(BigInt(100000000000));
 					expect(auxBlock.payloadLength).to.equal(117);
 					expect(
 						auxBlock.transactions.map(transaction => transaction.id),
@@ -480,7 +349,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
 						passphrase: account.passphrase,
 					});
@@ -526,7 +395,7 @@ describe('blocks/verify', () => {
 					const account = random.account();
 					const transaction = transfer({
 						networkIdentifier,
-						amount: new BigNum(NORMALIZER).times(1000).toString(),
+						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
@@ -592,9 +461,9 @@ describe('blocks/verify', () => {
 			expect(block2.version).to.equal(1);
 			expect(block2.timestamp).to.equal(time);
 			expect(block2.numberOfTransactions).to.equal(0);
-			expect(block2.reward.equals('0')).to.be.true;
-			expect(block2.totalFee.equals('0')).to.be.true;
-			expect(block2.totalAmount.equals('0')).to.be.true;
+			expect(block2.reward).to.equal(BigInt(0));
+			expect(block2.totalFee).to.equal(BigInt(0));
+			expect(block2.totalAmount).to.equal(BigInt(0));
 			expect(block2.payloadLength).to.equal(0);
 			expect(block2.transactions).to.deep.equal([]);
 			expect(block2.previousBlockId).to.equal(genesisBlock.id);

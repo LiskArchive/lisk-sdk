@@ -261,23 +261,4 @@ describe('WS transport', () => {
 			await p2p.send({ event: 'postBlock', data: { block: testBlock } });
 		});
 	});
-
-	describe('postSignatures', () => {
-		it('should not crash the application when sending the correct signatures', async () => {
-			await p2p.send({
-				event: 'postSignatures',
-				data: {
-					signatures: [
-						{
-							signature:
-								'60d28cfbb67ee0dd7f4cc5c5b686445bf66883276f05136f605d77f7b1c6316587b752624379e26fa2a4e247cc49a60fce57fa7c43a28afb8152262364e00d01',
-							transactionId: '15778222267241153095',
-							publicKey:
-								'633698916662935403780f04fd01119f32f9cd180a3b104b67c5ae5ebb6d5593',
-						},
-					],
-				},
-			});
-		});
-	});
 });

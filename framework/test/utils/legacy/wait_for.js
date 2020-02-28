@@ -17,16 +17,12 @@
 const popsicle = require('popsicle');
 const async = require('async');
 const Promise = require('bluebird');
+const { Rounds } = require('@liskhq/lisk-dpos');
 const apiHelpers = require('../http/api');
-const { Slots } = require('../../../src/modules/chain/dpos');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
-const slots = new Slots({
-	epochTime: global.__testContext.config.constants.EPOCH_TIME,
-	interval: global.__testContext.config.constants.BLOCK_TIME,
-	blocksPerRound: global.__testContext.config.constants.ACTIVE_DELEGATES,
-});
+const rounds = new Rounds({ blocksPerRound: 101 });
 
 /**
  * @param {number} [retries=10] retries
@@ -177,7 +173,7 @@ function newRound(baseUrl, cb) {
 		if (err) {
 			return cb(err);
 		}
-		const nextRound = slots.calcRound(height);
+		const nextRound = rounds.calcRound(height);
 		const blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		global.__testContext.debug('blocks to wait: '.grey, blocksToWait);
 		return newBlock(height, blocksToWait, null, cb);

@@ -15,25 +15,33 @@
 'use strict';
 
 module.exports = ({ channel }, { wsServer }) => {
-	channel.subscribe('chain:blocks:change', event => {
-		wsServer.sockets.emit('blocks/change', event.data);
-	});
-	channel.subscribe('chain:signature:change', event => {
-		wsServer.sockets.emit('signature/change', event.data);
-	});
-	channel.subscribe('chain:transactions:change', event => {
-		wsServer.sockets.emit('transactions/change', event.data);
-	});
-	channel.subscribe('chain:rounds:change', event => {
+	channel.subscribe('app:rounds:change', event => {
 		wsServer.sockets.emit('rounds/change', event.data);
 	});
-	channel.subscribe('chain:multisignatures:signature:change', event => {
-		wsServer.sockets.emit('multisignatures/signature/change', event.data);
-	});
-	channel.subscribe('chain:delegates:fork', event => {
+	channel.subscribe('app:delegates:fork', event => {
 		wsServer.sockets.emit('delegates/fork', event.data);
 	});
-	channel.subscribe('chain:loader:sync', event => {
+	channel.subscribe('app:loader:sync', event => {
 		wsServer.sockets.emit('loader/sync', event.data);
+	});
+
+	channel.subscribe('app:newBlock', event => {
+		wsServer.sockets.emit('blocks/change', event.data.block);
+		if (event.data.block.transactions.length) {
+			wsServer.sockets.emit(
+				'transactions/confirm/change',
+				event.data.block.transactions,
+			);
+		}
+	});
+
+	channel.subscribe('app:deleteBlock', event => {
+		wsServer.sockets.emit('blocks/change', event.data.block);
+		if (event.data.block.transactions.length) {
+			wsServer.sockets.emit(
+				'transactions/confirm/change',
+				event.data.block.transactions,
+			);
+		}
 	});
 };

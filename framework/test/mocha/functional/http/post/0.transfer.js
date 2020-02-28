@@ -17,7 +17,6 @@
 require('../../functional');
 const crypto = require('crypto');
 const { transfer, TransferTransaction } = require('@liskhq/lisk-transactions');
-const BigNum = require('@liskhq/bignum');
 const accountFixtures = require('../../../../fixtures/accounts');
 const typesRepresentatives = require('../../../../fixtures/types_representatives');
 const phases = require('../../../../utils/legacy/transaction_confirmation');
@@ -174,38 +173,6 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					'Account does not have enough LSK: 11237980039345381032L, balance: ',
 				);
 				badTransactions.push(transaction);
-			});
-		});
-
-		// Skipping this test because this signature cannot be recreated with this genesis address
-		// eslint-disable-next-line mocha/no-skipped-tests
-		it.skip('from the genesis account should fail', async () => {
-			const signedTransactionFromGenesis = {
-				senderPublicKey:
-					'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
-				timestamp: 24259352,
-				type: 8,
-				asset: {
-					amount: new BigNum('1000').toString(),
-					recipientId: accountFixtures.existingDelegate.address,
-				},
-				signature:
-					'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
-				id: '15307587316657110485',
-			};
-
-			return sendTransactionPromise(
-				signedTransactionFromGenesis,
-				apiCodes.PROCESSING_ERROR,
-			).then(res => {
-				expect(res.body.message).to.be.equal(
-					'Transaction was rejected with errors',
-				);
-				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.include(
-					'Account does not have enough LSK: 1276152240083265771L, balance: -',
-				);
-				badTransactions.push(signedTransactionFromGenesis);
 			});
 		});
 

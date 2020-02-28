@@ -18,23 +18,21 @@ const fs = require('fs-extra');
 const path = require('path');
 const childProcess = require('child_process');
 const psList = require('ps-list');
-const systemDirs = require('./system_dirs');
+const systemDirs = require('../application/system_dirs');
 const { InMemoryChannel } = require('./channels');
 const Bus = require('./bus');
 const { DuplicateAppInstanceError } = require('../errors');
-const { validateModuleSpec } = require('./validator');
-const ApplicationState = require('./application_state');
-const { createStorageComponent } = require('../components/storage');
-const { MigrationEntity } = require('./migrations');
+const { validateModuleSpec } = require('../application/validator');
 
 const isPidRunning = async pid =>
 	psList().then(list => list.some(x => x.pid === pid));
 
 class Controller {
-	constructor(appLabel, config, initialState, logger) {
+	constructor({ appLabel, config, logger, storage, channel }) {
 		this.logger = logger;
+		this.storage = storage;
 		this.appLabel = appLabel;
-		this.initialState = initialState;
+		this.channel = channel;
 		this.logger.info('Initializing controller');
 
 		const dirs = systemDirs(this.appLabel, config.tempPath);
@@ -51,27 +49,19 @@ class Controller {
 
 		this.modules = {};
 		this.childrenList = [];
-		this.channel = null; // Channel for controller
 		this.bus = null;
-
-		const storageConfig = config.components.storage;
-		this.storage = createStorageComponent(storageConfig, logger);
-		this.storage.registerEntity('Migration', MigrationEntity);
 	}
 
 	async load(modules, moduleOptions, migrations = {}) {
 		this.logger.info('Loading controller');
 		await this._setupDirectories();
 		await this._validatePidFile();
-		this._initState();
 		await this._setupBus();
-		await this._loadMigrations(migrations);
+		await this._loadMigrations({ ...migrations });
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.debug(this.bus.getEvents(), 'Bus listening to events');
 		this.logger.debug(this.bus.getActions(), 'Bus ready for actions');
-
-		this.channel.publish('app:ready');
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -103,13 +93,6 @@ class Controller {
 		await fs.writeFile(pidPath, process.pid);
 	}
 
-	_initState() {
-		this.applicationState = new ApplicationState({
-			initialState: this.initialState,
-			logger: this.logger,
-		});
-	}
-
 	async _setupBus() {
 		this.bus = new Bus(
 			{
@@ -123,26 +106,7 @@ class Controller {
 
 		await this.bus.setup();
 
-		this.channel = new InMemoryChannel(
-			'app',
-			['ready', 'state:updated'],
-			{
-				getComponentConfig: {
-					handler: action => this.config.components[action.params],
-				},
-				getApplicationState: {
-					handler: () => this.applicationState.state,
-				},
-				updateApplicationState: {
-					handler: action => this.applicationState.update(action.params),
-				},
-			},
-			{ skipInternalEvents: true },
-		);
-
 		await this.channel.registerToBus(this.bus);
-
-		this.applicationState.channel = this.channel;
 
 		// If log level is greater than info
 		if (this.logger.level && this.logger.level() < 30) {
@@ -160,8 +124,6 @@ class Controller {
 	}
 
 	async _loadMigrations(migrationsObj) {
-		await this.storage.bootstrap();
-		await this.storage.entities.Migration.defineSchema();
 		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 

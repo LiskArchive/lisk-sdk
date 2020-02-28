@@ -15,7 +15,6 @@
 'use strict';
 
 const rewire = require('rewire');
-const BigNum = require('@liskhq/bignum');
 
 const DelegatesController = rewire(
 	'../../../../../../src/modules/http_api/controllers/delegates',
@@ -38,9 +37,10 @@ describe('delegates/api', () => {
 	const expectedForgingStatisticsResult = {
 		...blocksRewardReturnStub,
 		...{
-			forged: new BigNum(blocksRewardReturnStub.fees)
-				.plus(new BigNum(blocksRewardReturnStub.rewards))
-				.toString(),
+			forged: (
+				BigInt(blocksRewardReturnStub.fees) +
+				BigInt(blocksRewardReturnStub.rewards)
+			).toString(),
 		},
 	};
 	let aggregateBlocksRewardStub;
@@ -110,6 +110,12 @@ describe('delegates/api', () => {
 				storage: storageStub,
 			},
 			channel: channelStub,
+			config: {
+				constants: {
+					EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+					ACTIVE_DELEGATES: 101,
+				},
+			},
 		});
 
 		restoreAggregateBlocksReward = DelegatesController.__set__(
@@ -156,8 +162,8 @@ describe('delegates/api', () => {
 		};
 
 		beforeEach(async () => {
-			channelStub.invoke.withArgs('chain:calculateSupply').resolves('supply');
-			channelStub.invoke.withArgs('chain:getLastBlock').resolves(lastBlock);
+			channelStub.invoke.withArgs('app:calculateSupply').resolves('supply');
+			channelStub.invoke.withArgs('app:getLastBlock').resolves(lastBlock);
 			await __private.getDelegates(filters, options);
 		});
 
@@ -173,9 +179,9 @@ describe('delegates/api', () => {
 			);
 		});
 
-		it('should call channel.invoke with chain:calculateSupply action if lastBlock.height is not 0', async () => {
+		it('should call channel.invoke with app:calculateSupply action if lastBlock.height is not 0', async () => {
 			expect(channelStub.invoke).to.be.calledWithExactly(
-				'chain:calculateSupply',
+				'app:calculateSupply',
 				{
 					height: dummyBlock.height,
 				},
@@ -183,7 +189,7 @@ describe('delegates/api', () => {
 		});
 
 		it('should assign 0 to supply if lastBlock.height is 0', async () => {
-			channelStub.invoke.withArgs('chain:getLastBlock').resolves({
+			channelStub.invoke.withArgs('app:getLastBlock').resolves({
 				height: 0,
 			});
 			await __private.getDelegates();
@@ -291,10 +297,10 @@ describe('delegates/api', () => {
 			expect(data).to.deep.equal({
 				rewards: getAccountResponse.rewards,
 				fees: getAccountResponse.fees,
-				count: new BigNum(getAccountResponse.producedBlocks).toString(),
-				forged: new BigNum(getAccountResponse.rewards)
-					.plus(new BigNum(getAccountResponse.fees))
-					.toString(),
+				count: BigInt(getAccountResponse.producedBlocks).toString(),
+				forged: (
+					BigInt(getAccountResponse.rewards) + BigInt(getAccountResponse.fees)
+				).toString(),
 			});
 			expect(aggregateBlocksRewardStub).to.not.have.been.called;
 		});
@@ -357,19 +363,19 @@ describe('delegates/api', () => {
 
 		beforeEach(() => {
 			channelStub.invoke.resolves(dummyDelegates);
-			channelStub.invoke.withArgs('chain:getLastBlock').resolves(lastBlock);
+			channelStub.invoke.withArgs('app:getLastBlock').resolves(lastBlock);
 			return __private.getForgers(filters);
 		});
 
-		it('should call channel.invoke with chain:getLastBlock action', async () => {
+		it('should call channel.invoke with app:getLastBlock action', async () => {
 			expect(channelStub.invoke.getCall(0)).to.be.calledWith(
-				'chain:getLastBlock',
+				'app:getLastBlock',
 			);
 		});
 
-		it('should call channel.invoke with chain:getForgerPublicKeysForRound action', async () => {
+		it('should call channel.invoke with app:getForgerPublicKeysForRound action', async () => {
 			expect(channelStub.invoke.getCall(4)).to.be.calledWith(
-				'chain:getForgerPublicKeysForRound',
+				'app:getForgerPublicKeysForRound',
 			);
 		});
 

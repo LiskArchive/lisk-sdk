@@ -18,16 +18,15 @@ const _ = require('lodash');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
-const { MAX_VOTES_PER_ACCOUNT } = global.constants;
 const { generateParamsErrorObject } = swaggerHelper;
 
 let storage;
+let MAX_VOTES_PER_ACCOUNT;
 
 const getFilterAndOptionsFormParams = params => {
 	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
-		secondPublicKey: params.secondPublicKey.value,
 		username: params.username.value,
 	};
 
@@ -46,26 +45,13 @@ const getFilterAndOptionsFormParams = params => {
 };
 
 const validateFilters = (filters, params) => {
-	if (
-		!(
-			filters.username ||
-			filters.address ||
-			filters.publicKey ||
-			filters.secondPublicKey
-		)
-	) {
+	if (!(filters.username || filters.address || filters.publicKey)) {
 		const error = generateParamsErrorObject(
+			[params.address, params.publicKey, params.username],
 			[
-				params.address,
-				params.publicKey,
-				params.secondPublicKey,
-				params.username,
-			],
-			[
-				'address is required if publicKey, secondPublicKey and username not provided.',
-				'publicKey is required if address, secondPublicKey and username not provided.',
-				'secondPublicKey is required if address, publicKey and username not provided.',
-				'username is required if publicKey, secondPublicKey and address not provided.',
+				'address is required if publicKey and username not provided.',
+				'publicKey is required if address and username not provided.',
+				'username is required if publicKey and address not provided.',
 			],
 		);
 
@@ -77,6 +63,7 @@ const validateFilters = (filters, params) => {
 
 function VotersController(scope) {
 	({ storage } = scope.components);
+	({ MAX_VOTES_PER_ACCOUNT } = scope.config.constants);
 }
 
 VotersController.getVoters = async (context, next) => {

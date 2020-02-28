@@ -20,48 +20,72 @@ import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_TRIED_BUCKET_COUNT,
 	DEFAULT_TRIED_BUCKET_SIZE,
+	PeerKind,
 } from '../constants';
 import { ExistingPeerError } from '../errors';
-import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../p2p_types';
-import { PEER_TYPE } from '../utils';
+import { P2PEnhancedPeerInfo, P2PPeerInfo, PeerLists } from '../types';
+import { assignInternalInfo, PEER_TYPE } from '../utils';
 
-import { NewList, NewListConfig } from './new_list';
-import { TriedList, TriedListConfig } from './tried_list';
+import { NewList } from './new_list';
+import { TriedList } from './tried_list';
 
 export interface PeerBookConfig {
-	readonly newListConfig?: NewListConfig;
-	readonly triedListConfig?: TriedListConfig;
+	readonly sanitizedPeerLists: PeerLists;
 	readonly secret: number;
 }
 
 export class PeerBook {
 	private readonly _newPeers: NewList;
 	private readonly _triedPeers: TriedList;
+	private readonly _bannedIPs: Set<string>;
+	private readonly _blacklistedIPs: Set<string>;
+	private readonly _seedPeers: ReadonlyArray<P2PPeerInfo>;
+	private readonly _fixedPeers: ReadonlyArray<P2PPeerInfo>;
+	private readonly _whitelistedPeers: ReadonlyArray<P2PPeerInfo>;
+	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
+	private readonly _secret: number;
+
 	public constructor({
-		newListConfig: newListConfig,
-		triedListConfig: triedListConfig,
+		sanitizedPeerLists: sanitizedPeerLists,
 		secret,
 	}: PeerBookConfig) {
-		this._newPeers = new NewList(
-			newListConfig
-				? newListConfig
-				: {
-						secret,
-						numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
-						bucketSize: DEFAULT_NEW_BUCKET_SIZE,
-						peerType: PEER_TYPE.NEW_PEER,
-				  },
-		);
-		this._triedPeers = new TriedList(
-			triedListConfig
-				? triedListConfig
-				: {
-						secret,
-						numOfBuckets: DEFAULT_TRIED_BUCKET_COUNT,
-						bucketSize: DEFAULT_TRIED_BUCKET_SIZE,
-						peerType: PEER_TYPE.TRIED_PEER,
-				  },
-		);
+		this._newPeers = new NewList({
+			secret,
+			numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
+			bucketSize: DEFAULT_NEW_BUCKET_SIZE,
+			peerType: PEER_TYPE.NEW_PEER,
+		});
+		this._triedPeers = new TriedList({
+			secret,
+			numOfBuckets: DEFAULT_TRIED_BUCKET_COUNT,
+			bucketSize: DEFAULT_TRIED_BUCKET_SIZE,
+			peerType: PEER_TYPE.TRIED_PEER,
+		});
+
+		this._secret = secret;
+		this._bannedIPs = new Set([]);
+		this._blacklistedIPs = new Set([...sanitizedPeerLists.blacklistedIPs]);
+		this._seedPeers = [...sanitizedPeerLists.seedPeers];
+		this._fixedPeers = [...sanitizedPeerLists.fixedPeers];
+		this._whitelistedPeers = [...sanitizedPeerLists.whitelisted];
+		this._unbanTimers = [];
+
+		// Initialize peerBook lists
+		const newPeersToAdd = [
+			...sanitizedPeerLists.fixedPeers,
+			...sanitizedPeerLists.whitelisted,
+			...sanitizedPeerLists.previousPeers,
+		];
+
+		// Add peers to tried peers if want to re-use previously tried peers
+		// According to LIP, add whitelist peers to triedPeer by upgrading them initially.
+		newPeersToAdd.forEach(peerInfo => {
+			if (!this.hasPeer(peerInfo)) {
+				this.addPeer(peerInfo);
+			}
+
+			this.upgradePeer(peerInfo);
+		});
 	}
 
 	public get newPeers(): ReadonlyArray<P2PPeerInfo> {
@@ -74,6 +98,27 @@ export class PeerBook {
 
 	public get allPeers(): ReadonlyArray<P2PPeerInfo> {
 		return [...this.newPeers, ...this.triedPeers];
+	}
+
+	public get seedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._seedPeers;
+	}
+	public get fixedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._fixedPeers;
+	}
+	public get whitelistedPeers(): ReadonlyArray<P2PPeerInfo> {
+		return this._whitelistedPeers;
+	}
+	public get bannedIPs(): Set<string> {
+		return new Set([...this._blacklistedIPs, ...this._bannedIPs]);
+	}
+
+	public cleanUpTimers(): void {
+		this._unbanTimers.forEach(timer => {
+			if (timer) {
+				clearTimeout(timer);
+			}
+		});
 	}
 
 	public getRandomizedPeerList(
@@ -115,29 +160,35 @@ export class PeerBook {
 		);
 	}
 
-	public addPeer(peerInfo: P2PEnhancedPeerInfo): void {
+	public addPeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this._bannedIPs.has(peerInfo.ipAddress)) {
+			return false;
+		}
+
 		if (this._triedPeers.getPeer(peerInfo.peerId)) {
 			throw new ExistingPeerError(peerInfo);
 		}
 
-		this._newPeers.addPeer(peerInfo);
-	}
+		this._newPeers.addPeer(this._assignPeerKind(peerInfo));
 
-	public updatePeer(peerInfo: P2PPeerInfo): boolean {
-		if (this._triedPeers.getPeer(peerInfo.peerId)) {
-			return this._triedPeers.updatePeer(peerInfo);
-		}
-
-		if (this._newPeers.getPeer(peerInfo.peerId)) {
-			return this._newPeers.updatePeer(peerInfo);
-		}
-
-		return false;
+		return true;
 	}
 
 	public removePeer(peerInfo: P2PPeerInfo): void {
 		this._newPeers.removePeer(peerInfo);
 		this._triedPeers.removePeer(peerInfo);
+	}
+
+	public updatePeer(peerInfo: P2PPeerInfo): boolean {
+		if (this._triedPeers.getPeer(peerInfo.peerId)) {
+			return this._triedPeers.updatePeer(this._assignPeerKind(peerInfo));
+		}
+
+		if (this._newPeers.getPeer(peerInfo.peerId)) {
+			return this._newPeers.updatePeer(this._assignPeerKind(peerInfo));
+		}
+
+		return false;
 	}
 
 	public upgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
@@ -147,7 +198,12 @@ export class PeerBook {
 
 		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			this.removePeer(peerInfo);
-			this._triedPeers.addPeer(peerInfo);
+
+			if (this.bannedIPs.has(peerInfo.ipAddress)) {
+				return false;
+			}
+
+			this._triedPeers.addPeer(this._assignPeerKind(peerInfo));
 
 			return true;
 		}
@@ -156,6 +212,10 @@ export class PeerBook {
 	}
 
 	public downgradePeer(peerInfo: P2PEnhancedPeerInfo): boolean {
+		if (this.isTrustedPeer(peerInfo.peerId)) {
+			return false;
+		}
+
 		if (this._newPeers.hasPeer(peerInfo.peerId)) {
 			return this._newPeers.failedConnectionAction(peerInfo);
 		}
@@ -163,10 +223,103 @@ export class PeerBook {
 		if (this._triedPeers.hasPeer(peerInfo.peerId)) {
 			const failed = this._triedPeers.failedConnectionAction(peerInfo);
 			if (failed) {
-				this.addPeer(peerInfo);
+				return this.addPeer(peerInfo);
 			}
 		}
 
 		return false;
+	}
+
+	public isTrustedPeer(peerId: string): boolean {
+		const isSeedPeer = this.seedPeers.find(peer => peer.peerId === peerId);
+
+		const isWhitelistedPeer = this.whitelistedPeers.find(
+			peer => peer.peerId === peerId,
+		);
+
+		const isFixedPeer = this.fixedPeers.find(peer => peer.peerId === peerId);
+
+		return !!isSeedPeer || !!isWhitelistedPeer || !!isFixedPeer;
+	}
+
+	public addBannedPeer(peerId: string, peerBanTime: number): void {
+		const peerIpAddress = peerId.split(':')[0];
+
+		if (this.bannedIPs.has(peerIpAddress)) {
+			return;
+		}
+
+		// Whitelisted/FixedPeers are not allowed to be banned
+		if (
+			this.fixedPeers.find(peer => peer.peerId === peerId) ||
+			this.whitelistedPeers.find(peer => peer.peerId === peerId)
+		) {
+			return;
+		}
+
+		this._bannedIPs.add(peerIpAddress);
+
+		this.allPeers.forEach((peer: P2PPeerInfo) => {
+			if (peer.ipAddress === peerIpAddress) {
+				this.removePeer(peer);
+			}
+		});
+
+		// Unban temporary bans after peerBanTime
+		const unbanTimeout = setTimeout(() => {
+			this._removeBannedPeer(peerId);
+		}, peerBanTime);
+
+		this._unbanTimers.push(unbanTimeout);
+
+		return;
+	}
+
+	private _removeBannedPeer(peerId: string): void {
+		const peerIpAddress = peerId.split(':')[0];
+
+		this._bannedIPs.delete(peerIpAddress);
+	}
+
+	private _assignPeerKind(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		if (this.fixedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.FIXED_PEER,
+				},
+			};
+		}
+
+		if (
+			this.whitelistedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)
+		) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.WHITELISTED_PEER,
+				},
+			};
+		}
+
+		if (this.seedPeers.find(peer => peer.ipAddress === peerInfo.ipAddress)) {
+			return {
+				...peerInfo,
+				internalState: {
+					...assignInternalInfo(peerInfo, this._secret),
+					peerKind: PeerKind.SEED_PEER,
+				},
+			};
+		}
+
+		return {
+			...peerInfo,
+			internalState: {
+				...assignInternalInfo(peerInfo, this._secret),
+				peerKind: PeerKind.NONE,
+			},
+		};
 	}
 }

@@ -19,13 +19,13 @@ const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
-const { EPOCH_TIME, FEES } = global.constants;
-
 let library;
+let EPOCH_TIME;
+let FEES;
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
-		'chain:getForgingStatusForAllDelegates',
+		'app:getForgingStatusForAllDelegates',
 	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {
@@ -53,6 +53,7 @@ function NodeController(scope) {
 		lastCommitId: scope.lastCommitId,
 		buildVersion: scope.buildVersion,
 	};
+	({ EPOCH_TIME, FEES } = scope.config.constants);
 }
 
 NodeController.getConstants = async (context, next) => {
@@ -63,14 +64,14 @@ NodeController.getConstants = async (context, next) => {
 	}
 
 	try {
-		const lastBlock = await library.channel.invoke('chain:getLastBlock');
-		const milestone = await library.channel.invoke('chain:calculateMilestone', {
+		const lastBlock = await library.channel.invoke('app:getLastBlock');
+		const milestone = await library.channel.invoke('app:calculateMilestone', {
 			height: lastBlock.height,
 		});
-		const reward = await library.channel.invoke('chain:calculateReward', {
+		const reward = await library.channel.invoke('app:calculateReward', {
 			height: lastBlock.height,
 		});
-		const supply = await library.channel.invoke('chain:calculateSupply', {
+		const supply = await library.channel.invoke('app:calculateSupply', {
 			height: lastBlock.height,
 		});
 
@@ -83,14 +84,13 @@ NodeController.getConstants = async (context, next) => {
 			fees: {
 				send: FEES.SEND.toString(),
 				vote: FEES.VOTE.toString(),
-				secondSignature: FEES.SECOND_SIGNATURE.toString(),
 				delegate: FEES.DELEGATE.toString(),
 				multisignature: FEES.MULTISIGNATURE.toString(),
 				dappRegistration: FEES.DAPP_REGISTRATION.toString(),
 				dappWithdrawal: FEES.DAPP_WITHDRAWAL.toString(),
 				dappDeposit: FEES.DAPP_DEPOSIT.toString(),
 			},
-			nethash: library.config.nethash,
+			networkId: library.config.networkId,
 			milestone: milestone.toString(),
 			reward: reward.toString(),
 			supply: supply.toString(),
@@ -109,7 +109,7 @@ NodeController.getStatus = async (context, next) => {
 			syncing,
 			lastBlock,
 			chainMaxHeightFinalized,
-		} = await library.channel.invoke('chain:getNodeStatus');
+		} = await library.channel.invoke('app:getNodeStatus');
 
 		const data = {
 			currentTime: Date.now(),
@@ -161,7 +161,7 @@ NodeController.updateForgingStatus = async (context, next) => {
 	const { forging } = context.request.swagger.params.data.value;
 
 	try {
-		const data = await library.channel.invoke('chain:updateForgingStatus', {
+		const data = await library.channel.invoke('app:updateForgingStatus', {
 			publicKey,
 			password,
 			forging,
@@ -199,7 +199,7 @@ NodeController.getPooledTransactions = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await library.channel.invoke('chain:getTransactionsFromPool', {
+		const data = await library.channel.invoke('app:getTransactionsFromPool', {
 			type: state,
 			filters: _.clone(filters),
 		});

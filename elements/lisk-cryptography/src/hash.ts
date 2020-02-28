@@ -46,6 +46,7 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 };
 
 export const getNetworkIdentifier = (
-	nethash: string,
+	genesisBlockPayloadHash: string,
 	communityIdentifier: string,
-) => hash(nethash + communityIdentifier, 'utf8').toString('hex');
+) =>
+	hash(genesisBlockPayloadHash + communityIdentifier, 'utf8').toString('hex');

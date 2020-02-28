@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { P2P, EVENT_DISCOVERED_PEER } from '../../src/index';
+import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { createNetwork, destroyNetwork } from 'utils/network_setup';
+import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const { EVENT_DISCOVERED_PEER } = events;
 
 describe('Peer discovery threshold', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -37,7 +38,7 @@ describe('Peer discovery threshold', () => {
 			customConfig,
 		});
 
-		[...new Array(1000).keys()].map(() => {
+		for (let i = 0; i < 1000; i++) {
 			const generatedIP = `${Math.floor(Math.random() * 254) + 1}.${Math.floor(
 				Math.random() * 254,
 			) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
@@ -54,7 +55,7 @@ describe('Peer discovery threshold', () => {
 					version: '1.1',
 				},
 			});
-		});
+		}
 
 		p2pNodeList[1].on(EVENT_DISCOVERED_PEER, peer => {
 			listOfPeers.push(peer);
@@ -71,6 +72,6 @@ describe('Peer discovery threshold', () => {
 		expect(
 			listOfPeers.length >= MINIMUM_PEER_DISCOVERY_THRESHOLD &&
 				listOfPeers.length <= MAX_PEER_DISCOVERY_RESPONSE_LENGTH,
-		).to.be.eql(true);
+		).toEqual(true);
 	});
 });

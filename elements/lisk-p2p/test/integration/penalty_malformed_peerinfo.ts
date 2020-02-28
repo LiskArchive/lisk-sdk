@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect } from 'chai';
-import { P2P, EVENT_BAN_PEER } from '../../src/index';
+import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+
+const { EVENT_BAN_PEER } = events;
 
 describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
@@ -35,7 +36,7 @@ describe('penalty sending malformed peerInfo', () => {
 
 		p2pNodeList[0].applyNodeInfo({
 			os: platform(),
-			nethash:
+			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 			version: p2pNodeList[0].nodeInfo.version,
 			protocolVersion: '1.1',
@@ -55,6 +56,6 @@ describe('penalty sending malformed peerInfo', () => {
 	});
 
 	it(`should fire ${EVENT_BAN_PEER} event`, async () => {
-		expect(collectedEvents.get(EVENT_BAN_PEER)).to.be.equal('127.0.0.1:5000');
+		expect(collectedEvents.get(EVENT_BAN_PEER)).toBe('127.0.0.1:5000');
 	});
 });

@@ -29,7 +29,6 @@ describe('node/api', () => {
 	let cacheStub;
 	let loggerStub;
 	let storageStub;
-	let configStub;
 	let getStatus;
 
 	before(async () => {
@@ -62,7 +61,20 @@ describe('node/api', () => {
 				cache: cacheStub,
 				logger: loggerStub,
 			},
-			config: configStub,
+			config: {
+				constants: {
+					EPOCH_TIME: '2016-05-24T17:00:00.000Z',
+					FEES: {
+						SEND: '10000000',
+						VOTE: '100000000',
+						DELEGATE: '2500000000',
+						MULTISIGNATURE: '500000000',
+						DAPP_REGISTRATION: '2500000000',
+						DAPP_WITHDRAWAL: '10000000',
+						DAPP_DEPOSIT: '10000000',
+					},
+				},
+			},
 			channel: channelStub,
 			applicationState: {},
 		};
@@ -141,9 +153,9 @@ describe('node/api', () => {
 			sinonSandbox.stub(Date, 'now').returns(now);
 		});
 
-		describe('when chain:getNodeStatus answers with all parameters', () => {
+		describe('when app:getNodeStatus answers with all parameters', () => {
 			beforeEach(async () => {
-				channelStub.invoke.withArgs('chain:getNodeStatus').returns(status);
+				channelStub.invoke.withArgs('app:getNodeStatus').returns(status);
 			});
 
 			it('should return an object status with all properties', async () =>
@@ -153,7 +165,7 @@ describe('node/api', () => {
 				}));
 		});
 
-		describe('when chain:getNodeStatus answers without some parameters', () => {
+		describe('when app:getNodeStatus answers without some parameters', () => {
 			let statusWithoutSomeParameters;
 			let expectedStatusWithoutSomeParameters;
 
@@ -163,7 +175,7 @@ describe('node/api', () => {
 				expectedStatusWithoutSomeParameters = _.cloneDeep(expectedStatus);
 				expectedStatusWithoutSomeParameters.height = 0;
 				channelStub.invoke
-					.withArgs('chain:getNodeStatus')
+					.withArgs('app:getNodeStatus')
 					.returns(statusWithoutSomeParameters);
 			});
 
