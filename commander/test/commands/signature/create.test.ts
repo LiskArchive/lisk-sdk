@@ -20,7 +20,7 @@ import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 import * as inputUtilsModule from '../../../src/utils/input';
 
-describe('signature:create', () => {
+describe.skip('signature:create', () => {
 	const defaultTransaction = {
 		type: 8,
 		senderPublicKey:
