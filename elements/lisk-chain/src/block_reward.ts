@@ -131,7 +131,7 @@ export const getTotalFees = (
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	blockInstance.transactions.reduce(
 		(prev, current) => {
-			const minFee = BigInt(0); // TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
+			const minFee = current.minFee;
 
 			return {
 				totalFee: prev.totalFee + current.fee,

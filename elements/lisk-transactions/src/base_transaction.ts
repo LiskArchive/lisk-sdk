@@ -169,7 +169,11 @@ export abstract class BaseTransaction {
 
 	public get minFee(): bigint {
 		if (!this._minFee) {
-			throw new Error('minFee is required to be set before use');
+			// Include nameFee in minFee for delegate registration transactions
+			this._minFee =
+				(this.constructor as typeof BaseTransaction).NAME_FEE +
+				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
+					BigInt(this.getBytes().length);
 		}
 
 		return this._minFee;
@@ -265,13 +269,8 @@ export abstract class BaseTransaction {
 		}
 
 		const transactionBytes = this.getBasicBytes();
-		this._minFee =
-			// Include nameFee in minFee for delegate registration transactions
-			(this.constructor as typeof BaseTransaction).NAME_FEE +
-			BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
-				BigInt(this.getBytes().length);
 
-		if (this.fee < this._minFee) {
+		if (this.fee < this.minFee) {
 			errors.push(
 				new TransactionError(
 					'Insufficient transaction fee',

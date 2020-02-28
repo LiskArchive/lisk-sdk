@@ -585,6 +585,8 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				txApplySpy = jest.spyOn(validTx, 'apply');
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
@@ -706,6 +708,8 @@ describe('blocks/header', () => {
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -716,6 +720,8 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx2.validate();
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
 				block = newBlock({
@@ -769,8 +775,7 @@ describe('blocks/header', () => {
 				);
 				let expected = block.reward;
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee;
+					expected += tx.fee - tx.minFee;
 				}
 				expect(generator.balance.toString()).toEqual(expected.toString());
 			});
@@ -781,8 +786,7 @@ describe('blocks/header', () => {
 				);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee - tx.fee;
+					expected += tx.minFee;
 				}
 				expect(burntFee).toEqual(
 					(BigInt(defaultBurntFee) + expected).toString(),
@@ -807,6 +811,8 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				newTx.validate();
 				const nextBlock = newBlock({
 					height: chainInstance.lastBlock.height + 1,
 					transactions: [newTx],
@@ -836,6 +842,7 @@ describe('blocks/header', () => {
 			storageStub.entities.Account.get.mockResolvedValue([]);
 			// Act
 			genesisInstance = chainInstance.deserialize(genesisBlock);
+			genesisInstance.transactions.forEach(tx => tx.validate());
 			// Act
 			stateStore = new StateStore(storageStub);
 			await chainInstance.applyGenesis(genesisInstance, stateStore);
@@ -910,6 +917,8 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				txUndoSpy = jest.spyOn(validTx, 'undo');
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
@@ -977,6 +986,8 @@ describe('blocks/header', () => {
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -987,6 +998,8 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx2.validate();
 				validTxUndoSpy = jest.spyOn(validTx, 'undo');
 				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');
 				block = newBlock({
@@ -1042,8 +1055,7 @@ describe('blocks/header', () => {
 				);
 				let expected = block.reward;
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee;
+					expected += tx.fee - tx.minFee;
 				}
 				expect(generator.balance.toString()).toEqual(
 					(defaultGeneratorBalance - expected).toString(),
@@ -1056,8 +1068,7 @@ describe('blocks/header', () => {
 				);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee - tx.fee;
+					expected += tx.minFee;
 				}
 				expect(burntFee).toEqual(
 					(BigInt(defaultBurntFee) - expected).toString(),
