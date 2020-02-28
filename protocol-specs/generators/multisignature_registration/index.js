@@ -218,9 +218,9 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		type: 12,
 		asset: {
 			mandatoryKeys: [
+				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
 				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			],
 			optionalKeys: [
 				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
@@ -269,6 +269,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 			account: accounts.targetAccount,
 			networkIdentifier,
 			coSigners: [
+				accounts.targetAccount,
 				accounts.mandatoryOne,
 				accounts.mandatoryTwo,
 				accounts.optionalOne,
@@ -324,12 +325,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		input: {
 			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [
-				accounts.mandatoryOne,
-				accounts.mandatoryTwo,
-				accounts.optionalOne,
-				accounts.optionalTwo,
-			],
+			coSigners: [accounts.optionalOne, accounts.optionalTwo],
 			transaction: tx,
 		},
 		output: tx,
@@ -380,12 +376,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		input: {
 			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [
-				accounts.mandatoryOne,
-				accounts.mandatoryTwo,
-				accounts.optionalOne,
-				accounts.optionalTwo,
-			],
+			coSigners: [accounts.mandatoryOne, accounts.mandatoryTwo],
 			transaction: tx,
 		},
 		output: tx,

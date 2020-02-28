@@ -15,6 +15,12 @@
 			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
 			"coSigners": [
 				{
+					"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+					"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+					"address": "18141291412139607230L"
+				},
+				{
 					"passphrase": "trim elegant oven term access apple obtain error grain excite lawn neck",
 					"privateKey": "8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
 					"publicKey": "f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3",
