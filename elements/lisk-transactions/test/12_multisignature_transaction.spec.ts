@@ -260,7 +260,7 @@ describe('Multisignature transaction class', () => {
 			expect(errors[0].message).toBe(`'.numberOfSignatures' should be <= 64`);
 		});
 
-		it('should return error when numberOfSignatures is bigger less than 1', async () => {
+		it('should return error when numberOfSignatures is less than 1', async () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
