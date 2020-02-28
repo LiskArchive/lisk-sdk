@@ -46,7 +46,7 @@ const accounts = {
 			'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 		address: '10481548956627905381L',
 	},
-	mandatoryTow: {
+	mandatoryTwo: {
 		passphrase:
 			'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
 		privateKey:
@@ -176,7 +176,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	);
 	// Members sign in order
 	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryTow).signature,
+		createSignatureObject(txBuffer, accounts.mandatoryTwo).signature,
 	);
 	tx.signatures.push(
 		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
@@ -199,7 +199,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 			networkIdentifier,
 			coSigners: [
 				accounts.mandatoryOne,
-				accounts.mandatoryTow,
+				accounts.mandatoryTwo,
 				accounts.optionalOne,
 				accounts.optionalTwo,
 			],
@@ -247,7 +247,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	// In the case where the Sender is part of mandatory its signature should be included too;
 	// in this case given the lexicographical order it happens to be first but could be in different order
 	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.mandatoryTow).signature,
+		createSignatureObject(txBuffer, accounts.mandatoryTwo).signature,
 	);
 	tx.signatures.push(
 		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
@@ -270,7 +270,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 			networkIdentifier,
 			coSigners: [
 				accounts.mandatoryOne,
-				accounts.mandatoryTow,
+				accounts.mandatoryTwo,
 				accounts.optionalOne,
 				accounts.optionalTwo,
 			],
@@ -326,7 +326,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 			networkIdentifier,
 			coSigners: [
 				accounts.mandatoryOne,
-				accounts.mandatoryTow,
+				accounts.mandatoryTwo,
 				accounts.optionalOne,
 				accounts.optionalTwo,
 			],
@@ -365,10 +365,10 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	);
 	// Members sign in order
 	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalOne).signature,
+		createSignatureObject(txBuffer, accounts.mandatoryTwo).signature,
 	);
 	tx.signatures.push(
-		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
+		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
 	);
 	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
@@ -382,7 +382,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 			networkIdentifier,
 			coSigners: [
 				accounts.mandatoryOne,
-				accounts.mandatoryTow,
+				accounts.mandatoryTwo,
 				accounts.optionalOne,
 				accounts.optionalTwo,
 			],
