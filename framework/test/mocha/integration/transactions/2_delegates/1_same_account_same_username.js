@@ -43,7 +43,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			const account = randomUtil.account();
 			const transaction = transfer({
 				networkIdentifier,
-				nonce: i,
+				nonce: i.toString(),
 				fee: BigInt(100000000).toString(),
 				amount: BigInt(100000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,

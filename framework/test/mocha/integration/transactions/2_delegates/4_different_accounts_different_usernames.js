@@ -45,7 +45,7 @@ describe('integration test (type 2) - double delegate registrations', () => {
 			let transaction2;
 			const transaction = transfer({
 				networkIdentifier,
-				nonce: i,
+				nonce: i.toString(),
 				fee: BigInt(100000000).toString(),
 				amount: BigInt(100000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
@@ -156,9 +156,10 @@ describe('integration test (type 2) - double delegate registrations', () => {
 					it('adding to pool delegate registration with already registered username should fail', done => {
 						const transaction3 = registerDelegate({
 							networkIdentifier,
+							nonce: i.toString(),
+							fee: BigInt(100000000).toString(),
 							passphrase: account2.passphrase,
 							username: account2.username,
-							timeOffset: -10000,
 						});
 						localCommon.addTransaction(library, transaction3, err => {
 							const expectedErrors = [
