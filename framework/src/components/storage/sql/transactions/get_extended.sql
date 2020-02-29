@@ -24,7 +24,6 @@ SELECT
 	trs."amount" AS "amount",
 	trs."fee" AS "fee",
 	encode(trs."signature", 'hex'::text) AS "signature",
-	encode(trs."signSignature", 'hex'::text) AS "signSignature",
 	regexp_split_to_array(trs."signatures", ',') as "signatures",
 	trs."asset" AS "asset",
 	trs."transferData" AS "transferData",

@@ -91,8 +91,6 @@ class Transaction extends BaseEntity {
 
 		this.addField('signature', 'string', {}, stringToByte);
 
-		this.addField('signSignature', 'string', {}, stringToByte);
-
 		this.addField('signatures', 'string');
 
 		this.addField('asset', 'string');
