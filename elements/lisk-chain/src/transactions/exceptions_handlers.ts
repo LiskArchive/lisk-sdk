@@ -66,29 +66,6 @@ const checkSignature = (
 	return true;
 };
 
-const checkSignSignature = (
-	transactionResponse: TransactionResponse,
-	transaction: BaseTransaction,
-	exceptions: ExceptionOptions = {},
-) => {
-	if (
-		!exceptions.signSignature ||
-		!exceptions.signSignature.includes(transaction.id)
-	) {
-		return false;
-	}
-
-	if (transactionResponse.errors.length <= 1) {
-		return false;
-	}
-
-	if (transactionResponse.errors[0].dataPath !== '.signSignature') {
-		return false;
-	}
-
-	return true;
-};
-
 const checkNullByte = (
 	transactionResponse: TransactionResponse,
 	transaction: BaseTransaction,
@@ -266,7 +243,6 @@ export const checkIfTransactionIsException = (
 		checkSenderPublicKeyException,
 		checkDuplicateSignatures,
 		checkSignature,
-		checkSignSignature,
 		checkVotes,
 		checkRecipientLeadingZero,
 		checkRecipientExceedingUint64,

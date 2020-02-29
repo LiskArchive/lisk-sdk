@@ -238,7 +238,6 @@ export interface Storage {
 export interface ExceptionOptions {
 	readonly senderPublicKey?: ReadonlyArray<string>;
 	readonly signatures?: ReadonlyArray<string>;
-	readonly signSignature?: ReadonlyArray<string>;
 	readonly transactionWithNullByte?: ReadonlyArray<string>;
 	readonly multisignatures?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
