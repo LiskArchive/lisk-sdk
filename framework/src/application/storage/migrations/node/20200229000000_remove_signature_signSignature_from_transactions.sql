@@ -18,5 +18,5 @@
 */
 
 ALTER TABLE trs
-DROP COLUMN "signature"
+DROP COLUMN "signature",
 DROP COLUMN "signSignature";
