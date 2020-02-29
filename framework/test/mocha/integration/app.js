@@ -285,9 +285,7 @@ describe('app', () => {
 									'0',
 								);
 
-								// TODO: Need to fix derivedBalance
-								const derivedBalance = (balance - 101019223000).toString();
-								expect(genesisAccount.balance).to.be.equal(derivedBalance);
+								expect(genesisAccount.balance).to.be.equal(balance);
 								expect(genesisAccount.publicKey.toString('hex')).to.equal(
 									genesisAccountTransaction.senderPublicKey,
 								);
