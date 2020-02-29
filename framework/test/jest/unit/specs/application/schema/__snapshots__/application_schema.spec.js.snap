@@ -54,7 +54,6 @@ Object {
           "roundVotes": Array [],
           "rounds": Object {},
           "senderPublicKey": Array [],
-          "signSignature": Array [],
           "signatures": Array [],
           "transactionWithNullByte": Array [],
           "votes": Array [],
@@ -420,13 +419,6 @@ Object {
                   "type": "object",
                 },
                 "senderPublicKey": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "signSignature": Object {
                   "items": Object {
                     "format": "id",
                     "type": "string",
