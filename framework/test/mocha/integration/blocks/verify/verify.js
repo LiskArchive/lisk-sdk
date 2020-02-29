@@ -233,6 +233,8 @@ describe('blocks/verify', () => {
 				const account = random.account();
 				const transaction = transfer({
 					networkIdentifier,
+					fee: '10000000',
+					nonce: '0',
 					amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 					recipientId: accountFixtures.genesis.address,
 					passphrase: account.passphrase,
@@ -283,19 +285,6 @@ describe('blocks/verify', () => {
 				}
 			});
 
-			it('should fail when transaction timestamp property is missing', async () => {
-				const transactionTimestamp = block2.transactions[0].timestamp;
-				delete block2.transactions[0].timestamp;
-				try {
-					await library.modules.processor.process(block2);
-				} catch (err) {
-					expect(err[0].message).equal(
-						"'' should have required property 'timestamp'",
-					);
-					block2.transactions[0].timestamp = transactionTimestamp;
-				}
-			});
-
 			it('should fail when block generator is invalid', async () => {
 				try {
 					await library.modules.processor.process(block2);
@@ -315,6 +304,8 @@ describe('blocks/verify', () => {
 
 					const account = random.account();
 					const transferTransaction = transfer({
+						fee: '10000000',
+						nonce: '0',
 						networkIdentifier,
 						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
@@ -336,7 +327,7 @@ describe('blocks/verify', () => {
 					expect(auxBlock.reward).to.equal(BigInt(0));
 					expect(auxBlock.totalFee).to.equal(BigInt(10000000));
 					expect(auxBlock.totalAmount).to.equal(BigInt(100000000000));
-					expect(auxBlock.payloadLength).to.equal(117);
+					expect(auxBlock.payloadLength).to.equal(129);
 					expect(
 						auxBlock.transactions.map(transaction => transaction.id),
 					).to.deep.equal(
@@ -348,6 +339,8 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is invalid', async () => {
 					const account = random.account();
 					const transaction = transfer({
+						fee: '10000000',
+						nonce: '0',
 						networkIdentifier,
 						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						recipientId: accountFixtures.genesis.address,
@@ -394,6 +387,8 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', async () => {
 					const account = random.account();
 					const transaction = transfer({
+						fee: '10000000',
+						nonce: '0',
 						networkIdentifier,
 						amount: (BigInt(NORMALIZER) * BigInt(1000)).toString(),
 						passphrase: accountFixtures.genesis.passphrase,

@@ -18,7 +18,7 @@ import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 
-describe('transaction:verify', () => {
+describe.skip('transaction:verify', () => {
 	const defaultTransaction = {
 		type: 8,
 		senderPublicKey:

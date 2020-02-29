@@ -14,6 +14,8 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
+	isValidFee,
+	isValidNonce,
 	isValidTransferAmount,
 	validateAddress,
 	validateNetworkIdentifier,
@@ -27,13 +29,14 @@ import { createBaseTransaction } from './utils';
 
 export interface TransferInputs {
 	readonly amount: string;
+	readonly fee: string;
+	readonly nonce: string;
 	readonly networkIdentifier: string;
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 }
 
 const validateInputs = ({
@@ -42,7 +45,17 @@ const validateInputs = ({
 	recipientPublicKey,
 	data,
 	networkIdentifier,
+	fee,
+	nonce,
 }: TransferInputs): void => {
+	if (!isValidNonce(nonce)) {
+		throw new Error('Nonce must be a valid number in string format.');
+	}
+
+	if (!isValidFee(fee)) {
+		throw new Error('Fee must be a valid number in string format.');
+	}
+
 	if (!isValidTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}

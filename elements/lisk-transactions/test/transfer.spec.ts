@@ -14,7 +14,6 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/transfer';
-import * as time from '../src/utils/time';
 import { TransactionJSON } from '../src/transaction_types';
 
 describe('#transfer transaction', () => {
@@ -31,19 +30,11 @@ describe('#transfer transaction', () => {
 		'12345a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
 	const fee = (0.1 * fixedPoint).toString();
-	const timeWithOffset = 38350076;
+	const nonce = '0';
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-	let getTimeWithOffsetStub: jest.SpyInstance;
 	let transferTransaction: Partial<TransactionJSON>;
-
-	beforeEach(() => {
-		getTimeWithOffsetStub = jest
-			.spyOn(time, 'getTimeWithOffset')
-			.mockReturnValue(timeWithOffset);
-		return Promise.resolve();
-	});
 
 	describe('with first passphrase', () => {
 		describe('without data', () => {
@@ -53,29 +44,14 @@ describe('#transfer transaction', () => {
 					amount,
 					networkIdentifier,
 					passphrase,
+					fee,
+					nonce,
 				});
 				return Promise.resolve();
 			});
 
 			it('should create a transfer transaction', () => {
 				return expect(transferTransaction).toBeTruthy();
-			});
-
-			it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-				return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
-			});
-
-			it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
-				const offset = -10;
-				transfer({
-					recipientId,
-					amount,
-					networkIdentifier,
-					passphrase,
-					timeOffset: offset,
-				});
-
-				return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 			});
 
 			it('should be an object', () => {
@@ -104,6 +80,10 @@ describe('#transfer transaction', () => {
 				return expect(transferTransaction).toHaveProperty('fee', fee);
 			});
 
+			it('should have nonce string equal to transfer nonce', () => {
+				return expect(transferTransaction).toHaveProperty('nonce', nonce);
+			});
+
 			it('should have recipientId string equal to provided recipient id', () => {
 				return expect(transferTransaction.asset).toHaveProperty(
 					'recipientId',
@@ -115,13 +95,6 @@ describe('#transfer transaction', () => {
 				return expect(transferTransaction).toHaveProperty(
 					'senderPublicKey',
 					publicKey,
-				);
-			});
-
-			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				return expect(transferTransaction).toHaveProperty(
-					'timestamp',
-					timeWithOffset,
 				);
 			});
 
@@ -140,6 +113,8 @@ describe('#transfer transaction', () => {
 						amount,
 						passphrase,
 						data: testData,
+						fee,
+						nonce,
 					} as any),
 				).toThrowError('Network identifier can not be empty');
 			});
@@ -153,6 +128,8 @@ describe('#transfer transaction', () => {
 					networkIdentifier,
 					passphrase,
 					data: testData,
+					fee,
+					nonce,
 				});
 				return Promise.resolve();
 			});
@@ -165,6 +142,8 @@ describe('#transfer transaction', () => {
 						networkIdentifier,
 						passphrase,
 						data: Buffer.from('hello') as any,
+						fee,
+						nonce,
 					}),
 				).toThrowError(
 					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
@@ -193,6 +172,8 @@ describe('#transfer transaction', () => {
 				amount,
 				networkIdentifier,
 				passphrase,
+				fee,
+				nonce,
 			});
 			return Promise.resolve();
 		});
@@ -204,6 +185,8 @@ describe('#transfer transaction', () => {
 				networkIdentifier,
 				passphrase,
 				data: testData,
+				fee,
+				nonce,
 			});
 
 			return expect(transferTransaction.asset).toHaveProperty('data');
@@ -217,6 +200,8 @@ describe('#transfer transaction', () => {
 					recipientId,
 					amount,
 					networkIdentifier,
+					fee,
+					nonce,
 				});
 				return Promise.resolve();
 			});
@@ -226,6 +211,8 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						amount: '0',
 						networkIdentifier,
+						fee,
+						nonce,
 					}),
 				).toThrowError('Amount must be a valid number in string format.');
 			});
@@ -235,6 +222,8 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						amount: '18446744073709551616',
 						networkIdentifier,
+						fee,
+						nonce,
 					}),
 				).toThrowError('Amount must be a valid number in string format.');
 			});
@@ -246,6 +235,8 @@ describe('#transfer transaction', () => {
 						networkIdentifier,
 						recipientId,
 						recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
+						fee,
+						nonce,
 					}),
 				).toThrowError('recipientId does not match recipientPublicKey.');
 			});
@@ -257,6 +248,8 @@ describe('#transfer transaction', () => {
 						networkIdentifier,
 						recipientId,
 						recipientPublicKey,
+						fee,
+						nonce,
 					}),
 				).not.toThrowError();
 			});
@@ -268,6 +261,8 @@ describe('#transfer transaction', () => {
 						networkIdentifier,
 						passphrase,
 						data: Buffer.from('hello') as any,
+						fee,
+						nonce,
 					}),
 				).toThrowError(
 					'Either recipientId or recipientPublicKey must be provided.',
@@ -280,6 +275,8 @@ describe('#transfer transaction', () => {
 					networkIdentifier,
 					passphrase,
 					recipientPublicKey: publicKey,
+					fee,
+					nonce,
 				});
 				return expect(tx.asset).toHaveProperty(
 					'recipientId',
@@ -294,6 +291,8 @@ describe('#transfer transaction', () => {
 						amount,
 						networkIdentifier,
 						data: new Array(65).fill('0').join(''),
+						fee,
+						nonce,
 					}),
 				).toThrowError('Transaction data field cannot exceed 64 bytes.');
 			});
@@ -324,10 +323,6 @@ describe('#transfer transaction', () => {
 					'senderPublicKey',
 					undefined,
 				);
-			});
-
-			it('should have the timestamp', () => {
-				return expect(transferTransaction).toHaveProperty('timestamp');
 			});
 
 			it('should have the asset', () => {

@@ -279,6 +279,7 @@ describe('app', () => {
 												BigInt(reduceBalance) - BigInt(acc.asset.amount)
 											).toString();
 										}
+
 										return reduceBalance;
 									},
 									'0',

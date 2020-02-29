@@ -146,6 +146,8 @@ describe('WS transport', () => {
 			beforeEach(async () => {
 				const accountAdditionalData = randomUtil.account();
 				transaction = transfer({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					amount: '1',
 					passphrase: accountFixtures.genesis.passphrase,
@@ -177,6 +179,8 @@ describe('WS transport', () => {
 				for (let i = 0; i < MAX_TRANSACTIONS_PER_BLOCK * 2; i++) {
 					accountAdditionalData = randomUtil.account();
 					transaction = transfer({
+						nonce: '0',
+						fee: '100000000',
 						networkIdentifier,
 						amount: '1',
 						passphrase: accountFixtures.genesis.passphrase,

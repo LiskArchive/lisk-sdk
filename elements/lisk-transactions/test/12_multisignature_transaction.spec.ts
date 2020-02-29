@@ -13,7 +13,6 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { MULTISIGNATURE_FEE } from '../src/constants';
 import { SignatureObject } from '../src/create_signature_object';
 import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
 import { Account, TransactionJSON } from '../src/transaction_types';
@@ -79,15 +78,6 @@ describe('Multisignature transaction class', () => {
 		it('should set multisignature asset', async () => {
 			expect(validTestTransaction.asset).toEqual(
 				validMultisignatureRegistrationTransaction.asset,
-			);
-		});
-
-		it('should set fee to multisignature transaction fee amount', async () => {
-			expect(validTestTransaction.fee.toString()).toEqual(
-				(
-					MULTISIGNATURE_FEE *
-					(validTestTransaction.asset.keysgroup.length + 1)
-				).toString(),
 			);
 		});
 
@@ -418,7 +408,7 @@ describe('Multisignature transaction class', () => {
 		});
 	});
 
-	describe('#addMultisignature', () => {
+	describe.skip('#addMultisignature', () => {
 		let membersSignatures: Array<SignatureObject>;
 		let multisigTrs: MultisignatureTransaction;
 

@@ -56,6 +56,8 @@ describe('integration test (blocks) - chain/popLastBlock', () => {
 	beforeEach('send funds to accounts', async () => {
 		blockAccount1 = randomUtil.account();
 		fundTrsForAccount1 = transfer({
+			nonce: '0',
+			fee: '10000000',
 			networkIdentifier,
 			amount: transferAmount.toString(),
 			passphrase: accountFixtures.genesis.passphrase,

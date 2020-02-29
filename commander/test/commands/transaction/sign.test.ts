@@ -19,7 +19,7 @@ import * as printUtils from '../../../src/utils/print';
 import * as inputModule from '../../../src/utils/input/utils';
 import * as inputUtils from '../../../src/utils/input';
 
-describe('transaction:sign', () => {
+describe.skip('transaction:sign', () => {
 	const defaultTransaction = {
 		type: 8,
 		senderPublicKey:

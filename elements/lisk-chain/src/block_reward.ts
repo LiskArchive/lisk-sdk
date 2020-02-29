@@ -131,7 +131,7 @@ export const getTotalFees = (
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	blockInstance.transactions.reduce(
 		(prev, current) => {
-			const minFee = BigInt(0); // TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
+			const minFee = current.minFee;
 
 			return {
 				totalFee: prev.totalFee + current.fee,
@@ -159,7 +159,10 @@ export const applyFeeAndRewards = async (
 	}
 	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
 	// Generator only gets total fee - min fee
-	generator.balance += totalFee - totalMinFee;
+	const givenFee = totalFee - totalMinFee;
+	// This is necessary only for genesis block case, where total fee is 0, which is invalid
+	// Also, genesis block channot be reverted
+	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
 	const totalFeeBurntStr = await stateStore.chainState.get(
 		CHAIN_STATE_KEY_BURNT_FEE,
 	);

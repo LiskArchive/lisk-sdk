@@ -20,7 +20,6 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { VOTE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { CreateBaseTransactionInput } from './utils';
@@ -69,7 +68,6 @@ export class VoteTransaction extends BaseTransaction {
 	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
 	public static TYPE = 11;
-	public static FEE = VOTE_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

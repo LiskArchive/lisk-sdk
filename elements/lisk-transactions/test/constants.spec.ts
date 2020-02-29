@@ -12,54 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	FIXED_POINT,
-	DAPP_FEE,
-	DELEGATE_FEE,
-	IN_TRANSFER_FEE,
-	OUT_TRANSFER_FEE,
-	MULTISIGNATURE_FEE,
-	SIGNATURE_FEE,
-	TRANSFER_FEE,
-	VOTE_FEE,
-	BYTESIZES,
-} from '../src/constants';
+import { FIXED_POINT, BYTESIZES } from '../src/constants';
 
 describe('transactions constants module', () => {
 	it('FIXED_POINT to be an integer', () => {
 		return expect(FIXED_POINT).toBeNumber();
-	});
-
-	it('DAPP_FEE to be an integer', () => {
-		return expect(DAPP_FEE).toBeNumber();
-	});
-
-	it('DELEGATE_FEE to be an integer', () => {
-		return expect(DELEGATE_FEE).toBeNumber();
-	});
-
-	it('IN_TRANSFER_FEE to be an integer', () => {
-		return expect(IN_TRANSFER_FEE).toBeNumber();
-	});
-
-	it('OUT_TRANSFER_FEE to be an integer', () => {
-		return expect(OUT_TRANSFER_FEE).toBeNumber();
-	});
-
-	it('MULTISIGNATURE_FEE to be an integer', () => {
-		return expect(MULTISIGNATURE_FEE).toBeNumber();
-	});
-
-	it('SIGNATURE_FEE to be an integer', () => {
-		return expect(SIGNATURE_FEE).toBeNumber();
-	});
-
-	it('TRANSFER_FEE to be an integer', () => {
-		return expect(TRANSFER_FEE).toBeNumber();
-	});
-
-	it('VOTE_FEE to be an integer', () => {
-		return expect(VOTE_FEE).toBeNumber();
 	});
 
 	it('BYTESIZES.TYPE to be an integer', () => {
@@ -80,6 +37,14 @@ describe('transactions constants module', () => {
 
 	it('BYTESIZES.AMOUNT to be an integer', () => {
 		return expect(BYTESIZES.AMOUNT).toBeNumber();
+	});
+
+	it('BYTESIZES.NONCE to be an integer', () => {
+		return expect(BYTESIZES.NONCE).toBeNumber();
+	});
+
+	it('BYTESIZES.FEE to be an integer', () => {
+		return expect(BYTESIZES.FEE).toBeNumber();
 	});
 
 	it('BYTESIZES.SIGNATURE_TRANSACTION to be an integer', () => {

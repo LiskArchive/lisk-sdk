@@ -17,7 +17,6 @@
 require('../../functional');
 const Promise = require('bluebird');
 const { transfer, castVotes } = require('@liskhq/lisk-transactions');
-const { Slots } = require('@liskhq/lisk-chain');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../utils/random');
@@ -40,10 +39,6 @@ const { NORMALIZER } = global.__testContext.config;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/transactions', () => {
-	const slots = new Slots({
-		epochTime: __testContext.config.constants.EPOCH_TIME,
-		interval: __testContext.config.constants.BLOCK_TIME,
-	});
 	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	const transactionList = [];
 
@@ -54,6 +49,8 @@ describe('GET /api/transactions', () => {
 	const maxAmount = 100 * NORMALIZER; // 100 LSK
 	const transaction1 = transfer({
 		networkIdentifier,
+		nonce: '0',
+		fee: BigInt(10000000).toString(),
 		amount: maxAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
@@ -61,6 +58,8 @@ describe('GET /api/transactions', () => {
 	});
 	const transaction2 = transfer({
 		networkIdentifier,
+		nonce: '1',
+		fee: BigInt(10000000).toString(),
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
@@ -68,6 +67,8 @@ describe('GET /api/transactions', () => {
 	});
 	const transaction3 = transfer({
 		networkIdentifier,
+		nonce: '2',
+		fee: BigInt(10000000).toString(),
 		amount: (20 * NORMALIZER).toString(), // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
@@ -75,6 +76,8 @@ describe('GET /api/transactions', () => {
 	});
 	const transaction5 = transfer({
 		networkIdentifier,
+		nonce: '4',
+		fee: BigInt(10000000).toString(),
 		amount: minAmount.toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
@@ -82,6 +85,8 @@ describe('GET /api/transactions', () => {
 	});
 	const transactionType3 = castVotes({
 		networkIdentifier,
+		nonce: '5',
+		fee: BigInt(100000000).toString(),
 		passphrase: account2.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
@@ -576,52 +581,6 @@ describe('GET /api/transactions', () => {
 			});
 		});
 
-		describe('fromTimestamp', () => {
-			it('using invalid fromTimestamp should fail', async () => {
-				return transactionsEndpoint
-					.makeRequest({ fromTimestamp: -1 }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'fromTimestamp');
-					});
-			});
-
-			it('using valid fromTimestamp should return transactions', async () => {
-				// Last hour lisk time
-				const queryTime = slots.getEpochTime() - 60 * 60;
-
-				return transactionsEndpoint
-					.makeRequest({ fromTimestamp: queryTime }, 200)
-					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.timestamp).to.be.at.least(queryTime);
-						});
-					});
-			});
-		});
-
-		describe('toTimestamp', () => {
-			it('using invalid toTimestamp should fail', async () => {
-				return transactionsEndpoint
-					.makeRequest({ toTimestamp: 0 }, 400)
-					.then(res => {
-						expectSwaggerParamError(res, 'toTimestamp');
-					});
-			});
-
-			it('using valid toTimestamp should return transactions', async () => {
-				// Current lisk time
-				const queryTime = slots.getEpochTime();
-
-				return transactionsEndpoint
-					.makeRequest({ toTimestamp: queryTime }, 200)
-					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.timestamp).to.be.at.most(queryTime);
-						});
-					});
-			});
-		});
-
 		describe('data', () => {
 			it('using specific string should return transactions', async () => {
 				const dataFilter = 'transaction1';
@@ -736,14 +695,14 @@ describe('GET /api/transactions', () => {
 
 				return transactionsEndpoint
 					.makeRequest(
-						{ height: 1, offset: 0, limit, sort: 'timestamp:desc' },
+						{ height: 1, offset: 0, limit, sort: 'amount:desc' },
 						200,
 					)
 					.then(res => {
 						lastId = res.body.data[limit - 1].id;
 
 						return transactionsEndpoint.makeRequest(
-							{ height: 1, offset: limit - 1, limit, sort: 'timestamp:desc' },
+							{ height: 1, offset: limit - 1, limit, sort: 'amount:desc' },
 							200,
 						);
 					})
@@ -833,32 +792,6 @@ describe('GET /api/transactions', () => {
 				});
 			});
 
-			describe('timestamp', () => {
-				it('sorted by timestamp:asc should be ok', async () => {
-					return transactionsEndpoint
-						.makeRequest({ sort: 'timestamp:asc', minAmount: 100 }, 200)
-						.then(res => {
-							expect(
-								_(res.body.data)
-									.map('timestamp')
-									.sortNumbers('asc'),
-							).to.be.eql(_.map(res.body.data, 'timestamp'));
-						});
-				});
-
-				it('sorted by timestamp:desc should be ok', async () => {
-					return transactionsEndpoint
-						.makeRequest({ sort: 'timestamp:desc' }, 200)
-						.then(res => {
-							expect(
-								_(res.body.data)
-									.map('timestamp')
-									.sortNumbers('desc'),
-							).to.be.eql(_.map(res.body.data, 'timestamp'));
-						});
-				});
-			});
-
 			it('using sort with any of sort fields should not place NULLs first', async () => {
 				const transactionSortFields = [
 					'amount:asc',
@@ -867,8 +800,6 @@ describe('GET /api/transactions', () => {
 					'fee:desc',
 					'type:asc',
 					'type:desc',
-					'timestamp:asc',
-					'timestamp:desc',
 				];
 
 				return Promise.each(transactionSortFields, sortField => {

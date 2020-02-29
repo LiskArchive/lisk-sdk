@@ -89,7 +89,7 @@ module.exports = {
 			type: 'array',
 			items: {
 				type: 'object',
-				required: ['type', 'timestamp', 'senderPublicKey', 'signature'],
+				required: ['type', 'nonce', 'senderPublicKey', 'signature', 'fee'],
 				properties: {
 					type: {
 						type: 'integer',
@@ -98,9 +98,9 @@ module.exports = {
 						type: 'string',
 						format: 'amount',
 					},
-					timestamp: {
-						type: 'integer',
-						min: 0,
+					nonce: {
+						type: 'string',
+						format: 'amount',
 					},
 					senderPublicKey: {
 						type: 'string',

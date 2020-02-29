@@ -30,7 +30,7 @@ const networkIdentifier = getNetworkIdentifier(
 );
 
 describe('integration test (blocks) - chain/applyBlock', () => {
-	const transferAmount = (100000000 * 100).toString();
+	const transferAmount = (100000000 * 1000).toString();
 	let library;
 	let storage;
 
@@ -62,6 +62,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 		const fundTrsForAccount1 = transfer({
 			networkIdentifier,
+			nonce: '0',
+			fee: BigInt(100000000).toString(),
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
@@ -69,6 +71,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 		const fundTrsForAccount2 = transfer({
 			networkIdentifier,
+			nonce: '1',
+			fee: BigInt(100000000).toString(),
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount2.address,
@@ -76,6 +80,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 		const fundTrsForAccount3 = transfer({
 			networkIdentifier,
+			nonce: '2',
+			fee: BigInt(100000000).toString(),
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount3.address,
@@ -83,6 +89,8 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 
 		const fundTrsForAccount4 = transfer({
 			networkIdentifier,
+			nonce: '3',
+			fee: BigInt(100000000).toString(),
 			amount: transferAmount,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount4.address,
@@ -111,11 +119,15 @@ describe('integration test (blocks) - chain/applyBlock', () => {
 		beforeEach('create block', done => {
 			blockTransaction1 = registerDelegate({
 				networkIdentifier,
+				nonce: '0',
+				fee: BigInt(50000000000).toString(),
 				passphrase: blockAccount1.passphrase,
 				username: blockAccount1.username,
 			});
 			blockTransaction2 = registerDelegate({
 				networkIdentifier,
+				nonce: '0',
+				fee: BigInt(50000000000).toString(),
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});

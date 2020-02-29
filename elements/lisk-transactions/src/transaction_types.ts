@@ -49,10 +49,11 @@ export interface TransactionJSON {
 	readonly signature?: string;
 	readonly signatures?: ReadonlyArray<string>;
 	readonly signSignature?: string;
-	readonly timestamp: number;
 	readonly type: number;
 	readonly receivedAt?: string;
 	readonly networkIdentifier?: string;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 export interface IsValidResponse {

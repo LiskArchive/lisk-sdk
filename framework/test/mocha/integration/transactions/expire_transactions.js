@@ -47,6 +47,8 @@ describe('expire transactions', () => {
 		return transfer({
 			networkIdentifier,
 			recipientId,
+			nonce: '0',
+			fee: BigInt(10000000).toString(),
 			amount: amount.toString(),
 			passphrase: accountsFixtures.genesis.passphrase,
 		});
