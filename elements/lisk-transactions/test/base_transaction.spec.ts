@@ -97,7 +97,6 @@ describe('Base transaction class', () => {
 			expect(transactionWithDefaultValues.blockId).toBeUndefined();
 			expect(transactionWithDefaultValues.height).toBeUndefined();
 			expect(transactionWithDefaultValues.receivedAt).toBeUndefined();
-			expect(transactionWithDefaultValues.signSignature).toBeUndefined();
 			expect(() => transactionWithDefaultValues.senderId).toThrowError(
 				'senderPublicKey is required to be set before use',
 			);
@@ -129,10 +128,6 @@ describe('Base transaction class', () => {
 
 		it('should have signature string', async () => {
 			expect(validTestTransaction.senderPublicKey).toBeString();
-		});
-
-		it('should have signSignature string', async () => {
-			expect(validTestTransaction.signSignature).toBeUndefined();
 		});
 
 		it('should have signatures array', async () => {
@@ -768,10 +763,6 @@ describe('Base transaction class', () => {
 
 			it('should set signature property', async () => {
 				expect(transactionWithDefaultValues.signature).toBe(defaultSignature);
-			});
-
-			it('should not set signSignature property', async () => {
-				expect(transactionWithDefaultValues.signSignature).toBeUndefined();
 			});
 
 			it('should set id property', async () => {

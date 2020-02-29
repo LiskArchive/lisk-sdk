@@ -106,12 +106,6 @@ describe('#registerDelegate transaction', () => {
 			return expect(registerDelegateTransaction.signature).toBeString();
 		});
 
-		it('second signature property should be undefined', () => {
-			return expect(registerDelegateTransaction.signSignature).toEqual(
-				undefined,
-			);
-		});
-
 		it('should have asset', () => {
 			return expect(Object.keys(registerDelegateTransaction)).not.toHaveLength(
 				0,

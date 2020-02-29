@@ -118,7 +118,6 @@ export abstract class BaseTransaction {
 	protected _id?: string;
 	protected _senderPublicKey?: string;
 	protected _signature?: string;
-	protected _signSignature?: string;
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 	protected _networkIdentifier: string;
@@ -147,7 +146,6 @@ export abstract class BaseTransaction {
 
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
-		this._signSignature = tx.signSignature;
 		this._networkIdentifier = tx.networkIdentifier || '';
 
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
@@ -184,10 +182,6 @@ export abstract class BaseTransaction {
 		return this._signature;
 	}
 
-	public get signSignature(): string | undefined {
-		return this._signSignature;
-	}
-
 	/**
 	 * This method is using private versions of _id, _senderPublicKey and _signature
 	 * as we should allow for it to be called at any stage of the transaction construction
@@ -205,7 +199,6 @@ export abstract class BaseTransaction {
 			senderId: this._senderPublicKey ? this.senderId : '',
 			fee: this.fee.toString(),
 			signature: this._signature,
-			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt ? this.receivedAt.toISOString() : undefined,
@@ -229,7 +222,6 @@ export abstract class BaseTransaction {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
 			this._signature ? hexToBuffer(this._signature) : Buffer.alloc(0),
-			this._signSignature ? hexToBuffer(this._signSignature) : Buffer.alloc(0),
 		]);
 
 		return transactionBytes;
@@ -459,7 +451,6 @@ export abstract class BaseTransaction {
 		this._senderPublicKey = publicKey;
 
 		this._signature = undefined;
-		this._signSignature = undefined;
 
 		if (
 			this._networkIdentifier === undefined ||

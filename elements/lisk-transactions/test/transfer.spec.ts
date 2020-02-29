@@ -129,10 +129,6 @@ describe('#transfer transaction', () => {
 				return expect(transferTransaction.signature).toBeString();
 			});
 
-			it('second signature property should be undefined', () => {
-				return expect(transferTransaction.signSignature).toBeUndefined();
-			});
-
 			it('without network identifier it should throw a descriptive error', () => {
 				expect(() =>
 					transfer({

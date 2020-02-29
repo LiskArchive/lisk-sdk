@@ -139,12 +139,6 @@ describe.skip('#registerMultisignature transaction', () => {
 				).not.toHaveLength(0);
 			});
 
-			it('second signature property should be undefined', () => {
-				return expect(
-					registerMultisignatureTransaction.signSignature,
-				).toBeUndefined();
-			});
-
 			describe('multisignature asset', () => {
 				it('should have a min number equal to the provided minimum', () => {});
 

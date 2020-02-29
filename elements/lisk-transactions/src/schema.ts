@@ -98,10 +98,6 @@ export const baseTransaction = {
 			type: 'string',
 			format: 'signature',
 		},
-		signSignature: {
-			type: 'string',
-			format: 'signature',
-		},
 		signatures: {
 			type: 'array',
 			uniqueItems: true,

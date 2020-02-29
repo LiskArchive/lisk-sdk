@@ -119,10 +119,6 @@ describe('#castVotes transaction', () => {
 				return expect(castVotesTransaction.signature).toBeString();
 			});
 
-			it('second signature property should be undefined', () => {
-				return expect(castVotesTransaction.signSignature).toBeUndefined();
-			});
-
 			it('should have asset', () => {
 				return expect(Object.keys(castVotesTransaction)).not.toHaveLength(0);
 			});
