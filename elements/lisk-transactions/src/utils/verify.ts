@@ -93,9 +93,9 @@ export interface VerifyMultiSignatureResult {
 
 const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
-		account.membersPublicKeys &&
-		account.membersPublicKeys.length > 0 &&
-		account.multiMin
+		(account.keys.mandatoryKeys.length > 0 ||
+			account.keys.optionalKeys.length > 0) &&
+		account.keys.numberOfSignatures
 	);
 
 export const verifyMultiSignatures = (
@@ -125,9 +125,9 @@ export const verifyMultiSignatures = (
 	}
 
 	const { valid, errors } = validateMultisignatures(
-		sender.membersPublicKeys as ReadonlyArray<string>,
+		[], // UPDATE TO LIP0017 sender.membersPublicKeys as ReadonlyArray<string>,
 		signatures,
-		sender.multiMin,
+		sender.keys.numberOfSignatures,
 		transactionBytes,
 		id,
 	);

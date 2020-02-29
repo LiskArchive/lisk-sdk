@@ -14,14 +14,12 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
-import { BaseTransaction, MultisignatureStatus } from '../src/base_transaction';
+import { BaseTransaction } from '../src/base_transaction';
 import {
 	TransactionJSON,
 	Status,
 	TransactionError,
-	TransactionPendingError,
 	TransferTransaction,
-	SignatureObject,
 } from '../src';
 import {
 	addTransactionFields,
@@ -38,6 +36,11 @@ const getAccount = (account: object): any => ({
 	producedBlocks: 0,
 	missedBlocks: 0,
 	...account,
+	keys: {
+		mandatoryKeys: [],
+		optionalKeys: [],
+		numberOfSignatures: 0,
+	},
 });
 
 describe('Base transaction class', () => {
@@ -53,16 +56,6 @@ describe('Base transaction class', () => {
 	const defaultMultisignatureTransaction = addTransactionFields(
 		multisignatureFixture.testCases[0].output,
 	);
-
-	const defaultMultisignatureAccount = getAccount({
-		...multisignatureFixture.testCases[0].input.account,
-		membersPublicKeys: multisignatureFixture.testCases[0].input.coSigners.map(
-			account => account.publicKey,
-		),
-		balance: BigInt('94378900000'),
-		multiMin: 2,
-		multiLifetime: 1,
-	});
 
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
@@ -534,47 +527,6 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#processMultisignatures', () => {
-		it('should return a successful transaction response with valid signatures', async () => {
-			jest.spyOn(utils, 'verifyMultiSignatures').mockReturnValue({
-				status: MultisignatureStatus.READY,
-				errors: [],
-			});
-			const {
-				id,
-				status,
-				errors,
-			} = await validMultisignatureTransaction.processMultisignatures(store);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(errors).toEqual([]);
-			expect(status).toEqual(Status.OK);
-		});
-
-		it('should return a pending transaction response with missing signatures', async () => {
-			const pendingErrors = [
-				new TransactionPendingError(
-					`Missing signatures`,
-					validMultisignatureTransaction.id,
-					'.signatures',
-				),
-			];
-			jest.spyOn(utils, 'verifyMultiSignatures').mockReturnValue({
-				status: MultisignatureStatus.PENDING,
-				errors: pendingErrors,
-			});
-			const {
-				id,
-				status,
-				errors,
-			} = await validMultisignatureTransaction.processMultisignatures(store);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(errors).toEqual(pendingErrors);
-			expect(status).toEqual(Status.PENDING);
-		});
-	});
-
 	describe('#addVerifiedMultisignature', () => {
 		it('should return a successful transaction response if no duplicate signatures', async () => {
 			const {
@@ -605,133 +557,6 @@ describe('Base transaction class', () => {
 				expect(error).toBeInstanceOf(TransactionError);
 				expect(error.message).toEqual('Failed to add signature.');
 			});
-		});
-	});
-
-	describe('#addMultisignature', () => {
-		let transferFromMultiSigAccountTrs: TransferTransaction;
-		let multisigMember: SignatureObject;
-
-		beforeEach(async () => {
-			const {
-				signatures,
-				...trsWithoutSignatures
-			} = validMultisignatureTransaction.toJSON();
-
-			transferFromMultiSigAccountTrs = new TransferTransaction({
-				...trsWithoutSignatures,
-				networkIdentifier,
-			});
-
-			multisigMember = {
-				transactionId: multisignatureFixture.testCases[0].output.id,
-				publicKey:
-					multisignatureFixture.testCases[0].input.coSigners[0].publicKey,
-				signature: multisignatureFixture.testCases[0].output.signatures[0],
-			};
-
-			store = new StateStoreMock([defaultMultisignatureAccount]);
-		});
-
-		it('should add signature to transaction from multisig account', async () => {
-			const {
-				status,
-				errors,
-			} = await transferFromMultiSigAccountTrs.addMultisignature(
-				store,
-				multisigMember,
-			);
-
-			expect(status).toEqual(Status.PENDING);
-			expect(errors[0]).toBeInstanceOf(TransactionPendingError);
-			expect(transferFromMultiSigAccountTrs.signatures).toEqual(
-				expect.arrayContaining([multisigMember.signature]),
-			);
-		});
-
-		it('should fail when valid signature already present and sent again', async () => {
-			const {
-				status: arrangeStatus,
-			} = await transferFromMultiSigAccountTrs.addMultisignature(
-				store,
-				multisigMember,
-			);
-
-			expect(arrangeStatus).toEqual(Status.PENDING);
-
-			const {
-				status,
-				errors,
-			} = await transferFromMultiSigAccountTrs.addMultisignature(
-				store,
-				multisigMember,
-			);
-			const expectedError = `Signature '${multisignatureFixture.testCases[0].output.signatures[0]}' already present in transaction.`;
-
-			expect(status).toEqual(Status.FAIL);
-			expect(errors[0].message).toEqual(expectedError);
-			expect(transferFromMultiSigAccountTrs.signatures).toEqual(
-				expect.arrayContaining([multisigMember.signature]),
-			);
-		});
-
-		it('should fail to add invalid signature to transaction from multisig account', async () => {
-			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
-			const transferFromMultiSigAccountTrs = new TransferTransaction({
-				...rawTrs,
-				networkIdentifier,
-			});
-			const multisigMember = {
-				transactionId: transferFromMultiSigAccountTrs.id,
-				publicKey:
-					'542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33cf',
-				signature:
-					'eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
-			};
-
-			const {
-				status,
-				errors,
-			} = await transferFromMultiSigAccountTrs.addMultisignature(
-				store,
-				multisigMember,
-			);
-
-			const expectedError = `Public Key '${multisigMember.publicKey}' is not a member for account '${defaultMultisignatureAccount.address}'.`;
-
-			expect(status).toEqual(Status.FAIL);
-			expect(errors[0].message).toEqual(expectedError);
-			expect(transferFromMultiSigAccountTrs.signatures).toHaveLength(0);
-		});
-
-		it('should fail with signature not part of the group', async () => {
-			const { signatures, ...rawTrs } = validMultisignatureTransaction.toJSON();
-			const transferFromMultiSigAccountTrs = new TransferTransaction({
-				...rawTrs,
-				networkIdentifier,
-			});
-			const multisigMember = {
-				transactionId: transferFromMultiSigAccountTrs.id,
-				publicKey:
-					'542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33c2',
-				signature:
-					'eeee799c2d30d2be6e7b70aa29b57f9b1d6f2801d3fccf5c99623ffe45526104b1f0652c2cb586c7ae201d2557d8041b41b60154f079180bb9b85f8d06b3010c',
-			};
-
-			const {
-				status,
-				errors,
-			} = await transferFromMultiSigAccountTrs.addMultisignature(
-				store,
-				multisigMember,
-			);
-
-			const expectedError =
-				"Public Key '542fdc008964eacc580089271353268d655ab5ec2829687aadc278653fad33c2' is not a member for account '2129300327344985743L'.";
-
-			expect(status).toEqual(Status.FAIL);
-			expect(errors[0].message).toEqual(expectedError);
-			expect(transferFromMultiSigAccountTrs.signatures).toHaveLength(0);
 		});
 	});
 

@@ -22,7 +22,6 @@ export const transactionInterface = {
 		'apply',
 		'undo',
 		'prepare',
-		'addMultisignature',
 		'addVerifiedMultisignature',
 		'isExpired',
 	],
@@ -49,9 +48,6 @@ export const transactionInterface = {
 			typeof: 'function',
 		},
 		prepare: {
-			typeof: 'function',
-		},
-		addMultisignature: {
 			typeof: 'function',
 		},
 		addVerifiedMultisignature: {

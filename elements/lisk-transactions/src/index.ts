@@ -25,10 +25,6 @@ import {
 import { castVotes } from './cast_votes';
 import * as constants from './constants';
 import {
-	createSignatureObject,
-	SignatureObject,
-} from './create_signature_object';
-import {
 	convertToAssetError,
 	convertToTransactionError,
 	TransactionError,
@@ -84,8 +80,6 @@ export {
 	MultisignatureTransaction,
 	createResponse,
 	registerMultisignature,
-	createSignatureObject,
-	SignatureObject,
 	Status,
 	TransactionResponse,
 	TransactionJSON,

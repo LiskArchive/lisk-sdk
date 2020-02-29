@@ -15,11 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
-const {
-	transfer,
-	createDapp,
-	createSignatureObject,
-} = require('@liskhq/lisk-transactions');
+const { transfer } = require('@liskhq/lisk-transactions');
 const {
 	getKeys,
 	getAddressFromPublicKey,
@@ -146,60 +142,6 @@ random.password = function() {
 	return Math.random()
 		.toString(36)
 		.substring(7);
-};
-
-random.multisigDappRegistrationMaxiumData = function(
-	account,
-	members,
-	charset,
-) {
-	charset =
-		charset || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-	const dappName = randomstring.generate({
-		length: 32,
-		charset,
-	});
-
-	const string160 = randomstring.generate({
-		length: 160,
-		charset,
-	});
-
-	const string1KB = randomstring.generate({
-		length: 20,
-		charset,
-	});
-
-	const application = {
-		category: random.number(0, 9),
-		name: dappName,
-		description: string160,
-		tags: string160,
-		type: 0,
-		link: `https://${string1KB}.zip`,
-		icon: `https://${string1KB}.png`,
-	};
-
-	const dappTransaction = createDapp({
-		passphrase: account.passphrase,
-		options: application,
-	});
-
-	const signatures = members
-		.map(aMember => aMember.passphrase)
-		.map(memberPassphrase => {
-			const sigObj = createSignatureObject({
-				transaction: dappTransaction,
-				passphrase: memberPassphrase,
-				networkIdentifier,
-			}).signature;
-			return sigObj;
-		});
-
-	dappTransaction.signatures = signatures;
-
-	return dappTransaction;
 };
 
 const convertToBigInt = transactions =>

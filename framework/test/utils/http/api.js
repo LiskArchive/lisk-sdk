@@ -17,7 +17,6 @@
 const {
 	transfer,
 	registerDelegate: createRegisterDelegate,
-	createSignatureObject: createSignatureObjectElements,
 } = require('@liskhq/lisk-transactions');
 const Promise = require('bluebird');
 const accountFixtures = require('../../fixtures/accounts');
@@ -331,25 +330,6 @@ function expectSwaggerParamError(res, param) {
 	expect(res.body.errors.map(p => p.name)).to.contain(param);
 }
 
-/**
- * Create a signature object for POST /api/signatures endpoint
- *
- * @param {Object} transaction - Transaction object
- * @param {Object} signer - Signer object including public key and passphrase
- * @return {{signature: string, transactionId: string, publicKey: string}}
- */
-function createSignatureObject(transaction, signer) {
-	return {
-		transactionId: transaction.id,
-		publicKey: signer.publicKey,
-		signature: createSignatureObjectElements({
-			transaction,
-			passphrase: signer.passphrase,
-			networkIdentifier,
-		}).signature,
-	};
-}
-
 const getTransactionByIdPromise = Promise.promisify(getTransactionById);
 const getTransactionsPromise = Promise.promisify(getTransactions);
 const getQueuedTransactionPromise = Promise.promisify(getQueuedTransaction);
@@ -418,7 +398,6 @@ module.exports = {
 	getAccountsPromise,
 	getBlocksPromise,
 	expectSwaggerParamError,
-	createSignatureObject,
 	getNotFoundEndpointPromise,
 	calculateApproval,
 };

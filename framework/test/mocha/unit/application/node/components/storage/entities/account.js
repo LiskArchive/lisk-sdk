@@ -37,8 +37,7 @@ const defaultCreateValues = {
 	rewards: '0',
 	voteWeight: '0',
 	nameExist: false,
-	multiMin: 0,
-	multiLifetime: 0,
+	keys: null,
 };
 
 describe('ChainAccount', () => {
@@ -258,8 +257,7 @@ describe('ChainAccount', () => {
 				username: null,
 				isDelegate: false,
 				balance: '0',
-				multiMin: 0,
-				multiLifetime: 0,
+				keys: {},
 				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
@@ -268,7 +266,6 @@ describe('ChainAccount', () => {
 				voteWeight: '0',
 				productivity: 0,
 				votedDelegatesPublicKeys: null,
-				membersPublicKeys: null,
 				asset: {},
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
@@ -511,7 +508,7 @@ describe('ChainAccount', () => {
 			}).not.to.throw();
 		});
 
-		it('should not create membersPublicKeys records if property membersPublicKeys is null', async () => {
+		it('should not create keys records if property keys is null', async () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			const address = account.address;
@@ -522,7 +519,7 @@ describe('ChainAccount', () => {
 			const updatedAccount = await AccountEntity.getOne({
 				address,
 			});
-			expect(updatedAccount.membersPublicKeys).to.be.eql(null);
+			expect(updatedAccount.keys).to.be.eql(null);
 		});
 
 		it('should not create votedDelegatesPublicKeys records if property votedDelegatesPublicKeys is null', async () => {

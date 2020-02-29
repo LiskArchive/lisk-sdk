@@ -33,8 +33,7 @@ const MemAccounts = {
 		'"voteWeight",' +
 		'"delegates",' +
 		'"multisignatures",' +
-		'"multimin",' +
-		'"multilifetime",' +
+		'"keys",' +
 		'"nameexist",' +
 		'"producedBlocks",' +
 		'"missedBlocks",' +
@@ -49,8 +48,7 @@ const MemAccounts = {
 		'${voteWeight}, ' +
 		'${delegates}, ' +
 		'${multisignatures}, ' +
-		'${multimin}, ' +
-		'${multilifetime}, ' +
+		'${keys}, ' +
 		'${nameexist}, ' +
 		'${producedBlocks}, ' +
 		'${missedBlocks}, ' +
