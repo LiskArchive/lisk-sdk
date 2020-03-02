@@ -72,8 +72,8 @@ describe('#registerDelegate transaction', () => {
 			);
 		});
 
-		it('should have signature hex string', () => {
-			return expect(registerDelegateTransaction.signature).toBeString();
+		it('should have signatures hex string', () => {
+			return expect(registerDelegateTransaction.signatures).toBeArray();
 		});
 
 		it('should have asset', () => {
@@ -175,9 +175,9 @@ describe('#registerDelegate transaction', () => {
 				);
 			});
 
-			it('should not have the signature', () => {
+			it('should not have the signatures', () => {
 				return expect(registerDelegateTransaction).not.toHaveProperty(
-					'signature',
+					'signatures',
 				);
 			});
 

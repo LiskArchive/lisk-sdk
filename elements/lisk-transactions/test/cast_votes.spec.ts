@@ -89,8 +89,8 @@ describe('#castVotes transaction', () => {
 				);
 			});
 
-			it('should have signature hex string', () => {
-				return expect(castVotesTransaction.signature).toBeString();
+			it('should have signatures hex string', () => {
+				return expect(castVotesTransaction.signatures).toBeArray();
 			});
 
 			it('should have asset', () => {
@@ -357,8 +357,8 @@ describe('#castVotes transaction', () => {
 				return expect(castVotesTransaction.asset).toHaveProperty('votes');
 			});
 
-			it('should not have the signature', () => {
-				return expect(castVotesTransaction).not.toHaveProperty('signature');
+			it('should not have the signatures', () => {
+				return expect(castVotesTransaction).not.toHaveProperty('signatures');
 			});
 
 			it('should not have the id', () => {

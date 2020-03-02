@@ -101,8 +101,8 @@ describe.skip('#registerMultisignature transaction', () => {
 				);
 			});
 
-			it('should have signature hex string', () => {
-				return expect(registerMultisignatureTransaction.signature).toBeString();
+			it('should have signatures hex string', () => {
+				return expect(registerMultisignatureTransaction.signatures).toBeArray();
 			});
 
 			it('should have asset', () => {
