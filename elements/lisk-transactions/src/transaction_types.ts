@@ -48,7 +48,6 @@ export interface TransactionJSON {
 	readonly height?: number;
 	readonly confirmations?: number;
 	readonly senderPublicKey: string;
-	readonly signature?: string;
 	readonly signatures?: ReadonlyArray<string>;
 	readonly timestamp: number;
 	readonly type: number;

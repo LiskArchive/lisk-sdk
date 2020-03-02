@@ -24,24 +24,20 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
-	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
-import {
-	convertToTransactionError,
-	TransactionError,
-	TransactionPendingError,
-} from './errors';
+import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
+	isMultisignatureAccount,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyBalance,
 	verifyMinRemainingBalance,
-	verifyMultiSignatures,
+	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 } from './utils';
 
@@ -87,14 +83,6 @@ export interface StateStorePrepare {
 	readonly transaction: StateStoreCache<TransactionJSON>;
 }
 
-export enum MultisignatureStatus {
-	UNKNOWN = 0,
-	NONMULTISIGNATURE = 1,
-	PENDING = 2,
-	READY = 3,
-	FAIL = 4,
-}
-
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
@@ -102,7 +90,6 @@ export abstract class BaseTransaction {
 	public readonly blockId?: string;
 	public readonly height?: number;
 	public readonly confirmations?: number;
-	public readonly signatures: string[];
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
@@ -117,9 +104,7 @@ export abstract class BaseTransaction {
 
 	protected _id?: string;
 	protected _senderPublicKey?: string;
-	protected _signature?: string;
-	protected _multisignatureStatus: MultisignatureStatus =
-		MultisignatureStatus.UNKNOWN;
+	protected _signatures?: string[];
 	protected _networkIdentifier: string;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
@@ -144,8 +129,7 @@ export abstract class BaseTransaction {
 		this._id = tx.id;
 		this._senderPublicKey = tx.senderPublicKey || '';
 
-		this._signature = tx.signature;
-		this.signatures = (tx.signatures as string[]) || [];
+		this._signatures = (tx.signatures as string[]) || [];
 		this._networkIdentifier = tx.networkIdentifier || '';
 
 		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
@@ -174,12 +158,12 @@ export abstract class BaseTransaction {
 		return this._senderPublicKey;
 	}
 
-	public get signature(): string {
-		if (!this._signature) {
-			throw new Error('signature is required to be set before use');
+	public get signatures(): string[] {
+		if (!this._signatures?.length) {
+			throw new Error('signatures are required to be set before get');
 		}
 
-		return this._signature;
+		return this._signatures;
 	}
 
 	/**
@@ -198,8 +182,7 @@ export abstract class BaseTransaction {
 			senderPublicKey: this._senderPublicKey || '',
 			senderId: this._senderPublicKey ? this.senderId : '',
 			fee: this.fee.toString(),
-			signature: this._signature,
-			signatures: this.signatures,
+			signatures: this._signatures,
 			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt ? this.receivedAt.toISOString() : undefined,
 		};
@@ -211,17 +194,10 @@ export abstract class BaseTransaction {
 		return JSON.stringify(this.toJSON());
 	}
 
-	public isReady(): boolean {
-		return (
-			this._multisignatureStatus === MultisignatureStatus.READY ||
-			this._multisignatureStatus === MultisignatureStatus.NONMULTISIGNATURE
-		);
-	}
-
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			this._signature ? hexToBuffer(this._signature) : Buffer.alloc(0),
+			BaseTransaction.getSignaturesBytes(this.signatures),
 		]);
 
 		return transactionBytes;
@@ -233,41 +209,12 @@ export abstract class BaseTransaction {
 			return createResponse(this.id, errors);
 		}
 
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to validate a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-
 		this._id = getId(this.getBytes());
-
-		const {
-			valid: signatureValid,
-			error: verificationError,
-		} = validateSignature(
-			this.senderPublicKey,
-			this.signature,
-			transactionWithNetworkIdentifierBytes,
-			this.id,
-		);
-
-		if (!signatureValid && verificationError) {
-			errors.push(verificationError);
-		}
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
-					`Invalid type`,
+					`Invalid transaction type`,
 					this.id,
 					'.type',
 					this.type,
@@ -298,10 +245,9 @@ export abstract class BaseTransaction {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = this._verify(sender) as TransactionError[];
 
-		// Verify MultiSignature
-		const { errors: multiSigError } = await this.verifySignatures(store);
-		if (multiSigError) {
-			errors.push(...multiSigError);
+		const { errors: signaturesErr } = await this.verifySignatures(store);
+		if (signaturesErr) {
+			errors.push(...signaturesErr);
 		}
 
 		const updatedBalance = sender.balance - this.fee;
@@ -323,18 +269,6 @@ export abstract class BaseTransaction {
 		);
 		if (minRemainingBalanceError) {
 			errors.push(minRemainingBalanceError);
-		}
-
-		if (
-			this._multisignatureStatus === MultisignatureStatus.PENDING &&
-			errors.length === 1 &&
-			errors[0] instanceof TransactionPendingError
-		) {
-			return {
-				id: this.id,
-				status: Status.PENDING,
-				errors,
-			};
 		}
 
 		return createResponse(this.id, errors);
@@ -372,18 +306,6 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public addVerifiedMultisignature(signature: string): TransactionResponse {
-		if (!this.signatures.includes(signature)) {
-			this.signatures.push(signature);
-
-			return createResponse(this.id, []);
-		}
-
-		return createResponse(this.id, [
-			new TransactionError('Failed to add signature.', this.id, '.signatures'),
-		]);
-	}
-
 	public async verifySignatures(
 		store: StateStore,
 	): Promise<TransactionResponse> {
@@ -403,20 +325,26 @@ export abstract class BaseTransaction {
 			transactionBytes,
 		]);
 
-		const { status, errors } = verifyMultiSignatures(
+		if (!isMultisignatureAccount(sender)) {
+			const { error } = validateSignature(
+				this.senderPublicKey,
+				this.signatures[0],
+				transactionWithNetworkIdentifierBytes,
+			);
+
+			if (error) {
+				return createResponse(this.id, [error]);
+			}
+
+			return createResponse(this.id, []);
+		}
+
+		const errors = verifyMultiSignatureTransaction(
 			this.id,
 			sender,
 			this.signatures,
 			transactionWithNetworkIdentifierBytes,
 		);
-		this._multisignatureStatus = status;
-		if (this._multisignatureStatus === MultisignatureStatus.PENDING) {
-			return {
-				id: this.id,
-				status: Status.PENDING,
-				errors,
-			};
-		}
 
 		return createResponse(this.id, errors);
 	}
@@ -427,16 +355,11 @@ export abstract class BaseTransaction {
 		}
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeOut =
-			this._multisignatureStatus === MultisignatureStatus.PENDING ||
-			this._multisignatureStatus === MultisignatureStatus.READY
-				? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
-				: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =
 			// tslint:disable-next-line no-magic-numbers
 			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
 
-		return timeElapsed > timeOut;
+		return timeElapsed > UNCONFIRMED_TRANSACTION_TIMEOUT;
 	}
 
 	public sign(passphrase: string): void {
@@ -449,8 +372,7 @@ export abstract class BaseTransaction {
 		}
 
 		this._senderPublicKey = publicKey;
-
-		this._signature = undefined;
+		this._signatures = [];
 
 		if (
 			this._networkIdentifier === undefined ||
@@ -465,9 +387,8 @@ export abstract class BaseTransaction {
 			this.getBytes(),
 		]);
 
-		this._signature = signData(
-			hash(transactionWithNetworkIdentifierBytes),
-			passphrase,
+		this._signatures.push(
+			signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
 		);
 
 		this._id = getId(this.getBytes());
@@ -485,6 +406,19 @@ export abstract class BaseTransaction {
 			transactionSenderPublicKey,
 			this.assetToBytes(),
 		]);
+	}
+
+	protected static getSignaturesBytes(signatures: string[]): Buffer {
+		if (signatures?.length) {
+			// tslint:disable-next-line: no-unnecessary-callback-wrapper
+			const signaturesBuffer = signatures.map(signature =>
+				hexToBuffer(signature),
+			);
+
+			return Buffer.concat(signaturesBuffer);
+		}
+
+		return Buffer.alloc(0);
 	}
 
 	public assetToJSON(): object {

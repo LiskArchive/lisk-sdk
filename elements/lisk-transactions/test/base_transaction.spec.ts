@@ -520,39 +520,6 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#addVerifiedMultisignature', () => {
-		it('should return a successful transaction response if no duplicate signatures', async () => {
-			const {
-				id,
-				status,
-				errors,
-			} = validMultisignatureTransaction.addVerifiedMultisignature(
-				'3df1fae6865ec72783dcb5f87a7d906fe20b71e66ad9613c01a89505ebd77279e67efa2c10b5ad880abd09efd27ea350dd8a094f44efa3b4b2c8785fbe0f7e00',
-			);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(errors).toEqual([]);
-			expect(status).toEqual(Status.OK);
-		});
-
-		it('should return a failed transaction response if duplicate signatures', async () => {
-			const {
-				id,
-				status,
-				errors,
-			} = validMultisignatureTransaction.addVerifiedMultisignature(
-				'4424342c342093f80f52f919876fc0abada5385e98e8caf211add16d1c0f5453ef6e47fa58a454128a9640f3b6e2ade618e5ee5fa8eebc4d68460d19f042050f',
-			);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(status).toEqual(Status.FAIL);
-			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error).toBeInstanceOf(TransactionError);
-				expect(error.message).toEqual('Failed to add signature.');
-			});
-		});
-	});
-
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
 			store.account.getOrDefault = () => defaultSenderAccount;
