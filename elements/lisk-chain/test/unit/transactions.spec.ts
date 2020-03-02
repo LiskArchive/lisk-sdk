@@ -335,7 +335,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				(notAllowedTx as any)._signature = 'invalid-signature';
+				(notAllowedTx as any)._signatures = ['invalid-signature'];
 				// Act
 				const {
 					transactionsResponses,
