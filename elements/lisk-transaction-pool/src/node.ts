@@ -12,6 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './transaction_pool';
-export { MaxHeap } from './max_heap';
-export { MinHeap } from './min_heap';
+
+export class Node<V = object, K = number | bigint> {
+	public key: K;
+	public value: V;
+
+	public constructor(key: K, value: V) {
+		this.key = key;
+		this.value = value;
+	}
+
+	public clone(): Node<V, K> {
+		return new Node(this.key, this.value);
+	}
+}
