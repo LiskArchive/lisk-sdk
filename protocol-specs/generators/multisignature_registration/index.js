@@ -75,6 +75,9 @@ const accounts = {
 	},
 };
 
+const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
+const SIGNATURE_NOT_PRESENT = Buffer.from('00', 'hex');
+
 const sortKeysDescending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
 		// eslint-disable-next-line no-undef, new-cap
@@ -139,7 +142,19 @@ const serializeMemberSignatures = (tx, txBuffer) => {
 
 	tx.signatures.forEach(aSignature => {
 		const signatureBuffer = Buffer.concat([hexToBuffer(aSignature)]);
-		txBufferCopy = Buffer.concat([txBufferCopy, signatureBuffer]);
+		if (signatureBuffer.lenght === 0) {
+			txBufferCopy = Buffer.concat([
+				txBufferCopy,
+				SIGNATURE_NOT_PRESENT,
+				signatureBuffer,
+			]);
+		} else {
+			txBufferCopy = Buffer.concat([
+				txBufferCopy,
+				SIGNATURE_PRESENT,
+				signatureBuffer,
+			]);
+		}
 	});
 	return txBufferCopy;
 };
