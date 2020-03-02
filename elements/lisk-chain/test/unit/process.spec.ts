@@ -713,7 +713,7 @@ describe('blocks/header', () => {
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
 						amount: '100',
@@ -734,11 +734,13 @@ describe('blocks/header', () => {
 							address: getAddressFromPublicKey(block.generatorPublicKey),
 							balance: '0',
 							producedBlocks: 0,
+							nonce: '0',
 						},
 						{
 							address: genesisAccount.address,
 							balance: '10000000000',
 							votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+							nonce: '0',
 						},
 						delegate1,
 						delegate2,
@@ -804,7 +806,7 @@ describe('blocks/header', () => {
 				const newTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '2',
 						passphrase: genesisAccount.passphrase,
 						recipientId: genesisAccount.address,
 						amount: '100',

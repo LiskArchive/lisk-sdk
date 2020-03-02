@@ -429,7 +429,7 @@ describe('blocks/transactions', () => {
 				const notAllowedTx = chainInstance.deserializeTransaction(
 					registerDelegate({
 						fee: '2500000000',
-						nonce: '0',
+						nonce: '1',
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
 						username: 'notAllowed',
@@ -538,7 +538,7 @@ describe('blocks/transactions', () => {
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
 						amount: '100',
@@ -712,7 +712,7 @@ describe('blocks/transactions', () => {
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
 						amount: '100',
