@@ -34,40 +34,6 @@ export const verifySenderPublicKey = (
 		  )
 		: undefined;
 
-export const verifyBalance = (
-	id: string,
-	account: Account,
-	amount: bigint,
-): TransactionError | undefined =>
-	account.balance < amount
-		? new TransactionError(
-				`Account does not have enough LSK: ${
-					account.address
-				}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
-				id,
-				'.balance',
-		  )
-		: undefined;
-
-export const verifyAmountBalance = (
-	id: string,
-	account: Account,
-	amount: bigint,
-	fee: bigint,
-): TransactionError | undefined => {
-	if (account.balance >= BigInt(0) && account.balance < amount) {
-		return new TransactionError(
-			`Account does not have enough LSK: ${
-				account.address
-			}, balance: ${convertBeddowsToLSK((account.balance + fee).toString())}`,
-			id,
-			'.balance',
-		);
-	}
-
-	return undefined;
-};
-
 export const verifyMinRemainingBalance = (
 	id: string,
 	account: Account,

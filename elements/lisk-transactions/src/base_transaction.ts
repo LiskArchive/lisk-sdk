@@ -41,7 +41,6 @@ import {
 	getId,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	verifyBalance,
 	verifyMinRemainingBalance,
 	verifyMultiSignatures,
 	verifySenderPublicKey,
@@ -330,7 +329,15 @@ export abstract class BaseTransaction {
 
 	public async apply(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
-		const errors = this._verify(sender) as TransactionError[];
+		const errors = [];
+		const senderPublicKeyError = verifySenderPublicKey(
+			this.id,
+			sender,
+			this.senderPublicKey,
+		);
+		if (senderPublicKeyError) {
+			errors.push(senderPublicKeyError);
+		}
 
 		// Verify MultiSignature
 		const { errors: multiSigError } = await this.verifySignatures(store);
@@ -338,8 +345,7 @@ export abstract class BaseTransaction {
 			errors.push(...multiSigError);
 		}
 
-		const updatedBalance = sender.balance - this.fee;
-		sender.balance = updatedBalance;
+		sender.balance -= this.fee;
 		sender.publicKey = sender.publicKey || this.senderPublicKey;
 		store.account.set(sender.address, sender);
 
@@ -540,14 +546,6 @@ export abstract class BaseTransaction {
 		 */
 
 		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
-	}
-
-	private _verify(sender: Account): ReadonlyArray<TransactionError> {
-		// Verify Basic state
-		return [
-			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
-			verifyBalance(this.id, sender, this.fee),
-		].filter(Boolean) as ReadonlyArray<TransactionError>;
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {

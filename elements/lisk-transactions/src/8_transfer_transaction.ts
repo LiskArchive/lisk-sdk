@@ -27,11 +27,7 @@ import {
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import {
-	verifyAmountBalance,
-	verifyBalance,
-	verifyMinRemainingBalance,
-} from './utils';
+import { verifyMinRemainingBalance } from './utils';
 
 export interface TransferAsset {
 	readonly data?: string;
@@ -174,18 +170,16 @@ export class TransferTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
 
-		const balanceError = verifyAmountBalance(
+		const balanceError = verifyMinRemainingBalance(
 			this.id,
 			sender,
 			this.asset.amount,
-			this.fee,
 		);
 		if (balanceError) {
 			errors.push(balanceError);
 		}
 
-		const updatedSenderBalance = sender.balance - this.asset.amount;
-		sender.balance = updatedSenderBalance;
+		sender.balance -= this.asset.amount;
 		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
@@ -238,15 +232,7 @@ export class TransferTransaction extends BaseTransaction {
 		sender.balance = updatedSenderBalance;
 		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
-
-		const balanceError = verifyBalance(this.id, recipient, this.asset.amount);
-
-		if (balanceError) {
-			errors.push(balanceError);
-		}
-
-		const updatedRecipientBalance = recipient.balance - this.asset.amount;
-		recipient.balance = updatedRecipientBalance;
+		recipient.balance -= this.asset.amount;
 
 		store.account.set(recipient.address, recipient);
 
