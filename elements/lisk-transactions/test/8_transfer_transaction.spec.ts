@@ -19,6 +19,7 @@ import { Status } from '../src/response';
 import { TransactionError } from '../src/errors';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import { BaseTransaction } from '../src';
 
 describe('Transfer transaction class', () => {
 	const validTransferTransaction = fixture.testCases[0].output;
@@ -277,6 +278,22 @@ describe('Transfer transaction class', () => {
 				store,
 			);
 			expect(errors[0].message).toEqual('Invalid amount');
+		});
+
+		it('should return error when recipient balance is below minimum remaining balance', async () => {
+			store.account.set(recipient.address, {
+				...recipient,
+				balance:
+					-validTransferTestTransaction.asset.amount +
+					BaseTransaction.MIN_REMAINING_BALANCE -
+					BigInt(1),
+			});
+			const errors = await (validTransferTestTransaction as any).applyAsset(
+				store,
+			);
+			expect(errors[0].message).toContain(
+				'Account does not have enough minimum remaining LSK',
+			);
 		});
 	});
 

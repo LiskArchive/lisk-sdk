@@ -27,7 +27,11 @@ import {
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
-import { verifyAmountBalance, verifyBalance } from './utils';
+import {
+	verifyAmountBalance,
+	verifyBalance,
+	verifyMinRemainingBalance,
+} from './utils';
 
 export interface TransferAsset {
 	readonly data?: string;
@@ -185,9 +189,9 @@ export class TransferTransaction extends BaseTransaction {
 		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
 
-		const updatedRecipientBalance = recipient.balance + this.asset.amount;
+		recipient.balance += this.asset.amount;
 
-		if (updatedRecipientBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
+		if (recipient.balance > BigInt(MAX_TRANSACTION_AMOUNT)) {
 			errors.push(
 				new TransactionError(
 					'Invalid amount',
@@ -197,7 +201,17 @@ export class TransferTransaction extends BaseTransaction {
 				),
 			);
 		}
-		recipient.balance = updatedRecipientBalance;
+
+		// Validate minimum remaining balance
+		const minRemainingBalanceError = verifyMinRemainingBalance(
+			this.id,
+			recipient,
+			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
+		);
+		if (minRemainingBalanceError) {
+			errors.push(minRemainingBalanceError);
+		}
+
 		store.account.set(recipient.address, recipient);
 
 		return errors;
