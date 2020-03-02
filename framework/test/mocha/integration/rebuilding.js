@@ -66,6 +66,8 @@ describe('rebuilding', () => {
 					// Forge 1 block with transaction to reach height 101
 					.then(() => {
 						const transaction = transfer({
+							nonce: '0',
+							fee: '10000000',
 							networkIdentifier,
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000).toString(),

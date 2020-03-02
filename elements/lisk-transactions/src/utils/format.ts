@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isGreaterThanMaxTransactionAmount } from '@liskhq/lisk-validator';
+import { isGreaterThanMaxUInt64 } from '@liskhq/lisk-validator';
 
 import { FIXED_POINT } from '../constants';
 
@@ -28,7 +28,7 @@ export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 		throw new Error('Beddows amount should not have decimal points');
 	}
 	const beddowsAmountBigInt = BigInt(beddowsAmount);
-	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigInt)) {
+	if (isGreaterThanMaxUInt64(beddowsAmountBigInt)) {
 		throw new Error('Beddows amount out of range');
 	}
 	const int = (beddowsAmountBigInt / BigInt(FIXED_POINT)).toString();
@@ -58,7 +58,7 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 	);
 	const beddowsAmountBigInt =
 		liskAmountInt * BigInt(FIXED_POINT) + liskAmountFloatBigInt;
-	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigInt)) {
+	if (isGreaterThanMaxUInt64(beddowsAmountBigInt)) {
 		throw new Error('LSK amount out of range');
 	}
 

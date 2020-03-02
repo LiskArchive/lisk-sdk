@@ -46,6 +46,7 @@ accounts.mem_accountsFields = [
 	'isDelegate',
 	'address',
 	'publicKey',
+	'nonce',
 	'balance',
 	'voteWeight',
 	'delegates',

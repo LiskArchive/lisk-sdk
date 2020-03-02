@@ -20,6 +20,8 @@ describe('inert transactions', () => {
 	const recipientAccount = randomUtil.account();
 	const transferInertTransaction = transfer({
 		networkIdentifier,
+		nonce: '0',
+		fee: BigInt(10000000).toString(),
 		recipientId: recipientAccount.address,
 		amount: (1000000000 * 100).toString(),
 		passphrase: senderAccount.passphrase,
@@ -27,12 +29,16 @@ describe('inert transactions', () => {
 
 	const voteInertTransaction = castVotes({
 		networkIdentifier,
+		nonce: '0',
+		fee: BigInt(10000000).toString(),
 		passphrase: recipientAccount.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
 
 	const delegateInertTransaction = registerDelegate({
 		networkIdentifier,
+		nonce: '0',
+		fee: BigInt(5000000000).toString(),
 		passphrase: recipientAccount.passphrase,
 		username: recipientAccount.username,
 	});
@@ -53,6 +59,8 @@ describe('inert transactions', () => {
 		before(done => {
 			const transferTransaction = transfer({
 				networkIdentifier,
+				nonce: '1',
+				fee: BigInt(10000000).toString(),
 				recipientId: recipientAccount.address,
 				amount: (5000000000 * 100).toString(),
 				passphrase: senderAccount.passphrase,

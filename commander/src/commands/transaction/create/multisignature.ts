@@ -34,12 +34,16 @@ interface Args {
 
 const processInputs = (
 	networkIdentifier: string,
+	nonce: string,
+	fee: string,
 	lifetime: number,
 	minimum: number,
 	keysgroup: ReadonlyArray<string>,
 ) => ({ passphrase }: InputFromSourceOutput) =>
 	registerMultisignature({
 		networkIdentifier,
+		nonce,
+		fee,
 		passphrase,
 		keysgroup,
 		lifetime,
@@ -112,6 +116,8 @@ export default class MultisignatureCommand extends BaseCommand {
 		);
 		const processFunction = processInputs(
 			networkIdentifier,
+			'0',
+			'0',
 			transactionLifetime,
 			transactionMinimumConfirmations,
 			keysgroup,

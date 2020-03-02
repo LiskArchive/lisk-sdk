@@ -337,6 +337,8 @@ describe('matcher', () => {
 					.map((_, i) => {
 						const dummyTransferTransaction = transfer({
 							networkIdentifier,
+							nonce: '0',
+							fee: BigInt(100000000).toString(),
 							amount: '1',
 							data: i.toString(),
 							passphrase: accountFixtures.genesis.passphrase,

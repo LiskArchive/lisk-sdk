@@ -28,8 +28,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
-
 describe('integration test (type 0) - address collision', () => {
 	let library;
 	localCommon.beforeBlock('0_0_address_collision', lib => {
@@ -51,21 +49,27 @@ describe('integration test (type 0) - address collision', () => {
 
 	const firstTransaction = transfer({
 		networkIdentifier,
-		amount: (10 * NORMALIZER).toString(),
+		nonce: '0',
+		fee: BigInt(5000000000).toString(),
+		amount: BigInt(1000000000).toString(),
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	const secondTransaction = transfer({
 		networkIdentifier,
-		amount: (10 * NORMALIZER).toString(),
+		nonce: '0',
+		fee: BigInt(5000000000).toString(),
+		amount: BigInt(1000000000).toString(),
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	const firstTransactionWithData = transfer({
 		networkIdentifier,
-		amount: (10 * NORMALIZER).toString(),
+		nonce: '1',
+		fee: BigInt(5000000000).toString(),
+		amount: BigInt(1000000000).toString(),
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 1',
@@ -73,7 +77,9 @@ describe('integration test (type 0) - address collision', () => {
 
 	const secondTransactionWithData = transfer({
 		networkIdentifier,
-		amount: (10 * NORMALIZER).toString(),
+		nonce: '1',
+		fee: BigInt(5000000000).toString(),
+		amount: BigInt(1000000000).toString(),
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 2',
@@ -82,7 +88,9 @@ describe('integration test (type 0) - address collision', () => {
 	before(done => {
 		const creditTransaction = transfer({
 			networkIdentifier,
-			amount: (1000 * NORMALIZER).toString(),
+			nonce: '0',
+			fee: BigInt(5000000000).toString(),
+			amount: BigInt(100000000000).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
 			data: 'credit',

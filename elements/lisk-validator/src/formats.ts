@@ -7,6 +7,7 @@ import {
 	isSignature,
 	isUsername,
 	isValidFee,
+	isValidNonce,
 	isValidNonTransferAmount,
 	isValidTransferAmount,
 	isValidTransferData,
@@ -58,6 +59,8 @@ export const emptyOrPublicKey = (data: string): boolean => {
 };
 
 export const fee = isValidFee;
+
+export const nonce = isValidNonce;
 
 export const hex = isHexString;
 

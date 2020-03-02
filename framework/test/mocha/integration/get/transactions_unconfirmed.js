@@ -32,12 +32,16 @@ describe('integration test - get unconfirmed transactions', () => {
 	const account2 = randomUtil.account();
 	const transaction1 = transfer({
 		networkIdentifier,
+		fee: '10000000',
+		nonce: '0',
 		amount: (1100 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account1.address,
 	});
 	const transaction2 = transfer({
 		networkIdentifier,
+		fee: '10000000',
+		nonce: '0',
 		amount: (1100 * NORMALIZER).toString(),
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,

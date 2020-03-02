@@ -20,7 +20,8 @@
 				"transaction": {
 					"type": 11,
 					"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"timestamp": 54316326,
+					"nonce": "2",
+					"fee": "100000000",
 					"asset": {
 						"votes": [
 							"+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
@@ -33,7 +34,8 @@
 			"output": {
 				"type": 11,
 				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-				"timestamp": 54316326,
+				"nonce": "2",
+				"fee": "100000000",
 				"asset": {
 					"votes": [
 						"+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
@@ -41,8 +43,8 @@
 						"-1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972"
 					]
 				},
-				"signature": "b534786e208c570022ac7ebdb19915d8772998bab2fa7bdfb5fe219c2103a0517209301974c772596c46dd95b2d32b3b1f38172295801ff8c3968654a7bde406",
-				"id": "16951860278597630982"
+				"signature": "1f24c2919487b0193bf6953d2aeace1539e40ae0ee56354b0fcdf95dee107a8eabb189e87324ab1bdc8d9cb7276b95437907128c71877f4d112c3e1f69049507",
+				"id": "13010133641835438529"
 			}
 		}
 	]

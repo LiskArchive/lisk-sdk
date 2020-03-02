@@ -14,6 +14,8 @@
  */
 import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
+	isValidFee,
+	isValidNonce,
 	validateNetworkIdentifier,
 	validatePublicKeys,
 } from '@liskhq/lisk-validator';
@@ -28,9 +30,10 @@ import {
 
 export interface CastVoteInputs {
 	readonly networkIdentifier: string;
+	readonly nonce: string;
+	readonly fee: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 	readonly unvotes?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
 }
@@ -39,13 +42,25 @@ interface VotesObject {
 	readonly unvotes?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
 	readonly networkIdentifier: string;
+	readonly fee: string;
+	readonly nonce: string;
 }
 
 const validateInputs = ({
+	fee,
+	nonce,
 	votes = [],
 	unvotes = [],
 	networkIdentifier,
 }: VotesObject): void => {
+	if (!isValidNonce(nonce)) {
+		throw new Error('Nonce must be a valid number in string format.');
+	}
+
+	if (!isValidFee(fee)) {
+		throw new Error('Fee must be a valid number in string format.');
+	}
+
 	if (!Array.isArray(votes)) {
 		throw new Error(
 			'Please provide a valid votes value. Expected an array if present.',

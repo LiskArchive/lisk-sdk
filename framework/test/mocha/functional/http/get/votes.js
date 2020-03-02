@@ -18,6 +18,7 @@ require('../../functional');
 const randomstring = require('randomstring');
 const {
 	transfer,
+
 	registerDelegate,
 	castVotes,
 } = require('@liskhq/lisk-transactions');
@@ -407,6 +408,8 @@ describe('GET /api/votes', () => {
 				const halfLSK = BigInt('500000');
 
 				const creditTransaction = transfer({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					amount: (
 						BigInt(FEES.DELEGATE) +
@@ -418,6 +421,8 @@ describe('GET /api/votes', () => {
 				});
 
 				const delegateTransaction = registerDelegate({
+					nonce: '0',
+					fee: '2500000000',
 					networkIdentifier,
 					passphrase: account.passphrase,
 					username: randomstring.generate({
@@ -428,6 +433,8 @@ describe('GET /api/votes', () => {
 				});
 
 				const voteTransaction = castVotes({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					passphrase: account.passphrase,
 					votes: [`${nonVoterDelegate.publicKey}`],

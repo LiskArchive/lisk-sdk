@@ -25,7 +25,6 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MULTISIGNATURE_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
@@ -106,7 +105,6 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 12;
-	public static FEE = MULTISIGNATURE_FEE.toString();
 	private readonly MAX_KEYS_COUNT = 64;
 
 	public constructor(rawTransaction: unknown) {

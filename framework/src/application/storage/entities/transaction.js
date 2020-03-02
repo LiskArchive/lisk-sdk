@@ -28,7 +28,7 @@ const trsCreateFields = [
 	'id',
 	'blockId',
 	'type',
-	'timestamp',
+	'nonce',
 	'senderPublicKey',
 	'senderId',
 	'recipientId',

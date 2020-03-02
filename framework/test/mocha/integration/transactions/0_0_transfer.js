@@ -24,8 +24,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
-
 describe('integration test (type 0) - double transfers', () => {
 	let library;
 	localCommon.beforeBlock('0_0_transfer', lib => {
@@ -41,7 +39,9 @@ describe('integration test (type 0) - double transfers', () => {
 			const account = randomUtil.account();
 			const transaction = transfer({
 				networkIdentifier,
-				amount: (1100 * NORMALIZER).toString(),
+				nonce: i.toString(),
+				fee: BigInt(10000000).toString(),
+				amount: BigInt(110000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -62,10 +62,11 @@ describe('integration test (type 0) - double transfers', () => {
 			it('adding to pool transfer should be ok', done => {
 				transaction1 = transfer({
 					networkIdentifier,
-					amount: (1000 * NORMALIZER).toString(),
+					nonce: i.toString(),
+					fee: BigInt(10000000).toString(),
+					amount: BigInt(100000000000).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
-					timeOffset: -10000,
 				});
 				localCommon.addTransaction(library, transaction1, (err, res) => {
 					expect(res).to.equal(transaction1.id);
@@ -76,7 +77,9 @@ describe('integration test (type 0) - double transfers', () => {
 			it('adding to pool same transfer with different timestamp should be ok', done => {
 				transaction2 = transfer({
 					networkIdentifier,
-					amount: (1000 * NORMALIZER).toString(),
+					nonce: (i + 1).toString(),
+					fee: BigInt(10000000).toString(),
+					amount: BigInt(100000000000).toString(),
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});
