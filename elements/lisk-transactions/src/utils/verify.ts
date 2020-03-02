@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MultisignatureStatus } from '../base_transaction';
-import { TransactionError, TransactionPendingError } from '../errors';
+import { TransactionError } from '../errors';
 import { Account } from '../transaction_types';
 
 import { convertBeddowsToLSK } from './format';
-import { validateMultisignatures } from './sign_and_validate';
+import { validateSignature } from './sign_and_validate';
 
 export const verifySenderPublicKey = (
 	id: string,
@@ -86,72 +85,86 @@ export const verifyMinRemainingBalance = (
 	return undefined;
 };
 
-export interface VerifyMultiSignatureResult {
-	readonly status: MultisignatureStatus;
-	readonly errors: ReadonlyArray<TransactionError>;
-}
-
-const isMultisignatureAccount = (account: Account): boolean =>
+export const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
 		(account.keys.mandatoryKeys.length > 0 ||
 			account.keys.optionalKeys.length > 0) &&
 		account.keys.numberOfSignatures
 	);
 
-export const verifyMultiSignatures = (
+export const validateKeysSignatures = (
+	keys: readonly string[],
+	signatures: readonly string[],
+	transactionBytes: Buffer,
+) => {
+	const errors = [];
+	// tslint:disable-next-line: prefer-for-of no-let
+	for (let i = 0; i < keys.length; i += 1) {
+		const { error } = validateSignature(
+			keys[i],
+			signatures[i],
+			transactionBytes,
+		);
+
+		if (error) {
+			errors.push(error);
+		}
+	}
+
+	return errors;
+};
+
+export const verifyMultiSignatureTransaction = (
 	id: string,
 	sender: Account,
 	signatures: ReadonlyArray<string>,
 	transactionBytes: Buffer,
-): VerifyMultiSignatureResult => {
-	if (!isMultisignatureAccount(sender) && signatures.length > 0) {
-		return {
-			status: MultisignatureStatus.FAIL,
-			errors: [
-				new TransactionError(
-					'Sender is not a multisignature account',
-					id,
-					'.signatures',
-				),
-			],
-		};
+) => {
+	const errors = [];
+
+	if (signatures.length) {
+		const error = new TransactionError(
+			'Transaction has empty signatures',
+			id,
+			'.signatures',
+			signatures.join(','),
+		);
+
+		return [error];
 	}
 
-	if (!isMultisignatureAccount(sender)) {
-		return {
-			status: MultisignatureStatus.NONMULTISIGNATURE,
-			errors: [],
-		};
-	}
+	const { mandatoryKeys, optionalKeys, numberOfSignatures } = sender.keys;
+	const numMandatoryKeys = mandatoryKeys.length;
+	const numOptionalKeys = optionalKeys.length;
 
-	const { valid, errors } = validateMultisignatures(
-		[], // UPDATE TO LIP0017 sender.membersPublicKeys as ReadonlyArray<string>,
+	const mandatoryKeysError = validateKeysSignatures(
+		mandatoryKeys,
 		signatures,
-		sender.keys.numberOfSignatures,
 		transactionBytes,
-		id,
 	);
 
-	if (valid) {
-		return {
-			status: MultisignatureStatus.READY,
-			errors: [],
-		};
+	errors.push(...mandatoryKeysError);
+
+	// tslint:disable-next-line: no-let
+	let validOptionalSig = 0;
+	// tslint:disable-next-line: prefer-for-of no-let
+	for (let k = 0; k < numOptionalKeys - 1; k += 1) {
+		const { valid, error } = validateSignature(
+			mandatoryKeys[k],
+			signatures[k],
+			transactionBytes,
+		);
+
+		if (valid) {
+			validOptionalSig += 1;
+		} else if (signatures[k].length !== 0) {
+			errors.push(error as TransactionError);
+		}
 	}
 
-	if (
-		errors &&
-		errors.length === 1 &&
-		errors[0] instanceof TransactionPendingError
-	) {
-		return {
-			status: MultisignatureStatus.PENDING,
-			errors,
-		};
+	if (numMandatoryKeys + validOptionalSig === numberOfSignatures) {
+		return [];
 	}
 
-	return {
-		status: MultisignatureStatus.FAIL,
-		errors: errors || [],
-	};
+	return errors;
 };
