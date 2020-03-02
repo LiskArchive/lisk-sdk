@@ -39,3 +39,20 @@ export interface TransactionFunctions {
 	): boolean;
 	isReady(): boolean;
 }
+
+export enum Status {
+	FAIL = 0,
+	OK = 1,
+}
+
+export interface TransactionError {
+	readonly message: string;
+	readonly id: string;
+	readonly dataPath: string;
+}
+
+export interface TransactionResponse {
+	readonly errors: ReadonlyArray<TransactionError>;
+	readonly id: string;
+	readonly status: Status;
+}
