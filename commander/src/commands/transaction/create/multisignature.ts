@@ -133,7 +133,13 @@ export default class MultisignatureCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
-		if (!isValidFee(fee)) {
+		if (Number.isNaN(Number(fee))) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
@@ -142,7 +148,6 @@ export default class MultisignatureCommand extends BaseCommand {
 		validateLifetime(lifetime);
 		validateMinimum(minimum);
 
-		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 		const transactionLifetime = parseInt(lifetime, 10);
 		const transactionMinimumConfirmations = parseInt(minimum, 10);
 		const networkIdentifier = getNetworkIdentifierWithInput(

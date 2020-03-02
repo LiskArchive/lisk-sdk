@@ -99,8 +99,6 @@ export default class TransferCommand extends BaseCommand {
 		...BaseCommand.flags,
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
-		nonce: flagParser.string(commonFlags.nonce),
-		fee: flagParser.string(commonFlags.fee),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
 		data: flagParser.string(dataFlag),
 	};
@@ -126,11 +124,15 @@ export default class TransferCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
-		if (!isValidFee(fee)) {
+		if (Number.isNaN(Number(fee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
 
 		validateAddress(address);
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);

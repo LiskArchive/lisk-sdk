@@ -101,11 +101,15 @@ export default class DelegateCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
-		if (!isValidFee(fee)) {
+		if (Number.isNaN(Number(fee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
 
 		const processFunction = processInputs(
 			nonce,

@@ -23,7 +23,7 @@ import MultisignatureCommand from './create/multisignature';
 import TransferCommand from './create/transfer';
 import VoteCommand from './create/vote';
 
-const MAX_ARG_NUM = 3;
+const MAX_ARG_NUM = 5;
 
 interface TypeNumberMap {
 	readonly [key: string]: string;
@@ -98,8 +98,6 @@ export default class CreateCommand extends BaseCommand {
 		votes: flagParser.string(commonFlags.votes),
 		unvotes: flagParser.string(commonFlags.unvotes),
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
-		nonce: flagParser.string(commonFlags.nonce),
-		fee: flagParser.string(commonFlags.fee),
 	};
 
 	async run(): Promise<void> {
