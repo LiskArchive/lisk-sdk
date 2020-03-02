@@ -16,7 +16,7 @@ import {
 	TransactionList,
 	EVENT_TRANSACTION_REMOVED,
 } from '../../src/transaction_list';
-import { TransactionObject } from '../../src/transaction_pool';
+import { Transaction } from '../../src/transaction_pool';
 
 const insertNTransactions = (
 	transactionList: TransactionList,
@@ -29,7 +29,7 @@ const insertNTransactions = (
 			id: i.toString(),
 			nonce: BigInt(i),
 			fee: BigInt(i * 1000),
-		} as TransactionObject;
+		} as Transaction;
 		addedTransactions.push(tx);
 		transactionList.add(tx);
 	}
@@ -116,7 +116,7 @@ describe('TransactionList class', () => {
 			});
 
 			describe('when the same nonce transaction with higher fee but lower than minReplaceFeeDiff is added', () => {
-				it('should replace with the new transaction', async () => {
+				it('should not replace and not add to the list', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 5);
 					const replacing = {
@@ -182,7 +182,7 @@ describe('TransactionList class', () => {
 						id: 'new-id',
 						fee: BigInt(500000000),
 						nonce: BigInt(6),
-					} as TransactionObject;
+					} as Transaction;
 					// Act
 					const added = transactionList.add(adding);
 					// Assert
@@ -199,7 +199,7 @@ describe('TransactionList class', () => {
 						id: 'new-id',
 						fee: BigInt(500000000),
 						nonce: BigInt(0),
-					} as TransactionObject;
+					} as Transaction;
 					// Act
 					const added = transactionList.add(adding, true);
 					// Assert
@@ -317,7 +317,7 @@ describe('TransactionList class', () => {
 						id: 'new-id',
 						fee: addedTxs[0].fee + BigInt(500000000),
 						nonce: BigInt(100),
-					} as TransactionObject;
+					} as Transaction;
 					// Act
 					const added = transactionList.add(adding);
 					// Assert
@@ -334,7 +334,7 @@ describe('TransactionList class', () => {
 						id: 'new-id',
 						fee: addedTxs[0].fee + BigInt(500000000),
 						nonce: BigInt(0),
-					} as TransactionObject;
+					} as Transaction;
 					jest.spyOn(transactionList.events, 'emit');
 					// Act
 					const added = transactionList.add(adding);
@@ -394,7 +394,7 @@ describe('TransactionList class', () => {
 						id: '11',
 						nonce: BigInt(11),
 						fee: BigInt(1000000),
-					} as TransactionObject,
+					} as Transaction,
 				]);
 				// Assert
 				expect(transactionList.getProcessable()).toHaveLength(0);
@@ -411,7 +411,7 @@ describe('TransactionList class', () => {
 						id: 'new-id',
 						nonce: BigInt(0),
 						fee: BigInt(1000000),
-					} as TransactionObject,
+					} as Transaction,
 				]);
 				// Assert
 				expect(transactionList.getProcessable()).toHaveLength(0);

@@ -15,7 +15,7 @@
 import { EventEmitter } from 'events';
 
 import { MinHeap } from './min_heap';
-import { TransactionObject } from './transaction_pool';
+import { Transaction } from './transaction_pool';
 
 export interface TransactionListOptions {
 	readonly maxSize?: number;
@@ -34,7 +34,7 @@ export class TransactionList {
 
 	private _processable: Array<bigint>;
 	// Value is not needed here
-	private readonly _transactions: { [nonce: string]: TransactionObject };
+	private readonly _transactions: { [nonce: string]: Transaction };
 	private readonly _nonceHeap: MinHeap<undefined, bigint>;
 	private readonly _maxSize: number;
 	private readonly _minReplacementFeeDifference: bigint;
@@ -50,11 +50,11 @@ export class TransactionList {
 			options?.minReplacementFeeDifference ?? DEFAULT_REPLACEMENT_FEE_DIFF;
 	}
 
-	public get(nonce: bigint): TransactionObject | undefined {
+	public get(nonce: bigint): Transaction | undefined {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(tx: TransactionObject, processable: boolean = false): boolean {
+	public add(tx: Transaction, processable: boolean = false): boolean {
 		const replacingTx = this._transactions[tx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
 		if (replacingTx) {
@@ -122,7 +122,7 @@ export class TransactionList {
 		return true;
 	}
 
-	public promote(txs: ReadonlyArray<TransactionObject>): boolean {
+	public promote(txs: ReadonlyArray<Transaction>): boolean {
 		// Promtoe if only all ID are still existing and the same
 		const promotingNonces = [];
 		for (const tx of txs) {
@@ -146,7 +146,7 @@ export class TransactionList {
 		return this._nonceHeap.count;
 	}
 
-	public getProcessable(): ReadonlyArray<TransactionObject> {
+	public getProcessable(): ReadonlyArray<Transaction> {
 		const txs = [];
 		for (const nonce of this._processable) {
 			txs.push(this._transactions[nonce.toString()]);
@@ -155,7 +155,7 @@ export class TransactionList {
 		return txs;
 	}
 
-	public getUnprocessable(): ReadonlyArray<TransactionObject> {
+	public getUnprocessable(): ReadonlyArray<Transaction> {
 		if (this._nonceHeap.count === 0) {
 			return [];
 		}
@@ -168,7 +168,7 @@ export class TransactionList {
 			clonedHeap.pop();
 		}
 		const remainingCount = clonedHeap.count;
-		const unprocessableTx: TransactionObject[] = [];
+		const unprocessableTx: Transaction[] = [];
 		// tslint:disable-next-line no-let
 		for (let i = 0; i < remainingCount; i += 1) {
 			const { key } = clonedHeap.pop() as { key: bigint };
@@ -178,7 +178,7 @@ export class TransactionList {
 		return unprocessableTx;
 	}
 
-	public getPromotable(): ReadonlyArray<TransactionObject> {
+	public getPromotable(): ReadonlyArray<Transaction> {
 		if (this._nonceHeap.count === 0) {
 			return [];
 		}
