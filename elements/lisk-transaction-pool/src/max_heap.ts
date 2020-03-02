@@ -39,8 +39,8 @@ export class MaxHeap<T, K = bigint | number> extends MinHeap<T, K> {
 		const halfCount = this.count >> 1;
 
 		while (index < halfCount) {
-			const leftChild = this._leftIndex(index);
-			const rightChild = this._rightIndex(index);
+			const leftChild = this._leftChildIndex(index);
+			const rightChild = this._rightChildIndex(index);
 			// Choose smaller path
 			const nextPath =
 				rightChild < this.count &&

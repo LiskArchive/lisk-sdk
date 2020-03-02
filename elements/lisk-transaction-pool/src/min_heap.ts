@@ -77,7 +77,7 @@ export class MinHeap<T, K = bigint | number> {
 
 	private _insertAll(heap: MinHeap<T, K>): void {
 		if (!(heap instanceof MinHeap)) {
-			throw new Error('Cannot insertAll from other than heap');
+			throw new Error('Only heap instance can be inserted');
 		}
 		this._insertAllFromHeap(heap);
 	}
@@ -125,8 +125,8 @@ export class MinHeap<T, K = bigint | number> {
 		const halfCount = this.count >> 1;
 
 		while (index < halfCount) {
-			const leftChild = this._leftIndex(index);
-			const rightChild = this._rightIndex(index);
+			const leftChild = this._leftChildIndex(index);
+			const rightChild = this._rightChildIndex(index);
 			// Choose smaller path
 			const nextPath =
 				rightChild < this.count &&
@@ -152,13 +152,13 @@ export class MinHeap<T, K = bigint | number> {
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
-	protected _leftIndex(index: number): number {
+	protected _leftChildIndex(index: number): number {
 		// tslint:disable-next-line no-magic-numbers
 		return index * 2 + 1;
 	}
 
 	// tslint:disable-next-line prefer-function-over-method
-	protected _rightIndex(index: number): number {
+	protected _rightChildIndex(index: number): number {
 		// tslint:disable-next-line no-magic-numbers
 		return index * 2 + 2;
 	}
