@@ -93,7 +93,9 @@ export const verifyAccountNonce = (
 ): TransactionError | undefined => {
 	if (account.nonce !== nonce) {
 		return new TransactionError(
-			`Nonce does not match with account: ${account.address}, Nonce: ${nonce}, Account Nonce: ${account.nonce}`,
+			`Nonce does not match with account: ${
+				account.address
+			}, Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 		);
