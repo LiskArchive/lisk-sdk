@@ -14,6 +14,10 @@
  *
  */
 
+const nonceDescription = 'Nonce of the transaction.';
+
+const feeDescription = 'Fee assigned to the transaction.';
+
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 	Examples:
@@ -105,6 +109,12 @@ export interface FlagMap {
 }
 
 export const flags: FlagMap = {
+	nonce: {
+		description: nonceDescription,
+	},
+	fee: {
+		description: feeDescription,
+	},
 	message: {
 		char: 'm',
 		description: messageDescription,
