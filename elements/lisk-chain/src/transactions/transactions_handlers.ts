@@ -26,7 +26,6 @@ import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
-	SignatureObject,
 	WriteableTransactionResponse,
 } from '../types';
 
@@ -68,12 +67,10 @@ export const applyGenesisTransactions = () => async (
 
 	const transactionsResponses: TransactionResponse[] = [];
 	for (const transaction of transactions) {
-		// Fee is handled by Elements now so we set it to zero here. LIP-0012
-		transaction.fee = BigInt(0);
 		const transactionResponse = await transaction.apply(stateStore);
 
 		await votesWeight.apply(stateStore, transaction);
-		stateStore.transaction.add(transaction as TransactionJSON);
+		stateStore.transaction.add(transaction.toJSON());
 
 		// We are overriding the status of transaction because it's from genesis block
 		(transactionResponse as WriteableTransactionResponse).status =
@@ -111,7 +108,7 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 		}
 		if (transactionResponse.status === TransactionStatus.OK) {
 			await votesWeight.apply(stateStore, transaction, exceptions);
-			stateStore.transaction.add(transaction as TransactionJSON);
+			stateStore.transaction.add(transaction.toJSON());
 		}
 
 		if (transactionResponse.status !== TransactionStatus.OK) {
@@ -226,15 +223,4 @@ export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 	return {
 		transactionsResponses,
 	};
-};
-
-export const processSignature = () => async (
-	transaction: BaseTransaction,
-	signature: SignatureObject,
-	stateStore: StateStore,
-) => {
-	await transaction.prepare(stateStore);
-
-	// Add multisignature to transaction and process
-	return transaction.addMultisignature(stateStore, signature);
 };

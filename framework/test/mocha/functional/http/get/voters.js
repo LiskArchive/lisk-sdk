@@ -302,6 +302,8 @@ describe('GET /api/voters', () => {
 					halfLSK
 				).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,
@@ -309,6 +311,8 @@ describe('GET /api/voters', () => {
 				});
 
 				const registerExtraVoterAsADelegateTransaction = registerDelegate({
+					nonce: '0',
+					fee: '2500000000',
 					networkIdentifier,
 					passphrase: validExtraDelegateVoter.passphrase,
 					username: randomstring.generate({
@@ -319,6 +323,8 @@ describe('GET /api/voters', () => {
 				});
 
 				const voteByExtraDelegateVoterTransaction = castVotes({
+					nonce: '0',
+					fee: '100000000',
 					networkIdentifier,
 					passphrase: validExtraDelegateVoter.passphrase,
 					votes: [`${validVotedDelegate.publicKey}`],

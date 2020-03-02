@@ -38,6 +38,11 @@ describe('Delegate registration transaction class', () => {
 		balance: BigInt(validDelegateAccount.balance),
 		address: protocolSpecDelegateFixture.testCases[0].input.account.address,
 		publicKey: protocolSpecDelegateFixture.testCases[0].input.account.publicKey,
+		keys: {
+			mandatoryKeys: [],
+			optionalKeys: [],
+			numberOfSignatures: 0,
+		},
 	};
 
 	beforeEach(async () => {
@@ -74,7 +79,7 @@ describe('Delegate registration transaction class', () => {
 			const invalidDelegateTransactionData = {
 				...validDelegateTransaction,
 				asset: {
-					username: 123,
+					username: '123',
 				},
 			};
 			expect(
@@ -82,7 +87,7 @@ describe('Delegate registration transaction class', () => {
 			).not.toThrowError();
 		});
 
-		it('should create instance of  DelegateTransaction when rawTransaction is empty', async () => {
+		it('should create instance of DelegateTransaction when rawTransaction is empty', async () => {
 			const validEmptyTestTransaction = new DelegateTransaction(null);
 			expect(validEmptyTestTransaction).toBeInstanceOf(DelegateTransaction);
 		});

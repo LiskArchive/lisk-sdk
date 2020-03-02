@@ -41,6 +41,8 @@ const dataFlag = {
 const processInputs = (
 	networkIdentifier: string,
 	amount: string,
+	nonce: string,
+	fee: string,
 	address: string,
 	data?: string,
 ) => ({ passphrase }: InputFromSourceOutput) =>
@@ -48,6 +50,8 @@ const processInputs = (
 		networkIdentifier,
 		recipientId: address,
 		amount,
+		nonce,
+		fee,
 		data,
 		passphrase,
 	});
@@ -103,6 +107,8 @@ export default class TransferCommand extends BaseCommand {
 		const processFunction = processInputs(
 			networkIdentifier,
 			normalizedAmount,
+			'0',
+			'0',
 			address,
 			dataString,
 		);

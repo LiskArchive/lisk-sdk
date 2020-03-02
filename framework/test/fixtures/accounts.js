@@ -46,19 +46,18 @@ accounts.mem_accountsFields = [
 	'isDelegate',
 	'address',
 	'publicKey',
+	'nonce',
 	'balance',
 	'voteWeight',
 	'delegates',
 	'multisignatures',
-	'multimin',
-	'multilifetime',
 	'nameexist',
+	'keys',
 	'producedBlocks',
 	'missedBlocks',
 	'fees',
 	'rewards',
 	'asset',
-	'membersPublicKeys',
 	'votedDelegatesPublicKeys',
 ];
 
@@ -70,15 +69,13 @@ const Account = stampit({
 		publicKey: '',
 		balance: '0',
 		voteWeight: '',
-		multiMin: 0,
-		multiLifetime: 0,
 		nameExist: false,
 		producedBlocks: 9,
 		missedBlocks: 0,
 		fees: '0',
 		rewards: '0',
+		keys: null,
 		votedDelegatesPublicKeys: null,
-		membersPublicKeys: null,
 		productivity: 0,
 		asset: {},
 	},
@@ -113,7 +110,7 @@ const Account = stampit({
 		this.balance = balance || '0';
 		this.asset = asset || {};
 		this.votedDelegatesPublicKeys = null;
-		this.membersPublicKeys = null;
+		this.keys = null;
 	},
 });
 
@@ -125,8 +122,6 @@ const dbAccount = stampit({
 		fees: '0',
 		isDelegate: 0,
 		missedBlocks: 0,
-		multiLifetime: 0,
-		multimin: 0,
 		multisignatures: null,
 		nameExist: 0,
 		producedBlocks: 0,
@@ -136,7 +131,7 @@ const dbAccount = stampit({
 		voteWeight: '0',
 		asset: {},
 		votedDelegatesPublicKeys: null,
-		membersPublicKeys: null,
+		keys: {},
 	},
 	init({ address, balance }) {
 		this.address = address || this.address;

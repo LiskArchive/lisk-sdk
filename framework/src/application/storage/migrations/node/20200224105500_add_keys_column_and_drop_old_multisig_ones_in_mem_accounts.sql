@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,16 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-export * from './address';
-export * from './create_base_transaction';
-export * from './format';
-export * from './sign_and_validate';
-export * from './verify';
-export * from './transaction_id';
+
+
+/*
+   DESCRIPTION: Add keys field for mem_accounts column
+   PARAMETERS: None
+*/
+
+ -- Add asset column to trs table as jsonb
+ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "keys" jsonb;
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "membersPublicKeys";
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multimin";
+ALTER TABLE "mem_accounts" DROP COLUMN IF EXISTS "multilifetime";

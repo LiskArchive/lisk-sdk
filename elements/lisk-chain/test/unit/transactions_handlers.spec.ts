@@ -363,8 +363,12 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs1);
-			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(trs2);
+			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(
+				trs1.toJSON(),
+			);
+			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(
+				trs2.toJSON(),
+			);
 		});
 
 		it('should override the status of transaction to TransactionStatus.OK', async () => {
@@ -519,41 +523,6 @@ describe('transactions', () => {
 				trs1Response,
 				trs2Response,
 			]);
-		});
-	});
-
-	describe('#processSignature', () => {
-		const signature = {
-			publicKey: '12356677',
-			signature: 'signagure',
-			transactionId: '123',
-		};
-		let addMultisignatureStub: any;
-
-		beforeEach(async () => {
-			addMultisignatureStub = jest.fn();
-
-			trs1.addMultisignature = addMultisignatureStub;
-		});
-
-		it('should prepare transaction', async () => {
-			await transactionHandlers.processSignature()(
-				trs1,
-				signature,
-				stateStoreMock,
-			);
-
-			expect(trs1.prepare).toHaveBeenCalledTimes(1);
-		});
-
-		it('should add signature to transaction', async () => {
-			await transactionHandlers.processSignature()(
-				trs1,
-				signature,
-				stateStoreMock,
-			);
-
-			expect(addMultisignatureStub).toHaveBeenCalledTimes(1);
 		});
 	});
 });

@@ -16,7 +16,6 @@ import {
 	BaseTransaction,
 	Status as TransactionStatus,
 	TransactionJSON,
-	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
@@ -39,7 +38,6 @@ import {
 	checkIfTransactionIsInert,
 	checkPersistedTransactions,
 	composeTransactionSteps,
-	processSignature,
 	undoTransactions,
 	validateTransactions,
 } from './transactions';
@@ -53,7 +51,6 @@ import {
 	Contexter,
 	ExceptionOptions,
 	MatcherTransaction,
-	SignatureObject,
 	Storage,
 	StorageTransaction,
 } from './types';
@@ -654,15 +651,6 @@ export class Chain {
 			checkPersistedTransactions(this.dataAccess),
 			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
-	}
-
-	public async processSignature(
-		transaction: BaseTransaction,
-		signature: SignatureObject,
-	): Promise<TransactionResponse> {
-		const stateStore = new StateStore(this.storage);
-
-		return processSignature()(transaction, signature, stateStore);
 	}
 
 	// Temporally added because DPoS uses totalEarning to calculate the vote weight change

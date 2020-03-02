@@ -80,7 +80,8 @@ const generateValidTransferTransaction = () => {
 	const tx = {
 		type: 8,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316324,
+		nonce: '2',
+		fee: '100000000',
 		asset: {
 			recipientId: accounts[1].address,
 			amount: '1234567890',
@@ -88,12 +89,11 @@ const generateValidTransferTransaction = () => {
 		},
 	};
 
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		intToBuffer(tx.nonce, 8, 'big'),
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee, 8, 'big'),
 		intToBuffer(tx.asset.amount, 8, 'big'),
 		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
 		Buffer.from(tx.asset.data, 'utf8'),
@@ -127,7 +127,8 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 	const tx = {
 		type: 8,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316325,
+		nonce: '2',
+		fee: '100000000',
 		asset: {
 			recipientId: accounts[1].address,
 			amount: '1234567890',
@@ -135,12 +136,11 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 		},
 	};
 
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		intToBuffer(tx.nonce, 8, 'big'),
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee, 8, 'big'),
 		intToBuffer(tx.asset.amount, 8, 'big'),
 		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
 		Buffer.from(tx.asset.data, 'utf8'),
@@ -193,7 +193,8 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 	const tx = {
 		type: 8,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316325,
+		nonce: '2',
+		fee: '100000000',
 		asset: {
 			recipientId: accounts[1].address,
 			amount: '1234567890',
@@ -201,12 +202,11 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 		},
 	};
 
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		intToBuffer(tx.nonce, 8, 'big'),
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee, 8, 'big'),
 		intToBuffer(tx.asset.amount, 8, 'big'),
 		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
 		Buffer.from(tx.asset.data, 'utf8'),
@@ -249,145 +249,22 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 	};
 };
 
-const generateValidTransferTransactionWithSecondAndMultiSignature = () => {
-	const tx = {
-		type: 8,
-		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316325,
-		asset: {
-			recipientId: accounts[1].address,
-			amount: '1234567890',
-			data: 'random data',
-		},
-	};
-
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.asset.amount, 8, 'big'),
-		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
-		Buffer.from(tx.asset.data, 'utf8'),
-	]);
-
-	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
-		accounts[0].passphrase,
-	);
-
-	const signSignature = signData(
-		hash(
-			Buffer.concat([
-				hexToBuffer(networkIdentifier),
-				txBuffer,
-				Buffer.from(signature, 'hex'),
-			]),
-		),
-		accounts[1].passphrase,
-	);
-
-	const id = getId(
-		Buffer.concat([
-			txBuffer,
-			Buffer.from(signature, 'hex'),
-			Buffer.from(signSignature, 'hex'),
-		]),
-	);
-
-	const signatures = [
-		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
-			accounts[2].passphrase,
-		),
-		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
-			accounts[3].passphrase,
-		),
-	];
-
-	const signedTransaction = {
-		...tx,
-		signature,
-		signSignature,
-		signatures,
-		id,
-	};
-
-	return {
-		description:
-			'A valid transfer transaction with second signature and multi signature',
-		input: {
-			account: accounts[0],
-			secondPassphrase: accounts[1].passphrase,
-			coSigners: [accounts[2], accounts[3]],
-			networkIdentifier,
-			transaction: tx,
-		},
-		output: signedTransaction,
-	};
-};
-
-const generateValidSecondSignatureTransaction = () => {
-	const tx = {
-		type: 9,
-		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316325,
-		asset: {
-			publicKey: accounts[1].publicKey,
-		},
-	};
-
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
-		hexToBuffer(tx.senderPublicKey),
-		hexToBuffer(tx.asset.publicKey),
-	]);
-
-	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
-		accounts[0].passphrase,
-	);
-
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-
-	const signedTransaction = {
-		...tx,
-		signature,
-		id,
-	};
-
-	return {
-		description: 'A valid second signature transaction',
-		input: {
-			account: accounts[0],
-			networkIdentifier,
-			transaction: tx,
-		},
-		output: signedTransaction,
-	};
-};
-
 const generateValidDelegateTransaction = () => {
 	const tx = {
 		type: 10,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316335,
+		nonce: '2',
+		fee: '100000000',
 		asset: {
 			username: 'new_delegate',
 		},
 	};
 
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		intToBuffer(tx.nonce, 8, 'big'),
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee, 8, 'big'),
 		Buffer.from(tx.asset.username, 'utf8'),
 	]);
 
@@ -419,7 +296,8 @@ const generateValidVoteTransaction = () => {
 	const tx = {
 		type: 11,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 54316326,
+		nonce: '2',
+		fee: '100000000',
 		asset: {
 			votes: [
 				`+${accounts[1].publicKey}`,
@@ -429,12 +307,11 @@ const generateValidVoteTransaction = () => {
 		},
 	};
 
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		intToBuffer(tx.nonce, 8, 'big'),
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee, 8, 'big'),
 		Buffer.from(tx.asset.votes.join(''), 'utf8'),
 	]);
 
@@ -466,7 +343,8 @@ const generateValidMultisignatureTransaction = () => {
 	const tx = {
 		type: 12,
 		senderPublicKey: accounts[0].publicKey,
-		timestamp: 44316326,
+		nonce: '2',
+		fee: '100000000',
 		asset: {
 			min: 2,
 			lifetime: 22,
@@ -478,12 +356,11 @@ const generateValidMultisignatureTransaction = () => {
 		},
 	};
 
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
 	const txBuffer = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		intToBuffer(tx.nonce, 8, 'big'),
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee, 8, 'big'),
 		Buffer.alloc(1, tx.asset.min),
 		Buffer.alloc(1, tx.asset.lifetime),
 		Buffer.from(tx.asset.keysgroup.join(''), 'utf8'),
@@ -557,25 +434,6 @@ const validTransferWithMultisignature = () => ({
 	testCases: [generateValidTransferTransactionWithMultiSignature()],
 });
 
-const validTransferWithSecondSignatureSuiteAndMultisignature = () => ({
-	title: 'Valid transfer transaction with second signature and multi signature',
-	summary:
-		'A valid transfer transaction with second signature and multi signature',
-	config: { network: 'devnet' },
-	runner: 'transaction_network_id_and_change_order',
-	handler: 'transfer_transaction_with_second_and_multi_signature_validate',
-	testCases: [generateValidTransferTransactionWithSecondAndMultiSignature()],
-});
-
-const validSecondSignatureSuite = () => ({
-	title: 'Valid second signature transaction',
-	summary: 'A valid second signature transaction',
-	config: { network: 'devnet' },
-	runner: 'transaction_network_id_and_change_order',
-	handler: 'second_signature_transaction_validate',
-	testCases: [generateValidSecondSignatureTransaction()],
-});
-
 const validDelegateSuite = () => ({
 	title: 'Valid delegate transaction',
 	summary: 'A valid delegate transaction',
@@ -609,8 +467,6 @@ module.exports = BaseGenerator.runGenerator(
 		validTransferSuite,
 		validTransferWithSecondSignatureSuite,
 		validTransferWithMultisignature,
-		validTransferWithSecondSignatureSuiteAndMultisignature,
-		validSecondSignatureSuite,
 		validDelegateSuite,
 		validVoteSuite,
 		validMultisignatureSuite,

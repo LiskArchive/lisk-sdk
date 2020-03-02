@@ -25,13 +25,14 @@ export const accountDefaultValues = {
 	rewards: '0',
 	voteWeight: '0',
 	nameExist: false,
-	multiMin: 0,
-	multiLifetime: 0,
 	// tslint:disable-next-line:no-null-keyword
 	votedDelegatesPublicKeys: [],
 	asset: {},
-	// tslint:disable-next-line:no-null-keyword
-	membersPublicKeys: [],
+	keys: {
+		mandatoryKeys: [],
+		optionalKeys: [],
+		numberOfSignatures: 0,
+	},
 };
 
 export class Account {
@@ -46,11 +47,13 @@ export class Account {
 	public username: string | null;
 	public isDelegate: number;
 	public nameExist: boolean;
-	public multiMin: number;
-	public multiLifetime: number;
 	public asset: object;
-	public membersPublicKeys: string[];
 	public votedDelegatesPublicKeys: string[];
+	public keys: {
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+		numberOfSignatures: number;
+	};
 
 	public constructor(accountInfo: AccountJSON) {
 		this.address = accountInfo.address;
@@ -70,19 +73,21 @@ export class Account {
 			? BigInt(accountInfo.voteWeight)
 			: BigInt(0);
 		this.nameExist = accountInfo.nameExist;
-		this.multiMin = accountInfo.multiMin;
-		this.multiLifetime = accountInfo.multiLifetime;
 		this.asset = accountInfo.asset;
 		this.votedDelegatesPublicKeys =
 			accountInfo.votedDelegatesPublicKeys === undefined ||
 			accountInfo.votedDelegatesPublicKeys === null
 				? []
 				: accountInfo.votedDelegatesPublicKeys;
-		this.membersPublicKeys =
-			accountInfo.membersPublicKeys === undefined ||
-			accountInfo.membersPublicKeys === null
-				? []
-				: accountInfo.membersPublicKeys;
+		this.keys = {
+			mandatoryKeys: accountInfo.keys?.mandatoryKeys?.length
+				? accountInfo.keys?.mandatoryKeys
+				: [],
+			optionalKeys: accountInfo.keys?.optionalKeys?.length
+				? accountInfo.keys?.optionalKeys
+				: [],
+			numberOfSignatures: accountInfo.keys?.numberOfSignatures || 0,
+		};
 	}
 
 	public static getDefaultAccount = (address: string): Account =>
@@ -105,17 +110,17 @@ export class Account {
 			rewards: this.rewards.toString(),
 			voteWeight: this.voteWeight.toString(),
 			nameExist: this.nameExist,
-			multiMin: this.multiMin,
-			multiLifetime: this.multiLifetime,
 			votedDelegatesPublicKeys:
 				this.votedDelegatesPublicKeys.length < 1
 					? // tslint:disable-next-line:no-null-keyword
 					  null
 					: this.votedDelegatesPublicKeys,
 			asset: this.asset,
-			membersPublicKeys:
-				// tslint:disable-next-line:no-null-keyword
-				this.membersPublicKeys.length < 1 ? null : this.membersPublicKeys,
+			keys: {
+				mandatoryKeys: this.keys.mandatoryKeys,
+				optionalKeys: this.keys.optionalKeys,
+				numberOfSignatures: this.keys.numberOfSignatures,
+			},
 		};
 	}
 }

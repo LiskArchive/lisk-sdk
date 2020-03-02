@@ -28,11 +28,16 @@ interface Args {
 	readonly username: string;
 }
 
-const processInputs = (networkIdentifier: string, username: string) => ({
-	passphrase,
-}: InputFromSourceOutput) =>
+const processInputs = (
+	networkIdentifier: string,
+	nonce: string,
+	fee: string,
+	username: string,
+) => ({ passphrase }: InputFromSourceOutput) =>
 	registerDelegate({
 		networkIdentifier,
+		nonce,
+		fee,
 		passphrase,
 		username,
 	});
@@ -74,7 +79,12 @@ export default class DelegateCommand extends BaseCommand {
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
-		const processFunction = processInputs(networkIdentifier, username);
+		const processFunction = processInputs(
+			networkIdentifier,
+			'0',
+			'0',
+			username,
+		);
 
 		if (noSignature) {
 			const noSignatureResult = processFunction({

@@ -302,7 +302,8 @@ describe('chain', () => {
 					id: '1065693148641117014',
 					blockId: '7360015088758644957',
 					type: 8,
-					timestamp: 107102856,
+					fee: '10000000',
+					nonce: '1',
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					signature:

@@ -10,11 +10,8 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-export * from './address';
-export * from './create_base_transaction';
-export * from './format';
-export * from './sign_and_validate';
-export * from './verify';
-export * from './transaction_id';
+
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';
+ALTER TABLE "trs" ALTER COLUMN "timestamp" DROP NOT NULL;
+ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';

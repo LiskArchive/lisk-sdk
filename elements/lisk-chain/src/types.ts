@@ -40,13 +40,14 @@ export interface AccountJSON {
 	// tslint:disable-next-line readonly-keyword
 	readonly voteWeight: string;
 	readonly nameExist: boolean;
-	readonly multiMin: number;
-	readonly multiLifetime: number;
 	readonly asset: object;
 	// tslint:disable-next-line readonly-keyword
 	readonly votedDelegatesPublicKeys: string[] | null;
-	// tslint:disable-next-line readonly-keyword
-	readonly membersPublicKeys: string[] | null;
+	readonly keys?: {
+		readonly mandatoryKeys?: string[];
+		readonly optionalKeys?: string[];
+		readonly numberOfSignatures?: number;
+	};
 }
 
 export interface Context {

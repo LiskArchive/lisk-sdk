@@ -24,7 +24,7 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT, TRANSFER_FEE } from './constants';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 import { verifyAmountBalance, verifyBalance } from './utils';
@@ -64,7 +64,6 @@ interface RawAsset {
 export class TransferTransaction extends BaseTransaction {
 	public readonly asset: TransferAsset;
 	public static TYPE = 8;
-	public static FEE = TRANSFER_FEE.toString();
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

@@ -20,6 +20,5 @@ export {
 	checkPersistedTransactions,
 	checkAllowedTransactions,
 	undoTransactions,
-	processSignature,
 	applyGenesisTransactions,
 } from './transactions_handlers';

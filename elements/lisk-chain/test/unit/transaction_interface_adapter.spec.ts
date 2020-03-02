@@ -72,6 +72,7 @@ describe('transactions', () => {
 			it('should initialize a transfer transaction', async () => {
 				const transfer = {
 					type: 8,
+					nonce: '0',
 					amount: '4008489300000000',
 					fee: '10000000',
 					recipientId: '1859190791819301L',
@@ -92,6 +93,8 @@ describe('transactions', () => {
 			it('should initialize a delegate transaction', async () => {
 				const delegate = {
 					type: 10,
+					nonce: '0',
+					fee: '100',
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54196076,
@@ -115,6 +118,8 @@ describe('transactions', () => {
 			it('should initialize a vote transaction', async () => {
 				const vote = {
 					type: 11,
+					nonce: '0',
+					fee: '100',
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54196078,
@@ -138,6 +143,8 @@ describe('transactions', () => {
 			it('should initialize a multisignature transaction', async () => {
 				const multisignature = {
 					type: 12,
+					nonce: '0',
+					fee: '100',
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
 					timestamp: 54196078,

@@ -17,17 +17,18 @@ import {
 	getAddressFromPublicKey,
 	hash,
 	hexToBuffer,
+	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
+import { isValidFee, isValidNonce, validator } from '@liskhq/lisk-validator';
 
 import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
+	MIN_FEE_PER_BYTE,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
-import { SignatureObject } from './create_signature_object';
 import {
 	convertToTransactionError,
 	TransactionError,
@@ -104,17 +105,18 @@ export abstract class BaseTransaction {
 	public readonly height?: number;
 	public readonly confirmations?: number;
 	public readonly signatures: string[];
-	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly containsUniqueData?: boolean;
 	public readonly asset: object;
+	public nonce: bigint;
 	public fee: bigint;
 	public receivedAt?: Date;
 
 	public static TYPE: number;
-	public static FEE = '0';
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
+	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
+	public static NAME_FEE = BigInt(0);
 
 	protected _id?: string;
 	protected _senderPublicKey?: string;
@@ -123,6 +125,7 @@ export abstract class BaseTransaction {
 	protected _multisignatureStatus: MultisignatureStatus =
 		MultisignatureStatus.UNKNOWN;
 	protected _networkIdentifier: string;
+	protected _minFee?: bigint;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
@@ -136,22 +139,20 @@ export abstract class BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-
-		this.fee = BigInt((this.constructor as typeof BaseTransaction).FEE);
+		this._senderPublicKey = tx.senderPublicKey || '';
+		this.nonce =
+			tx.nonce && isValidNonce(tx.nonce) ? BigInt(tx.nonce) : BigInt(0);
+		this.fee = tx.fee && isValidFee(tx.fee) ? BigInt(tx.fee) : BigInt(0);
 		this.type =
 			typeof tx.type === 'number'
 				? tx.type
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-		this._senderPublicKey = tx.senderPublicKey || '';
-
 		this._signature = tx.signature;
 		this.signatures = (tx.signatures as string[]) || [];
 		this._signSignature = tx.signSignature;
 		this._networkIdentifier = tx.networkIdentifier || '';
-
-		this.timestamp = typeof tx.timestamp === 'number' ? tx.timestamp : 0;
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
@@ -163,6 +164,18 @@ export abstract class BaseTransaction {
 
 	public get id(): string {
 		return this._id || 'incalculable-id';
+	}
+
+	public get minFee(): bigint {
+		if (!this._minFee) {
+			// Include nameFee in minFee for delegate registration transactions
+			this._minFee =
+				(this.constructor as typeof BaseTransaction).NAME_FEE +
+				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
+					BigInt(this.getBytes().length);
+		}
+
+		return this._minFee;
 	}
 
 	public get senderId(): string {
@@ -201,9 +214,9 @@ export abstract class BaseTransaction {
 			height: this.height,
 			confirmations: this.confirmations,
 			type: this.type,
-			timestamp: this.timestamp,
 			senderPublicKey: this._senderPublicKey || '',
 			senderId: this._senderPublicKey ? this.senderId : '',
+			nonce: this.nonce.toString(),
 			fee: this.fee.toString(),
 			signature: this._signature,
 			signSignature: this.signSignature ? this.signSignature : undefined,
@@ -242,7 +255,31 @@ export abstract class BaseTransaction {
 			return createResponse(this.id, errors);
 		}
 
+		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
+			errors.push(
+				new TransactionError(
+					`Invalid type`,
+					this.id,
+					'.type',
+					this.type,
+					(this.constructor as typeof BaseTransaction).TYPE,
+				),
+			);
+		}
+
 		const transactionBytes = this.getBasicBytes();
+
+		if (this.fee < this.minFee) {
+			errors.push(
+				new TransactionError(
+					`Insufficient transaction fee. Minimum required fee is: ${this.minFee.toString()}`,
+					this.id,
+					'.fee',
+					this.fee.toString(),
+				),
+			);
+		}
+
 		if (
 			this._networkIdentifier === undefined ||
 			this._networkIdentifier === ''
@@ -273,18 +310,6 @@ export abstract class BaseTransaction {
 			errors.push(verificationError);
 		}
 
-		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
-			errors.push(
-				new TransactionError(
-					`Invalid type`,
-					this.id,
-					'.type',
-					this.type,
-					(this.constructor as typeof BaseTransaction).TYPE,
-				),
-			);
-		}
-
 		return createResponse(this.id, errors);
 	}
 
@@ -308,7 +333,7 @@ export abstract class BaseTransaction {
 		const errors = this._verify(sender) as TransactionError[];
 
 		// Verify MultiSignature
-		const { errors: multiSigError } = await this.processMultisignatures(store);
+		const { errors: multiSigError } = await this.verifySignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
@@ -381,76 +406,6 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public async addMultisignature(
-		store: StateStore,
-		signatureObject: SignatureObject,
-	): Promise<TransactionResponse> {
-		// Get the account
-		const account = await store.account.get(this.senderId);
-		// Validate signature key belongs to account's multisignature group
-		if (
-			account.membersPublicKeys &&
-			!account.membersPublicKeys.includes(signatureObject.publicKey)
-		) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Public Key '${signatureObject.publicKey}' is not a member for account '${account.address}'.`,
-					this.id,
-				),
-			]);
-		}
-
-		// Check if signature is not already there
-		if (this.signatures.includes(signatureObject.signature)) {
-			return createResponse(this.id, [
-				new TransactionError(
-					`Signature '${signatureObject.signature}' already present in transaction.`,
-					this.id,
-				),
-			]);
-		}
-
-		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error(
-				'Network identifier is required to validate a transaction ',
-			);
-		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-
-		// Validate the signature using the signature sender and transaction details
-		const { valid } = validateSignature(
-			signatureObject.publicKey,
-			signatureObject.signature,
-			transactionWithNetworkIdentifierBytes,
-			this.id,
-		);
-		// If the signature is valid for the sender push it to the signatures array
-		if (valid) {
-			this.signatures.push(signatureObject.signature);
-
-			return this.processMultisignatures(store);
-		}
-
-		// Else populate errors
-		const errors = [
-			new TransactionError(
-				`Failed to add signature '${signatureObject.signature}'.`,
-				this.id,
-				'.signatures',
-			),
-		];
-
-		return createResponse(this.id, errors);
-	}
-
 	public addVerifiedMultisignature(signature: string): TransactionResponse {
 		if (!this.signatures.includes(signature)) {
 			this.signatures.push(signature);
@@ -463,7 +418,7 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public async processMultisignatures(
+	public async verifySignatures(
 		store: StateStore,
 	): Promise<TransactionResponse> {
 		const sender = await store.account.get(this.senderId);
@@ -555,14 +510,18 @@ export abstract class BaseTransaction {
 
 	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
-		transactionTimestamp.writeIntBE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
+		const transactionNonce = intToBuffer(
+			this.nonce.toString(),
+			BYTESIZES.NONCE,
+		);
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
+		const transactionFee = intToBuffer(this.fee.toString(), BYTESIZES.FEE);
 
 		return Buffer.concat([
 			transactionType,
-			transactionTimestamp,
+			transactionNonce,
 			transactionSenderPublicKey,
+			transactionFee,
 			this.assetToBytes(),
 		]);
 	}

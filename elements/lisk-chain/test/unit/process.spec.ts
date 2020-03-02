@@ -168,6 +168,8 @@ describe('blocks/header', () => {
 					transfer({
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
+						fee: '10000000',
+						nonce: '0',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
@@ -190,6 +192,8 @@ describe('blocks/header', () => {
 					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
+							fee: '10000000',
+							nonce: '0',
 							recipientId: `${v + 1}L`,
 							amount: '100',
 							networkIdentifier,
@@ -211,6 +215,8 @@ describe('blocks/header', () => {
 				const txs = new Array(20).fill(0).map((_, v) =>
 					chainInstance.deserializeTransaction(
 						transfer({
+							fee: '10000000',
+							nonce: '0',
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
 							amount: '100',
@@ -233,6 +239,8 @@ describe('blocks/header', () => {
 				const txs = new Array(20).fill(0).map((_, v) =>
 					chainInstance.deserializeTransaction(
 						transfer({
+							fee: '10000000',
+							nonce: '0',
 							passphrase: genesisAccount.passphrase,
 							recipientId: `${v + 1}L`,
 							amount: '100',
@@ -324,6 +332,8 @@ describe('blocks/header', () => {
 				// Arrage
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
@@ -362,6 +372,8 @@ describe('blocks/header', () => {
 				// Arrage
 				notAllowedTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
@@ -419,6 +431,8 @@ describe('blocks/header', () => {
 				]);
 				invalidTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
@@ -453,6 +467,8 @@ describe('blocks/header', () => {
 				]);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
@@ -483,6 +499,8 @@ describe('blocks/header', () => {
 				]);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
@@ -559,12 +577,16 @@ describe('blocks/header', () => {
 				// Arrage
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				txApplySpy = jest.spyOn(validTx, 'apply');
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
@@ -599,6 +621,8 @@ describe('blocks/header', () => {
 				// Arrage
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
@@ -633,7 +657,7 @@ describe('blocks/header', () => {
 						message: expect.stringContaining(
 							'Account does not have enough minimum remaining LSK',
 						),
-					})
+					}),
 				]);
 			});
 
@@ -677,19 +701,27 @@ describe('blocks/header', () => {
 				// Act
 				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
+						fee: '100000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx2.validate();
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
 				block = newBlock({
@@ -743,8 +775,7 @@ describe('blocks/header', () => {
 				);
 				let expected = block.reward;
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee;
+					expected += tx.fee - tx.minFee;
 				}
 				expect(generator.balance.toString()).toEqual(expected.toString());
 			});
@@ -755,8 +786,7 @@ describe('blocks/header', () => {
 				);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee - tx.fee;
+					expected += tx.minFee;
 				}
 				expect(burntFee).toEqual(
 					(BigInt(defaultBurntFee) + expected).toString(),
@@ -766,19 +796,23 @@ describe('blocks/header', () => {
 			it('should update vote weight on voted delegate', async () => {
 				const delegateOne = await stateStore.account.get(delegate1.address);
 				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight).toBe(BigInt('9889999900'));
-				expect(deletateTwo.voteWeight).toBe(BigInt('9889999900'));
+				expect(delegateOne.voteWeight.toString()).toBe('9889999900');
+				expect(deletateTwo.voteWeight.toString()).toBe('9889999900');
 			});
 
 			it('should update vote weight on sender and recipient', async () => {
 				const newTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: genesisAccount.address,
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				newTx.validate();
 				const nextBlock = newBlock({
 					height: chainInstance.lastBlock.height + 1,
 					transactions: [newTx],
@@ -794,7 +828,7 @@ describe('blocks/header', () => {
 				// expect
 				// it should decrease by fee
 				const delegateOne = await stateStore.account.get(delegate1.address);
-				expect(delegateOne.voteWeight).toBe(BigInt('9879999900'));
+				expect(delegateOne.voteWeight.toString()).toBe('9879999900');
 			});
 		});
 	});
@@ -808,6 +842,7 @@ describe('blocks/header', () => {
 			storageStub.entities.Account.get.mockResolvedValue([]);
 			// Act
 			genesisInstance = chainInstance.deserialize(genesisBlock);
+			genesisInstance.transactions.forEach(tx => tx.validate());
 			// Act
 			stateStore = new StateStore(storageStub);
 			await chainInstance.applyGenesis(genesisInstance, stateStore);
@@ -874,12 +909,16 @@ describe('blocks/header', () => {
 				// Arrage
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				txUndoSpy = jest.spyOn(validTx, 'undo');
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
@@ -940,19 +979,27 @@ describe('blocks/header', () => {
 
 				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
 						votes: [delegate1.publicKey, delegate2.publicKey],
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx.validate();
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
+						fee: '10000000',
+						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
+				// Calling validate to inject id and min-fee
+				validTx2.validate();
 				validTxUndoSpy = jest.spyOn(validTx, 'undo');
 				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');
 				block = newBlock({
@@ -1008,8 +1055,7 @@ describe('blocks/header', () => {
 				);
 				let expected = block.reward;
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee;
+					expected += tx.fee - tx.minFee;
 				}
 				expect(generator.balance.toString()).toEqual(
 					(defaultGeneratorBalance - expected).toString(),
@@ -1022,8 +1068,7 @@ describe('blocks/header', () => {
 				);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
-					// TODO: Update fee validation with new minFeePerBytes and nameFee properties #4846
-					expected += tx.fee - tx.fee;
+					expected += tx.minFee;
 				}
 				expect(burntFee).toEqual(
 					(BigInt(defaultBurntFee) - expected).toString(),

@@ -13,14 +13,15 @@
  *
  */
 import {
+	isValidFee,
 	isValidInteger,
+	isValidNonce,
 	validateKeysgroup,
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
 
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import {
-	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MAX_LIFETIME,
 	MULTISIGNATURE_MIN_KEYSGROUP,
@@ -35,8 +36,9 @@ export interface RegisterMultisignatureInputs {
 	readonly minimum: number;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 	readonly networkIdentifier: string;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 const validateInputs = ({
@@ -44,7 +46,17 @@ const validateInputs = ({
 	lifetime,
 	minimum,
 	networkIdentifier,
+	fee,
+	nonce,
 }: RegisterMultisignatureInputs): void => {
+	if (!isValidNonce(nonce)) {
+		throw new Error('Nonce must be a valid number in string format.');
+	}
+
+	if (!isValidFee(fee)) {
+		throw new Error('Fee must be a valid number in string format.');
+	}
+
 	if (
 		!isValidInteger(lifetime) ||
 		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
@@ -93,12 +105,10 @@ export const registerMultisignature = (
 	} = inputs;
 
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
-	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 12,
-		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
 			min: minimum,
 			lifetime,

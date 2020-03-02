@@ -22,7 +22,6 @@ export const transactionInterface = {
 		'apply',
 		'undo',
 		'prepare',
-		'addMultisignature',
 		'addVerifiedMultisignature',
 		'isExpired',
 	],
@@ -51,9 +50,6 @@ export const transactionInterface = {
 		prepare: {
 			typeof: 'function',
 		},
-		addMultisignature: {
-			typeof: 'function',
-		},
 		addVerifiedMultisignature: {
 			typeof: 'function',
 		},
@@ -70,7 +66,7 @@ export const transactionInterface = {
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'senderPublicKey', 'timestamp', 'asset', 'signature'],
+	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signature'],
 	properties: {
 		id: {
 			type: 'string',
@@ -92,10 +88,13 @@ export const baseTransaction = {
 			type: 'integer',
 			minimum: 0,
 		},
-		timestamp: {
-			type: 'integer',
-			minimum: -2147483648,
-			maximum: 2147483647,
+		nonce: {
+			type: 'string',
+			format: 'nonce',
+		},
+		fee: {
+			type: 'string',
+			format: 'fee',
 		},
 		senderPublicKey: {
 			type: 'string',

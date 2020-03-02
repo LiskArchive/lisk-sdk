@@ -25,10 +25,6 @@ import {
 import { castVotes } from './cast_votes';
 import * as constants from './constants';
 import {
-	createSignatureObject,
-	SignatureObject,
-} from './create_signature_object';
-import {
 	convertToAssetError,
 	convertToTransactionError,
 	TransactionError,
@@ -44,7 +40,6 @@ import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getId,
-	getTimeFromBlockchainEpoch,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateMultisignatures,
@@ -59,7 +54,6 @@ import {
 const exposedUtils = {
 	convertBeddowsToLSK,
 	getId,
-	getTimeFromBlockchainEpoch,
 	convertLSKToBeddows,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
@@ -86,8 +80,6 @@ export {
 	MultisignatureTransaction,
 	createResponse,
 	registerMultisignature,
-	createSignatureObject,
-	SignatureObject,
 	Status,
 	TransactionResponse,
 	TransactionJSON,

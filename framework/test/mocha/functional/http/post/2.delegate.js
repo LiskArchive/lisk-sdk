@@ -67,24 +67,32 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	before(() => {
 		const transactions = [];
 		const transaction1 = transfer({
+			nonce: '0',
+			fee: '129001',
 			networkIdentifier,
 			amount: (1000 * NORMALIZER).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		const transaction2 = transfer({
+			nonce: '0',
+			fee: '129001',
 			networkIdentifier,
 			amount: FEES.DELEGATE + halfLSK,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		const transaction3 = transfer({
+			nonce: '0',
+			fee: '129001',
 			networkIdentifier,
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountUpperCase.address,
 		});
 		const transaction4 = transfer({
+			nonce: '0',
+			fee: '129001',
 			networkIdentifier,
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
@@ -116,6 +124,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	describe('transactions processing', () => {
 		it('with no funds should fail', async () => {
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: accountNoFunds.passphrase,
 				username: accountNoFunds.username,
@@ -138,6 +148,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with minimal required amount of funds should be ok', async () => {
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: accountMinimalFunds.passphrase,
 				username: accountMinimalFunds.username,
@@ -151,6 +163,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using blank username should fail', async () => {
 			const tx = new DelegateTransaction({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				asset: {
 					username: '',
@@ -177,6 +191,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('using invalid username should fail', async () => {
 			const username = '~!@#$ %^&*()_+.,?/';
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username,
@@ -200,6 +216,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('with specialChar should fail', () => {
 			const username = `lorem${specialChar}`;
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username,
@@ -223,6 +241,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('with nullChar1 should fail', () => {
 			const username = `lorem${nullChar1}`;
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username,
@@ -246,6 +266,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('with nullChar2 should fail', () => {
 			const username = `lorem${nullChar2}`;
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username,
@@ -269,6 +291,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('with nullChar3 should fail', () => {
 			const username = `lorem${nullChar3}`;
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username,
@@ -292,6 +316,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('with nullChar4 should fail', () => {
 			const username = `lorem${nullChar4}`;
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username,
@@ -315,6 +341,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('using username longer than 20 characters should fail', () => {
 			const delegateName = `${randomUtil.delegateName()}x`;
 			const tx = new DelegateTransaction({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				asset: {
 					username: delegateName,
@@ -340,6 +368,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using uppercase username should fail', async () => {
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: accountUpperCase.passphrase,
 				username: accountUpperCase.username.toUpperCase(),
@@ -364,6 +394,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			const networkIdentifierOtherNetwork =
 				'91a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb1';
 			const transactionFromDifferentNetwork = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier: networkIdentifierOtherNetwork,
 				passphrase: account.passphrase,
 				username: account.username,
@@ -382,6 +414,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using valid params should be ok', async () => {
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username: account.username,
@@ -401,6 +435,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	describe('validation', () => {
 		it('setting same delegate twice should fail', async () => {
 			transaction = registerDelegate({
+				nonce: '1',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username: account.username,
@@ -423,6 +459,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using existing username should fail', async () => {
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: accountFormerDelegate.passphrase,
 				username: account.username,
@@ -445,6 +483,8 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('updating registered delegate should fail', async () => {
 			transaction = registerDelegate({
+				nonce: '0',
+				fee: '2500000000',
 				networkIdentifier,
 				passphrase: account.passphrase,
 				username: 'newusername',

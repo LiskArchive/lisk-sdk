@@ -24,8 +24,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { NORMALIZER } = global.__testContext.config;
-
 describe('integration test (type 3) - voting with duplicate submissions', () => {
 	let library;
 	localCommon.beforeBlock('3_3_votes', lib => {
@@ -46,7 +44,9 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 			const account = randomUtil.account();
 			const transaction = transfer({
 				networkIdentifier,
-				amount: (1000 * NORMALIZER).toString(),
+				nonce: i.toString(),
+				fee: BigInt(10000000).toString(),
+				amount: BigInt(100000000000).toString(),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -65,9 +65,10 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 			it('adding to pool upvoting transaction should be ok', done => {
 				transaction1 = castVotes({
 					networkIdentifier,
+					nonce: i.toString(),
+					fee: BigInt(10000000).toString(),
 					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
-					timeOffset: -10000,
 				});
 				localCommon.addTransaction(library, transaction1, (err, res) => {
 					expect(res).to.equal(transaction1.id);
@@ -78,6 +79,8 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 			it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', done => {
 				transaction2 = castVotes({
 					networkIdentifier,
+					nonce: (i + 1).toString(),
+					fee: BigInt(10000000).toString(),
 					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
 				});
@@ -137,6 +140,8 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 				it('adding to pool downvoting transaction to same delegate from same account should be ok', done => {
 					transaction3 = castVotes({
 						networkIdentifier,
+						nonce: (i + 2).toString(),
+						fee: BigInt(10000000).toString(),
 						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 						timeOffset: -10000,
@@ -150,6 +155,8 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 				it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', done => {
 					transaction4 = castVotes({
 						networkIdentifier,
+						nonce: (i + 3).toString(),
+						fee: BigInt(10000000).toString(),
 						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 					});
@@ -208,6 +215,8 @@ describe('integration test (type 3) - voting with duplicate submissions', () => 
 					it('adding to pool downvoting transaction to same delegate from same account should fail', done => {
 						const transaction5 = castVotes({
 							networkIdentifier,
+							nonce: (i + 4).toString(),
+							fee: BigInt(10000000).toString(),
 							passphrase: account.passphrase,
 							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 							timeOffset: -50000,

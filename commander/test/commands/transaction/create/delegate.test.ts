@@ -19,7 +19,7 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 
-describe('transaction:create:delegate', () => {
+describe.skip('transaction:create:delegate', () => {
 	const defaultUsername = 'user-light';
 	const defaultInputs = {
 		passphrase: '123',

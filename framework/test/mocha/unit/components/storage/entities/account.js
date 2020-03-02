@@ -59,8 +59,6 @@ describe('Account', () => {
 			'username',
 			'isDelegate',
 			'balance',
-			'multiMin',
-			'multiLifetime',
 			'nameExist',
 			'fees',
 			'rewards',
@@ -68,7 +66,7 @@ describe('Account', () => {
 			'missedBlocks',
 			'voteWeight',
 			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
+			'keys',
 		];
 
 		validSimpleObjectFields = [
@@ -78,8 +76,6 @@ describe('Account', () => {
 			'isDelegate',
 			'balance',
 			'asset',
-			'multiMin',
-			'multiLifetime',
 			'nameExist',
 			'missedBlocks',
 			'producedBlocks',
@@ -88,7 +84,7 @@ describe('Account', () => {
 			'voteWeight',
 			'productivity',
 			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
+			'keys',
 		];
 
 		validFilters = [
@@ -118,22 +114,6 @@ describe('Account', () => {
 			'balance_lt',
 			'balance_lte',
 			'balance_in',
-			'multiMin',
-			'multiMin_eql',
-			'multiMin_ne',
-			'multiMin_gt',
-			'multiMin_gte',
-			'multiMin_lt',
-			'multiMin_lte',
-			'multiMin_in',
-			'multiLifetime',
-			'multiLifetime_eql',
-			'multiLifetime_ne',
-			'multiLifetime_gt',
-			'multiLifetime_gte',
-			'multiLifetime_lt',
-			'multiLifetime_lte',
-			'multiLifetime_in',
 			'nameExist',
 			'nameExist_eql',
 			'nameExist_ne',
@@ -178,7 +158,6 @@ describe('Account', () => {
 			'voteWeight_lte',
 			'voteWeight_in',
 			'votedDelegatesPublicKeys',
-			'membersPublicKeys',
 			'asset_contains',
 			'asset_exists',
 		];
