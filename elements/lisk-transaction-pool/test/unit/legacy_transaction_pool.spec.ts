@@ -15,7 +15,7 @@
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { Job } from '../../src/job';
 import { Transaction } from '../../src/types';
-import { TransactionPool } from '../../src/transaction_pool';
+import { TransactionPool } from '../../src/legacy_transaction_pool';
 import * as checkTransactions from '../../src/check_transactions';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 import * as queueCheckers from '../../src/queue_checkers';

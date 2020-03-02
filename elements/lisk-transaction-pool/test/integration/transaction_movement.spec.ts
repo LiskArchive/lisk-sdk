@@ -15,7 +15,7 @@
 import {
 	TransactionPool,
 	TransactionPoolConfiguration,
-} from '../../src/transaction_pool';
+} from '../../src/legacy_transaction_pool';
 import { Transaction } from '../../src/types';
 import {
 	fakeCheckFunctionGenerator,
