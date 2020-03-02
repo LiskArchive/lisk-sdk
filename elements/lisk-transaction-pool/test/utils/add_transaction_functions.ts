@@ -14,11 +14,20 @@
  */
 import { TransactionObject, Transaction } from '../../src/transaction_pool';
 
+export interface TransactionJSON
+	extends Omit<TransactionObject, 'nonce' | 'fee' | 'minFee'> {
+	nonce: string;
+	fee: string;
+}
+
 export const wrapTransactionWithoutUniqueData = (
-	transaction: TransactionObject,
+	transaction: TransactionJSON,
 ): Transaction => {
 	return {
 		...transaction,
+		nonce: BigInt(transaction.nonce),
+		fee: BigInt(transaction.fee),
+		minFee: BigInt(100000),
 		containsUniqueData: false,
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() < 0,
@@ -27,10 +36,13 @@ export const wrapTransactionWithoutUniqueData = (
 };
 
 export const wrapTransactionWithUniqueData = (
-	transaction: TransactionObject,
+	transaction: TransactionJSON,
 ): Transaction => {
 	return {
 		...transaction,
+		nonce: BigInt(transaction.nonce),
+		fee: BigInt(transaction.fee),
+		minFee: BigInt(100000),
 		containsUniqueData: true,
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() < 0,
@@ -38,10 +50,8 @@ export const wrapTransactionWithUniqueData = (
 	};
 };
 
-export const wrapTransaction = (
-	transaction: TransactionObject,
-): Transaction => {
-	return [0, 1].includes(transaction.type)
+export const wrapTransaction = (transaction: TransactionJSON): Transaction => {
+	return [0, 1].includes(transaction.type as number)
 		? wrapTransactionWithoutUniqueData(transaction)
 		: wrapTransactionWithUniqueData(transaction);
 };
