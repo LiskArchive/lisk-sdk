@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { TransactionObject, Transaction } from '../../src/transaction_pool';
+import { TransactionObject, Transaction } from '../../src/types';
 
 export interface TransactionJSON
 	extends Omit<TransactionObject, 'nonce' | 'fee' | 'minFee'> {

@@ -16,9 +16,9 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	TransactionPool,
 	TransactionPoolConfiguration,
-	Transaction,
 	EVENT_VERIFIED_TRANSACTION_ONCE,
 } from '../../src/transaction_pool';
+import { Transaction } from '../../src/types';
 import {
 	fakeCheckFunctionGenerator,
 	fakeCheckerFunctionGenerator,

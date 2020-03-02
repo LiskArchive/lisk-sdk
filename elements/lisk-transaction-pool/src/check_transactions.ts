@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Transaction } from './transaction_pool';
+import { Transaction } from './types';
 
 export type CheckerFunction = (
 	transactions: ReadonlyArray<Transaction>,

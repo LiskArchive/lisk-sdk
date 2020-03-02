@@ -22,31 +22,7 @@ import {
 import { Job } from './job';
 import { Queue } from './queue';
 import * as queueCheckers from './queue_checkers';
-
-export interface TransactionObject {
-	readonly id: string;
-	readonly nonce: bigint;
-	readonly fee: bigint;
-	readonly minFee: bigint;
-	receivedAt?: Date;
-	// TODO: Remove unnecessary properties
-	readonly senderPublicKey: string;
-	readonly asset: {
-		[key: string]: string | number | ReadonlyArray<string> | undefined;
-	};
-	signatures?: ReadonlyArray<string>;
-	readonly type: number;
-	containsUniqueData?: boolean;
-	verifiedOnce?: boolean;
-}
-
-export interface TransactionFunctions {
-	isExpired(date: Date): boolean;
-	verifyAgainstOtherTransactions(
-		otherTransactions: ReadonlyArray<Transaction>,
-	): boolean;
-	isReady(): boolean;
-}
+import { Transaction } from './types';
 
 export interface TransactionPoolConfiguration {
 	readonly expireTransactionsInterval: number;
@@ -73,8 +49,6 @@ interface TransactionPoolDependencies {
 
 type TransactionPoolOptions = TransactionPoolConfiguration &
 	TransactionPoolDependencies;
-
-export type Transaction = TransactionObject & TransactionFunctions;
 
 export type QueueNames = 'received' | 'validated' | 'verified' | 'ready';
 

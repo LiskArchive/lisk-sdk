@@ -17,7 +17,7 @@ import {
 	CheckTransactionsResponseWithPassAndFail,
 	Status,
 } from '../../../src/check_transactions';
-import { Transaction } from '../../../src/transaction_pool';
+import { Transaction } from '../../../src/types';
 
 export const checkerFunctionResponseGenerator = async (
 	passedTransactions: ReadonlyArray<Transaction>,
