@@ -124,12 +124,13 @@ const createSignatureObject = (txBuffer, account) => ({
 });
 
 const serializeBasicProperties = tx => {
-	const transactionTimestamp = Buffer.alloc(4);
-	transactionTimestamp.writeIntBE(tx.timestamp, 0, 4);
+	const transactionNonce = intToBuffer(tx.nonce.toString(), 8);
+
 	const buf = Buffer.concat([
 		Buffer.alloc(1, tx.type),
-		transactionTimestamp,
+		transactionNonce,
 		hexToBuffer(tx.senderPublicKey),
+		intToBuffer(tx.fee.toString(), 8),
 		assetToBytes(tx),
 	]);
 
@@ -164,7 +165,8 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	const tx = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		timestamp: 77045780,
+		nonce: '1',
+		fee: '1500000000',
 		type: 12,
 		asset: {
 			mandatoryKeys: [
@@ -229,7 +231,8 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	const tx = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		timestamp: 77045780,
+		nonce: '1',
+		fee: '1500000000',
 		type: 12,
 		asset: {
 			mandatoryKeys: [
@@ -301,7 +304,8 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	const tx = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		timestamp: 77045780,
+		nonce: '1',
+		fee: '1500000000',
 		type: 12,
 		asset: {
 			mandatoryKeys: [],
@@ -352,7 +356,8 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	const tx = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		timestamp: 77045780,
+		nonce: '1',
+		fee: '1500000000',
 		type: 12,
 		asset: {
 			mandatoryKeys: [
