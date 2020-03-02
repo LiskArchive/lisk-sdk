@@ -75,10 +75,10 @@ const accounts = {
 	},
 };
 
-const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
 const SIGNATURE_NOT_PRESENT = Buffer.from('00', 'hex');
+const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
 
-const sortKeysDescending = publicKeys =>
+const sortKeysAscending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
 		// eslint-disable-next-line no-undef, new-cap
 		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) {
@@ -182,8 +182,8 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		signatures: [],
 	};
 
-	sortKeysDescending(tx.asset.mandatoryKeys);
-	sortKeysDescending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.asset.mandatoryKeys);
+	sortKeysAscending(tx.asset.optionalKeys);
 
 	let txBuffer = serializeBasicProperties(tx);
 
@@ -249,8 +249,8 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		signatures: [],
 	};
 
-	sortKeysDescending(tx.asset.mandatoryKeys);
-	sortKeysDescending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.asset.mandatoryKeys);
+	sortKeysAscending(tx.asset.optionalKeys);
 
 	let txBuffer = serializeBasicProperties(tx);
 
@@ -318,8 +318,8 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		signatures: [],
 	};
 
-	sortKeysDescending(tx.asset.mandatoryKeys);
-	sortKeysDescending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.asset.mandatoryKeys);
+	sortKeysAscending(tx.asset.optionalKeys);
 
 	let txBuffer = serializeBasicProperties(tx);
 
@@ -370,8 +370,8 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		signatures: [],
 	};
 
-	sortKeysDescending(tx.asset.mandatoryKeys);
-	sortKeysDescending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.asset.mandatoryKeys);
+	sortKeysAscending(tx.asset.optionalKeys);
 
 	let txBuffer = serializeBasicProperties(tx);
 
