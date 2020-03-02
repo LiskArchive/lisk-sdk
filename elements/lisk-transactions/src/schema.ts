@@ -15,15 +15,14 @@
 export const transactionInterface = {
 	required: [
 		'toJSON',
-		'isReady',
 		'getBytes',
 		'validate',
 		'verifyAgainstOtherTransactions',
 		'apply',
 		'undo',
 		'prepare',
-		'addVerifiedMultisignature',
 		'isExpired',
+		'verifySignatures',
 	],
 	properties: {
 		toJSON: {
@@ -50,10 +49,10 @@ export const transactionInterface = {
 		prepare: {
 			typeof: 'function',
 		},
-		addVerifiedMultisignature: {
+		isExpired: {
 			typeof: 'function',
 		},
-		isExpired: {
+		verifySignatures: {
 			typeof: 'function',
 		},
 	},
@@ -63,7 +62,7 @@ export const transactionInterface = {
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signature'],
+	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signatures'],
 	properties: {
 		id: {
 			type: 'string',
@@ -96,10 +95,6 @@ export const baseTransaction = {
 		senderPublicKey: {
 			type: 'string',
 			format: 'publicKey',
-		},
-		signature: {
-			type: 'string',
-			format: 'signature',
 		},
 		signatures: {
 			type: 'array',

@@ -411,7 +411,7 @@ export abstract class BaseTransaction {
 		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
-			this.getBytes(),
+			this.getBasicBytes(),
 		]);
 
 		this._signatures.push(

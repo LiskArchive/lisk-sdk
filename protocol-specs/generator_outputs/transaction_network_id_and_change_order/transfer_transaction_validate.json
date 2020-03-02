@@ -39,7 +39,9 @@
 					"amount": "1234567890",
 					"data": "random data"
 				},
-				"signature": "5fd60d57a6dffd631e9933d832e83584067ea52748823f85233c9fe1adedd4e1850195031afba9ef4258ddd5f09adec29d3c5ebf24c6e8e4f04d8e47c4e60e0f",
+				"signatures": [
+					"5fd60d57a6dffd631e9933d832e83584067ea52748823f85233c9fe1adedd4e1850195031afba9ef4258ddd5f09adec29d3c5ebf24c6e8e4f04d8e47c4e60e0f"
+				],
 				"id": "17363917918322071034"
 			}
 		}
