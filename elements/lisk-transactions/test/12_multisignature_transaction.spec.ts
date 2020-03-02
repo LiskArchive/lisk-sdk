@@ -17,105 +17,28 @@ import { MultisignatureTransaction } from '../src/12_multisignature_transaction'
 import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
-/*
-@TODO once registration is working update ProtocolSpec https://github.com/LiskHQ/lisk-sdk/pull/4608/files and replace here
-import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/multi_signature_transaction_validate.json';
-*/
+import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { validTransaction } from '../fixtures';
 
 describe('Multisignature transaction class', () => {
-	const multisigFixture = {
-		multisigRegistration: {
-			senderPublicKey:
-				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-			timestamp: 77045780,
-			type: 12,
-			asset: {
-				mandatoryKeys: [
-					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-				],
-				optionalKeys: [
-					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-				],
-				numberOfSignatures: 4,
-			},
-			signatures: [
-				'941c8a6890e768a824da5b2663071f7465144d2585d692c49bd965d44f00a73086ee2caa917740c189731d01ac367e6e65aae925435c1c5337f7c4f92586c107',
-				'ff23ac936c0a0e67f38e8e196f5be613f683c720c7c994df47ae7196c805f58dd0676b696a7570835a68a1356df515e48dff4b582e739d2d979d6c257baef104',
-				'1bbfaeb786873f48c6c2ff2628005bc08803238311d1a4c84fdf9174159e811c41729b4019fe8f4a9f4915d27d2d54370f67ddb6a38c89a5a62de7aec5094d0a',
-				'5a77767cf9e59984d7da83b571ec52858280d9338e623a8094df529819b99b3038fbc4a4181df6f89020ffa39d818567ee5ca9e25953529ee11bd1f0ebc30903',
-				'73217244b02994bb19ad66862d84372d993f08ddc00d891fdaaf5db1da1ec1955116b2a7432b00865e231177b3fd9ebd12a798af4cc93e4dc79ac8a1b91e8a01',
-			],
-		},
-		accounts: {
-			targetAccount: {
-				passphrase:
-					'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-				privateKey:
-					'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				publicKey:
-					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				address: '18141291412139607230L',
-			},
-			mandatoryOne: {
-				passphrase:
-					'trim elegant oven term access apple obtain error grain excite lawn neck',
-				privateKey:
-					'8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-				publicKey:
-					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-				address: '10481548956627905381L',
-			},
-			mandatoryTow: {
-				passphrase:
-					'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
-				privateKey:
-					'ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-				publicKey:
-					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-				address: '3372320078773139180L',
-			},
-			optionalOne: {
-				passphrase:
-					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-				privateKey:
-					'69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-				publicKey:
-					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-				address: '7745870967079479156L',
-			},
-			optionalTwo: {
-				passphrase:
-					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
-				privateKey:
-					'ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-				publicKey:
-					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-				address: '7086965981385941478L',
-			},
-		},
-	};
-
 	const validMultisignatureRegistrationTransaction =
-		multisigFixture.multisigRegistration;
+		multisigFixture.testCases.output;
 
 	const targetMultisigAccount = {
 		...defaultAccount,
 		keys: {
 			...defaultAccount.keys,
 		},
-		address: multisigFixture.accounts.targetAccount.address,
+		address: multisigFixture.testCases.input.account.address,
 		balance: BigInt('94378900000'),
 	};
 
 	const convertedAccount = {
 		...defaultAccount,
-		address: multisigFixture.accounts.targetAccount.address,
+		address: multisigFixture.testCases.input.account.address,
 		balance: BigInt('94378900000'),
 		keys: {
-			...multisigFixture.multisigRegistration.asset,
+			...multisigFixture.testCases.input.transaction.asset,
 		},
 	};
 
@@ -134,7 +57,7 @@ describe('Multisignature transaction class', () => {
 			networkIdentifier,
 		});
 
-		multisignatureSender = multisigFixture.accounts.targetAccount;
+		multisignatureSender = multisigFixture.testCases.input.account;
 
 		store = new StateStoreMock();
 
@@ -143,7 +66,7 @@ describe('Multisignature transaction class', () => {
 			.mockResolvedValue({
 				...defaultAccount,
 				keys: defaultAccount.keys,
-				address: multisigFixture.accounts.targetAccount.address,
+				address: multisigFixture.testCases.input.account.address,
 			});
 
 		storeAccountGetStub = jest
@@ -197,7 +120,7 @@ describe('Multisignature transaction class', () => {
 		it('should return TransactionResponse with error when other transaction from same account has the same type', async () => {
 			const conflictTransaction = {
 				...validTransaction,
-				senderPublicKey: multisigFixture.accounts.targetAccount.publicKey,
+				senderPublicKey: multisigFixture.testCases.input.account.publicKey,
 				type: 12,
 			};
 			const {
@@ -820,7 +743,7 @@ describe('Multisignature transaction class', () => {
 	});
 
 	// TODO: Update with #4890
-	describe.skip('#verifySignatures', () => {
+	describe('#verifySignatures', () => {
 		it('should not fail to validate valid signatures', async () => {
 			const result = await validTestTransaction.verifySignatures(store);
 			expect(result.status).toBe(1);
@@ -844,7 +767,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature ff23ac936c0a0e67f38e8e196f5be613f683c720c7c994df47ae7196c805f58dd0676b696a7570835a68a1356df515e48dff4b582e739d2d979d6c257baef104`,
+				`Failed to validate signature 6061e18476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
 			);
 		});
 
@@ -869,7 +792,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature ff23ac936c0a0f67f38e8e196f5be613f683c720c7c994df47ae7196c805f58dd0676b696a7570835a68a1356df515e48dff4b582e739d2d979d6c257baef104`,
+				`Failed to validate signature 6061f18476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
 			);
 		});
 
@@ -894,7 +817,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 5a77767cf9959984d7da83b571ec52858280d9338e623a8094df529819b99b3038fbc4a4181df6f89020ffa39d818567ee5ca9e25953529ee11bd1f0ebc30903`,
+				`Failed to validate signature b6b2f45cd76907948f237599c82eb60341ceca0ce36a0e92853156639002e2df22548ca98988c6560d7dd25de732ac48c2a5da7e35cfaa064c9759d9b0e71b01`,
 			);
 		});
 	});
@@ -907,7 +830,7 @@ describe('Multisignature transaction class', () => {
 			);
 
 			expect(storeAccountSetStub).toHaveBeenCalledWith(
-				multisigFixture.accounts.targetAccount.address,
+				multisigFixture.testCases.input.account.address,
 				convertedAccount,
 			);
 		});

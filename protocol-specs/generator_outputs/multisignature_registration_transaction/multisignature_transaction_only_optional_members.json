@@ -1,0 +1,67 @@
+{
+	"title": "Valid multi-signature registration",
+	"summary": "A valid multi-signature registration with only optional keys",
+	"config": "devnet",
+	"runner": "multisignature_registration_transaction",
+	"handler": "multisignature_transaction_only_optional_members",
+	"testCases": {
+		"input": {
+			"account": {
+				"passphrase": "inherit moon normal relief spring bargain hobby join baby flash fog blood",
+				"privateKey": "de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+				"publicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+				"address": "18141291412139607230L"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"members": {
+				"optionalOne": {
+					"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
+					"privateKey": "69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+					"publicKey": "57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+					"address": "7745870967079479156L"
+				},
+				"optionalTwo": {
+					"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
+					"privateKey": "ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+					"publicKey": "fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
+					"address": "7086965981385941478L"
+				}
+			},
+			"transaction": {
+				"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+				"nonce": "1",
+				"fee": "1500000000",
+				"type": 12,
+				"asset": {
+					"mandatoryKeys": [],
+					"optionalKeys": [
+						"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+						"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
+					],
+					"numberOfSignatures": 1
+				},
+				"signatures": []
+			}
+		},
+		"output": {
+			"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
+			"nonce": "1",
+			"fee": "1500000000",
+			"type": 12,
+			"asset": {
+				"mandatoryKeys": [],
+				"optionalKeys": [
+					"57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
+					"fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6"
+				],
+				"numberOfSignatures": 1
+			},
+			"signatures": [
+				"f204d07a10901cdc26e3afaa6adb83fffe0cd2bba1eaec0d4249972e652f975555d51895382016b93c3667de6aedae846add7cd67894a68f5785d566daa7c702",
+				"983a41e0e53f2118cff4fe1ec35e537f014fdb79dca9dd4c051fb835c812d3029163096d15d700a362c680413c6e66e69424cde7d888aa264d3f4fd26f2b2701",
+				"cd2f215f7fbcbd5140bd044ab136179a661f030f1229119bc936f21d78737dcadab36546984afce248b3fe178348f44b040e0667ddaceed8f759cbc0739a280a"
+			],
+			"id": "861015544677474581"
+		}
+	}
+}
