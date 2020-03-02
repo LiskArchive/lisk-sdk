@@ -31,17 +31,23 @@ import * as multisignatureFixture from '../fixtures/transaction_network_id_and_c
 import * as utils from '../src/utils';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 
-const getAccount = (account: object): any => ({
-	balance: 0,
-	producedBlocks: 0,
-	missedBlocks: 0,
-	...account,
-	keys: {
-		mandatoryKeys: [],
-		optionalKeys: [],
-		numberOfSignatures: 0,
-	},
-});
+const getAccount = (account: object): any => {
+	const object = {
+		balance: 0,
+		producedBlocks: 0,
+		missedBlocks: 0,
+		...account,
+		keys: {
+			mandatoryKeys: [],
+			optionalKeys: [],
+			numberOfSignatures: 0,
+		},
+	};
+
+	(object as any).nonce = BigInt((account as any).nonce || 0);
+
+	return object;
+};
 
 describe('Base transaction class', () => {
 	const defaultTransaction = addTransactionFields(
@@ -562,7 +568,11 @@ describe('Base transaction class', () => {
 
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
-			store.account.getOrDefault = () => defaultSenderAccount;
+			store = new StateStoreMock([
+				{
+					...defaultSenderAccount,
+				},
+			]);
 			const { id, status, errors } = await validTestTransaction.apply(store);
 
 			expect(id).toEqual(validTestTransaction.id);
@@ -653,6 +663,23 @@ describe('Base transaction class', () => {
 			expect(status).toEqual(Status.OK);
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
+
+		it('should increment account nonce', async () => {
+			// Arrange
+			const senderAccount = { ...defaultSenderAccount };
+			store = new StateStoreMock([defaultSenderAccount]);
+			const accountNonce = senderAccount.nonce;
+
+			// Act
+			const { id, status, errors } = await validTestTransaction.apply(store);
+			const updatedSender = await store.account.get(senderAccount.address);
+
+			// Assert
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.OK);
+			expect(Object.keys(errors)).toHaveLength(0);
+			expect((updatedSender as any).nonce).toEqual(accountNonce + BigInt(1));
+		});
 	});
 
 	describe('#undo', () => {
@@ -700,16 +727,23 @@ describe('Base transaction class', () => {
 				...defaultSenderAccount,
 				nonce: accountNonce,
 			};
-			storeAccountGetOrDefaultStub.mockReturnValue(senderAccount);
+			const recipientAccount = {
+				...defaultSenderAccount,
+				address: (validTestTransaction as any).asset.recipientId,
+				balance: (validTestTransaction as any).asset.amount,
+			};
+			store = new StateStoreMock([senderAccount, recipientAccount]);
 
 			// Act
 			const { id, status, errors } = await validTestTransaction.undo(store);
+
+			const updatedSender = await store.account.get(senderAccount.address);
 
 			// Assert
 			expect(id).toEqual(validTestTransaction.id);
 			expect(status).toEqual(Status.OK);
 			expect(Object.keys(errors)).toHaveLength(0);
-			expect(senderAccount.nonce).toEqual(accountNonce - BigInt(1));
+			expect((updatedSender as any).nonce).toEqual(accountNonce - BigInt(1));
 		});
 	});
 

@@ -34,16 +34,17 @@ describe('Transfer transaction class', () => {
 		);
 		sender = {
 			...defaultAccount,
-			...validTransferAccount,
 			balance: BigInt('10000000000'),
 			address: validTransferTestTransaction.senderId,
 		};
+		sender.nonce = BigInt(validTransferAccount.nonce);
+
 		recipient = {
 			...defaultAccount,
-			...validTransferAccount,
 			balance: BigInt('10000000000'),
 			address: validTransferTestTransaction.asset.recipientId,
 		};
+		recipient.nonce = BigInt(validTransferAccount.nonce);
 
 		store = new StateStoreMock([sender, recipient]);
 
