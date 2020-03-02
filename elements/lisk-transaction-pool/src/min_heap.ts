@@ -77,7 +77,7 @@ export class MinHeap<T, K = bigint | number> {
 
 	private _insertAll(heap: MinHeap<T, K>): void {
 		if (!(heap instanceof MinHeap)) {
-			throw new Error('Cannot insertAll from other than heap');
+			throw new Error('Only heap instance can be inserted');
 		}
 		this._insertAllFromHeap(heap);
 	}
