@@ -179,7 +179,6 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 			],
 			numberOfSignatures: 4,
 		},
-		signatures: [],
 	};
 
 	const tx = {
@@ -226,7 +225,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 				optionalOne: accounts.optionalOne,
 				optionalTwo: accounts.optionalTwo,
 			},
-			transaction: tx,
+			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};
@@ -366,7 +365,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 				optionalOne: accounts.optionalOne,
 				optionalTwo: accounts.optionalTwo,
 			},
-			transaction: tx,
+			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};
@@ -427,7 +426,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 				mandatoryOne: accounts.mandatoryOne,
 				mandatoryTwo: accounts.mandatoryTwo,
 			},
-			transaction: tx,
+			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};

@@ -40,12 +40,7 @@
 					"optionalKeys": [],
 					"numberOfSignatures": 2
 				},
-				"signatures": [
-					"849e482995217ff1baee59cff545e5ea53ad4154f6edd2a73dc892eba315230e087ea4aef5070c1976ea56319cacc82b7078daec9e9a7dab9b336c9673c36608",
-					"37ef716daf190913b1de4d1b1c70166e9780b277063ff541676fc77fee5d59598a3123084526c756da9619b6b89d78883cb57bff1022be58b2eb54a3c7c1e70c",
-					"d3cea6f7cc690dcdbcd3eaad9fc57ec3d939427c1b31ce00777eb730483f6ffe4ab8e229e8ef2669655a7a048f6f49b5c185b9b56a433e914cfccc911b4ea006"
-				],
-				"id": "118002138292648564"
+				"signatures": []
 			}
 		},
 		"output": {
