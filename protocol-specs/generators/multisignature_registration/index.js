@@ -162,7 +162,7 @@ const serializeMemberSignatures = (tx, txBuffer) => {
 
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
-	const tx = {
+	const unsignedTransaction = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		nonce: '1',
@@ -179,6 +179,12 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 			],
 			numberOfSignatures: 4,
 		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
 		signatures: [],
 	};
 
@@ -214,12 +220,12 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		input: {
 			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [
-				accounts.mandatoryOne,
-				accounts.mandatoryTwo,
-				accounts.optionalOne,
-				accounts.optionalTwo,
-			],
+			members: {
+				mandatoryOne: accounts.mandatoryOne,
+				mandatoryTwo: accounts.mandatoryTwo,
+				optionalOne: accounts.optionalOne,
+				optionalTwo: accounts.optionalTwo,
+			},
 			transaction: tx,
 		},
 		output: tx,
@@ -228,7 +234,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 
 const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	// basic transaction
-	const tx = {
+	const unsignedTransaction = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		nonce: '1',
@@ -246,6 +252,12 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 			],
 			numberOfSignatures: 4,
 		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
 		signatures: [],
 	};
 
@@ -286,14 +298,14 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		input: {
 			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [
-				accounts.targetAccount,
-				accounts.mandatoryOne,
-				accounts.mandatoryTwo,
-				accounts.optionalOne,
-				accounts.optionalTwo,
-			],
-			transaction: tx,
+			members: {
+				targetAccount: accounts.targetAccount,
+				mandatoryOne: accounts.mandatoryOne,
+				mandatoryTwo: accounts.mandatoryTwo,
+				optionalOne: accounts.optionalOne,
+				optionalTwo: accounts.optionalTwo,
+			},
+			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};
@@ -301,7 +313,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 
 const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = () => {
 	// basic transaction
-	const tx = {
+	const unsignedTransaction = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		nonce: '1',
@@ -315,6 +327,12 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 			],
 			numberOfSignatures: 1,
 		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
 		signatures: [],
 	};
 
@@ -344,7 +362,10 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		input: {
 			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [accounts.optionalOne, accounts.optionalTwo],
+			members: {
+				optionalOne: accounts.optionalOne,
+				optionalTwo: accounts.optionalTwo,
+			},
 			transaction: tx,
 		},
 		output: tx,
@@ -353,7 +374,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 
 const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = () => {
 	// basic transaction
-	const tx = {
+	const unsignedTransaction = {
 		senderPublicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		nonce: '1',
@@ -367,6 +388,12 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 			optionalKeys: [],
 			numberOfSignatures: 2,
 		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
 		signatures: [],
 	};
 
@@ -396,7 +423,10 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		input: {
 			account: accounts.targetAccount,
 			networkIdentifier,
-			coSigners: [accounts.mandatoryOne, accounts.mandatoryTwo],
+			members: {
+				mandatoryOne: accounts.mandatoryOne,
+				mandatoryTwo: accounts.mandatoryTwo,
+			},
 			transaction: tx,
 		},
 		output: tx,

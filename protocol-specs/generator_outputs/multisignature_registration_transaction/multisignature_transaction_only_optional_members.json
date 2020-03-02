@@ -13,20 +13,20 @@
 				"address": "18141291412139607230L"
 			},
 			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
-			"coSigners": [
-				{
+			"members": {
+				"optionalOne": {
 					"passphrase": "sugar object slender confirm clock peanut auto spice carbon knife increase estate",
 					"privateKey": "69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
 					"publicKey": "57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4",
 					"address": "7745870967079479156L"
 				},
-				{
+				"optionalTwo": {
 					"passphrase": "faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb",
 					"privateKey": "ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
 					"publicKey": "fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6",
 					"address": "7086965981385941478L"
 				}
-			],
+			},
 			"transaction": {
 				"senderPublicKey": "0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe",
 				"nonce": "1",
