@@ -35,6 +35,8 @@ describe('POST /api/transactions (general)', () => {
 	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
 	const transaction = transfer({
+		fee: '129001',
+		nonce: '1',
 		networkIdentifier,
 		amount: '1',
 		passphrase: accountFixtures.genesis.passphrase,

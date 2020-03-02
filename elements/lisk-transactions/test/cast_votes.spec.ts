@@ -15,7 +15,6 @@
 import { castVotes } from '../src/cast_votes';
 import { VoteAsset } from '../src/11_vote_transaction';
 import { TransactionJSON } from '../src/transaction_types';
-import * as time from '../src/utils/time';
 
 describe('#castVotes transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -35,21 +34,13 @@ describe('#castVotes transaction', () => {
 		'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const votePublicKeys = [firstPublicKey, secondPublicKey];
 	const unvotePublicKeys = [thirdPublicKey, fourthPublicKey];
-	const timeWithOffset = 38350076;
 	const amount = '0';
 	const fee = (1 * fixedPoint).toString();
+	const nonce = '0';
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-	let getTimeWithOffsetStub: jest.SpyInstance;
 	let castVotesTransaction: Partial<TransactionJSON>;
-
-	beforeEach(() => {
-		getTimeWithOffsetStub = jest
-			.spyOn(time, 'getTimeWithOffset')
-			.mockReturnValue(timeWithOffset);
-		return Promise.resolve();
-	});
 
 	describe('when the transaction is created with one passphrase and the votes', () => {
 		beforeEach(() => {
@@ -57,28 +48,14 @@ describe('#castVotes transaction', () => {
 				passphrase,
 				votes: votePublicKeys,
 				networkIdentifier,
+				fee,
+				nonce,
 			});
 			return Promise.resolve();
 		});
 
 		it('should create a cast votes transaction', () => {
 			return expect(castVotesTransaction).toBeTruthy();
-		});
-
-		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
-		});
-
-		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
-			const offset = -10;
-			castVotes({
-				passphrase,
-				votes: votePublicKeys,
-				timeOffset: offset,
-				networkIdentifier,
-			});
-
-			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 		});
 
 		describe('the returned cast votes transaction', () => {
@@ -101,17 +78,14 @@ describe('#castVotes transaction', () => {
 				return expect(castVotesTransaction).toHaveProperty('fee', fee);
 			});
 
+			it('should have nonce string equal to transaction nonce', () => {
+				return expect(castVotesTransaction).toHaveProperty('nonce', nonce);
+			});
+
 			it('should have senderPublicKey hex string equal to sender public key', () => {
 				return expect(castVotesTransaction).toHaveProperty(
 					'senderPublicKey',
 					firstPublicKey,
-				);
-			});
-
-			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				return expect(castVotesTransaction).toHaveProperty(
-					'timestamp',
-					timeWithOffset,
 				);
 			});
 
@@ -149,6 +123,8 @@ describe('#castVotes transaction', () => {
 				votes: votePublicKeys,
 				unvotes: unvotePublicKeys,
 				networkIdentifier,
+				fee,
+				nonce,
 			});
 			return Promise.resolve();
 		});
@@ -176,6 +152,8 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					votes: null as any,
 					networkIdentifier,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -188,6 +166,8 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					votes: `+${firstPublicKey}` as any,
 					networkIdentifier,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Please provide a valid votes value. Expected an array if present.',
@@ -200,6 +180,8 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					unvotes: null as any,
 					networkIdentifier,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Please provide a valid unvotes value. Expected an array if present.',
@@ -212,6 +194,8 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					unvotes: `-${firstPublicKey}` as any,
 					networkIdentifier,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Please provide a valid unvotes value. Expected an array if present.',
@@ -225,6 +209,8 @@ describe('#castVotes transaction', () => {
 				passphrase,
 				unvotes: unvotePublicKeys,
 				networkIdentifier,
+				fee,
+				nonce,
 			});
 			return Promise.resolve();
 		});
@@ -248,6 +234,8 @@ describe('#castVotes transaction', () => {
 					unvotes: unvotePublicKeys,
 					votes: [tooShortPublicKey],
 					networkIdentifier,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
@@ -263,6 +251,8 @@ describe('#castVotes transaction', () => {
 					unvotes: unvotePublicKeys,
 					votes: [plusPrependedPublicKey],
 					networkIdentifier,
+					fee,
+					nonce,
 				}),
 			).toThrowError('Argument must be a valid hex string.');
 		});
@@ -279,6 +269,8 @@ describe('#castVotes transaction', () => {
 						unvotes,
 						votes,
 						networkIdentifier,
+						fee,
+						nonce,
 					}),
 				).toThrowError(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -294,6 +286,8 @@ describe('#castVotes transaction', () => {
 						passphrase,
 						votes,
 						networkIdentifier,
+						fee,
+						nonce,
 					}),
 				).toThrowError(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -309,6 +303,8 @@ describe('#castVotes transaction', () => {
 						passphrase,
 						unvotes,
 						networkIdentifier,
+						fee,
+						nonce,
 					}),
 				).toThrowError(
 					'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -324,6 +320,8 @@ describe('#castVotes transaction', () => {
 					votes: votePublicKeys,
 					unvotes: unvotePublicKeys,
 					networkIdentifier,
+					fee,
+					nonce,
 				});
 				return Promise.resolve();
 			});
@@ -353,10 +351,6 @@ describe('#castVotes transaction', () => {
 					'senderPublicKey',
 					undefined,
 				);
-			});
-
-			it('should have the timestamp', () => {
-				return expect(castVotesTransaction).toHaveProperty('timestamp');
 			});
 
 			it('should have the asset with the votes', () => {

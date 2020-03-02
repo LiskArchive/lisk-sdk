@@ -17,7 +17,7 @@ SELECT
 	b."height" AS "height",
 	trs."blockId" AS "blockId",
 	trs."type" AS "type",
-	trs."timestamp" AS "timestamp",
+	trs."nonce" AS "nonce",
 	encode(trs."senderPublicKey", 'hex'::text) AS "senderPublicKey",
 	upper(trs."senderId"::text) AS "senderId",
 	upper(trs."recipientId"::text) AS "recipientId",

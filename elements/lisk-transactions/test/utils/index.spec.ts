@@ -15,8 +15,6 @@
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getTimeFromBlockchainEpoch,
-	getTimeWithOffset,
 	getId,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
@@ -32,14 +30,6 @@ describe('transaction utils', () => {
 
 		it('should have convertLSKToBeddows', () => {
 			return expect(convertLSKToBeddows).toBeFunction();
-		});
-
-		it('should have getTimeFromBlockchainEpoch', () => {
-			return expect(getTimeFromBlockchainEpoch).toBeFunction();
-		});
-
-		it('should have getTimeWithOffset', () => {
-			return expect(getTimeWithOffset).toBeFunction();
 		});
 
 		it('should have getId', () => {

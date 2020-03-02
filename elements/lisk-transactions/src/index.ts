@@ -39,7 +39,6 @@ import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	getId,
-	getTimeFromBlockchainEpoch,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateMultisignatures,
@@ -54,7 +53,6 @@ import {
 const exposedUtils = {
 	convertBeddowsToLSK,
 	getId,
-	getTimeFromBlockchainEpoch,
 	convertLSKToBeddows,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,

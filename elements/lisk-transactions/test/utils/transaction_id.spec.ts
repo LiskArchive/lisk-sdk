@@ -16,11 +16,18 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
 import { TransferTransaction } from '../../src';
 import { getId } from '../../src/utils';
-import { validTransaction } from '../../fixtures';
+import * as transferFixture from '../../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 
 describe('#getId', () => {
-	const defaultTransaction = addTransactionFields(validTransaction);
-	const validTestTransaction = new TransferTransaction(defaultTransaction);
+	const defaultTransaction = addTransactionFields(
+		transferFixture.testCases[0].output,
+	);
+	const networkIdentifier =
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+	const validTestTransaction = new TransferTransaction({
+		...defaultTransaction,
+		networkIdentifier,
+	});
 	// Create tx id by validating
 	validTestTransaction.validate();
 	const defaultTransactionBytes = (validTestTransaction as any).getBytes();

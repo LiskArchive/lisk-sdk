@@ -15,16 +15,17 @@
 import { validateNetworkIdentifier } from '@liskhq/lisk-validator';
 
 import { DelegateTransaction } from './10_delegate_transaction';
-import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
+import { USERNAME_MAX_LENGTH } from './constants';
 import { TransactionJSON } from './transaction_types';
 import { createBaseTransaction } from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
-	readonly timeOffset?: number;
 	readonly username: string;
 	readonly networkIdentifier: string;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 const validateInputs = ({
@@ -53,7 +54,6 @@ export const registerDelegate = (
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 10,
-		fee: DELEGATE_FEE.toString(),
 		asset: { username },
 		networkIdentifier,
 	};

@@ -18,7 +18,11 @@ import {
 	getAddressFromPassphrase,
 	getNetworkIdentifier,
 } from '@liskhq/lisk-cryptography';
-import { transfer, TransactionJSON } from '@liskhq/lisk-transactions';
+import {
+	transfer,
+	TransactionJSON,
+	TransferTransaction,
+} from '@liskhq/lisk-transactions';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
@@ -55,23 +59,17 @@ export const account = (balance = '0', nonDelegate = false) => {
 	};
 };
 
-export const transaction = (offset?: number): TransactionJSON =>
+export const transaction = (nonce?: string): TransactionJSON =>
 	transfer({
 		networkIdentifier,
+		fee: '10000000',
+		nonce: nonce ? nonce : '0',
 		amount: '1',
 		passphrase: genesisAccount.passphrase,
 		recipientId: account().address,
-		timeOffset: offset,
 	}) as TransactionJSON;
 
-export const transferInstance = (offset?: number) => {
-	const tx = transaction(offset);
-	return {
-		...tx,
-		fee: BigInt((tx as any).fee),
-		asset: {
-			...tx.asset,
-			amount: BigInt((tx as any).asset.amount),
-		},
-	};
+export const transferInstance = (nonce?: string): TransferTransaction => {
+	const tx = transaction(nonce);
+	return new TransferTransaction(tx);
 };

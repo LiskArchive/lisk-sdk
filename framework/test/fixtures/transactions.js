@@ -25,7 +25,7 @@ const Transaction = stampit({
 		height: 276,
 		blockId: '',
 		type: 0,
-		timestamp: 40080841,
+		nonce: '3',
 		senderPublicKey:
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
 		senderId: '2525786814299543383L',

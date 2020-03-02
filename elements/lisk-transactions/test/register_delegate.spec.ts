@@ -15,7 +15,6 @@
 import { registerDelegate } from '../src/register_delegate';
 import { DelegateAsset } from '../src/10_delegate_transaction';
 import { TransactionJSON } from '../src/transaction_types';
-import * as time from '../src/utils/time';
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -25,23 +24,17 @@ describe('#registerDelegate transaction', () => {
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const username = 'test_delegate_1@\\';
 	const fee = (25 * fixedPoint).toString();
-	const timeWithOffset = 38350076;
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+	const nonce = '0';
 
-	let getTimeWithOffsetStub: jest.SpyInstance;
 	let registerDelegateTransaction: Partial<TransactionJSON>;
-
-	beforeEach(() => {
-		getTimeWithOffsetStub = jest
-			.spyOn(time, 'getTimeWithOffset')
-			.mockReturnValue(timeWithOffset);
-		return Promise.resolve();
-	});
 
 	describe('with first passphrase', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
+				fee,
+				nonce,
 				passphrase,
 				username,
 				networkIdentifier,
@@ -51,22 +44,6 @@ describe('#registerDelegate transaction', () => {
 
 		it('should create a register delegate transaction', () => {
 			return expect(registerDelegateTransaction).toBeTruthy();
-		});
-
-		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
-		});
-
-		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
-			const offset = -10;
-			registerDelegate({
-				networkIdentifier,
-				passphrase,
-				username,
-				timeOffset: offset,
-			});
-
-			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 		});
 
 		it('should be an object', () => {
@@ -92,13 +69,6 @@ describe('#registerDelegate transaction', () => {
 			return expect(registerDelegateTransaction).toHaveProperty(
 				'senderPublicKey',
 				publicKey,
-			);
-		});
-
-		it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-			return expect(registerDelegateTransaction).toHaveProperty(
-				'timestamp',
-				timeWithOffset,
 			);
 		});
 
@@ -130,6 +100,8 @@ describe('#registerDelegate transaction', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
 				networkIdentifier,
+				fee,
+				nonce,
 				passphrase,
 				username,
 			});
@@ -142,6 +114,8 @@ describe('#registerDelegate transaction', () => {
 			beforeEach(() => {
 				registerDelegateTransaction = registerDelegate({
 					networkIdentifier,
+					fee,
+					nonce,
 					username,
 				});
 				return Promise.resolve();
@@ -155,7 +129,12 @@ describe('#registerDelegate transaction', () => {
 
 			it('should throw error when username is empty string', () => {
 				return expect(
-					registerDelegate.bind(null, { networkIdentifier, username: '' }),
+					registerDelegate.bind(null, {
+						networkIdentifier,
+						fee,
+						nonce,
+						username: '',
+					}),
 				).toThrowError('Please provide a username. Expected string.');
 			});
 
@@ -163,6 +142,8 @@ describe('#registerDelegate transaction', () => {
 				return expect(
 					registerDelegate.bind(null, {
 						networkIdentifier,
+						fee,
+						nonce,
 						username: '12345678901234567890a',
 					}),
 				).toThrowError(
@@ -186,10 +167,6 @@ describe('#registerDelegate transaction', () => {
 					'senderPublicKey',
 					undefined,
 				);
-			});
-
-			it('should have the timestamp', () => {
-				return expect(registerDelegateTransaction).toHaveProperty('timestamp');
 			});
 
 			it('should have the asset with the delegate', () => {

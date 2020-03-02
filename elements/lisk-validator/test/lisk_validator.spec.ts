@@ -600,7 +600,7 @@ describe('validator', () => {
 			];
 
 			expect(
-				validator.validate(feeSchema, { target: '9223372036854775808' }),
+				validator.validate(feeSchema, { target: '18446744073709551616' }),
 			).toEqual(expectedError);
 		});
 

@@ -15,13 +15,8 @@
 /* tslint:disable:no-magic-numbers */
 export const FIXED_POINT = 10 ** 8;
 
-export const TRANSFER_FEE = FIXED_POINT * 0.1;
-export const IN_TRANSFER_FEE = FIXED_POINT * 0.1;
-export const OUT_TRANSFER_FEE = FIXED_POINT * 0.1;
-export const SIGNATURE_FEE = FIXED_POINT * 5;
-export const DELEGATE_FEE = FIXED_POINT * 25;
-export const VOTE_FEE = FIXED_POINT * 1;
-export const MULTISIGNATURE_FEE = FIXED_POINT * 5;
+export const MIN_FEE_PER_BYTE = 1000;
+export const DELEGATE_NAME_FEE = 1000000000;
 export const MULTISIGNATURE_MAX_LIFETIME = 72;
 export const MULTISIGNATURE_MIN_LIFETIME = 1;
 export const MULTISIGNATURE_MAX_KEYSGROUP = 15;
@@ -31,6 +26,8 @@ export const USERNAME_MAX_LENGTH = 20;
 
 export const BYTESIZES = {
 	TYPE: 1,
+	NONCE: 8,
+	FEE: 8,
 	TIMESTAMP: 4,
 	MULTISIGNATURE_PUBLICKEY: 32,
 	RECIPIENT_ID: 8,

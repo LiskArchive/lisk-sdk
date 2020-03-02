@@ -16,7 +16,6 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/register_multisignature_account';
 // import { MultiSignatureAsset } from '../src/12_multisignature_transaction';
 import { TransactionJSON } from '../src/transaction_types';
-import * as time from '../src/utils/time';
 
 describe.skip('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -28,8 +27,8 @@ describe.skip('#registerMultisignature transaction', () => {
 		privateKey:
 			'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 	};
-	const timeWithOffset = 38350076;
 	const fee = (15 * fixedPoint).toString();
+	const nonce = '0';
 	const lifetime = 5;
 	const minimum = 2;
 	const networkIdentifier =
@@ -38,13 +37,9 @@ describe.skip('#registerMultisignature transaction', () => {
 	let tooShortPublicKeyKeysgroup: Array<string>;
 	let plusPrependedPublicKeyKeysgroup: Array<string>;
 	let keysgroup: Array<string>;
-	let getTimeWithOffsetStub: jest.SpyInstance;
 	let registerMultisignatureTransaction: Partial<TransactionJSON>;
 
 	beforeEach(() => {
-		getTimeWithOffsetStub = jest
-			.spyOn(time, 'getTimeWithOffset')
-			.mockReturnValue(timeWithOffset);
 		keysgroup = [
 			'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 			'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
@@ -66,30 +61,14 @@ describe.skip('#registerMultisignature transaction', () => {
 				keysgroup,
 				lifetime,
 				minimum,
+				fee,
+				nonce,
 			});
 			return Promise.resolve();
 		});
 
 		it('should create a register multisignature transaction', () => {
 			return expect(registerMultisignatureTransaction).toBeTruthy();
-		});
-
-		it('should use time.getTimeWithOffset to calculate the timestamp', () => {
-			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(undefined);
-		});
-
-		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
-			const offset = -10;
-			registerMultisignature({
-				networkIdentifier,
-				passphrase,
-				keysgroup,
-				lifetime,
-				minimum,
-				timeOffset: offset,
-			});
-
-			return expect(getTimeWithOffsetStub).toHaveBeenCalledWith(offset);
 		});
 
 		describe('returned register multisignature transaction', () => {
@@ -122,13 +101,6 @@ describe.skip('#registerMultisignature transaction', () => {
 				);
 			});
 
-			it('should have timestamp number equal to result of time.getTimeWithOffset', () => {
-				return expect(registerMultisignatureTransaction).toHaveProperty(
-					'timestamp',
-					timeWithOffset,
-				);
-			});
-
 			it('should have signature hex string', () => {
 				return expect(registerMultisignatureTransaction.signature).toBeString();
 			});
@@ -155,6 +127,8 @@ describe.skip('#registerMultisignature transaction', () => {
 				keysgroup,
 				lifetime,
 				minimum,
+				fee,
+				nonce,
 			});
 			return Promise.resolve();
 		});
@@ -169,6 +143,8 @@ describe.skip('#registerMultisignature transaction', () => {
 					keysgroup: tooShortPublicKeyKeysgroup,
 					lifetime,
 					minimum: 1,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
@@ -185,6 +161,8 @@ describe.skip('#registerMultisignature transaction', () => {
 					keysgroup: plusPrependedPublicKeyKeysgroup,
 					lifetime,
 					minimum: 1,
+					fee,
+					nonce,
 				}),
 			).toThrowError('Argument must be a valid hex string.');
 		});
@@ -199,6 +177,8 @@ describe.skip('#registerMultisignature transaction', () => {
 					keysgroup: [],
 					lifetime,
 					minimum,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Minimum number of signatures is larger than the number of keys in the keysgroup.',
@@ -226,6 +206,8 @@ describe.skip('#registerMultisignature transaction', () => {
 					keysgroup,
 					lifetime,
 					minimum,
+					fee,
+					nonce,
 				}),
 			).toThrowError('Expected between 1 and 15 public keys in the keysgroup.');
 		});
@@ -245,6 +227,8 @@ describe.skip('#registerMultisignature transaction', () => {
 					keysgroup,
 					lifetime,
 					minimum,
+					fee,
+					nonce,
 				}),
 			).toThrowError(
 				'Duplicated public key: 5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09.',
@@ -260,6 +244,8 @@ describe.skip('#registerMultisignature transaction', () => {
 					keysgroup,
 					lifetime,
 					minimum,
+					fee,
+					nonce,
 				});
 				return Promise.resolve();
 			});
@@ -273,6 +259,8 @@ describe.skip('#registerMultisignature transaction', () => {
 						return expect(
 							registerMultisignature.bind(null, {
 								keysgroup,
+								fee,
+								nonce,
 							} as any),
 						).toThrowError(lifetimeErrorMessage);
 					});
@@ -282,6 +270,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 23.45,
+								fee,
+								nonce,
 							} as any),
 						).toThrowError(lifetimeErrorMessage);
 					});
@@ -291,6 +281,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: '123',
+								fee,
+								nonce,
 							} as any),
 						).toThrowError(lifetimeErrorMessage);
 					});
@@ -300,6 +292,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 73,
+								fee,
+								nonce,
 							} as any),
 						).toThrowError(lifetimeErrorMessage);
 					});
@@ -309,6 +303,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: -1,
+								fee,
+								nonce,
 							} as any),
 						).toThrowError(lifetimeErrorMessage);
 					});
@@ -324,6 +320,8 @@ describe.skip('#registerMultisignature transaction', () => {
 						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
+							fee,
+							nonce,
 						} as any),
 					).toThrowError(minimumErrorMessage);
 				});
@@ -335,6 +333,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 							minimum: 1.45,
+							fee,
+							nonce,
 						}),
 					).toThrowError(minimumErrorMessage);
 				});
@@ -345,6 +345,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 							minimum: '12',
+							fee,
+							nonce,
 						} as any),
 					).toThrowError(minimumErrorMessage);
 				});
@@ -356,6 +358,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 							minimum: 16,
+							fee,
+							nonce,
 						}),
 					).toThrowError(minimumErrorMessage);
 				});
@@ -367,6 +371,8 @@ describe.skip('#registerMultisignature transaction', () => {
 							keysgroup,
 							lifetime,
 							minimum: -1,
+							fee,
+							nonce,
 						}),
 					).toThrowError(minimumErrorMessage);
 				});
@@ -386,16 +392,17 @@ describe.skip('#registerMultisignature transaction', () => {
 				);
 			});
 
+			it('should have the nonce', () => {
+				return expect(registerMultisignatureTransaction).toHaveProperty(
+					'nonce',
+					nonce,
+				);
+			});
+
 			it('should have the sender public key', () => {
 				return expect(registerMultisignatureTransaction).toHaveProperty(
 					'senderPublicKey',
 					undefined,
-				);
-			});
-
-			it('should have the timestamp', () => {
-				return expect(registerMultisignatureTransaction).toHaveProperty(
-					'timestamp',
 				);
 			});
 
