@@ -34,7 +34,6 @@ const trsCreateFields = [
 	'recipientId',
 	'amount',
 	'fee',
-	'signature',
 	'signatures',
 	'asset',
 	'transferData',

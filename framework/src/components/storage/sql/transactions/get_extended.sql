@@ -23,7 +23,6 @@ SELECT
 	upper(trs."recipientId"::text) AS "recipientId",
 	trs."amount" AS "amount",
 	trs."fee" AS "fee",
-	encode(trs."signature", 'hex'::text) AS "signature",
 	regexp_split_to_array(trs."signatures", ',') as "signatures",
 	trs."asset" AS "asset",
 	trs."transferData" AS "transferData",

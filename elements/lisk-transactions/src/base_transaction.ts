@@ -357,6 +357,7 @@ export abstract class BaseTransaction {
 				this.senderPublicKey,
 				this.signatures[0],
 				transactionWithNetworkIdentifierBytes,
+				this.id,
 			);
 
 			if (error) {

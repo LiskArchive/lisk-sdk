@@ -59,7 +59,7 @@ const checkSignature = (
 		return false;
 	}
 
-	if (transactionResponse.errors[0].dataPath !== '.signature') {
+	if (transactionResponse.errors[0].dataPath !== '.signatures') {
 		return false;
 	}
 
