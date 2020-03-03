@@ -23,7 +23,7 @@ import MultisignatureCommand from './create/multisignature';
 import TransferCommand from './create/transfer';
 import VoteCommand from './create/vote';
 
-const MAX_ARG_NUM = 3;
+const MAX_ARG_NUM = 5;
 
 interface TypeNumberMap {
 	readonly [key: string]: string;
@@ -81,8 +81,7 @@ export default class CreateCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:create --type=0 100 13356260975429434553L',
-		'transaction:create --type=delegate lightcurve',
+		'transaction:create --type=8 1 100 100 13356260975429434553L',
 	];
 
 	static flags = {

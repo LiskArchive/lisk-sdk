@@ -13,8 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { castVotes } from '@liskhq/lisk-transactions';
-import { validatePublicKeys } from '@liskhq/lisk-validator';
+import {
+	castVotes,
+	utils as transactionUtils,
+} from '@liskhq/lisk-transactions';
+import {
+	isValidFee,
+	isValidNonce,
+	validatePublicKeys,
+} from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -28,20 +35,25 @@ import { getData } from '../../../utils/input/utils';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 const processInputs = (
-	networkIdentifier: string,
 	nonce: string,
 	fee: string,
+	networkIdentifier: string,
 	votes: ReadonlyArray<string>,
 	unvotes: ReadonlyArray<string>,
 ) => ({ passphrase }: InputFromSourceOutput) =>
 	castVotes({
-		networkIdentifier,
 		nonce,
 		fee,
+		networkIdentifier,
 		passphrase,
 		votes,
 		unvotes,
 	});
+
+interface Args {
+	readonly nonce: string;
+	readonly fee: string;
+}
 
 const processVotesInput = async (votes: string) =>
 	votes.includes(':') ? getData(votes) : votes;
@@ -60,12 +72,24 @@ const getValidatedPublicKeys = (inputs: ReadonlyArray<string>) => {
 };
 
 export default class VoteCommand extends BaseCommand {
+	static args = [
+		{
+			name: 'nonce',
+			required: true,
+			description: 'Nonce of the transaction.',
+		},
+		{
+			name: 'fee',
+			required: true,
+			description: 'Transaction fee in LSK.',
+		},
+	];
 	static description = `
 	Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
 	`;
 
 	static examples = [
-		'transaction:create:vote --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
+		'transaction:create:vote 1 100 --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
 	];
 
 	static flags = {
@@ -79,6 +103,7 @@ export default class VoteCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const {
+			args,
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
@@ -87,6 +112,22 @@ export default class VoteCommand extends BaseCommand {
 				unvotes,
 			},
 		} = this.parse(VoteCommand);
+
+		const { nonce, fee }: Args = args;
+
+		if (!isValidNonce(nonce)) {
+			throw new ValidationError('Enter a valid nonce in number string format.');
+		}
+
+		if (Number.isNaN(Number(fee))) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
 
 		if (!votes && !unvotes) {
 			throw new ValidationError(
@@ -119,9 +160,9 @@ export default class VoteCommand extends BaseCommand {
 			this.userConfig.api.network,
 		);
 		const processFunction = processInputs(
+			nonce,
+			normalizedFee,
 			networkIdentifier,
-			'0',
-			'0',
 			validatedVotes,
 			validatedUnvotes,
 		);
