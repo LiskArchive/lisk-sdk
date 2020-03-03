@@ -81,8 +81,7 @@ export default class CreateCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:create --type=8 100 13356260975429434553L',
-		'transaction:create --type=delegate lightcurve',
+		'transaction:create --type=8 1 100 100 13356260975429434553L',
 	];
 
 	static flags = {
