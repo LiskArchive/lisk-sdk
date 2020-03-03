@@ -175,7 +175,7 @@ export abstract class BaseTransaction {
 		return this._senderPublicKey;
 	}
 
-	public get signatures(): string[] {
+	public get signatures(): ReadonlyArray<string> {
 		if (!this._signatures?.length) {
 			throw new Error('signatures are required to be set before use');
 		}

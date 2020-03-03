@@ -98,13 +98,12 @@ export const baseTransaction = {
 		},
 		signatures: {
 			type: 'array',
-			uniqueItems: true,
 			items: {
 				type: 'string',
-				format: 'signature',
 			},
 			minItems: 0,
 			maxItems: 15,
+			oneOf: [{ type: 'signature' }],
 		},
 		asset: {
 			type: 'object',

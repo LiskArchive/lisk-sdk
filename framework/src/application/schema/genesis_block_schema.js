@@ -113,13 +113,12 @@ module.exports = {
 					},
 					signatures: {
 						type: 'array',
-						uniqueItems: true,
 						items: {
 							type: 'string',
-							format: 'signature',
 						},
 						minItems: 1,
-						maxItems: 16,
+						maxItems: 64,
+						oneOf: [{ type: 'signature' }],
 					},
 					id: {
 						type: 'string',
