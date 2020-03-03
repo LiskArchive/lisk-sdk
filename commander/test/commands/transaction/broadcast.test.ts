@@ -34,8 +34,9 @@ describe('transaction:broadcast', () => {
 		fee: '10000000',
 		recipientPublicKey: null,
 		asset: {},
-		signature:
+		signatures: [
 			'96738e173a750998f4c2cdcdf7538b71854bcffd6c0dc72b3c28081ca6946322bea7ba5d8f8974fc97950014347ce379671a6eddc0d41ea6cdfb9bb7ff76be0a',
+		],
 		id: '1297455432474089551',
 	};
 

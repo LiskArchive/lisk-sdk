@@ -42,9 +42,9 @@ describe('transaction:sign', () => {
 	const defaultSignedTransaction = {
 		...defaultTransaction,
 		senderId: '2129300327344985743L',
-		signatures: [],
-		signature:
+		signatures: [
 			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+		],
 		id: '6721820474838816958',
 	};
 
