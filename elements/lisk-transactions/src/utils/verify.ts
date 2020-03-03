@@ -46,6 +46,8 @@ export const verifyMinRemainingBalance = (
 			}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 			id,
 			'.balance',
+			account.balance.toString(),
+			minRemainingBalance.toString(),
 		);
 	}
 
