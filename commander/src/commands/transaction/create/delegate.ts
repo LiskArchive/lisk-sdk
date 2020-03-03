@@ -13,10 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { registerDelegate } from '@liskhq/lisk-transactions';
+import {
+	registerDelegate,
+	utils as transactionUtils,
+} from '@liskhq/lisk-transactions';
+import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
+import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
 import {
 	getInputsFromSources,
@@ -25,25 +30,37 @@ import {
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 interface Args {
+	readonly nonce: string;
+	readonly fee: string;
 	readonly username: string;
 }
 
 const processInputs = (
-	networkIdentifier: string,
 	nonce: string,
 	fee: string,
+	networkIdentifier: string,
 	username: string,
 ) => ({ passphrase }: InputFromSourceOutput) =>
 	registerDelegate({
-		networkIdentifier,
 		nonce,
 		fee,
+		networkIdentifier,
 		passphrase,
 		username,
 	});
 
 export default class DelegateCommand extends BaseCommand {
 	static args = [
+		{
+			name: 'nonce',
+			required: true,
+			description: 'Nonce of the transaction.',
+		},
+		{
+			name: 'fee',
+			required: true,
+			description: 'Transaction fee in LSK.',
+		},
 		{
 			name: 'username',
 			required: true,
@@ -55,7 +72,7 @@ export default class DelegateCommand extends BaseCommand {
 	Creates a transaction which will register the account as a delegate candidate if broadcast to the network.
 	`;
 
-	static examples = ['transaction:create:delegate lightcurve'];
+	static examples = ['transaction:create:delegate 1 100 lightcurve'];
 
 	static flags = {
 		...BaseCommand.flags,
@@ -74,15 +91,30 @@ export default class DelegateCommand extends BaseCommand {
 			},
 		} = this.parse(DelegateCommand);
 
-		const { username }: Args = args;
+		const { nonce, fee, username }: Args = args;
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
+
+		if (!isValidNonce(nonce)) {
+			throw new ValidationError('Enter a valid nonce in number string format.');
+		}
+
+		if (Number.isNaN(Number(fee))) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
 		const processFunction = processInputs(
+			nonce,
+			normalizedFee,
 			networkIdentifier,
-			'0',
-			'0',
 			username,
 		);
 
