@@ -127,7 +127,6 @@ export const verifyMultiSignatureTransaction = (
 			'Transaction has empty signatures',
 			id,
 			'.signatures',
-			signatures.join(','),
 		);
 
 		return [error];
@@ -135,6 +134,20 @@ export const verifyMultiSignatureTransaction = (
 
 	const { mandatoryKeys, optionalKeys, numberOfSignatures } = sender.keys;
 	const numMandatoryKeys = mandatoryKeys.length;
+	const numberOfSignaturesFromTransaction =
+		optionalKeys.filter(k => k.length === 0).length + numMandatoryKeys;
+
+	if (numberOfSignaturesFromTransaction !== numberOfSignatures) {
+		const error = new TransactionError(
+			`Transaction signatures does not have required number of transactions: ${numberOfSignatures}`,
+			id,
+			'.signatures',
+			signatures.join(','),
+		);
+
+		return [error];
+	}
+
 	const numOptionalKeys = optionalKeys.length;
 
 	const mandatoryKeysError = validateKeysSignatures(
@@ -145,25 +158,16 @@ export const verifyMultiSignatureTransaction = (
 
 	errors.push(...mandatoryKeysError);
 
-	// tslint:disable-next-line: no-let
-	let validOptionalSig = 0;
 	// tslint:disable-next-line: prefer-for-of no-let
-	for (let k = 0; k < numOptionalKeys - 1; k += 1) {
-		const { valid, error } = validateSignature(
-			mandatoryKeys[k],
-			signatures[k],
-			transactionBytes,
-		);
-
-		if (valid) {
-			validOptionalSig += 1;
-		} else if (signatures[k].length !== 0) {
+	for (let k = numMandatoryKeys + 1; k < numOptionalKeys - 1; k += 1) {
+		if (signatures[k].length !== 0) {
+			const { error } = validateSignature(
+				optionalKeys[k],
+				signatures[k],
+				transactionBytes,
+			);
 			errors.push(error as TransactionError);
 		}
-	}
-
-	if (numMandatoryKeys + validOptionalSig === numberOfSignatures) {
-		return [];
 	}
 
 	return errors;
