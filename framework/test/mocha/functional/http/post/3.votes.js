@@ -508,7 +508,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signatures}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});

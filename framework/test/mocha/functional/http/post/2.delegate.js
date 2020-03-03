@@ -406,7 +406,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 				apiCodes.PROCESSING_ERROR,
 			).then(res => {
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signatures}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});

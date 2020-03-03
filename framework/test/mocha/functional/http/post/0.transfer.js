@@ -59,7 +59,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('with lowercase recipientId should fail', async () => {
 			transaction = randomUtil.transaction();
 			transaction.asset.recipientId = transaction.asset.recipientId.toLowerCase();
-			transaction.signature = crypto.randomBytes(64).toString('hex');
+			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			return sendTransactionPromise(transaction, 400).then(res => {
 				expect(res.body.message).to.be.equal('Validation errors');
@@ -71,7 +71,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 	describe('transaction processing', () => {
 		it('with invalid signature should fail', async () => {
 			transaction = randomUtil.transaction();
-			transaction.signature = crypto.randomBytes(64).toString('hex');
+			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			return sendTransactionPromise(
 				transaction,
@@ -82,7 +82,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.be.equal(
-					`Failed to validate signature ${transaction.signature}`,
+					`Failed to validate signature ${transaction.signatures}`,
 				);
 				badTransactions.push(transaction);
 			});
@@ -205,7 +205,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
-					`Failed to validate signature ${transactionFromDifferentNetwork.signature}`,
+					`Failed to validate signature ${transactionFromDifferentNetwork.signatures}`,
 				);
 				badTransactions.push(transactionFromDifferentNetwork);
 			});
