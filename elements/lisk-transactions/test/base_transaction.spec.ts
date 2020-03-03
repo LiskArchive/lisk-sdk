@@ -28,6 +28,7 @@ import {
 } from './helpers';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
+import { getSignaturesBytes } from '../src/utils';
 
 const getAccount = (account: object): any => ({
 	balance: 0,
@@ -287,9 +288,7 @@ describe('Base transaction class', () => {
 		it('should return a buffer with signatures bytes', async () => {
 			const expectedBuffer = Buffer.concat([
 				(validTestTransaction as any).getBasicBytes(),
-				(BaseTransaction as any).getSignaturesBytes(
-					(validTestTransaction as any)._signatures,
-				),
+				getSignaturesBytes((validTestTransaction as any)._signatures),
 			]);
 
 			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);

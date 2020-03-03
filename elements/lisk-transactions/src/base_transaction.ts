@@ -34,6 +34,7 @@ import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
+	getSignaturesBytes,
 	isMultisignatureAccount,
 	validateSenderIdAndPublicKey,
 	validateSignature,
@@ -213,7 +214,7 @@ export abstract class BaseTransaction {
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			BaseTransaction.getSignaturesBytes(this.signatures),
+			getSignaturesBytes(this.signatures),
 		]);
 
 		return transactionBytes;
@@ -438,19 +439,6 @@ export abstract class BaseTransaction {
 			transactionFee,
 			this.assetToBytes(),
 		]);
-	}
-
-	protected static getSignaturesBytes(signatures: string[]): Buffer {
-		if (signatures?.length) {
-			// tslint:disable-next-line: no-unnecessary-callback-wrapper
-			const signaturesBuffer = signatures.map(signature =>
-				hexToBuffer(signature),
-			);
-
-			return Buffer.concat(signaturesBuffer);
-		}
-
-		return Buffer.alloc(0);
 	}
 
 	public assetToJSON(): object {

@@ -13,7 +13,10 @@
  *
  */
 
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 
 export interface CreateBaseTransactionInput {
 	readonly nonce: string;
@@ -36,4 +39,17 @@ export const createBaseTransaction = ({
 		fee,
 		senderPublicKey,
 	};
+};
+
+export const getSignaturesBytes = (signatures: string[]) => {
+	if (signatures?.length) {
+		// tslint:disable-next-line: no-unnecessary-callback-wrapper
+		const signaturesBuffer = signatures.map(signature =>
+			hexToBuffer(signature),
+		);
+
+		return Buffer.concat(signaturesBuffer);
+	}
+
+	return Buffer.alloc(0);
 };
