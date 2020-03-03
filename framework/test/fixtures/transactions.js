@@ -30,9 +30,9 @@ const Transaction = stampit({
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
 		senderId: '2525786814299543383L',
 		fee: '20000000',
-		signature:
+		signatures: [
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
-		signatures: [],
+		],
 		confirmations: 12,
 		asset: null,
 	},
