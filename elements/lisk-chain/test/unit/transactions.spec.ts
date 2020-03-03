@@ -351,7 +351,7 @@ describe('blocks/transactions', () => {
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
-				expect(invalidResponse.errors).toHaveLength(1);
+				expect(invalidResponse.errors).toHaveLength(2);
 			});
 		});
 
