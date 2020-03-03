@@ -20,7 +20,7 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 
-describe.skip('transaction:create:transfer', () => {
+describe('transaction:create:transfer', () => {
 	const testnetNetworkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const defaultAmount = '1';
@@ -30,13 +30,12 @@ describe.skip('transaction:create:transfer', () => {
 		passphrase: '123',
 	};
 	const defaultTransaction = {
+		nonce: '0',
+		fee: '10000000',
 		amount: '10000000000',
 		recipientId: '123L',
 		senderPublicKey: null,
-		timestamp: 66492418,
 		type: 0,
-		fee: '10000000',
-		recipientPublicKey: null,
 		asset: {},
 	};
 
@@ -71,7 +70,7 @@ describe.skip('transaction:create:transfer', () => {
 		setupTest()
 			.command(['transaction:create:transfer'])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 2 required args');
+				return expect(error.message).to.contain('Missing 4 required args');
 			})
 			.it('should throw an error');
 	});
@@ -80,14 +79,20 @@ describe.skip('transaction:create:transfer', () => {
 		setupTest()
 			.command(['transaction:create:transfer', defaultAmount])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 1 required arg');
+				return expect(error.message).to.contain('Missing 3 required arg');
 			})
 			.it('should throw an error');
 	});
 
 	describe('transaction:create:transfer amount address', () => {
 		setupTest()
-			.command(['transaction:create:transfer', defaultAmount, defaultAddress])
+			.command([
+				'transaction:create:transfer',
+				'1',
+				'100',
+				defaultAmount,
+				defaultAddress,
+			])
 			.it('should create a transfer transaction', () => {
 				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
@@ -111,6 +116,8 @@ describe.skip('transaction:create:transfer', () => {
 		setupTest()
 			.command([
 				'transaction:create:transfer',
+				'1',
+				'100',
 				defaultAmount,
 				defaultAddress,
 				'--data=Testing lisk transaction data.',
@@ -138,6 +145,8 @@ describe.skip('transaction:create:transfer', () => {
 		setupTest()
 			.command([
 				'transaction:create:transfer',
+				'1',
+				'100',
 				defaultAmount,
 				defaultAddress,
 				'--no-signature',
@@ -160,6 +169,8 @@ describe.skip('transaction:create:transfer', () => {
 		setupTest()
 			.command([
 				'transaction:create:transfer',
+				'1',
+				'100',
 				defaultAmount,
 				defaultAddress,
 				'--passphrase=pass:123',

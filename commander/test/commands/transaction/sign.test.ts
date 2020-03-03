@@ -19,12 +19,13 @@ import * as printUtils from '../../../src/utils/print';
 import * as inputModule from '../../../src/utils/input/utils';
 import * as inputUtils from '../../../src/utils/input';
 
-describe.skip('transaction:sign', () => {
+describe('transaction:sign', () => {
 	const defaultTransaction = {
 		type: 8,
+		nonce: '0',
+		fee: '10000000',
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-		timestamp: 54316325,
 		asset: {
 			recipientId: '18141291412139607230L',
 			amount: '1234567890',
@@ -40,12 +41,11 @@ describe.skip('transaction:sign', () => {
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
-		fee: '10000000',
 		senderId: '2129300327344985743L',
 		signatures: [],
 		signature:
-			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
-		id: '3436168030012755419',
+			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+		id: '6721820474838816958',
 	};
 
 	const printMethodStub = sandbox.stub();
@@ -98,7 +98,7 @@ describe.skip('transaction:sign', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Transaction: 6662515125650388309 failed at .asset.amount',
+					'Transaction: 7200418683467619827 failed at .asset.amount',
 				);
 			})
 			.it('should throw an error when transaction is invalid');

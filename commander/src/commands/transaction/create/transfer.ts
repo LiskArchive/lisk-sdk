@@ -14,10 +14,15 @@
  *
  */
 import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
-import { validateAddress } from '@liskhq/lisk-validator';
+import {
+	isValidFee,
+	isValidNonce,
+	validateAddress,
+} from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
+import { ValidationError } from '../../../utils/error';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
 import {
 	getInputsFromSources,
@@ -26,6 +31,8 @@ import {
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 
 interface Args {
+	readonly nonce: string;
+	readonly fee: string;
 	readonly address: string;
 	readonly amount: string;
 }
@@ -39,25 +46,35 @@ const dataFlag = {
 };
 
 const processInputs = (
-	networkIdentifier: string,
-	amount: string,
 	nonce: string,
 	fee: string,
+	networkIdentifier: string,
+	amount: string,
 	address: string,
 	data?: string,
 ) => ({ passphrase }: InputFromSourceOutput) =>
 	transfer({
+		nonce,
+		fee,
 		networkIdentifier,
 		recipientId: address,
 		amount,
-		nonce,
-		fee,
 		data,
 		passphrase,
 	});
 
 export default class TransferCommand extends BaseCommand {
 	static args = [
+		{
+			name: 'nonce',
+			required: true,
+			description: 'Nonce of the transaction.',
+		},
+		{
+			name: 'fee',
+			required: true,
+			description: 'Transaction fee in LSK.',
+		},
 		{
 			name: 'amount',
 			required: true,
@@ -74,7 +91,9 @@ export default class TransferCommand extends BaseCommand {
 	Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
 		`;
 
-	static examples = ['transaction:create:transfer 100 13356260975429434553L'];
+	static examples = [
+		'transaction:create:transfer 1 100 100 13356260975429434553L',
+	];
 
 	static flags = {
 		...BaseCommand.flags,
@@ -95,20 +114,34 @@ export default class TransferCommand extends BaseCommand {
 			},
 		} = this.parse(TransferCommand);
 
-		const { amount, address }: Args = args;
+		const { nonce, fee, amount, address }: Args = args;
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
 
+		if (!isValidNonce(nonce)) {
+			throw new ValidationError('Enter a valid nonce in number string format.');
+		}
+
+		if (Number.isNaN(Number(fee))) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
+		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
+
+		if (!isValidFee(normalizedFee)) {
+			throw new ValidationError('Enter a valid fee in number string format.');
+		}
+
 		validateAddress(address);
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
 		const processFunction = processInputs(
+			nonce,
+			normalizedFee,
 			networkIdentifier,
 			normalizedAmount,
-			'0',
-			'0',
 			address,
 			dataString,
 		);
