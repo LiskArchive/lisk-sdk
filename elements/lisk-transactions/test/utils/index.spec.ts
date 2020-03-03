@@ -15,6 +15,7 @@
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
+	getSignaturesBytes,
 	getId,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
@@ -50,6 +51,10 @@ describe('transaction utils', () => {
 
 		it('should have verifyMultiSignatureTransaction', () => {
 			return expect(validateMultisignatures).toBeFunction();
+		});
+
+		it('should have getSignaturesBytes', () => {
+			return expect(getSignaturesBytes).toBeFunction();
 		});
 	});
 });
