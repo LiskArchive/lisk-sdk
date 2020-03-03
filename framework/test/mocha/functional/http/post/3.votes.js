@@ -461,8 +461,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${accountNoFunds.address}, balance: 0`,
+				expect(res.body.errors[0].message).to.include(
+					'Account does not have enough minimum remaining LSK',
 				);
 				badTransactions.push(transaction);
 			});
