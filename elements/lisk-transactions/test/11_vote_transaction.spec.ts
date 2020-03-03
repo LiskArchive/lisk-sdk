@@ -457,6 +457,14 @@ describe('Vote transaction class', () => {
 			);
 			expect(errors[0].dataPath).toBe('.asset.votes');
 		});
+
+		describe('when votes are casted to collision accounts', () => {
+			beforeEach(async () => {});
+
+			it('should reject if the collision account is voted, which is not a delegate account', async () => {});
+
+			it('should accept the transaction if the transaction is from collision account, which is a delegate account', async () => {});
+		});
 	});
 
 	describe('#undoAsset', () => {
