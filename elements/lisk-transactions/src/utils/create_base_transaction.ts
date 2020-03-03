@@ -41,7 +41,7 @@ export const createBaseTransaction = ({
 	};
 };
 
-export const getSignaturesBytes = (signatures: string[]) => {
+export const getSignaturesBytes = (signatures: ReadonlyArray<string>) => {
 	if (signatures?.length) {
 		// tslint:disable-next-line: no-unnecessary-callback-wrapper
 		const signaturesBuffer = signatures.map(signature =>

@@ -99,15 +99,16 @@ Object {
           },
           "signatures": Object {
             "items": Object {
+              "oneOf": Array [
+                Object {
+                  "format": "signature",
+                  "type": "string",
+                },
+              ],
               "type": "string",
             },
             "maxItems": 64,
             "minItems": 1,
-            "oneOf": Array [
-              Object {
-                "type": "signature",
-              },
-            ],
             "type": "array",
           },
           "type": Object {

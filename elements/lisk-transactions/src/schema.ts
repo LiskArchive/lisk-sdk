@@ -100,10 +100,10 @@ export const baseTransaction = {
 			type: 'array',
 			items: {
 				type: 'string',
+				oneOf: [{ type: 'string', format: 'signature' }],
 			},
-			minItems: 0,
-			maxItems: 15,
-			oneOf: [{ type: 'signature' }],
+			minItems: 1,
+			maxItems: 64,
 		},
 		asset: {
 			type: 'object',

@@ -115,10 +115,10 @@ module.exports = {
 						type: 'array',
 						items: {
 							type: 'string',
+							oneOf: [{ type: 'string', format: 'signature' }],
 						},
 						minItems: 1,
 						maxItems: 64,
-						oneOf: [{ type: 'signature' }],
 					},
 					id: {
 						type: 'string',
