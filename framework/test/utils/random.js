@@ -131,7 +131,7 @@ random.transaction = function(nonce = '0') {
 		networkIdentifier,
 		nonce,
 		fee: '10000000',
-		amount: '1',
+		amount: '10000000',
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
 	});

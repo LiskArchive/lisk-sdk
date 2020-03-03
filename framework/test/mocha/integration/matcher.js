@@ -339,7 +339,7 @@ describe('matcher', () => {
 							networkIdentifier,
 							nonce: '0',
 							fee: BigInt(100000000).toString(),
-							amount: '1',
+							amount: '10000000',
 							data: i.toString(),
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: randomAccount.address,

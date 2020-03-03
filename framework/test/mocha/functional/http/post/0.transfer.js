@@ -136,7 +136,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				networkIdentifier,
 				nonce: '0',
 				fee: BigInt(10000000).toString(),
-				amount: '1',
+				amount: '10000000',
 				passphrase: account.passphrase,
 				recipientId: '1L',
 			});
@@ -149,8 +149,8 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					'Transaction was rejected with errors',
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
-				expect(res.body.errors[0].message).to.be.equal(
-					`Account does not have enough LSK: ${account.address}, balance: 0`,
+				expect(res.body.errors[0].message).to.include(
+					'Account does not have enough minimum remaining',
 				);
 				badTransactions.push(transaction);
 			});
@@ -175,7 +175,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				);
 				expect(res.body.code).to.be.eql(apiCodes.PROCESSING_ERROR);
 				expect(res.body.errors[0].message).to.include(
-					'Account does not have enough LSK: 11237980039345381032L, balance: ',
+					'Account does not have enough minimum remaining',
 				);
 				badTransactions.push(transaction);
 			});
@@ -189,7 +189,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				nonce: '0',
 				fee: BigInt(10000000).toString(),
 				asset: {
-					amount: '1',
+					amount: '10000000',
 					recipientId: account.address,
 				},
 			});
@@ -263,7 +263,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 							networkIdentifier,
 							nonce: '1',
 							fee: BigInt(10000000).toString(),
-							amount: '1',
+							amount: '10000000',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 						});
@@ -295,7 +295,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 							networkIdentifier,
 							nonce: (i + 2).toString(),
 							fee: BigInt(10000000).toString(),
-							amount: '1',
+							amount: '10000000',
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 							data: test.input,
@@ -317,7 +317,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						networkIdentifier,
 						nonce: '11',
 						fee: BigInt(10000000).toString(),
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -340,7 +340,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						networkIdentifier,
 						nonce: '12',
 						fee: BigInt(10000000).toString(),
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -361,7 +361,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						networkIdentifier,
 						nonce: '13',
 						fee: BigInt(10000000).toString(),
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,
@@ -389,7 +389,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						networkIdentifier,
 						nonce: '14',
 						fee: BigInt(10000000).toString(),
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additionalData,
@@ -417,7 +417,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						networkIdentifier,
 						nonce: '15',
 						fee: BigInt(10000000).toString(),
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 						data: additioinalData,

@@ -44,8 +44,7 @@ import {
 	validateMultisignatures,
 	validateSenderIdAndPublicKey,
 	validateSignature,
-	verifyAmountBalance,
-	verifyBalance,
+	verifyMinRemainingBalance,
 	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 } from './utils';
@@ -58,9 +57,8 @@ const exposedUtils = {
 	prependPlusToPublicKeys,
 	validateMultisignatures,
 	validateSignature,
-	verifyAmountBalance,
+	verifyMinRemainingBalance,
 	validateSenderIdAndPublicKey,
-	verifyBalance,
 	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 };

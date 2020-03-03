@@ -430,8 +430,8 @@ describe('Base transaction class', () => {
 			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
 				TransactionError,
 			);
-			expect((errors as ReadonlyArray<TransactionError>)[0].message).toEqual(
-				`Account does not have enough LSK: ${defaultSenderAccount.address}, balance: 0`,
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
+				'Account does not have enough minimum remaining LSK',
 			);
 		});
 
