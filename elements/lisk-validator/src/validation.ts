@@ -190,10 +190,11 @@ export const validateKeysgroup = (
 	keysgroup: ReadonlyArray<string>,
 	min: number,
 	max: number,
+	groupType: string,
 ): boolean => {
 	if (keysgroup.length < min || keysgroup.length > max) {
 		throw new Error(
-			`Expected between ${min} and ${max} public keys in the keysgroup.`,
+			`Expected between ${min} and ${max} public keys in '${groupType}'.`,
 		);
 	}
 

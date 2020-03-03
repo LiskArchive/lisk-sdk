@@ -14,9 +14,13 @@
  */
 
 import {
+	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
+	hash,
 	hexToBuffer,
 	intToBuffer,
+	signData,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -75,6 +79,43 @@ const setMemberAccounts = async (
 	}
 };
 
+const sortKeysAscending = (publicKeys: string[]): string[] =>
+	publicKeys.sort((publicKeyA, publicKeyB) => {
+		if (publicKeyA > publicKeyB) {
+			return 1;
+		}
+		if (publicKeyA < publicKeyB) {
+			return -1;
+		}
+
+		return 0;
+	});
+
+interface PublicKeyPassphraseDict {
+	// tslint:disable-next-line: readonly-keyword
+	[key: string]: {
+		readonly privateKey: string;
+		readonly publicKey: string;
+		readonly passphrase: string;
+	};
+}
+
+const buildPublicKeyPassphraseMap = (passphrases: string[]) => {
+	const publicKeyPassphrase: PublicKeyPassphraseDict = {};
+
+	passphrases.forEach(aPassphrase => {
+		const keys = getPrivateAndPublicKeyFromPassphrase(aPassphrase);
+		if (!publicKeyPassphrase[keys.publicKey]) {
+			publicKeyPassphrase[keys.publicKey] = {
+				...keys,
+				passphrase: aPassphrase,
+			};
+		}
+	});
+
+	return publicKeyPassphrase;
+};
+
 const validateKeysSignatures = (
 	keys: readonly string[],
 	signatures: readonly string[],
@@ -97,8 +138,10 @@ const validateKeysSignatures = (
 };
 
 export interface MultiSignatureAsset {
-	readonly mandatoryKeys: ReadonlyArray<string>;
-	readonly optionalKeys: ReadonlyArray<string>;
+	// tslint:disable-next-line: readonly-keyword
+	mandatoryKeys: Array<Readonly<string>>;
+	// tslint:disable-next-line: readonly-keyword
+	optionalKeys: Array<Readonly<string>>;
 	readonly numberOfSignatures: number;
 }
 
@@ -387,5 +430,83 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		return createResponse(this.id, []);
+	}
+
+	public signAll(
+		networkIdentifier: string,
+		senderPassphrase: string,
+		keys?: {
+			readonly passphrases: ReadonlyArray<string>;
+			readonly mandatoryKeys: ReadonlyArray<string>;
+			readonly optionalKeys: ReadonlyArray<string>;
+			readonly numberOfSignatures: number;
+		},
+	): void {
+		// Set network identifier if it was previously not set in the transaction
+		if (!this._networkIdentifier) {
+			this._networkIdentifier = networkIdentifier;
+		}
+		// Sort the keys in the transaction
+		sortKeysAscending(this.asset.mandatoryKeys);
+		sortKeysAscending(this.asset.optionalKeys);
+
+		// Sign with sender
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(
+			senderPassphrase,
+		);
+
+		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
+			throw new Error(
+				'Transaction senderPublicKey does not match public key from passphrase',
+			);
+		}
+
+		this._senderPublicKey = publicKey;
+
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBytes(),
+		]);
+
+		this.signatures.push(
+			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
+		);
+
+		if (keys && keys.passphrases) {
+			// Keys might or might not come sorted so let's just sort them
+			const sortedMandatoryKeys = sortKeysAscending([...keys.mandatoryKeys]);
+			const sortedOptionalKeys = sortKeysAscending([...keys.optionalKeys]);
+
+			const keysAndPassphrases = buildPublicKeyPassphraseMap([
+				...keys.passphrases,
+			]);
+
+			// Sign with mandatory
+			for (const aKey of sortedMandatoryKeys) {
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+
+			// Sign with optional
+			for (const aKey of sortedOptionalKeys) {
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+		}
 	}
 }

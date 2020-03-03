@@ -17,12 +17,12 @@ export const FIXED_POINT = 10 ** 8;
 
 export const MIN_FEE_PER_BYTE = 1000;
 export const DELEGATE_NAME_FEE = 1000000000;
-export const MULTISIGNATURE_MAX_LIFETIME = 72;
-export const MULTISIGNATURE_MIN_LIFETIME = 1;
-export const MULTISIGNATURE_MAX_KEYSGROUP = 15;
-export const MULTISIGNATURE_MIN_KEYSGROUP = 1;
 export const DAPP_FEE = FIXED_POINT * 25;
 export const USERNAME_MAX_LENGTH = 20;
+export const MAX_NUMBER_OF_SIGNATURES = 64;
+export const MIN_NUMBER_OF_SIGNATURES = 1;
+export const MAX_NUMBER_OF_KEYS = 64;
+export const MIN_NUMBER_OF_KEYS = 0;
 
 export const BYTESIZES = {
 	TYPE: 1,
