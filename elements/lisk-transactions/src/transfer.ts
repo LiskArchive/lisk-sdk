@@ -36,7 +36,6 @@ export interface TransferInputs {
 	readonly passphrase?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
-	readonly secondPassphrase?: string;
 }
 
 const validateInputs = ({

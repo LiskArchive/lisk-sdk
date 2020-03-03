@@ -161,7 +161,7 @@ describe('#transfer transaction', () => {
 		});
 	});
 
-	describe('with first and second passphrase', () => {
+	describe('with passphrase', () => {
 		beforeEach(() => {
 			transferTransaction = transfer({
 				recipientId,

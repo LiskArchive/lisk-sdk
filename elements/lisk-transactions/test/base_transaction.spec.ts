@@ -284,7 +284,7 @@ describe('Base transaction class', () => {
 			);
 		});
 
-		it('should return a buffer with signature bytes', async () => {
+		it('should return a buffer with signatures bytes', async () => {
 			const expectedBuffer = Buffer.concat([
 				(validTestTransaction as any).getBasicBytes(),
 				(BaseTransaction as any).getSignaturesBytes(
