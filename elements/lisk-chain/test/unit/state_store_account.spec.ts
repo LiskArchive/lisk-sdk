@@ -22,6 +22,7 @@ describe('state store / account', () => {
 		username: null,
 		isDelegate: 0,
 		balance: '0',
+		nonce: '0',
 		nameExist: false,
 		missedBlocks: 0,
 		producedBlocks: 0,

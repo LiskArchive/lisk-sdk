@@ -53,6 +53,38 @@ export const verifyMinRemainingBalance = (
 	return undefined;
 };
 
+export const verifyAccountNonce = (
+	id: string,
+	account: Account,
+	nonce: bigint,
+): TransactionError | undefined => {
+	if (nonce < account.nonce) {
+		return new TransactionError(
+			`Incompatible transaction nonce for account: ${
+				account.address
+			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			id,
+			'.nonce',
+			nonce.toString(),
+			account.nonce.toString(),
+		);
+	}
+
+	if (nonce > account.nonce) {
+		return new TransactionError(
+			`Higher transaction nonce for account: ${
+				account.address
+			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			id,
+			'.nonce',
+			nonce.toString(),
+			account.nonce.toString(),
+		);
+	}
+
+	return undefined;
+};
+
 export const isMultisignatureAccount = (account: Account): boolean =>
 	!!(
 		(account.keys.mandatoryKeys.length > 0 ||

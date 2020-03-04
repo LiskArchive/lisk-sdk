@@ -30,6 +30,7 @@ export type IndexableTransactionJSON = TransactionJSON & Indexable;
 export interface AccountJSON {
 	readonly address: string;
 	readonly balance: string;
+	readonly nonce: string;
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
 	readonly publicKey: string | undefined;

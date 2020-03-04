@@ -89,5 +89,42 @@ describe('storage.entities.Account.update', () => {
 			);
 			expect(updatedAccount).toMatchObject(expectedAccount);
 		});
+
+		it('should update nonce field for each given account', async () => {
+			// Arrange
+			const account = {
+				address: 'delegateAddress',
+				publicKey:
+					'399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
+				nonce: '5',
+			};
+
+			const expectedAccount = {
+				...account,
+				nonce: '6',
+			};
+
+			await pgHelper.createAccount(account);
+
+			// Act
+			await db.tx(async tx => {
+				await storage.entities.Account.update(
+					{
+						publicKey: account.publicKey,
+					},
+					{
+						nonce: (BigInt(account.nonce) + BigInt(1)).toString(),
+					},
+					{},
+					tx,
+				);
+			});
+
+			// Assert
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
+				account.publicKey,
+			);
+			expect(updatedAccount).toMatchObject(expectedAccount);
+		});
 	});
 });

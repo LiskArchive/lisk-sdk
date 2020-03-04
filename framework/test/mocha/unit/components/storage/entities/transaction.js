@@ -258,34 +258,32 @@ describe('Transaction', () => {
 				id: transactions[0].id,
 			};
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				transaction.get(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const transaction = new Transaction(adapter);
-			try {
+
+			await expect(() => {
 				transaction.get({ invalid_filter: true });
-			} catch (err) {
-				expect(err.message).to.equal('One or more filters are not supported.');
-			}
+			}).to.throw('One or more filters are not supported.');
 		});
 
 		it('should accept only valid options', async () => {
 			const transaction = new Transaction(adapter);
-			return expect(
-				transaction.get({}, validOptions),
-			).to.eventually.fulfilled.and.deep.equal([]);
+			const res = await transaction.get({}, validOptions);
+
+			expect(res).to.deep.equal([]);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const transaction = new Transaction(adapter);
-			try {
+
+			await expect(() => {
 				transaction.get({}, invalidOptions);
-			} catch (err) {
-				expect(err.message).to.equal('One or more options are not supported.');
-			}
+			}).to.throw('One or more options are not supported.');
 		});
 
 		it('should call adapter.executeFile with proper param for extended=false', async () => {
@@ -293,7 +291,7 @@ describe('Transaction', () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const transaction = new Transaction(adapter);
 			// Act
-			transaction.get();
+			await transaction.get();
 			// Assert
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.select);
 		});
@@ -303,7 +301,8 @@ describe('Transaction', () => {
 			sinonSandbox.spy(adapter, 'executeFile');
 			const transaction = new Transaction(adapter);
 			// Act
-			transaction.get({}, { extended: true });
+			await transaction.get({}, { extended: true });
+
 			// Assert
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(
 				SQLs.selectExtended,
@@ -367,6 +366,7 @@ describe('Transaction', () => {
 			// Assert
 			expect(results[0]).to.have.all.keys(validExtendedObjectFields);
 		});
+
 		it('should not change any of the provided parameter');
 
 		it('should return result in valid format', async () => {
@@ -512,7 +512,7 @@ describe('Transaction', () => {
 			};
 
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				transaction.getOne(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
@@ -529,7 +529,7 @@ describe('Transaction', () => {
 			};
 
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				transaction.getOne(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
@@ -537,8 +537,9 @@ describe('Transaction', () => {
 		it('should accept only valid options', async () => {
 			// Arrange
 			const transaction = new Transaction(adapter);
+
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				transaction.getOne({}, validOptions);
 			}).not.to.throw(NonSupportedOptionError);
 		});
@@ -550,8 +551,9 @@ describe('Transaction', () => {
 			});
 			const transaction = new Transaction(adapter);
 			await storage.entities.Transaction.create(aTransaction);
+
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				transaction.getOne({}, invalidOptions);
 			}).to.throw(NonSupportedOptionError);
 		});
@@ -589,7 +591,7 @@ describe('Transaction', () => {
 			await storage.entities.Transaction.create(transactions);
 
 			// Act && Assert
-			return expect(
+			await expect(
 				transaction.getOne({
 					blockId: transactions[0].blockId,
 				}),
@@ -648,14 +650,16 @@ describe('Transaction', () => {
 			await storage.entities.Transaction.create(transactionFixture);
 
 			const transaction = new Transaction(adapter);
-			expect(() => {
+
+			await expect(() => {
 				transaction.isPersisted({ id: transactionFixture.id });
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const transaction = new Transaction(adapter);
-			expect(() => {
+
+			await expect(() => {
 				transaction.isPersisted({ invalid: true });
 			}).to.throw(NonSupportedFilterTypeError);
 		});
@@ -679,8 +683,10 @@ describe('Transaction', () => {
 			const transaction = new Transaction(localAdapter);
 			transaction.mergeFilters = sinonSandbox.stub();
 			transaction.parseFilters = sinonSandbox.stub();
+
 			// Act
-			transaction.isPersisted(validFilter);
+			await transaction.isPersisted(validFilter);
+
 			// Assert
 			expect(transaction.mergeFilters.calledWith(validFilter)).to.be.true;
 		});
@@ -704,8 +710,10 @@ describe('Transaction', () => {
 			const transaction = new Transaction(localAdapter);
 			transaction.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			transaction.parseFilters = sinonSandbox.stub();
+
 			// Act
-			transaction.isPersisted(validFilter);
+			await transaction.isPersisted(validFilter);
+
 			// Assert
 			expect(transaction.parseFilters.calledWith(validFilter)).to.be.true;
 		});
@@ -720,6 +728,7 @@ describe('Transaction', () => {
 			const transaction = new Transaction(adapter);
 			// Act
 			await transaction.isPersisted({ id: randTransaction.id });
+
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.isPersisted);
@@ -731,9 +740,11 @@ describe('Transaction', () => {
 				blockId: block.id,
 			});
 			await storage.entities.Transaction.create(transactionFixture);
+
 			const res = await storage.entities.Transaction.isPersisted({
 				id: transactionFixture.id,
 			});
+
 			expect(res).to.be.true;
 		});
 
@@ -743,9 +754,11 @@ describe('Transaction', () => {
 				blockId: block.id,
 			});
 			await storage.entities.Transaction.create(transactionFixture);
+
 			const res = await storage.entities.Transaction.isPersisted({
 				id: 'invalidTransactionID',
 			});
+
 			expect(res).to.be.false;
 		});
 
@@ -760,7 +773,9 @@ describe('Transaction', () => {
 					}),
 				);
 			});
+
 			await storage.entities.Transaction.create(transactions);
+
 			expect(
 				await storage.entities.Transaction.isPersisted({
 					id: transactions[0].id,

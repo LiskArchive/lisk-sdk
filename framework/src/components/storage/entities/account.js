@@ -48,6 +48,7 @@ class Account extends BaseEntity {
 			booleanToInt,
 		);
 		this.addField('balance', 'string', { filter: ft.NUMBER });
+		this.addField('nonce', 'string', { filter: ft.BOOLEAN });
 		this.addField(
 			'nameExist',
 			'boolean',
