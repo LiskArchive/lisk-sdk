@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,6 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';
-ALTER TABLE "trs" ALTER COLUMN "timestamp" DROP NOT NULL;
-ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';
+/*
+ * For existing trs records we used nonce to -1, as nonce feature will start
+ * account nonce from 0
+ */
+
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT NOT NULL DEFAULT '-1';
+ALTER TABLE "trs" ALTER COLUMN "nonce" DROP DEFAULT;

@@ -29,6 +29,7 @@ export const defaultAccount = {
 	username: null,
 	isDelegate: 0,
 	balance: BigInt('0'),
+	nonce: BigInt(0),
 	missedBlocks: 0,
 	producedBlocks: 0,
 	fees: BigInt('0'),

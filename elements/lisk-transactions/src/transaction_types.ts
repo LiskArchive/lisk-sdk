@@ -17,6 +17,7 @@ import { TransactionError } from './errors';
 export interface Account {
 	readonly address: string;
 	balance: bigint;
+	nonce: bigint;
 	missedBlocks: number;
 	producedBlocks: number;
 	publicKey: string | undefined;
