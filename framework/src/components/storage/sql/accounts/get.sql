@@ -17,6 +17,7 @@ SELECT
 	ENCODE("publicKey", 'hex') as "publicKey",
 	"username",
 	"isDelegate"::int::boolean,
+	"nonce",
 	"balance",
 	"asset",
 	"nameexist"::int::boolean as "nameExist",

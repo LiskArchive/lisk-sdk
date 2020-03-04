@@ -19,6 +19,7 @@ export const accountDefaultValues = {
 	username: null,
 	isDelegate: 0,
 	balance: '0',
+	nonce: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	fees: '0',
@@ -38,6 +39,7 @@ export const accountDefaultValues = {
 export class Account {
 	public address: string;
 	public balance: bigint;
+	public nonce: bigint;
 	public fees: bigint;
 	public rewards: bigint;
 	public voteWeight: bigint;
@@ -60,6 +62,7 @@ export class Account {
 		this.balance = accountInfo.balance
 			? BigInt(accountInfo.balance)
 			: BigInt(0);
+		this.nonce = accountInfo.nonce ? BigInt(accountInfo.nonce) : BigInt(0);
 		this.missedBlocks = accountInfo.missedBlocks;
 		this.producedBlocks = accountInfo.producedBlocks;
 		this.isDelegate = accountInfo.isDelegate;
@@ -104,6 +107,7 @@ export class Account {
 			username: this.username,
 			isDelegate: this.isDelegate,
 			balance: this.balance.toString(),
+			nonce: this.nonce.toString(),
 			missedBlocks: this.missedBlocks,
 			producedBlocks: this.producedBlocks,
 			fees: this.fees.toString(),
