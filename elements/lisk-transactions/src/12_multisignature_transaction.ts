@@ -320,8 +320,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		sender.keys = {
 			numberOfSignatures: this.asset.numberOfSignatures,
-			mandatoryKeys: this.asset.mandatoryKeys as string[],
-			optionalKeys: this.asset.optionalKeys as string[],
+			mandatoryKeys: this.asset.mandatoryKeys,
+			optionalKeys: this.asset.optionalKeys,
 		};
 
 		store.account.set(sender.address, sender);
