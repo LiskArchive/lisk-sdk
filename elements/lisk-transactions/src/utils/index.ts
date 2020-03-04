@@ -18,3 +18,5 @@ export * from './format';
 export * from './sign_and_validate';
 export * from './verify';
 export * from './transaction_id';
+export * from './sort_assending';
+export * from './build_key_passphrase_dict';

@@ -36,7 +36,7 @@ const transactionMap: { readonly [key: number]: any } = {
 };
 
 export const signMultiSignatureTransaction = (options: {
-	readonly transaction: Partial<TransactionJSON>;
+	readonly transaction: TransactionJSON;
 	readonly passphrase: string;
 	readonly networkIdentifier: string;
 	readonly keys: {

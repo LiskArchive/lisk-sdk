@@ -16,7 +16,6 @@
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
 	hash,
 	hexToBuffer,
 	intToBuffer,
@@ -32,7 +31,12 @@ import {
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { getId, validateSignature } from './utils';
+import {
+	buildPublicKeyPassphraseDict,
+	getId,
+	sortKeysAscending,
+	validateSignature,
+} from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -77,43 +81,6 @@ const setMemberAccounts = async (
 		memberAccount.publicKey = memberAccount.publicKey || memberPublicKey;
 		store.account.set(memberAccount.address, memberAccount);
 	}
-};
-
-const sortKeysAscending = (publicKeys: string[]): string[] =>
-	publicKeys.sort((publicKeyA, publicKeyB) => {
-		if (publicKeyA > publicKeyB) {
-			return 1;
-		}
-		if (publicKeyA < publicKeyB) {
-			return -1;
-		}
-
-		return 0;
-	});
-
-interface PublicKeyPassphraseDict {
-	// tslint:disable-next-line: readonly-keyword
-	[key: string]: {
-		readonly privateKey: string;
-		readonly publicKey: string;
-		readonly passphrase: string;
-	};
-}
-
-const buildPublicKeyPassphraseMap = (passphrases: string[]) => {
-	const publicKeyPassphrase: PublicKeyPassphraseDict = {};
-
-	passphrases.forEach(aPassphrase => {
-		const keys = getPrivateAndPublicKeyFromPassphrase(aPassphrase);
-		if (!publicKeyPassphrase[keys.publicKey]) {
-			publicKeyPassphrase[keys.publicKey] = {
-				...keys,
-				passphrase: aPassphrase,
-			};
-		}
-	});
-
-	return publicKeyPassphrase;
 };
 
 const validateKeysSignatures = (
@@ -474,7 +441,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		);
 
 		if (keys && keys.passphrases) {
-			const keysAndPassphrases = buildPublicKeyPassphraseMap([
+			const keysAndPassphrases = buildPublicKeyPassphraseDict([
 				...keys.passphrases,
 			]);
 

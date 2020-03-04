@@ -153,6 +153,10 @@ export const registerMultisignature = (
 
 	const multisignatureTransaction = new MultisignatureTransaction(transaction);
 
+	if (!passphrases || !senderPassphrase) {
+		return multisignatureTransaction.toJSON();
+	}
+
 	multisignatureTransaction.signAll(networkIdentifier, senderPassphrase, {
 		passphrases,
 		mandatoryKeys,
