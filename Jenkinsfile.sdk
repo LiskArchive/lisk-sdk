@@ -269,6 +269,7 @@ pipeline {
 		}
 		stage('Legacy Framework test (mocha)') {
 			parallel {
+				/*
 				stage('Functional HTTP GET tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
@@ -317,6 +318,7 @@ pipeline {
 						}
 					}
 				}
+				*/
 				stage('Unit tests') {
 					agent { node { label 'lisk-framework' }}
 					steps {
@@ -329,6 +331,7 @@ pipeline {
 						}
 					}
 				}
+				/*
 				stage('Integration tests') {
 					agent { node { label 'lisk-framework' }}
 					options {
@@ -344,6 +347,7 @@ pipeline {
 						}
 					}
 				}
+				*/
 			}
 		}
 	}
