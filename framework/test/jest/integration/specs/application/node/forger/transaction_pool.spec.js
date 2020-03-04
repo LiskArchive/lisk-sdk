@@ -15,10 +15,17 @@
 'use strict';
 
 const {
+	transfer,
+	utils: { convertLSKToBeddows },
+} = require('@liskhq/lisk-transactions');
+const {
 	nodeUtils,
 	storageUtils,
 	configUtils,
 } = require('../../../../../../utils');
+const {
+	accounts: { genesis },
+} = require('../../../../../../fixtures');
 
 describe('Delete block', () => {
 	const dbName = 'delete_block';
@@ -31,7 +38,7 @@ describe('Delete block', () => {
 			dbName,
 		);
 		await storage.bootstrap();
-		node = await nodeUtils.createAndLoadNode(storage, console);
+		node = await nodeUtils.createAndLoadNode(storage);
 	});
 
 	afterAll(async () => {
@@ -40,9 +47,41 @@ describe('Delete block', () => {
 	});
 
 	describe('given a valid transaction while forging is disabled', () => {
+		let transaction;
+
+		beforeAll(async () => {
+			const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				genesis.address,
+			);
+			const account = nodeUtils.createAccount();
+			transaction = transfer({
+				nonce: genesisAccount.nonce.toString(),
+				networkIdentifier: node.networkIdentifier,
+				fee: convertLSKToBeddows('0.002'),
+				recipientId: account.address,
+				amount: convertLSKToBeddows('1000'),
+				passphrase: genesis.passphrase,
+			});
+			await node.transport.handleEventPostTransaction({ transaction });
+		});
+
 		describe('when transaction is pass to the transaction pool', () => {
-			it.todo('should be added to the transaction pool', async () => {});
-			it.todo('should expire after X sec', async () => {});
+			it('should be added to the transaction pool', async () => {
+				expect(
+					node.transactionPool.transactionInPool(transaction.id),
+				).toBeTrue();
+			});
+
+			it('should expire after X sec', async () => {
+				const tx = node.transactionPool.findInTransactionPool(transaction.id);
+				// Mutate received at to be expired (3 hours + 1s)
+				tx.receivedAt = new Date(Date.now() - 10801000);
+				// Forcefully call expire
+				await node.transactionPool.pool.expireTransactions();
+				expect(
+					node.transactionPool.transactionInPool(transaction.id),
+				).toBeFalse();
+			});
 		});
 	});
 });

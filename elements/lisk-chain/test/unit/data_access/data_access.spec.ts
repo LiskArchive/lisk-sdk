@@ -38,6 +38,7 @@ describe('data_access.storage', () => {
 				},
 				Account: {
 					get: jest.fn(),
+					getOne: jest.fn(),
 					resetMemTables: jest.fn(),
 				},
 				Transaction: {
@@ -312,13 +313,32 @@ describe('data_access.storage', () => {
 		});
 	});
 
+	describe('#getAccountByAddress', () => {
+		it('should call storage.getAccountsByAddress', async () => {
+			// Act
+			storageMock.entities.Account.getOne.mockResolvedValue({
+				address: '1L',
+				balance: '0',
+			});
+			const account = await dataAccess.getAccountByAddress('1L');
+
+			// Assert
+			expect(storageMock.entities.Account.getOne).toHaveBeenCalled();
+			expect(typeof account.balance).toEqual('bigint');
+		});
+	});
+
 	describe('#getAccountsByAddress', () => {
 		it('should call storage.getAccountsByAddress', async () => {
 			// Act
-			await dataAccess.getAccountsByAddress(['1L']);
+			storageMock.entities.Account.get.mockResolvedValue([
+				{ address: '1L', balance: '0' },
+			]);
+			const accounts = await dataAccess.getAccountsByAddress(['1L']);
 
 			// Assert
 			expect(storageMock.entities.Account.get).toHaveBeenCalled();
+			expect(typeof accounts[0].balance).toEqual('bigint');
 		});
 	});
 

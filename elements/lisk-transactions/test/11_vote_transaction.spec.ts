@@ -479,8 +479,24 @@ describe('Vote transaction class', () => {
 			let validCollisionTransaction: VoteTransaction;
 
 			beforeEach(async () => {
+				const account = {
+					passphrase:
+						'dutch brass risk define problem pear urban notable kangaroo street dinosaur eagle',
+					publicKey:
+						'a0d662a90afc73c13bc463630f8fb6e8cc11e4b346679d158af2b4b771dc3845',
+					address: '18240835918225510659L',
+				};
+				const sender = {
+					...defaultAccount,
+					address: account.address,
+					balance: BigInt('100000000'),
+					publicKey: account.publicKey,
+					votedDelegatesPublicKeys: [
+						'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+					],
+				};
 				store = new StateStoreMock([
-					defaultValidSender,
+					sender,
 					{
 						...defaultAccount,
 						balance: BigInt('0'),
@@ -496,7 +512,9 @@ describe('Vote transaction class', () => {
 					asset: {
 						votes: [`+${collisionAccounts[0].publicKey}`],
 					},
+					senderPublicKey: account.publicKey,
 				});
+				validCollisionTransaction.sign(account.passphrase);
 			});
 
 			it('should reject if the collision account is voted, which is not a delegate account', async () => {

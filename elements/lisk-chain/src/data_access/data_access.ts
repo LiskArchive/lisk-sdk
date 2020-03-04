@@ -13,6 +13,7 @@
  */
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 
+import { Account } from '../account';
 import {
 	AccountJSON,
 	BlockHeader,
@@ -313,12 +314,18 @@ export class DataAccess {
 		return accounts;
 	}
 
+	public async getAccountByAddress(address: string): Promise<Account> {
+		const account = await this._storage.getAccountByAddress(address);
+
+		return new Account(account);
+	}
+
 	public async getAccountsByAddress(
 		arrayOfAddresses: ReadonlyArray<string>,
-	): Promise<AccountJSON[]> {
+	): Promise<Account[]> {
 		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
-		return accounts;
+		return accounts.map(account => new Account(account));
 	}
 
 	public async getDelegateAccounts(limit: number): Promise<AccountJSON[]> {

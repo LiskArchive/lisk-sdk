@@ -15,13 +15,91 @@
 'use strict';
 
 const {
+	BaseTransaction,
+	TransferTransaction,
+} = require('@liskhq/lisk-transactions');
+const {
 	nodeUtils,
 	storageUtils,
 	configUtils,
 } = require('../../../../../utils');
+const {
+	accounts: { genesis },
+} = require('../../../../../fixtures');
 
-describe('Delete block', () => {
-	const dbName = 'delete_block';
+/**
+ * Implementation of the Custom Transaction enclosed in a class
+ */
+class CustomTransationClass extends BaseTransaction {
+	constructor(input) {
+		super(input);
+		this.asset = input.asset;
+	}
+
+	static get TYPE() {
+		return 7;
+	}
+
+	static get FEE() {
+		return TransferTransaction.FEE;
+	}
+
+	assetToJSON() {
+		return this.asset;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	assetToBytes() {
+		return Buffer.alloc(0);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	applyAsset() {
+		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	undoAsset() {
+		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	validateAsset() {
+		return [];
+	}
+
+	async prepare(store) {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+		]);
+	}
+}
+
+const createRawCustomTransaction = ({
+	passphrase,
+	nonce,
+	networkIdentifier,
+	senderPublicKey,
+}) => {
+	const aCustomTransation = new CustomTransationClass({
+		networkIdentifier,
+		type: 7,
+		nonce,
+		senderPublicKey,
+		asset: {
+			data: 'raw data',
+		},
+		fee: (10000000).toString(),
+	});
+	aCustomTransation.sign(passphrase);
+
+	return aCustomTransation.toJSON();
+};
+
+describe('Matcher', () => {
+	const dbName = 'transaction_matcher';
 	let storage;
 	let node;
 
@@ -31,7 +109,8 @@ describe('Delete block', () => {
 			dbName,
 		);
 		await storage.bootstrap();
-		node = await nodeUtils.createAndLoadNode(storage, console);
+		node = await nodeUtils.createAndLoadNode(storage);
+		await node.forger.loadDelegates();
 	});
 
 	afterAll(async () => {
@@ -41,22 +120,53 @@ describe('Delete block', () => {
 
 	describe('given a disallowed transaction', () => {
 		describe('when transaction is pass to node', () => {
-			it.todo('should be rejected', async () => {});
+			it('should be rejected', async () => {
+				const account = nodeUtils.createAccount();
+				const tx = createRawCustomTransaction({
+					passphrase: account.passphrase,
+					networkIdentifier: node.networkIdentifier,
+					senderPublicKey: account.publicKey,
+					nonce: '0',
+				});
+				await expect(
+					node.transport.handleEventPostTransaction({ transaction: tx }),
+				).resolves.toEqual(
+					expect.objectContaining({
+						message: expect.stringContaining('Transaction was rejected'),
+					}),
+				);
+			});
 		});
 	});
 
 	describe('given a block containing disallowed transaction', () => {
 		describe('when the block is processed', () => {
-			it.todo('should be rejected', async () => {});
-		});
-	});
+			let newBlock;
+			beforeAll(async () => {
+				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+					genesis.address,
+				);
+				const aCustomTransation = new CustomTransationClass({
+					networkIdentifier: node.networkIdentifier,
+					senderPublicKey: genesis.publicKey,
+					nonce: genesisAccount.nonce.toString(),
+					type: 7,
+					asset: {
+						data: 'raw data',
+					},
+					fee: (10000000).toString(),
+				});
+				aCustomTransation.sign(genesis.passphrase);
+				newBlock = await nodeUtils.createBlock(node, [aCustomTransation]);
+			});
 
-	describe('given a disallowed transaction is in the pool', () => {
-		describe('when the block is forged', () => {
-			it.todo(
-				'should be not include the disallowed transaction',
-				async () => {},
-			);
+			it('should be rejected', async () => {
+				await expect(node.processor.process(newBlock)).rejects.toEqual(
+					expect.objectContaining({
+						message: expect.stringContaining('Transaction type not found'),
+					}),
+				);
+			});
 		});
 	});
 });
