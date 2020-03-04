@@ -25,11 +25,15 @@ import * as queueCheckers from './queue_checkers';
 
 export interface TransactionObject {
 	readonly id: string;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly minFee: bigint;
 	receivedAt?: Date;
+	// TODO: Remove unnecessary properties
+	readonly senderPublicKey: string;
 	readonly asset: {
 		[key: string]: string | number | ReadonlyArray<string> | undefined;
 	};
-	readonly senderPublicKey: string;
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
 	containsUniqueData?: boolean;
