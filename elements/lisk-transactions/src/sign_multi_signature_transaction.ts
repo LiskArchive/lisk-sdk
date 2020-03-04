@@ -24,7 +24,7 @@ import { TransactionJSON } from './transaction_types';
 export interface SignatureObject {
 	readonly publicKey: string;
 	readonly signature: string;
-	readonly transactionId: string;
+	readonly transaction: BaseTransaction;
 }
 
 // tslint:disable-next-line no-any
@@ -114,7 +114,7 @@ export const signMultiSignatureTransaction = (options: {
 	}
 
 	return {
-		transactionId: tx.id,
+		transaction: tx,
 		publicKey,
 		signature,
 	};
