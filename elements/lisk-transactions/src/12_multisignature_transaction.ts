@@ -32,7 +32,7 @@ import {
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validateSignature } from './utils';
+import { getId, validateSignature } from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -504,5 +504,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 				}
 			}
 		}
+		this._id = getId(this.getBytes());
 	}
 }
