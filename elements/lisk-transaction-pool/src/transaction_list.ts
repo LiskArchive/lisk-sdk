@@ -123,7 +123,7 @@ export class TransactionList {
 	}
 
 	public promote(txs: ReadonlyArray<Transaction>): boolean {
-		// Promtoe if only all ID are still existing and the same
+		// Promote if only all ID are still existing and the same
 		const promotingNonces = [];
 		for (const tx of txs) {
 			const promotingTx = this._transactions[tx.nonce.toString()];
