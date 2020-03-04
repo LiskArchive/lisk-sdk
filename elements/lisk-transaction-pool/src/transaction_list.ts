@@ -72,13 +72,15 @@ export class TransactionList {
 
 			return true;
 		}
-		// If the size exceeds, remove the largest nonce
+
 		const highestNonce = this._highestNonce();
-		if (
-			this._nonceHeap.count >= this._maxSize &&
-			incomingTx.nonce > highestNonce
-		) {
-			return false;
+		if (this._nonceHeap.count >= this._maxSize) {
+			// If incoming nonce is bigger than the highest nonce, then reject
+			if (incomingTx.nonce > highestNonce) {
+				return false;
+			}
+			// If the size exceeds, remove the largest nonce transaction
+			this.remove(highestNonce);
 		}
 
 		this._transactions[incomingTx.nonce.toString()] = incomingTx;
@@ -88,10 +90,6 @@ export class TransactionList {
 			this._processable.push(incomingTx.nonce);
 		}
 
-		// If the size exceeds, remove the largest nonce transaction
-		if (this._nonceHeap.count > this._maxSize) {
-			this.remove(highestNonce);
-		}
 		this.events.emit(EVENT_TRANSACTION_REMOVED, {
 			address: this.address,
 			id: incomingTx.id,
