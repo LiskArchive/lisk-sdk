@@ -143,21 +143,6 @@ describe('#verify', () => {
 	});
 
 	describe('#verifyMultiSignatureTransaction', () => {
-		it('should return error when signatures array is empty', () => {
-			const [result] = verifyMultiSignatureTransaction(
-				defaultTransferTransaction.id,
-				defaultTransferTransaction,
-				[],
-				defaultTransferTransactionBytes,
-			);
-
-			expect(result).toBeInstanceOf(TransactionError);
-			expect(result).toHaveProperty(
-				'message',
-				'Transaction has empty signatures',
-			);
-		});
-
 		it('should return error when signatures does not have required number of signatures', () => {
 			const { signatures } = defaultTransferTransaction;
 			const publicKeys = getMemberPublicKeys(
@@ -183,6 +168,26 @@ describe('#verify', () => {
 			expect(result).toHaveProperty(
 				'message',
 				`Transaction signatures does not match required number of transactions: ${numberOfSignatures}`,
+			);
+		});
+
+		it('should return error when signatures are missing than expected', () => {
+			const senderAccount = {
+				...defaultTransferTransaction,
+				keys: defaultTransferTransaction.asset,
+			};
+
+			const [result] = verifyMultiSignatureTransaction(
+				senderAccount.id,
+				senderAccount,
+				[...senderAccount.signatures, ...senderAccount.signatures],
+				defaultTransferTransactionBytes,
+			);
+
+			expect(result).toBeInstanceOf(TransactionError);
+			expect(result).toHaveProperty(
+				'message',
+				`Transaction signatures does not match required number of transactions: ${defaultTransferTransaction.asset.numberOfSignatures}`,
 			);
 		});
 
@@ -256,22 +261,6 @@ describe('#verify', () => {
 					1,
 				)}`,
 			);
-		});
-
-		it('should return no errors when all the mandatoryKeys and optionalKeys signatures are valid', () => {
-			const senderAccount = {
-				...defaultTransferTransaction,
-				keys: defaultTransferTransaction.asset,
-			};
-
-			const [result] = verifyMultiSignatureTransaction(
-				'id',
-				senderAccount,
-				senderAccount.signatures,
-				defaultTransferTransactionBytes,
-			);
-
-			expect(result).toBeEmpty;
 		});
 	});
 });

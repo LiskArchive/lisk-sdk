@@ -89,21 +89,17 @@ export const verifyMultiSignatureTransaction = (
 	transactionBytes: Buffer,
 ) => {
 	const errors = [];
-	if (signatures.length === 0) {
-		const error = new TransactionError(
-			'Transaction has empty signatures',
-			id,
-			'.signatures',
-		);
-
-		return [error];
-	}
 
 	const { mandatoryKeys, optionalKeys, numberOfSignatures } = sender.keys;
 	const numMandatoryKeys = mandatoryKeys.length;
+	const numOptionalKeys = optionalKeys.length;
 	const nonEmptySignaturesCount = signatures.filter(k => k.length !== 0).length;
 
-	if (nonEmptySignaturesCount !== numberOfSignatures) {
+	// Check if signatures excluding empty string matched required numberOfSignatures
+	if (
+		nonEmptySignaturesCount !== numberOfSignatures ||
+		signatures.length !== numMandatoryKeys + numOptionalKeys
+	) {
 		const error = new TransactionError(
 			`Transaction signatures does not match required number of transactions: ${numberOfSignatures}`,
 			id,
@@ -114,8 +110,6 @@ export const verifyMultiSignatureTransaction = (
 		return [error];
 	}
 
-	const numOptionalKeys = optionalKeys.length;
-
 	const mandatoryKeysError = validateKeysSignatures(
 		mandatoryKeys,
 		signatures,
@@ -124,8 +118,9 @@ export const verifyMultiSignatureTransaction = (
 
 	errors.push(...mandatoryKeysError);
 
+	// Iterate through non empty optional keys for signature validity
 	// tslint:disable-next-line: prefer-for-of no-let
-	for (let k = 0; k < numOptionalKeys - 1; k += 1) {
+	for (let k = 0; k < numOptionalKeys; k += 1) {
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
 			const { error } = validateSignature(
