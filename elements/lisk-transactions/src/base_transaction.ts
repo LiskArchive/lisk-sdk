@@ -34,8 +34,8 @@ import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
 import {
 	getId,
-	getSignaturesBytes,
 	isMultisignatureAccount,
+	serializeSignatures,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyMinRemainingBalance,
@@ -196,7 +196,7 @@ export abstract class BaseTransaction {
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			getSignaturesBytes(this.signatures),
+			serializeSignatures(this.signatures),
 		]);
 
 		return transactionBytes;

@@ -41,15 +41,16 @@ export const createBaseTransaction = ({
 	};
 };
 
-export const getSignaturesBytes = (signatures: ReadonlyArray<string>) => {
-	if (signatures?.length) {
-		// tslint:disable-next-line: no-unnecessary-callback-wrapper
-		const signaturesBuffer = signatures.map(signature =>
-			hexToBuffer(signature),
-		);
+export const serializeSignatures = (signatures: ReadonlyArray<string>) => {
+	const signaturesBuffer = signatures.map(signature => {
+		// If signature is empty append 0x00 to byteBuffer
+		if (signature.length === 0) {
+			return Buffer.from('0x00');
+		}
 
-		return Buffer.concat(signaturesBuffer);
-	}
+		// If signature is not empty append 0x01 to byteBuffer
+		return Buffer.concat([Buffer.from('0x01'), hexToBuffer(signature)]);
+	});
 
-	return Buffer.alloc(0);
+	return Buffer.concat(signaturesBuffer);
 };

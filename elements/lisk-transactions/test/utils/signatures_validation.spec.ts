@@ -13,13 +13,13 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { getSignaturesBytes } from '../../src/utils';
-import * as transferFixture from '../../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import { serializeSignatures } from '../../src/utils';
+import * as multisigFixture from '../../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 
-describe('getSignaturesBytes', () => {
-	const [signature] = transferFixture.testCases[0].output.signatures;
+describe('serializeSignatures', () => {
+	const { signatures } = multisigFixture.testCases.output;
 
-	describe('getSignaturesBytes', () => {
+	describe('serializeSignatures', () => {
 		let cryptoHashSpy: jest.SpyInstance;
 
 		beforeEach(() => {
@@ -27,24 +27,41 @@ describe('getSignaturesBytes', () => {
 		});
 
 		it('should return empty buffer when signatures is empty array', () => {
-			expect(getSignaturesBytes([])).toEqual(Buffer.alloc(0));
+			expect(serializeSignatures([])).toEqual(Buffer.alloc(0));
 			expect(cryptoHashSpy).toHaveBeenCalledTimes(0);
 		});
 
-		it('should return correct buffer when signatures has one signature', () => {
-			const expectedOutput = cryptography.hexToBuffer(signature);
+		it('should append 0x01 to non empty signatures', () => {
+			const expectedOutput = signatures.map(signature => {
+				return Buffer.concat([
+					Buffer.from('0x01'),
+					cryptography.hexToBuffer(signature),
+				]);
+			});
 
-			expect(getSignaturesBytes([signature])).toEqual(expectedOutput);
-			expect(cryptoHashSpy).toHaveBeenCalledTimes(2);
+			expect(serializeSignatures(signatures)).toEqual(
+				Buffer.concat(expectedOutput),
+			);
+			expect(cryptoHashSpy).toHaveBeenCalledTimes(10);
 		});
 
-		it('should return correct buffer when signatures has more than one signature', () => {
-			const expectedOutput = cryptography.hexToBuffer(signature);
+		it('should append 0x00 to empty signatures', () => {
+			const mixedSignatures = [signatures[0], '', signatures[1]];
+			const expectedOutput = mixedSignatures.map(signature => {
+				if (signature.length === 0) {
+					return Buffer.from('0x00');
+				}
 
-			expect(getSignaturesBytes([signature, signature])).toEqual(
-				Buffer.concat([expectedOutput, expectedOutput]),
+				return Buffer.concat([
+					Buffer.from('0x01'),
+					cryptography.hexToBuffer(signature),
+				]);
+			});
+
+			expect(serializeSignatures(mixedSignatures)).toEqual(
+				Buffer.concat(expectedOutput),
 			);
-			expect(cryptoHashSpy).toHaveBeenCalledTimes(3);
+			expect(cryptoHashSpy).toHaveBeenCalledTimes(4);
 		});
 	});
 });

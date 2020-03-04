@@ -15,8 +15,8 @@
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getSignaturesBytes,
 	getId,
+	serializeSignatures,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateMultisignatures,
@@ -53,8 +53,8 @@ describe('transaction utils', () => {
 			return expect(validateMultisignatures).toBeFunction();
 		});
 
-		it('should have getSignaturesBytes', () => {
-			return expect(getSignaturesBytes).toBeFunction();
+		it('should have serializeSignatures', () => {
+			return expect(serializeSignatures).toBeFunction();
 		});
 	});
 });
