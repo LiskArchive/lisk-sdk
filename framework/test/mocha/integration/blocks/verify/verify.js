@@ -378,8 +378,8 @@ describe('blocks/verify', () => {
 					try {
 						await library.modules.processor.process(firstBlock);
 					} catch (err) {
-						expect(err[0].message).to.equal(
-							`Account does not have enough LSK: ${account.address}, balance: 0`,
+						expect(err[0].message).to.include(
+							'Account does not have enough minimum remaining LSK',
 						);
 					}
 				});
