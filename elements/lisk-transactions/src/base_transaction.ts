@@ -42,7 +42,6 @@ import {
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyAccountNonce,
-	verifyBalance,
 	verifyMinRemainingBalance,
 	verifyMultiSignatures,
 	verifySenderPublicKey,
@@ -331,7 +330,21 @@ export abstract class BaseTransaction {
 
 	public async apply(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
-		const errors = this._verify(sender) as TransactionError[];
+		const errors = [];
+		const senderPublicKeyError = verifySenderPublicKey(
+			this.id,
+			sender,
+			this.senderPublicKey,
+		);
+		if (senderPublicKeyError) {
+			errors.push(senderPublicKeyError);
+		}
+
+		// Verify Account Nonce
+		const accountNonceError = verifyAccountNonce(this.id, sender, sender.nonce);
+		if (accountNonceError) {
+			errors.push(accountNonceError);
+		}
 
 		// Verify MultiSignature
 		const { errors: multiSigError } = await this.verifySignatures(store);
@@ -340,7 +353,7 @@ export abstract class BaseTransaction {
 		}
 
 		// Update sender balance
-		sender.balance = sender.balance - this.fee;
+		sender.balance -= this.fee;
 		sender.publicKey = sender.publicKey || this.senderPublicKey;
 
 		// Increment sender nonce
@@ -551,15 +564,6 @@ export abstract class BaseTransaction {
 		 */
 
 		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
-	}
-
-	private _verify(sender: Account): ReadonlyArray<TransactionError> {
-		// Verify Basic state
-		return [
-			verifySenderPublicKey(this.id, sender, this.senderPublicKey),
-			verifyBalance(this.id, sender, this.fee),
-			verifyAccountNonce(this.id, sender, this.nonce),
-		].filter(Boolean) as ReadonlyArray<TransactionError>;
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {

@@ -21,7 +21,7 @@ import DelegateCommand from '../../../src/commands/transaction/create/delegate';
 import VoteCommand from '../../../src/commands/transaction/create/vote';
 import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
 
-describe.skip('transaction:create', () => {
+describe('transaction:create', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test

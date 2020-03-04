@@ -149,7 +149,7 @@ describe('WS transport', () => {
 					nonce: '0',
 					fee: '100000000',
 					networkIdentifier,
-					amount: '1',
+					amount: '10000000',
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountAdditionalData.address,
 				});
@@ -182,7 +182,7 @@ describe('WS transport', () => {
 						nonce: '0',
 						fee: '100000000',
 						networkIdentifier,
-						amount: '1',
+						amount: '10000000',
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: accountAdditionalData.address,
 					});

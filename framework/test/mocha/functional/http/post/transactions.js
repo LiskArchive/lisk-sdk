@@ -38,10 +38,9 @@ describe('POST /api/transactions (general)', () => {
 		fee: '129001',
 		nonce: '1',
 		networkIdentifier,
-		amount: '1',
+		amount: '10000000',
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
-		timeOffset: -10000,
 	});
 
 	it('should fail if null transaction posted', async () => {

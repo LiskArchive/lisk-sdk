@@ -21,7 +21,7 @@ import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 import * as inputModule from '../../../../src/utils/input/utils';
 
-describe.skip('transaction:create:vote', () => {
+describe('transaction:create:vote', () => {
 	const defaultVote = [
 		'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
@@ -40,13 +40,13 @@ describe.skip('transaction:create:vote', () => {
 		passphrase: '123',
 	};
 	const defaultTransaction = {
+		nonce: '0',
+		fee: '10000000',
 		amount: '10000000000',
 		recipientId: '123L',
 		senderPublicKey: null,
 		timestamp: 66492418,
-		type: 0,
-		fee: '10000000',
-		recipientPublicKey: null,
+		type: 8,
 		asset: {},
 	};
 
@@ -80,7 +80,7 @@ describe.skip('transaction:create:vote', () => {
 
 	describe('transaction:create:vote', () => {
 		setupStub()
-			.command(['transaction:create:vote'])
+			.command(['transaction:create:vote', '1', '100'])
 			.catch(error => {
 				return expect(error.message).to.contain(
 					'At least one of votes and/or unvotes options must be provided.',
@@ -91,7 +91,12 @@ describe.skip('transaction:create:vote', () => {
 
 	describe('transaction:create:vote --votes=xxx', () => {
 		setupStub()
-			.command(['transaction:create:vote', `--votes=${defaultVote.join(',')}`])
+			.command([
+				'transaction:create:vote',
+				'1',
+				'100',
+				`--votes=${defaultVote.join(',')}`,
+			])
 			.it('should create transaction with only votes', () => {
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
@@ -103,6 +108,8 @@ describe.skip('transaction:create:vote', () => {
 					defaultVote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					votes: defaultVote,
@@ -114,7 +121,7 @@ describe.skip('transaction:create:vote', () => {
 			});
 
 		setupStub()
-			.command(['transaction:create:vote', '--votes=file:vote.txt'])
+			.command(['transaction:create:vote', '1', '100', '--votes=file:vote.txt'])
 			.it('should create transaction with only votes from the file', () => {
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
@@ -125,6 +132,8 @@ describe.skip('transaction:create:vote', () => {
 				expect(inputModule.getData).to.be.calledWithExactly('file:vote.txt');
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					votes: fileVotes,
@@ -140,6 +149,8 @@ describe.skip('transaction:create:vote', () => {
 		setupStub()
 			.command([
 				'transaction:create:vote',
+				'1',
+				'100',
 				`--unvotes=${defaultUnvote.join(',')}`,
 			])
 			.it('should create transaction with only unvotes', () => {
@@ -153,6 +164,8 @@ describe.skip('transaction:create:vote', () => {
 					defaultUnvote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					votes: [],
@@ -164,7 +177,12 @@ describe.skip('transaction:create:vote', () => {
 			});
 
 		setupStub()
-			.command(['transaction:create:vote', '--unvotes=file:unvote.txt'])
+			.command([
+				'transaction:create:vote',
+				'1',
+				'100',
+				'--unvotes=file:unvote.txt',
+			])
 			.it('should create transaction with only unvotes from the file', () => {
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
@@ -175,6 +193,8 @@ describe.skip('transaction:create:vote', () => {
 				expect(inputModule.getData).to.be.calledWithExactly('file:unvote.txt');
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					votes: [],
@@ -190,6 +210,8 @@ describe.skip('transaction:create:vote', () => {
 		setupStub()
 			.command([
 				'transaction:create:vote',
+				'1',
+				'100',
 				`--votes=${defaultVote.join(',')}`,
 				`--unvotes=${defaultVote.join(',')}`,
 			])
@@ -203,6 +225,8 @@ describe.skip('transaction:create:vote', () => {
 		setupStub()
 			.command([
 				'transaction:create:vote',
+				'1',
+				'100',
 				`--votes=${defaultVote.join(',')}`,
 				`--unvotes=${defaultUnvote.join(',')}`,
 			])
@@ -220,6 +244,8 @@ describe.skip('transaction:create:vote', () => {
 					defaultUnvote,
 				);
 				expect(transactions.castVotes).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					votes: defaultVote,
@@ -235,6 +261,8 @@ describe.skip('transaction:create:vote', () => {
 		setupStub()
 			.command([
 				'transaction:create:vote',
+				'1',
+				'100',
 				`--votes=${defaultVote.join(',')}`,
 				`--unvotes=${defaultUnvote.join(',')}`,
 				'--no-signature',
@@ -250,6 +278,8 @@ describe.skip('transaction:create:vote', () => {
 						defaultUnvote,
 					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
+						nonce: '1',
+						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
 						votes: defaultVote,
@@ -266,6 +296,8 @@ describe.skip('transaction:create:vote', () => {
 		setupStub()
 			.command([
 				'transaction:create:vote',
+				'1',
+				'100',
 				`--votes=${defaultVote.join(',')}`,
 				`--unvotes=${defaultUnvote.join(',')}`,
 				'--passphrase=pass:123',
@@ -286,6 +318,8 @@ describe.skip('transaction:create:vote', () => {
 						defaultUnvote,
 					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
+						nonce: '1',
+						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: defaultInputs.passphrase,
 						votes: defaultVote,
