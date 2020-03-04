@@ -101,12 +101,11 @@ export const verifyMultiSignatureTransaction = (
 
 	const { mandatoryKeys, optionalKeys, numberOfSignatures } = sender.keys;
 	const numMandatoryKeys = mandatoryKeys.length;
-	const numberOfSignaturesFromTransaction =
-		optionalKeys.filter(k => k.length !== 0).length + numMandatoryKeys;
+	const nonEmptySignaturesCount = signatures.filter(k => k.length !== 0).length;
 
-	if (numberOfSignaturesFromTransaction !== numberOfSignatures) {
+	if (nonEmptySignaturesCount !== numberOfSignatures) {
 		const error = new TransactionError(
-			`Transaction signatures does not have required number of transactions: ${numberOfSignatures}`,
+			`Transaction signatures does not match required number of transactions: ${numberOfSignatures}`,
 			id,
 			'.signatures',
 			signatures.join(','),

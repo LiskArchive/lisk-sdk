@@ -34,9 +34,12 @@ describe('#verify', () => {
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
-	const defaultTransferTransaction = addTransactionFields(
-		multisigFixture.testCases.output,
-	);
+	const multiSigTransaction = multisigFixture.testCases.output;
+	// Remove first signature to handle multi sign transaction scenario
+	multiSigTransaction.signatures.shift();
+
+	const defaultTransferTransaction = addTransactionFields(multiSigTransaction);
+
 	const validTestTransaction = new TransferTransaction({
 		...defaultTransferTransaction,
 		networkIdentifier,
@@ -179,7 +182,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				`Transaction signatures does not have required number of transactions: ${numberOfSignatures}`,
+				`Transaction signatures does not match required number of transactions: ${numberOfSignatures}`,
 			);
 		});
 
