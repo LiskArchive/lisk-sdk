@@ -33,6 +33,7 @@ const accounts = [
 		publicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		address: '2129300327344985743L',
+		nonce: '2',
 	},
 	{
 		passphrase:
@@ -42,6 +43,7 @@ const accounts = [
 		publicKey:
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 		address: '18141291412139607230L',
+		nonce: '2',
 	},
 	{
 		passphrase:
@@ -51,6 +53,7 @@ const accounts = [
 		publicKey:
 			'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
 		address: '13191770412077040757L',
+		nonce: '2',
 	},
 	{
 		passphrase:
@@ -60,6 +63,7 @@ const accounts = [
 		publicKey:
 			'1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
 		address: '2443122499609067441L',
+		nonce: '2',
 	},
 ];
 

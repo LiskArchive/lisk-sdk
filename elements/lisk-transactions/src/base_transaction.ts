@@ -41,6 +41,7 @@ import {
 	getId,
 	validateSenderIdAndPublicKey,
 	validateSignature,
+	verifyAccountNonce,
 	verifyMinRemainingBalance,
 	verifyMultiSignatures,
 	verifySenderPublicKey,
@@ -339,14 +340,26 @@ export abstract class BaseTransaction {
 			errors.push(senderPublicKeyError);
 		}
 
+		// Verify Account Nonce
+		const accountNonceError = verifyAccountNonce(this.id, sender, this.nonce);
+		if (accountNonceError) {
+			errors.push(accountNonceError);
+		}
+
 		// Verify MultiSignature
 		const { errors: multiSigError } = await this.verifySignatures(store);
 		if (multiSigError) {
 			errors.push(...multiSigError);
 		}
 
+		// Update sender balance
 		sender.balance -= this.fee;
 		sender.publicKey = sender.publicKey || this.senderPublicKey;
+
+		// Increment sender nonce
+		sender.nonce += BigInt(1);
+
+		// Update account state
 		store.account.set(sender.address, sender);
 
 		const assetErrors = await this.applyAsset(store);
@@ -397,7 +410,12 @@ export abstract class BaseTransaction {
 							updatedBalance.toString(),
 						),
 				  ];
+
+		// Decrement account nonce
+		sender.nonce -= BigInt(1);
+
 		store.account.set(sender.address, sender);
+
 		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 

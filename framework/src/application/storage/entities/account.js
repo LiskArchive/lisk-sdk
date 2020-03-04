@@ -26,6 +26,7 @@ const defaultCreateValues = {
 	username: null,
 	isDelegate: false,
 	balance: '0',
+	nonce: '0',
 	missedBlocks: 0,
 	producedBlocks: 0,
 	fees: '0',
