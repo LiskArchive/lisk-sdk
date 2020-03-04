@@ -16,7 +16,7 @@ import {
 	TransactionList,
 	EVENT_TRANSACTION_REMOVED,
 } from '../../src/transaction_list';
-import { Transaction } from '../../src/transaction_pool';
+import { Transaction } from '../../src/types';
 
 const insertNTransactions = (
 	transactionList: TransactionList,

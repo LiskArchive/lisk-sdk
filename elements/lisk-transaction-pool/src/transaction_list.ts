@@ -15,7 +15,7 @@
 import { EventEmitter } from 'events';
 
 import { MinHeap } from './min_heap';
-import { Transaction } from './transaction_pool';
+import { Transaction } from './types';
 
 export interface TransactionListOptions {
 	readonly maxSize?: number;
