@@ -44,6 +44,8 @@ export const amount = isNumberString;
 
 export const csv = isCsv;
 
+export const emptyString = (data: string): boolean => data === '';
+
 export const emptyOrPublicKey = (data: string): boolean => {
 	if (data === null || data === '') {
 		return true;
