@@ -625,7 +625,7 @@ describe('blocks/header', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
-						amount: '100',
+						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -650,7 +650,7 @@ describe('blocks/header', () => {
 				).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining(
-							'Account does not have enough LSK',
+							'Account does not have enough minimum remaining LSK',
 						),
 					}),
 					expect.objectContaining({
@@ -713,10 +713,10 @@ describe('blocks/header', () => {
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
-						amount: '100',
+						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -734,11 +734,13 @@ describe('blocks/header', () => {
 							address: getAddressFromPublicKey(block.generatorPublicKey),
 							balance: '0',
 							producedBlocks: 0,
+							nonce: '0',
 						},
 						{
 							address: genesisAccount.address,
 							balance: '10000000000',
 							votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+							nonce: '0',
 						},
 						delegate1,
 						delegate2,
@@ -796,15 +798,15 @@ describe('blocks/header', () => {
 			it('should update vote weight on voted delegate', async () => {
 				const delegateOne = await stateStore.account.get(delegate1.address);
 				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight.toString()).toBe('9889999900');
-				expect(deletateTwo.voteWeight.toString()).toBe('9889999900');
+				expect(delegateOne.voteWeight.toString()).toBe('9880000000');
+				expect(deletateTwo.voteWeight.toString()).toBe('9880000000');
 			});
 
 			it('should update vote weight on sender and recipient', async () => {
 				const newTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '2',
 						passphrase: genesisAccount.passphrase,
 						recipientId: genesisAccount.address,
 						amount: '100',
@@ -828,7 +830,7 @@ describe('blocks/header', () => {
 				// expect
 				// it should decrease by fee
 				const delegateOne = await stateStore.account.get(delegate1.address);
-				expect(delegateOne.voteWeight.toString()).toBe('9879999900');
+				expect(delegateOne.voteWeight.toString()).toBe('9870000000');
 			});
 		});
 	});

@@ -70,6 +70,7 @@ describe('storage.entities.Account.get', () => {
 				missedBlocks: 0,
 				producedBlocks: 0,
 				fees: '0',
+				nonce: '0',
 				rewards: '0',
 				voteWeight: '0',
 				productivity: 0,
