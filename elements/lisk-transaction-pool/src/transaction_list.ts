@@ -62,12 +62,12 @@ export class TransactionList {
 			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
 				return false;
 			}
-			// Mark this and all subsequenct nonce unprocessable
+			// Mark this and all subsequent nonce unprocessable
 			this._demoteAfter(incomingTx.nonce);
 			this._transactions[incomingTx.nonce.toString()] = incomingTx;
 			this.events.emit(EVENT_TRANSACTION_REMOVED, {
 				address: this.address,
-				id: incomingTx.id,
+				id: existingTx.id,
 			});
 
 			return true;
@@ -79,7 +79,7 @@ export class TransactionList {
 			if (incomingTx.nonce > highestNonce) {
 				return false;
 			}
-			// If the size exceeds, remove the largest nonce transaction
+			// If incoming nonce is lower than the highest nonce, remove the largest nonce transaction instead
 			this.remove(highestNonce);
 		}
 
@@ -89,11 +89,6 @@ export class TransactionList {
 		if (processable && this._processable.length === 0) {
 			this._processable.push(incomingTx.nonce);
 		}
-
-		this.events.emit(EVENT_TRANSACTION_REMOVED, {
-			address: this.address,
-			id: incomingTx.id,
-		});
 
 		return true;
 	}
@@ -164,7 +159,7 @@ export class TransactionList {
 			return [];
 		}
 		const clonedHeap = this._nonceHeap.clone();
-		// Make cloned heap root to unprocessable
+		// Clone heap with the root node as the first unprocessable transaction
 		for (const _ of this._processable) {
 			clonedHeap.pop();
 		}
@@ -191,31 +186,33 @@ export class TransactionList {
 		for (const _ of this._processable) {
 			clonedHeap.pop();
 		}
-		const firstNonProcessable = clonedHeap.pop();
-		if (!firstNonProcessable) {
+		const firstUnprocessable = clonedHeap.pop();
+		if (!firstUnprocessable) {
 			return [];
 		}
 		if (this._processable.length !== 0) {
-			const heighestNonce = this._processable[this._processable.length - 1];
-			if (firstNonProcessable.key !== heighestNonce + BigInt(1)) {
+			const highestProcessableNonce = this._processable[
+				this._processable.length - 1
+			];
+			if (firstUnprocessable.key !== highestProcessableNonce + BigInt(1)) {
 				return [];
 			}
 		}
 		const promotableTx = [
-			this._transactions[firstNonProcessable.key.toString()],
+			this._transactions[firstUnprocessable.key.toString()],
 		];
 
 		const remainingNonces = clonedHeap.count;
 		// tslint:disable-next-line no-let
-		let lastPromotableNonce = this._transactions[
-			firstNonProcessable.key.toString()
+		let lastPromotedNonce = this._transactions[
+			firstUnprocessable.key.toString()
 		].nonce;
 		// tslint:disable-next-line no-let
 		for (let i = 0; i < remainingNonces; i += 1) {
 			const { key } = clonedHeap.pop() as { key: bigint };
-			if (lastPromotableNonce + BigInt(1) === key) {
+			if (lastPromotedNonce + BigInt(1) === key) {
 				promotableTx.push(this._transactions[key.toString()]);
-				lastPromotableNonce = this._transactions[key.toString()].nonce;
+				lastPromotedNonce = this._transactions[key.toString()].nonce;
 			}
 		}
 
