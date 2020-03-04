@@ -459,11 +459,53 @@ describe('Vote transaction class', () => {
 		});
 
 		describe('when votes are casted to collision accounts', () => {
-			beforeEach(async () => {});
+			const collisionAccounts = [
+				{
+					address: '13555181540209512417L',
+					passphrase:
+						'annual youth lift quote off olive uncle town chief poverty extend series',
+					publicKey:
+						'b26dd40ba33e4785e49ddc4f106c0493ed00695817235c778f487aea5866400a',
+				},
+				{
+					address: '13555181540209512417L',
+					passphrase:
+						'merry field slogan sibling convince gold coffee town fold glad mix page',
+					publicKey:
+						'ce33db918b059a6e99c402963b42cf51c695068007ef01d8c383bb8a41270263',
+				},
+			];
 
-			it('should reject if the collision account is voted, which is not a delegate account', async () => {});
+			let validCollisionTransaction: VoteTransaction;
 
-			it('should accept the transaction if the transaction is from collision account, which is a delegate account', async () => {});
+			beforeEach(async () => {
+				store = new StateStoreMock([
+					defaultValidSender,
+					{
+						...defaultAccount,
+						balance: BigInt('0'),
+						address: collisionAccounts[1].address,
+						publicKey: collisionAccounts[1].publicKey,
+						username: null,
+					},
+				]);
+
+				validCollisionTransaction = new VoteTransaction({
+					...validVoteTransactions[2],
+					networkIdentifier,
+					asset: {
+						votes: [`+${collisionAccounts[0].publicKey}`],
+					},
+				});
+			});
+
+			it('should reject if the collision account is voted, which is not a delegate account', async () => {
+				const { status, errors } = await validCollisionTransaction.apply(store);
+				expect(status).toEqual(Status.FAIL);
+				expect(errors[0].message).toContain(
+					`${collisionAccounts[0].publicKey} is not a delegate`,
+				);
+			});
 		});
 	});
 
