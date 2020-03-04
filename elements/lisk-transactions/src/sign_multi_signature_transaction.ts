@@ -21,12 +21,6 @@ import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
 
-export interface SignatureObject {
-	readonly publicKey: string;
-	readonly signature: string;
-	readonly transaction: BaseTransaction;
-}
-
 // tslint:disable-next-line no-any
 const transactionMap: { readonly [key: number]: any } = {
 	8: TransferTransaction,
@@ -44,7 +38,7 @@ export const signMultiSignatureTransaction = (options: {
 		readonly optionalKeys: string[];
 		readonly numberOfSignatures: number;
 	};
-}): SignatureObject => {
+}): BaseTransaction => {
 	const { transaction, passphrase, networkIdentifier, keys } = options;
 	if (transaction.type === undefined || transaction.type === null) {
 		throw new Error('Transaction type is required.');
@@ -113,9 +107,5 @@ export const signMultiSignatureTransaction = (options: {
 		] = signature;
 	}
 
-	return {
-		transaction: tx,
-		publicKey,
-		signature,
-	};
+	return tx;
 };

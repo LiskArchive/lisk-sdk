@@ -254,9 +254,3 @@ export interface ExceptionOptions {
 export type WriteableTransactionResponse = {
 	-readonly [P in keyof TransactionResponse]: TransactionResponse[P];
 };
-
-export interface SignatureObject {
-	readonly signature: string;
-	readonly transactionId: string;
-	readonly publicKey: string;
-}
