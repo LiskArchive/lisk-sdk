@@ -45,7 +45,7 @@ describe('transaction:sign', () => {
 		signatures: [
 			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
 		],
-		id: '6721820474838816958',
+		id: '13361438474776003692',
 	};
 
 	const printMethodStub = sandbox.stub();
@@ -98,7 +98,7 @@ describe('transaction:sign', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Transaction: 7200418683467619827 failed at .asset.amount',
+					'Transaction: 2111182107947711760 failed at .asset.amount',
 				);
 			})
 			.it('should throw an error when transaction is invalid');
