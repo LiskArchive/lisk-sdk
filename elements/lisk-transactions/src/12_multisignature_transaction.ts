@@ -474,16 +474,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 		);
 
 		if (keys && keys.passphrases) {
-			// Keys might or might not come sorted so let's just sort them
-			const sortedMandatoryKeys = sortKeysAscending([...keys.mandatoryKeys]);
-			const sortedOptionalKeys = sortKeysAscending([...keys.optionalKeys]);
-
 			const keysAndPassphrases = buildPublicKeyPassphraseMap([
 				...keys.passphrases,
 			]);
 
 			// Sign with mandatory
-			for (const aKey of sortedMandatoryKeys) {
+			for (const aKey of this.asset.mandatoryKeys) {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
@@ -496,7 +492,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			}
 
 			// Sign with optional
-			for (const aKey of sortedOptionalKeys) {
+			for (const aKey of this.asset.optionalKeys) {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
