@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -33,8 +33,8 @@ export class TransactionList {
 	public readonly events: EventEmitter;
 
 	private _processable: Array<bigint>;
-	// Value is not needed here
 	private readonly _transactions: { [nonce: string]: Transaction };
+	// Value is not needed here because it is stored separately in the _transactions
 	private readonly _nonceHeap: MinHeap<undefined, bigint>;
 	private readonly _maxSize: number;
 	private readonly _minReplacementFeeDifference: bigint;
@@ -54,44 +54,47 @@ export class TransactionList {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(tx: Transaction, processable: boolean = false): boolean {
-		const replacingTx = this._transactions[tx.nonce.toString()];
+	public add(incomingTx: Transaction, processable: boolean = false): boolean {
+		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
-		if (replacingTx) {
+		if (existingTx) {
 			// If the fee is lower than the original fee + replacement, reject
-			if (tx.fee < replacingTx.fee + this._minReplacementFeeDifference) {
+			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
 				return false;
 			}
 			// Mark this and all subsequenct nonce unprocessable
-			this._demoteAfter(tx.nonce);
-			this._transactions[tx.nonce.toString()] = tx;
+			this._demoteAfter(incomingTx.nonce);
+			this._transactions[incomingTx.nonce.toString()] = incomingTx;
 			this.events.emit(EVENT_TRANSACTION_REMOVED, {
 				address: this.address,
-				id: tx.id,
+				id: incomingTx.id,
 			});
 
 			return true;
 		}
 		// If the size exceeds, remove the largest nonce
 		const highestNonce = this._highestNonce();
-		if (this._nonceHeap.count >= this._maxSize && tx.nonce > highestNonce) {
+		if (
+			this._nonceHeap.count >= this._maxSize &&
+			incomingTx.nonce > highestNonce
+		) {
 			return false;
 		}
 
-		this._transactions[tx.nonce.toString()] = tx;
-		this._nonceHeap.push(tx.nonce, undefined);
+		this._transactions[incomingTx.nonce.toString()] = incomingTx;
+		this._nonceHeap.push(incomingTx.nonce, undefined);
 		// If this transaction is processable and it is the first one in the list
 		if (processable && this._processable.length === 0) {
-			this._processable.push(tx.nonce);
+			this._processable.push(incomingTx.nonce);
 		}
 
-		// If the size exceeds, remove the largest noncetransaction
+		// If the size exceeds, remove the largest nonce transaction
 		if (this._nonceHeap.count > this._maxSize) {
 			this.remove(highestNonce);
 		}
 		this.events.emit(EVENT_TRANSACTION_REMOVED, {
 			address: this.address,
-			id: tx.id,
+			id: incomingTx.id,
 		});
 
 		return true;
