@@ -23,7 +23,10 @@ import {
 } from '../../src/utils';
 import { TransactionError } from '../../src/errors';
 import { TransferTransaction } from '../../src';
-import * as transferFixture from '../../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_multi_signature_validate.json';
+import * as multisigFixture from '../../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
+
+const getMemberPublicKeys = (members: any) =>
+	Object.values(members).map((member: any) => member.publicKey);
 
 describe('#verify', () => {
 	const defaultId = '4838520211125422557';
@@ -32,7 +35,7 @@ describe('#verify', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	const defaultTransferTransaction = addTransactionFields(
-		transferFixture.testCases[0].output,
+		multisigFixture.testCases.output,
 	);
 	const validTestTransaction = new TransferTransaction({
 		...defaultTransferTransaction,
@@ -99,23 +102,11 @@ describe('#verify', () => {
 		});
 
 		it('should return true for multi signature account', async () => {
-			expect(
-				isMultisignatureAccount({
-					keys: { mandatoryKeys: ['covid'], numberOfSignatures: 1 },
-				} as any),
-			).toBeFalse;
-		});
-
-		it('should return true for multi signature account', async () => {
-			expect(
-				isMultisignatureAccount({
-					keys: {
-						mandatoryKeys: [],
-						optionalKeys: ['19'],
-						numberOfSignatures: 1,
-					},
-				} as any),
-			).toBeFalse;
+			const senderAccount = {
+				...defaultTransferTransaction,
+				keys: defaultTransferTransaction.asset,
+			};
+			expect(isMultisignatureAccount(senderAccount)).toBeFalse;
 		});
 	});
 
@@ -137,10 +128,7 @@ describe('#verify', () => {
 		});
 
 		it('should return empty array when signatures are valid', () => {
-			const { signatures } = defaultTransferTransaction;
-			const keys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
-			);
+			const { signatures, asset: keys } = defaultTransferTransaction;
 			const [result] = validateKeysSignatures(
 				keys,
 				signatures,
@@ -169,8 +157,8 @@ describe('#verify', () => {
 
 		it('should return error when signatures does not have required number of signatures', () => {
 			const { signatures } = defaultTransferTransaction;
-			const publicKeys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
+			const publicKeys = getMemberPublicKeys(
+				multisigFixture.testCases.input.members,
 			);
 			const numberOfSignatures = 10;
 			const senderAccount = {
@@ -196,127 +184,87 @@ describe('#verify', () => {
 		});
 
 		it('should return error when mandatoryKeys signatures has invalid signature', () => {
-			const { signatures } = defaultTransferTransaction;
-			const publicKeys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
-			);
-			const numberOfSignatures = signatures.length;
 			const senderAccount = {
-				keys: {
-					mandatoryKeys: publicKeys,
-					optionalKeys: [],
-					numberOfSignatures,
-				},
-			} as any;
+				...defaultTransferTransaction,
+				keys: defaultTransferTransaction.asset,
+			};
+			const { signatures } = senderAccount;
+			const firstSignature = signatures.shift();
+			signatures.push(firstSignature);
 
 			const [result] = verifyMultiSignatureTransaction(
 				'id',
 				senderAccount,
-				signatures.map((s: any) => s.replace(0, 1)),
+				signatures,
 				defaultTransferTransactionBytes,
 			);
 
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				`Failed to validate signature ${signatures[0].replace(0, 1)}`,
+				`Failed to validate signature ${senderAccount.signatures[0]}`,
 			);
 		});
 
 		it('should return error when optionalKeys signatures has invalid signature', () => {
-			const { signatures } = defaultTransferTransaction;
-			const publicKeys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
-			);
-			const numberOfSignatures = signatures.length;
 			const senderAccount = {
-				keys: {
-					mandatoryKeys: [],
-					optionalKeys: publicKeys,
-					numberOfSignatures,
-				},
-			} as any;
+				...defaultTransferTransaction,
+				keys: defaultTransferTransaction.asset,
+			};
+			const { signatures } = senderAccount;
+			const lastSignature = signatures.pop();
+			signatures.unshift(lastSignature);
 
 			const [result] = verifyMultiSignatureTransaction(
 				'id',
 				senderAccount,
-				signatures.map((s: any) => s.replace(0, 1)),
+				senderAccount.signatures.map((s: any) => s.replace(0, 1)),
 				defaultTransferTransactionBytes,
 			);
 
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				`Failed to validate signature ${signatures[0].replace(0, 1)}`,
+				`Failed to validate signature ${senderAccount.signatures[0].replace(
+					0,
+					1,
+				)}`,
 			);
 		});
 
-		it('should return no errors when all the mandatoryKeys signatures are valid', () => {
-			const { signatures } = defaultTransferTransaction;
-			const publicKeys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
-			);
-			const numberOfSignatures = signatures.length;
+		it('should return error when mandatoryKeys and optionalKeys signatures has invalid signature', () => {
 			const senderAccount = {
-				keys: {
-					mandatoryKeys: publicKeys,
-					optionalKeys: [],
-					numberOfSignatures,
-				},
-			} as any;
+				...defaultTransferTransaction,
+				keys: defaultTransferTransaction.asset,
+			};
 
 			const [result] = verifyMultiSignatureTransaction(
 				'id',
 				senderAccount,
-				signatures,
+				senderAccount.signatures.map((s: any) => s.replace(0, 1)),
 				defaultTransferTransactionBytes,
 			);
 
-			expect(result).toBeEmpty;
-		});
-
-		it('should return no errors when all the optionalKeys signatures are valid', () => {
-			const { signatures } = defaultTransferTransaction;
-			const publicKeys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
+			expect(result).toBeInstanceOf(TransactionError);
+			expect(result).toHaveProperty(
+				'message',
+				`Failed to validate signature ${senderAccount.signatures[0].replace(
+					0,
+					1,
+				)}`,
 			);
-			const numberOfSignatures = signatures.length;
-			const senderAccount = {
-				keys: {
-					mandatoryKeys: [],
-					optionalKeys: publicKeys,
-					numberOfSignatures,
-				},
-			} as any;
-
-			const [result] = verifyMultiSignatureTransaction(
-				'id',
-				senderAccount,
-				signatures,
-				defaultTransferTransactionBytes,
-			);
-
-			expect(result).toBeEmpty;
 		});
 
 		it('should return no errors when all the mandatoryKeys and optionalKeys signatures are valid', () => {
-			const { signatures } = defaultTransferTransaction;
-			const publicKeys = transferFixture.testCases[0].input.coSigners.map(
-				a => a.publicKey,
-			);
-			const numberOfSignatures = signatures.length;
 			const senderAccount = {
-				keys: {
-					mandatoryKeys: [publicKeys[0]],
-					optionalKeys: [publicKeys[1]],
-					numberOfSignatures,
-				},
-			} as any;
+				...defaultTransferTransaction,
+				keys: defaultTransferTransaction.asset,
+			};
 
 			const [result] = verifyMultiSignatureTransaction(
 				'id',
 				senderAccount,
-				signatures,
+				senderAccount.signatures,
 				defaultTransferTransactionBytes,
 			);
 
