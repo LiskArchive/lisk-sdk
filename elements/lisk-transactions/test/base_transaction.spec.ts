@@ -684,6 +684,12 @@ describe('Base transaction class', () => {
 			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
 				`Incompatible transaction nonce for account: ${senderAccount.address}, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
 			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].actual).toEqual(
+				txNonce.toString(),
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].expected).toEqual(
+				accountNonce.toString(),
+			);
 		});
 
 		it('should return a failed transaction response for higher nonce', async () => {
@@ -705,6 +711,12 @@ describe('Base transaction class', () => {
 			);
 			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
 				`Higher transaction nonce for account: ${senderAccount.address}, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].actual).toEqual(
+				txNonce.toString(),
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].expected).toEqual(
+				accountNonce.toString(),
 			);
 		});
 

@@ -66,6 +66,8 @@ export const verifyAccountNonce = (
 			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
+			nonce.toString(),
+			account.nonce.toString(),
 		);
 	}
 
@@ -76,6 +78,8 @@ export const verifyAccountNonce = (
 			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
+			nonce.toString(),
+			account.nonce.toString(),
 		);
 	}
 
