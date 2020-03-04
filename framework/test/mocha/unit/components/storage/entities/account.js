@@ -172,7 +172,9 @@ describe('Account', () => {
 		};
 	});
 
-	beforeEach(() => seeder.seed(storage));
+	beforeEach(async () => {
+		await seeder.seed(storage);
+	});
 
 	afterEach(async () => {
 		sinonSandbox.restore();
@@ -304,7 +306,7 @@ describe('Account', () => {
 		});
 
 		it('should reject with error if matched with multiple records for provided filters', async () => {
-			return expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
+			await expect(AccountEntity.getOne({})).to.eventually.be.rejectedWith(
 				'Multiple rows were not expected.',
 			);
 		});
@@ -752,34 +754,32 @@ describe('Account', () => {
 				address: accounts[0].address,
 			};
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				AccountEntity.getOne(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
 		it('should throw error for invalid filters', async () => {
 			const account = new Account(adapter);
-			try {
+
+			await expect(() => {
 				account.get({ invalid_filter: true });
-			} catch (err) {
-				expect(err.message).to.equal('One or more filters are not supported.');
-			}
+			}).to.throw('One or more filters are not supported.');
 		});
 
 		it('should accept only valid options', async () => {
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				AccountEntity.get({}, validOptions);
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
 		it('should throw error for invalid options', async () => {
 			const account = new Account(adapter);
-			try {
+
+			await expect(() => {
 				account.get({}, invalidOptions);
-			} catch (err) {
-				expect(err.message).to.equal('One or more options are not supported.');
-			}
+			}).to.throw('One or more options are not supported.');
 		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile', async () => {
@@ -813,7 +813,7 @@ describe('Account', () => {
 				foo: 'bar',
 			};
 			// Act & Assert
-			expect(() => {
+			await expect(() => {
 				AccountEntity.isPersisted(invalidFilter);
 			}).to.throw(NonSupportedFilterTypeError);
 		});
@@ -835,7 +835,7 @@ describe('Account', () => {
 			account.mergeFilters = sinonSandbox.stub();
 			account.parseFilters = sinonSandbox.stub();
 			// Act
-			account.isPersisted(validFilter);
+			await account.isPersisted(validFilter);
 			// Assert
 			expect(account.mergeFilters.calledWith(validFilter)).to.be.true;
 		});
@@ -857,7 +857,7 @@ describe('Account', () => {
 			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			account.parseFilters = sinonSandbox.stub();
 			// Act
-			account.isPersisted(validFilter);
+			await account.isPersisted(validFilter);
 			// Assert
 			expect(account.parseFilters.calledWith(validFilter)).to.be.true;
 		});
@@ -866,8 +866,10 @@ describe('Account', () => {
 			// Arrange
 			sinonSandbox.spy(adapter, 'executeFile');
 			const account = new accountFixtures.Account();
+
 			// Act
 			await AccountEntity.isPersisted({ address: account.address });
+
 			// Assert
 			expect(adapter.executeFile).to.be.calledOnce;
 			expect(adapter.executeFile.firstCall.args[0]).to.be.eql(SQLs.isPersisted);
@@ -877,7 +879,9 @@ describe('Account', () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			await AccountEntity.create(account);
+
 			const res = await AccountEntity.isPersisted({ address: account.address });
+
 			expect(res).to.be.true;
 		});
 
@@ -885,7 +889,9 @@ describe('Account', () => {
 			// Arrange
 			const account = new accountFixtures.Account();
 			await AccountEntity.create(account);
+
 			const res = await AccountEntity.isPersisted({ address: 'ABFFFF' });
+
 			expect(res).to.be.false;
 		});
 	});
