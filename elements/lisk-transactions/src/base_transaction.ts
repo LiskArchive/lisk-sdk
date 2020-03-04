@@ -341,7 +341,7 @@ export abstract class BaseTransaction {
 		}
 
 		// Verify Account Nonce
-		const accountNonceError = verifyAccountNonce(this.id, sender, sender.nonce);
+		const accountNonceError = verifyAccountNonce(this.id, sender, this.nonce);
 		if (accountNonceError) {
 			errors.push(accountNonceError);
 		}

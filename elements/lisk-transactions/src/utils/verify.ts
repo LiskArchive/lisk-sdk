@@ -59,11 +59,21 @@ export const verifyAccountNonce = (
 	account: Account,
 	nonce: bigint,
 ): TransactionError | undefined => {
-	if (account.nonce !== nonce) {
+	if (nonce < account.nonce) {
 		return new TransactionError(
-			`Nonce does not match with account: ${
+			`Incompatible transaction nonce for account: ${
 				account.address
-			}, Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			id,
+			'.nonce',
+		);
+	}
+
+	if (nonce > account.nonce) {
+		return new TransactionError(
+			`Higher transaction nonce for account: ${
+				account.address
+			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 		);

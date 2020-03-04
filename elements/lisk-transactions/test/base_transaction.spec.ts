@@ -664,6 +664,50 @@ describe('Base transaction class', () => {
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
+		it('should return a failed transaction response for incompatible nonce', async () => {
+			// Arrange
+			const accountNonce = BigInt(5);
+			const txNonce = BigInt(4);
+			const senderAccount = { ...defaultSenderAccount, nonce: accountNonce };
+			validTestTransaction.nonce = txNonce;
+			store = new StateStoreMock([senderAccount]);
+
+			// Act
+			const { id, status, errors } = await validTestTransaction.apply(store);
+
+			// Assert
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.FAIL);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
+				`Incompatible transaction nonce for account: ${senderAccount.address}, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
+			);
+		});
+
+		it('should return a failed transaction response for higher nonce', async () => {
+			// Arrange
+			const accountNonce = BigInt(5);
+			const txNonce = BigInt(6);
+			const senderAccount = { ...defaultSenderAccount, nonce: accountNonce };
+			validTestTransaction.nonce = txNonce;
+			store = new StateStoreMock([senderAccount]);
+
+			// Act
+			const { id, status, errors } = await validTestTransaction.apply(store);
+
+			// Assert
+			expect(id).toEqual(validTestTransaction.id);
+			expect(status).toEqual(Status.FAIL);
+			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
+				TransactionError,
+			);
+			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
+				`Higher transaction nonce for account: ${senderAccount.address}, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
+			);
+		});
+
 		it('should increment account nonce', async () => {
 			// Arrange
 			const senderAccount = { ...defaultSenderAccount };
