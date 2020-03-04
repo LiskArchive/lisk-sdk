@@ -335,7 +335,7 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				(notAllowedTx as any)._signatures = ['invalid-signature'];
+				(notAllowedTx as any).signatures = ['invalid-signature'];
 				// Act
 				const {
 					transactionsResponses,
@@ -351,7 +351,7 @@ describe('blocks/transactions', () => {
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
 				expect(invalidResponse.status).toBe(0);
-				expect(invalidResponse.errors).toHaveLength(2);
+				expect(invalidResponse.errors).toHaveLength(3);
 			});
 		});
 

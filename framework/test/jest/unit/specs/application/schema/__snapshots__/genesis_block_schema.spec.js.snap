@@ -104,6 +104,10 @@ Object {
                   "format": "signature",
                   "type": "string",
                 },
+                Object {
+                  "format": "emptyString",
+                  "type": "string",
+                },
               ],
               "type": "string",
             },

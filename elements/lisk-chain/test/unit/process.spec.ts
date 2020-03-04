@@ -174,7 +174,7 @@ describe('blocks/header', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				(invalidTx as any)._signatures = ['1234567890'];
+				(invalidTx as any).signatures = ['1234567890'];
 				block = newBlock({ transactions: [invalidTx] });
 				blockBytes = getBytes(block);
 				// Act & assert

@@ -98,6 +98,8 @@ export abstract class BaseTransaction {
 	public nonce: bigint;
 	public fee: bigint;
 	public receivedAt?: Date;
+	public senderPublicKey: string;
+	public signatures: string[];
 
 	public static TYPE: number;
 	// Minimum remaining balance requirement for any account to perform a transaction
@@ -106,8 +108,6 @@ export abstract class BaseTransaction {
 	public static NAME_FEE = BigInt(0);
 
 	protected _id?: string;
-	protected _senderPublicKey?: string;
-	protected _signatures?: string[];
 	protected _networkIdentifier: string;
 	protected _minFee?: bigint;
 
@@ -123,7 +123,8 @@ export abstract class BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this._senderPublicKey = tx.senderPublicKey || '';
+		this.senderPublicKey = tx.senderPublicKey || '';
+		this.signatures = (tx.signatures as string[]) || [];
 		this.nonce =
 			tx.nonce && isValidNonce(tx.nonce) ? BigInt(tx.nonce) : BigInt(0);
 		this.fee = tx.fee && isValidFee(tx.fee) ? BigInt(tx.fee) : BigInt(0);
@@ -133,9 +134,7 @@ export abstract class BaseTransaction {
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-		this._senderPublicKey = tx.senderPublicKey || '';
 
-		this._signatures = (tx.signatures as string[]) || [];
 		this._networkIdentifier = tx.networkIdentifier || '';
 
 		// Additional data not related to the protocol
@@ -166,22 +165,6 @@ export abstract class BaseTransaction {
 		return getAddressFromPublicKey(this.senderPublicKey);
 	}
 
-	public get senderPublicKey(): string {
-		if (!this._senderPublicKey) {
-			throw new Error('senderPublicKey is required to be set before use');
-		}
-
-		return this._senderPublicKey;
-	}
-
-	public get signatures(): ReadonlyArray<string> {
-		if (!this._signatures?.length) {
-			throw new Error('signatures are required to be set before use');
-		}
-
-		return this._signatures;
-	}
-
 	/**
 	 * This method is using private versions of _id, _senderPublicKey and _signature
 	 * as we should allow for it to be called at any stage of the transaction construction
@@ -194,11 +177,11 @@ export abstract class BaseTransaction {
 			height: this.height,
 			confirmations: this.confirmations,
 			type: this.type,
-			senderPublicKey: this._senderPublicKey || '',
-			senderId: this._senderPublicKey ? this.senderId : '',
+			senderPublicKey: this.senderPublicKey,
+			senderId: this.senderPublicKey ? this.senderId : '',
 			nonce: this.nonce.toString(),
 			fee: this.fee.toString(),
-			signatures: this._signatures,
+			signatures: this.signatures,
 			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt ? this.receivedAt.toISOString() : undefined,
 		};
@@ -400,14 +383,14 @@ export abstract class BaseTransaction {
 	public sign(passphrase: string): void {
 		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
-		if (this._senderPublicKey !== '' && this._senderPublicKey !== publicKey) {
+		if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
 			throw new Error(
 				'Transaction senderPublicKey does not match public key from passphrase',
 			);
 		}
 
-		this._senderPublicKey = publicKey;
-		this._signatures = [];
+		this.senderPublicKey = publicKey;
+		this.signatures = [];
 
 		if (
 			this._networkIdentifier === undefined ||
@@ -422,7 +405,7 @@ export abstract class BaseTransaction {
 			this.getBasicBytes(),
 		]);
 
-		this._signatures.push(
+		this.signatures.push(
 			signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
 		);
 
