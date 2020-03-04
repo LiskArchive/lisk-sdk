@@ -138,6 +138,7 @@ class PgHelper {
 			"username",
 			"isDelegate",
 			"balance",
+			"nonce",
 			"asset",
 			"keys",
 			"nameexist" as "nameExist",

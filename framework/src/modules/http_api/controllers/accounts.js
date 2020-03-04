@@ -31,6 +31,7 @@ function accountFormatter(totalSupply, account) {
 		'address',
 		'publicKey',
 		'balance',
+		'nonce',
 		'asset',
 	]);
 

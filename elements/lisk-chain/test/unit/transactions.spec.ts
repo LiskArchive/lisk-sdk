@@ -163,7 +163,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				storageStub.entities.Account.get
 					.mockResolvedValueOnce([
-						{ address: genesisAccount.address, balance: '20000100' },
+						{ address: genesisAccount.address, balance: '21000000' },
 					])
 					.mockResolvedValue([]);
 				const validTx = chainInstance.deserializeTransaction(
@@ -172,7 +172,7 @@ describe('blocks/transactions', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
-						amount: '100',
+						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -429,7 +429,7 @@ describe('blocks/transactions', () => {
 				const notAllowedTx = chainInstance.deserializeTransaction(
 					registerDelegate({
 						fee: '2500000000',
-						nonce: '0',
+						nonce: '1',
 						networkIdentifier,
 						passphrase: genesisAccount.passphrase,
 						username: 'notAllowed',
@@ -531,17 +531,17 @@ describe('blocks/transactions', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '123L',
-						amount: '100',
+						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
-						amount: '100',
+						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -712,7 +712,7 @@ describe('blocks/transactions', () => {
 				const validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: '124L',
 						amount: '100',

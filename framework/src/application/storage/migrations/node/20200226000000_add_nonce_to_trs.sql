@@ -10,8 +10,12 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-export * from './transaction_pool';
-export { MaxHeap } from './max_heap';
-export { MinHeap } from './min_heap';
+
+/*
+ * For existing trs records we used nonce to -1, as nonce feature will start
+ * account nonce from 0
+ */
+
+ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT NOT NULL DEFAULT '-1';
+ALTER TABLE "trs" ALTER COLUMN "nonce" DROP DEFAULT;

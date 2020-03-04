@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,8 +10,19 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-ALTER TABLE "trs" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';
-ALTER TABLE "trs" ALTER COLUMN "timestamp" DROP NOT NULL;
-ALTER TABLE "mem_accounts" ADD COLUMN IF NOT EXISTS "nonce" TEXT DEFAULT '0';
+export class Node<V = object, K = number | bigint> {
+	public key: K;
+	public value: V;
+
+	public constructor(key: K, value: V) {
+		this.key = key;
+		this.value = value;
+	}
+
+	public clone(): Node<V, K> {
+		return new Node(this.key, this.value);
+	}
+}

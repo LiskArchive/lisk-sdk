@@ -18,7 +18,7 @@ import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 
-describe.skip('transaction:verify', () => {
+describe('transaction:verify', () => {
 	const defaultTransaction = {
 		type: 8,
 		senderPublicKey:
@@ -29,12 +29,13 @@ describe.skip('transaction:verify', () => {
 			amount: '1234567890',
 			data: 'random data',
 		},
+		nonce: '0',
 		fee: '10000000',
 		senderId: '2129300327344985743L',
 		signatures: [],
 		signature:
-			'b88d0408318d3bf700586116046c9101535ee76d2d4b6a5903ac31f5d302094ad4b08180105ff91882482d5d62ca48ba2ed281b75134b90110e1a98aed7efe0d',
-		id: '3436168030012755419',
+			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+		id: '6721820474838816958',
 	};
 
 	const invalidTransaction = 'invalid transaction';

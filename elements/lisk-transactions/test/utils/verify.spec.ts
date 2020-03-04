@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { verifySenderPublicKey, verifyBalance } from '../../src/utils';
+import { verifySenderPublicKey } from '../../src/utils';
 import { TransactionError } from '../../src/errors';
 
 describe('#verify', () => {
@@ -35,31 +35,6 @@ describe('#verify', () => {
 			);
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty('dataPath', '.senderPublicKey');
-		});
-	});
-
-	describe('#verifyBalance', () => {
-		const defaultAccount = { balance: '1000000000' } as any;
-		it('should return undefined when sender has exact amount', async () => {
-			expect(
-				verifyBalance(defaultId, defaultAccount, BigInt('1000000000')),
-			).toBeUndefined();
-		});
-
-		it('should return undefined when sender has enoguh balance', async () => {
-			expect(
-				verifyBalance(defaultId, defaultAccount, BigInt('100')),
-			).toBeUndefined();
-		});
-
-		it('should return TransactionError when sender does not have enoguh balance', async () => {
-			const result = verifyBalance(
-				defaultId,
-				defaultAccount,
-				BigInt('1000000001'),
-			);
-			expect(result).toBeInstanceOf(TransactionError);
-			expect(result).toHaveProperty('dataPath', '.balance');
 		});
 	});
 

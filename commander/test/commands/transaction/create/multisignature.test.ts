@@ -20,7 +20,7 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 
-describe.skip('transaction:create:multisignature', () => {
+describe('transaction:create:multisignature', () => {
 	const defaultLifetime = '24';
 	const defaultMinimum = '2';
 	const defaultKeysgroup = [
@@ -31,12 +31,13 @@ describe.skip('transaction:create:multisignature', () => {
 		passphrase: '123',
 	};
 	const defaultTransaction = {
+		nonce: '0',
+		fee: '10000000',
 		amount: '10000000000',
 		recipientId: '123L',
 		senderPublicKey: null,
 		timestamp: 66492418,
 		type: 4,
-		fee: '10000000',
 		recipientPublicKey: null,
 		asset: {},
 	};
@@ -69,7 +70,7 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command(['transaction:create:multisignature'])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 3 required args');
+				return expect(error.message).to.contain('Missing 5 required arg');
 			})
 			.it('should throw an error');
 	});
@@ -78,7 +79,7 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command(['transaction:create:multisignature', defaultLifetime])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 2 required args');
+				return expect(error.message).to.contain('Missing 4 required args');
 			})
 			.it('should throw an error');
 	});
@@ -91,7 +92,7 @@ describe.skip('transaction:create:multisignature', () => {
 				defaultMinimum,
 			])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 1 required arg');
+				return expect(error.message).to.contain('Missing 3 required arg');
 			})
 			.it('should throw an error');
 	});
@@ -100,6 +101,8 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
+				'1',
+				'100',
 				'life',
 				defaultMinimum,
 				defaultKeysgroup.join(','),
@@ -112,6 +115,8 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
+				'1',
+				'100',
 				defaultLifetime,
 				'minimum',
 				defaultKeysgroup.join(','),
@@ -126,6 +131,8 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
+				'1',
+				'100',
 				defaultLifetime,
 				defaultMinimum,
 				defaultKeysgroup.join(','),
@@ -146,6 +153,8 @@ describe.skip('transaction:create:multisignature', () => {
 					keysgroup: defaultKeysgroup,
 					lifetime: parseInt(defaultLifetime, 10),
 					minimum: parseInt(defaultMinimum, 10),
+					nonce: '1',
+					fee: '10000000000',
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -157,6 +166,8 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
+				'1',
+				'100',
 				defaultLifetime,
 				defaultMinimum,
 				defaultKeysgroup.join(','),
@@ -173,6 +184,8 @@ describe.skip('transaction:create:multisignature', () => {
 					},
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					nonce: '1',
+					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
 					passphrase: defaultInputs.passphrase,
 					keysgroup: defaultKeysgroup,
@@ -189,6 +202,8 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
+				'1',
+				'100',
 				defaultLifetime,
 				defaultMinimum,
 				defaultKeysgroup.join(','),
@@ -202,6 +217,8 @@ describe.skip('transaction:create:multisignature', () => {
 					);
 					expect(inputUtils.getInputsFromSources).not.to.be.called;
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
+						nonce: '1',
+						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
 						passphrase: undefined,
 						keysgroup: defaultKeysgroup,
