@@ -12,45 +12,81 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// import * as cryptography from '@liskhq/lisk-cryptography';
-// import { registerMultisignature } from '../src/register_multisignature_account';
+
+import { registerMultisignature } from '../src/register_multisignature_account';
+import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
+import { TransactionJSON } from '../src/transaction_types';
+// import { validMultisigRegistrationTx } from '../fixtures';
 // import { MultiSignatureAsset } from '../src/12_multisignature_transaction';
 // import { TransactionJSON } from '../src/transaction_types';
 
-describe.skip('#registerMultisignature transaction', () => {
-	beforeEach(() => {
-		return Promise.resolve();
-	});
+describe('#registerMultisignature transaction', () => {
+	let registrationTx: Partial<TransactionJSON>;
+	const validMultisigRegistrationTx = multisigFixture.testCases.output;
 
-	describe('with first passphrase', () => {
-		beforeEach(() => {
-			return Promise.resolve();
+	describe('register multisignature transaction', () => {
+		beforeEach(async () => {
+			const registerMultisignatureInput = {
+				senderPassphrase:
+					'inherit moon normal relief spring bargain hobby join baby flash fog blood',
+				passphrases: [
+					'trim elegant oven term access apple obtain error grain excite lawn neck',
+					'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
+					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
+				],
+				mandatoryKeys: [
+					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+				],
+				optionalKeys: [
+					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+				],
+				numberOfSignatures: 4,
+				networkIdentifier:
+					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				nonce: '1',
+				fee: '1500000000',
+			};
+			registrationTx = registerMultisignature(registerMultisignatureInput);
 		});
 
-		it('should create a register multisignature transaction', () => {});
+		it('should be an object', async () => {
+			expect(registrationTx).toBeObject();
+		});
 
-		describe('returned register multisignature transaction', () => {
-			it('should be an object', () => {});
+		it('should have id string', async () => {
+			expect(registrationTx.id).toBeString();
+			// expect(registrationTx.id).toBe(validMultisigRegistrationTx.id);
+		});
 
-			it('should have id string', () => {});
+		it('should have type number equal to 12', async () => {
+			expect(registrationTx.type).toBe(validMultisigRegistrationTx.type);
+			expect(registrationTx.type).toBe(12);
+		});
 
-			it('should have type number equal to 4', () => {});
+		it('should have fee string equal to 15 LSK', async () => {
+			expect(registrationTx.fee).toBe(validMultisigRegistrationTx.fee);
+		});
 
-			it('should have fee string equal to 15 LSK', () => {});
+		it('should have senderPublicKey hex string equal to sender public key', async () => {
+			expect(registrationTx.senderPublicKey).toBe(
+				validMultisigRegistrationTx.senderPublicKey,
+			);
+		});
 
-			it('should have senderPublicKey hex string equal to sender public key', () => {});
-
-			it('should have signature hex string', () => {});
-
-			it('should have asset', () => {});
-
-			it('second signature property should be undefined', () => {});
-
-			describe('multisignature asset', () => {
-				it('should have a min number equal to the provided minimum', () => {});
-
-				it('should have a lifetime number equal to the provided lifetime', () => {});
+		it('should have signatures as hex string', async () => {
+			registrationTx.signatures?.forEach(aSig => {
+				expect(aSig).toBeString();
+				expect(aSig).toHaveLength(128);
 			});
+		});
+
+		it('multisignature asset should match protocol spec', async () => {
+			expect(registrationTx.asset).toStrictEqual(
+				validMultisigRegistrationTx.asset,
+			);
 		});
 	});
 
