@@ -167,7 +167,7 @@ class Forger {
 			} catch (error) {
 				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. ${error.message}`;
 				this.logger.error(decryptionError);
-				throw decryptionError;
+				throw new Error(decryptionError);
 			}
 
 			const {

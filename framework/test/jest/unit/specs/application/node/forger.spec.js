@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,26 +14,28 @@
 
 'use strict';
 
+const { when } = require('jest-when');
+
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const forger = require('../../../../../src/application/node/forger/forger');
-const genesisDelegates = require('../../../data/genesis_delegates.json');
-const delegatesRoundsList = require('../../../data/delegates_rounds_list.json');
-const accountFixtures = require('../../../../fixtures//accounts');
+const forger = require('../../../../../../src/application/node/forger/forger');
+const genesisDelegates = require('../../../../../mocha/data/genesis_delegates.json');
+const delegatesRoundsList = require('../../../../../mocha/data/delegates_rounds_list.json');
+const accountFixtures = require('../../../../../fixtures//accounts');
 
 const { Forger, getDelegateKeypairForCurrentSlot } = forger;
 
 describe('forge', () => {
 	const mockChannel = {
-		publish: sinonSandbox.stub(),
+		publish: jest.fn(),
 	};
 	const mockLogger = {
-		trace: sinonSandbox.stub(),
-		debug: sinonSandbox.stub(),
-		info: sinonSandbox.stub(),
-		warn: sinonSandbox.stub(),
-		error: sinonSandbox.stub(),
+		trace: jest.fn(),
+		debug: jest.fn(),
+		info: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn(),
 	};
 	const testDelegate = genesisDelegates.delegates[0];
 	const numOfActiveDelegates = 101;
@@ -42,112 +44,101 @@ describe('forge', () => {
 	let forgeModule;
 	let defaultPassword;
 
-	afterEach(async () => {
-		sinonSandbox.reset();
-		sinonSandbox.restore();
+	beforeEach(async () => {
+		forgeModule = new Forger({
+			channel: mockChannel,
+			logger: mockLogger,
+			forgingDelegates: genesisDelegates.delegates,
+			forgingForce: false,
+			forgingDefaultPassword: testDelegate.password,
+			forgingWaitThreshold,
+			dposModule: {
+				getForgerPublicKeysForRound: jest.fn(),
+				rounds: {
+					calcRound: jest.fn(),
+				},
+			},
+			transactionPoolModule: {
+				getUnconfirmedTransactionList: jest.fn(),
+			},
+			chainModule: {
+				filterReadyTransactions: jest.fn().mockReturnValue([]),
+				slots: {
+					getSlotNumber: jest.fn(),
+					getRealTime: jest.fn(),
+					getSlotTime: jest.fn(),
+				},
+				dataAccess: {
+					getAccountsByAddress: jest.fn().mockReturnValue([
+						{
+							isDelegate: true,
+							address: testDelegate.address,
+						},
+					]),
+					getAccountsByPublicKey: jest.fn().mockReturnValue([
+						{
+							isDelegate: true,
+							address: testDelegate.address,
+						},
+					]),
+				},
+			},
+			processorModule: {
+				create: jest.fn(),
+				process: jest.fn(),
+			},
+		});
 	});
 
 	describe('Forger', () => {
-		beforeEach(async () => {
-			forgeModule = new Forger({
-				channel: mockChannel,
-				logger: mockLogger,
-				forgingDelegates: genesisDelegates.delegates,
-				forgingForce: false,
-				forgingDefaultPassword: testDelegate.password,
-				forgingWaitThreshold,
-				dposModule: {
-					getForgerPublicKeysForRound: sinonSandbox.stub(),
-					rounds: {
-						calcRound: sinonSandbox.stub(),
-					},
-				},
-				transactionPoolModule: {
-					getUnconfirmedTransactionList: sinonSandbox.stub(),
-				},
-				chainModule: {
-					filterReadyTransactions: sinonSandbox.stub().returns([]),
-					slots: {
-						getSlotNumber: sinonSandbox.stub(),
-						getRealTime: sinonSandbox.stub(),
-						getSlotTime: sinonSandbox.stub(),
-					},
-					dataAccess: {
-						getAccountsByAddress: sinonSandbox.stub().returns([
-							{
-								isDelegate: true,
-								address: testDelegate.address,
-							},
-						]),
-						getAccountsByPublicKey: sinonSandbox.stub().returns([
-							{
-								isDelegate: true,
-								address: testDelegate.address,
-							},
-						]),
-					},
-				},
-				processorModule: {
-					create: sinonSandbox.stub(),
-					process: sinonSandbox.stub(),
-				},
-			});
-		});
-
 		describe('updateForgingStatus', () => {
 			it('should return error with invalid password', async () => {
-				try {
-					await forgeModule.updateForgingStatus(
+				await expect(
+					forgeModule.updateForgingStatus(
 						testDelegate.publicKey,
 						'Invalid password',
 						true,
-					);
-				} catch (err) {
-					expect(err.message).to.equal(
-						'Invalid password and public key combination',
-					);
-				}
+					),
+				).rejects.toThrow('Invalid password and public key combination');
 			});
 
 			it('should return error with invalid publicKey', async () => {
 				const invalidPublicKey =
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
-				try {
-					await forgeModule.updateForgingStatus(
+				await expect(
+					forgeModule.updateForgingStatus(
 						invalidPublicKey,
 						defaultPassword,
 						true,
-					);
-				} catch (err) {
-					expect(err.message).to.equal(
-						'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found',
-					);
-				}
+					),
+				).rejects.toThrow(
+					'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found',
+				);
 			});
 
 			it('should return error with non delegate account', async () => {
-				try {
-					await forgeModule.updateForgingStatus(
+				await expect(
+					forgeModule.updateForgingStatus(
 						accountFixtures.genesis.publicKey,
 						accountFixtures.genesis.password,
 						true,
-					);
-				} catch (err) {
-					expect(err.message).to.equal(
-						'Delegate with publicKey: 5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca not found',
-					);
-				}
+					),
+				).rejects.toThrow(
+					'Delegate with publicKey: 5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca not found',
+				);
 			});
 
 			it('should update forging from enabled to disabled', async () => {
 				// Arrange
-				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
-					{
-						isDelegate: true,
-						address: testDelegate.address,
-					},
-				]);
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.mockResolvedValue(
+					[
+						{
+							isDelegate: true,
+							address: testDelegate.address,
+						},
+					],
+				);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
 					'utf8',
@@ -161,8 +152,8 @@ describe('forge', () => {
 				);
 
 				// Assert
-				expect(forgeModule.keypairs[testDelegate.publicKey]).to.be.undefined;
-				expect(data.publicKey).to.equal(testDelegate.publicKey);
+				expect(forgeModule.keypairs[testDelegate.publicKey]).toBeUndefined();
+				expect(data.publicKey).toEqual(testDelegate.publicKey);
 			});
 
 			it('should update forging from disabled to enabled', async () => {
@@ -172,9 +163,10 @@ describe('forge', () => {
 					true,
 				);
 
-				expect(forgeModule.keypairs[testDelegate.publicKey]).not.to.be
-					.undefined;
-				expect(data.publicKey).to.equal(testDelegate.publicKey);
+				expect(
+					forgeModule.keypairs[testDelegate.publicKey],
+				).not.toBeUndefined();
+				expect(data.publicKey).toEqual(testDelegate.publicKey);
 			});
 		});
 
@@ -203,12 +195,14 @@ describe('forge', () => {
 			beforeEach(async () => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
-				forgeModule.chainModule.dataAccess.getAccountsByAddress.resolves([
-					{
-						isDelegate: true,
-						address: testDelegate.address,
-					},
-				]);
+				forgeModule.chainModule.dataAccess.getAccountsByAddress.mockResolvedValue(
+					[
+						{
+							isDelegate: true,
+							address: testDelegate.address,
+						},
+					],
+				);
 			});
 
 			it('should not load any delegates when forging.force is false', async () => {
@@ -216,7 +210,7 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = delegates;
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
+				return expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should not load any delegates when forging.delegates array is empty', async () => {
@@ -224,14 +218,14 @@ describe('forge', () => {
 				forgeModule.config.forging.delegates = [];
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
+				return expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should not load any delegates when forging.delegates list is undefined', async () => {
 				forgeModule.config.forging.delegates = undefined;
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
+				return expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if number of iterations is omitted', async () => {
@@ -245,7 +239,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
@@ -261,7 +255,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
@@ -278,7 +272,7 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
@@ -293,15 +287,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				// TODO: Update the expectation after fixing
-				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has a modified salt', async () => {
@@ -315,7 +302,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
@@ -331,13 +318,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has no cipher text', async () => {
@@ -352,7 +334,7 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
@@ -369,13 +351,8 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has a modified ciphertext', async () => {
@@ -389,7 +366,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
@@ -405,13 +382,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has no iv', async () => {
@@ -426,7 +398,7 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
@@ -443,13 +415,8 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has a modified iv', async () => {
@@ -463,7 +430,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
@@ -479,13 +446,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has no tag', async () => {
@@ -500,7 +462,7 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Encrypted passphrase to parse must have only one value per key.`,
 				);
 			});
@@ -517,13 +479,8 @@ describe('forge', () => {
 
 				// TODO: Update the expectation after fixing
 				// https://github.com/LiskHQ/lisk-elements/issues/1162
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has invalid tag', async () => {
@@ -537,7 +494,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Unsupported state or unable to authenticate data`,
 				);
 			});
@@ -553,13 +510,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if encrypted passphrase has shortened tag', async () => {
@@ -573,7 +525,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Tag must be 16 bytes.`,
 				);
 			});
@@ -589,13 +541,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if publicKeys do not match', async () => {
@@ -608,7 +555,7 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					`Invalid encryptedPassphrase for publicKey: ${accountDetails.publicKey}. Public keys do not match`,
 				);
 			});
@@ -623,13 +570,8 @@ describe('forge', () => {
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should return error if account does not exist', async () => {
@@ -646,11 +588,13 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.mockResolvedValue(
+					[],
+				);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				return expect(forgeModule.loadDelegates()).to.be.rejectedWith(
+				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					[
 						'Account with public key:',
 						accountDetails.publicKey.toString('hex'),
@@ -673,17 +617,14 @@ describe('forge', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.mockResolvedValue(
+					[],
+				);
 
 				forgeModule.config.forging.delegates = [accountDetails];
 
-				try {
-					await forgeModule.loadDelegates();
-					// Next line is to make sure the above method actually failed; should never execute.
-					expect(false).to.be(true);
-				} catch (err) {
-					expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
-				}
+				await expect(forgeModule.loadDelegates()).rejects.toThrow();
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should ignore passphrases which do not belong to a delegate', async () => {
@@ -693,22 +634,24 @@ describe('forge', () => {
 						publicKey: accountFixtures.genesis.publicKey,
 					},
 				];
-				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.resolves([
-					{
-						isDelegate: false,
-						address: accountFixtures.genesis.address,
-					},
-				]);
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey.mockResolvedValue(
+					[
+						{
+							isDelegate: false,
+							address: accountFixtures.genesis.address,
+						},
+					],
+				);
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(0);
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(0);
 			});
 
 			it('should load delegates in encrypted format with the key', async () => {
 				forgeModule.config.forging.delegates = delegates;
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(
 					delegates.length,
 				);
 			});
@@ -736,7 +679,7 @@ describe('forge', () => {
 				];
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(
 					delegates.length,
 				);
 			});
@@ -750,7 +693,7 @@ describe('forge', () => {
 				);
 
 				await forgeModule.loadDelegates();
-				return expect(Object.keys(forgeModule.keypairs).length).to.equal(101);
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(101);
 			});
 		});
 
@@ -773,31 +716,34 @@ describe('forge', () => {
 
 			beforeEach(async () => {
 				forgeModule.chainModule.lastBlock = lastBlock;
-				forgeModule.processorModule.create.resolves(forgedBlock);
+				forgeModule.processorModule.create.mockResolvedValue(forgedBlock);
 				getSlotNumberStub = forgeModule.chainModule.slots.getSlotNumber;
 
-				getSlotNumberStub.withArgs().returns(currentSlot);
-				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(lastBlockSlot);
+				when(getSlotNumberStub)
+					.calledWith(undefined)
+					.mockReturnValue(currentSlot);
+				when(getSlotNumberStub)
+					.calledWith(lastBlock.timestamp)
+					.mockReturnValue(lastBlockSlot);
 				forgeModule.keypairs[testDelegate.publicKey] = Buffer.from(
 					'privateKey',
 					'utf8',
 				);
-
-				// TODO: Check why its not reset through sandbox.reset in after each of previous tests
-				mockLogger.error.reset();
-				mockLogger.debug.reset();
-				mockLogger.info.reset();
 			});
 
 			it('should log message and return if current block slot is same as last block slot', async () => {
-				getSlotNumberStub.withArgs().returns(currentSlot);
-				getSlotNumberStub.withArgs(lastBlock.timestamp).returns(currentSlot);
+				when(getSlotNumberStub)
+					.calledWith(undefined)
+					.mockReturnValue(currentSlot);
+				when(getSlotNumberStub)
+					.calledWith(lastBlock.timestamp)
+					.mockReturnValue(currentSlot);
 
 				const data = await forgeModule.forge();
 
-				expect(data).to.be.undefined;
-				expect(mockLogger.trace).to.be.calledOnce;
-				expect(mockLogger.trace).to.be.calledWith(
+				expect(data).toBeUndefined();
+				expect(mockLogger.trace).toHaveBeenCalledTimes(1);
+				expect(mockLogger.trace).toHaveBeenCalledWith(
 					{ slot: 5 },
 					'Block already forged for the current slot',
 				);
@@ -805,110 +751,115 @@ describe('forge', () => {
 
 			it('should log message and return if getDelegateKeypairForCurrentSlot failed', async () => {
 				const rejectionError = new Error('CustomKeypairForCurrentError');
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.rejects(rejectionError);
-				let data;
+				jest
+					.spyOn(forger, 'getDelegateKeypairForCurrentSlot')
+					.mockReturnValue(Promise.reject(rejectionError));
 
-				try {
-					data = await forgeModule.forge();
-				} catch (e) {
-					expect(data).to.be.undefined;
-					expect(mockLogger.error).to.be.calledOnce;
-					expect(mockLogger.error).to.be.calledWithExactly(
-						{ err: rejectionError },
-						'Skipping delegate slot',
-					);
-				}
+				await expect(forgeModule.forge()).rejects.toThrow();
+
+				expect(mockLogger.error).toHaveBeenCalledTimes(1);
+				expect(mockLogger.error).toHaveBeenLastCalledWith(
+					{ err: rejectionError },
+					'Skipping delegate slot',
+				);
 			});
 
 			it('should log message and return if getDelegateKeypairForCurrentSlot return no result', async () => {
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(null);
+				jest
+					.spyOn(forger, 'getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(null);
 
 				const data = await forgeModule.forge();
-				expect(data).to.be.undefined;
-				expect(mockLogger.trace).to.be.calledTwice;
-				expect(mockLogger.trace).to.be.calledWith(
+				expect(data).toBeUndefined();
+				expect(mockLogger.trace).toHaveBeenCalledTimes(1);
+				expect(mockLogger.trace).toHaveBeenCalledWith(
 					{ currentSlot: 5 },
 					'Waiting for delegate slot',
 				);
 			});
 
 			it('should wait for threshold time if last block not received', async () => {
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(testDelegate);
+				jest
+					.spyOn(forger, 'getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(testDelegate);
+
 				const waitThresholdMs = forgingWaitThreshold * 1000;
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
-				const clock = sinonSandbox.useFakeTimers({
-					now: currentTime,
-					shouldAdvanceTime: true,
-				});
 
-				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
+				const dateNowMockFn = jest
+					.spyOn(Date.prototype, 'getTime')
+					.mockReturnValue(currentTime);
+
+				forgeModule.chainModule.slots.getRealTime.mockReturnValue(
+					currentSlotTime,
+				);
 
 				const changedLastBlockSlot = currentSlot - 2;
-				getSlotNumberStub
-					.withArgs(lastBlock.timestamp)
-					.returns(changedLastBlockSlot);
+				when(getSlotNumberStub)
+					.calledWith(lastBlock.timestamp)
+					.mockReturnValue(changedLastBlockSlot);
 
 				await forgeModule.forge();
-				expect(forgeModule.processorModule.create).to.not.been.called;
-				expect(mockLogger.debug).to.be.calledWithExactly('Slot information', {
+				expect(forgeModule.processorModule.create).not.toHaveBeenCalled();
+				expect(mockLogger.debug).toHaveBeenCalledWith('Slot information', {
 					currentSlot,
 					lastBlockSlot: changedLastBlockSlot,
 					waitThreshold: waitThresholdMs,
 				});
 
-				clock.restore();
+				dateNowMockFn.mockRestore();
 			});
 
 			it('should not wait if threshold time passed and last block not received', async () => {
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(testDelegate);
+				jest
+					.spyOn(forger, 'getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(testDelegate);
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 3).getTime();
-				const clock = sinonSandbox.useFakeTimers({
-					now: currentTime,
-					shouldAdvanceTime: true,
-				});
+
+				const dateNowMockFn = jest
+					.spyOn(Date.prototype, 'getTime')
+					.mockReturnValue(currentTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 
-				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
-				getSlotNumberStub
-					.withArgs(lastBlock.timestamp)
-					.returns(changedLastBlockSlot);
+				forgeModule.chainModule.slots.getRealTime.mockReturnValue(
+					currentSlotTime,
+				);
+				when(getSlotNumberStub)
+					.calledWith(lastBlock.timestamp)
+					.mockReturnValue(changedLastBlockSlot);
 
 				await forgeModule.forge();
-				expect(forgeModule.processorModule.create).to.be.calledOnce;
-				clock.restore();
+				expect(forgeModule.processorModule.create).toHaveBeenCalledTimes(1);
+
+				dateNowMockFn.mockRestore();
 			});
 
 			it('should not wait if threshold remaining but last block already received', async () => {
-				sinonSandbox
-					.stub(forger, 'getDelegateKeypairForCurrentSlot')
-					.resolves(testDelegate);
+				jest
+					.spyOn(forger, 'getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(testDelegate);
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 1).getTime();
-				const clock = sinonSandbox.useFakeTimers({
-					now: currentTime,
-					shouldAdvanceTime: true,
-				});
+
+				const dateNowMockFn = jest
+					.spyOn(Date.prototype, 'getTime')
+					.mockReturnValue(currentTime);
 
 				const lastBlockSlotChanged = currentSlot - 1;
-				forgeModule.chainModule.slots.getRealTime.returns(currentSlotTime);
-				getSlotNumberStub
-					.withArgs(lastBlock.timestamp)
-					.returns(lastBlockSlotChanged);
+				forgeModule.chainModule.slots.getRealTime.mockReturnValue(
+					currentSlotTime,
+				);
+				when(getSlotNumberStub)
+					.calledWith(lastBlock.timestamp)
+					.mockReturnValue(lastBlockSlotChanged);
 
 				await forgeModule.forge();
-				expect(forgeModule.processorModule.create).to.be.calledOnce;
-				clock.restore();
+				expect(forgeModule.processorModule.create).toHaveBeenCalledTimes(1);
+
+				dateNowMockFn.mockRestore();
 			});
 		});
 	});
@@ -968,7 +919,7 @@ describe('forge', () => {
 			forgeModule.keypairs[genesis3.publicKey] = genesis3Keypair;
 
 			dposModuleStub = {
-				getForgerPublicKeysForRound: sinonSandbox.stub(),
+				getForgerPublicKeysForRound: jest.fn(),
 			};
 		});
 
@@ -977,9 +928,9 @@ describe('forge', () => {
 			const currentSlot = 35;
 			const round = 1;
 
-			dposModuleStub.getForgerPublicKeysForRound
-				.withArgs(round)
-				.resolves(delegatesRoundsList[round]);
+			when(dposModuleStub.getForgerPublicKeysForRound)
+				.calledWith(round)
+				.mockResolvedValue(delegatesRoundsList[round]);
 
 			const { publicKey, privateKey } = await getDelegateKeypairForCurrentSlot(
 				dposModuleStub,
@@ -988,8 +939,8 @@ describe('forge', () => {
 				round,
 				numOfActiveDelegates,
 			);
-			expect(publicKey).to.deep.equal(genesis1Keypair.publicKey);
-			expect(privateKey).to.deep.equal(genesis1Keypair.privateKey);
+			expect(publicKey).toBe(genesis1Keypair.publicKey);
+			expect(privateKey).toBe(genesis1Keypair.privateKey);
 		});
 
 		it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', async () => {
@@ -997,7 +948,7 @@ describe('forge', () => {
 			const currentSlot = 578;
 			const round = 2;
 
-			dposModuleStub.getForgerPublicKeysForRound.resolves(
+			dposModuleStub.getForgerPublicKeysForRound.mockResolvedValue(
 				delegatesRoundsList[round],
 			);
 
@@ -1008,8 +959,8 @@ describe('forge', () => {
 				round,
 				numOfActiveDelegates,
 			);
-			expect(publicKey).to.deep.equal(genesis2Keypair.publicKey);
-			expect(privateKey).to.deep.equal(genesis2Keypair.privateKey);
+			expect(publicKey).toBe(genesis2Keypair.publicKey);
+			expect(privateKey).toBe(genesis2Keypair.privateKey);
 		});
 
 		it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', async () => {
@@ -1017,7 +968,7 @@ describe('forge', () => {
 			const currentSlot = 1051;
 			const round = 3;
 
-			dposModuleStub.getForgerPublicKeysForRound.resolves(
+			dposModuleStub.getForgerPublicKeysForRound.mockResolvedValue(
 				delegatesRoundsList[round],
 			);
 
@@ -1028,8 +979,8 @@ describe('forge', () => {
 				round,
 				numOfActiveDelegates,
 			);
-			expect(publicKey).to.deep.equal(genesis3Keypair.publicKey);
-			expect(privateKey).to.deep.equal(genesis3Keypair.privateKey);
+			expect(publicKey).toBe(genesis3Keypair.publicKey);
+			expect(privateKey).toBe(genesis3Keypair.privateKey);
 		});
 
 		it('should return null when the slot does not belong to a public key set in keypairs', async () => {
@@ -1038,7 +989,7 @@ describe('forge', () => {
 			const currentSlot = 1;
 			const round = 4;
 
-			dposModuleStub.getForgerPublicKeysForRound.resolves(
+			dposModuleStub.getForgerPublicKeysForRound.mockResolvedValue(
 				delegatesRoundsList[round],
 			);
 
@@ -1049,7 +1000,7 @@ describe('forge', () => {
 				round,
 				numOfActiveDelegates,
 			);
-			expect(keyPair).to.be.null;
+			expect(keyPair).toBeNull();
 		});
 
 		it('should return error when `getForgerPublicKeysForRound` fails', async () => {
@@ -1058,19 +1009,19 @@ describe('forge', () => {
 
 			const expectedError = new Error('getForgerPublicKeysForRound error');
 
-			dposModuleStub.getForgerPublicKeysForRound.rejects(expectedError);
+			dposModuleStub.getForgerPublicKeysForRound.mockReturnValue(
+				Promise.reject(expectedError),
+			);
 
-			try {
-				await getDelegateKeypairForCurrentSlot(
+			await expect(
+				getDelegateKeypairForCurrentSlot(
 					dposModuleStub,
 					forgeModule.keypairs,
 					currentSlot,
 					round,
 					numOfActiveDelegates,
-				);
-			} catch (error) {
-				expect(error).to.equal(expectedError);
-			}
+				),
+			).rejects.toThrow(expectedError);
 		});
 	});
 });
