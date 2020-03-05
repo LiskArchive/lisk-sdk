@@ -15,6 +15,8 @@ import {
 	validatePublicKey,
 } from './validation';
 
+const maxCSVValues = 1000;
+
 export const address = (data: string): boolean => {
 	try {
 		validateAddress(data);
@@ -42,7 +44,8 @@ export const additionPublicKey = (data: string): boolean => {
 
 export const amount = isNumberString;
 
-export const csv = isCsv;
+export const csv = (data: string) =>
+	isCsv(data) && data.split(',').length <= maxCSVValues;
 
 export const emptyString = (data: string): boolean => data === '';
 
