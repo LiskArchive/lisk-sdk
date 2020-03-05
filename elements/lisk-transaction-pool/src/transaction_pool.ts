@@ -120,14 +120,16 @@ export class TransactionPool {
 			return false;
 		}
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
-		let ifMinFeeTx = true;
-		for (const tx of Object.values(this._allTransactions)) {
-			if (incomingTx.fee > tx.fee) {
-				ifMinFeeTx = false;
+		if (Object.keys(this._allTransactions).length === this._maxTransactions) {
+			let notMinFeeTrx = false;
+			for (const tx of Object.values(this._allTransactions)) {
+				if (incomingTx.fee > tx.fee) {
+					notMinFeeTrx = true;
+				}
 			}
-		}
-		if (ifMinFeeTx) {
-			return false;
+			if (!notMinFeeTrx) {
+				return false;
+			}
 		}
 
 		const incomingTxAddress = getAddressFromPublicKey(
@@ -137,7 +139,7 @@ export class TransactionPool {
 		const txResponse = await this._applyFunction([incomingTx]);
 
 		if (
-			txResponse[0].errors.length < 1 ||
+			txResponse[0].errors.length > 0 ||
 			txResponse[0].status === Status.FAIL
 		) {
 			return false;
