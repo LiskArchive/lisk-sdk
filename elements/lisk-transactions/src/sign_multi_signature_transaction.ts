@@ -75,15 +75,15 @@ export const signMultiSignatureTransaction = (options: {
 	);
 
 	// Locate where this public key should go in the signatures array
-	const isMandatoryKeyIndex = keys.mandatoryKeys.findIndex(
+	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(
 		aPublicKey => aPublicKey === publicKey,
 	);
-	const isOptionalKeyIndex = keys.optionalKeys.findIndex(
+	const optionalKeyIndex = keys.optionalKeys.findIndex(
 		aPublicKey => aPublicKey === publicKey,
 	);
 
 	// If it's a mandatory Public Key find where to add the signature
-	if (isMandatoryKeyIndex !== -1) {
+	if (mandatoryKeyIndex !== -1) {
 		// tslint:disable-next-line: no-let
 		let signatureOffset = 0;
 
@@ -91,10 +91,10 @@ export const signMultiSignatureTransaction = (options: {
 			// Account for sender signature
 			signatureOffset = 1;
 		}
-		tx.signatures[isMandatoryKeyIndex + signatureOffset] = signature;
+		tx.signatures[mandatoryKeyIndex + signatureOffset] = signature;
 	}
 
-	if (isOptionalKeyIndex !== -1) {
+	if (optionalKeyIndex !== -1) {
 		// tslint:disable-next-line: no-let
 		let signatureOffset = 0;
 
@@ -103,7 +103,7 @@ export const signMultiSignatureTransaction = (options: {
 			signatureOffset = 1;
 		}
 		tx.signatures[
-			keys.mandatoryKeys.length + isOptionalKeyIndex + signatureOffset
+			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
 		] = signature;
 	}
 
