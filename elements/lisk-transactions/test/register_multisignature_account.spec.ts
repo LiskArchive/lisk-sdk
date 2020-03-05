@@ -13,9 +13,13 @@
  *
  */
 
-import { registerMultisignature } from '../src/register_multisignature_account';
+import {
+	registerMultisignature,
+	RegisterMultisignatureInputs,
+} from '../src/register_multisignature_account';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { TransactionJSON } from '../src/transaction_types';
+import cloneDeep = require('lodash.clonedeep');
 
 describe('#registerMultisignature transaction', () => {
 	let registrationTx: Partial<TransactionJSON>;
@@ -88,80 +92,121 @@ describe('#registerMultisignature transaction', () => {
 	});
 
 	describe('registrar multisignature account validation', () => {
-		it('should throw when nonce is invalid', async () => {});
-	});
-
-	describe('when the register multisignature account transaction is created with one too short public key', () => {
-		it('should throw an error', () => {});
-	});
-
-	describe('when the register multisignature account transaction is created with one plus prepended public key', () => {
-		it('should throw an error', () => {});
-	});
-
-	describe('when the register multisignature account transaction is created with one empty keysgroup', () => {
-		it('should throw an error', () => {});
-	});
-
-	describe('when the register multisignature account transaction is created with 17 public keys in keysgroup', () => {
-		beforeEach(() => {
-			return Promise.resolve();
+		let input: RegisterMultisignatureInputs;
+		beforeEach(async () => {
+			input = cloneDeep(registerMultisignatureInput);
 		});
 
-		it('should throw an error', () => {});
-	});
-
-	describe('when the register multisignature account transaction is created with duplicated public keys', () => {
-		beforeEach(() => {
-			return Promise.resolve();
+		it('should throw when nonce is invalid', async () => {
+			(input as any).nonce = 'invalid_shold_be_number_string';
+			expect(() => registerMultisignature(input)).toThrow(
+				'Nonce must be a valid number in string format.',
+			);
 		});
 
-		it('should throw an error', () => {});
+		it('should throw when fee is invalid', async () => {
+			(input as any).fee = 'invalid_shold_be_number_string';
+			expect(() => registerMultisignature(input)).toThrow(
+				'Fee must be a valid number in string format.',
+			);
+		});
+
+		it('should throw when number of signatures is less than lower limit', async () => {
+			(input as any).numberOfSignatures = 0;
+			expect(() => registerMultisignature(input)).toThrow(
+				'Please provide a valid numberOfSignatures value. Expected integer between 1 and 64.',
+			);
+		});
+
+		it('should throw when number of signatures is more than higher limit', async () => {
+			(input as any).numberOfSignatures = 65;
+			expect(() => registerMultisignature(input)).toThrow(
+				'Please provide a valid numberOfSignatures value. Expected integer between 1 and 64.',
+			);
+		});
+
+		it('should throw when number of signatures less than mandatory keys', async () => {
+			(input as any).mandatoryKeys.push('fffffffffffffffffffff');
+			(input as any).numberOfSignatures = 2;
+			expect(() => registerMultisignature(input)).toThrow(
+				'The numberOfSignatures should be more than or equal to the number of mandatory passphrases.',
+			);
+		});
+
+		it('should throw when number of signatures is bigger than the count of optional and mandatory keys', async () => {
+			(input as any).numberOfSignatures = 5;
+			expect(() => registerMultisignature(input)).toThrow(
+				'Please provide a valid numberOfSignatures. numberOfSignatures (5) is bigger than the count of optional (2) and mandatory (2) keys.',
+			);
+		});
+
+		it('should throw error if Network Identifier is empty', async () => {
+			(input as any).networkIdentifier = '';
+			expect(() => registerMultisignature(input)).toThrow(
+				'Network identifier can not be empty.',
+			);
+		});
+
+		it('should throw error if duplicate keys are found', async () => {
+			(input as any).optionalKeys[0] = (input as any).mandatoryKeys[0];
+			expect(() => registerMultisignature(input)).toThrow(
+				`There are repeated values in optional and mandatory keys: '4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39'`,
+			);
+		});
+
+		it('should throw error if repeated mandatory keys exists', async () => {
+			(input as any).mandatoryKeys[0] = (input as any).mandatoryKeys[1];
+			expect(() => registerMultisignature(input)).toThrow(
+				'There are repeated mandatory public keys',
+			);
+		});
+
+		it('should throw error if repeated mandatory keys exists', async () => {
+			(input as any).optionalKeys[0] = (input as any).optionalKeys[1];
+			expect(() => registerMultisignature(input)).toThrow(
+				'There are repeated optional public keys',
+			);
+		});
 	});
 
-	describe('unsigned register multisignature account transaction', () => {
-		describe('when the register multisignature transaction is created without a passphrase', () => {
-			beforeEach(() => {});
+	describe('register multisignature with some passphrases only', () => {
+		let input: RegisterMultisignatureInputs;
+		beforeEach(async () => {
+			input = cloneDeep(registerMultisignatureInput);
+		});
 
-			describe('validation errors', () => {
-				describe('when lifetime', () => {
-					it('was not provided', () => {});
+		it('should assign empty string for signatures of missing passphrases', async () => {
+			// Keep only passphrases for 2nd mandatory and 1st optional
+			(input as any).passphrases = [input.passphrases[0], input.passphrases[2]];
+			const tx = registerMultisignature(input) as any;
+			expect(tx.signatures[1]).toBe('');
+			expect(tx.signatures[3]).toBe('');
+		});
 
-					it('is float', () => {});
+		it('should contain only sender signature if passphrses is empty', async () => {
+			(input as any).passphrases = [];
+			const tx = registerMultisignature(input) as any;
+			const [senderSignature, ...emptySignatures] = tx.signatures;
+			expect(senderSignature).toBe(validMultisigRegistrationTx.signatures[0]);
+			expect(emptySignatures).toStrictEqual(['', '', '', '']);
+		});
 
-					it('is not number type', () => {});
-
-					it('was more than expected', () => {});
-
-					it('was less than expected', () => {});
-				});
-			});
-
-			describe('when minimum', () => {
-				it('was not provided', () => {});
-
-				it('is float', () => {});
-
-				it('is not number type', () => {});
-
-				it('was more than expected', () => {});
-
-				it('was less than expected', () => {});
-			});
-
-			it('should have the type', () => {});
-
-			it('should have the fee', () => {});
-
-			it('should have the nonce', () => {});
-
-			it('should have the sender public key', () => {});
-
-			it('should have the asset with the multisignature with the minimum, lifetime and keysgroup', () => {});
-
-			it('should not have the signature', () => {});
-
-			it('should not have the id', () => {});
+		it('should return basic transaction with no passphrases at all', async () => {
+			(input as any).passphrases = [];
+			delete (input as any).senderPassphrase;
+			const tx = registerMultisignature(input) as any;
+			expect(tx.id).toBe(undefined);
+			expect(tx.senderId).toBe('');
+			expect(tx.signatures).toStrictEqual([]);
+			expect(tx.asset.mandatoryKeys.sort()).toStrictEqual(
+				validMultisigRegistrationTx.asset.mandatoryKeys.sort(),
+			);
+			expect(tx.asset.optionalKeys.sort()).toStrictEqual(
+				validMultisigRegistrationTx.asset.optionalKeys.sort(),
+			);
+			expect(tx.asset.numberOfSignatures).toBe(
+				validMultisigRegistrationTx.asset.numberOfSignatures,
+			);
 		});
 	});
 });

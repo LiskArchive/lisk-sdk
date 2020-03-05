@@ -16,7 +16,6 @@ import {
 	isValidFee,
 	isValidInteger,
 	isValidNonce,
-	validateKeysgroup,
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
 
@@ -28,7 +27,7 @@ import {
 	MIN_NUMBER_OF_SIGNATURES,
 } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction } from './utils';
+import { createBaseTransaction, findRepeatedKeys } from './utils';
 
 export interface RegisterMultisignatureInputs {
 	readonly senderPassphrase: string;
@@ -78,7 +77,7 @@ const validateInputs = ({
 
 	if (mandatoryPublicKeys.length > numberOfSignatures) {
 		throw new Error(
-			'numberOfSignatures should be more than or equal to the number of mandatory passphrases.',
+			'The numberOfSignatures should be more than or equal to the number of mandatory passphrases.',
 		);
 	}
 
@@ -93,27 +92,34 @@ const validateInputs = ({
 
 	if (
 		mandatoryPublicKeys.length + optionalPublicKeys.length >
-		MAX_NUMBER_OF_SIGNATURES
+			MAX_NUMBER_OF_KEYS ||
+		mandatoryPublicKeys.length + optionalPublicKeys.length < MIN_NUMBER_OF_KEYS
 	) {
 		throw new Error(
-			`Please provide a valid count for mandatory and optional passphrases. Expected integer between ${MIN_NUMBER_OF_SIGNATURES} and ${MAX_NUMBER_OF_SIGNATURES}.`,
+			`Please provide a valid number of mandatory and optional keys. Expected integer between ${MIN_NUMBER_OF_SIGNATURES} and ${MAX_NUMBER_OF_SIGNATURES}.`,
 		);
 	}
 
-	validateKeysgroup(
-		mandatoryPublicKeys,
-		MIN_NUMBER_OF_KEYS,
-		MAX_NUMBER_OF_KEYS,
-		'Mandatory Keys',
-	);
+	// Check key duplication between sets
+	const repatedKeys = findRepeatedKeys(optionalPublicKeys, mandatoryPublicKeys);
+	if (repatedKeys.length > 0) {
+		throw new Error(
+			`There are repeated values in optional and mandatory keys: '${repatedKeys.join(
+				', ',
+			)}'`,
+		);
+	}
 
-	validateKeysgroup(
-		optionalPublicKeys,
-		MIN_NUMBER_OF_KEYS,
-		MAX_NUMBER_OF_KEYS,
-		'Optional Keys',
-	);
+	// Check key repetitions inside each set
+	const uniqueMandatoryPublicKeys = Array.from(new Set(mandatoryPublicKeys));
+	if (uniqueMandatoryPublicKeys.length < mandatoryPublicKeys.length) {
+		throw new Error('There are repeated mandatory public keys');
+	}
 
+	const uniqueOptionalPublicKeys = Array.from(new Set(optionalPublicKeys));
+	if (uniqueOptionalPublicKeys.length < optionalPublicKeys.length) {
+		throw new Error('There are repeated optional public keys');
+	}
 	validateNetworkIdentifier(networkIdentifier);
 };
 
