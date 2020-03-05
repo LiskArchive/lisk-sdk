@@ -97,7 +97,7 @@ describe('#registerMultisignature transaction', () => {
 		});
 	});
 
-	describe('registrar multisignature account validation', () => {
+	describe('register multisignature account validation', () => {
 		let input: RegisterMultisignatureInputs;
 		beforeEach(async () => {
 			input = cloneDeep(registerMultisignatureInput);
