@@ -13,7 +13,11 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { serializeSignatures } from '../../src/utils';
+import {
+	serializeSignatures,
+	SIGNATURE_NOT_PRESENT,
+	SIGNATURE_PRESENT,
+} from '../../src/utils';
 import * as multisigFixture from '../../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 
 describe('serializeSignatures', () => {
@@ -34,7 +38,7 @@ describe('serializeSignatures', () => {
 		it('should append 0x01 to non empty signatures', () => {
 			const expectedOutput = signatures.map(signature => {
 				return Buffer.concat([
-					Buffer.from('0x01'),
+					SIGNATURE_PRESENT,
 					cryptography.hexToBuffer(signature),
 				]);
 			});
@@ -49,11 +53,11 @@ describe('serializeSignatures', () => {
 			const mixedSignatures = [signatures[0], '', signatures[1]];
 			const expectedOutput = mixedSignatures.map(signature => {
 				if (signature.length === 0) {
-					return Buffer.from('0x00');
+					return SIGNATURE_NOT_PRESENT;
 				}
 
 				return Buffer.concat([
-					Buffer.from('0x01'),
+					SIGNATURE_PRESENT,
 					cryptography.hexToBuffer(signature),
 				]);
 			});
