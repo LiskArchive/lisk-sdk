@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,7 +14,7 @@
 
 'use strict';
 
-const regexpTester = require('../../../../../../src/application/node/utils/regexp_tester');
+const regexpTester = require('../../../../../../../src/application/node/utils/regexp_tester');
 
 describe('isNullByteIncluded', () => {
 	const validStrings = [
@@ -48,23 +48,21 @@ describe('isNullByteIncluded', () => {
 		'\x00 null',
 	];
 
-	describe('strings without null character should be return false', () => {
-		it('should return false for strings without null character', done => {
-			validStrings.forEach(string => {
-				const result = regexpTester.isNullByteIncluded(string);
-				expect(result).to.false;
-			});
-			done();
-		});
+	describe('without null characters', () => {
+		it.each(validStrings)(
+			'should return false for strings without null character: %o',
+			item => {
+				expect(regexpTester.isNullByteIncluded(item)).toBeFalse();
+			},
+		);
 	});
 
-	describe('strings with null character should be return true', () => {
-		it('should return false for strings without null character', done => {
-			invalidStrings.forEach(string => {
-				const result = regexpTester.isNullByteIncluded(string);
-				expect(result).to.true;
-			});
-			done();
-		});
+	describe('with null characters', () => {
+		it.each(invalidStrings)(
+			'should return true for strings with null character: %o',
+			item => {
+				expect(regexpTester.isNullByteIncluded(item)).toBeTrue();
+			},
+		);
 	});
 });
