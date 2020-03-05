@@ -97,9 +97,22 @@ Object {
             "format": "publicKey",
             "type": "string",
           },
-          "signature": Object {
-            "format": "signature",
-            "type": "string",
+          "signatures": Object {
+            "items": Object {
+              "oneOf": Array [
+                Object {
+                  "format": "signature",
+                  "type": "string",
+                },
+                Object {
+                  "format": "emptyString",
+                  "type": "string",
+                },
+              ],
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "type": "array",
           },
           "type": Object {
             "type": "integer",
@@ -109,7 +122,7 @@ Object {
           "type",
           "nonce",
           "senderPublicKey",
-          "signature",
+          "signatures",
           "fee",
         ],
         "type": "object",

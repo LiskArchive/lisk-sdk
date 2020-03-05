@@ -101,20 +101,14 @@ describe.skip('#registerMultisignature transaction', () => {
 				);
 			});
 
-			it('should have signature hex string', () => {
-				return expect(registerMultisignatureTransaction.signature).toBeString();
+			it('should have signatures hex string', () => {
+				return expect(registerMultisignatureTransaction.signatures).toBeArray();
 			});
 
 			it('should have asset', () => {
 				return expect(
 					Object.keys(registerMultisignatureTransaction),
 				).not.toHaveLength(0);
-			});
-
-			it('second signature property should be undefined', () => {
-				return expect(
-					registerMultisignatureTransaction.signSignature,
-				).toBeUndefined();
 			});
 
 			describe('multisignature asset', () => {

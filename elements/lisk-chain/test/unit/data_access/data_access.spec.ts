@@ -396,9 +396,9 @@ describe('data_access.storage', () => {
 					nonce: '0',
 					senderPublicKey:
 						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
-					signature:
+					signatures: [
 						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
-					signatures: [],
+					],
 					asset: {
 						amount: '1',
 						recipientId: '10361596175468657749L',

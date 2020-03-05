@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,15 +10,13 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-export const addTransactionFields = (transaction: any) => {
-	return {
-		...transaction,
-		blockId: '13115894772963772254',
-		confirmations: 123,
-		height: 2,
-		receivedAt: new Date().toISOString(),
-		signatures: transaction.signatures ? [...transaction.signatures] : [],
-	};
-};
+
+
+/*
+  DESCRIPTION: Remove signature and signSignature from trs
+*/
+
+ALTER TABLE trs
+DROP COLUMN "signature",
+DROP COLUMN "signSignature";

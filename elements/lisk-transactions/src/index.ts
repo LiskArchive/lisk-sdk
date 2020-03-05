@@ -28,7 +28,6 @@ import {
 	convertToAssetError,
 	convertToTransactionError,
 	TransactionError,
-	TransactionPendingError,
 } from './errors';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
@@ -46,7 +45,7 @@ import {
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyMinRemainingBalance,
-	verifyMultiSignatures,
+	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 } from './utils';
 
@@ -60,7 +59,7 @@ const exposedUtils = {
 	validateSignature,
 	verifyMinRemainingBalance,
 	validateSenderIdAndPublicKey,
-	verifyMultiSignatures,
+	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 };
 
@@ -82,7 +81,6 @@ export {
 	TransactionResponse,
 	TransactionJSON,
 	TransactionError,
-	TransactionPendingError,
 	transactionInterface,
 	convertToAssetError,
 	convertToTransactionError,

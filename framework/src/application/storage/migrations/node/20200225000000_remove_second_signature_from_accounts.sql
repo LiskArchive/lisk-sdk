@@ -14,7 +14,7 @@
 
 
  /*
-  DESCRIPTION: Remove rank column from mem accounts
+  DESCRIPTION: Remove secondSignature and secondPublicKey column from mem accounts
 */
 
 CREATE OR REPLACE FUNCTION revert_mem_account() RETURNS TRIGGER LANGUAGE PLPGSQL AS $$

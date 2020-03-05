@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { TransactionError, TransactionPendingError } from '../src/errors';
+import { TransactionError } from '../src/errors';
 
 describe('errors', () => {
 	describe('TransactionError', () => {
@@ -76,26 +76,6 @@ describe('errors', () => {
 			it('should return a string from a TransactionError', () => {
 				return expect(TxError.toString()).toEqual(
 					'Transaction: transaction id failed at .dataPath: error message',
-				);
-			});
-		});
-	});
-
-	describe('TransactionPendingError', () => {
-		let TxPendingError: TransactionPendingError;
-
-		beforeEach(() => {
-			TxPendingError = new TransactionPendingError(
-				'error message',
-				'transaction id',
-				'.aDataPath',
-			);
-		});
-
-		describe('#toString', () => {
-			it('should return a string from a TransactionPendingError', () => {
-				return expect(TxPendingError.toString()).toEqual(
-					'Transaction: transaction id failed at .aDataPath: error message ',
 				);
 			});
 		});

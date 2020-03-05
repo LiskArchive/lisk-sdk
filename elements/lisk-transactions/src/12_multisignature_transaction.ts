@@ -28,7 +28,7 @@ import {
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validateSignature } from './utils';
+import { validateKeysSignatures, validateSignature } from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -73,27 +73,6 @@ const setMemberAccounts = async (
 		memberAccount.publicKey = memberAccount.publicKey || memberPublicKey;
 		store.account.set(memberAccount.address, memberAccount);
 	}
-};
-
-const validateKeysSignatures = (
-	keys: readonly string[],
-	signatures: readonly string[],
-	transactionBytes: Buffer,
-) => {
-	const errors = [];
-	// tslint:disable-next-line: prefer-for-of no-let
-	for (let i = 0; i < keys.length; i += 1) {
-		const { valid, error } = validateSignature(
-			keys[i],
-			signatures[i],
-			transactionBytes,
-		);
-		if (!valid) {
-			errors.push(error);
-		}
-	}
-
-	return errors;
 };
 
 export interface MultiSignatureAsset {
@@ -368,10 +347,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		);
 
 		if (mandatorySignaturesErrors.length) {
-			return createResponse(
-				this.id,
-				mandatorySignaturesErrors as TransactionError[],
-			);
+			return createResponse(this.id, mandatorySignaturesErrors);
 		}
 		// Verify each optional key signed in order
 		const optionalSignaturesErrors = validateKeysSignatures(
@@ -380,10 +356,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			transactionWithNetworkIdentifierBytes,
 		);
 		if (optionalSignaturesErrors.length) {
-			return createResponse(
-				this.id,
-				optionalSignaturesErrors as TransactionError[],
-			);
+			return createResponse(this.id, optionalSignaturesErrors);
 		}
 
 		return createResponse(this.id, []);

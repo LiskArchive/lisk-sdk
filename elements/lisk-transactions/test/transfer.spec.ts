@@ -98,12 +98,8 @@ describe('#transfer transaction', () => {
 				);
 			});
 
-			it('should have signature hex string', () => {
-				return expect(transferTransaction.signature).toBeString();
-			});
-
-			it('second signature property should be undefined', () => {
-				return expect(transferTransaction.signSignature).toBeUndefined();
+			it('should have signatures hex string', () => {
+				return expect(transferTransaction.signatures).toBeArray();
 			});
 
 			it('without network identifier it should throw a descriptive error', () => {
@@ -165,7 +161,7 @@ describe('#transfer transaction', () => {
 		});
 	});
 
-	describe('with first and second passphrase', () => {
+	describe('with passphrase', () => {
 		beforeEach(() => {
 			transferTransaction = transfer({
 				recipientId,
@@ -329,8 +325,8 @@ describe('#transfer transaction', () => {
 				return expect(transferTransaction).toHaveProperty('asset');
 			});
 
-			it('should not have the signature', () => {
-				return expect(transferTransaction).not.toHaveProperty('signature');
+			it('should not have the signatures', () => {
+				return expect(transferTransaction).not.toHaveProperty('signatures');
 			});
 
 			it('should not have the id', () => {

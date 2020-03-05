@@ -186,6 +186,47 @@ describe('validator', () => {
 		});
 	});
 
+	describe('emptyString', () => {
+		let emptyStringSchema: object;
+		beforeEach(async () => {
+			emptyStringSchema = {
+				allOf: [
+					baseSchema,
+					{
+						properties: {
+							target: {
+								type: 'string',
+								format: 'emptyString',
+							},
+						},
+					},
+				],
+			};
+		});
+
+		it('should validate to true when empty string is provided', async () => {
+			expect(validator.validate(emptyStringSchema, { target: '' })).toEqual([]);
+		});
+
+		it('should validate to false when non empty string provided', async () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'emptyString' },
+					message: 'should match format "emptyString"',
+				},
+			];
+
+			expect(
+				validator.validate(emptyStringSchema, {
+					target: '18446744073709551616',
+				}),
+			).toEqual(expectedError);
+		});
+	});
+
 	describe('address', () => {
 		let addressSchema: object;
 		beforeEach(async () => {
