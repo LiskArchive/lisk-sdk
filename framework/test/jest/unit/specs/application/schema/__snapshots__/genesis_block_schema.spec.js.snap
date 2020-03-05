@@ -109,7 +109,6 @@ Object {
                   "type": "string",
                 },
               ],
-              "type": "string",
             },
             "maxItems": 64,
             "minItems": 1,

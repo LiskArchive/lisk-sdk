@@ -114,7 +114,6 @@ module.exports = {
 					signatures: {
 						type: 'array',
 						items: {
-							type: 'string',
 							oneOf: [
 								{ type: 'string', format: 'signature' },
 								{ type: 'string', format: 'emptyString' },
