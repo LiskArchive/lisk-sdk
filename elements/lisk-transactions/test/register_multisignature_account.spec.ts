@@ -84,9 +84,15 @@ describe('#registerMultisignature transaction', () => {
 			});
 		});
 
-		it('multisignature asset should match protocol spec', async () => {
+		it('should have same multisignature asset as protocol spec', async () => {
 			expect(registrationTx.asset).toStrictEqual(
 				validMultisigRegistrationTx.asset,
+			);
+		});
+
+		it('should have signatures matching protocol spec', async () => {
+			expect(registrationTx.signatures).toStrictEqual(
+				validMultisigRegistrationTx.signatures,
 			);
 		});
 	});
