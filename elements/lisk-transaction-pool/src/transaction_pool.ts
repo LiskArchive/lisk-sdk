@@ -142,7 +142,9 @@ export class TransactionPool {
 			txResponse[0].errors.length > 0 ||
 			txResponse[0].status === Status.FAIL
 		) {
-			return false;
+			throw new Error(
+				`Transaction with tx id ${incomingTx.id} is an invalid trx`,
+			);
 		}
 
 		// Add address of incoming trx if it doesn't exist in transaction list
