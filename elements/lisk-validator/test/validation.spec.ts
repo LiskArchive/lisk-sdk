@@ -42,6 +42,7 @@ import {
 	isUsername,
 	isCsv,
 	isSignature,
+	isValidTransferData,
 } from '../src/validation';
 
 describe('validation', () => {
@@ -677,6 +678,30 @@ describe('validation', () => {
 			const validSignature =
 				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(isSignature(validSignature)).toBeTrue();
+		});
+	});
+
+	describe('#isValidTransferData', () => {
+		it('should return false if string is longer than maxLength in characters', function() {
+			// Generate string of length 65
+			const invalidDataMaxLength = `1${Array(64 + 1).join('1')}`;
+
+			return expect(isValidTransferData(invalidDataMaxLength)).toBeFalse();
+		});
+
+		it('should return false if string is longer than maxLength in bytes', function() {
+			// Generate string of length 64 but byte size 65
+			const invalidDataWith2ByteUnicode = `1${Array(64 - 1).join('1')}现`;
+
+			expect(isValidTransferData(invalidDataWith2ByteUnicode)).toBeFalse();
+		});
+
+		it('should return true if string is between minLength and maxLength', function() {
+			const validDataMinimum = `1`;
+			const validDataMaximum = `1${Array(64).join('1')}`;
+
+			expect(isValidTransferData(validDataMinimum)).toBeTrue();
+			expect(isValidTransferData(validDataMaximum)).toBeTrue();
 		});
 	});
 });
