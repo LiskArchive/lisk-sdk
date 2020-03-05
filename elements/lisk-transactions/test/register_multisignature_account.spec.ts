@@ -16,39 +16,36 @@
 import { registerMultisignature } from '../src/register_multisignature_account';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { TransactionJSON } from '../src/transaction_types';
-// import { validMultisigRegistrationTx } from '../fixtures';
-// import { MultiSignatureAsset } from '../src/12_multisignature_transaction';
-// import { TransactionJSON } from '../src/transaction_types';
 
 describe('#registerMultisignature transaction', () => {
 	let registrationTx: Partial<TransactionJSON>;
 	const validMultisigRegistrationTx = multisigFixture.testCases.output;
+	const registerMultisignatureInput = {
+		senderPassphrase:
+			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
+		passphrases: [
+			'trim elegant oven term access apple obtain error grain excite lawn neck',
+			'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
+			'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+			'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
+		],
+		mandatoryKeys: [
+			'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+			'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+		],
+		optionalKeys: [
+			'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+			'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+		],
+		numberOfSignatures: 4,
+		networkIdentifier:
+			'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+		nonce: '1',
+		fee: '1500000000',
+	};
 
-	describe('register multisignature transaction', () => {
+	describe('register multisignature account', () => {
 		beforeEach(async () => {
-			const registerMultisignatureInput = {
-				senderPassphrase:
-					'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-				passphrases: [
-					'trim elegant oven term access apple obtain error grain excite lawn neck',
-					'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
-					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
-					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-				],
-				mandatoryKeys: [
-					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-				],
-				optionalKeys: [
-					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-				],
-				numberOfSignatures: 4,
-				networkIdentifier:
-					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-				nonce: '1',
-				fee: '1500000000',
-			};
 			registrationTx = registerMultisignature(registerMultisignatureInput);
 		});
 
@@ -58,7 +55,7 @@ describe('#registerMultisignature transaction', () => {
 
 		it('should have id string', async () => {
 			expect(registrationTx.id).toBeString();
-			// expect(registrationTx.id).toBe(validMultisigRegistrationTx.id);
+			expect(registrationTx.id).toBe(validMultisigRegistrationTx.id);
 		});
 
 		it('should have type number equal to 12', async () => {
@@ -88,6 +85,10 @@ describe('#registerMultisignature transaction', () => {
 				validMultisigRegistrationTx.asset,
 			);
 		});
+	});
+
+	describe('registrar multisignature account validation', () => {
+		it('should throw when nonce is invalid', async () => {});
 	});
 
 	describe('when the register multisignature account transaction is created with one too short public key', () => {

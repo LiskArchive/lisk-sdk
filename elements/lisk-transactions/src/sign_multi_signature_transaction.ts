@@ -66,8 +66,13 @@ export const signMultiSignatureTransaction = (options: {
 	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifierBytes,
-		tx.getBytes(),
+		tx.getBasicBytes(),
 	]);
+
+	const signature = cryptography.signData(
+		cryptography.hash(transactionWithNetworkIdentifierBytes),
+		passphrase,
+	);
 
 	// Locate where this public key should go in the signatures array
 	const isMandatoryKeyIndex = keys.mandatoryKeys.findIndex(
@@ -75,11 +80,6 @@ export const signMultiSignatureTransaction = (options: {
 	);
 	const isOptionalKeyIndex = keys.optionalKeys.findIndex(
 		aPublicKey => aPublicKey === publicKey,
-	);
-
-	const signature = cryptography.signData(
-		cryptography.hash(transactionWithNetworkIdentifierBytes),
-		passphrase,
 	);
 
 	// If it's a mandatory Public Key find where to add the signature

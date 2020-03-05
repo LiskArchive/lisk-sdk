@@ -419,21 +419,11 @@ export class MultisignatureTransaction extends BaseTransaction {
 				...keys.passphrases,
 			]);
 
-			// Sign with mandatory
-			for (const aKey of this.asset.mandatoryKeys) {
-				if (keysAndPassphrases[aKey]) {
-					const { passphrase } = keysAndPassphrases[aKey];
-					this.signatures.push(
-						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
-					);
-				} else {
-					// Push an empty signature if a passphrase is missing
-					this.signatures.push('');
-				}
-			}
-
-			// Sign with optional
-			for (const aKey of this.asset.optionalKeys) {
+			// Sign with all keys
+			for (const aKey of [
+				...this.asset.mandatoryKeys,
+				...this.asset.optionalKeys,
+			]) {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
