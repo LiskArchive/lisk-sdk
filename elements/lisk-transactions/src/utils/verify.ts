@@ -125,6 +125,7 @@ export const verifyMultiSignatureTransaction = (
 	const { mandatoryKeys, optionalKeys, numberOfSignatures } = sender.keys;
 	const numMandatoryKeys = mandatoryKeys.length;
 	const numOptionalKeys = optionalKeys.length;
+	// Filter empty signature to compare against numberOfSignatures
 	const nonEmptySignaturesCount = signatures.filter(k => k.length !== 0).length;
 
 	// Check if signatures excluding empty string matched required numberOfSignatures
@@ -153,6 +154,7 @@ export const verifyMultiSignatureTransaction = (
 	// Iterate through non empty optional keys for signature validity
 	// tslint:disable-next-line: prefer-for-of no-let
 	for (let k = 0; k < numOptionalKeys; k += 1) {
+		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
 			const { error } = validateSignature(
