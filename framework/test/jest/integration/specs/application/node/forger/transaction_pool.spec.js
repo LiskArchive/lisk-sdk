@@ -27,8 +27,8 @@ const {
 	accounts: { genesis },
 } = require('../../../../../../fixtures');
 
-describe('Delete block', () => {
-	const dbName = 'delete_block';
+describe('Transaction pool', () => {
+	const dbName = 'transaction_pool';
 	let storage;
 	let node;
 
