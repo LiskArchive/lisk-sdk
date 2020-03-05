@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import { Job } from './job';
 import { TransactionList } from './transaction_list';
-import { Transaction, TransactionResponse } from './types';
+import { Status, Transaction, TransactionResponse } from './types';
 
 type ApplyFunction = (
 	transactions: ReadonlyArray<Transaction>,
@@ -109,9 +110,51 @@ export class TransactionPool {
 		return false;
 	}
 
-	public async addTransaction(tx: Transaction): Promise<boolean> {
-		console.log(tx);
-		return false;
+	public async addTransaction(incomingTx: Transaction): Promise<boolean> {
+		// Check for duplicate
+		if (this._allTransactions[incomingTx.id]) {
+			return false;
+		}
+		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
+		if (incomingTx.fee <= this._minimumEntranceFee) {
+			return false;
+		}
+		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
+		let ifMinFeeTx = true;
+		for (const tx of Object.values(this._allTransactions)) {
+			if (incomingTx.fee > tx.fee) {
+				ifMinFeeTx = false;
+			}
+		}
+		if (ifMinFeeTx) {
+			return false;
+		}
+
+		const incomingTxAddress = getAddressFromPublicKey(
+			incomingTx.senderPublicKey,
+		);
+
+		const txResponse = await this._applyFunction([incomingTx]);
+
+		if (
+			txResponse[0].errors.length < 1 ||
+			txResponse[0].status === Status.FAIL
+		) {
+			return false;
+		}
+
+		// Add address of incoming trx if it doesn't exist in transaction list
+		if (!this._transactionList[incomingTxAddress]) {
+			this._transactionList[incomingTxAddress] = new TransactionList(
+				incomingTxAddress,
+			);
+		}
+
+		// Add received time to the incoming tx object
+		const incomingTxWithTime = { ...incomingTx, receivedAt: new Date() };
+		this._allTransactions[incomingTx.id] = incomingTxWithTime;
+
+		return this._transactionList[incomingTxAddress].add(incomingTx);
 	}
 
 	public removeTransaction(tx: Transaction): boolean {
