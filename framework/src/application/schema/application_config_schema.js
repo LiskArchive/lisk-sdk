@@ -391,13 +391,6 @@ module.exports = {
 										format: 'id',
 									},
 								},
-								signSignature: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
 								multisignatures: {
 									type: 'array',
 									items: {
@@ -597,7 +590,6 @@ module.exports = {
 					blockRewards: [],
 					senderPublicKey: [],
 					signatures: [],
-					signSignature: [],
 					multisignatures: [],
 					votes: [],
 					inertTransactions: [],

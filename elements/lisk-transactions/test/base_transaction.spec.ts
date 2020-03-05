@@ -27,9 +27,8 @@ import {
 	TestTransactionBasicImpl,
 } from './helpers';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
-import * as multisignatureFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_with_multi_signature_validate.json';
-import * as utils from '../src/utils';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
+import { serializeSignatures } from '../src/utils';
 
 const getAccount = (account: object): any => {
 	const object = {
@@ -59,17 +58,12 @@ describe('Base transaction class', () => {
 		balance: BigInt('1000000000000'),
 	});
 
-	const defaultMultisignatureTransaction = addTransactionFields(
-		multisignatureFixture.testCases[0].output,
-	);
-
 	const networkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 	let validTestTransaction: BaseTransaction;
 	let transactionWithDefaultValues: BaseTransaction;
 	let transactionWithBasicImpl: BaseTransaction;
-	let validMultisignatureTransaction: TransferTransaction;
 	let store: StateStoreMock;
 
 	beforeEach(async () => {
@@ -85,10 +79,6 @@ describe('Base transaction class', () => {
 			nonce: '1',
 			fee: '1000000',
 		});
-		validMultisignatureTransaction = new TransferTransaction({
-			...defaultMultisignatureTransaction,
-			networkIdentifier,
-		});
 		store = new StateStoreMock([defaultSenderAccount]);
 	});
 
@@ -103,16 +93,6 @@ describe('Base transaction class', () => {
 			expect(transactionWithDefaultValues.blockId).toBeUndefined();
 			expect(transactionWithDefaultValues.height).toBeUndefined();
 			expect(transactionWithDefaultValues.receivedAt).toBeUndefined();
-			expect(transactionWithDefaultValues.signSignature).toBeUndefined();
-			expect(() => transactionWithDefaultValues.senderId).toThrowError(
-				'senderPublicKey is required to be set before use',
-			);
-			expect(() => transactionWithDefaultValues.senderPublicKey).toThrowError(
-				'senderPublicKey is required to be set before use',
-			);
-			expect(() => transactionWithDefaultValues.signature).toThrowError(
-				'signature is required to be set before use',
-			);
 		});
 
 		it('should have fee of type bigint', async () => {
@@ -135,24 +115,12 @@ describe('Base transaction class', () => {
 			expect(validTestTransaction.senderPublicKey).toBeString();
 		});
 
-		it('should have signSignature string', async () => {
-			expect(validTestTransaction.signSignature).toBeUndefined();
-		});
-
-		it('should have signatures array', async () => {
-			expect(validTestTransaction.signatures).toBeArray();
-		});
-
 		it('should have type number', async () => {
 			expect(validTestTransaction.type).toBeNumber();
 		});
 
 		it('should have receivedAt Date', async () => {
 			expect(validTestTransaction.receivedAt).toBeInstanceOf(Date);
-		});
-
-		it('should have _multisignatureStatus number', async () => {
-			expect((validTestTransaction as any)._multisignatureStatus).toBeNumber();
 		});
 
 		it('should have _networkIdentifier string', async () => {
@@ -229,28 +197,6 @@ describe('Base transaction class', () => {
 			expect(typeof (validTestTransaction as TestTransaction).stringify()).toBe(
 				'string',
 			);
-		});
-	});
-
-	describe('#isReady', () => {
-		it('should return false on initialization of unknown transaction', async () => {
-			expect(validTestTransaction.isReady()).toBe(false);
-		});
-
-		it('should return true on verification of non-multisignature transaction', async () => {
-			await validTestTransaction.apply(store);
-			expect(validTestTransaction.isReady()).toBe(true);
-		});
-
-		it('should return false on verification of multisignature transaction with missing signatures', async () => {
-			const multisignaturesTransaction = new TransferTransaction({
-				...defaultMultisignatureTransaction,
-				networkIdentifier,
-				signatures: defaultMultisignatureTransaction.signatures.slice(0, 2),
-			});
-			multisignaturesTransaction.apply(store);
-
-			expect(validMultisignatureTransaction.isReady()).toBe(false);
 		});
 	});
 
@@ -332,14 +278,14 @@ describe('Base transaction class', () => {
 			validTestTransaction.getBytes();
 
 			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
-				validTestTransaction.signature,
+				...validTestTransaction.signatures,
 			);
 		});
 
-		it('should return a buffer with signature bytes', async () => {
+		it('should return a buffer with signatures bytes', async () => {
 			const expectedBuffer = Buffer.concat([
 				(validTestTransaction as any).getBasicBytes(),
-				cryptography.hexToBuffer((validTestTransaction as any)._signature),
+				serializeSignatures((validTestTransaction as any).signatures),
 			]);
 
 			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);
@@ -426,9 +372,9 @@ describe('Base transaction class', () => {
 			expect(status).toEqual(Status.OK);
 		});
 
-		it('should call getBasicBytes', async () => {
-			const getBasicBytesStub = jest
-				.spyOn(validTestTransaction as any, 'getBasicBytes')
+		it('should call getBytes', async () => {
+			const getBytesStub = jest
+				.spyOn(validTestTransaction as any, 'getBytes')
 				.mockReturnValue(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
@@ -437,83 +383,7 @@ describe('Base transaction class', () => {
 				);
 			validTestTransaction.validate();
 
-			expect(getBasicBytesStub).toHaveBeenCalledTimes(3);
-		});
-
-		it('should call validateSignature', async () => {
-			jest.spyOn(utils, 'validateSignature').mockReturnValue({ valid: true });
-			validTestTransaction.validate();
-
-			expect(utils.validateSignature).toHaveBeenCalledWith(
-				validTestTransaction.senderPublicKey,
-				validTestTransaction.signature,
-				Buffer.concat([
-					Buffer.from(networkIdentifier, 'hex'),
-					(validTestTransaction as any).getBasicBytes(),
-				]),
-				validTestTransaction.id,
-			);
-		});
-
-		it('should return a failed transaction response with invalid signature', async () => {
-			const invalidSignature = defaultTransaction.signature.replace('1', '0');
-			const invalidSignatureTransaction = {
-				...defaultTransaction,
-				signature: invalidSignature,
-			};
-			const invalidSignatureTestTransaction = new TestTransaction({
-				...(invalidSignatureTransaction as any),
-				networkIdentifier,
-			});
-			jest
-				.spyOn(invalidSignatureTestTransaction as any, '_validateSchema')
-				.mockReturnValue([]);
-			const { id, status, errors } = invalidSignatureTestTransaction.validate();
-
-			expect(id).toEqual(invalidSignatureTestTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
-				TransactionError,
-			);
-			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
-				`Failed to validate signature ${invalidSignature}`,
-			);
-			expect(status).toEqual(Status.FAIL);
-		});
-
-		it('should return a failed transaction response with duplicate signatures', async () => {
-			const invalidSignaturesTransaction = {
-				...defaultTransaction,
-				signatures: [
-					defaultTransaction.signature,
-					defaultTransaction.signature,
-				],
-			};
-			const invalidSignaturesTestTransaction = new TestTransaction(
-				invalidSignaturesTransaction as any,
-			);
-			const {
-				id,
-				status,
-				errors,
-			} = invalidSignaturesTestTransaction.validate();
-
-			expect(id).toEqual(invalidSignaturesTestTransaction.id);
-			expect((errors as ReadonlyArray<TransactionError>)[0]).toBeInstanceOf(
-				TransactionError,
-			);
-			expect((errors as ReadonlyArray<TransactionError>)[0].dataPath).toEqual(
-				'.signatures',
-			);
-			expect(status).toEqual(Status.FAIL);
-		});
-
-		it('should throw when networkIdentifier is not provided', async () => {
-			const trsWithoutNetworkIdentifier = new TransferTransaction({
-				...defaultTransaction,
-			});
-			expect(() => trsWithoutNetworkIdentifier.validate()).toThrowError(
-				'Network identifier is required to validate a transaction ',
-			);
+			expect(getBytesStub).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -530,39 +400,6 @@ describe('Base transaction class', () => {
 			expect(id).toEqual(validTestTransaction.id);
 			expect(Object.keys(errors)).toHaveLength(0);
 			expect(status).toEqual(Status.OK);
-		});
-	});
-
-	describe('#addVerifiedMultisignature', () => {
-		it('should return a successful transaction response if no duplicate signatures', async () => {
-			const {
-				id,
-				status,
-				errors,
-			} = validMultisignatureTransaction.addVerifiedMultisignature(
-				'3df1fae6865ec72783dcb5f87a7d906fe20b71e66ad9613c01a89505ebd77279e67efa2c10b5ad880abd09efd27ea350dd8a094f44efa3b4b2c8785fbe0f7e00',
-			);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(errors).toEqual([]);
-			expect(status).toEqual(Status.OK);
-		});
-
-		it.skip('should return a failed transaction response if duplicate signatures', async () => {
-			const {
-				id,
-				status,
-				errors,
-			} = validMultisignatureTransaction.addVerifiedMultisignature(
-				'4424342c342093f80f52f919876fc0abada5385e98e8caf211add16d1c0f5453ef6e47fa58a454128a9640f3b6e2ade618e5ee5fa8eebc4d68460d19f042050f',
-			);
-
-			expect(id).toEqual(validMultisignatureTransaction.id);
-			expect(status).toEqual(Status.FAIL);
-			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error).toBeInstanceOf(TransactionError);
-				expect(error.message).toEqual('Failed to add signature.');
-			});
 		});
 	});
 
@@ -844,8 +681,8 @@ describe('Base transaction class', () => {
 			expect(parsedResponse.senderPublicKey).toEqual(
 				transferFixture.testCases[0].output.senderPublicKey,
 			);
-			expect(parsedResponse.signature).toEqual(
-				transferFixture.testCases[0].output.signature,
+			expect(parsedResponse.signatures).toEqual(
+				transferFixture.testCases[0].output.signatures,
 			);
 		});
 	});
@@ -878,11 +715,9 @@ describe('Base transaction class', () => {
 			});
 
 			it('should set signature property', async () => {
-				expect(transactionWithDefaultValues.signature).toBe(defaultSignature);
-			});
-
-			it('should not set signSignature property', async () => {
-				expect(transactionWithDefaultValues.signSignature).toBeUndefined();
+				expect(transactionWithDefaultValues.signatures).toEqual([
+					defaultSignature,
+				]);
 			});
 
 			it('should set id property', async () => {

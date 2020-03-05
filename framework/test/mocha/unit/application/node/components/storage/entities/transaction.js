@@ -46,8 +46,6 @@ const expectValidTransactionRow = (row, transaction) => {
 	expect(row.asset.recipientId).to.be.eql(transaction.asset.recipientId);
 	expect(row.asset.amount).to.be.eql(transaction.asset.amount);
 	expect(row.fee).to.be.eql(transaction.fee);
-	expect(row.signature).to.be.eql(transaction.signature);
-	expect(row.signSignature).to.be.eql(transaction.signSignature);
 	expect(row.signatures).to.be.eql(transaction.signatures);
 };
 

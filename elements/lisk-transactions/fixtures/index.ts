@@ -13,18 +13,14 @@
  *
  */
 import * as validAccount from './valid_account.json';
-import * as validDappTransactions from './valid_dapp_transactions.json';
 import * as validDelegateAccount from './valid_delegate_account.json';
 import * as validDelegateTransaction from './valid_delegate_transaction.json';
-import * as validInTransferTransactions from './valid_in_transfer_transaction.json';
 import * as validMultisignatureAccount from './valid_multisignature_account.json';
 import * as validMultisignatureRegistrationTransaction from './valid_multisignature_transaction.json';
 import * as validMultisignatureRegistrationTransactionNoSigs from './valid_multisignature_transaction_no_signatures.json';
-import * as validOutTransferTransactions from './valid_out_transfer_transactions.json';
 import * as validTransaction from './valid_transaction.json';
 import * as validMultisignatureTransaction from './valid_transaction_from_multisignature_account.json';
 import * as validTransferAccount from './valid_transfer_account.json';
-import * as validTransferTransactions from './valid_transfer_transactions.json';
 import * as validVoteTransactions from './valid_vote_transaction.json';
 
 export {
@@ -32,14 +28,10 @@ export {
 	validDelegateAccount,
 	validDelegateTransaction,
 	validTransaction,
-	validTransferTransactions,
 	validTransferAccount,
 	validMultisignatureAccount,
 	validMultisignatureRegistrationTransaction,
 	validMultisignatureTransaction,
 	validMultisignatureRegistrationTransactionNoSigs,
 	validVoteTransactions,
-	validInTransferTransactions,
-	validDappTransactions,
-	validOutTransferTransactions,
 };

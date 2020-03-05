@@ -15,7 +15,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { addTransactionFields } from '../helpers';
 import { validateMultisignatures, validateSignature } from '../../src/utils';
-import { TransactionError, TransactionPendingError } from '../../src/errors';
+import { TransactionError } from '../../src/errors';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import {
@@ -55,7 +55,7 @@ describe('signAndVerify module', () => {
 
 			validateSignature(
 				defaultTransferTransaction.senderPublicKey,
-				defaultTransferTransaction.signature,
+				defaultTransferTransaction.signatures[0],
 				defaultTransferTransactionBytes,
 			);
 
@@ -69,7 +69,7 @@ describe('signAndVerify module', () => {
 
 			validateSignature(
 				defaultTransferTransaction.senderPublicKey,
-				defaultTransferTransaction.signature,
+				defaultTransferTransaction.signatures[0],
 				defaultTransferTransactionBytes,
 			);
 
@@ -79,7 +79,7 @@ describe('signAndVerify module', () => {
 		it('should return a valid response with valid signature', async () => {
 			const { valid } = validateSignature(
 				defaultTransferTransaction.senderPublicKey,
-				defaultTransferTransaction.signature,
+				defaultTransferTransaction.signatures[0],
 				defaultTransferTransactionBytes,
 			);
 
@@ -89,7 +89,7 @@ describe('signAndVerify module', () => {
 		it('should return an invalid response with invalid signature', async () => {
 			const { valid, error } = validateSignature(
 				defaultTransferTransaction.senderPublicKey,
-				defaultTransferTransaction.signature.replace('1', '0'),
+				defaultTransferTransaction.signatures[0].replace('1', '0'),
 				Buffer.from(defaultTransferTransactionBytes),
 			);
 
@@ -97,7 +97,7 @@ describe('signAndVerify module', () => {
 			expect(error).toBeInstanceOf(TransactionError);
 			expect(error).toHaveProperty(
 				'message',
-				`Failed to validate signature ${defaultTransferTransaction.signature.replace(
+				`Failed to validate signature ${defaultTransferTransaction.signatures[0].replace(
 					'1',
 					'0',
 				)}`,
@@ -185,8 +185,8 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a transaction pending error when missing signatures', async () => {
-			const { valid, errors } = validateMultisignatures(
+		it('should return false when a transaction has missing signatures', async () => {
+			const { valid } = validateMultisignatures(
 				memberPublicKeys as ReadonlyArray<string>,
 				defaultMultisignatureTransaction.signatures.slice(0, 2),
 				3,
@@ -194,10 +194,6 @@ describe('signAndVerify module', () => {
 			);
 
 			expect(valid).toBe(false);
-			(errors as ReadonlyArray<TransactionError>).forEach(error => {
-				expect(error).toBeInstanceOf(TransactionPendingError);
-				expect(error).toHaveProperty('message', 'Missing signatures');
-			});
 		});
 	});
 });

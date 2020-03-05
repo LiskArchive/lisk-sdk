@@ -14,7 +14,7 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 
-import { TransactionError, TransactionPendingError } from '../errors';
+import { TransactionError } from '../errors';
 import {
 	IsValidResponse,
 	IsValidResponseWithError,
@@ -118,16 +118,6 @@ export const validateMultisignatures = (
 	const invalidTransactionSignatures = signatures.filter(
 		signature => !validSignatures.has(signature),
 	);
-
-	// Transaction is waiting for more signatures
-	if (signatures.length < minimumValidations) {
-		return {
-			valid: false,
-			errors: [
-				new TransactionPendingError(`Missing signatures`, id, '.signatures'),
-			],
-		};
-	}
 
 	return {
 		valid:

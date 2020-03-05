@@ -34,7 +34,6 @@ function TransactionsController(scope) {
 function transactionFormatter(transaction) {
 	const result = transaction;
 	result.senderId = result.senderId || '';
-	result.signSignature = result.signSignature || undefined;
 	result.signatures = result.signatures || [];
 	if (TRANSACTION_TYPES_DELEGATE.includes(transaction.type)) {
 		result.asset.publicKey = result.senderPublicKey;

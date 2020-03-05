@@ -71,18 +71,13 @@ export default class VerifyCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
-		const {
-			signSignature,
-			...transactionObjectWithoutSignSignature
-		} = transactionObject;
-
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
 
 		const txInstance = instantiateTransaction({
-			...transactionObjectWithoutSignSignature,
+			...transactionObject,
 			networkIdentifier,
 		});
 

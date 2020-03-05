@@ -89,7 +89,7 @@ module.exports = {
 			type: 'array',
 			items: {
 				type: 'object',
-				required: ['type', 'nonce', 'senderPublicKey', 'signature', 'fee'],
+				required: ['type', 'nonce', 'senderPublicKey', 'signatures', 'fee'],
 				properties: {
 					type: {
 						type: 'integer',
@@ -111,9 +111,16 @@ module.exports = {
 						description:
 							'Send relevant data with transaction like delegate, vote, signature, ...',
 					},
-					signature: {
-						type: 'string',
-						format: 'signature',
+					signatures: {
+						type: 'array',
+						items: {
+							oneOf: [
+								{ type: 'string', format: 'signature' },
+								{ type: 'string', format: 'emptyString' },
+							],
+						},
+						minItems: 1,
+						maxItems: 64,
 					},
 					id: {
 						type: 'string',

@@ -57,7 +57,6 @@ Object {
         "roundVotes": Array [],
         "rounds": Object {},
         "senderPublicKey": Array [],
-        "signSignature": Array [],
         "signatures": Array [],
         "transactionWithNullByte": Array [],
         "votes": Array [],

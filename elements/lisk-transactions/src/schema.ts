@@ -15,15 +15,14 @@
 export const transactionInterface = {
 	required: [
 		'toJSON',
-		'isReady',
 		'getBytes',
 		'validate',
 		'verifyAgainstOtherTransactions',
 		'apply',
 		'undo',
 		'prepare',
-		'addVerifiedMultisignature',
 		'isExpired',
+		'verifySignatures',
 	],
 	properties: {
 		toJSON: {
@@ -50,13 +49,10 @@ export const transactionInterface = {
 		prepare: {
 			typeof: 'function',
 		},
-		addVerifiedMultisignature: {
-			typeof: 'function',
-		},
-		processMultisignatures: {
-			typeof: 'function',
-		},
 		isExpired: {
+			typeof: 'function',
+		},
+		verifySignatures: {
 			typeof: 'function',
 		},
 	},
@@ -66,7 +62,7 @@ export const transactionInterface = {
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signature'],
+	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signatures'],
 	properties: {
 		id: {
 			type: 'string',
@@ -100,23 +96,16 @@ export const baseTransaction = {
 			type: 'string',
 			format: 'publicKey',
 		},
-		signature: {
-			type: 'string',
-			format: 'signature',
-		},
-		signSignature: {
-			type: 'string',
-			format: 'signature',
-		},
 		signatures: {
 			type: 'array',
-			uniqueItems: true,
 			items: {
-				type: 'string',
-				format: 'signature',
+				oneOf: [
+					{ type: 'string', format: 'signature' },
+					{ type: 'string', format: 'emptyString' },
+				],
 			},
-			minItems: 0,
-			maxItems: 15,
+			minItems: 1,
+			maxItems: 64,
 		},
 		asset: {
 			type: 'object',

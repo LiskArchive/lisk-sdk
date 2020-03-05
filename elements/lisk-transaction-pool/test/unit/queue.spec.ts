@@ -14,7 +14,7 @@
  */
 
 import { Queue } from '../../src/queue';
-import { Transaction } from '../../src/transaction_pool';
+import { Transaction } from '../../src/types';
 import * as transactionObjects from '../../fixtures/transactions.json';
 import { wrapTransaction } from '../utils/add_transaction_functions';
 
