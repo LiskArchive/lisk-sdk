@@ -226,6 +226,13 @@ export const validateAddress = (address: string): boolean => {
 	}
 
 	const addressString = address.slice(0, -1);
+
+	if (!isNumberString(addressString)) {
+		throw new Error(
+			'Address format does not match requirements. Address includes non-numeric characters.',
+		);
+	}
+
 	const addressNumber = BigInt(addressString);
 
 	if (addressNumber > BigInt(MAX_EIGHT_BYTE_NUMBER)) {

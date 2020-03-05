@@ -41,6 +41,7 @@ import {
 	hasNoDuplicate,
 	isUsername,
 	isCsv,
+	isSignature,
 } from '../src/validation';
 
 describe('validation', () => {
@@ -208,6 +209,7 @@ describe('validation', () => {
 				'13133549779353512613L',
 				'18446744073709551615L',
 				'1L',
+				'0L',
 			];
 
 			it('should return true', () => {
@@ -231,6 +233,15 @@ describe('validation', () => {
 			it('should throw an error', () => {
 				return expect(validateAddress.bind(null, address)).toThrow(
 					'Address length does not match requirements. Expected between 2 and 22 characters.',
+				);
+			});
+		});
+
+		describe('Given an address containing non-numeric letters', () => {
+			const address = '123aL';
+			it('should throw an error', () => {
+				return expect(validateAddress.bind(null, address)).toThrow(
+					'Address format does not match requirements. Address includes non-numeric characters.',
 				);
 			});
 		});
@@ -333,6 +344,10 @@ describe('validation', () => {
 	});
 
 	describe('#isGreaterThanMaxTransactionId', () => {
+		it('should return false when id is negative', () => {
+			return expect(isGreaterThanMaxTransactionId(BigInt('-1'))).toBeFalse();
+		});
+
 		it('should return false when id is less than 8 bytes integer maximum', () => {
 			return expect(
 				isGreaterThanMaxTransactionId(BigInt('18446744073709551615')),
@@ -354,6 +369,14 @@ describe('validation', () => {
 
 		it('should return false when string contains non number', () => {
 			return expect(isNumberString('12345abc68789')).toBeFalse();
+		});
+
+		it('should return false for empty string value', () => {
+			return expect(isNumberString('')).toBeFalse();
+		});
+
+		it('should return false for null value', () => {
+			return expect(isNumberString(null)).toBeFalse();
 		});
 
 		it('should return true when string contains only number', () => {
@@ -381,7 +404,8 @@ describe('validation', () => {
 
 	describe('#isUsername', () => {
 		it('should return true when valid username is provided', () => {
-			return expect(isUsername('4miners.net')).toBeTrue();
+			expect(isUsername('4miners.net')).toBeTrue();
+			expect(isUsername('hello111_lisk!')).toBeTrue();
 		});
 
 		it('should return false when username includes capirtal', () => {
@@ -607,6 +631,52 @@ describe('validation', () => {
 		it('should return false when the value is not a CSV string', () => {
 			const csvString = 0 as any;
 			return expect(isCsv(csvString)).toBeFalse();
+		});
+
+		it('should return true when the value is empty string', () => {
+			const csvString = '';
+			return expect(isCsv(csvString)).toBeTrue();
+		});
+
+		it('should return false when the value is undefined', () => {
+			const csvString = undefined as any;
+			return expect(isCsv(csvString)).toBeFalse();
+		});
+
+		it('should return false when the value is an array of string', () => {
+			const csvString = ['64', '12'] as any;
+			return expect(isCsv(csvString)).toBeFalse();
+		});
+	});
+
+	describe('#isSignature', () => {
+		it('should return false if value is not in hex format', function() {
+			const invalidSignature =
+				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
+			return expect(isSignature(invalidSignature)).toBeFalse();
+		});
+
+		it('should return false for empty string values', function() {
+			const invalidSignature = '';
+			return expect(isSignature(invalidSignature)).toBeFalse();
+		});
+
+		it('should return false if value < 128', function() {
+			const invalidLengthSignature =
+				'3d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
+			return expect(isSignature(invalidLengthSignature)).toBeFalse();
+		});
+
+		it('should return false if value > 128', function() {
+			const invalidLengthSignature =
+				'1231d8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
+			return expect(isSignature(invalidLengthSignature)).toBeFalse();
+		});
+
+		it('should return true for valid signature', function() {
+			const validSignature =
+				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
+			return expect(isSignature(validSignature)).toBeTrue();
 		});
 	});
 });
