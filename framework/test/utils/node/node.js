@@ -22,10 +22,12 @@ const {
 const { createMockChannel } = require('../channel');
 const { Node } = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
+const config = require('../../fixtures/config/devnet/config');
 
 const createNode = ({ storage, logger, channel, options = {} }) => {
 	const nodeOptions = {
 		...nodeConfig(),
+		...config.app.node,
 		...options,
 		constants: constantsConfig(),
 		genesisBlock,
@@ -40,8 +42,22 @@ const createNode = ({ storage, logger, channel, options = {} }) => {
 	});
 };
 
-const createAndLoadNode = async (storage, logger) => {
-	const chainModule = createNode({ storage, logger });
+const fakeLogger = {
+	trace: () => {},
+	debug: () => {},
+	info: () => {},
+	error: () => {},
+	warn: () => {},
+	fatal: () => {},
+};
+
+const createAndLoadNode = async (
+	storage,
+	logger = fakeLogger,
+	channel = undefined,
+	options = {},
+) => {
+	const chainModule = createNode({ storage, logger, channel, options });
 	await chainModule.bootstrap();
 	return chainModule;
 };
@@ -49,4 +65,5 @@ const createAndLoadNode = async (storage, logger) => {
 module.exports = {
 	createNode,
 	createAndLoadNode,
+	fakeLogger,
 };

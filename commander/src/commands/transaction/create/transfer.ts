@@ -114,7 +114,7 @@ export default class TransferCommand extends BaseCommand {
 			},
 		} = this.parse(TransferCommand);
 
-		const { nonce, fee, amount, address }: Args = args;
+		const { nonce, fee, amount, address } = args as Args;
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,

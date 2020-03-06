@@ -15,7 +15,6 @@
 'use strict';
 
 const path = require('path');
-const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const { QueryFile } = require('pg-promise');
@@ -23,7 +22,6 @@ const BaseAdapter = require('./base_adapter');
 
 const pgpOptions = {
 	capSQL: true,
-	promiseLib: Promise,
 	noLocking: false,
 };
 

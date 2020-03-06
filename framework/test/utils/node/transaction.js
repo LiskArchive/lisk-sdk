@@ -22,10 +22,20 @@ const {
 	MultisignatureTransaction,
 } = require('@liskhq/lisk-transactions');
 
-const createTransferTransaction = (passphrase, recipientId, amount) => {
+const createTransferTransaction = (
+	nonce,
+	fee,
+	passphrase,
+	recipientId,
+	amount,
+) => {
 	const transaction = new TransferTransaction({
-		recipientId,
-		amount,
+		nonce,
+		fee,
+		asset: {
+			recipientId,
+			amount,
+		},
 	});
 	transaction.sign(passphrase);
 	return transaction.toJSON();

@@ -19,7 +19,6 @@ import * as printUtils from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
 import VoteCommand from '../../../src/commands/transaction/create/vote';
-import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
 
 describe('transaction:create', () => {
 	const printMethodStub = sandbox.stub();
@@ -33,8 +32,7 @@ describe('transaction:create', () => {
 			)
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
-			.stub(VoteCommand, 'run', sandbox.stub())
-			.stub(MultisignatureCommand, 'run', sandbox.stub());
+			.stub(VoteCommand, 'run', sandbox.stub());
 
 	describe('transaction:create', () => {
 		setupTest()
@@ -99,26 +97,6 @@ describe('transaction:create', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
 					'--votes',
 					'xxx,xxx',
-				]);
-			});
-
-		setupTest()
-			.command(['transaction:create', '--type=12', '24', '2', 'itshouldbe,hex'])
-			.it('should call type 4 command with flag type=4', () => {
-				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
-					'24',
-					'2',
-					'itshouldbe,hex',
-				]);
-			});
-
-		setupTest()
-			.command(['transaction:create', '-t=12', '24', '2', 'itshouldbe,hex'])
-			.it('should call type 4 command', () => {
-				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
-					'24',
-					'2',
-					'itshouldbe,hex',
 				]);
 			});
 	});

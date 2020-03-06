@@ -106,7 +106,7 @@ export default class VotesCommand extends BaseCommand {
 			flags: { limit: limitStr, offset: offsetStr, sort: sortStr },
 		} = this.parse(VotesCommand);
 
-		const { addresses: addressesStr }: Args = args;
+		const { addresses: addressesStr } = args as Args;
 		const addresses = addressesStr.split(',').filter(Boolean);
 		const { limit, offset, sort } = processFlagInputs(
 			limitStr as string,

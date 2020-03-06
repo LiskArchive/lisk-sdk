@@ -83,7 +83,7 @@ export default class VerifyCommand extends BaseCommand {
 			flags: { message: messageSource },
 		} = this.parse(VerifyCommand);
 
-		const { publicKey, signature, message }: Args = args;
+		const { publicKey, signature, message } = args as Args;
 
 		if (!message && !messageSource) {
 			throw new ValidationError('No message was provided.');

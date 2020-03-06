@@ -60,23 +60,12 @@ npm run mocha:<testType> -- [testPathPattern] [mochaCliOptions]
 Examples:
 
 ```
-# Running network tests
-npm run mocha:network
-npm run mocha:network -- --grep @p2p
-npm run mocha:network -- --grep @propagation
-
 # Running unit tests
 npm run mocha:unit
 npm run mocha:unit -- --grep @slow
 npm run mocha:unit -- --grep @unstable
 ### extensive
 npm run mocha:unit -- --grep="@unstable" --invert
-
-# Running integration tests
-npm run mocha:integration -- --grep @slow
-npm run mocha:integration -- --grep @unstable
-# extensive
-npm run mocha:integration -- --grep="@unstable" --invert
 
 # Running functional tests
 npm run mocha:functional:ws

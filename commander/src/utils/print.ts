@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line match-default-export-name
 import strip_ansi from 'strip-ansi';
 
 import { tablify } from './tablify';

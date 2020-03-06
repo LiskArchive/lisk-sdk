@@ -18,6 +18,9 @@ import { Account, TransactionJSON } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
+import * as multisigOnlyMandatory from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_mandatory_members.json';
+import * as multisigOptionalOnly from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_optional_members.json';
+import * as senderIsMember from '../fixtures/transaction_multisignature_registration/multisignature_transaction_sender_is_mandatory_member.json';
 import { validTransaction } from '../fixtures';
 
 describe('Multisignature transaction class', () => {
@@ -742,7 +745,6 @@ describe('Multisignature transaction class', () => {
 		});
 	});
 
-	// TODO: Update with #4890
 	describe('#verifySignatures', () => {
 		it('should not fail to validate valid signatures', async () => {
 			const result = await validTestTransaction.verifySignatures(store);
@@ -823,6 +825,17 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
+		beforeEach(async () => {
+			storeAccountGetStub.mockReturnValue({
+				...targetMultisigAccount,
+				keys: {
+					numberOfSignatures: 0,
+					mandatoryKeys: [],
+					optionalKeys: [],
+				},
+			});
+		});
+
 		it('should call state store', async () => {
 			await (validTestTransaction as any).applyAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
@@ -836,21 +849,47 @@ describe('Multisignature transaction class', () => {
 		});
 
 		it('should return no errors', async () => {
-			storeAccountGetStub.mockReturnValue({
-				...targetMultisigAccount,
-				keys: {
-					numberOfSignatures: 0,
-					mandatoryKeys: [],
-					optionalKeys: [],
-				},
-			});
 			const errors = await (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).toHaveLength(0);
 		});
 
+		it('should return no errors with only mandatory keys', async () => {
+			const txMandatoryKeysOnly = multisigOnlyMandatory.testCases.output;
+			const mandatoryKeysOnlyTx = new MultisignatureTransaction({
+				...txMandatoryKeysOnly,
+				networkIdentifier,
+			});
+
+			const errors = await (mandatoryKeysOnlyTx as any).applyAsset(store);
+			expect(errors).toHaveLength(0);
+		});
+
+		it('should return no errors with only optional keys', async () => {
+			const txOptionalKeysOnly = multisigOptionalOnly.testCases.output;
+			const optionalKeysOnlyTx = new MultisignatureTransaction({
+				...txOptionalKeysOnly,
+				networkIdentifier,
+			});
+
+			const errors = await (optionalKeysOnlyTx as any).applyAsset(store);
+			expect(errors).toHaveLength(0);
+		});
+
+		it('should return no errors when sender is member', async () => {
+			const txSenderIsMember = senderIsMember.testCases.output;
+			const senderIsMemberTx = new MultisignatureTransaction({
+				...txSenderIsMember,
+				networkIdentifier,
+			});
+
+			const errors = await (senderIsMemberTx as any).applyAsset(store);
+			expect(errors).toHaveLength(0);
+		});
+
 		it('should return error when account is already multisignature', async () => {
 			storeAccountGetStub.mockReturnValue(targetMultisigAccount);
+			await (validTestTransaction as any).applyAsset(store);
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.signatures');
