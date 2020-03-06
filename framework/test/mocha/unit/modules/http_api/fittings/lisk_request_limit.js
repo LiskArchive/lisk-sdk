@@ -78,11 +78,13 @@ describe('lisk_request_limit', () => {
 			limit_fititng(context, next);
 		}
 
-		expect(next).to.have.callCount(limits.max);
-		done();
+		setImmediate(() => {
+			expect(next).to.have.callCount(limits.max);
+			done();
+		});
 	});
 
-	it('should limit the number of request to 5 every 2 seconds if limits.max = 5 and limits.windowMs = 2000', done => {
+	it('should limit the number of request to 5 every 2 seconds if limits.max = 5 and limits.windowMs = 2000', async () => {
 		const limits = {
 			max: 5,
 			delayMs: 0,
@@ -96,31 +98,30 @@ describe('lisk_request_limit', () => {
 
 		function cb() {
 			success += 1;
-			const lmitiHeader = context.response.getHeader('X-RateLimit-Limit');
-			const remainingLimitHeader =
-				context.response.getHeader('X-RateLimit-Remaining') || 0;
-			expect(lmitiHeader).to.be.equal(limits.max);
-			expect(remainingLimitHeader).to.be.equal(limits.max - success);
 		}
 
 		for (let i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, cb);
 		}
+		await new Promise(resolve => setImmediate(resolve));
 		expect(success).to.be.equal(limits.max);
 
+		await new Promise(resolve => setTimeout(resolve, 2000));
 		success = 0;
-
-		setTimeout(() => {
-			next = sinonSandbox.spy();
-			for (let auxI = 0; auxI < limits.max + 5; auxI++) {
-				limit_fititng(context, cb);
-			}
-			expect(success).to.be.equal(limits.max);
-			done();
-		}, 2000);
+		next = sinonSandbox.spy();
+		for (let auxI = 0; auxI < limits.max + 5; auxI++) {
+			limit_fititng(context, cb);
+		}
+		await new Promise(resolve => setImmediate(resolve));
+		const lmitiHeader = context.response.getHeader('X-RateLimit-Limit');
+		const remainingLimitHeader =
+			context.response.getHeader('X-RateLimit-Remaining') || 0;
+		expect(lmitiHeader).to.be.equal(limits.max);
+		expect(remainingLimitHeader).to.be.equal(limits.max - success);
+		expect(success).to.be.equal(limits.max);
 	});
 
-	it('should respect limit for different IPs explicitly', done => {
+	it('should respect limit for different IPs explicitly', async () => {
 		const context2 = {
 			request: httpMocks.createRequest(),
 			response: null,
@@ -143,9 +144,9 @@ describe('lisk_request_limit', () => {
 			limit_fititng(context, next);
 			limit_fititng(context2, next2);
 		}
+		await new Promise(resolve => setImmediate(resolve));
 
 		expect(next).to.have.callCount(limits.max);
 		expect(next2).to.have.callCount(limits.max);
-		done();
 	});
 });
