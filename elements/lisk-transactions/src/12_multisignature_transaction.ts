@@ -407,7 +407,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
-			this.getBytes(),
+			this.getBasicBytes(),
 		]);
 
 		this.signatures.push(
