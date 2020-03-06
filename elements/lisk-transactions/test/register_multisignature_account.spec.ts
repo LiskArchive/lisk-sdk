@@ -160,17 +160,10 @@ describe('#registerMultisignature transaction', () => {
 			);
 		});
 
-		it('should throw error if repeated mandatory keys exists', async () => {
+		it('should throw error if repeated keys exists', async () => {
 			(input as any).mandatoryKeys[0] = (input as any).mandatoryKeys[1];
 			expect(() => registerMultisignature(input)).toThrow(
-				'There are repeated mandatory public keys',
-			);
-		});
-
-		it('should throw error if repeated mandatory keys exists', async () => {
-			(input as any).optionalKeys[0] = (input as any).optionalKeys[1];
-			expect(() => registerMultisignature(input)).toThrow(
-				'There are repeated optional public keys',
+				'There are repeated public keys. Mandatory and Optional Public Keys need too be unique.',
 			);
 		});
 	});

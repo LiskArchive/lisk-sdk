@@ -111,15 +111,18 @@ const validateInputs = ({
 	}
 
 	// Check key repetitions inside each set
-	const uniqueMandatoryPublicKeys = Array.from(new Set(mandatoryPublicKeys));
-	if (uniqueMandatoryPublicKeys.length < mandatoryPublicKeys.length) {
-		throw new Error('There are repeated mandatory public keys');
+	const uniqueKeys = Array.from(
+		new Set([...mandatoryPublicKeys, ...optionalPublicKeys]),
+	);
+	if (
+		uniqueKeys.length !==
+		mandatoryPublicKeys.length + optionalPublicKeys.length
+	) {
+		throw new Error(
+			'There are repeated public keys. Mandatory and Optional Public Keys need too be unique.',
+		);
 	}
 
-	const uniqueOptionalPublicKeys = Array.from(new Set(optionalPublicKeys));
-	if (uniqueOptionalPublicKeys.length < optionalPublicKeys.length) {
-		throw new Error('There are repeated optional public keys');
-	}
 	validateNetworkIdentifier(networkIdentifier);
 };
 
