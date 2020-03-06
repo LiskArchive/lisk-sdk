@@ -116,31 +116,26 @@ export class TransactionPool {
 			return false;
 		}
 		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
-		if (incomingTx.fee <= this._minimumEntranceFee) {
+		if (incomingTx.fee < this._minimumEntranceFee) {
 			return false;
 		}
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
-		if (Object.keys(this._allTransactions).length === this._maxTransactions) {
-			let notMinFeeTrx = false;
-			for (const tx of Object.values(this._allTransactions)) {
-				if (incomingTx.fee > tx.fee) {
-					notMinFeeTrx = true;
-				}
-			}
-			if (!notMinFeeTrx) {
-				return false;
-			}
-		}
+		// TODO: Use feePriorityQueue to reject transaction with lowest fee when txPool is full
 
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
 		);
 
 		const txResponse = await this._applyFunction([incomingTx]);
+		const txResponseErrors = txResponse[0].errors;
 
 		// If applyTransaction fails for the transaction then throw error
 		if (
-			txResponse[0].errors.length > 0 ||
+			(txResponseErrors.length === 1 &&
+				txResponseErrors[0].dataPath === '.nonce' &&
+				txResponseErrors[0].actual &&
+				txResponseErrors[0].expected &&
+				txResponseErrors[0].actual > txResponseErrors[0].expected) ||
 			txResponse[0].status === Status.FAIL
 		) {
 			throw new Error(
@@ -156,8 +151,8 @@ export class TransactionPool {
 		}
 
 		// Add received time to the incoming tx object
-		const incomingTxWithTime = { ...incomingTx, receivedAt: new Date() };
-		this._allTransactions[incomingTx.id] = incomingTxWithTime;
+		incomingTx.receivedAt = new Date();
+		this._allTransactions[incomingTx.id] = incomingTx;
 
 		return this._transactionList[incomingTxAddress].add(incomingTx);
 	}

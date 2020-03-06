@@ -87,7 +87,7 @@ describe('TransactionList class', () => {
 			const status = await transactionPool.addTransaction(tx);
 			expect(status).toEqual(true);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
-			const { receivedAt, ...originalTrxObj } =
+			const originalTrxObj =
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
 				].get(BigInt(1)) || {};
