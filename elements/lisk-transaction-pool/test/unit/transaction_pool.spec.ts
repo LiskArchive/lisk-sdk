@@ -18,6 +18,7 @@ import {
 } from '../../src/transaction_pool';
 import { Transaction, Status } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe.only('TransactionList class', () => {
 	let applyTransactionStub = jest.fn();
@@ -82,17 +83,46 @@ describe.only('TransactionList class', () => {
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
 
-		it('should add a valid trx', async () => {
+		it('should add a valid transaction', async () => {
 			const status = await transactionPool.addTransaction(tx);
 			expect(status).toEqual(true);
+			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
+			const { receivedAt, ...originalTrxObj } =
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(BigInt(1)) || {};
+			expect(originalTrxObj).toEqual(tx);
 		});
 
-		it('should reject a duplicate trx', async () => {
+		it('should reject a duplicate transaction', async () => {
 			const txDuplicate = { ...tx };
 			const status1 = await transactionPool.addTransaction(tx);
 			const status2 = await transactionPool.addTransaction(txDuplicate);
 			expect(status1).toEqual(true);
 			expect(status2).toEqual(false);
+		});
+
+		it('should throw when a transaction is invalid', async () => {
+			applyTransactionStub.mockResolvedValue([
+				{ status: Status.FAIL, errors: [new Error('Invalid nonce sequence')] },
+			]);
+			try {
+				await transactionPool.addTransaction(tx);
+			} catch (error) {
+				expect(error.message).toContain(
+					`transaction id ${tx.id} is an invalid transaction`,
+				);
+			}
+		});
+
+		it('should reject a transaction with lower fee than minEntranceFee', async () => {
+			transactionPool = new TransactionPool({
+				applyTransaction: jest.fn(),
+				minimumEntranceFee: BigInt(10),
+			});
+			const lowFeeTx = { ...tx, fee: BigInt(1) - BigInt(1) };
+			const status = await transactionPool.addTransaction(lowFeeTx);
+			expect(status).toEqual(false);
 		});
 	});
 });
