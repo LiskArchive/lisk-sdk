@@ -113,7 +113,7 @@ export default class VoteCommand extends BaseCommand {
 			},
 		} = this.parse(VoteCommand);
 
-		const { nonce, fee }: Args = args;
+		const { nonce, fee } = args as Args;
 
 		if (!isValidNonce(nonce)) {
 			throw new ValidationError('Enter a valid nonce in number string format.');

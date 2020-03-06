@@ -20,7 +20,7 @@ import {
 	valid as isValidVersion,
 	validRange as isValidRangeVersion,
 } from 'semver';
-import * as validator from 'validator';
+import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
@@ -138,8 +138,8 @@ export const isGreaterThanRangedVersion = isGreaterThanVersionInRange;
 export const isProtocolString = (data: string) =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
-const IPV4_NUMBER = 4;
-const IPV6_NUMBER = 6;
+const IPV4_NUMBER = '4';
+const IPV6_NUMBER = '6';
 
 export const isIPV4 = (data: string): boolean =>
 	validator.isIP(data, IPV4_NUMBER);
