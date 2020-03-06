@@ -49,6 +49,8 @@ export interface TransactionError {
 	readonly message: string;
 	readonly id: string;
 	readonly dataPath: string;
+	readonly actual?: string | number;
+	readonly expected?: string | number;
 }
 
 export interface TransactionResponse {
