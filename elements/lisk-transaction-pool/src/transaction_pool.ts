@@ -138,6 +138,7 @@ export class TransactionPool {
 
 		const txResponse = await this._applyFunction([incomingTx]);
 
+		// If applyTransaction fails for the transaction then throw error
 		if (
 			txResponse[0].errors.length > 0 ||
 			txResponse[0].status === Status.FAIL

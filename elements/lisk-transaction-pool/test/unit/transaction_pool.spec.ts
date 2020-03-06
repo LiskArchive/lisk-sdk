@@ -20,7 +20,7 @@ import { Transaction, Status } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-describe.only('TransactionList class', () => {
+describe('TransactionList class', () => {
 	let applyTransactionStub = jest.fn();
 
 	const defaultTxPoolConfig: TransactionPoolConfig = {
@@ -83,7 +83,7 @@ describe.only('TransactionList class', () => {
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
 
-		it('should add a valid transaction', async () => {
+		it('should add a valid transaction and is added to the transaction list', async () => {
 			const status = await transactionPool.addTransaction(tx);
 			expect(status).toEqual(true);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
@@ -100,6 +100,10 @@ describe.only('TransactionList class', () => {
 			const status2 = await transactionPool.addTransaction(txDuplicate);
 			expect(status1).toEqual(true);
 			expect(status2).toEqual(false);
+			// Check if its not added to the transaction list
+			expect(Object.keys(transactionPool['_allTransactions']).length).toEqual(
+				1,
+			);
 		});
 
 		it('should throw when a transaction is invalid', async () => {
