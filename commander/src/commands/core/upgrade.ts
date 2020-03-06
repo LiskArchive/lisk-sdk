@@ -89,7 +89,7 @@ export default class UpgradeCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(UpgradeCommand);
-		const { name }: Args = args;
+		const { name } = args as Args;
 		const {
 			'lisk-version': liskVersion,
 			'release-url': releaseUrl,

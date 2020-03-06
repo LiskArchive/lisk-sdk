@@ -573,6 +573,74 @@ describe('Base transaction class', () => {
 			expect(Object.keys(errors)).toHaveLength(0);
 			expect((updatedSender as any).nonce).toEqual(accountNonce + BigInt(1));
 		});
+		describe('when transactions are from collision account', () => {
+			const collisionAccounts = [
+				{
+					address: '13555181540209512417L',
+					passphrase:
+						'annual youth lift quote off olive uncle town chief poverty extend series',
+					publicKey:
+						'b26dd40ba33e4785e49ddc4f106c0493ed00695817235c778f487aea5866400a',
+				},
+				{
+					address: '13555181540209512417L',
+					passphrase:
+						'merry field slogan sibling convince gold coffee town fold glad mix page',
+					publicKey:
+						'ce33db918b059a6e99c402963b42cf51c695068007ef01d8c383bb8a41270263',
+				},
+			];
+
+			let validCollisionTransaction: TransferTransaction;
+
+			beforeEach(async () => {
+				store = new StateStoreMock([
+					{
+						...defaultAccount,
+						publicKey: undefined,
+						address: collisionAccounts[0].address,
+						balance: BigInt('10000000000'),
+					},
+				]);
+				validCollisionTransaction = new TransferTransaction({
+					...transferFixture.testCases[0].input.transaction,
+					nonce: '0',
+					fee: '10000000',
+					senderPublicKey: collisionAccounts[0].publicKey,
+					networkIdentifier:
+						transferFixture.testCases[0].input.networkIdentifier,
+				});
+				validCollisionTransaction.sign(collisionAccounts[0].passphrase);
+			});
+
+			it('should register public key to sender account if it does not exist', async () => {
+				const { status, errors } = await validCollisionTransaction.apply(store);
+				expect(status).toEqual(Status.OK);
+				expect(Object.keys(errors)).toHaveLength(0);
+
+				const account = await store.account.get(collisionAccounts[0].address);
+				expect(account.publicKey).toEqual(collisionAccounts[0].publicKey);
+			});
+
+			it('should reject the transaction if the transaction is from collision account', async () => {
+				const invalidCollisionTransaction = new TransferTransaction({
+					...transferFixture.testCases[0].input.transaction,
+					nonce: '0',
+					fee: '10000000',
+					senderPublicKey: collisionAccounts[1].publicKey,
+					networkIdentifier:
+						transferFixture.testCases[0].input.networkIdentifier,
+				});
+				invalidCollisionTransaction.sign(collisionAccounts[1].passphrase);
+				// Apply first and register the public key
+				await validCollisionTransaction.apply(store);
+				const { status, errors } = await invalidCollisionTransaction.apply(
+					store,
+				);
+				expect(status).toEqual(Status.FAIL);
+				expect(errors[0].message).toContain('Invalid sender publicKey');
+			});
+		});
 	});
 
 	describe('#undo', () => {

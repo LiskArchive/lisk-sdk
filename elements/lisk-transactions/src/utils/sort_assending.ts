@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './address';
-export * from './create_base_transaction';
-export * from './format';
-export * from './sign_and_validate';
-export * from './verify';
-export * from './transaction_id';
-export * from './sort_assending';
-export * from './build_key_passphrase_dict';
-export * from './find_repeated_keys';
+
+export const sortKeysAscending = (publicKeys: string[]): string[] =>
+	publicKeys.sort((publicKeyA, publicKeyB) => {
+		if (publicKeyA > publicKeyB) {
+			return 1;
+		}
+		if (publicKeyA < publicKeyB) {
+			return -1;
+		}
+
+		return 0;
+	});

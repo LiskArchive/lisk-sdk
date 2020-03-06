@@ -83,7 +83,7 @@ export default class ForgingCommand extends BaseCommand {
 			flags: { password: passwordSource },
 		} = this.parse(ForgingCommand);
 
-		const { status, publicKey }: Args = args;
+		const { status, publicKey } = args as Args;
 		validatePublicKey(publicKey);
 
 		const client = getAPIClient(this.userConfig.api);

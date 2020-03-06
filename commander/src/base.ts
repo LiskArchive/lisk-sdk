@@ -74,7 +74,7 @@ export default abstract class BaseCommand extends Command {
 			// tslint:disable-next-line no-any
 			(this.constructor as unknown) as flagParser.Input<any>,
 		);
-		this.printFlags = flags;
+		this.printFlags = flags as PrintFlags;
 
 		process.stdout.on('error', handleEPIPE);
 

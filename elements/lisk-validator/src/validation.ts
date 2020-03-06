@@ -20,7 +20,7 @@ import {
 	valid as isValidVersion,
 	validRange as isValidRangeVersion,
 } from 'semver';
-import * as validator from 'validator';
+import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
@@ -138,8 +138,8 @@ export const isGreaterThanRangedVersion = isGreaterThanVersionInRange;
 export const isProtocolString = (data: string) =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
-const IPV4_NUMBER = 4;
-const IPV6_NUMBER = 6;
+const IPV4_NUMBER = '4';
+const IPV6_NUMBER = '6';
 
 export const isIPV4 = (data: string): boolean =>
 	validator.isIP(data, IPV4_NUMBER);
@@ -185,20 +185,6 @@ export const validatePublicKeys = (
 ): boolean =>
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
-
-export const validateKeysgroup = (
-	keysgroup: ReadonlyArray<string>,
-	min: number,
-	max: number,
-): boolean => {
-	if (keysgroup.length < min || keysgroup.length > max) {
-		throw new Error(
-			`Expected between ${min} and ${max} public keys in the keysgroup.`,
-		);
-	}
-
-	return validatePublicKeys(keysgroup);
-};
 
 const MIN_ADDRESS_LENGTH = 2;
 const MAX_ADDRESS_LENGTH = 22;

@@ -226,6 +226,15 @@ export class Storage {
 		return accounts;
 	}
 
+	public async getAccountByAddress(address: string): Promise<AccountJSON> {
+		const account = await this._storage.entities.Account.getOne(
+			{ address },
+			{ limit: 1 },
+		);
+
+		return account;
+	}
+
 	public async getAccountsByAddress(
 		arrayOfAddresses: ReadonlyArray<string>,
 	): Promise<AccountJSON[]> {

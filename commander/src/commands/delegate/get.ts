@@ -45,7 +45,7 @@ export default class GetCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { args } = this.parse(GetCommand);
-		const { usernames: usernamesStr }: Args = args;
+		const { usernames: usernamesStr } = args as Args;
 		const usernames: ReadonlyArray<string> = usernamesStr
 			.split(',')
 			.filter(Boolean);

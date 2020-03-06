@@ -210,7 +210,7 @@ export default class InstallCommand extends BaseCommand {
 			network,
 			'snapshot-url': snapshotUrl,
 		} = flags as Flags;
-		const { name }: Args = args;
+		const { name } = args as Args;
 
 		const { cacheDir } = this.config;
 		// TODO: Commander not creating cache directory
