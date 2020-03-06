@@ -36,7 +36,7 @@
 		]
 	},
 	"scripts": {
-		"bootstrap": "lerna bootstrap --hoist",
+		"bootstrap": "lerna bootstrap",
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
 		"format": "npm run format:root && lerna run format",
