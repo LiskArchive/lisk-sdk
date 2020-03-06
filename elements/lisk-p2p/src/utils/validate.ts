@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isIP, isPort } from 'validator';
+import validator from 'validator';
 
 import {
 	INCOMPATIBLE_NETWORK_REASON,
@@ -42,8 +42,8 @@ interface RPCPeerListResponse {
 	readonly success?: boolean; // Could be used in future
 }
 
-const IPV4_NUMBER = 4;
-const IPV6_NUMBER = 6;
+const IPV4_NUMBER = '4';
+const IPV6_NUMBER = '6';
 
 const validateNetworkCompatibility = (
 	peerInfo: P2PPeerInfo,
@@ -109,8 +109,8 @@ export const validatePeerAddress = (
 	wsPort: number,
 ): boolean => {
 	if (
-		(!isIP(ipAddress, IPV4_NUMBER) && !isIP(ipAddress, IPV6_NUMBER)) ||
-		!isPort(wsPort.toString())
+		(!validator.isIP(ipAddress, IPV4_NUMBER) && !validator.isIP(ipAddress, IPV6_NUMBER)) ||
+		!validator.isPort(wsPort.toString())
 	) {
 		return false;
 	}

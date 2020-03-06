@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const RateLimit = require('express-rate-limit');
+const rateLimit = require('express-rate-limit');
 const debug = require('debug')('swagger:lisk:request_limit');
 const config = require('../helpers/swagger_module_registry').getConfig();
 
@@ -48,7 +48,7 @@ module.exports = function create(fittingDef) {
 
 	debug('limits: %j', limits);
 
-	const middleware = new RateLimit(_.clone(limits));
+	const middleware = rateLimit(_.clone(limits));
 
 	function liskRequestLimit(context, cb) {
 		debug('exec');

@@ -91,7 +91,7 @@ export default class DelegateCommand extends BaseCommand {
 			},
 		} = this.parse(DelegateCommand);
 
-		const { nonce, fee, username }: Args = args;
+		const { nonce, fee, username } = args as Args;
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,

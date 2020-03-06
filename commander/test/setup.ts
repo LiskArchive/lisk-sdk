@@ -36,7 +36,7 @@ Assertion.addMethod('matchAny', function handleAssert(
 		'expected #{this} to match at least once',
 		'expected #{this} not to match',
 	);
-});
+} as any);
 
 Assertion.addMethod('customError', function handleAssert(
 	this: Chai.ChaiStatic,
@@ -46,7 +46,7 @@ Assertion.addMethod('customError', function handleAssert(
 	new Assertion(obj).to.be.instanceOf(Error);
 	new Assertion(obj.name).to.equal(error.name);
 	new Assertion(obj.message).to.equal(error.message);
-});
+} as any);
 
 [sinonChai, chaiAsPromised].forEach(chai.use);
 

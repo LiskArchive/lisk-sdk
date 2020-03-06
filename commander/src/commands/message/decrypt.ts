@@ -85,7 +85,7 @@ export default class DecryptCommand extends BaseCommand {
 			flags: { passphrase: passphraseSource, message: messageSource },
 		} = this.parse(DecryptCommand);
 
-		const { senderPublicKey, nonce, message }: Args = args;
+		const { senderPublicKey, nonce, message } = args as Args;
 
 		if (!message && !messageSource) {
 			throw new ValidationError('No message was provided.');
