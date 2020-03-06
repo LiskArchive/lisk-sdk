@@ -14,8 +14,6 @@
 
 'use strict';
 
-const mocha = require('mocha');
-const coMocha = require('co-mocha');
 const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
@@ -27,7 +25,6 @@ const app = require('../test_app/app');
 app._compileAndValidateConfigurations();
 
 process.env.NODE_ENV = 'test';
-coMocha(mocha);
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
