@@ -237,14 +237,17 @@ module.exports = class Node {
 					action.params.forging,
 				),
 			getAccount: async action => {
-				const [account] = this.chain.dataAccess.getAccountsByAddress([
+				const account = await this.chain.dataAccess.getAccountByAddress(
 					action.params.address,
-				]);
-
-				return account;
+				);
+				return account.toJSON();
 			},
-			getAccounts: async action =>
-				this.chain.dataAccess.getAccountsByAddress(action.params.address),
+			getAccounts: async action => {
+				const accounts = await this.chain.dataAccess.getAccountsByAddress(
+					action.params.address,
+				);
+				return accounts.map(account => account.toJSON());
+			},
 			getBlockByID: async action => {
 				const block = this.chain.dataAccess.getBlockByID(action.params.id);
 

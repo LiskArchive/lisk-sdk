@@ -457,6 +457,74 @@ describe('Vote transaction class', () => {
 			);
 			expect(errors[0].dataPath).toBe('.asset.votes');
 		});
+
+		describe('when votes are casted to collision accounts', () => {
+			const collisionAccounts = [
+				{
+					address: '13555181540209512417L',
+					passphrase:
+						'annual youth lift quote off olive uncle town chief poverty extend series',
+					publicKey:
+						'b26dd40ba33e4785e49ddc4f106c0493ed00695817235c778f487aea5866400a',
+				},
+				{
+					address: '13555181540209512417L',
+					passphrase:
+						'merry field slogan sibling convince gold coffee town fold glad mix page',
+					publicKey:
+						'ce33db918b059a6e99c402963b42cf51c695068007ef01d8c383bb8a41270263',
+				},
+			];
+
+			let validCollisionTransaction: VoteTransaction;
+
+			beforeEach(async () => {
+				const account = {
+					passphrase:
+						'dutch brass risk define problem pear urban notable kangaroo street dinosaur eagle',
+					publicKey:
+						'a0d662a90afc73c13bc463630f8fb6e8cc11e4b346679d158af2b4b771dc3845',
+					address: '18240835918225510659L',
+				};
+				const sender = {
+					...defaultAccount,
+					address: account.address,
+					balance: BigInt('100000000'),
+					publicKey: account.publicKey,
+					votedDelegatesPublicKeys: [
+						'5a82f58bf35ef4bdfac9a371a64e91914519af31a5cf64a5b8b03ca7d32c15dc',
+					],
+				};
+				store = new StateStoreMock([
+					sender,
+					{
+						...defaultAccount,
+						balance: BigInt('0'),
+						address: collisionAccounts[1].address,
+						publicKey: collisionAccounts[1].publicKey,
+						username: null,
+					},
+				]);
+
+				validCollisionTransaction = new VoteTransaction({
+					...validVoteTransactions[2],
+					networkIdentifier,
+					asset: {
+						votes: [`+${collisionAccounts[0].publicKey}`],
+					},
+					senderPublicKey: account.publicKey,
+				});
+				validCollisionTransaction.sign(account.passphrase);
+			});
+
+			it('should reject if the collision account is voted, which is not a delegate account', async () => {
+				const { status, errors } = await validCollisionTransaction.apply(store);
+				expect(status).toEqual(Status.FAIL);
+				expect(errors[0].message).toContain(
+					`${collisionAccounts[0].publicKey} is not a delegate`,
+				);
+			});
+		});
 	});
 
 	describe('#undoAsset', () => {

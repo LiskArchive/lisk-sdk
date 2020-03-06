@@ -19,10 +19,12 @@ const accountUtils = require('./account');
 const nodeUtils = require('./node');
 const transactionUtils = require('./transaction');
 const delegateUtils = require('./delegate');
+const blockUtils = require('./block');
 
 module.exports = {
 	...accountUtils,
 	...nodeUtils,
 	...delegateUtils,
 	...transactionUtils,
+	...blockUtils,
 };

@@ -37,7 +37,6 @@
 		"jest:integration": "jest --config=./test/jest/integration/jest.config.js",
 		"jest:functional": "jest --config=./test/jest/functional/jest.config.js --passWithNoTests",
 		"mocha:unit": "node test/mocha/common/lisk-mocha-runner unit",
-		"mocha:integration": "node test/mocha/common/lisk-mocha-runner integration",
 		"mocha:functional": "node test/mocha/common/lisk-mocha-runner functional",
 		"mocha:functional:ws": "node test/mocha/common/lisk-mocha-runner functional:ws",
 		"mocha:functional:get": "node test/mocha/common/lisk-mocha-runner functional:get",
