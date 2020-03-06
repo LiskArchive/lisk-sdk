@@ -431,7 +431,7 @@ export abstract class BaseTransaction {
 		this._id = getId(this.getBytes());
 	}
 
-	protected getBasicBytes(): Buffer {
+	public getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionNonce = intToBuffer(
 			this.nonce.toString(),

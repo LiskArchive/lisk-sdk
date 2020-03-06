@@ -14,9 +14,12 @@
  */
 
 import {
+	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
+	hash,
 	hexToBuffer,
 	intToBuffer,
+	signData,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -28,7 +31,13 @@ import {
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
-import { validateKeysSignatures, validateSignature } from './utils';
+import {
+	buildPublicKeyPassphraseDict,
+	getId,
+	sortKeysAscending,
+	validateKeysSignatures,
+	validateSignature,
+} from './utils';
 
 export const multisignatureAssetFormatSchema = {
 	type: 'object',
@@ -76,8 +85,10 @@ const setMemberAccounts = async (
 };
 
 export interface MultiSignatureAsset {
-	readonly mandatoryKeys: ReadonlyArray<string>;
-	readonly optionalKeys: ReadonlyArray<string>;
+	// tslint:disable-next-line: readonly-keyword
+	mandatoryKeys: Array<Readonly<string>>;
+	// tslint:disable-next-line: readonly-keyword
+	optionalKeys: Array<Readonly<string>>;
 	readonly numberOfSignatures: number;
 }
 
@@ -289,8 +300,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		sender.keys = {
 			numberOfSignatures: this.asset.numberOfSignatures,
-			mandatoryKeys: this.asset.mandatoryKeys as string[],
-			optionalKeys: this.asset.optionalKeys as string[],
+			mandatoryKeys: this.asset.mandatoryKeys,
+			optionalKeys: this.asset.optionalKeys,
 		};
 
 		store.account.set(sender.address, sender);
@@ -360,5 +371,70 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		return createResponse(this.id, []);
+	}
+
+	public signAll(
+		networkIdentifier: string,
+		senderPassphrase: string,
+		keys?: {
+			readonly passphrases: ReadonlyArray<string>;
+			readonly mandatoryKeys: ReadonlyArray<string>;
+			readonly optionalKeys: ReadonlyArray<string>;
+			readonly numberOfSignatures: number;
+		},
+	): void {
+		// Set network identifier if it was previously not set in the transaction
+		if (!this._networkIdentifier) {
+			this._networkIdentifier = networkIdentifier;
+		}
+		// Sort the keys in the transaction
+		sortKeysAscending(this.asset.mandatoryKeys);
+		sortKeysAscending(this.asset.optionalKeys);
+
+		// Sign with sender
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(
+			senderPassphrase,
+		);
+
+		if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
+			throw new Error(
+				'Transaction senderPublicKey does not match public key from passphrase',
+			);
+		}
+
+		this.senderPublicKey = publicKey;
+
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBasicBytes(),
+		]);
+
+		this.signatures.push(
+			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
+		);
+
+		if (keys && keys.passphrases) {
+			const keysAndPassphrases = buildPublicKeyPassphraseDict([
+				...keys.passphrases,
+			]);
+
+			// Sign with all keys
+			for (const aKey of [
+				...this.asset.mandatoryKeys,
+				...this.asset.optionalKeys,
+			]) {
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+		}
+		this._id = getId(this.getBytes());
 	}
 }

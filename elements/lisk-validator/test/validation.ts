@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
+
 import { expect } from 'chai';
 import {
 	validatePublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
-	validateKeysgroup,
 	validateAddress,
 	isValidNonTransferAmount,
 	isValidTransferAmount,
@@ -126,54 +125,6 @@ describe('validation', () => {
 			];
 			it('should return true', () => {
 				return expect(validatePublicKeys(publicKeys)).to.be.true;
-			});
-		});
-	});
-
-	describe('#validateKeysgroup', () => {
-		let keysgroup: ReadonlyArray<string>;
-		describe('Given a keysgroup with three public keys', () => {
-			beforeEach(() => {
-				keysgroup = [
-					'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-					'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-				];
-				return Promise.resolve();
-			});
-			it('the validated keysgroup should return true', () => {
-				return expect(validateKeysgroup(keysgroup, 1, 15)).to.be.true;
-			});
-		});
-
-		describe('Given an empty keysgroup', () => {
-			beforeEach(() => {
-				keysgroup = [];
-				return Promise.resolve();
-			});
-			it('should throw the error', () => {
-				return expect(validateKeysgroup.bind(null, keysgroup, 1, 15)).to.throw(
-					'Expected between 1 and 15 public keys in the keysgroup.',
-				);
-			});
-		});
-
-		describe('Given a keysgroup with 17 public keys', () => {
-			beforeEach(() => {
-				keysgroup = new Array(17)
-					.fill(0)
-					.map(
-						(_: number, index: number) =>
-							cryptography.getPrivateAndPublicKeyFromPassphrase(
-								index.toString(),
-							).publicKey,
-					);
-				return Promise.resolve();
-			});
-			it('should throw the error', () => {
-				return expect(validateKeysgroup.bind(null, keysgroup, 1, 15)).to.throw(
-					'Expected between 1 and 15 public keys in the keysgroup.',
-				);
 			});
 		});
 	});

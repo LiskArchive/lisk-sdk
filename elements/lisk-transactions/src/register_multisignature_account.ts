@@ -16,39 +16,47 @@ import {
 	isValidFee,
 	isValidInteger,
 	isValidNonce,
-	validateKeysgroup,
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
 
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import {
-	MULTISIGNATURE_MAX_KEYSGROUP,
-	MULTISIGNATURE_MAX_LIFETIME,
-	MULTISIGNATURE_MIN_KEYSGROUP,
-	MULTISIGNATURE_MIN_LIFETIME,
+	MAX_NUMBER_OF_KEYS,
+	MAX_NUMBER_OF_SIGNATURES,
+	MIN_NUMBER_OF_KEYS,
+	MIN_NUMBER_OF_SIGNATURES,
 } from './constants';
 import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction, prependPlusToPublicKeys } from './utils';
+import { createBaseTransaction, findRepeatedKeys } from './utils';
 
 export interface RegisterMultisignatureInputs {
-	readonly keysgroup: ReadonlyArray<string>;
-	readonly lifetime: number;
-	readonly minimum: number;
-	readonly passphrase?: string;
-	readonly secondPassphrase?: string;
+	readonly senderPassphrase: string;
+	readonly passphrases: ReadonlyArray<string>;
+	readonly mandatoryKeys: ReadonlyArray<string>;
+	readonly optionalKeys: ReadonlyArray<string>;
+	readonly numberOfSignatures: number;
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
 }
 
+interface ValidateMultisignatureRegistrationInput {
+	readonly mandatoryPublicKeys: ReadonlyArray<string>;
+	readonly optionalPublicKeys: ReadonlyArray<string>;
+	readonly numberOfSignatures: number;
+	readonly networkIdentifier: string;
+	readonly fee: string;
+	readonly nonce: string;
+}
+
 const validateInputs = ({
-	keysgroup,
-	lifetime,
-	minimum,
+	mandatoryPublicKeys,
+	optionalPublicKeys,
+	numberOfSignatures,
 	networkIdentifier,
 	fee,
 	nonce,
-}: RegisterMultisignatureInputs): void => {
+}: ValidateMultisignatureRegistrationInput): void => {
 	if (!isValidNonce(nonce)) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
@@ -58,36 +66,62 @@ const validateInputs = ({
 	}
 
 	if (
-		!isValidInteger(lifetime) ||
-		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
-		lifetime > MULTISIGNATURE_MAX_LIFETIME
+		!isValidInteger(numberOfSignatures) ||
+		numberOfSignatures < MIN_NUMBER_OF_SIGNATURES ||
+		numberOfSignatures > MAX_NUMBER_OF_SIGNATURES
 	) {
 		throw new Error(
-			`Please provide a valid lifetime value. Expected integer between ${MULTISIGNATURE_MIN_LIFETIME} and ${MULTISIGNATURE_MAX_LIFETIME}.`,
+			`Please provide a valid numberOfSignatures value. Expected integer between ${MIN_NUMBER_OF_SIGNATURES} and ${MAX_NUMBER_OF_SIGNATURES}.`,
+		);
+	}
+
+	if (mandatoryPublicKeys.length > numberOfSignatures) {
+		throw new Error(
+			'The numberOfSignatures should be more than or equal to the number of mandatory passphrases.',
 		);
 	}
 
 	if (
-		!isValidInteger(minimum) ||
-		minimum < MULTISIGNATURE_MIN_KEYSGROUP ||
-		minimum > MULTISIGNATURE_MAX_KEYSGROUP
+		numberOfSignatures >
+		mandatoryPublicKeys.length + optionalPublicKeys.length
 	) {
 		throw new Error(
-			`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP}.`,
+			`Please provide a valid numberOfSignatures. numberOfSignatures (${numberOfSignatures}) is bigger than the count of optional (${optionalPublicKeys.length}) and mandatory (${mandatoryPublicKeys.length}) keys.`,
 		);
 	}
 
-	if (keysgroup.length < minimum) {
+	if (
+		mandatoryPublicKeys.length + optionalPublicKeys.length >
+			MAX_NUMBER_OF_KEYS ||
+		mandatoryPublicKeys.length + optionalPublicKeys.length < MIN_NUMBER_OF_KEYS
+	) {
 		throw new Error(
-			'Minimum number of signatures is larger than the number of keys in the keysgroup.',
+			`Please provide a valid number of mandatory and optional keys. Expected integer between ${MIN_NUMBER_OF_SIGNATURES} and ${MAX_NUMBER_OF_SIGNATURES}.`,
 		);
 	}
 
-	validateKeysgroup(
-		keysgroup,
-		MULTISIGNATURE_MIN_KEYSGROUP,
-		MULTISIGNATURE_MAX_KEYSGROUP,
+	// Check key duplication between sets
+	const repatedKeys = findRepeatedKeys(optionalPublicKeys, mandatoryPublicKeys);
+	if (repatedKeys.length > 0) {
+		throw new Error(
+			`There are repeated values in optional and mandatory keys: '${repatedKeys.join(
+				', ',
+			)}'`,
+		);
+	}
+
+	// Check key repetitions inside each set
+	const uniqueKeys = Array.from(
+		new Set([...mandatoryPublicKeys, ...optionalPublicKeys]),
 	);
+	if (
+		uniqueKeys.length !==
+		mandatoryPublicKeys.length + optionalPublicKeys.length
+	) {
+		throw new Error(
+			'There are repeated public keys. Mandatory and Optional Public Keys need too be unique.',
+		);
+	}
 
 	validateNetworkIdentifier(networkIdentifier);
 };
@@ -95,34 +129,49 @@ const validateInputs = ({
 export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
 ): Partial<TransactionJSON> => {
-	validateInputs(inputs);
 	const {
-		keysgroup,
-		lifetime,
-		minimum,
-		passphrase,
+		senderPassphrase,
+		passphrases,
+		mandatoryKeys,
+		optionalKeys,
+		numberOfSignatures,
 		networkIdentifier,
+		fee,
+		nonce,
 	} = inputs;
 
-	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
+	validateInputs({
+		mandatoryPublicKeys: mandatoryKeys,
+		optionalPublicKeys: optionalKeys,
+		numberOfSignatures,
+		networkIdentifier,
+		fee,
+		nonce,
+	});
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 12,
-		asset: {
-			min: minimum,
-			lifetime,
-			keysgroup: plusPrependedKeysgroup,
-		},
 		networkIdentifier,
+		asset: {
+			mandatoryKeys,
+			optionalKeys,
+			numberOfSignatures,
+		},
 	};
 
-	if (!passphrase) {
-		return transaction;
+	const multisignatureTransaction = new MultisignatureTransaction(transaction);
+
+	if (!passphrases || !senderPassphrase) {
+		return multisignatureTransaction.toJSON();
 	}
 
-	const multisignatureTransaction = new MultisignatureTransaction(transaction);
-	multisignatureTransaction.sign(passphrase);
+	multisignatureTransaction.signAll(networkIdentifier, senderPassphrase, {
+		passphrases,
+		mandatoryKeys,
+		optionalKeys,
+		numberOfSignatures,
+	});
 
 	return multisignatureTransaction.toJSON();
 };

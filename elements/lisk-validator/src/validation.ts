@@ -186,20 +186,6 @@ export const validatePublicKeys = (
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
 
-export const validateKeysgroup = (
-	keysgroup: ReadonlyArray<string>,
-	min: number,
-	max: number,
-): boolean => {
-	if (keysgroup.length < min || keysgroup.length > max) {
-		throw new Error(
-			`Expected between ${min} and ${max} public keys in the keysgroup.`,
-		);
-	}
-
-	return validatePublicKeys(keysgroup);
-};
-
 const MIN_ADDRESS_LENGTH = 2;
 const MAX_ADDRESS_LENGTH = 22;
 const BASE_TEN = 10;

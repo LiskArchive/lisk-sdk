@@ -20,7 +20,7 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as inputUtils from '../../../../src/utils/input';
 
-describe('transaction:create:multisignature', () => {
+describe.skip('transaction:create:multisignature', () => {
 	const defaultLifetime = '24';
 	const defaultMinimum = '2';
 	const defaultKeysgroup = [
