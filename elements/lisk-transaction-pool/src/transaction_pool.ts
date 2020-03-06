@@ -97,7 +97,7 @@ export class TransactionPool {
 	}
 
 	public getAllTransactions(): ReadonlyArray<Transaction> {
-		return [];
+		return Object.values(this._allTransactions);
 	}
 
 	public get(id: string): Transaction | undefined {
@@ -143,7 +143,7 @@ export class TransactionPool {
 			txResponse[0].status === Status.FAIL
 		) {
 			throw new Error(
-				`Transaction with tx id ${incomingTx.id} is an invalid trx`,
+				`Transaction with transaction id ${incomingTx.id} is an invalid transaction`,
 			);
 		}
 
