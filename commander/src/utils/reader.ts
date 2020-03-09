@@ -105,7 +105,7 @@ const getFileDoesNotExistError = (path: string): string =>
 const getFileUnreadableError = (path: string): string =>
 	`File at ${path} could not be read.`;
 
-const getDataFromFile = async (path: string) => fs.readFileSync(path, 'utf8');
+const getDataFromFile = (path: string) => fs.readFileSync(path, 'utf8');
 
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
