@@ -452,8 +452,6 @@
 			"consoleLogLevel": "info"
 		},
 		"storage": {
-		  "user": "postgres",
-		  "password": "password",
 			"database": "lisk_dev",
 			"min": 1,
 			"max": 10,
