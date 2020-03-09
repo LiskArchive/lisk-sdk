@@ -16,6 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import { Job } from './job';
+import { MinHeap } from './min_heap';
 import { TransactionList } from './transaction_list';
 import {
 	Status,
@@ -61,9 +62,11 @@ export class TransactionPool {
 	private readonly _minimumEntranceFee: bigint;
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _reorganizeJob: Job<void>;
+	private readonly _feePriorityQueue: MinHeap<string, bigint>;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
+		this._feePriorityQueue = new MinHeap<string, bigint>();
 		this._allTransactions = {};
 		this._transactionList = {};
 		this._applyFunction = config.applyTransaction;
