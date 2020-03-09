@@ -19,7 +19,6 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const { sortTransactions } = require('./sort');
 
 const getDelegateKeypairForCurrentSlot = async (
 	dposModule,
@@ -52,7 +51,7 @@ class Forger {
 		chainModule,
 		// constants
 		activeDelegates,
-		maxTransactionsPerBlock,
+		maxPayloadLength,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
@@ -71,7 +70,7 @@ class Forger {
 		};
 		this.constants = {
 			activeDelegates,
-			maxTransactionsPerBlock,
+			maxPayloadLength,
 		};
 
 		this.processorModule = processorModule;
