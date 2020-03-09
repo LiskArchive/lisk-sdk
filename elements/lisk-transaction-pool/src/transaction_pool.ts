@@ -207,8 +207,6 @@ export class TransactionPool {
 		return processableTransactions;
 	}
 
-	private async _reorganize(): Promise<void> {}
-
 	private _calculateFeePriority(trx: Transaction): bigint {
 		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);
 	}
@@ -231,5 +229,43 @@ export class TransactionPool {
 		}
 
 		return TransactionStatus.INVALID;
+	}
+	
+	private async _reorganize(): Promise<void> {
+		// For each account, check for non-processable transactions which has sequential nonce
+		for (const address in this._transactionList) {
+			const txList = this._transactionList[address];
+			const allTransactions = txList.getAll();
+			const promotableTransactions = txList.getPromotable();
+
+			// If no promotable transactions, continue loop
+			if(!(promotableTransactions.length > 0)) {
+				continue;
+			}
+
+			const applyResults = await this._applyFunction([...allTransactions]);
+			const successfulTransactions: string[] = [];
+			let firstInvalidTransactionId: string | undefined;
+			for (const result of applyResults) {
+				// If a tx is invalid, all subsequent are also invalid, so exit loop.
+				if (result.status === Status.FAIL) {
+					firstInvalidTransactionId = result.id;
+					break;
+				}
+				successfulTransactions.push(result.id);	
+			}
+			// Promote all transactions which were successful
+			txList.promote(promotableTransactions.filter(tx => successfulTransactions.includes(tx.id)));
+
+			// Remove invalid transaction and all subsequent transactions
+			const invalidTransaction = allTransactions.find(tx => tx.id == firstInvalidTransactionId);
+			if (invalidTransaction) {
+				for (const tx of allTransactions) {
+					if (tx.nonce >= invalidTransaction.nonce) {
+						txList.remove(tx.nonce)
+					}
+				}
+			}
+		}
 	}
 }
