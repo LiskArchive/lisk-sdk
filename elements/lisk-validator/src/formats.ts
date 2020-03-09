@@ -1,5 +1,4 @@
 import {
-	isCsv,
 	isGreaterThanMaxTransactionId,
 	isHexString,
 	isNullCharacterIncluded,
@@ -41,8 +40,6 @@ export const additionPublicKey = (data: string): boolean => {
 };
 
 export const amount = isNumberString;
-
-export const csv = isCsv;
 
 export const emptyString = (data: string): boolean => data === '';
 
