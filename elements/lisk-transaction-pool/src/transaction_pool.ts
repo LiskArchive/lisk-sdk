@@ -12,11 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import { Job } from './job';
 import { TransactionList } from './transaction_list';
-import { Transaction, TransactionResponse } from './types';
+import {
+	Status,
+	Transaction,
+	TransactionResponse,
+	TransactionStatus,
+} from './types';
 
 type ApplyFunction = (
 	transactions: ReadonlyArray<Transaction>,
@@ -96,7 +102,7 @@ export class TransactionPool {
 	}
 
 	public getAllTransactions(): ReadonlyArray<Transaction> {
-		return [];
+		return Object.values(this._allTransactions);
 	}
 
 	public get(id: string): Transaction | undefined {
@@ -109,9 +115,48 @@ export class TransactionPool {
 		return false;
 	}
 
-	public async addTransaction(tx: Transaction): Promise<boolean> {
-		console.log(tx);
-		return false;
+	public async addTransaction(incomingTx: Transaction): Promise<boolean> {
+		// Check for duplicate
+		if (this._allTransactions[incomingTx.id]) {
+			return false;
+		}
+		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
+		if (incomingTx.fee < this._minimumEntranceFee) {
+			return false;
+		}
+		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
+		// TODO: Use feePriorityQueue to reject transaction with lowest fee when txPool is full
+
+		const incomingTxAddress = getAddressFromPublicKey(
+			incomingTx.senderPublicKey,
+		);
+
+		const txResponse = await this._applyFunction([incomingTx]);
+		const txStatus = this._getStatus(txResponse);
+
+		// If applyTransaction fails for the transaction then throw error
+		if (txStatus === TransactionStatus.INVALID) {
+			throw new Error(
+				`Transaction with transaction id ${incomingTx.id} is an invalid transaction`,
+			);
+		}
+
+		// Add address of incoming trx if it doesn't exist in transaction list
+		if (!this._transactionList[incomingTxAddress]) {
+			this._transactionList[incomingTxAddress] = new TransactionList(
+				incomingTxAddress,
+			);
+		}
+
+		// Add received time to the incoming tx object
+		incomingTx.receivedAt = new Date();
+		this._allTransactions[incomingTx.id] = incomingTx;
+
+		// Add the transaction in the _transactionList
+		return this._transactionList[incomingTxAddress].add(
+			incomingTx,
+			txStatus === TransactionStatus.PROCESSABLE,
+		);
 	}
 
 	public removeTransaction(tx: Transaction): boolean {
@@ -127,4 +172,24 @@ export class TransactionPool {
 	}
 
 	private async _reorganize(): Promise<void> {}
+
+	private _getStatus(
+		txResponse: ReadonlyArray<TransactionResponse>,
+	): TransactionStatus {
+		const txResponseErrors = txResponse[0].errors;
+		if (txResponse[0].status === Status.OK) {
+			return TransactionStatus.PROCESSABLE;
+		}
+		if (
+			txResponse[0].errors.length === 1 &&
+			txResponseErrors[0].dataPath === '.nonce' &&
+			txResponseErrors[0].actual &&
+			txResponseErrors[0].expected &&
+			txResponseErrors[0].actual > txResponseErrors[0].expected
+		) {
+			return TransactionStatus.UNPROCESSABLE;
+		}
+
+		return TransactionStatus.INVALID;
+	}
 }
