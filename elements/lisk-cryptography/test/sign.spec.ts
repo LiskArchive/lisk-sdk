@@ -188,6 +188,12 @@ ${defaultSignature}
 			return Promise.resolve();
 		});
 
+		it('should throw error when missing required parameter', () => {
+			expect(() => signData(defaultData, '')).toThrowError(
+				'Missing required parameter data or passphrase for signing',
+			);
+		});
+
 		it('should sign a transaction', () => {
 			expect(signature).toBe(defaultDataSignature);
 		});
@@ -199,6 +205,12 @@ ${defaultSignature}
 		beforeEach(() => {
 			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
 			return Promise.resolve();
+		});
+
+		it('should throw error when missing required parameter', () => {
+			expect(() => signDataWithPassphrase(defaultData, '')).toThrowError(
+				'Missing required parameter data or passphrase for signing',
+			);
 		});
 
 		it('should sign a transaction', () => {

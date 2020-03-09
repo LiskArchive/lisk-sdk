@@ -141,11 +141,15 @@ export const signDataWithPassphrase = (
 	data: Buffer,
 	passphrase: string,
 ): string => {
-	const { privateKeyBytes } = getPrivateAndPublicKeyBytesFromPassphrase(
-		passphrase,
-	);
+	if (data && passphrase) {
+		const { privateKeyBytes } = getPrivateAndPublicKeyBytesFromPassphrase(
+			passphrase,
+		);
 
-	return signDataWithPrivateKey(data, privateKeyBytes);
+		return signDataWithPrivateKey(data, privateKeyBytes);
+	}
+
+	throw new Error('Missing required parameter data or passphrase for signing');
 };
 
 export const signData = signDataWithPassphrase;
