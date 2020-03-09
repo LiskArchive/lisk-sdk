@@ -432,6 +432,78 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	};
 };
 
+const generateFormerSecondSignatureTransactioon = () => {
+	// Second signature
+	const secondSignature = {
+		passphrase:
+			'oyster observe cinnamon elder rose judge baby length again subway pill plate',
+		privateKey:
+			'ffa879f56c04b9293bc830ef29c53c8871fb892717be9d7e75fc89b507eba279ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d',
+		publicKey:
+			'ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d',
+		address: '1180031571206036491L',
+	};
+
+	// basic transaction
+	const unsignedTransaction = {
+		senderPublicKey:
+			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+		nonce: '1',
+		fee: '1500000000',
+		type: 12,
+		asset: {
+			mandatoryKeys: [
+				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				secondSignature.publicKey,
+			],
+			optionalKeys: [],
+			numberOfSignatures: 2,
+		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
+		signatures: [],
+	};
+
+	sortKeysAscending(tx.asset.mandatoryKeys);
+	sortKeysAscending(tx.asset.optionalKeys);
+
+	let txBuffer = serializeBasicProperties(tx);
+
+	// Sender signs
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
+	);
+	// Members sign in order
+	tx.signatures.push(
+		createSignatureObject(txBuffer, accounts.targetAccount).signature,
+	);
+	tx.signatures.push(
+		createSignatureObject(txBuffer, secondSignature).signature,
+	);
+	txBuffer = serializeMemberSignatures(tx, txBuffer);
+
+	const id = getId(txBuffer);
+
+	tx.id = id;
+
+	return {
+		input: {
+			account: accounts.targetAccount,
+			networkIdentifier,
+			members: {
+				mandatoryOne: accounts.targetAccount,
+				mandatoryTwo: secondSignature,
+			},
+			transaction: unsignedTransaction,
+		},
+		output: tx,
+	};
+};
+
 const validMultisignatureRegistrationSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration',
@@ -469,6 +541,15 @@ const validMultisignatureRegistrationOnlyMandatoryMembersSuite = () => ({
 	testCases: generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction(),
 });
 
+const validMultisignatureSecondSigSuite = () => ({
+	title: 'Valid multi-signature registration',
+	summary: 'A valid multi-signature registration equivalent to 2nd signature',
+	config: 'devnet',
+	runner: 'multisignature_registration_transaction',
+	handler: 'multisignature_registration_2nd_sig_equivalent_transaction',
+	testCases: generateFormerSecondSignatureTransactioon(),
+});
+
 module.exports = BaseGenerator.runGenerator(
 	'multisignature_registration_transaction',
 	[
@@ -476,5 +557,6 @@ module.exports = BaseGenerator.runGenerator(
 		validMultisignatureRegistrationSenderIsMandatoryMemberSuite,
 		validMultisignatureRegistrationOnlyOptionalMembersSuite,
 		validMultisignatureRegistrationOnlyMandatoryMembersSuite,
+		validMultisignatureSecondSigSuite,
 	],
 );
