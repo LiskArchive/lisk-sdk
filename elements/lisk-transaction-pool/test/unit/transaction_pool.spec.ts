@@ -16,7 +16,7 @@ import {
 	TransactionPool,
 	TransactionPoolConfig,
 } from '../../src/transaction_pool';
-import { Transaction, Status } from '../../src/types';
+import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
@@ -87,10 +87,12 @@ describe('TransactionList class', () => {
 			const status = await transactionPool.addTransaction(tx);
 			expect(status).toEqual(true);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
+
 			const originalTrxObj =
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
 				].get(BigInt(1)) || {};
+
 			expect(originalTrxObj).toEqual(tx);
 		});
 
@@ -107,12 +109,16 @@ describe('TransactionList class', () => {
 		});
 
 		it('should throw when a transaction is invalid', async () => {
-			applyTransactionStub.mockResolvedValue([
+			const transactionResponse = [
 				{ status: Status.FAIL, errors: [new Error('Invalid nonce sequence')] },
-			]);
+			];
+			const getStatusStub = jest.fn();
+			applyTransactionStub.mockResolvedValue(transactionResponse);
 			try {
+				transactionPool['_getStatus'] = getStatusStub;
 				await transactionPool.addTransaction(tx);
 			} catch (error) {
+				expect(getStatusStub).toHaveReturnedWith(TransactionStatus.INVALID);
 				expect(error.message).toContain(
 					`transaction id ${tx.id} is an invalid transaction`,
 				);

@@ -132,9 +132,10 @@ export class TransactionPool {
 		);
 
 		const txResponse = await this._applyFunction([incomingTx]);
+		const txStatus = this._getStatus(txResponse);
 
 		// If applyTransaction fails for the transaction then throw error
-		if (this._getStatus(txResponse) === TransactionStatus.INVALID) {
+		if (txStatus === TransactionStatus.INVALID) {
 			throw new Error(
 				`Transaction with transaction id ${incomingTx.id} is an invalid transaction`,
 			);
