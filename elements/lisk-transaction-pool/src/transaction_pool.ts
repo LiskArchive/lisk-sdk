@@ -17,7 +17,12 @@ import { EventEmitter } from 'events';
 
 import { Job } from './job';
 import { TransactionList } from './transaction_list';
-import { Status, Transaction, TransactionResponse } from './types';
+import {
+	Status,
+	Transaction,
+	TransactionResponse,
+	TransactionStatus,
+} from './types';
 
 type ApplyFunction = (
 	transactions: ReadonlyArray<Transaction>,
@@ -127,17 +132,9 @@ export class TransactionPool {
 		);
 
 		const txResponse = await this._applyFunction([incomingTx]);
-		const txResponseErrors = txResponse[0].errors;
 
 		// If applyTransaction fails for the transaction then throw error
-		if (
-			(txResponseErrors.length === 1 &&
-				txResponseErrors[0].dataPath === '.nonce' &&
-				txResponseErrors[0].actual &&
-				txResponseErrors[0].expected &&
-				txResponseErrors[0].actual > txResponseErrors[0].expected) ||
-			txResponse[0].status === Status.FAIL
-		) {
+		if (this._getStatus(txResponse) === TransactionStatus.INVALID) {
 			throw new Error(
 				`Transaction with transaction id ${incomingTx.id} is an invalid transaction`,
 			);
@@ -170,4 +167,22 @@ export class TransactionPool {
 	}
 
 	private async _reorganize(): Promise<void> {}
+
+	private _getStatus(
+		txResponse: ReadonlyArray<TransactionResponse>,
+	): TransactionStatus {
+		const txResponseErrors = txResponse[0].errors;
+		if (
+			(txResponseErrors.length === 1 &&
+				txResponseErrors[0].dataPath === '.nonce' &&
+				txResponseErrors[0].actual &&
+				txResponseErrors[0].expected &&
+				txResponseErrors[0].actual > txResponseErrors[0].expected) ||
+			txResponse[0].status === Status.FAIL
+		) {
+			return TransactionStatus.INVALID;
+		}
+
+		return TransactionStatus.UNPROCESSABLE;
+	}
 }

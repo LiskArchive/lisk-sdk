@@ -45,6 +45,12 @@ export enum Status {
 	OK = 1,
 }
 
+export enum TransactionStatus {
+	INVALID = 0,
+	UNPROCESSABLE,
+	PROCESSABLE,
+}
+
 export interface TransactionError {
 	readonly message: string;
 	readonly id: string;
