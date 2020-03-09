@@ -378,8 +378,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 		senderPassphrase: string,
 		passphrases?: ReadonlyArray<string>,
 		keys?: {
-			readonly mandatoryKeys: ReadonlyArray<string>;
-			readonly optionalKeys: ReadonlyArray<string>;
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
 			readonly numberOfSignatures: number;
 		},
 	): void {
@@ -417,6 +417,9 @@ export class MultisignatureTransaction extends BaseTransaction {
 		// Sign with members
 		if (keys && passphrases) {
 			const keysAndPassphrases = buildPublicKeyPassphraseDict([...passphrases]);
+			// Make sure passed in keys are sorted
+			sortKeysAscending(keys.mandatoryKeys);
+			sortKeysAscending(keys.optionalKeys);
 			// Sign with all keys
 			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
 				if (keysAndPassphrases[aKey]) {
