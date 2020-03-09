@@ -152,6 +152,17 @@ export class TransactionPool {
 		incomingTx.receivedAt = new Date();
 		this._allTransactions[incomingTx.id] = incomingTx;
 
+		// If processable then add and promote the transaction in the _transactionList
+		if (txStatus === TransactionStatus.PROCESSABLE) {
+			const addStatus = this._transactionList[incomingTxAddress].add(
+				incomingTx,
+			);
+			this._transactionList[incomingTxAddress].promote([incomingTx]);
+
+			return addStatus;
+		}
+
+		// If unprocessable then only add it to the _transactionList
 		return this._transactionList[incomingTxAddress].add(incomingTx);
 	}
 
@@ -173,17 +184,19 @@ export class TransactionPool {
 		txResponse: ReadonlyArray<TransactionResponse>,
 	): TransactionStatus {
 		const txResponseErrors = txResponse[0].errors;
+		if (txResponse[0].status === Status.OK) {
+			return TransactionStatus.PROCESSABLE;
+		}
 		if (
-			(txResponseErrors.length === 1 &&
-				txResponseErrors[0].dataPath === '.nonce' &&
-				txResponseErrors[0].actual &&
-				txResponseErrors[0].expected &&
-				txResponseErrors[0].actual > txResponseErrors[0].expected) ||
-			txResponse[0].status === Status.FAIL
+			txResponse[0].errors.length === 1 &&
+			txResponseErrors[0].dataPath === '.nonce' &&
+			txResponseErrors[0].actual &&
+			txResponseErrors[0].expected &&
+			txResponseErrors[0].actual > txResponseErrors[0].expected
 		) {
-			return TransactionStatus.INVALID;
+			return TransactionStatus.UNPROCESSABLE;
 		}
 
-		return TransactionStatus.UNPROCESSABLE;
+		return TransactionStatus.INVALID;
 	}
 }

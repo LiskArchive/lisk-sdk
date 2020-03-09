@@ -83,7 +83,7 @@ describe('TransactionList class', () => {
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
 
-		it('should add a valid transaction and is added to the transaction list', async () => {
+		it('should add a valid transaction and is added to the transaction list as processable', async () => {
 			const status = await transactionPool.addTransaction(tx);
 			expect(status).toEqual(true);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
@@ -94,6 +94,33 @@ describe('TransactionList class', () => {
 				].get(BigInt(1)) || {};
 
 			expect(originalTrxObj).toEqual(tx);
+			const trxSenderAddressList =
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				];
+			expect(trxSenderAddressList.getProcessable()).toContain(originalTrxObj);
+		});
+
+		it('should add a valid transaction and is added to the transaction list as unprocessable', async () => {
+			const getStatusStub = jest.fn();
+			transactionPool['_getStatus'] = getStatusStub;
+			getStatusStub.mockReturnValue(TransactionStatus.UNPROCESSABLE);
+			const status = await transactionPool.addTransaction(tx);
+
+			expect(status).toEqual(true);
+			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
+
+			const originalTrxObj =
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(BigInt(1)) || {};
+
+			expect(originalTrxObj).toEqual(tx);
+			const trxSenderAddressList =
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				];
+			expect(trxSenderAddressList.getUnprocessable()).toContain(originalTrxObj);
 		});
 
 		it('should reject a duplicate transaction', async () => {
@@ -113,9 +140,9 @@ describe('TransactionList class', () => {
 				{ status: Status.FAIL, errors: [new Error('Invalid nonce sequence')] },
 			];
 			const getStatusStub = jest.fn();
+			transactionPool['_getStatus'] = getStatusStub;
 			applyTransactionStub.mockResolvedValue(transactionResponse);
 			try {
-				transactionPool['_getStatus'] = getStatusStub;
 				await transactionPool.addTransaction(tx);
 			} catch (error) {
 				expect(getStatusStub).toHaveReturnedWith(TransactionStatus.INVALID);
