@@ -56,7 +56,7 @@ export default class SignCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:sign \'{"amount":"100","recipientId":"13356260975429434553L","senderPublicKey":null,"timestamp":52871598,"type":0,"fee":"10000000", "nonce": "1", "recipientPublicKey":null,"asset":{}}\'',
+		'transaction:sign \'{"id":"17528738200145418850","type":8,"senderPublicKey":"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f","nonce":"1","fee":"100000000","asset":{"data":"{"liskhq":"zug"}","amount":"100000000000","recipientId":"5553317242494141914L"}}\'',
 	];
 
 	static flags = {
