@@ -166,12 +166,16 @@ export const registerMultisignature = (
 		return multisignatureTransaction.toJSON();
 	}
 
-	multisignatureTransaction.signAll(networkIdentifier, senderPassphrase, {
+	multisignatureTransaction.signAll(
+		networkIdentifier,
+		senderPassphrase,
 		passphrases,
-		mandatoryKeys,
-		optionalKeys,
-		numberOfSignatures,
-	});
+		{
+			mandatoryKeys,
+			optionalKeys,
+			numberOfSignatures,
+		},
+	);
 
 	return multisignatureTransaction.toJSON();
 };

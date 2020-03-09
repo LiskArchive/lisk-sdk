@@ -33,6 +33,7 @@ import { createResponse, Status } from './response';
 import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
 import {
+	buildPublicKeyPassphraseDict,
 	getId,
 	isMultisignatureAccount,
 	serializeSignatures,
@@ -428,6 +429,51 @@ export abstract class BaseTransaction {
 			signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
 		);
 
+		this._id = getId(this.getBytes());
+	}
+
+	public signAll(
+		networkIdentifier: string,
+		senderPassphrase?: string,
+		passphrases?: ReadonlyArray<string>,
+		keys?: {
+			readonly mandatoryKeys: ReadonlyArray<string>;
+			readonly optionalKeys: ReadonlyArray<string>;
+			readonly numberOfSignatures: number;
+		},
+	): void {
+		// Set network identifier if it was previously not set in the transaction
+		if (!this._networkIdentifier) {
+			this._networkIdentifier = networkIdentifier;
+		}
+
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBasicBytes(),
+		]);
+
+		if (passphrases && keys) {
+			const allPassphrases = [...passphrases];
+			// For regular transactions all passphrases are the same
+			if (senderPassphrase) {
+				allPassphrases.push(senderPassphrase);
+			}
+			const keysAndPassphrases = buildPublicKeyPassphraseDict(allPassphrases);
+
+			// Sign with all keys
+			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+		}
 		this._id = getId(this.getBytes());
 	}
 
