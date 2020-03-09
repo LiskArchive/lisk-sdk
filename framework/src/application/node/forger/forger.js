@@ -19,6 +19,8 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
+const { MinHeap, MaxHeap } = require('@liskhq/lisk-transaction-pool');
+const { TransactionStatus } = require('@liskhq/lisk-transactions');
 
 const getDelegateKeypairForCurrentSlot = async (
 	dposModule,
@@ -276,29 +278,13 @@ class Forger {
 			return;
 		}
 
-		const transactions =
-			this.transactionPoolModule.getUnconfirmedTransactionList(
-				false,
-				this.constants.maxTransactionsPerBlock,
-			) || [];
-
 		const timestamp = this.chainModule.slots.getSlotTime(currentSlot);
 		const previousBlock = this.chainModule.lastBlock;
-
-		const context = {
-			blockTimestamp: timestamp,
-		};
-		const readyTransactions = await this.chainModule.filterReadyTransactions(
-			transactions,
-			context,
-		);
-
-		const sortedTransactions = sortTransactions(readyTransactions);
 
 		const forgedBlock = await this.processorModule.create({
 			keypair: delegateKeypair,
 			timestamp,
-			transactions: sortedTransactions,
+			transactions: this._getReadyTransactions(1024 * 15),
 			previousBlock,
 		});
 
@@ -336,6 +322,49 @@ class Forger {
 		}));
 
 		return fullList;
+	}
+
+	async _getReadyTransactions() {
+		const readyTransactions = [];
+		let blockPayloadSize = BigInt(0);
+		const stateStore = this.chainModule.newStateStore();
+
+		const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
+		for (const senderId of Object.keys(transactionsBySender)) {
+			const nonceHeapPerSender = new MinHeap();
+			transactionsBySender[senderId].forEach(t =>
+				nonceHeapPerSender.push(t.nonce, t),
+			);
+			transactionsBySender[senderId] = nonceHeapPerSender;
+		}
+
+		while (
+			blockPayloadSize < this.constants.maxPayloadLength ||
+			Object.keys(transactionsBySender).length === 0
+		) {
+			// Prepare max heap for fee priority for lowest nonce
+			const feePriorityHeap = new MaxHeap();
+
+			for (const senderId of Object.keys(transactionsBySender)) {
+				const lowestNonceTrx = transactionsBySender[senderId].peek();
+				feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
+			}
+
+			const lowestNonceHighestFeeTrx = feePriorityHeap.pop();
+			const result = await this.chainModule.processTransactionsWithStateStore(
+				[lowestNonceHighestFeeTrx],
+				stateStore,
+			);
+
+			if (result.transactionsResponses[0].status !== TransactionStatus.OK) {
+				readyTransactions.push(lowestNonceHighestFeeTrx);
+				blockPayloadSize += BigInt(lowestNonceHighestFeeTrx.getBytes().length);
+			} else {
+				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
+			}
+		}
+
+		return readyTransactions;
 	}
 }
 
