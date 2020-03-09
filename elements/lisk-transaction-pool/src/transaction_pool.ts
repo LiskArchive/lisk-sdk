@@ -152,18 +152,11 @@ export class TransactionPool {
 		incomingTx.receivedAt = new Date();
 		this._allTransactions[incomingTx.id] = incomingTx;
 
-		// If processable then add and promote the transaction in the _transactionList
-		if (txStatus === TransactionStatus.PROCESSABLE) {
-			const addStatus = this._transactionList[incomingTxAddress].add(
-				incomingTx,
-			);
-			this._transactionList[incomingTxAddress].promote([incomingTx]);
-
-			return addStatus;
-		}
-
-		// If unprocessable then only add it to the _transactionList
-		return this._transactionList[incomingTxAddress].add(incomingTx);
+		// Add the transaction in the _transactionList
+		return this._transactionList[incomingTxAddress].add(
+			incomingTx,
+			txStatus === TransactionStatus.PROCESSABLE,
+		);
 	}
 
 	public removeTransaction(tx: Transaction): boolean {
