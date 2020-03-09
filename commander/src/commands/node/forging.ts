@@ -21,7 +21,7 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getInputsFromSources } from '../../utils/input';
+import { getPassphraseFromPrompt } from '../../utils/reader';
 
 interface Args {
 	readonly publicKey: string;
@@ -87,11 +87,9 @@ export default class ForgingCommand extends BaseCommand {
 		validatePublicKey(publicKey);
 
 		const client = getAPIClient(this.userConfig.api);
-		const { password } = await getInputsFromSources({
-			password: {
-				source: passwordSource,
-			},
-		});
+		const password =
+			passwordSource ?? (await getPassphraseFromPrompt('password'));
+
 		const result = await processInput(client, status, publicKey, password);
 
 		this.print(result);
