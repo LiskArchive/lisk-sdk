@@ -29,6 +29,8 @@ import {
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
+import { AccountFilter } from './filters.account';
+import { TransactionFilter } from './filters.transaction';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
@@ -77,7 +79,7 @@ export interface StateStore {
 
 export interface StateStoreCache<T> {
 	cache(
-		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+		filterArray: ReadonlyArray<AccountFilter | TransactionFilter>,
 	): Promise<ReadonlyArray<T>>;
 }
 
