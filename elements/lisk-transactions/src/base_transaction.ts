@@ -448,19 +448,30 @@ export abstract class BaseTransaction {
 			this._networkIdentifier = networkIdentifier;
 		}
 
+		if (!this.signatures) {
+			this.signatures = [];
+		}
+
 		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			this.getBasicBytes(),
 		]);
 
+		// If senderPassphrase is passed in assume only one signature required
+		if (senderPassphrase) {
+			const signature = signData(
+				hash(transactionWithNetworkIdentifierBytes),
+				senderPassphrase,
+			);
+			this.signatures.push(signature);
+			this._id = getId(this.getBytes());
+
+			return;
+		}
+
 		if (passphrases && keys) {
-			const allPassphrases = [...passphrases];
-			// For regular transactions all passphrases are the same
-			if (senderPassphrase) {
-				allPassphrases.push(senderPassphrase);
-			}
-			const keysAndPassphrases = buildPublicKeyPassphraseDict(allPassphrases);
+			const keysAndPassphrases = buildPublicKeyPassphraseDict(passphrases);
 			sortKeysAscending(keys.mandatoryKeys);
 			sortKeysAscending(keys.optionalKeys);
 			// Sign with all keys
@@ -475,8 +486,12 @@ export abstract class BaseTransaction {
 					this.signatures.push('');
 				}
 			}
+			this._id = getId(this.getBytes());
+
+			return;
 		}
-		this._id = getId(this.getBytes());
+
+		return;
 	}
 
 	public getBasicBytes(): Buffer {

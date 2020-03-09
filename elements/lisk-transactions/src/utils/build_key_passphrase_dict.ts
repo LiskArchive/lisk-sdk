@@ -24,7 +24,9 @@ interface PublicKeyPassphraseDict {
 	};
 }
 
-export const buildPublicKeyPassphraseDict = (passphrases: string[]) => {
+export const buildPublicKeyPassphraseDict = (
+	passphrases: readonly string[],
+) => {
 	const publicKeyPassphrase: PublicKeyPassphraseDict = {};
 
 	passphrases.forEach(aPassphrase => {
