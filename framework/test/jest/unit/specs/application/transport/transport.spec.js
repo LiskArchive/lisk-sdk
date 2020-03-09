@@ -14,7 +14,6 @@
 
 'use strict';
 
-const chai = require('chai');
 const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const { transfer, TransactionError } = require('@liskhq/lisk-transactions');
 const { validator } = require('@liskhq/lisk-validator');
@@ -23,12 +22,15 @@ const { Block, GenesisBlock } = require('../../../../../fixtures//blocks');
 const {
 	Transport: TransportModule,
 } = require('../../../../../../src/application/node/transport');
+const {
+	InvalidTransactionError,
+} = require('../../../../../../src/application/node/transport/errors');
 const jobsQueue = require('../../../../../../src/application/node/utils/jobs_queue');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
 } = require('../../../../../utils/network_identifier');
 
-const expect = chai.expect;
+const { nodeOptions } = require('../../../../../fixtures/node');
 
 describe('transport', () => {
 	let loggerStub;
@@ -83,85 +85,79 @@ describe('transport', () => {
 		};
 
 		loggerStub = {
-			debug: sinonSandbox.spy(),
-			error: sinonSandbox.stub(),
-			info: sinonSandbox.spy(),
-			trace: sinonSandbox.spy(),
-			warn: sinonSandbox.spy(),
+			debug: jest.fn(),
+			error: jest.fn(),
+			info: jest.fn(),
+			trace: jest.fn(),
+			warn: jest.fn(),
 		};
 
 		channelStub = {
-			publish: sinonSandbox.stub(),
-			invoke: sinonSandbox.stub(),
-			publishToNetwork: sinonSandbox.stub(),
-			invokeFromNetwork: sinonSandbox.stub(),
+			publish: jest.fn(),
+			invoke: jest.fn(),
+			publishToNetwork: jest.fn(),
+			invokeFromNetwork: jest.fn(),
 		};
 
-		sinonSandbox.stub(jobsQueue, 'register');
-		sinonSandbox.spy(validator, 'validate');
+		jest.spyOn(jobsQueue, 'register');
+		jest.spyOn(validator, 'validate');
 
 		transportModule = new TransportModule({
 			channel: channelStub,
 			logger: loggerStub,
 			applicationState: {},
-			exceptions: __testContext.config.app.node.exceptions,
+			exceptions: nodeOptions.exceptions,
 			synchronizer: synchronizerStub,
 			transactionPoolModule: {
-				getMergedTransactionList: sinonSandbox.stub(),
-				processUnconfirmedTransaction: sinonSandbox.stub(),
-				findInTransactionPool: sinonSandbox.stub(),
+				getMergedTransactionList: jest.fn(),
+				processUnconfirmedTransaction: jest.fn(),
+				findInTransactionPool: jest.fn(),
 			},
 			chainModule: {
-				lastBlock: sinonSandbox
-					.stub()
-					.returns({ height: 1, version: 1, timestamp: 1 }),
-				receiveBlockFromNetwork: sinonSandbox.stub(),
-				loadBlocksFromLastBlockId: sinonSandbox.stub(),
-				verifyTransactions: sinonSandbox
-					.stub()
-					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
-				validateTransactions: sinonSandbox
-					.stub()
-					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
-				processTransactions: sinonSandbox
-					.stub()
-					.resolves({ transactionsResponses: [{ status: 1, errors: [] }] }),
-				deserializeTransaction: sinonSandbox.stub().callsFake(val => val),
+				lastBlock: jest
+					.fn()
+					.mockReturnValue({ height: 1, version: 1, timestamp: 1 }),
+				receiveBlockFromNetwork: jest.fn(),
+				loadBlocksFromLastBlockId: jest.fn(),
+				verifyTransactions: jest.fn().mockResolvedValue({
+					transactionsResponses: [{ status: 1, errors: [] }],
+				}),
+				validateTransactions: jest.fn().mockResolvedValue({
+					transactionsResponses: [{ status: 1, errors: [] }],
+				}),
+				processTransactions: jest.fn().mockResolvedValue({
+					transactionsResponses: [{ status: 1, errors: [] }],
+				}),
+				deserializeTransaction: jest.fn().mockImplementation(val => val),
 				dataAccess: {
-					getBlockHeaderByID: sinonSandbox
-						.stub()
-						.returns({ height: 2, version: 1, timestamp: 1 }),
-					getBlocksByHeightBetween: sinonSandbox.stub().returns([
+					getBlockHeaderByID: jest
+						.fn()
+						.mockReturnValue({ height: 2, version: 1, timestamp: 1 }),
+					getBlocksByHeightBetween: jest.fn().mockReturnValue([
 						{ height: 3, version: 1, timestamp: 1 },
 						{ height: 37, version: 1, timestamp: 1 },
 					]),
-					getTransactionsByIDs: sinonSandbox.stub(),
+					getTransactionsByIDs: jest.fn(),
 				},
-				serialize: sinonSandbox.stub(),
+				serialize: jest.fn(),
 			},
 			processorModule: {
-				validate: sinonSandbox.stub(),
-				process: sinonSandbox.stub(),
-				deserialize: sinonSandbox.stub(),
+				validate: jest.fn(),
+				process: jest.fn(),
+				deserialize: jest.fn(),
 			},
-			broadcasts: __testContext.config.app.node.broadcasts,
+			broadcasts: nodeOptions.broadcasts,
 		});
-	});
-
-	afterEach(async () => {
-		sinonSandbox.restore();
 	});
 
 	describe('constructor', () => {
 		describe('transportModule', () => {
 			it('should assign scope variables when instantiating', async () => {
-				expect(transportModule)
-					.to.have.property('logger')
-					.which.is.equal(loggerStub);
-				expect(transportModule)
-					.to.have.property('channel')
-					.which.is.equal(channelStub);
-				expect(transportModule).to.have.property('broadcaster');
+				expect(transportModule).toHaveProperty('logger');
+				expect(transportModule.logger).toBe(loggerStub);
+				expect(transportModule).toHaveProperty('channel');
+				expect(transportModule.channel).toBe(channelStub);
+				expect(transportModule).toHaveProperty('broadcaster');
 			});
 		});
 	});
@@ -178,12 +174,12 @@ describe('transport', () => {
 
 			describe('when transaction is neither in the queues, nor in the database', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
-						.stub()
-						.returns(false);
-					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox
-						.stub()
-						.resolves([]);
+					transportModule.transactionPoolModule.transactionInPool = jest
+						.fn()
+						.mockReturnValue(false);
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest
+						.fn()
+						.mockResolvedValue([]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.transactionIds,
 					);
@@ -193,29 +189,31 @@ describe('transport', () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
 							transportModule.transactionPoolModule.transactionInPool,
-						).to.be.calledWith(transactionToCheck.id);
+						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
 
 				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
 					expect(
 						transportModule.chainModule.dataAccess.getTransactionsByIDs,
-					).to.be.calledWithExactly(transactionsList.map(tx => tx.id));
+					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
 				});
 
 				it('should return array of transactions ids', async () =>
-					expect(resultTransactionsIDsCheck).to.include.members([
-						transactionsList[0].id,
-						transactionsList[1].id,
-					]));
+					expect(resultTransactionsIDsCheck).toEqual(
+						expect.arrayContaining([
+							transactionsList[0].id,
+							transactionsList[1].id,
+						]),
+					));
 			});
 
 			describe('when transaction is in the queues', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
-						.stub()
-						.returns(true);
-					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox.stub();
+					transportModule.transactionPoolModule.transactionInPool = jest
+						.fn()
+						.mockReturnValue(true);
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest.fn();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.transactionIds,
 					);
@@ -225,26 +223,30 @@ describe('transport', () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
 							transportModule.transactionPoolModule.transactionInPool,
-						).to.be.calledWith(transactionToCheck.id);
+						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
 
-				it('should not call transportModule.chainModule.dataAccess.getTransactionsByIDs', async () =>
-					expect(transportModule.chainModule.dataAccess.getTransactionsByIDs).to
-						.have.not.been.called);
+				it('should not call transportModule.chainModule.dataAccess.getTransactionsByIDs', async () => {
+					expect(
+						transportModule.chainModule.dataAccess.getTransactionsByIDs,
+					).not.toHaveBeenCalled();
+				});
 
-				it('should return empty array', async () =>
-					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
+				it('should return empty array', async () => {
+					expect(resultTransactionsIDsCheck).toBeInstanceOf(Array);
+					expect(resultTransactionsIDsCheck).toHaveLength(0);
+				});
 			});
 
 			describe('when transaction exists in the database', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.transactionInPool = sinonSandbox
-						.stub()
-						.returns(false);
-					transportModule.chainModule.dataAccess.getTransactionsByIDs = sinonSandbox
-						.stub()
-						.resolves(transactionsList);
+					transportModule.transactionPoolModule.transactionInPool = jest
+						.fn()
+						.mockReturnValue(false);
+					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest
+						.fn()
+						.mockResolvedValue(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.transactionIds,
 					);
@@ -254,57 +256,58 @@ describe('transport', () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
 							transportModule.transactionPoolModule.transactionInPool,
-						).to.be.calledWith(transactionToCheck.id);
+						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
 
 				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', async () => {
 					expect(
 						transportModule.chainModule.dataAccess.getTransactionsByIDs,
-					).to.be.calledWithExactly(transactionsList.map(tx => tx.id));
+					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
 				});
 
-				it('should return empty array', async () =>
-					expect(resultTransactionsIDsCheck).to.be.an('array').empty);
+				it('should return empty array', async () => {
+					expect(resultTransactionsIDsCheck).toBeInstanceOf(Array);
+					expect(resultTransactionsIDsCheck).toHaveLength(0);
+				});
 			});
 		});
 
 		describe('_receiveTransaction', () => {
 			beforeEach(async () => {
-				transportModule.transactionPoolModule.processUnconfirmedTransaction.resolves();
+				transportModule.transactionPoolModule.processUnconfirmedTransaction.mockResolvedValue();
 			});
-
-			afterEach(() => sinonSandbox.restore());
 
 			it('should call validateTransactions', async () => {
 				await transportModule._receiveTransaction(transaction);
-				return expect(transportModule.chainModule.validateTransactions).to.be
-					.calledOnce;
+				return expect(
+					transportModule.chainModule.validateTransactions,
+				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule._receiveTransaction(transaction);
 				return expect(
 					transportModule.chainModule.validateTransactions,
-				).to.have.been.calledWith([transaction]);
+				).toHaveBeenCalledWith([transaction]);
 			});
 
 			it('should reject with error if transaction is not allowed', async () => {
-				const errorMessage = new Error(
+				const invalidTrsError = new InvalidTransactionError(
 					'Transaction type 0 is currently not allowed.',
 				);
 
-				transportModule.chainModule.validateTransactions.resolves({
+				transportModule.chainModule.validateTransactions.mockResolvedValue({
 					transactionsResponses: [
 						{
-							errors: [errorMessage],
+							errors: [invalidTrsError],
 						},
 					],
 				});
 
-				return expect(
+				await expect(
 					transportModule._receiveTransaction(transaction),
-				).to.be.rejectedWith([errorMessage]);
+				).rejects.toThrowError(invalidTrsError.message);
 			});
 
 			describe('when transaction and peer are defined', () => {
@@ -312,13 +315,11 @@ describe('transport', () => {
 					await transportModule._receiveTransaction(transaction);
 				});
 
-				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () =>
+				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () => {
 					expect(
-						transportModule.transactionPoolModule.processUnconfirmedTransaction.calledWith(
-							transaction,
-							true,
-						),
-					).to.be.true);
+						transportModule.transactionPoolModule.processUnconfirmedTransaction,
+					).toHaveBeenCalledWith(transaction, true);
+				});
 			});
 
 			describe('when transaction is invalid', () => {
@@ -330,7 +331,7 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
-					transportModule.chainModule.validateTransactions.resolves({
+					transportModule.chainModule.validateTransactions.mockResolvedValue({
 						transactionsResponses: [
 							{
 								status: 1,
@@ -347,9 +348,9 @@ describe('transport', () => {
 				});
 
 				it('should call the call back with error message', async () => {
-					expect(errorResult.errors).to.be.an('array');
+					expect(errorResult.errors).toBeInstanceOf(Array);
 					errorResult.errors.forEach(anError => {
-						expect(anError).to.be.instanceOf(TransactionError);
+						expect(anError).toBeInstanceOf(TransactionError);
 					});
 				});
 			});
@@ -360,8 +361,9 @@ describe('transport', () => {
 				beforeEach(async () => {
 					processUnconfirmedTransactionError = `Transaction is already processed: ${transaction.id}`;
 
-					transportModule.transactionPoolModule.processUnconfirmedTransaction.rejects(
-						[new Error(processUnconfirmedTransactionError)],
+					transportModule.transactionPoolModule.processUnconfirmedTransaction.mockResolvedValue(
+						// eslint-disable-next-line prefer-promise-reject-errors
+						Promise.reject([new Error(processUnconfirmedTransactionError)]),
 					);
 
 					try {
@@ -371,8 +373,8 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule.logger.debug with "Transaction ${transaction.id}" and error string', async () => {
-					expect(transportModule.logger.debug).to.be.calledWith(
+				it('should call transportModule.logger.debug with "Transaction transaction.id" and error string', async () => {
+					expect(transportModule.logger.debug).toHaveBeenCalledWith(
 						`Transaction ${transaction.id}`,
 						`Error: ${processUnconfirmedTransactionError}`,
 					);
@@ -380,7 +382,7 @@ describe('transport', () => {
 
 				describe('when transaction is defined', () => {
 					it('should call transportModule.logger.debug with "Transaction" and transaction as arguments', async () => {
-						expect(transportModule.logger.debug).to.be.calledWith(
+						expect(transportModule.logger.debug).toHaveBeenCalledWith(
 							{
 								transaction,
 							},
@@ -390,8 +392,8 @@ describe('transport', () => {
 				});
 
 				it('should reject with error', async () => {
-					expect(error).to.be.an('array');
-					expect(error[0].message).to.equal(processUnconfirmedTransactionError);
+					expect(error).toBeInstanceOf(Array);
+					expect(error[0].message).toEqual(processUnconfirmedTransactionError);
 				});
 			});
 
@@ -401,22 +403,21 @@ describe('transport', () => {
 				});
 
 				it('should resolve with result = transaction.id', async () =>
-					expect(result).to.equal(transaction.id));
+					expect(result).toEqual(transaction.id));
 
-				it('should call transportModule.logger.debug with "Received transaction " + transaction.id', async () =>
-					expect(
-						transportModule.logger.debug.calledWith(
-							{ id: transaction.id },
-							'Received transaction',
-						),
-					).to.be.true);
+				it('should call transportModule.logger.debug with "Received transaction " + transaction.id', async () => {
+					expect(transportModule.logger.debug).toHaveBeenCalledWith(
+						{ id: transaction.id },
+						'Received transaction',
+					);
+				});
 			});
 		});
 
 		describe('Transport', () => {
 			beforeEach(async () => {
 				blocksList = [];
-				for (let j = 0; j < 10; j++) {
+				for (let j = 0; j < 10; j += 1) {
 					const auxBlock = new Block();
 					blocksList.push(auxBlock);
 				}
@@ -438,11 +439,11 @@ describe('transport', () => {
 							'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 					});
 					transportModule.broadcaster = {
-						enqueueTransactionId: sinonSandbox.stub(),
+						enqueueTransactionId: jest.fn(),
 					};
 					transportModule.channel = {
-						invoke: sinonSandbox.stub(),
-						publish: sinonSandbox.stub(),
+						invoke: jest.fn(),
+						publish: jest.fn(),
 					};
 					transportModule.handleBroadcastTransaction(transaction, true);
 				});
@@ -450,26 +451,27 @@ describe('transport', () => {
 				describe('when broadcast is defined', () => {
 					beforeEach(async () => {
 						transportModule.broadcaster = {
-							enqueueTransactionId: sinonSandbox.stub(),
+							enqueueTransactionId: jest.fn(),
 						};
 						transportModule.channel = {
-							invoke: sinonSandbox.stub(),
-							publish: sinonSandbox.stub(),
+							invoke: jest.fn(),
+							publish: jest.fn(),
 						};
 						transportModule.handleBroadcastTransaction(transaction, true);
 					});
 
 					it('should call transportModule.broadcaster.enqueueTransactionId transactionId', async () => {
-						expect(transportModule.broadcaster.enqueueTransactionId).to.be
-							.calledOnce;
+						expect(
+							transportModule.broadcaster.enqueueTransactionId,
+						).toHaveBeenCalledTimes(1);
 						return expect(
 							transportModule.broadcaster.enqueueTransactionId,
-						).to.be.calledWith(transaction.id);
+						).toHaveBeenCalledWith(transaction.id);
 					});
 
 					it('should call transportModule.channel.publish with "app:transactions:change" and transaction as arguments', async () => {
-						expect(transportModule.channel.publish).to.be.calledOnce;
-						expect(transportModule.channel.publish).to.be.calledWith(
+						expect(transportModule.channel.publish).toHaveBeenCalledTimes(1);
+						expect(transportModule.channel.publish).toHaveBeenCalledWith(
 							'app:transactions:change',
 							transaction.toJSON(),
 						);
@@ -493,15 +495,15 @@ describe('transport', () => {
 							totalForged: '65000000',
 						};
 						transportModule.broadcaster = {
-							enqueue: sinonSandbox.stub(),
-							broadcast: sinonSandbox.stub(),
+							enqueue: jest.fn(),
+							broadcast: jest.fn(),
 						};
 						return transportModule.handleBroadcastBlock(block);
 					});
 
 					it('should call channel.invoke to send', () => {
-						expect(channelStub.publishToNetwork).to.be.calledOnce;
-						return expect(channelStub.publishToNetwork).to.be.calledWith(
+						expect(channelStub.publishToNetwork).toHaveBeenCalledTimes(1);
+						return expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
 							'sendToNetwork',
 							{
 								event: 'postBlock',
@@ -519,11 +521,9 @@ describe('transport', () => {
 						});
 
 						it('should call transportModule.logger.debug with proper error message', () => {
-							return expect(
-								transportModule.logger.debug.calledWith(
-									'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
-								),
-							).to.be.true;
+							return expect(transportModule.logger.debug).toHaveBeenCalledWith(
+								'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
+							);
 						});
 					});
 				});
@@ -536,24 +536,18 @@ describe('transport', () => {
 							query = {};
 							const defaultPeerId = 'peer-id';
 
-							try {
-								await transportModule.handleRPCGetBlocksFromId(
-									query,
-									defaultPeerId,
-								);
-								expect('should not reach').to.equal('here');
-							} catch (e) {
-								expect(e.message).to.equal(
-									"should have required property 'blockId'",
-								);
-								expect(channelStub.invoke).to.be.calledOnceWith(
-									'app:applyPenaltyOnPeer',
-									{
-										peerId: defaultPeerId,
-										penalty: 100,
-									},
-								);
-							}
+							await expect(
+								transportModule.handleRPCGetBlocksFromId(query, defaultPeerId),
+							).rejects.toThrow("should have required property 'blockId'");
+
+							expect(channelStub.invoke).toHaveBeenCalledTimes(1);
+							expect(channelStub.invoke).toHaveBeenCalledWith(
+								'app:applyPenaltyOnPeer',
+								{
+									peerId: defaultPeerId,
+									penalty: 100,
+								},
+							);
 						});
 					});
 
@@ -566,10 +560,10 @@ describe('transport', () => {
 							await transportModule.handleRPCGetBlocksFromId(query);
 							expect(
 								transportModule.chainModule.dataAccess.getBlockHeaderByID,
-							).to.be.calledWith(query.blockId);
+							).toHaveBeenCalledWith(query.blockId);
 							return expect(
 								transportModule.chainModule.dataAccess.getBlocksByHeightBetween,
-							).to.be.calledWith(3, 36);
+							).toHaveBeenCalledWith(3, 36);
 						});
 					});
 
@@ -582,15 +576,13 @@ describe('transport', () => {
 							const errorMessage = 'Failed to load blocks...';
 							const loadBlockFailed = new Error(errorMessage);
 
-							transportModule.chainModule.loadBlocksFromLastBlockId.rejects(
-								loadBlockFailed,
+							transportModule.chainModule.dataAccess.getBlockHeaderByID.mockResolvedValue(
+								Promise.reject(loadBlockFailed),
 							);
 
-							try {
-								await transportModule.handleRPCGetBlocksFromId(query);
-							} catch (e) {
-								expect(e.message).to.equal(errorMessage);
-							}
+							await expect(
+								transportModule.handleRPCGetBlocksFromId(query),
+							).rejects.toThrow(loadBlockFailed);
 						});
 					});
 				});
@@ -615,14 +607,12 @@ describe('transport', () => {
 						});
 
 						it('should call transportModule.logger.debug', async () =>
-							expect(
-								transportModule.logger.debug.calledWith(
-									'Receiving blocks disabled by user through config.json',
-								),
-							).to.be.true);
+							expect(transportModule.logger.debug).toHaveBeenCalledWith(
+								'Receiving blocks disabled by user through config.json',
+							));
 
 						it('should not call validator.validate; function should return before', async () =>
-							expect(validator.validate.called).to.be.false);
+							expect(validator.validate).not.toHaveBeenCalled());
 					});
 
 					describe('when query is specified', () => {
@@ -634,22 +624,26 @@ describe('transport', () => {
 							const blockValidationError = 'should match format "id"';
 
 							it('should throw an error', async () => {
-								try {
-									await transportModule.handleEventPostBlock(
+								await expect(
+									transportModule.handleEventPostBlock(
 										{ block: { ...postBlockQuery.block, id: 'dummy' } },
 										defaultPeerId,
-									);
-									expect('should not reach').to.equal('here');
-								} catch (err) {
-									expect(err[0].message).to.equal(blockValidationError);
-									expect(channelStub.invoke).to.be.calledOnceWith(
-										'app:applyPenaltyOnPeer',
-										{
-											peerId: defaultPeerId,
-											penalty: 100,
-										},
-									);
-								}
+									),
+								).rejects.toEqual([
+									expect.objectContaining({
+										message: blockValidationError,
+										dataPath: '.block.id',
+									}),
+								]);
+
+								expect(channelStub.invoke).toHaveBeenCalledTimes(1);
+								expect(channelStub.invoke).toHaveBeenCalledWith(
+									'app:applyPenaltyOnPeer',
+									{
+										peerId: defaultPeerId,
+										penalty: 100,
+									},
+								);
 							});
 						});
 
@@ -663,16 +657,14 @@ describe('transport', () => {
 										block: genesisBlock,
 									});
 									expect(
-										transportModule.processorModule.deserialize.calledWith(
-											genesisBlock,
-										),
-									).to.be.true;
+										transportModule.processorModule.deserialize,
+									).toHaveBeenCalledWith(genesisBlock);
 								});
 							});
 
 							it('should call transportModule.processorModule.process with block', async () => {
 								const blockWithProperties = {};
-								transportModule.processorModule.deserialize.resolves(
+								transportModule.processorModule.deserialize.mockResolvedValue(
 									blockWithProperties,
 								);
 								await transportModule.handleEventPostBlock(
@@ -683,7 +675,7 @@ describe('transport', () => {
 								);
 								expect(
 									transportModule.processorModule.process,
-								).to.be.calledWithExactly(blockWithProperties, {
+								).toHaveBeenCalledWith(blockWithProperties, {
 									peerId: '127.0.0.1:5000',
 								});
 							});
@@ -697,23 +689,22 @@ describe('transport', () => {
 							transaction,
 						};
 
-						transportModule._receiveTransaction = sinonSandbox
-							.stub()
-							.resolves(transaction.id);
+						transportModule._receiveTransaction = jest
+							.fn()
+							.mockResolvedValue(transaction.id);
 
 						result = await transportModule.handleEventPostTransaction(query);
 					});
 
 					it('should call transportModule._receiveTransaction with query.transaction as argument', async () =>
-						expect(
-							transportModule._receiveTransaction.calledWith(query.transaction),
-						).to.be.true);
+						expect(transportModule._receiveTransaction).toHaveBeenCalledWith(
+							query.transaction,
+						));
 
 					describe('when transportModule._receiveTransaction succeeds', () => {
 						it('should resolve with object { transactionId: id }', async () => {
-							return expect(result)
-								.to.have.property('transactionId')
-								.which.is.a('string');
+							expect(result).toHaveProperty('transactionId');
+							expect(typeof result.transactionId).toBe('string');
 						});
 					});
 
@@ -723,17 +714,16 @@ describe('transport', () => {
 						);
 
 						beforeEach(async () => {
-							transportModule._receiveTransaction = sinonSandbox
-								.stub()
-								.rejects(receiveTransactionError);
+							transportModule._receiveTransaction = jest
+								.fn()
+								.mockResolvedValue(Promise.reject(receiveTransactionError));
 
 							result = await transportModule.handleEventPostTransaction(query);
 						});
 
 						it('should resolve with object { message: err }', async () => {
-							return expect(result)
-								.to.have.property('errors')
-								.which.is.equal(receiveTransactionError);
+							expect(result).toHaveProperty('errors');
+							expect(result.errors).toEqual(receiveTransactionError);
 						});
 					});
 
@@ -743,17 +733,16 @@ describe('transport', () => {
 						);
 
 						beforeEach(async () => {
-							transportModule._receiveTransaction = sinonSandbox
-								.stub()
-								.rejects(receiveTransactionError);
+							transportModule._receiveTransaction = jest
+								.fn()
+								.mockResolvedValue(Promise.reject(receiveTransactionError));
 
 							result = await transportModule.handleEventPostTransaction(query);
 						});
 
 						it('should resolve with object { message: err }', async () => {
-							return expect(result)
-								.to.have.property('errors')
-								.which.is.equal(receiveTransactionError);
+							expect(result).toHaveProperty('errors');
+							expect(result.errors).toEqual(receiveTransactionError);
 						});
 					});
 				});

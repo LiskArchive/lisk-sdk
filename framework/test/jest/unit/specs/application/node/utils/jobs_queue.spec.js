@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,134 +14,122 @@
 
 'use strict';
 
-const jobsQueue = require('../../../../../../src/application/node/utils/jobs_queue');
+const jobsQueue = require('../../../../../../../src/application/node/utils/jobs_queue');
 
-// These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
-describe('helpers/jobsQueue', () => {
+jest.useFakeTimers();
+
+describe('utils/jobsQueue', () => {
 	// Test global variables
 	let recallInterval = 1000;
 	let execTimeInterval = 1;
 
 	describe('register', () => {
-		describe('should throw an erorr', () => {
+		describe('should throw an error', () => {
 			let validFunction;
 
-			beforeEach(done => {
-				validFunction = sinonSandbox.spy();
-				done();
-			});
-
-			afterEach(done => {
-				expect(validFunction.notCalled).to.be.true;
-				done();
+			beforeEach(() => {
+				validFunction = jest.fn();
 			});
 
 			it('should throw an error when trying to pass name that is not a string', async () =>
 				expect(() => {
 					jobsQueue.register(123, validFunction, recallInterval);
-				}).to.throw('Name argument must be a string'));
+				}).toThrow('Name argument must be a string'));
 
 			it('should throw an error when trying to pass time that is not integer', async () =>
 				expect(() => {
 					jobsQueue.register('test_job', validFunction, 0.22);
-				}).to.throw('Time argument must be integer'));
+				}).toThrow('Time argument must be integer'));
 
 			it('should throw an error when trying to pass job as null', async () =>
 				expect(() => {
 					jobsQueue.register('test', null, recallInterval);
-				}).to.throw('Job must be an instance of Function'));
+				}).toThrow('Job must be an instance of Function'));
 
 			it('should throw an error when trying to pass job that is not an instance of Function', async () =>
 				expect(() => {
 					jobsQueue.register('test', 'test_job', recallInterval);
-				}).to.throw('Job must be an instance of Function'));
+				}).toThrow('Job must be an instance of Function'));
 
 			it('should throw an error when trying to pass job that is a function with more than 1 parameter', async () => {
 				const myFuncWithTwoParams = (x = 1, cb) => cb(x);
 				expect(() => {
 					jobsQueue.register('test', myFuncWithTwoParams, recallInterval);
-				}).to.throw('Job function should have callback argument');
+				}).toThrow('Job function should have callback argument');
 			});
 
 			it('should throw an error when trying to pass job that is an async function with 1 parameter', async () => {
 				const myFuncWithTwoParams = async x => x;
 				expect(() => {
 					jobsQueue.register('test', myFuncWithTwoParams, recallInterval);
-				}).to.throw('Job async function should not have arguments');
+				}).toThrow('Job async function should not have arguments');
 			});
 		});
 
 		describe('should register', () => {
-			let clock;
-
-			function dummyFunction(cb) {
-				setTimeout(cb, execTimeInterval);
-			}
+			const myJob = cb => setTimeout(cb, execTimeInterval);
 
 			function testExecution(job, name, spy) {
 				const expectingTimesToCall = 5;
 				const interval = execTimeInterval + recallInterval;
 
 				setTimeout(() => {
-					expect(jobsQueue.jobs).to.be.an('object');
+					expect(jobsQueue.jobs).toBeInstanceOf('object');
 				}, expectingTimesToCall * interval);
 
-				expect(jobsQueue.jobs).to.be.an('object');
+				// Check registered job
+				expect(Object.keys(jobsQueue.jobs)).toEqual([name]);
+
+				// Check jobs object
+				expect(typeof jobsQueue.jobs).toEqual('object');
+
 				// Job returned from 'register' should be equal to one in 'jobsQueue'
-				expect(job).to.equal(jobsQueue.jobs[name]);
+				expect(job).toEqual(jobsQueue.jobs[name]);
 
 				// First execution should happen immediatelly
-				expect(spy.callCount).to.equal(1);
+				expect(spy).toHaveBeenCalledTimes(1);
 
 				// Every next execution should happen after execTimeInterval+recallInterval and not before
-				clock.tick(interval - 10);
-				expect(spy.callCount).to.equal(1);
+				jest.advanceTimersByTime(interval - 10);
+				expect(spy).toHaveBeenCalledTimes(1);
 
-				clock.tick(11);
-				expect(spy.callCount).to.equal(2);
+				jest.advanceTimersByTime(11);
+				expect(spy).toHaveBeenCalledTimes(2);
 
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-				expect(job).to.not.equal(jobsQueue.jobs[name]);
+				expect(job).not.toEqual(jobsQueue.jobs[name]);
 
 				// Next execution should happen after recallInterval+execTimeInterval
-				clock.tick(interval - 10);
-				expect(spy.callCount).to.equal(2);
+				jest.advanceTimersByTime(interval - 10);
+				expect(spy).toHaveBeenCalledTimes(2);
 
-				clock.tick(11);
-				expect(spy.callCount).to.equal(3);
+				jest.advanceTimersByTime(11);
+				expect(spy).toHaveBeenCalledTimes(3);
 
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-				expect(job).to.not.equal(jobsQueue.jobs[name]);
+				expect(job).not.toEqual(jobsQueue.jobs[name]);
 
 				// Next execution should happen after recallInterval+execTimeInterval
-				clock.tick(interval - 10);
-				expect(spy.callCount).to.equal(3);
+				jest.advanceTimersByTime(interval - 10);
+				expect(spy).toHaveBeenCalledTimes(3);
 
-				clock.tick(11);
-				expect(spy.callCount).to.equal(4);
+				jest.advanceTimersByTime(11);
+				expect(spy).toHaveBeenCalledTimes(4);
 
 				// Job returned from 'register' should no longer be equal to one in 'jobsQueue'
-				expect(job).to.not.equal(jobsQueue.jobs[name]);
+				expect(job).not.toEqual(jobsQueue.jobs[name]);
 			}
 
-			before(done => {
-				clock = sinonSandbox.useFakeTimers();
-				done();
-			});
-
-			after(done => {
+			beforeEach(() => {
 				jobsQueue.jobs = {};
-				clock.restore();
-				done();
+				jest.clearAllTimers();
 			});
 
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', async () => {
 				const name = 'job1';
-				const spy = sinonSandbox.spy(dummyFunction);
+				const spy = jest.fn(myJob);
 				const job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs))
-					.to.be.an('array')
-					.and.lengthOf(1);
+
 				return testExecution(job, name, spy);
 			});
 
@@ -149,11 +137,9 @@ describe('helpers/jobsQueue', () => {
 				execTimeInterval = 10000;
 
 				const name = 'job2';
-				const spy = sinonSandbox.spy(dummyFunction);
+				const spy = jest.fn(myJob);
 				const job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs))
-					.to.be.an('array')
-					.and.lengthOf(2);
+
 				return testExecution(job, name, spy);
 			});
 
@@ -162,26 +148,22 @@ describe('helpers/jobsQueue', () => {
 				execTimeInterval = 2000;
 
 				const name = 'job3';
-				const spy = sinonSandbox.spy(dummyFunction);
+				const spy = jest.fn(myJob);
 				const job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs))
-					.to.be.an('array')
-					.and.lengthOf(3);
+
 				return testExecution(job, name, spy);
 			});
 
 			it('should throw an error immediately when trying to register same job twice', async () => {
 				const name = 'job4';
-				const spy = sinonSandbox.spy(dummyFunction);
+				const spy = jest.fn(myJob);
 				const job = jobsQueue.register(name, spy, recallInterval);
-				expect(Object.keys(jobsQueue.jobs))
-					.to.be.an('array')
-					.and.lengthOf(4);
+
 				testExecution(job, name, spy);
 
 				return expect(() => {
-					jobsQueue.register('job4', dummyFunction, recallInterval);
-				}).to.throw('Synchronous job job4 already registered');
+					jobsQueue.register('job4', myJob, recallInterval);
+				}).toThrow('Synchronous job job4 already registered');
 			});
 		});
 	});

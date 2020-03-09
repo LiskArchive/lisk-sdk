@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -29,6 +29,7 @@ const peerList = ['peerList'];
 const nodeOptions = {
 	genesisBlock: {
 		transactions: [],
+		id: 1,
 		version: 2,
 		height: 1,
 		communityIdentifier: 'Lisk',
