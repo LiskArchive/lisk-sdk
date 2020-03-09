@@ -415,14 +415,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 		);
 
 		// Sign with members
-		if (passphrases) {
+		if (keys && passphrases) {
 			const keysAndPassphrases = buildPublicKeyPassphraseDict([...passphrases]);
-
 			// Sign with all keys
-			for (const aKey of [
-				...(keys?.mandatoryKeys as ReadonlyArray<string>),
-				...(keys?.optionalKeys as ReadonlyArray<string>),
-			]) {
+			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
