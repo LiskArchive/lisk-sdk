@@ -213,11 +213,6 @@ class Forger {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async beforeForge() {
-		await this.transactionPoolModule.fillPool();
-	}
-
-	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.chainModule.slots.getSlotNumber();
 		const currentSlotTime = this.chainModule.slots.getRealTime(

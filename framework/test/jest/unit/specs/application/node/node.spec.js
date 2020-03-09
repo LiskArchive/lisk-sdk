@@ -377,7 +377,6 @@ describe('Node', () => {
 			await node.bootstrap();
 			jest.spyOn(node.forger, 'delegatesEnabled').mockReturnValue(true);
 			jest.spyOn(node.forger, 'forge');
-			jest.spyOn(node.forger, 'beforeForge');
 			jest.spyOn(node.sequence, 'add').mockImplementation(async fn => {
 				await fn();
 			});
@@ -397,7 +396,6 @@ describe('Node', () => {
 				'No delegates are enabled',
 			);
 			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.beforeForge).not.toHaveBeenCalled();
 			expect(node.forger.forge).not.toHaveBeenCalled();
 		});
 
@@ -414,7 +412,6 @@ describe('Node', () => {
 				'Client not ready to forge',
 			);
 			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.beforeForge).not.toHaveBeenCalled();
 			expect(node.forger.forge).not.toHaveBeenCalled();
 		});
 
@@ -422,7 +419,6 @@ describe('Node', () => {
 			await node._forgingTask();
 
 			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.beforeForge).toHaveBeenCalled();
 			expect(node.forger.forge).toHaveBeenCalled();
 		});
 	});

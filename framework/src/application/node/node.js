@@ -562,7 +562,6 @@ module.exports = class Node {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
-				await this.forger.beforeForge();
 				await this.forger.forge();
 			} catch (err) {
 				this.logger.error({ err });
