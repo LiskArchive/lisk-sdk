@@ -18,7 +18,7 @@ import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
-import * as inputUtils from '../../../../src/utils/input';
+import * as readerUtils from '../../../../src/utils/reader';
 
 describe.skip('transaction:create:multisignature', () => {
 	const defaultLifetime = '24';
@@ -27,9 +27,7 @@ describe.skip('transaction:create:multisignature', () => {
 		'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 	];
-	const defaultInputs = {
-		passphrase: '123',
-	};
+	const defaultInputs = '123';
 	const defaultTransaction = {
 		nonce: '0',
 		fee: '10000000',
@@ -60,8 +58,8 @@ describe.skip('transaction:create:multisignature', () => {
 			)
 			.stub(validator, 'validatePublicKeys', sandbox.stub().returns(true))
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -141,15 +139,13 @@ describe.skip('transaction:create:multisignature', () => {
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultKeysgroup,
 				);
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
+					passphrase: defaultInputs,
 					keysgroup: defaultKeysgroup,
 					lifetime: parseInt(defaultLifetime, 10),
 					minimum: parseInt(defaultMinimum, 10),
@@ -171,23 +167,21 @@ describe.skip('transaction:create:multisignature', () => {
 				defaultLifetime,
 				defaultMinimum,
 				defaultKeysgroup.join(','),
-				'--passphrase=pass:123',
+				'--passphrase=123',
 			])
 			.it('should create a multisignature transaction', () => {
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultKeysgroup,
 				);
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: 'pass:123',
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
+					passphrase: defaultInputs,
 					keysgroup: defaultKeysgroup,
 					lifetime: parseInt(defaultLifetime, 10),
 					minimum: parseInt(defaultMinimum, 10),
@@ -215,7 +209,7 @@ describe.skip('transaction:create:multisignature', () => {
 					expect(validator.validatePublicKeys).to.be.calledWithExactly(
 						defaultKeysgroup,
 					);
-					expect(inputUtils.getInputsFromSources).not.to.be.called;
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
 						nonce: '1',
 						fee: '10000000000',

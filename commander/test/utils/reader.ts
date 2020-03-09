@@ -96,7 +96,7 @@ describe('reader', () => {
 		});
 
 		it('should return true when it has correct source identifier', async () => {
-			expect(isFileSource('file:path/to/file')).to.be.false;
+			expect(isFileSource('file:path/to/file')).to.be.true;
 		});
 	});
 

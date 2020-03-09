@@ -117,7 +117,7 @@ export const isFileSource = (source?: string): boolean => {
 	const delimiter = ':';
 	const sourceParts = source.split(delimiter);
 	// tslint:disable-next-line no-magic-numbers
-	if (sourceParts.length === 2 && source[0] === 'file') {
+	if (sourceParts.length === 2 && sourceParts[0] === 'file') {
 		return true;
 	}
 

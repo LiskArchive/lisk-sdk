@@ -49,9 +49,7 @@ describe('cache node utils', () => {
 
 			return expect(
 				isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET),
-			).to.rejectedWith(
-				"TypeError: Cannot destructure property `cache` of 'undefined' or 'null'.",
-			);
+			).to.rejectedWith('Cache config is not found.');
 		});
 	});
 
@@ -193,7 +191,7 @@ describe('cache node utils', () => {
 
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('Error: TypeError: Cannot destructure property');
+				).to.rejectedWith('Error: Config password is not set.');
 			});
 		});
 	});

@@ -16,7 +16,7 @@
 import { NETWORK } from '../constants';
 import { exec, ExecResult } from '../worker-process';
 
-import { getLiskConfig, LiskConfig } from './config';
+import { getLiskConfig } from './config';
 import { describeApplication, PM2ProcessInstance } from './pm2';
 
 const CACHE_START_SUCCESS = '[+] Redis-Server started successfully.';
@@ -67,24 +67,18 @@ const stopCommand = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	try {
-		const {
-			components: {
-				cache: { password },
-			},
-		}: LiskConfig = await getLiskConfig(installDir, network);
-		const { redisPort } = (await describeApplication(
-			name,
-		)) as PM2ProcessInstance;
-
-		if (password) {
-			return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
-		}
-
-		return `${REDIS_CLI} -p ${redisPort} shutdown`;
-	} catch (error) {
-		throw new Error(error);
+	const config = await getLiskConfig(installDir, network);
+	const password = config?.components?.cache?.password;
+	if (password === undefined) {
+		throw new Error('Config password is not set.');
 	}
+	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
+
+	if (password) {
+		return `${REDIS_CLI} -p ${redisPort} -a ${password} shutdown`;
+	}
+
+	return `${REDIS_CLI} -p ${redisPort} shutdown`;
 };
 
 export const stopCache = async (
@@ -111,15 +105,11 @@ export const isCacheEnabled = async (
 	installDir: string,
 	network: NETWORK,
 ): Promise<boolean> => {
-	try {
-		const {
-			components: {
-				cache: { enabled },
-			},
-		}: LiskConfig = await getLiskConfig(installDir, network);
-
-		return enabled;
-	} catch (error) {
-		throw new Error(error);
+	const config = await getLiskConfig(installDir, network);
+	const enabled = config?.components?.cache?.enabled;
+	if (enabled === undefined) {
+		throw new Error('Cache config is not found.');
 	}
+
+	return enabled;
 };

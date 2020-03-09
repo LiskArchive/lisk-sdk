@@ -17,13 +17,11 @@ import { expect, test } from '@oclif/test';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
-import * as inputUtils from '../../../../src/utils/input';
+import * as readerUtils from '../../../../src/utils/reader';
 
 describe('transaction:create:delegate', () => {
 	const defaultUsername = 'user-light';
-	const defaultInputs = {
-		passphrase: '123',
-	};
+	const defaultInputs = '123';
 	const defaultTransaction = {
 		nonce: '0',
 		fee: '10000000',
@@ -54,8 +52,8 @@ describe('transaction:create:delegate', () => {
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -73,17 +71,15 @@ describe('transaction:create:delegate', () => {
 		setupTest()
 			.command(['transaction:create:delegate', '1', '100', defaultUsername])
 			.it('create a transaction with the username', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
+					passphrase: defaultInputs,
 					username: defaultUsername,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
@@ -99,22 +95,17 @@ describe('transaction:create:delegate', () => {
 				'1',
 				'100',
 				defaultUsername,
-				'--passphrase=pass:123',
+				'--passphrase=123',
 			])
 			.it(
 				'create a transaction with the username with the passphrase from flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
 						nonce: '1',
 						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs.passphrase,
+						passphrase: defaultInputs,
 						username: defaultUsername,
 					});
 					return expect(printMethodStub).to.be.calledWithExactly(
@@ -141,7 +132,7 @@ describe('transaction:create:delegate', () => {
 					passphrase: undefined,
 					username: defaultUsername,
 				});
-				expect(inputUtils.getInputsFromSources).not.to.be.called;
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
 				);
