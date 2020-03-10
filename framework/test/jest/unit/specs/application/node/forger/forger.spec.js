@@ -19,14 +19,14 @@ const { when } = require('jest-when');
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const forger = require('../../../../../../src/application/node/forger/forger');
-const genesisDelegates = require('../../../../../mocha/data/genesis_delegates.json');
-const delegatesRoundsList = require('../../../../../mocha/data/delegates_rounds_list.json');
-const accountFixtures = require('../../../../../fixtures//accounts');
+const forger = require('../../../../../../../src/application/node/forger/forger');
+const genesisDelegates = require('../../../../../../mocha/data/genesis_delegates.json');
+const delegatesRoundsList = require('../../../../../../mocha/data/delegates_rounds_list.json');
+const accountFixtures = require('../../../../../../fixtures//accounts');
 
 const { Forger, getDelegateKeypairForCurrentSlot } = forger;
 
-describe('forge', () => {
+describe('forger', () => {
 	const mockChannel = {
 		publish: jest.fn(),
 	};
