@@ -35,37 +35,53 @@ class HighFeeForgingStrategy {
 	}
 
 	async getTransactionsForBlock() {
+		// Initialize array to select transactions
 		const readyTransactions = [];
+
+		// Initialize block size with 0
 		let blockPayloadSize = BigInt(0);
+
+		// Initialize state store which will be discarded after selection
 		const stateStore = this.chainModule.newStateStore();
 
+		// Get processable transactions from transaction pool
 		const processableTransactions = this.transactionPoolModule.getProcessableTransactions();
-		const transactionsBySender = {};
 
 		// Convert sender transactions to min heap by nonce
-		for (const senderId of Object.keys(processableTransactions)) {
-			const nonceHeapPerSender = new MinHeap();
-			processableTransactions[senderId].forEach(t =>
-				nonceHeapPerSender.push(t.nonce, t),
-			);
-			transactionsBySender[senderId] = nonceHeapPerSender;
-		}
+		const transactionsBySender = Object.keys(processableTransactions).reduce(
+			(obj, senderId) => {
+				const minHeapByNonce = new MinHeap();
+				processableTransactions[senderId].forEach(t =>
+					minHeapByNonce.push(t.nonce, t),
+				);
+				obj[senderId] = minHeapByNonce;
 
+				return obj;
+			},
+			{},
+		);
+
+		// Loop till we have last account exhausted to pick transactions
 		while (Object.keys(transactionsBySender).length !== 0) {
-			// Prepare max heap for fee priority for lowest nonce
 			const feePriorityHeap = new MaxHeap();
 
+			// Prepare max heap for high fee priority for lowest nonce of all available accounts
 			for (const senderId of Object.keys(transactionsBySender)) {
 				const lowestNonceTrx = transactionsBySender[senderId].peek().value;
 				feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
 			}
 
+			// Get the transaction with highest fee and lowest nonce
 			const lowestNonceHighestFeeTrx = feePriorityHeap.pop().value;
+
+			// Try to process transaction
 			const result = await this.chainModule.processTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
 				stateStore,
 			);
 
+			// If transaction can't be processed then discard all transactions
+			// from that account as other transactions will be higher nonce
 			if (result.transactionsResponses[0].status !== TransactionStatus.OK) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
 
@@ -73,18 +89,23 @@ class HighFeeForgingStrategy {
 				continue;
 			}
 
+			// If transaction byte size can't fit in max payload length
+			// then discard all transactions from that account as
+			// other transactions will be higher nonce
 			const trsByteSize = BigInt(lowestNonceHighestFeeTrx.getBytes().length);
-
 			if (blockPayloadSize + trsByteSize > this.constants.maxPayloadLength) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
 				// eslint-disable-next-line no-continue
 				continue;
 			}
 
+			// Select transaction, increase block size and remove that transaction from heap
 			readyTransactions.push(lowestNonceHighestFeeTrx);
 			blockPayloadSize += trsByteSize;
 			transactionsBySender[lowestNonceHighestFeeTrx.senderId].pop();
 
+			// If there is no transaction left in heap for that account
+			// then remove that account from map
 			if (transactionsBySender[lowestNonceHighestFeeTrx.senderId].count === 0) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
 			}
