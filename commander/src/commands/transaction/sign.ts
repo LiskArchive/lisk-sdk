@@ -71,7 +71,7 @@ export default class SignCommand extends BaseCommand {
 			...commonFlags.optionalKey,
 			multiple: true,
 		}),
-		'number-of-signatures': flagParser.string(commonFlags.numberOfSignatures),
+		'number-of-signatures': flagParser.integer(commonFlags.numberOfSignatures),
 		passphrase: flagParser.string({
 			...commonFlags.passphrase,
 			multiple: true,
