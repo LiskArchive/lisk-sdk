@@ -139,7 +139,7 @@ describe('cache node utils', () => {
 		describe('when installation exists', () => {
 			let workerProcessStub: SinonStub;
 			beforeEach(() => {
-				workerProcessStub = sandbox.stub(workerProcess, 'exec');
+				workerProcessStub = sandbox.stub(workerProcess, 'exec').resolves({});
 			});
 
 			it('should stop successfully when password is empty', async () => {
@@ -187,11 +187,11 @@ describe('cache node utils', () => {
 			});
 
 			it('should throw error when failed get cache config', () => {
-				configStub.resolves({});
+				configStub.rejects(new Error('Fail to get config.'));
 
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('Error: Config password is not set.');
+				).to.rejectedWith('Fail to get config.');
 			});
 		});
 	});

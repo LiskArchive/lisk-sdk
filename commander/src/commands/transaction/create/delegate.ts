@@ -115,7 +115,6 @@ export default class DelegateCommand extends BaseCommand {
 				normalizedFee,
 				networkIdentifier,
 				username,
-				undefined,
 			);
 			this.print(noSignatureResult);
 

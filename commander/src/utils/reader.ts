@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as passphraseModule from '@liskhq/lisk-passphrase';
+import * as liskPassphrase from '@liskhq/lisk-passphrase';
 import fs from 'fs';
 import inquirer from 'inquirer';
 import readline from 'readline';
@@ -76,7 +76,7 @@ export const getPassphraseFromPrompt = async (
 	const passphraseErrors = [passphrase]
 		.filter(Boolean)
 		.map(pass =>
-			passphraseModule.validation
+			liskPassphrase.validation
 				.getPassphraseValidationErrors(pass as string)
 				.filter((error: MnemonicError) => error.message),
 		);

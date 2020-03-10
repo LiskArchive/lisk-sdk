@@ -143,7 +143,6 @@ export default class TransferCommand extends BaseCommand {
 				normalizedAmount,
 				address,
 				dataString,
-				undefined,
 			);
 			this.print(noSignatureResult);
 

@@ -154,7 +154,6 @@ export default class VoteCommand extends BaseCommand {
 				networkIdentifier,
 				validatedVotes,
 				validatedUnvotes,
-				undefined,
 			);
 			this.print(noSignatureResult);
 

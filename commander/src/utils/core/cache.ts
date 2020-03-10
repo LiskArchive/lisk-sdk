@@ -69,9 +69,6 @@ const stopCommand = async (
 ): Promise<string> => {
 	const config = await getLiskConfig(installDir, network);
 	const password = config?.components?.cache?.password;
-	if (password === undefined) {
-		throw new Error('Config password is not set.');
-	}
 	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
 	if (password) {
@@ -86,19 +83,15 @@ export const stopCache = async (
 	network: NETWORK,
 	name: string,
 ): Promise<string> => {
-	try {
-		const cmd = await stopCommand(installDir, network, name);
+	const cmd = await stopCommand(installDir, network, name);
 
-		const { stderr }: ExecResult = await exec(cmd, { cwd: installDir });
+	const { stderr }: ExecResult = await exec(cmd, { cwd: installDir });
 
-		if (!stderr) {
-			return CACHE_STOP_SUCCESS;
-		}
-
-		throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
-	} catch (error) {
-		throw new Error(error);
+	if (!stderr) {
+		return CACHE_STOP_SUCCESS;
 	}
+
+	throw new Error(`${CACHE_STOP_FAILURE}: \n\n ${stderr}`);
 };
 
 export const isCacheEnabled = async (
