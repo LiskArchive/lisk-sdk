@@ -38,6 +38,7 @@ export interface TransactionFunctions {
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
 	isReady(): boolean;
+	getBytes(): Buffer;
 }
 
 export enum Status {

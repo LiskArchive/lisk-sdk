@@ -127,8 +127,18 @@ export class TransactionPool {
 		if (incomingTx.fee < this._minimumEntranceFee) {
 			return false;
 		}
+
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
-		// TODO: Use feePriorityQueue to reject transaction with lowest fee when txPool is full
+		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
+		const feePriorityofTrx = this._calculateFeePriority(incomingTx);
+		if (
+			Object.keys(this._allTransactions).length >= this._maxTransactions &&
+			lowestFeePriorityTrx &&
+			feePriorityofTrx <= lowestFeePriorityTrx.key
+		) {
+			return false;
+		}
+		this._feePriorityQueue.push(feePriorityofTrx, incomingTx.id);
 
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
@@ -155,6 +165,11 @@ export class TransactionPool {
 		incomingTx.receivedAt = new Date();
 		this._allTransactions[incomingTx.id] = incomingTx;
 
+		// Add to feePriorityQueue
+		this._feePriorityQueue.push(
+			this._calculateFeePriority(incomingTx),
+			incomingTx.id,
+		);
 		// Add the transaction in the _transactionList
 		return this._transactionList[incomingTxAddress].add(
 			incomingTx,
@@ -175,6 +190,10 @@ export class TransactionPool {
 	}
 
 	private async _reorganize(): Promise<void> {}
+
+	private _calculateFeePriority(trx: Transaction): bigint {
+		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);
+	}
 
 	private _getStatus(
 		txResponse: ReadonlyArray<TransactionResponse>,
