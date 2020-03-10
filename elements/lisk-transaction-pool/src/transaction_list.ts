@@ -59,7 +59,9 @@ export class TransactionList {
 	}
 
 	public getAll(): ReadonlyArray<Transaction> {
-		return Object.values(this._transactions).sort((a, b) => a.nonce > b.nonce ? 1 : -1)
+		return Object.values(this._transactions).sort((a, b) =>
+			a.nonce > b.nonce ? -1 : 1,
+		);
 	}
 
 	public add(incomingTx: Transaction, processable: boolean = false): boolean {

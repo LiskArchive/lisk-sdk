@@ -232,18 +232,22 @@ export class TransactionPool {
 	}
 	
 	private async _reorganize(): Promise<void> {
-		// For each account, check for non-processable transactions which has sequential nonce
+		/* 
+			Promote transactions and remove invalid and subsequent transactions by nonce
+		*/
 		for (const address in this._transactionList) {
 			const txList = this._transactionList[address];
-			const allTransactions = txList.getAll();
+			const allSortedTransactionsInList = txList.getAll();
 			const promotableTransactions = txList.getPromotable();
 
-			// If no promotable transactions, continue loop
-			if(!(promotableTransactions.length > 0)) {
+			// If no promotable transactions, check next list
+			if (!(promotableTransactions.length > 0)) {
 				continue;
 			}
 
-			const applyResults = await this._applyFunction([...allTransactions]);
+			const applyResults = await this._applyFunction([
+				...allSortedTransactionsInList,
+			]);
 			const successfulTransactions: string[] = [];
 			let firstInvalidTransactionId: string | undefined;
 			for (const result of applyResults) {
@@ -252,18 +256,96 @@ export class TransactionPool {
 					firstInvalidTransactionId = result.id;
 					break;
 				}
-				successfulTransactions.push(result.id);	
+				successfulTransactions.push(result.id);
 			}
 			// Promote all transactions which were successful
-			txList.promote(promotableTransactions.filter(tx => successfulTransactions.includes(tx.id)));
+			txList.promote(
+				promotableTransactions.filter(tx =>
+					successfulTransactions.includes(tx.id),
+				),
+			);
 
 			// Remove invalid transaction and all subsequent transactions
-			const invalidTransaction = allTransactions.find(tx => tx.id == firstInvalidTransactionId);
+			const invalidTransaction = firstInvalidTransactionId
+				? allSortedTransactionsInList.find(
+						tx => tx.id == firstInvalidTransactionId,
+				  )
+				: undefined;
 			if (invalidTransaction) {
-				for (const tx of allTransactions) {
+				for (const tx of allSortedTransactionsInList) {
 					if (tx.nonce >= invalidTransaction.nonce) {
-						txList.remove(tx.nonce)
+						txList.remove(tx.nonce);
 					}
+				}
+			}
+		}
+
+		/* 
+			Evict transactions if pool is full 
+				1. Evict unprocessable by fee priority
+				2. Evict processable by fee priority and highest nonce
+		*/
+		const exceededTransactionsCount =
+			Object.keys(this._allTransactions).length - this._maxTransactions;
+
+		if (exceededTransactionsCount > 0) {
+			let evictedTransactionsCount = 0;
+			const unprocessableFeePriorityHeap = new MinHeap<number, Transaction>();
+
+			// Loop through tx lists and push unprocessable tx to fee priority heap
+			for (const address in this._transactionList) {
+				const txList = this._transactionList[address];
+				const unprocessableTransactions = txList.getUnprocessable();
+
+				for (const unprocessableTx of unprocessableTransactions) {
+					unprocessableFeePriorityHeap.push(
+						unprocessableTx,
+						unprocessableTx.feePriority,
+					);
+				}
+			}
+
+			// Evict unprocessable transactions by fee priority
+			while (
+				evictedTransactionsCount < exceededTransactionsCount &&
+				unprocessableFeePriorityHeap.count
+			) {
+				const evictedTransaction = unprocessableFeePriorityHeap.pop();
+				evictedTransactionsCount = this.removeTransaction(
+					evictedTransaction?.key as Transaction,
+				)
+					? evictedTransactionsCount + 1
+					: evictedTransactionsCount;
+			}
+
+			// Evict processable by fee priority and highest nonce
+			while (evictedTransactionsCount < exceededTransactionsCount) {
+				const processableFeePriorityHeap = new MinHeap<number, Transaction>();
+				// Create fee priority heap with highest nonce tx from each tx list
+				for (const address in this._transactionList) {
+					const txList = this._transactionList[address];
+					// Push highest nonce tx to processable fee priorty heap
+					const processableTransactions = txList.getProcessable();
+					const processableTransactionWithHighestNonce =
+						processableTransactions[processableTransactions.length - 1];
+					if (processableTransactions.length) {
+						processableFeePriorityHeap.push(
+							processableTransactionWithHighestNonce,
+							processableTransactionWithHighestNonce.feePriority,
+						);
+					}
+				}
+
+				while (
+					evictedTransactionsCount < exceededTransactionsCount &&
+					processableFeePriorityHeap.count
+				) {
+					const evictedTransaction = processableFeePriorityHeap.pop();
+					evictedTransactionsCount = this.removeTransaction(
+						evictedTransaction?.key as Transaction,
+					)
+						? evictedTransactionsCount + 1
+						: evictedTransactionsCount;
 				}
 			}
 		}
