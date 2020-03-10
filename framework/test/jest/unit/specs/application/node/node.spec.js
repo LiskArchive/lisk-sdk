@@ -28,6 +28,10 @@ const {
 const {
 	Processor,
 } = require('../../../../../../src/application/node/processor');
+const {
+	Forger,
+	HighFeeForgingStrategy,
+} = require('../../../../../../src/application/node/forger');
 const { cacheConfig, nodeOptions } = require('../../../../../fixtures/node');
 
 describe('Node', () => {
@@ -278,6 +282,17 @@ describe('Node', () => {
 			it('should initialize bft module', async () => {
 				expect(node.bft).toBeInstanceOf(BFT);
 				expect(node.modules.bft).toBeInstanceOf(BFT);
+			});
+
+			it('should initialize forger module', async () => {
+				expect(node.forger).toBeInstanceOf(Forger);
+				expect(node.modules.forger).toBe(node.forger);
+			});
+
+			it('should initialize forger module with high fee strategy', async () => {
+				expect(node.forger.forgingStrategy).toBeInstanceOf(
+					HighFeeForgingStrategy,
+				);
 			});
 		});
 
