@@ -346,7 +346,8 @@ describe('Base transaction class', () => {
 			);
 
 			expect(() =>
-				transactionWithMissingNetworkIdentifierInstance.sign(
+				(transactionWithMissingNetworkIdentifierInstance as any).sign(
+					undefined,
 					transferFixture.testCases[0].input.account.passphrase,
 				),
 			).toThrowError('Network identifier is required to sign a transaction');
@@ -364,8 +365,8 @@ describe('Base transaction class', () => {
 			expect(status).toEqual(Status.OK);
 		});
 
-		it('should return a successful transaction response with a valid transaction with basic impl', async () => {
-			transactionWithBasicImpl.sign('passphrase');
+		it('should return a successful transaction response with a valid transaction with basic implementation', async () => {
+			transactionWithBasicImpl.sign(networkIdentifier, 'passphrase');
 			const { id, status, errors } = transactionWithBasicImpl.validate();
 
 			expect(id).toEqual(transactionWithBasicImpl.id);
@@ -611,7 +612,10 @@ describe('Base transaction class', () => {
 					networkIdentifier:
 						transferFixture.testCases[0].input.networkIdentifier,
 				});
-				validCollisionTransaction.sign(collisionAccounts[0].passphrase);
+				validCollisionTransaction.sign(
+					networkIdentifier,
+					collisionAccounts[0].passphrase,
+				);
 			});
 
 			it('should register public key to sender account if it does not exist', async () => {
@@ -632,7 +636,10 @@ describe('Base transaction class', () => {
 					networkIdentifier:
 						transferFixture.testCases[0].input.networkIdentifier,
 				});
-				invalidCollisionTransaction.sign(collisionAccounts[1].passphrase);
+				invalidCollisionTransaction.sign(
+					networkIdentifier,
+					collisionAccounts[1].passphrase,
+				);
 				// Apply first and register the public key
 				await validCollisionTransaction.apply(store);
 				const { status, errors } = await invalidCollisionTransaction.apply(
@@ -738,9 +745,9 @@ describe('Base transaction class', () => {
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TransferTransaction({
 				...transferFixture.testCases[0].input.transaction,
-				networkIdentifier: transferFixture.testCases[0].input.networkIdentifier,
 			});
 			newTransaction.sign(
+				networkIdentifier,
 				transferFixture.testCases[0].input.account.passphrase,
 			);
 
@@ -757,60 +764,6 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#sign', () => {
-		const defaultPassphrase = 'passphrase';
-		const defaultHash = Buffer.from(
-			'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02111111',
-			'hex',
-		);
-
-		const defaultSignature =
-			'dc8fe25f817c81572585b3769f3c6df13d3dc93ff470b2abe807f43a3359ed94e9406d2539013971431f2d540e42dc7d3d71c7442da28572c827d59adc5dfa08';
-
-		let signDataStub: jest.SpyInstance;
-
-		beforeEach(async () => {
-			const hashStub = jest
-				.spyOn(cryptography, 'hash')
-				.mockReturnValueOnce(defaultHash);
-			hashStub.mockReturnValue(defaultHash);
-			signDataStub = jest
-				.spyOn(cryptography, 'signData')
-				.mockReturnValueOnce(defaultSignature);
-		});
-
-		describe('when sign is called with passphrase', () => {
-			beforeEach(async () => {
-				transactionWithDefaultValues.sign(defaultPassphrase);
-			});
-
-			it('should set signature property', async () => {
-				expect(transactionWithDefaultValues.signatures).toEqual([
-					defaultSignature,
-				]);
-			});
-
-			it('should set id property', async () => {
-				expect(transactionWithDefaultValues.id).not.toBeEmpty();
-			});
-
-			it('should set senderId property', async () => {
-				expect(transactionWithDefaultValues.senderId).not.toBeEmpty();
-			});
-
-			it('should set senderPublicKey property', async () => {
-				expect(transactionWithDefaultValues.senderPublicKey).not.toBeEmpty();
-			});
-
-			it('should call signData with the hash result and the passphrase', async () => {
-				expect(signDataStub).toHaveBeenCalledWith(
-					defaultHash,
-					defaultPassphrase,
-				);
-			});
-		});
-	});
-
-	describe('#signAll', () => {
 		const validTransferInput = transferFixture.testCases[0].input;
 		const { transaction, account, networkIdentifier } = validTransferInput;
 		let validTransferInstance: BaseTransaction;
@@ -834,7 +787,7 @@ describe('Base transaction class', () => {
 				account.passphrase,
 			);
 
-			validTransferInstance.signAll(networkIdentifier, account.passphrase);
+			validTransferInstance.sign(networkIdentifier, account.passphrase);
 
 			expect(validTransferInstance.signatures[0]).toBe(validSignature);
 			expect(validTransferInstance.signatures.length).toBe(1);
@@ -862,7 +815,7 @@ describe('Base transaction class', () => {
 				members.mandatoryTwo.passphrase,
 			);
 
-			validTransferInstance.signAll(
+			validTransferInstance.sign(
 				networkIdentifier,
 				undefined,
 				[members.mandatoryOne.passphrase, members.mandatoryTwo.passphrase],

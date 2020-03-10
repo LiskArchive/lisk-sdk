@@ -373,7 +373,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		return createResponse(this.id, []);
 	}
 
-	public signAll(
+	public sign(
 		networkIdentifier: string,
 		senderPassphrase: string,
 		passphrases?: ReadonlyArray<string>,
