@@ -41,6 +41,7 @@ const getDelegateKeypairForCurrentSlot = async (
 
 class Forger {
 	constructor({
+		forgingStrategy,
 		// components
 		channel,
 		logger,
@@ -77,6 +78,8 @@ class Forger {
 		this.dposModule = dposModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.chainModule = chainModule;
+
+		this.forgingStrategy = forgingStrategy;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -278,11 +281,12 @@ class Forger {
 
 		const timestamp = this.chainModule.slots.getSlotTime(currentSlot);
 		const previousBlock = this.chainModule.lastBlock;
+		const transactions = await this.forgingStrategy.getTransactionsForBlock();
 
 		const forgedBlock = await this.processorModule.create({
 			keypair: delegateKeypair,
 			timestamp,
-			transactions: this._selectTransactionsForForging(),
+			transactions,
 			previousBlock,
 		});
 
