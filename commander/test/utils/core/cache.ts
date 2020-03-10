@@ -49,9 +49,7 @@ describe('cache node utils', () => {
 
 			return expect(
 				isCacheEnabled('~/.lisk/instance', NETWORK.DEVNET),
-			).to.rejectedWith(
-				"TypeError: Cannot destructure property `cache` of 'undefined' or 'null'.",
-			);
+			).to.rejectedWith('Cache config is not found.');
 		});
 	});
 
@@ -141,7 +139,7 @@ describe('cache node utils', () => {
 		describe('when installation exists', () => {
 			let workerProcessStub: SinonStub;
 			beforeEach(() => {
-				workerProcessStub = sandbox.stub(workerProcess, 'exec');
+				workerProcessStub = sandbox.stub(workerProcess, 'exec').resolves({});
 			});
 
 			it('should stop successfully when password is empty', async () => {
@@ -189,11 +187,11 @@ describe('cache node utils', () => {
 			});
 
 			it('should throw error when failed get cache config', () => {
-				configStub.resolves({});
+				configStub.rejects(new Error('Fail to get config.'));
 
 				return expect(
 					stopCache('/tmp/dummypath', NETWORK.MAINNET, 'test'),
-				).to.rejectedWith('Error: TypeError: Cannot destructure property');
+				).to.rejectedWith('Fail to get config.');
 			});
 		});
 	});

@@ -17,15 +17,10 @@ import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
-import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getInputsFromSources } from '../../utils/input';
+import { getPassphraseFromPrompt } from '../../utils/reader';
 
-const processInput = ({ passphrase }: { readonly passphrase?: string }) => {
-	if (!passphrase) {
-		throw new ValidationError('Passphrase cannot be empty');
-	}
-
+const processInput = (passphrase: string) => {
 	const { privateKey, publicKey } = getKeys(passphrase);
 	const address = getAddressFromPublicKey(publicKey);
 
@@ -52,12 +47,9 @@ export default class ShowCommand extends BaseCommand {
 		const {
 			flags: { passphrase: passphraseSource },
 		} = this.parse(ShowCommand);
-		const input = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-		});
-		this.print(processInput(input));
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+
+		this.print(processInput(passphrase));
 	}
 }

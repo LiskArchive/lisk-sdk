@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('message:encrypt', () => {
 	const message = 'Hello World';
@@ -28,11 +28,9 @@ describe('message:encrypt', () => {
 		message: 'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e',
 	};
 
-	const defaultInputs = {
-		passphrase:
-			'card earn shift valley learn scorpion cage select help title control satoshi',
-		data: 'message',
-	};
+	const defaultInputs =
+		'card earn shift valley learn scorpion cage select help title control satoshi';
+	const defaultData = 'message';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
@@ -45,10 +43,11 @@ describe('message:encrypt', () => {
 				sandbox.stub().returns(defaultEncryptedMessage),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
+			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))
 			.stdout();
 
 	describe('message:encrypt', () => {
@@ -73,18 +72,16 @@ describe('message:encrypt', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey, message])
 			.it('should encrypt the message with the arg', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-					data: undefined,
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
+				expect(readerUtils.readFileSource).not.to.be.called;
 				expect(
 					cryptography.encryptMessageWithPassphrase,
 				).to.be.calledWithExactly(
 					message,
-					defaultInputs.passphrase,
+					defaultInputs,
 					defaultRecipientPublicKey,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly({
@@ -104,20 +101,18 @@ describe('message:encrypt', () => {
 			.it(
 				'should encrypt the message with the arg and the message flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: undefined,
-							repeatPrompt: true,
-						},
-						data: {
-							source: 'file:./message.txt',
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+						'passphrase',
+						true,
+					);
+					expect(readerUtils.readFileSource).to.be.calledWithExactly(
+						'file:./message.txt',
+					);
 					expect(
 						cryptography.encryptMessageWithPassphrase,
 					).to.be.calledWithExactly(
-						defaultInputs.data,
-						defaultInputs.passphrase,
+						defaultData,
+						defaultInputs,
 						defaultRecipientPublicKey,
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({
@@ -128,32 +123,28 @@ describe('message:encrypt', () => {
 			);
 	});
 
-	describe('message:encrypt recipientPublicKey --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
+	describe('message:encrypt recipientPublicKey --message=file:./message.txt --passphrase=card earn shift valley learn scorpion cage select help title control satoshi', () => {
 		setupTest()
 			.command([
 				'message:encrypt',
 				defaultRecipientPublicKey,
 				'--message=file:./message.txt',
-				'--passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
+				'--passphrase=card earn shift valley learn scorpion cage select help title control satoshi',
 			])
 			.it(
 				'should encrypt the message with the arg and the message flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source:
-								'pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
-							repeatPrompt: true,
-						},
-						data: {
-							source: 'file:./message.txt',
-						},
-					});
+					expect(
+						readerUtils.getPassphraseFromPrompt,
+					).not.to.be.calledWithExactly('passphrase', true);
+					expect(readerUtils.readFileSource).to.be.calledWithExactly(
+						'file:./message.txt',
+					);
 					expect(
 						cryptography.encryptMessageWithPassphrase,
 					).to.be.calledWithExactly(
-						defaultInputs.data,
-						defaultInputs.passphrase,
+						defaultData,
+						defaultInputs,
 						defaultRecipientPublicKey,
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({

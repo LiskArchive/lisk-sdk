@@ -19,7 +19,7 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getInputsFromSources, InputFromSourceOutput } from '../../utils/input';
+import { isFileSource, readFileSource } from '../../utils/reader';
 
 interface Args {
 	readonly message?: string;
@@ -31,9 +31,8 @@ const processInputs = (
 	publicKey: string,
 	signature: string,
 	message?: string,
-) => ({ data }: InputFromSourceOutput) => {
-	const targetMessage = message || data;
-	if (!targetMessage) {
+) => {
+	if (!message) {
 		throw new ValidationError('No message was provided.');
 	}
 
@@ -41,7 +40,7 @@ const processInputs = (
 		verified: verifyMessageWithPublicKey({
 			publicKey,
 			signature,
-			message: targetMessage,
+			message,
 		}),
 	};
 };
@@ -89,11 +88,16 @@ export default class VerifyCommand extends BaseCommand {
 			throw new ValidationError('No message was provided.');
 		}
 
-		const inputs = await getInputsFromSources({
-			data: message ? undefined : { source: messageSource },
-		});
+		const dataFromSource =
+			messageSource && isFileSource(messageSource)
+				? await readFileSource(messageSource)
+				: messageSource;
 
-		const result = processInputs(publicKey, signature, message)(inputs);
+		const result = processInputs(
+			publicKey,
+			signature,
+			message || dataFromSource,
+		);
 		this.print(result);
 	}
 }

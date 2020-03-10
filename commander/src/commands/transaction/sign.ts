@@ -18,10 +18,9 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getInputsFromSources } from '../../utils/input';
-import { getStdIn } from '../../utils/input/utils';
 import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
 import { removeUndefinedValues } from '../../utils/object';
+import { getPassphraseFromPrompt, readStdIn } from '../../utils/reader';
 import {
 	instantiateTransaction,
 	parseTransactionString,
@@ -33,12 +32,12 @@ interface Args {
 
 const getTransactionInput = async (): Promise<string> => {
 	try {
-		const { data } = await getStdIn({ dataIsRequired: true });
-		if (!data) {
+		const lines = await readStdIn();
+		if (!lines.length) {
 			throw new ValidationError('No transaction was provided.');
 		}
 
-		return data;
+		return lines[0];
 	} catch (e) {
 		throw new ValidationError('No transaction was provided.');
 	}
@@ -78,17 +77,8 @@ export default class SignCommand extends BaseCommand {
 		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
-
-		const { passphrase } = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-		});
-
-		if (!passphrase) {
-			throw new Error('Passphrase is required to sign the transaction');
-		}
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,

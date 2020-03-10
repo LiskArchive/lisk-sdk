@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as apiUtils from '../../../src/utils/api';
-import * as inputUtils from '../../../src/utils/input/utils';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('transaction:broadcast', () => {
 	const apiConfig = {
@@ -64,8 +64,8 @@ describe('transaction:broadcast', () => {
 	describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
+				readerUtils,
+				'readStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:broadcast'])
@@ -100,7 +100,7 @@ describe('transaction:broadcast', () => {
 
 	describe('transaction | transaction:broadcast', () => {
 		setupTest()
-			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([]))
 			.command(['transaction:broadcast'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -109,9 +109,9 @@ describe('transaction:broadcast', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: wrongTransaction }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([wrongTransaction]),
 			)
 			.command(['transaction:broadcast'])
 			.catch(error => {
@@ -123,9 +123,9 @@ describe('transaction:broadcast', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
 			.command(['transaction:broadcast'])
 			.it('should broadcast the transaction', () => {

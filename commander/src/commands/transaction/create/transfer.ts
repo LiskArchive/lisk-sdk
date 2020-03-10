@@ -24,11 +24,8 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
-import {
-	getInputsFromSources,
-	InputFromSourceOutput,
-} from '../../../utils/input';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
+import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 interface Args {
 	readonly nonce: string;
@@ -52,7 +49,8 @@ const processInputs = (
 	amount: string,
 	address: string,
 	data?: string,
-) => ({ passphrase }: InputFromSourceOutput) =>
+	passphrase?: string,
+) =>
 	transfer({
 		nonce,
 		fee,
@@ -137,31 +135,31 @@ export default class TransferCommand extends BaseCommand {
 		validateAddress(address);
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
-		const processFunction = processInputs(
+		if (noSignature) {
+			const noSignatureResult = processInputs(
+				nonce,
+				normalizedFee,
+				networkIdentifier,
+				normalizedAmount,
+				address,
+				dataString,
+			);
+			this.print(noSignatureResult);
+
+			return;
+		}
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+
+		const result = processInputs(
 			nonce,
 			normalizedFee,
 			networkIdentifier,
 			normalizedAmount,
 			address,
 			dataString,
+			passphrase,
 		);
-
-		if (noSignature) {
-			const noSignatureResult = processFunction({
-				passphrase: undefined,
-			});
-			this.print(noSignatureResult);
-
-			return;
-		}
-
-		const inputs = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-		});
-		const result = processFunction(inputs);
 		this.print(result);
 	}
 }

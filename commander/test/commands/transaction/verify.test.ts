@@ -16,7 +16,7 @@
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputUtils from '../../../src/utils/input/utils';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('transaction:verify', () => {
 	const defaultTransaction = {
@@ -58,8 +58,8 @@ describe('transaction:verify', () => {
 	describe('transaction:verify', () => {
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
+				readerUtils,
+				'readStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:verify'])
@@ -90,7 +90,7 @@ describe('transaction:verify', () => {
 
 	describe('transaction | transaction:verify', () => {
 		setupTest()
-			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves([]))
 			.command(['transaction:verify'])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -99,9 +99,9 @@ describe('transaction:verify', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: invalidTransaction }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([invalidTransaction]),
 			)
 			.command(['transaction:verify'])
 			.catch((error: Error) => {
@@ -113,9 +113,9 @@ describe('transaction:verify', () => {
 
 		setupTest()
 			.stub(
-				inputUtils,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
 			.command(['transaction:verify'])
 			.it('should verify transaction from stdin', () => {

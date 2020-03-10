@@ -27,12 +27,8 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
-import {
-	getInputsFromSources,
-	InputFromSourceOutput,
-} from '../../../utils/input';
-import { getData } from '../../../utils/input/utils';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
+import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 const processInputs = (
 	nonce: string,
@@ -40,7 +36,8 @@ const processInputs = (
 	networkIdentifier: string,
 	votes: ReadonlyArray<string>,
 	unvotes: ReadonlyArray<string>,
-) => ({ passphrase }: InputFromSourceOutput) =>
+	passphrase?: string,
+) =>
 	castVotes({
 		nonce,
 		fee,
@@ -54,9 +51,6 @@ interface Args {
 	readonly nonce: string;
 	readonly fee: string;
 }
-
-const processVotesInput = async (votes: string) =>
-	votes.includes(':') ? getData(votes) : votes;
 
 const processVotes = (votes: string) =>
 	votes
@@ -141,49 +135,42 @@ export default class VoteCommand extends BaseCommand {
 			);
 		}
 
-		const processedVotesInput = votes
-			? await processVotesInput(votes.toString())
-			: undefined;
-		const processedUnvotesInput = unvotes
-			? await processVotesInput(unvotes.toString())
-			: undefined;
-
-		const validatedVotes = processedVotesInput
-			? getValidatedPublicKeys(processVotes(processedVotesInput))
+		const validatedVotes = votes
+			? getValidatedPublicKeys(processVotes(votes))
 			: [];
-		const validatedUnvotes = processedUnvotesInput
-			? getValidatedPublicKeys(processVotes(processedUnvotesInput))
+		const validatedUnvotes = unvotes
+			? getValidatedPublicKeys(processVotes(unvotes))
 			: [];
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
 			this.userConfig.api.network,
 		);
-		const processFunction = processInputs(
-			nonce,
-			normalizedFee,
-			networkIdentifier,
-			validatedVotes,
-			validatedUnvotes,
-		);
 
 		if (noSignature) {
-			const noSignatureResult = processFunction({
-				passphrase: undefined,
-			});
+			const noSignatureResult = processInputs(
+				nonce,
+				normalizedFee,
+				networkIdentifier,
+				validatedVotes,
+				validatedUnvotes,
+			);
 			this.print(noSignatureResult);
 
 			return;
 		}
 
-		const inputs = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-		});
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
-		const result = processFunction(inputs);
+		const result = processInputs(
+			nonce,
+			normalizedFee,
+			networkIdentifier,
+			validatedVotes,
+			validatedUnvotes,
+			passphrase,
+		);
 		this.print(result);
 	}
 }
