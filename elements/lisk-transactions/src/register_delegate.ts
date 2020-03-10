@@ -63,7 +63,7 @@ export const registerDelegate = (
 	}
 
 	const delegateTransaction = new DelegateTransaction(transaction);
-	delegateTransaction.sign(passphrase);
+	delegateTransaction.sign(networkIdentifier, passphrase);
 
 	return delegateTransaction.toJSON();
 };

@@ -140,7 +140,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		transactionWithSenderInfo,
 	);
 
-	transferTransaction.sign(passphrase);
+	transferTransaction.sign(networkIdentifier, passphrase);
 
 	return transferTransaction.toJSON();
 };
