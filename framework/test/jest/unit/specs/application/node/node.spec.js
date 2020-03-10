@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,96 +14,90 @@
 
 'use strict';
 
-/* eslint-disable mocha/no-pending-tests */
-const rewire = require('rewire');
+jest.mock('../../../../../../src/application/node/utils/jobs_queue');
+
+const { when } = require('jest-when');
 const { BFT } = require('@liskhq/lisk-bft');
 
-const Node = rewire('../../../../../src/application/node/node');
+const jobQueue = require('../../../../../../src/application/node/utils/jobs_queue');
+
+const Node = require('../../../../../../src/application/node/node');
 const {
 	Synchronizer,
-} = require('../../../../../src/application/node/synchronizer/synchronizer');
-const { Processor } = require('../../../../../src/application/node/processor');
-const { cacheConfig, nodeOptions } = require('./node.fixtures');
+} = require('../../../../../../src/application/node/synchronizer/synchronizer');
+const {
+	Processor,
+} = require('../../../../../../src/application/node/processor');
+const { cacheConfig, nodeOptions } = require('../../../../../fixtures/node');
 
 describe('Node', () => {
 	let node;
 	const stubs = {};
+	const lastBlock = { ...nodeOptions.genesisBlock };
 
 	beforeEach(async () => {
 		// Arrange
 
-		sinonSandbox.stub(Processor.prototype, 'init').resolves();
-		sinonSandbox.stub(Synchronizer.prototype, 'init').resolves();
+		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(null);
+		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(null);
 
 		/* Arranging Stubs start */
 		stubs.logger = {
-			trace: sinonSandbox.stub(),
-			error: sinonSandbox.stub(),
-			debug: sinonSandbox.stub(),
-			fatal: sinonSandbox.stub(),
-			info: sinonSandbox.stub(),
-			cleanup: sinonSandbox.stub(),
+			trace: jest.fn(),
+			error: jest.fn(),
+			debug: jest.fn(),
+			fatal: jest.fn(),
+			info: jest.fn(),
+			cleanup: jest.fn(),
 		};
 
 		stubs.cache = {
-			cleanup: sinonSandbox.stub(),
+			cleanup: jest.fn(),
 		};
 		stubs.storage = {
-			cleanup: sinonSandbox.stub(),
+			cleanup: jest.fn(),
 			entities: {
 				Block: {
-					get: sinonSandbox.stub().resolves([]),
-					count: sinonSandbox.stub().resolves(0),
+					get: jest.fn().mockResolvedValue([]),
+					count: jest.fn().mockResolvedValue(0),
 				},
-				ChainMeta: { getKey: sinonSandbox.stub() },
+				ChainMeta: { getKey: jest.fn() },
 			},
 		};
 		stubs.modules = {
 			module1: {
-				cleanup: sinonSandbox.stub().resolves('module1cleanup'),
+				cleanup: jest.fn().mockResolvedValue('module1cleanup'),
 			},
 			module2: {
-				cleanup: sinonSandbox.stub().resolves('module2cleanup'),
+				cleanup: jest.fn().mockResolvedValue('module2cleanup'),
 			},
 		};
 
 		stubs.webSocket = {
-			listen: sinonSandbox.stub(),
-			removeAllListeners: sinonSandbox.stub(),
-			destroy: sinonSandbox.stub(),
+			listen: jest.fn(),
+			removeAllListeners: jest.fn(),
+			destroy: jest.fn(),
 		};
 
 		stubs.channel = {
-			invoke: sinonSandbox.stub(),
-			subscribe: sinonSandbox.stub(),
-			once: sinonSandbox.stub(),
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
+			once: jest.fn(),
 		};
 
 		stubs.applicationState = {};
 
 		stubs.jobsQueue = {
-			register: sinonSandbox.stub(),
+			register: jest.spyOn(jobQueue, 'register'),
 		};
 
-		stubs.channel.invoke
-			.withArgs('app:getComponentConfig', 'cache')
-			.resolves(cacheConfig);
+		when(stubs.channel.invoke)
+			.calledWith('app:getComponentConfig', 'cache')
+			.mockResolvedValue(cacheConfig);
 
-		/* Arranging Stubs end */
-		Node.__set__('jobQueue', stubs.jobsQueue);
-
-		const Chain = Node.__get__('Chain');
-		Object.defineProperty(Chain.prototype, 'lastBlock', {
-			get: () => {
-				return {
-					height: 1,
-					id: 2,
-					version: 3,
-					maxHeightPrevoted: 4,
-				};
-			},
-		});
-		Node.__set__('Chain', Chain);
+		when(stubs.storage.entities.Block.get)
+			.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
+			.mockResolvedValue(lastBlock);
 
 		// Act
 		const params = {
@@ -117,25 +111,23 @@ describe('Node', () => {
 		node = new Node(params);
 	});
 
-	afterEach(() => sinonSandbox.restore());
-
 	describe('constructor', () => {
 		it('should accept channel as first parameter and assign to object instance', () => {
 			// Assert
-			return expect(node.channel).to.be.equal(stubs.channel);
+			return expect(node.channel).toEqual(stubs.channel);
 		});
 		it('should accept options as second parameter and assign to object instance', () => {
 			// Assert
-			return expect(node.options).to.be.equal(nodeOptions);
+			return expect(node.options).toEqual(nodeOptions);
 		});
 		it('should initialize class properties', async () => {
-			expect(node.logger).to.be.eql(stubs.logger);
-			expect(node.storage).to.be.eql(stubs.storage);
-			expect(node.channel).to.be.eql(stubs.channel);
-			expect(node.components).to.be.null;
-			expect(node.sequence).to.be.null;
-			expect(node.registeredTransactions).to.be.null;
-			expect(node.genesisBlock).to.be.null;
+			expect(node.logger).toEqual(stubs.logger);
+			expect(node.storage).toEqual(stubs.storage);
+			expect(node.channel).toEqual(stubs.channel);
+			expect(node.components).toBeNull();
+			expect(node.sequence).toBeNull();
+			expect(node.registeredTransactions).toBeNull();
+			expect(node.genesisBlock).toBeNull();
 		});
 	});
 
@@ -143,11 +135,11 @@ describe('Node', () => {
 		beforeEach(async () => {
 			node.modules = {
 				chain: {
-					getHighestCommonBlock: sinonSandbox.stub(),
+					getHighestCommonBlock: jest.fn(),
 				},
 			};
 			node.logger = {
-				debug: sinonSandbox.stub(),
+				debug: jest.fn(),
 			};
 		});
 	});
@@ -159,9 +151,7 @@ describe('Node', () => {
 		});
 
 		it('should be an async function', () => {
-			return expect(node.bootstrap.constructor.name).to.be.equal(
-				'AsyncFunction',
-			);
+			return expect(node.bootstrap.constructor.name).toEqual('AsyncFunction');
 		});
 
 		describe('when options.loading.rebuildUpToRound is set to an integer value', () => {
@@ -186,11 +176,11 @@ describe('Node', () => {
 			});
 
 			it('should set options.broadcasts.active=false', () => {
-				return expect(node.options.broadcasts.active).to.be.equal(false);
+				return expect(node.options.broadcasts.active).toEqual(false);
 			});
 
 			it('should set options.syncing.active=false', () => {
-				return expect(node.options.syncing.active).to.be.equal(false);
+				return expect(node.options.syncing.active).toEqual(false);
 			});
 		});
 
@@ -206,9 +196,9 @@ describe('Node', () => {
 			await node.bootstrap();
 
 			// Assert
-			expect(node.logger.fatal).to.be.calledOnce;
-			expect(node.logger.fatal).to.have.been.calledWithMatch(
-				{ message: 'Missing genesis block' },
+			expect(node.logger.fatal).toHaveBeenCalledTimes(1);
+			expect(node.logger.fatal).toHaveBeenCalledWith(
+				expect.objectContaining({ message: 'Missing genesis block' }),
 				'Failed to initialization node',
 			);
 		});
@@ -232,10 +222,14 @@ describe('Node', () => {
 
 			await node.bootstrap();
 
-			expect(node.logger.fatal).to.be.calledOnce;
+			expect(node.logger.fatal).toHaveBeenCalledTimes(1);
 			// Ignoring the error object as its non-deterministic
-			expect(node.logger.fatal).to.be.calledWithMatch(
-				{},
+			expect(node.logger.fatal).toHaveBeenCalledWith(
+				expect.objectContaining({
+					message: expect.stringContaining(
+						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4',
+					),
+				}),
 				'Failed to initialization node',
 			);
 		});
@@ -259,56 +253,62 @@ describe('Node', () => {
 
 			await node.bootstrap();
 
-			expect(node.logger.fatal).to.be.calledOnce;
-			expect(node.logger.fatal).to.have.been.calledWithMatch(
-				{},
+			expect(node.logger.fatal).toHaveBeenCalledTimes(1);
+			expect(node.logger.fatal).toHaveBeenCalledWith(
+				expect.objectContaining({
+					message: expect.stringContaining(
+						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5',
+					),
+				}),
 				'Failed to initialization node',
 			);
 		});
 
 		it('should initialize scope object with valid structure', async () => {
 			// @todo write a snapshot tests after migrated this test to jest.
-			expect(node).to.have.property('config');
-			expect(node).to.have.nested.property('genesisBlock.block');
-			expect(node).to.have.property('sequence');
-			expect(node).to.have.nested.property('components.logger');
-			expect(node).to.have.property('channel');
-			expect(node).to.have.property('applicationState');
+			expect(node).toHaveProperty('config');
+			expect(node).toHaveProperty('genesisBlock.block');
+			expect(node).toHaveProperty('sequence');
+			expect(node).toHaveProperty('components.logger');
+			expect(node).toHaveProperty('channel');
+			expect(node).toHaveProperty('applicationState');
 		});
 
 		describe('_initModules', () => {
 			it('should initialize bft module', async () => {
-				expect(node.bft).to.be.instanceOf(BFT);
-				expect(node.modules.bft).to.be.instanceOf(BFT);
+				expect(node.bft).toBeInstanceOf(BFT);
+				expect(node.modules.bft).toBeInstanceOf(BFT);
 			});
 		});
 
 		it('should invoke Processor.init', async () => {
-			expect(node.processor.init).to.have.been.calledOnce;
+			expect(node.processor.init).toHaveBeenCalledTimes(1);
 		});
 
 		it('should invoke "app:updateApplicationState" with correct params', () => {
 			// Assert
-			return expect(node.channel.invoke).to.have.been.calledWith(
+			return expect(node.channel.invoke).toHaveBeenCalledWith(
 				'app:updateApplicationState',
 				{
-					height: 1,
-					lastBlockId: 2,
-					blockVersion: 3,
-					maxHeightPrevoted: 4,
+					height: lastBlock.height,
+					blockVersion: lastBlock.version,
+					maxHeightPrevoted: 0,
+					lastBlockId: lastBlock.id,
 				},
 			);
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {
-			return expect(node.channel.subscribe).to.have.been.calledWith(
+			return expect(node.channel.subscribe).toHaveBeenCalledWith(
 				'app:state:updated',
+				expect.any(Function),
 			);
 		});
 
 		it('should subscribe to "network:subscribe" event', () => {
-			return expect(node.channel.subscribe).to.have.been.calledWith(
+			return expect(node.channel.subscribe).toHaveBeenCalledWith(
 				'app:networkEvent',
+				expect.any(Function),
 			);
 		});
 
@@ -325,7 +325,7 @@ describe('Node', () => {
 					logger: stubs.logger,
 					storage: stubs.storage,
 				});
-				processEmitStub = sinonSandbox.stub(process, 'emit');
+				processEmitStub = jest.spyOn(process, 'emit');
 
 				// Act
 				try {
@@ -335,18 +335,17 @@ describe('Node', () => {
 				}
 			});
 
-			afterEach(async () => {
-				sinonSandbox.restore();
-			});
-
 			it('should log "Failed to initialization node module"', async () => {
-				expect(node.logger.fatal).to.be.calledWithMatch(
-					{},
+				expect(node.logger.fatal).toHaveBeenCalledWith(
+					expect.any(Object),
 					'Failed to initialization node',
 				);
 			});
 			it('should emit an event "cleanup" on the process', () => {
-				return expect(processEmitStub).to.have.been.calledWith('cleanup');
+				return expect(processEmitStub).toHaveBeenCalledWith(
+					'cleanup',
+					expect.any(Object),
+				);
 			});
 		});
 	});
@@ -358,7 +357,7 @@ describe('Node', () => {
 		});
 		it('should be an async function', () => {
 			// Assert
-			return expect(node.cleanup.constructor.name).to.be.equal('AsyncFunction');
+			return expect(node.cleanup.constructor.name).toEqual('AsyncFunction');
 		});
 
 		it('should call cleanup on all modules', async () => {
@@ -368,82 +367,85 @@ describe('Node', () => {
 			await node.cleanup();
 
 			// Assert
-			expect(stubs.modules.module1.cleanup).to.have.been.called;
-			return expect(stubs.modules.module2.cleanup).to.have.been.called;
+			expect(stubs.modules.module1.cleanup).toHaveBeenCalled();
+			return expect(stubs.modules.module2.cleanup).toHaveBeenCalled();
 		});
 	});
 
 	describe('#_forgingTask', () => {
 		beforeEach(async () => {
 			await node.bootstrap();
-			sinonSandbox.stub(node.forger, 'delegatesEnabled').returns(true);
-			sinonSandbox.stub(node.forger, 'forge');
-			sinonSandbox.stub(node.forger, 'beforeForge');
-			sinonSandbox.stub(node.sequence, 'add').callsFake(async fn => {
+			jest.spyOn(node.forger, 'delegatesEnabled').mockReturnValue(true);
+			jest.spyOn(node.forger, 'forge');
+			jest.spyOn(node.forger, 'beforeForge');
+			jest.spyOn(node.sequence, 'add').mockImplementation(async fn => {
 				await fn();
 			});
-			sinonSandbox.stub(node.synchronizer, 'isActive').get(() => false);
+			jest.spyOn(node.synchronizer, 'isActive', 'get').mockReturnValue(false);
 		});
 
 		it('should halt if no delegates are enabled', async () => {
 			// Arrange
-			node.forger.delegatesEnabled.returns(false);
+			node.forger.delegatesEnabled.mockReturnValue(false);
 
 			// Act
 			await node._forgingTask();
 
 			// Assert
-			expect(stubs.logger.trace.getCall(0)).to.be.calledWith(
+			expect(stubs.logger.trace).toHaveBeenNthCalledWith(
+				1,
 				'No delegates are enabled',
 			);
-			expect(node.sequence.add).to.be.called;
-			expect(node.forger.beforeForge).to.not.be.called;
-			expect(node.forger.forge).to.not.be.called;
+			expect(node.sequence.add).toHaveBeenCalled();
+			expect(node.forger.beforeForge).not.toHaveBeenCalled();
+			expect(node.forger.forge).not.toHaveBeenCalled();
 		});
 
 		it('should halt if the client is not ready to forge (is syncing)', async () => {
 			// Arrange
-			sinonSandbox.stub(node.synchronizer, 'isActive').get(() => true);
+			jest.spyOn(node.synchronizer, 'isActive', 'get').mockReturnValue(true);
 
 			// Act
 			await node._forgingTask();
 
 			// Assert
-			expect(stubs.logger.debug.firstCall).to.be.calledWith(
+			expect(stubs.logger.debug).toHaveBeenNthCalledWith(
+				1,
 				'Client not ready to forge',
 			);
-			expect(node.sequence.add).to.be.called;
-			expect(node.forger.beforeForge).to.not.be.called;
-			expect(node.forger.forge).to.not.be.called;
+			expect(node.sequence.add).toHaveBeenCalled();
+			expect(node.forger.beforeForge).not.toHaveBeenCalled();
+			expect(node.forger.forge).not.toHaveBeenCalled();
 		});
 
 		it('should execute forger.forge otherwise', async () => {
 			await node._forgingTask();
 
-			expect(node.sequence.add).to.be.called;
-			expect(node.forger.beforeForge).to.be.called;
-			expect(node.forger.forge).to.be.called;
+			expect(node.sequence.add).toHaveBeenCalled();
+			expect(node.forger.beforeForge).toHaveBeenCalled();
+			expect(node.forger.forge).toHaveBeenCalled();
 		});
 	});
 
 	describe('#_startForging', () => {
 		beforeEach(async () => {
 			await node.bootstrap();
-			sinonSandbox.stub(node.forger, 'loadDelegates');
+			jest.spyOn(node.forger, 'loadDelegates');
 		});
 
 		it('should load the delegates', async () => {
 			await node._startForging();
-			expect(node.forger.loadDelegates).to.be.called;
+			expect(node.forger.loadDelegates).toHaveBeenCalled();
 		});
 
 		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
+			const forgeInterval = 1000;
 			await node._startForging();
 
-			expect(stubs.jobsQueue.register).to.be.calledWith(
+			expect(stubs.jobsQueue.register).toHaveBeenCalledWith(
 				'nextForge',
-				sinonSandbox.match.func,
-				Node.__get__('forgeInterval'),
+				expect.any(Function),
+				forgeInterval,
 			);
 		});
 	});

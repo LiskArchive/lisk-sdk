@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('account:show', () => {
 	const defaultKeys = {
@@ -25,10 +25,8 @@ describe('account:show', () => {
 		privateKey: 'somePrivateKey',
 	};
 	const defaultAddress = 'someAddress';
-	const passphraseInput = {
-		passphrase:
-			'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry',
-	};
+	const passphraseInput =
+		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
@@ -42,8 +40,8 @@ describe('account:show', () => {
 				sandbox.stub().returns(defaultAddress),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(passphraseInput),
 			);
 
@@ -53,12 +51,10 @@ describe('account:show', () => {
 			.command(['account:show'])
 			.it('should show account with prompt', () => {
 				expect(printUtils.print).to.be.called;
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly({
 					...defaultKeys,
 					address: defaultAddress,
@@ -67,15 +63,10 @@ describe('account:show', () => {
 
 		setupTest()
 			.stdout()
-			.command(['account:show', '--passphrase=pass:123'])
+			.command(['account:show', '--passphrase=123'])
 			.it('should show account with pass', () => {
 				expect(printUtils.print).to.be.called;
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: 'pass:123',
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWith({
 					...defaultKeys,
 					address: defaultAddress,

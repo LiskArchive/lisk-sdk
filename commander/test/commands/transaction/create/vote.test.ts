@@ -18,8 +18,7 @@ import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
-import * as inputUtils from '../../../../src/utils/input';
-import * as inputModule from '../../../../src/utils/input/utils';
+import * as readerUtils from '../../../../src/utils/reader';
 
 describe('transaction:create:vote', () => {
 	const defaultVote = [
@@ -30,15 +29,9 @@ describe('transaction:create:vote', () => {
 		'e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589',
 		'ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
 	];
-	const fileVotes = [
-		'e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589',
-		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-	];
 	const testnetNetworkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
-	const defaultInputs = {
-		passphrase: '123',
-	};
+	const defaultInputs = '123';
 	const defaultTransaction = {
 		nonce: '0',
 		fee: '10000000',
@@ -67,13 +60,8 @@ describe('transaction:create:vote', () => {
 			)
 			.stub(validator, 'validatePublicKeys', sandbox.stub().returns(true))
 			.stub(
-				inputModule,
-				'getData',
-				sandbox.stub().resolves(fileVotes.join(',')),
-			)
-			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -98,12 +86,10 @@ describe('transaction:create:vote', () => {
 				`--votes=${defaultVote.join(',')}`,
 			])
 			.it('should create transaction with only votes', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
 				);
@@ -111,32 +97,8 @@ describe('transaction:create:vote', () => {
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
+					passphrase: defaultInputs,
 					votes: defaultVote,
-					unvotes: [],
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
-			});
-
-		setupStub()
-			.command(['transaction:create:vote', '1', '100', '--votes=file:vote.txt'])
-			.it('should create transaction with only votes from the file', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
-				expect(inputModule.getData).to.be.calledWithExactly('file:vote.txt');
-				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
-				expect(transactions.castVotes).to.be.calledWithExactly({
-					nonce: '1',
-					fee: '10000000000',
-					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
-					votes: fileVotes,
 					unvotes: [],
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
@@ -154,12 +116,10 @@ describe('transaction:create:vote', () => {
 				`--unvotes=${defaultUnvote.join(',')}`,
 			])
 			.it('should create transaction with only unvotes', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
 				);
@@ -167,38 +127,9 @@ describe('transaction:create:vote', () => {
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
+					passphrase: defaultInputs,
 					votes: [],
 					unvotes: defaultUnvote,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultTransaction,
-				);
-			});
-
-		setupStub()
-			.command([
-				'transaction:create:vote',
-				'1',
-				'100',
-				'--unvotes=file:unvote.txt',
-			])
-			.it('should create transaction with only unvotes from the file', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
-				expect(inputModule.getData).to.be.calledWithExactly('file:unvote.txt');
-				expect(validator.validatePublicKeys).to.be.calledWithExactly(fileVotes);
-				expect(transactions.castVotes).to.be.calledWithExactly({
-					nonce: '1',
-					fee: '10000000000',
-					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
-					votes: [],
-					unvotes: fileVotes,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -231,12 +162,10 @@ describe('transaction:create:vote', () => {
 				`--unvotes=${defaultUnvote.join(',')}`,
 			])
 			.it('should create a transaction with votes and unvotes', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				expect(validator.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
 				);
@@ -247,7 +176,7 @@ describe('transaction:create:vote', () => {
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs.passphrase,
+					passphrase: defaultInputs,
 					votes: defaultVote,
 					unvotes: defaultUnvote,
 				});
@@ -270,7 +199,7 @@ describe('transaction:create:vote', () => {
 			.it(
 				'should create a transaction with votes and unvotes without signature',
 				() => {
-					expect(inputUtils.getInputsFromSources).not.to.be.called;
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(validator.validatePublicKeys).to.be.calledWithExactly(
 						defaultVote,
 					);
@@ -292,7 +221,7 @@ describe('transaction:create:vote', () => {
 			);
 	});
 
-	describe('transaction:create:vote --votes=xxx --unvotes=xxx --passphrase=pass:123', () => {
+	describe('transaction:create:vote --votes=xxx --unvotes=xxx --passphrase=123', () => {
 		setupStub()
 			.command([
 				'transaction:create:vote',
@@ -300,17 +229,12 @@ describe('transaction:create:vote', () => {
 				'100',
 				`--votes=${defaultVote.join(',')}`,
 				`--unvotes=${defaultUnvote.join(',')}`,
-				'--passphrase=pass:123',
+				'--passphrase=123',
 			])
 			.it(
 				'should create a transaction with votes and unvotes with the passphrase from the flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(validator.validatePublicKeys).to.be.calledWithExactly(
 						defaultVote,
 					);
@@ -321,7 +245,7 @@ describe('transaction:create:vote', () => {
 						nonce: '1',
 						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: defaultInputs.passphrase,
+						passphrase: defaultInputs,
 						votes: defaultVote,
 						unvotes: defaultUnvote,
 					});

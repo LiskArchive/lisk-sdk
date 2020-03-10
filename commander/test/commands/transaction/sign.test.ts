@@ -16,8 +16,7 @@
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputModule from '../../../src/utils/input/utils';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('transaction:sign', () => {
 	const defaultTransaction = {
@@ -34,10 +33,8 @@ describe('transaction:sign', () => {
 	};
 
 	const invalidTransaction = 'invalid transaction';
-	const defaultInputs = {
-		passphrase:
-			'wear protect skill sentence lift enter wild sting lottery power floor neglect',
-	};
+	const defaultInputs =
+		'wear protect skill sentence lift enter wild sting lottery power floor neglect';
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
@@ -58,8 +55,8 @@ describe('transaction:sign', () => {
 				sandbox.stub().returns({ api: { network: 'test' } }),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -67,8 +64,8 @@ describe('transaction:sign', () => {
 	describe('transaction:sign', () => {
 		setupTest()
 			.stub(
-				inputModule,
-				'getStdIn',
+				readerUtils,
+				'readStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:sign'])
@@ -106,34 +103,27 @@ describe('transaction:sign', () => {
 		setupTest()
 			.command(['transaction:sign', JSON.stringify(defaultTransaction)])
 			.it('should take transaction from arg to sign', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedTransaction,
 				);
 			});
 	});
 
-	describe('transaction:sign transaction --passphrase=pass:xxx', () => {
+	describe('transaction:sign transaction --passphrase=xxx', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
-				'--passphrase=pass:123',
+				`--passphrase=${defaultInputs}`,
 			])
 			.it(
 				'should take transaction from arg and passphrase from flag to sign',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignedTransaction,
 					);
@@ -143,7 +133,7 @@ describe('transaction:sign', () => {
 
 	describe('transaction | transaction:sign', () => {
 		setupTest()
-			.stub(inputModule, 'getStdIn', sandbox.stub().resolves({}))
+			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves({}))
 			.command(['transaction:sign'])
 			.catch(error => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -152,9 +142,9 @@ describe('transaction:sign', () => {
 
 		setupTest()
 			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: invalidTransaction }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([invalidTransaction]),
 			)
 			.command(['transaction:sign'])
 			.catch(error => {
@@ -166,41 +156,34 @@ describe('transaction:sign', () => {
 
 		setupTest()
 			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
 			.command(['transaction:sign'])
 			.it('should take transaction from stdin and sign', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedTransaction,
 				);
 			});
 	});
 
-	describe('transaction | transaction:sign --passphrase=pass:xxx', () => {
+	describe('transaction | transaction:sign --passphrase=xxx', () => {
 		setupTest()
 			.stub(
-				inputModule,
-				'getStdIn',
-				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
+				readerUtils,
+				'readStdIn',
+				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
-			.command(['transaction:sign', '--passphrase=pass:123'])
+			.command(['transaction:sign', `--passphrase=${defaultInputs}`])
 			.it(
 				'should take transaction from stdin and sign with passphrase from flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultSignedTransaction,
 					);

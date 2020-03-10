@@ -109,7 +109,8 @@ export const validatePeerAddress = (
 	wsPort: number,
 ): boolean => {
 	if (
-		(!validator.isIP(ipAddress, IPV4_NUMBER) && !validator.isIP(ipAddress, IPV6_NUMBER)) ||
+		(!validator.isIP(ipAddress, IPV4_NUMBER) &&
+			!validator.isIP(ipAddress, IPV6_NUMBER)) ||
 		!validator.isPort(wsPort.toString())
 	) {
 		return false;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,11 +16,10 @@
 
 const pool = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const { expect } = require('chai');
 const {
 	TransactionPool,
 	EVENT_UNCONFIRMED_TRANSACTION,
-} = require('../../../../../../src/application/node/transaction_pool/transaction_pool');
+} = require('../../../../../../../src/application/node/transaction_pool/transaction_pool');
 
 describe('transactionPool', () => {
 	const broadcastInterval = 5;
@@ -31,28 +30,28 @@ describe('transactionPool', () => {
 	const maxTransactionsPerBlock = 25;
 
 	const logger = {
-		info: sinonSandbox.spy(),
-		error: sinonSandbox.spy(),
+		info: jest.fn(),
+		error: jest.fn(),
 	};
 
 	const storage = {
 		entities: {
 			Transaction: {
-				get: sinonSandbox.stub(),
+				get: jest.fn(),
 			},
 		},
 	};
 
 	const chainStub = {
 		slots: {
-			getSlotNumber: sinonSandbox.stub(),
+			getSlotNumber: jest.fn(),
 		},
 		lastBlock: {
-			get: sinonSandbox.stub(),
+			get: jest.fn(),
 		},
-		processSignature: sinonSandbox
-			.stub()
-			.resolves({ transactionsResponses: [] }),
+		processSignature: jest
+			.fn()
+			.mockResolvedValue({ transactionsResponses: [] }),
 	};
 
 	let transactionPool;
@@ -72,28 +71,24 @@ describe('transactionPool', () => {
 		});
 
 		// Stubs for event emitters
-		sinonSandbox.stub(transactionPool.pool, 'on');
-		sinonSandbox.stub(transactionPool, 'emit');
+		jest.spyOn(transactionPool.pool, 'on');
+		jest.spyOn(transactionPool, 'emit');
 
 		dummyTransactions = [{ id: 1 }, { id: 2 }, { id: 3 }];
 	});
 
-	afterEach(async () => {
-		sinonSandbox.restore();
-	});
-
 	describe('constructor', () => {
 		it('should set the instance variables', async () => {
-			expect(transactionPool.maxTransactionsPerQueue).to.equal(
+			expect(transactionPool.maxTransactionsPerQueue).toEqual(
 				maxTransactionsPerQueue,
 			);
-			expect(transactionPool.bundledInterval).to.equal(broadcastInterval);
-			expect(transactionPool.bundleLimit).to.equal(releaseLimit);
-			expect(transactionPool.logger).to.equal(logger);
+			expect(transactionPool.bundledInterval).toEqual(broadcastInterval);
+			expect(transactionPool.bundleLimit).toEqual(releaseLimit);
+			expect(transactionPool.logger).toEqual(logger);
 		});
 
 		it('should create pool instance', async () => {
-			expect(transactionPool.pool).to.be.an.instanceOf(pool.TransactionPool);
+			expect(transactionPool.pool).toBeInstanceOf(pool.TransactionPool);
 		});
 	});
 
@@ -102,18 +97,18 @@ describe('transactionPool', () => {
 		const id = '123';
 
 		beforeEach(async () => {
-			existsInTransactionPoolStub = sinonSandbox
-				.stub(transactionPool.pool, 'existsInTransactionPool')
-				.returns(true);
+			existsInTransactionPoolStub = jest
+				.spyOn(transactionPool.pool, 'existsInTransactionPool')
+				.mockReturnValue(true);
 		});
 
 		it('should call the this.existsInTransactionPool', async () => {
 			transactionPool.transactionInPool(id);
-			expect(existsInTransactionPoolStub).to.be.calledWithExactly(id);
+			expect(existsInTransactionPoolStub).toHaveBeenCalledWith(id);
 		});
 
 		it('should return the value returned by this.existsInTransactionPool', async () => {
-			expect(transactionPool.transactionInPool(id)).to.equal(true);
+			expect(transactionPool.transactionInPool(id)).toEqual(true);
 		});
 	});
 
@@ -121,16 +116,16 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox
-				.stub(transactionPool, 'getTransactionsList')
-				.returns([]);
+			getTransactionsListStub = jest
+				.spyOn(transactionPool, 'getTransactionsList')
+				.mockReturnValue([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getUnconfirmedTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly(
+			expect(getTransactionsListStub).toHaveBeenCalledWith(
 				'ready',
 				reverse,
 				limit,
@@ -142,7 +137,7 @@ describe('transactionPool', () => {
 			const limit = 10;
 			expect(
 				transactionPool.getUnconfirmedTransactionList(reverse, limit),
-			).to.eql([]);
+			).toEqual([]);
 		});
 	});
 
@@ -150,16 +145,16 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox
-				.stub(transactionPool, 'getTransactionsList')
-				.returns([]);
+			getTransactionsListStub = jest
+				.spyOn(transactionPool, 'getTransactionsList')
+				.mockReturnValue([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getBundledTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly(
+			expect(getTransactionsListStub).toHaveBeenCalledWith(
 				'received',
 				reverse,
 				limit,
@@ -169,7 +164,7 @@ describe('transactionPool', () => {
 		it('should return the value returned by pool.getTransactionsList', async () => {
 			const reverse = true;
 			const limit = 10;
-			expect(transactionPool.getBundledTransactionList(reverse, limit)).to.eql(
+			expect(transactionPool.getBundledTransactionList(reverse, limit)).toEqual(
 				[],
 			);
 		});
@@ -179,16 +174,16 @@ describe('transactionPool', () => {
 		let getTransactionsListStub;
 
 		beforeEach(async () => {
-			getTransactionsListStub = sinonSandbox
-				.stub(transactionPool, 'getTransactionsList')
-				.returns([]);
+			getTransactionsListStub = jest
+				.spyOn(transactionPool, 'getTransactionsList')
+				.mockReturnValue([]);
 		});
 
 		it('should call getTransactionsList with correct params', async () => {
 			const reverse = true;
 			const limit = 10;
 			transactionPool.getQueuedTransactionList(reverse, limit);
-			expect(getTransactionsListStub).to.be.calledWithExactly(
+			expect(getTransactionsListStub).toHaveBeenCalledWith(
 				'verified',
 				reverse,
 				limit,
@@ -198,7 +193,7 @@ describe('transactionPool', () => {
 		it('should return the value returned by pool.getTransactionsList', async () => {
 			const reverse = true;
 			const limit = 10;
-			expect(transactionPool.getQueuedTransactionList(reverse, limit)).to.eql(
+			expect(transactionPool.getQueuedTransactionList(reverse, limit)).toEqual(
 				[],
 			);
 		});
@@ -217,20 +212,20 @@ describe('transactionPool', () => {
 		});
 
 		it('should return transactions from the queue passed as parameter', async () => {
-			expect(transactionPool.getTransactionsList(queueName)).to.eql(
+			expect(transactionPool.getTransactionsList(queueName)).toEqual(
 				dummyTransactionsList,
 			);
 		});
 
 		it('should reverse transactions if reverse parameter is set to true', async () => {
-			expect(transactionPool.getTransactionsList(queueName, true)).to.eql(
+			expect(transactionPool.getTransactionsList(queueName, true)).toEqual(
 				dummyTransactionsList.reverse(),
 			);
 		});
 
 		it('should limit the transactions returned based on the limit parameter', async () => {
 			const slicedTransactions = dummyTransactionsList.slice(0, 10);
-			expect(transactionPool.getTransactionsList(queueName, false, 10)).to.eql(
+			expect(transactionPool.getTransactionsList(queueName, false, 10)).toEqual(
 				slicedTransactions,
 			);
 		});
@@ -241,21 +236,21 @@ describe('transactionPool', () => {
 		let getQueuedTransactionListStub;
 
 		beforeEach(async () => {
-			getUnconfirmedTransactionListStub = sinonSandbox
-				.stub(transactionPool, 'getUnconfirmedTransactionList')
-				.returns([dummyTransactions[0]]);
-			getQueuedTransactionListStub = sinonSandbox
-				.stub(transactionPool, 'getQueuedTransactionList')
-				.returns([dummyTransactions[1], dummyTransactions[2]]);
+			getUnconfirmedTransactionListStub = jest
+				.spyOn(transactionPool, 'getUnconfirmedTransactionList')
+				.mockReturnValue([dummyTransactions[0]]);
+			getQueuedTransactionListStub = jest
+				.spyOn(transactionPool, 'getQueuedTransactionList')
+				.mockReturnValue([dummyTransactions[1], dummyTransactions[2]]);
 		});
 
 		it('should get transactions from queues using correct parameters', async () => {
 			transactionPool.getMergedTransactionList(false, maxSharedTransactions);
-			expect(getUnconfirmedTransactionListStub).to.be.calledWithExactly(
+			expect(getUnconfirmedTransactionListStub).toHaveBeenCalledWith(
 				false,
 				maxSharedTransactions,
 			);
-			expect(getQueuedTransactionListStub).to.be.calledWithExactly(
+			expect(getQueuedTransactionListStub).toHaveBeenCalledWith(
 				false,
 				maxSharedTransactions - 1,
 			);
@@ -264,27 +259,35 @@ describe('transactionPool', () => {
 		it('should return transactions from all the queues', async () => {
 			expect(
 				transactionPool.getMergedTransactionList(false, maxSharedTransactions),
-			).to.eql(dummyTransactions);
+			).toEqual(dummyTransactions);
 		});
 	});
 
 	describe('addBundledTransaction', () => {
 		it('should call this.pool.addTransaction with tranasction as parameter', async () => {
-			const addTransactionStub = sinonSandbox
-				.stub(transactionPool.pool, 'addTransaction')
-				.returns({ isFull: false, exists: false, queueName: 'recieved' });
+			const addTransactionStub = jest
+				.spyOn(transactionPool.pool, 'addTransaction')
+				.mockReturnValue({
+					isFull: false,
+					exists: false,
+					queueName: 'recieved',
+				});
 			transactionPool.addBundledTransaction(dummyTransactions[0]);
-			expect(addTransactionStub).to.be.calledWithExactly(dummyTransactions[0]);
+			expect(addTransactionStub).toHaveBeenCalledWith(dummyTransactions[0]);
 		});
 	});
 
 	describe('addQueuedTransaction', () => {
 		it('should call this.pool.addVerifiedTransaction with tranasction as parameter', async () => {
-			const addVerifiedTransactionStub = sinonSandbox
-				.stub(transactionPool.pool, 'addVerifiedTransaction')
-				.returns({ isFull: false, exists: false, queueName: 'verified' });
+			const addVerifiedTransactionStub = jest
+				.spyOn(transactionPool.pool, 'addVerifiedTransaction')
+				.mockReturnValue({
+					isFull: false,
+					exists: false,
+					queueName: 'verified',
+				});
 			transactionPool.addVerifiedTransaction(dummyTransactions[0]);
-			expect(addVerifiedTransactionStub).to.be.calledWithExactly(
+			expect(addVerifiedTransactionStub).toHaveBeenCalledWith(
 				dummyTransactions[0],
 			);
 		});
@@ -295,25 +298,30 @@ describe('transactionPool', () => {
 		let transaction;
 
 		beforeEach(async () => {
-			transaction = dummyTransactions[0];
+			[transaction] = dummyTransactions;
 			transactionsResponses = [
 				{
 					status: TransactionStatus.OK,
 					errors: [],
 				},
 			];
-			sinonSandbox.stub(transactionPool, 'verifyTransactions');
-			transactionPool.verifyTransactions.returns({ transactionsResponses });
+			jest.spyOn(transactionPool, 'verifyTransactions');
+			transactionPool.verifyTransactions.mockReturnValue({
+				transactionsResponses,
+			});
 		});
 
 		it('should throw an error if the transaction already exists', async () => {
-			sinonSandbox.stub(transactionPool, 'transactionInPool').returns(true);
+			jest.spyOn(transactionPool, 'transactionInPool').mockReturnValue(true);
+
 			try {
 				await transactionPool.processUnconfirmedTransaction(transaction);
 			} catch (err) {
-				expect(err).to.be.an('array');
+				// eslint-disable-next-line jest/no-try-expect
+				expect(err).toBeInstanceOf(Array);
 				err.forEach(anErr => {
-					expect(anErr.message).to.equal(
+					// eslint-disable-next-line jest/no-try-expect
+					expect(anErr.message).toEqual(
 						`Transaction is already processed: ${transaction.id}`,
 					);
 				});
@@ -321,21 +329,21 @@ describe('transactionPool', () => {
 		});
 
 		it('should add transaction to the verified queue when status is OK', async () => {
-			const addVerifiedTransactionStub = sinonSandbox.stub(
+			const addVerifiedTransactionStub = jest.spyOn(
 				transactionPool,
 				'addVerifiedTransaction',
 			);
 			await transactionPool.processUnconfirmedTransaction(transaction);
-			expect(addVerifiedTransactionStub).to.be.calledWith(transaction);
+			expect(addVerifiedTransactionStub).toHaveBeenCalledWith(transaction);
 		});
 
 		it('should add transaction to the received queue if the bundled property = true', async () => {
 			transaction.bundled = true;
-			const addBundledTransactionStub = sinonSandbox
-				.stub(transactionPool, 'addBundledTransaction')
-				.resolves();
+			const addBundledTransactionStub = jest
+				.spyOn(transactionPool, 'addBundledTransaction')
+				.mockResolvedValue();
 			await transactionPool.processUnconfirmedTransaction(transaction);
-			expect(addBundledTransactionStub).to.be.calledWith(transaction);
+			expect(addBundledTransactionStub).toHaveBeenCalledWith(transaction);
 		});
 
 		it('should return error when when status is FAIL', async () => {
@@ -345,14 +353,16 @@ describe('transactionPool', () => {
 					errors: [new Error()],
 				},
 			];
-			transactionPool.verifyTransactions.resolves({
+			transactionPool.verifyTransactions.mockResolvedValue({
 				transactionsResponses: responses,
 			});
 			try {
 				await transactionPool.processUnconfirmedTransaction(transaction);
 			} catch (err) {
-				expect(err).to.be.an('array');
-				expect(err[0]).to.eql(responses[0].errors[0]);
+				// eslint-disable-next-line jest/no-try-expect
+				expect(err).toBeInstanceOf(Array);
+				// eslint-disable-next-line jest/no-try-expect
+				expect(err[0]).toEqual(responses[0].errors[0]);
 			}
 		});
 	});
@@ -362,14 +372,20 @@ describe('transactionPool', () => {
 			// Act
 			transactionPool.subscribeEvents();
 			// Assert
-			expect(transactionPool.pool.on.firstCall).to.be.calledWith(
+			expect(transactionPool.pool.on).toHaveBeenNthCalledWith(
+				1,
 				'transactionVerifiedOnce',
+				expect.any(Function),
 			);
-			expect(transactionPool.pool.on.secondCall).to.be.calledWith(
+			expect(transactionPool.pool.on).toHaveBeenNthCalledWith(
+				2,
 				'transactionsAdded',
+				expect.any(Function),
 			);
-			expect(transactionPool.pool.on.thirdCall).to.be.calledWith(
+			expect(transactionPool.pool.on).toHaveBeenNthCalledWith(
+				3,
 				'transactionsRemoved',
+				expect.any(Function),
 			);
 		});
 
@@ -382,7 +398,7 @@ describe('transactionPool', () => {
 			// Act
 			transactionPool.pool.emit('transactionVerifiedOnce', eventData);
 			// Assert
-			expect(transactionPool.emit).to.be.calledWith(
+			expect(transactionPool.emit).toHaveBeenCalledWith(
 				EVENT_UNCONFIRMED_TRANSACTION,
 				dummyTransactions[0],
 			);

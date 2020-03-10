@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('message:decrypt', () => {
 	const message = 'Hello World';
@@ -27,11 +27,9 @@ describe('message:decrypt', () => {
 	const defaultEncryptedMessage =
 		'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e';
 
-	const defaultInputs = {
-		passphrase:
-			'card earn shift valley learn scorpion cage select help title control satoshi',
-		data: 'message',
-	};
+	const defaultInputs =
+		'card earn shift valley learn scorpion cage select help title control satoshi';
+	const defaultData = 'message';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
@@ -44,10 +42,11 @@ describe('message:decrypt', () => {
 				sandbox.stub().returns(message),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
+			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))
 			.stdout();
 
 	describe('message:decrypt', () => {
@@ -86,18 +85,15 @@ describe('message:decrypt', () => {
 				defaultEncryptedMessage,
 			])
 			.it('should decrypt the message with the arg', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-					},
-					data: undefined,
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+				);
 				expect(
 					cryptography.decryptMessageWithPassphrase,
 				).to.be.calledWithExactly(
 					defaultEncryptedMessage,
 					defaultNonce,
-					defaultInputs.passphrase,
+					defaultInputs,
 					defaultSenderPublicKey,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly({ message });
@@ -115,20 +111,19 @@ describe('message:decrypt', () => {
 			.it(
 				'should decrypt the message with the arg and the message flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: undefined,
-						},
-						data: {
-							source: 'file:./message.txt',
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+						'passphrase',
+					);
+					expect(readerUtils.readFileSource).to.be.calledWithExactly(
+						'file:./message.txt',
+					);
+
 					expect(
 						cryptography.decryptMessageWithPassphrase,
 					).to.be.calledWithExactly(
-						defaultInputs.data,
+						defaultData,
 						defaultNonce,
-						defaultInputs.passphrase,
+						defaultInputs,
 						defaultSenderPublicKey,
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({ message });
@@ -136,33 +131,31 @@ describe('message:decrypt', () => {
 			);
 	});
 
-	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
+	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt --passphrase=card earn shift valley learn scorpion cage select help title control satoshi', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
 				defaultSenderPublicKey,
 				defaultNonce,
 				'--message=file:./message.txt',
-				'--passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
+				'--passphrase=card earn shift valley learn scorpion cage select help title control satoshi',
 			])
 			.it(
 				'should decrypt the message with the arg and the message flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source:
-								'pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
-						},
-						data: {
-							source: 'file:./message.txt',
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWith(
+						'passphrase',
+					);
+					expect(readerUtils.readFileSource).to.be.calledWithExactly(
+						'file:./message.txt',
+					);
+
 					expect(
 						cryptography.decryptMessageWithPassphrase,
 					).to.be.calledWithExactly(
-						defaultInputs.data,
+						defaultData,
 						defaultNonce,
-						defaultInputs.passphrase,
+						defaultInputs,
 						defaultSenderPublicKey,
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({ message });

@@ -28,7 +28,10 @@ const jobsQueue = {
 
 		assert(typeof name === 'string', 'Name argument must be a string');
 		assert(Number.isInteger(time), 'Time argument must be integer');
-		assert(job instanceof Function, 'Job must be an instance of Function');
+		assert(
+			job instanceof Function || typeof job === 'function',
+			'Job must be an instance of Function',
+		);
 		if (!util.types.isAsyncFunction(job)) {
 			assert(job.length === 1, 'Job function should have callback argument');
 		} else {
