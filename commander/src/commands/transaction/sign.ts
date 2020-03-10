@@ -84,8 +84,8 @@ export default class SignCommand extends BaseCommand {
 			flags: {
 				networkIdentifier: networkIdentifierSource,
 				passphrase: passphraseSource,
-				'mandatory-key': mandatoryKey,
-				'optional-key': optionalKey,
+				'mandatory-key': mandatoryKeys,
+				'optional-key': optionalKeys,
 				'number-of-signatures': numberOfSignatures,
 			},
 		} = this.parse(SignCommand);
@@ -104,13 +104,26 @@ export default class SignCommand extends BaseCommand {
 			...transactionObject,
 			networkIdentifier,
 		});
-		const keys = {
-			mandatoryKey,
-			optionalKey,
-			numberOfSignatures,
-		};
 
-		txInstance.sign(networkIdentifier, passphrase, passphrases, keys);
+		interface Keys {
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
+			readonly numberOfSignatures: number;
+		}
+
+		const keys = ({
+			mandatoryKeys,
+			optionalKeys,
+			numberOfSignatures,
+		} as unknown) as Keys;
+
+		if (passphrase.length === 1) {
+			// Sign for non-multi signature transaction
+			txInstance.signAll(networkIdentifier, passphrase[0], undefined, keys);
+		} else {
+			// Sign for multi signature transaction
+			txInstance.signAll(networkIdentifier, undefined, passphrase, keys);
+		}
 
 		const { errors } = txInstance.validate();
 
