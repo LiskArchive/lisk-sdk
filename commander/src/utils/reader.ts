@@ -47,8 +47,8 @@ const splitSource = (source: string): SplitSource => {
 };
 
 export const getPassphraseFromPrompt = async (
-	displayName: string,
-	shouldRepeat: boolean = false,
+	displayName: string = 'passphrase',
+	shouldConfirm: boolean = false,
 ): Promise<string> => {
 	const questions = [
 		{
@@ -57,7 +57,7 @@ export const getPassphraseFromPrompt = async (
 			message: `Please enter ${displayName}: `,
 		},
 	];
-	if (shouldRepeat) {
+	if (shouldConfirm) {
 		questions.push({
 			type: 'password',
 			name: 'passphraseRepeat',
@@ -69,7 +69,7 @@ export const getPassphraseFromPrompt = async (
 		questions,
 	)) as { readonly passphrase?: string; readonly passphraseRepeat?: string };
 
-	if (!passphrase || (shouldRepeat && passphrase !== passphraseRepeat)) {
+	if (!passphrase || (shouldConfirm && passphrase !== passphraseRepeat)) {
 		throw new ValidationError(getPassphraseVerificationFailError(displayName));
 	}
 
@@ -157,8 +157,7 @@ export const readStdIn = async (): Promise<string[]> => {
 		const rl = readline.createInterface({ input: process.stdin });
 
 		// Prevent readline hanging when command called with no input or piped
-		const id = setTimeout(() => {
-			clearTimeout(id);
+		setTimeout(() => {
 			reject(new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`));
 		}, DEFAULT_TIMEOUT);
 
