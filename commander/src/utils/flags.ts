@@ -74,6 +74,8 @@ const optionalKeyDescription =
 	'Optional publicKey for multi signature transaction.';
 const numberOfSignaturesDescription =
 	'Number of signatures required to approve the transaction from multi signature account';
+const numberOfPassphrasesDescription =
+	'Number of times you require the passphrase prompt to appear';
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -172,5 +174,8 @@ export const flags: FlagMap = {
 	},
 	numberOfSignatures: {
 		description: numberOfSignaturesDescription,
+	},
+	numberOfPassphrases: {
+		description: numberOfPassphrasesDescription,
 	},
 };

@@ -43,6 +43,19 @@ const getTransactionInput = async (): Promise<string> => {
 	}
 };
 
+const getPassphrasesFromPrompt = async (
+	numberOfPassphrases: number = 1,
+): Promise<ReadonlyArray<string>> => {
+	const passphrases = [];
+	// tslint:disable-next-line: no-let
+	for (let index = 0; index < numberOfPassphrases; index += 1) {
+		const passphrase = await getPassphraseFromPrompt('passphrase', true);
+		passphrases.push(passphrase);
+	}
+
+	return passphrases;
+};
+
 export default class SignCommand extends BaseCommand {
 	static args = [
 		{
@@ -76,6 +89,10 @@ export default class SignCommand extends BaseCommand {
 			...commonFlags.passphrase,
 			multiple: true,
 		}),
+		'number-of-passphrases': flagParser.integer({
+			...commonFlags.numberOfPassphrases,
+			exclusive: ['passphrase'],
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -87,6 +104,7 @@ export default class SignCommand extends BaseCommand {
 				'mandatory-key': mandatoryKeys,
 				'optional-key': optionalKeys,
 				'number-of-signatures': numberOfSignatures,
+				'number-of-passphrases': numberOfPassphrases,
 			},
 		} = this.parse(SignCommand);
 
@@ -94,7 +112,8 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 		const passphrase =
-			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+			passphraseSource ??
+			(await getPassphrasesFromPrompt(numberOfPassphrases as number));
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
