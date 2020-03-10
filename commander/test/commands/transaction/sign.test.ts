@@ -33,8 +33,14 @@ describe('transaction:sign', () => {
 	};
 
 	const invalidTransaction = 'invalid transaction';
-	const defaultInputs =
+	const firstPassphrase =
 		'wear protect skill sentence lift enter wild sting lottery power floor neglect';
+	const secondPassphrase =
+		'inherit moon normal relief spring bargain hobby join baby flash fog blood';
+	const KeyOne =
+		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
+	const KeyTwo =
+		'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8';
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
@@ -57,7 +63,11 @@ describe('transaction:sign', () => {
 			.stub(
 				readerUtils,
 				'getPassphraseFromPrompt',
-				sandbox.stub().resolves(defaultInputs),
+				sandbox
+					.stub()
+					.resolves(firstPassphrase)
+					.onSecondCall()
+					.resolves(secondPassphrase),
 			)
 			.stdout();
 
@@ -118,7 +128,7 @@ describe('transaction:sign', () => {
 			.command([
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
-				`--passphrase=${defaultInputs}`,
+				`--passphrase=${firstPassphrase}`,
 			])
 			.it(
 				'should take transaction from arg and passphrase from flag to sign',
@@ -131,57 +141,102 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction | transaction:sign', () => {
+	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --mandatory-key=bbb --number-of-signature=2 --number-of-passphrases=2', () => {
 		setupTest()
-			.stub(readerUtils, 'readStdIn', sandbox.stub().resolves({}))
-			.command(['transaction:sign'])
-			.catch(error => {
-				return expect(error.message).to.contain('No transaction was provided.');
-			})
-			.it('should throw an error when stdin is empty');
-
-		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([invalidTransaction]),
-			)
-			.command(['transaction:sign'])
+			.command([
+				'transaction:sign',
+				JSON.stringify(defaultTransaction),
+				`--passphrase=${firstPassphrase}`,
+				`--passphrase=${secondPassphrase}`,
+				`--mandatory-key=${KeyOne}`,
+				`--mandatory-key=${KeyTwo}`,
+				`--number-of-signature=2`,
+				`--number-of-passphrases=2`,
+			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Could not parse transaction JSON.',
+					'--passphrase= cannot also be provided when using --number-of-passphrases=',
 				);
 			})
-			.it('should throw an error when std is an invalid JSON format');
-
-		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
-			)
-			.command(['transaction:sign'])
-			.it('should take transaction from stdin and sign', () => {
-				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-					'passphrase',
-					true,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultSignedTransaction,
-				);
-			});
+			.it(
+				'should throw error when --number-of-passphrases flag is used in combination with --passphrase flag',
+			);
 	});
 
-	describe('transaction | transaction:sign --passphrase=xxx', () => {
+	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --optional-key=aaa --number-of-signature=2', () => {
 		setupTest()
-			.stub(
-				readerUtils,
-				'readStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
-			)
-			.command(['transaction:sign', `--passphrase=${defaultInputs}`])
+			.command([
+				'transaction:sign',
+				JSON.stringify(defaultTransaction),
+				`--passphrase=${firstPassphrase}`,
+				`--passphrase=${secondPassphrase}`,
+				`--optional-key=${KeyTwo}`,
+				`--number-of-signature=2`,
+			])
+			.catch(error => {
+				return expect(error.message).to.contain('Cannot read property');
+			})
+			.it('should throw error when mandatoryKey flag is missing');
+	});
+
+	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --number-of-signature=2', () => {
+		setupTest()
+			.command([
+				'transaction:sign',
+				JSON.stringify(defaultTransaction),
+				`--passphrase=${firstPassphrase}`,
+				`--passphrase=${secondPassphrase}`,
+				`--mandatory-key=${KeyOne}`,
+				`--mandatory-key=${KeyTwo}`,
+				`--number-of-signature=2`,
+				`--number-of-passphrases=2`,
+			])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'--passphrase= cannot also be provided when using --number-of-passphrases=',
+				);
+			})
+			.it('should throw error when optionalKey flag is missing');
+	});
+
+	describe('transaction:sign transaction --mandatory-key=aaa --optional-key=bbb --number-of-signature=2 --number-of-passphrases=2', () => {
+		setupTest()
+			.command([
+				'transaction:sign',
+				JSON.stringify(defaultTransaction),
+				`--mandatory-key=${KeyOne}`,
+				`--optional-key=${KeyTwo}`,
+				`--number-of-signature=2`,
+				`--number-of-passphrases=2`,
+			])
 			.it(
-				'should take transaction from stdin and sign with passphrase from flag',
+				'should take transaction from arg, passphrase from prompt and mandatoryKey, optionalKey and numberOfSignature to sign',
+				() => {
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+						'passphrase',
+						true,
+					);
+					expect(readerUtils.getPassphraseFromPrompt).to.be.callCount(2);
+					return expect(printMethodStub).to.be.calledWithExactly(
+						defaultSignedTransaction,
+					);
+				},
+			);
+	});
+
+	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-signature=2', () => {
+		setupTest()
+			.command([
+				'transaction:sign',
+				JSON.stringify(defaultTransaction),
+				`--passphrase=${firstPassphrase}`,
+				`--passphrase=${secondPassphrase}`,
+				`--mandatory-key=${KeyOne}`,
+				`--optional-key=${KeyTwo}`,
+				`--number-of-signature=2`,
+			])
+			.it(
+				'should take transaction from arg to and passphrase, mandatoryKey, optionalKey and numberOfSignature to sign',
 				() => {
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					return expect(printMethodStub).to.be.calledWithExactly(
