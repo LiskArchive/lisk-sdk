@@ -33,7 +33,7 @@ export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
 	readonly maxTransactionsPerAccount?: number;
 	readonly transactionExpiryTime?: number;
-	readonly minimumEntranceFee?: bigint;
+	readonly minEntranceFeePriority?: bigint;
 	readonly minReplacementFeeDifference?: bigint;
 	// tslint:disable-next-line no-mixed-interface
 	readonly applyTransaction: ApplyFunction;
@@ -41,7 +41,7 @@ export interface TransactionPoolConfig {
 
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
 export const DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT = 64;
-export const DEFAULT_MINIMUM_ENTRANCE_FEE = BigInt(1);
+export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(1);
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in ms
 // tslint:disable-next-line no-magic-numbers
@@ -59,7 +59,7 @@ export class TransactionPool {
 	private readonly _maxTransactions: number;
 	private readonly _maxTransactionsPerAccount: number;
 	private readonly _transactionExpiryTime: number;
-	private readonly _minimumEntranceFee: bigint;
+	private readonly _minEntranceFeePriority: bigint;
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: MinHeap<string, bigint>;
@@ -75,8 +75,8 @@ export class TransactionPool {
 			config.maxTransactionsPerAccount ?? DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT;
 		this._transactionExpiryTime =
 			config.transactionExpiryTime ?? DEFAULT_EXPIRY_TIME;
-		this._minimumEntranceFee =
-			config.minimumEntranceFee ?? DEFAULT_MINIMUM_ENTRANCE_FEE;
+		this._minEntranceFeePriority =
+			config.minEntranceFeePriority ?? DEFAULT_MIN_ENTRANCE_FEE_PRIORITY;
 		this._minReplacementFeeDifference =
 			config.minReplacementFeeDifference ??
 			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
@@ -91,7 +91,7 @@ export class TransactionPool {
 			this._maxTransactions,
 			this._transactionExpiryTime,
 			this._maxTransactionsPerAccount,
-			this._minimumEntranceFee,
+			this._minEntranceFeePriority,
 			this._minReplacementFeeDifference,
 		);
 	}
@@ -124,13 +124,13 @@ export class TransactionPool {
 			return false;
 		}
 		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
-		if (incomingTx.fee < this._minimumEntranceFee) {
+		const feePriorityofTrx = this._calculateFeePriority(incomingTx);
+		if (feePriorityofTrx < this._minEntranceFeePriority) {
 			return false;
 		}
 
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
 		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
-		const feePriorityofTrx = this._calculateFeePriority(incomingTx);
 		if (
 			Object.keys(this._allTransactions).length >= this._maxTransactions &&
 			lowestFeePriorityTrx &&

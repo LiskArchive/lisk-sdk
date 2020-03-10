@@ -39,7 +39,9 @@ describe('TransactionList class', () => {
 			it('should set default values', async () => {
 				expect((transactionPool as any)._maxTransactions).toEqual(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(64);
-				expect((transactionPool as any)._minimumEntranceFee).toEqual(BigInt(1));
+				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
+					BigInt(1),
+				);
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
 					BigInt(10),
 				);
@@ -56,13 +58,13 @@ describe('TransactionList class', () => {
 					maxTransactions: 2048,
 					maxTransactionsPerAccount: 32,
 					minReplacementFeeDifference: BigInt(100),
-					minimumEntranceFee: BigInt(10),
+					minEntranceFeePriority: BigInt(10),
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
 				});
 
 				expect((transactionPool as any)._maxTransactions).toEqual(2048);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(32);
-				expect((transactionPool as any)._minimumEntranceFee).toEqual(
+				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
 					BigInt(10),
 				);
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
@@ -160,7 +162,7 @@ describe('TransactionList class', () => {
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
 			transactionPool = new TransactionPool({
 				applyTransaction: jest.fn(),
-				minimumEntranceFee: BigInt(10),
+				minEntranceFeePriority: BigInt(10),
 			});
 			const lowFeeTx = { ...tx, fee: BigInt(1) - BigInt(1) };
 			const status = await transactionPool.addTransaction(lowFeeTx);
