@@ -76,12 +76,17 @@ describe('TransactionList class', () => {
 	});
 
 	describe('addTransaction', () => {
+		let txGetBytesStub: any;
 		const tx = {
 			id: '1',
 			nonce: BigInt(1),
+			minFee: BigInt(10),
 			fee: BigInt(1000),
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
+
+		txGetBytesStub = jest.fn();
+		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		it('should add a valid transaction and is added to the transaction list as processable', async () => {
 			const status = await transactionPool.addTransaction(tx);
