@@ -448,10 +448,6 @@ export abstract class BaseTransaction {
 			this._networkIdentifier = networkIdentifier;
 		}
 
-		if (!this.signatures) {
-			this.signatures = [];
-		}
-
 		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
