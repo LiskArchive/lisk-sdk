@@ -33,9 +33,11 @@ import { createResponse, Status } from './response';
 import * as schemas from './schema';
 import { Account, TransactionJSON } from './transaction_types';
 import {
+	buildPublicKeyPassphraseDict,
 	getId,
 	isMultisignatureAccount,
 	serializeSignatures,
+	sortKeysAscending,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyAccountNonce,
@@ -429,6 +431,65 @@ export abstract class BaseTransaction {
 		);
 
 		this._id = getId(this.getBytes());
+	}
+
+	public signAll(
+		networkIdentifier: string,
+		senderPassphrase?: string,
+		passphrases?: ReadonlyArray<string>,
+		keys?: {
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
+			readonly numberOfSignatures: number;
+		},
+	): void {
+		// Set network identifier if it was previously not set in the transaction
+		if (!this._networkIdentifier) {
+			this._networkIdentifier = networkIdentifier;
+		}
+
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBasicBytes(),
+		]);
+
+		// If senderPassphrase is passed in assume only one signature required
+		if (senderPassphrase) {
+			const signature = signData(
+				hash(transactionWithNetworkIdentifierBytes),
+				senderPassphrase,
+			);
+			// Reset signatures when only one passphrase is provided
+			this.signatures = [];
+			this.signatures.push(signature);
+			this._id = getId(this.getBytes());
+
+			return;
+		}
+
+		if (passphrases && keys) {
+			const keysAndPassphrases = buildPublicKeyPassphraseDict(passphrases);
+			sortKeysAscending(keys.mandatoryKeys);
+			sortKeysAscending(keys.optionalKeys);
+			// Sign with all keys
+			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+			this._id = getId(this.getBytes());
+
+			return;
+		}
+
+		return;
 	}
 
 	public getBasicBytes(): Buffer {
