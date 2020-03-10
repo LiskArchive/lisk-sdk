@@ -119,7 +119,7 @@ export default class SignCommand extends BaseCommand {
 
 		if (passphrase.length === 1) {
 			// Sign for non-multi signature transaction
-			txInstance.signAll(networkIdentifier, passphrase[0], undefined, keys);
+			txInstance.signAll(networkIdentifier, passphrase[0]);
 		} else {
 			// Sign for multi signature transaction
 			txInstance.signAll(networkIdentifier, undefined, passphrase, keys);
