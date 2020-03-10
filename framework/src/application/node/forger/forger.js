@@ -52,7 +52,6 @@ class Forger {
 		chainModule,
 		// constants
 		activeDelegates,
-		maxPayloadLength,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
@@ -71,7 +70,6 @@ class Forger {
 		};
 		this.constants = {
 			activeDelegates,
-			maxPayloadLength,
 		};
 
 		this.processorModule = processorModule;

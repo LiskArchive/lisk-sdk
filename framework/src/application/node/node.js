@@ -529,7 +529,6 @@ module.exports = class Node {
 			processorModule: this.processor,
 			chainModule: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,
