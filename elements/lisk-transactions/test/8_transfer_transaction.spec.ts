@@ -338,13 +338,13 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	describe('#sign', () => {
+	describe('#signAll', () => {
 		const { transaction, account, networkIdentifier } = validTransferInput;
 		let validTransferInstance: BaseTransaction;
 		beforeEach(async () => {
 			validTransferInstance = new TransferTransaction(transaction);
-			(validTransferInstance as any)._networkIdentifier = networkIdentifier;
 		});
+
 		it('should have one signature for single key pair account', async () => {
 			validTransferInstance.signAll(
 				networkIdentifier,
@@ -357,7 +357,7 @@ describe('Transfer transaction class', () => {
 			);
 		});
 
-		it('should have two signatures for a multisignature account used as 2nd passphrase', async () => {
+		it('should have two signatures for a multisignature account used as 2nd passphrase account', async () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 

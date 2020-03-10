@@ -464,6 +464,8 @@ export abstract class BaseTransaction {
 				hash(transactionWithNetworkIdentifierBytes),
 				senderPassphrase,
 			);
+			// Reset signatures when only one passphrase is provided
+			this.signatures = [];
 			this.signatures.push(signature);
 			this._id = getId(this.getBytes());
 
