@@ -31,7 +31,7 @@ const {
 	TransactionPool,
 	EVENT_UNCONFIRMED_TRANSACTION,
 } = require('./transaction_pool');
-const { Forger } = require('./forger');
+const { Forger, HighFeeForgingStrategy } = require('./forger');
 const { Transport } = require('./transport');
 const {
 	Synchronizer,
@@ -512,7 +512,15 @@ module.exports = class Node {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.modules.rebuilder = this.rebuilder;
+
+		const highFeeForgingStrategy = new HighFeeForgingStrategy({
+			logger: this.logger,
+			transactionPoolModule: this.transactionPool,
+			chainModule: this.chain,
+			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+		});
 		this.forger = new Forger({
+			forgingStrategy: highFeeForgingStrategy,
 			channel: this.channel,
 			logger: this.logger,
 			storage: this.storage,
