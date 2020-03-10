@@ -138,6 +138,7 @@ export class TransactionPool {
 		) {
 			return false;
 		}
+		incomingTx.feePriority = feePriorityofTrx;
 		this._feePriorityQueue.push(feePriorityofTrx, incomingTx.id);
 
 		const incomingTxAddress = getAddressFromPublicKey(

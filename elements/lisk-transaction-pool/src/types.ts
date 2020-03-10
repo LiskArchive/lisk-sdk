@@ -30,6 +30,7 @@ export interface TransactionObject {
 	readonly type: number;
 	containsUniqueData?: boolean;
 	verifiedOnce?: boolean;
+	feePriority?: bigint;
 }
 
 export interface TransactionFunctions {
