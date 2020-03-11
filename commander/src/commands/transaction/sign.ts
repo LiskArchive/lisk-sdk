@@ -127,14 +127,9 @@ export default class SignCommand extends BaseCommand {
 			networkIdentifier,
 		});
 
-		// tslint:disable-next-line: no-object-literal-type-assertion
 		const keys = {
 			mandatoryKeys,
 			optionalKeys,
-		} as {
-			readonly mandatoryKeys: Array<Readonly<string>>;
-			readonly optionalKeys: Array<Readonly<string>>;
-			readonly numberOfSignatures: number;
 		};
 
 		if (mandatoryKeys?.length || optionalKeys?.length) {

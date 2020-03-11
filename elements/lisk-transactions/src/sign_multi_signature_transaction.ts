@@ -36,7 +36,6 @@ export const signMultiSignatureTransaction = (options: {
 	readonly keys: {
 		readonly mandatoryKeys: string[];
 		readonly optionalKeys: string[];
-		readonly numberOfSignatures: number;
 	};
 }): BaseTransaction => {
 	const { transaction, passphrase, networkIdentifier, keys } = options;
