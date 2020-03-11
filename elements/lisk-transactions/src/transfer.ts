@@ -163,5 +163,5 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		return transferTransaction.toJSON();
 	}
 
-	return transaction;
+	return transactionWithSenderInfo;
 };
