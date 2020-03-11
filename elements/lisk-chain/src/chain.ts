@@ -653,7 +653,7 @@ export class Chain {
 		)(transactions, stateStore);
 	}
 
-	public async processTransactionsWithStateStore(
+	public async applyTransactionsWithStateStore(
 		transactions: BaseTransaction[],
 		stateStore: StateStore,
 	): Promise<TransactionHandledResult> {

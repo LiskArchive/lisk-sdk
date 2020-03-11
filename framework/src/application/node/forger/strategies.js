@@ -62,7 +62,7 @@ class HighFeeForgingStrategy {
 			const lowestNonceHighestFeeTrx = feePriorityHeap.pop().value;
 
 			// Try to process transaction
-			const result = await this.chainModule.processTransactionsWithStateStore(
+			const result = await this.chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
 				stateStore,
 			);

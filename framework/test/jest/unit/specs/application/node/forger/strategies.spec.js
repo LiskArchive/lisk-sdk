@@ -40,7 +40,7 @@ const getTxMock = (
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
 	};
 
-	when(chainMock.processTransactionsWithStateStore)
+	when(chainMock.applyTransactionsWithStateStore)
 		.calledWith([tx], undefined)
 		.mockResolvedValueOnce({
 			transactionsResponses: [
@@ -92,7 +92,7 @@ describe('strategies', () => {
 		};
 		const mockChainModule = {
 			newStateStore: jest.fn(),
-			processTransactionsWithStateStore: jest.fn(),
+			applyTransactionsWithStateStore: jest.fn(),
 		};
 		let strategy;
 
