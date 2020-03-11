@@ -32,8 +32,8 @@ import { createBaseTransaction, findRepeatedKeys } from './utils';
 export interface RegisterMultisignatureInputs {
 	readonly senderPassphrase: string;
 	readonly passphrases: ReadonlyArray<string>;
-	readonly mandatoryKeys: ReadonlyArray<string>;
-	readonly optionalKeys: ReadonlyArray<string>;
+	readonly mandatoryKeys: Array<Readonly<string>>;
+	readonly optionalKeys: Array<Readonly<string>>;
 	readonly numberOfSignatures: number;
 	readonly networkIdentifier: string;
 	readonly nonce: string;
@@ -41,8 +41,8 @@ export interface RegisterMultisignatureInputs {
 }
 
 interface ValidateMultisignatureRegistrationInput {
-	readonly mandatoryPublicKeys: ReadonlyArray<string>;
-	readonly optionalPublicKeys: ReadonlyArray<string>;
+	readonly mandatoryPublicKeys: Array<Readonly<string>>;
+	readonly optionalPublicKeys: Array<Readonly<string>>;
 	readonly numberOfSignatures: number;
 	readonly networkIdentifier: string;
 	readonly fee: string;
@@ -166,12 +166,16 @@ export const registerMultisignature = (
 		return multisignatureTransaction.toJSON();
 	}
 
-	multisignatureTransaction.signAll(networkIdentifier, senderPassphrase, {
+	multisignatureTransaction.signAll(
+		networkIdentifier,
+		senderPassphrase,
 		passphrases,
-		mandatoryKeys,
-		optionalKeys,
-		numberOfSignatures,
-	});
+		{
+			mandatoryKeys,
+			optionalKeys,
+			numberOfSignatures,
+		},
+	);
 
 	return multisignatureTransaction.toJSON();
 };

@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2020 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import { registerMultisignature } from '../src/register_multisignature_account';
 import { signMultiSignatureTransaction } from '../src/sign_multi_signature_transaction';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
@@ -50,7 +64,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
@@ -77,7 +90,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
@@ -104,7 +116,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
@@ -131,7 +142,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 

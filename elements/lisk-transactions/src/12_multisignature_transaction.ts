@@ -376,10 +376,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 	public signAll(
 		networkIdentifier: string,
 		senderPassphrase: string,
+		passphrases?: ReadonlyArray<string>,
 		keys?: {
-			readonly passphrases: ReadonlyArray<string>;
-			readonly mandatoryKeys: ReadonlyArray<string>;
-			readonly optionalKeys: ReadonlyArray<string>;
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
 			readonly numberOfSignatures: number;
 		},
 	): void {
@@ -414,16 +414,14 @@ export class MultisignatureTransaction extends BaseTransaction {
 			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
 		);
 
-		if (keys && keys.passphrases) {
-			const keysAndPassphrases = buildPublicKeyPassphraseDict([
-				...keys.passphrases,
-			]);
-
+		// Sign with members
+		if (keys && passphrases) {
+			const keysAndPassphrases = buildPublicKeyPassphraseDict([...passphrases]);
+			// Make sure passed in keys are sorted
+			sortKeysAscending(keys.mandatoryKeys);
+			sortKeysAscending(keys.optionalKeys);
 			// Sign with all keys
-			for (const aKey of [
-				...this.asset.mandatoryKeys,
-				...this.asset.optionalKeys,
-			]) {
+			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(

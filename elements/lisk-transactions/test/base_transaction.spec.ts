@@ -27,6 +27,7 @@ import {
 	TestTransactionBasicImpl,
 } from './helpers';
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import { serializeSignatures } from '../src/utils';
 
@@ -806,6 +807,72 @@ describe('Base transaction class', () => {
 					defaultPassphrase,
 				);
 			});
+		});
+	});
+
+	describe('#signAll', () => {
+		const validTransferInput = transferFixture.testCases[0].input;
+		const { transaction, account, networkIdentifier } = validTransferInput;
+		let validTransferInstance: BaseTransaction;
+
+		beforeEach(async () => {
+			validTransferInstance = new TransferTransaction(transaction);
+		});
+
+		it('should return transaction with one signature when only passphrase is used', async () => {
+			// Get signature without using the method
+			const networkIdentifierBytes = cryptography.hexToBuffer(
+				networkIdentifier,
+			);
+			const bytesToBeSigned = Buffer.concat([
+				networkIdentifierBytes,
+				validTransferInstance.getBasicBytes(),
+			]);
+
+			const validSignature = cryptography.signData(
+				cryptography.hash(bytesToBeSigned),
+				account.passphrase,
+			);
+
+			validTransferInstance.signAll(networkIdentifier, account.passphrase);
+
+			expect(validTransferInstance.signatures[0]).toBe(validSignature);
+			expect(validTransferInstance.signatures.length).toBe(1);
+		});
+
+		it('should return transaction with two valid signatures for multisig account used as 2nd passphrase account', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			// Get signatues without using the method
+			const networkIdentifierBytes = cryptography.hexToBuffer(
+				networkIdentifier,
+			);
+			const bytesToBeSigned = Buffer.concat([
+				networkIdentifierBytes,
+				validTransferInstance.getBasicBytes(),
+			]);
+
+			const firstSignature = cryptography.signData(
+				cryptography.hash(bytesToBeSigned),
+				members.mandatoryOne.passphrase,
+			);
+
+			const secoondSignature = cryptography.signData(
+				cryptography.hash(bytesToBeSigned),
+				members.mandatoryTwo.passphrase,
+			);
+
+			validTransferInstance.signAll(
+				networkIdentifier,
+				undefined,
+				[members.mandatoryOne.passphrase, members.mandatoryTwo.passphrase],
+				{
+					...secondSignatureAccount.asset,
+				},
+			);
+
+			expect(validTransferInstance.signatures[0]).toBe(firstSignature);
+			expect(validTransferInstance.signatures[1]).toBe(secoondSignature);
 		});
 	});
 });

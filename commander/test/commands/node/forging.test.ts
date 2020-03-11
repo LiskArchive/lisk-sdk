@@ -17,12 +17,10 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as apiUtils from '../../../src/utils/api';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('node:forging', () => {
-	const defaultInputs = {
-		password: '123',
-	};
+	const defaultInputs = '123';
 	const defaultPublicKey =
 		'479b0fdb56199a211062203fa5c431bafe6a0a628661fc58f30f3105f2b17332';
 
@@ -45,8 +43,8 @@ describe('node:forging', () => {
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -97,15 +95,13 @@ describe('node:forging', () => {
 			.it(
 				'should update the forging status of the node with the public key',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						password: {
-							source: undefined,
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+						'password',
+					);
 					expect(
 						apiClientStub.node.updateForgingStatus,
 					).to.be.calledWithExactly({
-						password: defaultInputs.password,
+						password: defaultInputs,
 						publicKey: defaultPublicKey,
 						forging: true,
 					});
@@ -116,26 +112,17 @@ describe('node:forging', () => {
 			);
 	});
 
-	describe('node:forging status publicKey --password=pass:123', () => {
+	describe('node:forging status publicKey --password=123', () => {
 		setupTest()
-			.command([
-				'node:forging',
-				'disable',
-				defaultPublicKey,
-				'--password=pass:123',
-			])
+			.command(['node:forging', 'disable', defaultPublicKey, '--password=123'])
 			.it(
 				'should disable the forging status of the node with the public key and the password from the flag',
 				() => {
-					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-						password: {
-							source: 'pass:123',
-						},
-					});
+					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(
 						apiClientStub.node.updateForgingStatus,
 					).to.be.calledWithExactly({
-						password: defaultInputs.password,
+						password: defaultInputs,
 						publicKey: defaultPublicKey,
 						forging: false,
 					});

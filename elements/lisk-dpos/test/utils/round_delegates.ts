@@ -53,7 +53,7 @@ export const delegateAccounts = delegatePublicKeys.map(
 		const votedDelegatesPublicKeys = [
 			votedDelegates[index].publicKey,
 			votedDelegates[index + 1].publicKey,
-			votedDelegates[index % 10].publicKey,
+			votedDelegates[index + 2].publicKey,
 		];
 		return {
 			address: getAddressFromPublicKey(pk),

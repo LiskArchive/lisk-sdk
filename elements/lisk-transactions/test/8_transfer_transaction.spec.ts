@@ -19,10 +19,12 @@ import { Status } from '../src/response';
 import { TransactionError } from '../src/errors';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 import { BaseTransaction } from '../src';
 
 describe('Transfer transaction class', () => {
 	const validTransferTransaction = fixture.testCases[0].output;
+	const validTransferInput = fixture.testCases[0].input;
 	const validTransferAccount = fixture.testCases[0].input.account;
 	let validTransferTestTransaction: TransferTransaction;
 	let sender: Account;
@@ -333,6 +335,46 @@ describe('Transfer transaction class', () => {
 				store,
 			);
 			expect(errors[0].message).toEqual('Invalid amount');
+		});
+	});
+
+	describe('#signAll', () => {
+		const { transaction, account, networkIdentifier } = validTransferInput;
+		let validTransferInstance: BaseTransaction;
+		beforeEach(async () => {
+			validTransferInstance = new TransferTransaction(transaction);
+		});
+
+		it('should have one signature for single key pair account', async () => {
+			validTransferInstance.signAll(
+				networkIdentifier,
+				account.passphrase,
+				undefined,
+				undefined,
+			);
+			expect(validTransferInstance.signatures[0]).toBe(
+				validTransferTransaction.signatures[0],
+			);
+		});
+
+		it('should have two signatures for a multisignature account used as 2nd passphrase account', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+
+			validTransferInstance.signAll(
+				networkIdentifier,
+				undefined,
+				[members.mandatoryOne.passphrase, members.mandatoryTwo.passphrase],
+				{
+					...secondSignatureAccount.asset,
+				},
+			);
+
+			expect(validTransferInstance.signatures.length).toBe(2);
+			expect(validTransferInstance.signatures).toStrictEqual([
+				'80d364c0fa5f3a53587986d96316404313b1831408c35ead1eac02d264919708034f8b61198cad29c966d0336c5526acfc37215b7ee17152aebd85f6963dec0c',
+				'be8498bf26315480bb9d242b784b3d3a7fcd67fd74aede35e359a478a5932ea40287f85bc3e6b8dbaac2642162b11ae4341bd510048bf58f742d3db1d4f0a50d',
+			]);
 		});
 	});
 });

@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
-import * as inputUtils from '../../../src/utils/input';
+import * as readerUtils from '../../../src/utils/reader';
 
 describe('message:sign', () => {
 	const message = 'Hello World';
@@ -28,11 +28,9 @@ describe('message:sign', () => {
 		signature:
 			'0c70c0ed6ca16312c6acab46dd8b801fd3f3a2bd68018651c2792b40a7d1d3ee276a6bafb6b4185637edfa4d282e18362e135c5e2cf0c68002bfd58307ddb30b',
 	};
-	const defaultInputs = {
-		passphrase:
-			'card earn shift valley learn scorpion cage select help title control satoshi',
-		data: 'message',
-	};
+	const defaultInputs =
+		'card earn shift valley learn scorpion cage select help title control satoshi';
+	const defaultData = 'message';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
@@ -45,10 +43,11 @@ describe('message:sign', () => {
 				sandbox.stub().returns(defaultSignedMessage),
 			)
 			.stub(
-				inputUtils,
-				'getInputsFromSources',
+				readerUtils,
+				'getPassphraseFromPrompt',
 				sandbox.stub().resolves(defaultInputs),
 			)
+			.stub(readerUtils, 'readFileSource', sandbox.stub().resolves(defaultData))
 			.stdout();
 
 	describe('message:sign', () => {
@@ -64,16 +63,16 @@ describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign', message])
 			.it('should sign the message with the arg', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-					data: undefined,
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
+				expect(readerUtils.readFileSource).not.to.be.calledWithExactly(
+					'file:./message.txt',
+				);
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
 					message,
-					defaultInputs.passphrase,
+					defaultInputs,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedMessage,
@@ -86,18 +85,16 @@ describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign', `--message=${messageSource}`])
 			.it('should sign the message from flag', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-					data: {
-						source: messageSource,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
+				expect(readerUtils.readFileSource).not.to.be.calledWithExactly(
+					'file:./message.txt',
+				);
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
-					defaultInputs.data,
-					defaultInputs.passphrase,
+					defaultData,
+					defaultInputs,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedMessage,
@@ -105,10 +102,10 @@ describe('message:sign', () => {
 			});
 	});
 
-	describe('message:sign --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
+	describe('message:sign --message=file:./message.txt --passphrase=card earn shift valley learn scorpion cage select help title control satoshi', () => {
 		const messageSource = 'file:/message.txt';
 		const passphraseSource =
-			'pass:"card earn shift valley learn scorpion cage select help title control satoshi"';
+			'card earn shift valley learn scorpion cage select help title control satoshi';
 		setupTest()
 			.command([
 				'message:sign',
@@ -116,18 +113,15 @@ describe('message:sign', () => {
 				`--passphrase=${passphraseSource}`,
 			])
 			.it('should sign the message from the flag and passphrase', () => {
-				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					passphrase: {
-						source: passphraseSource,
-						repeatPrompt: true,
-					},
-					data: {
-						source: messageSource,
-					},
-				});
+				expect(readerUtils.getPassphraseFromPrompt).not.to.be.calledWithExactly(
+					'passphrase',
+				);
+				expect(readerUtils.readFileSource).not.to.be.calledWithExactly(
+					'file:./message.txt',
+				);
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
-					defaultInputs.data,
-					defaultInputs.passphrase,
+					defaultData,
+					defaultInputs,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedMessage,

@@ -18,8 +18,8 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getStdIn } from '../../utils/input/utils';
 import { getNetworkIdentifierWithInput } from '../../utils/network_identifier';
+import { readStdIn } from '../../utils/reader';
 import {
 	instantiateTransaction,
 	parseTransactionString,
@@ -31,12 +31,12 @@ interface Args {
 
 const getTransactionInput = async (): Promise<string> => {
 	try {
-		const { data } = await getStdIn({ dataIsRequired: true });
-		if (!data) {
+		const lines = await readStdIn();
+		if (!lines.length) {
 			throw new ValidationError('No transaction was provided.');
 		}
 
-		return data;
+		return lines[0];
 	} catch (e) {
 		throw new ValidationError('No transaction was provided.');
 	}

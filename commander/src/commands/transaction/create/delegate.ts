@@ -23,11 +23,8 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
-import {
-	getInputsFromSources,
-	InputFromSourceOutput,
-} from '../../../utils/input';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
+import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 interface Args {
 	readonly nonce: string;
@@ -40,7 +37,8 @@ const processInputs = (
 	fee: string,
 	networkIdentifier: string,
 	username: string,
-) => ({ passphrase }: InputFromSourceOutput) =>
+	passphrase?: string,
+) =>
 	registerDelegate({
 		nonce,
 		fee,
@@ -111,29 +109,27 @@ export default class DelegateCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
-		const processFunction = processInputs(
-			nonce,
-			normalizedFee,
-			networkIdentifier,
-			username,
-		);
-
 		if (noSignature) {
-			const noSignatureResult = processFunction({
-				passphrase: undefined,
-			});
+			const noSignatureResult = processInputs(
+				nonce,
+				normalizedFee,
+				networkIdentifier,
+				username,
+			);
 			this.print(noSignatureResult);
 
 			return;
 		}
+		const passphrase =
+			passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
-		const inputs = await getInputsFromSources({
-			passphrase: {
-				source: passphraseSource,
-				repeatPrompt: true,
-			},
-		});
-		const result = processFunction(inputs);
+		const result = processInputs(
+			nonce,
+			normalizedFee,
+			networkIdentifier,
+			username,
+			passphrase,
+		);
 		this.print(result);
 	}
 }

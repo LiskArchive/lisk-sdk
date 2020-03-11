@@ -20,42 +20,16 @@ import {
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
-import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import {
-	getFirstLineFromString,
-	getInputsFromSources,
-	InputFromSourceOutput,
-} from '../../utils/input';
+import { getPassphraseFromPrompt } from '../../utils/reader';
 
 interface Args {
 	readonly encryptedPassphrase?: string;
 }
 
-const passphraseOptionDescription = `Specifies a source for providing an encrypted passphrase to the command. If a string is provided directly as an argument, this option will be ignored. The encrypted passphrase must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
-
-	Note: if both an encrypted passphrase and the password are passed via stdin, the password must be the first line.
-
-	Examples:
-		- --passphrase file:/path/to/my/encrypted_passphrase.txt (takes the first line only)
-		- --passphrase stdin (takes the first line only)
-`;
-
-const processInputs = (encryptedPassphrase?: string) => ({
-	password,
-	data,
-}: InputFromSourceOutput) => {
-	const encryptedPassphraseTarget =
-		encryptedPassphrase || getFirstLineFromString(data);
-	if (!encryptedPassphraseTarget) {
-		throw new ValidationError('No encrypted passphrase was provided');
-	}
-	if (!password) {
-		throw new ValidationError('No password was provided');
-	}
-
+const processInputs = (password: string, encryptedPassphrase: string) => {
 	const encryptedPassphraseObject = parseEncryptedPassphrase(
-		encryptedPassphraseTarget,
+		encryptedPassphrase,
 	);
 	const passphrase = decryptPassphraseWithPassword(
 		encryptedPassphraseObject,
@@ -70,6 +44,7 @@ export default class DecryptCommand extends BaseCommand {
 		{
 			name: 'encryptedPassphrase',
 			description: 'Encrypted passphrase to decrypt.',
+			required: true,
 		},
 	];
 
@@ -84,33 +59,20 @@ export default class DecryptCommand extends BaseCommand {
 	static flags = {
 		...BaseCommand.flags,
 		password: flagParser.string(commonFlags.password),
-		passphrase: flagParser.string({
-			description: passphraseOptionDescription,
-		}),
 	};
 
 	async run(): Promise<void> {
 		const {
 			args,
-			flags: { passphrase: passphraseSource, password: passwordSource },
+			flags: { password: passwordSource },
 		} = this.parse(DecryptCommand);
 
 		const { encryptedPassphrase }: Args = args;
 
-		if (!encryptedPassphrase && !passphraseSource) {
-			throw new ValidationError('No encrypted passphrase was provided.');
-		}
-		const inputs = await getInputsFromSources({
-			password: {
-				source: passwordSource,
-			},
-			data: encryptedPassphrase
-				? undefined
-				: {
-						source: passphraseSource,
-				  },
-		});
-		const result = processInputs(encryptedPassphrase)(inputs);
+		const password =
+			passwordSource ?? (await getPassphraseFromPrompt('password', true));
+
+		const result = processInputs(password, encryptedPassphrase as string);
 		this.print(result);
 	}
 }
