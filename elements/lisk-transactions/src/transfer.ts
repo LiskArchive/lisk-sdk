@@ -35,6 +35,7 @@ export interface TransferInputs {
 	readonly data?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
+	readonly senderPublicKey?: string;
 	readonly passphrase?: string;
 	readonly passphrases?: ReadonlyArray<string>;
 	readonly keys?: {
@@ -111,6 +112,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		networkIdentifier,
 		passphrases,
 		keys,
+		senderPublicKey,
 	} = inputs;
 
 	const recipientIdFromPublicKey = recipientPublicKey
@@ -123,6 +125,8 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 8,
+		// For txs from multisig senderPublicKey must be set before attempting signing
+		senderPublicKey: senderPublicKey ? senderPublicKey : undefined,
 		asset: {
 			amount,
 			recipientId: recipientId as string,

@@ -810,7 +810,7 @@ describe('Base transaction class', () => {
 				members.mandatoryOne.passphrase,
 			);
 
-			const secoondSignature = cryptography.signData(
+			const secondSignature = cryptography.signData(
 				cryptography.hash(bytesToBeSigned),
 				members.mandatoryTwo.passphrase,
 			);
@@ -825,7 +825,7 @@ describe('Base transaction class', () => {
 			);
 
 			expect(validTransferInstance.signatures[0]).toBe(firstSignature);
-			expect(validTransferInstance.signatures[1]).toBe(secoondSignature);
+			expect(validTransferInstance.signatures[1]).toBe(secondSignature);
 		});
 	});
 });
