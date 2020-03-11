@@ -33,9 +33,15 @@ export interface TransferInputs {
 	readonly nonce: string;
 	readonly networkIdentifier: string;
 	readonly data?: string;
-	readonly passphrase?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
+	readonly passphrase?: string;
+	readonly passphrases?: ReadonlyArray<string>;
+	readonly keys?: {
+		readonly mandatoryKeys: Array<Readonly<string>>;
+		readonly optionalKeys: Array<Readonly<string>>;
+		readonly numberOfSignatures: number;
+	};
 }
 
 const validateInputs = ({
@@ -103,6 +109,8 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		recipientPublicKey,
 		passphrase,
 		networkIdentifier,
+		passphrases,
+		keys,
 	} = inputs;
 
 	const recipientIdFromPublicKey = recipientPublicKey
@@ -122,7 +130,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		},
 	};
 
-	if (!passphrase) {
+	if (!passphrase && !passphrases?.length) {
 		return transaction;
 	}
 
@@ -140,7 +148,13 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		transactionWithSenderInfo,
 	);
 
-	transferTransaction.sign(networkIdentifier, passphrase);
+	if (passphrase) {
+		transferTransaction.sign(networkIdentifier, passphrase);
+	}
+
+	if (passphrases && keys) {
+		transferTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+	}
 
 	return transferTransaction.toJSON();
 };
