@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -137,12 +138,19 @@ export default class SignCommand extends BaseCommand {
 			numberOfSignatures,
 		} as unknown) as Keys;
 
-		if (passphrase.length === 1) {
+		if (mandatoryKeys?.length || optionalKeys?.length) {
+			// Sign for multi signature transaction
+			passphrase.forEach(p => {
+				signMultiSignatureTransaction({
+					transaction: txInstance.toJSON(),
+					passphrase: p,
+					networkIdentifier,
+					keys,
+				});
+			});
+		} else {
 			// Sign for non-multi signature transaction
 			txInstance.signAll(networkIdentifier, passphrase[0]);
-		} else {
-			// Sign for multi signature transaction
-			txInstance.signAll(networkIdentifier, undefined, passphrase, keys);
 		}
 
 		const { errors } = txInstance.validate();
