@@ -85,10 +85,8 @@ class HighFeeForgingStrategy {
 			// other transactions will be higher nonce
 			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
 			if (blockPayloadSize + trsByteSize > this.constants.maxPayloadLength) {
-				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
-				feePriorityHeap = createFeePriorityHeap(transactionsBySender);
-				// eslint-disable-next-line no-continue
-				continue;
+				// End up filling the block
+				break;
 			}
 
 			// Select transaction as ready for forging

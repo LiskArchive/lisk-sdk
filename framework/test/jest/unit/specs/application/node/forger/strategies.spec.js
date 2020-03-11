@@ -22,7 +22,6 @@ const {
 const {
 	allValidCase,
 	maxPayloadLengthCase,
-	maxPayloadSkipHighByte,
 	invalidTxCase,
 	allInvalidCase,
 } = require('./forging_fixtures');
@@ -152,27 +151,6 @@ describe('strategies', () => {
 				// Assert
 				expect(result.map(tx => tx.id)).toEqual(
 					maxPayloadLengthCase.output.map(tx => tx.id),
-				);
-			});
-
-			it('should forge transactions to fit maximum payload and skip high byte size valid transactions', async () => {
-				// Arrange
-				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(
-						maxPayloadSkipHighByte.input.transactions,
-						mockChainModule,
-					),
-				);
-				strategy.constants.maxPayloadLength = BigInt(
-					maxPayloadSkipHighByte.input.maxPayloadLength,
-				);
-
-				// Act
-				const result = await strategy.getTransactionsForBlock();
-
-				// Assert
-				expect(result.map(tx => tx.id)).toEqual(
-					maxPayloadSkipHighByte.output.map(tx => tx.id),
 				);
 			});
 

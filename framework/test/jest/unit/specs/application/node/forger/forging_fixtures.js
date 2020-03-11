@@ -53,24 +53,6 @@ const maxPayloadLengthCase = {
 	],
 };
 
-const maxPayloadSkipHighByte = {
-	input: {
-		maxPayloadLength: 1000,
-		transactions: [
-			{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 800 },
-			{ id: 2, senderId: 'A', fee: 2, nonce: 2, bytes: 200 },
-			{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200 },
-			{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100 },
-			{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300 },
-		],
-	},
-	output: [
-		{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300 },
-		{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200 },
-		{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100 },
-	],
-};
-
 const invalidTxCase = {
 	input: {
 		maxPayloadLength: 1000,
@@ -106,7 +88,6 @@ const allInvalidCase = {
 module.exports = {
 	allValidCase,
 	maxPayloadLengthCase,
-	maxPayloadSkipHighByte,
 	invalidTxCase,
 	allInvalidCase,
 };
