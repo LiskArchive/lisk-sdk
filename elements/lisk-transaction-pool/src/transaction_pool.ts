@@ -124,22 +124,21 @@ export class TransactionPool {
 			return false;
 		}
 		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
-		const feePriorityofTrx = this._calculateFeePriority(incomingTx);
-		if (feePriorityofTrx < this._minEntranceFeePriority) {
+		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
+		if (incomingTx.feePriority < this._minEntranceFeePriority) {
 			return false;
 		}
 
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
 		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
 		if (
-			Object.keys(this._allTransactions).length >= this._maxTransactions &&
+			Object.keys(this._allTransactions).length === this._maxTransactions &&
 			lowestFeePriorityTrx &&
-			feePriorityofTrx <= lowestFeePriorityTrx.key
+			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
 			return false;
 		}
-		incomingTx.feePriority = feePriorityofTrx;
-		this._feePriorityQueue.push(feePriorityofTrx, incomingTx.id);
+		this._feePriorityQueue.push(incomingTx.feePriority, incomingTx.id);
 
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
@@ -199,10 +198,10 @@ export class TransactionPool {
 	private _getStatus(
 		txResponse: ReadonlyArray<TransactionResponse>,
 	): TransactionStatus {
-		const txResponseErrors = txResponse[0].errors;
 		if (txResponse[0].status === Status.OK) {
 			return TransactionStatus.PROCESSABLE;
 		}
+		const txResponseErrors = txResponse[0].errors;
 		if (
 			txResponse[0].errors.length === 1 &&
 			txResponseErrors[0].dataPath === '.nonce' &&

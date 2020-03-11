@@ -31,6 +31,7 @@ describe('TransactionList class', () => {
 
 	beforeEach(() => {
 		transactionPool = new TransactionPool(defaultTxPoolConfig);
+		(transactionPool as any)._applyFunction = applyTransactionStub;
 		applyTransactionStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 	});
 
@@ -164,8 +165,75 @@ describe('TransactionList class', () => {
 				applyTransaction: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 			});
-			const lowFeeTx = { ...tx, fee: BigInt(1) - BigInt(1) };
-			const status = await transactionPool.addTransaction(lowFeeTx);
+
+			const lowFeeTrx = {
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(100),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			let tempTxGetBytesStub = jest.fn();
+			lowFeeTrx.getBytes = tempTxGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(10)),
+			);
+
+			const status = await transactionPool.addTransaction(lowFeeTrx);
+			expect(status).toEqual(false);
+		});
+
+		it('should reject a transaction with a lower feePriority than the lowest feePriority present in TxPool', async () => {
+			const MAX_TRANSACTIONS = 10;
+			transactionPool = new TransactionPool({
+				applyTransaction: jest.fn(),
+				minEntranceFeePriority: BigInt(10),
+				maxTransactions: MAX_TRANSACTIONS,
+			});
+
+			let tempApplyTransactionStub = jest.fn();
+			(transactionPool as any)._applyFunction = tempApplyTransactionStub;
+
+			txGetBytesStub = jest.fn();
+			for (let i = 0; i < MAX_TRANSACTIONS; i++) {
+				const tempTx = {
+					id: `${i}`,
+					nonce: BigInt(1),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: generateRandomPublicKeys()[0],
+				} as Transaction;
+				tempTx.getBytes = txGetBytesStub.mockReturnValue(
+					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
+				);
+
+				tempApplyTransactionStub.mockResolvedValue([
+					{ status: Status.OK, errors: [] },
+				]);
+
+				await transactionPool.addTransaction(tempTx);
+			}
+
+			expect(transactionPool.getAllTransactions().length).toEqual(10);
+
+			const lowFeePriorityTx = {
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			lowFeePriorityTx.getBytes = txGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(2 * MAX_TRANSACTIONS)),
+			);
+
+			tempApplyTransactionStub.mockResolvedValue([
+				{ status: Status.OK, errors: [] },
+			]);
+
+			const status = await transactionPool.addTransaction(lowFeePriorityTx);
+
 			expect(status).toEqual(false);
 		});
 	});
