@@ -653,6 +653,16 @@ export class Chain {
 		)(transactions, stateStore);
 	}
 
+	public async applyTransactionsWithStateStore(
+		transactions: BaseTransaction[],
+		stateStore: StateStore,
+	): Promise<TransactionHandledResult> {
+		return composeTransactionSteps(
+			checkPersistedTransactions(this.dataAccess),
+			applyTransactions(this.exceptions),
+		)(transactions, stateStore);
+	}
+
 	// Temporally added because DPoS uses totalEarning to calculate the vote weight change
 	// tslint:disable-next-line prefer-function-over-method
 	public getTotalEarningAndBurnt(

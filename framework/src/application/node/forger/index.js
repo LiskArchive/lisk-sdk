@@ -15,8 +15,10 @@
 'use strict';
 
 const { Forger, getDelegateKeypairForCurrentSlot } = require('./forger');
+const { HighFeeForgingStrategy } = require('./strategies');
 
 module.exports = {
 	Forger,
+	HighFeeForgingStrategy,
 	getDelegateKeypairForCurrentSlot,
 };

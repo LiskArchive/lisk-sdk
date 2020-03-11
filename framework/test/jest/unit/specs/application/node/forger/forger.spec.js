@@ -19,14 +19,14 @@ const { when } = require('jest-when');
 const {
 	getPrivateAndPublicKeyBytesFromPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const forger = require('../../../../../../src/application/node/forger/forger');
-const genesisDelegates = require('../../../../../mocha/data/genesis_delegates.json');
-const delegatesRoundsList = require('../../../../../mocha/data/delegates_rounds_list.json');
-const accountFixtures = require('../../../../../fixtures//accounts');
+const forger = require('../../../../../../../src/application/node/forger/forger');
+const genesisDelegates = require('../../../../../../mocha/data/genesis_delegates.json');
+const delegatesRoundsList = require('../../../../../../mocha/data/delegates_rounds_list.json');
+const accountFixtures = require('../../../../../../fixtures//accounts');
 
 const { Forger, getDelegateKeypairForCurrentSlot } = forger;
 
-describe('forge', () => {
+describe('forger', () => {
 	const mockChannel = {
 		publish: jest.fn(),
 	};
@@ -37,6 +37,9 @@ describe('forge', () => {
 		warn: jest.fn(),
 		error: jest.fn(),
 	};
+	const mockStrategy = {
+		getTransactionsForBlock: jest.fn().mockResolvedValue([]),
+	};
 	const testDelegate = genesisDelegates.delegates[0];
 	const numOfActiveDelegates = 101;
 	const forgingWaitThreshold = 2;
@@ -46,6 +49,7 @@ describe('forge', () => {
 
 	beforeEach(async () => {
 		forgeModule = new Forger({
+			forgingStrategy: mockStrategy,
 			channel: mockChannel,
 			logger: mockLogger,
 			forgingDelegates: genesisDelegates.delegates,
@@ -860,6 +864,19 @@ describe('forge', () => {
 				expect(forgeModule.processorModule.create).toHaveBeenCalledTimes(1);
 
 				dateNowMockFn.mockRestore();
+			});
+
+			it('should get transactions from the forging strategy', async () => {
+				// Arrange
+				jest
+					.spyOn(forger, 'getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(testDelegate);
+
+				// Act
+				await forgeModule.forge();
+
+				// Assert
+				expect(mockStrategy.getTransactionsForBlock).toHaveBeenCalledTimes(1);
 			});
 		});
 	});
