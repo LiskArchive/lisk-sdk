@@ -32,6 +32,7 @@ export const wrapTransactionWithoutUniqueData = (
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() < 0,
 		isReady: () => true,
+		getBytes: () => Buffer.from(new Array(10)),
 	};
 };
 
@@ -47,6 +48,7 @@ export const wrapTransactionWithUniqueData = (
 		verifyAgainstOtherTransactions: () => true,
 		isExpired: (time: Date) => time.getTime() < 0,
 		isReady: () => true,
+		getBytes: () => Buffer.from(new Array(10)),
 	};
 };
 
