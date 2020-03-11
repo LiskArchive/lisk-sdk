@@ -64,7 +64,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
@@ -91,7 +90,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
@@ -118,7 +116,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
@@ -145,7 +142,6 @@ describe('#sign multi signature transaction', () => {
 						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 					],
-					numberOfSignatures: 4,
 				},
 			});
 
