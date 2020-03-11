@@ -45,7 +45,7 @@ const getTransactionInput = async (): Promise<string> => {
 };
 
 const getPassphrasesFromPrompt = async (
-	numberOfPassphrases: number | undefined = 1,
+	numberOfPassphrases: number = 1,
 ): Promise<ReadonlyArray<string>> => {
 	const passphrases = [];
 	// tslint:disable-next-line: no-let
@@ -72,11 +72,11 @@ export default class SignCommand extends BaseCommand {
 	static examples = [
 		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\'',
 		'\n',
-		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-signatures=2 --number-of-passphrases=2',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-passphrases=2',
 		'\n',
-		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","signatures":["a3cc97079e17bdd158526"],"asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-signatures=2 --passphrase="inherit moon normal relief spring"',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","signatures":["a3cc97079e17bdd158526"],"asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --passphrase="inherit moon normal relief spring"',
 		'\n',
-		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-signatures=2 --passphrase="inherit moon normal relief spring" --passphrase="wear protect skill sentence"',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --passphrase="inherit moon normal relief spring" --passphrase="wear protect skill sentence"',
 	];
 
 	static flags = {
@@ -90,7 +90,6 @@ export default class SignCommand extends BaseCommand {
 			...commonFlags.optionalKey,
 			multiple: true,
 		}),
-		'number-of-signatures': flagParser.integer(commonFlags.numberOfSignatures),
 		passphrase: flagParser.string({
 			...commonFlags.passphrase,
 			multiple: true,
@@ -109,7 +108,6 @@ export default class SignCommand extends BaseCommand {
 				passphrase: passphraseSource,
 				'mandatory-key': mandatoryKeys,
 				'optional-key': optionalKeys,
-				'number-of-signatures': numberOfSignatures,
 				'number-of-passphrases': numberOfPassphrases,
 			},
 		} = this.parse(SignCommand);
@@ -133,7 +131,6 @@ export default class SignCommand extends BaseCommand {
 		const keys = {
 			mandatoryKeys,
 			optionalKeys,
-			numberOfSignatures,
 		} as {
 			readonly mandatoryKeys: Array<Readonly<string>>;
 			readonly optionalKeys: Array<Readonly<string>>;

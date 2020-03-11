@@ -182,7 +182,7 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --mandatory-key=bbb --number-of-signature=2 --number-of-passphrases=2', () => {
+	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --mandatory-key=bbb --number-of-passphrases=2', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
@@ -191,7 +191,6 @@ describe('transaction:sign', () => {
 				`--passphrase=${anotherUserPassphrase}`,
 				`--mandatory-key=${KeyOne}`,
 				`--mandatory-key=${KeyTwo}`,
-				`--number-of-signature=2`,
 				`--number-of-passphrases=2`,
 			])
 			.catch(error => {
@@ -204,14 +203,13 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=xxx --mandatory-key=aaa --number-of-signature=2', () => {
+	describe('transaction:sign transaction --passphrase=xxx --mandatory-key=aaa', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
 				JSON.stringify(signedTransaction),
 				`--passphrase=${anotherUserPassphrase}`,
 				`--mandatory-key=${KeyOne}`,
-				`--number-of-signature=2`,
 			])
 			.catch(error => {
 				return expect(error.message).to.contain('Cannot read property');
@@ -219,14 +217,13 @@ describe('transaction:sign', () => {
 			.it('should throw error when optionalKey flag is missing');
 	});
 
-	describe('transaction:sign transaction --passphrase=xxx --optional-key=aaa --number-of-signature=2', () => {
+	describe('transaction:sign transaction --passphrase=xxx --optional-key=aaa', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
 				JSON.stringify(signedTransaction),
 				`--passphrase=${anotherUserPassphrase}`,
 				`--optional-key=${KeyOne}`,
-				`--number-of-signature=2`,
 			])
 			.catch(error => {
 				return expect(error.message).to.contain('Cannot read property');
@@ -234,7 +231,7 @@ describe('transaction:sign', () => {
 			.it('should throw error when mandatoryKey flag is missing');
 	});
 
-	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-signature=2', () => {
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
@@ -242,7 +239,6 @@ describe('transaction:sign', () => {
 				`--passphrase=${anotherUserPassphrase}`,
 				`--mandatory-key=${mandatoryKey}`,
 				`--optional-key=${optionalKey}`,
-				`--number-of-signature=2`,
 			])
 			.it(
 				'should take transaction from arg to and passphrase, mandatoryKey, optionalKey and numberOfSignature to sign',
@@ -255,14 +251,13 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-signature=2', () => {
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
 				JSON.stringify(signedTransaction),
 				`--mandatory-key=${mandatoryKey}`,
 				`--optional-key=${optionalKey}`,
-				`--number-of-signature=2`,
 				`--number-of-passphrases=2`,
 			])
 			.it(
