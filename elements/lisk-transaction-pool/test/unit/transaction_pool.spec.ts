@@ -237,4 +237,66 @@ describe('TransactionList class', () => {
 			expect(status).toEqual(false);
 		});
 	});
+
+	describe('removeTransaction', () => {
+		let txGetBytesStub: any;
+		const tx = {
+			id: '1',
+			nonce: BigInt(1),
+			minFee: BigInt(10),
+			fee: BigInt(1000),
+			senderPublicKey: generateRandomPublicKeys()[0],
+		} as Transaction;
+
+		txGetBytesStub = jest.fn();
+		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+
+		it('should return false when a tx id does not exist', async () => {
+			const addStatus = await transactionPool.addTransaction(tx);
+			expect(addStatus).toEqual(true);
+			expect(transactionPool.getAllTransactions().length).toEqual(1);
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(tx.nonce),
+			).toEqual(tx);
+			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
+
+			// Remove a transaction that does not exist
+			const nonExistentTrx = {
+				id: '155',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+			const removeStatus = transactionPool.removeTransaction(nonExistentTrx);
+			expect(removeStatus).toEqual(false);
+		});
+
+		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', async () => {
+			const addStatus = await transactionPool.addTransaction(tx);
+			expect(addStatus).toEqual(true);
+			expect(transactionPool.getAllTransactions().length).toEqual(1);
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(tx.nonce),
+			).toEqual(tx);
+			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
+
+			// Remove the above transaction
+			const removeStatus = transactionPool.removeTransaction(tx);
+			expect(removeStatus).toEqual(true);
+			expect(transactionPool.getAllTransactions().length).toEqual(0);
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(tx.nonce),
+			).toEqual(undefined);
+			expect(
+				transactionPool['_feePriorityQueue'].values.includes(tx.id),
+			).toEqual(false);
+		});
+	});
 });
