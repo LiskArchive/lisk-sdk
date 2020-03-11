@@ -186,10 +186,13 @@ export class TransactionPool {
 
 		// Remove from feePriorityQueue
 		this._feePriorityQueue.clear();
-		for (const node of this._feePriorityQueue.getAllNodes()) {
-			if (node.value !== foundTx.id) {
-				this._feePriorityQueue.push(node.key, node.value);
-			}
+		for (const txObject of this.getAllTransactions()) {
+			this._feePriorityQueue.push(
+				txObject.feePriority
+					? txObject.feePriority
+					: this._calculateFeePriority(txObject),
+				txObject.id,
+			);
 		}
 
 		return true;

@@ -75,10 +75,6 @@ export class MinHeap<T, K = bigint | number> {
 		return this._nodes.map(n => n.value);
 	}
 
-	public getAllNodes(): ReadonlyArray<Node<T, K>> {
-		return [...this._nodes];
-	}
-
 	private _insertAll(heap: MinHeap<T, K>): void {
 		if (!(heap instanceof MinHeap)) {
 			throw new Error('Only heap instance can be inserted');
