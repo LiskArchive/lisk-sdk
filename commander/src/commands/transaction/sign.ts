@@ -45,7 +45,7 @@ const getTransactionInput = async (): Promise<string> => {
 };
 
 const getPassphrasesFromPrompt = async (
-	numberOfPassphrases: number = 1,
+	numberOfPassphrases: number | undefined = 1,
 ): Promise<ReadonlyArray<string>> => {
 	const passphrases = [];
 	// tslint:disable-next-line: no-let
@@ -70,9 +70,13 @@ export default class SignCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:sign \'{"id":"17528738200145418850","type":8,"senderPublicKey":"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f","nonce":"1","fee":"100000000","asset":{"data":"{"liskhq":"zug"}","amount":"100000000000","recipientId":"5553317242494141914L"}}\'',
-		'transaction:sign \'{"id":"17528738200145418850","type":8,"senderPublicKey":"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f","nonce":"1","fee":"100000000","asset":{"data":"{"liskhq":"zug"}","amount":"100000000000","recipientId":"5553317242494141914L"}}\' --mandatory-key=215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca --optional-key=922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --number-of-signatures=2 --number-of-passphrases=2',
-		'transaction:sign \'{"id":"17528738200145418850","type":8,"senderPublicKey":"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f","nonce":"1","fee":"100000000","asset":{"data":"{"liskhq":"zug"}","amount":"100000000000","recipientId":"5553317242494141914L"}}\' --mandatory-key=215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca --optional-key=922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --number-of-signatures=2 --passphrase="inherit moon normal relief spring bargain hobby join baby flash fog blood" --passphrase="wear protect skill sentence lift enter wild sting lottery power floor neglect"',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\'',
+		'\n',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-signatures=2 --number-of-passphrases=2',
+		'\n',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","signatures":["a3cc97079e17bdd158526"],"asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-signatures=2 --passphrase="inherit moon normal relief spring"',
+		'\n',
+		'transaction:sign \'{"type":8,"senderPublicKey":"c094ebee7ec0","nonce":"1","fee":"1000","asset":{"amount":"100","recipientId":"555331L"}}\' --mandatory-key=215b667a32a5cd51a94 --optional-key=922fbfdd596fa78269bbcadc67e --number-of-signatures=2 --passphrase="inherit moon normal relief spring" --passphrase="wear protect skill sentence"',
 	];
 
 	static flags = {
@@ -114,8 +118,7 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 		const passphrase =
-			passphraseSource ??
-			(await getPassphrasesFromPrompt(numberOfPassphrases as number));
+			passphraseSource ?? (await getPassphrasesFromPrompt(numberOfPassphrases));
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
@@ -126,17 +129,16 @@ export default class SignCommand extends BaseCommand {
 			networkIdentifier,
 		});
 
-		interface Keys {
-			readonly mandatoryKeys: Array<Readonly<string>>;
-			readonly optionalKeys: Array<Readonly<string>>;
-			readonly numberOfSignatures: number;
-		}
-
-		const keys = ({
+		// tslint:disable-next-line: no-object-literal-type-assertion
+		const keys = {
 			mandatoryKeys,
 			optionalKeys,
 			numberOfSignatures,
-		} as unknown) as Keys;
+		} as {
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
+			readonly numberOfSignatures: number;
+		};
 
 		if (mandatoryKeys?.length || optionalKeys?.length) {
 			// Sign for multi signature transaction
