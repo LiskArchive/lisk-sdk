@@ -31,7 +31,6 @@ export interface RegisterDelegateInputs {
 	readonly keys?: {
 		readonly mandatoryKeys: Array<Readonly<string>>;
 		readonly optionalKeys: Array<Readonly<string>>;
-		readonly numberOfSignatures: number;
 	};
 }
 

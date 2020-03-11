@@ -408,7 +408,6 @@ export abstract class BaseTransaction {
 		keys?: {
 			readonly mandatoryKeys: Array<Readonly<string>>;
 			readonly optionalKeys: Array<Readonly<string>>;
-			readonly numberOfSignatures: number;
 		},
 	): void {
 		if (!this._networkIdentifier && !networkIdentifier) {

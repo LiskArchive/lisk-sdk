@@ -117,7 +117,6 @@ describe('#registerDelegate transaction', () => {
 				keys: {
 					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
 					optionalKeys: [],
-					numberOfSignatures: secondSignatureAccount.asset.numberOfSignatures,
 				},
 			});
 
@@ -153,7 +152,6 @@ describe('#registerDelegate transaction', () => {
 				keys: {
 					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
 					optionalKeys: [],
-					numberOfSignatures: secondSignatureAccount.asset.numberOfSignatures,
 				},
 			});
 
@@ -185,7 +183,6 @@ describe('#registerDelegate transaction', () => {
 				keys: {
 					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
 					optionalKeys: [],
-					numberOfSignatures: secondSignatureAccount.asset.numberOfSignatures,
 				},
 			});
 

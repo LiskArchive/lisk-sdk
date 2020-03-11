@@ -187,7 +187,6 @@ describe('#transfer transaction', () => {
 				keys: {
 					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
 					optionalKeys: [],
-					numberOfSignatures: secondSignatureAccount.asset.numberOfSignatures,
 				},
 			});
 
@@ -224,7 +223,6 @@ describe('#transfer transaction', () => {
 				keys: {
 					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
 					optionalKeys: [],
-					numberOfSignatures: secondSignatureAccount.asset.numberOfSignatures,
 				},
 			});
 
@@ -257,7 +255,6 @@ describe('#transfer transaction', () => {
 				keys: {
 					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
 					optionalKeys: [],
-					numberOfSignatures: secondSignatureAccount.asset.numberOfSignatures,
 				},
 			});
 

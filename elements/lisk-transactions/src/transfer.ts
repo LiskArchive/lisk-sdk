@@ -41,7 +41,6 @@ export interface TransferInputs {
 	readonly keys?: {
 		readonly mandatoryKeys: Array<Readonly<string>>;
 		readonly optionalKeys: Array<Readonly<string>>;
-		readonly numberOfSignatures: number;
 	};
 }
 
