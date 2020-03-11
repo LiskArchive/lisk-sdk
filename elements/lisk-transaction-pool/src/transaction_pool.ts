@@ -151,6 +151,22 @@ export class TransactionPool {
 			);
 		}
 
+		/* 
+			Evict transactions if pool is full 
+				1. Evict unprocessable by fee priority
+				2. Evict processable by fee priority and highest nonce
+		*/
+		const exceededTransactionsCount =
+			Object.keys(this._allTransactions).length - this._maxTransactions;
+
+		if (exceededTransactionsCount > 0) {
+			const isEvicted = this._evictUnprocessable();
+
+			if (!isEvicted) {
+				this._evictProcessable();
+			}
+		}
+
 		// Add address of incoming trx if it doesn't exist in transaction list
 		if (!this._transactionList[incomingTxAddress]) {
 			this._transactionList[incomingTxAddress] = new TransactionList(
@@ -238,6 +254,55 @@ export class TransactionPool {
 		return TransactionStatus.INVALID;
 	}
 
+	private _evictUnprocessable(): boolean {
+		const unprocessableFeePriorityHeap = new MinHeap<number, Transaction>();
+
+		// Loop through tx lists and push unprocessable tx to fee priority heap
+		for (const txList of Object.values(this._transactionList)) {
+			const unprocessableTransactions = txList.getUnprocessable();
+
+			for (const unprocessableTx of unprocessableTransactions) {
+				unprocessableFeePriorityHeap.push(
+					unprocessableTx,
+					unprocessableTx.feePriority,
+				);
+			}
+		}
+
+		if (unprocessableFeePriorityHeap.count < 1) {
+			return false;
+		}
+
+		const evictedTransaction = unprocessableFeePriorityHeap.pop();
+
+		return this.removeTransaction(evictedTransaction?.key as Transaction);
+	}
+
+	private _evictProcessable(): boolean {
+		const processableFeePriorityHeap = new MinHeap<number, Transaction>();
+		// Loop through tx lists and push processable tx to fee priority heap
+		for (const txList of Object.values(this._transactionList)) {
+			// Push highest nonce tx to processable fee priorty heap
+			const processableTransactions = txList.getProcessable();
+			const processableTransactionWithHighestNonce =
+				processableTransactions[processableTransactions.length - 1];
+			if (processableTransactions.length) {
+				processableFeePriorityHeap.push(
+					processableTransactionWithHighestNonce,
+					processableTransactionWithHighestNonce.feePriority,
+				);
+			}
+		}
+
+		if (processableFeePriorityHeap.count < 1) {
+			return false;
+		}
+
+		const evictedTransaction = processableFeePriorityHeap.pop();
+
+		return this.removeTransaction(evictedTransaction?.key as Transaction);
+	}
+
 	private async _reorganize(): Promise<void> {
 		/* 
 			Promote transactions and remove invalid and subsequent transactions by nonce
@@ -282,74 +347,6 @@ export class TransactionPool {
 					if (tx.nonce >= invalidTransaction.nonce) {
 						this.removeTransaction(tx);
 					}
-				}
-			}
-		}
-
-		/* 
-			Evict transactions if pool is full 
-				1. Evict unprocessable by fee priority
-				2. Evict processable by fee priority and highest nonce
-		*/
-		const exceededTransactionsCount =
-			Object.keys(this._allTransactions).length - this._maxTransactions;
-
-		if (exceededTransactionsCount > 0) {
-			let evictedTransactionsCount = 0;
-			const unprocessableFeePriorityHeap = new MinHeap<number, Transaction>();
-
-			// Loop through tx lists and push unprocessable tx to fee priority heap
-			for (const txList of Object.values(this._transactionList)) {
-				const unprocessableTransactions = txList.getUnprocessable();
-
-				for (const unprocessableTx of unprocessableTransactions) {
-					unprocessableFeePriorityHeap.push(
-						unprocessableTx,
-						unprocessableTx.feePriority,
-					);
-				}
-			}
-
-			// Evict unprocessable transactions by fee priority
-			while (
-				evictedTransactionsCount < exceededTransactionsCount &&
-				unprocessableFeePriorityHeap.count
-			) {
-				const evictedTransaction = unprocessableFeePriorityHeap.pop();
-				evictedTransactionsCount = this.removeTransaction(
-					evictedTransaction?.key as Transaction,
-				)
-					? evictedTransactionsCount + 1
-					: evictedTransactionsCount;
-			}
-
-			// Evict processable by fee priority and highest nonce
-			while (evictedTransactionsCount < exceededTransactionsCount) {
-				const processableFeePriorityHeap = new MinHeap<number, Transaction>();
-				// Create fee priority heap with highest nonce tx from each tx list
-				for (const txList of Object.values(this._transactionList)) {
-					// Push highest nonce tx to processable fee priorty heap
-					const processableTransactions = txList.getProcessable();
-					const processableTransactionWithHighestNonce =
-						processableTransactions[processableTransactions.length - 1];
-					if (processableTransactions.length) {
-						processableFeePriorityHeap.push(
-							processableTransactionWithHighestNonce,
-							processableTransactionWithHighestNonce.feePriority,
-						);
-					}
-				}
-
-				while (
-					evictedTransactionsCount < exceededTransactionsCount &&
-					processableFeePriorityHeap.count
-				) {
-					const evictedTransaction = processableFeePriorityHeap.pop();
-					evictedTransactionsCount = this.removeTransaction(
-						evictedTransaction?.key as Transaction,
-					)
-						? evictedTransactionsCount + 1
-						: evictedTransactionsCount;
 				}
 			}
 		}
