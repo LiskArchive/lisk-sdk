@@ -20,6 +20,8 @@ const {
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
 
+const { HighFeeForgingStrategy } = require('./strategies');
+
 const getDelegateKeypairForCurrentSlot = async (
 	dposModule,
 	keypairs,
@@ -52,6 +54,7 @@ class Forger {
 		chainModule,
 		// constants
 		activeDelegates,
+		maxPayloadLength,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
@@ -70,6 +73,7 @@ class Forger {
 		};
 		this.constants = {
 			activeDelegates,
+			maxPayloadLength,
 		};
 
 		this.processorModule = processorModule;
@@ -77,7 +81,14 @@ class Forger {
 		this.transactionPoolModule = transactionPoolModule;
 		this.chainModule = chainModule;
 
-		this.forgingStrategy = forgingStrategy;
+		this.forgingStrategy =
+			forgingStrategy ||
+			new HighFeeForgingStrategy({
+				logger: this.logger,
+				transactionPoolModule: this.transactionPoolModule,
+				chainModule: this.chainModule,
+				maxPayloadLength: this.constants.maxPayloadLength,
+			});
 	}
 
 	// eslint-disable-next-line class-methods-use-this

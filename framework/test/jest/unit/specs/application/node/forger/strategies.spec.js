@@ -25,7 +25,7 @@ const {
 	maxPayloadSkipHighByte,
 	invalidTxCase,
 	allInvalidCase,
-} = require('./forging_specs');
+} = require('./forging_fixtures');
 
 const getTxMock = (
 	{ id, senderId, nonce, fee, bytes = 0, basicBytes = 0, valid = true } = {},
@@ -55,7 +55,7 @@ const getTxMock = (
 };
 
 const buildProcessableTxMock = (input, chainMock) => {
-	return input
+	const result = input
 		.map(tx => {
 			return getTxMock(tx, chainMock);
 		})
@@ -68,6 +68,13 @@ const buildProcessableTxMock = (input, chainMock) => {
 
 			return res;
 		}, {});
+
+	for (const senderId of Object.keys(result)) {
+		// Ascending sort by nonce
+		result[senderId] = result[senderId].sort((a, b) => a.nonce > b.nonce);
+	}
+
+	return result;
 };
 
 describe('strategies', () => {
