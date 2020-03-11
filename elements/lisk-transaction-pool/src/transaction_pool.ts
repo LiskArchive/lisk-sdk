@@ -86,12 +86,8 @@ export class TransactionPool {
 		);
 		// FIXME: This is log to supress ts build error
 		console.log(
-			this._applyFunction,
-			this._allTransactions,
-			this._maxTransactions,
 			this._transactionExpiryTime,
 			this._maxTransactionsPerAccount,
-			this._minEntranceFeePriority,
 			this._minReplacementFeeDifference,
 		);
 	}
@@ -132,7 +128,7 @@ export class TransactionPool {
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
 		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
 		if (
-			Object.keys(this._allTransactions).length === this._maxTransactions &&
+			Object.keys(this._allTransactions).length > this._maxTransactions &&
 			lowestFeePriorityTrx &&
 			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
