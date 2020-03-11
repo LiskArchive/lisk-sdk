@@ -221,9 +221,7 @@ class Synchronizer {
 			try {
 				/* eslint-disable-next-line */
 				transaction.bundled = true;
-				await this.transactionPoolModule.processUnconfirmedTransaction(
-					transaction,
-				);
+				await this.transactionPoolModule.addTransaction(transaction);
 			} catch (error) {
 				this.logger.error(error);
 				throw error;

@@ -24,13 +24,10 @@ const {
 } = require('@liskhq/lisk-dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+const { TransactionPool } = require('@liskhq/lisk-transaction-pool');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const jobQueue = require('./utils/jobs_queue');
-const {
-	TransactionPool,
-	EVENT_UNCONFIRMED_TRANSACTION,
-} = require('./transaction_pool');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -382,17 +379,25 @@ module.exports = class Node {
 			blockTime: this.options.constants.blockTime,
 		});
 
+		this.transactionPool = new TransactionPool({
+			logger: this.logger,
+			chain: this.chain,
+			exceptions: this.options.exceptions,
+			maxTransactionsPerQueue: this.options.transactions
+				.maxTransactionsPerQueue,
+			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
+			maxTransactionsPerBlock: this.options.constants
+				.MAX_TRANSACTIONS_PER_BLOCK,
+			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+			broadcastInterval: this.options.broadcasts.broadcastInterval,
+			releaseLimit: this.options.broadcasts.releaseLimit,
+		});
+		this.modules.transactionPool = this.transactionPool;
+
 		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
 			const { block } = eventData;
 			// Publish to the outside
 			this.channel.publish('app:newBlock', eventData);
-
-			// Remove any transactions from the pool on new block
-			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(
-					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
-				);
-			}
 
 			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
 				this.channel.invoke('app:updateApplicationState', {
@@ -486,19 +491,6 @@ module.exports = class Node {
 		});
 
 		this.modules.chain = this.chain;
-		this.transactionPool = new TransactionPool({
-			logger: this.logger,
-			chain: this.chain,
-			exceptions: this.options.exceptions,
-			maxTransactionsPerQueue: this.options.transactions
-				.maxTransactionsPerQueue,
-			expireTransactionsInterval: this.options.constants.expiryInterval,
-			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
-			maxSharedTransactions: this.options.constants.maxSharedTransactions,
-			broadcastInterval: this.options.broadcasts.broadcastInterval,
-			releaseLimit: this.options.broadcasts.releaseLimit,
-		});
-		this.modules.transactionPool = this.transactionPool;
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
@@ -595,14 +587,6 @@ module.exports = class Node {
 				});
 			},
 		);
-
-		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
-			this.logger.trace(
-				{ transactionId: transaction.id },
-				'Received EVENT_UNCONFIRMED_TRANSACTION',
-			);
-			this.transport.handleBroadcastTransaction(transaction);
-		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });
