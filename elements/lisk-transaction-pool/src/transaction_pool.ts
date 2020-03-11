@@ -45,6 +45,8 @@ export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(1);
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in ms
 // tslint:disable-next-line no-magic-numbers
+export const DEFAULT_EXPIRE_INTERVAL = 60 * 60 * 1000; // 1 hour in ms
+// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 export const DEFAULT_REORGANIZE_TIME = 500;
 
@@ -63,6 +65,7 @@ export class TransactionPool {
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: MinHeap<string, bigint>;
+	private readonly _expireJob: Job<void>;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
@@ -84,16 +87,20 @@ export class TransactionPool {
 			() => this._reorganize(),
 			DEFAULT_REORGANIZE_TIME,
 		);
+		this._expireJob = new Job(() => this._expire(), DEFAULT_EXPIRE_TIME);
+
 		// FIXME: This is log to supress ts build error
 		console.log(this._transactionExpiryTime);
 	}
 
 	public async start(): Promise<void> {
 		await this._reorganizeJob.start();
+		await this._expireJob.start();
 	}
 
 	public stop(): void {
 		this._reorganizeJob.stop();
+		this._expireJob.stop();
 	}
 
 	public getAllTransactions(): ReadonlyArray<Transaction> {
@@ -230,13 +237,12 @@ export class TransactionPool {
 
 		return TransactionStatus.INVALID;
 	}
-	
+
 	private async _reorganize(): Promise<void> {
 		/* 
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
-		for (const address in this._transactionList) {
-			const txList = this._transactionList[address];
+		for (const txList of Object.values(this._transactionList)) {
 			const allSortedTransactionsInList = txList.getAll();
 			const promotableTransactions = txList.getPromotable();
 
@@ -274,7 +280,7 @@ export class TransactionPool {
 			if (invalidTransaction) {
 				for (const tx of allSortedTransactionsInList) {
 					if (tx.nonce >= invalidTransaction.nonce) {
-						txList.remove(tx.nonce);
+						this.removeTransaction(tx);
 					}
 				}
 			}
@@ -293,8 +299,7 @@ export class TransactionPool {
 			const unprocessableFeePriorityHeap = new MinHeap<number, Transaction>();
 
 			// Loop through tx lists and push unprocessable tx to fee priority heap
-			for (const address in this._transactionList) {
-				const txList = this._transactionList[address];
+			for (const txList of Object.values(this._transactionList)) {
 				const unprocessableTransactions = txList.getUnprocessable();
 
 				for (const unprocessableTx of unprocessableTransactions) {
@@ -322,8 +327,7 @@ export class TransactionPool {
 			while (evictedTransactionsCount < exceededTransactionsCount) {
 				const processableFeePriorityHeap = new MinHeap<number, Transaction>();
 				// Create fee priority heap with highest nonce tx from each tx list
-				for (const address in this._transactionList) {
-					const txList = this._transactionList[address];
+				for (const txList of Object.values(this._transactionList)) {
 					// Push highest nonce tx to processable fee priorty heap
 					const processableTransactions = txList.getProcessable();
 					const processableTransactionWithHighestNonce =
@@ -347,6 +351,20 @@ export class TransactionPool {
 						? evictedTransactionsCount + 1
 						: evictedTransactionsCount;
 				}
+			}
+		}
+	}
+
+	private async _expire(): Promise<void> {
+		for (const transaction of Object.values(this._allTransactions)) {
+			const timeDifference = Math.round(
+				Math.abs(
+					(transaction.receivedAt as Date).getTime() - new Date().getTime(),
+				),
+			);
+
+			if (timeDifference > DEFAULT_EXPIRY_TIME) {
+				this.removeTransaction(transaction);
 			}
 		}
 	}
