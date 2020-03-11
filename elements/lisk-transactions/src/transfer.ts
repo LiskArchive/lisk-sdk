@@ -126,7 +126,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		...createBaseTransaction(inputs),
 		type: 8,
 		// For txs from multisig senderPublicKey must be set before attempting signing
-		senderPublicKey: senderPublicKey ? senderPublicKey : undefined,
+		senderPublicKey,
 		asset: {
 			amount,
 			recipientId: recipientId as string,

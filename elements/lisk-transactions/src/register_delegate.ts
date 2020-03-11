@@ -69,7 +69,7 @@ export const registerDelegate = (
 		...createBaseTransaction(inputs),
 		type: 10,
 		// For txs from multisig senderPublicKey must be set before attempting signing
-		senderPublicKey: senderPublicKey ? senderPublicKey : undefined,
+		senderPublicKey,
 		asset: { username },
 		networkIdentifier,
 	};
