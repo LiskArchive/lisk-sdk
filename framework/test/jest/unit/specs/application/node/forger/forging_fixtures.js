@@ -27,10 +27,10 @@ const allValidCase = {
 	},
 	output: [
 		{ id: 5, senderId: 'C', fee: 3, nonce: 1 },
-		{ id: 1, senderId: 'A', fee: 1, nonce: 1 },
-		{ id: 2, senderId: 'A', fee: 2, nonce: 2 },
 		{ id: 3, senderId: 'B', fee: 1, nonce: 1 },
 		{ id: 4, senderId: 'B', fee: 2, nonce: 2 },
+		{ id: 1, senderId: 'A', fee: 1, nonce: 1 },
+		{ id: 2, senderId: 'A', fee: 2, nonce: 2 },
 	],
 };
 
@@ -47,9 +47,9 @@ const maxPayloadLengthCase = {
 	},
 	output: [
 		{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300 },
-		{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 300 },
-		{ id: 2, senderId: 'A', fee: 2, nonce: 2, bytes: 200 },
 		{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200 },
+		{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100 },
+		{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 300 },
 	],
 };
 

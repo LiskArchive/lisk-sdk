@@ -17,6 +17,17 @@
 const { MaxHeap } = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
+const createFeePriorityHeap = transactionsBySender => {
+	const feePriorityHeap = new MaxHeap();
+
+	for (const senderId of Object.keys(transactionsBySender)) {
+		const lowestNonceTrx = transactionsBySender[senderId][0];
+		feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
+	}
+
+	return feePriorityHeap;
+};
+
 class HighFeeForgingStrategy {
 	constructor({
 		// components
@@ -38,9 +49,6 @@ class HighFeeForgingStrategy {
 		// Initialize array to select transactions
 		const readyTransactions = [];
 
-		// Initialize block size with 0
-		let blockPayloadSize = 0;
-
 		// Initialize state store which will be discarded after selection
 		const stateStore = this.chainModule.newStateStore();
 
@@ -48,16 +56,12 @@ class HighFeeForgingStrategy {
 		// transactions are sorted by lowest nonce per account
 		const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
 
+		// Initialize block size with 0
+		let blockPayloadSize = 0;
+		let feePriorityHeap = createFeePriorityHeap(transactionsBySender);
+
 		// Loop till we have last account exhausted to pick transactions
 		while (Object.keys(transactionsBySender).length !== 0) {
-			const feePriorityHeap = new MaxHeap();
-
-			// Prepare max heap for high fee priority for lowest nonce of all available accounts
-			for (const senderId of Object.keys(transactionsBySender)) {
-				const lowestNonceTrx = transactionsBySender[senderId][0];
-				feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
-			}
-
 			// Get the transaction with highest fee and lowest nonce
 			const lowestNonceHighestFeeTrx = feePriorityHeap.pop().value;
 
@@ -71,7 +75,7 @@ class HighFeeForgingStrategy {
 			// from that account as other transactions will be higher nonce
 			if (result.transactionsResponses[0].status !== TransactionStatus.OK) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
-
+				feePriorityHeap = createFeePriorityHeap(transactionsBySender);
 				// eslint-disable-next-line no-continue
 				continue;
 			}
@@ -82,14 +86,18 @@ class HighFeeForgingStrategy {
 			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
 			if (blockPayloadSize + trsByteSize > this.constants.maxPayloadLength) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
+				feePriorityHeap = createFeePriorityHeap(transactionsBySender);
 				// eslint-disable-next-line no-continue
 				continue;
 			}
 
-			// Select transaction, increase block size and remove that transaction from sender array
+			// Select transaction as ready for forging
 			readyTransactions.push(lowestNonceHighestFeeTrx);
+
+			// Increase block size with updated transaction size
 			blockPayloadSize += trsByteSize;
 
+			// Remove the selected transaction from the list
 			// as original array is readonly in future when we convert it to
 			// typescript the `splice` will not work so why used destruction
 			const [, ...choppedArray] = transactionsBySender[
@@ -103,7 +111,18 @@ class HighFeeForgingStrategy {
 				transactionsBySender[lowestNonceHighestFeeTrx.senderId].length === 0
 			) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
+
+				// eslint-disable-next-line no-continue
+				continue;
 			}
+
+			// Pick next lowest transaction from same account and push to fee queue
+			const nextLowestNonceTransaction =
+				transactionsBySender[lowestNonceHighestFeeTrx.senderId][0];
+			feePriorityHeap.push(
+				nextLowestNonceTransaction.fee,
+				nextLowestNonceTransaction,
+			);
 		}
 
 		return readyTransactions;
