@@ -82,11 +82,15 @@ export const registerDelegate = (
 
 	if (passphrase) {
 		delegateTransaction.sign(networkIdentifier, passphrase);
+
+		return delegateTransaction.toJSON();
 	}
 
 	if (passphrases && keys) {
 		delegateTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+
+		return delegateTransaction.toJSON();
 	}
 
-	return delegateTransaction.toJSON();
+	return transaction;
 };
