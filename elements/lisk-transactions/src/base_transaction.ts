@@ -419,7 +419,9 @@ export abstract class BaseTransaction {
 			this._networkIdentifier = networkIdentifier;
 		}
 
-		// Check senderPublicKey
+		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+
+		// If senderPassphrase is passed in assume only one signature required
 		if (senderPassphrase) {
 			const { publicKey } = getAddressAndPublicKeyFromPassphrase(
 				senderPassphrase,
@@ -432,16 +434,12 @@ export abstract class BaseTransaction {
 			}
 
 			this.senderPublicKey = publicKey;
-		}
 
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			this.getBasicBytes(),
-		]);
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifierBytes,
+				this.getBasicBytes(),
+			]);
 
-		// If senderPassphrase is passed in assume only one signature required
-		if (senderPassphrase) {
 			const signature = signData(
 				hash(transactionWithNetworkIdentifierBytes),
 				senderPassphrase,
@@ -455,6 +453,17 @@ export abstract class BaseTransaction {
 		}
 
 		if (passphrases && keys) {
+			if (!this.senderPublicKey) {
+				throw new Error(
+					'Transaction senderPublicKey needs to be set befor signing',
+				);
+			}
+
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifierBytes,
+				this.getBasicBytes(),
+			]);
+
 			const keysAndPassphrases = buildPublicKeyPassphraseDict(passphrases);
 			sortKeysAscending(keys.mandatoryKeys);
 			sortKeysAscending(keys.optionalKeys);
