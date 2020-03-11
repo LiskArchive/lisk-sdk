@@ -154,11 +154,15 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 
 	if (passphrase) {
 		transferTransaction.sign(networkIdentifier, passphrase);
+
+		return transferTransaction.toJSON();
 	}
 
 	if (passphrases && keys) {
 		transferTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+
+		return transferTransaction.toJSON();
 	}
 
-	return transferTransaction.toJSON();
+	return transaction;
 };
