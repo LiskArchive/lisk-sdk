@@ -35,12 +35,12 @@ describe('transaction:sign', () => {
 	const invalidTransaction = 'invalid transaction';
 	const firstPassphrase =
 		'wear protect skill sentence lift enter wild sting lottery power floor neglect';
-	const secondPassphrase =
+	const anotherUserPassphrase =
 		'inherit moon normal relief spring bargain hobby join baby flash fog blood';
 	const KeyOne =
 		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 	const KeyTwo =
-		'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8';
+		'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
@@ -50,6 +50,47 @@ describe('transaction:sign', () => {
 		],
 		id: '10364209962572784824',
 	};
+
+	const signedTransaction = {
+		id: '17223119605214098703',
+		type: 8,
+		senderPublicKey:
+			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
+		nonce: '1',
+		fee: '100000000',
+		signatures: [
+			'a3cc97079e17bdd15852695faf8af7bbcb167f5ddd9f96c129f60afa252911a30c8db42d5d2a60648947082097c79cb966c7f0b267842b27397b59a92af11c05',
+		],
+		asset: {
+			data: '{"lisk":"zug"}',
+			amount: '100000000000',
+			recipientId: '5553317242494141914L',
+		},
+	};
+
+	const expectedMultiSignedTransaction = {
+		id: '13203830993805353722',
+		type: 8,
+		senderPublicKey:
+			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
+		senderId: '5553317242494141914L',
+		nonce: '1',
+		fee: '100000000',
+		signatures: [
+			'a3cc97079e17bdd15852695faf8af7bbcb167f5ddd9f96c129f60afa252911a30c8db42d5d2a60648947082097c79cb966c7f0b267842b27397b59a92af11c05',
+			'984c703b9766c9c72a4d68a54d24c14e75b682dc0a8f31fc0b7aa49a876a91abd265d46d7e8dc25219f3dc9e7c3c0cc015639067093b5a2db48f311cb1e0bf06',
+		],
+		asset: {
+			data: '{"lisk":"zug"}',
+			amount: '100000000000',
+			recipientId: '5553317242494141914L',
+		},
+	};
+
+	const mandatoryKey =
+		'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba';
+	const optionalKey =
+		'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
@@ -67,7 +108,7 @@ describe('transaction:sign', () => {
 					.stub()
 					.resolves(firstPassphrase)
 					.onSecondCall()
-					.resolves(secondPassphrase),
+					.resolves(anotherUserPassphrase),
 			)
 			.stdout();
 
@@ -147,7 +188,7 @@ describe('transaction:sign', () => {
 				'transaction:sign',
 				JSON.stringify(defaultTransaction),
 				`--passphrase=${firstPassphrase}`,
-				`--passphrase=${secondPassphrase}`,
+				`--passphrase=${anotherUserPassphrase}`,
 				`--mandatory-key=${KeyOne}`,
 				`--mandatory-key=${KeyTwo}`,
 				`--number-of-signature=2`,
@@ -163,14 +204,28 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --optional-key=aaa --number-of-signature=2', () => {
+	describe('transaction:sign transaction --passphrase=xxx --mandatory-key=aaa --number-of-signature=2', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
-				JSON.stringify(defaultTransaction),
-				`--passphrase=${firstPassphrase}`,
-				`--passphrase=${secondPassphrase}`,
-				`--optional-key=${KeyTwo}`,
+				JSON.stringify(signedTransaction),
+				`--passphrase=${anotherUserPassphrase}`,
+				`--mandatory-key=${KeyOne}`,
+				`--number-of-signature=2`,
+			])
+			.catch(error => {
+				return expect(error.message).to.contain('Cannot read property');
+			})
+			.it('should throw error when optionalKey flag is missing');
+	});
+
+	describe('transaction:sign transaction --passphrase=xxx --optional-key=aaa --number-of-signature=2', () => {
+		setupTest()
+			.command([
+				'transaction:sign',
+				JSON.stringify(signedTransaction),
+				`--passphrase=${anotherUserPassphrase}`,
+				`--optional-key=${KeyOne}`,
 				`--number-of-signature=2`,
 			])
 			.catch(error => {
@@ -179,60 +234,14 @@ describe('transaction:sign', () => {
 			.it('should throw error when mandatoryKey flag is missing');
 	});
 
-	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --number-of-signature=2', () => {
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-signature=2', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
-				JSON.stringify(defaultTransaction),
-				`--passphrase=${firstPassphrase}`,
-				`--passphrase=${secondPassphrase}`,
-				`--mandatory-key=${KeyOne}`,
-				`--mandatory-key=${KeyTwo}`,
-				`--number-of-signature=2`,
-				`--number-of-passphrases=2`,
-			])
-			.catch(error => {
-				return expect(error.message).to.contain(
-					'--passphrase= cannot also be provided when using --number-of-passphrases=',
-				);
-			})
-			.it('should throw error when optionalKey flag is missing');
-	});
-
-	describe('transaction:sign transaction --mandatory-key=aaa --optional-key=bbb --number-of-signature=2 --number-of-passphrases=2', () => {
-		setupTest()
-			.command([
-				'transaction:sign',
-				JSON.stringify(defaultTransaction),
-				`--mandatory-key=${KeyOne}`,
-				`--optional-key=${KeyTwo}`,
-				`--number-of-signature=2`,
-				`--number-of-passphrases=2`,
-			])
-			.it(
-				'should take transaction from arg, passphrase from prompt and mandatoryKey, optionalKey and numberOfSignature to sign',
-				() => {
-					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
-						'passphrase',
-						true,
-					);
-					expect(readerUtils.getPassphraseFromPrompt).to.be.callCount(2);
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSignedTransaction,
-					);
-				},
-			);
-	});
-
-	describe('transaction:sign transaction --passphrase=xxx --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-signature=2', () => {
-		setupTest()
-			.command([
-				'transaction:sign',
-				JSON.stringify(defaultTransaction),
-				`--passphrase=${firstPassphrase}`,
-				`--passphrase=${secondPassphrase}`,
-				`--mandatory-key=${KeyOne}`,
-				`--optional-key=${KeyTwo}`,
+				JSON.stringify(signedTransaction),
+				`--passphrase=${anotherUserPassphrase}`,
+				`--mandatory-key=${mandatoryKey}`,
+				`--optional-key=${optionalKey}`,
 				`--number-of-signature=2`,
 			])
 			.it(
@@ -240,7 +249,32 @@ describe('transaction:sign', () => {
 				() => {
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultSignedTransaction,
+						expectedMultiSignedTransaction,
+					);
+				},
+			);
+	});
+
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-signature=2', () => {
+		setupTest()
+			.command([
+				'transaction:sign',
+				JSON.stringify(signedTransaction),
+				`--mandatory-key=${mandatoryKey}`,
+				`--optional-key=${optionalKey}`,
+				`--number-of-signature=2`,
+				`--number-of-passphrases=2`,
+			])
+			.it(
+				'should take transaction from arg, passphrase from prompt and rest of of the flags mandatoryKey, optionalKey and numberOfSignature to sign',
+				() => {
+					expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+						'passphrase',
+						true,
+					);
+					expect(readerUtils.getPassphraseFromPrompt).to.be.callCount(2);
+					return expect(printMethodStub).to.be.calledWithExactly(
+						expectedMultiSignedTransaction,
 					);
 				},
 			);
