@@ -17,17 +17,6 @@
 const { MaxHeap } = require('@liskhq/lisk-transaction-pool');
 const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
 
-const createFeePriorityHeap = transactionsBySender => {
-	const feePriorityHeap = new MaxHeap();
-
-	for (const senderId of Object.keys(transactionsBySender)) {
-		const lowestNonceTrx = transactionsBySender[senderId][0];
-		feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
-	}
-
-	return feePriorityHeap;
-};
-
 class HighFeeForgingStrategy {
 	constructor({
 		// components
@@ -58,7 +47,11 @@ class HighFeeForgingStrategy {
 
 		// Initialize block size with 0
 		let blockPayloadSize = 0;
-		let feePriorityHeap = createFeePriorityHeap(transactionsBySender);
+		const feePriorityHeap = new MaxHeap();
+		for (const senderId of Object.keys(transactionsBySender)) {
+			const lowestNonceTrx = transactionsBySender[senderId][0];
+			feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
+		}
 
 		// Loop till we have last account exhausted to pick transactions
 		while (Object.keys(transactionsBySender).length !== 0) {
@@ -75,7 +68,7 @@ class HighFeeForgingStrategy {
 			// from that account as other transactions will be higher nonce
 			if (result.transactionsResponses[0].status !== TransactionStatus.OK) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
-				feePriorityHeap = createFeePriorityHeap(transactionsBySender);
+
 				// eslint-disable-next-line no-continue
 				continue;
 			}
