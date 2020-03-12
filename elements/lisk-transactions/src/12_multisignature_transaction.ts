@@ -339,6 +339,16 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const { mandatoryKeys, optionalKeys } = this.asset;
 
+		// For multisig registration we need all signatures to be present
+		if (
+			mandatoryKeys.length + optionalKeys.length + 1 !==
+			this.signatures.length
+		) {
+			return createResponse(this.id, [
+				new TransactionError('There are missing signatures'),
+			]);
+		}
+
 		// Verify first signature is from senderPublicKey
 		const { valid, error } = validateSignature(
 			this.senderPublicKey,
