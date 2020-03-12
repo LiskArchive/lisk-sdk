@@ -217,11 +217,16 @@ class Transport {
 
 		const { transactionIds } = data;
 		if (!transactionIds) {
+			// Get processable transactions from pool and collect transactions across accounts
+			// Limit the transactions to send based on releaseLimit
+			const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
+			const transactions = Object.values(transactionsBySender).flat();
+			const limitedTransactions = transactions.splice(
+				this.constants.broadcasts.releaseLimit,
+			);
+
 			return {
-				transactions: this.transactionPoolModule.getMergedTransactionList(
-					true,
-					this.constants.broadcasts.releaseLimit,
-				),
+				transactions: limitedTransactions,
 			};
 		}
 
@@ -240,9 +245,7 @@ class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
-				id,
-			);
+			const transactionInPool = this.transactionPoolModule.get(id);
 
 			if (transactionInPool) {
 				transactionsFromQueues.push(transactionInPool.toJSON());
@@ -342,7 +345,7 @@ class Transport {
 	async _obtainUnknownTransactionIDs(ids) {
 		// Check if any transaction is in the queues.
 		const unknownTransactionsIDs = ids.filter(
-			id => !this.transactionPoolModule.transactionInPool(id),
+			id => !this.transactionPoolModule.contains(id),
 		);
 
 		if (unknownTransactionsIDs.length) {

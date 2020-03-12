@@ -412,7 +412,10 @@ module.exports = class Node {
 				const transactions = block.transactions
 					.reverse()
 					.map(tx => this.chain.deserializeTransaction(tx));
-				this.transactionPool.onDeletedTransactions(transactions);
+
+				transactions.forEach(transaction =>
+					this.transactionPool.addTransaction(transaction),
+				);
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },
