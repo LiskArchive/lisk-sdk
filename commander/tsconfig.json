@@ -8,6 +8,6 @@
 		"rootDir": "src",
 		"outDir": "dist"
 	},
-	"include": ["src/**/*", "types/**/*"],
+	"include": ["src/**/*"],
 	"files": ["./src/default_config.json"]
 }

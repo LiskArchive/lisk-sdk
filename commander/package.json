@@ -32,7 +32,7 @@
 		"format": "prettier --write '**/*'",
 		"lint": "tslint --config tslint.json --format codeFrame --project .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "TS_NODE_TRANSPILE_ONLY=true TS_NODE_FILES=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/,/**/**/,/**/**/**/}/*.ts",
+		"test": "TS_NODE_TRANSPILE_ONLY=true nyc mocha",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",

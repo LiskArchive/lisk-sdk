@@ -18,39 +18,27 @@ const messageDescription = `Specifies a source for providing a message to the co
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 	Examples:
 	- --message=file:/path/to/my/message.txt
-	- --message=stdin
+	- --message="hello world"
 `;
 
 const passphraseDescription = `Specifies a source for your secret passphrase. Lisk Commander will prompt you for input if this option is not set.
-	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 	Examples:
-	- --passphrase=prompt (default behaviour)
-	- --passphrase='pass:my secret passphrase' (should only be used where security is not important)
-	- --passphrase=env:SECRET_PASSPHRASE
-	- --passphrase=file:/path/to/my/passphrase.txt (takes the first line only)
-	- --passphrase=stdin (takes one line only)
+	- --passphrase='my secret passphrase' (should only be used where security is not important)
 `;
 
 const passwordDescription = `Specifies a source for your secret password. Lisk Commander will prompt you for input if this option is not set.
-	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
 	Examples:
-	- --password=prompt (default behaviour)
 	- --password=pass:password123 (should only be used where security is not important)
-	- --password=env:PASSWORD
-	- --password=file:/path/to/my/password.txt (takes the first line only)
-	- --password=stdin (takes the first line only)
 `;
 
-const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes a string of public keys separated by commas.
 	Examples:
 	- --votes=publickey1,publickey2
-	- --votes=file:/path/to/my/votes.txt (every public key should be on a new line)
 `;
 
-const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes either a string of public keys separated by commas, or a path to a file which contains the public keys.
+const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes a string of public keys separated by commas.
 	Examples:
 	- --unvotes=publickey1,publickey2
-	- --unvotes=file:/path/to/my/unvotes.txt (every public key should be on a new line)
 `;
 
 const noSignatureDescription =

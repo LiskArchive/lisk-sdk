@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';

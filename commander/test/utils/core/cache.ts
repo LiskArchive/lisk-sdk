@@ -1,3 +1,19 @@
+/*
+ * LiskHQ/lisk-commander
+ * Copyright © 2019 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fsExtra from 'fs-extra';
 import {
@@ -139,7 +155,9 @@ describe('cache node utils', () => {
 		describe('when installation exists', () => {
 			let workerProcessStub: SinonStub;
 			beforeEach(() => {
-				workerProcessStub = sandbox.stub(workerProcess, 'exec').resolves({});
+				workerProcessStub = sandbox
+					.stub(workerProcess, 'exec')
+					.resolves({} as any);
 			});
 
 			it('should stop successfully when password is empty', async () => {
