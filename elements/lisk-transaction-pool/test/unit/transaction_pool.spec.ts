@@ -78,6 +78,139 @@ describe('TransactionList class', () => {
 		});
 	});
 
+	describe('get', () => {
+		let txGetBytesStub: jest.Mock;
+		let tx: Transaction;
+
+		beforeEach(async () => {
+			tx = {
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			txGetBytesStub = jest.fn();
+			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+			await transactionPool.addTransaction(tx);
+		});
+
+		it('should return transaction if exist', async () => {
+			expect(transactionPool.get('1')).toEqual(tx);
+		});
+
+		it('should return undefined if it does not exist', async () => {
+			expect(transactionPool.get('2')).toBeUndefined();
+		});
+	});
+
+	describe('contains', () => {
+		let txGetBytesStub: jest.Mock;
+		let tx: Transaction;
+
+		beforeEach(async () => {
+			tx = {
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			txGetBytesStub = jest.fn();
+			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+			await transactionPool.addTransaction(tx);
+		});
+
+		it('should return transaction if exist', async () => {
+			expect(transactionPool.contains('1')).toBe(true);
+		});
+
+		it('should return undefined if it does not exist', async () => {
+			expect(transactionPool.contains('2')).toBe(false);
+		});
+	});
+
+	describe('getProcessableTransactions', () => {
+		let senderPublicKeys: string[];
+		beforeEach(async () => {
+			senderPublicKeys = generateRandomPublicKeys(2);
+			const txs = [
+				{
+					id: '1',
+					nonce: BigInt(1),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: senderPublicKeys[0],
+				},
+				{
+					id: '2',
+					nonce: BigInt(2),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: senderPublicKeys[0],
+				},
+				{
+					id: '9',
+					nonce: BigInt(9),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: senderPublicKeys[0],
+				},
+				{
+					id: '3',
+					nonce: BigInt(1),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: senderPublicKeys[1],
+				},
+			] as Transaction[];
+
+			for (const tx of txs) {
+				tx.getBytes = jest.fn().mockReturnValue(Buffer.from(new Array(10)));
+				await transactionPool.addTransaction(tx);
+			}
+			(transactionPool as any)._transactionList[
+				getAddressFromPublicKey(senderPublicKeys[0])
+			].promote([txs[0]]);
+			(transactionPool as any)._transactionList[
+				getAddressFromPublicKey(senderPublicKeys[1])
+			].promote([txs[3]]);
+		});
+
+		it('should return copy of processable transactions list', async () => {
+			const processableTransactions = transactionPool.getProcessableTransactions();
+			const transactionFromSender0 =
+				processableTransactions[getAddressFromPublicKey(senderPublicKeys[0])];
+			const transactionFromSender1 =
+				processableTransactions[getAddressFromPublicKey(senderPublicKeys[1])];
+
+			expect(transactionFromSender0).toHaveLength(1);
+			expect(transactionFromSender0[0].nonce.toString()).toEqual('1');
+			expect(transactionFromSender1).toHaveLength(1);
+			expect(transactionFromSender1[0].nonce.toString()).toEqual('1');
+			// Check if it is a copy
+			delete (processableTransactions as any)[
+				getAddressFromPublicKey(senderPublicKeys[0])
+			];
+			(processableTransactions as any)[
+				getAddressFromPublicKey(senderPublicKeys[1])
+			][0] = 'random thing';
+
+			expect(
+				(transactionPool as any)._transactionList[
+					getAddressFromPublicKey(senderPublicKeys[0])
+				],
+			).not.toBeUndefined();
+			expect(
+				transactionPool.getProcessableTransactions()[
+					getAddressFromPublicKey(senderPublicKeys[1])
+				],
+			).toHaveLength(1);
+		});
+	});
+
 	describe('addTransaction', () => {
 		let txGetBytesStub: any;
 		const tx = {
