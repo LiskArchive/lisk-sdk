@@ -115,7 +115,7 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
-	voteTransaction.sign(passphrase);
+	voteTransaction.sign(networkIdentifier, passphrase);
 
 	return voteTransaction.toJSON();
 };

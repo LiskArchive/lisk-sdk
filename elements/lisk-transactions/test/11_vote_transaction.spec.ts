@@ -514,7 +514,7 @@ describe('Vote transaction class', () => {
 					},
 					senderPublicKey: account.publicKey,
 				});
-				validCollisionTransaction.sign(account.passphrase);
+				validCollisionTransaction.sign(networkIdentifier, account.passphrase);
 			});
 
 			it('should reject if the collision account is voted, which is not a delegate account', async () => {

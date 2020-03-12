@@ -156,7 +156,7 @@ describe('Matcher', () => {
 					},
 					fee: (10000000).toString(),
 				});
-				aCustomTransation.sign(genesis.passphrase);
+				aCustomTransation.sign(node.networkIdentifier, genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [aCustomTransation]);
 			});
 

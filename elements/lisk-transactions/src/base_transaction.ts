@@ -401,61 +401,44 @@ export abstract class BaseTransaction {
 		return timeElapsed > UNCONFIRMED_TRANSACTION_TIMEOUT;
 	}
 
-	public sign(passphrase: string): void {
-		const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-
-		if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
-			throw new Error(
-				'Transaction senderPublicKey does not match public key from passphrase',
-			);
-		}
-
-		this.senderPublicKey = publicKey;
-		this.signatures = [];
-
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
-			throw new Error('Network identifier is required to sign a transaction ');
-		}
-
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			this.getBasicBytes(),
-		]);
-
-		this.signatures.push(
-			signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
-		);
-
-		this._id = getId(this.getBytes());
-	}
-
-	public signAll(
+	public sign(
 		networkIdentifier: string,
 		senderPassphrase?: string,
 		passphrases?: ReadonlyArray<string>,
 		keys?: {
 			readonly mandatoryKeys: Array<Readonly<string>>;
 			readonly optionalKeys: Array<Readonly<string>>;
-			readonly numberOfSignatures: number;
 		},
 	): void {
+		if (!this._networkIdentifier && !networkIdentifier) {
+			throw new Error('Network identifier is required to sign a transaction');
+		}
 		// Set network identifier if it was previously not set in the transaction
 		if (!this._networkIdentifier) {
 			this._networkIdentifier = networkIdentifier;
 		}
 
 		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			this.getBasicBytes(),
-		]);
 
 		// If senderPassphrase is passed in assume only one signature required
 		if (senderPassphrase) {
+			const { publicKey } = getAddressAndPublicKeyFromPassphrase(
+				senderPassphrase,
+			);
+
+			if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
+				throw new Error(
+					'Transaction senderPublicKey does not match public key from passphrase',
+				);
+			}
+
+			this.senderPublicKey = publicKey;
+
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifierBytes,
+				this.getBasicBytes(),
+			]);
+
 			const signature = signData(
 				hash(transactionWithNetworkIdentifierBytes),
 				senderPassphrase,
@@ -469,6 +452,17 @@ export abstract class BaseTransaction {
 		}
 
 		if (passphrases && keys) {
+			if (!this.senderPublicKey) {
+				throw new Error(
+					'Transaction senderPublicKey needs to be set befor signing',
+				);
+			}
+
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifierBytes,
+				this.getBasicBytes(),
+			]);
+
 			const keysAndPassphrases = buildPublicKeyPassphraseDict(passphrases);
 			sortKeysAscending(keys.mandatoryKeys);
 			sortKeysAscending(keys.optionalKeys);
@@ -498,6 +492,7 @@ export abstract class BaseTransaction {
 			this.nonce.toString(),
 			BYTESIZES.NONCE,
 		);
+
 		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
 		const transactionFee = intToBuffer(this.fee.toString(), BYTESIZES.FEE);
 

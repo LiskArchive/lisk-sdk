@@ -144,7 +144,7 @@ export default class SignCommand extends BaseCommand {
 			});
 		} else {
 			// Sign for non-multi signature transaction
-			txInstance.signAll(networkIdentifier, passphrase[0]);
+			txInstance.sign(networkIdentifier, passphrase[0]);
 		}
 
 		const { errors } = txInstance.validate();

@@ -106,7 +106,7 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
-				tx.sign('signature');
+				tx.sign('1234567890', 'signature');
 				await transport.handleBroadcastTransaction(tx);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
 				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
@@ -138,7 +138,7 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
-				tx.sign('signature');
+				tx.sign('1234567890', 'signature');
 				await transport.handleBroadcastTransaction(tx);
 				transactionPoolStub.transactionInPool.mockReturnValue(false);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
@@ -161,7 +161,7 @@ describe('Transport', () => {
 						networkIdentifier: '1234567890',
 						asset: { amount: (v + 1).toString(), recipientId: '123L' },
 					});
-					tx.sign('signature');
+					tx.sign('1234567890', 'signature');
 					return tx;
 				});
 				for (const tx of txs) {
@@ -176,7 +176,7 @@ describe('Transport', () => {
 						networkIdentifier: '1234567890',
 						asset: { amount: (v + 1).toString(), recipientId: '123L' },
 					});
-					tx.sign('signature');
+					tx.sign('1234567890', 'signature');
 					return tx;
 				});
 				for (const tx of txs) {
@@ -202,7 +202,7 @@ describe('Transport', () => {
 						networkIdentifier: '1234567890',
 						asset: { amount: (v + 1).toString(), recipientId: '123L' },
 					});
-					tx.sign('signature');
+					tx.sign('1234567890', 'signature');
 					return tx;
 				});
 				for (const tx of txs) {
@@ -217,7 +217,7 @@ describe('Transport', () => {
 						networkIdentifier: '1234567890',
 						asset: { amount: (v + 1).toString(), recipientId: '123L' },
 					});
-					tx.sign('signature');
+					tx.sign('1234567890', 'signature');
 					return tx;
 				});
 				for (const tx of txs) {
@@ -421,7 +421,7 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
-				tx.sign('signature');
+				tx.sign('1234567890', 'signature');
 				transactionPoolStub.findInTransactionPool.mockReturnValue(tx);
 			});
 
@@ -452,12 +452,12 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
-				tx.sign('signature');
+				tx.sign('1234567890', 'signature');
 				const txDatabaseInstance = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '125L' },
 				});
-				txDatabaseInstance.sign('signature');
+				txDatabaseInstance.sign('1234567890', 'signature');
 				txDatabase = txDatabaseInstance.toJSON();
 				when(transactionPoolStub.findInTransactionPool)
 					.calledWith(tx.id)
@@ -509,13 +509,13 @@ describe('Transport', () => {
 				networkIdentifier: '1234567890',
 				asset: { amount: '100', recipientId: '123L' },
 			});
-			txInstance.sign('signature');
+			txInstance.sign('1234567890', 'signature');
 			tx = txInstance.toJSON();
 			const tx2Instance = new TransferTransaction({
 				networkIdentifier: '1234567890',
 				asset: { amount: '100', recipientId: '125L' },
 			});
-			tx2Instance.sign('signature');
+			tx2Instance.sign('1234567890', 'signature');
 			tx2 = tx2Instance.toJSON();
 			validTransactionsRequest = {
 				transactionIds: [tx.id, tx2.id],

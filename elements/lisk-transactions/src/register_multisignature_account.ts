@@ -166,7 +166,7 @@ export const registerMultisignature = (
 		return multisignatureTransaction.toJSON();
 	}
 
-	multisignatureTransaction.signAll(
+	multisignatureTransaction.sign(
 		networkIdentifier,
 		senderPassphrase,
 		passphrases,

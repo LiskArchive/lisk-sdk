@@ -346,7 +346,7 @@ describe('Transfer transaction class', () => {
 		});
 
 		it('should have one signature for single key pair account', async () => {
-			validTransferInstance.signAll(
+			validTransferInstance.sign(
 				networkIdentifier,
 				account.passphrase,
 				undefined,
@@ -361,7 +361,7 @@ describe('Transfer transaction class', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 
-			validTransferInstance.signAll(
+			validTransferInstance.sign(
 				networkIdentifier,
 				undefined,
 				[members.mandatoryOne.passphrase, members.mandatoryTwo.passphrase],
