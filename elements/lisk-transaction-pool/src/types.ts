@@ -30,6 +30,7 @@ export interface TransactionObject {
 	readonly type: number;
 	containsUniqueData?: boolean;
 	verifiedOnce?: boolean;
+	feePriority?: bigint;
 }
 
 export interface TransactionFunctions {
@@ -38,6 +39,7 @@ export interface TransactionFunctions {
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
 	isReady(): boolean;
+	getBytes(): Buffer;
 }
 
 export enum Status {

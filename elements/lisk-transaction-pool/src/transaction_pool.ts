@@ -16,6 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import { Job } from './job';
+import { MinHeap } from './min_heap';
 import { TransactionList } from './transaction_list';
 import {
 	Status,
@@ -32,7 +33,7 @@ export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
 	readonly maxTransactionsPerAccount?: number;
 	readonly transactionExpiryTime?: number;
-	readonly minimumEntranceFee?: bigint;
+	readonly minEntranceFeePriority?: bigint;
 	readonly minReplacementFeeDifference?: bigint;
 	// tslint:disable-next-line no-mixed-interface
 	readonly applyTransaction: ApplyFunction;
@@ -40,7 +41,7 @@ export interface TransactionPoolConfig {
 
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
 export const DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT = 64;
-export const DEFAULT_MINIMUM_ENTRANCE_FEE = BigInt(1);
+export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(1);
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in ms
 // tslint:disable-next-line no-magic-numbers
@@ -58,12 +59,14 @@ export class TransactionPool {
 	private readonly _maxTransactions: number;
 	private readonly _maxTransactionsPerAccount: number;
 	private readonly _transactionExpiryTime: number;
-	private readonly _minimumEntranceFee: bigint;
+	private readonly _minEntranceFeePriority: bigint;
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _reorganizeJob: Job<void>;
+	private readonly _feePriorityQueue: MinHeap<string, bigint>;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
+		this._feePriorityQueue = new MinHeap<string, bigint>();
 		this._allTransactions = {};
 		this._transactionList = {};
 		this._applyFunction = config.applyTransaction;
@@ -72,8 +75,8 @@ export class TransactionPool {
 			config.maxTransactionsPerAccount ?? DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT;
 		this._transactionExpiryTime =
 			config.transactionExpiryTime ?? DEFAULT_EXPIRY_TIME;
-		this._minimumEntranceFee =
-			config.minimumEntranceFee ?? DEFAULT_MINIMUM_ENTRANCE_FEE;
+		this._minEntranceFeePriority =
+			config.minEntranceFeePriority ?? DEFAULT_MIN_ENTRANCE_FEE_PRIORITY;
 		this._minReplacementFeeDifference =
 			config.minReplacementFeeDifference ??
 			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
@@ -83,12 +86,8 @@ export class TransactionPool {
 		);
 		// FIXME: This is log to supress ts build error
 		console.log(
-			this._applyFunction,
-			this._allTransactions,
-			this._maxTransactions,
 			this._transactionExpiryTime,
 			this._maxTransactionsPerAccount,
-			this._minimumEntranceFee,
 			this._minReplacementFeeDifference,
 		);
 	}
@@ -121,11 +120,21 @@ export class TransactionPool {
 			return false;
 		}
 		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
-		if (incomingTx.fee < this._minimumEntranceFee) {
+		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
+		if (incomingTx.feePriority < this._minEntranceFeePriority) {
 			return false;
 		}
+
 		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
-		// TODO: Use feePriorityQueue to reject transaction with lowest fee when txPool is full
+		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
+		if (
+			Object.keys(this._allTransactions).length >= this._maxTransactions &&
+			lowestFeePriorityTrx &&
+			incomingTx.feePriority <= lowestFeePriorityTrx.key
+		) {
+			return false;
+		}
+		this._feePriorityQueue.push(incomingTx.feePriority, incomingTx.id);
 
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
@@ -152,6 +161,11 @@ export class TransactionPool {
 		incomingTx.receivedAt = new Date();
 		this._allTransactions[incomingTx.id] = incomingTx;
 
+		// Add to feePriorityQueue
+		this._feePriorityQueue.push(
+			this._calculateFeePriority(incomingTx),
+			incomingTx.id,
+		);
 		// Add the transaction in the _transactionList
 		return this._transactionList[incomingTxAddress].add(
 			incomingTx,
@@ -160,9 +174,26 @@ export class TransactionPool {
 	}
 
 	public removeTransaction(tx: Transaction): boolean {
-		// FIXME: this is log to supress ts build error
-		console.log(tx);
-		return false;
+		const foundTx = this._allTransactions[tx.id];
+		if (!foundTx) {
+			return false;
+		}
+
+		delete this._allTransactions[tx.id];
+		this._transactionList[
+			getAddressFromPublicKey(foundTx.senderPublicKey)
+		].remove(tx.nonce);
+
+		// Remove from feePriorityQueue
+		this._feePriorityQueue.clear();
+		for (const txObject of this.getAllTransactions()) {
+			this._feePriorityQueue.push(
+				txObject.feePriority ?? this._calculateFeePriority(txObject),
+				txObject.id,
+			);
+		}
+
+		return true;
 	}
 
 	public getProcessableTransactions(): {
@@ -173,13 +204,17 @@ export class TransactionPool {
 
 	private async _reorganize(): Promise<void> {}
 
+	private _calculateFeePriority(trx: Transaction): bigint {
+		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);
+	}
+
 	private _getStatus(
 		txResponse: ReadonlyArray<TransactionResponse>,
 	): TransactionStatus {
-		const txResponseErrors = txResponse[0].errors;
 		if (txResponse[0].status === Status.OK) {
 			return TransactionStatus.PROCESSABLE;
 		}
+		const txResponseErrors = txResponse[0].errors;
 		if (
 			txResponse[0].errors.length === 1 &&
 			txResponseErrors[0].dataPath === '.nonce' &&

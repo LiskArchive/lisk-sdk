@@ -31,6 +31,7 @@ describe('TransactionList class', () => {
 
 	beforeEach(() => {
 		transactionPool = new TransactionPool(defaultTxPoolConfig);
+		(transactionPool as any)._applyFunction = applyTransactionStub;
 		applyTransactionStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 	});
 
@@ -39,7 +40,9 @@ describe('TransactionList class', () => {
 			it('should set default values', async () => {
 				expect((transactionPool as any)._maxTransactions).toEqual(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(64);
-				expect((transactionPool as any)._minimumEntranceFee).toEqual(BigInt(1));
+				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
+					BigInt(1),
+				);
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
 					BigInt(10),
 				);
@@ -56,13 +59,13 @@ describe('TransactionList class', () => {
 					maxTransactions: 2048,
 					maxTransactionsPerAccount: 32,
 					minReplacementFeeDifference: BigInt(100),
-					minimumEntranceFee: BigInt(10),
+					minEntranceFeePriority: BigInt(10),
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
 				});
 
 				expect((transactionPool as any)._maxTransactions).toEqual(2048);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(32);
-				expect((transactionPool as any)._minimumEntranceFee).toEqual(
+				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
 					BigInt(10),
 				);
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
@@ -76,12 +79,17 @@ describe('TransactionList class', () => {
 	});
 
 	describe('addTransaction', () => {
+		let txGetBytesStub: any;
 		const tx = {
 			id: '1',
 			nonce: BigInt(1),
+			minFee: BigInt(10),
 			fee: BigInt(1000),
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
+
+		txGetBytesStub = jest.fn();
+		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		it('should add a valid transaction and is added to the transaction list as processable', async () => {
 			const status = await transactionPool.addTransaction(tx);
@@ -155,11 +163,142 @@ describe('TransactionList class', () => {
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
 			transactionPool = new TransactionPool({
 				applyTransaction: jest.fn(),
-				minimumEntranceFee: BigInt(10),
+				minEntranceFeePriority: BigInt(10),
 			});
-			const lowFeeTx = { ...tx, fee: BigInt(1) - BigInt(1) };
-			const status = await transactionPool.addTransaction(lowFeeTx);
+
+			const lowFeeTrx = {
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(100),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			let tempTxGetBytesStub = jest.fn();
+			lowFeeTrx.getBytes = tempTxGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(10)),
+			);
+
+			const status = await transactionPool.addTransaction(lowFeeTrx);
 			expect(status).toEqual(false);
+		});
+
+		it('should reject a transaction with a lower feePriority than the lowest feePriority present in TxPool', async () => {
+			const MAX_TRANSACTIONS = 10;
+			transactionPool = new TransactionPool({
+				applyTransaction: jest.fn(),
+				minEntranceFeePriority: BigInt(10),
+				maxTransactions: MAX_TRANSACTIONS,
+			});
+
+			let tempApplyTransactionStub = jest.fn();
+			(transactionPool as any)._applyFunction = tempApplyTransactionStub;
+
+			txGetBytesStub = jest.fn();
+			for (let i = 0; i < MAX_TRANSACTIONS; i++) {
+				const tempTx = {
+					id: `${i}`,
+					nonce: BigInt(1),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: generateRandomPublicKeys()[0],
+				} as Transaction;
+				tempTx.getBytes = txGetBytesStub.mockReturnValue(
+					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
+				);
+
+				tempApplyTransactionStub.mockResolvedValue([
+					{ status: Status.OK, errors: [] },
+				]);
+
+				await transactionPool.addTransaction(tempTx);
+			}
+
+			expect(transactionPool.getAllTransactions().length).toEqual(10);
+
+			const lowFeePriorityTx = {
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			lowFeePriorityTx.getBytes = txGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(2 * MAX_TRANSACTIONS)),
+			);
+
+			tempApplyTransactionStub.mockResolvedValue([
+				{ status: Status.OK, errors: [] },
+			]);
+
+			const status = await transactionPool.addTransaction(lowFeePriorityTx);
+
+			expect(status).toEqual(false);
+		});
+	});
+
+	describe('removeTransaction', () => {
+		let txGetBytesStub: any;
+		const tx = {
+			id: '1',
+			nonce: BigInt(1),
+			minFee: BigInt(10),
+			fee: BigInt(1000),
+			senderPublicKey: generateRandomPublicKeys()[0],
+		} as Transaction;
+
+		txGetBytesStub = jest.fn();
+		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+
+		beforeEach(async () => {
+			await transactionPool.addTransaction(tx);
+		});
+
+		afterEach(async () => {
+			await transactionPool.removeTransaction(tx);
+		});
+
+		it('should return false when a tx id does not exist', async () => {
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(tx.nonce),
+			).toEqual(tx);
+			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
+
+			// Remove a transaction that does not exist
+			const nonExistentTrx = {
+				id: '155',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+			const removeStatus = transactionPool.removeTransaction(nonExistentTrx);
+			expect(removeStatus).toEqual(false);
+		});
+
+		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', async () => {
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(tx.nonce),
+			).toEqual(tx);
+			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
+
+			// Remove the above transaction
+			const removeStatus = transactionPool.removeTransaction(tx);
+			expect(removeStatus).toEqual(true);
+			expect(transactionPool.getAllTransactions().length).toEqual(0);
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				].get(tx.nonce),
+			).toEqual(undefined);
+			expect(
+				transactionPool['_feePriorityQueue'].values.includes(tx.id),
+			).toEqual(false);
 		});
 	});
 });
