@@ -28,6 +28,10 @@ const {
 const {
 	Processor,
 } = require('../../../../../../src/application/node/processor');
+const {
+	Forger,
+	HighFeeForgingStrategy,
+} = require('../../../../../../src/application/node/forger');
 const { cacheConfig, nodeOptions } = require('../../../../../fixtures/node');
 
 describe('Node', () => {
@@ -279,6 +283,17 @@ describe('Node', () => {
 				expect(node.bft).toBeInstanceOf(BFT);
 				expect(node.modules.bft).toBeInstanceOf(BFT);
 			});
+
+			it('should initialize forger module', async () => {
+				expect(node.forger).toBeInstanceOf(Forger);
+				expect(node.modules.forger).toBe(node.forger);
+			});
+
+			it('should initialize forger module with high fee strategy', async () => {
+				expect(node.forger.forgingStrategy).toBeInstanceOf(
+					HighFeeForgingStrategy,
+				);
+			});
 		});
 
 		it('should invoke Processor.init', async () => {
@@ -377,7 +392,6 @@ describe('Node', () => {
 			await node.bootstrap();
 			jest.spyOn(node.forger, 'delegatesEnabled').mockReturnValue(true);
 			jest.spyOn(node.forger, 'forge');
-			jest.spyOn(node.forger, 'beforeForge');
 			jest.spyOn(node.sequence, 'add').mockImplementation(async fn => {
 				await fn();
 			});
@@ -397,7 +411,6 @@ describe('Node', () => {
 				'No delegates are enabled',
 			);
 			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.beforeForge).not.toHaveBeenCalled();
 			expect(node.forger.forge).not.toHaveBeenCalled();
 		});
 
@@ -414,7 +427,6 @@ describe('Node', () => {
 				'Client not ready to forge',
 			);
 			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.beforeForge).not.toHaveBeenCalled();
 			expect(node.forger.forge).not.toHaveBeenCalled();
 		});
 
@@ -422,7 +434,6 @@ describe('Node', () => {
 			await node._forgingTask();
 
 			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.beforeForge).toHaveBeenCalled();
 			expect(node.forger.forge).toHaveBeenCalled();
 		});
 	});
