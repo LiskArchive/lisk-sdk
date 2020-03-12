@@ -33,9 +33,15 @@ export interface TransferInputs {
 	readonly nonce: string;
 	readonly networkIdentifier: string;
 	readonly data?: string;
-	readonly passphrase?: string;
 	readonly recipientId?: string;
 	readonly recipientPublicKey?: string;
+	readonly senderPublicKey?: string;
+	readonly passphrase?: string;
+	readonly passphrases?: ReadonlyArray<string>;
+	readonly keys?: {
+		readonly mandatoryKeys: Array<Readonly<string>>;
+		readonly optionalKeys: Array<Readonly<string>>;
+	};
 }
 
 const validateInputs = ({
@@ -103,6 +109,9 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		recipientPublicKey,
 		passphrase,
 		networkIdentifier,
+		passphrases,
+		keys,
+		senderPublicKey,
 	} = inputs;
 
 	const recipientIdFromPublicKey = recipientPublicKey
@@ -115,6 +124,8 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 8,
+		// For txs from multisig senderPublicKey must be set before attempting signing
+		senderPublicKey,
 		asset: {
 			amount,
 			recipientId: recipientId as string,
@@ -122,7 +133,7 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		},
 	};
 
-	if (!passphrase) {
+	if (!passphrase && !passphrases?.length) {
 		return transaction;
 	}
 
@@ -140,7 +151,17 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		transactionWithSenderInfo,
 	);
 
-	transferTransaction.sign(passphrase);
+	if (passphrase) {
+		transferTransaction.sign(networkIdentifier, passphrase);
 
-	return transferTransaction.toJSON();
+		return transferTransaction.toJSON();
+	}
+
+	if (passphrases && keys) {
+		transferTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+
+		return transferTransaction.toJSON();
+	}
+
+	return transactionWithSenderInfo;
 };

@@ -762,14 +762,15 @@ describe('Multisignature transaction class', () => {
 				networkIdentifier,
 			};
 
-			invalidTransaction.signatures.shift();
+			invalidTransaction.signatures[0] =
+				'6667778476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06';
 
 			const invalid = new MultisignatureTransaction(invalidTransaction);
 
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 6061e18476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
+				`Failed to validate signature 6667778476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
 			);
 		});
 
@@ -821,6 +822,24 @@ describe('Multisignature transaction class', () => {
 			expect(result.errors[0].message).toBe(
 				`Failed to validate signature b6b2f45cd76907948f237599c82eb60341ceca0ce36a0e92853156639002e2df22548ca98988c6560d7dd25de732ac48c2a5da7e35cfaa064c9759d9b0e71b01`,
 			);
+		});
+
+		it('should return error if signatures from sender, mandatory and optional keys are not all present', async () => {
+			const invalidTransaction = {
+				...validMultisignatureRegistrationTransaction,
+				asset: {
+					...validMultisignatureRegistrationTransaction.asset,
+				},
+				signatures: [...validMultisignatureRegistrationTransaction.signatures],
+				networkIdentifier,
+			};
+			invalidTransaction.signatures.pop();
+
+			const invalid = new MultisignatureTransaction(invalidTransaction);
+
+			const result = await invalid.verifySignatures(store);
+			expect(result.status).toBe(0);
+			expect(result.errors[0].message).toBe('There are missing signatures');
 		});
 	});
 

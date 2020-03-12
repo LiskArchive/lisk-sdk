@@ -15,6 +15,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/transfer';
 import { TransactionJSON } from '../src/transaction_types';
+import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -36,7 +37,7 @@ describe('#transfer transaction', () => {
 
 	let transferTransaction: Partial<TransactionJSON>;
 
-	describe('with first passphrase', () => {
+	describe('with single passphrase', () => {
 		describe('without data', () => {
 			beforeEach(() => {
 				transferTransaction = transfer({
@@ -99,7 +100,10 @@ describe('#transfer transaction', () => {
 			});
 
 			it('should have signatures hex string', () => {
-				return expect(transferTransaction.signatures).toBeArray();
+				expect(transferTransaction.signatures).toBeArray();
+				expect((transferTransaction as any).signatures[0]).toBe(
+					'058616beb4ae07ced1ef97fedf439c4bb8f19ae3c76764c658d9a01c70903b5dd42780979d8639ba4c8de470b774d8b1ea57cc0e84fe823140f0513de71e9d0e',
+				);
 			});
 
 			it('without network identifier it should throw a descriptive error', () => {
@@ -161,31 +165,107 @@ describe('#transfer transaction', () => {
 		});
 	});
 
-	describe('with passphrase', () => {
-		beforeEach(() => {
+	describe('with multiple passphrases', () => {
+		it('should return two signatures for two mandatory public keys and two passphrases', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			const accountOwnerPk = cryptography.getAddressAndPublicKeyFromPassphrase(
+				members.mandatoryOne.passphrase,
+			);
+
 			transferTransaction = transfer({
+				senderPublicKey: accountOwnerPk.publicKey,
 				recipientId,
 				amount,
 				networkIdentifier,
-				passphrase,
 				fee,
 				nonce,
+				passphrases: [
+					members.mandatoryOne.passphrase,
+					members.mandatoryTwo.passphrase,
+				],
+				keys: {
+					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
+					optionalKeys: [],
+				},
 			});
-			return Promise.resolve();
+
+			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
+			const validSignatureMemberOne =
+				'd2ab4810c0d2f06046c175b82d31c04b018bd937222701e481285f0e8e0b931fa16a38155d5132001a2d040f7e014226eced4ba0aea751f9dce05c381f91410d';
+			const validSignatureMemberTwo =
+				'998250c229cac44b82ddf7f193821ffaccd28cce98a7033bb4c39a13dc778bd58aad1f083248f2f374e45a290971fff19c9d951b142d7a3082fddb6b1118dc07';
+
+			expect(transferTransaction.signatures?.length).toBe(2);
+			expect((transferTransaction as any).signatures[0]).toBe(
+				validSignatureMemberOne,
+			);
+			expect((transferTransaction as any).signatures[1]).toBe(
+				validSignatureMemberTwo,
+			);
 		});
 
-		it('should create a transfer transaction with data property', () => {
+		it('should return one signature for two mandatory public keys and one passphrase', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			const accountOwnerPk = cryptography.getAddressAndPublicKeyFromPassphrase(
+				members.mandatoryOne.passphrase,
+			);
+
 			transferTransaction = transfer({
+				senderPublicKey: accountOwnerPk.publicKey,
 				recipientId,
 				amount,
 				networkIdentifier,
-				passphrase,
-				data: testData,
 				fee,
 				nonce,
+				passphrases: [members.mandatoryOne.passphrase],
+				keys: {
+					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
+					optionalKeys: [],
+				},
 			});
 
-			return expect(transferTransaction.asset).toHaveProperty('data');
+			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
+			const validSignatureMemberOne =
+				'd2ab4810c0d2f06046c175b82d31c04b018bd937222701e481285f0e8e0b931fa16a38155d5132001a2d040f7e014226eced4ba0aea751f9dce05c381f91410d';
+
+			expect(transferTransaction.signatures?.length).toBe(2);
+			expect((transferTransaction as any).signatures[0]).toBe(
+				validSignatureMemberOne,
+			);
+			expect((transferTransaction as any).signatures[1]).toBe('');
+		});
+
+		it('should return one signature for two mandatory public keys and one passphrase in the right order', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			const accountOwnerPk = cryptography.getAddressAndPublicKeyFromPassphrase(
+				members.mandatoryOne.passphrase,
+			);
+
+			transferTransaction = transfer({
+				senderPublicKey: accountOwnerPk.publicKey,
+				recipientId,
+				amount,
+				networkIdentifier,
+				fee,
+				nonce,
+				passphrases: [members.mandatoryTwo.passphrase],
+				keys: {
+					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
+					optionalKeys: [],
+				},
+			});
+
+			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
+			const validSignatureMemberTwo =
+				'998250c229cac44b82ddf7f193821ffaccd28cce98a7033bb4c39a13dc778bd58aad1f083248f2f374e45a290971fff19c9d951b142d7a3082fddb6b1118dc07';
+			expect(transferTransaction.signatures?.length).toBe(2);
+			expect((transferTransaction as any).signatures[0]).toBe('');
+			expect((transferTransaction as any).signatures[1]).toBe(
+				validSignatureMemberTwo,
+			);
 		});
 	});
 

@@ -26,6 +26,12 @@ export interface RegisterDelegateInputs {
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
+	readonly senderPublicKey?: string;
+	readonly passphrases?: ReadonlyArray<string>;
+	readonly keys?: {
+		readonly mandatoryKeys: Array<Readonly<string>>;
+		readonly optionalKeys: Array<Readonly<string>>;
+	};
 }
 
 const validateInputs = ({
@@ -49,21 +55,41 @@ export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { username, passphrase, networkIdentifier } = inputs;
+	const {
+		username,
+		passphrase,
+		networkIdentifier,
+		passphrases,
+		keys,
+		senderPublicKey,
+	} = inputs;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 10,
+		// For txs from multisig senderPublicKey must be set before attempting signing
+		senderPublicKey,
 		asset: { username },
 		networkIdentifier,
 	};
 
-	if (!passphrase) {
+	if (!passphrase && !passphrases?.length) {
 		return transaction;
 	}
 
 	const delegateTransaction = new DelegateTransaction(transaction);
-	delegateTransaction.sign(passphrase);
 
-	return delegateTransaction.toJSON();
+	if (passphrase) {
+		delegateTransaction.sign(networkIdentifier, passphrase);
+
+		return delegateTransaction.toJSON();
+	}
+
+	if (passphrases && keys) {
+		delegateTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+
+		return delegateTransaction.toJSON();
+	}
+
+	return transaction;
 };

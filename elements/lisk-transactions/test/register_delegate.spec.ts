@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { registerDelegate } from '../src/register_delegate';
 import { DelegateAsset } from '../src/10_delegate_transaction';
 import { TransactionJSON } from '../src/transaction_types';
+import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -30,7 +32,7 @@ describe('#registerDelegate transaction', () => {
 
 	let registerDelegateTransaction: Partial<TransactionJSON>;
 
-	describe('with first passphrase', () => {
+	describe('with single passphrase', () => {
 		beforeEach(() => {
 			registerDelegateTransaction = registerDelegate({
 				fee,
@@ -73,12 +75,10 @@ describe('#registerDelegate transaction', () => {
 		});
 
 		it('should have signatures hex string', () => {
-			return expect(registerDelegateTransaction.signatures).toBeArray();
-		});
-
-		it('should have asset', () => {
-			return expect(Object.keys(registerDelegateTransaction)).not.toHaveLength(
-				0,
+			expect(registerDelegateTransaction.signatures).toBeArray();
+			expect(registerDelegateTransaction.signatures?.length).toBe(1);
+			expect((registerDelegateTransaction as any).signatures[0]).toBe(
+				'ea925e4edc8a54482d99905965d885ef4341f8f15cc0cd8c9b57d523edd5b5ed18a20065cd9a06630d73af16ebb328b8e50f5be878eb669f810ffaa09ac9de02',
 			);
 		});
 
@@ -96,16 +96,104 @@ describe('#registerDelegate transaction', () => {
 		});
 	});
 
-	describe('with first passphrase', () => {
-		beforeEach(() => {
+	describe('with multiple passphrases', () => {
+		it('should return two signatures for two mandatory public keys and two passphrases', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			const accountOwnerPk = getAddressAndPublicKeyFromPassphrase(
+				members.mandatoryOne.passphrase,
+			);
+
 			registerDelegateTransaction = registerDelegate({
+				senderPublicKey: accountOwnerPk.publicKey,
 				networkIdentifier,
 				fee,
 				nonce,
-				passphrase,
 				username,
+				passphrases: [
+					members.mandatoryOne.passphrase,
+					members.mandatoryTwo.passphrase,
+				],
+				keys: {
+					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
+					optionalKeys: [],
+				},
 			});
-			return Promise.resolve();
+
+			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
+			const validSignatureMemberOne =
+				'e77e30950708f9135256f8f27bef7100d1e96cafd7e6e96f77d990a973e6797dd3ff6cc5d98d3037783e7eefd7f396a911c593785824cf16e16a8af486e3bb08';
+			const validSignatureMemberTwo =
+				'a67d45e820734e8e82c84b13cc4871d7e8213993a592fff6ed4b35b8733e751eb43c8b5c25e3d3ef7d10ddc9fcea435d05dde0ec888695ea6741a5cd91f9dd06';
+
+			expect(registerDelegateTransaction.signatures?.length).toBe(2);
+			expect((registerDelegateTransaction as any).signatures[0]).toBe(
+				validSignatureMemberOne,
+			);
+			expect((registerDelegateTransaction as any).signatures[1]).toBe(
+				validSignatureMemberTwo,
+			);
+		});
+
+		it('should return one signature for two mandatory public keys and one passphrase', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			const accountOwnerPk = getAddressAndPublicKeyFromPassphrase(
+				members.mandatoryOne.passphrase,
+			);
+
+			registerDelegateTransaction = registerDelegate({
+				senderPublicKey: accountOwnerPk.publicKey,
+				username,
+				networkIdentifier,
+				fee,
+				nonce,
+				passphrases: [members.mandatoryOne.passphrase],
+				keys: {
+					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
+					optionalKeys: [],
+				},
+			});
+
+			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
+			const validSignatureMemberOne =
+				'e77e30950708f9135256f8f27bef7100d1e96cafd7e6e96f77d990a973e6797dd3ff6cc5d98d3037783e7eefd7f396a911c593785824cf16e16a8af486e3bb08';
+
+			expect(registerDelegateTransaction.signatures?.length).toBe(2);
+			expect((registerDelegateTransaction as any).signatures[0]).toBe(
+				validSignatureMemberOne,
+			);
+			expect((registerDelegateTransaction as any).signatures[1]).toBe('');
+		});
+
+		it('should return one signature for two mandatory public keys and one passphrase in the right order', async () => {
+			const { members } = secondSignatureReg.testCases.input;
+			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
+			const accountOwnerPk = getAddressAndPublicKeyFromPassphrase(
+				members.mandatoryOne.passphrase,
+			);
+
+			registerDelegateTransaction = registerDelegate({
+				senderPublicKey: accountOwnerPk.publicKey,
+				username,
+				networkIdentifier,
+				fee,
+				nonce,
+				passphrases: [members.mandatoryTwo.passphrase],
+				keys: {
+					mandatoryKeys: secondSignatureAccount.asset.mandatoryKeys,
+					optionalKeys: [],
+				},
+			});
+
+			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
+			const validSignatureMemberTwo =
+				'a67d45e820734e8e82c84b13cc4871d7e8213993a592fff6ed4b35b8733e751eb43c8b5c25e3d3ef7d10ddc9fcea435d05dde0ec888695ea6741a5cd91f9dd06';
+			expect(registerDelegateTransaction.signatures?.length).toBe(2);
+			expect((registerDelegateTransaction as any).signatures[0]).toBe('');
+			expect((registerDelegateTransaction as any).signatures[1]).toBe(
+				validSignatureMemberTwo,
+			);
 		});
 	});
 
