@@ -621,8 +621,7 @@ export class Chain {
 		)(transactions);
 	}
 
-	// TODO: Remove this function in #4841 as it is not needed on the new transaction pool
-	public async verifyTransactions(
+	public async applyTransactions(
 		transactions: BaseTransaction[],
 	): Promise<TransactionHandledResult> {
 		const stateStore = new StateStore(this.storage);
@@ -637,17 +636,6 @@ export class Chain {
 					blockTimestamp: timestamp,
 				};
 			}),
-			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(this.exceptions),
-		)(transactions, stateStore);
-	}
-
-	public async processTransactions(
-		transactions: BaseTransaction[],
-	): Promise<TransactionHandledResult> {
-		const stateStore = new StateStore(this.storage);
-
-		return composeTransactionSteps(
 			checkPersistedTransactions(this.dataAccess),
 			applyTransactions(this.exceptions),
 		)(transactions, stateStore);
