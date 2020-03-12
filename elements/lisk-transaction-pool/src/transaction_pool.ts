@@ -174,9 +174,26 @@ export class TransactionPool {
 	}
 
 	public removeTransaction(tx: Transaction): boolean {
-		// FIXME: this is log to supress ts build error
-		console.log(tx);
-		return false;
+		const foundTx = this._allTransactions[tx.id];
+		if (!foundTx) {
+			return false;
+		}
+
+		delete this._allTransactions[tx.id];
+		this._transactionList[
+			getAddressFromPublicKey(foundTx.senderPublicKey)
+		].remove(tx.nonce);
+
+		// Remove from feePriorityQueue
+		this._feePriorityQueue.clear();
+		for (const txObject of this.getAllTransactions()) {
+			this._feePriorityQueue.push(
+				txObject.feePriority ?? this._calculateFeePriority(txObject),
+				txObject.id,
+			);
+		}
+
+		return true;
 	}
 
 	public getProcessableTransactions(): {
