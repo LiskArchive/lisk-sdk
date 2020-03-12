@@ -379,21 +379,6 @@ module.exports = class Node {
 			blockTime: this.options.constants.blockTime,
 		});
 
-		this.transactionPool = new TransactionPool({
-			logger: this.logger,
-			chain: this.chain,
-			exceptions: this.options.exceptions,
-			maxTransactionsPerQueue: this.options.transactions
-				.maxTransactionsPerQueue,
-			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
-			broadcastInterval: this.options.broadcasts.broadcastInterval,
-			releaseLimit: this.options.broadcasts.releaseLimit,
-		});
-		this.modules.transactionPool = this.transactionPool;
-
 		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
 			const { block } = eventData;
 			// Publish to the outside
@@ -460,6 +445,13 @@ module.exports = class Node {
 			storage: this.storage,
 			chainModule: this.chain,
 		});
+
+		// TODO: Read transaction pool config and pass them
+		this.transactionPool = new TransactionPool({
+			applyTransactions: this.chain.applyTransactions.bind(this.chain),
+		});
+		this.modules.transactionPool = this.transactionPool;
+
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
 			logger: this.logger,

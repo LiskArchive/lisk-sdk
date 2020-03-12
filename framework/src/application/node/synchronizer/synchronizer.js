@@ -218,13 +218,14 @@ class Synchronizer {
 		for (let i = 0; i < transactionCount; i++) {
 			const transaction = transactions[i];
 
-			try {
-				/* eslint-disable-next-line */
-				transaction.bundled = true;
-				await this.transactionPoolModule.addTransaction(transaction);
-			} catch (error) {
-				this.logger.error(error);
-				throw error;
+			transaction.bundled = true;
+			const { errors } = await this.transactionPoolModule.addTransaction(
+				transaction,
+			);
+
+			if (errors.length) {
+				this.logger.error({ errors }, 'Failed to add transaction to pool');
+				throw errors;
 			}
 		}
 	}

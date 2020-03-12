@@ -391,20 +391,17 @@ class Transport {
 		}
 
 		this.logger.debug({ id: transaction.id }, 'Received transaction');
+		const { errors } = await this.transactionPoolModule.addTransaction(
+			transaction,
+		);
 
-		try {
-			await this.transactionPoolModule.processUnconfirmedTransaction(
-				transaction,
-				true,
-			);
+		if (!errors.length) {
+			this.logger.info({ transaction }, 'Added transaction to pool');
 			return transaction.id;
-		} catch (err) {
-			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-			if (transaction) {
-				this.logger.debug({ transaction }, 'Transaction');
-			}
-			throw err;
 		}
+
+		this.logger.error({ errors }, 'Failed to add transaction to pool');
+		throw errors;
 	}
 
 	async _addRateLimit(procedure, peerId, limit) {
