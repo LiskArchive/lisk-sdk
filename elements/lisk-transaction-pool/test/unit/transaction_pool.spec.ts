@@ -251,10 +251,15 @@ describe('TransactionList class', () => {
 		txGetBytesStub = jest.fn();
 		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
+		beforeEach(async () => {
+			await transactionPool.addTransaction(tx);
+		});
+
+		afterEach(async () => {
+			await transactionPool.removeTransaction(tx);
+		});
+
 		it('should return false when a tx id does not exist', async () => {
-			const addStatus = await transactionPool.addTransaction(tx);
-			expect(addStatus).toEqual(true);
-			expect(transactionPool.getAllTransactions().length).toEqual(1);
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
@@ -275,9 +280,6 @@ describe('TransactionList class', () => {
 		});
 
 		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', async () => {
-			const addStatus = await transactionPool.addTransaction(tx);
-			expect(addStatus).toEqual(true);
-			expect(transactionPool.getAllTransactions().length).toEqual(1);
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)

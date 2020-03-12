@@ -188,9 +188,7 @@ export class TransactionPool {
 		this._feePriorityQueue.clear();
 		for (const txObject of this.getAllTransactions()) {
 			this._feePriorityQueue.push(
-				txObject.feePriority
-					? txObject.feePriority
-					: this._calculateFeePriority(txObject),
+				txObject.feePriority ?? this._calculateFeePriority(txObject),
 				txObject.id,
 			);
 		}
