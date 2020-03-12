@@ -33,6 +33,7 @@ import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
 import { createResponse, Status, TransactionResponse } from './response';
 import { transactionInterface } from './schema';
+import { signMultiSignatureTransaction } from './sign_multi_signature_transaction';
 import { Account, TransactionJSON } from './transaction_types';
 import { transfer } from './transfer';
 import {
@@ -77,6 +78,7 @@ export {
 	MultisignatureTransaction,
 	createResponse,
 	registerMultisignature,
+	signMultiSignatureTransaction,
 	Status,
 	TransactionResponse,
 	TransactionJSON,

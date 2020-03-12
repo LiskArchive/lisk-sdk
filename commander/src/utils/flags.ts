@@ -68,7 +68,14 @@ const networkIdentifierDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
 const communityIdentifierDescription =
 	'Unique community identifier for network.';
-
+const mandatoryKeyDescription =
+	'Mandatory publicKey required for multi signature transaction.';
+const optionalKeyDescription =
+	'Optional publicKey for multi signature transaction.';
+const numberOfSignaturesDescription =
+	'Number of signatures required to approve the transaction from multi signature account';
+const numberOfPassphrasesDescription =
+	'Number of times you require the passphrase prompt to appear';
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -156,5 +163,19 @@ export const flags: FlagMap = {
 	},
 	noStart: {
 		description: noStartDescription,
+	},
+	mandatoryKey: {
+		char: 'm',
+		description: mandatoryKeyDescription,
+	},
+	optionalKey: {
+		char: 'o',
+		description: optionalKeyDescription,
+	},
+	numberOfSignatures: {
+		description: numberOfSignaturesDescription,
+	},
+	numberOfPassphrases: {
+		description: numberOfPassphrasesDescription,
 	},
 };

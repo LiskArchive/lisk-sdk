@@ -19,7 +19,8 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 } = require('@liskhq/lisk-cryptography');
-const { sortTransactions } = require('./sort');
+
+const { HighFeeForgingStrategy } = require('./strategies');
 
 const getDelegateKeypairForCurrentSlot = async (
 	dposModule,
@@ -42,6 +43,7 @@ const getDelegateKeypairForCurrentSlot = async (
 
 class Forger {
 	constructor({
+		forgingStrategy,
 		// components
 		channel,
 		logger,
@@ -52,7 +54,7 @@ class Forger {
 		chainModule,
 		// constants
 		activeDelegates,
-		maxTransactionsPerBlock,
+		maxPayloadLength,
 		forgingDelegates,
 		forgingForce,
 		forgingDefaultPassword,
@@ -71,13 +73,22 @@ class Forger {
 		};
 		this.constants = {
 			activeDelegates,
-			maxTransactionsPerBlock,
+			maxPayloadLength,
 		};
 
 		this.processorModule = processorModule;
 		this.dposModule = dposModule;
 		this.transactionPoolModule = transactionPoolModule;
 		this.chainModule = chainModule;
+
+		this.forgingStrategy =
+			forgingStrategy ||
+			new HighFeeForgingStrategy({
+				logger: this.logger,
+				transactionPoolModule: this.transactionPoolModule,
+				chainModule: this.chainModule,
+				maxPayloadLength: this.constants.maxPayloadLength,
+			});
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -213,11 +224,6 @@ class Forger {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async beforeForge() {
-		await this.transactionPoolModule.fillPool();
-	}
-
-	// eslint-disable-next-line class-methods-use-this
 	async forge() {
 		const currentSlot = this.chainModule.slots.getSlotNumber();
 		const currentSlotTime = this.chainModule.slots.getRealTime(
@@ -282,29 +288,14 @@ class Forger {
 			return;
 		}
 
-		const transactions =
-			this.transactionPoolModule.getUnconfirmedTransactionList(
-				false,
-				this.constants.maxTransactionsPerBlock,
-			) || [];
-
 		const timestamp = this.chainModule.slots.getSlotTime(currentSlot);
 		const previousBlock = this.chainModule.lastBlock;
-
-		const context = {
-			blockTimestamp: timestamp,
-		};
-		const readyTransactions = await this.chainModule.filterReadyTransactions(
-			transactions,
-			context,
-		);
-
-		const sortedTransactions = sortTransactions(readyTransactions);
+		const transactions = await this.forgingStrategy.getTransactionsForBlock();
 
 		const forgedBlock = await this.processorModule.create({
 			keypair: delegateKeypair,
 			timestamp,
-			transactions: sortedTransactions,
+			transactions,
 			previousBlock,
 		});
 
@@ -345,7 +336,10 @@ class Forger {
 	}
 }
 
-const exportedInterfaces = { Forger, getDelegateKeypairForCurrentSlot };
+const exportedInterfaces = {
+	Forger,
+	getDelegateKeypairForCurrentSlot,
+};
 
 // Export
 module.exports = exportedInterfaces;

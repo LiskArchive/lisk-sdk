@@ -512,6 +512,7 @@ module.exports = class Node {
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
 		});
 		this.modules.rebuilder = this.rebuilder;
+
 		this.forger = new Forger({
 			channel: this.channel,
 			logger: this.logger,
@@ -521,8 +522,7 @@ module.exports = class Node {
 			processorModule: this.processor,
 			chainModule: this.chain,
 			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
+			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,
@@ -562,7 +562,6 @@ module.exports = class Node {
 					this.logger.debug('Client not ready to forge');
 					return;
 				}
-				await this.forger.beforeForge();
 				await this.forger.forge();
 			} catch (err) {
 				this.logger.error({ err });
