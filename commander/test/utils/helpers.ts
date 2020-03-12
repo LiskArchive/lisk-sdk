@@ -21,7 +21,6 @@ import {
 	createErrorHandler,
 	handleEPIPE,
 } from '../../src/utils/helpers';
-import { ValidationError } from '../../src/utils/error';
 
 describe('helpers utils', () => {
 	describe('#validateLifetime', () => {
@@ -31,19 +30,15 @@ describe('helpers utils', () => {
 		});
 
 		it('should throw validation error with NaN', () => {
-			return expect(validateLifetime.bind(null, 'NaN'))
-				.to.throw()
-				.and.be.customError(
-					new ValidationError('Lifetime must be an integer.'),
-				);
+			return expect(validateLifetime.bind(null, 'NaN')).to.throw(
+				'Lifetime must be an integer.',
+			);
 		});
 
 		it('should throw validation error with decimals', () => {
-			return expect(validateLifetime.bind(null, '123.4'))
-				.to.throw()
-				.and.be.customError(
-					new ValidationError('Lifetime must be an integer.'),
-				);
+			return expect(validateLifetime.bind(null, '123.4')).to.throw(
+				'Lifetime must be an integer.',
+			);
 		});
 	});
 
@@ -54,23 +49,15 @@ describe('helpers utils', () => {
 		});
 
 		it('should throw validation error with NaN', () => {
-			return expect(validateMinimum.bind(null, 'NaN'))
-				.to.throw()
-				.and.be.customError(
-					new ValidationError(
-						'Minimum number of signatures must be an integer.',
-					),
-				);
+			return expect(validateMinimum.bind(null, 'NaN')).to.throw(
+				'Minimum number of signatures must be an integer.',
+			);
 		});
 
 		it('should throw validation error with too many decimals', () => {
-			return expect(validateMinimum.bind(null, '123.4'))
-				.to.throw()
-				.and.be.customError(
-					new ValidationError(
-						'Minimum number of signatures must be an integer.',
-					),
-				);
+			return expect(validateMinimum.bind(null, '123.4')).to.throw(
+				'Minimum number of signatures must be an integer.',
+			);
 		});
 	});
 
@@ -81,23 +68,15 @@ describe('helpers utils', () => {
 		});
 
 		it('should throw validation error with abcedf', () => {
-			return expect(validateAmount.bind(null, 'abcedf'))
-				.to.throw()
-				.and.be.customError(
-					new ValidationError(
-						'Amount must be a number with no more than 8 decimal places.',
-					),
-				);
+			return expect(validateAmount.bind(null, 'abcedf')).to.throw(
+				'Amount must be a number with no more than 8 decimal places.',
+			);
 		});
 
 		it('should throw validation error with too many decimals', () => {
-			return expect(validateAmount.bind(null, '10.0001000001'))
-				.to.throw()
-				.and.be.customError(
-					new ValidationError(
-						'Amount must be a number with no more than 8 decimal places.',
-					),
-				);
+			return expect(validateAmount.bind(null, '10.0001000001')).to.throw(
+				'Amount must be a number with no more than 8 decimal places.',
+			);
 		});
 	});
 

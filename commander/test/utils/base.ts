@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import os from 'os';
 import { test, expect } from '@oclif/test';
 import BaseCommand, { defaultConfigFolder } from '../../src/base';

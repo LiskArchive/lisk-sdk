@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fs from 'fs';
 import readline from 'readline';

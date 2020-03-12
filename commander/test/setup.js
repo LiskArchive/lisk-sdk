@@ -13,43 +13,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
-import chai, { Assertion } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
+const os = require('os');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+const sinonChai = require('sinon-chai');
+
+const { Assertion } = chai;
 
 process.env.NODE_ENV = 'test';
 process.env.LISK_COMMANDER_CONFIG_DIR =
 	process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
 
-Assertion.addMethod('matchAny', function handleAssert(
-	this: Chai.ChaiStatic,
-	matcher: (val: unknown) => boolean,
-) {
+Assertion.addMethod('matchAny', function handleAssert(matcher) {
 	const obj = this._obj;
 
 	new Assertion(obj).to.be.an('array');
-	const result = obj.some((val: unknown) => matcher(val));
+	const result = obj.some(val => matcher(val));
 	this.assert(
 		result,
 		'expected #{this} to match at least once',
 		'expected #{this} not to match',
 	);
-} as any);
+});
 
-Assertion.addMethod('customError', function handleAssert(
-	this: Chai.ChaiStatic,
-	error: Error,
-) {
+Assertion.addMethod('customError', function handleAssert(error) {
 	const obj = this._obj;
 	new Assertion(obj).to.be.instanceOf(Error);
 	new Assertion(obj.name).to.equal(error.name);
 	new Assertion(obj.message).to.equal(error.message);
-} as any);
+});
 
 [sinonChai, chaiAsPromised].forEach(chai.use);
-
-global.sandbox = sinon.createSandbox({
-	useFakeTimers: true,
-});

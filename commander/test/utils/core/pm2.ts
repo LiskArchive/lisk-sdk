@@ -1,3 +1,4 @@
+import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import pm2 from 'pm2';
 import fsExtra from 'fs-extra';
