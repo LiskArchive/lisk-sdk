@@ -179,7 +179,7 @@ describe('TransactionList class', () => {
 			].promote([txs[3]]);
 		});
 
-		it('should return copy of the transaciton list', async () => {
+		it('should return copy of processable transactions list', async () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
 			const transactionFromSender0 =
 				processableTransactions[getAddressFromPublicKey(senderPublicKeys[0])];
