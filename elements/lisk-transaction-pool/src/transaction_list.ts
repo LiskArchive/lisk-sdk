@@ -54,10 +54,6 @@ export class TransactionList {
 		return this._transactions[nonce.toString()];
 	}
 
-	public getById(id: string): Transaction | undefined {
-		return this._transactions[nonce.toString()];
-	}
-
 	public getAll(): ReadonlyArray<Transaction> {
 		return Object.values(this._transactions).sort((a, b) =>
 			a.nonce > b.nonce ? -1 : 1,

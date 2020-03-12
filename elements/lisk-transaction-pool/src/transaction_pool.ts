@@ -34,6 +34,7 @@ export interface TransactionPoolConfig {
 	readonly maxTransactionsPerAccount?: number;
 	readonly transactionExpiryTime?: number;
 	readonly minEntranceFeePriority?: bigint;
+	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
 	// tslint:disable-next-line no-mixed-interface
 	readonly applyTransaction: ApplyFunction;
@@ -62,6 +63,7 @@ export class TransactionPool {
 	private readonly _maxTransactionsPerAccount: number;
 	private readonly _transactionExpiryTime: number;
 	private readonly _minEntranceFeePriority: bigint;
+	private readonly _transactionReorganizationInterval: number;
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: MinHeap<string, bigint>;
@@ -80,14 +82,16 @@ export class TransactionPool {
 			config.transactionExpiryTime ?? DEFAULT_EXPIRY_TIME;
 		this._minEntranceFeePriority =
 			config.minEntranceFeePriority ?? DEFAULT_MIN_ENTRANCE_FEE_PRIORITY;
+		this._transactionReorganizationInterval =
+			config.transactionReorganizationInterval ?? DEFAULT_REORGANIZE_TIME;
 		this._minReplacementFeeDifference =
 			config.minReplacementFeeDifference ??
 			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 		this._reorganizeJob = new Job(
-			() => this._reorganize(),
-			DEFAULT_REORGANIZE_TIME,
+			async () => await this._reorganize(),
+			this._transactionReorganizationInterval,
 		);
-		this._expireJob = new Job(() => this._expire(), DEFAULT_EXPIRE_TIME);
+		this._expireJob = new Job(() => this._expire(), DEFAULT_EXPIRE_INTERVAL);
 
 		// FIXME: This is log to supress ts build error
 		console.log(this._transactionExpiryTime);
@@ -255,8 +259,7 @@ export class TransactionPool {
 	}
 
 	private _evictUnprocessable(): boolean {
-		const unprocessableFeePriorityHeap = new MinHeap<number, Transaction>();
-
+		const unprocessableFeePriorityHeap = new MinHeap<bigint, Transaction>();
 		// Loop through tx lists and push unprocessable tx to fee priority heap
 		for (const txList of Object.values(this._transactionList)) {
 			const unprocessableTransactions = txList.getUnprocessable();
@@ -264,7 +267,7 @@ export class TransactionPool {
 			for (const unprocessableTx of unprocessableTransactions) {
 				unprocessableFeePriorityHeap.push(
 					unprocessableTx,
-					unprocessableTx.feePriority,
+					unprocessableTx.feePriority as bigint,
 				);
 			}
 		}
@@ -279,17 +282,17 @@ export class TransactionPool {
 	}
 
 	private _evictProcessable(): boolean {
-		const processableFeePriorityHeap = new MinHeap<number, Transaction>();
+		const processableFeePriorityHeap = new MinHeap<bigint, Transaction>();
 		// Loop through tx lists and push processable tx to fee priority heap
 		for (const txList of Object.values(this._transactionList)) {
 			// Push highest nonce tx to processable fee priorty heap
 			const processableTransactions = txList.getProcessable();
-			const processableTransactionWithHighestNonce =
-				processableTransactions[processableTransactions.length - 1];
 			if (processableTransactions.length) {
+				const processableTransactionWithHighestNonce =
+					processableTransactions[processableTransactions.length - 1];
 				processableFeePriorityHeap.push(
 					processableTransactionWithHighestNonce,
-					processableTransactionWithHighestNonce.feePriority,
+					processableTransactionWithHighestNonce.feePriority as bigint,
 				);
 			}
 		}
@@ -312,10 +315,9 @@ export class TransactionPool {
 			const promotableTransactions = txList.getPromotable();
 
 			// If no promotable transactions, check next list
-			if (!(promotableTransactions.length > 0)) {
+			if (!promotableTransactions.length) {
 				continue;
 			}
-
 			const applyResults = await this._applyFunction([
 				...allSortedTransactionsInList,
 			]);

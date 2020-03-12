@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { TransactionList } from '../../src/transaction_list';
 import {
 	TransactionPool,
 	TransactionPoolConfig,
@@ -20,16 +21,18 @@ import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-describe('TransactionList class', () => {
+describe('TransactionPool class', () => {
 	let applyTransactionStub = jest.fn();
 
 	const defaultTxPoolConfig: TransactionPoolConfig = {
 		applyTransaction: applyTransactionStub,
+		transactionReorganizationInterval: 1,
 	};
 
 	let transactionPool: TransactionPool;
 
 	beforeEach(() => {
+		jest.useFakeTimers();
 		transactionPool = new TransactionPool(defaultTxPoolConfig);
 		(transactionPool as any)._applyFunction = applyTransactionStub;
 		applyTransactionStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
@@ -432,6 +435,191 @@ describe('TransactionList class', () => {
 			expect(
 				transactionPool['_feePriorityQueue'].values.includes(tx.id),
 			).toEqual(false);
+		});
+	});
+
+	describe('evictUnprocessable', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '3',
+				nonce: BigInt(3),
+				minFee: BigInt(10),
+				fee: BigInt(3000),
+				senderPublicKey,
+			} as Transaction,
+		];
+		let txGetBytesStub: any;
+		txGetBytesStub = jest.fn();
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+
+		beforeEach(async () => {
+			transactionPool = new TransactionPool({
+				...defaultTxPoolConfig,
+				maxTransactions: 2,
+			});
+			await transactionPool.addTransaction(transactions[0]);
+			await transactionPool.addTransaction(transactions[1]);
+		});
+
+		afterEach(async () => {
+			await transactionPool.removeTransaction(transactions[0]);
+			await transactionPool.removeTransaction(transactions[1]);
+		});
+
+		it('should evict unprocessable transaction with lowest fee', async () => {
+			const isEvicted = (transactionPool as any)._evictUnprocessable();
+
+			expect(isEvicted).toBe(true);
+			expect(transactionPool.getAllTransactions).not.toContain(transactions[0]);
+		});
+	});
+
+	describe('evictProcessable', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '2',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey,
+			} as Transaction,
+		];
+		let txGetBytesStub: any;
+		txGetBytesStub = jest.fn();
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+
+		beforeEach(async () => {
+			transactionPool = new TransactionPool({
+				...defaultTxPoolConfig,
+				maxTransactions: 2,
+			});
+			await transactionPool.addTransaction(transactions[0]);
+			await transactionPool.addTransaction(transactions[1]);
+		});
+
+		afterEach(async () => {
+			await transactionPool.removeTransaction(transactions[0]);
+			await transactionPool.removeTransaction(transactions[1]);
+		});
+
+		it('should evict processable transaction with lowest fee', async () => {
+			const isEvicted = (transactionPool as any)._evictProcessable();
+
+			expect(isEvicted).toBe(true);
+			expect(transactionPool.getAllTransactions).not.toContain(transactions[0]);
+		});
+	});
+
+	describe('reorganize', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '2',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '3',
+				nonce: BigInt(3),
+				minFee: BigInt(10),
+				fee: BigInt(3000),
+				senderPublicKey,
+			} as Transaction,
+		];
+		let txGetBytesStub: any;
+		txGetBytesStub = jest.fn();
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[2].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		let address: string;
+		let txList: TransactionList;
+
+		beforeEach(async () => {
+			transactionPool = new TransactionPool({
+				...defaultTxPoolConfig,
+				transactionReorganizationInterval: 1,
+			});
+			(transactionPool as any)._applyFunction = applyTransactionStub;
+			await transactionPool.addTransaction(transactions[0]);
+			await transactionPool.addTransaction(transactions[1]);
+			await transactionPool.addTransaction(transactions[2]);
+			address = Object.keys((transactionPool as any)._transactionList)[0];
+			txList = (transactionPool as any)._transactionList[address];
+			await transactionPool.start();
+		});
+
+		afterEach(async () => {
+			transactionPool.removeTransaction(transactions[0]);
+			transactionPool.removeTransaction(transactions[1]);
+			transactionPool.removeTransaction(transactions[2]);
+			await transactionPool.stop();
+		});
+
+		it('should not promote unprocessable transactions to processable transactions', async () => {
+			transactionPool.removeTransaction(transactions[1]);
+			jest.advanceTimersByTime(2);
+			const unprocessableTransactions = txList.getUnprocessable();
+
+			expect(unprocessableTransactions).toContain(transactions[2]);
+		});
+
+		it('should promote unprocessable transactions to processable transactions if missing transaction is added', async () => {
+			jest.advanceTimersByTime(2);
+
+			const processableTransactions = txList.getProcessable();
+			expect(processableTransactions).toContain(transactions[2]);
+		});
+
+		it('should not promote unprocessable transactions to processable transactions if it is invalid', async () => {
+			applyTransactionStub.mockResolvedValue([
+				{ status: Status.FAIL, errors: [new Error('error')] },
+			]);
+			jest.advanceTimersByTime(2);
+
+			const processableTransactions = txList.getProcessable();
+			expect(processableTransactions).not.toContain(transactions[0]);
+			expect(processableTransactions).not.toContain(transactions[1]);
 		});
 	});
 });
