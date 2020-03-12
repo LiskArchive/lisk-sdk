@@ -85,11 +85,7 @@ export class TransactionPool {
 			DEFAULT_REORGANIZE_TIME,
 		);
 		// FIXME: This is log to supress ts build error
-		console.log(
-			this._transactionExpiryTime,
-			this._maxTransactionsPerAccount,
-			this._minReplacementFeeDifference,
-		);
+		console.log(this._transactionExpiryTime);
 	}
 
 	public async start(): Promise<void> {
@@ -105,13 +101,11 @@ export class TransactionPool {
 	}
 
 	public get(id: string): Transaction | undefined {
-		console.log(id, this._transactionList);
-		return undefined;
+		return this._allTransactions[id];
 	}
 
 	public contains(id: string): boolean {
-		console.log(id);
-		return false;
+		return this._allTransactions[id] !== undefined;
 	}
 
 	public async addTransaction(incomingTx: Transaction): Promise<boolean> {
@@ -154,6 +148,10 @@ export class TransactionPool {
 		if (!this._transactionList[incomingTxAddress]) {
 			this._transactionList[incomingTxAddress] = new TransactionList(
 				incomingTxAddress,
+				{
+					maxSize: this._maxTransactionsPerAccount,
+					minReplacementFeeDifference: this._minReplacementFeeDifference,
+				},
 			);
 		}
 
@@ -199,7 +197,14 @@ export class TransactionPool {
 	public getProcessableTransactions(): {
 		readonly [address: string]: ReadonlyArray<Transaction>;
 	} {
-		return {};
+		const processableTransactions: {
+			[address: string]: ReadonlyArray<Transaction>;
+		} = {};
+		for (const address of Object.keys(this._transactionList)) {
+			const transactions = this._transactionList[address].getProcessable();
+			processableTransactions[address] = [...transactions];
+		}
+		return processableTransactions;
 	}
 
 	private async _reorganize(): Promise<void> {}
