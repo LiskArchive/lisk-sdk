@@ -31,12 +31,12 @@ const passwordDescription = `Specifies a source for your secret password. Lisk C
 	- --password=pass:password123 (should only be used where security is not important)
 `;
 
-const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes either a string of public keys separated by commas.
+const votesDescription = `Specifies the public keys for the delegate candidates you want to vote for. Takes a string of public keys separated by commas.
 	Examples:
 	- --votes=publickey1,publickey2
 `;
 
-const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes either a string of public keys separated by commas.
+const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes a string of public keys separated by commas.
 	Examples:
 	- --unvotes=publickey1,publickey2
 `;
