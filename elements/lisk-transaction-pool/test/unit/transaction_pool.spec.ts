@@ -580,46 +580,67 @@ describe('TransactionPool class', () => {
 				...defaultTxPoolConfig,
 				transactionReorganizationInterval: 1,
 			});
-			(transactionPool as any)._applyFunction = applyTransactionStub;
+			(transactionPool as any)._applyFunction.mockResolvedValue([{ id: '1', status: Status.OK, errors: [] }, { id: '2', status: Status.OK, errors: [] }, { id: '3', status: Status.OK, errors: [] }]);
 			await transactionPool.addTransaction(transactions[0]);
 			await transactionPool.addTransaction(transactions[1]);
 			await transactionPool.addTransaction(transactions[2]);
 			address = Object.keys((transactionPool as any)._transactionList)[0];
 			txList = (transactionPool as any)._transactionList[address];
-			await transactionPool.start();
+			transactionPool.start();
 		});
 
 		afterEach(async () => {
 			transactionPool.removeTransaction(transactions[0]);
 			transactionPool.removeTransaction(transactions[1]);
 			transactionPool.removeTransaction(transactions[2]);
-			await transactionPool.stop();
+			transactionPool.stop();
 		});
 
 		it('should not promote unprocessable transactions to processable transactions', async () => {
-			transactionPool.removeTransaction(transactions[1]);
+			transactionPool.removeTransaction(transactions[1]);			
 			jest.advanceTimersByTime(2);
 			const unprocessableTransactions = txList.getUnprocessable();
 
 			expect(unprocessableTransactions).toContain(transactions[2]);
 		});
+	});
 
-		it('should promote unprocessable transactions to processable transactions if missing transaction is added', async () => {
-			jest.advanceTimersByTime(2);
+	describe('expire', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+				receivedAt: new Date(0),
+			} as Transaction,
+			{
+				id: '2',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey,
+				receivedAt: new Date(),
+			} as Transaction,
+			{
+				id: '3',
+				nonce: BigInt(3),
+				minFee: BigInt(10),
+				fee: BigInt(3000),
+				senderPublicKey,
+				receivedAt: new Date(0),
+			} as Transaction,
+		];
 
-			const processableTransactions = txList.getProcessable();
-			expect(processableTransactions).toContain(transactions[2]);
-		});
+		beforeEach(() => {
+			(transactionPool as any)._allTransactions = { '1': transactions[0], '2': transactions[1], '3': transactions[2],}
+		})
 
-		it('should not promote unprocessable transactions to processable transactions if it is invalid', async () => {
-			applyTransactionStub.mockResolvedValue([
-				{ status: Status.FAIL, errors: [new Error('error')] },
-			]);
-			jest.advanceTimersByTime(2);
-
-			const processableTransactions = txList.getProcessable();
-			expect(processableTransactions).not.toContain(transactions[0]);
-			expect(processableTransactions).not.toContain(transactions[1]);
+		it('should expire old transactions', async () => {
+			(transactionPool as any)._expire();		
+			expect((transactionPool as any)._allTransactions).not.toHaveProperty('1');
 		});
 	});
 });

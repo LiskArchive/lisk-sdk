@@ -56,7 +56,7 @@ export class TransactionList {
 
 	public getAll(): ReadonlyArray<Transaction> {
 		return Object.values(this._transactions).sort((a, b) =>
-			a.nonce > b.nonce ? -1 : 1,
+			a.nonce > b.nonce ? 1 : -1,
 		);
 	}
 

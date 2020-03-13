@@ -91,7 +91,7 @@ export class TransactionPool {
 			async () => await this._reorganize(),
 			this._transactionReorganizationInterval,
 		);
-		this._expireJob = new Job(() => this._expire(), DEFAULT_EXPIRE_INTERVAL);
+		this._expireJob = new Job(async () => await this._expire(), DEFAULT_EXPIRE_INTERVAL);
 
 		// FIXME: This is log to supress ts build error
 		console.log(this._transactionExpiryTime);
@@ -313,7 +313,6 @@ export class TransactionPool {
 		for (const txList of Object.values(this._transactionList)) {
 			const allSortedTransactionsInList = txList.getAll();
 			const promotableTransactions = txList.getPromotable();
-
 			// If no promotable transactions, check next list
 			if (!promotableTransactions.length) {
 				continue;
@@ -321,20 +320,23 @@ export class TransactionPool {
 			const applyResults = await this._applyFunction([
 				...allSortedTransactionsInList,
 			]);
-			const successfulTransactions: string[] = [];
+
+			const successfulTransactionIds: string[] = [];
 			let firstInvalidTransactionId: string | undefined;
+
 			for (const result of applyResults) {
 				// If a tx is invalid, all subsequent are also invalid, so exit loop.
 				if (result.status === Status.FAIL) {
 					firstInvalidTransactionId = result.id;
 					break;
 				}
-				successfulTransactions.push(result.id);
+				successfulTransactionIds.push(result.id);
 			}
+
 			// Promote all transactions which were successful
 			txList.promote(
 				promotableTransactions.filter(tx =>
-					successfulTransactions.includes(tx.id),
+					successfulTransactionIds.includes(tx.id),
 				),
 			);
 
@@ -344,6 +346,7 @@ export class TransactionPool {
 						tx => tx.id == firstInvalidTransactionId,
 				  )
 				: undefined;
+
 			if (invalidTransaction) {
 				for (const tx of allSortedTransactionsInList) {
 					if (tx.nonce >= invalidTransaction.nonce) {
