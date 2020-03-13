@@ -89,7 +89,7 @@ interface ChainConstructor {
 	readonly activeDelegates: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
-	readonly rewardMileStones: ReadonlyArray<string>;
+	readonly rewardMilestones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
 	readonly minBlockHeaderCache?: number;
@@ -240,7 +240,7 @@ export class Chain {
 		activeDelegates,
 		rewardDistance,
 		rewardOffset,
-		rewardMileStones,
+		rewardMilestones,
 		totalAmount,
 		blockSlotWindow,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
@@ -265,7 +265,7 @@ export class Chain {
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
-			milestones: rewardMileStones,
+			milestones: rewardMilestones,
 			totalAmount,
 		};
 		this.blockReward = {

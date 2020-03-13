@@ -375,7 +375,7 @@ module.exports = class Node {
 			activeDelegates: this.options.constants.activeDelegates,
 			rewardDistance: this.options.constants.rewards.distance,
 			rewardOffset: this.options.constants.rewards.offset,
-			rewardMileStones: this.options.constants.rewards.milestones,
+			rewardMilestones: this.options.constants.rewards.milestones,
 			totalAmount: this.options.constants.totalAmount,
 			blockSlotWindow: this.options.constants.blockSlotWindow,
 			epochTime: this.options.constants.epochTime,

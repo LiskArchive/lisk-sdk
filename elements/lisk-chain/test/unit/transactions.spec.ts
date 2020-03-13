@@ -36,7 +36,7 @@ describe('blocks/transactions', () => {
 		activeDelegates: 101,
 		rewardDistance: 3000000,
 		rewardOffset: 2160,
-		rewardMileStones: [
+		rewardMilestones: [
 			'500000000', // Initial Reward
 			'400000000', // Milestone 1
 			'300000000', // Milestone 2

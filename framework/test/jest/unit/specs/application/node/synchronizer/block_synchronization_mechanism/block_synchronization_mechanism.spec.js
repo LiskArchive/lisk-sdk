@@ -94,7 +94,7 @@ describe('block_synchronization_mechanism', () => {
 			activeDelegates: constants.activeDelegates,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
-			rewardMileStones: constants.rewards.milestones,
+			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
 			blockSlotWindow: constants.blockSlotWindow,
 			epochTime: constants.epochTime,
