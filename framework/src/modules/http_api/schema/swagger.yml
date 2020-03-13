@@ -1959,6 +1959,7 @@ definitions:
       - chainMaxHeightFinalized
       - secondsSinceEpoch
       - syncing
+      - unconfirmedTransactions
     properties:
       currentTime:
         type: integer
@@ -1985,6 +1986,12 @@ definitions:
         type: boolean
         example: false
         description: True if the node syncing with other peers.
+      height:
+        type: integer
+        example: 1
+        minimum: 0
+        description: |
+          Number of unprocessed transactions in the pool.
 
   TransactionError:
     type: object
