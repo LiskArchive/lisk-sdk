@@ -124,10 +124,10 @@ export default class MultisignatureCommand extends BaseCommand {
 
 		const result = registerMultisignature({
 			senderPassphrase,
-			passphrases: memberPassphrases || [],
-			mandatoryKeys: mandatoryKeys || [],
-			optionalKeys: optionalKeys || [],
-			numberOfSignatures: numberOfSignatures || 0,
+			passphrases: memberPassphrases,
+			mandatoryKeys,
+			optionalKeys,
+			numberOfSignatures,
 			networkIdentifier,
 			nonce,
 			fee,
