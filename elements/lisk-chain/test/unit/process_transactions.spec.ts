@@ -14,9 +14,9 @@
 import {
 	Status as TransactionStatus,
 	BaseTransaction,
+	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
-import { TransactionHandledResult } from '../../src/transactions/compose_transaction_steps';
 import { composeTransactionSteps } from '../../src/transactions/compose_transaction_steps';
 
 describe('#composeTransactionSteps', () => {
@@ -31,28 +31,24 @@ describe('#composeTransactionSteps', () => {
 		},
 	] as BaseTransaction[];
 
-	const step1Response = {
-		transactionsResponses: [
-			{
-				id: 'anId',
-				status: TransactionStatus.FAIL,
-			},
-		],
-	};
+	const step1Response = [
+		{
+			id: 'anId',
+			status: TransactionStatus.FAIL,
+		},
+	];
 
-	const step2Response = {
-		transactionsResponses: [
-			{
-				id: 'anotherId',
-				status: TransactionStatus.OK,
-			},
-		],
-	};
+	const step2Response = [
+		{
+			id: 'anotherId',
+			status: TransactionStatus.OK,
+		},
+	];
 
 	const step1 = jest.fn().mockReturnValue(step1Response);
 	const step2 = jest.fn().mockReturnValue(step2Response);
 	const composedFunction = composeTransactionSteps(step1, step2);
-	let result: TransactionHandledResult;
+	let result: ReadonlyArray<TransactionResponse>;
 
 	beforeEach(async () => {
 		result = await composedFunction(testTransactions, {} as any);
@@ -60,12 +56,7 @@ describe('#composeTransactionSteps', () => {
 
 	it('should return a combination of the result of executing both steps', async () => {
 		// Assert
-		expect(result).toEqual({
-			transactionsResponses: [
-				...step1Response.transactionsResponses,
-				...step2Response.transactionsResponses,
-			],
-		});
+		expect(result).toEqual([...step1Response, ...step2Response]);
 	});
 
 	it('should only pass successfull transactions to the next step', async () => {

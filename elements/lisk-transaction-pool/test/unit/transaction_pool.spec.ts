@@ -32,9 +32,9 @@ describe('TransactionList class', () => {
 	beforeEach(() => {
 		transactionPool = new TransactionPool(defaultTxPoolConfig);
 		(transactionPool as any)._applyFunction = applyTransactionsStub;
-		applyTransactionsStub.mockResolvedValue({
-			transactionsResponses: [{ status: Status.OK, errors: [] }],
-		});
+		applyTransactionsStub.mockResolvedValue([
+			{ status: Status.OK, errors: [] },
+		]);
 	});
 
 	describe('constructor', () => {
@@ -284,9 +284,7 @@ describe('TransactionList class', () => {
 			];
 			const getStatusStub = jest.fn();
 			transactionPool['_getStatus'] = getStatusStub;
-			applyTransactionsStub.mockResolvedValue({
-				transactionsResponses: transactionResponse,
-			});
+			applyTransactionsStub.mockResolvedValue(transactionResponse);
 			try {
 				await transactionPool.add(tx);
 			} catch (error) {
@@ -344,16 +342,14 @@ describe('TransactionList class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionsStub.mockResolvedValue({
-					transactionsResponses: [{ status: Status.OK, errors: [] }],
-				});
+				tempApplyTransactionsStub.mockResolvedValue([
+					{ status: Status.OK, errors: [] },
+				]);
 
 				await transactionPool.add(tempTx);
 			}
 
-			expect(transactionPool.getAllTransactions().length).toEqual(
-				MAX_TRANSACTIONS,
-			);
+			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
 
 			const lowFeePriorityTx = {
 				id: '11',
@@ -367,9 +363,9 @@ describe('TransactionList class', () => {
 				Buffer.from(new Array(2 * MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionsStub.mockResolvedValue({
-				transactionsResponses: [{ status: Status.OK, errors: [] }],
-			});
+			tempApplyTransactionsStub.mockResolvedValue([
+				{ status: Status.OK, errors: [] },
+			]);
 
 			const { status } = await transactionPool.add(lowFeePriorityTx);
 
@@ -429,7 +425,7 @@ describe('TransactionList class', () => {
 			// Remove the above transaction
 			const removeStatus = transactionPool.remove(tx);
 			expect(removeStatus).toEqual(true);
-			expect(transactionPool.getAllTransactions().length).toEqual(0);
+			expect(transactionPool.getAll().length).toEqual(0);
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)

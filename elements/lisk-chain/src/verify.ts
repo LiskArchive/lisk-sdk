@@ -125,7 +125,7 @@ export class BlocksVerify {
 			.checkAllowedTransactions(context)(
 				nonInertTransactions as MatcherTransaction[],
 			)
-			.transactionsResponses.find(
+			.find(
 				(transactionResponse: TransactionResponse) =>
 					transactionResponse.status !== TransactionStatus.OK,
 			);

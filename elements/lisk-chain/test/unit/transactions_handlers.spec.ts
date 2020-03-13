@@ -79,7 +79,7 @@ describe('transactions', () => {
 			)([trs1]);
 
 			// Assert
-			expect(response).toHaveProperty('transactionsResponses', [
+			expect(response).toStrictEqual([
 				{
 					id: trs1.id,
 					status: 1,
@@ -101,18 +101,12 @@ describe('transactions', () => {
 			)([disallowedTransaction]);
 
 			// Assert
-			expect(response.transactionsResponses.length).toBe(1);
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'id',
-				disallowedTransaction.id,
-			);
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'status',
-				TransactionStatus.FAIL,
-			);
-			expect(response.transactionsResponses[0].errors.length).toBe(1);
-			expect(response.transactionsResponses[0].errors[0]).toBeInstanceOf(Error);
-			expect(response.transactionsResponses[0].errors[0].message).toBe(
+			expect(response.length).toBe(1);
+			expect(response[0]).toHaveProperty('id', disallowedTransaction.id);
+			expect(response[0]).toHaveProperty('status', TransactionStatus.FAIL);
+			expect(response[0].errors.length).toBe(1);
+			expect(response[0].errors[0]).toBeInstanceOf(Error);
+			expect(response[0].errors[0].message).toBe(
 				`Transaction type ${disallowedTransaction.type} is currently not allowed.`,
 			);
 		});
@@ -127,16 +121,13 @@ describe('transactions', () => {
 			)([transactionWithoutMatcherImpl]);
 
 			// Assert
-			expect(response.transactionsResponses.length).toBe(1);
-			expect(response.transactionsResponses[0]).toHaveProperty(
+			expect(response.length).toBe(1);
+			expect(response[0]).toHaveProperty(
 				'id',
 				transactionWithoutMatcherImpl.id,
 			);
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'status',
-				TransactionStatus.OK,
-			);
-			expect(response.transactionsResponses[0].errors.length).toBe(0);
+			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
+			expect(response[0].errors.length).toBe(0);
 		});
 
 		it('in case of allowed transactions, it should return responses with TransactionStatus.OK and no errors', async () => {
@@ -152,16 +143,10 @@ describe('transactions', () => {
 			)([allowedTransaction]);
 
 			// Assert
-			expect(response.transactionsResponses.length).toBe(1);
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'id',
-				allowedTransaction.id,
-			);
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'status',
-				TransactionStatus.OK,
-			);
-			expect(response.transactionsResponses[0].errors.length).toBe(0);
+			expect(response.length).toBe(1);
+			expect(response[0]).toHaveProperty('id', allowedTransaction.id);
+			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
+			expect(response[0].errors.length).toBe(0);
 		});
 
 		it('should return a mix of responses including allowed and disallowed transactions', async () => {
@@ -180,30 +165,18 @@ describe('transactions', () => {
 			);
 
 			// Assert
-			expect(response.transactionsResponses.length).toBe(2);
+			expect(response.length).toBe(2);
 			// Allowed transaction formatted response check
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'id',
-				testTransactions[0].id,
-			);
-			expect(response.transactionsResponses[0]).toHaveProperty(
-				'status',
-				TransactionStatus.OK,
-			);
-			expect(response.transactionsResponses[0].errors.length).toBe(0);
+			expect(response[0]).toHaveProperty('id', testTransactions[0].id);
+			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
+			expect(response[0].errors.length).toBe(0);
 
 			// Allowed transaction formatted response check
-			expect(response.transactionsResponses[1]).toHaveProperty(
-				'id',
-				testTransactions[1].id,
-			);
-			expect(response.transactionsResponses[1]).toHaveProperty(
-				'status',
-				TransactionStatus.FAIL,
-			);
-			expect(response.transactionsResponses[1].errors.length).toBe(1);
-			expect(response.transactionsResponses[1].errors[0]).toBeInstanceOf(Error);
-			expect(response.transactionsResponses[1].errors[0].message).toBe(
+			expect(response[1]).toHaveProperty('id', testTransactions[1].id);
+			expect(response[1]).toHaveProperty('status', TransactionStatus.FAIL);
+			expect(response[1].errors.length).toBe(1);
+			expect(response[1].errors[0]).toBeInstanceOf(Error);
+			expect(response[1].errors[0].message).toBe(
 				`Transaction type ${testTransactions[1].type} is currently not allowed.`,
 			);
 		});
@@ -243,9 +216,7 @@ describe('transactions', () => {
 		it('should return transaction responses', async () => {
 			const result = transactionHandlers.validateTransactions()([trs1, trs2]);
 
-			expect(result).toEqual({
-				transactionsResponses: [validResponse, invalidResponse],
-			});
+			expect(result).toEqual([validResponse, invalidResponse]);
 		});
 	});
 
@@ -255,7 +226,7 @@ describe('transactions', () => {
 				dataAccessMock,
 			)([]);
 
-			expect(result).toEqual({ transactionsResponses: [] });
+			expect(result).toEqual([]);
 		});
 
 		it('should invoke entities.Transaction to check persistence of transactions', async () => {
@@ -281,9 +252,7 @@ describe('transactions', () => {
 				dataAccessMock,
 			)([trs1, trs2]);
 
-			const transactionResponse = result.transactionsResponses.find(
-				({ id }) => id === trs2.id,
-			);
+			const transactionResponse = result.find(({ id }) => id === trs2.id);
 
 			expect((transactionResponse as any).status).toEqual(TransactionStatus.OK);
 			expect((transactionResponse as any).errors).toEqual([]);
@@ -297,9 +266,7 @@ describe('transactions', () => {
 				dataAccessMock,
 			)([trs1, trs2]);
 
-			const transactionResponse = result.transactionsResponses.find(
-				({ id }) => id === trs1.id,
-			);
+			const transactionResponse = result.find(({ id }) => id === trs1.id);
 
 			expect((transactionResponse as any).status).toEqual(
 				TransactionStatus.FAIL,
@@ -382,9 +349,7 @@ describe('transactions', () => {
 				stateStoreMock,
 			);
 
-			expect(result.transactionsResponses[0].status).toEqual(
-				TransactionStatus.OK,
-			);
+			expect(result[0].status).toEqual(TransactionStatus.OK);
 		});
 
 		it('should return transaction responses and state store', async () => {
@@ -394,10 +359,7 @@ describe('transactions', () => {
 			);
 
 			// expect(result.stateStore).to.be.eql(stateStoreMock);
-			expect(result.transactionsResponses).toEqual([
-				trs1Response,
-				trs2Response,
-			]);
+			expect(result).toEqual([trs1Response, trs2Response]);
 		});
 	});
 
@@ -519,10 +481,7 @@ describe('transactions', () => {
 			);
 
 			// expect(result.stateStore).to.be.eql(stateStoreMock);
-			expect(result.transactionsResponses).toEqual([
-				trs1Response,
-				trs2Response,
-			]);
+			expect(result).toEqual([trs1Response, trs2Response]);
 		});
 	});
 });

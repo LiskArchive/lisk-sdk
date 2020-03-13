@@ -16,6 +16,7 @@ import {
 	BaseTransaction,
 	Status as TransactionStatus,
 	TransactionJSON,
+	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
@@ -41,7 +42,6 @@ import {
 	undoTransactions,
 	validateTransactions,
 } from './transactions';
-import { TransactionHandledResult } from './transactions/compose_transaction_steps';
 import {
 	BlockHeader,
 	BlockHeaderJSON,
@@ -136,7 +136,7 @@ const applyConfirmedStep = async (
 		transaction => !checkIfTransactionIsInert(transaction, exceptions),
 	);
 
-	const { transactionsResponses } = await applyTransactions(exceptions)(
+	const transactionsResponses = await applyTransactions(exceptions)(
 		nonInertTransactions,
 		stateStore,
 	);
@@ -182,7 +182,7 @@ const undoConfirmedStep = async (
 			!exceptions.inertTransactions.includes(transaction.id),
 	);
 
-	const { transactionsResponses } = await undoTransactions(exceptions)(
+	const transactionsResponses = await undoTransactions(exceptions)(
 		nonInertTransactions,
 		stateStore,
 	);
@@ -388,7 +388,7 @@ export class Chain {
 		validateReward(block, expectedReward, this.exceptions);
 
 		// Validate transactions
-		const { transactionsResponses } = validateTransactions(this.exceptions)(
+		const transactionsResponses = validateTransactions(this.exceptions)(
 			block.transactions,
 		);
 		const invalidTransactionResponse = transactionsResponses.find(
@@ -424,12 +424,10 @@ export class Chain {
 	): Promise<void> {
 		if (!skipExistingCheck) {
 			await verifyBlockNotExists(this.storage, blockInstance);
-			const {
-				transactionsResponses: persistedResponse,
-			} = await checkPersistedTransactions(this.dataAccess)(
-				blockInstance.transactions,
-			);
-			const invalidPersistedResponse = persistedResponse.find(
+			const transactionsResponses = await checkPersistedTransactions(
+				this.dataAccess,
+			)(blockInstance.transactions);
+			const invalidPersistedResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,
 			);
@@ -585,7 +583,7 @@ export class Chain {
 		const allowedTransactionsIds = checkAllowedTransactions(context)(
 			transactions as MatcherTransaction[],
 		)
-			.transactionsResponses.filter(
+			.filter(
 				transactionResponse =>
 					transactionResponse.status === TransactionStatus.OK,
 			)
@@ -594,11 +592,12 @@ export class Chain {
 		const allowedTransactions = transactions.filter(transaction =>
 			allowedTransactionsIds.includes(transaction.id),
 		);
-		const { transactionsResponses: responses } = await applyTransactions(
-			this.exceptions,
-		)(allowedTransactions, stateStore);
+		const transactionsResponses = await applyTransactions(this.exceptions)(
+			allowedTransactions,
+			stateStore,
+		);
 		const readyTransactions = allowedTransactions.filter(transaction =>
-			responses
+			transactionsResponses
 				.filter(response => response.status === TransactionStatus.OK)
 				.map(response => response.id)
 				.includes(transaction.id),
@@ -609,7 +608,7 @@ export class Chain {
 
 	public async validateTransactions(
 		transactions: BaseTransaction[],
-	): Promise<TransactionHandledResult> {
+	): Promise<ReadonlyArray<TransactionResponse>> {
 		return composeTransactionSteps(
 			checkAllowedTransactions({
 				blockVersion: this.lastBlock.version,
@@ -623,7 +622,7 @@ export class Chain {
 
 	public async applyTransactions(
 		transactions: BaseTransaction[],
-	): Promise<TransactionHandledResult> {
+	): Promise<ReadonlyArray<TransactionResponse>> {
 		const stateStore = new StateStore(this.storage);
 
 		return composeTransactionSteps(
@@ -644,7 +643,7 @@ export class Chain {
 	public async applyTransactionsWithStateStore(
 		transactions: BaseTransaction[],
 		stateStore: StateStore,
-	): Promise<TransactionHandledResult> {
+	): Promise<ReadonlyArray<TransactionResponse>> {
 		return composeTransactionSteps(
 			checkPersistedTransactions(this.dataAccess),
 			applyTransactions(this.exceptions),

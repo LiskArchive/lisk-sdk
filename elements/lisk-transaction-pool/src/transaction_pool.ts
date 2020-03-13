@@ -30,13 +30,9 @@ import {
 
 const debug = Debug('lisk:transaction_pool');
 
-interface TransactionHandledResult {
-	readonly transactionsResponses: ReadonlyArray<TransactionResponse>;
-}
-
 type ApplyFunction = (
 	transactions: ReadonlyArray<Transaction>,
-) => Promise<TransactionHandledResult>;
+) => Promise<ReadonlyArray<TransactionResponse>>;
 
 export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
@@ -111,7 +107,7 @@ export class TransactionPool {
 		this._reorganizeJob.stop();
 	}
 
-	public getAllTransactions(): ReadonlyArray<Transaction> {
+	public getAll(): ReadonlyArray<Transaction> {
 		return Object.values(this._allTransactions);
 	}
 
@@ -179,7 +175,7 @@ export class TransactionPool {
 		);
 
 		// _applyFunction is injected from chain module applyTransaction
-		const { transactionsResponses } = await this._applyFunction([incomingTx]);
+		const transactionsResponses = await this._applyFunction([incomingTx]);
 		const txStatus = this._getStatus(transactionsResponses);
 
 		// If applyTransaction fails for the transaction then throw error
@@ -230,7 +226,7 @@ export class TransactionPool {
 
 		// Remove from feePriorityQueue
 		this._feePriorityQueue.clear();
-		for (const txObject of this.getAllTransactions()) {
+		for (const txObject of this.getAll()) {
 			this._feePriorityQueue.push(
 				txObject.feePriority ?? this._calculateFeePriority(txObject),
 				txObject.id,

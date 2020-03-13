@@ -291,9 +291,10 @@ describe('blocks/transactions', () => {
 					transactionClass,
 				);
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.validateTransactions([validTx, notAllowedTx]);
+				const transactionsResponses = await chainInstance.validateTransactions([
+					validTx,
+					notAllowedTx,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -337,9 +338,10 @@ describe('blocks/transactions', () => {
 				);
 				(notAllowedTx as any).signatures = ['invalid-signature'];
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.validateTransactions([validTx, notAllowedTx]);
+				const transactionsResponses = await chainInstance.validateTransactions([
+					validTx,
+					notAllowedTx,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -388,9 +390,10 @@ describe('blocks/transactions', () => {
 				validTxValidateSpy = jest.spyOn(validTx, 'validate');
 				validTx2ValidateSpy = jest.spyOn(validTx2, 'validate');
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.validateTransactions([validTx, validTx2]);
+				const transactionsResponses = await chainInstance.validateTransactions([
+					validTx,
+					validTx2,
+				]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
@@ -447,9 +450,10 @@ describe('blocks/transactions', () => {
 					transactionClass,
 				);
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.applyTransactions([validTx, notAllowedTx]);
+				const transactionsResponses = await chainInstance.applyTransactions([
+					validTx,
+					notAllowedTx,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -493,9 +497,10 @@ describe('blocks/transactions', () => {
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([validTx2]);
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.applyTransactions([validTx, validTx2]);
+				const transactionsResponses = await chainInstance.applyTransactions([
+					validTx,
+					validTx2,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -567,9 +572,10 @@ describe('blocks/transactions', () => {
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.applyTransactions([validTx, validTx2]);
+				const transactionsResponses = await chainInstance.applyTransactions([
+					validTx,
+					validTx2,
+				]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
