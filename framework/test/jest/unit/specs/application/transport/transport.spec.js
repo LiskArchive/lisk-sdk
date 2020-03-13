@@ -109,9 +109,10 @@ describe('transport', () => {
 			exceptions: nodeOptions.exceptions,
 			synchronizer: synchronizerStub,
 			transactionPoolModule: {
-				getMergedTransactionList: jest.fn(),
-				processUnconfirmedTransaction: jest.fn(),
-				findInTransactionPool: jest.fn(),
+				getProcessableTransactions: jest.fn(),
+				add: jest.fn(),
+				get: jest.fn(),
+				contains: jest.fn().mockReturnValue(true),
 			},
 			chainModule: {
 				lastBlock: jest
@@ -119,13 +120,10 @@ describe('transport', () => {
 					.mockReturnValue({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: jest.fn(),
 				loadBlocksFromLastBlockId: jest.fn(),
-				verifyTransactions: jest.fn().mockResolvedValue({
-					transactionsResponses: [{ status: 1, errors: [] }],
-				}),
 				validateTransactions: jest.fn().mockResolvedValue({
 					transactionsResponses: [{ status: 1, errors: [] }],
 				}),
-				processTransactions: jest.fn().mockResolvedValue({
+				applyTransactions: jest.fn().mockResolvedValue({
 					transactionsResponses: [{ status: 1, errors: [] }],
 				}),
 				deserializeTransaction: jest.fn().mockImplementation(val => val),
@@ -174,7 +172,7 @@ describe('transport', () => {
 
 			describe('when transaction is neither in the queues, nor in the database', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.transactionInPool = jest
+					transportModule.transactionPoolModule.contains = jest
 						.fn()
 						.mockReturnValue(false);
 					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest
@@ -185,10 +183,10 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', async () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
-							transportModule.transactionPoolModule.transactionInPool,
+							transportModule.transactionPoolModule.contains,
 						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
@@ -210,7 +208,7 @@ describe('transport', () => {
 
 			describe('when transaction is in the queues', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.transactionInPool = jest
+					transportModule.transactionPoolModule.contains = jest
 						.fn()
 						.mockReturnValue(true);
 					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest.fn();
@@ -219,10 +217,10 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', async () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
-							transportModule.transactionPoolModule.transactionInPool,
+							transportModule.transactionPoolModule.contains,
 						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
@@ -241,7 +239,7 @@ describe('transport', () => {
 
 			describe('when transaction exists in the database', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.transactionInPool = jest
+					transportModule.transactionPoolModule.contains = jest
 						.fn()
 						.mockReturnValue(false);
 					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest
@@ -252,10 +250,10 @@ describe('transport', () => {
 					);
 				});
 
-				it('should call transactionPoolModule.transactionInPool with query.transaction.ids as arguments', async () => {
+				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', async () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
-							transportModule.transactionPoolModule.transactionInPool,
+							transportModule.transactionPoolModule.contains,
 						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
@@ -275,7 +273,10 @@ describe('transport', () => {
 
 		describe('_receiveTransaction', () => {
 			beforeEach(async () => {
-				transportModule.transactionPoolModule.processUnconfirmedTransaction.mockResolvedValue();
+				transportModule.transactionPoolModule.add.mockResolvedValue({
+					status: 1,
+					errors: [],
+				});
 			});
 
 			it('should call validateTransactions', async () => {
@@ -315,10 +316,10 @@ describe('transport', () => {
 					await transportModule._receiveTransaction(transaction);
 				});
 
-				it('should call modules.transactionPool.processUnconfirmedTransaction with transaction and true as arguments', async () => {
+				it('should call modules.transactionPool.add with transaction argument', async () => {
 					expect(
-						transportModule.transactionPoolModule.processUnconfirmedTransaction,
-					).toHaveBeenCalledWith(transaction, true);
+						transportModule.transactionPoolModule.add,
+					).toHaveBeenCalledWith(transaction);
 				});
 			});
 
@@ -355,16 +356,16 @@ describe('transport', () => {
 				});
 			});
 
-			describe('when modules.transactions.processUnconfirmedTransaction fails', () => {
-				let processUnconfirmedTransactionError;
+			describe('when modules.transactions.add fails', () => {
+				let addError;
 
 				beforeEach(async () => {
-					processUnconfirmedTransactionError = `Transaction is already processed: ${transaction.id}`;
+					addError = `Transaction is already processed: ${transaction.id}`;
 
-					transportModule.transactionPoolModule.processUnconfirmedTransaction.mockResolvedValue(
-						// eslint-disable-next-line prefer-promise-reject-errors
-						Promise.reject([new Error(processUnconfirmedTransactionError)]),
-					);
+					transportModule.transactionPoolModule.add.mockResolvedValue({
+						status: 0,
+						errors: [new Error(addError)],
+					});
 
 					try {
 						await transportModule._receiveTransaction(transaction);
@@ -375,29 +376,27 @@ describe('transport', () => {
 
 				it('should call transportModule.logger.debug with "Transaction transaction.id" and error string', async () => {
 					expect(transportModule.logger.debug).toHaveBeenCalledWith(
-						`Transaction ${transaction.id}`,
-						`Error: ${processUnconfirmedTransactionError}`,
+						{ id: '13710202194404177265' },
+						'Received transaction',
 					);
 				});
 
 				describe('when transaction is defined', () => {
 					it('should call transportModule.logger.debug with "Transaction" and transaction as arguments', async () => {
 						expect(transportModule.logger.debug).toHaveBeenCalledWith(
-							{
-								transaction,
-							},
-							'Transaction',
+							{ id: '13710202194404177265' },
+							'Received transaction',
 						);
 					});
 				});
 
 				it('should reject with error', async () => {
 					expect(error).toBeInstanceOf(Array);
-					expect(error[0].message).toEqual(processUnconfirmedTransactionError);
+					expect(error[0].message).toEqual(addError);
 				});
 			});
 
-			describe('when modules.transactions.processUnconfirmedTransaction succeeds', () => {
+			describe('when modules.transactions.add succeeds', () => {
 				beforeEach(async () => {
 					result = await transportModule._receiveTransaction(transaction);
 				});

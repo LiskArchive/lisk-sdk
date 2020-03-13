@@ -221,12 +221,10 @@ class Transport {
 			// Limit the transactions to send based on releaseLimit
 			const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
 			const transactions = Object.values(transactionsBySender).flat();
-			const limitedTransactions = transactions.splice(
-				this.constants.broadcasts.releaseLimit,
-			);
+			transactions.splice(this.constants.broadcasts.releaseLimit);
 
 			return {
-				transactions: limitedTransactions,
+				transactions,
 			};
 		}
 
@@ -245,10 +243,10 @@ class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const transactionInPool = this.transactionPoolModule.get(id);
+			const transaction = this.transactionPoolModule.get(id);
 
-			if (transactionInPool) {
-				transactionsFromQueues.push(transactionInPool.toJSON());
+			if (transaction) {
+				transactionsFromQueues.push(transaction.toJSON());
 			} else {
 				idsNotInPool.push(id);
 			}

@@ -49,10 +49,10 @@ describe('Transport', () => {
 			debug: jest.fn(),
 		};
 		transactionPoolStub = {
-			transactionInPool: jest.fn().mockReturnValue(true),
-			findInTransactionPool: jest.fn(),
-			getMergedTransactionList: jest.fn().mockReturnValue([]),
-			processUnconfirmedTransaction: jest.fn(),
+			contains: jest.fn().mockReturnValue(true),
+			get: jest.fn(),
+			getProcessableTransactions: jest.fn().mockReturnValue({}),
+			add: jest.fn(),
 		};
 		synchronizerStub = {};
 		blocksStub = {
@@ -140,7 +140,7 @@ describe('Transport', () => {
 				});
 				tx.sign('1234567890', 'signature');
 				await transport.handleBroadcastTransaction(tx);
-				transactionPoolStub.transactionInPool.mockReturnValue(false);
+				transactionPoolStub.contains.mockReturnValue(false);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
 				expect(channelStub.publishToNetwork).not.toHaveBeenCalledWith(
 					'broadcastToNetwork',
@@ -354,7 +354,11 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
-				transactionPoolStub.getMergedTransactionList.mockReturnValue([tx]);
+				const processableTransactions = {};
+				processableTransactions[tx.id] = [tx];
+				transactionPoolStub.getProcessableTransactions.mockReturnValue(
+					processableTransactions,
+				);
 			});
 
 			it('should return transaction from pool', async () => {
@@ -373,7 +377,11 @@ describe('Transport', () => {
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
-				transactionPoolStub.getMergedTransactionList.mockReturnValue([tx]);
+				const processableTransactions = {};
+				processableTransactions[tx.id] = [tx];
+				transactionPoolStub.getProcessableTransactions.mockReturnValue(
+					processableTransactions,
+				);
 			});
 
 			it('should return transaction from pool', async () => {
@@ -422,17 +430,15 @@ describe('Transport', () => {
 					asset: { amount: '100', recipientId: '123L' },
 				});
 				tx.sign('1234567890', 'signature');
-				transactionPoolStub.findInTransactionPool.mockReturnValue(tx);
+				transactionPoolStub.get.mockReturnValue(tx);
 			});
 
-			it('should call find transactionInPool with the id', async () => {
+			it('should call find get with the id', async () => {
 				await transport.handleRPCGetTransactions(
 					{ transactionIds: [tx.id] },
 					defaultPeerId,
 				);
-				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
-					tx.id,
-				);
+				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
 			});
 
 			it('should return transaction in the pool', async () => {
@@ -459,7 +465,7 @@ describe('Transport', () => {
 				});
 				txDatabaseInstance.sign('1234567890', 'signature');
 				txDatabase = txDatabaseInstance.toJSON();
-				when(transactionPoolStub.findInTransactionPool)
+				when(transactionPoolStub.get)
 					.calledWith(tx.id)
 					.mockReturnValue(tx);
 				blocksStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
@@ -467,17 +473,13 @@ describe('Transport', () => {
 				]);
 			});
 
-			it('should call find transactionInPool with the id', async () => {
+			it('should call find get with the id', async () => {
 				await transport.handleRPCGetTransactions(
 					{ transactionIds: [tx.id, txDatabase.id] },
 					defaultPeerId,
 				);
-				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
-					tx.id,
-				);
-				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
-					txDatabase.id,
-				);
+				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
+				expect(transactionPoolStub.get).toHaveBeenCalledWith(txDatabase.id);
 			});
 
 			it('should return transaction in the pool', async () => {
@@ -488,9 +490,7 @@ describe('Transport', () => {
 					{ transactionIds: [tx.id, txDatabase.id] },
 					defaultPeerId,
 				);
-				expect(transactionPoolStub.findInTransactionPool).toHaveBeenCalledWith(
-					tx.id,
-				);
+				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
 				expect(result.transactions).toHaveLength(2);
 				expect(result.transactions).toStrictEqual([tx.toJSON(), txDatabase]);
 			});
@@ -580,7 +580,7 @@ describe('Transport', () => {
 
 		describe('when none of the transactions ids are known', () => {
 			beforeEach(async () => {
-				transactionPoolStub.transactionInPool.mockReturnValue(false);
+				transactionPoolStub.contains.mockReturnValue(false);
 				blocksStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				when(channelStub.invokeFromNetwork)
 					.calledWith('requestFromPeer', expect.anything())
@@ -610,11 +610,9 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(blocksStub.deserializeTransaction).toHaveBeenCalledTimes(2);
-				expect(blocksStub.validateTransactions).toHaveBeenCalledTimes(2);
-				expect(
-					transactionPoolStub.processUnconfirmedTransaction,
-				).toHaveBeenCalledTimes(2);
+				expect(blocksStub.deserializeTransaction).toHaveBeenCalledTimes(1);
+				expect(blocksStub.validateTransactions).toHaveBeenCalledTimes(1);
+				expect(transactionPoolStub.add).toHaveBeenCalledTimes(1);
 			});
 
 			it('should apply penalty when validateTransactions fails', async () => {
@@ -635,11 +633,9 @@ describe('Transport', () => {
 				);
 			});
 
-			it('should not apply penalty when processUnconfirmedTransaction fails', async () => {
+			it('should not apply penalty when add fails', async () => {
 				const error = new Error('validate error');
-				transactionPoolStub.processUnconfirmedTransaction.mockRejectedValue(
-					error,
-				);
+				transactionPoolStub.add.mockRejectedValue(error);
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
@@ -655,7 +651,7 @@ describe('Transport', () => {
 		});
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(async () => {
-				when(transactionPoolStub.transactionInPool)
+				when(transactionPoolStub.contains)
 					.calledWith(tx.id)
 					.mockReturnValue(true);
 				when(channelStub.invokeFromNetwork)
@@ -689,9 +685,7 @@ describe('Transport', () => {
 				);
 				expect(blocksStub.deserializeTransaction).toHaveBeenCalledTimes(1);
 				expect(blocksStub.validateTransactions).toHaveBeenCalledTimes(1);
-				expect(
-					transactionPoolStub.processUnconfirmedTransaction,
-				).toHaveBeenCalledTimes(1);
+				expect(transactionPoolStub.add).toHaveBeenCalledTimes(1);
 			});
 		});
 	});
