@@ -53,7 +53,7 @@ export class TransactionList {
 	public get(nonce: bigint): Transaction | undefined {
 		return this._transactions[nonce.toString()];
 	}
-	
+
 	public add(incomingTx: Transaction, processable: boolean = false): boolean {
 		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace

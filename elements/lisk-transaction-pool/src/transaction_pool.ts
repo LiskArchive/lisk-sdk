@@ -278,7 +278,11 @@ export class TransactionPool {
 
 		const evictedTransaction = unprocessableFeePriorityHeap.pop();
 
-		return this.removeTransaction(evictedTransaction?.value as Transaction);
+		if (!evictedTransaction) {
+			return false
+		}
+
+		return this.removeTransaction(evictedTransaction.value);
 	}
 
 	private _evictProcessable(): boolean {
@@ -303,7 +307,11 @@ export class TransactionPool {
 
 		const evictedTransaction = processableFeePriorityHeap.pop();
 
-		return this.removeTransaction(evictedTransaction?.value as Transaction);
+		if (!evictedTransaction) {
+			return false
+		  }
+
+		return this.removeTransaction(evictedTransaction.value);
 	}
 
 	private async _reorganize(): Promise<void> {
@@ -363,7 +371,7 @@ export class TransactionPool {
 				),
 			);
 
-			if (timeDifference > DEFAULT_EXPIRY_TIME) {
+			if (timeDifference > this._transactionExpiryTime) {
 				this.removeTransaction(transaction);
 			}
 		}
