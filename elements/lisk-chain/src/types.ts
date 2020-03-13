@@ -27,28 +27,49 @@ export type IndexableAccount = Account & Indexable;
 
 export type IndexableTransactionJSON = TransactionJSON & Indexable;
 
+export interface AccountVoteJSON {
+	readonly delegateAddress: string;
+	readonly amount: string;
+}
+
+export interface AccountUnlockingJSON {
+	readonly delegateAddress: string;
+	readonly amount: string;
+	readonly unvoteHeight: number;
+}
+
 export interface AccountJSON {
 	readonly address: string;
 	readonly balance: string;
 	readonly nonce: string;
-	readonly missedBlocks: number;
 	readonly producedBlocks: number;
 	readonly publicKey: string | undefined;
 	readonly username: string | null;
-	readonly isDelegate: number;
 	readonly fees: string;
 	readonly rewards: string;
-	// tslint:disable-next-line readonly-keyword
-	readonly voteWeight: string;
-	readonly nameExist: boolean;
+	readonly totalVotesReceived: string;
 	readonly asset: object;
-	// tslint:disable-next-line readonly-keyword
-	readonly votedDelegatesPublicKeys: string[] | null;
 	readonly keys?: {
 		readonly mandatoryKeys?: string[];
 		readonly optionalKeys?: string[];
 		readonly numberOfSignatures?: number;
 	};
+	readonly votes?: AccountVoteJSON[];
+	readonly unlocking?: AccountUnlockingJSON[];
+	readonly delegate?: {
+		readonly lastForgedHeight: number;
+		readonly registeredHeight: number;
+		readonly consecutiveMissedBlocks: number;
+		readonly isBanned: boolean;
+		readonly pomHeights: number[];
+	};
+
+	// TODO: Remove once new DPoS implementation is done
+	readonly missedBlocks: number;
+	readonly isDelegate: number;
+	readonly voteWeight: string;
+	readonly nameExist: boolean;
+	readonly votedDelegatesPublicKeys: string[] | null;
 }
 
 export interface Context {

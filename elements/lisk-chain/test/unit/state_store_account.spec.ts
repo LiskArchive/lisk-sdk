@@ -14,36 +14,17 @@
 import { when } from 'jest-when';
 import { StateStore } from '../../src';
 import { StorageTransaction } from '../../src/types';
-import { Account } from '../../src';
+import { Account, accountDefaultValues } from '../../src/account';
 
 describe('state store / account', () => {
-	const defaultAccount = {
-		publicKey: undefined,
-		username: null,
-		isDelegate: 0,
-		balance: '0',
-		nonce: '0',
-		nameExist: false,
-		missedBlocks: 0,
-		producedBlocks: 0,
-		fees: '0',
-		rewards: '0',
-		voteWeight: '0',
-		multiMin: 0,
-		multiLifetime: 0,
-		votedDelegatesPublicKeys: null,
-		asset: {},
-		membersPublicKeys: null,
-	};
-
 	const defaultAccounts = [
 		{
-			...defaultAccount,
+			...accountDefaultValues,
 			address: '1276152240083265771L',
 			balance: '100',
 		},
 		{
-			...defaultAccount,
+			...accountDefaultValues,
 			address: '11237980039345381032L',
 			balance: '555',
 		},
@@ -51,12 +32,12 @@ describe('state store / account', () => {
 
 	const stateStoreAccounts = [
 		new Account({
-			...defaultAccount,
+			...accountDefaultValues,
 			address: '1276152240083265771L',
 			balance: '100',
 		}),
 		new Account({
-			...defaultAccount,
+			...accountDefaultValues,
 			address: '11237980039345381032L',
 			balance: '555',
 		}),
@@ -189,7 +170,7 @@ describe('state store / account', () => {
 			const account = await stateStore.account.getOrDefault('123L');
 			// Assert
 			expect(account).toEqual(
-				new Account({ ...defaultAccount, address: '123L' }),
+				new Account({ ...accountDefaultValues, address: '123L' }),
 			);
 			expect(account.balance).toBe(BigInt(0));
 		});
@@ -229,7 +210,7 @@ describe('state store / account', () => {
 		});
 
 		it('should update the updateKeys property', async () => {
-			const updatedKeys = ['missedBlocks', 'producedBlocks'];
+			const updatedKeys = ['producedBlocks', 'missedBlocks'];
 			const existingAccount = await stateStore.account.get(
 				defaultAccounts[0].address,
 			);

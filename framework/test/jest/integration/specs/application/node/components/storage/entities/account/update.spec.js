@@ -126,5 +126,187 @@ describe('storage.entities.Account.update', () => {
 			);
 			expect(updatedAccount).toMatchObject(expectedAccount);
 		});
+
+		it('should update totalVotesReceived field for each given account', async () => {
+			// Arrange
+			const account = {
+				address: 'delegateAddress',
+				publicKey:
+					'399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
+				totalVotesReceived: '1000000',
+			};
+
+			const expectedTotalVotesReceived = '2000';
+
+			const expectedAccount = {
+				...account,
+				totalVotesReceived: expectedTotalVotesReceived,
+			};
+
+			await pgHelper.createAccount(account);
+
+			// Act
+			await db.tx(async tx => {
+				await storage.entities.Account.update(
+					{
+						publicKey: account.publicKey,
+					},
+					{
+						totalVotesReceived: expectedTotalVotesReceived,
+					},
+					{},
+					tx,
+				);
+			});
+
+			// Assert
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
+				account.publicKey,
+			);
+			expect(updatedAccount).toMatchObject(expectedAccount);
+		});
+
+		it('should update votes field for each given account', async () => {
+			// Arrange
+			const account = {
+				address: 'delegateAddress',
+				publicKey:
+					'399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
+				votes: JSON.stringify([{ delegateAddress: '123L', amount: '100' }]),
+			};
+
+			const expectedAccount = {
+				...account,
+				votes: [
+					{ delegateAddress: '123L', amount: '100' },
+					{ delegateAddress: '456L', amount: '10' },
+				],
+			};
+
+			await pgHelper.createAccount(account);
+
+			// Act
+			await db.tx(async tx => {
+				await storage.entities.Account.update(
+					{
+						publicKey: account.publicKey,
+					},
+					{
+						votes: [
+							{ delegateAddress: '123L', amount: '100' },
+							{ delegateAddress: '456L', amount: '10' },
+						],
+					},
+					{},
+					tx,
+				);
+			});
+
+			// Assert
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
+				account.publicKey,
+			);
+			expect(updatedAccount).toMatchObject(expectedAccount);
+		});
+
+		it('should update unlocking field for each given account', async () => {
+			// Arrange
+			const account = {
+				address: 'delegateAddress',
+				publicKey:
+					'399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
+				unlocking: JSON.stringify([
+					{ delegateAddress: '123L', amount: '100', unvoteHeight: 10 },
+				]),
+			};
+
+			const expectedAccount = {
+				...account,
+				unlocking: [
+					{ delegateAddress: '123L', amount: '100', unvoteHeight: 10 },
+					{ delegateAddress: '123L', amount: '50', unvoteHeight: 20 },
+				],
+			};
+
+			await pgHelper.createAccount(account);
+
+			// Act
+			await db.tx(async tx => {
+				await storage.entities.Account.update(
+					{
+						publicKey: account.publicKey,
+					},
+					{
+						unlocking: [
+							{ delegateAddress: '123L', amount: '100', unvoteHeight: 10 },
+							{ delegateAddress: '123L', amount: '50', unvoteHeight: 20 },
+						],
+					},
+					{},
+					tx,
+				);
+			});
+
+			// Assert
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
+				account.publicKey,
+			);
+			expect(updatedAccount).toMatchObject(expectedAccount);
+		});
+
+		it('should update delegate field for each given account', async () => {
+			// Arrange
+			const account = {
+				address: 'delegateAddress',
+				publicKey:
+					'399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
+				delegate: {
+					lastForgedHeight: 0,
+					registeredHeight: 0,
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					pomHeights: [],
+				},
+			};
+
+			const expectedAccount = {
+				...account,
+				delegate: {
+					lastForgedHeight: 10,
+					registeredHeight: 1,
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					pomHeights: [5],
+				},
+			};
+
+			await pgHelper.createAccount(account);
+
+			// Act
+			await db.tx(async tx => {
+				await storage.entities.Account.update(
+					{
+						publicKey: account.publicKey,
+					},
+					{
+						delegate: {
+							lastForgedHeight: 10,
+							registeredHeight: 1,
+							consecutiveMissedBlocks: 0,
+							isBanned: false,
+							pomHeights: [5],
+						},
+					},
+					{},
+					tx,
+				);
+			});
+
+			// Assert
+			const updatedAccount = await pgHelper.getAccountByPublicKey(
+				account.publicKey,
+			);
+			expect(updatedAccount).toMatchObject(expectedAccount);
+		});
 	});
 });

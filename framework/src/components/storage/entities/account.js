@@ -41,37 +41,18 @@ class Account extends BaseEntity {
 			stringToByte,
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
-		this.addField(
-			'isDelegate',
-			'boolean',
-			{ filter: ft.BOOLEAN },
-			booleanToInt,
-		);
+
 		this.addField('balance', 'string', { filter: ft.NUMBER });
 		this.addField('nonce', 'string', { filter: ft.BOOLEAN });
-		this.addField(
-			'nameExist',
-			'boolean',
-			{
-				filter: ft.BOOLEAN,
-				fieldName: 'nameexist',
-			},
-			booleanToInt,
-		);
 		this.addField('fees', 'string', { filter: ft.NUMBER });
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
+		this.addField('totalVotesReceived', 'string', { filter: ft.NUMBER });
+		this.addField('delegate', 'string');
+		this.addField('votes', 'string');
+		this.addField('unlocking', 'string');
 		this.addField('asset', 'string');
-		this.addField('votedDelegatesPublicKeys', 'string');
 		this.addField('keys', 'string');
-
-		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
-			condition:
-				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
-		});
 
 		this.addFilter('asset_contains', ft.CUSTOM, {
 			condition:
@@ -84,6 +65,31 @@ class Account extends BaseEntity {
 				// eslint-disable-next-line no-template-curly-in-string
 				"asset ? '${asset_exists:value}'",
 		});
+		// TODO: Remove once new DPoS implementation is done
+		this.addField(
+			'isDelegate',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt,
+		);
+		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
+			condition:
+				// eslint-disable-next-line no-template-curly-in-string
+				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
+		});
+		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
+		this.addField('votedDelegatesPublicKeys', 'string');
+		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
+		this.addField(
+			'nameExist',
+			'boolean',
+			{
+				filter: ft.BOOLEAN,
+				fieldName: 'nameexist',
+			},
+			booleanToInt,
+		);
+		// //TODO: Remove until here
 
 		const defaultSort = { sort: 'balance:asc' };
 		this.extendDefaultOptions(defaultSort);

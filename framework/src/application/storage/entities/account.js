@@ -24,18 +24,22 @@ const {
 const defaultCreateValues = {
 	publicKey: null,
 	username: null,
-	isDelegate: false,
 	balance: '0',
 	nonce: '0',
+	keys: {},
+	votes: null,
+	unlocking: null,
+	totalVotesReceived: '0',
+	delegate: {},
+	asset: {},
 	missedBlocks: 0,
 	producedBlocks: 0,
 	fees: '0',
 	rewards: '0',
 	voteWeight: '0',
 	nameExist: false,
-	asset: {},
+	isDelegate: false,
 	votedDelegatesPublicKeys: null,
-	keys: {},
 };
 
 const readOnlyFields = ['address'];
@@ -102,6 +106,8 @@ class ChainAccount extends AccountEntity {
 			let parsedAccount = _.defaults(account, defaultCreateValues);
 			parsedAccount = ChainAccount._stringifyVotedDelegates(parsedAccount);
 			parsedAccount = ChainAccount._stringifyMembersPublicKeys(parsedAccount);
+			parsedAccount = ChainAccount._stringifyVotes(parsedAccount);
+			parsedAccount = ChainAccount._stringifyUnlocking(parsedAccount);
 			return parsedAccount;
 		});
 
@@ -117,6 +123,8 @@ class ChainAccount extends AccountEntity {
 		sanitizedCreateData = ChainAccount._stringifyMembersPublicKeys(
 			sanitizedCreateData,
 		);
+		sanitizedCreateData = ChainAccount._stringifyVotes(sanitizedCreateData);
+		sanitizedCreateData = ChainAccount._stringifyUnlocking(sanitizedCreateData);
 
 		const objectData = _.omit(sanitizedCreateData, readOnlyFields);
 
@@ -234,6 +242,26 @@ class ChainAccount extends AccountEntity {
 			},
 			tx,
 		);
+	}
+
+	static _stringifyVotes(data) {
+		if (data.votes) {
+			return {
+				...data,
+				votes: JSON.stringify(data.votes),
+			};
+		}
+		return data;
+	}
+
+	static _stringifyUnlocking(data) {
+		if (data.unlocking) {
+			return {
+				...data,
+				unlocking: JSON.stringify(data.unlocking),
+			};
+		}
+		return data;
 	}
 
 	static _stringifyVotedDelegates(data) {
