@@ -95,9 +95,6 @@ export class TransactionPool {
 			async () => await this._expire(),
 			DEFAULT_EXPIRE_INTERVAL,
 		);
-
-		// FIXME: This is log to supress ts build error
-		console.log(this._transactionExpiryTime);
 	}
 
 	public async start(): Promise<void> {
@@ -345,9 +342,7 @@ export class TransactionPool {
 
 			// Remove invalid transaction and all subsequent transactions
 			const invalidTransaction = firstInvalidTransactionId
-				? processableTransactions.find(
-						tx => tx.id == firstInvalidTransactionId,
-				  )
+				? processableTransactions.find(tx => tx.id == firstInvalidTransactionId)
 				: undefined;
 
 			if (invalidTransaction) {
