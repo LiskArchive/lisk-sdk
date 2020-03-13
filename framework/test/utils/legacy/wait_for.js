@@ -20,7 +20,7 @@ const Promise = require('bluebird');
 const { Rounds } = require('@liskhq/lisk-dpos');
 const apiHelpers = require('../http/api');
 
-const { ACTIVE_DELEGATES } = global.constants;
+const { activeDelegates } = global.constants;
 
 const rounds = new Rounds({ blocksPerRound: 101 });
 
@@ -174,7 +174,7 @@ function newRound(baseUrl, cb) {
 			return cb(err);
 		}
 		const nextRound = rounds.calcRound(height);
-		const blocksToWait = nextRound * ACTIVE_DELEGATES - height;
+		const blocksToWait = nextRound * activeDelegates - height;
 		global.__testContext.debug('blocks to wait: '.grey, blocksToWait);
 		return newBlock(height, blocksToWait, null, cb);
 	});

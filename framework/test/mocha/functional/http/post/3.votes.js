@@ -37,7 +37,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { FEES, ACTIVE_DELEGATES } = global.constants;
+const { fees, activeDelegates } = global.constants;
 const { NORMALIZER, MAX_VOTES_PER_TRANSACTION } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -89,7 +89,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			fee: '129001',
 			nonce: '0',
 			networkIdentifier,
-			amount: (FEES.VOTE + halfLSK).toString(),
+			amount: (fees.vote + halfLSK).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -148,7 +148,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 						nonce: '0',
 						fee: '129001',
 						networkIdentifier,
-						amount: (BigInt(FEES.DELEGATE) + halfLSK).toString(),
+						amount: (BigInt(fees.delegate) + halfLSK).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -174,14 +174,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				const transactionsCreditMaxVotesPerAccount = [];
 				const promisesCreditsMaxVotesPerAccount = [];
-				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
+				for (let i = 0; i < activeDelegates; i++) {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					const transfer2 = transfer({
 						nonce: '0',
 						fee: '129001',
 						networkIdentifier,
-						amount: (BigInt(FEES.DELEGATE) + halfLSK).toString(),
+						amount: (BigInt(fees.delegate) + halfLSK).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -252,7 +252,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				const transactionsDelegateMaxVotesPerAccount = [];
 				const promisesDelegatesMaxVotesPerAccount = [];
-				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
+				for (let i = 0; i < activeDelegates; i++) {
 					const delegateRegistration = registerDelegate({
 						nonce: '0',
 						fee: '2500000000',
@@ -629,7 +629,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`upvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, async () => {
+		it(`upvoting ${activeDelegates} delegates (number of actived delegates) separately should be ok`, async () => {
 			const transaction1 = castVotes({
 				nonce: '0',
 				fee: '100000000',
@@ -746,7 +746,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`exceeding maximum of ${ACTIVE_DELEGATES} votes (number of actived delegates + 1) should fail`, async () => {
+		it(`exceeding maximum of ${activeDelegates} votes (number of actived delegates + 1) should fail`, async () => {
 			transaction = castVotes({
 				nonce: '0',
 				fee: '100000000',
@@ -814,7 +814,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`downvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, async () => {
+		it(`downvoting ${activeDelegates} delegates (number of actived delegates) separately should be ok`, async () => {
 			const transaction1 = castVotes({
 				nonce: '0',
 				fee: '100000000',

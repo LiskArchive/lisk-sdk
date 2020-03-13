@@ -26,12 +26,12 @@ const seeder = require('../../../../../../../utils/storage/storage_seed');
 const transactionsFixtures = require('../../../../../../../fixtures')
 	.transactions;
 
-const TRANSACTION_TYPES = {
-	SEND: 8,
-	SIGNATURE: 9,
-	DELEGATE: 10,
-	VOTE: 11,
-	MULTI: 12,
+const transactionTypes = {
+	send: 8,
+	signature: 9,
+	delegate: 10,
+	vote: 11,
+	multi: 12,
 };
 
 const numSeedRecords = 5;
@@ -168,7 +168,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: TRANSACTION_TYPES.SEND,
+						type: transactionTypes.send,
 					}),
 				);
 			}
@@ -194,7 +194,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: TRANSACTION_TYPES.DELEGATE,
+						type: transactionTypes.delegate,
 					}),
 				);
 			}
@@ -220,7 +220,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: TRANSACTION_TYPES.VOTE,
+						type: transactionTypes.vote,
 					}),
 				);
 			}
@@ -246,7 +246,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: TRANSACTION_TYPES.MULTI,
+						type: transactionTypes.multi,
 					}),
 				);
 			}
@@ -272,7 +272,7 @@ describe('Transaction', () => {
 				transactions.push(
 					new transactionsFixtures.Transaction({
 						blockId: block.id,
-						type: TRANSACTION_TYPES.DAPP,
+						type: transactionTypes.dapp,
 					}),
 				);
 			}

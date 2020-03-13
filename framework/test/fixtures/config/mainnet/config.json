@@ -1,8 +1,8 @@
 {
 	"app": {
 		"genesisConfig": {
-			"REWARDS": {
-				"OFFSET": 1451520
+			"rewards": {
+				"offset": 1451520
 			}
 		},
 		"node": {

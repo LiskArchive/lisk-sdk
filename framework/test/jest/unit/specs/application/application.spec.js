@@ -174,25 +174,25 @@ describe('Application', () => {
 			const customConfig = _.cloneDeep(config);
 
 			customConfig.app.genesisConfig = {
-				MAX_TRANSACTIONS_PER_BLOCK: 11,
-				EPOCH_TIME: '2016-05-24T17:00:00.000Z',
-				BLOCK_TIME: 2,
-				REWARDS: {
-					MILESTONES: [
+				maxTransactionsPerBlock: 11,
+				epochTime: '2016-05-24T17:00:00.000Z',
+				blockTime: 2,
+				rewards: {
+					milestones: [
 						'500000000',
 						'400000000',
 						'300000000',
 						'200000000',
 						'100000000',
 					],
-					OFFSET: 2160,
-					DISTANCE: 3000000,
+					offset: 2160,
+					distance: 3000000,
 				},
 			};
 
 			const app = new Application(genesisBlock, customConfig);
 
-			expect(app.constants.MAX_TRANSACTIONS_PER_BLOCK).toBe(11);
+			expect(app.constants.maxTransactionsPerBlock).toBe(11);
 		});
 
 		it('should set internal variables', () => {

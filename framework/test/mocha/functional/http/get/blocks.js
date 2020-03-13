@@ -26,8 +26,8 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', () => {
 	const slots = new Slots({
-		epochTime: __testContext.config.constants.EPOCH_TIME,
-		interval: __testContext.config.constants.BLOCK_TIME,
+		epochTime: __testContext.config.constants.epochTime,
+		interval: __testContext.config.constants.blockTime,
 	});
 	const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 

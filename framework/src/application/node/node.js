@@ -68,10 +68,10 @@ module.exports = class Node {
 			}
 
 			if (
-				this.options.forging.waitThreshold >= this.options.constants.BLOCK_TIME
+				this.options.forging.waitThreshold >= this.options.constants.blockTime
 			) {
 				throw Error(
-					`app.node.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
+					`app.node.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
 
@@ -368,19 +368,18 @@ module.exports = class Node {
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
 			exceptions: this.options.exceptions,
-			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
+			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			rewardDistance: this.options.constants.REWARDS.DISTANCE,
-			rewardOffset: this.options.constants.REWARDS.OFFSET,
-			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
-			totalAmount: this.options.constants.TOTAL_AMOUNT,
-			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
-			epochTime: this.options.constants.EPOCH_TIME,
-			blockTime: this.options.constants.BLOCK_TIME,
+			maxPayloadLength: this.options.constants.maxPayloadLength,
+			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
+			activeDelegates: this.options.constants.activeDelegates,
+			rewardDistance: this.options.constants.rewards.distance,
+			rewardOffset: this.options.constants.rewards.offset,
+			rewardMileStones: this.options.constants.rewards.milestones,
+			totalAmount: this.options.constants.totalAmount,
+			blockSlotWindow: this.options.constants.blockSlotWindow,
+			epochTime: this.options.constants.epochTime,
+			blockTime: this.options.constants.blockTime,
 		});
 
 		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
@@ -434,16 +433,15 @@ module.exports = class Node {
 		this.slots = this.chain.slots;
 		this.dpos = new Dpos({
 			chain: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: this.options.constants
-				.DELEGATE_LIST_ROUND_OFFSET,
+			activeDelegates: this.options.constants.activeDelegates,
+			delegateListRoundOffset: this.options.constants.delegateListRoundOffset,
 			exceptions: this.options.exceptions,
 		});
 
 		this.bft = new BFT({
 			dpos: this.dpos,
 			chain: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
 
@@ -464,7 +462,7 @@ module.exports = class Node {
 			rounds: this.dpos.rounds,
 			channel: this.channel,
 			chain: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 			processorModule: this.processor,
 		});
 
@@ -475,7 +473,7 @@ module.exports = class Node {
 			bft: this.bft,
 			dpos: this.dpos,
 			processor: this.processor,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 		});
 
 		this.synchronizer = new Synchronizer({
@@ -494,10 +492,9 @@ module.exports = class Node {
 			exceptions: this.options.exceptions,
 			maxTransactionsPerQueue: this.options.transactions
 				.maxTransactionsPerQueue,
-			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+			expireTransactionsInterval: this.options.constants.expiryInterval,
+			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
+			maxSharedTransactions: this.options.constants.maxSharedTransactions,
 			broadcastInterval: this.options.broadcasts.broadcastInterval,
 			releaseLimit: this.options.broadcasts.releaseLimit,
 		});
@@ -509,7 +506,7 @@ module.exports = class Node {
 			chainModule: this.chain,
 			processorModule: this.processor,
 			bftModule: this.bft,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 		});
 		this.modules.rebuilder = this.rebuilder;
 
@@ -521,8 +518,8 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+			activeDelegates: this.options.constants.activeDelegates,
+			maxPayloadLength: this.options.constants.maxPayloadLength,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,
@@ -538,7 +535,7 @@ module.exports = class Node {
 			processorModule: this.processor,
 			chainModule: this.chain,
 			broadcasts: this.options.broadcasts,
-			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+			maxSharedTransactions: this.options.constants.maxSharedTransactions,
 		});
 
 		this.modules.forger = this.forger;

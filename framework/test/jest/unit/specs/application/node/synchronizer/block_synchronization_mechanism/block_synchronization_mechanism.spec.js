@@ -86,19 +86,19 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			slots,
 			genesisBlock: genesisBlockDevnet,
-			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
+			blockReceiptTimeout: constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
-			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
+			maxPayloadLength: constants.maxPayloadLength,
 			registeredTransactions,
-			maxTransactionsPerBlock: constants.MAX_TRANSACTIONS_PER_BLOCK,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			rewardDistance: constants.REWARDS.DISTANCE,
-			rewardOffset: constants.REWARDS.OFFSET,
-			rewardMileStones: constants.REWARDS.MILESTONES,
-			totalAmount: constants.TOTAL_AMOUNT,
-			blockSlotWindow: constants.BLOCK_SLOT_WINDOW,
-			epochTime: constants.EPOCH_TIME,
-			blockTime: constants.BLOCK_TIME,
+			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
+			activeDelegates: constants.activeDelegates,
+			rewardDistance: constants.rewards.distance,
+			rewardOffset: constants.rewards.offset,
+			rewardMileStones: constants.rewards.milestones,
+			totalAmount: constants.totalAmount,
+			blockSlotWindow: constants.blockSlotWindow,
+			epochTime: constants.epochTime,
+			blockTime: constants.blockTime,
 		});
 
 		dataAccessMock = {
@@ -119,15 +119,15 @@ describe('block_synchronization_mechanism', () => {
 
 		dpos = new Dpos({
 			chain: chainModule,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: constants.DELEGATE_LIST_ROUND_OFFSET,
+			activeDelegates: constants.activeDelegates,
+			delegateListRoundOffset: constants.delegateListRoundOffset,
 			exceptions: {},
 		});
 
 		bftModule = new BFT({
 			chain: chainModule,
 			dpos,
-			activeDelegates: constants.ACTIVE_DELEGATES,
+			activeDelegates: constants.activeDelegates,
 			startingHeight: 1,
 		});
 		Object.defineProperty(bftModule, 'finalizedHeight', {
@@ -164,7 +164,7 @@ describe('block_synchronization_mechanism', () => {
 			chain: chainModule,
 			bft: bftModule,
 			processorModule,
-			activeDelegates: constants.ACTIVE_DELEGATES,
+			activeDelegates: constants.activeDelegates,
 		});
 	});
 
@@ -215,7 +215,7 @@ describe('block_synchronization_mechanism', () => {
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(
 			bftModule.finalizedHeight,
-			constants.ACTIVE_DELEGATES,
+			constants.activeDelegates,
 			10,
 			dpos.rounds.calcRound(chainModule.lastBlock.height),
 		);
@@ -564,7 +564,7 @@ describe('block_synchronization_mechanism', () => {
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
-						constants.ACTIVE_DELEGATES,
+						constants.activeDelegates,
 						10,
 						dpos.rounds.calcRound(lastBlock.height),
 					);
@@ -647,7 +647,7 @@ describe('block_synchronization_mechanism', () => {
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
-						constants.ACTIVE_DELEGATES,
+						constants.activeDelegates,
 						10,
 						dpos.rounds.calcRound(chainModule.lastBlock.height),
 					);
@@ -1052,7 +1052,7 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	describe('isValidFor', () => {
-		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than ACTIVE_DELEGATES*3', async () => {
+		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than activeDelegates*3', async () => {
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(bftModule.finalizedHeight)
 				.mockResolvedValue(genesisBlockDevnet);
@@ -1061,7 +1061,7 @@ describe('block_synchronization_mechanism', () => {
 			expect(isValid).toBeTruthy();
 		});
 
-		it('should return false if the difference in block slots between the current block slot and the finalized block slot of the system is smaller than ACTIVE_DELEGATES*3', async () => {
+		it('should return false if the difference in block slots between the current block slot and the finalized block slot of the system is smaller than activeDelegates*3', async () => {
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(bftModule.finalizedHeight)
 				.mockResolvedValue({ ...genesisBlockDevnet, timestamp: Date.now() });
