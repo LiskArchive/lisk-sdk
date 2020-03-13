@@ -310,7 +310,8 @@ module.exports = class Node {
 				this.dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				syncing: this.synchronizer.isActive,
-				unconfirmedTransactions: this.transactionPool.getCount(),
+				unconfirmedTransactions: this.transactionPool.getAllTransactions()
+					.length,
 				secondsSinceEpoch: this.chain.slots.getEpochTime(),
 				lastBlock: this.chain.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
