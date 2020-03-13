@@ -450,8 +450,8 @@ module.exports = class Node {
 			chainModule: this.chain,
 		});
 
-		// TODO: Read transaction pool config and pass them
 		this.transactionPool = new TransactionPool({
+			...this.options.transactions,
 			applyTransactions: this.chain.applyTransactions.bind(this.chain),
 		});
 		this.modules.transactionPool = this.transactionPool;

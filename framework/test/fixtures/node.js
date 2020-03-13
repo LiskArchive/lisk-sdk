@@ -45,7 +45,7 @@ const nodeOptions = {
 		waitThreshold: 2,
 	},
 	transactions: {
-		maxTransactionsPerQueue: 1000,
+		maxTransactions: 4096,
 	},
 	exceptions: {},
 	constants: {

@@ -71,7 +71,11 @@ Object {
           "active": true,
         },
         "transactions": Object {
-          "maxTransactionsPerQueue": 1000,
+          "maxTransactions": 4096,
+          "maxTransactionsPerAccount": 64,
+          "minEntranceFeePriority": 1,
+          "minReplacementFeeDifference": 10,
+          "transactionExpiryTime": 10800000,
         },
       },
       "protocolVersion": "1.1",
@@ -537,14 +541,34 @@ Object {
             },
             "transactions": Object {
               "properties": Object {
-                "maxTransactionsPerQueue": Object {
-                  "maximum": 5000,
-                  "minimum": 100,
+                "maxTransactions": Object {
+                  "maximum": 4096,
+                  "type": "integer",
+                },
+                "maxTransactionsPerAccount": Object {
+                  "maximum": 64,
+                  "type": "integer",
+                },
+                "minEntranceFeePriority": Object {
+                  "minimum": 1,
+                  "type": "integer",
+                },
+                "minReplacementFeeDifference": Object {
+                  "minimum": 10,
+                  "type": "integer",
+                },
+                "transactionExpiryTime": Object {
+                  "maximum": 10800000,
+                  "minimum": 10800000,
                   "type": "integer",
                 },
               },
               "required": Array [
-                "maxTransactionsPerQueue",
+                "maxTransactions",
+                "maxTransactionsPerAccount",
+                "transactionExpiryTime",
+                "minEntranceFeePriority",
+                "minReplacementFeeDifference",
               ],
               "type": "object",
             },

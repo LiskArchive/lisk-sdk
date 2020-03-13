@@ -299,13 +299,35 @@ module.exports = {
 						transactions: {
 							type: 'object',
 							properties: {
-								maxTransactionsPerQueue: {
+								maxTransactions: {
 									type: 'integer',
-									minimum: 100,
-									maximum: 5000,
+									maximum: 4096,
+								},
+								maxTransactionsPerAccount: {
+									type: 'integer',
+									maximum: 64,
+								},
+								transactionExpiryTime: {
+									type: 'integer',
+									minimum: 10800000,
+									maximum: 10800000,
+								},
+								minEntranceFeePriority: {
+									type: 'integer',
+									minimum: 1,
+								},
+								minReplacementFeeDifference: {
+									type: 'integer',
+									minimum: 10,
 								},
 							},
-							required: ['maxTransactionsPerQueue'],
+							required: [
+								'maxTransactions',
+								'maxTransactionsPerAccount',
+								'transactionExpiryTime',
+								'minEntranceFeePriority',
+								'minReplacementFeeDifference',
+							],
 						},
 						forging: {
 							type: 'object',
@@ -572,7 +594,11 @@ module.exports = {
 					releaseLimit: 25,
 				},
 				transactions: {
-					maxTransactionsPerQueue: 1000,
+					maxTransactions: 4096,
+					maxTransactionsPerAccount: 64,
+					transactionExpiryTime: 3 * 60 * 60 * 1000, // 3 hours in ms
+					minEntranceFeePriority: 1,
+					minReplacementFeeDifference: 10,
 				},
 				forging: {
 					force: false,

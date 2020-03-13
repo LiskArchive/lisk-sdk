@@ -480,7 +480,11 @@ Object {
         "active": true,
       },
       "transactions": Object {
-        "maxTransactionsPerQueue": 1000,
+        "maxTransactions": 4096,
+        "maxTransactionsPerAccount": 64,
+        "minEntranceFeePriority": 1,
+        "minReplacementFeeDifference": 10,
+        "transactionExpiryTime": 10800000,
       },
     },
     "protocolVersion": "1.1",
