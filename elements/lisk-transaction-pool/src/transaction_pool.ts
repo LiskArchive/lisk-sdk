@@ -99,7 +99,8 @@ export class TransactionPool {
 			DEFAULT_REORGANIZE_TIME,
 		);
 		// FIXME: This is log to supress ts build error
-		console.log(this._transactionExpiryTime);
+		// Remove this line after using this._transactionExpiryTime
+		debug('TransactionPool expiry time', this._transactionExpiryTime);
 	}
 
 	public async start(): Promise<void> {
@@ -122,12 +123,20 @@ export class TransactionPool {
 		return this._allTransactions[id] !== undefined;
 	}
 
+	/*
+	1. Check if transaction already exists in pool for rejection
+	2. Check for minimum entrance fee criteria to the pool for rejection
+	3. Check if transaction.fee is greater than the minimum fee in the pool for rejection
+	4. Apply transaction and check if its ok to be processable
+	5. Add to transactionList and feePriorityQueue
+	*/
 	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
 		// Check for duplicate
 		if (this._allTransactions[incomingTx.id]) {
 			debug('Received duplicate transaction', incomingTx.id);
 
-			// Since we receive too many duplicate transactions we are not returning any errors
+			// Since we receive too many duplicate transactions
+			// To avoid too many errors we are returning Status.OK
 			return { status: Status.OK, errors: [] };
 		}
 
@@ -153,7 +162,7 @@ export class TransactionPool {
 			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
 			const error = new TransactionPoolError(
-				`Rejecting transaction due to fee priority and the pool is full`,
+				`Rejecting transaction due to fee priority when the pool is full`,
 				incomingTx.id,
 				'.fee',
 				incomingTx.feePriority.toString(),
@@ -162,12 +171,14 @@ export class TransactionPool {
 
 			return { status: Status.FAIL, errors: [error] };
 		}
+
 		this._feePriorityQueue.push(incomingTx.feePriority, incomingTx.id);
 
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
 		);
 
+		// _applyFunction is injected from chain module applyTransaction
 		const { transactionsResponses } = await this._applyFunction([incomingTx]);
 		const txStatus = this._getStatus(transactionsResponses);
 
@@ -196,7 +207,8 @@ export class TransactionPool {
 			this._calculateFeePriority(incomingTx),
 			incomingTx.id,
 		);
-		// Add the transaction in the _transactionList
+
+		// Add the transaction to _transactionList as PROCESSABLE
 		this._transactionList[incomingTxAddress].add(
 			incomingTx,
 			txStatus === TransactionStatus.PROCESSABLE,
@@ -238,6 +250,7 @@ export class TransactionPool {
 			const transactions = this._transactionList[address].getProcessable();
 			processableTransactions[address] = [...transactions];
 		}
+
 		return processableTransactions;
 	}
 
@@ -251,6 +264,8 @@ export class TransactionPool {
 		txResponse: ReadonlyArray<TransactionResponse>,
 	): TransactionStatus {
 		if (txResponse[0].status === Status.OK) {
+			debug('Received PROCESSABLE transaction');
+
 			return TransactionStatus.PROCESSABLE;
 		}
 		const txResponseErrors = txResponse[0].errors;
@@ -261,9 +276,12 @@ export class TransactionPool {
 			txResponseErrors[0].expected &&
 			txResponseErrors[0].actual > txResponseErrors[0].expected
 		) {
+			debug('Received UNPROCESSABLE transaction');
+
 			return TransactionStatus.UNPROCESSABLE;
 		}
 
+		debug('Received INVALID transaction');
 		return TransactionStatus.INVALID;
 	}
 }
