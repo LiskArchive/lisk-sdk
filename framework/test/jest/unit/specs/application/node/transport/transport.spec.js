@@ -58,9 +58,9 @@ describe('Transport', () => {
 		blocksStub = {
 			getHighestCommonBlock: jest.fn(),
 			deserializeTransaction: jest.fn().mockImplementation(val => val),
-			validateTransactions: jest.fn().mockResolvedValue({
-				transactionsResponses: [{ status: 1, errors: [] }],
-			}),
+			validateTransactions: jest
+				.fn()
+				.mockResolvedValue([{ status: 1, errors: [] }]),
 			dataAccess: {
 				getTransactionsByIDs: jest.fn(),
 			},
@@ -617,9 +617,9 @@ describe('Transport', () => {
 
 			it('should apply penalty when validateTransactions fails', async () => {
 				const error = new Error('validate error');
-				blocksStub.validateTransactions.mockResolvedValue({
-					transactionsResponses: [{ status: 0, errors: [error] }],
-				});
+				blocksStub.validateTransactions.mockResolvedValue([
+					{ status: 0, errors: [error] },
+				]);
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,

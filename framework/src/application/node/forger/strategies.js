@@ -66,7 +66,7 @@ class HighFeeForgingStrategy {
 
 			// If transaction can't be processed then discard all transactions
 			// from that account as other transactions will be higher nonce
-			if (result.transactionsResponses[0].status !== TransactionStatus.OK) {
+			if (result[0].status !== TransactionStatus.OK) {
 				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
 
 				// eslint-disable-next-line no-continue

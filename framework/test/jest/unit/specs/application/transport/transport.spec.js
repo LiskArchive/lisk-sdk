@@ -120,12 +120,12 @@ describe('transport', () => {
 					.mockReturnValue({ height: 1, version: 1, timestamp: 1 }),
 				receiveBlockFromNetwork: jest.fn(),
 				loadBlocksFromLastBlockId: jest.fn(),
-				validateTransactions: jest.fn().mockResolvedValue({
-					transactionsResponses: [{ status: 1, errors: [] }],
-				}),
-				applyTransactions: jest.fn().mockResolvedValue({
-					transactionsResponses: [{ status: 1, errors: [] }],
-				}),
+				validateTransactions: jest
+					.fn()
+					.mockResolvedValue([{ status: 1, errors: [] }]),
+				applyTransactions: jest
+					.fn()
+					.mockResolvedValue([{ status: 1, errors: [] }]),
 				deserializeTransaction: jest.fn().mockImplementation(val => val),
 				dataAccess: {
 					getBlockHeaderByID: jest
@@ -298,13 +298,11 @@ describe('transport', () => {
 					'Transaction type 0 is currently not allowed.',
 				);
 
-				transportModule.chainModule.validateTransactions.mockResolvedValue({
-					transactionsResponses: [
-						{
-							errors: [invalidTrsError],
-						},
-					],
-				});
+				transportModule.chainModule.validateTransactions.mockResolvedValue([
+					{
+						errors: [invalidTrsError],
+					},
+				]);
 
 				await expect(
 					transportModule._receiveTransaction(transaction),
@@ -332,14 +330,12 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
-					transportModule.chainModule.validateTransactions.mockResolvedValue({
-						transactionsResponses: [
-							{
-								status: 1,
-								errors: [new TransactionError('invalid transaction')],
-							},
-						],
-					});
+					transportModule.chainModule.validateTransactions.mockResolvedValue([
+						{
+							status: 1,
+							errors: [new TransactionError('invalid transaction')],
+						},
+					]);
 
 					try {
 						await transportModule._receiveTransaction(invalidTransaction);
@@ -472,7 +468,7 @@ describe('transport', () => {
 						expect(transportModule.channel.publish).toHaveBeenCalledTimes(1);
 						expect(transportModule.channel.publish).toHaveBeenCalledWith(
 							'app:transactions:change',
-							transaction.toJSON(),
+							transaction,
 						);
 					});
 				});

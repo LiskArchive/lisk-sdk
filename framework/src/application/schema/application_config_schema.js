@@ -309,7 +309,7 @@ module.exports = {
 								},
 								transactionExpiryTime: {
 									type: 'integer',
-									minimum: 10800000,
+									minimum: 3600000,
 									maximum: 10800000,
 								},
 								minEntranceFeePriority: {
@@ -318,16 +318,9 @@ module.exports = {
 								},
 								minReplacementFeeDifference: {
 									type: 'integer',
-									minimum: 10,
+									minimum: 1,
 								},
 							},
-							required: [
-								'maxTransactions',
-								'maxTransactionsPerAccount',
-								'transactionExpiryTime',
-								'minEntranceFeePriority',
-								'minReplacementFeeDifference',
-							],
 						},
 						forging: {
 							type: 'object',
@@ -598,7 +591,7 @@ module.exports = {
 					maxTransactionsPerAccount: 64,
 					transactionExpiryTime: 3 * 60 * 60 * 1000, // 3 hours in ms
 					minEntranceFeePriority: 1,
-					minReplacementFeeDifference: 10,
+					minReplacementFeeDifference: 1,
 				},
 				forging: {
 					force: false,

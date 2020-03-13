@@ -190,9 +190,9 @@ class Synchronizer {
 		);
 
 		try {
-			const {
-				transactionsResponses,
-			} = await this.chainModule.validateTransactions(transactions);
+			const transactionsResponses = await this.chainModule.validateTransactions(
+				transactions,
+			);
 			const invalidTransactionResponse = transactionsResponses.find(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,
@@ -216,10 +216,7 @@ class Synchronizer {
 		const transactionCount = transactions.length;
 		// eslint-disable-next-line no-plusplus
 		for (let i = 0; i < transactionCount; i++) {
-			const transaction = transactions[i];
-
-			transaction.bundled = true;
-			const { errors } = await this.transactionPoolModule.add(transaction);
+			const { errors } = await this.transactionPoolModule.add(transactions[i]);
 
 			if (errors.length) {
 				this.logger.error({ errors }, 'Failed to add transaction to pool');

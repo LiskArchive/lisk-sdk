@@ -310,8 +310,7 @@ module.exports = class Node {
 				this.dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				syncing: this.synchronizer.isActive,
-				unconfirmedTransactions: this.transactionPool.getAllTransactions()
-					.length,
+				unconfirmedTransactions: this.transactionPool.getAll().length,
 				secondsSinceEpoch: this.chain.slots.getEpochTime(),
 				lastBlock: this.chain.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
@@ -385,6 +384,13 @@ module.exports = class Node {
 			// Publish to the outside
 			this.channel.publish('app:newBlock', eventData);
 
+			// Remove any transactions from the pool on new block
+			if (block.transactions.length) {
+				block.transactions.map(tx =>
+					this.transactionPool.remove(this.chain.deserializeTransaction(tx)),
+				);
+			}
+
 			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
 				this.channel.invoke('app:updateApplicationState', {
 					height: block.height,
@@ -410,13 +416,11 @@ module.exports = class Node {
 			this.channel.publish('app:deleteBlock', eventData);
 
 			if (block.transactions.length) {
-				const transactions = block.transactions
-					.reverse()
-					.map(tx => this.chain.deserializeTransaction(tx));
-
-				transactions.forEach(transaction =>
-					this.transactionPool.add(transaction),
-				);
+				for (const transaction of block.transactions.reverse()) {
+					this.transactionPool.add(
+						this.chain.deserializeTransaction(transaction),
+					);
+				}
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },

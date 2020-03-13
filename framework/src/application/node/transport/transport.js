@@ -71,7 +71,7 @@ class Transport {
 
 	handleBroadcastTransaction(transaction) {
 		this.broadcaster.enqueueTransactionId(transaction.id);
-		this.channel.publish('app:transactions:change', transaction.toJSON());
+		this.channel.publish('app:transactions:change', transaction);
 	}
 
 	handleBroadcastBlock(blockJSON) {
@@ -370,9 +370,9 @@ class Transport {
 			transaction = this.chainModule.deserializeTransaction(transactionJSON);
 
 			// Composed transaction checks are all static, so it does not need state store
-			const {
-				transactionsResponses,
-			} = await this.chainModule.validateTransactions([transaction]);
+			const transactionsResponses = await this.chainModule.validateTransactions(
+				[transaction],
+			);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;
@@ -389,6 +389,10 @@ class Transport {
 			);
 
 			throw err;
+		}
+		// Broadcast transaction to network if not present in pool
+		if (!this.transactionPoolModule.contains(transaction.id)) {
+			this.handleBroadcastTransaction(transaction);
 		}
 
 		this.logger.debug({ id: transaction.id }, 'Received transaction');

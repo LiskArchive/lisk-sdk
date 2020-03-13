@@ -560,14 +560,12 @@ describe('Synchronizer', () => {
 					id: 'blockID',
 				},
 				deserializeTransaction: jest.fn().mockImplementation(val => val),
-				validateTransactions: jest.fn().mockResolvedValue({
-					transactionsResponses: [
-						{
-							errors: [],
-							status: 1,
-						},
-					],
-				}),
+				validateTransactions: jest.fn().mockResolvedValue([
+					{
+						errors: [],
+						status: 1,
+					},
+				]),
 			};
 
 			const storageMock = {};
