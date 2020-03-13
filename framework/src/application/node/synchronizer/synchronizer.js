@@ -219,9 +219,7 @@ class Synchronizer {
 			const transaction = transactions[i];
 
 			transaction.bundled = true;
-			const { errors } = await this.transactionPoolModule.addTransaction(
-				transaction,
-			);
+			const { errors } = await this.transactionPoolModule.add(transaction);
 
 			if (errors.length) {
 				this.logger.error({ errors }, 'Failed to add transaction to pool');

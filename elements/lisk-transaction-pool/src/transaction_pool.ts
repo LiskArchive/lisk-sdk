@@ -122,9 +122,7 @@ export class TransactionPool {
 		return this._allTransactions[id] !== undefined;
 	}
 
-	public async addTransaction(
-		incomingTx: Transaction,
-	): Promise<AddTransactionResponse> {
+	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
 		// Check for duplicate
 		if (this._allTransactions[incomingTx.id]) {
 			debug('Received duplicate transaction', incomingTx.id);
@@ -207,7 +205,7 @@ export class TransactionPool {
 		return { status: Status.OK, errors: [] };
 	}
 
-	public removeTransaction(tx: Transaction): boolean {
+	public remove(tx: Transaction): boolean {
 		const foundTx = this._allTransactions[tx.id];
 		if (!foundTx) {
 			return false;
@@ -243,7 +241,7 @@ export class TransactionPool {
 		return processableTransactions;
 	}
 
-	private async _reorganize(): Promise<void> { }
+	private async _reorganize(): Promise<void> {}
 
 	private _calculateFeePriority(trx: Transaction): bigint {
 		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);

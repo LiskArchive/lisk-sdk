@@ -394,9 +394,7 @@ class Transport {
 		}
 
 		this.logger.debug({ id: transaction.id }, 'Received transaction');
-		const { errors } = await this.transactionPoolModule.addTransaction(
-			transaction,
-		);
+		const { errors } = await this.transactionPoolModule.add(transaction);
 
 		if (!errors.length) {
 			this.logger.info({ transaction }, 'Added transaction to pool');

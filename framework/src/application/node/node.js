@@ -414,7 +414,7 @@ module.exports = class Node {
 					.map(tx => this.chain.deserializeTransaction(tx));
 
 				transactions.forEach(transaction =>
-					this.transactionPool.addTransaction(transaction),
+					this.transactionPool.add(transaction),
 				);
 			}
 			this.logger.info(

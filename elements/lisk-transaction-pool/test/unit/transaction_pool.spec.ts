@@ -93,7 +93,7 @@ describe('TransactionList class', () => {
 
 			txGetBytesStub = jest.fn();
 			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
-			await transactionPool.addTransaction(tx);
+			await transactionPool.add(tx);
 		});
 
 		it('should return transaction if exist', async () => {
@@ -120,7 +120,7 @@ describe('TransactionList class', () => {
 
 			txGetBytesStub = jest.fn();
 			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
-			await transactionPool.addTransaction(tx);
+			await transactionPool.add(tx);
 		});
 
 		it('should return transaction if exist', async () => {
@@ -169,7 +169,7 @@ describe('TransactionList class', () => {
 
 			for (const tx of txs) {
 				tx.getBytes = jest.fn().mockReturnValue(Buffer.from(new Array(10)));
-				await transactionPool.addTransaction(tx);
+				await transactionPool.add(tx);
 			}
 			(transactionPool as any)._transactionList[
 				getAddressFromPublicKey(senderPublicKeys[0])
@@ -211,7 +211,7 @@ describe('TransactionList class', () => {
 		});
 	});
 
-	describe('addTransaction', () => {
+	describe('add', () => {
 		let txGetBytesStub: any;
 		const tx = {
 			id: '1',
@@ -225,7 +225,7 @@ describe('TransactionList class', () => {
 		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		it('should add a valid transaction and is added to the transaction list as processable', async () => {
-			const status = await transactionPool.addTransaction(tx);
+			const status = await transactionPool.add(tx);
 			expect(status).toEqual(true);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
 
@@ -246,7 +246,7 @@ describe('TransactionList class', () => {
 			const getStatusStub = jest.fn();
 			transactionPool['_getStatus'] = getStatusStub;
 			getStatusStub.mockReturnValue(TransactionStatus.UNPROCESSABLE);
-			const status = await transactionPool.addTransaction(tx);
+			const status = await transactionPool.add(tx);
 
 			expect(status).toEqual(true);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
@@ -266,8 +266,8 @@ describe('TransactionList class', () => {
 
 		it('should reject a duplicate transaction', async () => {
 			const txDuplicate = { ...tx };
-			const status1 = await transactionPool.addTransaction(tx);
-			const status2 = await transactionPool.addTransaction(txDuplicate);
+			const status1 = await transactionPool.add(tx);
+			const status2 = await transactionPool.add(txDuplicate);
 			expect(status1).toEqual(true);
 			expect(status2).toEqual(false);
 			// Check if its not added to the transaction list
@@ -284,7 +284,7 @@ describe('TransactionList class', () => {
 			transactionPool['_getStatus'] = getStatusStub;
 			applyTransactionStub.mockResolvedValue(transactionResponse);
 			try {
-				await transactionPool.addTransaction(tx);
+				await transactionPool.add(tx);
 			} catch (error) {
 				expect(getStatusStub).toHaveReturnedWith(TransactionStatus.INVALID);
 				expect(error.message).toContain(
@@ -312,7 +312,7 @@ describe('TransactionList class', () => {
 				Buffer.from(new Array(10)),
 			);
 
-			const status = await transactionPool.addTransaction(lowFeeTrx);
+			const status = await transactionPool.add(lowFeeTrx);
 			expect(status).toEqual(false);
 		});
 
@@ -344,7 +344,7 @@ describe('TransactionList class', () => {
 					{ status: Status.OK, errors: [] },
 				]);
 
-				await transactionPool.addTransaction(tempTx);
+				await transactionPool.add(tempTx);
 			}
 
 			expect(transactionPool.getAllTransactions().length).toEqual(10);
@@ -365,13 +365,13 @@ describe('TransactionList class', () => {
 				{ status: Status.OK, errors: [] },
 			]);
 
-			const status = await transactionPool.addTransaction(lowFeePriorityTx);
+			const status = await transactionPool.add(lowFeePriorityTx);
 
 			expect(status).toEqual(false);
 		});
 	});
 
-	describe('removeTransaction', () => {
+	describe('remove', () => {
 		let txGetBytesStub: any;
 		const tx = {
 			id: '1',
@@ -385,11 +385,11 @@ describe('TransactionList class', () => {
 		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		beforeEach(async () => {
-			await transactionPool.addTransaction(tx);
+			await transactionPool.add(tx);
 		});
 
 		afterEach(async () => {
-			await transactionPool.removeTransaction(tx);
+			await transactionPool.remove(tx);
 		});
 
 		it('should return false when a tx id does not exist', async () => {
@@ -408,7 +408,7 @@ describe('TransactionList class', () => {
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
-			const removeStatus = transactionPool.removeTransaction(nonExistentTrx);
+			const removeStatus = transactionPool.remove(nonExistentTrx);
 			expect(removeStatus).toEqual(false);
 		});
 
@@ -421,7 +421,7 @@ describe('TransactionList class', () => {
 			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
 
 			// Remove the above transaction
-			const removeStatus = transactionPool.removeTransaction(tx);
+			const removeStatus = transactionPool.remove(tx);
 			expect(removeStatus).toEqual(true);
 			expect(transactionPool.getAllTransactions().length).toEqual(0);
 			expect(
