@@ -1986,7 +1986,7 @@ definitions:
         type: boolean
         example: false
         description: True if the node syncing with other peers.
-      height:
+      unconfirmedTransactions:
         type: integer
         example: 1
         minimum: 0

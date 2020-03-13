@@ -46,6 +46,10 @@ const nodeOptions = {
 	},
 	transactions: {
 		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		minEntranceFeePriority: 1,
+		minReplacementFeeDifference: 10,
+		transactionExpiryTime: 10800000,
 	},
 	exceptions: {},
 	constants: {
