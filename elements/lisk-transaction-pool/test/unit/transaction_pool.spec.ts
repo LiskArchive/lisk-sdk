@@ -580,7 +580,11 @@ describe('TransactionPool class', () => {
 				...defaultTxPoolConfig,
 				transactionReorganizationInterval: 1,
 			});
-			(transactionPool as any)._applyFunction.mockResolvedValue([{ id: '1', status: Status.OK, errors: [] }, { id: '2', status: Status.OK, errors: [] }, { id: '3', status: Status.OK, errors: [] }]);
+			(transactionPool as any)._applyFunction.mockResolvedValue([
+				{ id: '1', status: Status.OK, errors: [] },
+				{ id: '2', status: Status.OK, errors: [] },
+				{ id: '3', status: Status.OK, errors: [] },
+			]);
 			await transactionPool.addTransaction(transactions[0]);
 			await transactionPool.addTransaction(transactions[1]);
 			await transactionPool.addTransaction(transactions[2]);
@@ -597,7 +601,7 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should not promote unprocessable transactions to processable transactions', async () => {
-			transactionPool.removeTransaction(transactions[1]);			
+			transactionPool.removeTransaction(transactions[1]);
 			jest.advanceTimersByTime(2);
 			const unprocessableTransactions = txList.getUnprocessable();
 
@@ -635,11 +639,15 @@ describe('TransactionPool class', () => {
 		];
 
 		beforeEach(() => {
-			(transactionPool as any)._allTransactions = { '1': transactions[0], '2': transactions[1], '3': transactions[2],}
-		})
+			(transactionPool as any)._allTransactions = {
+				'1': transactions[0],
+				'2': transactions[1],
+				'3': transactions[2],
+			};
+		});
 
 		it('should expire old transactions', async () => {
-			(transactionPool as any)._expire();		
+			(transactionPool as any)._expire();
 			expect((transactionPool as any)._allTransactions).not.toHaveProperty('1');
 		});
 	});

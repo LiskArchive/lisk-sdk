@@ -91,7 +91,10 @@ export class TransactionPool {
 			async () => await this._reorganize(),
 			this._transactionReorganizationInterval,
 		);
-		this._expireJob = new Job(async () => await this._expire(), DEFAULT_EXPIRE_INTERVAL);
+		this._expireJob = new Job(
+			async () => await this._expire(),
+			DEFAULT_EXPIRE_INTERVAL,
+		);
 
 		// FIXME: This is log to supress ts build error
 		console.log(this._transactionExpiryTime);
@@ -259,15 +262,15 @@ export class TransactionPool {
 	}
 
 	private _evictUnprocessable(): boolean {
-		const unprocessableFeePriorityHeap = new MinHeap<bigint, Transaction>();
+		const unprocessableFeePriorityHeap = new MinHeap<Transaction>();
 		// Loop through tx lists and push unprocessable tx to fee priority heap
 		for (const txList of Object.values(this._transactionList)) {
 			const unprocessableTransactions = txList.getUnprocessable();
 
 			for (const unprocessableTx of unprocessableTransactions) {
 				unprocessableFeePriorityHeap.push(
-					unprocessableTx,
 					unprocessableTx.feePriority as bigint,
+					unprocessableTx,
 				);
 			}
 		}
@@ -278,11 +281,11 @@ export class TransactionPool {
 
 		const evictedTransaction = unprocessableFeePriorityHeap.pop();
 
-		return this.removeTransaction(evictedTransaction?.key as Transaction);
+		return this.removeTransaction(evictedTransaction?.value as Transaction);
 	}
 
 	private _evictProcessable(): boolean {
-		const processableFeePriorityHeap = new MinHeap<bigint, Transaction>();
+		const processableFeePriorityHeap = new MinHeap<Transaction>();
 		// Loop through tx lists and push processable tx to fee priority heap
 		for (const txList of Object.values(this._transactionList)) {
 			// Push highest nonce tx to processable fee priorty heap
@@ -291,8 +294,8 @@ export class TransactionPool {
 				const processableTransactionWithHighestNonce =
 					processableTransactions[processableTransactions.length - 1];
 				processableFeePriorityHeap.push(
-					processableTransactionWithHighestNonce,
 					processableTransactionWithHighestNonce.feePriority as bigint,
+					processableTransactionWithHighestNonce,
 				);
 			}
 		}
@@ -303,7 +306,7 @@ export class TransactionPool {
 
 		const evictedTransaction = processableFeePriorityHeap.pop();
 
-		return this.removeTransaction(evictedTransaction?.key as Transaction);
+		return this.removeTransaction(evictedTransaction?.value as Transaction);
 	}
 
 	private async _reorganize(): Promise<void> {
@@ -311,14 +314,14 @@ export class TransactionPool {
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
 		for (const txList of Object.values(this._transactionList)) {
-			const allSortedTransactionsInList = txList.getAll();
+			const processableTransactions = txList.getProcessable();
 			const promotableTransactions = txList.getPromotable();
 			// If no promotable transactions, check next list
 			if (!promotableTransactions.length) {
 				continue;
 			}
 			const applyResults = await this._applyFunction([
-				...allSortedTransactionsInList,
+				...processableTransactions,
 			]);
 
 			const successfulTransactionIds: string[] = [];
@@ -342,13 +345,13 @@ export class TransactionPool {
 
 			// Remove invalid transaction and all subsequent transactions
 			const invalidTransaction = firstInvalidTransactionId
-				? allSortedTransactionsInList.find(
+				? processableTransactions.find(
 						tx => tx.id == firstInvalidTransactionId,
 				  )
 				: undefined;
 
 			if (invalidTransaction) {
-				for (const tx of allSortedTransactionsInList) {
+				for (const tx of processableTransactions) {
 					if (tx.nonce >= invalidTransaction.nonce) {
 						this.removeTransaction(tx);
 					}
