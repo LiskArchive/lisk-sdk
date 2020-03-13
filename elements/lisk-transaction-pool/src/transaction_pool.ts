@@ -120,11 +120,11 @@ export class TransactionPool {
 	}
 
 	/*
-	1. Check if transaction already exists in pool for rejection
-	2. Check for minimum entrance fee criteria to the pool for rejection
-	3. Check if transaction.fee is greater than the minimum fee in the pool for rejection
-	4. Apply transaction and check if its ok to be processable
-	5. Add to transactionList and feePriorityQueue
+	1. Reject duplicate transaction
+	2. Reject the transaction with lower feePriority than the minEntrancefeePriority
+	3. Reject the transaction when its feePriority is lower than the lowest feePriority present in the TxPool.
+	4. Apply the transaction using applyFunction and check if it is PROCESSABLE, UNPROCESSABLE or INVALID.
+	5. If PROCESSABLE or UNPROCESSABLE then add it to transactionList and feePriorityQueue, if INVALID then return a relevant error
 	*/
 	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
 		// Check for duplicate
@@ -136,11 +136,11 @@ export class TransactionPool {
 			return { status: Status.OK, errors: [] };
 		}
 
-		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
+		// Check for minimum entrance fee priority to the TxPool and if its low then reject the incoming tx
 		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
 		if (incomingTx.feePriority < this._minEntranceFeePriority) {
 			const error = new TransactionPoolError(
-				`Rejecting transaction due to failed minimum entrance fee requirement`,
+				`Rejecting transaction due to failed minimum entrance fee priority requirement`,
 				incomingTx.id,
 				'.fee',
 				incomingTx.feePriority.toString(),
@@ -150,7 +150,7 @@ export class TransactionPool {
 			return { status: Status.FAIL, errors: [error] };
 		}
 
-		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
+		// Check if incoming transaction fee is greater than the minimum fee priority in the TxPool if the TxPool is full
 		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
 		if (
 			Object.keys(this._allTransactions).length >= this._maxTransactions &&
@@ -204,7 +204,7 @@ export class TransactionPool {
 			incomingTx.id,
 		);
 
-		// Add the transaction to _transactionList as PROCESSABLE
+		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
 		this._transactionList[incomingTxAddress].add(
 			incomingTx,
 			txStatus === TransactionStatus.PROCESSABLE,
