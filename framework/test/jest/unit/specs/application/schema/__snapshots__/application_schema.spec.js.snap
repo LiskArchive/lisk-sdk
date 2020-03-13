@@ -6,20 +6,20 @@ Object {
   "default": Object {
     "app": Object {
       "genesisConfig": Object {
-        "BLOCK_TIME": 10,
-        "DELEGATE_LIST_ROUND_OFFSET": 2,
-        "EPOCH_TIME": "2016-05-24T17:00:00.000Z",
-        "MAX_TRANSACTIONS_PER_BLOCK": 25,
-        "REWARDS": Object {
-          "DISTANCE": 3000000,
-          "MILESTONES": Array [
+        "blockTime": 10,
+        "delegateListRoundOffset": 2,
+        "epochTime": "2016-05-24T17:00:00.000Z",
+        "maxTransactionsPerBlock": 25,
+        "rewards": Object {
+          "distance": 3000000,
+          "milestones": Array [
             "500000000",
             "400000000",
             "300000000",
             "200000000",
             "100000000",
           ],
-          "OFFSET": 2160,
+          "offset": 2160,
         },
       },
       "ipc": Object {
@@ -100,38 +100,38 @@ Object {
           "additionalProperties": false,
           "id": "#/app/genesisConfig",
           "properties": Object {
-            "BLOCK_TIME": Object {
+            "blockTime": Object {
               "description": "Slot time interval in seconds",
               "minimum": 2,
               "type": "number",
             },
-            "DELEGATE_LIST_ROUND_OFFSET": Object {
-              "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - DELEGATE_LIST_ROUND_OFFSET\`",
+            "delegateListRoundOffset": Object {
+              "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
               "minimum": 0,
               "type": "number",
             },
-            "EPOCH_TIME": Object {
+            "epochTime": Object {
               "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
               "format": "date-time",
               "type": "string",
             },
-            "MAX_TRANSACTIONS_PER_BLOCK": Object {
+            "maxTransactionsPerBlock": Object {
               "description": "Maximum number of transactions allowed per block",
               "maximum": 150,
               "minimum": 1,
               "type": "integer",
             },
-            "REWARDS": Object {
+            "rewards": Object {
               "additionalProperties": false,
               "description": "Object representing LSK rewards milestone",
               "id": "rewards",
               "properties": Object {
-                "DISTANCE": Object {
+                "distance": Object {
                   "description": "Distance between each milestone",
                   "minimum": 1,
                   "type": "integer",
                 },
-                "MILESTONES": Object {
+                "milestones": Object {
                   "description": "Initial 5, and decreasing until 1",
                   "items": Object {
                     "format": "amount",
@@ -139,26 +139,26 @@ Object {
                   },
                   "type": "array",
                 },
-                "OFFSET": Object {
+                "offset": Object {
                   "description": "Start rewards at block (n)",
                   "minimum": 1,
                   "type": "integer",
                 },
               },
               "required": Array [
-                "MILESTONES",
-                "OFFSET",
-                "DISTANCE",
+                "milestones",
+                "offset",
+                "distance",
               ],
               "type": "object",
             },
           },
           "required": Array [
-            "EPOCH_TIME",
-            "BLOCK_TIME",
-            "MAX_TRANSACTIONS_PER_BLOCK",
-            "DELEGATE_LIST_ROUND_OFFSET",
-            "REWARDS",
+            "epochTime",
+            "blockTime",
+            "maxTransactionsPerBlock",
+            "delegateListRoundOffset",
+            "rewards",
           ],
           "type": "object",
         },

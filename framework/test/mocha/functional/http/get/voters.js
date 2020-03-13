@@ -34,7 +34,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { FEES } = global.constants;
+const { fees } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', () => {
@@ -297,8 +297,8 @@ describe('GET /api/voters', () => {
 				// To by-pass minimum remaining balance limit
 				const halfLSK = BigInt('500000');
 				const amount = (
-					BigInt(FEES.DELEGATE) +
-					BigInt(FEES.VOTE) +
+					BigInt(fees.delegate) +
+					BigInt(fees.vote) +
 					halfLSK
 				).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({

@@ -86,47 +86,47 @@ module.exports = {
 					id: '#/app/genesisConfig',
 					type: 'object',
 					required: [
-						'EPOCH_TIME',
-						'BLOCK_TIME',
-						'MAX_TRANSACTIONS_PER_BLOCK',
-						'DELEGATE_LIST_ROUND_OFFSET',
-						'REWARDS',
+						'epochTime',
+						'blockTime',
+						'maxTransactionsPerBlock',
+						'delegateListRoundOffset',
+						'rewards',
 					],
 					properties: {
-						EPOCH_TIME: {
+						epochTime: {
 							type: 'string',
 							format: 'date-time',
 							description:
 								'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
 						},
-						// NOTICE: BLOCK_TIME and MAX_TRANSACTIONS_PER_BLOCK are related and it's values
+						// NOTICE: blockTime and maxTransactionsPerBlock are related and it's values
 						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
-						BLOCK_TIME: {
+						blockTime: {
 							type: 'number',
 							minimum: 2,
 							description: 'Slot time interval in seconds',
 						},
-						// NOTICE: BLOCK_TIME and MAX_TRANSACTIONS_PER_BLOCK are related and it's values
+						// NOTICE: blockTime and maxTransactionsPerBlock are related and it's values
 						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
-						MAX_TRANSACTIONS_PER_BLOCK: {
+						maxTransactionsPerBlock: {
 							type: 'integer',
 							minimum: 1,
 							maximum: 150,
 							description: 'Maximum number of transactions allowed per block',
 						},
-						DELEGATE_LIST_ROUND_OFFSET: {
+						delegateListRoundOffset: {
 							type: 'number',
 							minimum: 0,
 							description:
-								'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - DELEGATE_LIST_ROUND_OFFSET`',
+								'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - delegateListRoundOffset`',
 						},
-						REWARDS: {
+						rewards: {
 							id: 'rewards',
 							type: 'object',
-							required: ['MILESTONES', 'OFFSET', 'DISTANCE'],
+							required: ['milestones', 'offset', 'distance'],
 							description: 'Object representing LSK rewards milestone',
 							properties: {
-								MILESTONES: {
+								milestones: {
 									type: 'array',
 									items: {
 										type: 'string',
@@ -134,12 +134,12 @@ module.exports = {
 									},
 									description: 'Initial 5, and decreasing until 1',
 								},
-								OFFSET: {
+								offset: {
 									type: 'integer',
 									minimum: 1,
 									description: 'Start rewards at block (n)',
 								},
-								DISTANCE: {
+								distance: {
 									type: 'integer',
 									minimum: 1,
 									description: 'Distance between each milestone',
@@ -545,20 +545,20 @@ module.exports = {
 				enabled: false,
 			},
 			genesisConfig: {
-				EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
-				BLOCK_TIME: 10,
-				MAX_TRANSACTIONS_PER_BLOCK: 25,
-				DELEGATE_LIST_ROUND_OFFSET: 2,
-				REWARDS: {
-					MILESTONES: [
+				epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
+				blockTime: 10,
+				maxTransactionsPerBlock: 25,
+				delegateListRoundOffset: 2,
+				rewards: {
+					milestones: [
 						'500000000', // Initial Reward
 						'400000000', // Milestone 1
 						'300000000', // Milestone 2
 						'200000000', // Milestone 3
 						'100000000', // Milestone 4
 					],
-					OFFSET: 2160, // Start rewards at 39th block of 22nd round
-					DISTANCE: 3000000, // Distance between each milestone
+					offset: 2160, // Start rewards at 39th block of 22nd round
+					distance: 3000000, // Distance between each milestone
 				},
 			},
 			network: {

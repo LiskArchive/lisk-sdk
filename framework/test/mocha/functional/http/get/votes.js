@@ -35,7 +35,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
+const { fees, maxVotesPerAccount } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {
@@ -46,7 +46,7 @@ describe('GET /api/votes', () => {
 
 	function expectValidVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.least(res.body.data.votes.length);
-		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
+		expect(maxVotesPerAccount).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable,
 		);
 	}
@@ -54,7 +54,7 @@ describe('GET /api/votes', () => {
 	function expectValidNonVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.equal(0);
 		expect(res.body.data.votes).to.be.empty;
-		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
+		expect(maxVotesPerAccount).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable,
 		);
 	}
@@ -412,8 +412,8 @@ describe('GET /api/votes', () => {
 					fee: '100000000',
 					networkIdentifier,
 					amount: (
-						BigInt(FEES.DELEGATE) +
-						BigInt(FEES.VOTE) +
+						BigInt(fees.delegate) +
+						BigInt(fees.vote) +
 						halfLSK
 					).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
@@ -459,7 +459,7 @@ describe('GET /api/votes', () => {
 						expect(res.body.data.address).to.be.equal(account.address);
 						expect(res.body.data.votesUsed).to.be.equal(0);
 						expect(res.body.data.votesAvailable).to.be.equal(
-							MAX_VOTES_PER_ACCOUNT,
+							maxVotesPerAccount,
 						);
 					})
 					.then(() => {

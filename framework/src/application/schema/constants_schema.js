@@ -18,95 +18,95 @@ module.exports = {
 	id: '#constants',
 	type: 'object',
 	required: [
-		'ACTIVE_DELEGATES',
-		'BLOCK_SLOT_WINDOW',
-		'BLOCK_RECEIPT_TIMEOUT',
-		'FEES',
-		'MAX_PAYLOAD_LENGTH',
-		'MAX_SHARED_TRANSACTIONS',
-		'MAX_VOTES_PER_ACCOUNT',
-		'TOTAL_AMOUNT',
-		'TRANSACTION_TYPES',
-		'UNCONFIRMED_TRANSACTION_TIMEOUT',
-		'EXPIRY_INTERVAL',
+		'activeDelegates',
+		'blockSlotWindow',
+		'blockReceiptTimeout',
+		'fees',
+		'maxPayloadLength',
+		'maxSharedTransactions',
+		'maxVotesPerAccount',
+		'totalAmount',
+		'transactionTypes',
+		'unconfirmedTransactionTimeout',
+		'expiryInterval',
 	],
 	properties: {
-		ACTIVE_DELEGATES: {
+		activeDelegates: {
 			type: 'number',
 			format: 'oddInteger',
 			min: 1,
 			const: 101,
 			description: 'The default number of delegates allowed to forge a block',
 		},
-		BLOCK_SLOT_WINDOW: {
+		blockSlotWindow: {
 			type: 'integer',
 			min: 1,
 			const: 5,
 			description: 'The default number of previous blocks to keep in memory',
 		},
-		BLOCK_RECEIPT_TIMEOUT: {
+		blockReceiptTimeout: {
 			type: 'integer',
 			min: 1,
 			const: 20,
 			description: 'Seconds to check if the block is fresh or not',
 		},
-		FEES: {
+		fees: {
 			type: 'object',
 			description:
 				'Object representing amount of fees for different types of transactions',
 			required: [
-				'SEND',
-				'VOTE',
-				'SECOND_SIGNATURE',
-				'DELEGATE',
-				'MULTISIGNATURE',
-				'DAPP_REGISTRATION',
-				'DAPP_WITHDRAWAL',
-				'DAPP_DEPOSIT',
+				'send',
+				'vote',
+				'secondSignature',
+				'delegate',
+				'multisignature',
+				'dappRegistration',
+				'dappWithdrawal',
+				'dappDeposit',
 			],
 			properties: {
-				SEND: {
+				send: {
 					type: 'string',
 					format: 'amount',
 					const: '10000000',
 					description: 'Fee for sending a transaction',
 				},
-				VOTE: {
+				vote: {
 					type: 'string',
 					format: 'amount',
 					const: '100000000',
 					description: 'Fee for voting a delegate',
 				},
-				SECOND_SIGNATURE: {
+				secondSignature: {
 					type: 'string',
 					format: 'amount',
 					const: '500000000',
 					description: 'Fee for creating a second signature',
 				},
-				DELEGATE: {
+				delegate: {
 					type: 'string',
 					format: 'amount',
 					const: '2500000000',
 					description: 'Fee for registering as a delegate',
 				},
-				MULTISIGNATURE: {
+				multisignature: {
 					type: 'string',
 					format: 'amount',
 					const: '500000000',
 					description: 'Fee for multisignature transaction',
 				},
-				DAPP_REGISTRATION: {
+				dappRegistration: {
 					type: 'string',
 					format: 'amount',
 					const: '2500000000',
 					description: 'Fee for registering as a dapp',
 				},
-				DAPP_WITHDRAWAL: {
+				dappWithdrawal: {
 					type: 'string',
 					format: 'amount',
 					const: '10000000',
 				},
-				DAPP_DEPOSIT: {
+				dappDeposit: {
 					type: 'string',
 					format: 'amount',
 					const: '10000000',
@@ -114,92 +114,92 @@ module.exports = {
 			},
 			additionalProperties: false,
 		},
-		MAX_PAYLOAD_LENGTH: {
+		maxPayloadLength: {
 			type: 'integer',
 			min: 1,
 			const: 15 * 1024,
 			description: 'Maximum transaction bytes length in a single block',
 		},
-		MAX_SHARED_TRANSACTIONS: {
+		maxSharedTransactions: {
 			type: 'integer',
 			min: 1,
 			const: 100,
 			description:
 				'Maximum number of in-memory transactions/signatures shared across peers',
 		},
-		MAX_VOTES_PER_ACCOUNT: {
+		maxVotesPerAccount: {
 			type: 'number',
 			min: 1,
 			maximum: {
-				$data: '/ACTIVE_DELEGATES',
+				$data: '/activeDelegates',
 			},
 			const: 101,
 			description:
 				'The maximum number of votes allowed in transaction type(3) votes',
 		},
-		TOTAL_AMOUNT: {
+		totalAmount: {
 			type: 'string',
 			format: 'amount',
 			const: '10000000000000000',
 			description:
 				'Total amount of LSK available in network before rewards milestone started',
 		},
-		TRANSACTION_TYPES: {
+		transactionTypes: {
 			type: 'object',
 			required: [
-				'SEND',
-				'SIGNATURE',
-				'DELEGATE',
-				'VOTE',
-				'MULTI',
-				'DAPP',
-				'IN_TRANSFER',
-				'OUT_TRANSFER',
+				'send',
+				'signature',
+				'delegate',
+				'vote',
+				'multi',
+				'dapp',
+				'inTransfer',
+				'outTransfer',
 			],
 			properties: {
-				SEND: {
+				send: {
 					type: 'integer',
 					const: 0,
 				},
-				SIGNATURE: {
+				signature: {
 					type: 'integer',
 					const: 1,
 				},
-				DELEGATE: {
+				delegate: {
 					type: 'integer',
 					const: 2,
 				},
-				VOTE: {
+				vote: {
 					type: 'integer',
 					const: 3,
 				},
-				MULTI: {
+				multi: {
 					type: 'integer',
 					const: 4,
 				},
-				DAPP: {
+				dapp: {
 					type: 'integer',
 					const: 5,
 				},
-				IN_TRANSFER: {
+				inTransfer: {
 					type: 'integer',
 					const: 6,
 				},
-				OUT_TRANSFER: {
+				outTransfer: {
 					type: 'integer',
 					const: 7,
 				},
 			},
 			additionalProperties: false,
 		},
-		UNCONFIRMED_TRANSACTION_TIMEOUT: {
+		unconfirmedTransactionTimeout: {
 			type: 'integer',
 			min: 1,
 			const: 10800,
 			description:
 				'Expiration time for unconfirmed transaction/signatures in transaction pool',
 		},
-		EXPIRY_INTERVAL: {
+		expiryInterval: {
 			type: 'integer',
 			min: 1,
 			const: 30000,
@@ -208,35 +208,35 @@ module.exports = {
 	},
 	additionalProperties: false,
 	default: {
-		ACTIVE_DELEGATES: 101,
-		BLOCK_SLOT_WINDOW: 5,
-		BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
-		FEES: {
-			SEND: '10000000',
-			VOTE: '100000000',
-			SECOND_SIGNATURE: '500000000',
-			DELEGATE: '2500000000',
-			MULTISIGNATURE: '500000000',
-			DAPP_REGISTRATION: '2500000000',
-			DAPP_WITHDRAWAL: '10000000',
-			DAPP_DEPOSIT: '10000000',
+		activeDelegates: 101,
+		blockSlotWindow: 5,
+		blockReceiptTimeout: 20, // 2 blocks
+		fees: {
+			send: '10000000',
+			vote: '100000000',
+			secondSignature: '500000000',
+			delegate: '2500000000',
+			multisignature: '500000000',
+			dappRegistration: '2500000000',
+			dappWithdrawal: '10000000',
+			dappDeposit: '10000000',
 		},
-		MAX_PAYLOAD_LENGTH: 15 * 1024,
-		MAX_SHARED_TRANSACTIONS: 100,
-		MAX_VOTES_PER_ACCOUNT: 101,
+		maxPayloadLength: 15 * 1024,
+		maxSharedTransactions: 100,
+		maxVotesPerAccount: 101,
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
-		TOTAL_AMOUNT: '10000000000000000',
-		TRANSACTION_TYPES: {
-			SEND: 0,
-			SIGNATURE: 1,
-			DELEGATE: 2,
-			VOTE: 3,
-			MULTI: 4,
-			DAPP: 5,
-			IN_TRANSFER: 6,
-			OUT_TRANSFER: 7,
+		totalAmount: '10000000000000000',
+		transactionTypes: {
+			send: 0,
+			signature: 1,
+			delegate: 2,
+			vote: 3,
+			multi: 4,
+			dapp: 5,
+			inTransfer: 6,
+			outTransfer: 7,
 		},
-		UNCONFIRMED_TRANSACTION_TIMEOUT: 10800, // 1080 blocks
-		EXPIRY_INTERVAL: 30000,
+		unconfirmedTransactionTimeout: 10800, // 1080 blocks
+		expiryInterval: 30000,
 	},
 };

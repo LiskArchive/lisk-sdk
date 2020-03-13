@@ -49,37 +49,37 @@ const nodeOptions = {
 	},
 	exceptions: {},
 	constants: {
-		ACTIVE_DELEGATES: 101,
-		BLOCK_SLOT_WINDOW: 5,
+		activeDelegates: 101,
+		blockSlotWindow: 5,
 		ADDITIONAL_DATA: {
 			MIN_LENGTH: 1,
 			MAX_LENGTH: 64,
 		},
-		BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
-		FEES: {
-			SEND: '10000000',
-			VOTE: '100000000',
-			DELEGATE: '2500000000',
-			MULTISIGNATURE: '500000000',
-			DAPP_REGISTRATION: '2500000000',
-			DAPP_WITHDRAWAL: '10000000',
-			DAPP_DEPOSIT: '10000000',
+		blockReceiptTimeout: 20, // 2 blocks
+		fees: {
+			send: '10000000',
+			vote: '100000000',
+			delegate: '2500000000',
+			multisignature: '500000000',
+			dappRegistration: '2500000000',
+			dappWithdrawal: '10000000',
+			dappDeposit: '10000000',
 		},
-		MAX_PAYLOAD_LENGTH: 15 * 1024,
+		maxPayloadLength: 15 * 1024,
 		MAX_PEERS: 100,
-		MAX_SHARED_TRANSACTIONS: 100,
+		maxSharedTransactions: 100,
 		MAX_VOTES_PER_TRANSACTION: 33,
-		MAX_VOTES_PER_ACCOUNT: 101,
-		REWARDS: {
-			MILESTONES: [
+		maxVotesPerAccount: 101,
+		rewards: {
+			milestones: [
 				'500000000', // Initial Reward
 				'400000000', // Milestone 1
 				'300000000', // Milestone 2
 				'200000000', // Milestone 3
 				'100000000', // Milestone 4
 			],
-			OFFSET: 2160, // Start rewards at first block of the second round
-			DISTANCE: 3000000, // Distance between each milestone
+			offset: 2160, // Start rewards at first block of the second round
+			distance: 3000000, // Distance between each milestone
 		},
 		MULTISIG_CONSTRAINTS: {
 			MIN: {
@@ -103,18 +103,18 @@ const nodeOptions = {
 		],
 		NORMALIZER: '100000000',
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
-		TOTAL_AMOUNT: '10000000000000000',
-		TRANSACTION_TYPES: {
-			SEND: 0,
-			DELEGATE: 2,
-			VOTE: 3,
-			MULTI: 4,
-			DAPP: 5,
-			IN_TRANSFER: 6,
-			OUT_TRANSFER: 7,
+		totalAmount: '10000000000000000',
+		transactionTypes: {
+			send: 0,
+			delegate: 2,
+			vote: 3,
+			multi: 4,
+			dapp: 5,
+			inTransfer: 6,
+			outTransfer: 7,
 		},
-		UNCONFIRMED_TRANSACTION_TIMEOUT: 10800, // 1080 blocks
-		EXPIRY_INTERVAL: 30000,
+		unconfirmedTransactionTimeout: 10800, // 1080 blocks
+		expiryInterval: 30000,
 	},
 };
 

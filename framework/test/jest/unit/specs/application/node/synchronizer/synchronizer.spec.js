@@ -74,25 +74,25 @@ describe('Synchronizer', () => {
 		};
 		channelMock = new ChannelMock();
 
-		rounds = new Rounds({ blocksPerRound: constants.ACTIVE_DELEGATES });
+		rounds = new Rounds({ blocksPerRound: constants.activeDelegates });
 
 		chainModule = new Chain({
 			logger: loggerMock,
 			storage: storageMock,
 			genesisBlock: genesisBlockDevnet,
 			registeredTransactions,
-			blockReceiptTimeout: constants.BLOCK_RECEIPT_TIMEOUT,
+			blockReceiptTimeout: constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
-			maxPayloadLength: constants.MAX_PAYLOAD_LENGTH,
-			maxTransactionsPerBlock: constants.MAX_TRANSACTIONS_PER_BLOCK,
-			activeDelegates: constants.ACTIVE_DELEGATES,
-			rewardDistance: constants.REWARDS.DISTANCE,
-			rewardOffset: constants.REWARDS.OFFSET,
-			rewardMileStones: constants.REWARDS.MILESTONES,
-			totalAmount: constants.TOTAL_AMOUNT,
-			blockSlotWindow: constants.BLOCK_SLOT_WINDOW,
-			epochTime: constants.EPOCH_TIME,
-			blockTime: constants.BLOCK_TIME,
+			maxPayloadLength: constants.maxPayloadLength,
+			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
+			activeDelegates: constants.activeDelegates,
+			rewardDistance: constants.rewards.distance,
+			rewardOffset: constants.rewards.offset,
+			rewardMilestones: constants.rewards.milestones,
+			totalAmount: constants.totalAmount,
+			blockSlotWindow: constants.blockSlotWindow,
+			epochTime: constants.epochTime,
+			blockTime: constants.blockTime,
 		});
 
 		dataAccessMock = {
@@ -117,7 +117,7 @@ describe('Synchronizer', () => {
 			chain: chainModule,
 			dpos: { rounds },
 			slots: chainModule.slots,
-			activeDelegates: constants.ACTIVE_DELEGATES,
+			activeDelegates: constants.activeDelegates,
 			startingHeight: 1,
 		});
 

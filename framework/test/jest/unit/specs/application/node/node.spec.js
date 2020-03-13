@@ -207,14 +207,14 @@ describe('Node', () => {
 			);
 		});
 
-		it('should throw error when waitThreshold is greater than BLOCK_TIME', async () => {
+		it('should throw error when waitThreshold is greater than blockTime', async () => {
 			const invalidChainOptions = {
 				...nodeOptions,
 				forging: {
 					waitThreshold: 5,
 				},
 				constants: {
-					BLOCK_TIME: 4,
+					blockTime: 4,
 				},
 			};
 
@@ -231,21 +231,21 @@ describe('Node', () => {
 			expect(node.logger.fatal).toHaveBeenCalledWith(
 				expect.objectContaining({
 					message: expect.stringContaining(
-						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=4',
+						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.blockTime=4',
 					),
 				}),
 				'Failed to initialization node',
 			);
 		});
 
-		it('should throw error when waitThreshold is same as BLOCK_TIME', async () => {
+		it('should throw error when waitThreshold is same as blockTime', async () => {
 			const invalidChainOptions = {
 				...nodeOptions,
 				forging: {
 					waitThreshold: 5,
 				},
 				constants: {
-					BLOCK_TIME: 5,
+					blockTime: 5,
 				},
 			};
 
@@ -261,7 +261,7 @@ describe('Node', () => {
 			expect(node.logger.fatal).toHaveBeenCalledWith(
 				expect.objectContaining({
 					message: expect.stringContaining(
-						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.BLOCK_TIME=5',
+						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.blockTime=5',
 					),
 				}),
 				'Failed to initialization node',
