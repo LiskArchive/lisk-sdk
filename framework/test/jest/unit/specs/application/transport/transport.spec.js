@@ -112,7 +112,7 @@ describe('transport', () => {
 				getProcessableTransactions: jest.fn(),
 				add: jest.fn(),
 				get: jest.fn(),
-				contains: jest.fn().mockReturnValue(true),
+				contains: jest.fn().mockReturnValue(false),
 			},
 			chainModule: {
 				lastBlock: jest
@@ -277,6 +277,16 @@ describe('transport', () => {
 					status: 1,
 					errors: [],
 				});
+				transportModule.chainModule.deserializeTransaction.mockReturnValue({
+					...transaction,
+					toJSON: () => transaction,
+				});
+			});
+
+			afterEach(() => {
+				transportModule.chainModule.deserializeTransaction.mockReturnValue({
+					...transaction,
+				});
 			});
 
 			it('should call validateTransactions', async () => {
@@ -290,7 +300,7 @@ describe('transport', () => {
 				await transportModule._receiveTransaction(transaction);
 				return expect(
 					transportModule.chainModule.validateTransactions,
-				).toHaveBeenCalledWith([transaction]);
+				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should reject with error if transaction is not allowed', async () => {
@@ -317,7 +327,7 @@ describe('transport', () => {
 				it('should call modules.transactionPool.add with transaction argument', async () => {
 					expect(
 						transportModule.transactionPoolModule.add,
-					).toHaveBeenCalledWith(transaction);
+					).toHaveBeenCalledTimes(1);
 				});
 			});
 
@@ -370,22 +380,6 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule.logger.debug with "Transaction transaction.id" and error string', async () => {
-					expect(transportModule.logger.debug).toHaveBeenCalledWith(
-						{ id: '13710202194404177265' },
-						'Received transaction',
-					);
-				});
-
-				describe('when transaction is defined', () => {
-					it('should call transportModule.logger.debug with "Transaction" and transaction as arguments', async () => {
-						expect(transportModule.logger.debug).toHaveBeenCalledWith(
-							{ id: '13710202194404177265' },
-							'Received transaction',
-						);
-					});
-				});
-
 				it('should reject with error', async () => {
 					expect(error).toBeInstanceOf(Array);
 					expect(error[0].message).toEqual(addError);
@@ -399,13 +393,6 @@ describe('transport', () => {
 
 				it('should resolve with result = transaction.id', async () =>
 					expect(result).toEqual(transaction.id));
-
-				it('should call transportModule.logger.debug with "Received transaction " + transaction.id', async () => {
-					expect(transportModule.logger.debug).toHaveBeenCalledWith(
-						{ id: transaction.id },
-						'Received transaction',
-					);
-				});
 			});
 		});
 
@@ -468,7 +455,7 @@ describe('transport', () => {
 						expect(transportModule.channel.publish).toHaveBeenCalledTimes(1);
 						expect(transportModule.channel.publish).toHaveBeenCalledWith(
 							'app:transactions:change',
-							transaction,
+							transaction.toJSON(),
 						);
 					});
 				});

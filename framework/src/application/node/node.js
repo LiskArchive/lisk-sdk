@@ -386,9 +386,11 @@ module.exports = class Node {
 
 			// Remove any transactions from the pool on new block
 			if (block.transactions.length) {
-				block.transactions.map(tx =>
-					this.transactionPool.remove(this.chain.deserializeTransaction(tx)),
-				);
+				for (const transaction of block.transactions) {
+					this.TransactionPool.remove(
+						this.chain.deserializeTransaction(transaction),
+					);
+				}
 			}
 
 			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
@@ -416,7 +418,7 @@ module.exports = class Node {
 			this.channel.publish('app:deleteBlock', eventData);
 
 			if (block.transactions.length) {
-				for (const transaction of block.transactions.reverse()) {
+				for (const transaction of block.transactions) {
 					this.transactionPool.add(
 						this.chain.deserializeTransaction(transaction),
 					);

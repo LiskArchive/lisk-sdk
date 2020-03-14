@@ -71,7 +71,7 @@ class Transport {
 
 	handleBroadcastTransaction(transaction) {
 		this.broadcaster.enqueueTransactionId(transaction.id);
-		this.channel.publish('app:transactions:change', transaction);
+		this.channel.publish('app:transactions:change', transaction.toJSON());
 	}
 
 	handleBroadcastBlock(blockJSON) {
@@ -364,7 +364,10 @@ class Transport {
 	}
 
 	async _receiveTransaction(transactionJSON) {
-		const id = transactionJSON ? transactionJSON.id : 'null';
+		if (this.transactionPoolModule.contains(transactionJSON.id)) {
+			return transactionJSON.id;
+		}
+
 		let transaction;
 		try {
 			transaction = this.chainModule.deserializeTransaction(transactionJSON);
@@ -379,7 +382,11 @@ class Transport {
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			const err = new InvalidTransactionError(errString, id, errors);
+			const err = new InvalidTransactionError(
+				errString,
+				transactionJSON.id,
+				errors,
+			);
 			this.logger.error(
 				{
 					err,
@@ -390,12 +397,10 @@ class Transport {
 
 			throw err;
 		}
-		// Broadcast transaction to network if not present in pool
-		if (!this.transactionPoolModule.contains(transaction.id)) {
-			this.handleBroadcastTransaction(transaction);
-		}
 
-		this.logger.debug({ id: transaction.id }, 'Received transaction');
+		// Broadcast transaction to network if not present in pool
+		this.handleBroadcastTransaction(transaction);
+
 		const { errors } = await this.transactionPoolModule.add(transaction);
 
 		if (!errors.length) {
