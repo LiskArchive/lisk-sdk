@@ -298,8 +298,8 @@ module.exports = class Node {
 				),
 			getForgingStatusForAllDelegates: async () =>
 				this.forger.getForgingStatusForAllDelegates(),
-			getTransactionsFromPool: async ({ params }) =>
-				this.transactionPool.getPooledTransactions(params.type, params.filters),
+			getTransactionsFromPool: async () =>
+				this.transactionPool.getAll().map(tx => tx.toJSON()),
 			postTransaction: async action =>
 				this.transport.handleEventPostTransaction(action.params),
 			getSlotNumber: async action =>

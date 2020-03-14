@@ -15,13 +15,65 @@
 'use strict';
 
 const _ = require('lodash');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const checkIpInList = require('../helpers/check_ip_in_list');
 const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 let library;
 let epochTime;
-let fees;
+
+function _filterTransactions(transactions, filters) {
+	const { limit, offset, sort } = filters;
+	let filteredTransactions = transactions;
+	if (filters.id) {
+		filteredTransactions = filteredTransactions.filter(
+			transaction => transaction.id === filters.id,
+		);
+	}
+	if (filters.senderId || filters.senderPublicKey) {
+		filteredTransactions = filteredTransactions.filter(transaction => {
+			if (filters.senderId) {
+				return (
+					getAddressFromPublicKey(transaction.senderPublicKey) ===
+					filters.senderId
+				);
+			}
+			return transaction.senderPublicKey === filters.senderPublicKey;
+		});
+	}
+	if (filters.type !== null && filters.type !== undefined) {
+		filteredTransactions = filteredTransactions.filter(
+			transaction => transaction.type === filters.type,
+		);
+	}
+	if (sort) {
+		const [key, order] = sort.split(':');
+		if (key === 'fee') {
+			filteredTransactions.sort((a, b) => {
+				let left = a;
+				let right = b;
+				if (order === 'desc') {
+					left = b;
+					right = a;
+				}
+				return BigInt(left.fee) - BigInt(right.fee) > BigInt(0) ? 1 : -1;
+			});
+		}
+		if (key === 'type') {
+			filteredTransactions.sort((a, b) => {
+				let left = a;
+				let right = b;
+				if (order === 'desc') {
+					left = b;
+					right = a;
+				}
+				return left.type - right.type;
+			});
+		}
+	}
+	return filteredTransactions.slice(offset, limit + offset);
+}
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
@@ -53,7 +105,7 @@ function NodeController(scope) {
 		lastCommitId: scope.lastCommitId,
 		buildVersion: scope.buildVersion,
 	};
-	({ epochTime, fees } = scope.config.constants);
+	({ epochTime } = scope.config.constants);
 }
 
 NodeController.getConstants = async (context, next) => {
@@ -81,15 +133,6 @@ NodeController.getConstants = async (context, next) => {
 			build,
 			commit,
 			epoch: new Date(epochTime),
-			fees: {
-				send: fees.send.toString(),
-				vote: fees.vote.toString(),
-				delegate: fees.delegate.toString(),
-				multisignature: fees.multisignature.toString(),
-				dappRegistration: fees.dappRegistration.toString(),
-				dappWithdrawal: fees.dappWithdrawal.toString(),
-				dappDeposit: fees.dappDeposit.toString(),
-			},
 			networkId: library.config.networkId,
 			milestone: milestone.toString(),
 			reward: reward.toString(),
@@ -184,11 +227,8 @@ NodeController.getPooledTransactions = async (context, next) => {
 
 	const { params } = context.request.swagger;
 
-	const state = context.request.swagger.params.state.value;
-
 	let filters = {
 		id: params.id.value,
-		recipientId: params.recipientId.value,
 		senderId: params.senderId.value,
 		senderPublicKey: params.senderPublicKey.value,
 		type: params.type.value,
@@ -201,19 +241,17 @@ NodeController.getPooledTransactions = async (context, next) => {
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
 	try {
-		const data = await library.channel.invoke('app:getTransactionsFromPool', {
-			type: state,
-			filters: _.clone(filters),
-		});
-
-		const transactions = data.transactions.map(tx => tx.toJSON());
+		const transactions = await library.channel.invoke(
+			'app:getTransactionsFromPool',
+		);
+		const filteredTransactions = _filterTransactions(transactions, filters);
 
 		return next(null, {
-			data: transactions,
+			transactions: filteredTransactions,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				count: parseInt(data.count, 10),
+				count: parseInt(transactions.length, 10),
 			},
 		});
 	} catch (err) {

@@ -67,40 +67,6 @@ describe('GET /node', () => {
 				.to.have.property('protocolVersion')
 				.to.match(/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/);
 		});
-
-		it('should return a result containing fees.send = 10000000', async () => {
-			return expect(constantsResponse.fees.send).to.be.equal('10000000');
-		});
-
-		it('should return a result containing fees.vote = 100000000', async () => {
-			return expect(constantsResponse.fees.vote).to.be.equal('100000000');
-		});
-
-		it('should return a result containing fees.delegate = 2500000000', async () => {
-			return expect(constantsResponse.fees.delegate).to.be.equal('2500000000');
-		});
-
-		it('should return a result containing fees.multisignature = 500000000', async () => {
-			return expect(constantsResponse.fees.multisignature).to.be.equal(
-				'500000000',
-			);
-		});
-
-		it('should return a result containing fees.dappRegistration = 2500000000', async () => {
-			return expect(constantsResponse.fees.dappRegistration).to.be.equal(
-				'2500000000',
-			);
-		});
-
-		it('should return a result containing fees.dappWithdrawal = 10000000', async () => {
-			return expect(constantsResponse.fees.dappWithdrawal).to.be.equal(
-				'10000000',
-			);
-		});
-
-		it('should return a result containing fees.dappDeposit = 10000000', async () => {
-			return expect(constantsResponse.fees.dappDeposit).to.be.equal('10000000');
-		});
 	});
 
 	describe('/status', () => {

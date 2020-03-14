@@ -37,7 +37,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { fees, activeDelegates } = global.constants;
+const { activeDelegates } = global.constants;
 const { NORMALIZER, MAX_VOTES_PER_TRANSACTION } = global.__testContext.config;
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -89,7 +89,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			fee: '129001',
 			nonce: '0',
 			networkIdentifier,
-			amount: (fees.vote + halfLSK).toString(),
+			amount: (BigInt('200000000') + halfLSK).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -148,7 +148,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 						nonce: '0',
 						fee: '129001',
 						networkIdentifier,
-						amount: (BigInt(fees.delegate) + halfLSK).toString(),
+						amount: (BigInt('2000000000') + halfLSK).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -181,7 +181,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 						nonce: '0',
 						fee: '129001',
 						networkIdentifier,
-						amount: (BigInt(fees.delegate) + halfLSK).toString(),
+						amount: (BigInt('2000000000') + halfLSK).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
