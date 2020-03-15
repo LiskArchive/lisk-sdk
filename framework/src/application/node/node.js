@@ -387,7 +387,7 @@ module.exports = class Node {
 			// Remove any transactions from the pool on new block
 			if (block.transactions.length) {
 				for (const transaction of block.transactions) {
-					this.TransactionPool.remove(
+					this.transactionPool.remove(
 						this.chain.deserializeTransaction(transaction),
 					);
 				}
@@ -457,7 +457,6 @@ module.exports = class Node {
 		});
 
 		this.transactionPool = new TransactionPool({
-			...this.options.transactions,
 			applyTransactions: this.chain.applyTransactions.bind(this.chain),
 		});
 		this.modules.transactionPool = this.transactionPool;

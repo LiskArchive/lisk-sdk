@@ -535,7 +535,6 @@ Object {
           },
           "required": Array [
             "broadcasts",
-            "transactions",
             "forging",
             "syncing",
             "loading",

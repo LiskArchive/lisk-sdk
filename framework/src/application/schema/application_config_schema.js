@@ -488,7 +488,6 @@ module.exports = {
 					},
 					required: [
 						'broadcasts',
-						'transactions',
 						'forging',
 						'syncing',
 						'loading',
