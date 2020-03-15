@@ -296,32 +296,6 @@ module.exports = {
 							},
 							required: ['broadcastInterval', 'releaseLimit'],
 						},
-						transactions: {
-							type: 'object',
-							properties: {
-								maxTransactions: {
-									type: 'integer',
-									maximum: 4096,
-								},
-								maxTransactionsPerAccount: {
-									type: 'integer',
-									maximum: 64,
-								},
-								transactionExpiryTime: {
-									type: 'integer',
-									minimum: 3600000,
-									maximum: 10800000,
-								},
-								minEntranceFeePriority: {
-									type: 'integer',
-									minimum: 1,
-								},
-								minReplacementFeeDifference: {
-									type: 'integer',
-									minimum: 1,
-								},
-							},
-						},
 						forging: {
 							type: 'object',
 							properties: {
@@ -585,13 +559,6 @@ module.exports = {
 					active: true,
 					broadcastInterval: 5000,
 					releaseLimit: 25,
-				},
-				transactions: {
-					maxTransactions: 4096,
-					maxTransactionsPerAccount: 64,
-					transactionExpiryTime: 3 * 60 * 60 * 1000, // 3 hours in ms
-					minEntranceFeePriority: 1,
-					minReplacementFeeDifference: 1,
 				},
 				forging: {
 					force: false,

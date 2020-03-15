@@ -44,13 +44,6 @@ const nodeOptions = {
 	forging: {
 		waitThreshold: 2,
 	},
-	transactions: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		minEntranceFeePriority: 1,
-		minReplacementFeeDifference: 1,
-		transactionExpiryTime: 10800000,
-	},
 	exceptions: {},
 	constants: {
 		activeDelegates: 101,

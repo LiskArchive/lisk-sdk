@@ -479,13 +479,6 @@ Object {
       "syncing": Object {
         "active": true,
       },
-      "transactions": Object {
-        "maxTransactions": 4096,
-        "maxTransactionsPerAccount": 64,
-        "minEntranceFeePriority": 1,
-        "minReplacementFeeDifference": 1,
-        "transactionExpiryTime": 10800000,
-      },
     },
     "protocolVersion": "1.1",
     "tempPath": "/tmp/lisk",

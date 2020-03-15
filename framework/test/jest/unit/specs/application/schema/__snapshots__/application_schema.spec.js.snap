@@ -70,13 +70,6 @@ Object {
         "syncing": Object {
           "active": true,
         },
-        "transactions": Object {
-          "maxTransactions": 4096,
-          "maxTransactionsPerAccount": 64,
-          "minEntranceFeePriority": 1,
-          "minReplacementFeeDifference": 1,
-          "transactionExpiryTime": 10800000,
-        },
       },
       "protocolVersion": "1.1",
       "tempPath": "/tmp/lisk",
@@ -537,32 +530,6 @@ Object {
               "required": Array [
                 "active",
               ],
-              "type": "object",
-            },
-            "transactions": Object {
-              "properties": Object {
-                "maxTransactions": Object {
-                  "maximum": 4096,
-                  "type": "integer",
-                },
-                "maxTransactionsPerAccount": Object {
-                  "maximum": 64,
-                  "type": "integer",
-                },
-                "minEntranceFeePriority": Object {
-                  "minimum": 1,
-                  "type": "integer",
-                },
-                "minReplacementFeeDifference": Object {
-                  "minimum": 1,
-                  "type": "integer",
-                },
-                "transactionExpiryTime": Object {
-                  "maximum": 10800000,
-                  "minimum": 3600000,
-                  "type": "integer",
-                },
-              },
               "type": "object",
             },
           },
