@@ -105,8 +105,8 @@ export class TransactionPool {
 	}
 
 	public async start(): Promise<void> {
-		await this._reorganizeJob.start();
-		await this._expireJob.start();
+		this._reorganizeJob.start();
+		this._expireJob.start();
 	}
 
 	public stop(): void {
