@@ -507,7 +507,7 @@
 				"releaseLimit": 25
 			},
 			"transactions": {
-				"maxTransactionsPerQueue": 1000
+				"maxTransactions": 4096
 			},
 			"syncing": {
 				"active": true

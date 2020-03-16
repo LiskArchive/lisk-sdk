@@ -127,7 +127,7 @@ module.exports = class HttpApi {
 		// Bootstrap Cache component
 		await bootstrapCache(this.scope);
 		// Bootstrap Storage component
-		await bootstrapStorage(this.scope, this.options.constants.ACTIVE_DELEGATES);
+		await bootstrapStorage(this.scope, this.options.constants.activeDelegates);
 		// Set up Express and HTTP(s) and WS(s) servers
 		const { expressApp, httpServer, httpsServer, wsServer } = setupServers(
 			this.scope,

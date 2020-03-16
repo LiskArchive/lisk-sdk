@@ -29,7 +29,7 @@ const {
 	getNetworkIdentifier,
 } = require('../../../../utils/network_identifier');
 
-const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
+const { maxTransactionsPerBlock } = __testContext.config.constants;
 
 const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
@@ -176,7 +176,7 @@ describe('WS transport', () => {
 			before(async () => {
 				let accountAdditionalData;
 				transactionInQueues = [];
-				for (let i = 0; i < MAX_TRANSACTIONS_PER_BLOCK * 2; i++) {
+				for (let i = 0; i < maxTransactionsPerBlock * 2; i++) {
 					accountAdditionalData = randomUtil.account();
 					transaction = transfer({
 						nonce: '0',

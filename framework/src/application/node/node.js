@@ -24,13 +24,10 @@ const {
 } = require('@liskhq/lisk-dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+const { TransactionPool } = require('@liskhq/lisk-transaction-pool');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const jobQueue = require('./utils/jobs_queue');
-const {
-	TransactionPool,
-	EVENT_UNCONFIRMED_TRANSACTION,
-} = require('./transaction_pool');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -68,10 +65,10 @@ module.exports = class Node {
 			}
 
 			if (
-				this.options.forging.waitThreshold >= this.options.constants.BLOCK_TIME
+				this.options.forging.waitThreshold >= this.options.constants.blockTime
 			) {
 				throw Error(
-					`app.node.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.BLOCK_TIME=${this.options.constants.BLOCK_TIME}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
+					`app.node.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
 				);
 			}
 
@@ -313,7 +310,7 @@ module.exports = class Node {
 				this.dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				syncing: this.synchronizer.isActive,
-				unconfirmedTransactions: this.transactionPool.getCount(),
+				unconfirmedTransactions: this.transactionPool.getAll().length,
 				secondsSinceEpoch: this.chain.slots.getEpochTime(),
 				lastBlock: this.chain.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
@@ -368,19 +365,18 @@ module.exports = class Node {
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
 			exceptions: this.options.exceptions,
-			blockReceiptTimeout: this.options.constants.BLOCK_RECEIPT_TIMEOUT,
+			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			rewardDistance: this.options.constants.REWARDS.DISTANCE,
-			rewardOffset: this.options.constants.REWARDS.OFFSET,
-			rewardMileStones: this.options.constants.REWARDS.MILESTONES,
-			totalAmount: this.options.constants.TOTAL_AMOUNT,
-			blockSlotWindow: this.options.constants.BLOCK_SLOT_WINDOW,
-			epochTime: this.options.constants.EPOCH_TIME,
-			blockTime: this.options.constants.BLOCK_TIME,
+			maxPayloadLength: this.options.constants.maxPayloadLength,
+			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
+			activeDelegates: this.options.constants.activeDelegates,
+			rewardDistance: this.options.constants.rewards.distance,
+			rewardOffset: this.options.constants.rewards.offset,
+			rewardMilestones: this.options.constants.rewards.milestones,
+			totalAmount: this.options.constants.totalAmount,
+			blockSlotWindow: this.options.constants.blockSlotWindow,
+			epochTime: this.options.constants.epochTime,
+			blockTime: this.options.constants.blockTime,
 		});
 
 		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
@@ -390,9 +386,11 @@ module.exports = class Node {
 
 			// Remove any transactions from the pool on new block
 			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(
-					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
-				);
+				for (const transaction of block.transactions) {
+					this.transactionPool.remove(
+						this.chain.deserializeTransaction(transaction),
+					);
+				}
 			}
 
 			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
@@ -420,10 +418,11 @@ module.exports = class Node {
 			this.channel.publish('app:deleteBlock', eventData);
 
 			if (block.transactions.length) {
-				const transactions = block.transactions
-					.reverse()
-					.map(tx => this.chain.deserializeTransaction(tx));
-				this.transactionPool.onDeletedTransactions(transactions);
+				for (const transaction of block.transactions) {
+					this.transactionPool.add(
+						this.chain.deserializeTransaction(transaction),
+					);
+				}
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },
@@ -434,16 +433,15 @@ module.exports = class Node {
 		this.slots = this.chain.slots;
 		this.dpos = new Dpos({
 			chain: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			delegateListRoundOffset: this.options.constants
-				.DELEGATE_LIST_ROUND_OFFSET,
+			activeDelegates: this.options.constants.activeDelegates,
+			delegateListRoundOffset: this.options.constants.delegateListRoundOffset,
 			exceptions: this.options.exceptions,
 		});
 
 		this.bft = new BFT({
 			dpos: this.dpos,
 			chain: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
 		});
 
@@ -457,6 +455,12 @@ module.exports = class Node {
 			storage: this.storage,
 			chainModule: this.chain,
 		});
+
+		this.transactionPool = new TransactionPool({
+			applyTransactions: this.chain.applyTransactions.bind(this.chain),
+		});
+		this.modules.transactionPool = this.transactionPool;
+
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
 			logger: this.logger,
@@ -464,7 +468,7 @@ module.exports = class Node {
 			rounds: this.dpos.rounds,
 			channel: this.channel,
 			chain: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 			processorModule: this.processor,
 		});
 
@@ -475,7 +479,7 @@ module.exports = class Node {
 			bft: this.bft,
 			dpos: this.dpos,
 			processor: this.processor,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 		});
 
 		this.synchronizer = new Synchronizer({
@@ -488,20 +492,6 @@ module.exports = class Node {
 		});
 
 		this.modules.chain = this.chain;
-		this.transactionPool = new TransactionPool({
-			logger: this.logger,
-			chain: this.chain,
-			exceptions: this.options.exceptions,
-			maxTransactionsPerQueue: this.options.transactions
-				.maxTransactionsPerQueue,
-			expireTransactionsInterval: this.options.constants.EXPIRY_INTERVAL,
-			maxTransactionsPerBlock: this.options.constants
-				.MAX_TRANSACTIONS_PER_BLOCK,
-			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
-			broadcastInterval: this.options.broadcasts.broadcastInterval,
-			releaseLimit: this.options.broadcasts.releaseLimit,
-		});
-		this.modules.transactionPool = this.transactionPool;
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
@@ -509,7 +499,7 @@ module.exports = class Node {
 			chainModule: this.chain,
 			processorModule: this.processor,
 			bftModule: this.bft,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
+			activeDelegates: this.options.constants.activeDelegates,
 		});
 		this.modules.rebuilder = this.rebuilder;
 
@@ -521,8 +511,8 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			activeDelegates: this.options.constants.ACTIVE_DELEGATES,
-			maxPayloadLength: this.options.constants.MAX_PAYLOAD_LENGTH,
+			activeDelegates: this.options.constants.activeDelegates,
+			maxPayloadLength: this.options.constants.maxPayloadLength,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,
@@ -538,7 +528,7 @@ module.exports = class Node {
 			processorModule: this.processor,
 			chainModule: this.chain,
 			broadcasts: this.options.broadcasts,
-			maxSharedTransactions: this.options.constants.MAX_SHARED_TRANSACTIONS,
+			maxSharedTransactions: this.options.constants.maxSharedTransactions,
 		});
 
 		this.modules.forger = this.forger;
@@ -598,14 +588,6 @@ module.exports = class Node {
 				});
 			},
 		);
-
-		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
-			this.logger.trace(
-				{ transactionId: transaction.id },
-				'Received EVENT_UNCONFIRMED_TRANSACTION',
-			);
-			this.transport.handleBroadcastTransaction(transaction);
-		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });

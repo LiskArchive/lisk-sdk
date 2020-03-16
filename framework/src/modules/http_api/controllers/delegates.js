@@ -23,8 +23,8 @@ const { calculateApproval } = require('../helpers/utils');
 let storage;
 let logger;
 let channel;
-let EPOCH_TIME;
-let ACTIVE_DELEGATES;
+let epochTime;
+let activeDelegates;
 
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
@@ -76,7 +76,7 @@ async function _getForgers(filters) {
 		height: lastBlock.height + 1,
 	});
 
-	const activeDelegates = await channel.invoke(
+	const activeDelegatesForRound = await channel.invoke(
 		'app:getForgerPublicKeysForRound',
 		{
 			round: currentRound,
@@ -85,12 +85,14 @@ async function _getForgers(filters) {
 
 	for (
 		let i = filters.offset + 1;
-		i <= ACTIVE_DELEGATES && i <= filters.limit + filters.offset;
+		i <= activeDelegates && i <= filters.limit + filters.offset;
 		// eslint-disable-next-line no-plusplus
 		i++
 	) {
-		if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
-			forgerKeys.push(activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]);
+		if (activeDelegatesForRound[(currentSlot + i) % activeDelegates]) {
+			forgerKeys.push(
+				activeDelegatesForRound[(currentSlot + i) % activeDelegates],
+			);
 		}
 	}
 
@@ -140,14 +142,14 @@ async function _aggregateBlocksReward(filter) {
 
 	if (filter.start !== undefined) {
 		params.fromTimestamp = Math.floor(
-			(filter.start - new Date(EPOCH_TIME).getTime()) / 1000,
+			(filter.start - new Date(epochTime).getTime()) / 1000,
 		);
 		params.fromTimestamp = params.fromTimestamp.toFixed();
 	}
 
 	if (filter.end !== undefined) {
 		params.toTimestamp = Math.floor(
-			(filter.end - new Date(EPOCH_TIME).getTime()) / 1000,
+			(filter.end - new Date(epochTime).getTime()) / 1000,
 		);
 		params.toTimestamp = params.toTimestamp.toFixed();
 	}
@@ -215,7 +217,7 @@ async function _getForgingStatistics(filters) {
 }
 
 function DelegatesController(scope) {
-	({ EPOCH_TIME, ACTIVE_DELEGATES } = scope.config.constants);
+	({ epochTime, activeDelegates } = scope.config.constants);
 	({
 		components: { storage, logger },
 		channel,
@@ -314,7 +316,7 @@ DelegatesController.getForgingStatistics = async (context, next) => {
 	return next(null, {
 		data,
 		meta: {
-			fromTimestamp: filters.start || new Date(EPOCH_TIME).getTime(),
+			fromTimestamp: filters.start || new Date(epochTime).getTime(),
 			toTimestamp: filters.end || Date.now(),
 		},
 		links: {},

@@ -17,7 +17,7 @@
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
 
-const { ACTIVE_DELEGATES } = global.constants;
+const { activeDelegates } = global.constants;
 
 let self;
 
@@ -62,7 +62,7 @@ class Queries {
 
 	getDelegatesOrderedByVoteWeight() {
 		return self.storage.adapter.db.query(
-			`SELECT "publicKey", "voteWeight" FROM mem_accounts ORDER BY "voteWeight" DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`,
+			`SELECT "publicKey", "voteWeight" FROM mem_accounts ORDER BY "voteWeight" DESC, "publicKey" ASC LIMIT ${activeDelegates}`,
 		);
 	}
 

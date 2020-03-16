@@ -46,14 +46,14 @@ const Transaction = stampit({
 		this.type = type || 8;
 
 		switch (this.type) {
-			// SEND
+			// send
 			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
 				this.asset.amount = '112340000';
 				this.asset.recipientId = '11237980039345381032L';
 				break;
 
-			// SIGNATURE
+			// signature
 			case 9:
 				this.asset = {
 					publicKey: randomstring.generate({
@@ -64,7 +64,7 @@ const Transaction = stampit({
 				};
 				break;
 
-			// DELEGATE
+			// delegate
 			case 10:
 				this.asset = {
 					username:
@@ -73,7 +73,7 @@ const Transaction = stampit({
 				};
 				break;
 
-			// VOTE
+			// vote
 			case 11:
 				this.asset.votes = votes || [
 					randomstring.generate({
@@ -91,7 +91,7 @@ const Transaction = stampit({
 				this.asset.recipientId = '11237980039345381032L';
 				break;
 
-			// MULTI
+			// multi
 			case 12:
 				this.asset = {
 					min: faker.random.number({ min: 2 }),
@@ -111,12 +111,12 @@ const Transaction = stampit({
 				};
 				break;
 
-			// DAPP
+			// dapp
 			case 5:
 				this.asset.dapp = new Dapps.Dapp({ transactionId: this.id });
 				break;
 
-			// IN_TRANSFER
+			// inTransfer
 			case 6:
 				this.asset.inTransfer = new Dapps.OutTransfer({
 					dappId: dapp
@@ -126,7 +126,7 @@ const Transaction = stampit({
 				});
 				break;
 
-			// OUT_TRANSFER
+			// outTransfer
 			case 7:
 				this.asset.outTransfer = new Dapps.OutTransfer({
 					dappId: dapp

@@ -81,8 +81,6 @@ tags:
     description: Node related API calls
   - name: Peers
     description: Peers related API Calls
-  - name: Signatures
-    description: Signatures related API calls
   - name: Transactions
     description: Transactions related API calls
   - name: Voters
@@ -1515,32 +1513,6 @@ definitions:
           Only present in transactions sent from a multisignature account, or transactions type 4 (multisignature registration).
           False, if the minimum amount of signatures to sign this transaction has not been reached yet.
           True, if the minimum amount of signatures has been reached.
-  Signature:
-    type: object
-    required:
-      - transactionId
-      - publicKey
-      - signature
-    properties:
-      transactionId:
-        type: string
-        format: id
-        example: '222675625422353767'
-        minLength: 1
-        maxLength: 20
-        description: Unique identifier of the multisignature transaction to sign.
-      publicKey:
-        type: string
-        format: publicKey
-        example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-        description: Public key of the account that intends to sign the multisignature transaction.
-      signature:
-        type: string
-        format: signature
-        example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
-        description: |
-          Signature to sign the transaction.
-          The signature can be generated locally, either by using Lisk Commander or with Lisk Elements.
   Block:
     type: object
     required:
@@ -1987,6 +1959,7 @@ definitions:
       - chainMaxHeightFinalized
       - secondsSinceEpoch
       - syncing
+      - unconfirmedTransactions
     properties:
       currentTime:
         type: integer
@@ -2013,6 +1986,12 @@ definitions:
         type: boolean
         example: false
         description: True if the node syncing with other peers.
+      unconfirmedTransactions:
+        type: integer
+        example: 1
+        minimum: 0
+        description: |
+          Number of unprocessed transactions in the pool.
 
   TransactionError:
     type: object

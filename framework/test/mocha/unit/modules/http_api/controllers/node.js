@@ -63,15 +63,15 @@ describe('node/api', () => {
 			},
 			config: {
 				constants: {
-					EPOCH_TIME: '2016-05-24T17:00:00.000Z',
-					FEES: {
-						SEND: '10000000',
-						VOTE: '100000000',
-						DELEGATE: '2500000000',
-						MULTISIGNATURE: '500000000',
-						DAPP_REGISTRATION: '2500000000',
-						DAPP_WITHDRAWAL: '10000000',
-						DAPP_DEPOSIT: '10000000',
+					epochTime: '2016-05-24T17:00:00.000Z',
+					fees: {
+						send: '10000000',
+						vote: '100000000',
+						delegate: '2500000000',
+						multisignature: '500000000',
+						dappRegistration: '2500000000',
+						dappWithdrawal: '10000000',
+						dappDeposit: '10000000',
 					},
 				},
 			},
@@ -130,13 +130,7 @@ describe('node/api', () => {
 				height: 1187,
 			},
 			syncing: false,
-			unconfirmedTransactions: {
-				ready: 0,
-				verified: 0,
-				pending: 0,
-				validated: 0,
-				received: 0,
-			},
+			unconfirmedTransactions: 0,
 			chainMaxHeightFinalized: 1010,
 		};
 		const now = Date.now();
@@ -147,6 +141,7 @@ describe('node/api', () => {
 			syncing: false,
 			currentTime: now,
 			chainMaxHeightFinalized: 1010,
+			unconfirmedTransactions: 0,
 		};
 
 		beforeEach(async () => {

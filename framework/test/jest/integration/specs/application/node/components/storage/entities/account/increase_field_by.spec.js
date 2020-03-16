@@ -37,7 +37,7 @@ describe('storage.entities.Account.increaseFieldBy', () => {
 		storage.registerEntity('Account', Account);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: constants.ACTIVE_DELEGATES,
+			limit: constants.activeDelegates,
 		});
 	});
 

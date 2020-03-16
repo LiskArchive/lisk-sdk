@@ -220,9 +220,9 @@ const validationFormats = {
 		 * global.constants will be defined in test/setup.js.
 		 */
 		if (typeof value === 'bigint') {
-			const TOTAL_AMOUNT = '10000000000000000';
+			const totalAmount = '10000000000000000';
 
-			return value >= BigInt(0) && value <= BigInt(TOTAL_AMOUNT);
+			return value >= BigInt(0) && value <= BigInt(totalAmount);
 		}
 
 		return false;
@@ -240,9 +240,9 @@ const validationFormats = {
 	numAmount: {
 		type: 'number',
 		validate: value => {
-			const TOTAL_AMOUNT = '10000000000000000';
+			const totalAmount = '10000000000000000';
 			if (BigInt(value) >= 0) {
-				return BigInt(value) <= BigInt(TOTAL_AMOUNT);
+				return BigInt(value) <= BigInt(totalAmount);
 			}
 
 			return false;
