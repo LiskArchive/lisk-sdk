@@ -60,7 +60,7 @@ export default class MultisignatureCommand extends BaseCommand {
 		'member-passphrase': flagParser.string({
 			multiple: true,
 			description:
-				'Number of signatures required to validate transactions from that account. Its a less secure way to sign transaction. See command description for details. ',
+				'Passphrase for all mandatory and optional keys. Its a less secure way to sign transaction. See command description for details. ',
 		}),
 	};
 
