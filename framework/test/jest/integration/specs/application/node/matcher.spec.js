@@ -64,6 +64,11 @@ class CustomTransationClass extends BaseTransaction {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
+	matcher() {
+		return false;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
 	validateAsset() {
 		return [];
 	}
@@ -161,11 +166,11 @@ describe('Matcher', () => {
 			});
 
 			it('should be rejected', async () => {
-				await expect(node.processor.process(newBlock)).rejects.toEqual(
+				await expect(node.processor.process(newBlock)).rejects.toMatchObject([
 					expect.objectContaining({
-						message: expect.stringContaining('Transaction type not found'),
+						message: expect.stringContaining('is currently not allowed'),
 					}),
-				);
+				]);
 			});
 		});
 	});

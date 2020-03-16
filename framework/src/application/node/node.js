@@ -24,13 +24,10 @@ const {
 } = require('@liskhq/lisk-dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
+const { TransactionPool } = require('@liskhq/lisk-transaction-pool');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const jobQueue = require('./utils/jobs_queue');
-const {
-	TransactionPool,
-	EVENT_UNCONFIRMED_TRANSACTION,
-} = require('./transaction_pool');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -313,7 +310,7 @@ module.exports = class Node {
 				this.dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: async () => ({
 				syncing: this.synchronizer.isActive,
-				unconfirmedTransactions: this.transactionPool.getCount(),
+				unconfirmedTransactions: this.transactionPool.getAll().length,
 				secondsSinceEpoch: this.chain.slots.getEpochTime(),
 				lastBlock: this.chain.lastBlock,
 				chainMaxHeightFinalized: this.bft.finalityManager.finalizedHeight,
@@ -389,9 +386,11 @@ module.exports = class Node {
 
 			// Remove any transactions from the pool on new block
 			if (block.transactions.length) {
-				this.transactionPool.onConfirmedTransactions(
-					block.transactions.map(tx => this.chain.deserializeTransaction(tx)),
-				);
+				for (const transaction of block.transactions) {
+					this.transactionPool.remove(
+						this.chain.deserializeTransaction(transaction),
+					);
+				}
 			}
 
 			if (!this.synchronizer.isActive && !this.rebuilder.isActive) {
@@ -419,10 +418,11 @@ module.exports = class Node {
 			this.channel.publish('app:deleteBlock', eventData);
 
 			if (block.transactions.length) {
-				const transactions = block.transactions
-					.reverse()
-					.map(tx => this.chain.deserializeTransaction(tx));
-				this.transactionPool.onDeletedTransactions(transactions);
+				for (const transaction of block.transactions) {
+					this.transactionPool.add(
+						this.chain.deserializeTransaction(transaction),
+					);
+				}
 			}
 			this.logger.info(
 				{ id: block.id, height: block.height },
@@ -455,6 +455,12 @@ module.exports = class Node {
 			storage: this.storage,
 			chainModule: this.chain,
 		});
+
+		this.transactionPool = new TransactionPool({
+			applyTransactions: this.chain.applyTransactions.bind(this.chain),
+		});
+		this.modules.transactionPool = this.transactionPool;
+
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			storage: this.storage,
 			logger: this.logger,
@@ -486,19 +492,6 @@ module.exports = class Node {
 		});
 
 		this.modules.chain = this.chain;
-		this.transactionPool = new TransactionPool({
-			logger: this.logger,
-			chain: this.chain,
-			exceptions: this.options.exceptions,
-			maxTransactionsPerQueue: this.options.transactions
-				.maxTransactionsPerQueue,
-			expireTransactionsInterval: this.options.constants.expiryInterval,
-			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
-			maxSharedTransactions: this.options.constants.maxSharedTransactions,
-			broadcastInterval: this.options.broadcasts.broadcastInterval,
-			releaseLimit: this.options.broadcasts.releaseLimit,
-		});
-		this.modules.transactionPool = this.transactionPool;
 		this.rebuilder = new Rebuilder({
 			channel: this.channel,
 			logger: this.logger,
@@ -595,14 +588,6 @@ module.exports = class Node {
 				});
 			},
 		);
-
-		this.transactionPool.on(EVENT_UNCONFIRMED_TRANSACTION, transaction => {
-			this.logger.trace(
-				{ transactionId: transaction.id },
-				'Received EVENT_UNCONFIRMED_TRANSACTION',
-			);
-			this.transport.handleBroadcastTransaction(transaction);
-		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });

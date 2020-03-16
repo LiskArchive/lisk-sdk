@@ -479,9 +479,6 @@ Object {
       "syncing": Object {
         "active": true,
       },
-      "transactions": Object {
-        "maxTransactionsPerQueue": 1000,
-      },
     },
     "protocolVersion": "1.1",
     "tempPath": "/tmp/lisk",

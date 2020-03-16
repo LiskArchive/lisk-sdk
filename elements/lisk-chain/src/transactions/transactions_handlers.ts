@@ -29,13 +29,12 @@ import {
 	WriteableTransactionResponse,
 } from '../types';
 
-import { TransactionHandledResult } from './compose_transaction_steps';
 import * as exceptionsHandlers from './exceptions_handlers';
 import * as votesWeight from './votes_weight';
 
 export const validateTransactions = (exceptions?: ExceptionOptions) => (
 	transactions: ReadonlyArray<BaseTransaction>,
-): TransactionHandledResult => {
+): ReadonlyArray<TransactionResponse> => {
 	const transactionsResponses = transactions.map(transaction =>
 		transaction.validate(),
 	);
@@ -49,9 +48,7 @@ export const validateTransactions = (exceptions?: ExceptionOptions) => (
 		exceptions,
 	);
 
-	return {
-		transactionsResponses,
-	};
+	return transactionsResponses;
 };
 
 export const applyGenesisTransactions = () => async (
@@ -78,15 +75,13 @@ export const applyGenesisTransactions = () => async (
 		transactionsResponses.push(transactionResponse);
 	}
 
-	return {
-		transactionsResponses,
-	};
+	return transactionsResponses;
 };
 
 export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
-): Promise<TransactionHandledResult> => {
+): Promise<ReadonlyArray<TransactionResponse>> => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	for (const transaction of transactions) {
 		await transaction.prepare(stateStore);
@@ -117,18 +112,14 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 		transactionsResponses.push(transactionResponse);
 	}
 
-	return {
-		transactionsResponses: [...transactionsResponses],
-	};
+	return [...transactionsResponses];
 };
 
 export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 ) => {
 	if (!transactions.length) {
-		return {
-			transactionsResponses: [],
-		};
+		return [];
 	}
 
 	const confirmedTransactions = await dataAccess.getTransactionsByIDs(
@@ -163,15 +154,13 @@ export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 		})),
 	];
 
-	return {
-		transactionsResponses,
-	};
+	return transactionsResponses;
 };
 
 export const checkAllowedTransactions = (contexter: Contexter) => (
 	transactions: ReadonlyArray<BaseTransaction>,
-): TransactionHandledResult => ({
-	transactionsResponses: transactions.map(transaction => {
+): ReadonlyArray<TransactionResponse> =>
+	transactions.map(transaction => {
 		const context = typeof contexter === 'function' ? contexter() : contexter;
 		const allowed =
 			!(transaction as MatcherTransaction).matcher ||
@@ -189,13 +178,12 @@ export const checkAllowedTransactions = (contexter: Contexter) => (
 						),
 				  ],
 		};
-	}),
-});
+	});
 
 export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
-): Promise<TransactionHandledResult> => {
+): Promise<ReadonlyArray<TransactionResponse>> => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	for (const transaction of transactions) {
 		await transaction.prepare(stateStore);
@@ -220,7 +208,5 @@ export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 		exceptions,
 	);
 
-	return {
-		transactionsResponses,
-	};
+	return transactionsResponses;
 };

@@ -44,9 +44,6 @@ const nodeOptions = {
 	forging: {
 		waitThreshold: 2,
 	},
-	transactions: {
-		maxTransactionsPerQueue: 1000,
-	},
 	exceptions: {},
 	constants: {
 		activeDelegates: 101,

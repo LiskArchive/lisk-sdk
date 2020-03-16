@@ -53,7 +53,7 @@ class Broadcaster {
 
 	async _broadcast() {
 		this.transactionIdQueue = this.transactionIdQueue.filter(id =>
-			this.transactionPool.transactionInPool(id),
+			this.transactionPool.contains(id),
 		);
 		if (this.transactionIdQueue.length > 0) {
 			const transactionIds = this.transactionIdQueue.slice(

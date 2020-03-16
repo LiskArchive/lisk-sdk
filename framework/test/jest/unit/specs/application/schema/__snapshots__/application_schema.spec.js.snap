@@ -70,9 +70,6 @@ Object {
         "syncing": Object {
           "active": true,
         },
-        "transactions": Object {
-          "maxTransactionsPerQueue": 1000,
-        },
       },
       "protocolVersion": "1.1",
       "tempPath": "/tmp/lisk",
@@ -535,23 +532,9 @@ Object {
               ],
               "type": "object",
             },
-            "transactions": Object {
-              "properties": Object {
-                "maxTransactionsPerQueue": Object {
-                  "maximum": 5000,
-                  "minimum": 100,
-                  "type": "integer",
-                },
-              },
-              "required": Array [
-                "maxTransactionsPerQueue",
-              ],
-              "type": "object",
-            },
           },
           "required": Array [
             "broadcasts",
-            "transactions",
             "forging",
             "syncing",
             "loading",

@@ -130,13 +130,7 @@ describe('node/api', () => {
 				height: 1187,
 			},
 			syncing: false,
-			unconfirmedTransactions: {
-				ready: 0,
-				verified: 0,
-				pending: 0,
-				validated: 0,
-				received: 0,
-			},
+			unconfirmedTransactions: 0,
 			chainMaxHeightFinalized: 1010,
 		};
 		const now = Date.now();
@@ -147,6 +141,7 @@ describe('node/api', () => {
 			syncing: false,
 			currentTime: now,
 			chainMaxHeightFinalized: 1010,
+			unconfirmedTransactions: 0,
 		};
 
 		beforeEach(async () => {

@@ -296,17 +296,6 @@ module.exports = {
 							},
 							required: ['broadcastInterval', 'releaseLimit'],
 						},
-						transactions: {
-							type: 'object',
-							properties: {
-								maxTransactionsPerQueue: {
-									type: 'integer',
-									minimum: 100,
-									maximum: 5000,
-								},
-							},
-							required: ['maxTransactionsPerQueue'],
-						},
 						forging: {
 							type: 'object',
 							properties: {
@@ -499,7 +488,6 @@ module.exports = {
 					},
 					required: [
 						'broadcasts',
-						'transactions',
 						'forging',
 						'syncing',
 						'loading',
@@ -570,9 +558,6 @@ module.exports = {
 					active: true,
 					broadcastInterval: 5000,
 					releaseLimit: 25,
-				},
-				transactions: {
-					maxTransactionsPerQueue: 1000,
 				},
 				forging: {
 					force: false,

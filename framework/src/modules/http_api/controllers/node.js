@@ -109,6 +109,7 @@ NodeController.getStatus = async (context, next) => {
 			syncing,
 			lastBlock,
 			chainMaxHeightFinalized,
+			unconfirmedTransactions,
 		} = await library.channel.invoke('app:getNodeStatus');
 
 		const data = {
@@ -116,6 +117,7 @@ NodeController.getStatus = async (context, next) => {
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
 			chainMaxHeightFinalized,
+			unconfirmedTransactions,
 			syncing,
 		};
 

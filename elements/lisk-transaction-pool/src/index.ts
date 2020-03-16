@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './legacy_transaction_pool';
+export * from './transaction_pool';
 export { MaxHeap } from './max_heap';
 export { MinHeap } from './min_heap';

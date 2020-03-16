@@ -23,24 +23,20 @@ import { StateStore } from '../state_store';
 type TransactionAsyncFn = (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
-) => Promise<TransactionHandledResult>;
+) => Promise<ReadonlyArray<TransactionResponse>>;
 
 type TransactionSyncFn = (
 	transactions: ReadonlyArray<BaseTransaction>,
-) => TransactionHandledResult;
+) => ReadonlyArray<TransactionResponse>;
 
 type TransactionFn = TransactionAsyncFn | TransactionSyncFn;
-
-export interface TransactionHandledResult {
-	readonly transactionsResponses: ReadonlyArray<TransactionResponse>;
-}
 
 export const composeTransactionSteps = (
 	...steps: ReadonlyArray<TransactionFn>
 ) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore?: StateStore,
-): Promise<TransactionHandledResult> => {
+): Promise<ReadonlyArray<TransactionResponse>> => {
 	const successfulResponses: TransactionResponse[] = [];
 	const failedResponses: TransactionResponse[] = [];
 
@@ -53,7 +49,7 @@ export const composeTransactionSteps = (
 							!failedResponses.map(res => res.id).includes(transaction.id),
 				  )
 				: transactions;
-		const { transactionsResponses } = stateStore
+		const transactionsResponses = stateStore
 			? await steps[i](filteredTransactions, stateStore)
 			: (steps[i] as TransactionSyncFn)(filteredTransactions);
 		for (const response of transactionsResponses) {
@@ -66,7 +62,5 @@ export const composeTransactionSteps = (
 		}
 	}
 
-	return {
-		transactionsResponses: [...failedResponses, ...successfulResponses],
-	};
+	return [...failedResponses, ...successfulResponses];
 };
