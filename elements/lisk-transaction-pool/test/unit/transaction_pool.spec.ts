@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { TransactionList } from '../../src/transaction_list';
 import {
 	TransactionPool,
 	TransactionPoolConfig,
@@ -20,16 +21,18 @@ import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-describe('TransactionList class', () => {
+describe('TransactionPool class', () => {
 	let applyTransactionsStub = jest.fn();
 
 	const defaultTxPoolConfig: TransactionPoolConfig = {
 		applyTransactions: applyTransactionsStub,
+		transactionReorganizationInterval: 1,
 	};
 
 	let transactionPool: TransactionPool;
 
 	beforeEach(() => {
+		jest.useFakeTimers();
 		transactionPool = new TransactionPool(defaultTxPoolConfig);
 		(transactionPool as any)._applyFunction = applyTransactionsStub;
 		applyTransactionsStub.mockResolvedValue([
@@ -473,6 +476,230 @@ describe('TransactionList class', () => {
 					getAddressFromPublicKey(tx.senderPublicKey)
 				],
 			).toBeUndefined();
+		});
+	});
+
+	describe('evictUnprocessable', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '3',
+				nonce: BigInt(3),
+				minFee: BigInt(10),
+				fee: BigInt(3000),
+				senderPublicKey,
+			} as Transaction,
+		];
+		let txGetBytesStub: any;
+		txGetBytesStub = jest.fn();
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+
+		beforeEach(async () => {
+			transactionPool = new TransactionPool({
+				...defaultTxPoolConfig,
+				maxTransactions: 2,
+			});
+			await transactionPool.add(transactions[0]);
+			await transactionPool.add(transactions[1]);
+		});
+
+		afterEach(async () => {
+			await transactionPool.remove(transactions[0]);
+			await transactionPool.remove(transactions[1]);
+		});
+
+		it('should evict unprocessable transaction with lowest fee', async () => {
+			const isEvicted = (transactionPool as any)._evictUnprocessable();
+
+			expect(isEvicted).toBe(true);
+			expect((transactionPool as any)._allTransactions).not.toContain(
+				transactions[0],
+			);
+		});
+	});
+
+	describe('evictProcessable', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '2',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey,
+			} as Transaction,
+		];
+		let txGetBytesStub: any;
+		txGetBytesStub = jest.fn();
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+
+		beforeEach(async () => {
+			transactionPool = new TransactionPool({
+				...defaultTxPoolConfig,
+				maxTransactions: 2,
+			});
+			await transactionPool.add(transactions[0]);
+			await transactionPool.add(transactions[1]);
+		});
+
+		afterEach(async () => {
+			await transactionPool.remove(transactions[0]);
+			await transactionPool.remove(transactions[1]);
+		});
+
+		it('should evict processable transaction with lowest fee', async () => {
+			const isEvicted = (transactionPool as any)._evictProcessable();
+
+			expect(isEvicted).toBe(true);
+			expect((transactionPool as any)._allTransactions).not.toContain(
+				transactions[0],
+			);
+		});
+	});
+
+	describe('reorganize', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '2',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey,
+			} as Transaction,
+			{
+				id: '3',
+				nonce: BigInt(3),
+				minFee: BigInt(10),
+				fee: BigInt(3000),
+				senderPublicKey,
+			} as Transaction,
+		];
+		let txGetBytesStub: any;
+		txGetBytesStub = jest.fn();
+		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactions[2].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		let address: string;
+		let txList: TransactionList;
+
+		beforeEach(async () => {
+			transactionPool = new TransactionPool({
+				...defaultTxPoolConfig,
+				transactionReorganizationInterval: 1,
+			});
+			(transactionPool as any)._applyFunction.mockResolvedValue([
+				{ id: '1', status: Status.OK, errors: [] },
+				{ id: '2', status: Status.OK, errors: [] },
+				{ id: '3', status: Status.OK, errors: [] },
+			]);
+			await transactionPool.add(transactions[0]);
+			await transactionPool.add(transactions[1]);
+			await transactionPool.add(transactions[2]);
+			address = Object.keys((transactionPool as any)._transactionList)[0];
+			txList = (transactionPool as any)._transactionList[address];
+			transactionPool.start();
+		});
+
+		afterEach(async () => {
+			transactionPool.remove(transactions[0]);
+			transactionPool.remove(transactions[1]);
+			transactionPool.remove(transactions[2]);
+			transactionPool.stop();
+		});
+
+		it('should not promote unprocessable transactions to processable transactions', async () => {
+			transactionPool.remove(transactions[1]);
+			jest.advanceTimersByTime(2);
+			const unprocessableTransactions = txList.getUnprocessable();
+
+			expect(unprocessableTransactions).toContain(transactions[2]);
+		});
+	});
+
+	describe('expire', () => {
+		const senderPublicKey = generateRandomPublicKeys()[0];
+		const transactions = [
+			{
+				id: '1',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey,
+				receivedAt: new Date(0),
+			} as Transaction,
+			{
+				id: '2',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey,
+				receivedAt: new Date(),
+			} as Transaction,
+			{
+				id: '3',
+				nonce: BigInt(3),
+				minFee: BigInt(10),
+				fee: BigInt(3000),
+				senderPublicKey,
+				receivedAt: new Date(0),
+			} as Transaction,
+		];
+
+		beforeEach(() => {
+			(transactionPool as any)._allTransactions = {
+				'1': transactions[0],
+				'2': transactions[1],
+				'3': transactions[2],
+			};
+		});
+
+		it('should expire old transactions', async () => {
+			(transactionPool as any).remove = jest.fn().mockReturnValue(true);
+			(transactionPool as any)._expire();
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(
+				transactions[0],
+			);
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(
+				transactions[2],
+			);
 		});
 	});
 });
