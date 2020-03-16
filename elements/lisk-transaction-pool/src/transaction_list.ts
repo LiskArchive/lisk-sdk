@@ -54,13 +54,16 @@ export class TransactionList {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(incomingTx: Transaction, processable: boolean = false): boolean {
+	public add(
+		incomingTx: Transaction,
+		processable: boolean = false,
+	): { added: boolean; removedID?: string } {
 		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
 		if (existingTx) {
 			// If the fee is lower than the original fee + replacement, reject
 			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
-				return false;
+				return { added: false };
 			}
 			// Mark this and all subsequent nonce unprocessable
 			this._demoteAfter(incomingTx.nonce);
@@ -70,17 +73,19 @@ export class TransactionList {
 				id: existingTx.id,
 			});
 
-			return true;
+			return { added: true, removedID: existingTx.id };
 		}
 
 		const highestNonce = this._highestNonce();
+		// tslint:disable-next-line no-let
+		let removedID;
 		if (this._nonceHeap.count >= this._maxSize) {
 			// If incoming nonce is bigger than the highest nonce, then reject
 			if (incomingTx.nonce > highestNonce) {
-				return false;
+				return { added: false };
 			}
 			// If incoming nonce is lower than the highest nonce, remove the largest nonce transaction instead
-			this.remove(highestNonce);
+			removedID = this.remove(highestNonce);
 		}
 
 		this._transactions[incomingTx.nonce.toString()] = incomingTx;
@@ -90,13 +95,13 @@ export class TransactionList {
 			this._processable.push(incomingTx.nonce);
 		}
 
-		return true;
+		return { added: true, removedID };
 	}
 
-	public remove(nonce: bigint): boolean {
+	public remove(nonce: bigint): string | undefined {
 		const removingTx = this._transactions[nonce.toString()];
 		if (!removingTx) {
-			return false;
+			return undefined;
 		}
 		// tslint:disable-next-line no-dynamic-delete
 		delete this._transactions[nonce.toString()];
@@ -115,7 +120,7 @@ export class TransactionList {
 			id: removingTx.id,
 		});
 
-		return true;
+		return removingTx.id;
 	}
 
 	public promote(txs: ReadonlyArray<Transaction>): boolean {

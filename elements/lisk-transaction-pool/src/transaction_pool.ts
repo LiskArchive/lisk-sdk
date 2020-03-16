@@ -175,8 +175,6 @@ export class TransactionPool {
 			return { status: Status.FAIL, errors: [error] };
 		}
 
-		this._feePriorityQueue.push(incomingTx.feePriority, incomingTx.id);
-
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
 		);
@@ -190,8 +188,8 @@ export class TransactionPool {
 			return { status: Status.FAIL, errors: transactionsResponses[0].errors };
 		}
 
-		/* 
-			Evict transactions if pool is full 
+		/*
+			Evict transactions if pool is full
 				1. Evict unprocessable by fee priority
 				2. Evict processable by fee priority and highest nonce
 		*/
@@ -217,6 +215,29 @@ export class TransactionPool {
 			);
 		}
 
+		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
+		const { added, removedID } = this._transactionList[incomingTxAddress].add(
+			incomingTx,
+			txStatus === TransactionStatus.PROCESSABLE,
+		);
+
+		if (removedID) {
+			debug('Removing from transaction pool with id', removedID);
+			delete this._allTransactions[removedID];
+		}
+
+		if (!added) {
+			return {
+				status: Status.FAIL,
+				errors: [
+					new TransactionPoolError(
+						'Transaction was not added because of nonce or fee',
+						incomingTx.id,
+					),
+				],
+			};
+		}
+
 		// Add received time to the incoming tx object
 		incomingTx.receivedAt = new Date();
 		this._allTransactions[incomingTx.id] = incomingTx;
@@ -225,12 +246,6 @@ export class TransactionPool {
 		this._feePriorityQueue.push(
 			this._calculateFeePriority(incomingTx),
 			incomingTx.id,
-		);
-
-		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
-		this._transactionList[incomingTxAddress].add(
-			incomingTx,
-			txStatus === TransactionStatus.PROCESSABLE,
 		);
 
 		return { status: Status.OK, errors: [] };
@@ -243,6 +258,7 @@ export class TransactionPool {
 		}
 
 		delete this._allTransactions[tx.id];
+		debug('Removing from transaction pool with id', tx.id);
 		const senderId = getAddressFromPublicKey(foundTx.senderPublicKey);
 		this._transactionList[senderId].remove(tx.nonce);
 		if (this._transactionList[senderId].size === 0) {
@@ -363,7 +379,7 @@ export class TransactionPool {
 	}
 
 	private async _reorganize(): Promise<void> {
-		/* 
+		/*
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
 		for (const txList of Object.values(this._transactionList)) {
