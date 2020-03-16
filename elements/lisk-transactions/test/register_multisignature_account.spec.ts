@@ -135,7 +135,7 @@ describe('#registerMultisignature transaction', () => {
 			(input as any).mandatoryKeys.push('fffffffffffffffffffff');
 			(input as any).numberOfSignatures = 2;
 			expect(() => registerMultisignature(input)).toThrow(
-				'The numberOfSignatures should be more than or equal to the number of mandatory passphrases.',
+				'The numberOfSignatures should be more than or equal to the number of mandatory keys.',
 			);
 		});
 

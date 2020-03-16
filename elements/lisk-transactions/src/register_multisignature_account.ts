@@ -77,7 +77,7 @@ const validateInputs = ({
 
 	if (mandatoryPublicKeys.length > numberOfSignatures) {
 		throw new Error(
-			'The numberOfSignatures should be more than or equal to the number of mandatory passphrases.',
+			'The numberOfSignatures should be more than or equal to the number of mandatory keys.',
 		);
 	}
 
