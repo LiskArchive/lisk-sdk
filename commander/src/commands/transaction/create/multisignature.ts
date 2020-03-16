@@ -67,7 +67,7 @@ export default class MultisignatureCommand extends BaseCommand {
 	static description = `
 	Creates a transaction which will register the account as a multisignature account if broadcast to the network, using the following arguments:
 
-		1. Mandatory keys to verify signatures for the multisignature account. Signatures for these kes must exists to verify every transaction from that account.
+		1. Mandatory keys to verify signatures for the multisignature account. Signatures for these keys must exists to verify every transaction from that account.
 		2. Optional keys to verify signatures for the multisignature account. Signatures for these kes can or can't exists to verify transaction from that account.
 		3. Number of signatures required for a transaction from the account to be valid. These value must be minimum of count of mandatory keys.
 		4. Member passphrases for every mandatory and optional key provided.
