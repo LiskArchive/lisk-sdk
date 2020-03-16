@@ -391,7 +391,7 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  /node/transactions/{state}:
+  /node/transactions:
     x-swagger-router-controller: node
     get:
       tags:
@@ -405,19 +405,7 @@ paths:
       produces:
         - application/json
       parameters:
-        - in: path
-          name: state
-          description: State of transactions to query
-          required: true
-          type: string
-          enum:
-            - ready
-            - received
-            - validated
-            - verified
-          default: verified
         - $ref: '#/parameters/transactionId'
-        - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
         - $ref: '#/parameters/transactionType'
@@ -429,13 +417,11 @@ paths:
           required: false
           type: string
           enum:
-            - amount:asc
-            - amount:desc
             - fee:asc
             - fee:desc
             - type:asc
             - type:desc
-          default: amount:desc
+          default: fee:desc
       responses:
         200:
           description: Transactions list
@@ -1853,39 +1839,6 @@ definitions:
           Network height on the peer node.
           Represents the current number of blocks in the chain on the peer node.
 
-  Fees:
-    type: object
-    required:
-      - send
-      - vote
-      - delegate
-      - multisignature
-      - dappRegistration
-      - dappWithdrawal
-      - dappDeposit
-    properties:
-      send:
-        type: string
-        example: '10000000'
-      vote:
-        type: string
-        example: '100000000'
-      delegate:
-        type: string
-        example: '2500000000'
-      multisignature:
-        type: string
-        example: '500000000'
-      dappRegistration:
-        type: string
-        example: '2500000000'
-      dappWithdrawal:
-        type: string
-        example: '10000000'
-      dappDeposit:
-        type: string
-        example: '10000000'
-
   NodeConstants:
     type: object
     required:
@@ -1897,7 +1850,6 @@ definitions:
       - build
       - commit
       - version
-      - fees
     properties:
       epoch:
         type: string
@@ -1948,8 +1900,6 @@ definitions:
         description: |
           The reward a delegate will get for forging a block.
           Depends on the slot height.
-      fees:
-        $ref: '#/definitions/Fees'
 
   NodeStatus:
     type: object

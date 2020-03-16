@@ -137,7 +137,7 @@ describe('TransactionList class', () => {
 	describe('getProcessableTransactions', () => {
 		let senderPublicKeys: string[];
 		beforeEach(async () => {
-			senderPublicKeys = generateRandomPublicKeys(2);
+			senderPublicKeys = generateRandomPublicKeys(3);
 			const txs = [
 				{
 					id: '1',
@@ -167,6 +167,13 @@ describe('TransactionList class', () => {
 					fee: BigInt(1000),
 					senderPublicKey: senderPublicKeys[1],
 				},
+				{
+					id: '10',
+					nonce: BigInt(100),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: senderPublicKeys[2],
+				},
 			] as Transaction[];
 
 			for (const tx of txs) {
@@ -179,6 +186,10 @@ describe('TransactionList class', () => {
 			(transactionPool as any)._transactionList[
 				getAddressFromPublicKey(senderPublicKeys[1])
 			].promote([txs[3]]);
+			// Force to make it unprocessable
+			transactionPool['_transactionList'][
+				getAddressFromPublicKey(senderPublicKeys[2])
+			]['_demoteAfter'](BigInt(0));
 		});
 
 		it('should return copy of processable transactions list', async () => {
@@ -210,6 +221,13 @@ describe('TransactionList class', () => {
 					getAddressFromPublicKey(senderPublicKeys[1])
 				],
 			).toHaveLength(1);
+		});
+
+		it('should not include the sender key if processable transactions are empty', async () => {
+			const processableTransactions = transactionPool.getProcessableTransactions();
+			const transactionFromSender2 =
+				processableTransactions[getAddressFromPublicKey(senderPublicKeys[2])];
+			expect(transactionFromSender2).toBeUndefined();
 		});
 	});
 
@@ -375,23 +393,34 @@ describe('TransactionList class', () => {
 
 	describe('remove', () => {
 		let txGetBytesStub: any;
+		const senderPublicKey = generateRandomPublicKeys()[0];
 		const tx = {
 			id: '1',
 			nonce: BigInt(1),
 			minFee: BigInt(10),
 			fee: BigInt(1000),
-			senderPublicKey: generateRandomPublicKeys()[0],
+			senderPublicKey,
+		} as Transaction;
+		const additionalTx = {
+			id: '2',
+			nonce: BigInt(3),
+			minFee: BigInt(10),
+			fee: BigInt(1000),
+			senderPublicKey,
 		} as Transaction;
 
-		txGetBytesStub = jest.fn();
-		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+		txGetBytesStub = jest.fn().mockReturnValue(Buffer.from(new Array(10)));
+		tx.getBytes = txGetBytesStub;
+		additionalTx.getBytes = txGetBytesStub;
 
 		beforeEach(async () => {
 			await transactionPool.add(tx);
+			await transactionPool.add(additionalTx);
 		});
 
 		afterEach(async () => {
-			await transactionPool.remove(tx);
+			transactionPool.remove(tx);
+			transactionPool.remove(additionalTx);
 		});
 
 		it('should return false when a tx id does not exist', async () => {
@@ -425,7 +454,7 @@ describe('TransactionList class', () => {
 			// Remove the above transaction
 			const removeStatus = transactionPool.remove(tx);
 			expect(removeStatus).toEqual(true);
-			expect(transactionPool.getAll().length).toEqual(0);
+			expect(transactionPool.getAll().length).toEqual(1);
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
@@ -434,6 +463,16 @@ describe('TransactionList class', () => {
 			expect(
 				transactionPool['_feePriorityQueue'].values.includes(tx.id),
 			).toEqual(false);
+		});
+
+		it('should remove the transaction list key if the list is empty', async () => {
+			transactionPool.remove(tx);
+			transactionPool.remove(additionalTx);
+			expect(
+				transactionPool['_transactionList'][
+					getAddressFromPublicKey(tx.senderPublicKey)
+				],
+			).toBeUndefined();
 		});
 	});
 });
