@@ -279,7 +279,7 @@ export class TransactionPool {
 		const evictedTransaction = unprocessableFeePriorityHeap.pop();
 
 		if (!evictedTransaction) {
-			return false
+			return false;
 		}
 
 		return this.removeTransaction(evictedTransaction.value);
@@ -308,8 +308,8 @@ export class TransactionPool {
 		const evictedTransaction = processableFeePriorityHeap.pop();
 
 		if (!evictedTransaction) {
-			return false
-		  }
+			return false;
+		}
 
 		return this.removeTransaction(evictedTransaction.value);
 	}
@@ -370,7 +370,6 @@ export class TransactionPool {
 					(transaction.receivedAt as Date).getTime() - new Date().getTime(),
 				),
 			);
-
 			if (timeDifference > this._transactionExpiryTime) {
 				this.removeTransaction(transaction);
 			}

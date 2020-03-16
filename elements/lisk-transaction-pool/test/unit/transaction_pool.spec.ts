@@ -647,8 +647,16 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should expire old transactions', async () => {
+			(transactionPool as any).removeTransaction = jest
+				.fn()
+				.mockReturnValue(true);
 			(transactionPool as any)._expire();
-			expect((transactionPool as any)._allTransactions).not.toHaveProperty('1');
+			expect((transactionPool as any).removeTransaction).toHaveBeenCalledWith(
+				transactions[0],
+			);
+			expect((transactionPool as any).removeTransaction).toHaveBeenCalledWith(
+				transactions[2],
+			);
 		});
 	});
 });
