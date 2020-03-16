@@ -35,7 +35,7 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { fees, maxVotesPerAccount } = global.constants;
+const { maxVotesPerAccount } = global.constants;
 const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {
@@ -412,8 +412,8 @@ describe('GET /api/votes', () => {
 					fee: '100000000',
 					networkIdentifier,
 					amount: (
-						BigInt(fees.delegate) +
-						BigInt(fees.vote) +
+						BigInt('200000000') +
+						BigInt('20000000') +
 						halfLSK
 					).toString(),
 					passphrase: accountFixtures.genesis.passphrase,

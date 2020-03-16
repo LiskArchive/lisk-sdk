@@ -64,15 +64,6 @@ describe('node/api', () => {
 			config: {
 				constants: {
 					epochTime: '2016-05-24T17:00:00.000Z',
-					fees: {
-						send: '10000000',
-						vote: '100000000',
-						delegate: '2500000000',
-						multisignature: '500000000',
-						dappRegistration: '2500000000',
-						dappWithdrawal: '10000000',
-						dappDeposit: '10000000',
-					},
 				},
 			},
 			channel: channelStub,

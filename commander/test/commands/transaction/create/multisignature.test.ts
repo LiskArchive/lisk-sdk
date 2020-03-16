@@ -16,32 +16,41 @@
 import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as transactions from '@liskhq/lisk-transactions';
-import * as validator from '@liskhq/lisk-validator';
 import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
-describe.skip('transaction:create:multisignature', () => {
-	const defaultLifetime = '24';
-	const defaultMinimum = '2';
-	const defaultKeysgroup = [
+describe('transaction:create:multisignature', () => {
+	const nonce = '1';
+	const fee = '0.5';
+	const defaultInputs = '123';
+	const defaultSenderPublicKey =
+		'5674667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164451ca6';
+	const mandatoryKeys = [
 		'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 	];
-	const defaultInputs = '123';
-	const defaultTransaction = {
-		nonce: '0',
-		fee: '10000000',
-		amount: '10000000000',
-		recipientId: '123L',
-		senderPublicKey: null,
-		timestamp: 66492418,
-		type: 4,
-		recipientPublicKey: null,
-		asset: {},
-	};
+	const optionalKeys = [
+		'456d667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164451bca',
+		'768abfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1c356',
+	];
+	const numberOfSignatures = 3;
 	const testnetNetworkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
+	const defaultTransaction = {
+		nonce,
+		fee: '1000000000000000',
+		passphrase: defaultInputs,
+		networkIdentifier: testnetNetworkIdentifier,
+		senderPublicKey: defaultSenderPublicKey,
+		type: 12,
+		asset: {
+			mandatoryKeys: [],
+			optionalKeys: [],
+			numberOfSignatures: 0,
+		},
+	};
 	const printMethodStub = sandbox.stub();
 
 	const setupTest = () =>
@@ -57,7 +66,6 @@ describe.skip('transaction:create:multisignature', () => {
 				'registerMultisignature',
 				sandbox.stub().returns(defaultTransaction),
 			)
-			.stub(validator, 'validatePublicKeys', sandbox.stub().returns(true))
 			.stub(
 				readerUtils,
 				'getPassphraseFromPrompt',
@@ -69,89 +77,37 @@ describe.skip('transaction:create:multisignature', () => {
 		setupTest()
 			.command(['transaction:create:multisignature'])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 5 required arg');
+				return expect(error.message).to.contain('Missing 2 required args');
 			})
 			.it('should throw an error');
 	});
 
-	describe('transaction:create:multisignature lifetime', () => {
+	describe('transaction:create:multisignature nonce', () => {
 		setupTest()
-			.command(['transaction:create:multisignature', defaultLifetime])
+			.command(['transaction:create:multisignature', nonce])
 			.catch(error => {
-				return expect(error.message).to.contain('Missing 4 required args');
+				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error');
 	});
 
-	describe('transaction:create:multisignature lifetime minimum', () => {
+	describe('transaction:create:multisignature nonce fee', () => {
 		setupTest()
-			.command([
-				'transaction:create:multisignature',
-				defaultLifetime,
-				defaultMinimum,
-			])
-			.catch(error => {
-				return expect(error.message).to.contain('Missing 3 required arg');
-			})
-			.it('should throw an error');
-	});
-
-	describe('transaction:create:multisignature lifetime minimum keysgroup', () => {
-		setupTest()
-			.command([
-				'transaction:create:multisignature',
-				'1',
-				'100',
-				'life',
-				defaultMinimum,
-				defaultKeysgroup.join(','),
-			])
-			.catch(error => {
-				return expect(error.message).to.contain('Lifetime must be an integer.');
-			})
-			.it('should throw an error when lifetime is not integer');
-
-		setupTest()
-			.command([
-				'transaction:create:multisignature',
-				'1',
-				'100',
-				defaultLifetime,
-				'minimum',
-				defaultKeysgroup.join(','),
-			])
-			.catch(error => {
-				return expect(error.message).to.contain(
-					'Minimum number of signatures must be an integer.',
-				);
-			})
-			.it('should throw an error when minimum is not integer');
-
-		setupTest()
-			.command([
-				'transaction:create:multisignature',
-				'1',
-				'100',
-				defaultLifetime,
-				defaultMinimum,
-				defaultKeysgroup.join(','),
-			])
+			.command(['transaction:create:multisignature', nonce, fee])
 			.it('should create a multisignature transaction', () => {
-				expect(validator.validatePublicKeys).to.be.calledWithExactly(
-					defaultKeysgroup,
-				);
 				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
 					'passphrase',
 					true,
 				);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					nonce,
+					fee: '50000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs,
-					keysgroup: defaultKeysgroup,
-					lifetime: parseInt(defaultLifetime, 10),
-					minimum: parseInt(defaultMinimum, 10),
-					nonce: '1',
-					fee: '10000000000',
+					senderPassphrase: defaultInputs,
+					numberOfSignatures: 0,
+					mandatoryKeys: [],
+					optionalKeys: [],
+					passphrases: [],
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -159,33 +115,28 @@ describe.skip('transaction:create:multisignature', () => {
 			});
 	});
 
-	describe('transaction:create:multisignature lifetime minimum keysgroup --passphrase=xxx', () => {
+	describe(`transaction:create:multisignature nonce fee --number-of-signatures ${numberOfSignatures}`, () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
-				'1',
-				'100',
-				defaultLifetime,
-				defaultMinimum,
-				defaultKeysgroup.join(','),
-				'--passphrase=123',
+				nonce,
+				fee,
+				`--number-of-signatures=${numberOfSignatures}`,
 			])
 			.it('should create a multisignature transaction', () => {
-				expect(validator.validatePublicKeys).to.be.calledWithExactly(
-					defaultKeysgroup,
-				);
 				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
 					'passphrase',
 					true,
 				);
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
-					nonce: '1',
-					fee: '10000000000',
+					nonce,
+					fee: '50000000',
 					networkIdentifier: testnetNetworkIdentifier,
-					passphrase: defaultInputs,
-					keysgroup: defaultKeysgroup,
-					lifetime: parseInt(defaultLifetime, 10),
-					minimum: parseInt(defaultMinimum, 10),
+					senderPassphrase: defaultInputs,
+					numberOfSignatures,
+					mandatoryKeys: [],
+					optionalKeys: [],
+					passphrases: [],
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -193,37 +144,93 @@ describe.skip('transaction:create:multisignature', () => {
 			});
 	});
 
-	describe('transaction:create:multisignature lifetime minimum keysgroup --no-signature', () => {
+	describe(`transaction:create:multisignature nonce fee --mandatory-key=${mandatoryKeys[0]} --mandatory-key=${mandatoryKeys[1]}`, () => {
 		setupTest()
 			.command([
 				'transaction:create:multisignature',
-				'1',
-				'100',
-				defaultLifetime,
-				defaultMinimum,
-				defaultKeysgroup.join(','),
-				'--no-signature',
+				nonce,
+				fee,
+				`--mandatory-key=${mandatoryKeys[0]}`,
+				`--mandatory-key=${mandatoryKeys[1]}`,
 			])
-			.it(
-				'should create a multisignature transaction without signature',
-				() => {
-					expect(validator.validatePublicKeys).to.be.calledWithExactly(
-						defaultKeysgroup,
-					);
-					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(transactions.registerMultisignature).to.be.calledWithExactly({
-						nonce: '1',
-						fee: '10000000000',
-						networkIdentifier: testnetNetworkIdentifier,
-						passphrase: undefined,
-						keysgroup: defaultKeysgroup,
-						lifetime: parseInt(defaultLifetime, 10),
-						minimum: parseInt(defaultMinimum, 10),
-					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultTransaction,
-					);
-				},
-			);
+			.it('should create a multisignature transaction', () => {
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
+				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					nonce,
+					fee: '50000000',
+					networkIdentifier: testnetNetworkIdentifier,
+					senderPassphrase: defaultInputs,
+					numberOfSignatures: 0,
+					mandatoryKeys: mandatoryKeys,
+					optionalKeys: [],
+					passphrases: [],
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(
+					defaultTransaction,
+				);
+			});
+	});
+
+	describe(`transaction:create:multisignature nonce fee --optional-key=${optionalKeys[0]} --optional-key=${optionalKeys[1]}`, () => {
+		setupTest()
+			.command([
+				'transaction:create:multisignature',
+				nonce,
+				fee,
+				`--optional-key=${optionalKeys[0]}`,
+				`--optional-key=${optionalKeys[1]}`,
+			])
+			.it('should create a multisignature transaction', () => {
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
+				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					nonce,
+					fee: '50000000',
+					networkIdentifier: testnetNetworkIdentifier,
+					senderPassphrase: defaultInputs,
+					numberOfSignatures: 0,
+					mandatoryKeys: [],
+					optionalKeys,
+					passphrases: [],
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(
+					defaultTransaction,
+				);
+			});
+	});
+
+	describe(`transaction:create:multisignature nonce fee --member-passphrase=yyy --member-passphrase=zzz`, () => {
+		setupTest()
+			.command([
+				'transaction:create:multisignature',
+				nonce,
+				fee,
+				`--member-passphrase=yyy`,
+				`--member-passphrase=zzz`,
+			])
+			.it('should create a multisignature transaction', () => {
+				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
+					'passphrase',
+					true,
+				);
+				expect(transactions.registerMultisignature).to.be.calledWithExactly({
+					nonce,
+					fee: '50000000',
+					networkIdentifier: testnetNetworkIdentifier,
+					senderPassphrase: defaultInputs,
+					numberOfSignatures: 0,
+					mandatoryKeys: [],
+					optionalKeys: [],
+					passphrases: ['yyy', 'zzz'],
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(
+					defaultTransaction,
+				);
+			});
 	});
 });

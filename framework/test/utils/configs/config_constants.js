@@ -33,15 +33,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	activeDelegates: 101,
 	blockSlotWindow: 5,
 	blockReceiptTimeout: 20, // 2 blocks
-	fees: {
-		send: '10000000',
-		vote: '100000000',
-		delegate: '2500000000',
-		multisignature: '500000000',
-		dappRegistration: '2500000000',
-		dappWithdrawal: '10000000',
-		dappDeposit: '10000000',
-	},
 	maxPayloadLength: 15 * 1024,
 	maxSharedTransactions: 100,
 	maxVotesPerAccount: 101,

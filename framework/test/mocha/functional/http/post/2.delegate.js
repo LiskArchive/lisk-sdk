@@ -36,7 +36,6 @@ const networkIdentifier = getNetworkIdentifier(
 	__testContext.config.genesisBlock,
 );
 
-const { fees } = global.constants;
 const { NORMALIZER } = global.__testContext.config;
 
 const sendTransactionPromise = apiHelpers.sendTransactionPromise;
@@ -78,7 +77,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			nonce: '0',
 			fee: '129001',
 			networkIdentifier,
-			amount: fees.delegate + halfLSK,
+			amount: BigInt('2000000000') + halfLSK,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -86,7 +85,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			nonce: '0',
 			fee: '129001',
 			networkIdentifier,
-			amount: fees.delegate,
+			amount: BigInt('2000000000'),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountUpperCase.address,
 		});
@@ -94,7 +93,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			nonce: '0',
 			fee: '129001',
 			networkIdentifier,
-			amount: fees.delegate,
+			amount: BigInt('2000000000'),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFormerDelegate.address,
 		});

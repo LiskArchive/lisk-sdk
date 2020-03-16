@@ -243,9 +243,11 @@ export class TransactionPool {
 		}
 
 		delete this._allTransactions[tx.id];
-		this._transactionList[
-			getAddressFromPublicKey(foundTx.senderPublicKey)
-		].remove(tx.nonce);
+		const senderId = getAddressFromPublicKey(foundTx.senderPublicKey);
+		this._transactionList[senderId].remove(tx.nonce);
+		if (this._transactionList[senderId].size === 0) {
+			delete this._transactionList[senderId];
+		}
 
 		// Remove from feePriorityQueue
 		this._feePriorityQueue.clear();
@@ -267,7 +269,9 @@ export class TransactionPool {
 		} = {};
 		for (const address of Object.keys(this._transactionList)) {
 			const transactions = this._transactionList[address].getProcessable();
-			processableTransactions[address] = [...transactions];
+			if (transactions.length !== 0) {
+				processableTransactions[address] = [...transactions];
+			}
 		}
 
 		return processableTransactions;
