@@ -190,8 +190,8 @@ export class TransactionPool {
 			return { status: Status.FAIL, errors: transactionsResponses[0].errors };
 		}
 
-		/* 
-			Evict transactions if pool is full 
+		/*
+			Evict transactions if pool is full
 				1. Evict unprocessable by fee priority
 				2. Evict processable by fee priority and highest nonce
 		*/
@@ -363,19 +363,21 @@ export class TransactionPool {
 	}
 
 	private async _reorganize(): Promise<void> {
-		/* 
+		/*
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
 		for (const txList of Object.values(this._transactionList)) {
-			const processableTransactions = txList.getProcessable();
 			const promotableTransactions = txList.getPromotable();
 			// If no promotable transactions, check next list
 			if (!promotableTransactions.length) {
 				continue;
 			}
-			const applyResults = await this._applyFunction([
+			const processableTransactions = txList.getProcessable();
+			const allTransactions = [
 				...processableTransactions,
-			]);
+				...promotableTransactions,
+			];
+			const applyResults = await this._applyFunction(allTransactions);
 
 			const successfulTransactionIds: string[] = [];
 			let firstInvalidTransactionId: string | undefined;
@@ -398,11 +400,11 @@ export class TransactionPool {
 
 			// Remove invalid transaction and all subsequent transactions
 			const invalidTransaction = firstInvalidTransactionId
-				? processableTransactions.find(tx => tx.id == firstInvalidTransactionId)
+				? allTransactions.find(tx => tx.id == firstInvalidTransactionId)
 				: undefined;
 
 			if (invalidTransaction) {
-				for (const tx of processableTransactions) {
+				for (const tx of allTransactions) {
 					if (tx.nonce >= invalidTransaction.nonce) {
 						this.remove(tx);
 					}
