@@ -98,13 +98,10 @@ export class TransactionPool {
 			config.minReplacementFeeDifference ??
 			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 		this._reorganizeJob = new Job(
-			async () => await this._reorganize(),
+			() => this._reorganize(),
 			this._transactionReorganizationInterval,
 		);
-		this._expireJob = new Job(
-			async () => await this._expire(),
-			DEFAULT_EXPIRE_INTERVAL,
-		);
+		this._expireJob = new Job(() => this._expire(), DEFAULT_EXPIRE_INTERVAL);
 	}
 
 	public async start(): Promise<void> {
