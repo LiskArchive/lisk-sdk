@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-chain",
-	"version": "0.1.0",
+	"version": "0.1.0-alpha.0",
 	"description": "Blocks and state management implementation that are used for block processing according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -34,15 +34,15 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-cryptography": "2.4.2",
-		"@liskhq/lisk-transactions": "3.0.2",
+		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
+		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
 		"@types/node": "12.12.11",
 		"debug": "4.1.1",
 		"lodash.clonedeep": "4.5.0",
 		"lodash.isequal": "4.5.0"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "3.0.0",
+		"@liskhq/lisk-passphrase": "3.0.1-alpha.0",
 		"@types/debug": "4.1.5",
 		"@types/faker": "4.1.10",
 		"@types/jest": "25.1.3",
