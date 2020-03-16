@@ -15,7 +15,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
-import { CHAIN_STATE_FORGERS_LIST_KEY } from './constants';
+import { CONSENSUS_STATE_FORGERS_LIST_KEY } from './constants';
 import { Rounds } from './rounds';
 import {
 	Account,
@@ -40,8 +40,8 @@ interface DelegatesListConstructor {
 export const getForgersList = async (
 	stateStore: StateStore,
 ): Promise<ForgersList> => {
-	const forgersListStr = await stateStore.chainState.get(
-		CHAIN_STATE_FORGERS_LIST_KEY,
+	const forgersListStr = await stateStore.consensus.get(
+		CONSENSUS_STATE_FORGERS_LIST_KEY,
 	);
 	if (!forgersListStr) {
 		return [];
@@ -55,7 +55,7 @@ const _setForgersList = (
 	forgersList: ForgersList,
 ): void => {
 	const forgersListStr = JSON.stringify(forgersList);
-	stateStore.chainState.set(CHAIN_STATE_FORGERS_LIST_KEY, forgersListStr);
+	stateStore.consensus.set(CONSENSUS_STATE_FORGERS_LIST_KEY, forgersListStr);
 };
 
 export const deleteDelegateListUntilRound = async (
@@ -207,8 +207,8 @@ export class DelegatesList {
 	public async getShuffledDelegateList(
 		round: number,
 	): Promise<ReadonlyArray<string>> {
-		const forgersListStr = await this.chain.dataAccess.getChainState(
-			CHAIN_STATE_FORGERS_LIST_KEY,
+		const forgersListStr = await this.chain.dataAccess.getConsensusState(
+			CONSENSUS_STATE_FORGERS_LIST_KEY,
 		);
 		const forgersList =
 			forgersListStr !== undefined

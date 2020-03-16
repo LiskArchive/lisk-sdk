@@ -12,5 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
-export const CONSENSUS_STATE_FORGERS_LIST_KEY = 'DPoS.forgersList';
+
+INSERT INTO "consensus_state" ("key", "value")
+VALUES(${key},${value})
+ON CONFLICT ON CONSTRAINT consensus_state_pkey
+DO
+	UPDATE SET "value" = ${value};

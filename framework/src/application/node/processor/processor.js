@@ -58,7 +58,7 @@ class Processor {
 			saveOnlyState: false,
 		});
 		await this.chainModule.init();
-		const stateStore = this.chainModule.newStateStore();
+		const stateStore = await this.chainModule.newStateStore();
 		for (const processor of Object.values(this.processors)) {
 			await processor.init.run({ stateStore });
 		}
@@ -278,7 +278,7 @@ class Processor {
 		processor,
 		{ saveOnlyState, skipBroadcast, removeFromTempTable = false } = {},
 	) {
-		const stateStore = this.chainModule.newStateStore();
+		const stateStore = await this.chainModule.newStateStore();
 
 		await processor.verify.run({
 			block,
@@ -316,7 +316,7 @@ class Processor {
 		processor,
 		{ saveOnlyState } = { saveOnlyState: false },
 	) {
-		const stateStore = this.chainModule.newStateStore();
+		const stateStore = await this.chainModule.newStateStore();
 		const isPersisted = await this.chainModule.exists(block);
 		if (saveOnlyState && !isPersisted) {
 			throw new Error('Genesis block is not persisted but skipping to save');
@@ -335,7 +335,7 @@ class Processor {
 	}
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
-		const stateStore = this.chainModule.newStateStore();
+		const stateStore = await this.chainModule.newStateStore();
 		await processor.undo.run({
 			block,
 			stateStore,

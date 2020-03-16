@@ -30,7 +30,10 @@ describe('state store / transactions', () => {
 				},
 			},
 		};
-		stateStore = new StateStore(storageStub);
+		stateStore = new StateStore(storageStub, {
+			lastBlockHeaders: [],
+			networkIdentifier: 'network-identifier',
+		});
 	});
 
 	describe('cache', () => {

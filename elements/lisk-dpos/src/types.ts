@@ -18,7 +18,7 @@ export interface StateStore {
 		readonly getUpdated: () => Account[];
 		readonly set: (primaryValue: string, account: Account) => void;
 	};
-	readonly chainState: {
+	readonly consensus: {
 		readonly get: (key: string) => Promise<string | undefined>;
 		readonly set: (key: string, value: string) => void;
 	};
@@ -67,7 +67,7 @@ export interface Chain {
 	// tslint:disable-next-line no-mixed-interface
 	readonly dataAccess: {
 		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
-		readonly getChainState: (key: string) => Promise<string | undefined>;
+		readonly getConsensusState: (key: string) => Promise<string | undefined>;
 		readonly getBlockHeadersByHeightBetween: (
 			fromHeight: number,
 			toHeight: number,

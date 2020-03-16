@@ -17,25 +17,25 @@ interface ChainStateStoreMock {
 	set: (key: string, v: string) => void;
 }
 
-interface ChainState {
+interface ConsensusState {
 	[key: string]: string;
 }
 
 export class StateStoreMock {
-	public chainState: ChainStateStoreMock;
+	public consensus: ChainStateStoreMock;
 
-	public chainStateData: ChainState;
+	public consensusData: ConsensusState;
 
-	constructor(initialState?: ChainState) {
+	constructor(initialState?: ConsensusState) {
 		// Make sure to be deep copy
-		this.chainStateData = initialState ? { ...initialState } : {};
+		this.consensusData = initialState ? { ...initialState } : {};
 
-		this.chainState = {
+		this.consensus = {
 			get: async (key: string): Promise<string | undefined> => {
-				return this.chainStateData[key];
+				return this.consensusData[key];
 			},
 			set: (key: string, val: string): void => {
-				this.chainStateData[key] = val;
+				this.consensusData[key] = val;
 			},
 		};
 	}

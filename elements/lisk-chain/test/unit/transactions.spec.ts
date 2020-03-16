@@ -95,6 +95,11 @@ describe('blocks/transactions', () => {
 			transactions: [],
 		};
 
+		storageStub.entities.Block.get.mockResolvedValue([
+			{ height: 40 },
+			{ height: 39 },
+		]);
+
 		chainInstance = new Chain({
 			storage: storageStub,
 			genesisBlock,

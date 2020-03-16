@@ -12,5 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
-export const CONSENSUS_STATE_FORGERS_LIST_KEY = 'DPoS.forgersList';
+SELECT * FROM consensus_state
+
+${parsedFilters:raw}
+
+${parsedSort:raw}
+
+LIMIT ${limit} OFFSET ${offset}

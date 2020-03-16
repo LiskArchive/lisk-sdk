@@ -30,6 +30,10 @@ describe('block processor v2', () => {
 			'hex',
 		),
 	};
+	const defaultAdditionalData = {
+		lastBlockHeaders: [],
+		networkIdentifier: 'network-identifier',
+	};
 
 	let blockProcessor;
 	let chainModuleStub;
@@ -40,7 +44,7 @@ describe('block processor v2', () => {
 
 	beforeEach(async () => {
 		chainModuleStub = {
-			newStateStore: jest.fn().mockReturnValue({}),
+			newStateStore: jest.fn().mockResolvedValue({}),
 			undo: jest.fn(),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
@@ -86,7 +90,7 @@ describe('block processor v2', () => {
 	describe('init', () => {
 		it('should initialize BFT module', async () => {
 			// Arrange & Act
-			const stateStore = new StateStore(storageStub);
+			const stateStore = new StateStore(storageStub, defaultAdditionalData);
 			await blockProcessor.init.run({ stateStore });
 			// Assert
 			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
@@ -95,7 +99,7 @@ describe('block processor v2', () => {
 
 	describe('undo', () => {
 		it('should reject the promise when dpos undo fails', async () => {
-			const stateStore = new StateStore(storageStub);
+			const stateStore = new StateStore(storageStub, defaultAdditionalData);
 			dposModuleStub.undo.mockRejectedValue(new Error('Invalid error'));
 			await expect(
 				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
@@ -103,7 +107,7 @@ describe('block processor v2', () => {
 		});
 
 		it('should reject the promise when bft deleteBlocks fails', async () => {
-			const stateStore = new StateStore(storageStub);
+			const stateStore = new StateStore(storageStub, defaultAdditionalData);
 			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
 			await expect(
 				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),

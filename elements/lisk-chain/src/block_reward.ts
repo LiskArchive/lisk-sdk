@@ -163,7 +163,7 @@ export const applyFeeAndRewards = async (
 	// This is necessary only for genesis block case, where total fee is 0, which is invalid
 	// Also, genesis block channot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
-	const totalFeeBurntStr = await stateStore.chainState.get(
+	const totalFeeBurntStr = await stateStore.chain.get(
 		CHAIN_STATE_KEY_BURNT_FEE,
 	);
 	// tslint:disable-next-line no-let
@@ -172,10 +172,7 @@ export const applyFeeAndRewards = async (
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chainState.set(
-		CHAIN_STATE_KEY_BURNT_FEE,
-		totalFeeBurnt.toString(),
-	);
+	stateStore.chain.set(CHAIN_STATE_KEY_BURNT_FEE, totalFeeBurnt.toString());
 };
 
 export const undoFeeAndRewards = async (
@@ -197,7 +194,7 @@ export const undoFeeAndRewards = async (
 	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
 
 	generator.balance -= totalFee - totalMinFee;
-	const totalFeeBurntStr = await stateStore.chainState.get(
+	const totalFeeBurntStr = await stateStore.chain.get(
 		CHAIN_STATE_KEY_BURNT_FEE,
 	);
 	// tslint:disable-next-line no-let
@@ -206,8 +203,5 @@ export const undoFeeAndRewards = async (
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chainState.set(
-		CHAIN_STATE_KEY_BURNT_FEE,
-		totalFeeBurnt.toString(),
-	);
+	stateStore.chain.set(CHAIN_STATE_KEY_BURNT_FEE, totalFeeBurnt.toString());
 };

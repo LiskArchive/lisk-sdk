@@ -41,6 +41,7 @@ const {
 	AccountEntity,
 	BlockEntity,
 	ChainStateEntity,
+	ConsensusStateEntity,
 	ForgerInfoEntity,
 	TempBlockEntity,
 	TransactionEntity,
@@ -393,6 +394,7 @@ class Application {
 			replaceExisting: true,
 		});
 		storage.registerEntity('ChainState', ChainStateEntity);
+		storage.registerEntity('ConsensusState', ConsensusStateEntity);
 		storage.registerEntity('ForgerInfo', ForgerInfoEntity);
 		storage.registerEntity('TempBlock', TempBlockEntity);
 

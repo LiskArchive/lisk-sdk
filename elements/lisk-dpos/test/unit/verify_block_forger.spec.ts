@@ -22,7 +22,7 @@ import {
 } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { BlockHeader } from '../../src/types';
-import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
@@ -33,7 +33,7 @@ describe('dpos.verifyBlockForger()', () => {
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
-				getChainState: jest
+				getConsensusState: jest
 					.fn()
 					.mockResolvedValue(
 						JSON.stringify([{ round: 3, delegates: delegatePublicKeys }]),
@@ -66,7 +66,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should call the chain state to get the list', async () => {
 		// Arrange
-		chainStub.dataAccess.getChainState.mockResolvedValue(
+		chainStub.dataAccess.getConsensusState.mockResolvedValue(
 			JSON.stringify([{ round: 1, delegates: delegatePublicKeys }]),
 		);
 		const block = {
@@ -80,8 +80,8 @@ describe('dpos.verifyBlockForger()', () => {
 		await dpos.verifyBlockForger(block);
 
 		// Assert
-		expect(chainStub.dataAccess.getChainState).toHaveBeenCalledWith(
-			CHAIN_STATE_FORGERS_LIST_KEY,
+		expect(chainStub.dataAccess.getConsensusState).toHaveBeenCalledWith(
+			CONSENSUS_STATE_FORGERS_LIST_KEY,
 		);
 	});
 
@@ -106,7 +106,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should throw error if no delegate list is found', async () => {
 		// Arrange
-		chainStub.dataAccess.getChainState.mockResolvedValue(undefined);
+		chainStub.dataAccess.getConsensusState.mockResolvedValue(undefined);
 		const block = {
 			id: '1234',
 			height: 302,

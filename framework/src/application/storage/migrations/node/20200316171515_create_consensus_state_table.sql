@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,5 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
-export const CONSENSUS_STATE_FORGERS_LIST_KEY = 'DPoS.forgersList';
+
+/*
+  DESCRIPTION: Creates meta table for BFT.
+
+  PARAMETERS: None
+*/
+
+CREATE TABLE IF NOT EXISTS "consensus_state" (
+  "key" VARCHAR(40) PRIMARY KEY,
+  "value" TEXT NOT NULL
+);

@@ -344,7 +344,10 @@ describe('blocks/header', () => {
 				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
 				block = newBlock({ transactions: [validTx] });
 				// Act
-				const stateStore = new StateStore(storageStub);
+				const stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await chainInstance.verify(block, stateStore, {
 					skipExistingCheck: true,
 				});
@@ -405,7 +408,10 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				const stateStore = new StateStore(storageStub);
+				const stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 
 				// Act && Assert
 				await expect(
@@ -444,7 +450,10 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
-				const stateStore = new StateStore(storageStub);
+				const stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				expect.assertions(1);
 				let err;
 				try {
@@ -480,7 +489,10 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				const stateStore = new StateStore(storageStub);
+				const stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 
 				// Act && Assert
 				await expect(
@@ -513,7 +525,10 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				const stateStore = new StateStore(storageStub);
+				const stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 
 				// Act && Assert
 				await expect(
@@ -545,7 +560,10 @@ describe('blocks/header', () => {
 					},
 				]);
 				storageStub.entities.ChainState.getKey.mockResolvedValue('100');
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await stateStore.account.cache({
 					address_in: [
 						genesisAccount.address,
@@ -598,7 +616,10 @@ describe('blocks/header', () => {
 					{ address: genesisAccount.address, balance: '0' },
 				]);
 				// Act
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await stateStore.account.cache({
 					address_in: [
 						genesisAccount.address,
@@ -638,7 +659,10 @@ describe('blocks/header', () => {
 					{ address: genesisAccount.address, balance: '0' },
 				]);
 				// Act
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await stateStore.account.cache({
 					address_in: [genesisAccount.address],
 				});
@@ -746,7 +770,10 @@ describe('blocks/header', () => {
 					defaultBurntFee,
 				);
 				// Act
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await chainInstance.apply(block, stateStore);
 			});
 
@@ -778,9 +805,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should update burntFee in the chain state', async () => {
-				const burntFee = await stateStore.chainState.get(
-					CHAIN_STATE_KEY_BURNT_FEE,
-				);
+				const burntFee = await stateStore.chain.get(CHAIN_STATE_KEY_BURNT_FEE);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
@@ -841,7 +866,10 @@ describe('blocks/header', () => {
 			genesisInstance = chainInstance.deserialize(genesisBlock);
 			genesisInstance.transactions.forEach(tx => tx.validate());
 			// Act
-			stateStore = new StateStore(storageStub);
+			stateStore = new StateStore(storageStub, {
+				lastBlockHeaders: [],
+				networkIdentifier: 'network-identifier-chain-1',
+			});
 			await chainInstance.applyGenesis(genesisInstance, stateStore);
 		});
 
@@ -860,7 +888,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not update burnt fee on chain state', async () => {
-				const genesisAccountFromStore = await stateStore.chainState.get(
+				const genesisAccountFromStore = await stateStore.chain.get(
 					CHAIN_STATE_KEY_BURNT_FEE,
 				);
 				expect(genesisAccountFromStore).toBe('0');
@@ -875,7 +903,10 @@ describe('blocks/header', () => {
 			let stateStore: StateStore;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				// Arrage
 				block = newBlock({ reward });
 				storageStub.entities.Account.get.mockResolvedValue([
@@ -934,7 +965,10 @@ describe('blocks/header', () => {
 					{ address: genesisAccount.address, balance: '0' },
 				]);
 				// Act
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await chainInstance.undo(block, stateStore);
 			});
 
@@ -1033,7 +1067,10 @@ describe('blocks/header', () => {
 				);
 
 				// Act
-				stateStore = new StateStore(storageStub);
+				stateStore = new StateStore(storageStub, {
+					lastBlockHeaders: [],
+					networkIdentifier: 'network-identifier-chain-1',
+				});
 				await chainInstance.undo(block, stateStore);
 			});
 
@@ -1067,9 +1104,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should debit burntFee in the chain state', async () => {
-				const burntFee = await stateStore.chainState.get(
-					CHAIN_STATE_KEY_BURNT_FEE,
-				);
+				const burntFee = await stateStore.chain.get(CHAIN_STATE_KEY_BURNT_FEE);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
 					expected += tx.minFee;

@@ -303,6 +303,12 @@ export class DataAccess {
 	}
 	/** End: ChainState */
 
+	/** Begin: ChainState */
+	public async getConsensusState(key: string): Promise<string | undefined> {
+		return this._storage.getConsensusState(key);
+	}
+	/** End: ChainState */
+
 	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
