@@ -173,6 +173,7 @@ module.exports = class Node {
 			});
 
 			this.channel.subscribe('app:ready', async () => {
+				await this.transactionPool.start();
 				await this._startForging();
 			});
 
@@ -330,6 +331,7 @@ module.exports = class Node {
 	}
 
 	async cleanup(error) {
+		await this.transactionPool.stop();
 		this._unsubscribeToEvents();
 		const { modules } = this;
 
