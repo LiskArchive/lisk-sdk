@@ -29,8 +29,8 @@ const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
 	const slots = new Slots({
-		epochTime: __testContext.config.constants.EPOCH_TIME,
-		interval: __testContext.config.constants.BLOCK_TIME,
+		epochTime: __testContext.config.constants.epochTime,
+		interval: __testContext.config.constants.blockTime,
 	});
 	const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 	const validDelegate = genesisDelegates.delegates[0];

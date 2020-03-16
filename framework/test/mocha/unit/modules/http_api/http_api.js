@@ -37,7 +37,7 @@ describe('HttpApi', () => {
 		};
 		stubs.options = {
 			constants: {
-				ACTIVE_DELEGATES: 101,
+				activeDelegates: 101,
 			},
 		};
 		stubs.logger = {
@@ -203,7 +203,7 @@ describe('HttpApi', () => {
 		it('should call bootstrapStorage() with proper arguments', async () => {
 			expect(stubs.bootstrapStorage).to.be.calledWithExactly(
 				httpApi.scope,
-				global.constants.ACTIVE_DELEGATES,
+				global.constants.activeDelegates,
 			);
 		});
 		it('should call bootstrapCache() with proper arguments', async () => {

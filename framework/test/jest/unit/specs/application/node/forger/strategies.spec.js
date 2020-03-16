@@ -41,14 +41,12 @@ const getTxMock = (
 
 	when(chainMock.applyTransactionsWithStateStore)
 		.calledWith([tx], undefined)
-		.mockResolvedValueOnce({
-			transactionsResponses: [
-				{
-					id,
-					status: valid ? TransactionStatus.OK : TransactionStatus.FAIL,
-				},
-			],
-		});
+		.mockResolvedValueOnce([
+			{
+				id,
+				status: valid ? TransactionStatus.OK : TransactionStatus.FAIL,
+			},
+		]);
 
 	return tx;
 };

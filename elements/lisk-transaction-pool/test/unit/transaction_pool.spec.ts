@@ -22,10 +22,10 @@ import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('TransactionPool class', () => {
-	let applyTransactionStub = jest.fn();
+	let applyTransactionsStub = jest.fn();
 
 	const defaultTxPoolConfig: TransactionPoolConfig = {
-		applyTransaction: applyTransactionStub,
+		applyTransactions: applyTransactionsStub,
 		transactionReorganizationInterval: 1,
 	};
 
@@ -34,8 +34,10 @@ describe('TransactionPool class', () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
 		transactionPool = new TransactionPool(defaultTxPoolConfig);
-		(transactionPool as any)._applyFunction = applyTransactionStub;
-		applyTransactionStub.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+		(transactionPool as any)._applyFunction = applyTransactionsStub;
+		applyTransactionsStub.mockResolvedValue([
+			{ status: Status.OK, errors: [] },
+		]);
 	});
 
 	describe('constructor', () => {
@@ -58,7 +60,7 @@ describe('TransactionPool class', () => {
 		describe('when all the config properties are given', () => {
 			it('should set the value to given option values', async () => {
 				transactionPool = new TransactionPool({
-					applyTransaction: jest.fn(),
+					applyTransactions: jest.fn(),
 					maxTransactions: 2048,
 					maxTransactionsPerAccount: 32,
 					minReplacementFeeDifference: BigInt(100),
@@ -96,7 +98,7 @@ describe('TransactionPool class', () => {
 
 			txGetBytesStub = jest.fn();
 			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
-			await transactionPool.addTransaction(tx);
+			await transactionPool.add(tx);
 		});
 
 		it('should return transaction if exist', async () => {
@@ -123,7 +125,7 @@ describe('TransactionPool class', () => {
 
 			txGetBytesStub = jest.fn();
 			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
-			await transactionPool.addTransaction(tx);
+			await transactionPool.add(tx);
 		});
 
 		it('should return transaction if exist', async () => {
@@ -172,7 +174,7 @@ describe('TransactionPool class', () => {
 
 			for (const tx of txs) {
 				tx.getBytes = jest.fn().mockReturnValue(Buffer.from(new Array(10)));
-				await transactionPool.addTransaction(tx);
+				await transactionPool.add(tx);
 			}
 			(transactionPool as any)._transactionList[
 				getAddressFromPublicKey(senderPublicKeys[0])
@@ -214,7 +216,7 @@ describe('TransactionPool class', () => {
 		});
 	});
 
-	describe('addTransaction', () => {
+	describe('add', () => {
 		let txGetBytesStub: any;
 		const tx = {
 			id: '1',
@@ -228,8 +230,8 @@ describe('TransactionPool class', () => {
 		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		it('should add a valid transaction and is added to the transaction list as processable', async () => {
-			const status = await transactionPool.addTransaction(tx);
-			expect(status).toEqual(true);
+			const { status } = await transactionPool.add(tx);
+			expect(status).toEqual(Status.OK);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
 
 			const originalTrxObj =
@@ -249,9 +251,9 @@ describe('TransactionPool class', () => {
 			const getStatusStub = jest.fn();
 			transactionPool['_getStatus'] = getStatusStub;
 			getStatusStub.mockReturnValue(TransactionStatus.UNPROCESSABLE);
-			const status = await transactionPool.addTransaction(tx);
+			const { status } = await transactionPool.add(tx);
 
-			expect(status).toEqual(true);
+			expect(status).toEqual(Status.OK);
 			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
 
 			const originalTrxObj =
@@ -269,10 +271,10 @@ describe('TransactionPool class', () => {
 
 		it('should reject a duplicate transaction', async () => {
 			const txDuplicate = { ...tx };
-			const status1 = await transactionPool.addTransaction(tx);
-			const status2 = await transactionPool.addTransaction(txDuplicate);
-			expect(status1).toEqual(true);
-			expect(status2).toEqual(false);
+			const { status: status1 } = await transactionPool.add(tx);
+			const { status: status2 } = await transactionPool.add(txDuplicate);
+			expect(status1).toEqual(Status.OK);
+			expect(status2).toEqual(Status.OK);
 			// Check if its not added to the transaction list
 			expect(Object.keys(transactionPool['_allTransactions']).length).toEqual(
 				1,
@@ -285,9 +287,9 @@ describe('TransactionPool class', () => {
 			];
 			const getStatusStub = jest.fn();
 			transactionPool['_getStatus'] = getStatusStub;
-			applyTransactionStub.mockResolvedValue(transactionResponse);
+			applyTransactionsStub.mockResolvedValue(transactionResponse);
 			try {
-				await transactionPool.addTransaction(tx);
+				await transactionPool.add(tx);
 			} catch (error) {
 				expect(getStatusStub).toHaveReturnedWith(TransactionStatus.INVALID);
 				expect(error.message).toContain(
@@ -298,7 +300,7 @@ describe('TransactionPool class', () => {
 
 		it('should reject a transaction with lower fee than minEntranceFee', async () => {
 			transactionPool = new TransactionPool({
-				applyTransaction: jest.fn(),
+				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 			});
 
@@ -315,20 +317,20 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(10)),
 			);
 
-			const status = await transactionPool.addTransaction(lowFeeTrx);
-			expect(status).toEqual(false);
+			const { status } = await transactionPool.add(lowFeeTrx);
+			expect(status).toEqual(Status.FAIL);
 		});
 
 		it('should reject a transaction with a lower feePriority than the lowest feePriority present in TxPool', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
-				applyTransaction: jest.fn(),
+				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
 			});
 
-			let tempApplyTransactionStub = jest.fn();
-			(transactionPool as any)._applyFunction = tempApplyTransactionStub;
+			let tempApplyTransactionsStub = jest.fn();
+			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i++) {
@@ -343,14 +345,14 @@ describe('TransactionPool class', () => {
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
 
-				tempApplyTransactionStub.mockResolvedValue([
+				tempApplyTransactionsStub.mockResolvedValue([
 					{ status: Status.OK, errors: [] },
 				]);
 
-				await transactionPool.addTransaction(tempTx);
+				await transactionPool.add(tempTx);
 			}
 
-			expect(transactionPool.getAllTransactions().length).toEqual(10);
+			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
 
 			const lowFeePriorityTx = {
 				id: '11',
@@ -364,17 +366,17 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(2 * MAX_TRANSACTIONS)),
 			);
 
-			tempApplyTransactionStub.mockResolvedValue([
+			tempApplyTransactionsStub.mockResolvedValue([
 				{ status: Status.OK, errors: [] },
 			]);
 
-			const status = await transactionPool.addTransaction(lowFeePriorityTx);
+			const { status } = await transactionPool.add(lowFeePriorityTx);
 
-			expect(status).toEqual(false);
+			expect(status).toEqual(Status.FAIL);
 		});
 	});
 
-	describe('removeTransaction', () => {
+	describe('remove', () => {
 		let txGetBytesStub: any;
 		const tx = {
 			id: '1',
@@ -388,11 +390,11 @@ describe('TransactionPool class', () => {
 		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
 
 		beforeEach(async () => {
-			await transactionPool.addTransaction(tx);
+			await transactionPool.add(tx);
 		});
 
 		afterEach(async () => {
-			await transactionPool.removeTransaction(tx);
+			await transactionPool.remove(tx);
 		});
 
 		it('should return false when a tx id does not exist', async () => {
@@ -411,7 +413,7 @@ describe('TransactionPool class', () => {
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
-			const removeStatus = transactionPool.removeTransaction(nonExistentTrx);
+			const removeStatus = transactionPool.remove(nonExistentTrx);
 			expect(removeStatus).toEqual(false);
 		});
 
@@ -424,9 +426,9 @@ describe('TransactionPool class', () => {
 			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
 
 			// Remove the above transaction
-			const removeStatus = transactionPool.removeTransaction(tx);
+			const removeStatus = transactionPool.remove(tx);
 			expect(removeStatus).toEqual(true);
-			expect(transactionPool.getAllTransactions().length).toEqual(0);
+			expect(transactionPool.getAll().length).toEqual(0);
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
@@ -470,20 +472,22 @@ describe('TransactionPool class', () => {
 				...defaultTxPoolConfig,
 				maxTransactions: 2,
 			});
-			await transactionPool.addTransaction(transactions[0]);
-			await transactionPool.addTransaction(transactions[1]);
+			await transactionPool.add(transactions[0]);
+			await transactionPool.add(transactions[1]);
 		});
 
 		afterEach(async () => {
-			await transactionPool.removeTransaction(transactions[0]);
-			await transactionPool.removeTransaction(transactions[1]);
+			await transactionPool.remove(transactions[0]);
+			await transactionPool.remove(transactions[1]);
 		});
 
 		it('should evict unprocessable transaction with lowest fee', async () => {
 			const isEvicted = (transactionPool as any)._evictUnprocessable();
 
 			expect(isEvicted).toBe(true);
-			expect(transactionPool.getAllTransactions).not.toContain(transactions[0]);
+			expect((transactionPool as any)._allTransactions).not.toContain(
+				transactions[0],
+			);
 		});
 	});
 
@@ -519,20 +523,22 @@ describe('TransactionPool class', () => {
 				...defaultTxPoolConfig,
 				maxTransactions: 2,
 			});
-			await transactionPool.addTransaction(transactions[0]);
-			await transactionPool.addTransaction(transactions[1]);
+			await transactionPool.add(transactions[0]);
+			await transactionPool.add(transactions[1]);
 		});
 
 		afterEach(async () => {
-			await transactionPool.removeTransaction(transactions[0]);
-			await transactionPool.removeTransaction(transactions[1]);
+			await transactionPool.remove(transactions[0]);
+			await transactionPool.remove(transactions[1]);
 		});
 
 		it('should evict processable transaction with lowest fee', async () => {
 			const isEvicted = (transactionPool as any)._evictProcessable();
 
 			expect(isEvicted).toBe(true);
-			expect(transactionPool.getAllTransactions).not.toContain(transactions[0]);
+			expect((transactionPool as any)._allTransactions).not.toContain(
+				transactions[0],
+			);
 		});
 	});
 
@@ -585,23 +591,23 @@ describe('TransactionPool class', () => {
 				{ id: '2', status: Status.OK, errors: [] },
 				{ id: '3', status: Status.OK, errors: [] },
 			]);
-			await transactionPool.addTransaction(transactions[0]);
-			await transactionPool.addTransaction(transactions[1]);
-			await transactionPool.addTransaction(transactions[2]);
+			await transactionPool.add(transactions[0]);
+			await transactionPool.add(transactions[1]);
+			await transactionPool.add(transactions[2]);
 			address = Object.keys((transactionPool as any)._transactionList)[0];
 			txList = (transactionPool as any)._transactionList[address];
 			transactionPool.start();
 		});
 
 		afterEach(async () => {
-			transactionPool.removeTransaction(transactions[0]);
-			transactionPool.removeTransaction(transactions[1]);
-			transactionPool.removeTransaction(transactions[2]);
+			transactionPool.remove(transactions[0]);
+			transactionPool.remove(transactions[1]);
+			transactionPool.remove(transactions[2]);
 			transactionPool.stop();
 		});
 
 		it('should not promote unprocessable transactions to processable transactions', async () => {
-			transactionPool.removeTransaction(transactions[1]);
+			transactionPool.remove(transactions[1]);
 			jest.advanceTimersByTime(2);
 			const unprocessableTransactions = txList.getUnprocessable();
 
@@ -647,14 +653,12 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should expire old transactions', async () => {
-			(transactionPool as any).removeTransaction = jest
-				.fn()
-				.mockReturnValue(true);
+			(transactionPool as any).remove = jest.fn().mockReturnValue(true);
 			(transactionPool as any)._expire();
-			expect((transactionPool as any).removeTransaction).toHaveBeenCalledWith(
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(
 				transactions[0],
 			);
-			expect((transactionPool as any).removeTransaction).toHaveBeenCalledWith(
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(
 				transactions[2],
 			);
 		});

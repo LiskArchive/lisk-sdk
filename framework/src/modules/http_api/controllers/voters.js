@@ -21,7 +21,7 @@ const swaggerHelper = require('../helpers/swagger');
 const { generateParamsErrorObject } = swaggerHelper;
 
 let storage;
-let MAX_VOTES_PER_ACCOUNT;
+let maxVotesPerAccount;
 
 const getFilterAndOptionsFormParams = params => {
 	let filters = {
@@ -63,7 +63,7 @@ const validateFilters = (filters, params) => {
 
 function VotersController(scope) {
 	({ storage } = scope.components);
-	({ MAX_VOTES_PER_ACCOUNT } = scope.config.constants);
+	({ maxVotesPerAccount } = scope.config.constants);
 }
 
 VotersController.getVoters = async (context, next) => {
@@ -167,7 +167,7 @@ VotersController.getVotes = async (context, next) => {
 		data.votesUsed = await storage.entities.Account.count({
 			publicKey_in: delegate.votedDelegatesPublicKeys,
 		});
-		data.votesAvailable = MAX_VOTES_PER_ACCOUNT - data.votesUsed;
+		data.votesAvailable = maxVotesPerAccount - data.votesUsed;
 		data.votes = votes.map(vote =>
 			_.pick(vote, ['address', 'publicKey', 'balance', 'username']),
 		);

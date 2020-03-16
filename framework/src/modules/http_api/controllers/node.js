@@ -20,8 +20,8 @@ const apiCodes = require('../api_codes');
 const swaggerHelper = require('../helpers/swagger');
 
 let library;
-let EPOCH_TIME;
-let FEES;
+let epochTime;
+let fees;
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
@@ -53,7 +53,7 @@ function NodeController(scope) {
 		lastCommitId: scope.lastCommitId,
 		buildVersion: scope.buildVersion,
 	};
-	({ EPOCH_TIME, FEES } = scope.config.constants);
+	({ epochTime, fees } = scope.config.constants);
 }
 
 NodeController.getConstants = async (context, next) => {
@@ -80,15 +80,15 @@ NodeController.getConstants = async (context, next) => {
 		return next(null, {
 			build,
 			commit,
-			epoch: new Date(EPOCH_TIME),
+			epoch: new Date(epochTime),
 			fees: {
-				send: FEES.SEND.toString(),
-				vote: FEES.VOTE.toString(),
-				delegate: FEES.DELEGATE.toString(),
-				multisignature: FEES.MULTISIGNATURE.toString(),
-				dappRegistration: FEES.DAPP_REGISTRATION.toString(),
-				dappWithdrawal: FEES.DAPP_WITHDRAWAL.toString(),
-				dappDeposit: FEES.DAPP_DEPOSIT.toString(),
+				send: fees.send.toString(),
+				vote: fees.vote.toString(),
+				delegate: fees.delegate.toString(),
+				multisignature: fees.multisignature.toString(),
+				dappRegistration: fees.dappRegistration.toString(),
+				dappWithdrawal: fees.dappWithdrawal.toString(),
+				dappDeposit: fees.dappDeposit.toString(),
 			},
 			networkId: library.config.networkId,
 			milestone: milestone.toString(),
@@ -109,6 +109,7 @@ NodeController.getStatus = async (context, next) => {
 			syncing,
 			lastBlock,
 			chainMaxHeightFinalized,
+			unconfirmedTransactions,
 		} = await library.channel.invoke('app:getNodeStatus');
 
 		const data = {
@@ -116,6 +117,7 @@ NodeController.getStatus = async (context, next) => {
 			secondsSinceEpoch,
 			height: lastBlock.height || 0,
 			chainMaxHeightFinalized,
+			unconfirmedTransactions,
 			syncing,
 		};
 

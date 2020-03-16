@@ -51,7 +51,7 @@ const initNode = async (options, storageConfig) => {
 	await storage.bootstrap();
 
 	storage.entities.Account.extendDefaultOptions({
-		limit: __testContext.config.constants.ACTIVE_DELEGATES,
+		limit: __testContext.config.constants.activeDelegates,
 	});
 
 	const nodeOptions = {

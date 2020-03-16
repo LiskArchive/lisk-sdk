@@ -62,7 +62,7 @@ describe('blocks/verify', () => {
 
 	describe('verifyPayload', () => {
 		it.todo(
-			'should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value',
+			'should fail when payload length greater than maxPayloadLength constant value',
 		);
 
 		it.todo(
@@ -103,7 +103,7 @@ describe('blocks/verify', () => {
 			it.todo('should return empty result.errors array');
 		});
 
-		describe('for slot number BLOCK_SLOT_WINDOW slots in the past', () => {
+		describe('for slot number blockSlotWindow slots in the past', () => {
 			it.todo('should return empty result.errors array');
 		});
 
@@ -111,7 +111,7 @@ describe('blocks/verify', () => {
 			it.todo('should call callback with error = Block slot is in the future ');
 		});
 
-		describe('for slot number BLOCK_SLOT_WINDOW + 1 slots in the past', () => {
+		describe('for slot number blockSlotWindow + 1 slots in the past', () => {
 			it.todo('should call callback with error = Block slot is too old');
 		});
 	});
@@ -122,13 +122,13 @@ describe('blocks/verify', () => {
 				it.todo('should include block in lastNBlockIds queue');
 			});
 
-			describe('when onNewBlock function is called BLOCK_SLOT_WINDOW times', () => {
+			describe('when onNewBlock function is called blockSlotWindow times', () => {
 				it.todo('should include blockId in lastNBlockIds queue');
 			});
 
-			describe('when onNewBlock function is called BLOCK_SLOT_WINDOW * 2 times', () => {
+			describe('when onNewBlock function is called blockSlotWindow * 2 times', () => {
 				it.todo(
-					'should maintain last BLOCK_SLOT_WINDOW blockIds in lastNBlockIds queue',
+					'should maintain last blockSlotWindow blockIds in lastNBlockIds queue',
 				);
 			});
 		});

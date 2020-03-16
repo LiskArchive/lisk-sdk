@@ -37,7 +37,7 @@ describe('storage.entities.Account.update', () => {
 		storage.registerEntity('Account', Account);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: constants.ACTIVE_DELEGATES,
+			limit: constants.activeDelegates,
 		});
 	});
 

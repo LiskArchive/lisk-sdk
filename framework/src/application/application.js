@@ -397,7 +397,7 @@ class Application {
 		storage.registerEntity('TempBlock', TempBlockEntity);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: this.constants.ACTIVE_DELEGATES,
+			limit: this.constants.activeDelegates,
 		});
 
 		return storage;

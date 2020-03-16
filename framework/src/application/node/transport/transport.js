@@ -217,11 +217,14 @@ class Transport {
 
 		const { transactionIds } = data;
 		if (!transactionIds) {
+			// Get processable transactions from pool and collect transactions across accounts
+			// Limit the transactions to send based on releaseLimit
+			const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
+			const transactions = Object.values(transactionsBySender).flat();
+			transactions.splice(this.constants.broadcasts.releaseLimit);
+
 			return {
-				transactions: this.transactionPoolModule.getMergedTransactionList(
-					true,
-					this.constants.broadcasts.releaseLimit,
-				),
+				transactions,
 			};
 		}
 
@@ -240,12 +243,10 @@ class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const transactionInPool = this.transactionPoolModule.findInTransactionPool(
-				id,
-			);
+			const transaction = this.transactionPoolModule.get(id);
 
-			if (transactionInPool) {
-				transactionsFromQueues.push(transactionInPool.toJSON());
+			if (transaction) {
+				transactionsFromQueues.push(transaction.toJSON());
 			} else {
 				idsNotInPool.push(id);
 			}
@@ -342,7 +343,7 @@ class Transport {
 	async _obtainUnknownTransactionIDs(ids) {
 		// Check if any transaction is in the queues.
 		const unknownTransactionsIDs = ids.filter(
-			id => !this.transactionPoolModule.transactionInPool(id),
+			id => !this.transactionPoolModule.contains(id),
 		);
 
 		if (unknownTransactionsIDs.length) {
@@ -363,22 +364,29 @@ class Transport {
 	}
 
 	async _receiveTransaction(transactionJSON) {
-		const id = transactionJSON ? transactionJSON.id : 'null';
+		if (this.transactionPoolModule.contains(transactionJSON.id)) {
+			return transactionJSON.id;
+		}
+
 		let transaction;
 		try {
 			transaction = this.chainModule.deserializeTransaction(transactionJSON);
 
 			// Composed transaction checks are all static, so it does not need state store
-			const {
-				transactionsResponses,
-			} = await this.chainModule.validateTransactions([transaction]);
+			const transactionsResponses = await this.chainModule.validateTransactions(
+				[transaction],
+			);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;
 			}
 		} catch (errors) {
 			const errString = convertErrorsToString(errors);
-			const err = new InvalidTransactionError(errString, id, errors);
+			const err = new InvalidTransactionError(
+				errString,
+				transactionJSON.id,
+				errors,
+			);
 			this.logger.error(
 				{
 					err,
@@ -390,21 +398,18 @@ class Transport {
 			throw err;
 		}
 
-		this.logger.debug({ id: transaction.id }, 'Received transaction');
+		// Broadcast transaction to network if not present in pool
+		this.handleBroadcastTransaction(transaction);
 
-		try {
-			await this.transactionPoolModule.processUnconfirmedTransaction(
-				transaction,
-				true,
-			);
+		const { errors } = await this.transactionPoolModule.add(transaction);
+
+		if (!errors.length) {
+			this.logger.info({ transaction }, 'Added transaction to pool');
 			return transaction.id;
-		} catch (err) {
-			this.logger.debug(`Transaction ${id}`, convertErrorsToString(err));
-			if (transaction) {
-				this.logger.debug({ transaction }, 'Transaction');
-			}
-			throw err;
 		}
+
+		this.logger.error({ errors }, 'Failed to add transaction to pool');
+		throw errors;
 	}
 
 	async _addRateLimit(procedure, peerId, limit) {

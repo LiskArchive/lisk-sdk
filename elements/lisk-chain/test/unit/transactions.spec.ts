@@ -36,7 +36,7 @@ describe('blocks/transactions', () => {
 		activeDelegates: 101,
 		rewardDistance: 3000000,
 		rewardOffset: 2160,
-		rewardMileStones: [
+		rewardMilestones: [
 			'500000000', // Initial Reward
 			'400000000', // Milestone 1
 			'300000000', // Milestone 2
@@ -291,9 +291,10 @@ describe('blocks/transactions', () => {
 					transactionClass,
 				);
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.validateTransactions([validTx, notAllowedTx]);
+				const transactionsResponses = await chainInstance.validateTransactions([
+					validTx,
+					notAllowedTx,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -337,9 +338,10 @@ describe('blocks/transactions', () => {
 				);
 				(notAllowedTx as any).signatures = ['invalid-signature'];
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.validateTransactions([validTx, notAllowedTx]);
+				const transactionsResponses = await chainInstance.validateTransactions([
+					validTx,
+					notAllowedTx,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -388,9 +390,10 @@ describe('blocks/transactions', () => {
 				validTxValidateSpy = jest.spyOn(validTx, 'validate');
 				validTx2ValidateSpy = jest.spyOn(validTx2, 'validate');
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.validateTransactions([validTx, validTx2]);
+				const transactionsResponses = await chainInstance.validateTransactions([
+					validTx,
+					validTx2,
+				]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
@@ -408,7 +411,7 @@ describe('blocks/transactions', () => {
 		});
 	});
 
-	describe('#verifyTransactions', () => {
+	describe('#applyTransactions', () => {
 		describe('when transactions include not allowed transaction based on the context', () => {
 			it('should return transaction response corresponds to the setup', async () => {
 				// Arrange
@@ -447,9 +450,10 @@ describe('blocks/transactions', () => {
 					transactionClass,
 				);
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.verifyTransactions([validTx, notAllowedTx]);
+				const transactionsResponses = await chainInstance.applyTransactions([
+					validTx,
+					notAllowedTx,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -493,9 +497,10 @@ describe('blocks/transactions', () => {
 				);
 				storageStub.entities.Transaction.get.mockResolvedValue([validTx2]);
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.verifyTransactions([validTx, validTx2]);
+				const transactionsResponses = await chainInstance.applyTransactions([
+					validTx,
+					validTx2,
+				]);
 				// Assert
 				expect(transactionsResponses).toHaveLength(2);
 				const validResponse = transactionsResponses.find(
@@ -503,161 +508,6 @@ describe('blocks/transactions', () => {
 				) as TransactionResponse;
 				const invalidResponse = transactionsResponses.find(
 					res => res.id === validTx2.id,
-				) as TransactionResponse;
-				expect(validResponse.status).toBe(1);
-				expect(validResponse.errors).toBeEmpty();
-				expect(invalidResponse.status).toBe(0);
-				expect(invalidResponse.errors).toHaveLength(1);
-			});
-		});
-
-		describe('when all transactions are new and verifiable', () => {
-			let responses: TransactionResponse[];
-			let validTxApplySpy: jest.SpyInstance;
-			let validTx2ApplySpy: jest.SpyInstance;
-
-			beforeEach(async () => {
-				// Arrange
-				storageStub.entities.Account.get
-					.mockResolvedValueOnce([
-						{ address: genesisAccount.address, balance: '100000000' },
-					])
-					.mockResolvedValue([]);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				// Act
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '10000000',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				const validTx2 = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '1',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
-						amount: '10000000',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				validTxApplySpy = jest.spyOn(validTx, 'apply');
-				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
-				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.verifyTransactions([validTx, validTx2]);
-				responses = transactionsResponses as TransactionResponse[];
-			});
-
-			it('should return transaction with all status 1', async () => {
-				expect(responses).toHaveLength(2);
-				expect(responses.every(res => res.status === 1)).toBeTrue();
-				expect(responses.every(res => res.errors.length === 0)).toBeTrue();
-			});
-
-			it('should call apply for all the transactions', async () => {
-				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
-				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
-			});
-		});
-	});
-
-	describe('#processTransactions', () => {
-		describe('when transactions include existing transaction in database', () => {
-			it('should return status FAIL for the existing transaction', async () => {
-				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000' },
-				]);
-
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-
-				const validTx2 = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-
-				storageStub.entities.Transaction.get.mockResolvedValue([validTx2]);
-				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.processTransactions([validTx, validTx2]);
-				// Assert
-				expect(transactionsResponses).toHaveLength(2);
-
-				const validResponse = transactionsResponses.find(
-					res => res.id === validTx.id,
-				) as TransactionResponse;
-
-				const invalidResponse = transactionsResponses.find(
-					res => res.id === validTx2.id,
-				) as TransactionResponse;
-
-				expect(validResponse.status).toBe(1);
-				expect(validResponse.errors).toBeEmpty();
-				expect(invalidResponse.status).toBe(0);
-				expect(invalidResponse.errors).toHaveLength(1);
-			});
-		});
-
-		describe('when transactions include not applicable transaction with current state', () => {
-			it('should return status FAIL for the invalid transaction', async () => {
-				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000100' },
-				]);
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				const invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
-						amount: '500',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
-				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.processTransactions([validTx, invalidTx]);
-				// Assert
-				expect(transactionsResponses).toHaveLength(2);
-				const validResponse = transactionsResponses.find(
-					res => res.id === validTx.id,
-				) as TransactionResponse;
-				const invalidResponse = transactionsResponses.find(
-					res => res.id === invalidTx.id,
 				) as TransactionResponse;
 				expect(validResponse.status).toBe(1);
 				expect(validResponse.errors).toBeEmpty();
@@ -722,9 +572,10 @@ describe('blocks/transactions', () => {
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
 				// Act
-				const {
-					transactionsResponses,
-				} = await chainInstance.processTransactions([validTx, validTx2]);
+				const transactionsResponses = await chainInstance.applyTransactions([
+					validTx,
+					validTx2,
+				]);
 				responses = transactionsResponses as TransactionResponse[];
 			});
 

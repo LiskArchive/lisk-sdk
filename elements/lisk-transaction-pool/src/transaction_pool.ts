@@ -13,17 +13,22 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
+import { TransactionPoolError } from './errors';
 import { Job } from './job';
 import { MinHeap } from './min_heap';
 import { TransactionList } from './transaction_list';
 import {
 	Status,
 	Transaction,
+	TransactionError,
 	TransactionResponse,
 	TransactionStatus,
 } from './types';
+
+const debug = Debug('lisk:transaction_pool');
 
 type ApplyFunction = (
 	transactions: ReadonlyArray<Transaction>,
@@ -37,7 +42,12 @@ export interface TransactionPoolConfig {
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
 	// tslint:disable-next-line no-mixed-interface
-	readonly applyTransaction: ApplyFunction;
+	readonly applyTransactions: ApplyFunction;
+}
+
+interface AddTransactionResponse {
+	readonly status: Status;
+	readonly errors: ReadonlyArray<TransactionError>;
 }
 
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
@@ -74,7 +84,7 @@ export class TransactionPool {
 		this._feePriorityQueue = new MinHeap<string, bigint>();
 		this._allTransactions = {};
 		this._transactionList = {};
-		this._applyFunction = config.applyTransaction;
+		this._applyFunction = config.applyTransactions;
 		this._maxTransactions = config.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS;
 		this._maxTransactionsPerAccount =
 			config.maxTransactionsPerAccount ?? DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT;
@@ -107,7 +117,7 @@ export class TransactionPool {
 		this._expireJob.stop();
 	}
 
-	public getAllTransactions(): ReadonlyArray<Transaction> {
+	public getAll(): ReadonlyArray<Transaction> {
 		return Object.values(this._allTransactions);
 	}
 
@@ -119,40 +129,68 @@ export class TransactionPool {
 		return this._allTransactions[id] !== undefined;
 	}
 
-	public async addTransaction(incomingTx: Transaction): Promise<boolean> {
+	/*
+	1. Reject duplicate transaction
+	2. Reject the transaction with lower feePriority than the minEntrancefeePriority
+	3. Reject the transaction when its feePriority is lower than the lowest feePriority present in the TxPool.
+	4. Apply the transaction using applyFunction and check if it is PROCESSABLE, UNPROCESSABLE or INVALID.
+	5. If PROCESSABLE or UNPROCESSABLE then add it to transactionList and feePriorityQueue, if INVALID then return a relevant error
+	*/
+	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
 		// Check for duplicate
 		if (this._allTransactions[incomingTx.id]) {
-			return false;
-		}
-		// Check for minimum entrance fee to the TxPool and if its low then reject the incoming tx
-		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
-		if (incomingTx.feePriority < this._minEntranceFeePriority) {
-			return false;
+			debug('Received duplicate transaction', incomingTx.id);
+
+			// Since we receive too many duplicate transactions
+			// To avoid too many errors we are returning Status.OK
+			return { status: Status.OK, errors: [] };
 		}
 
-		// Check if incoming transaction fee is greater than the minimum fee in the TxPool if the TxPool is full
+		// Check for minimum entrance fee priority to the TxPool and if its low then reject the incoming tx
+		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
+		if (incomingTx.feePriority < this._minEntranceFeePriority) {
+			const error = new TransactionPoolError(
+				`Rejecting transaction due to failed minimum entrance fee priority requirement`,
+				incomingTx.id,
+				'.fee',
+				incomingTx.feePriority.toString(),
+				this._minEntranceFeePriority.toString(),
+			);
+
+			return { status: Status.FAIL, errors: [error] };
+		}
+
+		// Check if incoming transaction fee is greater than the minimum fee priority in the TxPool if the TxPool is full
 		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
 		if (
 			Object.keys(this._allTransactions).length >= this._maxTransactions &&
 			lowestFeePriorityTrx &&
 			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
-			return false;
+			const error = new TransactionPoolError(
+				`Rejecting transaction due to fee priority when the pool is full`,
+				incomingTx.id,
+				'.fee',
+				incomingTx.feePriority.toString(),
+				lowestFeePriorityTrx.key.toString(),
+			);
+
+			return { status: Status.FAIL, errors: [error] };
 		}
+
 		this._feePriorityQueue.push(incomingTx.feePriority, incomingTx.id);
 
 		const incomingTxAddress = getAddressFromPublicKey(
 			incomingTx.senderPublicKey,
 		);
 
-		const txResponse = await this._applyFunction([incomingTx]);
-		const txStatus = this._getStatus(txResponse);
+		// _applyFunction is injected from chain module applyTransaction
+		const transactionsResponses = await this._applyFunction([incomingTx]);
+		const txStatus = this._getStatus(transactionsResponses);
 
 		// If applyTransaction fails for the transaction then throw error
 		if (txStatus === TransactionStatus.INVALID) {
-			throw new Error(
-				`Transaction with transaction id ${incomingTx.id} is an invalid transaction`,
-			);
+			return { status: Status.FAIL, errors: transactionsResponses[0].errors };
 		}
 
 		/* 
@@ -191,14 +229,17 @@ export class TransactionPool {
 			this._calculateFeePriority(incomingTx),
 			incomingTx.id,
 		);
-		// Add the transaction in the _transactionList
-		return this._transactionList[incomingTxAddress].add(
+
+		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
+		this._transactionList[incomingTxAddress].add(
 			incomingTx,
 			txStatus === TransactionStatus.PROCESSABLE,
 		);
+
+		return { status: Status.OK, errors: [] };
 	}
 
-	public removeTransaction(tx: Transaction): boolean {
+	public remove(tx: Transaction): boolean {
 		const foundTx = this._allTransactions[tx.id];
 		if (!foundTx) {
 			return false;
@@ -211,7 +252,7 @@ export class TransactionPool {
 
 		// Remove from feePriorityQueue
 		this._feePriorityQueue.clear();
-		for (const txObject of this.getAllTransactions()) {
+		for (const txObject of this.getAll()) {
 			this._feePriorityQueue.push(
 				txObject.feePriority ?? this._calculateFeePriority(txObject),
 				txObject.id,
@@ -231,6 +272,7 @@ export class TransactionPool {
 			const transactions = this._transactionList[address].getProcessable();
 			processableTransactions[address] = [...transactions];
 		}
+
 		return processableTransactions;
 	}
 
@@ -242,6 +284,8 @@ export class TransactionPool {
 		txResponse: ReadonlyArray<TransactionResponse>,
 	): TransactionStatus {
 		if (txResponse[0].status === Status.OK) {
+			debug('Received PROCESSABLE transaction');
+
 			return TransactionStatus.PROCESSABLE;
 		}
 		const txResponseErrors = txResponse[0].errors;
@@ -252,9 +296,12 @@ export class TransactionPool {
 			txResponseErrors[0].expected &&
 			txResponseErrors[0].actual > txResponseErrors[0].expected
 		) {
+			debug('Received UNPROCESSABLE transaction');
+
 			return TransactionStatus.UNPROCESSABLE;
 		}
 
+		debug('Received INVALID transaction');
 		return TransactionStatus.INVALID;
 	}
 
@@ -282,7 +329,7 @@ export class TransactionPool {
 			return false;
 		}
 
-		return this.removeTransaction(evictedTransaction.value);
+		return this.remove(evictedTransaction.value);
 	}
 
 	private _evictProcessable(): boolean {
@@ -311,7 +358,7 @@ export class TransactionPool {
 			return false;
 		}
 
-		return this.removeTransaction(evictedTransaction.value);
+		return this.remove(evictedTransaction.value);
 	}
 
 	private async _reorganize(): Promise<void> {
@@ -356,7 +403,7 @@ export class TransactionPool {
 			if (invalidTransaction) {
 				for (const tx of processableTransactions) {
 					if (tx.nonce >= invalidTransaction.nonce) {
-						this.removeTransaction(tx);
+						this.remove(tx);
 					}
 				}
 			}
@@ -371,7 +418,7 @@ export class TransactionPool {
 				),
 			);
 			if (timeDifference > this._transactionExpiryTime) {
-				this.removeTransaction(transaction);
+				this.remove(transaction);
 			}
 		}
 	}
