@@ -187,7 +187,11 @@ class Processor {
 	}
 
 	async create(values) {
-		this.logger.trace({ data: values }, 'Creating block');
+		const { previousBlock, ...restOFValues } = values;
+		this.logger.trace('Creating block', {
+			restOFValues,
+			previousBlockId: previousBlock.id,
+		});
 		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
 		const processor = this.processors[highestVersion];
 		return processor.create.run(values);
