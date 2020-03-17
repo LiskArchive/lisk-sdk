@@ -221,11 +221,6 @@ export class TransactionPool {
 			txStatus === TransactionStatus.PROCESSABLE,
 		);
 
-		if (removedID) {
-			debug('Removing from transaction pool with id', removedID);
-			delete this._allTransactions[removedID];
-		}
-
 		if (!added) {
 			return {
 				status: Status.FAIL,
@@ -236,6 +231,11 @@ export class TransactionPool {
 					),
 				],
 			};
+		}
+
+		if (removedID) {
+			debug('Removing from transaction pool with id', removedID);
+			delete this._allTransactions[removedID];
 		}
 
 		// Add received time to the incoming tx object
