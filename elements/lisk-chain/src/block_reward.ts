@@ -168,7 +168,7 @@ export const applyFeeAndRewards = async (
 	);
 	// tslint:disable-next-line no-let
 	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
-	totalFeeBurnt += totalMinFee;
+	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);

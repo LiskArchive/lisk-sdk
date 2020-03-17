@@ -863,6 +863,13 @@ describe('blocks/header', () => {
 			it('should not call account update', async () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
+
+			it('should not update burnt fee on chain state', async () => {
+				const genesisAccountFromStore = await stateStore.chainState.get(
+					CHAIN_STATE_KEY_BURNT_FEE,
+				);
+				expect(genesisAccountFromStore).toBe('0');
+			});
 		});
 	});
 
