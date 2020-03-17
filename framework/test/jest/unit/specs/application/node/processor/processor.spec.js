@@ -654,7 +654,7 @@ describe('processor', () => {
 				publicKey: Buffer.from('publicKey', 'utf8'),
 				privateKey: Buffer.from('privateKey', 'utf8'),
 			},
-			lastBlock: defaultLastBlock,
+			previousBlock: defaultLastBlock,
 		};
 
 		const createResult = {
