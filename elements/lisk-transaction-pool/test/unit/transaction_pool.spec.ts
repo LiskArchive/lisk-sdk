@@ -663,6 +663,15 @@ describe('TransactionPool class', () => {
 
 			expect(unprocessableTransactions).toContain(transactions[2]);
 		});
+
+		it('should call apply function with processable transaction', async () => {
+			// First transaction is processable
+			jest.advanceTimersByTime(2);
+
+			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(
+				transactions,
+			);
+		});
 	});
 
 	describe('expire', () => {
