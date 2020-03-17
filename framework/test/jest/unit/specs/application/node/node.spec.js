@@ -36,11 +36,13 @@ const { cacheConfig, nodeOptions } = require('../../../../../fixtures/node');
 
 describe('Node', () => {
 	let node;
+	let subscribedEvents;
 	const stubs = {};
 	const lastBlock = { ...nodeOptions.genesisBlock };
 
 	beforeEach(async () => {
 		// Arrange
+		subscribedEvents = {};
 
 		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(null);
 		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(null);
@@ -85,7 +87,9 @@ describe('Node', () => {
 
 		stubs.channel = {
 			invoke: jest.fn(),
-			subscribe: jest.fn(),
+			subscribe: jest.fn((event, cb) => {
+				subscribedEvents[event] = cb;
+			}),
 			once: jest.fn(),
 		};
 
@@ -327,6 +331,12 @@ describe('Node', () => {
 			);
 		});
 
+		it('should start transaction pool', () => {
+			jest.spyOn(node.transactionPool, 'start');
+			subscribedEvents['app:ready']();
+			return expect(node.transactionPool.start).toHaveBeenCalled();
+		});
+
 		describe('if any error thrown', () => {
 			let processEmitStub;
 			beforeEach(async () => {
@@ -370,9 +380,17 @@ describe('Node', () => {
 			// Arrange
 			await node.bootstrap();
 		});
+
 		it('should be an async function', () => {
 			// Assert
 			return expect(node.cleanup.constructor.name).toEqual('AsyncFunction');
+		});
+
+		it('should call transactionPool.stop', async () => {
+			jest.spyOn(node.transactionPool, 'stop');
+			await node.cleanup();
+			// Assert
+			expect(node.transactionPool.stop).toHaveBeenCalled();
 		});
 
 		it('should call cleanup on all modules', async () => {
