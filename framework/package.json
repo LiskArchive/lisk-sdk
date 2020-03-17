@@ -81,7 +81,7 @@
 		"swagger-node-runner": "git+https://github.com/CrowdFlower/swagger-node-runner.git#921e89ed",
 		"swagger-stats": "0.95.16",
 		"sway": "2.0.6",
-		"yargs": "15.1.0",
+		"yargs": "15.3.0",
 		"z-schema": "4.2.2"
 	},
 	"devDependencies": {
