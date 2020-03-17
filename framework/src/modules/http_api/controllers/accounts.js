@@ -84,7 +84,8 @@ AccountsController.getAccounts = async (context, next) => {
 
 	try {
 		const lastBlock = await channel.invoke('app:getLastBlock');
-		const data = await storage.entities.Account.get(filters, options).map(
+		const accounts = await storage.entities.Account.get(filters, options);
+		const data = accounts.map(
 			accountFormatter.bind(
 				null,
 				lastBlock.height
