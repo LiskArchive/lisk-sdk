@@ -155,7 +155,7 @@ class Transport {
 
 		const commonBlock = await this.chainModule.getHighestCommonBlock(data.ids);
 
-		return commonBlock;
+		return this.chainModule.serialize(commonBlock);
 	}
 
 	async handleEventPostBlock(data, peerId) {
