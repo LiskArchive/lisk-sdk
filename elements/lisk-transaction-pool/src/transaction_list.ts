@@ -138,7 +138,8 @@ export class TransactionList {
 		}
 		this._processable = Array.from(
 			new Set([...this._processable, ...promotingNonces]),
-		).sort();
+		);
+		this._sortProcessable();
 
 		return true;
 	}
@@ -228,6 +229,7 @@ export class TransactionList {
 		this._processable = this._processable.filter(
 			processableNonce => processableNonce < nonce,
 		);
+		this._sortProcessable();
 	}
 
 	private _highestNonce(): bigint {
@@ -245,5 +247,18 @@ export class TransactionList {
 
 			return prev;
 		}, highestNonce);
+	}
+
+	private _sortProcessable(): void {
+		this._processable.sort((a, b) => {
+			if (a - b > BigInt(0)) {
+				return 1;
+			}
+			if (a - b < BigInt(0)) {
+				return -1;
+			}
+
+			return 0;
+		});
 	}
 }

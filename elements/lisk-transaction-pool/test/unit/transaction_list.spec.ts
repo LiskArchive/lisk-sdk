@@ -424,13 +424,27 @@ describe('TransactionList class', () => {
 		});
 
 		describe('when promoting transaction matches id', () => {
-			it('should mark all the transactions as promotable', async () => {
+			it('should mark all the transactions as processable', async () => {
 				// Arrange
 				const addedTrx = insertNTransactions(transactionList, 10);
 				// Act
 				transactionList.promote(addedTrx.slice(0, 3));
 				// Assert
 				expect(transactionList.getProcessable()).toHaveLength(3);
+			});
+
+			it('should maintain processable in order ', async () => {
+				// Arrange
+				const addedTrx = insertNTransactions(transactionList, 60);
+				// Act
+				transactionList.promote(addedTrx.slice(9, 10));
+				transactionList.promote(addedTrx.slice(10, 22));
+				// Assert
+				const processable = transactionList.getProcessable();
+				expect(processable[0].nonce.toString()).toEqual('9');
+				expect(processable[processable.length - 1].nonce.toString()).toEqual(
+					'21',
+				);
 			});
 		});
 	});
