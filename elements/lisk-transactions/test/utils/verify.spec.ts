@@ -143,6 +143,66 @@ describe('#verify', () => {
 	});
 
 	describe('#verifyMultiSignatureTransaction', () => {
+		it('should return empty array when signatures ok', () => {
+			const validTransfer = new TransferTransaction({
+				senderPublicKey:
+					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				asset: {
+					amount: '500000000',
+					recipientId: '13360160607553818129L',
+				},
+			});
+
+			validTransfer.sign(
+				'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				undefined,
+				[
+					'trim elegant oven term access apple obtain error grain excite lawn neck',
+					'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
+					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
+				],
+				{
+					mandatoryKeys: [
+						'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+					],
+					optionalKeys: [
+						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+					],
+				},
+			);
+
+			const senderAccount = {
+				keys: {
+					mandatoryKeys: [
+						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+						'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+					],
+					optionalKeys: [
+						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+					],
+					numberOfSignatures: 4,
+				},
+			} as any;
+
+			const validTransferBytes = Buffer.concat([
+				cryptography.hexToBuffer(networkIdentifier),
+				(validTransfer as any).getBasicBytes(),
+			]);
+
+			const result = verifyMultiSignatureTransaction(
+				validTransfer.id,
+				senderAccount,
+				validTransfer.signatures,
+				validTransferBytes,
+			);
+
+			expect(result).toStrictEqual([]);
+		});
+
 		it('should return error when signatures does not have required number of signatures', () => {
 			const { signatures } = defaultTransferTransaction;
 			const publicKeys = getMemberPublicKeys(
@@ -167,7 +227,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				`Transaction signatures does not match required number of transactions: ${numberOfSignatures}`,
+				`Transaction signatures does not match required number of signatures: ${numberOfSignatures}`,
 			);
 		});
 
@@ -187,7 +247,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				`Transaction signatures does not match required number of transactions: ${defaultTransferTransaction.asset.numberOfSignatures}`,
+				`Transaction signatures does not match required number of signatures: ${defaultTransferTransaction.asset.numberOfSignatures}`,
 			);
 		});
 
