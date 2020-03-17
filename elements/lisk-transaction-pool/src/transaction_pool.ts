@@ -190,8 +190,8 @@ export class TransactionPool {
 			return { status: Status.FAIL, errors: transactionsResponses[0].errors };
 		}
 
-		/* 
-			Evict transactions if pool is full 
+		/*
+			Evict transactions if pool is full
 				1. Evict unprocessable by fee priority
 				2. Evict processable by fee priority and highest nonce
 		*/
@@ -295,7 +295,7 @@ export class TransactionPool {
 			txResponseErrors[0].dataPath === '.nonce' &&
 			txResponseErrors[0].actual &&
 			txResponseErrors[0].expected &&
-			txResponseErrors[0].actual > txResponseErrors[0].expected
+			BigInt(txResponseErrors[0].actual) > BigInt(txResponseErrors[0].expected)
 		) {
 			debug('Received UNPROCESSABLE transaction');
 
@@ -363,7 +363,7 @@ export class TransactionPool {
 	}
 
 	private async _reorganize(): Promise<void> {
-		/* 
+		/*
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
 		for (const txList of Object.values(this._transactionList)) {

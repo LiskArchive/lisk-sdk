@@ -13,31 +13,22 @@
  *
  */
 import { TransactionList } from '../../src/transaction_list';
-import {
-	TransactionPool,
-	TransactionPoolConfig,
-} from '../../src/transaction_pool';
+import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('TransactionPool class', () => {
-	let applyTransactionsStub = jest.fn();
-
-	const defaultTxPoolConfig: TransactionPoolConfig = {
-		applyTransactions: applyTransactionsStub,
-		transactionReorganizationInterval: 1,
-	};
-
 	let transactionPool: TransactionPool;
 
 	beforeEach(() => {
 		jest.useFakeTimers();
-		transactionPool = new TransactionPool(defaultTxPoolConfig);
-		(transactionPool as any)._applyFunction = applyTransactionsStub;
-		applyTransactionsStub.mockResolvedValue([
-			{ status: Status.OK, errors: [] },
-		]);
+		transactionPool = new TransactionPool({
+			applyTransactions: jest
+				.fn()
+				.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+			transactionReorganizationInterval: 1,
+		});
 	});
 
 	describe('constructor', () => {
@@ -266,9 +257,18 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should add a valid transaction and is added to the transaction list as unprocessable', async () => {
-			const getStatusStub = jest.fn();
-			transactionPool['_getStatus'] = getStatusStub;
-			getStatusStub.mockReturnValue(TransactionStatus.UNPROCESSABLE);
+			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue([
+				{
+					status: 0,
+					errors: [
+						{
+							dataPath: '.nonce',
+							actual: '123',
+							expected: '2',
+						},
+					],
+				},
+			]);
 			const { status } = await transactionPool.add(tx);
 
 			expect(status).toEqual(Status.OK);
@@ -303,13 +303,16 @@ describe('TransactionPool class', () => {
 			const transactionResponse = [
 				{ status: Status.FAIL, errors: [new Error('Invalid nonce sequence')] },
 			];
-			const getStatusStub = jest.fn();
-			transactionPool['_getStatus'] = getStatusStub;
-			applyTransactionsStub.mockResolvedValue(transactionResponse);
+			jest.spyOn(transactionPool, '_getStatus' as any);
+			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(
+				transactionResponse,
+			);
 			try {
 				await transactionPool.add(tx);
 			} catch (error) {
-				expect(getStatusStub).toHaveReturnedWith(TransactionStatus.INVALID);
+				expect(transactionPool['_getStatus']).toHaveReturnedWith(
+					TransactionStatus.INVALID,
+				);
 				expect(error.message).toContain(
 					`transaction id ${tx.id} is an invalid transaction`,
 				);
@@ -508,7 +511,10 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				...defaultTxPoolConfig,
+				applyTransactions: jest
+					.fn()
+					.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 			});
 			await transactionPool.add(transactions[0]);
@@ -559,7 +565,10 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				...defaultTxPoolConfig,
+				applyTransactions: jest
+					.fn()
+					.mockResolvedValue([{ status: Status.OK, errors: [] }]),
+				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 			});
 			await transactionPool.add(transactions[0]);
@@ -622,7 +631,9 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			transactionPool = new TransactionPool({
-				...defaultTxPoolConfig,
+				applyTransactions: jest
+					.fn()
+					.mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 			});
 			(transactionPool as any)._applyFunction.mockResolvedValue([
