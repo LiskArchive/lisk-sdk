@@ -212,10 +212,10 @@ describe('transaction:sign', () => {
 				`--passphrase=${anotherUserPassphrase}`,
 				`--mandatory-key=${KeyOne}`,
 			])
-			.catch(error => {
-				return expect(error.message).to.contain('Cannot read property');
-			})
-			.it('should throw error when optionalKey flag is missing');
+			.it('should output the signed transaction', () => {
+				const transaction = printMethodStub.getCall(0).lastArg;
+				return expect(transaction.signatures).to.have.lengthOf(1);
+			});
 	});
 
 	describe('transaction:sign transaction --passphrase=xxx --optional-key=aaa', () => {
@@ -226,10 +226,10 @@ describe('transaction:sign', () => {
 				`--passphrase=${anotherUserPassphrase}`,
 				`--optional-key=${KeyOne}`,
 			])
-			.catch(error => {
-				return expect(error.message).to.contain('Cannot read property');
-			})
-			.it('should throw error when mandatoryKey flag is missing');
+			.it('should output the signed transaction', () => {
+				const transaction = printMethodStub.getCall(0).lastArg;
+				return expect(transaction.signatures).to.have.lengthOf(1);
+			});
 	});
 
 	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb', () => {
