@@ -247,7 +247,7 @@ NodeController.getPooledTransactions = async (context, next) => {
 		const filteredTransactions = _filterTransactions(transactions, filters);
 
 		return next(null, {
-			transactions: filteredTransactions,
+			data: filteredTransactions,
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,

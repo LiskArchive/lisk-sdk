@@ -88,8 +88,9 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added, removedID } = transactionList.add(replacing);
 					// Assert
+					expect(removedID).toEqual(addedTxs[0].id);
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(5);
 					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
@@ -105,9 +106,10 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added, removedID } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(true);
+					expect(removedID).toEqual(addedTxs[0].id);
 					expect(transactionList.size).toEqual(5);
 					expect(transactionList.getProcessable()).toHaveLength(0);
 					expect(transactionList.getUnprocessable()).toHaveLength(5);
@@ -125,7 +127,7 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(5),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(5);
@@ -145,7 +147,7 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee - BigInt(100),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(5);
@@ -165,7 +167,7 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee,
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(5);
@@ -184,7 +186,7 @@ describe('TransactionList class', () => {
 						nonce: BigInt(6),
 					} as Transaction;
 					// Act
-					const added = transactionList.add(adding);
+					const { added } = transactionList.add(adding);
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(6);
@@ -201,7 +203,7 @@ describe('TransactionList class', () => {
 						nonce: BigInt(0),
 					} as Transaction;
 					// Act
-					const added = transactionList.add(adding, true);
+					const { added } = transactionList.add(adding, true);
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(6);
@@ -222,9 +224,10 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added, removedID } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(true);
+					expect(removedID).toEqual(addedTxs[0].id);
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
 				});
@@ -239,9 +242,10 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added, removedID } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(true);
+					expect(removedID).toEqual(addedTxs[0].id);
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.getProcessable()).toHaveLength(0);
 					expect(transactionList.getUnprocessable()).toHaveLength(10);
@@ -259,7 +263,7 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(5),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(10);
@@ -279,7 +283,7 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee - BigInt(100),
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(10);
@@ -299,7 +303,7 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee,
 					};
 					// Act
-					const added = transactionList.add(replacing);
+					const { added } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(10);
@@ -319,7 +323,7 @@ describe('TransactionList class', () => {
 						nonce: BigInt(100),
 					} as Transaction;
 					// Act
-					const added = transactionList.add(adding);
+					const { added } = transactionList.add(adding);
 					// Assert
 					expect(added).toEqual(false);
 					expect(transactionList.size).toEqual(10);
@@ -337,9 +341,10 @@ describe('TransactionList class', () => {
 					} as Transaction;
 					jest.spyOn(transactionList.events, 'emit');
 					// Act
-					const added = transactionList.add(adding);
+					const { added, removedID } = transactionList.add(adding);
 					// Assert
 					expect(added).toEqual(true);
+					expect(removedID).toEqual('10');
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.get(BigInt(0))?.id).toEqual('new-id');
 					expect(transactionList.events.emit).toHaveBeenCalledWith(
@@ -362,7 +367,7 @@ describe('TransactionList class', () => {
 				// Act
 				const removed = transactionList.remove(BigInt(0));
 				// Assert
-				expect(removed).toEqual(false);
+				expect(removed).toBeUndefined();
 				expect(transactionList.size).toEqual(10);
 			});
 		});
@@ -375,7 +380,7 @@ describe('TransactionList class', () => {
 				// Act
 				const removed = transactionList.remove(BigInt(5));
 				// Assert
-				expect(removed).toEqual(true);
+				expect(removed).toEqual('5');
 				expect(transactionList.size).toEqual(9);
 				expect(transactionList.getProcessable()).toHaveLength(5);
 				expect(transactionList.getUnprocessable()).toHaveLength(4);
