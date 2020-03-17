@@ -33,6 +33,7 @@ function accountFormatter(totalSupply, account) {
 		'balance',
 		'nonce',
 		'asset',
+		'keys',
 	]);
 
 	if (account.isDelegate) {
@@ -50,6 +51,10 @@ function accountFormatter(totalSupply, account) {
 			formattedAccount.delegate.voteWeight,
 			totalSupply,
 		);
+	}
+
+	if (formattedAccount.keys.numberOfSignatures === 0) {
+		delete formattedAccount.keys;
 	}
 
 	formattedAccount.publicKey = formattedAccount.publicKey || '';
