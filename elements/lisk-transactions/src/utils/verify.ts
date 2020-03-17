@@ -162,7 +162,9 @@ export const verifyMultiSignatureTransaction = (
 				signature,
 				transactionBytes,
 			);
-			errors.push(error as TransactionError);
+			if (error) {
+				errors.push(error);
+			}
 		}
 	}
 
