@@ -66,10 +66,6 @@ export const signMultiSignatureTransaction = (options: {
 		throw new Error('Invalid transaction type.');
 	}
 
-	if (!transaction.id) {
-		throw new Error('Transaction ID is required to create a signature object.');
-	}
-
 	// Sort keys
 	sortKeysAscending(keys.mandatoryKeys);
 	sortKeysAscending(keys.optionalKeys);
