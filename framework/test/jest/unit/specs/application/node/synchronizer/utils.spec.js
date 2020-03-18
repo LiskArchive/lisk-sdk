@@ -25,7 +25,6 @@ describe('#synchronizer/utils', () => {
 	let processorMock;
 	let storageMock;
 	let loggerMock;
-	const stubs = {};
 
 	beforeEach(async () => {
 		chainMock = {
@@ -57,8 +56,6 @@ describe('#synchronizer/utils', () => {
 				},
 			},
 		};
-
-		stubs.tx = jest.fn();
 	});
 
 	describe('restoreBlocks()', () => {
@@ -68,7 +65,7 @@ describe('#synchronizer/utils', () => {
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
-			const result = await restoreBlocks(chainMock, processorMock, stubs.tx);
+			const result = await restoreBlocks(chainMock, processorMock);
 
 			// Assert
 			expect(result).toBeTruthy();
@@ -83,14 +80,10 @@ describe('#synchronizer/utils', () => {
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
-			await restoreBlocks(chainMock, processorMock, stubs.tx);
+			await restoreBlocks(chainMock, processorMock);
 
 			// Assert
-			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalledWith(
-				{},
-				{ sort: 'height:asc', limit: null },
-				stubs.tx,
-			);
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 			expect(processorMock.processValidated).toHaveBeenCalledTimes(2);
 			expect(processorMock.processValidated).toHaveBeenNthCalledWith(
 				1,
@@ -109,15 +102,11 @@ describe('#synchronizer/utils', () => {
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue([]);
 
 			// Act
-			const result = await restoreBlocks(chainMock, processorMock, stubs.tx);
+			const result = await restoreBlocks(chainMock, processorMock);
 
 			// Assert
 			expect(result).toBeFalsy();
-			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalledWith(
-				{},
-				{ sort: 'height:asc', limit: null },
-				stubs.tx,
-			);
+			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
 			expect(processorMock.processValidated).not.toHaveBeenCalled();
 		});
 	});
