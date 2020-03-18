@@ -20,6 +20,7 @@ import { MultisignatureTransaction } from './12_multisignature_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
+import { sortKeysAscending } from './utils';
 
 // tslint:disable-next-line no-any
 const transactionMap: { readonly [key: number]: any } = {
@@ -49,6 +50,15 @@ export const signMultiSignatureTransaction = (options: {
 
 	if (!transaction.id) {
 		throw new Error('Transaction ID is required to create a signature object.');
+	}
+
+	// Sort keys
+	if (keys.mandatoryKeys) {
+		sortKeysAscending(keys.mandatoryKeys);
+	}
+
+	if (keys.optionalKeys) {
+		sortKeysAscending(keys.optionalKeys);
 	}
 
 	// tslint:disable-next-line variable-name
