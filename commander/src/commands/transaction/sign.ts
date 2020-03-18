@@ -128,8 +128,8 @@ export default class SignCommand extends BaseCommand {
 		});
 
 		const keys = {
-			mandatoryKeys,
-			optionalKeys,
+			mandatoryKeys: mandatoryKeys ?? [],
+			optionalKeys: optionalKeys ?? [],
 		};
 
 		if (mandatoryKeys?.length || optionalKeys?.length) {

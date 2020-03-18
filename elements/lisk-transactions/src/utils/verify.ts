@@ -134,7 +134,7 @@ export const verifyMultiSignatureTransaction = (
 		signatures.length !== numMandatoryKeys + numOptionalKeys
 	) {
 		const error = new TransactionError(
-			`Transaction signatures does not match required number of transactions: ${numberOfSignatures}`,
+			`Transaction signatures does not match required number of signatures: ${numberOfSignatures}`,
 			id,
 			'.signatures',
 			signatures.join(','),
@@ -162,7 +162,9 @@ export const verifyMultiSignatureTransaction = (
 				signature,
 				transactionBytes,
 			);
-			errors.push(error as TransactionError);
+			if (error) {
+				errors.push(error);
+			}
 		}
 	}
 
