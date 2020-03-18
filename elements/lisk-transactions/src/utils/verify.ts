@@ -98,8 +98,20 @@ export const validateKeysSignatures = (
 	transactionBytes: Buffer,
 ) => {
 	const errors = [];
+
 	// tslint:disable-next-line: prefer-for-of no-let
 	for (let i = 0; i < keys.length; i += 1) {
+		if (signatures[i].length === 0) {
+			errors.push(
+				new TransactionError(
+					'All mandatory keys have to sign the transaction.',
+					undefined,
+					'.signatures',
+					signatures.join(','),
+				),
+			);
+			break;
+		}
 		const { error } = validateSignature(
 			keys[i],
 			signatures[i],
