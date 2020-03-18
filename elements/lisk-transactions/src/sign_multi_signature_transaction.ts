@@ -96,7 +96,7 @@ export const signMultiSignatureTransaction = (options: {
 		passphrase,
 	);
 
-	if (tx.signatures.indexOf(signature) !== -1) {
+	if (tx.signatures.includes(signature)) {
 		sanitizeSignaturesArray(tx, keys);
 
 		return tx;
