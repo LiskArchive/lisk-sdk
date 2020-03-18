@@ -66,6 +66,7 @@ describe('Transport', () => {
 			dataAccess: {
 				getTransactionsByIDs: jest.fn(),
 			},
+			serialize: jest.fn(),
 		};
 		processorStub = {};
 		transport = new Transport({
@@ -283,6 +284,7 @@ describe('Transport', () => {
 		describe('when commonBlock has not been found', () => {
 			beforeEach(async () => {
 				chainStub.getHighestCommonBlock.mockResolvedValue(null);
+				chainStub.serialize.mockResolvedValue(null);
 			});
 
 			it('should return null', async () => {
@@ -308,6 +310,7 @@ describe('Transport', () => {
 
 			beforeEach(async () => {
 				chainStub.getHighestCommonBlock.mockResolvedValue(validBlock);
+				chainStub.serialize.mockResolvedValue(validBlock);
 			});
 
 			it('should return the result', async () => {
