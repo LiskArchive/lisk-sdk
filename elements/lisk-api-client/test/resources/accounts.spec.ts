@@ -47,15 +47,5 @@ describe('AccountsResource', () => {
 		it('should have a "get" function', () => {
 			return expect((resource as any).get).toBeFunction();
 		});
-
-		it('should have a "getMultisignatureGroups" function', () => {
-			return expect((resource as any).getMultisignatureGroups).toBeFunction();
-		});
-
-		it('should have a "getMultisignatureMemberships" function', () => {
-			return expect(
-				(resource as any).getMultisignatureMemberships,
-			).toBeFunction();
-		});
 	});
 });

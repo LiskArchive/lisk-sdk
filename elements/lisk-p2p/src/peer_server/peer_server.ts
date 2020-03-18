@@ -480,7 +480,7 @@ export class PeerServer extends EventEmitter {
 				if (
 					(parsed.event && typeof parsed.event !== 'string') ||
 					invalidEvents.has(parsed.event) ||
-					(parsed.event && parsed.event.length > MAX_EVENT_NAME_LENGTH)
+					(parsed.event?.length > MAX_EVENT_NAME_LENGTH)
 				) {
 					throw new InvalidPayloadError('Received invalid payload', parsed);
 				}
