@@ -226,7 +226,7 @@ export class TransactionPool {
 				status: Status.FAIL,
 				errors: [
 					new TransactionPoolError(
-						'Transaction was not added because it exceeds maximum limit per account',
+						'Transaction was not added to the pool as it exceeds maximum transaction limit per account',
 						incomingTx.id,
 					),
 				],
