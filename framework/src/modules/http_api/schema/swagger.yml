@@ -1069,7 +1069,6 @@ definitions:
   TransactionRequest:
     type: object
     required:
-      - id
       - type
       - senderPublicKey
       - nonce
@@ -1077,15 +1076,6 @@ definitions:
       - asset
       - signatures
     properties:
-      id:
-        type: string
-        format: id
-        example: '222675625422353767'
-        minLength: 1
-        maxLength: 20
-        description: |
-          Unique identifier of the transaction.
-          Derived from the transaction signature.
       type:
         type: integer
         minimum: 0
