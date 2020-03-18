@@ -104,7 +104,7 @@ export const validateKeysSignatures = (
 		if (signatures[i].length === 0) {
 			errors.push(
 				new TransactionError(
-					'All mandatory keys have to sign the transaction.',
+					'Invalid signatures format. signatures should not include empty string.',
 					undefined,
 					'.signatures',
 					signatures.join(','),
