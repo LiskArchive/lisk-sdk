@@ -37,7 +37,7 @@ describe('TransactionPool class', () => {
 				expect((transactionPool as any)._maxTransactions).toEqual(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(64);
 				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
-					BigInt(1),
+					BigInt(0),
 				);
 				expect((transactionPool as any)._minReplacementFeeDifference).toEqual(
 					BigInt(10),
