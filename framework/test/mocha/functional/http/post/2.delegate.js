@@ -60,7 +60,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	const accountUpperCase = randomUtil.account();
 	const accountFormerDelegate = randomUtil.account();
 	// To validate minimum remaining balance check
-	const halfLSK = BigInt('500000');
+	const minRemainingBalance = BigInt('5000000');
 
 	// Crediting accounts
 	before(() => {
@@ -77,7 +77,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			nonce: '0',
 			fee: '129001',
 			networkIdentifier,
-			amount: BigInt('2000000000') + halfLSK,
+			amount: BigInt('2000000000') + minRemainingBalance,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
