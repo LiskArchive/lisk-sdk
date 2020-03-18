@@ -306,6 +306,10 @@ export class Chain {
 		return this.dataAccess.serialize(blockJSON);
 	}
 
+	public serializeBlockHeader(blockHeader: BlockHeader): BlockHeaderJSON {
+		return this.dataAccess.serializeBlockHeader(blockHeader);
+	}
+
 	public deserializeBlockHeader(blockJSON: BlockHeaderJSON): BlockHeader {
 		return this.dataAccess.deserializeBlockHeader(blockJSON);
 	}

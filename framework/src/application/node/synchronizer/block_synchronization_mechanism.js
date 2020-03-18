@@ -128,6 +128,8 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 			if (blocks && blocks.length) {
+				// Sort blocks with height in ascending order because blocks are returned in decending order
+				blocks.sort((a, b) => a.height - b.height);
 				[{ id: lastFetchedID }] = blocks.slice(-1);
 				const index = blocks.findIndex(block => block.id === toId);
 				if (index > -1) {
@@ -375,15 +377,13 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			try {
 				// Request the highest common block with the previously computed list
 				// to the given peer
-				data = (
-					await this.channel.invokeFromNetwork('requestFromPeer', {
-						procedure: 'getHighestCommonBlock',
-						peerId,
-						data: {
-							ids: blockHeaders.map(block => block.id),
-						},
-					})
-				).data;
+				({ data } = await this.channel.invokeFromNetwork('requestFromPeer', {
+					procedure: 'getHighestCommonBlock',
+					peerId,
+					data: {
+						ids: blockHeaders.map(block => block.id),
+					},
+				}));
 			} catch (e) {
 				numberOfRequests += 1;
 				// eslint-disable-next-line no-continue

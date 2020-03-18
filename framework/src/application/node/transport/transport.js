@@ -154,8 +154,11 @@ class Transport {
 		}
 
 		const commonBlock = await this.chainModule.getHighestCommonBlock(data.ids);
+		if (!commonBlock) {
+			throw new Error('Common block did not exist');
+		}
 
-		return this.chainModule.serialize(commonBlock);
+		return this.chainModule.serializeBlockHeader(commonBlock);
 	}
 
 	async handleEventPostBlock(data, peerId) {
