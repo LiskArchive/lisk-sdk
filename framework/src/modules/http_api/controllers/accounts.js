@@ -53,6 +53,7 @@ function accountFormatter(totalSupply, account) {
 		);
 	}
 
+	// If an account is not multi signature, then do not include keys for response
 	if (formattedAccount.keys.numberOfSignatures === 0) {
 		delete formattedAccount.keys;
 	}
