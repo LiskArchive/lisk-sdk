@@ -53,13 +53,8 @@ export const signMultiSignatureTransaction = (options: {
 	}
 
 	// Sort keys
-	if (keys.mandatoryKeys) {
-		sortKeysAscending(keys.mandatoryKeys);
-	}
-
-	if (keys.optionalKeys) {
-		sortKeysAscending(keys.optionalKeys);
-	}
+	sortKeysAscending(keys.mandatoryKeys);
+	sortKeysAscending(keys.optionalKeys);
 
 	// tslint:disable-next-line variable-name
 	const TransactionClass = transactionMap[transaction.type];
