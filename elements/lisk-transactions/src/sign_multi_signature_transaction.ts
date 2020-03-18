@@ -30,14 +30,32 @@ const transactionMap: { readonly [key: number]: any } = {
 	12: MultisignatureTransaction,
 };
 
+const sanitizeSignaturesArray = (tx: BaseTransaction, keys: MultisigKeys) => {
+	// tslint:disable-next-line: no-let
+	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
+	// Add one extra for multisig account registration
+	if (tx.type === MultisignatureTransaction.TYPE) {
+		numberOfSignatures += 1;
+	}
+
+	// tslint:disable-next-line: no-let
+	for (let i = 0; i < numberOfSignatures; i += 1) {
+		if (tx.signatures[i] === undefined) {
+			tx.signatures[i] = '';
+		}
+	}
+};
+
+interface MultisigKeys {
+	readonly mandatoryKeys: string[];
+	readonly optionalKeys: string[];
+}
+
 export const signMultiSignatureTransaction = (options: {
 	readonly transaction: TransactionJSON;
 	readonly passphrase: string;
 	readonly networkIdentifier: string;
-	readonly keys: {
-		readonly mandatoryKeys: string[];
-		readonly optionalKeys: string[];
-	};
+	readonly keys: MultisigKeys;
 }): BaseTransaction => {
 	const { transaction, passphrase, networkIdentifier, keys } = options;
 	if (transaction.type === undefined || transaction.type === null) {
@@ -46,10 +64,6 @@ export const signMultiSignatureTransaction = (options: {
 
 	if (!Object.keys(transactionMap).includes(String(transaction.type))) {
 		throw new Error('Invalid transaction type.');
-	}
-
-	if (!transaction.id) {
-		throw new Error('Transaction ID is required to create a signature object.');
 	}
 
 	// Sort keys
@@ -77,6 +91,12 @@ export const signMultiSignatureTransaction = (options: {
 		cryptography.hash(transactionWithNetworkIdentifierBytes),
 		passphrase,
 	);
+
+	if (tx.signatures.includes(signature)) {
+		sanitizeSignaturesArray(tx, keys);
+
+		return tx;
+	}
 
 	// Locate where this public key should go in the signatures array
 	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(
@@ -110,6 +130,8 @@ export const signMultiSignatureTransaction = (options: {
 			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
 		] = signature;
 	}
+
+	sanitizeSignaturesArray(tx, keys);
 
 	return tx;
 };

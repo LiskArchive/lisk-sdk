@@ -226,7 +226,7 @@ export class TransactionPool {
 				status: Status.FAIL,
 				errors: [
 					new TransactionPoolError(
-						'Transaction was not added because of nonce or fee',
+						'Transaction was not added to the pool as it exceeds maximum transaction limit per account',
 						incomingTx.id,
 					),
 				],
