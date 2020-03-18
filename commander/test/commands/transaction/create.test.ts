@@ -18,6 +18,7 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
+import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
 import VoteCommand from '../../../src/commands/transaction/create/vote';
 
@@ -33,7 +34,8 @@ describe('transaction:create', () => {
 			)
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
-			.stub(VoteCommand, 'run', sandbox.stub());
+			.stub(VoteCommand, 'run', sandbox.stub())
+			.stub(MultisignatureCommand, 'run', sandbox.stub());
 
 	describe('transaction:create', () => {
 		setupTest()
@@ -98,6 +100,34 @@ describe('transaction:create', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
 					'--votes',
 					'xxx,xxx',
+				]);
+			});
+
+		setupTest()
+			.command([
+				'transaction:create',
+				'--type=12',
+				'--mandatory-key=xxx',
+				'--optional-key=yyy',
+			])
+			.it('should call type 12 command with flag type=12', () => {
+				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
+					'--mandatory-key=xxx',
+					'--optional-key=yyy',
+				]);
+			});
+
+		setupTest()
+			.command([
+				'transaction:create',
+				'-t=multisignature',
+				'--mandatory-key=xxx',
+				'--optional-key=yyy',
+			])
+			.it('should call type 12 command with flag type=multisignature', () => {
+				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
+					'--mandatory-key=xxx',
+					'--optional-key=yyy',
 				]);
 			});
 	});
