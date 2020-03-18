@@ -20,8 +20,6 @@ import { GET } from '../constants';
 
 export class AccountsResource extends APIResource {
 	public get: APIHandler;
-	public getMultisignatureGroups: APIHandler;
-	public getMultisignatureMemberships: APIHandler;
 	public path: string;
 
 	public constructor(apiClient: APIClient) {
@@ -30,18 +28,6 @@ export class AccountsResource extends APIResource {
 
 		this.get = apiMethod({
 			method: GET,
-		}).bind(this);
-
-		this.getMultisignatureGroups = apiMethod({
-			method: GET,
-			path: '/{address}/multisignature_groups',
-			urlParams: ['address'],
-		}).bind(this);
-
-		this.getMultisignatureMemberships = apiMethod({
-			method: GET,
-			path: '/{address}/multisignature_memberships',
-			urlParams: ['address'],
 		}).bind(this);
 	}
 }
