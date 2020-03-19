@@ -24,7 +24,10 @@ const {
 } = require('@liskhq/lisk-dpos');
 const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { TransactionPool } = require('@liskhq/lisk-transaction-pool');
+const {
+	TransactionPool,
+	events: { EVENT_TRANSACTION_REMOVED },
+} = require('@liskhq/lisk-transaction-pool');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
 const jobQueue = require('./utils/jobs_queue');
@@ -589,6 +592,10 @@ module.exports = class Node {
 				});
 			},
 		);
+
+		this.transactionPool.events.on(EVENT_TRANSACTION_REMOVED, event => {
+			this.logger.debug(event, 'Transaction was removed from the pool.');
+		});
 
 		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
 			this.dpos.onBlockFinalized({ height });

@@ -29,6 +29,7 @@ describe('TransactionPool class', () => {
 				.mockResolvedValue([{ status: Status.OK, errors: [] }]),
 			transactionReorganizationInterval: 1,
 		});
+		jest.spyOn(transactionPool.events, 'emit');
 	});
 
 	describe('constructor', () => {
@@ -517,6 +518,7 @@ describe('TransactionPool class', () => {
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 			});
+			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactions[0]);
 			await transactionPool.add(transactions[1]);
 		});
@@ -533,6 +535,7 @@ describe('TransactionPool class', () => {
 			expect((transactionPool as any)._allTransactions).not.toContain(
 				transactions[0],
 			);
+			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -571,6 +574,7 @@ describe('TransactionPool class', () => {
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
 			});
+			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactions[0]);
 			await transactionPool.add(transactions[1]);
 		});
@@ -587,6 +591,7 @@ describe('TransactionPool class', () => {
 			expect((transactionPool as any)._allTransactions).not.toContain(
 				transactions[0],
 			);
+			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -720,6 +725,7 @@ describe('TransactionPool class', () => {
 			expect((transactionPool as any).remove).toHaveBeenCalledWith(
 				transactions[2],
 			);
+			expect(transactionPool.events.emit).toHaveBeenCalledTimes(2);
 		});
 	});
 });
