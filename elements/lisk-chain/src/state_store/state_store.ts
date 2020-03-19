@@ -17,7 +17,6 @@ import { BlockHeader, Storage, StorageTransaction } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
 import { ConsensusStateStore } from './consensus_state_store';
-import { TransactionStore } from './transaction_store';
 
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
@@ -26,7 +25,6 @@ interface AdditionalInformation {
 
 export class StateStore {
 	public readonly account: AccountStore;
-	public readonly transaction: TransactionStore;
 	public readonly chain: ChainStateStore;
 	public readonly consensus: ConsensusStateStore;
 
@@ -42,19 +40,16 @@ export class StateStore {
 			lastBlockHeader: additionalInformation.lastBlockHeaders[0],
 			networkIdentifier: additionalInformation.networkIdentifier,
 		});
-		this.transaction = new TransactionStore(storage.entities.Transaction);
 	}
 
 	public createSnapshot(): void {
 		this.account.createSnapshot();
-		this.transaction.createSnapshot();
 		this.consensus.createSnapshot();
 		this.chain.createSnapshot();
 	}
 
 	public restoreSnapshot(): void {
 		this.account.restoreSnapshot();
-		this.transaction.restoreSnapshot();
 		this.consensus.restoreSnapshot();
 		this.chain.restoreSnapshot();
 	}

@@ -67,7 +67,6 @@ export const applyGenesisTransactions = () => async (
 		const transactionResponse = await transaction.apply(stateStore);
 
 		await votesWeight.apply(stateStore, transaction);
-		stateStore.transaction.add(transaction.toJSON());
 
 		// We are overriding the status of transaction because it's from genesis block
 		(transactionResponse as WriteableTransactionResponse).status =
@@ -103,7 +102,6 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 		}
 		if (transactionResponse.status === TransactionStatus.OK) {
 			await votesWeight.apply(stateStore, transaction, exceptions);
-			stateStore.transaction.add(transaction.toJSON());
 		}
 
 		if (transactionResponse.status !== TransactionStatus.OK) {
