@@ -263,7 +263,7 @@ describe('block_synchronization_mechanism', () => {
 						blockId: highestCommonBlock.id,
 					},
 				})
-				.mockResolvedValue({ data: cloneDeep(requestedBlocks) });
+				.mockResolvedValue({ data: cloneDeep(requestedBlocks).reverse() });
 		}
 		when(chainModule.dataAccess.getBlockHeadersWithHeights)
 			.calledWith(blockHeightsList)
@@ -507,7 +507,7 @@ describe('block_synchronization_mechanism', () => {
 								blockId: highestCommonBlock.id,
 							},
 						})
-						.mockResolvedValue({ data: requestedBlocks });
+						.mockResolvedValue({ data: cloneDeep(requestedBlocks).reverse() });
 				}
 
 				await blockSynchronizationMechanism.run(receivedBlock);
@@ -604,7 +604,9 @@ describe('block_synchronization_mechanism', () => {
 									blockId: highestCommonBlock.id,
 								},
 							})
-							.mockResolvedValue({ data: requestedBlocks });
+							.mockResolvedValue({
+								data: cloneDeep(requestedBlocks).reverse(),
+							});
 					}
 
 					when(chainModule.dataAccess.getBlockHeadersWithHeights)
@@ -745,7 +747,8 @@ describe('block_synchronization_mechanism', () => {
 		describe('request and apply blocks to current chain', () => {
 			it('should request blocks and apply them', async () => {
 				requestedBlocks = [
-					...new Array(10)
+					// From height 2 (highestCommonBlock.height + 1) to 9 (aBlock.height - 1)
+					...new Array(8)
 						.fill(0)
 						.map((_, index) =>
 							newBlock({ height: highestCommonBlock.height + 1 + index }),
@@ -766,7 +769,8 @@ describe('block_synchronization_mechanism', () => {
 								blockId: highestCommonBlock.id,
 							},
 						})
-						.mockResolvedValue({ data: cloneDeep(requestedBlocks) });
+						// getBlocksFromId returns in height desc order
+						.mockResolvedValue({ data: cloneDeep(requestedBlocks).reverse() });
 				}
 
 				await blockSynchronizationMechanism.run(aBlock);
@@ -795,6 +799,9 @@ describe('block_synchronization_mechanism', () => {
 					requestedBlocks.findIndex(block => block.id === aBlock.id) + 1,
 				);
 
+				expect(processorModule.process).toHaveBeenCalledTimes(
+					blocksToApply.length,
+				);
 				for (const requestedBlock of blocksToApply) {
 					expect(processorModule.process).toHaveBeenCalledWith(
 						await processorModule.deserialize(requestedBlock),
@@ -1000,7 +1007,9 @@ describe('block_synchronization_mechanism', () => {
 									blockId: highestCommonBlock.id,
 								},
 							})
-							.mockResolvedValue({ data: requestedBlocks });
+							.mockResolvedValue({
+								data: cloneDeep(requestedBlocks).reverse(),
+							});
 					}
 
 					chainModule.dataAccess.getTempBlocks.mockResolvedValue([

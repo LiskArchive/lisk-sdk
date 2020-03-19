@@ -108,7 +108,7 @@ describe('Synchronizer', () => {
 			getAccountsByPublicKey: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
 			deserialize: chainModule.dataAccess.deserialize,
-			serialize: chainModule.dataAccess.serialize,
+			serializeBlockHeader: chainModule.dataAccess.serializeBlockHeader,
 			deserializeTransaction: chainModule.dataAccess.deserializeTransaction,
 		};
 		chainModule.dataAccess = dataAccessMock;
@@ -464,7 +464,7 @@ describe('Synchronizer', () => {
 		let aReceivedBlock;
 
 		beforeEach(async () => {
-			aReceivedBlock = await processorModule.serialize(newBlock()); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
+			aReceivedBlock = await chainModule.serializeBlockHeader(newBlock()); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
 		});
 
 		it('should reject with error if there is already an active mechanism', async () => {
