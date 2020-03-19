@@ -137,6 +137,8 @@ module.exports = class Node {
 			this.logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
 			await this.processor.init(this.options.genesisBlock);
+			// Check if blocks are left in temp_blocks table
+			await this.synchronizer.init();
 
 			// Update Application State after processor is initialized
 			this.channel.invoke('app:updateApplicationState', {
@@ -203,9 +205,6 @@ module.exports = class Node {
 					},
 				);
 			}
-
-			// Check if blocks are left in temp_blocks table
-			await this.synchronizer.init();
 		} catch (error) {
 			this.logger.fatal(
 				{

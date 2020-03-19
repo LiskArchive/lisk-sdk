@@ -17,12 +17,8 @@
 const { maxBy } = require('lodash');
 const { ForkStatus } = require('@liskhq/lisk-bft');
 
-const restoreBlocks = async (chainModule, processorModule, tx = null) => {
-	const tempBlocks = await chainModule.dataAccess.getTempBlocks(
-		{},
-		{ sort: 'height:asc', limit: null },
-		tx,
-	);
+const restoreBlocks = async (chainModule, processorModule) => {
+	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
 
 	if (!tempBlocks || tempBlocks.length === 0) {
 		return false;

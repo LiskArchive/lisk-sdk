@@ -361,24 +361,24 @@ export class DataAccess {
 
 	// tslint:disable-next-line:prefer-function-over-method
 	public serialize(blockInstance: BlockInstance): BlockJSON {
-		const blockJSON = {
-			...blockInstance,
-			totalAmount: blockInstance.totalAmount.toString(),
-			totalFee: blockInstance.totalFee.toString(),
-			reward: blockInstance.reward.toString(),
-			transactions: blockInstance.transactions.map(tx => ({
-				...tx.toJSON(),
-				blockId: blockInstance.id,
-			})),
-		};
+		const { transactions, ...blockHeader } = blockInstance;
+		const blockHeaderJSON = this.serializeBlockHeader(blockHeader);
+		const transactionsJSON = transactions.map(tx => ({
+			...tx.toJSON(),
+			blockId: blockInstance.id,
+		}));
 
-		return blockJSON;
+		return {
+			...blockHeaderJSON,
+			transactions: transactionsJSON,
+		};
 	}
 
 	public deserialize(blockJSON: BlockJSON): BlockInstance {
-		const transactions = (blockJSON.transactions || []).map(transaction =>
-			this._transactionAdapter.fromJSON(transaction),
-		);
+		const transactions =
+			blockJSON.transactions?.map(transaction =>
+				this._transactionAdapter.fromJSON(transaction),
+			) ?? [];
 
 		return {
 			...blockJSON,
@@ -386,6 +386,16 @@ export class DataAccess {
 			totalFee: BigInt(blockJSON.totalFee || 0),
 			reward: BigInt(blockJSON.reward || 0),
 			transactions,
+		};
+	}
+
+	// tslint:disable-next-line:prefer-function-over-method
+	public serializeBlockHeader(blockHeader: BlockHeader): BlockHeaderJSON {
+		return {
+			...blockHeader,
+			totalAmount: blockHeader.totalAmount.toString(),
+			totalFee: blockHeader.totalFee.toString(),
+			reward: blockHeader.reward.toString(),
 		};
 	}
 
