@@ -72,9 +72,9 @@ export const verifyAccountNonce = (
 
 	if (nonce > account.nonce) {
 		return new TransactionError(
-			`Higher transaction nonce for account: ${
+			`Transaction nonce for account: ${
 				account.address
-			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			} is higher than expected, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 			nonce.toString(),
