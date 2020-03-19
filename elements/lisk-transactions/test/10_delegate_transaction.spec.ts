@@ -16,17 +16,13 @@ import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import { DelegateTransaction } from '../src/10_delegate_transaction';
 import { validDelegateAccount } from '../fixtures';
 import * as protocolSpecDelegateFixture from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
-import * as protocolSpecTransferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
-import { Account, TransactionJSON } from '../src/transaction_types';
+import { Account } from '../src/transaction_types';
 
 describe('Delegate registration transaction class', () => {
 	const {
 		networkIdentifier,
 		transaction: validDelegateTransaction,
 	} = protocolSpecDelegateFixture.testCases[0].input;
-	const {
-		transaction: validTransaction,
-	} = protocolSpecTransferFixture.testCases[0].input;
 
 	let validTestTransaction: DelegateTransaction;
 	let store: StateStoreMock;
@@ -99,29 +95,6 @@ describe('Delegate registration transaction class', () => {
 			expect(assetBytes).toEqual(
 				Buffer.from(validDelegateTransaction.asset.username, 'utf8'),
 			);
-		});
-	});
-
-	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return no errors with non conflicting transactions', async () => {
-			const { errors } = validTestTransaction.verifyAgainstOtherTransactions([
-				validTransaction,
-			] as ReadonlyArray<TransactionJSON>);
-			expect(errors).toHaveLength(0);
-		});
-
-		it('should return error when other transaction from same account has the same type', async () => {
-			const conflictTransaction = {
-				...validDelegateTransaction,
-				senderPublicKey:
-					protocolSpecDelegateFixture.testCases[0].input.account.publicKey,
-				type: 10,
-			};
-			const { errors } = validTestTransaction.verifyAgainstOtherTransactions([
-				conflictTransaction,
-			] as ReadonlyArray<TransactionJSON>);
-
-			expect(errors).not.toHaveLength(0);
 		});
 	});
 

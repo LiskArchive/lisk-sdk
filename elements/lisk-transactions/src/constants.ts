@@ -49,7 +49,6 @@ export const MAX_ADDRESS_NUMBER = MAX_EIGHT_BYTE_NUMBER;
 export const MAX_TRANSACTION_ID = MAX_EIGHT_BYTE_NUMBER;
 // Largest possible amount. Maximum value for PostgreSQL bigint.
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
-export const UNCONFIRMED_TRANSACTION_TIMEOUT = 10800;
 export const MAX_MULTISIG_SIGNATURES = 15;
 export const MAX_PUBLIC_KEY_LENGTH = 32;
 export const MAX_TRANSFER_ASSET_DATA_LENGTH = 64;
