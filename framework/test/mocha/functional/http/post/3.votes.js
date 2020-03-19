@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	const accountMaxVotesPerAccount = randomUtil.account();
 	const delegatesMaxVotesPerAccount = [];
 	// To validate minimum remaining balance check
-	const halfLSK = BigInt('500000');
+	const minRemainingBalance = BigInt('5000000');
 
 	before(() => {
 		const transactions = [];
@@ -89,7 +89,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			fee: '129001',
 			nonce: '0',
 			networkIdentifier,
-			amount: (BigInt('200000000') + halfLSK).toString(),
+			amount: (BigInt('200000000') + minRemainingBalance).toString(),
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -148,7 +148,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 						nonce: '0',
 						fee: '129001',
 						networkIdentifier,
-						amount: (BigInt('2000000000') + halfLSK).toString(),
+						amount: (BigInt('2000000000') + minRemainingBalance).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -181,7 +181,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 						nonce: '0',
 						fee: '129001',
 						networkIdentifier,
-						amount: (BigInt('2000000000') + halfLSK).toString(),
+						amount: (BigInt('2000000000') + minRemainingBalance).toString(),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});

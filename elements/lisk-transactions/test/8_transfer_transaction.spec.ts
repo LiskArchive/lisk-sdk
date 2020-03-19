@@ -258,20 +258,6 @@ describe('Transfer transaction class', () => {
 			);
 		});
 
-		it('should return error when sender balance is insufficient', async () => {
-			store.account.set(sender.address, {
-				...sender,
-				balance: BigInt(10000000),
-			});
-			const errors = await (validTransferTestTransaction as any).applyAsset(
-				store,
-			);
-			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toContain(
-				'Account does not have enough minimum remaining LSK',
-			);
-		});
-
 		it('should return error when recipient balance is over maximum amount', async () => {
 			store.account.set(recipient.address, {
 				...recipient,

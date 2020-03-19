@@ -653,11 +653,6 @@ describe('blocks/header', () => {
 							'Account does not have enough minimum remaining LSK',
 						),
 					}),
-					expect.objectContaining({
-						message: expect.stringContaining(
-							'Account does not have enough minimum remaining LSK',
-						),
-					}),
 				]);
 			});
 

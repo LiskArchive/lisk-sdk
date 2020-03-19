@@ -294,11 +294,11 @@ describe('GET /api/voters', () => {
 
 			before(() => {
 				// To by-pass minimum remaining balance limit
-				const halfLSK = BigInt('500000');
+				const minRemainingBalance = BigInt('5000000');
 				const amount = (
 					BigInt('500000000') +
 					BigInt('100000000') +
-					halfLSK
+					minRemainingBalance
 				).toString();
 				const enrichExtraDelegateVoterTransaction = transfer({
 					nonce: '0',
