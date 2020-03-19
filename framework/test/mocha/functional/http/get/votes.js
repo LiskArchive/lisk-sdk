@@ -405,7 +405,7 @@ describe('GET /api/votes', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				const account = randomUtil.account();
 				// To validate minimum remaining balance check
-				const halfLSK = BigInt('500000');
+				const minRemainingBalance = BigInt('5000000');
 
 				const creditTransaction = transfer({
 					nonce: '0',
@@ -414,7 +414,7 @@ describe('GET /api/votes', () => {
 					amount: (
 						BigInt('200000000') +
 						BigInt('20000000') +
-						halfLSK
+						minRemainingBalance
 					).toString(),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,

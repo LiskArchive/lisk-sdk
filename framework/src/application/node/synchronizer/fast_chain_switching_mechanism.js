@@ -137,6 +137,8 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 			if (chunkOfBlocks && chunkOfBlocks.length) {
+				// Sort blocks with height in ascending order because blocks are returned in decending order
+				chunkOfBlocks.sort((a, b) => a.height - b.height);
 				blocks.push(...chunkOfBlocks);
 				[{ id: lastFetchedID }] = chunkOfBlocks.slice(-1);
 				const index = blocks.findIndex(block => block.id === toId);

@@ -22,6 +22,7 @@ import * as multisigOnlyMandatory from '../fixtures/transaction_multisignature_r
 import * as multisigOptionalOnly from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_optional_members.json';
 import * as senderIsMember from '../fixtures/transaction_multisignature_registration/multisignature_transaction_sender_is_mandatory_member.json';
 import { validTransaction } from '../fixtures';
+import cloneDeep = require('lodash.clonedeep');
 
 describe('Multisignature transaction class', () => {
 	const validMultisignatureRegistrationTransaction =
@@ -840,6 +841,18 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe('There are missing signatures');
+		});
+
+		it('should fail if any of the signatures is empty string', async () => {
+			const invalidRegistration = cloneDeep(validTestTransaction);
+			invalidRegistration.signatures[0] = '';
+
+			const result = await invalidRegistration.verifySignatures(store);
+
+			expect(result.status).toBe(0);
+			expect(result.errors[0].message).toBe(
+				`A signature is required for each registered key.`,
+			);
 		});
 	});
 

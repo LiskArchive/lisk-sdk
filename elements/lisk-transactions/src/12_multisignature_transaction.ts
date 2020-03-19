@@ -349,6 +349,15 @@ export class MultisignatureTransaction extends BaseTransaction {
 			]);
 		}
 
+		// Check if empty signatures are present
+		if (this.signatures.includes('')) {
+			return createResponse(this.id, [
+				new TransactionError(
+					'A signature is required for each registered key.',
+				),
+			]);
+		}
+
 		// Verify first signature is from senderPublicKey
 		const { valid, error } = validateSignature(
 			this.senderPublicKey,

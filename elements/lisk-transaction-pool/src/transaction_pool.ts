@@ -52,7 +52,7 @@ interface AddTransactionResponse {
 
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
 export const DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT = 64;
-export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(1);
+export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(0);
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in ms
 // tslint:disable-next-line no-magic-numbers
@@ -226,7 +226,7 @@ export class TransactionPool {
 				status: Status.FAIL,
 				errors: [
 					new TransactionPoolError(
-						'Transaction was not added because of nonce or fee',
+						'Transaction was not added to the pool as it exceeds maximum transaction limit per account',
 						incomingTx.id,
 					),
 				],

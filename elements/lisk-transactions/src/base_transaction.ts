@@ -106,7 +106,7 @@ export abstract class BaseTransaction {
 
 	public static TYPE: number;
 	// Minimum remaining balance requirement for any account to perform a transaction
-	public static MIN_REMAINING_BALANCE = BigInt('500000'); // 0.5 LSK
+	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
 	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
 	public static NAME_FEE = BigInt(0);
 

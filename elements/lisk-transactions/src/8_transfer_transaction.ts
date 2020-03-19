@@ -170,15 +170,6 @@ export class TransferTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
 
-		const balanceError = verifyMinRemainingBalance(
-			this.id,
-			sender,
-			this.asset.amount,
-		);
-		if (balanceError) {
-			errors.push(balanceError);
-		}
-
 		sender.balance -= this.asset.amount;
 		store.account.set(sender.address, sender);
 		const recipient = await store.account.getOrDefault(this.asset.recipientId);
