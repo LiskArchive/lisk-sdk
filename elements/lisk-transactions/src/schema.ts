@@ -64,10 +64,6 @@ export const baseTransaction = {
 	type: 'object',
 	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signatures'],
 	properties: {
-		id: {
-			type: 'string',
-			format: 'id',
-		},
 		blockId: {
 			type: 'string',
 			format: 'id',

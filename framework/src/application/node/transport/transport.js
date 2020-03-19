@@ -366,10 +366,6 @@ class Transport {
 	}
 
 	async _receiveTransaction(transactionJSON) {
-		if (this.transactionPoolModule.contains(transactionJSON.id)) {
-			return transactionJSON.id;
-		}
-
 		let transaction;
 		try {
 			transaction = this.chainModule.deserializeTransaction(transactionJSON);
@@ -398,6 +394,10 @@ class Transport {
 			);
 
 			throw err;
+		}
+
+		if (this.transactionPoolModule.contains(transaction.id)) {
+			return transaction.id;
 		}
 
 		// Broadcast transaction to network if not present in pool
