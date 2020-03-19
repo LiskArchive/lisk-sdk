@@ -362,6 +362,25 @@ describe('transport', () => {
 				});
 			});
 
+			describe('when transaction has no id', () => {
+				let invalidTransaction;
+
+				beforeEach(async () => {
+					invalidTransaction = {
+						...transaction,
+						id: undefined,
+					};
+				});
+
+				it('should resolve with result = transaction.id', async () => {
+					const res = await transportModule._receiveTransaction(
+						invalidTransaction,
+					);
+
+					expect(res).toEqual(transaction.id);
+				});
+			});
+
 			describe('when modules.transactions.add fails', () => {
 				let addError;
 
