@@ -549,7 +549,7 @@ describe('Base transaction class', () => {
 				TransactionError,
 			);
 			expect((errors as ReadonlyArray<TransactionError>)[0].message).toContain(
-				`Higher transaction nonce for account: ${senderAccount.address}, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
+				`Transaction nonce for account: ${senderAccount.address} is higher than expected, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
 			);
 			expect((errors as ReadonlyArray<TransactionError>)[0].actual).toEqual(
 				txNonce.toString(),
