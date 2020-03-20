@@ -27,12 +27,6 @@ interface TransferAsset {
 	readonly recipientId: string;
 }
 
-interface InTransferAsset {
-	readonly inTransfer: {
-		readonly dappId: string;
-	};
-}
-
 interface DelegateCalculateInput {
 	readonly delegatePublicKey: string;
 	readonly amount: string | BigInt;
@@ -43,8 +37,6 @@ interface DelegateCalculateInput {
 /* tslint:disable:no-magic-numbers */
 const TRANSACTION_TYPES_SEND = [0, 8];
 const TRANSACTION_TYPES_VOTE = [3, 11];
-const TRANSACTION_TYPES_IN_TRANSFER = [6];
-const TRANSACTION_TYPES_OUT_TRANSFER = [7];
 /* tslint:enable:no-magic-numbers */
 
 const revertVotes = (votes: ReadonlyArray<string>) =>
@@ -70,29 +62,14 @@ const updateDelegateVote = async (
 };
 
 const getRecipientAddress = (
-	stateStore: StateStore,
 	transaction: BaseTransaction,
 ): string | undefined => {
 	if (
-		[
-			...TRANSACTION_TYPES_SEND,
-			...TRANSACTION_TYPES_OUT_TRANSFER,
-			...TRANSACTION_TYPES_VOTE,
-		].includes(transaction.type)
+		[...TRANSACTION_TYPES_SEND, ...TRANSACTION_TYPES_VOTE].includes(
+			transaction.type,
+		)
 	) {
 		return (transaction.asset as TransferAsset).recipientId;
-	}
-
-	/**
-	 *  If transaction type is IN_TRANSFER then,
-	 * `recipientId` is the owner of dappRegistration transaction
-	 */
-	if (TRANSACTION_TYPES_IN_TRANSFER.includes(transaction.type)) {
-		const dappTransaction = stateStore.transaction.get(
-			(transaction.asset as InTransferAsset).inTransfer.dappId,
-		);
-
-		return getAddressFromPublicKey(dappTransaction.senderPublicKey);
 	}
 
 	return undefined;
@@ -127,7 +104,7 @@ const updateRecipientDelegateVotes = async (
 	transaction: BaseTransaction,
 	isUndo = false,
 ) => {
-	const address = getRecipientAddress(stateStore, transaction);
+	const address = getRecipientAddress(transaction);
 
 	if (!address) {
 		return false;
@@ -266,7 +243,7 @@ export const prepare = async (
 		const senderVotedPublicKeys =
 			senderVotedAccount.votedDelegatesPublicKeys || [];
 
-		const recipientId = getRecipientAddress(stateStore, transaction);
+		const recipientId = getRecipientAddress(transaction);
 
 		// Get delegate public keys whom recipient voted for
 		const recipientVotedAccount =
