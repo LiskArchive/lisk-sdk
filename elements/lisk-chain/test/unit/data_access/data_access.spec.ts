@@ -37,12 +37,14 @@ describe('data_access.storage', () => {
 					truncate: jest.fn(),
 				},
 				Account: {
-					get: jest.fn(),
+					get: jest.fn().mockResolvedValue([{ balance: '0', address: '123L' }]),
 					getOne: jest.fn(),
 					resetMemTables: jest.fn(),
 				},
 				Transaction: {
-					get: jest.fn(),
+					get: jest
+						.fn()
+						.mockResolvedValue([{ nonce: '2', type: 8, fee: '100' }]),
 					isPersisted: jest.fn(),
 				},
 			},
@@ -306,10 +308,11 @@ describe('data_access.storage', () => {
 	describe('#getAccountsByPublicKey', () => {
 		it('should call storage.getAccountsByPublicKey', async () => {
 			// Act
-			await dataAccess.getAccountsByPublicKey(['1L']);
+			const [result] = await dataAccess.getAccountsByPublicKey(['1L']);
 
 			// Assert
 			expect(storageMock.entities.Account.get).toHaveBeenCalled();
+			expect(typeof result.nonce).toBe('bigint');
 		});
 	});
 
@@ -347,23 +350,25 @@ describe('data_access.storage', () => {
 
 		it('should call storage.getDelegateAccounts', async () => {
 			// Act
-			await dataAccess.getDelegateAccounts(DEFAULT_LIMIT);
+			const [result] = await dataAccess.getDelegateAccounts(DEFAULT_LIMIT);
 
 			// Assert
 			expect(storageMock.entities.Account.get).toHaveBeenCalledWith(
 				{ isDelegate: true },
 				{ limit: DEFAULT_LIMIT, sort: ['voteWeight:desc', 'publicKey:asc'] },
 			);
+			expect(typeof result.nonce).toBe('bigint');
 		});
 	});
 
 	describe('#getTransactionsByIDs', () => {
 		it('should call storage.getTransactionsByIDs', async () => {
 			// Act
-			await dataAccess.getTransactionsByIDs(['1']);
+			const [result] = await dataAccess.getTransactionsByIDs(['1']);
 
 			// Assert
 			expect(storageMock.entities.Transaction.get).toHaveBeenCalled();
+			expect(typeof result.fee).toBe('bigint');
 		});
 	});
 

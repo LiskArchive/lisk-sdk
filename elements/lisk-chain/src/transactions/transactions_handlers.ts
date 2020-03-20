@@ -16,7 +16,6 @@ import {
 	BaseTransaction,
 	Status as TransactionStatus,
 	TransactionError,
-	TransactionJSON,
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
@@ -127,7 +126,7 @@ export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 	);
 
 	const persistedTransactionIds = confirmedTransactions.map(
-		(transaction: TransactionJSON) => transaction.id,
+		(transaction: BaseTransaction) => transaction.id,
 	);
 	const persistedTransactions = transactions.filter(transaction =>
 		persistedTransactionIds.includes(transaction.id),
