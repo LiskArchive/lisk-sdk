@@ -140,11 +140,7 @@ export class Account {
 		this.isDelegate = accountInfo.isDelegate;
 		this.voteWeight = BigInt(accountInfo.voteWeight ?? 0);
 		this.nameExist = accountInfo.nameExist;
-		this.votedDelegatesPublicKeys =
-			accountInfo.votedDelegatesPublicKeys === undefined ||
-			accountInfo.votedDelegatesPublicKeys === null
-				? []
-				: accountInfo.votedDelegatesPublicKeys;
+		this.votedDelegatesPublicKeys = accountInfo.votedDelegatesPublicKeys ?? [];
 	}
 
 	public static getDefaultAccount = (address: string): Account =>
