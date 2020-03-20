@@ -238,12 +238,12 @@ export class TransactionPool {
 
 		if (removedID) {
 			debug('Removing from transaction pool with id', removedID);
-			const removingTx = this._allTransactions[removedID];
+			const removedTx = this._allTransactions[removedID];
 			delete this._allTransactions[removedID];
 			this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
-				id: removingTx.id,
-				nonce: removingTx.nonce.toString(),
-				senderPublicKey: removingTx.senderPublicKey,
+				id: removedTx.id,
+				nonce: removedTx.nonce.toString(),
+				senderPublicKey: removedTx.senderPublicKey,
 				reason: 'Transaction List executed remove',
 			});
 		}
