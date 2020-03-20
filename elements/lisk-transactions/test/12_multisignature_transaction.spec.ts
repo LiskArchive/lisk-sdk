@@ -14,14 +14,12 @@
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
-import { Account, TransactionJSON } from '../src/transaction_types';
-import { Status } from '../src/response';
+import { Account } from '../src/transaction_types';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import * as multisigOnlyMandatory from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_mandatory_members.json';
 import * as multisigOptionalOnly from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_optional_members.json';
 import * as senderIsMember from '../fixtures/transaction_multisignature_registration/multisignature_transaction_sender_is_mandatory_member.json';
-import { validTransaction } from '../fixtures';
 import cloneDeep = require('lodash.clonedeep');
 
 describe('Multisignature transaction class', () => {
@@ -105,37 +103,6 @@ describe('Multisignature transaction class', () => {
 					'hex',
 				),
 			);
-		});
-	});
-
-	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return status true with non conflicting transactions', async () => {
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
-				validTransaction,
-			] as ReadonlyArray<TransactionJSON>);
-
-			expect(errors).toHaveLength(0);
-			expect(status).toBe(Status.OK);
-		});
-
-		it('should return TransactionResponse with error when other transaction from same account has the same type', async () => {
-			const conflictTransaction = {
-				...validTransaction,
-				senderPublicKey: multisigFixture.testCases.input.account.publicKey,
-				type: 12,
-			};
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
-				conflictTransaction,
-			] as ReadonlyArray<TransactionJSON>);
-
-			expect(errors).toHaveLength(1);
-			expect(status).toBe(Status.FAIL);
 		});
 	});
 

@@ -389,22 +389,6 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return a transaction response', async () => {
-			const otherTransactions = [defaultTransaction, defaultTransaction];
-			const {
-				id,
-				status,
-				errors,
-			} = validTestTransaction.verifyAgainstOtherTransactions(
-				otherTransactions,
-			);
-			expect(id).toEqual(validTestTransaction.id);
-			expect(Object.keys(errors)).toHaveLength(0);
-			expect(status).toEqual(Status.OK);
-		});
-	});
-
 	describe('#apply', () => {
 		it('should return a successful transaction response with an updated sender account', async () => {
 			store = new StateStoreMock([
@@ -713,31 +697,6 @@ describe('Base transaction class', () => {
 			expect(status).toEqual(Status.OK);
 			expect(Object.keys(errors)).toHaveLength(0);
 			expect((updatedSender as any).nonce).toEqual(accountNonce - BigInt(1));
-		});
-	});
-
-	describe('#isExpired', () => {
-		let unexpiredTestTransaction: BaseTransaction;
-		let expiredTestTransaction: BaseTransaction;
-		beforeEach(async () => {
-			const unexpiredTransaction = {
-				...defaultTransaction,
-				receivedAt: new Date().toISOString(),
-			};
-			const expiredTransaction = {
-				...defaultTransaction,
-				receivedAt: new Date(+new Date() - 1300 * 60000).toISOString(),
-			};
-			unexpiredTestTransaction = new TestTransaction(unexpiredTransaction);
-			expiredTestTransaction = new TestTransaction(expiredTransaction);
-		});
-
-		it('should return false for unexpired transaction', async () => {
-			expect(unexpiredTestTransaction.isExpired()).toBe(false);
-		});
-
-		it('should return true for expired transaction', async () => {
-			expect(expiredTestTransaction.isExpired(new Date())).toBe(true);
 		});
 	});
 
