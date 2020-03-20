@@ -63,19 +63,23 @@ describe('storage.entities.Account.get', () => {
 			const expectedAccount = {
 				...account,
 				balance: '55566',
-				isDelegate: false,
 				username: null,
+				keys: null,
+				votes: null,
+				unlocking: null,
+				delegate: null,
+				totalVotesReceived: '0',
 				asset: null,
-				nameExist: false,
-				missedBlocks: 0,
 				producedBlocks: 0,
 				fees: '0',
 				nonce: '0',
 				rewards: '0',
-				voteWeight: '0',
 				productivity: 0,
+				voteWeight: '0',
+				nameExist: false,
+				missedBlocks: 0,
+				isDelegate: false,
 				votedDelegatesPublicKeys: null,
-				keys: null,
 			};
 
 			await pgHelper.createAccount(account);
