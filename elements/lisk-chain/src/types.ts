@@ -168,6 +168,24 @@ export interface ChainStateEntity {
 	readonly delete: () => Promise<void>;
 }
 
+export interface ConsensusStateEntity {
+	readonly get: (
+		filters?: StorageFilters,
+		options?: StorageOptions,
+		tx?: StorageTransaction,
+	) => Promise<ChainState[]>;
+	readonly getKey: (
+		key: string,
+		tx?: StorageTransaction,
+	) => Promise<string | undefined>;
+	readonly setKey: (
+		key: string,
+		value: string,
+		tx?: StorageTransaction,
+	) => Promise<void>;
+	readonly delete: () => Promise<void>;
+}
+
 export interface StorageEntity<T> {
 	readonly get: (
 		filters?: StorageFilters,
@@ -232,6 +250,7 @@ export interface Storage {
 		readonly Account: AccountStorageEntity;
 		readonly Transaction: StorageEntity<TransactionJSON>;
 		readonly ChainState: ChainStateEntity;
+		readonly ConsensusState: ConsensusStateEntity;
 		readonly TempBlock: TempBlockStorageEntity;
 	};
 }

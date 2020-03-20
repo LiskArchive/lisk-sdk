@@ -52,7 +52,7 @@ describe('processor', () => {
 			trace: jest.fn(),
 		};
 		stateStoreStub = {
-			chainState: {
+			chain: {
 				cache: jest.fn(),
 			},
 		};
@@ -61,7 +61,7 @@ describe('processor', () => {
 			save: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
-			newStateStore: jest.fn().mockReturnValue(stateStoreStub),
+			newStateStore: jest.fn().mockResolvedValue(stateStoreStub),
 		};
 		Object.defineProperty(chainModuleStub, 'lastBlock', {
 			get: jest.fn().mockReturnValue(defaultLastBlock),

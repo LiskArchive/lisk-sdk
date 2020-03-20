@@ -139,6 +139,7 @@ class StorageSeed {
 			'forger_info',
 			'trs',
 			'chain_state',
+			'consensus_state',
 			'temp_blocks',
 		];
 

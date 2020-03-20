@@ -19,6 +19,7 @@ const MigrationEntity = require('./migration_entity');
 const AccountEntity = require('./account');
 const BlockEntity = require('./block');
 const ChainStateEntity = require('./chain_state');
+const ConsensusStateEntity = require('./consensus_state');
 const ForgerInfoEntity = require('./forger_info');
 const TempBlockEntity = require('./temp_block.js');
 const TransactionEntity = require('./transaction');
@@ -29,6 +30,7 @@ module.exports = {
 	AccountEntity,
 	BlockEntity,
 	ChainStateEntity,
+	ConsensusStateEntity,
 	ForgerInfoEntity,
 	TempBlockEntity,
 	TransactionEntity,

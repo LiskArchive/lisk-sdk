@@ -19,28 +19,28 @@ interface AccountStoreMock {
 	set: (address: string, account: Account) => void;
 }
 
-interface ChainStateStoreMock {
+interface ConsensusStateStoreMock {
 	get: (address: string) => Promise<string | undefined>;
 	set: (key: string, v: string) => void;
 }
 
-interface ChainState {
+interface ConsensusState {
 	[key: string]: string;
 }
 
 export class StateStoreMock {
 	public account: AccountStoreMock;
-	public chainState: ChainStateStoreMock;
+	public consensus: ConsensusStateStoreMock;
 
 	public accountData: Account[];
-	public chainStateData: ChainState;
+	public consensusStateData: ConsensusState;
 
-	constructor(initialAccount?: Account[], initialState?: ChainState) {
+	constructor(initialAccount?: Account[], initialState?: ConsensusState) {
 		// Make sure to be deep copy
 		this.accountData = initialAccount
 			? initialAccount.map(a => ({ ...a }))
 			: [];
-		this.chainStateData = initialState ? { ...initialState } : {};
+		this.consensusStateData = initialState ? { ...initialState } : {};
 
 		this.account = {
 			get: async (address: string): Promise<Account> => {
@@ -62,12 +62,12 @@ export class StateStoreMock {
 			},
 			getUpdated: () => this.accountData,
 		};
-		this.chainState = {
+		this.consensus = {
 			get: async (key: string): Promise<string | undefined> => {
-				return this.chainStateData[key];
+				return this.consensusStateData[key];
 			},
 			set: (key: string, val: string): void => {
-				this.chainStateData[key] = val;
+				this.consensusStateData[key] = val;
 			},
 		};
 	}

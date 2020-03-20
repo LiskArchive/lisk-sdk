@@ -13,4 +13,4 @@
  */
 
 export const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
-export const CHAIN_STATE_FORGERS_LIST_KEY = 'DPoS.forgersList';
+export const CONSENSUS_STATE_FORGERS_LIST_KEY = 'DPoS.forgersList';

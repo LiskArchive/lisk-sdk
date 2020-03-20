@@ -28,6 +28,7 @@ const {
 	BlockEntity,
 	TransactionEntity,
 	ChainStateEntity,
+	ConsensusStateEntity,
 	ForgerInfoEntity,
 	TempBlockEntity,
 	MigrationEntity,
@@ -105,6 +106,7 @@ class StorageSandbox extends Storage {
 		this.registerEntity('Migration', MigrationEntity);
 		this.registerEntity('NetworkInfo', NetworkInfoEntity);
 		this.registerEntity('ChainState', ChainStateEntity);
+		this.registerEntity('ConsensusState', ConsensusStateEntity);
 		this.registerEntity('ForgerInfo', ForgerInfoEntity);
 		this.registerEntity('TempBlock', TempBlockEntity);
 

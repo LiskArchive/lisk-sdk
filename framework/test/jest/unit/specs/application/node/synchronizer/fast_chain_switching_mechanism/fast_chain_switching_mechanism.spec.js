@@ -202,7 +202,7 @@ describe('fast_chain_switching_mechanism', () => {
 				.calledWith([2, 1])
 				.mockResolvedValue([genesisBlockDevnet, lastBlock]);
 
-			// Simulate finalized height stored in ChainState table is 0
+			// Simulate finalized height stored in ConsensusState table is 0
 
 			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks');
 			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');

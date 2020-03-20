@@ -42,6 +42,24 @@ export interface Delegate {
 	readonly username: string;
 }
 
+export interface BlockHeader {
+	readonly id: string;
+	readonly height: number;
+	readonly version: number;
+	readonly timestamp: number;
+	readonly previousBlockId?: string | null;
+	readonly blockSignature: string;
+	readonly generatorPublicKey: string;
+	readonly numberOfTransactions: number;
+	readonly payloadLength: number;
+	readonly payloadHash: string;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly totalAmount: bigint;
+	readonly totalFee: bigint;
+	readonly reward: bigint;
+}
+
 export interface TransactionJSON {
 	readonly asset: object;
 	readonly id?: string;

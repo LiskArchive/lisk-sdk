@@ -29,6 +29,13 @@ import {
 	getTotalFees,
 	undoFeeAndRewards,
 } from './block_reward';
+import {
+	DEFAULT_MAX_BLOCK_HEADER_CACHE,
+	DEFAULT_MIN_BLOCK_HEADER_CACHE,
+	DEFAULT_STATE_BLOCK_SIZE,
+	EVENT_DELETE_BLOCK,
+	EVENT_NEW_BLOCK,
+} from './constants';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
@@ -92,14 +99,10 @@ interface ChainConstructor {
 	readonly rewardMilestones: ReadonlyArray<string>;
 	readonly totalAmount: string;
 	readonly blockSlotWindow: number;
+	readonly stateBlockSize?: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
-
-const DEFAULT_MIN_BLOCK_HEADER_CACHE = 303;
-const DEFAULT_MAX_BLOCK_HEADER_CACHE = 505;
-export const EVENT_NEW_BLOCK = 'NEW_BLOCK';
-export const EVENT_DELETE_BLOCK = 'DELETE_BLOCK';
 
 // tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];
@@ -199,15 +202,21 @@ const undoConfirmedStep = async (
 const debug = Debug('lisk:chain');
 
 export class Chain {
+	public readonly dataAccess: DataAccess;
+	public readonly slots: Slots;
+	public readonly blockReward: {
+		readonly [key: string]: (height: number) => number | bigint;
+	};
+
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
 	private readonly storage: Storage;
-	public readonly dataAccess: DataAccess;
-	public readonly slots: Slots;
+	private readonly _networkIdentifier: string;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockInstance;
 	private readonly constants: {
+		readonly stateBlockSize: number;
 		readonly epochTime: string;
 		readonly blockTime: number;
 		readonly blockReceiptTimeout: number;
@@ -217,10 +226,6 @@ export class Chain {
 		readonly blockSlotWindow: number;
 	};
 	private readonly events: EventEmitter;
-
-	public readonly blockReward: {
-		readonly [key: string]: (height: number) => number | bigint;
-	};
 
 	public constructor({
 		// Components
@@ -243,6 +248,7 @@ export class Chain {
 		rewardMilestones,
 		totalAmount,
 		blockSlotWindow,
+		stateBlockSize = DEFAULT_STATE_BLOCK_SIZE,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
@@ -259,6 +265,7 @@ export class Chain {
 
 		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
 		this._lastBlock = genesisInstance;
+		this._networkIdentifier = networkIdentifier;
 		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
 		this.slots = new Slots({ epochTime, interval: blockTime });
@@ -275,6 +282,7 @@ export class Chain {
 			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
+			stateBlockSize,
 			epochTime,
 			blockTime,
 			blockReceiptTimeout,
@@ -350,8 +358,21 @@ export class Chain {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
-	public newStateStore(): StateStore {
-		return new StateStore(this.storage);
+	public async newStateStore(): Promise<StateStore> {
+		const fromHeight = Math.max(
+			1,
+			this._lastBlock.height - this.constants.stateBlockSize,
+		);
+		const toHeight = this._lastBlock.height;
+		const lastBlockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
+			fromHeight,
+			toHeight,
+		);
+
+		return new StateStore(this.storage, {
+			networkIdentifier: this._networkIdentifier,
+			lastBlockHeaders,
+		});
 	}
 
 	private async _cacheBlockHeaders(
@@ -412,7 +433,7 @@ export class Chain {
 
 	public async resetState(): Promise<void> {
 		await this.storage.entities.Account.resetMemTables();
-		await this.storage.entities.ChainState.delete();
+		await this.storage.entities.ConsensusState.delete();
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
@@ -583,7 +604,7 @@ export class Chain {
 		transactions: BaseTransaction[],
 		context: Contexter,
 	): Promise<BaseTransaction[]> {
-		const stateStore = new StateStore(this.storage);
+		const stateStore = await this.newStateStore();
 		const allowedTransactionsIds = checkAllowedTransactions(context)(
 			transactions as MatcherTransaction[],
 		)
@@ -627,7 +648,7 @@ export class Chain {
 	public async applyTransactions(
 		transactions: BaseTransaction[],
 	): Promise<ReadonlyArray<TransactionResponse>> {
-		const stateStore = new StateStore(this.storage);
+		const stateStore = await this.newStateStore();
 
 		return composeTransactionSteps(
 			checkAllowedTransactions(() => {

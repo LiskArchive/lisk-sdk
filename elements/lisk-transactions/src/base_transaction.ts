@@ -30,7 +30,7 @@ import {
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
-import { Account, TransactionJSON } from './transaction_types';
+import { Account, BlockHeader, TransactionJSON } from './transaction_types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,
@@ -51,40 +51,32 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export interface StateStoreGetter<T> {
-	get(key: string): Promise<T>;
-	find(func: (item: T) => boolean): T | undefined;
+export interface StateStorePrepare {
+	readonly account: {
+		cache(
+			filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+		): Promise<ReadonlyArray<Account>>;
+	};
 }
 
-export interface StateStoreDefaultGetter<T> {
-	getOrDefault(key: string): Promise<T>;
+export interface AccountState {
+	cache(
+		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+	): Promise<ReadonlyArray<Account>>;
+	get(key: string): Promise<Account>;
+	getOrDefault(key: string): Promise<Account>;
+	find(func: (item: Account) => boolean): Account | undefined;
+	set(key: string, value: Account): void;
 }
 
-export interface StateStoreSetter<T> {
-	set(key: string, value: T): void;
-}
-
-export interface StateStoreTransactionGetter<T> {
-	get(key: string): T;
-	find(func: (item: T) => boolean): T | undefined;
+export interface ChainState {
+	readonly lastBlockHeader: BlockHeader;
+	readonly networkIdentifier: string;
 }
 
 export interface StateStore {
-	readonly account: StateStoreGetter<Account> &
-		StateStoreDefaultGetter<Account> &
-		StateStoreSetter<Account>;
-	readonly transaction: StateStoreTransactionGetter<TransactionJSON>;
-}
-
-export interface StateStoreCache<T> {
-	cache(
-		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-	): Promise<ReadonlyArray<T>>;
-}
-
-export interface StateStorePrepare {
-	readonly account: StateStoreCache<Account>;
-	readonly transaction: StateStoreCache<TransactionJSON>;
+	readonly account: AccountState;
+	readonly chain: ChainState;
 }
 
 export const ENTITY_ACCOUNT = 'account';
