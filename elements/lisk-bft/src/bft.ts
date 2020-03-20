@@ -24,7 +24,7 @@ import * as forkChoiceRule from './fork_choice_rule';
 import { BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
 import { validateBlockHeader } from './utils';
 
-export const CHAIN_STATE_FINALIZED_HEIGHT_KEY = 'BFT.finalizedHeight';
+export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'BFT.finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 /**
@@ -114,8 +114,8 @@ export class BFT extends EventEmitter {
 		await this.finalityManager.addBlockHeader(block, stateStore);
 		const { finalizedHeight } = this.finalityManager;
 
-		stateStore.chainState.set(
-			CHAIN_STATE_FINALIZED_HEIGHT_KEY,
+		stateStore.consensus.set(
+			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 			String(finalizedHeight),
 		);
 	}
@@ -181,8 +181,8 @@ export class BFT extends EventEmitter {
 		stateStore: StateStore,
 	): Promise<FinalityManager> {
 		// Check what finalized height was stored last time
-		const storedFinalizedHeight = await stateStore.chainState.get(
-			CHAIN_STATE_FINALIZED_HEIGHT_KEY,
+		const storedFinalizedHeight = await stateStore.consensus.get(
+			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 		);
 		const finalizedHeightStored = storedFinalizedHeight
 			? parseInt(storedFinalizedHeight, 10)

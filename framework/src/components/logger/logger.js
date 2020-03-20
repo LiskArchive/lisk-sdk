@@ -54,20 +54,36 @@ class ConsoleLog {
 	// eslint-disable-next-line
 	write(rec) {
 		try {
+			const {
+				time,
+				level,
+				name,
+				msg,
+				module,
+				err,
+				hostname,
+				pid,
+				src,
+				v,
+				...others
+			} = rec;
 			let log = util.format(
 				'%s %s %s: %s (module=%s)\n',
-				new Date(rec.time).toLocaleTimeString('en-US', { hour12: false }),
-				levelToName[rec.level],
-				rec.name,
-				rec.msg,
-				rec.module || 'unknown',
+				new Date(time).toLocaleTimeString('en-US', { hour12: false }),
+				levelToName[level],
+				name,
+				msg,
+				module || 'unknown',
 			);
-			if (rec.err) {
+			if (err) {
 				log += util.format(
 					'Message: %s \n Trace: %s \n',
-					rec.err.message,
-					rec.err.stack,
+					err.message,
+					err.stack,
 				);
+			}
+			if (Object.keys(others).length > 0) {
+				log += util.format('%s \n', JSON.stringify(others, undefined, ' '));
 			}
 			process.stdout.write(log);
 		} catch (err) {

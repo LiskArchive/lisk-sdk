@@ -33,6 +33,7 @@ const networkIdentifier = getNetworkIdentifier(
 describe('chain', () => {
 	const stubs = {} as any;
 	const constants = {
+		stateBlockSize: 309,
 		blockReceiptTimeout: 20,
 		loadPerIteration: 1000,
 		maxPayloadLength: 15 * 1024,

@@ -12,39 +12,53 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Storage, StorageTransaction } from '../types';
+import { BlockHeader, Storage, StorageTransaction } from '../types';
 
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
-import { TransactionStore } from './transaction_store';
+import { ConsensusStateStore } from './consensus_state_store';
+
+interface AdditionalInformation {
+	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	readonly networkIdentifier: string;
+}
 
 export class StateStore {
 	public readonly account: AccountStore;
-	public readonly transaction: TransactionStore;
-	public readonly chainState: ChainStateStore;
+	public readonly chain: ChainStateStore;
+	public readonly consensus: ConsensusStateStore;
 
-	public constructor(storage: Storage) {
+	public constructor(
+		storage: Storage,
+		additionalInformation: AdditionalInformation,
+	) {
 		this.account = new AccountStore(storage.entities.Account);
-		this.transaction = new TransactionStore(storage.entities.Transaction);
-		this.chainState = new ChainStateStore(storage.entities.ChainState);
+		this.consensus = new ConsensusStateStore(storage.entities.ConsensusState, {
+			lastBlockHeaders: additionalInformation.lastBlockHeaders,
+		});
+		this.chain = new ChainStateStore(storage.entities.ChainState, {
+			lastBlockHeader: additionalInformation.lastBlockHeaders[0],
+			networkIdentifier: additionalInformation.networkIdentifier,
+		});
 	}
 
 	public createSnapshot(): void {
 		this.account.createSnapshot();
-		this.transaction.createSnapshot();
-		this.chainState.createSnapshot();
+		this.consensus.createSnapshot();
+		this.chain.createSnapshot();
 	}
 
 	public restoreSnapshot(): void {
 		this.account.restoreSnapshot();
-		this.transaction.restoreSnapshot();
-		this.chainState.restoreSnapshot();
+		this.consensus.restoreSnapshot();
+		this.chain.restoreSnapshot();
 	}
 
 	public async finalize(tx: StorageTransaction): Promise<void> {
 		await Promise.all([
 			this.account.finalize(tx),
-			this.chainState.finalize(tx),
+			this.chain.finalize(tx),
+			this.consensus.finalize(tx),
 		]);
 	}
 }

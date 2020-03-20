@@ -15,7 +15,7 @@
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import { VoteTransaction } from '../src/11_vote_transaction';
 import { validVoteTransactions } from '../fixtures';
-import { TransactionJSON, Account } from '../src/transaction_types';
+import { Account } from '../src/transaction_types';
 import { Status } from '../src/response';
 import { generateRandomPublicKeys } from './helpers/cryptography';
 
@@ -203,70 +203,6 @@ describe('Vote transaction class', () => {
 			expect(
 				() => new VoteTransaction(invalidVoteTransactionData),
 			).not.toThrowError();
-		});
-	});
-
-	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return status true with non conflicting transactions', async () => {
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
-				validVoteTransactions[1],
-			] as ReadonlyArray<TransactionJSON>);
-			expect(errors).toHaveLength(0);
-			expect(status).toBe(Status.OK);
-		});
-
-		it('should return status true with non related transactions', async () => {
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
-				validVoteTransactions[0],
-			] as any);
-			expect(errors).toHaveLength(0);
-			expect(status).toBe(Status.OK);
-		});
-
-		it('should return TransactionResponse with error when other transaction has the same addition public key', async () => {
-			const conflictTransaction = {
-				...validVoteTransactions[2],
-				asset: { votes: validVoteTransactions[2].asset.votes.slice() },
-			};
-			conflictTransaction.asset.votes.push(
-				validVoteTransactions[1].asset.votes.filter(
-					v => v.charAt(0) === '+',
-				)[0],
-			);
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
-				conflictTransaction,
-			] as ReadonlyArray<TransactionJSON>);
-			expect(errors).toHaveLength(1);
-			expect(status).toBe(Status.FAIL);
-		});
-
-		it('should return TransactionResponse with error when other transaction has the same deletion public key', async () => {
-			const conflictTransaction = {
-				...validVoteTransactions[2],
-				asset: { votes: validVoteTransactions[2].asset.votes.slice() },
-			};
-			conflictTransaction.asset.votes.push(
-				validVoteTransactions[1].asset.votes.filter(
-					v => v.charAt(0) === '-',
-				)[0],
-			);
-			const {
-				errors,
-				status,
-			} = validTestTransaction.verifyAgainstOtherTransactions([
-				conflictTransaction,
-			] as ReadonlyArray<TransactionJSON>);
-			expect(errors).toHaveLength(1);
-			expect(status).toBe(Status.FAIL);
 		});
 	});
 

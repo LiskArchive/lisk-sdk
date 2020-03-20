@@ -20,7 +20,7 @@ import {
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
 import * as shuffledDelegatePublicKeys from '../fixtures/shuffled_delegate_publickeys_for_round_5.json';
-import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -36,7 +36,7 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 		// Arrange
 		chainStub = {
 			dataAccess: {
-				getChainState: jest.fn(),
+				getConsensusState: jest.fn(),
 				getDelegateAccounts: jest.fn(),
 			},
 		};
@@ -52,8 +52,8 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 		// Arrange
-		when(chainStub.dataAccess.getChainState)
-			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
+		when(chainStub.dataAccess.getConsensusState)
+			.calledWith(CONSENSUS_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(
 				JSON.stringify([{ round, delegates: delegatePublicKeys }]),
 			);
@@ -67,8 +67,8 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should throw error when chain state is empty', async () => {
 		// Arrange
-		when(chainStub.dataAccess.getChainState)
-			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
+		when(chainStub.dataAccess.getConsensusState)
+			.calledWith(CONSENSUS_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(undefined);
 		chainStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
 
@@ -80,8 +80,8 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should throw error when round is not in the chain state', async () => {
 		// Arrange
-		when(chainStub.dataAccess.getChainState)
-			.calledWith(CHAIN_STATE_FORGERS_LIST_KEY)
+		when(chainStub.dataAccess.getConsensusState)
+			.calledWith(CONSENSUS_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(
 				JSON.stringify([{ round: 7, delegates: delegatePublicKeys }]),
 			);

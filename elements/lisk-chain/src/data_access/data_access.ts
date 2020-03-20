@@ -15,7 +15,6 @@ import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 
 import { Account } from '../account';
 import {
-	AccountJSON,
 	BlockHeader,
 	BlockHeaderJSON,
 	BlockInstance,
@@ -303,15 +302,21 @@ export class DataAccess {
 	}
 	/** End: ChainState */
 
+	/** Begin ConsensusState */
+	public async getConsensusState(key: string): Promise<string | undefined> {
+		return this._storage.getConsensusState(key);
+	}
+	/** End: ConsensusState */
+
 	/** Begin: Accounts */
 	public async getAccountsByPublicKey(
 		arrayOfPublicKeys: ReadonlyArray<string>,
-	): Promise<AccountJSON[]> {
+	): Promise<Account[]> {
 		const accounts = await this._storage.getAccountsByPublicKey(
 			arrayOfPublicKeys,
 		);
 
-		return accounts;
+		return accounts.map(account => new Account(account));
 	}
 
 	public async getAccountByAddress(address: string): Promise<Account> {
@@ -328,10 +333,10 @@ export class DataAccess {
 		return accounts.map(account => new Account(account));
 	}
 
-	public async getDelegateAccounts(limit: number): Promise<AccountJSON[]> {
+	public async getDelegateAccounts(limit: number): Promise<Account[]> {
 		const accounts = await this._storage.getDelegateAccounts(limit);
 
-		return accounts;
+		return accounts.map(account => new Account(account));
 	}
 
 	public async resetAccountMemTables(): Promise<void> {
@@ -342,12 +347,14 @@ export class DataAccess {
 	/** Begin: Transactions */
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<string>,
-	): Promise<TransactionJSON[]> {
+	): Promise<BaseTransaction[]> {
 		const transactions = await this._storage.getTransactionsByIDs(
 			arrayOfTransactionIds,
 		);
 
-		return transactions;
+		return transactions.map(transaction =>
+			this.deserializeTransaction(transaction),
+		);
 	}
 
 	public async isTransactionPersisted(transactionId: string): Promise<boolean> {

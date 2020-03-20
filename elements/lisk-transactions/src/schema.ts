@@ -17,27 +17,19 @@ export const transactionInterface = {
 		'toJSON',
 		'getBytes',
 		'validate',
-		'verifyAgainstOtherTransactions',
 		'apply',
 		'undo',
 		'prepare',
-		'isExpired',
 		'verifySignatures',
 	],
 	properties: {
 		toJSON: {
 			typeof: 'function',
 		},
-		isReady: {
-			typeof: 'function',
-		},
 		getBytes: {
 			typeof: 'function',
 		},
 		validate: {
-			typeof: 'function',
-		},
-		verifyAgainstOtherTransactions: {
 			typeof: 'function',
 		},
 		apply: {
@@ -47,9 +39,6 @@ export const transactionInterface = {
 			typeof: 'function',
 		},
 		prepare: {
-			typeof: 'function',
-		},
-		isExpired: {
 			typeof: 'function',
 		},
 		verifySignatures: {

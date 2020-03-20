@@ -31,7 +31,7 @@ import {
 	delegateWhoForgedLast,
 	votedDelegates,
 } from '../utils/round_delegates';
-import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
 
 describe('dpos.apply()', () => {
@@ -48,7 +48,7 @@ describe('dpos.apply()', () => {
 				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-				getChainState: jest.fn().mockResolvedValue(undefined),
+				getConsensusState: jest.fn().mockResolvedValue(undefined),
 				getDelegateAccounts: jest.fn().mockResolvedValue([]),
 			},
 		};
@@ -105,8 +105,8 @@ describe('dpos.apply()', () => {
 					delegates: sortedDelegateAccounts.map(d => d.publicKey),
 				});
 			}
-			expect(stateStore.chainStateData).toEqual({
-				[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgerslList),
+			expect(stateStore.consensusStateData).toEqual({
+				[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgerslList),
 			});
 		});
 
@@ -153,7 +153,7 @@ describe('dpos.apply()', () => {
 			stateStore = new StateStoreMock(
 				[generator, ...votedDelegates.map(delegate => ({ ...delegate }))],
 				{
-					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
+					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
 				},
 			);
 
@@ -194,10 +194,10 @@ describe('dpos.apply()', () => {
 			await dpos.apply(block, stateStore);
 
 			// Assert
-			const chainState = await stateStore.chainState.get(
-				CHAIN_STATE_FORGERS_LIST_KEY,
+			const consensusState = await stateStore.consensus.get(
+				CONSENSUS_STATE_FORGERS_LIST_KEY,
 			);
-			expect(chainState).toEqual(JSON.stringify(forgersList));
+			expect(consensusState).toEqual(JSON.stringify(forgersList));
 		});
 	});
 
@@ -213,7 +213,7 @@ describe('dpos.apply()', () => {
 					...votedDelegates.map(delegate => ({ ...delegate })),
 				],
 				{
-					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{
 							round: 7,
 							delegates: sortedDelegateAccounts.map(d => d.publicKey),
@@ -290,8 +290,8 @@ describe('dpos.apply()', () => {
 			// make sure we calculate round number correctly
 			expect(nextRound).toBe(currentRound + 1);
 			// we must delete the delegate list before creating the new one
-			const forgersListStr = await stateStore.chainState.get(
-				CHAIN_STATE_FORGERS_LIST_KEY,
+			const forgersListStr = await stateStore.consensus.get(
+				CONSENSUS_STATE_FORGERS_LIST_KEY,
 			);
 			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
 
@@ -314,8 +314,8 @@ describe('dpos.apply()', () => {
 				finalizedBlockRound - bftRoundOffset - delegateActiveRoundLimit;
 
 			// Check before finalize exist for test
-			const forgersListBeforeStr = await stateStore.chainState.get(
-				CHAIN_STATE_FORGERS_LIST_KEY,
+			const forgersListBeforeStr = await stateStore.consensus.get(
+				CONSENSUS_STATE_FORGERS_LIST_KEY,
 			);
 			const forgersBeforeList: ForgersList = JSON.parse(
 				forgersListBeforeStr as string,
@@ -328,8 +328,8 @@ describe('dpos.apply()', () => {
 			// Act
 			await dpos.onBlockFinalized(stateStore, finalizedBlockHeight);
 
-			const forgersListStr = await stateStore.chainState.get(
-				CHAIN_STATE_FORGERS_LIST_KEY,
+			const forgersListStr = await stateStore.consensus.get(
+				CONSENSUS_STATE_FORGERS_LIST_KEY,
 			);
 			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
 

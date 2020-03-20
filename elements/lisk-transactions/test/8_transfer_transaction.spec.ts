@@ -15,7 +15,6 @@
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/transaction_types';
-import { Status } from '../src/response';
 import { TransactionError } from '../src/errors';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
@@ -78,19 +77,6 @@ describe('Transfer transaction class', () => {
 			expect(validTransferTestTransaction.asset.recipientId).toEqual(
 				validTransferTransaction.asset.recipientId,
 			);
-		});
-	});
-
-	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return a successful transaction response', async () => {
-			const {
-				id,
-				status,
-				errors,
-			} = validTransferTestTransaction.verifyAgainstOtherTransactions([]);
-			expect(id).toEqual(validTransferTransaction.id);
-			expect(Object.keys(errors)).toHaveLength(0);
-			expect(status).toEqual(Status.OK);
 		});
 	});
 

@@ -22,12 +22,12 @@ import {
 } from '../fixtures/constants';
 import { generateDelegateLists } from '../utils/delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 import { ForgersList } from '../../src/types';
 
 const createStateStore = (list: ForgersList = []) => {
 	return new StateStoreMock([], {
-		[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify(list),
+		[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(list),
 	});
 };
 

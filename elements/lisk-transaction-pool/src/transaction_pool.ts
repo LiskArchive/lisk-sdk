@@ -60,6 +60,9 @@ export const DEFAULT_EXPIRE_INTERVAL = 60 * 60 * 1000; // 1 hour in ms
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 export const DEFAULT_REORGANIZE_TIME = 500;
+export const events = {
+	EVENT_TRANSACTION_REMOVED: 'EVENT_TRANSACTION_REMOVED',
+};
 
 // FIXME: Remove this once implemented
 // tslint:disable
@@ -235,7 +238,14 @@ export class TransactionPool {
 
 		if (removedID) {
 			debug('Removing from transaction pool with id', removedID);
+			const removedTx = this._allTransactions[removedID];
 			delete this._allTransactions[removedID];
+			this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
+				id: removedTx.id,
+				nonce: removedTx.nonce.toString(),
+				senderPublicKey: removedTx.senderPublicKey,
+				reason: 'Transaction List executed remove',
+			});
 		}
 
 		// Add received time to the incoming tx object
@@ -346,6 +356,12 @@ export class TransactionPool {
 			return false;
 		}
 
+		this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
+			id: evictedTransaction.value.id,
+			nonce: evictedTransaction.value.nonce.toString(),
+			senderPublicKey: evictedTransaction.value.senderPublicKey,
+			reason: 'Pool exceeded the size limit',
+		});
 		return this.remove(evictedTransaction.value);
 	}
 
@@ -375,6 +391,12 @@ export class TransactionPool {
 			return false;
 		}
 
+		this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
+			id: evictedTransaction.value.id,
+			nonce: evictedTransaction.value.nonce.toString(),
+			senderPublicKey: evictedTransaction.value.senderPublicKey,
+			reason: 'Pool exceeded the size limit',
+		});
 		return this.remove(evictedTransaction.value);
 	}
 
@@ -422,6 +444,12 @@ export class TransactionPool {
 			if (invalidTransaction) {
 				for (const tx of allTransactions) {
 					if (tx.nonce >= invalidTransaction.nonce) {
+						this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
+							id: tx.id,
+							nonce: tx.nonce.toString(),
+							senderPublicKey: tx.senderPublicKey,
+							reason: `Invalid transaction ${invalidTransaction.id}`,
+						});
 						this.remove(tx);
 					}
 				}
@@ -437,6 +465,12 @@ export class TransactionPool {
 				),
 			);
 			if (timeDifference > this._transactionExpiryTime) {
+				this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
+					id: transaction.id,
+					nonce: transaction.nonce.toString(),
+					senderPublicKey: transaction.senderPublicKey,
+					reason: 'Transaction exceeded the expiry time',
+				});
 				this.remove(transaction);
 			}
 		}

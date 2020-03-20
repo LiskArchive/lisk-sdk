@@ -31,7 +31,7 @@ import {
 } from '../utils/round_delegates';
 import { Block, Account, ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { CHAIN_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 
 describe('dpos.undo()', () => {
 	let dpos: Dpos;
@@ -47,7 +47,7 @@ describe('dpos.undo()', () => {
 				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-				getChainState: jest.fn().mockResolvedValue(undefined),
+				getConsensusState: jest.fn().mockResolvedValue(undefined),
 				getDelegateAccounts: jest.fn().mockResolvedValue([]),
 			},
 		};
@@ -105,7 +105,7 @@ describe('dpos.undo()', () => {
 					...sortedDelegateAccounts,
 				],
 				{
-					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{
 							round: 1,
 							delegates: sortedDelegateAccounts.map(d => d.publicKey),
@@ -152,10 +152,10 @@ describe('dpos.undo()', () => {
 			// Act
 			await dpos.undo(block, stateStore);
 
-			const chainState = await stateStore.chainState.get(
-				CHAIN_STATE_FORGERS_LIST_KEY,
+			const consensusState = await stateStore.consensus.get(
+				CONSENSUS_STATE_FORGERS_LIST_KEY,
 			);
-			const res = JSON.parse(chainState as string);
+			const res = JSON.parse(consensusState as string);
 
 			expect(res).toHaveLength(1);
 		});
@@ -174,7 +174,7 @@ describe('dpos.undo()', () => {
 					...votedDelegates.map(delegate => ({ ...delegate })),
 				],
 				{
-					[CHAIN_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
 						{
 							round: 8,
 							delegates: sortedDelegateAccounts.map(d => d.publicKey),
@@ -244,9 +244,10 @@ describe('dpos.undo()', () => {
 			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
 			// Assert
-			const chainState =
-				(await stateStore.chainState.get(CHAIN_STATE_FORGERS_LIST_KEY)) ?? '[]';
-			const forgersList = JSON.parse(chainState as string) as ForgersList;
+			const consensusState =
+				(await stateStore.consensus.get(CONSENSUS_STATE_FORGERS_LIST_KEY)) ??
+				'[]';
+			const forgersList = JSON.parse(consensusState as string) as ForgersList;
 			const filteredList = forgersList.filter(
 				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
 			);

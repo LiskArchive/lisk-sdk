@@ -12,30 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-interface ChainStateStoreMock {
+interface ConsensusStateStoreMock {
 	get: (address: string) => Promise<string | undefined>;
 	set: (key: string, v: string) => void;
 }
 
-interface ChainState {
+interface ConsensusState {
 	[key: string]: string;
 }
 
 export class StateStoreMock {
-	public chainState: ChainStateStoreMock;
+	public consensus: ConsensusStateStoreMock;
 
-	public chainStateData: ChainState;
+	public consensusData: ConsensusState;
 
-	constructor(initialState?: ChainState) {
+	constructor(initialState?: ConsensusState) {
 		// Make sure to be deep copy
-		this.chainStateData = initialState ? { ...initialState } : {};
+		this.consensusData = initialState ? { ...initialState } : {};
 
-		this.chainState = {
+		this.consensus = {
 			get: async (key: string): Promise<string | undefined> => {
-				return this.chainStateData[key];
+				return this.consensusData[key];
 			},
 			set: (key: string, val: string): void => {
-				this.chainStateData[key] = val;
+				this.consensusData[key] = val;
 			},
 		};
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -26,7 +26,7 @@ describe('state store / chain_state', () => {
 	beforeEach(async () => {
 		storageStub = {
 			entities: {
-				ChainState: {
+				ConsensusState: {
 					get: jest.fn(),
 					getKey: jest.fn(),
 					setKey: jest.fn(),
@@ -39,58 +39,50 @@ describe('state store / chain_state', () => {
 		});
 	});
 
-	describe('lastBlockHeader', () => {
+	describe('lastBlockHeaders', () => {
 		it('should have first element as lastBlockHeader', async () => {
-			expect(stateStore.chain.lastBlockHeader).toEqual({ height: 30 });
-		});
-	});
-
-	describe('networkIdentifier', () => {
-		it('should have first element as lastBlockHeader', async () => {
-			expect(stateStore.chain.networkIdentifier).toEqual(
-				'network-identifier-chain-1',
-			);
+			expect(stateStore.consensus.lastBlockHeaders).toEqual(lastBlockHeaders);
 		});
 	});
 
 	describe('cache', () => {
 		it('should call storage get and store in cache', async () => {
 			// Arrange
-			storageStub.entities.ChainState.get.mockResolvedValue([
+			storageStub.entities.ConsensusState.get.mockResolvedValue([
 				{ key: 'key1', value: 'value1' },
 				{ key: 'key2', value: 'value2' },
 			]);
 			// Act
-			await stateStore.chain.cache();
+			await stateStore.consensus.cache();
 			// Assert
-			expect(await stateStore.chain.get('key1')).toBe('value1');
-			expect(await stateStore.chain.get('key2')).toBe('value2');
+			expect(await stateStore.consensus.get('key1')).toBe('value1');
+			expect(await stateStore.consensus.get('key2')).toBe('value2');
 		});
 	});
 
 	describe('get', () => {
 		it('should get value from cache', async () => {
 			// Arrange
-			storageStub.entities.ChainState.get.mockResolvedValue([
+			storageStub.entities.ConsensusState.get.mockResolvedValue([
 				{ key: 'key1', value: 'value1' },
 				{ key: 'key2', value: 'value2' },
 			]);
-			await stateStore.chain.cache();
+			await stateStore.consensus.cache();
 			// Act & Assert
-			expect(await stateStore.chain.get('key1')).toEqual('value1');
+			expect(await stateStore.consensus.get('key1')).toEqual('value1');
 		});
 
 		it('should try to get value from database if not in cache', async () => {
 			// Arrange
-			storageStub.entities.ChainState.get.mockResolvedValue([
+			storageStub.entities.ConsensusState.get.mockResolvedValue([
 				{ key: 'key1', value: 'value1' },
 				{ key: 'key2', value: 'value2' },
 			]);
-			await stateStore.chain.cache();
+			await stateStore.consensus.cache();
 			// Act
-			await stateStore.chain.get('key3');
+			await stateStore.consensus.get('key3');
 			// Assert
-			expect(storageStub.entities.ChainState.getKey.mock.calls[0]).toEqual([
+			expect(storageStub.entities.ConsensusState.getKey.mock.calls[0]).toEqual([
 				'key3',
 			]);
 		});
@@ -99,19 +91,19 @@ describe('state store / chain_state', () => {
 	describe('set', () => {
 		it('should set value to data and set the updated keys', async () => {
 			// Act
-			await stateStore.chain.set('key3', 'value3');
+			await stateStore.consensus.set('key3', 'value3');
 			// Assert
-			expect(await stateStore.chain.get('key3')).toBe('value3');
-			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
+			expect(await stateStore.consensus.get('key3')).toBe('value3');
+			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
 		});
 
 		it('should set value to data and set the updated keys only once', async () => {
 			// Act
-			await stateStore.chain.set('key3', 'value3');
-			await stateStore.chain.set('key3', 'value4');
+			await stateStore.consensus.set('key3', 'value3');
+			await stateStore.consensus.set('key3', 'value4');
 			// Assert
-			expect(await stateStore.chain.get('key3')).toBe('value4');
-			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
+			expect(await stateStore.consensus.get('key3')).toBe('value4');
+			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
 		});
 	});
 
@@ -120,24 +112,24 @@ describe('state store / chain_state', () => {
 
 		it('should not call storage if nothing is set', async () => {
 			// Act
-			await stateStore.chain.finalize(txStub);
+			await stateStore.consensus.finalize(txStub);
 			// Assert
-			expect(storageStub.entities.ChainState.setKey).not.toHaveBeenCalled();
+			expect(storageStub.entities.ConsensusState.setKey).not.toHaveBeenCalled();
 		});
 
 		it('should call storage for all the updated keys', async () => {
 			// Act
-			await stateStore.chain.set('key3', 'value3');
-			await stateStore.chain.set('key3', 'value4');
-			await stateStore.chain.set('key4', 'value5');
-			await stateStore.chain.finalize(txStub);
+			await stateStore.consensus.set('key3', 'value3');
+			await stateStore.consensus.set('key3', 'value4');
+			await stateStore.consensus.set('key4', 'value5');
+			await stateStore.consensus.finalize(txStub);
 			// Assert
-			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
+			expect(storageStub.entities.ConsensusState.setKey).toHaveBeenCalledWith(
 				'key3',
 				'value4',
 				txStub,
 			);
-			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
+			expect(storageStub.entities.ConsensusState.setKey).toHaveBeenCalledWith(
 				'key4',
 				'value5',
 				txStub,
@@ -146,13 +138,13 @@ describe('state store / chain_state', () => {
 
 		it('should handle promise rejection', async () => {
 			// Prepare
-			storageStub.entities.ChainState.setKey.mockImplementation(() =>
+			storageStub.entities.ConsensusState.setKey.mockImplementation(() =>
 				Promise.reject(new Error('Fake storage layer error')),
 			);
 			// Act
-			await stateStore.chain.set('key3', 'value3');
+			await stateStore.consensus.set('key3', 'value3');
 			// Assert
-			return expect(stateStore.chain.finalize(txStub)).rejects.toThrow(
+			return expect(stateStore.consensus.finalize(txStub)).rejects.toThrow(
 				'Fake storage layer error',
 			);
 		});

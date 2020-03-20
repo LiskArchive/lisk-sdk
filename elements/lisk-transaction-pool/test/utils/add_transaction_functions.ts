@@ -28,10 +28,6 @@ export const wrapTransactionWithoutUniqueData = (
 		nonce: BigInt(transaction.nonce),
 		fee: BigInt(transaction.fee),
 		minFee: BigInt(100000),
-		containsUniqueData: false,
-		verifyAgainstOtherTransactions: () => true,
-		isExpired: (time: Date) => time.getTime() < 0,
-		isReady: () => true,
 		getBytes: () => Buffer.from(new Array(10)),
 	};
 };
@@ -44,10 +40,6 @@ export const wrapTransactionWithUniqueData = (
 		nonce: BigInt(transaction.nonce),
 		fee: BigInt(transaction.fee),
 		minFee: BigInt(100000),
-		containsUniqueData: true,
-		verifyAgainstOtherTransactions: () => true,
-		isExpired: (time: Date) => time.getTime() < 0,
-		isReady: () => true,
 		getBytes: () => Buffer.from(new Array(10)),
 	};
 };

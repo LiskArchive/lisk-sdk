@@ -213,6 +213,15 @@ export class Storage {
 	}
 
 	/*
+		ConsensusState
+	*/
+	public async getConsensusState(key: string): Promise<string | undefined> {
+		const value = await this._storage.entities.ConsensusState.getKey(key);
+
+		return value;
+	}
+
+	/*
 		Accounts
 	*/
 	public async getAccountsByPublicKey(

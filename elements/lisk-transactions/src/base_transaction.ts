@@ -26,12 +26,11 @@ import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
 	MIN_FEE_PER_BYTE,
-	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
-import { Account, TransactionJSON } from './transaction_types';
+import { Account, BlockHeader, TransactionJSON } from './transaction_types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,
@@ -52,40 +51,32 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
-export interface StateStoreGetter<T> {
-	get(key: string): Promise<T>;
-	find(func: (item: T) => boolean): T | undefined;
+export interface StateStorePrepare {
+	readonly account: {
+		cache(
+			filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+		): Promise<ReadonlyArray<Account>>;
+	};
 }
 
-export interface StateStoreDefaultGetter<T> {
-	getOrDefault(key: string): Promise<T>;
+export interface AccountState {
+	cache(
+		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+	): Promise<ReadonlyArray<Account>>;
+	get(key: string): Promise<Account>;
+	getOrDefault(key: string): Promise<Account>;
+	find(func: (item: Account) => boolean): Account | undefined;
+	set(key: string, value: Account): void;
 }
 
-export interface StateStoreSetter<T> {
-	set(key: string, value: T): void;
-}
-
-export interface StateStoreTransactionGetter<T> {
-	get(key: string): T;
-	find(func: (item: T) => boolean): T | undefined;
+export interface ChainState {
+	readonly lastBlockHeader: BlockHeader;
+	readonly networkIdentifier: string;
 }
 
 export interface StateStore {
-	readonly account: StateStoreGetter<Account> &
-		StateStoreDefaultGetter<Account> &
-		StateStoreSetter<Account>;
-	readonly transaction: StateStoreTransactionGetter<TransactionJSON>;
-}
-
-export interface StateStoreCache<T> {
-	cache(
-		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-	): Promise<ReadonlyArray<T>>;
-}
-
-export interface StateStorePrepare {
-	readonly account: StateStoreCache<Account>;
-	readonly transaction: StateStoreCache<TransactionJSON>;
+	readonly account: AccountState;
+	readonly chain: ChainState;
 }
 
 export const ENTITY_ACCOUNT = 'account';
@@ -96,7 +87,6 @@ export abstract class BaseTransaction {
 	public readonly height?: number;
 	public readonly confirmations?: number;
 	public readonly type: number;
-	public readonly containsUniqueData?: boolean;
 	public readonly asset: object;
 	public nonce: bigint;
 	public fee: bigint;
@@ -239,21 +229,6 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
-	protected verifyAgainstTransactions(
-		_: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return [];
-	}
-
-	public verifyAgainstOtherTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
-		const errors = this.verifyAgainstTransactions(transactions);
-
-		return createResponse(this.id, errors);
-	}
-
 	public async apply(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = [];
@@ -386,19 +361,6 @@ export abstract class BaseTransaction {
 		);
 
 		return createResponse(this.id, errors);
-	}
-
-	public isExpired(date: Date = new Date()): boolean {
-		if (!this.receivedAt) {
-			this.receivedAt = new Date();
-		}
-		// tslint:disable-next-line no-magic-numbers
-		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeElapsed =
-			// tslint:disable-next-line no-magic-numbers
-			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
-
-		return timeElapsed > UNCONFIRMED_TRANSACTION_TIMEOUT;
 	}
 
 	public sign(

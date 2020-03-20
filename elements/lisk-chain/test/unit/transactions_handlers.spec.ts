@@ -324,20 +324,6 @@ describe('transactions', () => {
 			expect(votesWeightHandler.apply).toHaveBeenCalledTimes(2);
 		});
 
-		it('should add transaction to state store', async () => {
-			await transactionHandlers.applyGenesisTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(
-				trs1.toJSON(),
-			);
-			expect(stateStoreMock.transaction.add).toHaveBeenCalledWith(
-				trs2.toJSON(),
-			);
-		});
-
 		it('should override the status of transaction to TransactionStatus.OK', async () => {
 			trs1.apply.mockReturnValue({
 				status: TransactionStatus.FAIL,

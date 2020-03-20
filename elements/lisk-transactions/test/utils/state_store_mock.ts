@@ -11,14 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Account, TransactionJSON } from '../../src/transaction_types';
 import {
-	StateStoreCache,
-	StateStoreDefaultGetter,
-	StateStoreGetter,
-	StateStoreSetter,
-	StateStoreTransactionGetter,
-} from '../../src/base_transaction';
+	Account,
+	TransactionJSON,
+	BlockHeader,
+} from '../../src/transaction_types';
+import { AccountState, ChainState } from '../../src/base_transaction';
 
 export const defaultAccount = {
 	publicKey: undefined,
@@ -48,18 +46,19 @@ export const defaultAccount = {
 	},
 };
 
+export interface AdditionalInfo {
+	readonly networkIdentifier?: string;
+	readonly lastBlockHeader?: BlockHeader;
+}
+
 export class StateStoreMock {
-	readonly account: StateStoreGetter<Account> &
-		StateStoreDefaultGetter<Account> &
-		StateStoreSetter<Account> &
-		StateStoreCache<Account>;
-	readonly transaction: StateStoreTransactionGetter<TransactionJSON> &
-		StateStoreCache<TransactionJSON>;
+	readonly account: AccountState;
+	readonly chain: ChainState;
 
 	public accountData: Account[];
 	public transactionData: TransactionJSON[];
 
-	constructor(initialAccount?: Account[]) {
+	constructor(initialAccount?: Account[], addtionalInfo?: AdditionalInfo) {
 		// Make sure to be deep copy
 		this.accountData = initialAccount
 			? initialAccount.map(a => ({ ...a }))
@@ -105,28 +104,10 @@ export class StateStoreMock {
 			},
 		};
 
-		this.transaction = {
-			cache: async (
-				_filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-			): Promise<ReadonlyArray<TransactionJSON>> => {
-				return [];
-			},
-			get: (key: string): TransactionJSON => {
-				const transaction = this.transactionData.find(acc => acc.id === key);
-				if (!transaction) {
-					throw new Error('Transaction not defined');
-				}
-				return { ...transaction };
-			},
-			find: (
-				func: (item: TransactionJSON) => boolean,
-			): TransactionJSON | undefined => {
-				const transaction = this.transactionData.find(func);
-				if (!transaction) {
-					return undefined;
-				}
-				return transaction;
-			},
+		this.chain = {
+			networkIdentifier:
+				addtionalInfo?.networkIdentifier ?? 'network-identifier',
+			lastBlockHeader: addtionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
 		};
 	}
 }

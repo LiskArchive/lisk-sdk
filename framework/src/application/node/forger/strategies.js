@@ -39,7 +39,7 @@ class HighFeeForgingStrategy {
 		const readyTransactions = [];
 
 		// Initialize state store which will be discarded after selection
-		const stateStore = this.chainModule.newStateStore();
+		const stateStore = await this.chainModule.newStateStore();
 
 		// Get processable transactions from transaction pool
 		// transactions are sorted by lowest nonce per account

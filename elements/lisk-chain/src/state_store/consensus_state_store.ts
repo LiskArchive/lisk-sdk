@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,54 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, ChainStateEntity, StorageTransaction } from '../types';
-
-interface AdditionalInformtion {
-	readonly lastBlockHeader: BlockHeader;
-	readonly networkIdentifier: string;
-}
+import {
+	BlockHeader,
+	ConsensusStateEntity,
+	StorageTransaction,
+} from '../types';
 
 interface KeyValuePair {
 	// tslint:disable-next-line readonly-keyword
 	[key: string]: string;
 }
 
-export class ChainStateStore {
-	private readonly _name = 'ChainState';
+interface AdditionalInformtion {
+	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+}
+
+export class ConsensusStateStore {
+	private readonly _name = 'ConsensusState';
 	private _data: KeyValuePair;
 	private _originalData: KeyValuePair;
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
-	private readonly _chainState: ChainStateEntity;
-	private readonly _lastBlockHeader: BlockHeader;
-	private readonly _networkIdentifier: string;
+	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	private readonly _consensusState: ConsensusStateEntity;
 
 	public constructor(
-		chainStateEntity: ChainStateEntity,
-		additionalInformation: AdditionalInformtion,
+		consensusStateEntity: ConsensusStateEntity,
+		additionalInformtion: AdditionalInformtion,
 	) {
-		this._chainState = chainStateEntity;
-		this._lastBlockHeader = additionalInformation.lastBlockHeader;
-		this._networkIdentifier = additionalInformation.networkIdentifier;
+		this._consensusState = consensusStateEntity;
+		this._lastBlockHeaders = additionalInformtion.lastBlockHeaders;
 		this._data = {};
 		this._originalData = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
 	}
 
+	public get lastBlockHeaders(): ReadonlyArray<BlockHeader> {
+		return this._lastBlockHeaders;
+	}
+
 	public async cache(): Promise<void> {
-		const results = await this._chainState.get();
+		const results = await this._consensusState.get();
 		for (const { key, value } of results) {
 			this._data[key] = value;
 		}
-	}
-
-	public get networkIdentifier(): string {
-		return this._networkIdentifier;
-	}
-
-	public get lastBlockHeader(): BlockHeader {
-		return this._lastBlockHeader;
 	}
 
 	public createSnapshot(): void {
@@ -79,7 +76,7 @@ export class ChainStateStore {
 			return value;
 		}
 
-		const dbValue = await this._chainState.getKey(key);
+		const dbValue = await this._consensusState.getKey(key);
 		// If it doesn't exist in the database, return undefined without caching
 		if (dbValue === undefined) {
 			return dbValue;
@@ -109,7 +106,7 @@ export class ChainStateStore {
 
 		await Promise.all(
 			Array.from(this._updatedKeys).map(key =>
-				this._chainState.setKey(key, this._data[key], tx),
+				this._consensusState.setKey(key, this._data[key], tx),
 			),
 		);
 	}
