@@ -28,17 +28,11 @@ export interface TransactionObject {
 	};
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
-	containsUniqueData?: boolean;
 	verifiedOnce?: boolean;
 	feePriority?: bigint;
 }
 
 export interface TransactionFunctions {
-	isExpired(date: Date): boolean;
-	verifyAgainstOtherTransactions(
-		otherTransactions: ReadonlyArray<Transaction>,
-	): boolean;
-	isReady(): boolean;
 	getBytes(): Buffer;
 }
 
