@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { EventEmitter } from 'events';
 
 import { MinHeap } from './min_heap';
 import { Transaction } from './types';
@@ -25,12 +24,8 @@ export interface TransactionListOptions {
 const DEFAULT_MAX_SIZE = 64;
 const DEFAULT_REPLACEMENT_FEE_DIFF = BigInt(0);
 
-export const EVENT_TRANSACTION_ADDED = 'EVENT_TRANSACTION_ADDED';
-export const EVENT_TRANSACTION_REMOVED = 'EVENT_TRANSACTION_REMOVED';
-
 export class TransactionList {
 	public readonly address: string;
-	public readonly events: EventEmitter;
 
 	private _processable: Array<bigint>;
 	private readonly _transactions: { [nonce: string]: Transaction };
@@ -41,7 +36,6 @@ export class TransactionList {
 
 	public constructor(address: string, options?: TransactionListOptions) {
 		this.address = address;
-		this.events = new EventEmitter();
 		this._transactions = {};
 		this._nonceHeap = new MinHeap<undefined, bigint>();
 		this._processable = [];
@@ -68,10 +62,6 @@ export class TransactionList {
 			// Mark this and all subsequent nonce unprocessable
 			this._demoteAfter(incomingTx.nonce);
 			this._transactions[incomingTx.nonce.toString()] = incomingTx;
-			this.events.emit(EVENT_TRANSACTION_REMOVED, {
-				address: this.address,
-				id: existingTx.id,
-			});
 
 			return { added: true, removedID: existingTx.id };
 		}
@@ -114,11 +104,6 @@ export class TransactionList {
 			}
 		}
 		this._demoteAfter(nonce);
-
-		this.events.emit(EVENT_TRANSACTION_REMOVED, {
-			address: this.address,
-			id: removingTx.id,
-		});
 
 		return removingTx.id;
 	}
