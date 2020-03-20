@@ -26,7 +26,7 @@ const defaultCreateValues = {
 	username: null,
 	balance: '0',
 	nonce: '0',
-	keys: {},
+	keys: { mandatoryKeys: [], optionalKeys: [], numberOfSignatures: 0},
 	votes: null,
 	unlocking: null,
 	totalVotesReceived: '0',
