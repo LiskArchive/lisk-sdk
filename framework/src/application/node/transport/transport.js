@@ -406,7 +406,14 @@ class Transport {
 		const { errors } = await this.transactionPoolModule.add(transaction);
 
 		if (!errors.length) {
-			this.logger.info({ transaction }, 'Added transaction to pool');
+			this.logger.info(
+				{
+					id: transaction.id,
+					nonce: transaction.nonce.toString(),
+					senderPublicKey: transaction.senderPublicKey,
+				},
+				'Added transaction to pool',
+			);
 			return transaction.id;
 		}
 

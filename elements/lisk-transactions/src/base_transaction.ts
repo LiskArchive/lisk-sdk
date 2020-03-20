@@ -26,7 +26,6 @@ import {
 	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
 	MIN_FEE_PER_BYTE,
-	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
@@ -88,7 +87,6 @@ export abstract class BaseTransaction {
 	public readonly height?: number;
 	public readonly confirmations?: number;
 	public readonly type: number;
-	public readonly containsUniqueData?: boolean;
 	public readonly asset: object;
 	public nonce: bigint;
 	public fee: bigint;
@@ -231,21 +229,6 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
-	protected verifyAgainstTransactions(
-		_: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return [];
-	}
-
-	public verifyAgainstOtherTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): TransactionResponse {
-		const errors = this.verifyAgainstTransactions(transactions);
-
-		return createResponse(this.id, errors);
-	}
-
 	public async apply(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = [];
@@ -378,19 +361,6 @@ export abstract class BaseTransaction {
 		);
 
 		return createResponse(this.id, errors);
-	}
-
-	public isExpired(date: Date = new Date()): boolean {
-		if (!this.receivedAt) {
-			this.receivedAt = new Date();
-		}
-		// tslint:disable-next-line no-magic-numbers
-		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeElapsed =
-			// tslint:disable-next-line no-magic-numbers
-			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
-
-		return timeElapsed > UNCONFIRMED_TRANSACTION_TIMEOUT;
 	}
 
 	public sign(

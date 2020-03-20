@@ -42,7 +42,6 @@ export const delegateAssetFormatSchema = {
 
 export class DelegateTransaction extends BaseTransaction {
 	public readonly asset: DelegateAsset;
-	public readonly containsUniqueData: boolean;
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 
@@ -52,7 +51,6 @@ export class DelegateTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || { delegate: {} }) as DelegateAsset;
-		this.containsUniqueData = true;
 	}
 
 	protected assetToBytes(): Buffer {

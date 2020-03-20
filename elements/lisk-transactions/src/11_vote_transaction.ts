@@ -65,7 +65,6 @@ interface RawAsset {
 }
 
 export class VoteTransaction extends BaseTransaction {
-	public readonly containsUniqueData: boolean;
 	public readonly asset: VoteAsset;
 	public static TYPE = 11;
 
@@ -83,7 +82,6 @@ export class VoteTransaction extends BaseTransaction {
 			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = {} as VoteAsset;
 		}
-		this.containsUniqueData = true;
 	}
 
 	public assetToJSON(): object {

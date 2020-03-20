@@ -509,17 +509,18 @@ describe('blocks/header', () => {
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000000000' },
 				]);
+				const validTxJSON = transfer({
+					fee: '10000000',
+					nonce: '0',
+					passphrase: genesisAccount.passphrase,
+					recipientId: '123L',
+					amount: '100',
+					networkIdentifier,
+				});
 				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
+					validTxJSON as TransactionJSON,
 				);
-				storageStub.entities.Transaction.get.mockResolvedValue([validTx]);
+				storageStub.entities.Transaction.get.mockResolvedValue([validTxJSON]);
 				block = newBlock({ transactions: [validTx] });
 			});
 

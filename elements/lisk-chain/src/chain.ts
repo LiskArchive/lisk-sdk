@@ -29,6 +29,13 @@ import {
 	getTotalFees,
 	undoFeeAndRewards,
 } from './block_reward';
+import {
+	DEFAULT_MAX_BLOCK_HEADER_CACHE,
+	DEFAULT_MIN_BLOCK_HEADER_CACHE,
+	DEFAULT_STATE_BLOCK_SIZE,
+	EVENT_DELETE_BLOCK,
+	EVENT_NEW_BLOCK,
+} from './constants';
 import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
@@ -96,12 +103,6 @@ interface ChainConstructor {
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
-
-const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
-const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
-const DEFAULT_STATE_BLOCK_SIZE = 309;
-export const EVENT_NEW_BLOCK = 'NEW_BLOCK';
-export const EVENT_DELETE_BLOCK = 'DELETE_BLOCK';
 
 // tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];

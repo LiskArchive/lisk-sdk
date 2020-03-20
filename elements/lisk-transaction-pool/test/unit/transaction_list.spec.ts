@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	TransactionList,
-	EVENT_TRANSACTION_REMOVED,
-} from '../../src/transaction_list';
+import { TransactionList } from '../../src/transaction_list';
 import { Transaction } from '../../src/types';
 
 const insertNTransactions = (
@@ -339,7 +336,6 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(500000000),
 						nonce: BigInt(0),
 					} as Transaction;
-					jest.spyOn(transactionList.events, 'emit');
 					// Act
 					const { added, removedID } = transactionList.add(adding);
 					// Assert
@@ -347,13 +343,6 @@ describe('TransactionList class', () => {
 					expect(removedID).toEqual('10');
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.get(BigInt(0))?.id).toEqual('new-id');
-					expect(transactionList.events.emit).toHaveBeenCalledWith(
-						EVENT_TRANSACTION_REMOVED,
-						{
-							address: defaultAddress,
-							id: '10',
-						},
-					);
 				});
 			});
 		});

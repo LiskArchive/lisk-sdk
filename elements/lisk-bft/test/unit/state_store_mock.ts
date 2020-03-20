@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-interface ChainStateStoreMock {
+interface ConsensusStateStoreMock {
 	get: (address: string) => Promise<string | undefined>;
 	set: (key: string, v: string) => void;
 }
@@ -22,7 +22,7 @@ interface ConsensusState {
 }
 
 export class StateStoreMock {
-	public consensus: ChainStateStoreMock;
+	public consensus: ConsensusStateStoreMock;
 
 	public consensusData: ConsensusState;
 

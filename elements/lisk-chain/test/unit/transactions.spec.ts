@@ -168,7 +168,7 @@ describe('blocks/transactions', () => {
 				// Arrange
 				storageStub.entities.Account.get
 					.mockResolvedValueOnce([
-						{ address: genesisAccount.address, balance: '210000000'},
+						{ address: genesisAccount.address, balance: '210000000' },
 					])
 					.mockResolvedValue([]);
 				const validTx = chainInstance.deserializeTransaction(
@@ -500,7 +500,9 @@ describe('blocks/transactions', () => {
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				storageStub.entities.Transaction.get.mockResolvedValue([validTx2]);
+				storageStub.entities.Transaction.get.mockResolvedValue([
+					validTx2.toJSON(),
+				]);
 				// Act
 				const transactionsResponses = await chainInstance.applyTransactions([
 					validTx,
