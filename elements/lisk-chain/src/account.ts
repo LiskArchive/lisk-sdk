@@ -138,9 +138,7 @@ export class Account {
 		// TODO: Remove once new DPoS implementation is done
 		this.missedBlocks = accountInfo.missedBlocks;
 		this.isDelegate = accountInfo.isDelegate;
-		this.voteWeight = accountInfo.voteWeight
-			? BigInt(accountInfo.voteWeight)
-			: BigInt(0);
+		this.voteWeight = BigInt(accountInfo.voteWeight ?? 0);
 		this.nameExist = accountInfo.nameExist;
 		this.votedDelegatesPublicKeys =
 			accountInfo.votedDelegatesPublicKeys === undefined ||
