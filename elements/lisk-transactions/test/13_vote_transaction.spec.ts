@@ -131,9 +131,6 @@ describe('Vote transaction', () => {
 			it.todo(
 				'should make upvoted delegate account to have original values before apply',
 			);
-			it.todo(
-				'should make downvoted delegate account to have original values before apply',
-			);
 		});
 
 		describe('when asset.votes contain negative amount which makes account.votes to be 0 entries', () => {
