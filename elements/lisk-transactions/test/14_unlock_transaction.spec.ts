@@ -45,7 +45,7 @@ describe('Unlock transaction', () => {
 	});
 
 	describe('applyAsset', () => {
-		describe('given the delegate is not being punichsed', () => {
+		describe('given the delegate is not being punished', () => {
 			describe('when asset.unlockingObjects contain valid entries, and voter account has waited 2000 blocks', () => {
 				it.todo('should not return error');
 				it.todo('should make account to have correct balance');
