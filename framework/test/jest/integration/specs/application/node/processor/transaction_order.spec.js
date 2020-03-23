@@ -51,7 +51,7 @@ describe('Transaction order', () => {
 	});
 
 	describe('given transactions in specific order', () => {
-		describe('when account does not have sufficeint balance at the beginning, but receive before spending', () => {
+		describe('when account does not have sufficient balance at the beginning, but receives before spending', () => {
 			let newBlock;
 
 			beforeAll(async () => {
