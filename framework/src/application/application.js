@@ -19,6 +19,7 @@ const {
 	TransferTransaction,
 	DelegateTransaction,
 	VoteTransaction,
+	NewVoteTransaction,
 	MultisignatureTransaction,
 	transactionInterface,
 } = require('@liskhq/lisk-transactions');
@@ -151,6 +152,7 @@ class Application {
 		this.registerTransaction(DelegateTransaction);
 		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(MultisignatureTransaction);
+		this.registerTransaction(NewVoteTransaction);
 
 		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
