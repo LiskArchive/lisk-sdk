@@ -172,7 +172,7 @@ describe('Transaction order', () => {
 					networkIdentifier: node.networkIdentifier,
 					fee: convertLSKToBeddows('0.003'),
 					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('100'),
+					amount: convertLSKToBeddows('80'),
 				});
 				const deserializedTransferTx = node.chain.deserializeTransaction(
 					transferTx,
@@ -237,7 +237,7 @@ describe('Transaction order', () => {
 					networkIdentifier: node.networkIdentifier,
 					fee: convertLSKToBeddows('0.003'),
 					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('100'),
+					amount: convertLSKToBeddows('80'),
 					passphrase: newAccount.passphrase,
 				});
 				newBlock = await nodeUtils.createBlock(node, [
@@ -283,7 +283,7 @@ describe('Transaction order', () => {
 					networkIdentifier: node.networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: genesis.address,
-					amount: convertLSKToBeddows('150'),
+					amount: convertLSKToBeddows('140'),
 					passphrase: accountWithoutBalance.passphrase,
 				});
 				const refundingTx = transfer({
