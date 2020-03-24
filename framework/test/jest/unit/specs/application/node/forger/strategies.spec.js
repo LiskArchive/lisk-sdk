@@ -27,7 +27,16 @@ const {
 } = require('./forging_fixtures');
 
 const getTxMock = (
-	{ id, senderId, nonce, fee, bytes = 0, basicBytes = 0, valid = true } = {},
+	{
+		id,
+		senderId,
+		nonce,
+		fee,
+		feePriority,
+		bytes = 0,
+		basicBytes = 0,
+		valid = true,
+	} = {},
 	chainMock,
 ) => {
 	const tx = {
@@ -35,6 +44,7 @@ const getTxMock = (
 		senderId,
 		nonce,
 		fee,
+		feePriority,
 		getBytes: jest.fn().mockReturnValue(Array(bytes)),
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
 	};
@@ -110,7 +120,7 @@ describe('strategies', () => {
 				// Assert
 				expect(mockTxPool.getProcessableTransactions).toBeCalledTimes(1);
 			});
-			it('should return transactions in order by highest fee and lowest nonce', async () => {
+			it('should return transactions in order by highest feePriority and lowest nonce', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
 					buildProcessableTxMock(

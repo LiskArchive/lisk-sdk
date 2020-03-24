@@ -18,19 +18,19 @@ const allValidCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
-			{ id: 1, senderId: 'A', fee: 1, nonce: 1 },
-			{ id: 2, senderId: 'A', fee: 2, nonce: 2 },
-			{ id: 3, senderId: 'B', fee: 1, nonce: 1 },
-			{ id: 4, senderId: 'B', fee: 2, nonce: 2 },
-			{ id: 5, senderId: 'C', fee: 3, nonce: 1 },
+			{ id: 1, senderId: 'A', fee: 1, nonce: 1, feePriority: 1 },
+			{ id: 2, senderId: 'A', fee: 2, nonce: 2, feePriority: 2 },
+			{ id: 3, senderId: 'B', fee: 1, nonce: 1, feePriority: 1 },
+			{ id: 4, senderId: 'B', fee: 2, nonce: 2, feePriority: 2 },
+			{ id: 5, senderId: 'C', fee: 3, nonce: 1, feePriority: 3 },
 		],
 	},
 	output: [
-		{ id: 5, senderId: 'C', fee: 3, nonce: 1 },
-		{ id: 3, senderId: 'B', fee: 1, nonce: 1 },
-		{ id: 4, senderId: 'B', fee: 2, nonce: 2 },
-		{ id: 1, senderId: 'A', fee: 1, nonce: 1 },
-		{ id: 2, senderId: 'A', fee: 2, nonce: 2 },
+		{ id: 5, senderId: 'C', fee: 3, nonce: 1, feePriority: 3 },
+		{ id: 3, senderId: 'B', fee: 1, nonce: 1, feePriority: 1 },
+		{ id: 4, senderId: 'B', fee: 2, nonce: 2, feePriority: 2 },
+		{ id: 1, senderId: 'A', fee: 1, nonce: 1, feePriority: 1 },
+		{ id: 2, senderId: 'A', fee: 2, nonce: 2, feePriority: 2 },
 	],
 };
 
@@ -38,18 +38,18 @@ const maxPayloadLengthCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
-			{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 300 },
-			{ id: 2, senderId: 'A', fee: 2, nonce: 2, bytes: 200 },
-			{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200 },
-			{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100 },
-			{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300 },
+			{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 300, feePriority: 1 },
+			{ id: 2, senderId: 'A', fee: 2, nonce: 2, bytes: 200, feePriority: 2 },
+			{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200, feePriority: 1 },
+			{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100, feePriority: 2 },
+			{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300, feePriority: 3 },
 		],
 	},
 	output: [
-		{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300 },
-		{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200 },
-		{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100 },
-		{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 300 },
+		{ id: 5, senderId: 'C', fee: 3, nonce: 1, bytes: 300, feePriority: 3 },
+		{ id: 3, senderId: 'B', fee: 1, nonce: 1, bytes: 200, feePriority: 1 },
+		{ id: 4, senderId: 'B', fee: 2, nonce: 2, bytes: 100, feePriority: 2 },
+		{ id: 1, senderId: 'A', fee: 1, nonce: 1, bytes: 300, feePriority: 1 },
 	],
 };
 
@@ -57,17 +57,17 @@ const invalidTxCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
-			{ id: 1, senderId: 'A', fee: 1, nonce: 1 },
-			{ id: 2, senderId: 'A', fee: 2, nonce: 2, valid: false },
-			{ id: 3, senderId: 'A', fee: 1, nonce: 3 },
-			{ id: 4, senderId: 'B', fee: 2, nonce: 2 },
-			{ id: 5, senderId: 'C', fee: 3, nonce: 1 },
+			{ id: 1, senderId: 'A', fee: 1, nonce: 1, feePriority: 1 },
+			{ id: 2, senderId: 'A', fee: 2, nonce: 2, valid: false, feePriority: 2 },
+			{ id: 3, senderId: 'A', fee: 1, nonce: 3, feePriority: 1 },
+			{ id: 4, senderId: 'B', fee: 2, nonce: 2, feePriority: 2 },
+			{ id: 5, senderId: 'C', fee: 3, nonce: 1, feePriority: 3 },
 		],
 	},
 	output: [
-		{ id: 5, senderId: 'C', fee: 3, nonce: 1 },
-		{ id: 4, senderId: 'B', fee: 2, nonce: 2 },
-		{ id: 1, senderId: 'A', fee: 1, nonce: 1 },
+		{ id: 5, senderId: 'C', fee: 3, nonce: 1, feePriority: 3 },
+		{ id: 4, senderId: 'B', fee: 2, nonce: 2, feePriority: 2 },
+		{ id: 1, senderId: 'A', fee: 1, nonce: 1, feePriority: 1 },
 	],
 };
 
@@ -75,11 +75,11 @@ const allInvalidCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
-			{ id: 1, senderId: 'A', fee: 1, nonce: 1, valid: false },
-			{ id: 2, senderId: 'A', fee: 2, nonce: 2, valid: false },
-			{ id: 3, senderId: 'A', fee: 1, nonce: 3, valid: false },
-			{ id: 4, senderId: 'B', fee: 2, nonce: 2, valid: false },
-			{ id: 5, senderId: 'C', fee: 3, nonce: 1, valid: false },
+			{ id: 1, senderId: 'A', fee: 1, nonce: 1, valid: false, feePriority: 1 },
+			{ id: 2, senderId: 'A', fee: 2, nonce: 2, valid: false, feePriority: 2 },
+			{ id: 3, senderId: 'A', fee: 1, nonce: 3, valid: false, feePriority: 1 },
+			{ id: 4, senderId: 'B', fee: 2, nonce: 2, valid: false, feePriority: 2 },
+			{ id: 5, senderId: 'C', fee: 3, nonce: 1, valid: false, feePriority: 3 },
 		],
 	},
 	output: [],
