@@ -297,7 +297,7 @@ const generateValidUpvoteTransaction = () => {
 					unvoteHeight: 6,
 				},
 				{
-					delegateAddress: delegateAccounts[10].address,
+					delegateAddress: senderAccount.address,
 					amount: '520000000000',
 					unvoteHeight: 44,
 				},
