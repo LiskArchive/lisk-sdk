@@ -157,6 +157,33 @@ describe('Base transaction class', () => {
 					),
 			).not.toThrowError();
 		});
+
+		it('should set fee to zero if not provided in raw transaction', async () => {
+			const noFeeTransaction = new TestTransaction({
+				...defaultTransaction,
+				fee: 0,
+			});
+			expect(noFeeTransaction.fee).toEqual(BigInt('0'));
+		});
+
+		it('should set fee to zero if provided fee is invalid format', async () => {
+			const noFeeTransaction = new TestTransaction({
+				...defaultTransaction,
+				fee: 'abc',
+			});
+			expect(noFeeTransaction.fee).toEqual(BigInt('0'));
+		});
+	});
+
+	describe('#minFee', () => {
+		it('should set the minFee to minFeePerByte times bytelength for non delegate registration', () => {
+			const byteLength = BigInt(validTestTransaction.getBytes().length);
+			const minFeePerByte = 1000;
+
+			expect(validTestTransaction.minFee).toEqual(
+				byteLength * BigInt(minFeePerByte),
+			);
+		});
 	});
 
 	describe('#assetToJSON', () => {
