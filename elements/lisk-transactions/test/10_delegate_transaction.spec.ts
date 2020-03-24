@@ -89,6 +89,18 @@ describe('Delegate registration transaction class', () => {
 		});
 	});
 
+	describe('#minFee', () => {
+		it('should set the minFee to nameFee plus minFeePerByte times bytelength', () => {
+			const byteLength = BigInt(validTestTransaction.getBytes().length);
+			const nameFee = 1000000000;
+			const minFeePerByte = 1000;
+
+			expect(validTestTransaction.minFee).toEqual(
+				BigInt(nameFee) + byteLength * BigInt(minFeePerByte),
+			);
+		});
+	});
+
 	describe('#assetToBytes', () => {
 		it('should return valid buffer', async () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
