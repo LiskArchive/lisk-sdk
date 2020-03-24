@@ -302,7 +302,7 @@ describe('TransactionPool class', () => {
 
 		it('should throw when a transaction is invalid', async () => {
 			const transactionResponse = [
-				{ status: Status.FAIL, errors: [new Error('Invalid nonce sequence')] },
+				{ status: Status.FAIL, errors: [new Error('Invalid transaction')] },
 			];
 			jest.spyOn(transactionPool, '_getStatus' as any);
 			(transactionPool['_applyFunction'] as jest.Mock).mockResolvedValue(
@@ -341,6 +341,16 @@ describe('TransactionPool class', () => {
 
 			const { status } = await transactionPool.add(lowFeeTrx);
 			expect(status).toEqual(Status.FAIL);
+		});
+
+		// +&Add Scenario
+		it('should evict the trx from the pool when txPool is full and all the trxs are processable', async() => {
+
+		});
+
+		// +&Add Scenario
+		it('should reject the trx in case if the lowest fee priority within list of higher nonce per address is lower than the incoming trx fee priority', async() => {
+
 		});
 
 		it('should reject a transaction with a lower feePriority than the lowest feePriority present in TxPool', async () => {
@@ -540,29 +550,53 @@ describe('TransactionPool class', () => {
 	});
 
 	describe('evictProcessable', () => {
-		const senderPublicKey = generateRandomPublicKeys()[0];
-		const transactions = [
+		const senderPublicKey1 = generateRandomPublicKeys()[0];
+		const senderPublicKey2 = generateRandomPublicKeys()[0];
+		const transactionsFromSender1 = [
 			{
 				id: '1',
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: '2',
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
+			} as Transaction,
+		];
+
+		const transactionsFromSender2 = [
+			{
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: senderPublicKey2,
+			} as Transaction,
+			{
+				id: '12',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 		];
 		let txGetBytesStub: any;
 		txGetBytesStub = jest.fn();
-		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+		transactionsFromSender1[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
 		);
-		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+		transactionsFromSender1[1].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactionsFromSender2[0].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactionsFromSender2[1].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
 		);
 
@@ -575,60 +609,85 @@ describe('TransactionPool class', () => {
 				maxTransactions: 2,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
-			await transactionPool.add(transactions[0]);
-			await transactionPool.add(transactions[1]);
+			await transactionPool.add(transactionsFromSender1[0]);
+			await transactionPool.add(transactionsFromSender1[1]);
+			await transactionPool.add(transactionsFromSender2[0]);
+			await transactionPool.add(transactionsFromSender2[1]);
 		});
 
 		afterEach(async () => {
-			await transactionPool.remove(transactions[0]);
-			await transactionPool.remove(transactions[1]);
+			await transactionPool.remove(transactionsFromSender1[0]);
+			await transactionPool.remove(transactionsFromSender1[1]);
+			await transactionPool.remove(transactionsFromSender2[0]);
+			await transactionPool.remove(transactionsFromSender2[1]);
+		});
+
+		// +&Add Scenario
+		it('should only remove from the highest nonce from each address', async() => {
+
 		});
 
 		it('should evict processable transaction with lowest fee', async () => {
-			const isEvicted = (transactionPool as any)._evictProcessable();
+			const isEvicted = (
+				transactionPool as any)._evictProcessable();
 
 			expect(isEvicted).toBe(true);
 			expect((transactionPool as any)._allTransactions).not.toContain(
-				transactions[0],
+				transactionsFromSender2[1],
 			);
 			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('reorganize', () => {
-		const senderPublicKey = generateRandomPublicKeys()[0];
-		const transactions = [
+		const senderPublicKey1 = generateRandomPublicKeys()[0];
+		const senderPublicKey2 = generateRandomPublicKeys()[0];
+		const transactionsFromSender1 = [
 			{
 				id: '1',
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: '2',
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: '3',
 				nonce: BigInt(3),
 				minFee: BigInt(10),
 				fee: BigInt(3000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 		];
+
+		const transactionsFromSender2 = [
+			{
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: senderPublicKey2,
+			} as Transaction,
+		];
+
 		let txGetBytesStub: any;
 		txGetBytesStub = jest.fn();
-		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
+		transactionsFromSender1[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
 		);
-		transactions[1].getBytes = txGetBytesStub.mockReturnValue(
+		transactionsFromSender1[1].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
 		);
-		transactions[2].getBytes = txGetBytesStub.mockReturnValue(
+		transactionsFromSender1[2].getBytes = txGetBytesStub.mockReturnValue(
+			Buffer.from(new Array(10)),
+		);
+		transactionsFromSender2[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
 		);
 		let address: string;
@@ -646,27 +705,29 @@ describe('TransactionPool class', () => {
 				{ id: '2', status: Status.OK, errors: [] },
 				{ id: '3', status: Status.OK, errors: [] },
 			]);
-			await transactionPool.add(transactions[0]);
-			await transactionPool.add(transactions[1]);
-			await transactionPool.add(transactions[2]);
+			await transactionPool.add(transactionsFromSender1[0]);
+			await transactionPool.add(transactionsFromSender1[1]);
+			await transactionPool.add(transactionsFromSender1[2]);
+			await transactionPool.add(transactionsFromSender2[0]);
 			address = Object.keys((transactionPool as any)._transactionList)[0];
 			txList = (transactionPool as any)._transactionList[address];
 			transactionPool.start();
 		});
 
 		afterEach(async () => {
-			transactionPool.remove(transactions[0]);
-			transactionPool.remove(transactions[1]);
-			transactionPool.remove(transactions[2]);
+			transactionPool.remove(transactionsFromSender1[0]);
+			transactionPool.remove(transactionsFromSender1[1]);
+			transactionPool.remove(transactionsFromSender1[2]);
+			transactionPool.remove(transactionsFromSender2[0]);
 			transactionPool.stop();
 		});
 
 		it('should not promote unprocessable transactions to processable transactions', async () => {
-			transactionPool.remove(transactions[1]);
+			transactionPool.remove(transactionsFromSender1[1]);
 			jest.advanceTimersByTime(2);
 			const unprocessableTransactions = txList.getUnprocessable();
 
-			expect(unprocessableTransactions).toContain(transactions[2]);
+			expect(unprocessableTransactions).toContain(transactionsFromSender1[2]);
 		});
 
 		it('should call apply function with processable transaction', async () => {
@@ -674,20 +735,24 @@ describe('TransactionPool class', () => {
 			jest.advanceTimersByTime(2);
 
 			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(
-				transactions,
+				transactionsFromSender1,
+			);
+			expect(transactionPool['_applyFunction']).toHaveBeenCalledWith(
+				transactionsFromSender2,
 			);
 		});
 	});
 
 	describe('expire', () => {
-		const senderPublicKey = generateRandomPublicKeys()[0];
-		const transactions = [
+		const senderPublicKey1 = generateRandomPublicKeys()[0];
+		const senderPublicKey2 = generateRandomPublicKeys()[1];
+		const transactionsForSender1 = [
 			{
 				id: '1',
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 				receivedAt: new Date(0),
 			} as Transaction,
 			{
@@ -695,7 +760,7 @@ describe('TransactionPool class', () => {
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 				receivedAt: new Date(),
 			} as Transaction,
 			{
@@ -703,16 +768,37 @@ describe('TransactionPool class', () => {
 				nonce: BigInt(3),
 				minFee: BigInt(10),
 				fee: BigInt(3000),
-				senderPublicKey,
+				senderPublicKey: senderPublicKey1,
 				receivedAt: new Date(0),
+			} as Transaction,
+		];
+
+		const transactionsForSender2 = [
+			{
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(1000),
+				senderPublicKey: senderPublicKey2,
+				receivedAt: new Date(0),
+			} as Transaction,
+			{
+				id: '12',
+				nonce: BigInt(2),
+				minFee: BigInt(10),
+				fee: BigInt(2000),
+				senderPublicKey: senderPublicKey2,
+				receivedAt: new Date(),
 			} as Transaction,
 		];
 
 		beforeEach(() => {
 			(transactionPool as any)._allTransactions = {
-				'1': transactions[0],
-				'2': transactions[1],
-				'3': transactions[2],
+				'1': transactionsForSender1[0],
+				'2': transactionsForSender1[1],
+				'3': transactionsForSender1[2],
+				'11': transactionsForSender2[0],
+				'12': transactionsForSender2[1],
 			};
 		});
 
@@ -720,12 +806,15 @@ describe('TransactionPool class', () => {
 			(transactionPool as any).remove = jest.fn().mockReturnValue(true);
 			(transactionPool as any)._expire();
 			expect((transactionPool as any).remove).toHaveBeenCalledWith(
-				transactions[0],
+				transactionsForSender1[0],
 			);
 			expect((transactionPool as any).remove).toHaveBeenCalledWith(
-				transactions[2],
+				transactionsForSender1[2],
 			);
-			expect(transactionPool.events.emit).toHaveBeenCalledTimes(2);
+			expect((transactionPool as any).remove).toHaveBeenCalledWith(
+				transactionsForSender2[0],
+			);
+			expect(transactionPool.events.emit).toHaveBeenCalledTimes(3);
 		});
 	});
 });
