@@ -189,7 +189,7 @@ const getAssetBytes = asset => {
 		buffers.push(amountBuffer);
 		const unvoteHeightBuffer = Buffer.alloc(4);
 		unvoteHeightBuffer.writeUIntBE(Number(unlockingObject.unvoteHeight), 0, 4);
-		buffers.push(amountBuffer);
+		buffers.push(unvoteHeightBuffer);
 	}
 
 	return Buffer.concat(buffers);
