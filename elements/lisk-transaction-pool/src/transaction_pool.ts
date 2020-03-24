@@ -199,7 +199,7 @@ export class TransactionPool {
 		const exceededTransactionsCount =
 			Object.keys(this._allTransactions).length - this._maxTransactions;
 
-		if (exceededTransactionsCount > 0) {
+		if (exceededTransactionsCount >= 0) {
 			const isEvicted = this._evictUnprocessable();
 
 			if (!isEvicted) {
