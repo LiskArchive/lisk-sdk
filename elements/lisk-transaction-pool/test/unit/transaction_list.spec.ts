@@ -210,7 +210,7 @@ describe('TransactionList class', () => {
 			});
 		});
 
-		describe('given list of trxs with continuous nonce', () => {
+		describe('when the transaction list is full', () => {
 			describe('when the same nonce transaction with higher fee is added', () => {
 				it('should replace with the new transaction', async () => {
 					// Arrange
@@ -330,7 +330,7 @@ describe('TransactionList class', () => {
 				});
 			});
 
-			describe('when new transaction is added with higher nonce than the existing highest nonce when transactionList.size >= maxSize', () => {
+			describe('when new transaction is added with higher nonce than the existing highest nonce', () => {
 				it('should not add to the list', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10);
@@ -347,7 +347,7 @@ describe('TransactionList class', () => {
 				});
 			});
 
-			describe('when new transaction is added with lower nonce than the existing highest nonce when transactionList.size >= maxSize', () => {
+			describe('when new transaction is added with lower nonce than the existing highest nonce', () => {
 				it('should add the new transaction and remove the highest nonce transaction', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10, 1);

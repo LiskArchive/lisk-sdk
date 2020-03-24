@@ -343,7 +343,7 @@ describe('TransactionPool class', () => {
 			expect(status).toEqual(Status.FAIL);
 		});
 
-		it('should evict the trx from the pool when txPool is full when all the trxs are processable', async() => {
+		it('should evict lowest feePriotity among highest nonce trx from the pool when txPool is full and all the trxs are processable', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
@@ -397,7 +397,7 @@ describe('TransactionPool class', () => {
 			expect(status).toEqual(Status.OK);
 		});
 
-		it('should evict the trx from the pool when txPool is full when not all of the trxs are processable', async() => {
+		it('should evict unprocessable trx from the pool when txPool is full and not all trxs are processable', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
@@ -440,7 +440,10 @@ describe('TransactionPool class', () => {
 				Buffer.from(new Array(MAX_TRANSACTIONS)),
 			);
 			tempApplyTransactionsStub.mockResolvedValue([
-				{ status: Status.FAIL, errors: [{ dataPath: '.nonce', actual: 21, expected: 10}] },
+				{
+					status: Status.FAIL,
+					errors: [{ dataPath: '.nonce', actual: 21, expected: 10 }],
+				},
 			]);
 			await transactionPool.add(nonSequentialTx);
 
@@ -702,7 +705,10 @@ describe('TransactionPool class', () => {
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 		];
-		const higherNonceTrxs = [transactionsFromSender1[1], transactionsFromSender2[1]];
+		const higherNonceTrxs = [
+			transactionsFromSender1[1],
+			transactionsFromSender2[1],
+		];
 		let txGetBytesStub: any;
 		txGetBytesStub = jest.fn();
 		transactionsFromSender1[0].getBytes = txGetBytesStub.mockReturnValue(
@@ -741,8 +747,7 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should evict processable transaction with lowest fee', async () => {
-			const isEvicted = (
-				transactionPool as any)._evictProcessable();
+			const isEvicted = (transactionPool as any)._evictProcessable();
 
 			expect(isEvicted).toBe(true);
 			expect((transactionPool as any)._allTransactions).not.toContain(
