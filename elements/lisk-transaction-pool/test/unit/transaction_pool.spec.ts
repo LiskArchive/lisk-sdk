@@ -343,14 +343,131 @@ describe('TransactionPool class', () => {
 			expect(status).toEqual(Status.FAIL);
 		});
 
-		// +&Add Scenario
-		it('should evict the trx from the pool when txPool is full and all the trxs are processable', async() => {
+		it('should evict the trx from the pool when txPool is full when all the trxs are processable', async() => {
+			const MAX_TRANSACTIONS = 10;
+			transactionPool = new TransactionPool({
+				applyTransactions: jest.fn(),
+				minEntranceFeePriority: BigInt(10),
+				maxTransactions: MAX_TRANSACTIONS,
+			});
 
+			let tempApplyTransactionsStub = jest.fn();
+			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
+
+			txGetBytesStub = jest.fn();
+			for (let i = 0; i < MAX_TRANSACTIONS; i++) {
+				const tempTx = {
+					id: `${i}`,
+					nonce: BigInt(1),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: generateRandomPublicKeys()[0],
+				} as Transaction;
+				tempTx.getBytes = txGetBytesStub.mockReturnValue(
+					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
+				);
+
+				tempApplyTransactionsStub.mockResolvedValue([
+					{ status: Status.OK, errors: [] },
+				]);
+
+				await transactionPool.add(tempTx);
+			}
+
+			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
+
+			const highFeePriorityTx = {
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(5000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			highFeePriorityTx.getBytes = txGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(MAX_TRANSACTIONS)),
+			);
+
+			tempApplyTransactionsStub.mockResolvedValue([
+				{ status: Status.OK, errors: [] },
+			]);
+			jest.spyOn(transactionPool, '_evictProcessable' as any);
+			const { status } = await transactionPool.add(highFeePriorityTx);
+			expect(transactionPool['_evictProcessable']).toHaveBeenCalledTimes(1);
+			expect(status).toEqual(Status.OK);
 		});
 
-		// +&Add Scenario
-		it('should reject the trx in case if the lowest fee priority within list of higher nonce per address is lower than the incoming trx fee priority', async() => {
+		it('should evict the trx from the pool when txPool is full when not all of the trxs are processable', async() => {
+			const MAX_TRANSACTIONS = 10;
+			transactionPool = new TransactionPool({
+				applyTransactions: jest.fn(),
+				minEntranceFeePriority: BigInt(10),
+				maxTransactions: MAX_TRANSACTIONS,
+			});
 
+			let tempApplyTransactionsStub = jest.fn();
+			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
+
+			txGetBytesStub = jest.fn();
+			for (let i = 0; i < MAX_TRANSACTIONS - 1; i++) {
+				const tempTx = {
+					id: `${i}`,
+					nonce: BigInt(1),
+					minFee: BigInt(10),
+					fee: BigInt(1000),
+					senderPublicKey: generateRandomPublicKeys()[0],
+				} as Transaction;
+				tempTx.getBytes = txGetBytesStub.mockReturnValue(
+					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
+				);
+
+				tempApplyTransactionsStub.mockResolvedValue([
+					{ status: Status.OK, errors: [] },
+				]);
+
+				await transactionPool.add(tempTx);
+			}
+
+			const nonSequentialTx = {
+				id: '21',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(5000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			nonSequentialTx.getBytes = txGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(MAX_TRANSACTIONS)),
+			);
+			tempApplyTransactionsStub.mockResolvedValue([
+				{ status: Status.FAIL, errors: [{ dataPath: '.nonce', actual: 21, expected: 10}] },
+			]);
+			await transactionPool.add(nonSequentialTx);
+
+			expect(transactionPool.getAll()).toContain(nonSequentialTx);
+			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
+
+			const highFeePriorityTx = {
+				id: '11',
+				nonce: BigInt(1),
+				minFee: BigInt(10),
+				fee: BigInt(5000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			highFeePriorityTx.getBytes = txGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(MAX_TRANSACTIONS)),
+			);
+
+			tempApplyTransactionsStub.mockResolvedValue([
+				{ status: Status.OK, errors: [] },
+			]);
+			jest.spyOn(transactionPool, '_evictUnprocessable' as any);
+
+			const { status } = await transactionPool.add(highFeePriorityTx);
+			expect(transactionPool.getAll()).not.toContain(nonSequentialTx);
+			expect(transactionPool['_evictUnprocessable']).toHaveBeenCalledTimes(1);
+			expect(status).toEqual(Status.OK);
 		});
 
 		it('should reject a transaction with a lower feePriority than the lowest feePriority present in TxPool', async () => {
@@ -585,6 +702,7 @@ describe('TransactionPool class', () => {
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 		];
+		const higherNonceTrxs = [transactionsFromSender1[1], transactionsFromSender2[1]];
 		let txGetBytesStub: any;
 		txGetBytesStub = jest.fn();
 		transactionsFromSender1[0].getBytes = txGetBytesStub.mockReturnValue(
@@ -622,11 +740,6 @@ describe('TransactionPool class', () => {
 			await transactionPool.remove(transactionsFromSender2[1]);
 		});
 
-		// +&Add Scenario
-		it('should only remove from the highest nonce from each address', async() => {
-
-		});
-
 		it('should evict processable transaction with lowest fee', async () => {
 			const isEvicted = (
 				transactionPool as any)._evictProcessable();
@@ -635,6 +748,8 @@ describe('TransactionPool class', () => {
 			expect((transactionPool as any)._allTransactions).not.toContain(
 				transactionsFromSender2[1],
 			);
+			// To check if evicted processable transaction is the higher nonce transaction of an account
+			expect(higherNonceTrxs).toContain(transactionsFromSender2[1]);
 			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
 		});
 	});
