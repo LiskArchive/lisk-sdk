@@ -249,7 +249,7 @@ describe('TransactionList class', () => {
 					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
 				});
 			});
-			// +& when the same nonce transaction with higher fee and equal or greater than the minReplacementFee
+
 			describe('when the same nonce transaction with higher fee and greater than minReplaceFeeDiff is added', () => {
 				it('should replace with the new transaction', async () => {
 					// Arrange
@@ -269,6 +269,7 @@ describe('TransactionList class', () => {
 					);
 				});
 			});
+
 			describe('when the same nonce transaction with higher fee but lower than minReplaceFeeDiff is added', () => {
 				it('should reject the new incoming replacing transaction', async () => {
 					// Arrange
