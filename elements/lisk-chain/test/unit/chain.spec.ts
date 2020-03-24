@@ -294,7 +294,7 @@ describe('chain', () => {
 			);
 		});
 
-		it('should return with the chain state from last block to last block - 309', async () => {
+		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
 			await chainInstance.newStateStore();
 			await expect(
 				stubs.dependencies.storage.entities.Block.get,
@@ -307,7 +307,7 @@ describe('chain', () => {
 			);
 		});
 
-		it('should return with the chain state from last block - 1 to last block - 310', async () => {
+		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
 			await chainInstance.newStateStore(1);
 			await expect(
 				stubs.dependencies.storage.entities.Block.get,
