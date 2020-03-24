@@ -271,6 +271,56 @@ describe('chain', () => {
 		});
 	});
 
+	describe('newStateStore', () => {
+		beforeEach(async () => {
+			chainInstance['_lastBlock'] = newBlock({ height: 532 });
+			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
+				newBlock(),
+				genesisBlock,
+			]);
+		});
+
+		it('should populate the chain state with genesis block', async () => {
+			chainInstance['_lastBlock'] = newBlock({ height: 1 });
+			await chainInstance.newStateStore();
+			await expect(
+				stubs.dependencies.storage.entities.Block.get,
+			).toHaveBeenCalledWith(
+				{
+					height_gte: 1,
+					height_lte: 1,
+				},
+				{ limit: null, sort: 'height:desc' },
+			);
+		});
+
+		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
+			await chainInstance.newStateStore();
+			await expect(
+				stubs.dependencies.storage.entities.Block.get,
+			).toHaveBeenCalledWith(
+				{
+					height_gte: chainInstance.lastBlock.height - 309,
+					height_lte: chainInstance.lastBlock.height,
+				},
+				{ limit: null, sort: 'height:desc' },
+			);
+		});
+
+		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
+			await chainInstance.newStateStore(1);
+			await expect(
+				stubs.dependencies.storage.entities.Block.get,
+			).toHaveBeenCalledWith(
+				{
+					height_gte: chainInstance.lastBlock.height - 310,
+					height_lte: chainInstance.lastBlock.height - 1,
+				},
+				{ limit: null, sort: 'height:desc' },
+			);
+		});
+	});
+
 	describe('serialize', () => {
 		const transaction = new TransferTransaction(randomUtils.transaction());
 		const block = newBlock({ transactions: [transaction] });
