@@ -343,7 +343,7 @@ describe('TransactionPool class', () => {
 			expect(status).toEqual(Status.FAIL);
 		});
 
-		it('should evict lowest feePriotity among highest nonce trx from the pool when txPool is full and all the trxs are processable', async () => {
+		it('should evict lowest feePriority among highest nonce trx from the pool when txPool is full and all the trxs are processable', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
@@ -397,7 +397,7 @@ describe('TransactionPool class', () => {
 			expect(status).toEqual(Status.OK);
 		});
 
-		it('should evict unprocessable trx from the pool when txPool is full and not all trxs are processable', async () => {
+		it('should evict the unprocessable trx with the lowest feePriority from the pool when txPool is full and not all trxs are processable', async () => {
 			const MAX_TRANSACTIONS = 10;
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),

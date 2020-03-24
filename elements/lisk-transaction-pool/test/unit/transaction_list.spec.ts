@@ -134,7 +134,7 @@ describe('TransactionList class', () => {
 				});
 			});
 
-			describe('when the same nonce transaction with the lower than min replacement fee is added', () => {
+			describe('when the same nonce transaction with a lower fee than min replacement fee is added', () => {
 				it('should not replace and not add to the list', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 5);
@@ -290,7 +290,7 @@ describe('TransactionList class', () => {
 				});
 			});
 
-			describe('when the same nonce transaction with the lower than min replacement fee is added', () => {
+			describe('when the same nonce transaction with a lower fee than min replacement fee is added', () => {
 				it('should not replace and not add to the list', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10);
@@ -398,7 +398,7 @@ describe('TransactionList class', () => {
 	});
 
 	describe('promote', () => {
-		describe('when promoting transaction does not exist id', () => {
+		describe('when promoting transaction id does not exist', () => {
 			it('should not mark any transactions as promotable', async () => {
 				// Arrange
 				insertNTransactions(transactionList, 10);
@@ -407,23 +407,6 @@ describe('TransactionList class', () => {
 					{
 						id: '11',
 						nonce: BigInt(11),
-						fee: BigInt(1000000),
-					} as Transaction,
-				]);
-				// Assert
-				expect(transactionList.getProcessable()).toHaveLength(0);
-			});
-		});
-
-		describe('when promoting transaction does not match id', () => {
-			it('should not mark any transactions as promotable', async () => {
-				// Arrange
-				insertNTransactions(transactionList, 10);
-				// Act
-				transactionList.promote([
-					{
-						id: 'new-id',
-						nonce: BigInt(0),
 						fee: BigInt(1000000),
 					} as Transaction,
 				]);
@@ -546,7 +529,7 @@ describe('TransactionList class', () => {
 			});
 		});
 
-		describe('when there are only unprocessable transactions and all nonce are not continuous', () => {
+		describe('when there are only unprocessable transactions and all nonces are not continuous', () => {
 			it('should return only the first unprocessable transaction', async () => {
 				// Arrange
 				const addedTxs = insertNTransactions(transactionList, 1);
@@ -561,7 +544,7 @@ describe('TransactionList class', () => {
 			});
 		});
 
-		describe('when there are only unprocessable transactions and all nonce are in sequence', () => {
+		describe('when there are only unprocessable transactions and all nonces are in sequence order', () => {
 			it('should return all the promotables in order of nonce', async () => {
 				// Arrange
 				insertNTransactions(transactionList, 10, 10);
