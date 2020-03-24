@@ -50,7 +50,7 @@ class HighFeeForgingStrategy {
 		const feePriorityHeap = new MaxHeap();
 		for (const senderId of Object.keys(transactionsBySender)) {
 			const lowestNonceTrx = transactionsBySender[senderId][0];
-			feePriorityHeap.push(lowestNonceTrx.fee, lowestNonceTrx);
+			feePriorityHeap.push(lowestNonceTrx.feePriority, lowestNonceTrx);
 		}
 
 		// Loop till we have last account exhausted to pick transactions
@@ -111,7 +111,7 @@ class HighFeeForgingStrategy {
 			const nextLowestNonceTransaction =
 				transactionsBySender[lowestNonceHighestFeeTrx.senderId][0];
 			feePriorityHeap.push(
-				nextLowestNonceTransaction.fee,
+				nextLowestNonceTransaction.feePriority,
 				nextLowestNonceTransaction,
 			);
 		}
