@@ -15,6 +15,7 @@
 'use strict';
 
 const { cloneDeep } = require('lodash');
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { when } = require('jest-when');
 const { Chain } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
@@ -80,8 +81,13 @@ describe('block_synchronization_mechanism', () => {
 		const storageMock = {};
 
 		channelMock = new ChannelMock();
+		const networkIdentifier = getNetworkIdentifier(
+			genesisBlockDevnet.payloadHash,
+			genesisBlockDevnet.communityIdentifier,
+		);
 
 		chainModule = new Chain({
+			networkIdentifier,
 			logger: loggerMock,
 			storage: storageMock,
 			slots,

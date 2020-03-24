@@ -21,13 +21,19 @@ import { BlockInstance, ExceptionOptions } from './types';
 export const validateSignature = (
 	block: BlockInstance,
 	blockBytes: Buffer,
+	networkIdentifier: string,
 ): void => {
 	const signatureLength = 64;
 	const dataWithoutSignature = blockBytes.slice(
 		0,
 		blockBytes.length - signatureLength,
 	);
-	const hashedBlock = hash(dataWithoutSignature);
+	const hashedBlock = hash(
+		Buffer.concat([
+			Buffer.from(networkIdentifier, 'hex'),
+			dataWithoutSignature,
+		]),
+	);
 
 	const verified = verifyData(
 		hashedBlock,

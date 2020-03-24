@@ -409,7 +409,7 @@ export class Chain {
 		expectedReward: string,
 	): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
-		validateSignature(block, blockBytes);
+		validateSignature(block, blockBytes, this._networkIdentifier);
 		validateReward(block, expectedReward, this.exceptions);
 
 		// Validate transactions
