@@ -48,7 +48,7 @@ describe('TransactionList class', () => {
 				expect((transactionList as any)._maxSize).toEqual(64);
 				expect(
 					(transactionList as any)._minReplacementFeeDifference.toString(),
-				).toEqual('0');
+				).toEqual('10');
 			});
 		});
 
@@ -210,7 +210,7 @@ describe('TransactionList class', () => {
 			});
 		});
 
-		describe('given list has no space', () => {
+		describe('given list of trxs with continuous nonce', () => {
 			describe('when the same nonce transaction with higher fee is added', () => {
 				it('should replace with the new transaction', async () => {
 					// Arrange
@@ -249,9 +249,28 @@ describe('TransactionList class', () => {
 					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
 				});
 			});
-
-			describe('when the same nonce transaction with higher fee but lower than minReplaceFeeDiff is added', () => {
+			// +& when the same nonce transaction with higher fee and equal or greater than the minReplacementFee
+			describe('when the same nonce transaction with higher fee and greater than minReplaceFeeDiff is added', () => {
 				it('should replace with the new transaction', async () => {
+					// Arrange
+					const addedTxs = insertNTransactions(transactionList, 10);
+					const replacing = {
+						...addedTxs[0],
+						id: 'new-id',
+						fee: addedTxs[0].fee + BigInt(11),
+					};
+					// Act
+					const { added } = transactionList.add(replacing);
+					// Assert
+					expect(added).toEqual(true);
+					expect(transactionList.size).toEqual(10);
+					expect(transactionList.get(replacing.nonce)?.id).toEqual(
+						replacing.id,
+					);
+				});
+			});
+			describe('when the same nonce transaction with higher fee but lower than minReplaceFeeDiff is added', () => {
+				it('should reject the new incoming replacing transaction', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const replacing = {
@@ -310,7 +329,7 @@ describe('TransactionList class', () => {
 				});
 			});
 
-			describe('when new transaction is added with higher nonce than the existing highest nonce', () => {
+			describe('when new transaction is added with higher nonce than the existing highest nonce when transactionList.size >= maxSize', () => {
 				it('should not add to the list', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10);
@@ -327,7 +346,7 @@ describe('TransactionList class', () => {
 				});
 			});
 
-			describe('when new transaction is added with lower nonce than the existing highest nonce', () => {
+			describe('when new transaction is added with lower nonce than the existing highest nonce when transactionList.size >= maxSize', () => {
 				it('should add the new transaction and remove the highest nonce transaction', async () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10, 1);
@@ -378,7 +397,7 @@ describe('TransactionList class', () => {
 	});
 
 	describe('promote', () => {
-		describe('when promoting transaction does exist id', () => {
+		describe('when promoting transaction does not exist id', () => {
 			it('should not mark any transactions as promotable', async () => {
 				// Arrange
 				insertNTransactions(transactionList, 10);
@@ -541,7 +560,7 @@ describe('TransactionList class', () => {
 			});
 		});
 
-		describe('when there are only unprocessable transactions and all nonce are partially continuous', () => {
+		describe('when there are only unprocessable transactions and all nonce are in sequence', () => {
 			it('should return all the promotables in order of nonce', async () => {
 				// Arrange
 				insertNTransactions(transactionList, 10, 10);
