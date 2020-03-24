@@ -1,0 +1,116 @@
+{
+	"title": "Valid proof-of-misbehavior transaction for scenario 1",
+	"summary": "A proof-of-misbehavior transaction",
+	"config": "devnet",
+	"runner": "proof_of_misbehavior_transaction",
+	"handler": "proof_of_misbehavior_transaction",
+	"testCases": {
+		"input": {
+			"reportingAccount": {
+				"address": "16313739661670634666L",
+				"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+				"passphrase": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
+				"balance": "10000000000000000",
+				"encryptedPassphrase": "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1",
+				"password": "elephant tree paris dragon chair galaxy"
+			},
+			"targetAccount": {
+				"address": "10881167371402274308L",
+				"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+				"passphrase": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
+				"balance": "0",
+				"delegateName": "genesis_100"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
+			"transaction": {
+				"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+				"nonce": "1",
+				"fee": "1500000000",
+				"type": 15,
+				"asset": {
+					"header1": {
+						"version": 1,
+						"timestamp": 1,
+						"previousBlockId": 1,
+						"seedReveal": "1",
+						"height": 10,
+						"maxHeightPreviouslyForged": 6,
+						"maxHeightPrevoted": 5,
+						"numberOfTransactions": 0,
+						"totalAmount": 0,
+						"totalFee": 10000000000,
+						"reward": 10000000000,
+						"payloadLength": 0,
+						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+						"blockSignature": "bb60c975f6d3f78b14b826e3be08f61aada855068751583144bffe24e00ecd9117fdf71558c9dec816903da3e47ea40f3d8c8c067a37f29a67e8af8563bf7c0a"
+					},
+					"header2": {
+						"version": 1,
+						"timestamp": 1,
+						"previousBlockId": 1,
+						"seedReveal": "1",
+						"height": 11,
+						"maxHeightPreviouslyForged": 6,
+						"maxHeightPrevoted": 5,
+						"numberOfTransactions": 0,
+						"totalAmount": 0,
+						"totalFee": 10000000000,
+						"reward": 10000000000,
+						"payloadLength": 0,
+						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+						"blockSignature": "5c631cdbb493bde450e98c0404764b7ac5392e601e19d9b771f65d886f87374128852d4b3675d07ef03624285ec2d2ef80ba4d7c80bbbee9acb4826d6373b400"
+					}
+				},
+				"signatures": []
+			}
+		},
+		"output": {
+			"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+			"nonce": "1",
+			"fee": "1500000000",
+			"type": 15,
+			"asset": {
+				"header1": {
+					"version": 1,
+					"timestamp": 1,
+					"previousBlockId": 1,
+					"seedReveal": "1",
+					"height": 10,
+					"maxHeightPreviouslyForged": 6,
+					"maxHeightPrevoted": 5,
+					"numberOfTransactions": 0,
+					"totalAmount": 0,
+					"totalFee": 10000000000,
+					"reward": 10000000000,
+					"payloadLength": 0,
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"blockSignature": "bb60c975f6d3f78b14b826e3be08f61aada855068751583144bffe24e00ecd9117fdf71558c9dec816903da3e47ea40f3d8c8c067a37f29a67e8af8563bf7c0a"
+				},
+				"header2": {
+					"version": 1,
+					"timestamp": 1,
+					"previousBlockId": 1,
+					"seedReveal": "1",
+					"height": 11,
+					"maxHeightPreviouslyForged": 6,
+					"maxHeightPrevoted": 5,
+					"numberOfTransactions": 0,
+					"totalAmount": 0,
+					"totalFee": 10000000000,
+					"reward": 10000000000,
+					"payloadLength": 0,
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"blockSignature": "5c631cdbb493bde450e98c0404764b7ac5392e601e19d9b771f65d886f87374128852d4b3675d07ef03624285ec2d2ef80ba4d7c80bbbee9acb4826d6373b400"
+				}
+			},
+			"signatures": [
+				"eaa5dba59fdbf3cac90c83f819f1338dc89475858d4b6b34b22d0096c67f1b8945057c8999d19190d241b320d94e76c149ce58ac3b79d7cdaeb3b052ffdfb70a"
+			],
+			"id": "15055574135001832957"
+		}
+	}
+}
