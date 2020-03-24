@@ -358,12 +358,12 @@ export class Chain {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
-	public async newStateStore(): Promise<StateStore> {
+	public async newStateStore(skipLastHeights: number = 0): Promise<StateStore> {
 		const fromHeight = Math.max(
 			1,
-			this._lastBlock.height - this.constants.stateBlockSize,
+			this._lastBlock.height - this.constants.stateBlockSize - skipLastHeights,
 		);
-		const toHeight = this._lastBlock.height;
+		const toHeight = Math.max(this._lastBlock.height - skipLastHeights, 1);
 		const lastBlockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
 			fromHeight,
 			toHeight,
