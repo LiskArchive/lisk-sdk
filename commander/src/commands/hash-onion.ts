@@ -13,16 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { generateHashOnionSeed, hashOnion } from '@liskhq/lisk-cryptography';
 import { isValidInteger } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 import fs from 'fs-extra';
 import path from 'path';
 
 import BaseCommand from '../base';
-
-const HASH_SIZE = 16;
-const INPUT_SIZE = 64;
 
 export default class HashOnionCommand extends BaseCommand {
 	static description = `
@@ -45,7 +42,7 @@ export default class HashOnionCommand extends BaseCommand {
 		distance: flagParser.integer({
 			char: 'd',
 			description: 'Distance between each hashes',
-			default: 2000,
+			default: 1000,
 		}),
 	};
 
@@ -63,34 +60,15 @@ export default class HashOnionCommand extends BaseCommand {
 			throw new Error('Invalid count. Count has to be positive integer');
 		}
 
-		if (count < distance) {
-			throw new Error(
-				'Invalid count or distance. Count must be greater than distance',
-			);
-		}
-
-		if (count % distance !== 0) {
-			throw new Error('Invalid count. Count must be multiple of distance');
-		}
-
 		if (output) {
 			const { dir } = path.parse(output);
 			fs.ensureDirSync(dir);
 		}
 
-		// tslint:disable-next-line no-let
-		let previousHash = hash(getRandomBytes(INPUT_SIZE)).slice(0, HASH_SIZE);
+		const seed = generateHashOnionSeed();
 
-		const hashes: string[] = [previousHash.toString('hex')];
-
-		// tslint:disable-next-line no-let
-		for (let i = 1; i <= count; i += 1) {
-			const nextHash = hash(previousHash).slice(0, HASH_SIZE);
-			if (i % distance === 0) {
-				hashes.unshift(nextHash.toString('hex'));
-			}
-			previousHash = nextHash;
-		}
+		const hashBuffers = hashOnion(seed, count, distance);
+		const hashes = hashBuffers.map(buf => buf.toString('hex'));
 
 		const result = { count, distance, hashes };
 
