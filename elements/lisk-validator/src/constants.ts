@@ -21,5 +21,5 @@ export const MAX_INT32 = 2147483647;
 export const MIN_INT32 = MAX_INT32 * -1;
 export const MAX_UINT32 = 4294967295;
 export const MAX_INT64 = BigInt('9223372036854775807');
-export const MIN_INT64 = MAX_INT64 * BigInt(-1);
+export const MIN_INT64 = MAX_INT64 * BigInt(-1) - BigInt(1);
 export const MAX_UINT64 = BigInt('18446744073709551615');
