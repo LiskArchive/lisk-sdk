@@ -22,6 +22,7 @@ import {
 } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
+import { sortUnlocking } from './utils';
 
 export interface Unlock {
 	readonly delegateAddress: string;
@@ -296,9 +297,7 @@ export class UnlockTransaction extends BaseTransaction {
 			sender.balance -= unlock.amount;
 			sender.unlocking.push(unlock);
 			// Resort the unlocking since it's pushed to the end
-			sender.unlocking.sort((a, b) =>
-				a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-			);
+			sortUnlocking(sender.unlocking);
 			store.account.set(sender.address, sender);
 		}
 

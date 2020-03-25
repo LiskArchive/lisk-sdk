@@ -19,6 +19,7 @@ import { UnlockTransaction } from '../src/14_unlock_transaction';
 import { Status, Account } from '../src';
 import { StateStoreMock, defaultAccount } from './utils/state_store_mock';
 import { AccountUnlocking } from '../src/transaction_types';
+import { sortUnlocking } from '../src/utils';
 
 describe('Unlock transaction', () => {
 	const minBalance = BigInt('5000000');
@@ -758,9 +759,8 @@ describe('Unlock transaction', () => {
 					pomHeights: [],
 				},
 			};
-			sender.unlocking.sort((a, b) =>
-				a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-			);
+
+			sortUnlocking(sender.unlocking);
 			originalAccount = {
 				...sender,
 				unlocking: [...sender.unlocking],
