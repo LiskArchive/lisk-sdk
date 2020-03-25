@@ -23,6 +23,7 @@ import {
 import { MAX_INT64 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
+import { sortUnlocking } from './utils';
 
 export interface Vote {
 	readonly delegateAddress: string;
@@ -291,9 +292,7 @@ export class VoteTransaction extends BaseTransaction {
 					unvoteHeight: store.chain.lastBlockHeader.height + 1,
 				});
 				// Sort account.unlocking
-				sender.unlocking.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-				);
+				sortUnlocking(sender.unlocking);
 
 				// Unlocking object should not exceed maximum
 				if (sender.unlocking.length > MAX_UNLOCKING) {
@@ -330,16 +329,8 @@ export class VoteTransaction extends BaseTransaction {
 						),
 					);
 				}
+				// Balance is checked in the base transaction
 				sender.balance -= vote.amount;
-				if (sender.balance < BigInt(0)) {
-					errors.push(
-						new TransactionError(
-							'Cannot upvote which exceeds account.balance',
-							this.id,
-							'.asset.votes.amount',
-						),
-					);
-				}
 				sender.votes[index] = upvote;
 				// Sort account.votes
 				sender.votes.sort((a, b) =>
@@ -419,9 +410,7 @@ export class VoteTransaction extends BaseTransaction {
 					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
 				);
 				// Sort account.unlocking
-				sender.unlocking.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-				);
+				sortUnlocking(sender.unlocking);
 				delegate.totalVotesReceived += vote.amount * BigInt(-1);
 			} else {
 				const originalUpvoteIndex = sender.votes.findIndex(

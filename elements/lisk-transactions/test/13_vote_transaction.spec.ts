@@ -244,7 +244,7 @@ describe('Vote transaction', () => {
 					delegateAddress:
 						validMixvoteTransactionScenario.testCases.output.asset.votes[0]
 							.delegateAddress,
-					amount: BigInt(-1) * BigInt(2) ** BigInt(63),
+					amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
 				};
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
@@ -899,9 +899,23 @@ describe('Vote transaction', () => {
 								unvoteHeight: 2,
 							})),
 					];
-					sender.unlocking.sort((a, b) =>
-						a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-					);
+					sender.unlocking.sort((a, b) => {
+						if (a.delegateAddress !== b.delegateAddress) {
+							return a.delegateAddress.localeCompare(b.delegateAddress, 'en');
+						}
+						if (a.unvoteHeight !== b.unvoteHeight) {
+							return b.unvoteHeight - a.unvoteHeight;
+						}
+						const diff = b.amount - a.amount;
+						if (diff > BigInt(0)) {
+							return 1;
+						}
+						if (diff < BigInt(0)) {
+							return -1;
+						}
+
+						return 0;
+					});
 					store.account.set(invalidSender.address, invalidSender);
 
 					const { errors, status } = await tx.apply(store);
