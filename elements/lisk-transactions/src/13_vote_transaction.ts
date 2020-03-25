@@ -367,7 +367,7 @@ export class VoteTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const assetCopy = [...this.asset.votes];
-		// Sort by decending amount
+		// Sort by descending amount
 		assetCopy.sort((a, b) => {
 			const diff = b.amount - a.amount;
 			if (diff > BigInt(0)) {
