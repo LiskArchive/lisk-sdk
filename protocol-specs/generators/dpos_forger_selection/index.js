@@ -110,7 +110,9 @@ const generateForgerSelectionWithExactly1EligibleStandBy = () => {
 		output: {
 			selectedForgers: copyAndSort(
 				delegateWeightsWithExactly1EligibleStandBy.list,
-			).map(dw => dw.address),
+			)
+				.map(dw => dw.address)
+				.slice(0, 103),
 		},
 	};
 };
@@ -127,7 +129,9 @@ const generateForgerSelectionWithExactly2EligibleStandBy = () => {
 		output: {
 			selectedForgers: copyAndSort(
 				delegateWeightsWithExactly2EligibleStandBy.list,
-			).map(dw => dw.address),
+			)
+				.map(dw => dw.address)
+				.slice(0, 103),
 		},
 	};
 };
@@ -142,9 +146,9 @@ const generateForgerSelectionWithLessThan103Delegates = () => {
 			voteWeights: delegateWeightsLessThan103.list,
 		},
 		output: {
-			selectedForgers: copyAndSort(delegateWeightsLessThan103.list).map(
-				dw => dw.address,
-			),
+			selectedForgers: copyAndSort(delegateWeightsLessThan103.list)
+				.map(dw => dw.address)
+				.slice(0, 103),
 		},
 	};
 };
@@ -159,9 +163,9 @@ const generateForgerSelectionWithExactly0EligibleStandBy = () => {
 			voteWeights: delegateWeightsWith0EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: copyAndSort(
-				delegateWeightsWith0EligibleStandBy.list,
-			).map(dw => dw.address),
+			selectedForgers: copyAndSort(delegateWeightsWith0EligibleStandBy.list)
+				.map(dw => dw.address)
+				.slice(0, 103),
 		},
 	};
 };
