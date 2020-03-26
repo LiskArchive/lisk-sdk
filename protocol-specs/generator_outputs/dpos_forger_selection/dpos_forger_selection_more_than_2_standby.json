@@ -1,5 +1,5 @@
 {
-	"title": "Forger selection with more 2 standby delegates",
+	"title": "Forger selection with more than 2 standby delegates",
 	"summary": "A set of voteWeights which include more than 2 eligible standby delegates",
 	"config": "devnet",
 	"runner": "dpos_forger_selection",

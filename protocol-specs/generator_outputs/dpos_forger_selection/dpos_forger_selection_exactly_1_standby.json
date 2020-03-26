@@ -1,6 +1,6 @@
 {
-	"title": "Forger selection with more 1 standby delegates",
-	"summary": "A set of voteWeights which include 1 eligible standby delegates",
+	"title": "Forger selection with exactly 1 standby delegate",
+	"summary": "A set of voteWeights which include 1 eligible standby delegate",
 	"config": "devnet",
 	"runner": "dpos_forger_selection",
 	"handler": "dpos_forger_selection_exactly_1_standby",
