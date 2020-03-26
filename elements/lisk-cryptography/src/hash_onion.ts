@@ -47,10 +47,10 @@ export const hashOnion = (
 	for (let i = 1; i <= count; i += 1) {
 		const nextHash = hash(previousHash).slice(0, HASH_SIZE);
 		if (i % distance === 0) {
-			hashes.unshift(nextHash);
+			hashes.push(nextHash);
 		}
 		previousHash = nextHash;
 	}
 
-	return hashes;
+	return hashes.reverse();
 };
