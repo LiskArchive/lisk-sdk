@@ -50,12 +50,15 @@ describe('dpos.apply()', () => {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),
 				getDelegateAccounts: jest.fn().mockResolvedValue([]),
+				getDelegates: jest.fn().mockResolvedValue([]),
 			},
 		};
 
 		dpos = new Dpos({
 			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
+			// FIXME: this should be updated to consider standby delegate
+			standbyDelegates: 0,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 
@@ -105,9 +108,10 @@ describe('dpos.apply()', () => {
 					delegates: sortedDelegateAccounts.map(d => d.publicKey),
 				});
 			}
-			expect(stateStore.consensusStateData).toEqual({
-				[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgerslList),
-			});
+			const forgerList = await stateStore.consensus.get(
+				CONSENSUS_STATE_FORGERS_LIST_KEY,
+			);
+			expect(forgerList).toEqual(JSON.stringify(forgerslList));
 		});
 
 		it('should resolve with "false"', async () => {

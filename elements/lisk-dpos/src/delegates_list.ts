@@ -15,7 +15,12 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
-import { CONSENSUS_STATE_FORGERS_LIST_KEY } from './constants';
+import {
+	CONSENSUS_STATE_FORGERS_LIST_KEY,
+	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+	DEFAULT_ROUND_OFFSET,
+	PUNISHMENT_PERIOD,
+} from './constants';
 import { Rounds } from './rounds';
 import {
 	Account,
@@ -24,6 +29,7 @@ import {
 	ForgerList,
 	ForgersList,
 	StateStore,
+	VoteWeights,
 } from './types';
 
 const debug = Debug('lisk:dpos:delegate_list');
@@ -31,6 +37,9 @@ const debug = Debug('lisk:dpos:delegate_list');
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
+	readonly standbyDelegates: number;
+	readonly voteWeightCapRate: number;
+	readonly standbyThreshold: bigint;
 	readonly chain: Chain;
 	readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
@@ -58,6 +67,27 @@ const _setForgersList = (
 	stateStore.consensus.set(CONSENSUS_STATE_FORGERS_LIST_KEY, forgersListStr);
 };
 
+export const getVoteWeights = async (
+	stateStore: StateStore,
+): Promise<VoteWeights> => {
+	const voteWeightsStr = await stateStore.consensus.get(
+		CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+	);
+	if (!voteWeightsStr) {
+		return [];
+	}
+
+	return JSON.parse(voteWeightsStr) as VoteWeights;
+};
+
+const _setVoteWeights = (
+	stateStore: StateStore,
+	voteWeights: VoteWeights,
+): void => {
+	const voteWeightsStr = JSON.stringify(voteWeights);
+	stateStore.consensus.set(CONSENSUS_STATE_VOTE_WEIGHTS_KEY, voteWeightsStr);
+};
+
 export const deleteDelegateListUntilRound = async (
 	round: number,
 	stateStore: StateStore,
@@ -76,6 +106,26 @@ export const deleteDelegateListAfterRound = async (
 	const forgersList = await getForgersList(stateStore);
 	const newForgersList = forgersList.filter(fl => fl.round <= round);
 	_setForgersList(stateStore, newForgersList);
+};
+
+export const deleteVoteWeightsUntilRound = async (
+	round: number,
+	stateStore: StateStore,
+): Promise<void> => {
+	debug('Deleting voteWeights until round: ', round);
+	const voteWeights = await getVoteWeights(stateStore);
+	const newVoteWeights = voteWeights.filter(vw => vw.round >= round);
+	_setVoteWeights(stateStore, newVoteWeights);
+};
+
+export const deleteVoteWeightsAfterRound = async (
+	round: number,
+	stateStore: StateStore,
+): Promise<void> => {
+	debug('Deleting voteWeights after round: ', round);
+	const voteWeights = await getVoteWeights(stateStore);
+	const newVoteWeights = voteWeights.filter(vw => vw.round <= round);
+	_setVoteWeights(stateStore, newVoteWeights);
 };
 
 export const shuffleDelegateListForRound = (
@@ -121,24 +171,164 @@ export const getForgerPublicKeysForRound = async (
 	return shuffleDelegateListForRound(round, delegatePublicKeys);
 };
 
+export const isCurrentlyPunished = (
+	height: number,
+	pomHeights: ReadonlyArray<number>,
+): boolean => {
+	if (pomHeights.length === 0) {
+		return false;
+	}
+	const lastPomHeight = Math.max(...pomHeights);
+	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
+		return true;
+	}
+
+	return false;
+};
+
 export class DelegatesList {
 	private readonly rounds: Rounds;
 	private readonly chain: Chain;
 	private readonly activeDelegates: number;
+	private readonly standbyDelegates: number;
+	private readonly voteWeightCapRate: number;
+	private readonly standbyThreshold: bigint;
 	private readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
 
 	public constructor({
 		activeDelegates,
+		standbyDelegates,
+		standbyThreshold,
+		voteWeightCapRate,
 		rounds,
 		chain,
 		exceptions,
 	}: DelegatesListConstructor) {
 		this.activeDelegates = activeDelegates;
+		this.standbyDelegates = standbyDelegates;
+		this.standbyThreshold = standbyThreshold;
+		this.voteWeightCapRate = voteWeightCapRate;
 		this.rounds = rounds;
 		this.exceptions = exceptions;
 		this.chain = chain;
+	}
+
+	public async createVoteWeightsSnapshot(
+		height: number,
+		stateStore: StateStore,
+		roundOffset: number = DEFAULT_ROUND_OFFSET,
+	): Promise<void> {
+		const round = this.rounds.calcRound(height) + roundOffset;
+		debug(`Creating vote weight snapshot for round: ${round}`);
+		// This list is before executing the current block in process
+		const originalDelegates = await this.chain.dataAccess.getDelegates();
+
+		// Merge updated delegate accounts
+		const updatedAccounts = stateStore.account.getUpdated();
+		// tslint:disable-next-line readonly-keyword
+		const updatedAccountsMap: { [address: string]: Account } = {};
+		// Convert updated accounts to map for better search
+		for (const account of updatedAccounts) {
+			// Insert only if account is a delegate
+			if (account.username) {
+				updatedAccountsMap[account.address] = account;
+			}
+		}
+		// Inject delegate account if it doesn't exist
+		for (const delegate of originalDelegates) {
+			if (updatedAccountsMap[delegate.address] === undefined) {
+				updatedAccountsMap[delegate.address] = delegate;
+			}
+		}
+		const delegates = [...Object.values(updatedAccountsMap)];
+
+		// Update totalVotesReceived to voteWeight equivalent before sorting
+		for (const account of delegates) {
+			// If the account is being punished, then consider them as vote weight 0
+			if (isCurrentlyPunished(height, account.delegate.pomHeights)) {
+				account.totalVotesReceived = BigInt(0);
+				continue;
+			}
+			const selfVote = account.votes.find(
+				vote => vote.delegateAddress === account.address,
+			);
+			const cappedValue =
+				(selfVote?.amount ?? BigInt(0)) * BigInt(this.voteWeightCapRate);
+			if (account.totalVotesReceived > cappedValue) {
+				account.totalVotesReceived = cappedValue;
+			}
+		}
+
+		delegates.sort((a, b) => {
+			const diff = b.totalVotesReceived - a.totalVotesReceived;
+			if (diff > BigInt(0)) {
+				return 1;
+			}
+			if (diff < BigInt(0)) {
+				return -1;
+			}
+
+			return a.address.localeCompare(b.address, 'en');
+		});
+
+		const activeDelegates = [];
+		const standbyDelegates = [];
+		for (const account of delegates) {
+			// If the account is banned, do not include in the list
+			if (account.delegate.isBanned) {
+				continue;
+			}
+
+			// Select active delegate first
+			if (activeDelegates.length < this.activeDelegates) {
+				activeDelegates.push({
+					address: account.address,
+					voteWeight: account.totalVotesReceived.toString(),
+				});
+				continue;
+			}
+
+			// If account has more than threshold, save it as standby
+			if (account.totalVotesReceived >= this.standbyThreshold) {
+				standbyDelegates.push({
+					address: account.address,
+					voteWeight: account.totalVotesReceived.toString(),
+				});
+				continue;
+			}
+
+			// From here, it's below threshold
+			// Below threshold, but prepared array does not have enough slected delegate
+			if (
+				activeDelegates.length + standbyDelegates.length <
+				this.activeDelegates + this.standbyDelegates
+			) {
+				// In case there was 1 standby delegate who has more than threshold
+				standbyDelegates.push({
+					address: account.address,
+					voteWeight: account.totalVotesReceived.toString(),
+				});
+				continue;
+			}
+			break;
+		}
+
+		const result = activeDelegates.concat(standbyDelegates);
+		const voteWeight = {
+			round,
+			delegates: result,
+		};
+		// Save result to the chain state with round number
+		const voteWeights = await getVoteWeights(stateStore);
+		const voteWeightsIndex = voteWeights.findIndex(vw => vw.round === round);
+		if (voteWeightsIndex > 0) {
+			voteWeights[voteWeightsIndex] = voteWeight;
+		} else {
+			voteWeights.push(voteWeight);
+		}
+		_setVoteWeights(stateStore, voteWeights);
 	}
 
 	/**
