@@ -302,8 +302,7 @@ export class DelegatesList {
 			// From here, it's below threshold
 			// Below threshold, but prepared array does not have enough slected delegate
 			if (
-				activeDelegates.length + standbyDelegates.length <
-				this.activeDelegates + this.standbyDelegates
+				standbyDelegates.length < this.standbyDelegates
 			) {
 				// In case there was 1 standby delegate who has more than threshold
 				standbyDelegates.push({
