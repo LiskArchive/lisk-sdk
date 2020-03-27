@@ -449,7 +449,7 @@ describe('Vote weight snapshot', () => {
 			});
 		});
 
-		describe('when there are non-self voting delegate within the top active delegates', () => {
+		describe('when there are non-self voting delegate within the top 101 delegates', () => {
 			let additionalDelegates: Account[];
 			let nonSelfVotedDelegate: Account;
 
@@ -533,7 +533,7 @@ describe('Vote weight snapshot', () => {
 			});
 		});
 
-		describe('when there are banned delegates within the top active delegates', () => {
+		describe('when there are banned delegates within the top 101 delegates', () => {
 			let additionalDelegates: Account[];
 			let bannedDelegate: Account;
 
@@ -616,7 +616,7 @@ describe('Vote weight snapshot', () => {
 			});
 		});
 
-		describe('when there are delegates who are being punished within the top active delegates, and the list is not sufficent', () => {
+		describe('when there are delegates who are being punished within the top 101 delegates, and the list is not sufficent', () => {
 			let punishedDelegate: Account;
 
 			beforeEach(async () => {
@@ -685,7 +685,7 @@ describe('Vote weight snapshot', () => {
 			});
 		});
 
-		describe('when there are delegates who are being punished within the top active delegates, but there are enough delegates', () => {
+		describe('when there are delegates who are being punished within the top 101 delegates, but there are enough delegates', () => {
 			let additionalDelegates: Account[];
 			let punishedDelegate: Account;
 
