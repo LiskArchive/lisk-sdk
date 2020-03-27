@@ -36,6 +36,7 @@ const createBlock = async (node, transactions = [], options = {}) => {
 	return node.processor.create({
 		keypair: options.keypair ? options.keypair : currentKeypair,
 		timestamp,
+		seedReveal: '00000000000000000000000000000000',
 		transactions,
 		previousBlock: lastBlock,
 	});
