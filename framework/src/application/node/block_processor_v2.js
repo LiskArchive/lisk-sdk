@@ -146,6 +146,7 @@ const validateSchema = ({ block }) => {
 
 class BlockProcessorV2 extends BaseBlockProcessor {
 	constructor({
+		networkIdentifier,
 		chainModule,
 		bftModule,
 		dposModule,
@@ -155,6 +156,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		exceptions,
 	}) {
 		super();
+		this.networkIdentifier = networkIdentifier;
 		this.chainModule = chainModule;
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
@@ -339,7 +341,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		return {
 			...block,
 			blockSignature: signDataWithPrivateKey(
-				hash(getBytes(block)),
+				hash(
+					Buffer.concat([
+						Buffer.from(this.networkIdentifier, 'hex'),
+						getBytes(block),
+					]),
+				),
 				keypair.privateKey,
 			),
 		};
