@@ -335,7 +335,8 @@ class Processor {
 	}
 
 	async _deleteBlock(block, processor, saveTempBlock = false) {
-		const stateStore = await this.chainModule.newStateStore();
+		// Offset must be set to 1, because lastBlock is still this deleting block
+		const stateStore = await this.chainModule.newStateStore(1);
 		await processor.undo.run({
 			block,
 			stateStore,

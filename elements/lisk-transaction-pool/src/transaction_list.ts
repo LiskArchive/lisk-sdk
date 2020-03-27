@@ -22,7 +22,8 @@ export interface TransactionListOptions {
 }
 
 const DEFAULT_MAX_SIZE = 64;
-const DEFAULT_REPLACEMENT_FEE_DIFF = BigInt(0);
+// tslint:disable-next-line no-magic-numbers
+export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 
 export class TransactionList {
 	public readonly address: string;
@@ -41,7 +42,7 @@ export class TransactionList {
 		this._processable = [];
 		this._maxSize = options?.maxSize ?? DEFAULT_MAX_SIZE;
 		this._minReplacementFeeDifference =
-			options?.minReplacementFeeDifference ?? DEFAULT_REPLACEMENT_FEE_DIFF;
+			options?.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 	}
 
 	public get(nonce: bigint): Transaction | undefined {
