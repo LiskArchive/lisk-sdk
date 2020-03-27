@@ -24,7 +24,7 @@ import {
 	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 	CONSENSUS_STATE_FORGERS_LIST_KEY,
 } from '../../src/constants';
-import { randomBigInt } from '../utils/random_int';
+import { randomBigIntWithPowerof8 } from '../utils/random_int';
 
 describe('Vote weight snapshot', () => {
 	const forgers = getDelegateAccounts(103);
@@ -135,7 +135,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(200);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(900, 5000);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(900, 5000);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -223,7 +223,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(50);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(500, 999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(500, 999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -294,7 +294,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(1000, 1100);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 1100);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -302,7 +302,7 @@ describe('Vote weight snapshot', () => {
 				}
 				additionalDelegates = getDelegateAccounts(2);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigInt(10, 999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(10, 999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -373,7 +373,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(3000, 5000);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -381,7 +381,7 @@ describe('Vote weight snapshot', () => {
 				}
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigInt(1000, 2999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -456,7 +456,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(3000, 5000);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -467,7 +467,7 @@ describe('Vote weight snapshot', () => {
 				(nonSelfVotedDelegate.votes[0] as any).delegateAddress = '123L';
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigInt(1000, 2999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -540,7 +540,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(3000, 5000);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -550,7 +550,7 @@ describe('Vote weight snapshot', () => {
 				(delegates[0].delegate as any).isBanned = true;
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigInt(1000, 2999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -623,7 +623,7 @@ describe('Vote weight snapshot', () => {
 				// 102 because forger is included as zero vote weight delegate
 				delegates = getDelegateAccounts(102);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(10, 999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(10, 999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -692,7 +692,7 @@ describe('Vote weight snapshot', () => {
 			beforeEach(async () => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigInt(3000, 5000);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,
@@ -702,7 +702,7 @@ describe('Vote weight snapshot', () => {
 				delegates[0].delegate.pomHeights.push(10);
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigInt(1000, 2999);
+					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
 					delegate.votes.push({
 						delegateAddress: delegate.address,
 						amount: delegate.totalVotesReceived,

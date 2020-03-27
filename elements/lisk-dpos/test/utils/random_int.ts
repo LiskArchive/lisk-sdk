@@ -16,7 +16,7 @@ export const randomInt = (low: number, high: number) => {
 	return Math.round(Math.random() * (high - low) + low);
 };
 
-export const randomBigInt = (low: number, high: number) => {
+export const randomBigIntWithPowerof8 = (low: number, high: number) => {
 	const random = randomInt(low, high);
-	return BigInt(random) * BigInt(10) ** BigInt(9);
+	return BigInt(random) * BigInt(10) ** BigInt(8);
 };
