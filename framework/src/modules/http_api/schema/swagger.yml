@@ -70,23 +70,23 @@ basePath: /api
 # Tags for organizing operations
 tags:
   - name: Accounts
-    description: Account related API calls
+    description: Account related API calls.
   - name: Blocks
-    description: Block related API calls
+    description: Block related API calls.
   - name: Dapps
-    description: Dapps related API calls
+    description: Dapps related API calls.
   - name: Delegates
-    description: Delegates related API calls
+    description: Delegates related API calls.
   - name: Node
-    description: Node related API calls
+    description: Node related API calls.
   - name: Peers
-    description: Peers related API Calls
+    description: Peers related API calls.
   - name: Transactions
-    description: Transactions related API calls
+    description: Transactions related API calls.
   - name: Voters
-    description: Votes related API calls
+    description: Votes related API calls.
   - name: Votes
-    description: Votes related API calls
+    description: Votes related API calls.
 
 schemes:
   - http
@@ -111,7 +111,7 @@ paths:
         - $ref: '#/parameters/offset'
         - name: sort
           in: query
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -120,7 +120,7 @@ paths:
           default: balance:asc
       responses:
         200:
-          description: List of accounts
+          description: List of accounts.
           schema:
             $ref: '#/definitions/AccountsResponse'
         400:
@@ -128,11 +128,11 @@ paths:
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -149,7 +149,7 @@ paths:
       parameters:
         - name: transactionId
           in: query
-          description: Dapp registration transaction ID
+          description: Dapp registration transaction ID.
           required: false
           type: string
           format: id
@@ -157,13 +157,13 @@ paths:
           maxLength: 20
         - name: name
           in: query
-          description: Name to query - Fuzzy search
+          description: Name to query - Fuzzy search.
           type: string
           minLength: 1
           maxLength: 32
         - name: sort
           in: query
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -174,19 +174,19 @@ paths:
         - $ref: '#/parameters/offset'
       responses:
         200:
-          description: Search results matching criteria
+          description: Search results matching criteria.
           schema:
             $ref: '#/definitions/DappsResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -213,7 +213,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -224,19 +224,19 @@ paths:
           default: height:desc
       responses:
         200:
-          description: List of peers
+          description: List of peers.
           schema:
             $ref: '#/definitions/PeersResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -252,15 +252,15 @@ paths:
         - application/json
       responses:
         200:
-          description: Node constants response
+          description: Node constants response.
           schema:
             $ref: '#/definitions/NodeConstantsResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -276,15 +276,15 @@ paths:
         - application/json
       responses:
         200:
-          description: Node status response
+          description: Node status response.
           schema:
             $ref: '#/definitions/NodeStatusResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -293,7 +293,7 @@ paths:
     get:
       tags:
         - Node
-      summary: Requests forging status of a delegate
+      summary: Requests forging status of a delegate.
       operationId: getForgingStatus
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
@@ -306,29 +306,29 @@ paths:
         - $ref: '#/parameters/forging'
       responses:
         200:
-          description: Search results matching criteria
+          description: Search results matching criteria.
           schema:
             $ref: '#/definitions/ForgingStatusResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         403:
-          description: Access denied
+          description: Access denied.
           schema:
             $ref: '#/definitions/AccessDeniedError'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
     put:
       tags:
         - Node
-      summary: Toggles the forging status of a delegate
+      summary: Toggles the forging status of a delegate.
       operationId: updateForgingStatus
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
@@ -342,7 +342,7 @@ paths:
       parameters:
         - in: body
           name: data
-          description: Password for decrypting passphrase of delegate with corresponding public key
+          description: Password for decrypting passphrase of delegate with corresponding public key.
           required: true
           schema:
             type: object
@@ -354,7 +354,7 @@ paths:
               forging:
                 type: boolean
                 example: true
-                description: Forging status of the delegate
+                description: Forging status of the delegate.
               password:
                 type: string
                 example: 'happy tree friends'
@@ -367,27 +367,27 @@ paths:
                 description: Public key of the delegate.
       responses:
         200:
-          description: Delegate forging toggled on or off
+          description: Delegate forging toggled on or off.
           schema:
             $ref: '#/definitions/ForgingStatusResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         403:
-          description: Access denied
+          description: Access denied.
           schema:
             $ref: '#/definitions/AccessDeniedError'
         404:
-          description: Provided public key not found
+          description: Provided public key not found.
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -396,12 +396,12 @@ paths:
     get:
       tags:
         - Node
-      summary: Requests unprocessed transactions data
+      summary: Requests unprocessed transactions data.
       operationId: getPooledTransactions
       description: |
         By specifying the state of the transactions, a list of unprocessed transactions matching this state can be seen.
         Search for specific transactions by providing the appropriate parameters.
-        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load.
+        If a batch of transactions is posted, they will appear in the unprocessed list after a small delay depending on server load.
       produces:
         - application/json
       parameters:
@@ -413,7 +413,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.`
           required: false
           type: string
           enum:
@@ -424,19 +424,19 @@ paths:
           default: fee:desc
       responses:
         200:
-          description: Transactions list
+          description: Transactions list.
           schema:
             $ref: '#/definitions/TransactionsResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -445,7 +445,7 @@ paths:
     get:
       tags:
         - Delegates
-      summary: Requests delegates data
+      summary: Requests delegates data.
       operationId: getDelegates
       x-lisk-cache-enabled: true
       description: Search for a specified delegate in the system.
@@ -458,7 +458,7 @@ paths:
         - $ref: '#/parameters/offset'
         - name: limit
           in: query
-          description: Limit applied to results
+          description: Limit applied to results.
           type: integer
           format: int32
           minimum: 1
@@ -466,13 +466,13 @@ paths:
           default: 10
         - name: search
           in: query
-          description: Fuzzy delegate username to query
+          description: Fuzzy delegate username to query.
           type: string
           minLength: 1
           maxLength: 20
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -489,19 +489,19 @@ paths:
           default: voteWeight:desc
       responses:
         200:
-          description: Search results matching criteria
+          description: Search results matching criteria.
           schema:
             $ref: '#/definitions/DelegatesResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -510,7 +510,7 @@ paths:
     get:
       tags:
         - Delegates
-      summary: Requests next forgers data
+      summary: Requests next forgers data.
       operationId: getForgers
       description: |
         Returns a list of the next forgers in this delegate round.
@@ -519,7 +519,7 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Limit applied to results
+          description: Limit applied to results.
           type: integer
           format: int32
           minimum: 1
@@ -527,7 +527,7 @@ paths:
           default: 10
         - name: offset
           in: query
-          description: Offset value for results
+          description: Offset value for results.
           type: integer
           format: int32
           minimum: 0
@@ -535,19 +535,19 @@ paths:
           default: 0
       responses:
         200:
-          description: Search results matching criteria
+          description: Search results matching criteria.
           schema:
             $ref: '#/definitions/ForgersResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -556,18 +556,18 @@ paths:
     get:
       tags:
         - Delegates
-      summary: Requests forging stats by delegate
+      summary: Requests forging stats by delegate.
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
       description: |
-        By passing an existing delegate address and the desired unix timestamps, you can get its forging statistics within the specified timespan.
-        If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
+        By passing an existing delegate address and the desired unix timestamps, it is possible to acquire the forging statistics within the specified timespan.
+        If no timestamps are provided, the timestamps from Lisk epoch to the current date will be used.
       produces:
         - application/json
       parameters:
         - in: path
           name: address
-          description: Lisk address of a delegate
+          description: Lisk address of a delegate.
           required: true
           type: string
           format: address
@@ -575,19 +575,19 @@ paths:
         - $ref: '#/parameters/toTimestamp'
       responses:
         200:
-          description: Results matching specified delegate address
+          description: Results matching specified delegate address.
           schema:
             $ref: '#/definitions/ForgingStatsResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -612,12 +612,12 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: generatorPublicKey
-          description: Public key of the forger of the block
+          description: Public key of the forger of the block.
           type: string
           format: publicKey
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -632,19 +632,19 @@ paths:
           default: height:desc
       responses:
         200:
-          description: Search results matching criteria
+          description: Search results matching criteria.
           schema:
             $ref: '#/definitions/BlocksResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -653,7 +653,7 @@ paths:
     get:
       tags:
         - Voters
-      summary: Requests voters data for a delegate
+      summary: Requests voters data for a delegate.
       operationId: getVoters
       description: |
         *Attention: At least **one of the filter parameters must be provided.***
@@ -668,7 +668,7 @@ paths:
         - $ref: '#/parameters/limit'
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -681,23 +681,23 @@ paths:
           default: publicKey:asc
       responses:
         200:
-          description: Voters list
+          description: Voters list.
           schema:
             $ref: '#/definitions/VotersResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         404:
-          description: Requested resource not found based on provided filters
+          description: Requested resource not found based on provided filters.
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -706,7 +706,7 @@ paths:
     get:
       tags:
         - Votes
-      summary: Requests votes data for an account
+      summary: Requests votes data for an account.
       operationId: getVotes
       description: |
         *Attention: At least **one of the filter parameters must be provided.***
@@ -720,7 +720,7 @@ paths:
         - $ref: '#/parameters/offset'
         - name: limit
           in: query
-          description: Limit applied to results
+          description: Limit applied to results.
           type: integer
           format: int32
           minimum: 1
@@ -728,7 +728,7 @@ paths:
           default: 10
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -739,23 +739,23 @@ paths:
           default: username:asc
       responses:
         200:
-          description: Votes list
+          description: Votes list.
           schema:
             $ref: '#/definitions/VotesResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         404:
-          description: Requested resource not found based on provided filters
+          description: Requested resource not found based on provided filters.
           schema:
             $ref: '#/definitions/NotFoundError'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
 
@@ -764,7 +764,7 @@ paths:
     get:
       tags:
         - Transactions
-      summary: Requests transactions data
+      summary: Requests transactions data.
       operationId: getTransactions
       x-lisk-cache-enabled: true
       description: |
@@ -786,7 +786,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort results by
+          description: Fields to sort results by.
           required: false
           type: string
           enum:
@@ -799,32 +799,32 @@ paths:
           default: amount:asc
         - name: data
           in: query
-          description: Fuzzy additional data field to query
+          description: Fuzzy additional data field to query.
           type: string
           format: additionalData
           minLength: 1
           maxLength: 64 # Its an additional check, actual check is 64 bytes
       responses:
         200:
-          description: Transactions list
+          description: Transactions list.
           schema:
             $ref: '#/definitions/TransactionsResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
         500:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
             $ref: '#/definitions/UnexpectedError'
     post:
       tags:
         - Transactions
-      summary: Submits signed transaction for processing
+      summary: Submits signed transaction for processing.
       operationId: postTransaction
       description: |
         Submits signed transaction object for processing by the transaction pool.
@@ -836,25 +836,25 @@ paths:
       parameters:
         - in: body
           name: transaction
-          description: Transaction object to submit to the network
+          description: Transaction object to submit to the network.
           required: true
           schema:
             $ref: '#/definitions/TransactionRequest'
       responses:
         200:
-          description: Transaction accepted by the node for processing
+          description: Transaction accepted by the node for processing.
           schema:
             $ref: '#/definitions/GeneralStatusResponse'
         400:
-          description: Malformed query or parameters
+          description: Malformed query or parameters.
           schema:
             $ref: '#/definitions/ParamErrorResponse'
         409:
-          description: Some error related to processing of request
+          description: Some error related to processing of request.
           schema:
             $ref: '#/definitions/ProcessingError'
         429:
-          description: Too many requests, exceeded rate limit
+          description: Too many requests, exceeded rate limit.
           schema:
             $ref: '#/definitions/RequestLimitError'
 
@@ -865,13 +865,13 @@ parameters:
   ip:
     name: ip
     in: query
-    description: IP of the node or delegate
+    description: IP of the node or delegate.
     type: string
     format: ip
   httpPort:
     name: httpPort
     in: query
-    description: Http port of the node or delegate
+    description: Http port of the node or delegate.
     type: integer
     format: int32
     minimum: 1
@@ -879,7 +879,7 @@ parameters:
   wsPort:
     name: wsPort
     in: query
-    description: Web socket port for the node or delegate
+    description: Web socket port for the node or delegate.
     type: integer
     format: int32
     minimum: 1
@@ -887,24 +887,24 @@ parameters:
   os:
     name: os
     in: query
-    description: OS of the node
+    description: OS of the node.
     type: string
   version:
     name: version
     in: query
-    description: Lisk version of the node
+    description: Lisk version of the node.
     type: string
     format: version
   protocolVersion:
     name: protocolVersion
     in: query
-    description: Protocol version of the node
+    description: Protocol version of the node.
     type: string
     format: protocolVersion
   state:
     name: state
     in: query
-    description: Current state of the network
+    description: Current state of the network.
     type: string
     enum:
       - connected
@@ -912,14 +912,14 @@ parameters:
   height:
     name: height
     in: query
-    description: Current height of the network
+    description: Current height of the network.
     type: integer
     format: int32
     minimum: 1
   limit:
     in: query
     name: limit
-    description: Limit applied to results
+    description: Limit applied to results.
     type: integer
     format: int32
     minimum: 1
@@ -928,7 +928,7 @@ parameters:
   offset:
     name: offset
     in: query
-    description: Offset value for results
+    description: Offset value for results.
     type: integer
     format: int32
     minimum: 0
@@ -936,7 +936,7 @@ parameters:
   address:
     name: address
     in: query
-    description: Address of an account
+    description: Address of an account.
     required: false
     type: string
     format: address
@@ -945,13 +945,13 @@ parameters:
   publicKey:
     name: publicKey
     in: query
-    description: Public key to query
+    description: Public key to query.
     type: string
     format: publicKey
   username:
     name: username
     in: query
-    description: Delegate username to query
+    description: Delegate username to query.
     type: string
     format: username
     minLength: 1
@@ -959,7 +959,7 @@ parameters:
   blockId:
     name: blockId
     in: query
-    description: Block id to query
+    description: Block id to query.
     type: string
     format: id
     minLength: 1
@@ -967,7 +967,7 @@ parameters:
   transactionId:
     name: id
     in: query
-    description: Transaction id to query
+    description: Transaction id to query.
     type: string
     format: id
     minLength: 1
@@ -975,7 +975,7 @@ parameters:
   recipientId:
     name: recipientId
     in: query
-    description: Recipient lisk address
+    description: Recipient lisk address.
     type: string
     format: address
     minLength: 1
@@ -983,7 +983,7 @@ parameters:
   senderId:
     name: senderId
     in: query
-    description: Sender lisk address
+    description: Sender lisk address.
     type: string
     format: address
     minLength: 1
@@ -991,14 +991,14 @@ parameters:
   senderPublicKey:
     name: senderPublicKey
     in: query
-    description: Sender public key
+    description: Sender public key.
     type: string
     format: publicKey
     minLength: 1
   senderIdOrRecipientId:
     name: senderIdOrRecipientId
     in: query
-    description: Lisk address
+    description: Lisk address.
     type: string
     format: address
     minLength: 1
@@ -1012,31 +1012,31 @@ parameters:
   minAmount:
     name: minAmount
     in: query
-    description: Minimum transaction amount in Beddows
+    description: Minimum transaction amount in Beddows.
     type: integer
     minimum: 0
   maxAmount:
     name: maxAmount
     in: query
-    description: Maximum transaction amount in Beddows
+    description: Maximum transaction amount in Beddows.
     type: integer
     minimum: 0
   fromTimestamp:
     name: fromTimestamp
     in: query
-    description: Starting unix timestamp
+    description: Starting unix timestamp.
     type: integer
     minimum: 0
   toTimestamp:
     name: toTimestamp
     in: query
-    description: Ending unix timestamp
+    description: Ending unix timestamp.
     type: integer
     minimum: 1
   forging:
     name: forging
     in: query
-    description: Forging status to filter
+    description: Forging status to filter.
     type: boolean
 
 definitions:
@@ -1052,7 +1052,7 @@ definitions:
         $ref: '#/definitions/Offset'
 
   Limit:
-    description: Limit applied to results
+    description: Limit applied to results.
     type: integer
     format: int32
     minimum: 1
@@ -1060,7 +1060,7 @@ definitions:
     default: 10
 
   Offset:
-    description: Offset value for results
+    description: Offset value for results.
     type: integer
     format: int32
     minimum: 0
@@ -1085,7 +1085,7 @@ definitions:
         type: string
         example: '0'
         description: |
-          Unique sequence of number per account
+          Unique sequence of number per account.
       fee:
         type: string
         example: '1000000'
@@ -1096,7 +1096,7 @@ definitions:
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         description: |
-          The public key of the Senders' account.
+          The public key of the Senders account.
       signatures:
         type: array
         description: Derived from a SHA-256 hash of the transaction object, that is signed by the private key of the account who created the transaction.
@@ -1120,7 +1120,7 @@ definitions:
             format: address
             example: 12668885769632475474L
             description: |
-              Lisk Address of the Recipients' account.
+              Lisk Address of the Recipients account.
 
   NodeStatusResponse:
     type: object
@@ -1151,7 +1151,7 @@ definitions:
         type: object
 
   PeersResponse:
-    description: Peers response
+    description: Peers response.
     type: object
     required:
       - data
@@ -1174,7 +1174,7 @@ definitions:
           limit:
             $ref: '#/definitions/Limit'
           count:
-            description: Number of peers in the response
+            description: Number of peers in the response.
             type: integer
             example: 100
       links:
@@ -1188,7 +1188,7 @@ definitions:
       - links
     properties:
       data:
-        description: List of accounts
+        description: List of accounts.
         type: array
         items:
           $ref: '#/definitions/AccountExtended'
@@ -1198,7 +1198,7 @@ definitions:
         type: object
 
   DappsResponse:
-    description: Dapps endpoint response
+    description: Dapps endpoint response.
     type: object
     required:
       - data
@@ -1222,7 +1222,7 @@ definitions:
       - links
     properties:
       data:
-        description: List of delegates
+        description: List of delegates.
         type: array
         items:
           $ref: '#/definitions/DelegateWithAccount'
@@ -1251,7 +1251,7 @@ definitions:
       - links
     properties:
       data:
-        description: List of forgers
+        description: List of forgers.
         type: array
         items:
           $ref: '#/definitions/Forger'
@@ -1273,15 +1273,15 @@ definitions:
             maximum: 101
             default: 10
           currentSlot:
-            description: Currently active slot
+            description: Currently active slot.
             type: integer
             example: 10
           lastBlockSlot:
-            description: Slot of the last processed block
+            description: Slot of the last processed block.
             type: integer
             example: 10
           lastBlock:
-            description: ID of the last processed block
+            description: ID of the last processed block.
             type: integer
             example: 10
       links:
@@ -1319,18 +1319,18 @@ definitions:
           - toTimestamp
         properties:
           fromTimestamp:
-            description: Starting unix timestamp
+            description: Starting unix timestamp.
             type: integer
             example: 0
           toTimestamp:
-            description: Ending unix timestamp
+            description: Ending unix timestamp.
             type: integer
             example: 1525861914
       links:
         type: object
 
   BlocksResponse:
-    description: Blocks response
+    description: Blocks response.
     type: object
     required:
       - data
@@ -1347,7 +1347,7 @@ definitions:
         type: object
 
   TransactionsResponse:
-    description: Transactions response
+    description: Transactions response.
     type: object
     required:
       - data
@@ -1370,7 +1370,7 @@ definitions:
           limit:
             $ref: '#/definitions/Limit'
           count:
-            description: Number of transactions in the response
+            description: Number of transactions in the response.
             type: integer
             example: 100
       links:
@@ -1397,7 +1397,7 @@ definitions:
           - status
         properties:
           status:
-            description: Acceptance status for transactions
+            description: Acceptance status for transactions.
             type: boolean
             example: true
       links:
@@ -1437,7 +1437,7 @@ definitions:
         type: integer
         minimum: 1
         description: |
-          The height of the network, at the moment where this transaction was included in the blockchain.
+          The height of the network, at the exact point in time when this transaction was included in the blockchain.
       blockId:
         type: string
         format: id
@@ -1445,24 +1445,24 @@ definitions:
         maxLength: 20
         example: '6258354802676165798'
         description: |
-          The Id of the block, this transaction is included in.
+          The Id of the block which this transaction is included in.
       nonce:
         type: string
         example: '1'
         description: |
-          Unique sequence of number per account
+          Unique sequence of number per account.
       senderId:
         type: string
         format: address
         example: 12668885769632475474L
         description: |
-          Lisk Address of the Senders' account.
+          Lisk Address of the Senders account.
       senderPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         description: |
-          The public key of the Senders' account.
+          The public key of the Senders account.
       signatures:
         type: array
         items:
@@ -1481,7 +1481,7 @@ definitions:
       receivedAt:
         type: string
         format: 'date-time'
-        description: The timestamp of the moment, where a node discovered a transaction for the first time.
+        description: The timestamp of the exact point in time where a node discovered a transaction for the first time.
       ready:
         type: boolean
         example: false
@@ -1515,29 +1515,29 @@ definitions:
         type: integer
         example: 0
         minimum: 0
-        description: Versioning for future upgrades of the lisk protocol.
+        description: Versioning for future upgrades of the Lisk protocol.
       height:
         type: integer
         example: 123
         minimum: 1
         description: |
           Height of the network, when the block got forged.
-          The height of the networks represents the number of blocks,
-          that have been forged on the network since Genesis Block.
+          The height of the network represents the number of blocks
+          that have been forged on the network since the genesis block.
       timestamp:
         type: integer
         example: 28227090
-        description: Unix Timestamp
+        description: Unix timestamp.
       generatorAddress:
         type: string
         format: address
         example: 12668885769632475474L
-        description: Lisk Address of the delegate who forged the block.
+        description: Lisk address of the delegate who forged the block.
       generatorPublicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: Public key of th edelagte who forged the block.
+        description: Public key of the delagate who forged the block.
       payloadLength:
         type: integer
         example: 117
@@ -1549,8 +1549,8 @@ definitions:
         example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2
         description: |
           Hash of the payload of the block.
-          The payload of a block is comprised of the transactions the block contains.
-          For each type of transaction exists a different maximum size for the payload.
+          The payload of a block is comprised of the transactions that the block contains.
+          For each type of transaction there is a different maximum size which exists for the payload.
       blockSignature:
         type: string
         format: signature
@@ -1568,7 +1568,7 @@ definitions:
         type: string
         format: id
         example: '15918760246746894806'
-        description: The id of the previous block of the chain.
+        description: The Id of the previous block of the chain.
       numberOfTransactions:
         type: integer
         example: 15
@@ -1589,7 +1589,7 @@ definitions:
         type: string
         example: '65000000'
         description: |
-          Total amount of LSK that have been forged in this Block.
+          Total amount of LSK that have been forged in this block.
           Consists of fees and the reward.
       maxHeightPreviouslyForged:
         type: integer
@@ -1621,7 +1621,7 @@ definitions:
         description: Public key of the queried delegate.
 
   VotersResponse:
-    description: Voters endpoint response
+    description: Voters endpoint response.
     type: object
     required:
       - data
@@ -1636,7 +1636,7 @@ definitions:
         type: object
 
   VotesResponse:
-    description: Votes endpoint response
+    description: Votes endpoint response.
     type: object
     required:
       - data
@@ -1675,7 +1675,7 @@ definitions:
         format: username
         example: isabella
         description: |
-          The delegates' username.
+          The delegates username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
       publicKey:
@@ -1690,15 +1690,15 @@ definitions:
         format: address
         example: 6251001604903637008L
         description: |
-          The Lisk Address is the human readable representation of the accounts owners' public key.
-          It consists of 21 numbers followed by a big 'L' at the end.
+          The Lisk Address is the human readable representation of the accounts owners public key.
+          It consists of 21 numbers followed by a capital 'L' at the end.
       nextSlot:
         type: number
         example: 4368793
         description: |
           Returns the slot number in which the forger will be able to forge the next block.
           Each slot has a timespan of 10 seconds.
-          The first slot began directly after the Lisk Epoch Time.
+          The first slot began directly after the Lisk epoch time.
 
   ForgingStats:
     type: object
@@ -1711,19 +1711,19 @@ definitions:
       fees:
         type: string
         example: '15000000'
-        description: Amount of fees, the delegate earned during the timespan.
+        description: Amount of fees that the delegate earned during the timespan.
       rewards:
         type: string
         example: '50000000'
-        description: Amount of rewards, the delegate earned during the timespan.
+        description: Amount of rewards that the delegate earned during the timespan.
       forged:
         type: string
         example: '65000000'
-        description: Amount of Lisk, that have been transferred inside the forged blocks of a delegate, during the timespan.
+        description: Amount of Lisk that have been transferred inside the forged blocks of a delegate, during the timespan.
       count:
         type: string
         example: '100'
-        description: Amount of blocks, that the delegate has forged during the timespan.
+        description: Amount of blocks that the delegate has forged during the timespan.
 
   Dapp:
     type: object
@@ -1739,7 +1739,7 @@ definitions:
         minLength: 1
         maxLength: 20
         description: |
-          Unique Identifier of the Register Dapp Transaction.
+          Unique identifier of the Register Dapp Transaction.
           Derived from the transaction signature.
       icon:
         type: string
@@ -1785,7 +1785,7 @@ definitions:
       networkId:
         type: string
         example: '11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7'
-        description: The network identifier as per LIP-0009
+        description: The network identifier as per LIP-0009.
       httpPort:
         type: integer
         example: 8000
@@ -1799,11 +1799,11 @@ definitions:
         format: int32
         minimum: 1
         maximum: 65535
-        description: The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.
+        description: The port the peer node uses for websocket connections, e.g. P2P broadcasts.
       os:
         type: string
         example: debian
-        description: The Operating System, that the peer node runs on.
+        description: The operating system that the peer node runs on.
       version:
         type: string
         example: v0.8.0
@@ -1850,7 +1850,7 @@ definitions:
         type: string
         example: '500000000'
         description: |
-          The Reward, each forger will get for forging a block at the current slot.
+          The reward that each forger will receive for forging a block at the current slot.
           After a certain amount of slots, the reward will be reduced.
       build:
         type: string
