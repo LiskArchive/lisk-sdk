@@ -116,51 +116,54 @@ const generateBlocks = ({ startHeight, numberOfBlocks, delegateList }) => {
 const round = (height, n) => Math.floor((height - 1) / n) + 1;
 
 const roundFlags = (r, n) => {
-	const first = r * n - n + 1;
-	const last = r * n;
-	const middle = Math.floor((first + last) / 2);
+	const firstBlock = r * n - n + 1;
+	const lastBlock = r * n;
+	const middleBlock = Math.floor((firstBlock + lastBlock) / 2);
 
 	return {
 		round: r,
-		first,
-		last,
-		middle,
+		firstBlock,
+		lastBlock,
+		middleBlock,
 	};
 };
 
-const generateRandomSeed = (blocks, numberOfBlocksPerRound) => {
+const generateRandomSeed = (blocks, blocksPerRound) => {
 	// Last block height
 	const l = blocks[blocks.length - 1].height;
 
 	// Number of blocks in a round
-	const n = numberOfBlocksPerRound;
+	const n = blocksPerRound;
 
 	// Current round
 	const r = roundFlags(round(l, n), n);
 
 	// First block of current round
-	const { first: h } = r;
+	const { firstBlock: h } = r;
 
 	// Middle range of a round
 	const m = Math.floor(n / 2);
 
-	if (l < r.middle) {
+	if (l < r.middleBlock) {
 		throw new Error(
 			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height ${l}`,
 		);
 	}
 
-	if (l >= r.middle && r.round === 1) {
+	if (l >= r.middleBlock && r.round === 1) {
 		const randomSeed1 = H(m + 1);
 		const randomSeed2 = H(0);
 
 		return { randomSeed1, randomSeed2 };
 	}
 
-	const { first: firstBlockOfLastRound } = roundFlags(r.round - 1, n);
+	const { firstBlock: firstBlockBlockOfLastBlockRound } = roundFlags(
+		r.round - 1,
+		n,
+	);
 
 	const filteredBlocks = blocks.reduce((acc, b) => {
-		if (b.height >= firstBlockOfLastRound) {
+		if (b.height >= firstBlockBlockOfLastBlockRound) {
 			acc[b.height] = b;
 		}
 		return acc;
@@ -235,21 +238,21 @@ const randomSeedFirstRound = () => ({
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_first_round',
 	testCases: (() => {
-		const numberOfBlocksPerRound = activeDelegates + standByDelegates;
+		const blocksPerRound = activeDelegates + standByDelegates;
 		const blocks = generateBlocks({
 			startHeight: 1,
-			numberOfBlocks: numberOfBlocksPerRound,
-			delegateList: sampleDelegateList.slice(0, numberOfBlocksPerRound),
+			numberOfBlocks: blocksPerRound,
+			delegateList: sampleDelegateList.slice(0, blocksPerRound),
 		});
 		const { randomSeed1, randomSeed2 } = generateRandomSeed(
 			blocks,
-			numberOfBlocksPerRound,
+			blocksPerRound,
 		);
 
 		return [
 			{
 				input: {
-					numberOfBlocksPerRound,
+					blocksPerRound,
 					blocks,
 				},
 				output: {
@@ -268,21 +271,99 @@ const randomSeedSecondRound = () => ({
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_second_round',
 	testCases: (() => {
-		const numberOfBlocksPerRound = activeDelegates + standByDelegates;
+		const blocksPerRound = activeDelegates + standByDelegates;
 		const blocks = generateBlocks({
 			startHeight: 1,
-			numberOfBlocks: numberOfBlocksPerRound * 2,
-			delegateList: sampleDelegateList.slice(0, numberOfBlocksPerRound),
+			numberOfBlocks: blocksPerRound * 2,
+			delegateList: sampleDelegateList.slice(0, blocksPerRound),
 		});
 		const { randomSeed1, randomSeed2 } = generateRandomSeed(
 			blocks,
-			numberOfBlocksPerRound,
+			blocksPerRound,
 		);
 
 		return [
 			{
 				input: {
-					numberOfBlocksPerRound,
+					blocksPerRound,
+					blocks,
+				},
+				output: {
+					randomSeed1,
+					randomSeed2,
+				},
+			},
+		];
+	})(),
+});
+
+const randomSeedIfNotPassedMiddleOfRound = () => ({
+	title: 'Random seed for round not passed the middle of the round',
+	summary: 'Random seed for round not passed the middle of the round',
+	config: 'devnet',
+	runner: 'dpos_random_seed_generation',
+	handler: 'dpos_random_seed_generation_not_passed_middle_of_round',
+	testCases: (() => {
+		const blocksPerRound = activeDelegates + standByDelegates;
+		const blocks = generateBlocks({
+			startHeight: 1,
+			numberOfBlocks: blocksPerRound + 2,
+			delegateList: sampleDelegateList.slice(0, blocksPerRound),
+		});
+
+		const randomSeed1 = null;
+		const randomSeed2 = null;
+
+		return [
+			{
+				input: {
+					blocksPerRound,
+					blocks,
+				},
+				output: {
+					randomSeed1,
+					randomSeed2,
+				},
+			},
+		];
+	})(),
+});
+
+const randomSeedForInvalidPreImageOfSeedReveal = () => ({
+	title: 'Random seed for second round',
+	summary: 'Random seeds generation for second round',
+	config: 'devnet',
+	runner: 'dpos_random_seed_generation',
+	handler: 'dpos_random_seed_generation_invalid_seed_reveal',
+	testCases: (() => {
+		const blocksPerRound = activeDelegates + standByDelegates;
+		const delegateList = sampleDelegateList.slice(0, blocksPerRound);
+		const blocks = generateBlocks({
+			startHeight: 1,
+			numberOfBlocks: blocksPerRound * 2,
+			delegateList,
+		});
+
+		// Change seed reveal values for a delegate for first round
+		const suspiciousDelegate = delegateList[1];
+		for (const block of blocks) {
+			if (
+				block.generatorPublicKey === suspiciousDelegate.publicKey &&
+				block.height <= blocksPerRound
+			) {
+				block.seedReveal = H(block.height);
+			}
+		}
+
+		const { randomSeed1, randomSeed2 } = generateRandomSeed(
+			blocks,
+			blocksPerRound,
+		);
+
+		return [
+			{
+				input: {
+					blocksPerRound,
 					blocks,
 				},
 				output: {
@@ -297,9 +378,8 @@ const randomSeedSecondRound = () => ({
 module.exports = BaseGenerator.runGenerator('dpos_random_seed_generation', [
 	randomSeedFirstRound,
 	randomSeedSecondRound,
-	// randomSeedNotMiddleORound,
-	// randomSeedIfNotPassedMiddleOfRound,
-	// randomSeedForInvalidPreImageSeedReveal,
+	randomSeedIfNotPassedMiddleOfRound,
+	randomSeedForInvalidPreImageOfSeedReveal,
 	// randomSeedIfForgerNotForgedEarlier,
 	// randomSeedIfForgerForgedPreviousRound,
 	// randomSeedIfForgerForgedInCurrentRound,
