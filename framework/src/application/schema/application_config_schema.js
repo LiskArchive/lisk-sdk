@@ -326,6 +326,24 @@ module.exports = {
 												type: 'string',
 												format: 'publicKey',
 											},
+											hashOnion: {
+												type: 'object',
+												properties: {
+													count: {
+														type: 'integer',
+													},
+													distance: {
+														type: 'integer',
+													},
+													hashes: {
+														type: 'array',
+														items: {
+															type: 'string',
+															format: 'hex',
+														},
+													},
+												},
+											},
 										},
 									},
 								},
