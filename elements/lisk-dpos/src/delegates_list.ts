@@ -320,7 +320,7 @@ export class DelegatesList {
 		// Save result to the chain state with round number
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeightsIndex = voteWeights.findIndex(vw => vw.round === round);
-		if (voteWeightsIndex > 0) {
+		if (voteWeightsIndex > -1) {
 			voteWeights[voteWeightsIndex] = voteWeight;
 		} else {
 			voteWeights.push(voteWeight);
