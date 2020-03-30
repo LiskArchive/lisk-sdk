@@ -13,6 +13,8 @@
  *
  */
 
+import { AccountUnlocking } from '../transaction_types';
+
 export const sortKeysAscending = (publicKeys: string[]): string[] =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
 		if (publicKeyA > publicKeyB) {
@@ -24,3 +26,23 @@ export const sortKeysAscending = (publicKeys: string[]): string[] =>
 
 		return 0;
 	});
+
+export const sortUnlocking = (unlockings: AccountUnlocking[]) => {
+	unlockings.sort((a, b) => {
+		if (a.delegateAddress !== b.delegateAddress) {
+			return a.delegateAddress.localeCompare(b.delegateAddress, 'en');
+		}
+		if (a.unvoteHeight !== b.unvoteHeight) {
+			return b.unvoteHeight - a.unvoteHeight;
+		}
+		const diff = b.amount - a.amount;
+		if (diff > BigInt(0)) {
+			return 1;
+		}
+		if (diff < BigInt(0)) {
+			return -1;
+		}
+
+		return 0;
+	});
+};

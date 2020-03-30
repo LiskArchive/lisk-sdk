@@ -13,6 +13,16 @@
  *
  */
 import { TransactionError } from './errors';
+export interface AccountVote {
+	readonly delegateAddress: string;
+	// tslint:disable-next-line readonly-keyword
+	amount: bigint;
+}
+export interface AccountUnlocking {
+	readonly delegateAddress: string;
+	readonly amount: bigint;
+	readonly unvoteHeight: number;
+}
 // tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
@@ -34,6 +44,9 @@ export interface Account {
 		optionalKeys: string[];
 		numberOfSignatures: number;
 	};
+	votes: AccountVote[];
+	unlocking: AccountUnlocking[];
+	totalVotesReceived: bigint;
 	// tslint:disable-next-line:no-mixed-interface
 	readonly toJSON: () => object;
 }

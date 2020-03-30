@@ -21,6 +21,7 @@ export const intToBuffer = (
 	value: number | string,
 	byteLength: number,
 	endianness: string = BIG_ENDIAN,
+	signed: boolean = false,
 ) => {
 	if (![BIG_ENDIAN, LITTLE_ENDIAN].includes(endianness)) {
 		throw new Error(
@@ -30,15 +31,31 @@ export const intToBuffer = (
 	const buffer = Buffer.alloc(byteLength);
 	if (endianness === 'big') {
 		if (byteLength <= MAX_NUMBER_BYTE_LENGTH) {
-			buffer.writeUIntBE(Number(value), 0, byteLength);
+			if (signed) {
+				buffer.writeIntBE(Number(value), 0, byteLength);
+			} else {
+				buffer.writeUIntBE(Number(value), 0, byteLength);
+			}
 		} else {
-			buffer.writeBigUInt64BE(BigInt(value));
+			if (signed) {
+				buffer.writeBigInt64BE(BigInt(value));
+			} else {
+				buffer.writeBigUInt64BE(BigInt(value));
+			}
 		}
 	} else {
 		if (byteLength <= MAX_NUMBER_BYTE_LENGTH) {
-			buffer.writeUIntLE(Number(value), 0, byteLength);
+			if (signed) {
+				buffer.writeIntLE(Number(value), 0, byteLength);
+			} else {
+				buffer.writeUIntLE(Number(value), 0, byteLength);
+			}
 		} else {
-			buffer.writeBigUInt64LE(BigInt(value));
+			if (signed) {
+				buffer.writeBigInt64LE(BigInt(value));
+			} else {
+				buffer.writeBigUInt64LE(BigInt(value));
+			}
 		}
 	}
 
