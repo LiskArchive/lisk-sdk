@@ -28,9 +28,7 @@ const generateShuffledDelegateList = () => {
 			Buffer.from(previousRoundSeed1, 'hex'),
 			addressBuffer,
 		]);
-		/* eslint-disable dot-notation */
-		delegate['roundHash'] = hash(seedSource);
-		/* eslint-disable dot-notation */
+		delegate.roundHash = hash(seedSource);
 	}
 
 	delegateList.sort((delegate1, delegate2) => {
