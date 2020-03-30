@@ -19,6 +19,7 @@ import { EVENT_ROUND_CHANGED } from './constants';
 import {
 	DelegatesList,
 	deleteDelegateListAfterRound,
+	deleteVoteWeightsAfterRound,
 	getForgerPublicKeysForRound,
 } from './delegates_list';
 import { Rounds } from './rounds';
@@ -36,6 +37,7 @@ interface DelegatesInfoConstructor {
 	readonly chain: Chain;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
+	readonly standbyDelegates: number;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
 }
@@ -46,6 +48,7 @@ export class DelegatesInfo {
 	private readonly chain: Chain;
 	private readonly rounds: Rounds;
 	private readonly activeDelegates: number;
+	private readonly standbyDelegates: number;
 	private readonly events: EventEmitter;
 	private readonly delegatesList: DelegatesList;
 
@@ -53,12 +56,14 @@ export class DelegatesInfo {
 		rounds,
 		chain,
 		activeDelegates,
+		standbyDelegates,
 		events,
 		delegatesList,
 	}: DelegatesInfoConstructor) {
 		this.chain = chain;
 		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
+		this.standbyDelegates = standbyDelegates;
 		this.events = events;
 		this.delegatesList = delegatesList;
 	}
@@ -102,6 +107,12 @@ export class DelegatesInfo {
 				i += 1
 			) {
 				await this.delegatesList.createRoundDelegateList(i, stateStore);
+				// Height is 1, but to create round 1-3, round offset should start from 0 - 2
+				await this.delegatesList.createVoteWeightsSnapshot(
+					1,
+					stateStore,
+					i - 1,
+				);
 			}
 
 			return false;
@@ -109,6 +120,7 @@ export class DelegatesInfo {
 
 		const round = this.rounds.calcRound(block.height);
 		// Now rewards and fees are distributed every block. Assuming the distrubution is already done
+		// TODO: Remove after implementing new DPoS #4951
 		await this._updateVotedDelegatesVoteWeight(block, stateStore, undo);
 
 		// Below event should only happen at the end of the round
@@ -126,7 +138,12 @@ export class DelegatesInfo {
 				newRound: round,
 			});
 			debug('Deleting delegate list after ', round + delegateListRoundOffset);
+			// TODO: Remove after implementing new DPoS #4951
 			await deleteDelegateListAfterRound(
+				round + delegateListRoundOffset,
+				stateStore,
+			);
+			await deleteVoteWeightsAfterRound(
 				round + delegateListRoundOffset,
 				stateStore,
 			);
@@ -139,6 +156,11 @@ export class DelegatesInfo {
 			debug('Creating delegate list for', round + delegateListRoundOffset);
 			await this.delegatesList.createRoundDelegateList(
 				nextRound + delegateListRoundOffset,
+				stateStore,
+			);
+			// Creating voteWeight snapshot for next round + offset
+			await this.delegatesList.createVoteWeightsSnapshot(
+				block.height + 1,
 				stateStore,
 			);
 		}
@@ -170,7 +192,10 @@ export class DelegatesInfo {
 		// The blocksInRounds does not contain the last block
 		blocksInRounds.push(blockHeader);
 
-		if (blocksInRounds.length !== this.activeDelegates) {
+		if (
+			blocksInRounds.length !==
+			this.activeDelegates + this.standbyDelegates
+		) {
 			throw new Error(
 				'Fetched blocks do not match the size of the active delegates',
 			);
@@ -197,6 +222,7 @@ export class DelegatesInfo {
 		}
 	}
 
+	// TODO: Remove after implementing new DPoS #4951
 	private async _updateVotedDelegatesVoteWeight(
 		block: Block,
 		stateStore: StateStore,

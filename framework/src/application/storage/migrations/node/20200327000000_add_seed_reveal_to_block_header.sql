@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,11 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const randomInt = (low: number, high: number) => {
-	return Math.round(Math.random() * (high - low) + low);
-};
-
-export const randomBigIntWithPowerof8 = (low: number, high: number) => {
-	const random = randomInt(low, high);
-	return BigInt(random) * BigInt(10) ** BigInt(8);
-};
+ALTER TABLE "blocks" ADD COLUMN IF NOT EXISTS "seedReveal" bytea NOT NULL;

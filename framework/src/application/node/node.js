@@ -513,6 +513,7 @@ module.exports = class Node {
 			logger: this.logger,
 			storage: this.storage,
 			dposModule: this.dpos,
+			bftModule: this.bft,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,

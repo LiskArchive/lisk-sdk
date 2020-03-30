@@ -478,6 +478,24 @@ Object {
                         "format": "encryptedPassphrase",
                         "type": "string",
                       },
+                      "hashOnion": Object {
+                        "properties": Object {
+                          "count": Object {
+                            "type": "integer",
+                          },
+                          "distance": Object {
+                            "type": "integer",
+                          },
+                          "hashes": Object {
+                            "items": Object {
+                              "format": "hex",
+                              "type": "string",
+                            },
+                            "type": "array",
+                          },
+                        },
+                        "type": "object",
+                      },
                       "publicKey": Object {
                         "format": "publicKey",
                         "type": "string",

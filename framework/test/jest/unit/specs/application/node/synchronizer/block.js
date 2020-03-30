@@ -46,6 +46,8 @@ const getBytes = block => {
 		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
 
+	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
+
 	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
 
 	const maxHeightPreviouslyForgedBuffer = intToBuffer(
@@ -102,6 +104,7 @@ const getBytes = block => {
 		blockVersionBuffer,
 		timestampBuffer,
 		previousBlockBuffer,
+		seedRevealBuffer,
 		heightBuffer,
 		maxHeightPreviouslyForgedBuffer,
 		maxHeightPrevotedBuffer,
@@ -175,6 +178,7 @@ const newBlock = (block, networkIdentifier = defaultNetworkIdentifier) => {
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
 		previousBlockId: genesisBlock.id,
+		seedReveal: '00000000000000000000000000000000',
 		keypair: getKeyPair(),
 		transactions: [],
 		reward: '0',

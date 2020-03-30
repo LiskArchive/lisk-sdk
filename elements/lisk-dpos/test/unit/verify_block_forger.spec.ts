@@ -44,6 +44,8 @@ describe('dpos.verifyBlockForger()', () => {
 		dpos = new Dpos({
 			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
+			// FIXME: this should be updated to consider standby delegate
+			standbyDelegates: 0,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
