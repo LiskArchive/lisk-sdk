@@ -19,27 +19,35 @@ const BaseGenerator = require('../base_generator');
 const previousDelegateList = require('./delegate_address_list.json').list;
 
 const generateShuffledDelegateList = () => {
-	const previousRoundSeed = 'b9acc2f1fda3666bfb34107f1c6dccc4';
+	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
 	const delegateList = [...previousDelegateList];
 	for (const delegate of delegateList) {
-		const seedSource = previousRoundSeed + delegate.address;
-		delegate.roundHash = hash(seedSource, 'utf8').toString('hex');
+		const addressBuffer = Buffer.alloc(8);
+		addressBuffer.writeBigUInt64BE(BigInt(delegate.address.slice(0, -1)));
+		const seedSource = Buffer.concat([
+			Buffer.from(previousRoundSeed1, 'hex'),
+			addressBuffer,
+		]);
+		/* eslint-disable dot-notation */
+		delegate['roundHash'] = hash(seedSource);
+		/* eslint-disable dot-notation */
 	}
 
 	delegateList.sort((delegate1, delegate2) => {
-		if (delegate1.roundHash !== delegate2.roundHash) {
-			return delegate1.roundHash.localeCompare(delegate2.roundHash);
+		const diff = delegate1.roundHash.compare(delegate2.roundHash);
+		if (diff !== 0) {
+			return diff;
 		}
 		return delegate1.address.localeCompare(delegate2.address);
 	});
 
 	return {
 		input: {
-			previousRoundSeed,
-			delegateList: previousDelegateList,
+			previousRoundSeed1,
+			delegateList: previousDelegateList.map(delegate => delegate.address),
 		},
 		output: {
-			delegateList,
+			delegateList: delegateList.map(delegate => delegate.address),
 		},
 	};
 };
