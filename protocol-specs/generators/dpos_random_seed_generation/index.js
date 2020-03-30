@@ -257,7 +257,7 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 const randomSeedFirstRound = () => ({
 	title: 'Random seed for first round',
 	summary: 'Random seeds generation for first round',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_first_round',
 	testCases: (() => {
@@ -274,8 +274,9 @@ const randomSeedFirstRound = () => ({
 
 		return [
 			{
+				description: 'Random seeds generation for first round',
+				config: { blocksPerRound },
 				input: {
-					blocksPerRound,
 					blocks,
 				},
 				output: {
@@ -290,31 +291,38 @@ const randomSeedFirstRound = () => ({
 const randomSeedForMoreRounds = () => ({
 	title: 'Random seed for more than one rounds',
 	summary: 'Random seeds generation more than one rounds',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_other_rounds',
 	testCases: (() => {
 		const blocksPerRound = activeDelegates + standByDelegates;
-		const blocks = generateBlocks({
+		const blocksForTwoRounds = generateBlocks({
+			startHeight: 1,
+			numberOfBlocks: blocksPerRound * 2,
+			delegateList: sampleDelegateList.slice(0, blocksPerRound),
+		});
+		const blocksForThreeRounds = generateBlocks({
 			startHeight: 1,
 			numberOfBlocks: blocksPerRound * 3,
 			delegateList: sampleDelegateList.slice(0, blocksPerRound),
 		});
-		const { randomSeed1, randomSeed2 } = generateRandomSeed(
-			blocks,
-			blocksPerRound,
-		);
 
 		return [
 			{
+				description: 'Random seeds generation for two rounds',
 				input: {
 					blocksPerRound,
-					blocks,
+					blocks: blocksForTwoRounds,
 				},
-				output: {
-					randomSeed1,
-					randomSeed2,
+				output: generateRandomSeed(blocksForTwoRounds, blocksPerRound),
+			},
+			{
+				description: 'Random seeds generation for three rounds',
+				config: { blocksPerRound },
+				input: {
+					blocks: blocksForTwoRounds,
 				},
+				output: generateRandomSeed(blocksForThreeRounds, blocksPerRound),
 			},
 		];
 	})(),
@@ -323,7 +331,7 @@ const randomSeedForMoreRounds = () => ({
 const randomSeedIfNotPassedMiddleOfRound = () => ({
 	title: 'Random seed for round not passed the middle of the round',
 	summary: 'Random seed for round not passed the middle of the round',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_not_passed_middle_of_round',
 	testCases: (() => {
@@ -339,8 +347,9 @@ const randomSeedIfNotPassedMiddleOfRound = () => ({
 
 		return [
 			{
+				description: 'Random seed for round not passed the middle of the round',
+				config: { blocksPerRound },
 				input: {
-					blocksPerRound,
 					blocks,
 				},
 				output: {
@@ -356,7 +365,7 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 	title: 'Random seed for invalid pre image',
 	summary:
 		'Random seeds generation for the case when a delegate have invalid pre-image for seed reveal',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_invalid_seed_reveal',
 	testCases: (() => {
@@ -386,8 +395,10 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 
 		return [
 			{
+				description:
+					'Random seeds generation for the case when a delegate have invalid pre-image for seed reveal',
+				config: { blocksPerRound },
 				input: {
-					blocksPerRound,
 					blocks,
 				},
 				output: {
@@ -403,7 +414,7 @@ const randomSeedIfForgerNotForgedEarlier = () => ({
 	title: 'Random seed for not forged earlier',
 	summary:
 		'Random seeds generation for the case when delegate did not forged earlier',
-	config: 'devnet',
+	config: { network: 'devnet' },
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_not_forged_earlier',
 	testCases: (() => {
@@ -434,8 +445,12 @@ const randomSeedIfForgerNotForgedEarlier = () => ({
 
 		return [
 			{
-				input: {
+				description:
+					'Random seeds generation for the case when delegate did not forged earlier',
+				config: {
 					blocksPerRound,
+				},
+				input: {
 					blocks,
 				},
 				output: {

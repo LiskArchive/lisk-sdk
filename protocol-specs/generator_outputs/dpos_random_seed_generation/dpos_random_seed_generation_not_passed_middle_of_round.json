@@ -1,13 +1,18 @@
 {
 	"title": "Random seed for round not passed the middle of the round",
 	"summary": "Random seed for round not passed the middle of the round",
-	"config": "devnet",
+	"config": {
+		"network": "devnet"
+	},
 	"runner": "dpos_random_seed_generation",
 	"handler": "dpos_random_seed_generation_not_passed_middle_of_round",
 	"testCases": [
 		{
+			"description": "Random seed for round not passed the middle of the round",
+			"config": {
+				"blocksPerRound": 103
+			},
 			"input": {
-				"blocksPerRound": 103,
 				"blocks": [
 					{
 						"generatorPublicKey": "b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9",

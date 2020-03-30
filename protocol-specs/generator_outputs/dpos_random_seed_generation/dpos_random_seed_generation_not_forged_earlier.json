@@ -1,13 +1,18 @@
 {
 	"title": "Random seed for not forged earlier",
 	"summary": "Random seeds generation for the case when delegate did not forged earlier",
-	"config": "devnet",
+	"config": {
+		"network": "devnet"
+	},
 	"runner": "dpos_random_seed_generation",
 	"handler": "dpos_random_seed_generation_not_forged_earlier",
 	"testCases": [
 		{
+			"description": "Random seeds generation for the case when delegate did not forged earlier",
+			"config": {
+				"blocksPerRound": 103
+			},
 			"input": {
-				"blocksPerRound": 103,
 				"blocks": [
 					{
 						"generatorPublicKey": "107806d2020ac69d31b85755bb8b7c470940543638fe66406f5a862a5158aea6",

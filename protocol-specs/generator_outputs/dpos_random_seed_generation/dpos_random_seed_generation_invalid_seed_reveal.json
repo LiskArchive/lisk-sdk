@@ -1,13 +1,18 @@
 {
 	"title": "Random seed for invalid pre image",
 	"summary": "Random seeds generation for the case when a delegate have invalid pre-image for seed reveal",
-	"config": "devnet",
+	"config": {
+		"network": "devnet"
+	},
 	"runner": "dpos_random_seed_generation",
 	"handler": "dpos_random_seed_generation_invalid_seed_reveal",
 	"testCases": [
 		{
+			"description": "Random seeds generation for the case when a delegate have invalid pre-image for seed reveal",
+			"config": {
+				"blocksPerRound": 103
+			},
 			"input": {
-				"blocksPerRound": 103,
 				"blocks": [
 					{
 						"generatorPublicKey": "b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9",
