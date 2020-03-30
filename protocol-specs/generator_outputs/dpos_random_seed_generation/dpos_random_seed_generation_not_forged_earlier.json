@@ -1,23 +1,23 @@
 {
-	"title": "Random seed for invalid pre image",
-	"summary": "Random seeds generation for the case when a delegate have invalid pre-image for seed reveal",
+	"title": "Random seed for not forged earlier",
+	"summary": "Random seeds generation for the case when delegate did not forged earlier",
 	"config": "devnet",
 	"runner": "dpos_random_seed_generation",
-	"handler": "dpos_random_seed_generation_invalid_seed_reveal",
+	"handler": "dpos_random_seed_generation_not_forged_earlier",
 	"testCases": [
 		{
 			"input": {
 				"blocksPerRound": 103,
 				"blocks": [
 					{
-						"generatorPublicKey": "b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9",
+						"generatorPublicKey": "107806d2020ac69d31b85755bb8b7c470940543638fe66406f5a862a5158aea6",
 						"height": 1,
 						"seedReveal": "da855fe23751069fcbd934fa6a1c6e70"
 					},
 					{
 						"generatorPublicKey": "842dcd768bf0311100781e6caa7141b62303a20274fa0b83357d7c920b8854c1",
 						"height": 2,
-						"seedReveal": "e3b0c44298fc1c149afbf4c8996fb924"
+						"seedReveal": "a9c96ae4fd2ee971e2e46a0374ddbd62"
 					},
 					{
 						"generatorPublicKey": "0fd794d5949f1b5a89b3d6ee96c2ff8f927e3c0afbb2273db514787738df319b",
@@ -1042,7 +1042,7 @@
 				]
 			},
 			"output": {
-				"randomSeed1": "e021c30d047fbca59fc6c93b81423351",
+				"randomSeed1": "4ab813ae8e22fe8580dd85e9c9074b47",
 				"randomSeed2": "cd0aa9856147b6c5b4ff2b7dfee5da20"
 			}
 		}

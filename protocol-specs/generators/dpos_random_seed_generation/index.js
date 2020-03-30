@@ -330,8 +330,9 @@ const randomSeedIfNotPassedMiddleOfRound = () => ({
 });
 
 const randomSeedForInvalidPreImageOfSeedReveal = () => ({
-	title: 'Random seed for second round',
-	summary: 'Random seeds generation for second round',
+	title: 'Random seed for invalid pre image',
+	summary:
+		'Random seeds generation for the case when a delegate have invalid pre-image for seed reveal',
 	config: 'devnet',
 	runner: 'dpos_random_seed_generation',
 	handler: 'dpos_random_seed_generation_invalid_seed_reveal',
@@ -375,12 +376,58 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 	})(),
 });
 
+const randomSeedIfForgerNotForgedEarlier = () => ({
+	title: 'Random seed for not forged earlier',
+	summary:
+		'Random seeds generation for the case when delegate did not forged earlier',
+	config: 'devnet',
+	runner: 'dpos_random_seed_generation',
+	handler: 'dpos_random_seed_generation_not_forged_earlier',
+	testCases: (() => {
+		const blocksPerRound = activeDelegates + standByDelegates;
+		const delegateList = sampleDelegateList.slice(0, blocksPerRound);
+		const blocks = generateBlocks({
+			startHeight: 1,
+			numberOfBlocks: blocksPerRound * 2,
+			delegateList,
+		});
+
+		// Change seed reveal values for a delegate for first round
+		const oldDelegate = delegateList[0];
+		const newDelegate = sampleDelegateList[blocksPerRound];
+		for (const block of blocks) {
+			if (
+				block.generatorPublicKey === oldDelegate.publicKey &&
+				block.height <= blocksPerRound
+			) {
+				block.generatorPublicKey = newDelegate.publicKey;
+			}
+		}
+
+		const { randomSeed1, randomSeed2 } = generateRandomSeed(
+			blocks,
+			blocksPerRound,
+		);
+
+		return [
+			{
+				input: {
+					blocksPerRound,
+					blocks,
+				},
+				output: {
+					randomSeed1,
+					randomSeed2,
+				},
+			},
+		];
+	})(),
+});
+
 module.exports = BaseGenerator.runGenerator('dpos_random_seed_generation', [
 	randomSeedFirstRound,
 	randomSeedSecondRound,
 	randomSeedIfNotPassedMiddleOfRound,
 	randomSeedForInvalidPreImageOfSeedReveal,
-	// randomSeedIfForgerNotForgedEarlier,
-	// randomSeedIfForgerForgedPreviousRound,
-	// randomSeedIfForgerForgedInCurrentRound,
+	randomSeedIfForgerNotForgedEarlier,
 ]);
