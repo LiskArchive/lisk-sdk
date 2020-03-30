@@ -68,7 +68,7 @@ const SIZE_UINT32 = 4;
 const SIZE_INT64 = 8;
 const SIZE_UINT64 = SIZE_INT64;
 // tslint:disable-next-line no-magic-numbers
-const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
+const AMOUNT_MULTIPLIER_FOR_VOTES = BigInt(10) * BigInt(10) ** BigInt(8);
 const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
 const PUNISH_TIME_VOTE = 260000;
@@ -219,7 +219,7 @@ export class UnlockTransaction extends BaseTransaction {
 				);
 			}
 
-			if (unlock.amount % TEN_UNIT !== BigInt(0)) {
+			if (unlock.amount % AMOUNT_MULTIPLIER_FOR_VOTES !== BigInt(0)) {
 				errors.push(
 					new TransactionError(
 						'Amount should be multiple of 10 * 10^8',
