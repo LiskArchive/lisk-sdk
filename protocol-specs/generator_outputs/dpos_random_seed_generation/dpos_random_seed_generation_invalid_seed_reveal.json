@@ -22,7 +22,7 @@
 					{
 						"generatorPublicKey": "842dcd768bf0311100781e6caa7141b62303a20274fa0b83357d7c920b8854c1",
 						"height": 2,
-						"seedReveal": "e3b0c44298fc1c149afbf4c8996fb924"
+						"seedReveal": "433ebf5bc03dffa38536673207a21281"
 					},
 					{
 						"generatorPublicKey": "0fd794d5949f1b5a89b3d6ee96c2ff8f927e3c0afbb2273db514787738df319b",
@@ -1047,8 +1047,8 @@
 				]
 			},
 			"output": {
-				"randomSeed1": "e021c30d047fbca59fc6c93b81423351",
-				"randomSeed2": "cd0aa9856147b6c5b4ff2b7dfee5da20"
+				"randomSeed1": "45282c80ba7aed2a29eba5c07761e98a",
+				"randomSeed2": "1ebc2c57112bc594c7ca32a76a89f70e"
 			}
 		}
 	]
