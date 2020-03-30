@@ -32,7 +32,8 @@ describe('block processor v2', () => {
 	};
 	const defaultAdditionalData = {
 		lastBlockHeaders: [],
-		networkIdentifier: 'network-identifier',
+		networkIdentifier:
+			'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7',
 	};
 
 	let blockProcessor;
@@ -77,6 +78,7 @@ describe('block processor v2', () => {
 		const defaultExceptions = {};
 
 		blockProcessor = new BlockProcessorV2({
+			networkIdentifier: defaultAdditionalData.networkIdentifier,
 			chainModule: chainModuleStub,
 			bftModule: bftModuleStub,
 			dposModule: dposModuleStub,
