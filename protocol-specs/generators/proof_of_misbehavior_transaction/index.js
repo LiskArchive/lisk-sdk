@@ -392,6 +392,104 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 	};
 };
 
+/*
+	Scenario 3:
+
+	b1.maxHeightPrevoted>b2.maxHeightPrevoted
+*/
+
+const scenario3Header1 = {
+	version: 1,
+	timestamp: 1,
+	previousBlockId: 1,
+	seedReveal: '1',
+	height: 100000,
+	maxHeightPreviouslyForged: 100000,
+	maxHeightPrevoted: 100001,
+	numberOfTransactions: 0,
+	totalAmount: 0,
+	totalFee: 10000000000,
+	reward: 10000000000,
+	payloadLength: 0,
+	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	generatorPublicKey:
+		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+};
+
+scenario3Header1.blockSignature = sign(
+	scenario3Header1,
+	forgerKeyPair.privateKeyBytes.toString('hex'),
+);
+
+const scenario3Header2 = {
+	version: 1,
+	timestamp: 1,
+	previousBlockId: 1,
+	seedReveal: '1',
+	height: 100000,
+	maxHeightPreviouslyForged: 100000,
+	maxHeightPrevoted: 100000,
+	numberOfTransactions: 0,
+	totalAmount: 0,
+	totalFee: 10000000000,
+	reward: 10000000000,
+	payloadLength: 0,
+	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	generatorPublicKey:
+		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+};
+
+scenario3Header2.blockSignature = sign(
+	scenario3Header2,
+	forgerKeyPair.privateKeyBytes.toString('hex'),
+);
+
+const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
+	const unsignedTransaction = {
+		senderPublicKey: accounts.reporter.publicKey,
+		nonce: '1',
+		fee: '1500000000',
+		type: 15,
+		asset: {
+			header1: scenario3Header1,
+			header2: scenario3Header2,
+		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
+		signatures: [],
+	};
+
+	const signBytes = serialize(tx);
+
+	tx.signatures.push(
+		createSignatureObject(signBytes, accounts.reporter).signature,
+	);
+
+	const id = getId(
+		Buffer.concat([
+			signBytes,
+			Buffer.from('01', 'hex'),
+			Buffer.from(tx.signatures[0], 'hex'),
+		]),
+	);
+
+	tx.id = id;
+
+	return {
+		input: {
+			reportingAccount: accounts.reporter,
+			targetAccount: accounts.forger,
+			networkIdentifier,
+			transaction: unsignedTransaction,
+		},
+		output: tx,
+	};
+};
+
 const validProofOfMisbehaviorForScenario1Suite = () => ({
 	title: 'Valid proof-of-misbehavior transaction for scenario 1',
 	summary: 'A proof-of-misbehavior transaction',
@@ -403,9 +501,8 @@ const validProofOfMisbehaviorForScenario1Suite = () => ({
 	testCases: generateValidProofOfMisbehaviorTransactionForScenario1(),
 });
 
-
 const validProofOfMisbehaviorForScenario2Suite = () => ({
-	title: 'Valid proof-of-misbehavior transaction for scenario 1',
+	title: 'Valid proof-of-misbehavior transaction for scenario 2',
 	summary: 'A proof-of-misbehavior transaction',
 	config: {
 		network: 'devnet',
@@ -415,10 +512,22 @@ const validProofOfMisbehaviorForScenario2Suite = () => ({
 	testCases: generateValidProofOfMisbehaviorTransactionForScenario2(),
 });
 
+const validProofOfMisbehaviorForScenario3Suite = () => ({
+	title: 'Valid proof-of-misbehavior transaction for scenario 3',
+	summary: 'A proof-of-misbehavior transaction',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'proof_of_misbehavior_transaction',
+	handler: 'proof_of_misbehavior_transaction_scenario_3',
+	testCases: generateValidProofOfMisbehaviorTransactionForScenario3(),
+});
+
 module.exports = BaseGenerator.runGenerator(
 	'proof_of_misbehavior_transaction',
 	[
 		validProofOfMisbehaviorForScenario1Suite,
 		validProofOfMisbehaviorForScenario2Suite,
+		validProofOfMisbehaviorForScenario3Suite,
 	],
 );
