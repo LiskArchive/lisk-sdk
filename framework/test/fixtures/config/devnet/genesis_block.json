@@ -6,6 +6,7 @@
 	"maxHeightPrevoted": 0,
 	"reward": "0",
 	"totalFee": "0",
+	"seedReveal": "00000000000000000000000000000000",
 	"communityIdentifier": "Lisk",
 	"generatorPublicKey": "edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b",
 	"payloadHash": "23ce0366ef0a14a91e5fd4b1591fc880ffbef9d988ff8bebf8f3666b0c09597d",
