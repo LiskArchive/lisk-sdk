@@ -1,9 +1,11 @@
 {
 	"title": "Valid proof-of-misbehavior transaction for scenario 1",
 	"summary": "A proof-of-misbehavior transaction",
-	"config": "devnet",
+	"config": {
+		"network": "devnet"
+	},
 	"runner": "proof_of_misbehavior_transaction",
-	"handler": "proof_of_misbehavior_transaction",
+	"handler": "proof_of_misbehavior_transaction_scenario_2",
 	"testCases": {
 		"input": {
 			"reportingAccount": {
@@ -33,9 +35,9 @@
 						"timestamp": 1,
 						"previousBlockId": 1,
 						"seedReveal": "1",
-						"height": 10,
-						"maxHeightPreviouslyForged": 6,
-						"maxHeightPrevoted": 5,
+						"height": 100001,
+						"maxHeightPreviouslyForged": 100000,
+						"maxHeightPrevoted": 100000,
 						"numberOfTransactions": 0,
 						"totalAmount": 0,
 						"totalFee": 10000000000,
@@ -43,16 +45,16 @@
 						"payloadLength": 0,
 						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"blockSignature": "bb60c975f6d3f78b14b826e3be08f61aada855068751583144bffe24e00ecd9117fdf71558c9dec816903da3e47ea40f3d8c8c067a37f29a67e8af8563bf7c0a"
+						"blockSignature": "b1ffa50b467da0aad01d24d86a58b55b8a58eaf97f5d67e10444898e1be7e9a3d8797fe0f3c7a91c0f902986213e3fe87dfb151908b3b309656b4db47daa9607"
 					},
 					"header2": {
 						"version": 1,
 						"timestamp": 1,
 						"previousBlockId": 1,
 						"seedReveal": "1",
-						"height": 11,
-						"maxHeightPreviouslyForged": 6,
-						"maxHeightPrevoted": 5,
+						"height": 100000,
+						"maxHeightPreviouslyForged": 100000,
+						"maxHeightPrevoted": 100000,
 						"numberOfTransactions": 0,
 						"totalAmount": 0,
 						"totalFee": 10000000000,
@@ -60,7 +62,7 @@
 						"payloadLength": 0,
 						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"blockSignature": "5c631cdbb493bde450e98c0404764b7ac5392e601e19d9b771f65d886f87374128852d4b3675d07ef03624285ec2d2ef80ba4d7c80bbbee9acb4826d6373b400"
+						"blockSignature": "d59a90e85ac68f59ca8c5fb7bb9e900b9c9d423ad36abe50fc881d91efd28d458f2bde0808bd5f4cf4594916edfebbb95990f4ccfe3af37e4109751a0b04b205"
 					}
 				},
 				"signatures": []
@@ -77,9 +79,9 @@
 					"timestamp": 1,
 					"previousBlockId": 1,
 					"seedReveal": "1",
-					"height": 10,
-					"maxHeightPreviouslyForged": 6,
-					"maxHeightPrevoted": 5,
+					"height": 100001,
+					"maxHeightPreviouslyForged": 100000,
+					"maxHeightPrevoted": 100000,
 					"numberOfTransactions": 0,
 					"totalAmount": 0,
 					"totalFee": 10000000000,
@@ -87,16 +89,16 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "bb60c975f6d3f78b14b826e3be08f61aada855068751583144bffe24e00ecd9117fdf71558c9dec816903da3e47ea40f3d8c8c067a37f29a67e8af8563bf7c0a"
+					"blockSignature": "b1ffa50b467da0aad01d24d86a58b55b8a58eaf97f5d67e10444898e1be7e9a3d8797fe0f3c7a91c0f902986213e3fe87dfb151908b3b309656b4db47daa9607"
 				},
 				"header2": {
 					"version": 1,
 					"timestamp": 1,
 					"previousBlockId": 1,
 					"seedReveal": "1",
-					"height": 11,
-					"maxHeightPreviouslyForged": 6,
-					"maxHeightPrevoted": 5,
+					"height": 100000,
+					"maxHeightPreviouslyForged": 100000,
+					"maxHeightPrevoted": 100000,
 					"numberOfTransactions": 0,
 					"totalAmount": 0,
 					"totalFee": 10000000000,
@@ -104,13 +106,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "5c631cdbb493bde450e98c0404764b7ac5392e601e19d9b771f65d886f87374128852d4b3675d07ef03624285ec2d2ef80ba4d7c80bbbee9acb4826d6373b400"
+					"blockSignature": "d59a90e85ac68f59ca8c5fb7bb9e900b9c9d423ad36abe50fc881d91efd28d458f2bde0808bd5f4cf4594916edfebbb95990f4ccfe3af37e4109751a0b04b205"
 				}
 			},
 			"signatures": [
-				"eaa5dba59fdbf3cac90c83f819f1338dc89475858d4b6b34b22d0096c67f1b8945057c8999d19190d241b320d94e76c149ce58ac3b79d7cdaeb3b052ffdfb70a"
+				"7f9c1d6665022fcf5e38ed46677733a309e685ad7e7e2b303fb0381143849d5551a4fc499be59b6d425e321b62a1af89d9530e824725f5e1f4cdc92b58533f00"
 			],
-			"id": "15055574135001832957"
+			"id": "6544073707094894208"
 		}
 	}
 }

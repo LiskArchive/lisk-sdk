@@ -126,83 +126,7 @@ const getBytes = block => {
 };
 
 const sign = (block, privateKey) =>
-	signDataWithPrivateKey(
-		hash(getBytes(block)),
-		Buffer.from(privateKey, 'hex'),
-	);
-
-const accounts = {
-	reporter: {
-		address: '16313739661670634666L',
-		publicKey:
-			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-		passphrase:
-			'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
-		balance: '10000000000000000',
-		encryptedPassphrase:
-			'iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1',
-		password: 'elephant tree paris dragon chair galaxy',
-	},
-	forger: {
-		address: '10881167371402274308L',
-		publicKey:
-			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-		passphrase:
-			'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
-		balance: '0',
-		delegateName: 'genesis_100',
-	},
-};
-
-const block1 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
-	height: 10,
-	maxHeightPreviouslyForged: 6,
-	maxHeightPrevoted: 5,
-	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
-	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
-	generatorPublicKey:
-		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-};
-
-const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(
-	accounts.forger.passphrase,
-);
-
-block1.blockSignature = sign(
-	block1,
-	forgerKeyPair.privateKeyBytes.toString('hex'),
-);
-
-const block2 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
-	height: 11,
-	maxHeightPreviouslyForged: 6,
-	maxHeightPrevoted: 5,
-	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
-	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
-	generatorPublicKey:
-		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-};
-
-block2.blockSignature = sign(
-	block2,
-	forgerKeyPair.privateKeyBytes.toString('hex'),
-);
+	signDataWithPrivateKey(hash(getBytes(block)), Buffer.from(privateKey, 'hex'));
 
 const getId = transactionBytes => {
 	const transactionHash = hash(transactionBytes);
@@ -243,16 +167,96 @@ const createSignatureObject = (txBuffer, account) => ({
 	),
 });
 
+const accounts = {
+	reporter: {
+		address: '16313739661670634666L',
+		publicKey:
+			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+		passphrase:
+			'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
+		balance: '10000000000000000',
+		encryptedPassphrase:
+			'iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1',
+		password: 'elephant tree paris dragon chair galaxy',
+	},
+	forger: {
+		address: '10881167371402274308L',
+		publicKey:
+			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		passphrase:
+			'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
+		balance: '0',
+		delegateName: 'genesis_100',
+	},
+};
+
+const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(
+	accounts.forger.passphrase,
+);
+
+/*
+	Scenario 1:
+
+	b1.delegatePubKey!=b2.delegatePubKey
+	&&
+	b1.maxHeightPrevoted==b2.maxHeightPrevoted &&  b1.height>=b2.height
+*/
+
+const scenario1Header1 = {
+	version: 1,
+	timestamp: 1,
+	previousBlockId: 1,
+	seedReveal: '1',
+	height: 100001,
+	maxHeightPreviouslyForged: 100000,
+	maxHeightPrevoted: 100000,
+	numberOfTransactions: 0,
+	totalAmount: 0,
+	totalFee: 10000000000,
+	reward: 10000000000,
+	payloadLength: 0,
+	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	generatorPublicKey:
+		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+};
+
+scenario1Header1.blockSignature = sign(
+	scenario1Header1,
+	forgerKeyPair.privateKeyBytes.toString('hex'),
+);
+
+const scenario1Header2 = {
+	version: 1,
+	timestamp: 1,
+	previousBlockId: 1,
+	seedReveal: '1',
+	height: 100000,
+	maxHeightPreviouslyForged: 100000,
+	maxHeightPrevoted: 100000,
+	numberOfTransactions: 0,
+	totalAmount: 0,
+	totalFee: 10000000000,
+	reward: 10000000000,
+	payloadLength: 0,
+	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	generatorPublicKey:
+		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+};
+
+scenario1Header2.blockSignature = sign(
+	scenario1Header2,
+	forgerKeyPair.privateKeyBytes.toString('hex'),
+);
+
 const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
-	// basic transaction
 	const unsignedTransaction = {
 		senderPublicKey: accounts.reporter.publicKey,
 		nonce: '1',
 		fee: '1500000000',
 		type: 15,
 		asset: {
-			header1: block1,
-			header2: block2,
+			header1: scenario1Header1,
+			header2: scenario1Header2,
 		},
 		signatures: [],
 	};
@@ -269,11 +273,111 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 		createSignatureObject(signBytes, accounts.reporter).signature,
 	);
 
-	const id = getId(Buffer.concat([
-		signBytes,
-		Buffer.from('01', 'hex'),
-		Buffer.from(tx.signatures[0], 'hex'),
-	]));
+	const id = getId(
+		Buffer.concat([
+			signBytes,
+			Buffer.from('01', 'hex'),
+			Buffer.from(tx.signatures[0], 'hex'),
+		]),
+	);
+
+	tx.id = id;
+
+	return {
+		input: {
+			reportingAccount: accounts.reporter,
+			targetAccount: accounts.forger,
+			networkIdentifier,
+			transaction: unsignedTransaction,
+		},
+		output: tx,
+	};
+};
+
+/*
+	Scenario 2:
+
+	b1.height>b2.maxHeightPreviouslyForged
+*/
+
+const scenario2Header1 = {
+	version: 1,
+	timestamp: 1,
+	previousBlockId: 1,
+	seedReveal: '1',
+	height: 100001,
+	maxHeightPreviouslyForged: 100000,
+	maxHeightPrevoted: 100000,
+	numberOfTransactions: 0,
+	totalAmount: 0,
+	totalFee: 10000000000,
+	reward: 10000000000,
+	payloadLength: 0,
+	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	generatorPublicKey:
+		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+};
+
+scenario2Header1.blockSignature = sign(
+	scenario2Header1,
+	forgerKeyPair.privateKeyBytes.toString('hex'),
+);
+
+const scenario2Header2 = {
+	version: 1,
+	timestamp: 1,
+	previousBlockId: 1,
+	seedReveal: '1',
+	height: 100000,
+	maxHeightPreviouslyForged: 100000,
+	maxHeightPrevoted: 100000,
+	numberOfTransactions: 0,
+	totalAmount: 0,
+	totalFee: 10000000000,
+	reward: 10000000000,
+	payloadLength: 0,
+	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	generatorPublicKey:
+		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+};
+
+scenario2Header2.blockSignature = sign(
+	scenario2Header2,
+	forgerKeyPair.privateKeyBytes.toString('hex'),
+);
+
+const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
+	const unsignedTransaction = {
+		senderPublicKey: accounts.reporter.publicKey,
+		nonce: '1',
+		fee: '1500000000',
+		type: 15,
+		asset: {
+			header1: scenario2Header1,
+			header2: scenario2Header2,
+		},
+		signatures: [],
+	};
+
+	const tx = {
+		...unsignedTransaction,
+		asset: { ...unsignedTransaction.asset },
+		signatures: [],
+	};
+
+	const signBytes = serialize(tx);
+
+	tx.signatures.push(
+		createSignatureObject(signBytes, accounts.reporter).signature,
+	);
+
+	const id = getId(
+		Buffer.concat([
+			signBytes,
+			Buffer.from('01', 'hex'),
+			Buffer.from(tx.signatures[0], 'hex'),
+		]),
+	);
 
 	tx.id = id;
 
@@ -291,13 +395,30 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 const validProofOfMisbehaviorForScenario1Suite = () => ({
 	title: 'Valid proof-of-misbehavior transaction for scenario 1',
 	summary: 'A proof-of-misbehavior transaction',
-	config: 'devnet',
+	config: {
+		network: 'devnet',
+	},
 	runner: 'proof_of_misbehavior_transaction',
-	handler: 'proof_of_misbehavior_transaction',
+	handler: 'proof_of_misbehavior_transaction_scenario_1',
 	testCases: generateValidProofOfMisbehaviorTransactionForScenario1(),
+});
+
+
+const validProofOfMisbehaviorForScenario2Suite = () => ({
+	title: 'Valid proof-of-misbehavior transaction for scenario 1',
+	summary: 'A proof-of-misbehavior transaction',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'proof_of_misbehavior_transaction',
+	handler: 'proof_of_misbehavior_transaction_scenario_2',
+	testCases: generateValidProofOfMisbehaviorTransactionForScenario2(),
 });
 
 module.exports = BaseGenerator.runGenerator(
 	'proof_of_misbehavior_transaction',
-	[validProofOfMisbehaviorForScenario1Suite],
+	[
+		validProofOfMisbehaviorForScenario1Suite,
+		validProofOfMisbehaviorForScenario2Suite,
+	],
 );
