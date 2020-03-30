@@ -48,7 +48,8 @@ export const accountDefaultValues = {
 
 interface Vote {
 	readonly delegateAddress: string;
-	readonly amount: bigint;
+	// tslint:disable-next-line readonly-keyword
+	amount: bigint;
 }
 
 interface Unlocking {
