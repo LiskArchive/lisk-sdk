@@ -27,7 +27,7 @@ export interface BlockHeader {
 export interface DPoS {
 	readonly getMinActiveHeight: (
 		height: number,
-		publicKey: string,
+		address: string,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
 	) => Promise<number>;

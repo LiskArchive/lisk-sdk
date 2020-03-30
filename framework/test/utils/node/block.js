@@ -15,10 +15,6 @@
 
 'use strict';
 
-const {
-	getDelegateKeypairForCurrentSlot,
-} = require('../../../src/application/node/forger/forger');
-
 const createBlock = async (node, transactions = [], options = {}) => {
 	const lastBlock = options.lastBlock
 		? options.lastBlock
@@ -26,12 +22,9 @@ const createBlock = async (node, transactions = [], options = {}) => {
 	const currentSlot = node.chain.slots.getSlotNumber(lastBlock.timestamp) + 1;
 	const timestamp = node.chain.slots.getSlotTime(currentSlot);
 	const round = node.dpos.rounds.calcRound(lastBlock.height + 1);
-	const currentKeypair = await getDelegateKeypairForCurrentSlot(
-		node.dpos,
-		node.forger.keypairs,
+	const currentKeypair = await node.forger._getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		round,
-		node.forger.constants.activeDelegates,
 	);
 	return node.processor.create({
 		keypair: options.keypair ? options.keypair : currentKeypair,

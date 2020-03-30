@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, hash, hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import {
@@ -26,7 +26,7 @@ import {
 	Account,
 	BlockHeader,
 	Chain,
-	ForgerList,
+	DelegateWeight,
 	ForgersList,
 	StateStore,
 	VoteWeights,
@@ -42,9 +42,6 @@ interface DelegatesListConstructor {
 	readonly voteWeightCapRate: number;
 	readonly standbyThreshold: bigint;
 	readonly chain: Chain;
-	readonly exceptions: {
-		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
-	};
 }
 
 interface DelegateListWithRoundHash {
@@ -95,7 +92,7 @@ const _setVoteWeights = (
 	stateStore.consensus.set(CONSENSUS_STATE_VOTE_WEIGHTS_KEY, voteWeightsStr);
 };
 
-export const deleteDelegateListUntilRound = async (
+export const deleteForgersListUntilRound = async (
 	round: number,
 	stateStore: StateStore,
 ): Promise<void> => {
@@ -105,7 +102,7 @@ export const deleteDelegateListUntilRound = async (
 	_setForgersList(stateStore, newForgersList);
 };
 
-export const deleteDelegateListAfterRound = async (
+export const deleteForgersListAfterRound = async (
 	round: number,
 	stateStore: StateStore,
 ): Promise<void> => {
@@ -196,19 +193,19 @@ export const shuffleDelegateListBasedOnRandomSeed = (
  * Get shuffled list of active delegate public keys (forger public keys) for a specific round.
  * The list of delegates used is the one computed at the begging of the round `r - delegateListRoundOffset`
  */
-export const getForgerPublicKeysForRound = async (
+export const getForgerAddressesForRound = async (
 	round: number,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<string>> => {
 	const forgersList = await getForgersList(stateStore);
-	const delegatePublicKeys = forgersList.find(fl => fl.round === round)
+	const delegateAddresses = forgersList.find(fl => fl.round === round)
 		?.delegates;
 
-	if (!delegatePublicKeys) {
+	if (!delegateAddresses) {
 		throw new Error(`No delegate list found for round: ${round}`);
 	}
 
-	return shuffleDelegateListForRound(round, delegatePublicKeys);
+	return delegateAddresses;
 };
 
 export const isCurrentlyPunished = (
@@ -226,6 +223,34 @@ export const isCurrentlyPunished = (
 	return false;
 };
 
+const _getTotalVoteWeight = (
+	delegateWeights: ReadonlyArray<DelegateWeight>,
+): bigint =>
+	delegateWeights.reduce(
+		(prev, current) => prev + BigInt(current.voteWeight),
+		BigInt(0),
+	);
+
+const _pickStandByDelegate = (
+	delegateWeights: ReadonlyArray<DelegateWeight>,
+	randomSeed: Buffer,
+): number => {
+	const seedNumber = randomSeed.readBigUInt64BE();
+	const totalVoteWeight = _getTotalVoteWeight(delegateWeights);
+	// tslint:disable-next-line no-let
+	let threshold = seedNumber % totalVoteWeight;
+	// tslint:disable-next-line no-let
+	for (let i = 0; i < delegateWeights.length; i += 1) {
+		const voteWeight = BigInt(delegateWeights[i].voteWeight);
+		if (voteWeight > threshold) {
+			return i;
+		}
+		threshold -= voteWeight;
+	}
+
+	return -1;
+};
+
 export class DelegatesList {
 	private readonly rounds: Rounds;
 	private readonly chain: Chain;
@@ -233,9 +258,6 @@ export class DelegatesList {
 	private readonly standbyDelegates: number;
 	private readonly voteWeightCapRate: number;
 	private readonly standbyThreshold: bigint;
-	private readonly exceptions: {
-		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
-	};
 
 	public constructor({
 		activeDelegates,
@@ -244,14 +266,12 @@ export class DelegatesList {
 		voteWeightCapRate,
 		rounds,
 		chain,
-		exceptions,
 	}: DelegatesListConstructor) {
 		this.activeDelegates = activeDelegates;
 		this.standbyDelegates = standbyDelegates;
 		this.standbyThreshold = standbyThreshold;
 		this.voteWeightCapRate = voteWeightCapRate;
 		this.rounds = rounds;
-		this.exceptions = exceptions;
 		this.chain = chain;
 	}
 
@@ -368,67 +388,71 @@ export class DelegatesList {
 		_setVoteWeights(stateStore, voteWeights);
 	}
 
-	/**
-	 * Generate list of delegate public keys for the next round in database
-	 * WARNING: This function should only be called from `apply()` as we don't allow future rounds to be created
-	 */
-	public async createRoundDelegateList(
+	public async updateForgersList(
 		round: number,
+		randomSeed: ReadonlyArray<Buffer>,
 		stateStore: StateStore,
 	): Promise<void> {
-		debug(`Creating delegate list for round: ${round}`);
-		const forgersList = await getForgersList(stateStore);
-		const forgerListIndex = forgersList.findIndex(fl => fl.round === round);
-		// This gets the list before current block is executed
-		const delegateAccounts = await this.chain.dataAccess.getDelegateAccounts(
-			this.activeDelegates,
-		);
-		const updatedAccounts = stateStore.account.getUpdated();
-		// tslint:disable-next-line readonly-keyword
-		const updatedAccountsMap: { [address: string]: Account } = {};
-		// Convert updated accounts to map for better search
-		for (const account of updatedAccounts) {
-			updatedAccountsMap[account.address] = account;
+		// tslint:disable-next-line no-magic-numbers
+		if (randomSeed.length !== this.standbyDelegates) {
+			throw new Error(
+				`Exactly ${this.standbyDelegates} random seed must be provided`,
+			);
 		}
-		// Inject delegate account if it doesn't exist
-		for (const delegate of delegateAccounts) {
-			if (updatedAccountsMap[delegate.address] === undefined) {
-				updatedAccountsMap[delegate.address] = delegate;
+		const voteWeights = await getVoteWeights(stateStore);
+		const voteWeight = voteWeights.find(vw => vw.round === round);
+		if (!voteWeight) {
+			throw new Error(`Corresponding vote weight for round ${round} not found`);
+		}
+		// Expect that voteWeight is stored in order of voteWeight and address
+		const hasStandbySlot =
+			voteWeight.delegates.length >
+			this.activeDelegates + this.standbyDelegates;
+		const activeDelegateSlots = hasStandbySlot
+			? this.activeDelegates
+			: this.activeDelegates + this.standbyDelegates;
+		const activeDelegateAddresses = voteWeight.delegates
+			.slice(0, activeDelegateSlots)
+			.map(vw => vw.address);
+		const standbyDelegateAddresses = [];
+		const standbyDelegateVoteWeights = hasStandbySlot
+			? voteWeight.delegates.slice(activeDelegateSlots)
+			: [];
+
+		// Only choose standby delegate if it exists
+		if (standbyDelegateVoteWeights.length !== 0) {
+			// tslint:disable-next-line no-let
+			for (let i = 0; i < this.standbyDelegates; i += 1) {
+				const standbyDelegateIndex = _pickStandByDelegate(
+					standbyDelegateVoteWeights,
+					randomSeed[i],
+				);
+				if (standbyDelegateIndex < 0) {
+					throw new Error('Fail to pick standby delegate');
+				}
+				standbyDelegateAddresses.push(
+					standbyDelegateVoteWeights[standbyDelegateIndex].address,
+				);
+				standbyDelegateVoteWeights.splice(standbyDelegateIndex, 1);
 			}
 		}
-		const updatedAccountArray = [...Object.values(updatedAccountsMap)];
-		// Re-sort based on VoteWeight with desc and publickey with asc
-		updatedAccountArray.sort((a, b) => {
-			if (BigInt(b.voteWeight) > BigInt(a.voteWeight)) {
-				return 1;
-			}
-			if (BigInt(b.voteWeight) < BigInt(a.voteWeight)) {
-				return -1;
-			}
 
-			if (!a.publicKey) {
-				return 0;
-			}
-
-			// In the tie break compare publicKey
-			return a.publicKey.localeCompare(b.publicKey);
-		});
-		// Slice with X delegates
-		const delegatePublicKeys = updatedAccountArray
-			.slice(0, this.activeDelegates)
-			.map(account => account.publicKey);
-
-		const forgerList: ForgerList = {
+		const delegates = activeDelegateAddresses.concat(standbyDelegateAddresses);
+		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/4940 will update this function
+		const shuffuledDelegates = shuffleDelegateListForRound(round, delegates);
+		const forgerList = {
 			round,
-			delegates: delegatePublicKeys,
+			delegates: shuffuledDelegates,
+			standby: standbyDelegateAddresses,
 		};
-		if (forgerListIndex > 0) {
-			forgersList[forgerListIndex] = forgerList;
+		const forgersList = await getForgersList(stateStore);
+		const existingIndex = forgersList.findIndex(fl => fl.round === round);
+		if (existingIndex > -1) {
+			forgersList[existingIndex] = forgerList;
 		} else {
 			forgersList.push(forgerList);
 		}
 		_setForgersList(stateStore, forgersList);
-		debug(`Created delegate list for round: ${round}`);
 	}
 
 	public async getShuffledDelegateList(
@@ -441,14 +465,14 @@ export class DelegatesList {
 			forgersListStr !== undefined
 				? (JSON.parse(forgersListStr) as ForgersList)
 				: [];
-		const delegatePublicKeys = forgersList.find(fl => fl.round === round)
+		const delegateAddresses = forgersList.find(fl => fl.round === round)
 			?.delegates;
 
-		if (!delegatePublicKeys) {
+		if (!delegateAddresses) {
 			throw new Error(`No delegate list found for round: ${round}`);
 		}
 
-		return shuffleDelegateListForRound(round, delegatePublicKeys);
+		return delegateAddresses;
 	}
 
 	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
@@ -464,24 +488,15 @@ export class DelegatesList {
 		}
 
 		// Get delegate public key that was supposed to forge the block
-		const expectedForgerPublicKey =
-			delegateList[currentSlot % this.activeDelegates];
+		const expectedForgerAddress =
+			delegateList[currentSlot % delegateList.length];
 
 		// Verify if forger exists and matches the generatorPublicKey on block
 		if (
-			!expectedForgerPublicKey ||
-			block.generatorPublicKey !== expectedForgerPublicKey
+			!expectedForgerAddress ||
+			getAddressFromPublicKey(block.generatorPublicKey) !==
+				expectedForgerAddress
 		) {
-			/**
-			 * Accepts any forger as valid for the rounds defined in exceptions.ignoreDelegateListCacheForRounds
-			 * This is only set for testnet due to `zero vote` active delegate issue (https://github.com/LiskHQ/lisk-sdk/pull/2543#pullrequestreview-178505587)
-			 * Should be tackled by https://github.com/LiskHQ/lisk-sdk/issues/4194
-			 */
-			const { ignoreDelegateListCacheForRounds = [] } = this.exceptions;
-			if (ignoreDelegateListCacheForRounds.includes(currentRound)) {
-				return true;
-			}
-
 			throw new Error(
 				`Failed to verify slot: ${currentSlot}. Block ID: ${block.id}. Block Height: ${block.height}`,
 			);

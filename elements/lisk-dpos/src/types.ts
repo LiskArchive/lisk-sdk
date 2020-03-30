@@ -102,6 +102,7 @@ export interface VoteWeight {
 export interface ForgerList {
 	readonly round: number;
 	readonly delegates: ReadonlyArray<string>;
+	readonly standby: ReadonlyArray<string>;
 }
 
 export type ForgersList = ForgerList[];

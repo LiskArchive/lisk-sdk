@@ -27,6 +27,7 @@ const bftScenarios = [
 
 import { FinalityManager } from '../../src/finality_manager';
 import { StateStoreMock } from '../unit/state_store_mock';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 const pick = (calcKeyPair: { [key: string]: number }, minHeight: number) =>
 	Object.keys(calcKeyPair).reduce((prev, key) => {
@@ -94,10 +95,11 @@ describe('FinalityManager', () => {
 						},
 					);
 					dposStub.getMinActiveHeight.mockImplementation(
-						(height: number, publicKey: string) => {
+						(height: number, address: string) => {
 							const header = blockHeaders.find(
 								(bh: any) =>
-									bh.height === height && bh.generatorPublicKey === publicKey,
+									bh.height === height &&
+									getAddressFromPublicKey(bh.generatorPublicKey) === address,
 							);
 							return Promise.resolve(header.delegateMinHeightActive);
 						},
@@ -171,10 +173,11 @@ describe('FinalityManager', () => {
 					},
 				);
 				dposStub.getMinActiveHeight.mockImplementation(
-					(height: number, publicKey: string) => {
+					(height: number, address: string) => {
 						const header = blockHeaders.find(
 							(bh: any) =>
-								bh.height === height && bh.generatorPublicKey === publicKey,
+								bh.height === height &&
+								getAddressFromPublicKey(bh.generatorPublicKey) === address,
 						);
 						return Promise.resolve(header.delegateMinHeightActive);
 					},
@@ -287,10 +290,11 @@ describe('FinalityManager', () => {
 					},
 				);
 				dposStub.getMinActiveHeight.mockImplementation(
-					(height: number, publicKey: string) => {
+					(height: number, address: string) => {
 						const header = blockHeaders.find(
 							(bh: any) =>
-								bh.height === height && bh.generatorPublicKey === publicKey,
+								bh.height === height &&
+								getAddressFromPublicKey(bh.generatorPublicKey) === address,
 						);
 						return Promise.resolve(header.delegateMinHeightActive);
 					},

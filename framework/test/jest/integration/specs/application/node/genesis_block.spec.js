@@ -20,7 +20,6 @@ const {
 	storageUtils,
 	configUtils,
 } = require('../../../../../utils');
-const delegateListForTheFirstRound = require('../../../../../fixtures/config/devnet/delegates_for_first_round.json');
 const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
 
 describe('genesis block', () => {
@@ -115,7 +114,7 @@ describe('genesis block', () => {
 
 			it('should have correct delegate list', async () => {
 				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
-				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
+				expect(delegateListFromChain).toMatchSnapshot();
 			});
 		});
 	});
@@ -186,7 +185,7 @@ describe('genesis block', () => {
 
 			it('should have correct delegate list', async () => {
 				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
-				expect(delegateListFromChain).toEqual(delegateListForTheFirstRound);
+				expect(delegateListFromChain).toMatchSnapshot();
 			});
 		});
 	});
