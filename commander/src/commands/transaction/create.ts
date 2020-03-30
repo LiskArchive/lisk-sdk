@@ -21,6 +21,7 @@ import { flags as commonFlags } from '../../utils/flags';
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
 import TransferCommand from './create/transfer';
+import UnlockCommand from './create/unlock';
 import VoteCommand from './create/vote';
 
 const MAX_ARG_NUM = 5;
@@ -34,6 +35,7 @@ const typeNumberMap: TypeNumberMap = {
 	'10': 'delegate',
 	'11': 'vote',
 	'12': 'multisignature',
+	'14': 'unlock',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
@@ -54,6 +56,7 @@ const typeClassMap: TypeClassMap = {
 	vote: VoteCommand,
 	delegate: DelegateCommand,
 	multisignature: MultisignatureCommand,
+	unlock: UnlockCommand,
 };
 
 const resolveFlags = (
