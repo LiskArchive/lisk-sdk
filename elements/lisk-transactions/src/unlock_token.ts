@@ -66,7 +66,7 @@ export const unlockToken = (
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 14,
+		type: UnlockTransaction.TYPE,
 		asset: {
 			unlockingObjects,
 		},

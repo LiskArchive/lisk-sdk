@@ -34,7 +34,7 @@ export interface UnlockAsset {
 	readonly unlockingObjects: ReadonlyArray<Unlock>;
 }
 
-const voteAssetFormatSchema = {
+const unlockAssetFormatSchema = {
 	type: 'object',
 	required: ['unlockingObjects'],
 	properties: {
@@ -201,7 +201,7 @@ export class UnlockTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(voteAssetFormatSchema, asset);
+		const schemaErrors = validator.validate(unlockAssetFormatSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,
@@ -211,7 +211,7 @@ export class UnlockTransaction extends BaseTransaction {
 			if (unlock.amount <= BigInt(0)) {
 				errors.push(
 					new TransactionError(
-						'Amount cannot be less than zero',
+						'Amount cannot be less than or equal to zero',
 						this.id,
 						'.asset.votes.amount',
 						unlock.amount.toString(),
@@ -247,7 +247,7 @@ export class UnlockTransaction extends BaseTransaction {
 			) {
 				errors.push(
 					new TransactionError(
-						'Unlocking object has not waited locking period',
+						'Unlocking is not permitted as delegate is currently being punished',
 						this.id,
 						'.asset.unlockingObjects.unvoteHeight',
 						unlock.unvoteHeight,

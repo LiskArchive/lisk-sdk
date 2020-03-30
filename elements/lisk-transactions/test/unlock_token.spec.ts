@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -82,7 +82,7 @@ describe('#unlockToken transaction', () => {
 						fee: validUnlockTransactionScenario.testCases.output.fee,
 						nonce: validUnlockTransactionScenario.testCases.output.nonce,
 					}),
-				).toThrowError('Amount cannot be less than zero');
+				).toThrowError('Amount cannot be less than or equal to zero');
 			});
 		});
 

@@ -86,7 +86,9 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude('Amount cannot be less than zero');
+				expect(errors[0].message).toInclude(
+					'Amount cannot be less than or equal to zero',
+				);
 			});
 		});
 
@@ -103,7 +105,9 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude('Amount cannot be less than zero');
+				expect(errors[0].message).toInclude(
+					'Amount cannot be less than or equal to zero',
+				);
 			});
 		});
 
@@ -259,7 +263,7 @@ describe('Unlock transaction', () => {
 						expect(status).toBe(Status.FAIL);
 						expect(errors).toHaveLength(1);
 						expect(errors[0].message).toContain(
-							'Unlocking object has not waited locking period',
+							'Unlocking is not permitted as delegate is currently being punished',
 						);
 					});
 				});
@@ -309,14 +313,14 @@ describe('Unlock transaction', () => {
 						expect(status).toBe(Status.FAIL);
 						expect(errors).toHaveLength(1);
 						expect(errors[0].message).toContain(
-							'Unlocking object has not waited locking period',
+							'Unlocking is not permitted as delegate is currently being punished',
 						);
 					});
 				});
 			});
 		});
 
-		describe('given the delegate is currently being punichsed', () => {
+		describe('given the delegate is currently being punished', () => {
 			const punishHeight = 1000;
 
 			beforeEach(async () => {
@@ -473,7 +477,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(3);
 					expect(errors[0].message).toContain(
-						'Unlocking object has not waited locking period',
+						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
 			});
@@ -515,7 +519,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toContain(
-						'Unlocking object has not waited locking period',
+						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
 			});
