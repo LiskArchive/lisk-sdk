@@ -287,17 +287,17 @@ const randomSeedFirstRound = () => ({
 	})(),
 });
 
-const randomSeedSecondRound = () => ({
-	title: 'Random seed for second round',
-	summary: 'Random seeds generation for second round',
+const randomSeedForMoreRounds = () => ({
+	title: 'Random seed for more than one rounds',
+	summary: 'Random seeds generation more than one rounds',
 	config: 'devnet',
 	runner: 'dpos_random_seed_generation',
-	handler: 'dpos_random_seed_generation_second_round',
+	handler: 'dpos_random_seed_generation_other_rounds',
 	testCases: (() => {
 		const blocksPerRound = activeDelegates + standByDelegates;
 		const blocks = generateBlocks({
 			startHeight: 1,
-			numberOfBlocks: blocksPerRound * 2,
+			numberOfBlocks: blocksPerRound * 3,
 			delegateList: sampleDelegateList.slice(0, blocksPerRound),
 		});
 		const { randomSeed1, randomSeed2 } = generateRandomSeed(
@@ -449,7 +449,7 @@ const randomSeedIfForgerNotForgedEarlier = () => ({
 
 module.exports = BaseGenerator.runGenerator('dpos_random_seed_generation', [
 	randomSeedFirstRound,
-	randomSeedSecondRound,
+	randomSeedForMoreRounds,
 	randomSeedIfNotPassedMiddleOfRound,
 	randomSeedForInvalidPreImageOfSeedReveal,
 	randomSeedIfForgerNotForgedEarlier,
