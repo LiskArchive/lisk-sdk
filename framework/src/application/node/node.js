@@ -98,6 +98,7 @@ module.exports = class Node {
 
 			// Prepare dependency
 			const processorDependencies = {
+				networkIdentifier: this.networkIdentifier,
 				chainModule: this.chain,
 				bftModule: this.bft,
 				dposModule: this.dpos,
