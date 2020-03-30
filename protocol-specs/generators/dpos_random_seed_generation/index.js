@@ -24,7 +24,7 @@ const { list: sampleDelegateList } = require('./forger_list');
 const activeDelegates = 101;
 const standByDelegates = 2;
 
-const H = data => {
+const strippedHash = data => {
 	let input;
 
 	if (typeof data === 'number') {
@@ -42,7 +42,7 @@ const H = data => {
 		.toString('hex');
 };
 
-const XOR = hexArray => {
+const bitwiseXOR = hexArray => {
 	if (hexArray.length === 1) {
 		return hexArray[0];
 	}
@@ -68,7 +68,7 @@ const generateSeedOnion = (initialSeed, size) => {
 	seeds[0] = hash(initialSeed, 'hex');
 
 	for (let i = 1; i < size; i += 1) {
-		seeds[i] = H(seeds[i - 1], 'hex');
+		seeds[i] = strippedHash(seeds[i - 1], 'hex');
 	}
 
 	return seeds.reverse();
@@ -113,68 +113,77 @@ const generateBlocks = ({ startHeight, numberOfBlocks, delegateList }) => {
 	});
 };
 
-const round = (height, n) => Math.floor((height - 1) / n) + 1;
+const calcRound = (height, blocksPerRound) =>
+	Math.floor((height - 1) / blocksPerRound) + 1;
 
-const roundFlags = (r, n) => {
-	const firstBlock = r * n - n + 1;
-	const lastBlock = r * n;
-	const middleBlock = Math.floor((firstBlock + lastBlock) / 2);
+const roundInfo = (round, blocksPerRound) => {
+	const firstBlockHeight = round * blocksPerRound - blocksPerRound + 1;
+	const lastBlockHeight = round * blocksPerRound;
+	const middleBlockHeight = Math.floor(
+		(firstBlockHeight + lastBlockHeight) / 2,
+	);
 
 	return {
-		round: r,
-		firstBlock,
-		lastBlock,
-		middleBlock,
+		firstBlockHeight,
+		lastBlockHeight,
+		middleBlockHeight,
 	};
 };
 
 const generateRandomSeed = (blocks, blocksPerRound) => {
-	// Last block height
-	const l = blocks[blocks.length - 1].height;
+	// Middle range of a round to validate
+	const middleThreshold = Math.floor(blocksPerRound / 2);
 
-	// Number of blocks in a round
-	const n = blocksPerRound;
+	const lastBlockHeight = blocks[blocks.length - 1].height;
 
 	// Current round
-	const r = roundFlags(round(l, n), n);
+	const currentRound = calcRound(lastBlockHeight, blocksPerRound);
+	const {
+		firstBlockHeight: firstBlockHeightOfCurrentRound,
+		middleBlockHeight: middleBlockHeightOfCurrentRound,
+	} = roundInfo(currentRound, blocksPerRound);
 
-	// First block of current round
-	const { firstBlock: h } = r;
-
-	// Middle range of a round
-	const m = Math.floor(n / 2);
-
-	if (l < r.middleBlock) {
+	if (lastBlockHeight < middleBlockHeightOfCurrentRound) {
 		throw new Error(
-			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height ${l}`,
+			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height ${lastBlockHeight}`,
 		);
 	}
 
-	if (l >= r.middleBlock && r.round === 1) {
-		const randomSeed1 = H(m + 1);
-		const randomSeed2 = H(0);
+	if (
+		lastBlockHeight >= middleBlockHeightOfCurrentRound &&
+		currentRound === 1
+	) {
+		const randomSeed1 = strippedHash(middleThreshold + 1);
+		const randomSeed2 = strippedHash(0);
 
 		return { randomSeed1, randomSeed2 };
 	}
 
-	const { firstBlock: firstBlockBlockOfLastBlockRound } = roundFlags(
-		r.round - 1,
-		n,
+	const { firstBlockHeight: firstBlockHeightOfLastRound } = roundInfo(
+		currentRound - 1,
+		blocksPerRound,
 	);
 
-	const filteredBlocks = blocks.reduce((acc, b) => {
-		if (b.height >= firstBlockBlockOfLastBlockRound) {
-			acc[b.height] = b;
+	// Filter blocks which will be used for random seed computation
+	// It will be hash may by block height
+	const filteredBlocksMap = blocks.reduce((acc, block) => {
+		if (block.height >= firstBlockHeightOfLastRound) {
+			acc[block.height] = block;
 		}
 		return acc;
 	}, {});
 
-	const seedRevealMap = Object.values(filteredBlocks).reduce((acc, b) => {
-		acc[b.height] = b.seedReveal;
-		return acc;
-	}, {});
+	// Build a seed reveal map by block height
+	const seedRevealMap = Object.values(filteredBlocksMap).reduce(
+		(acc, block) => {
+			acc[block.height] = block.seedReveal;
+			return acc;
+		},
+		{},
+	);
 
-	const forgedBlocksMap = Object.values(filteredBlocks).reduce((acc, b) => {
+	// Build a forged blocks map by generator public key
+	const forgedBlocksMap = Object.values(filteredBlocksMap).reduce((acc, b) => {
 		if (!acc[b.generatorPublicKey]) {
 			acc[b.generatorPublicKey] = [];
 		}
@@ -185,11 +194,15 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 	const seedRevealsForRandomSeed1 = [];
 
 	// From middle of current round to middle of last round
-	for (let i = h + m; i >= h - m; i -= 1) {
-		const { generatorPublicKey, seedReveal } = filteredBlocks[i];
+	for (
+		let i = firstBlockHeightOfCurrentRound + middleThreshold;
+		i >= firstBlockHeightOfCurrentRound - middleThreshold;
+		i -= 1
+	) {
+		const { generatorPublicKey, seedReveal } = filteredBlocksMap[i];
 		const [previousForgedHeight] = forgedBlocksMap[generatorPublicKey];
 
-		// If forged only 1 block in current and last round
+		// If forged only 1 block in round at height i or previous round
 		// don't use that seed reveal
 		if (!previousForgedHeight || previousForgedHeight === i) {
 			continue;
@@ -197,7 +210,7 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 
 		const previousSeedReveal = seedRevealMap[previousForgedHeight];
 
-		if (H(seedReveal) !== previousSeedReveal) {
+		if (strippedHash(seedReveal) !== previousSeedReveal) {
 			continue;
 		}
 
@@ -206,8 +219,12 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 
 	const seedRevealsForRandomSeed2 = [];
 	// From middle of current round to middle of last round
-	for (let i = h - 1; i >= h - n; i -= 1) {
-		const { generatorPublicKey, seedReveal } = filteredBlocks[i];
+	for (
+		let i = firstBlockHeightOfCurrentRound - 1;
+		i >= firstBlockHeightOfCurrentRound - blocksPerRound;
+		i -= 1
+	) {
+		const { generatorPublicKey, seedReveal } = filteredBlocksMap[i];
 		const [previousForgedHeight] = forgedBlocksMap[generatorPublicKey];
 
 		// If forged only 1 block in current and last round
@@ -218,15 +235,21 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 
 		const previousSeedReveal = seedRevealMap[previousForgedHeight];
 
-		if (H(seedReveal) !== previousSeedReveal) {
+		if (strippedHash(seedReveal) !== previousSeedReveal) {
 			continue;
 		}
 
 		seedRevealsForRandomSeed1.push(seedReveal);
 	}
 
-	const randomSeed1 = XOR([H(h + m), ...seedRevealsForRandomSeed1]);
-	const randomSeed2 = XOR([H(h - 1), ...seedRevealsForRandomSeed2]);
+	const randomSeed1 = bitwiseXOR([
+		strippedHash(firstBlockHeightOfCurrentRound + middleThreshold),
+		...seedRevealsForRandomSeed1,
+	]);
+	const randomSeed2 = bitwiseXOR([
+		strippedHash(firstBlockHeightOfCurrentRound - 1),
+		...seedRevealsForRandomSeed2,
+	]);
 
 	return { randomSeed1, randomSeed2 };
 };
@@ -352,7 +375,7 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 				block.generatorPublicKey === suspiciousDelegate.publicKey &&
 				block.height <= blocksPerRound
 			) {
-				block.seedReveal = H(block.height);
+				block.seedReveal = strippedHash(block.height);
 			}
 		}
 
