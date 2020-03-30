@@ -301,9 +301,7 @@ export class DelegatesList {
 
 			// From here, it's below threshold
 			// Below threshold, but prepared array does not have enough slected delegate
-			if (
-				standbyDelegates.length < this.standbyDelegates
-			) {
+			if (standbyDelegates.length < this.standbyDelegates) {
 				// In case there was 1 standby delegate who has more than threshold
 				standbyDelegates.push({
 					address: account.address,
@@ -314,10 +312,10 @@ export class DelegatesList {
 			break;
 		}
 
-		const result = activeDelegates.concat(standbyDelegates);
+		const delegateVoteWeights = activeDelegates.concat(standbyDelegates);
 		const voteWeight = {
 			round,
-			delegates: result,
+			delegates: delegateVoteWeights,
 		};
 		// Save result to the chain state with round number
 		const voteWeights = await getVoteWeights(stateStore);

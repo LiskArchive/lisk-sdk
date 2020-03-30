@@ -57,7 +57,7 @@ describe('dpos.apply()', () => {
 		dpos = new Dpos({
 			chain: chainStub,
 			activeDelegates: ACTIVE_DELEGATES,
-			// FIXME: this should be updated to consider standby delegate
+			// FIXME: this should be updated to consider standby delegate after #4941
 			standbyDelegates: 0,
 			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});

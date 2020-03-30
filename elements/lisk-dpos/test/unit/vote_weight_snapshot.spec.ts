@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -201,7 +201,7 @@ describe('Vote weight snapshot', () => {
 				);
 			});
 
-			it('should affect the vote wieghts snapshot created', async () => {
+			it('should affect the vote weights snapshot created', async () => {
 				// Act
 				await dpos.apply(block, stateStore);
 
