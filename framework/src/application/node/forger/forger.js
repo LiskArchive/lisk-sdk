@@ -24,7 +24,7 @@ const {
 
 const {
 	FORGER_INFO_KEY_USED_HASH_ONION,
-	FORGER_INFO_KEY_REGISTERED_HASH_ONION,
+	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 } = require('./constant');
 const { HighFeeForgingStrategy } = require('./strategies');
 
@@ -179,7 +179,7 @@ class Forger {
 		);
 
 		let usedHashOnions = await this._getUsedHashOnions();
-		const registeredHashOnions = await this._getRegisteredHashOnions();
+		const registeredHashOnionSeeds = await this._getRegisteredHashOnionSeeds();
 
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
@@ -234,19 +234,16 @@ class Forger {
 				);
 			}
 			// Prepare hash-onion
-			const registeredHashOnion = registeredHashOnions[account.address];
-			const { hashOnion: hashOnionConfig } =
-				this.config.forging.delegates.find(
-					d => getAddressFromPublicKey(d.publicKey) === account.address,
-				) || {};
-			if (!hashOnionConfig) {
-				throw new Error(
-					`Account ${account.address} does not have hash onion in the config`,
-				);
-			}
+			const registeredHashOnionSeed = registeredHashOnionSeeds[account.address];
+			const hashOnionConfig = this._getHashOnionConfig(account.address);
+
+			// If hash onion in the config is different from what is registered, remove all the used information and register the new one
 			const configHashOnionSeed =
 				hashOnionConfig.hashes[hashOnionConfig.hashes.length - 1];
-			if (registeredHashOnion && registeredHashOnion !== configHashOnionSeed) {
+			if (
+				registeredHashOnionSeed &&
+				registeredHashOnionSeed !== configHashOnionSeed
+			) {
 				this.logger.warn(
 					`Hash onion for Account ${account.address} is not the same as previous one. Overwriting with new hash onion`,
 				);
@@ -254,7 +251,8 @@ class Forger {
 					ho => ho.address !== account.address,
 				);
 			}
-			registeredHashOnions[account.address] = configHashOnionSeed;
+			// Update the registered hash onion (either same one, new one or overwritten one)
+			registeredHashOnionSeeds[account.address] = configHashOnionSeed;
 			const highestUsedHashOnion = usedHashOnions.reduce((prev, current) => {
 				if (current.address !== account.address) {
 					return prev;
@@ -264,10 +262,13 @@ class Forger {
 				}
 				return prev;
 			}, undefined);
+
+			// If there are no previous usage, no need to check further
 			if (!highestUsedHashOnion) {
 				// eslint-disable-next-line no-continue
 				continue;
 			}
+			// If hash onion used is close to being used up, then put the warning message
 			const { count: highestCount } = highestUsedHashOnion;
 			if (highestCount > hashOnionConfig.count - hashOnionConfig.distance) {
 				this.logger.warn(
@@ -277,11 +278,12 @@ class Forger {
 					`Number of hashonion used(${highestCount}) is close to end. Please update to the new hash onion`,
 				);
 			}
+			// If all hash onion is used, throw an error
 			if (highestCount >= hashOnionConfig.count) {
 				throw new Error(`All of the hash onion is used for ${account.address}`);
 			}
 		}
-		await this._setRegisteredHashOnions(registeredHashOnions);
+		await this._setRegisteredHashOnionSeeds(registeredHashOnionSeeds);
 		await this._setUsedHashOnions(usedHashOnions);
 	}
 
@@ -380,7 +382,7 @@ class Forger {
 			usedHashOnions.push(nextUsedHashOnion);
 		}
 
-		const updatedUsedHashOnion = this._pruneUsedHashOnions(
+		const updatedUsedHashOnion = this._filterUsedHashOnions(
 			usedHashOnions,
 			this.bftModule.finalizedHeight,
 		);
@@ -445,14 +447,7 @@ class Forger {
 			}
 			return prev;
 		}, undefined);
-		const { hashOnion: hashOnionConfig } = this.config.forging.delegates.find(
-			d => getAddressFromPublicKey(d.publicKey) === address,
-		);
-		if (!hashOnionConfig) {
-			throw new Error(
-				'Cannot find the hash onion associated with this address',
-			);
-		}
+		const hashOnionConfig = this._getHashOnionConfig(address);
 		if (!usedHashOnion) {
 			return {
 				hash: hashOnionConfig.hashes[0],
@@ -474,18 +469,34 @@ class Forger {
 		return { hash: hashes[checkpointIndex].toString('hex'), count: nextCount };
 	}
 
-	async _getRegisteredHashOnions() {
-		const registeredHashOnionsStr = await this.storage.entities.ForgerInfo.getKey(
-			FORGER_INFO_KEY_REGISTERED_HASH_ONION,
+	_getHashOnionConfig(address) {
+		const delegateConfig = this.config.forging.delegates.find(
+			d => getAddressFromPublicKey(d.publicKey) === address,
 		);
-		return registeredHashOnionsStr ? JSON.parse(registeredHashOnionsStr) : {};
+		if (!delegateConfig || !delegateConfig.hashOnion) {
+			throw new Error(
+				`Account ${address} does not have hash onion in the config`,
+			);
+		}
+		return delegateConfig.hashOnion;
 	}
 
-	async _setRegisteredHashOnions(registeredHashOnions) {
-		const registeredHashOnionsStr = JSON.stringify(registeredHashOnions);
+	async _getRegisteredHashOnionSeeds() {
+		const registeredHashOnionSeedsStr = await this.storage.entities.ForgerInfo.getKey(
+			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+		);
+		return registeredHashOnionSeedsStr
+			? JSON.parse(registeredHashOnionSeedsStr)
+			: {};
+	}
+
+	async _setRegisteredHashOnionSeeds(registeredHashOnionSeeds) {
+		const registeredHashOnionSeedsStr = JSON.stringify(
+			registeredHashOnionSeeds,
+		);
 		await this.storage.entities.ForgerInfo.setKey(
-			FORGER_INFO_KEY_REGISTERED_HASH_ONION,
-			registeredHashOnionsStr,
+			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+			registeredHashOnionSeedsStr,
 		);
 	}
 
@@ -497,7 +508,7 @@ class Forger {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	_pruneUsedHashOnions(usedHashOnions, finalizedHeight) {
+	_filterUsedHashOnions(usedHashOnions, finalizedHeight) {
 		return usedHashOnions.filter(ho => ho.height > finalizedHeight);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,9 +15,9 @@
 'use strict';
 
 const FORGER_INFO_KEY_USED_HASH_ONION = 'usedHashOnion';
-const FORGER_INFO_KEY_REGISTERED_HASH_ONION = 'registeredHashOnion';
+const FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS = 'registeredHashOnion';
 
 module.exports = {
 	FORGER_INFO_KEY_USED_HASH_ONION,
-	FORGER_INFO_KEY_REGISTERED_HASH_ONION,
+	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 };

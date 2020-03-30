@@ -23,7 +23,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const forger = require('../../../../../../../src/application/node/forger/forger');
 const {
-	FORGER_INFO_KEY_REGISTERED_HASH_ONION,
+	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 	FORGER_INFO_KEY_USED_HASH_ONION,
 } = require('../../../../../../../src/application/node/forger/constant');
 const genesisDelegates = require('../../../../../../mocha/data/genesis_delegates.json');
@@ -796,7 +796,7 @@ describe('forger', () => {
 				const newSeed = '00000000000000000000000000000001';
 				forgeModule.config.forging.delegates = delegates;
 				when(forgeModule.storage.entities.ForgerInfo.getKey)
-					.calledWith(FORGER_INFO_KEY_REGISTERED_HASH_ONION)
+					.calledWith(FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS)
 					.mockResolvedValue(
 						JSON.stringify({
 							[getAddressFromPublicKey(delegates[0].publicKey)]: newSeed,
@@ -820,7 +820,7 @@ describe('forger', () => {
 				expect(
 					forgeModule.storage.entities.ForgerInfo.setKey,
 				).toHaveBeenCalledWith(
-					FORGER_INFO_KEY_REGISTERED_HASH_ONION,
+					FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 					JSON.stringify(originalKey),
 				);
 			});
