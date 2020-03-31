@@ -75,7 +75,7 @@ export default class VoteCommand extends BaseCommand {
 		},
 	];
 	static description = `
-	Creates a transaction which will cast votes for delegate candidates using their public keys if broadcast to the network.
+	Creates a transaction which will cast votes for delegate candidates using their addresses if broadcast to the network.
 	`;
 
 	static examples = [
