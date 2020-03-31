@@ -26,7 +26,7 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const { BaseBlockProcessor } = require('./processor');
 
-const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'previouslyForged';
+const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'forger:previouslyForged';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;

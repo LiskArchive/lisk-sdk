@@ -24,7 +24,7 @@ import * as forkChoiceRule from './fork_choice_rule';
 import { BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
 import { validateBlockHeader } from './utils';
 
-export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'BFT.finalizedHeight';
+export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 /**
