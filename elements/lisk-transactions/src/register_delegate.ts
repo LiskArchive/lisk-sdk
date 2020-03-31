@@ -70,7 +70,6 @@ export const registerDelegate = (
 		// For txs from multisig senderPublicKey must be set before attempting signing
 		senderPublicKey,
 		asset: { username },
-		networkIdentifier,
 	};
 
 	if (!passphrase && !passphrases?.length) {

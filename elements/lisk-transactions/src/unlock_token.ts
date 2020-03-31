@@ -83,7 +83,6 @@ export const unlockToken = (
 		asset: {
 			...transaction.asset,
 		},
-		networkIdentifier,
 	};
 
 	const unlockTransaction = new UnlockTransaction(transactionWithSenderInfo);

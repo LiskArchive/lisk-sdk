@@ -23,7 +23,7 @@ import {
 	getNetworkIdentifier,
 	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
-import { newBlock, getBytes } from '../utils/block';
+import { newBlock, getBytes, defaultNetworkIdentifier } from '../utils/block';
 import { Chain, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
@@ -346,7 +346,7 @@ describe('blocks/header', () => {
 				// Act
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await chainInstance.verify(block, stateStore, {
 					skipExistingCheck: true,
@@ -410,7 +410,7 @@ describe('blocks/header', () => {
 				// Arrange
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 
 				// Act && Assert
@@ -452,7 +452,7 @@ describe('blocks/header', () => {
 				// Act
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				expect.assertions(1);
 				let err;
@@ -491,7 +491,7 @@ describe('blocks/header', () => {
 				// Arrange
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 
 				// Act && Assert
@@ -528,7 +528,7 @@ describe('blocks/header', () => {
 				// Arrange
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 
 				// Act && Assert
@@ -563,7 +563,7 @@ describe('blocks/header', () => {
 				storageStub.entities.ChainState.getKey.mockResolvedValue('100');
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await stateStore.account.cache({
 					address_in: [
@@ -619,7 +619,7 @@ describe('blocks/header', () => {
 				// Act
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await stateStore.account.cache({
 					address_in: [
@@ -662,7 +662,7 @@ describe('blocks/header', () => {
 				// Act
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await stateStore.account.cache({
 					address_in: [genesisAccount.address],
@@ -773,7 +773,7 @@ describe('blocks/header', () => {
 				// Act
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await chainInstance.apply(block, stateStore);
 			});
@@ -869,7 +869,7 @@ describe('blocks/header', () => {
 			// Act
 			stateStore = new StateStore(storageStub, {
 				lastBlockHeaders: [],
-				networkIdentifier: 'network-identifier-chain-1',
+				networkIdentifier: defaultNetworkIdentifier,
 			});
 			await chainInstance.applyGenesis(genesisInstance, stateStore);
 		});
@@ -906,7 +906,7 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				// Arrage
 				block = newBlock({ reward });
@@ -968,7 +968,7 @@ describe('blocks/header', () => {
 				// Act
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await chainInstance.undo(block, stateStore);
 			});
@@ -1070,7 +1070,7 @@ describe('blocks/header', () => {
 				// Act
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
-					networkIdentifier: 'network-identifier-chain-1',
+					networkIdentifier: defaultNetworkIdentifier,
 				});
 				await chainInstance.undo(block, stateStore);
 			});

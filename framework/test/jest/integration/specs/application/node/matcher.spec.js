@@ -89,7 +89,6 @@ const createRawCustomTransaction = ({
 	senderPublicKey,
 }) => {
 	const aCustomTransation = new CustomTransationClass({
-		networkIdentifier,
 		type: 7,
 		nonce,
 		senderPublicKey,
@@ -98,7 +97,7 @@ const createRawCustomTransaction = ({
 		},
 		fee: (10000000).toString(),
 	});
-	aCustomTransation.sign(passphrase);
+	aCustomTransation.sign(networkIdentifier, passphrase);
 
 	return aCustomTransation.toJSON();
 };
@@ -152,7 +151,6 @@ describe('Matcher', () => {
 					genesis.address,
 				);
 				const aCustomTransation = new CustomTransationClass({
-					networkIdentifier: node.networkIdentifier,
 					senderPublicKey: genesis.publicKey,
 					nonce: genesisAccount.nonce.toString(),
 					type: 7,

@@ -70,13 +70,9 @@ describe('Base transaction class', () => {
 	beforeEach(async () => {
 		validTestTransaction = new TransferTransaction({
 			...defaultTransaction,
-			networkIdentifier,
 		});
-		transactionWithDefaultValues = new TransferTransaction({
-			networkIdentifier,
-		});
+		transactionWithDefaultValues = new TransferTransaction({});
 		transactionWithBasicImpl = new TestTransactionBasicImpl({
-			networkIdentifier,
 			nonce: '1',
 			fee: '1000000',
 		});
@@ -122,10 +118,6 @@ describe('Base transaction class', () => {
 
 		it('should have receivedAt Date', async () => {
 			expect(validTestTransaction.receivedAt).toBeInstanceOf(Date);
-		});
-
-		it('should have _networkIdentifier string', async () => {
-			expect((validTestTransaction as any)._networkIdentifier).toBeString();
 		});
 
 		it('should not throw with undefined input', async () => {
@@ -620,8 +612,6 @@ describe('Base transaction class', () => {
 					nonce: '0',
 					fee: '10000000',
 					senderPublicKey: collisionAccounts[0].publicKey,
-					networkIdentifier:
-						transferFixture.testCases[0].input.networkIdentifier,
 				});
 				validCollisionTransaction.sign(
 					networkIdentifier,
@@ -644,8 +634,6 @@ describe('Base transaction class', () => {
 					nonce: '0',
 					fee: '10000000',
 					senderPublicKey: collisionAccounts[1].publicKey,
-					networkIdentifier:
-						transferFixture.testCases[0].input.networkIdentifier,
 				});
 				invalidCollisionTransaction.sign(
 					networkIdentifier,

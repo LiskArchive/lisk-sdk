@@ -56,6 +56,9 @@ export const defaultAccount = {
 	},
 };
 
+export const defaultNetworkIdentifier =
+	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+
 export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
 	readonly lastBlockHeader?: BlockHeader;
@@ -116,7 +119,7 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier:
-				addtionalInfo?.networkIdentifier ?? 'network-identifier',
+				addtionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
 			lastBlockHeader: addtionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
 		};
 	}

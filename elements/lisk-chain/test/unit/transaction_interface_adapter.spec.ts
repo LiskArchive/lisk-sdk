@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import {
 	TransferTransaction,
 	DelegateTransaction,
@@ -20,12 +19,6 @@ import {
 	MultisignatureTransaction,
 } from '@liskhq/lisk-transactions';
 import { TransactionInterfaceAdapter } from '../../src/data_access/transaction_interface_adapter';
-import * as genesisBlock from '../fixtures/genesis_block.json';
-
-const networkIdentifier = getNetworkIdentifier(
-	genesisBlock.payloadHash,
-	genesisBlock.communityIdentifier,
-);
 
 // TODO: re-implement for new transaction processing
 describe('transactions', () => {
@@ -41,10 +34,7 @@ describe('transactions', () => {
 
 		beforeEach(async () => {
 			// Act
-			transactions = new TransactionInterfaceAdapter(
-				networkIdentifier,
-				registeredTransactions,
-			);
+			transactions = new TransactionInterfaceAdapter(registeredTransactions);
 		});
 
 		describe('constructor', () => {

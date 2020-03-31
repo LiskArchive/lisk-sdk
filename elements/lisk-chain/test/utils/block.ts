@@ -29,7 +29,7 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-const defaultNetworkIdentifier =
+export const defaultNetworkIdentifier =
 	'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7';
 
 export const getBytes = (block: BlockInstance): Buffer => {
