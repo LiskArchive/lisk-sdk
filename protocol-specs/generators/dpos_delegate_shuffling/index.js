@@ -16,7 +16,8 @@
 
 const { hash } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
-const previousDelegateList = require('./delegate_address_list.json').list;
+const previousDelegateList = require('./delegate_address_list.json')
+	.delegateList;
 
 const generateShuffledDelegateList = () => {
 	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
