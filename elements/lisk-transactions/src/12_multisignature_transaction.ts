@@ -329,9 +329,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	// Verifies multisig signatures as per LIP-0017
-	public async verifySignatures(_: StateStore): Promise<TransactionResponse> {
+	public async verifySignatures(
+		store: StateStore,
+	): Promise<TransactionResponse> {
+		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -402,10 +405,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			readonly numberOfSignatures: number;
 		},
 	): void {
-		// Set network identifier if it was previously not set in the transaction
-		if (!this._networkIdentifier) {
-			this._networkIdentifier = networkIdentifier;
-		}
 		// Sort the keys in the transaction
 		sortKeysAscending(this.asset.mandatoryKeys);
 		sortKeysAscending(this.asset.optionalKeys);
@@ -423,7 +422,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		this.senderPublicKey = publicKey;
 
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			this.getBasicBytes(),

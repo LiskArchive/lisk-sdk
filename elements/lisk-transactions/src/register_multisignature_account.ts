@@ -152,7 +152,6 @@ export const registerMultisignature = (
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: 12,
-		networkIdentifier,
 		asset: {
 			mandatoryKeys,
 			optionalKeys,
