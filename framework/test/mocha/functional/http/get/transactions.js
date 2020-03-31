@@ -511,7 +511,7 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('using one blockId should return transactions', async () => {
-				const blockId = '10620616195853047363';
+				const blockId = '1349213844499460766';
 
 				return transactionsEndpoint.makeRequest({ blockId }, 200).then(res => {
 					res.body.data.map(transaction => {

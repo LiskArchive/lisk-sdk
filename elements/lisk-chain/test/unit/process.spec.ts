@@ -880,7 +880,8 @@ describe('blocks/header', () => {
 					genesisAccount.address,
 				);
 				expect(genesisAccountFromStore.balance).toBe(
-					BigInt('10000000000000000'),
+					// Genesis account now sends funds to the genesis delegates
+					BigInt('9897000000000000'),
 				);
 			});
 
