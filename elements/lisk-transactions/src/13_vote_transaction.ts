@@ -404,7 +404,7 @@ export class VoteTransaction extends BaseTransaction {
 						'Invalid data. unlocking object should exist while undo',
 					);
 				}
-				sender.unlocking.slice(unlockingIndex, 1);
+				sender.unlocking.splice(unlockingIndex, 1);
 
 				// Sort votes in case of readding
 				sender.votes.sort((a, b) =>
