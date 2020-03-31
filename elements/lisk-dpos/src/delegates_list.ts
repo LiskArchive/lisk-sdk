@@ -161,11 +161,12 @@ export const shuffleDelegateListForRound = (
 
 export const shuffleDelegateListBasedOnRandomSeed = (
 	previousRoundSeed1: string,
-	previousDelegateList: ReadonlyArray<string>,
+	previousDelegateAddresses: ReadonlyArray<string>,
 ): ReadonlyArray<string> => {
-	const delegateList: DelegateListWithRoundHash[] = [
-		...previousDelegateList,
-	].map(delegate => ({ address: delegate })) as DelegateListWithRoundHash[];
+	const delegateList = [...previousDelegateAddresses].map(delegate => ({
+		address: delegate,
+	})) as DelegateListWithRoundHash[];
+
 	for (const delegate of delegateList) {
 		// tslint:disable-next-line:no-magic-numbers
 		const addressBuffer = intToBuffer(
