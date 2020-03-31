@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
+import {
+	defaultAccount,
+	StateStoreMock,
+	defaultNetworkIdentifier,
+} from './utils/state_store_mock';
 import { DelegateTransaction } from '../src/10_delegate_transaction';
 import { validDelegateAccount } from '../fixtures';
 import * as protocolSpecDelegateFixture from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
@@ -47,6 +51,7 @@ describe('Delegate registration transaction class', () => {
 			networkIdentifier,
 		});
 		validTestTransaction.sign(
+			defaultNetworkIdentifier,
 			protocolSpecDelegateFixture.testCases[0].input.account.passphrase,
 		);
 

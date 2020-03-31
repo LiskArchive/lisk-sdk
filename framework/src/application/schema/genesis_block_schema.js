@@ -21,6 +21,7 @@ module.exports = {
 		'communityIdentifier',
 		'version',
 		'totalAmount',
+		'seedReveal',
 		'totalFee',
 		'reward',
 		'payloadHash',
@@ -50,6 +51,10 @@ module.exports = {
 		reward: {
 			type: 'string',
 			format: 'amount',
+		},
+		seedReveal: {
+			type: 'string',
+			format: 'hex',
 		},
 		payloadHash: {
 			type: 'string',

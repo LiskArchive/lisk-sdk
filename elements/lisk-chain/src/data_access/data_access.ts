@@ -29,7 +29,6 @@ import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 
 interface DAConstructor {
 	readonly dbStorage: DBStorage;
-	readonly networkIdentifier: string;
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
@@ -44,7 +43,6 @@ export class DataAccess {
 
 	public constructor({
 		dbStorage,
-		networkIdentifier,
 		registeredTransactions,
 		minBlockHeaderCache,
 		maxBlockHeaderCache,
@@ -55,7 +53,6 @@ export class DataAccess {
 			maxBlockHeaderCache,
 		);
 		this._transactionAdapter = new TransactionInterfaceAdapter(
-			networkIdentifier,
 			registeredTransactions,
 		);
 	}
@@ -333,8 +330,15 @@ export class DataAccess {
 		return accounts.map(account => new Account(account));
 	}
 
+	// TODO: Remove after implementing new DPoS #4951
 	public async getDelegateAccounts(limit: number): Promise<Account[]> {
 		const accounts = await this._storage.getDelegateAccounts(limit);
+
+		return accounts.map(account => new Account(account));
+	}
+
+	public async getDelegates(): Promise<Account[]> {
+		const accounts = await this._storage.getDelegates();
 
 		return accounts.map(account => new Account(account));
 	}

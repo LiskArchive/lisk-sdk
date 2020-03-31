@@ -24,9 +24,13 @@ import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
+	MAX_INT32,
 	MAX_INT64,
 	MAX_PUBLIC_KEY_LENGTH,
+	MAX_UINT32,
 	MAX_UINT64,
+	MIN_INT32,
+	MIN_INT64,
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
@@ -59,10 +63,10 @@ export const isGreaterThanZero = (amount: bigint): boolean =>
 	amount > BigInt(0);
 
 export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
-	amount > BigInt(MAX_INT64);
+	amount > MAX_INT64;
 
 export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
-	amount > BigInt(MAX_UINT64);
+	amount > MAX_UINT64;
 
 export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
 	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
@@ -283,3 +287,25 @@ export const validateNetworkIdentifier = (networkIdentifier: string) => {
 
 	return true;
 };
+
+export const isInt32 = (num: bigint | number): boolean => {
+	if (typeof num === 'number') {
+		return num <= MAX_INT32 && num >= MIN_INT32;
+	}
+
+	return num <= BigInt(MAX_INT32) && num >= BigInt(MIN_INT32);
+};
+
+export const isUint32 = (num: bigint | number): boolean => {
+	if (typeof num === 'number') {
+		return num <= MAX_UINT32 && num >= 0;
+	}
+
+	return num <= BigInt(MAX_UINT32) && num >= BigInt(0);
+};
+
+export const isInt64 = (num: bigint): boolean =>
+	num <= MAX_INT64 && num >= MIN_INT64;
+
+export const isUint64 = (num: bigint): boolean =>
+	num <= MAX_UINT64 && num >= BigInt(0);

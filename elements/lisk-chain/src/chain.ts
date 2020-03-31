@@ -257,7 +257,6 @@ export class Chain {
 		this.storage = storage;
 		this.dataAccess = new DataAccess({
 			dbStorage: storage,
-			networkIdentifier,
 			registeredTransactions,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
@@ -409,7 +408,7 @@ export class Chain {
 		expectedReward: string,
 	): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
-		validateSignature(block, blockBytes);
+		validateSignature(block, blockBytes, this._networkIdentifier);
 		validateReward(block, expectedReward, this.exceptions);
 
 		// Validate transactions

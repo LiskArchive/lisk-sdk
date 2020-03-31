@@ -44,7 +44,20 @@ export const defaultAccount = {
 		optionalKeys: [],
 		numberOfSignatures: 0,
 	},
+	totalVotesReceived: BigInt(0),
+	votes: [],
+	unlocking: [],
+	delegate: {
+		lastForgedHeight: 0,
+		registeredHeight: 0,
+		consecutiveMissedBlocks: 0,
+		isBanned: false,
+		pomHeights: [],
+	},
 };
+
+export const defaultNetworkIdentifier =
+	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 
 export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
@@ -106,7 +119,7 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier:
-				addtionalInfo?.networkIdentifier ?? 'network-identifier',
+				addtionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
 			lastBlockHeader: addtionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
 		};
 	}

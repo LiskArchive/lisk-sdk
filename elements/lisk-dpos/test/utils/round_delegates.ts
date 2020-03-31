@@ -15,34 +15,46 @@ import {
 	getAddressFromPublicKey,
 	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { randomInt } from './random_int';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Account } from '../../src/types';
 
 export { delegatePublicKeys };
 
-export const votedDelegates: Account[] = [];
-for (
-	let index = 0;
-	index < delegatePublicKeys.length * 2 + delegatePublicKeys.length;
-	index += 1
-) {
-	const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(
-		`${index}`,
-	);
-	const balance = String(randomInt(100, 1000));
-	votedDelegates.push({
-		address,
-		publicKey,
-		producedBlocks: 0,
-		missedBlocks: 0,
-		balance: BigInt(balance),
-		fees: BigInt('0'),
-		rewards: BigInt('0'),
-		voteWeight: BigInt('0'),
-		votedDelegatesPublicKeys: [],
-	});
-}
+export const getDelegateAccounts = (num: number = 1): Account[] => {
+	const accounts = [];
+	for (let index = 0; index < num; index += 1) {
+		const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(
+			Mnemonic.generateMnemonic(),
+		);
+		const balance = String(randomInt(100, 1000));
+		accounts.push({
+			address,
+			publicKey,
+			producedBlocks: 0,
+			missedBlocks: 0,
+			balance: BigInt(balance),
+			fees: BigInt('0'),
+			rewards: BigInt('0'),
+			voteWeight: BigInt('0'),
+			totalVotesReceived: BigInt('0'),
+			username: `genesis_${index + randomInt(0, 999999)}`,
+			delegate: {
+				isBanned: false,
+				pomHeights: [],
+			},
+			votes: [],
+			votedDelegatesPublicKeys: [],
+		});
+	}
+
+	return accounts;
+};
+
+export const votedDelegates = getDelegateAccounts(
+	delegatePublicKeys.length * 2 + delegatePublicKeys.length,
+);
 
 export const delegateAccounts = delegatePublicKeys.map(
 	(pk, index): Account => {
@@ -60,6 +72,13 @@ export const delegateAccounts = delegatePublicKeys.map(
 			balance: BigInt(balance),
 			producedBlocks: 0,
 			missedBlocks: 0,
+			totalVotesReceived: BigInt('0'),
+			username: `genesis_${index}`,
+			delegate: {
+				isBanned: false,
+				pomHeights: [],
+			},
+			votes: [],
 			rewards: BigInt(rewards),
 			voteWeight: BigInt(voteWeight),
 			fees: BigInt(balance) - BigInt(rewards),

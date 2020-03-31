@@ -98,6 +98,7 @@ module.exports = class Node {
 
 			// Prepare dependency
 			const processorDependencies = {
+				networkIdentifier: this.networkIdentifier,
 				chainModule: this.chain,
 				bftModule: this.bft,
 				dposModule: this.dpos,
@@ -512,6 +513,7 @@ module.exports = class Node {
 			logger: this.logger,
 			storage: this.storage,
 			dposModule: this.dpos,
+			bftModule: this.bft,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
