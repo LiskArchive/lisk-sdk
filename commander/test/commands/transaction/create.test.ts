@@ -148,5 +148,27 @@ describe('transaction:create', () => {
 					'--unlock=xxx,yyy,zzz',
 				]);
 			});
+
+		setupTest()
+			.command([
+				'transaction:create',
+				'--type=unlock',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+				'--unlock=xxx,yyy,zzz',
+			])
+			.it('should allow to use more flags and arguments', () => {
+				return expect(UnlockCommand.run).to.be.calledWithExactly([
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+					'--unlock=xxx,yyy,zzz',
+				]);
+			});
 	});
 });

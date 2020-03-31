@@ -24,8 +24,6 @@ import TransferCommand from './create/transfer';
 import UnlockCommand from './create/unlock';
 import VoteCommand from './create/vote';
 
-const MAX_ARG_NUM = 5;
-
 interface TypeNumberMap {
 	readonly [key: string]: string;
 }
@@ -75,9 +73,7 @@ const resolveFlags = (
 };
 
 export default class CreateCommand extends BaseCommand {
-	static args = new Array(MAX_ARG_NUM).fill(0).map(i => ({
-		name: `${i}_arg`,
-	}));
+	static strict = false;
 
 	static description = `
 	Creates a transaction object.
