@@ -948,6 +948,65 @@ describe('Vote transaction', () => {
 				});
 			});
 		});
+
+		describe.only('when asset.votes contains self-vote', () => {
+			const senderBalnce = BigInt('1230000000000');
+			const voteAmount = BigInt('1000000000000');
+
+			beforeEach(async () => {
+				tx = new VoteTransaction({
+					...validMixvoteTransactionScenario.testCases.output,
+					networkIdentifier:
+						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					asset: {
+						votes: [
+							{
+								delegateAddress:
+									validMixvoteTransactionScenario.testCases.input.account
+										.address,
+								amount: voteAmount.toString(),
+							},
+						],
+					},
+				});
+				tx.sign(
+					validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					validMixvoteTransactionScenario.testCases.input.account.passphrase,
+				);
+				const sender = {
+					...defaultAccount,
+					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
+					address:
+						validMixvoteTransactionScenario.testCases.input.account.address,
+					balance: senderBalnce,
+					username: 'delegate_0',
+					votes: [],
+					unlocking: [],
+				};
+				store = new StateStoreMock([sender], {
+					lastBlockHeader: { height: 10 } as any,
+					networkIdentifier:
+						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+				});
+			});
+
+			it('should update votes and totalVotesReceived properly', async () => {
+				// Act
+				await tx.apply(store);
+
+				// Assert
+				const updatedSender = await store.account.get(
+					validMixvoteTransactionScenario.testCases.input.account.address,
+				);
+				expect(updatedSender.totalVotesReceived.toString()).toEqual(
+					voteAmount.toString(),
+				);
+				expect(updatedSender.votes).toHaveLength(1);
+				expect(updatedSender.balance.toString()).toEqual(
+					(senderBalnce - tx.fee - voteAmount).toString(),
+				);
+			});
+		});
 	});
 
 	describe('undoAsset', () => {
@@ -1317,6 +1376,70 @@ describe('Vote transaction', () => {
 					const updatedDelegate = await store.account.get(delegate.address);
 					expect(updatedDelegate).toStrictEqual(delegate);
 				}
+			});
+		});
+
+		describe('when asset.votes contains self-vote', () => {
+			const senderBalnce = BigInt('1230000000000');
+			const voteAmount = BigInt('1000000000000');
+
+			beforeEach(async () => {
+				tx = new VoteTransaction({
+					...validMixvoteTransactionScenario.testCases.output,
+					networkIdentifier:
+						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					asset: {
+						votes: [
+							{
+								delegateAddress:
+									validMixvoteTransactionScenario.testCases.input.account
+										.address,
+								amount: voteAmount.toString(),
+							},
+						],
+					},
+				});
+				tx.sign(
+					validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					validMixvoteTransactionScenario.testCases.input.account.passphrase,
+				);
+				const sender = {
+					...defaultAccount,
+					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
+					address:
+						validMixvoteTransactionScenario.testCases.input.account.address,
+					balance: senderBalnce - tx.fee - voteAmount,
+					totalVotesReceived: voteAmount,
+					votes: [
+						{
+							delegateAddress:
+								validMixvoteTransactionScenario.testCases.input.account.address,
+							amount: voteAmount,
+						},
+					],
+					username: 'delegate_0',
+					unlocking: [],
+				};
+				store = new StateStoreMock([sender], {
+					lastBlockHeader: { height: 10 } as any,
+					networkIdentifier:
+						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+				});
+			});
+
+			it('should update votes and totalVotesReceived properly', async () => {
+				// Act
+				await tx.undo(store);
+
+				// Assert
+				const updatedSender = await store.account.get(
+					validMixvoteTransactionScenario.testCases.input.account.address,
+				);
+				expect(updatedSender.totalVotesReceived.toString()).toEqual('0');
+				expect(updatedSender.votes).toHaveLength(0);
+				expect(updatedSender.balance.toString()).toEqual(
+					senderBalnce.toString(),
+				);
 			});
 		});
 	});
