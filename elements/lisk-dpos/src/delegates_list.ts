@@ -161,9 +161,9 @@ export const shuffleDelegateListForRound = (
 
 export const shuffleDelegateListBasedOnRandomSeed = (
 	previousRoundSeed1: string,
-	previousDelegateAddresses: ReadonlyArray<string>,
+	addresses: ReadonlyArray<string>,
 ): ReadonlyArray<string> => {
-	const delegateList = [...previousDelegateAddresses].map(delegate => ({
+	const delegateList = [...addresses].map(delegate => ({
 		address: delegate,
 	})) as DelegateListWithRoundHash[];
 
