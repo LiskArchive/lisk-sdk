@@ -333,8 +333,15 @@ export class DataAccess {
 		return accounts.map(account => new Account(account));
 	}
 
+	// TODO: Remove after implementing new DPoS #4951
 	public async getDelegateAccounts(limit: number): Promise<Account[]> {
 		const accounts = await this._storage.getDelegateAccounts(limit);
+
+		return accounts.map(account => new Account(account));
+	}
+
+	public async getDelegates(): Promise<Account[]> {
+		const accounts = await this._storage.getDelegates();
 
 		return accounts.map(account => new Account(account));
 	}

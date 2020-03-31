@@ -17,6 +17,7 @@ import { DelegateTransaction } from './10_delegate_transaction';
 import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import { VoteTransaction as NewVoteTransaction } from './13_vote_transaction';
+import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import {
 	BaseTransaction,
@@ -38,6 +39,7 @@ import { transactionInterface } from './schema';
 import { signMultiSignatureTransaction } from './sign_multi_signature_transaction';
 import { Account, TransactionJSON } from './transaction_types';
 import { transfer } from './transfer';
+import { unlockToken } from './unlock_token';
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
@@ -80,6 +82,8 @@ export {
 	newCastVotes,
 	NewVoteTransaction,
 	MultisignatureTransaction,
+	UnlockTransaction,
+	unlockToken,
 	createResponse,
 	registerMultisignature,
 	signMultiSignatureTransaction,

@@ -44,6 +44,13 @@ export interface Account {
 		optionalKeys: string[];
 		numberOfSignatures: number;
 	};
+	delegate: {
+		lastForgedHeight: number;
+		registeredHeight: number;
+		consecutiveMissedBlocks: number;
+		isBanned: boolean;
+		pomHeights: number[];
+	};
 	votes: AccountVote[];
 	unlocking: AccountUnlocking[];
 	totalVotesReceived: bigint;
