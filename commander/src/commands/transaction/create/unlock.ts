@@ -59,7 +59,6 @@ interface Args {
 
 const splitInputs = (unlock: string) =>
 	unlock
-		.replace(/\n/g, ',')
 		.split(',')
 		.filter(Boolean)
 		.map(u => u.trim());
