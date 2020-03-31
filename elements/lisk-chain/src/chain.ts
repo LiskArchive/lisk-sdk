@@ -257,7 +257,6 @@ export class Chain {
 		this.storage = storage;
 		this.dataAccess = new DataAccess({
 			dbStorage: storage,
-			networkIdentifier,
 			registeredTransactions,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
