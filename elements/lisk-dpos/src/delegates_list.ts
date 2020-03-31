@@ -33,7 +33,7 @@ import {
 } from './types';
 
 const debug = Debug('lisk:dpos:delegate_list');
-const SIZE_INT64 = 8;
+const SIZE_UINT64 = 8;
 
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
@@ -171,7 +171,7 @@ export const shuffleDelegateListBasedOnRandomSeed = (
 		// tslint:disable-next-line:no-magic-numbers
 		const addressBuffer = intToBuffer(
 			delegate.address.slice(0, -1),
-			SIZE_INT64,
+			SIZE_UINT64,
 		);
 		const seedSource = Buffer.concat([
 			hexToBuffer(previousRoundSeed1),

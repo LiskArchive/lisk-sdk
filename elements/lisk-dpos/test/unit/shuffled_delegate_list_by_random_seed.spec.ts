@@ -12,23 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { delegateList } from '../fixtures/delegate_address_list.json';
+import { delegateList } from '../fixtures/dpos_delegate_shuffling/delegate_address_list.json';
 import { shuffleDelegateListBasedOnRandomSeed } from '../../src/delegates_list';
 
 describe('dpos.shuffleDelegateListBasedOnRandomSeed', () => {
-	const previousRoundSeed1 = '';
-	const delegateAddressList = delegateList;
+	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
+	const addressList = delegateList.map(delegate => delegate.address);
 	it('should return a list of uniformly shuffled list of delegates', () => {
 		const shuffledDelegateList = shuffleDelegateListBasedOnRandomSeed(
 			previousRoundSeed1,
-			delegateAddressList,
+			addressList,
 		);
 
-		expect(shuffledDelegateList).toHaveLength(delegateList.length);
+		expect(shuffledDelegateList).toHaveLength(addressList.length);
 		shuffledDelegateList.forEach(address =>
-			expect(delegateList).toContain(address),
+			expect(addressList).toContain(address),
 		);
 		// Expect the order of the list is different from the original delegate list
-		expect(shuffledDelegateList).not.toEqual(delegateList);
+		expect(shuffledDelegateList).not.toEqual(addressList);
 	});
 });
