@@ -14,7 +14,7 @@
 
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-import { CHAIN_STATE_KEY_BURNT_FEE } from './constants';
+import { CHAIN_STATE_BURNT_FEE } from './constants';
 import { StateStore } from './state_store';
 import { BlockInstance, BlockRewardOptions } from './types';
 
@@ -163,16 +163,14 @@ export const applyFeeAndRewards = async (
 	// This is necessary only for genesis block case, where total fee is 0, which is invalid
 	// Also, genesis block channot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
-	const totalFeeBurntStr = await stateStore.chain.get(
-		CHAIN_STATE_KEY_BURNT_FEE,
-	);
+	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 	// tslint:disable-next-line no-let
 	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(CHAIN_STATE_KEY_BURNT_FEE, totalFeeBurnt.toString());
+	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, totalFeeBurnt.toString());
 };
 
 export const undoFeeAndRewards = async (
@@ -194,14 +192,12 @@ export const undoFeeAndRewards = async (
 	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
 
 	generator.balance -= totalFee - totalMinFee;
-	const totalFeeBurntStr = await stateStore.chain.get(
-		CHAIN_STATE_KEY_BURNT_FEE,
-	);
+	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 	// tslint:disable-next-line no-let
 	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
 	totalFeeBurnt -= totalMinFee;
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(CHAIN_STATE_KEY_BURNT_FEE, totalFeeBurnt.toString());
+	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, totalFeeBurnt.toString());
 };

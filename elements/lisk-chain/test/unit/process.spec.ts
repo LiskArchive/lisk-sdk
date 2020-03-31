@@ -30,7 +30,7 @@ import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Slots } from '../../src/slots';
 import { BlockInstance, ExceptionOptions } from '../../src/types';
-import { CHAIN_STATE_KEY_BURNT_FEE } from '../../src/constants';
+import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
 
 jest.mock('events');
 
@@ -806,7 +806,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should update burntFee in the chain state', async () => {
-				const burntFee = await stateStore.chain.get(CHAIN_STATE_KEY_BURNT_FEE);
+				const burntFee = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
@@ -890,7 +890,7 @@ describe('blocks/header', () => {
 
 			it('should not update burnt fee on chain state', async () => {
 				const genesisAccountFromStore = await stateStore.chain.get(
-					CHAIN_STATE_KEY_BURNT_FEE,
+					CHAIN_STATE_BURNT_FEE,
 				);
 				expect(genesisAccountFromStore).toBe('0');
 			});
@@ -1105,7 +1105,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should debit burntFee in the chain state', async () => {
-				const burntFee = await stateStore.chain.get(CHAIN_STATE_KEY_BURNT_FEE);
+				const burntFee = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 				let expected = BigInt(0);
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
