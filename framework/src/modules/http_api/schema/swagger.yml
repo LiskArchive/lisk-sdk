@@ -19,18 +19,18 @@ info:
     # Welcome!
 
     ## Access restrictions
-    The API endpoints are by default restricted to a whitelist of IPs that can be found in `config.json` in the section [`api.access.whitelist`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L35).
-    If it is required for your API to be accessable by the public, this can be achieved by changing `api.access.public` to `true`.
+    The API endpoints are by default restricted to a whitelist of IPs that can be found in the Control API access section [`API Access`](https://lisk.io/documentation/lisk-core/3.0.0/management/api-access.html).
+    If it is required for your API to be accessible by the public, this can be achieved by changing `api.access.public` to `true`.
     This will allow anyone to make requests to your Lisk Core node.
     However some endpoints will stay private, hence this means that only a list of whitelisted IPs can successfully make API calls to that particular endpoint;
     this also includes all forging related API calls.
-    By default, only the nodes' local IP is included in the whitelist, nevertheless it is possible to change the setting in `config.json` in the section [`forging.access.whitelist`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L114).
+    By default, only the nodes' local IP is also included in the whitelist, nevertheless it is possible to change the setting in `config` in the API specification section [`forging status of a delegate`](https://lisk.io/documentation/lisk-sdk/reference/api.html#_description_11).
     For more details, see the descriptions at the respective endpoint.
 
     ## Requests
     Chained filter parameters are logically connected with `AND`.
     `HTTP` is the supported URL schema by default.
-    To enable `HTTPS`, please adjust the [`ssl`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L124) section in `config.json`.
+    To enable `HTTPS`, please adjust the [`ssl`](https://lisk.io/documentation/lisk-sdk/reference/api.html#_requests) in the API specification section.
 
     ## Responses
     The general response format is JSON (`application/json`).
@@ -297,7 +297,7 @@ paths:
       operationId: getForgingStatus
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
-        To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+        To edit the whitelist, please edit the `forging.access.whitelist` section in the `Control API access` described above in the Access restrictions section. *<br>
         Responds with the forging status of a delegate on a node.
       produces:
         - application/json
@@ -332,7 +332,7 @@ paths:
       operationId: updateForgingStatus
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
-        To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+        To edit the whitelist, please edit the `forging.access.whitelist` section in the `Control API access` described above in the Access restrictions section. *<br>
         Upon passing the correct password and publicKey, forging will be enabled or disabled for the delegate of this particular node.
         The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
       produces:
@@ -959,23 +959,23 @@ parameters:
   blockId:
     name: blockId
     in: query
-    description: Block id to query.
+    description: Block ID to query.
     type: string
-    format: id
+    format: ID
     minLength: 1
     maxLength: 20
   transactionId:
-    name: id
+    name: ID
     in: query
-    description: Transaction id to query.
+    description: Transaction ID to query.
     type: string
-    format: id
+    format: ID
     minLength: 1
     maxLength: 20
   recipientId:
     name: recipientId
     in: query
-    description: Recipient lisk address.
+    description: Recipients Lisk address.
     type: string
     format: address
     minLength: 1
@@ -983,7 +983,7 @@ parameters:
   senderId:
     name: senderId
     in: query
-    description: Sender lisk address.
+    description: Senders Lisk address.
     type: string
     format: address
     minLength: 1
@@ -991,7 +991,7 @@ parameters:
   senderPublicKey:
     name: senderPublicKey
     in: query
-    description: Sender public key.
+    description: Senders public key.
     type: string
     format: publicKey
     minLength: 1
@@ -1108,7 +1108,7 @@ definitions:
         type: object
         description: |
           Displays additional transaction data.
-          Can include e.g. vote data or delegate username.
+          For example, this can include the vote data or delegate username.
         properties:
           amount:
             type: string
@@ -1120,7 +1120,7 @@ definitions:
             format: address
             example: 12668885769632475474L
             description: |
-              Lisk Address of the Recipients account.
+              Lisk address of the recipients account.
 
   NodeStatusResponse:
     type: object
@@ -1445,7 +1445,7 @@ definitions:
         maxLength: 20
         example: '6258354802676165798'
         description: |
-          The Id of the block which this transaction is included in.
+          The ID of the block which this transaction is included in.
       nonce:
         type: string
         example: '1'
@@ -1521,7 +1521,7 @@ definitions:
         example: 123
         minimum: 1
         description: |
-          Height of the network, when the block got forged.
+          Height of the network, when the block was forged.
           The height of the network represents the number of blocks
           that have been forged on the network since the genesis block.
       timestamp:
@@ -1562,13 +1562,13 @@ definitions:
         type: integer
         example: 200
         description: |
-          Number of times that this Block has been confirmed by the network.
-          By forging a new block on a chain, all former blocks in the chain get confirmed by the forging delegate.
+          Number of times that this block has been confirmed by the network.
+          By forging a new block on a chain, all former blocks in the chain are then confirmed by the forging delegate.
       previousBlockId:
         type: string
         format: id
         example: '15918760246746894806'
-        description: The Id of the previous block of the chain.
+        description: The ID of the previous block of the chain.
       numberOfTransactions:
         type: integer
         example: 15
@@ -1589,7 +1589,7 @@ definitions:
         type: string
         example: '65000000'
         description: |
-          Total amount of LSK that have been forged in this block.
+          Total amount of LSK that has been forged in this block.
           Consists of fees and the reward.
       maxHeightPreviouslyForged:
         type: integer
@@ -1690,7 +1690,7 @@ definitions:
         format: address
         example: 6251001604903637008L
         description: |
-          The Lisk Address is the human readable representation of the accounts owners public key.
+          The Lisk address is the human readable representation of the accounts owners public key.
           It consists of 21 numbers followed by a capital 'L' at the end.
       nextSlot:
         type: number
@@ -1719,7 +1719,7 @@ definitions:
       forged:
         type: string
         example: '65000000'
-        description: Amount of Lisk that have been transferred inside the forged blocks of a delegate, during the timespan.
+        description: Amount of Lisk that has been transferred inside the forged blocks of a delegate, during the timespan.
       count:
         type: string
         example: '100'
@@ -1734,7 +1734,7 @@ definitions:
     properties:
       transactionId:
         type: string
-        format: id
+        format: ID
         example: '15359945250124697273'
         minLength: 1
         maxLength: 20
@@ -1821,7 +1821,7 @@ definitions:
           - connected
           - disconnected
         description: |
-          The state of the Peer.
+          The state of the peer.
       height:
         type: integer
         example: 123
@@ -1904,7 +1904,7 @@ definitions:
       currentTime:
         type: integer
         example: 1533558858128
-        description: Current time of the node in milliseconds (Unix timestamp).
+        description: Current time of the node in milliseconds, (Unix timestamp).
       height:
         type: integer
         example: 123
@@ -1947,7 +1947,7 @@ definitions:
         description: Type of Error.
         type: string
       id:
-        description: Transaction Id.
+        description: Transaction ID.
         type: string
         minLength: 1
       dataPath:
@@ -2124,7 +2124,7 @@ definitions:
         format: address
         example: 12668885769632475474L
         description: |
-          The Lisk Address is the human readable representation of the accounts owners public key.
+          The Lisk address is the human readable representation of the accounts owners public key.
           It consists of 21 numbers followed by a capital 'L' at the end.
       publicKey:
         type: string
@@ -2159,7 +2159,7 @@ definitions:
         example: isabella
         format: username
         description: |
-          The delegates' username.
+          The delegates username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
       voteWeight:
@@ -2205,7 +2205,7 @@ definitions:
         example: isabella
         format: username
         description: |
-          The delegates' username.
+          The delegates username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
       voteWeight:
