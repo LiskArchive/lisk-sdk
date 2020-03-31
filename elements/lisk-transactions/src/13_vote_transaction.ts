@@ -243,9 +243,9 @@ export class VoteTransaction extends BaseTransaction {
 
 		for (const vote of assetCopy) {
 			const sender = await store.account.get(this.senderId);
-			const delegate = await store.account.get(vote.delegateAddress);
+			const votedDelegate = await store.account.get(vote.delegateAddress);
 
-			if (!delegate.username) {
+			if (!votedDelegate.username) {
 				errors.push(
 					new TransactionError(
 						'Voted delegate is not registered',
@@ -346,9 +346,11 @@ export class VoteTransaction extends BaseTransaction {
 					);
 				}
 			}
+			store.account.set(sender.address, sender);
+			// In case of self-vote, sender needs to be set and re-fetched to reflect both account change
+			const delegate = await store.account.get(vote.delegateAddress);
 			delegate.totalVotesReceived += vote.amount;
 			store.account.set(delegate.address, delegate);
-			store.account.set(sender.address, sender);
 		}
 
 		return errors;
@@ -372,7 +374,6 @@ export class VoteTransaction extends BaseTransaction {
 		});
 		for (const vote of assetCopy) {
 			const sender = await store.account.get(this.senderId);
-			const delegate = await store.account.get(vote.delegateAddress);
 			if (vote.amount < BigInt(0)) {
 				const originalUpvoteIndex = sender.votes.findIndex(
 					senderVote => senderVote.delegateAddress === vote.delegateAddress,
@@ -403,7 +404,7 @@ export class VoteTransaction extends BaseTransaction {
 						'Invalid data. unlocking object should exist while undo',
 					);
 				}
-				sender.unlocking.slice(unlockingIndex, 1);
+				sender.unlocking.splice(unlockingIndex, 1);
 
 				// Sort votes in case of readding
 				sender.votes.sort((a, b) =>
@@ -411,7 +412,6 @@ export class VoteTransaction extends BaseTransaction {
 				);
 				// Sort account.unlocking
 				sortUnlocking(sender.unlocking);
-				delegate.totalVotesReceived += vote.amount * BigInt(-1);
 			} else {
 				const originalUpvoteIndex = sender.votes.findIndex(
 					senderVote => senderVote.delegateAddress === vote.delegateAddress,
@@ -424,14 +424,16 @@ export class VoteTransaction extends BaseTransaction {
 					sender.votes.splice(originalUpvoteIndex, 1);
 				}
 				sender.balance += vote.amount;
-				delegate.totalVotesReceived -= vote.amount;
 				// Sort account.votes
 				sender.votes.sort((a, b) =>
 					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
 				);
 			}
-			store.account.set(delegate.address, delegate);
 			store.account.set(sender.address, sender);
+			// In case of self-vote, sender needs to be set and re-fetched to reflect both account change
+			const delegate = await store.account.get(vote.delegateAddress);
+			delegate.totalVotesReceived += vote.amount * BigInt(-1);
+			store.account.set(delegate.address, delegate);
 		}
 
 		return [];
