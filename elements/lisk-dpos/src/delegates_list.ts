@@ -393,11 +393,8 @@ export class DelegatesList {
 		randomSeed: ReadonlyArray<Buffer>,
 		stateStore: StateStore,
 	): Promise<void> {
-		// tslint:disable-next-line no-magic-numbers
-		if (randomSeed.length !== this.standbyDelegates) {
-			throw new Error(
-				`Exactly ${this.standbyDelegates} random seed must be provided`,
-			);
+		if (!randomSeed.length) {
+			throw new Error(`Random seed must be provided`);
 		}
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeight = voteWeights.find(vw => vw.round === round);
@@ -425,7 +422,7 @@ export class DelegatesList {
 			for (let i = 0; i < this.standbyDelegates; i += 1) {
 				const standbyDelegateIndex = _pickStandByDelegate(
 					standbyDelegateVoteWeights,
-					randomSeed[i],
+					randomSeed[i % randomSeed.length],
 				);
 				if (standbyDelegateIndex < 0) {
 					throw new Error('Fail to pick standby delegate');
