@@ -73,7 +73,7 @@ const validateUnlocks = (
 		if (!validateAddress(delegateAddress)) {
 			throw new ValidationError('Enter a valid address in LSK string format.');
 		}
-		if (!isNumberString(amount)) {
+		if (Number.isNaN(Number(amount))) {
 			throw new ValidationError('Enter the amount in valid number format.');
 		}
 		if (!isNumberString(unvoteHeight)) {
@@ -106,7 +106,7 @@ export default class UnlockCommand extends BaseCommand {
 		},
 	];
 	static description = `
-	Creates a transaction which will unlock tokens voted for delegates and add them back to the voter balance.
+	Creates a transaction which will unlock tokens voted for delegates and add them back to the sender balance.
 	`;
 
 	static examples = [
@@ -139,13 +139,13 @@ export default class UnlockCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
-		if (!isNumberString(fee)) {
+		if (Number.isNaN(Number(fee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 
-		if (!isValidFee(fee)) {
+		if (!isValidFee(normalizedFee)) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 

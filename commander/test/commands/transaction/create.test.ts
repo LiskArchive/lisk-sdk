@@ -66,7 +66,7 @@ describe('transaction:create', () => {
 
 		setupTest()
 			.command(['transaction:create', '--type=transfer'])
-			.it('should call type unlock transfer with flag type=transfer', () => {
+			.it('should call type 8 transfer with flag type=transfer', () => {
 				return expect(TransferCommand.run).to.be.calledWithExactly([]);
 			});
 
@@ -80,7 +80,7 @@ describe('transaction:create', () => {
 
 		setupTest()
 			.command(['transaction:create', '-t=delegate', '--json', 'username'])
-			.it('should call type delegate command with flag type=delegate', () => {
+			.it('should call type 10 command with flag type=delegate', () => {
 				return expect(DelegateCommand.run).to.be.calledWithExactly([
 					'username',
 					'--json',
@@ -143,7 +143,7 @@ describe('transaction:create', () => {
 
 		setupTest()
 			.command(['transaction:create', '--type=unlock', '--unlock=xxx,yyy,zzz'])
-			.it('should call unlock command with flag type=unlock', () => {
+			.it('should call type 14 command with flag type=unlock', () => {
 				return expect(UnlockCommand.run).to.be.calledWithExactly([
 					'--unlock=xxx,yyy,zzz',
 				]);
