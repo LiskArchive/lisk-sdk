@@ -137,7 +137,7 @@ describe('block processor v2', () => {
 			});
 			// Assert
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
-				'previouslyForged',
+				'Forger:previouslyForged',
 			);
 			// previousBlock.height + 1
 			expect(block.maxHeightPreviouslyForged).toBe(0);
@@ -162,7 +162,7 @@ describe('block processor v2', () => {
 			});
 			// Assert
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
-				'previouslyForged',
+				'Forger:previouslyForged',
 			);
 			expect(block.maxHeightPreviouslyForged).toBe(previouslyForgedHeight);
 		});
@@ -198,7 +198,7 @@ describe('block processor v2', () => {
 				},
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
-				'previouslyForged',
+				'Forger:previouslyForged',
 				maxHeightResult,
 			);
 		});
@@ -222,7 +222,7 @@ describe('block processor v2', () => {
 				},
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
-				'previouslyForged',
+				'Forger:previouslyForged',
 				maxHeightResult,
 			);
 		});

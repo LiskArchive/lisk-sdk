@@ -132,8 +132,8 @@ describe('ChainState', () => {
 	});
 
 	describe('getOne', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Chain:myKey1', value: 'myValue' };
+		const data2 = { key: 'Chain:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ChainStateEntity.setKey(data1.key, data1.value);
@@ -158,8 +158,8 @@ describe('ChainState', () => {
 	});
 
 	describe('getKey', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Chain:myKey1', value: 'myValue' };
+		const data2 = { key: 'Chain:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ChainStateEntity.setKey(data1.key, data1.value);
@@ -189,13 +189,13 @@ describe('ChainState', () => {
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			await expect(ChainStateEntity.setKey('myKey')).rejects.toThrow(
+			await expect(ChainStateEntity.setKey('Chain:myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
 
 		it('should create key value pair if not exists', async () => {
-			const key = 'myKey';
+			const key = 'Chain:myKey';
 			const value = 'myValue';
 			await ChainStateEntity.setKey(key, value);
 
@@ -205,7 +205,7 @@ describe('ChainState', () => {
 		});
 
 		it('should update the value if key already exists', async () => {
-			const key = 'myKey';
+			const key = 'Chain:myKey';
 			const value = 'myValue';
 			const updatedValue = 'myUpdatedValue';
 
@@ -218,8 +218,8 @@ describe('ChainState', () => {
 	});
 
 	describe('delete', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Chain:myKey1', value: 'myValue' };
+		const data2 = { key: 'Chain:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ChainStateEntity.setKey(data1.key, data1.value);
@@ -239,7 +239,7 @@ describe('ChainState', () => {
 		});
 
 		it('should not throw error if no matching record found', async () => {
-			const nonExistingKey = 'nonExistingKey';
+			const nonExistingKey = 'Chain:nonExistingKey';
 
 			await expect(
 				ChainStateEntity.delete({ key: nonExistingKey }),
