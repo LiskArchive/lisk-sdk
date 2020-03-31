@@ -21,9 +21,8 @@ import { flags as commonFlags } from '../../utils/flags';
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
 import TransferCommand from './create/transfer';
+import UnlockCommand from './create/unlock';
 import VoteCommand from './create/vote';
-
-const MAX_ARG_NUM = 5;
 
 interface TypeNumberMap {
 	readonly [key: string]: string;
@@ -34,6 +33,7 @@ const typeNumberMap: TypeNumberMap = {
 	'10': 'delegate',
 	'11': 'vote',
 	'12': 'multisignature',
+	'14': 'unlock',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
@@ -54,6 +54,7 @@ const typeClassMap: TypeClassMap = {
 	vote: VoteCommand,
 	delegate: DelegateCommand,
 	multisignature: MultisignatureCommand,
+	unlock: UnlockCommand,
 };
 
 const resolveFlags = (
@@ -72,9 +73,7 @@ const resolveFlags = (
 };
 
 export default class CreateCommand extends BaseCommand {
-	static args = new Array(MAX_ARG_NUM).fill(0).map(i => ({
-		name: `${i}_arg`,
-	}));
+	static strict = false;
 
 	static description = `
 	Creates a transaction object.
