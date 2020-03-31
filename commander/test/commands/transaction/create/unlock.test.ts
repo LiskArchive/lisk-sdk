@@ -41,7 +41,7 @@ describe('transaction:create:unlock', () => {
 			unlockingObjects: [
 				{
 					delegateAddress: defaultDelegateAddress,
-					amount: '1000000000',
+					amount: '100000000000000000',
 					unvoteHeight: 500,
 				},
 			],
@@ -118,7 +118,7 @@ describe('transaction:create:unlock', () => {
 					unlockingObjects: [
 						{
 							delegateAddress: defaultDelegateAddress,
-							amount: '1000000000',
+							amount: '100000000000000000',
 							unvoteHeight: 500,
 						},
 					],
@@ -154,12 +154,12 @@ describe('transaction:create:unlock', () => {
 						unlockingObjects: [
 							{
 								delegateAddress: defaultDelegateAddress,
-								amount: '1000000000',
+								amount: '100000000000000000',
 								unvoteHeight: 500,
 							},
 							{
 								delegateAddress: '456L',
-								amount: '1000000000',
+								amount: '100000000000000000',
 								unvoteHeight: 500,
 							},
 						],
@@ -187,7 +187,7 @@ describe('transaction:create:unlock', () => {
 					unlockingObjects: [
 						{
 							delegateAddress: defaultDelegateAddress,
-							amount: '1000000000',
+							amount: '100000000000000000',
 							unvoteHeight: 500,
 						},
 					],
@@ -219,7 +219,7 @@ describe('transaction:create:unlock', () => {
 						unlockingObjects: [
 							{
 								delegateAddress: defaultDelegateAddress,
-								amount: '1000000000',
+								amount: '100000000000000000',
 								unvoteHeight: 500,
 							},
 						],

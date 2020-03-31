@@ -73,9 +73,14 @@ const validateUnlocks = (
 		if (!validateAddress(delegateAddress)) {
 			throw new ValidationError('Enter a valid address in LSK string format.');
 		}
-		if (Number.isNaN(Number(amount))) {
-			throw new ValidationError('Enter the amount in valid number format.');
+		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
+
+		if (!isValidFee(normalizedAmount)) {
+			throw new ValidationError(
+				'Enter a valid amount in number string format.',
+			);
 		}
+
 		if (!isNumberString(unvoteHeight)) {
 			throw new ValidationError(
 				'Enter the unvoteHeight in valid number format.',
@@ -84,7 +89,7 @@ const validateUnlocks = (
 
 		rawAssetUnlock.push({
 			delegateAddress,
-			amount,
+			amount: normalizedAmount,
 			unvoteHeight: parseInt(unvoteHeight, 10),
 		});
 	}
