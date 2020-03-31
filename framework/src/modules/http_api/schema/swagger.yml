@@ -1445,7 +1445,7 @@ definitions:
         maxLength: 20
         example: '6258354802676165798'
         description: |
-          The Id of the block which this transaction is included in.
+          The ID of the block which this transaction is included in.
       nonce:
         type: string
         example: '1'
