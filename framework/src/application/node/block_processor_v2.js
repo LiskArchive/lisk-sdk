@@ -67,6 +67,8 @@ const getBytes = block => {
 		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
 
+	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
+
 	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
 
 	const maxHeightPreviouslyForgedBuffer = intToBuffer(
@@ -123,6 +125,7 @@ const getBytes = block => {
 		blockVersionBuffer,
 		timestampBuffer,
 		previousBlockBuffer,
+		seedRevealBuffer,
 		heightBuffer,
 		maxHeightPreviouslyForgedBuffer,
 		maxHeightPrevotedBuffer,
@@ -146,6 +149,7 @@ const validateSchema = ({ block }) => {
 
 class BlockProcessorV2 extends BaseBlockProcessor {
 	constructor({
+		networkIdentifier,
 		chainModule,
 		bftModule,
 		dposModule,
@@ -155,6 +159,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		exceptions,
 	}) {
 		super();
+		this.networkIdentifier = networkIdentifier;
 		this.chainModule = chainModule;
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
@@ -277,6 +282,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		height,
 		previousBlockId,
 		keypair,
+		seedReveal,
 		timestamp,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
@@ -314,6 +320,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			version: this.version,
 			totalAmount,
 			totalFee,
+			seedReveal,
 			reward,
 			payloadHash,
 			timestamp,
@@ -339,7 +346,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		return {
 			...block,
 			blockSignature: signDataWithPrivateKey(
-				hash(getBytes(block)),
+				hash(
+					Buffer.concat([
+						Buffer.from(this.networkIdentifier, 'hex'),
+						getBytes(block),
+					]),
+				),
 				keypair.privateKey,
 			),
 		};

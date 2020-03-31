@@ -1,9 +1,13 @@
 import {
 	isGreaterThanMaxTransactionId,
 	isHexString,
+	isInt32,
+	isInt64,
 	isNullCharacterIncluded,
 	isNumberString,
 	isSignature,
+	isUint32,
+	isUint64,
 	isUsername,
 	isValidFee,
 	isValidNonce,
@@ -106,3 +110,15 @@ export const username = isUsername;
 
 export const transferData = (data: string): boolean =>
 	!isNullCharacterIncluded(data) && isValidTransferData(data);
+
+export const int64 = (data: string): boolean =>
+	isNumberString(data) && isInt64(BigInt(data));
+
+export const uint64 = (data: string): boolean =>
+	isNumberString(data) && isUint64(BigInt(data));
+
+export const uint32 = (data: string): boolean =>
+	isNumberString(data) && isUint32(BigInt(data));
+
+export const int32 = (data: string): boolean =>
+	isNumberString(data) && isInt32(BigInt(data));

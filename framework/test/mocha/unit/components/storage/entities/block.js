@@ -149,6 +149,11 @@ describe('Block', () => {
 			'reward_in',
 			'reward_lt',
 			'reward_lte',
+			'seedReveal',
+			'seedReveal_eql',
+			'seedReveal_ne',
+			'seedReveal_in',
+			'seedReveal_like',
 			'reward_ne',
 			'timestamp',
 			'timestamp_eql',
@@ -196,6 +201,7 @@ describe('Block', () => {
 		validBlock = {
 			id: '7807109686729042739',
 			height: 1,
+			seedReveal: '248d8f43312f1b73cc11141dfa8228a1',
 			blockSignature:
 				'a47d07d3a8d8024eb44672bc6d07cdcd1cd03803d9612b7b10c10d5a844fb8f6ed11fab5159b6d9826b7302c3d3f5d7d29d13b40e6fe59c9374f4ec94af4eb0f',
 			generatorPublicKey:

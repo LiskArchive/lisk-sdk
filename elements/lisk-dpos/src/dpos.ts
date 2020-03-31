@@ -13,10 +13,18 @@
  */
 import { EventEmitter } from 'events';
 
+import {
+	DEFAULT_ACTIVE_DELEGATE,
+	DEFAULT_ROUND_OFFSET,
+	DEFAULT_STANDBY_DELEGATE,
+	DEFAULT_STANDBY_THRESHOLD,
+	DEFAULT_VOTE_WEIGHT_CAP_RATE,
+} from './constants';
 import { DelegatesInfo } from './delegates_info';
 import {
 	DelegatesList,
 	deleteDelegateListUntilRound,
+	deleteVoteWeightsUntilRound,
 	getForgersList,
 } from './delegates_list';
 import { Rounds } from './rounds';
@@ -30,9 +38,12 @@ import {
 } from './types';
 
 interface DposConstructor {
-	readonly activeDelegates: number;
-	readonly delegateListRoundOffset: number;
 	readonly chain: Chain;
+	readonly activeDelegates?: number;
+	readonly standbyDelegates?: number;
+	readonly standbyThreshold?: bigint;
+	readonly voteWeightCapRate?: number;
+	readonly delegateListRoundOffset?: number;
 	readonly exceptions?: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
@@ -40,8 +51,8 @@ interface DposConstructor {
 
 export class Dpos {
 	public readonly rounds: Rounds;
+	public readonly events: EventEmitter;
 
-	private readonly events: EventEmitter;
 	private readonly delegateListRoundOffset: number;
 	private readonly delegateActiveRoundLimit: number;
 	private readonly delegatesList: DelegatesList;
@@ -49,9 +60,12 @@ export class Dpos {
 	private readonly chain: Chain;
 
 	public constructor({
-		activeDelegates,
-		delegateListRoundOffset,
 		chain,
+		activeDelegates = DEFAULT_ACTIVE_DELEGATE,
+		standbyDelegates = DEFAULT_STANDBY_DELEGATE,
+		standbyThreshold = DEFAULT_STANDBY_THRESHOLD,
+		delegateListRoundOffset = DEFAULT_ROUND_OFFSET,
+		voteWeightCapRate = DEFAULT_VOTE_WEIGHT_CAP_RATE,
 		exceptions = {},
 	}: DposConstructor) {
 		this.events = new EventEmitter();
@@ -60,11 +74,16 @@ export class Dpos {
 		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
 		this.chain = chain;
-		this.rounds = new Rounds({ blocksPerRound: activeDelegates });
+		this.rounds = new Rounds({
+			blocksPerRound: activeDelegates + standbyDelegates,
+		});
 
 		this.delegatesList = new DelegatesList({
 			rounds: this.rounds,
 			activeDelegates,
+			standbyDelegates,
+			standbyThreshold,
+			voteWeightCapRate,
 			chain: this.chain,
 			exceptions,
 		});
@@ -73,6 +92,7 @@ export class Dpos {
 			chain: this.chain,
 			rounds: this.rounds,
 			activeDelegates,
+			standbyDelegates,
 			events: this.events,
 			delegatesList: this.delegatesList,
 		});
@@ -94,6 +114,7 @@ export class Dpos {
 			this.delegateListRoundOffset -
 			this.delegateActiveRoundLimit;
 		await deleteDelegateListUntilRound(disposableDelegateList, stateStore);
+		await deleteVoteWeightsUntilRound(disposableDelegateList, stateStore);
 	}
 
 	public async getMinActiveHeight(

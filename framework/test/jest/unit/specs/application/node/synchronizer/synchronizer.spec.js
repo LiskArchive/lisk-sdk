@@ -15,6 +15,7 @@
 'use strict';
 
 const { when } = require('jest-when');
+const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { Chain } = require('@liskhq/lisk-chain');
 const { BFT } = require('@liskhq/lisk-bft');
 const { Rounds } = require('@liskhq/lisk-dpos');
@@ -76,7 +77,13 @@ describe('Synchronizer', () => {
 
 		rounds = new Rounds({ blocksPerRound: constants.activeDelegates });
 
+		const networkIdentifier = getNetworkIdentifier(
+			genesisBlockDevnet.payloadHash,
+			genesisBlockDevnet.communityIdentifier,
+		);
+
 		chainModule = new Chain({
+			networkIdentifier,
 			logger: loggerMock,
 			storage: storageMock,
 			genesisBlock: genesisBlockDevnet,

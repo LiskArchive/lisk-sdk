@@ -264,6 +264,17 @@ export class Storage {
 		return accounts;
 	}
 
+	public async getDelegates(): Promise<AccountJSON[]> {
+		const accounts = await this._storage.entities.Account.get(
+			{ isDelegate: true },
+			// Sort address:asc is always added in the storage
+			// tslint:disable-next-line no-null-keyword
+			{ limit: null, sort: ['totalVotesReceived:desc'] },
+		);
+
+		return accounts;
+	}
+
 	public async resetAccountMemTables(): Promise<void> {
 		await this._storage.entities.Account.resetMemTables();
 	}
