@@ -67,17 +67,6 @@ describe('transaction:create:vote', () => {
 			)
 			.stdout();
 
-	describe('transaction:create:vote', () => {
-		setupStub()
-			.command(['transaction:create:vote', '1', '100'])
-			.catch(error => {
-				return expect(error.message).to.contain(
-					'At least one vote option must be provided.',
-				);
-			})
-			.it('should throw an error without vote or unvote');
-	});
-
 	describe('transaction:create:vote voting', () => {
 		const voteValues = defaultVote[0].split(',');
 		const vote = {

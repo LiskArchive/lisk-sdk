@@ -123,10 +123,6 @@ export default class VoteCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
-		if (!votes) {
-			throw new ValidationError('At least one vote option must be provided.');
-		}
-
 		const targetAddresses: string[] = [];
 		const votesObjects = votes.map(vote => {
 			const voteArr = vote.split(',');
