@@ -110,6 +110,17 @@ const generateBlocks = ({ startHeight, numberOfBlocks, delegateList }) => {
 	});
 };
 
+const calcRound = (height, blocksPerRound) =>
+	Math.ceil(height / blocksPerRound);
+const startOfRound = (round, blocksPerRound) =>
+	round * blocksPerRound - blocksPerRound + 1;
+const endOfRound = (round, blocksPerRound) => round * blocksPerRound;
+const middleOfRound = (round, blocksPerRound) =>
+	Math.floor(
+		(startOfRound(round, blocksPerRound) + endOfRound(round, blocksPerRound)) /
+			2,
+	);
+
 const findPreviousBlockOfDelegate = (block, searchTillHeight, blocksMap) => {
 	const { height, generatorPublicKey } = block;
 	const searchTill = Math.max(searchTillHeight, 1);
@@ -127,21 +138,44 @@ const isValidSeedReveal = (seedReveal, previousSeedReveal) =>
 	strippedHash(hexStrToBuffer(seedReveal)).toString('hex') ===
 	previousSeedReveal;
 
-const generateRandomSeed = (blocks, blocksPerRound) => {
-	const calcRound = height => Math.ceil(height / blocksPerRound);
-	const startOfRound = round => round * blocksPerRound - blocksPerRound + 1;
-	const endOfRound = round => round * blocksPerRound;
-	const middleOfRound = round =>
-		Math.floor((startOfRound(round) + endOfRound(round)) / 2);
+const selectSeedReveal = (fromHeight, toHeight, blocksMap, blocksPerRound) => {
+	const selected = [];
+	for (let i = fromHeight; i >= toHeight; i -= 1) {
+		const block = blocksMap[i];
+		const blockRound = calcRound(block.height, blocksPerRound);
 
+		const lastForgedBlock = findPreviousBlockOfDelegate(
+			block,
+			startOfRound(blockRound - 1, blocksPerRound),
+			blocksMap,
+		);
+
+		// If delegate not forged any other block earlier in current and last round
+		if (!lastForgedBlock) {
+			continue;
+		}
+
+		// to validate seed reveal of any block in the last round
+		// we have to check till second last round
+		if (!isValidSeedReveal(block.seedReveal, lastForgedBlock.seedReveal)) {
+			continue;
+		}
+
+		selected.push(hexStrToBuffer(block.seedReveal));
+	}
+
+	return selected;
+};
+
+const generateRandomSeed = (blocks, blocksPerRound) => {
 	// Middle range of a round to validate
 	const middleThreshold = Math.floor(blocksPerRound / 2);
 	const lastBlockHeight = blocks[blocks.length - 1].height;
-	const currentRound = calcRound(lastBlockHeight);
-	const startOfCurrentRound = startOfRound(currentRound);
-	const middleOfCurrentRound = middleOfRound(currentRound);
-	const startOfLastRound = startOfRound(currentRound - 1);
-	const endOfLastRound = endOfRound(currentRound - 1);
+	const currentRound = calcRound(lastBlockHeight, blocksPerRound);
+	const startOfCurrentRound = startOfRound(currentRound, blocksPerRound);
+	const middleOfCurrentRound = middleOfRound(currentRound, blocksPerRound);
+	const startOfLastRound = startOfRound(currentRound - 1, blocksPerRound);
+	const endOfLastRound = endOfRound(currentRound - 1, blocksPerRound);
 
 	/**
 	 * We need to build a map for current and last two rounds. To previously forged
@@ -149,7 +183,7 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 	 * any block from last round we have to load second last round as well.
 	 */
 	const blocksMap = blocks.reduce((acc, block) => {
-		if (block.height >= startOfRound(currentRound - 2)) {
+		if (block.height >= startOfRound(currentRound - 2, blocksPerRound)) {
 			acc[block.height] = block;
 		}
 		return acc;
@@ -170,60 +204,21 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 		return { randomSeed1, randomSeed2 };
 	}
 
-	const seedRevealsForRandomSeed1 = [];
+	// From middle of current round to middle of last round
+	const seedRevealsForRandomSeed1 = selectSeedReveal({
+		fromHeight: startOfCurrentRound + middleThreshold,
+		toHeight: startOfCurrentRound - middleThreshold,
+		blocksMap,
+		blocksPerRound,
+	});
 
 	// From middle of current round to middle of last round
-	for (
-		let i = startOfCurrentRound + middleThreshold;
-		i >= startOfCurrentRound - middleThreshold;
-		i -= 1
-	) {
-		const block = blocksMap[i];
-
-		const lastForgedBlock = findPreviousBlockOfDelegate(
-			block,
-			startOfRound(calcRound(block.height) - 1),
-			blocksMap,
-		);
-
-		// If delegate not forged any other block earlier in current and last round
-		if (!lastForgedBlock) {
-			continue;
-		}
-
-		// to validate seed reveal of any block in the last round
-		// we have to check till second last round
-		if (!isValidSeedReveal(block.seedReveal, lastForgedBlock.seedReveal)) {
-			continue;
-		}
-
-		seedRevealsForRandomSeed1.push(hexStrToBuffer(block.seedReveal));
-	}
-
-	const seedRevealsForRandomSeed2 = [];
-	// From middle of current round to middle of last round
-	for (let i = endOfLastRound; i >= startOfLastRound; i -= 1) {
-		const block = blocksMap[i];
-
-		const lastForgedBlock = findPreviousBlockOfDelegate(
-			block,
-			startOfRound(calcRound(block.height) - 1),
-			blocksMap,
-		);
-
-		// If delegate not forged any other block earlier in current and last round
-		if (!lastForgedBlock) {
-			continue;
-		}
-
-		// to validate seed reveal of any block in the last round
-		// we have to check till second last round
-		if (!isValidSeedReveal(block.seedReveal, lastForgedBlock.seedReveal)) {
-			continue;
-		}
-
-		seedRevealsForRandomSeed2.push(hexStrToBuffer(block.seedReveal));
-	}
+	const seedRevealsForRandomSeed2 = selectSeedReveal({
+		fromHeight: endOfLastRound,
+		toHeight: startOfLastRound,
+		blocksMap,
+		blocksPerRound,
+	});
 
 	const randomSeed1 = bitwiseXOR([
 		strippedHash(numberToBuffer(startOfCurrentRound + middleThreshold)),
