@@ -109,8 +109,8 @@ describe('ConsensusState', () => {
 	});
 
 	describe('get', () => {
-		const data1 = { key: 'DPoS:myKey1', value: 'myValue' };
-		const data2 = { key: 'DPoS:myKey2', value: 'myValue' };
+		const data1 = { key: 'dpos:myKey1', value: 'myValue' };
+		const data2 = { key: 'dpos:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ConsensusStateEntity.setKey(data1.key, data1.value);
@@ -134,8 +134,8 @@ describe('ConsensusState', () => {
 	});
 
 	describe('getOne', () => {
-		const data1 = { key: 'DPoS:myKey1', value: 'myValue' };
-		const data2 = { key: 'DPoS:myKey2', value: 'myValue' };
+		const data1 = { key: 'dpos:myKey1', value: 'myValue' };
+		const data2 = { key: 'dpos:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ConsensusStateEntity.setKey(data1.key, data1.value);
@@ -156,14 +156,14 @@ describe('ConsensusState', () => {
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(
-				ConsensusStateEntity.getOne({ key: 'DPoS:customKey' }),
+				ConsensusStateEntity.getOne({ key: 'dpos:customKey' }),
 			).rejects.toThrow('No data returned from the query.');
 		});
 	});
 
 	describe('getKey', () => {
-		const data1 = { key: 'DPoS:myKey1', value: 'myValue' };
-		const data2 = { key: 'DPoS:myKey2', value: 'myValue' };
+		const data1 = { key: 'dpos:myKey1', value: 'myValue' };
+		const data2 = { key: 'dpos:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ConsensusStateEntity.setKey(data1.key, data1.value);
@@ -193,13 +193,13 @@ describe('ConsensusState', () => {
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			await expect(ConsensusStateEntity.setKey('DPoS:myKey')).rejects.toThrow(
+			await expect(ConsensusStateEntity.setKey('dpos:myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
 
 		it('should create key value pair if not exists', async () => {
-			const key = 'DPoS:myKey';
+			const key = 'dpos:myKey';
 			const value = 'myValue';
 			await ConsensusStateEntity.setKey(key, value);
 
@@ -209,7 +209,7 @@ describe('ConsensusState', () => {
 		});
 
 		it('should update the value if key already exists', async () => {
-			const key = 'DPoS:myKey';
+			const key = 'dpos:myKey';
 			const value = 'myValue';
 			const updatedValue = 'myUpdatedValue';
 
@@ -222,8 +222,8 @@ describe('ConsensusState', () => {
 	});
 
 	describe('delete', () => {
-		const data1 = { key: 'DPoS:myKey1', value: 'myValue' };
-		const data2 = { key: 'DPoS:myKey2', value: 'myValue' };
+		const data1 = { key: 'dpos:myKey1', value: 'myValue' };
+		const data2 = { key: 'dpos:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ConsensusStateEntity.setKey(data1.key, data1.value);
@@ -243,7 +243,7 @@ describe('ConsensusState', () => {
 		});
 
 		it('should not throw error if no matching record found', async () => {
-			const nonExistingKey = 'DPoS:nonExistingKey';
+			const nonExistingKey = 'dpos:nonExistingKey';
 
 			await expect(
 				ConsensusStateEntity.delete({ key: nonExistingKey }),

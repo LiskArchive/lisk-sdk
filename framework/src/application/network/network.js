@@ -40,8 +40,8 @@ const { lookupPeersIPs } = require('./utils');
 
 const hasNamespaceReg = /:/;
 
-const NETWORK_INFO_KEY_NODE_SECRET = 'Network:nodeSecret';
-const NETWORK_INFO_KEY_TRIED_PEERS = 'Network:triedPeersList';
+const NETWORK_INFO_KEY_NODE_SECRET = 'network:nodeSecret';
+const NETWORK_INFO_KEY_TRIED_PEERS = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 module.exports = class Network {

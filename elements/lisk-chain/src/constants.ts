@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const CHAIN_STATE_BURNT_FEE = 'Chain:burntFee';
+export const CHAIN_STATE_BURNT_FEE = 'chain:burntFee';
 
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;

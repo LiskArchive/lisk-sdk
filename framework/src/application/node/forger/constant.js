@@ -14,9 +14,9 @@
 
 'use strict';
 
-const FORGER_INFO_KEY_USED_HASH_ONION = 'Forger:usedHashOnion';
+const FORGER_INFO_KEY_USED_HASH_ONION = 'forger:usedHashOnion';
 const FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS =
-	'Forger:registeredHashOnion';
+	'forger:registeredHashOnion';
 
 module.exports = {
 	FORGER_INFO_KEY_USED_HASH_ONION,

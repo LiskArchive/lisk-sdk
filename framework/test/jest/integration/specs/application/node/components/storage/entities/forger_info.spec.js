@@ -109,8 +109,8 @@ describe('ForgerInfo', () => {
 	});
 
 	describe('get', () => {
-		const data1 = { key: 'Forger:myKey1', value: 'myValue' };
-		const data2 = { key: 'Forger:myKey2', value: 'myValue' };
+		const data1 = { key: 'forger:myKey1', value: 'myValue' };
+		const data2 = { key: 'forger:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ForgerInfoEntity.setKey(data1.key, data1.value);
@@ -127,15 +127,15 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should return empty array if no matching result found', async () => {
-			expect(await ForgerInfoEntity.get({ key: 'Forger:customKey' })).toEqual(
+			expect(await ForgerInfoEntity.get({ key: 'forger:customKey' })).toEqual(
 				[],
 			);
 		});
 	});
 
 	describe('getOne', () => {
-		const data1 = { key: 'Forger:myKey1', value: 'myValue' };
-		const data2 = { key: 'Forger:myKey2', value: 'myValue' };
+		const data1 = { key: 'forger:myKey1', value: 'myValue' };
+		const data2 = { key: 'forger:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ForgerInfoEntity.setKey(data1.key, data1.value);
@@ -154,14 +154,14 @@ describe('ForgerInfo', () => {
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(
-				ForgerInfoEntity.getOne({ key: 'Forger:customKey' }),
+				ForgerInfoEntity.getOne({ key: 'forger:customKey' }),
 			).rejects.toThrow('No data returned from the query.');
 		});
 	});
 
 	describe('getKey', () => {
-		const data1 = { key: 'Forger:myKey1', value: 'myValue' };
-		const data2 = { key: 'Forger:myKey2', value: 'myValue' };
+		const data1 = { key: 'forger:myKey1', value: 'myValue' };
+		const data2 = { key: 'forger:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ForgerInfoEntity.setKey(data1.key, data1.value);
@@ -191,13 +191,13 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			await expect(ForgerInfoEntity.setKey('Forger:mykey')).rejects.toThrow(
+			await expect(ForgerInfoEntity.setKey('forger:mykey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
 
 		it('should create key value pair if not exists', async () => {
-			const key = 'Forger:myKey';
+			const key = 'forger:myKey';
 			const value = 'myValue';
 			await ForgerInfoEntity.setKey(key, value);
 
@@ -207,7 +207,7 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should update the value if key already exists', async () => {
-			const key = 'Forger:myKey';
+			const key = 'forger:myKey';
 			const value = 'myValue';
 			const updatedValue = 'myUpdatedValue';
 
@@ -220,8 +220,8 @@ describe('ForgerInfo', () => {
 	});
 
 	describe('delete', () => {
-		const data1 = { key: 'Forger:myKey1', value: 'myValue' };
-		const data2 = { key: 'Forger:myKey2', value: 'myValue' };
+		const data1 = { key: 'forger:myKey1', value: 'myValue' };
+		const data2 = { key: 'forger:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await ForgerInfoEntity.setKey(data1.key, data1.value);
@@ -241,7 +241,7 @@ describe('ForgerInfo', () => {
 		});
 
 		it('should not throw error if no matching record found', async () => {
-			const nonExistingKey = 'Forger:nonExistingKey';
+			const nonExistingKey = 'forger:nonExistingKey';
 
 			await expect(
 				ForgerInfoEntity.delete({ key: nonExistingKey }),
