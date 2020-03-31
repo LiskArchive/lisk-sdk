@@ -46,6 +46,12 @@ interface DelegatesListConstructor {
 	};
 }
 
+interface DelegateListWithRoundHash {
+	readonly address: string;
+	// tslint:disable-next-line readonly-keyword
+	roundHash: Buffer;
+}
+
 export const getForgersList = async (
 	stateStore: StateStore,
 ): Promise<ForgersList> => {
@@ -150,6 +156,36 @@ export const shuffleDelegateListForRound = (
 	}
 
 	return delegateList;
+};
+
+export const shuffleDelegateListBasedOnRandomSeed = (
+	previousRoundSeed1: string,
+	previousDelegateList: ReadonlyArray<string>,
+): ReadonlyArray<string> => {
+	const delegateList: DelegateListWithRoundHash[] = [
+		...previousDelegateList,
+	].map(delegate => ({ address: delegate })) as DelegateListWithRoundHash[];
+	for (const delegate of delegateList) {
+		// tslint:disable-next-line:no-magic-numbers
+		const addressBuffer = Buffer.alloc(8);
+		addressBuffer.writeBigUInt64BE(BigInt(delegate.address.slice(0, -1)));
+		const seedSource = Buffer.concat([
+			Buffer.from(previousRoundSeed1, 'hex'),
+			addressBuffer,
+		]);
+		delegate.roundHash = hash(seedSource);
+	}
+
+	delegateList.sort((delegate1, delegate2) => {
+		const diff = delegate1.roundHash.compare(delegate2.roundHash);
+		if (diff !== 0) {
+			return diff;
+		}
+
+		return delegate1.address.localeCompare(delegate2.address);
+	});
+
+	return delegateList.map(delegate => delegate.address);
 };
 
 /**
