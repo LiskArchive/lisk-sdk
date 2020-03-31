@@ -23,8 +23,6 @@ import MultisignatureCommand from './create/multisignature';
 import TransferCommand from './create/transfer';
 import VoteCommand from './create/vote';
 
-const MAX_ARG_NUM = 5;
-
 interface TypeNumberMap {
 	readonly [key: string]: string;
 }
@@ -32,8 +30,8 @@ interface TypeNumberMap {
 const typeNumberMap: TypeNumberMap = {
 	'8': 'transfer',
 	'10': 'delegate',
-	'11': 'vote',
 	'12': 'multisignature',
+	'13': 'vote',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
@@ -63,18 +61,18 @@ const resolveFlags = (
 	if (key === 'type') {
 		return accumulated;
 	}
+
 	if (typeof value === 'string') {
 		return [...accumulated, `--${key}`, value];
 	}
+
 	const boolKey = value === false ? `--no-${key}` : `--${key}`;
 
 	return [...accumulated, boolKey];
 };
 
 export default class CreateCommand extends BaseCommand {
-	static args = new Array(MAX_ARG_NUM).fill(0).map(i => ({
-		name: `${i}_arg`,
-	}));
+	static strict = false;
 
 	static description = `
 	Creates a transaction object.
@@ -94,8 +92,6 @@ export default class CreateCommand extends BaseCommand {
 		}),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
-		votes: flagParser.string(commonFlags.votes),
-		unvotes: flagParser.string(commonFlags.unvotes),
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 	};
 

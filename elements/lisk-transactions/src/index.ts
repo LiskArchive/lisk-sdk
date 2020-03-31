@@ -23,6 +23,7 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
+import { castVotes as newCastVotes } from './cast_votes';
 import * as constants from './constants';
 import {
 	convertToAssetError,
@@ -76,6 +77,7 @@ export {
 	registerDelegate,
 	VoteTransaction,
 	castVotes,
+	newCastVotes,
 	NewVoteTransaction,
 	MultisignatureTransaction,
 	createResponse,

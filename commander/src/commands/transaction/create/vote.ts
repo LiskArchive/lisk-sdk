@@ -14,13 +14,13 @@
  *
  */
 import {
-	castVotes,
+	newCastVotes,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
 import {
 	isValidFee,
 	isValidNonce,
-	validatePublicKeys,
+	validateAddress,
 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
@@ -30,21 +30,24 @@ import { flags as commonFlags } from '../../../utils/flags';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 
+interface RawAssetVote {
+	readonly delegateAddress: string;
+	readonly amount: string;
+}
+
 const processInputs = (
 	nonce: string,
 	fee: string,
 	networkIdentifier: string,
-	votes: ReadonlyArray<string>,
-	unvotes: ReadonlyArray<string>,
+	votes: ReadonlyArray<RawAssetVote>,
 	passphrase?: string,
 ) =>
-	castVotes({
+	newCastVotes({
 		nonce,
 		fee,
 		networkIdentifier,
 		passphrase,
 		votes,
-		unvotes,
 	});
 
 interface Args {
@@ -52,15 +55,8 @@ interface Args {
 	readonly fee: string;
 }
 
-const processVotes = (votes: string) =>
-	votes
-		.replace(/\n/g, ',')
-		.split(',')
-		.filter(Boolean)
-		.map(vote => vote.trim());
-
-const getValidatedPublicKeys = (inputs: ReadonlyArray<string>) => {
-	validatePublicKeys(inputs);
+const validateAddresses = (inputs: ReadonlyArray<RawAssetVote>) => {
+	inputs.map(rawVoteAsset => validateAddress(rawVoteAsset.delegateAddress));
 
 	return inputs;
 };
@@ -79,7 +75,7 @@ export default class VoteCommand extends BaseCommand {
 		},
 	];
 	static description = `
-	Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
+	Creates a transaction which will cast votes for delegate candidates using their public keys if broadcast to the network.
 	`;
 
 	static examples = [
@@ -91,8 +87,10 @@ export default class VoteCommand extends BaseCommand {
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
-		votes: flagParser.string(commonFlags.votes),
-		unvotes: flagParser.string(commonFlags.unvotes),
+		votes: flagParser.string({
+			...commonFlags.votes,
+			multiple: true,
+		}),
 	};
 
 	async run(): Promise<void> {
@@ -103,7 +101,6 @@ export default class VoteCommand extends BaseCommand {
 				passphrase: passphraseSource,
 				'no-signature': noSignature,
 				votes,
-				unvotes,
 			},
 		} = this.parse(VoteCommand);
 
@@ -123,24 +120,20 @@ export default class VoteCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
-		if (!votes && !unvotes) {
-			throw new ValidationError(
-				'At least one of votes and/or unvotes options must be provided.',
-			);
+		if (!votes) {
+			throw new ValidationError('At least one vote option must be provided.');
 		}
 
-		if ((votes as string) === unvotes) {
-			throw new ValidationError(
-				'Votes and unvotes sources must not be the same.',
-			);
-		}
+		const votesObjects = votes.map(vote => {
+			const voteArr = vote.split(',');
 
-		const validatedVotes = votes
-			? getValidatedPublicKeys(processVotes(votes))
-			: [];
-		const validatedUnvotes = unvotes
-			? getValidatedPublicKeys(processVotes(unvotes))
-			: [];
+			return {
+				delegateAddress: voteArr[0],
+				amount: voteArr[1],
+			};
+		});
+
+		const validatedVotes = votesObjects ? validateAddresses(votesObjects) : [];
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
@@ -153,7 +146,6 @@ export default class VoteCommand extends BaseCommand {
 				normalizedFee,
 				networkIdentifier,
 				validatedVotes,
-				validatedUnvotes,
 			);
 			this.print(noSignatureResult);
 
@@ -168,7 +160,6 @@ export default class VoteCommand extends BaseCommand {
 			normalizedFee,
 			networkIdentifier,
 			validatedVotes,
-			validatedUnvotes,
 			passphrase,
 		);
 		this.print(result);
