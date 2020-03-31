@@ -35,7 +35,7 @@
 						"timestamp": 1,
 						"previousBlockId": 1,
 						"seedReveal": "1",
-						"height": 100001,
+						"height": 200000,
 						"maxHeightPreviouslyForged": 100000,
 						"maxHeightPrevoted": 100000,
 						"numberOfTransactions": 0,
@@ -45,16 +45,16 @@
 						"payloadLength": 0,
 						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"blockSignature": "b1ffa50b467da0aad01d24d86a58b55b8a58eaf97f5d67e10444898e1be7e9a3d8797fe0f3c7a91c0f902986213e3fe87dfb151908b3b309656b4db47daa9607"
+						"blockSignature": "a49845c20616cef0a8a973f722289371adec55499d0dab9192765aaa390c9046858d6a7e7e6c8e7ee30b45e8c287cbbeb85e10a0af74d3d9f9552d90267ee701"
 					},
 					"header2": {
 						"version": 1,
 						"timestamp": 1,
 						"previousBlockId": 1,
 						"seedReveal": "1",
-						"height": 100000,
+						"height": 200000,
 						"maxHeightPreviouslyForged": 100000,
-						"maxHeightPrevoted": 100000,
+						"maxHeightPrevoted": 50000,
 						"numberOfTransactions": 0,
 						"totalAmount": 0,
 						"totalFee": 10000000000,
@@ -62,7 +62,7 @@
 						"payloadLength": 0,
 						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"blockSignature": "d59a90e85ac68f59ca8c5fb7bb9e900b9c9d423ad36abe50fc881d91efd28d458f2bde0808bd5f4cf4594916edfebbb95990f4ccfe3af37e4109751a0b04b205"
+						"blockSignature": "29d08cce8e48e0848cb82602f30945bf1e2c4126be4c12fbe34ca25d8633c26f112a6ecc43ab84284701de902361dd5cadb30346d8622c28a324ceb82d3c5d00"
 					}
 				},
 				"signatures": []
@@ -79,7 +79,7 @@
 					"timestamp": 1,
 					"previousBlockId": 1,
 					"seedReveal": "1",
-					"height": 100001,
+					"height": 200000,
 					"maxHeightPreviouslyForged": 100000,
 					"maxHeightPrevoted": 100000,
 					"numberOfTransactions": 0,
@@ -89,16 +89,16 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "b1ffa50b467da0aad01d24d86a58b55b8a58eaf97f5d67e10444898e1be7e9a3d8797fe0f3c7a91c0f902986213e3fe87dfb151908b3b309656b4db47daa9607"
+					"blockSignature": "a49845c20616cef0a8a973f722289371adec55499d0dab9192765aaa390c9046858d6a7e7e6c8e7ee30b45e8c287cbbeb85e10a0af74d3d9f9552d90267ee701"
 				},
 				"header2": {
 					"version": 1,
 					"timestamp": 1,
 					"previousBlockId": 1,
 					"seedReveal": "1",
-					"height": 100000,
+					"height": 200000,
 					"maxHeightPreviouslyForged": 100000,
-					"maxHeightPrevoted": 100000,
+					"maxHeightPrevoted": 50000,
 					"numberOfTransactions": 0,
 					"totalAmount": 0,
 					"totalFee": 10000000000,
@@ -106,13 +106,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "d59a90e85ac68f59ca8c5fb7bb9e900b9c9d423ad36abe50fc881d91efd28d458f2bde0808bd5f4cf4594916edfebbb95990f4ccfe3af37e4109751a0b04b205"
+					"blockSignature": "29d08cce8e48e0848cb82602f30945bf1e2c4126be4c12fbe34ca25d8633c26f112a6ecc43ab84284701de902361dd5cadb30346d8622c28a324ceb82d3c5d00"
 				}
 			},
 			"signatures": [
-				"7f9c1d6665022fcf5e38ed46677733a309e685ad7e7e2b303fb0381143849d5551a4fc499be59b6d425e321b62a1af89d9530e824725f5e1f4cdc92b58533f00"
+				"ea2cf368abcc5a61c6c2565e49fde1a37d00ee55c347be20003b2a18e52b06834d7b5195923b7f8ee4c4df15f6df60e4c6fe78790c085cf08214e605d2dd300e"
 			],
-			"id": "6544073707094894208"
+			"id": "8686986382718769058"
 		}
 	}
 }

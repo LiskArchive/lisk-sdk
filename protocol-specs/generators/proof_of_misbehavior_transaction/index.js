@@ -197,8 +197,6 @@ const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(
 /*
 	Scenario 1:
 
-	b1.delegatePubKey!=b2.delegatePubKey
-	&&
 	b1.maxHeightPrevoted==b2.maxHeightPrevoted &&  b1.height>=b2.height
 */
 
@@ -207,7 +205,7 @@ const scenario1Header1 = {
 	timestamp: 1,
 	previousBlockId: 1,
 	seedReveal: '1',
-	height: 100001,
+	height: 300000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
@@ -230,7 +228,7 @@ const scenario1Header2 = {
 	timestamp: 1,
 	previousBlockId: 1,
 	seedReveal: '1',
-	height: 100000,
+	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
@@ -240,7 +238,7 @@ const scenario1Header2 = {
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
-		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };
 
 scenario1Header2.blockSignature = sign(
@@ -305,7 +303,7 @@ const scenario2Header1 = {
 	timestamp: 1,
 	previousBlockId: 1,
 	seedReveal: '1',
-	height: 100001,
+	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
@@ -328,9 +326,9 @@ const scenario2Header2 = {
 	timestamp: 1,
 	previousBlockId: 1,
 	seedReveal: '1',
-	height: 100000,
+	height: 200000,
 	maxHeightPreviouslyForged: 100000,
-	maxHeightPrevoted: 100000,
+	maxHeightPrevoted: 50000,
 	numberOfTransactions: 0,
 	totalAmount: 0,
 	totalFee: 10000000000,
@@ -403,7 +401,7 @@ const scenario3Header1 = {
 	timestamp: 1,
 	previousBlockId: 1,
 	seedReveal: '1',
-	height: 100000,
+	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100001,
 	numberOfTransactions: 0,
@@ -426,7 +424,7 @@ const scenario3Header2 = {
 	timestamp: 1,
 	previousBlockId: 1,
 	seedReveal: '1',
-	height: 100000,
+	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
