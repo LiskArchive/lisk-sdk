@@ -18,7 +18,7 @@ const { getAddressFromPassphrase } = require('@liskhq/lisk-cryptography');
 const { Mnemonic } = require('@liskhq/lisk-passphrase');
 const fs = require('fs');
 
-const [numberOfDelegates = 101, filePath] = process.argv.slice(2);
+const [numberOfDelegates = 103, filePath] = process.argv.slice(2);
 
 const generateDelegates = num => {
 	const delegateList = [];

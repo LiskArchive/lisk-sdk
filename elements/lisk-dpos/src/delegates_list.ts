@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { hash, hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import {
@@ -33,6 +33,7 @@ import {
 } from './types';
 
 const debug = Debug('lisk:dpos:delegate_list');
+const SIZE_INT64 = 8;
 
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
@@ -167,10 +168,12 @@ export const shuffleDelegateListBasedOnRandomSeed = (
 	].map(delegate => ({ address: delegate })) as DelegateListWithRoundHash[];
 	for (const delegate of delegateList) {
 		// tslint:disable-next-line:no-magic-numbers
-		const addressBuffer = Buffer.alloc(8);
-		addressBuffer.writeBigUInt64BE(BigInt(delegate.address.slice(0, -1)));
+		const addressBuffer = intToBuffer(
+			delegate.address.slice(0, -1),
+			SIZE_INT64,
+		);
 		const seedSource = Buffer.concat([
-			Buffer.from(previousRoundSeed1, 'hex'),
+			hexToBuffer(previousRoundSeed1),
 			addressBuffer,
 		]);
 		delegate.roundHash = hash(seedSource);
@@ -182,7 +185,7 @@ export const shuffleDelegateListBasedOnRandomSeed = (
 			return diff;
 		}
 
-		return delegate1.address.localeCompare(delegate2.address);
+		return delegate1.address.localeCompare(delegate2.address, 'en');
 	});
 
 	return delegateList.map(delegate => delegate.address);
