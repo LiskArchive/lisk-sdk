@@ -21,7 +21,7 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
-describe.only('transaction:create:vote', () => {
+describe('transaction:create:vote', () => {
 	const defaultVote = [
 		'356975984361330918L,1000000000',
 		'7539210577161571444L,3000000000',
