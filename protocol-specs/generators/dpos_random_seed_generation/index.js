@@ -308,7 +308,7 @@ const randomSeedForMoreRounds = () => ({
 				description: 'Random seeds generation for three rounds',
 				config: { blocksPerRound },
 				input: {
-					blocks: blocksForTwoRounds,
+					blocks: blocksForThreeRounds,
 				},
 				output: generateRandomSeed(blocksForThreeRounds, blocksPerRound),
 			},
@@ -316,7 +316,7 @@ const randomSeedForMoreRounds = () => ({
 				description: 'Random seeds generation for five rounds',
 				config: { blocksPerRound },
 				input: {
-					blocks: blocksForTwoRounds,
+					blocks: blocksForFiveRounds,
 				},
 				output: generateRandomSeed(blocksForFiveRounds, blocksPerRound),
 			},
