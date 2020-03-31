@@ -16,11 +16,11 @@ describe('random seeds', () => {
 	describe('first round', () => {
 		describe('random seed 1', () => {
 			it.todo('should generate random seed 1 as H(52)');
-			it.todo('should return a 128-bit string');
+			it.todo('should return a 128-bit buffer');
 		});
 		describe('random seed 2', () => {
 			it.todo('should generate random seed 2 as H(0)');
-			it.todo('should return a 128-bit string');
+			it.todo('should return a 128-bit buffer');
 		});
 	});
 
@@ -49,7 +49,7 @@ describe('random seeds', () => {
 				'should calculate hash for integer value of height for middle of current round',
 			);
 			it.todo('should perform bitwise exclusive or for above value');
-			it.todo('should return a 128-bit string');
+			it.todo('should return a 128-bit buffer');
 		});
 
 		describe('random seed 2', () => {
@@ -76,7 +76,7 @@ describe('random seeds', () => {
 				'should calculate hash for integer value of height for last block of last round',
 			);
 			it.todo('should perform bitwise exclusive or for above value');
-			it.todo('should return a 128-bit string');
+			it.todo('should return a 128-bit buffer');
 		});
 	});
 });
