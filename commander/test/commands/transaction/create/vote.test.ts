@@ -78,7 +78,7 @@ describe('transaction:create:vote', () => {
 			.it('should throw an error without vote or unvote');
 	});
 
-	describe('transaction:create:vote voting', () => {
+	describe('transaction:create:vote --votes=voting', () => {
 		const voteValues = defaultVote[0].split(',');
 		const vote = {
 			delegateAddress: voteValues[0],
@@ -112,7 +112,7 @@ describe('transaction:create:vote', () => {
 			});
 	});
 
-	describe('transaction:create:vote unvoting', () => {
+	describe('transaction:create:vote --votes=downvote', () => {
 		const voteValues = defaultUnvote[0].split(',');
 		const vote = {
 			delegateAddress: voteValues[0],
@@ -147,7 +147,7 @@ describe('transaction:create:vote', () => {
 			});
 	});
 
-	describe('transaction:create:vote voting and unvoting', () => {
+	describe('transaction:create:vote --votes=upvote --votes=downvote', () => {
 		const voteValues = defaultVote[0].split(',');
 		const vote = {
 			delegateAddress: voteValues[0],
@@ -207,7 +207,7 @@ describe('transaction:create:vote', () => {
 			});
 	});
 
-	describe('transaction:create:vote vote and unvote --no-signature', () => {
+	describe('transaction:create:vote --votes=upvote --votes=downvote --no-signature', () => {
 		const voteValues = defaultVote[0].split(',');
 		const unvoteValues = defaultUnvote[1].split(',');
 
@@ -253,7 +253,7 @@ describe('transaction:create:vote', () => {
 			);
 	});
 
-	describe('transaction:create:vote vote and unvote --passphrase=123', () => {
+	describe('transaction:create:vote --votes=upvote --votes=downvote --passphrase=123', () => {
 		const voteValues = defaultVote[0].split(',');
 		const unvoteValues = defaultUnvote[1].split(',');
 
