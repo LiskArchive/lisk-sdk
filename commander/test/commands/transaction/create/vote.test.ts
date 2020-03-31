@@ -207,7 +207,7 @@ describe('transaction:create:vote', () => {
 			});
 	});
 
-	describe('transaction:create:vote --votes=xxx --unvotes=xxx --no-signature', () => {
+	describe('transaction:create:vote vote and unvote --no-signature', () => {
 		const voteValues = defaultVote[0].split(',');
 		const unvoteValues = defaultUnvote[1].split(',');
 
@@ -253,7 +253,7 @@ describe('transaction:create:vote', () => {
 			);
 	});
 
-	describe('transaction:create:vote --votes=xxx --unvotes=xxx --passphrase=123', () => {
+	describe('transaction:create:vote vote and unvote --passphrase=123', () => {
 		const voteValues = defaultVote[0].split(',');
 		const unvoteValues = defaultUnvote[1].split(',');
 

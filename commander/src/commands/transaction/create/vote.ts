@@ -56,7 +56,9 @@ interface Args {
 }
 
 const validateAddresses = (inputs: ReadonlyArray<RawAssetVote>) => {
-	inputs.map(rawVoteAsset => validateAddress(rawVoteAsset.delegateAddress));
+	for (const rawVoteAsset of inputs) {
+		validateAddress(rawVoteAsset.delegateAddress);
+	}
 
 	return inputs;
 };
@@ -79,7 +81,7 @@ export default class VoteCommand extends BaseCommand {
 	`;
 
 	static examples = [
-		'transaction:create:vote 1 100 --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
+		'transaction:create:vote 1 100 --votes="356975984361330918L,1000000000" --votes="7539210577161571444L,3000000000" --votes="456975984361330919L,-1000000000"',
 	];
 
 	static flags = {
@@ -90,6 +92,7 @@ export default class VoteCommand extends BaseCommand {
 		votes: flagParser.string({
 			...commonFlags.votes,
 			multiple: true,
+			required: true,
 		}),
 	};
 
