@@ -81,7 +81,6 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 		asset: {
 			...transaction.asset,
 		},
-		networkIdentifier,
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);

@@ -52,7 +52,6 @@ describe('data_access.storage', () => {
 
 		dataAccess = new DataAccess({
 			dbStorage: storageMock,
-			networkIdentifier: 'TEST',
 			registeredTransactions: { '8': TransferTransaction },
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,

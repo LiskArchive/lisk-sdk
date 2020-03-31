@@ -29,7 +29,6 @@ import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
 
 interface DAConstructor {
 	readonly dbStorage: DBStorage;
-	readonly networkIdentifier: string;
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
@@ -44,7 +43,6 @@ export class DataAccess {
 
 	public constructor({
 		dbStorage,
-		networkIdentifier,
 		registeredTransactions,
 		minBlockHeaderCache,
 		maxBlockHeaderCache,
@@ -55,7 +53,6 @@ export class DataAccess {
 			maxBlockHeaderCache,
 		);
 		this._transactionAdapter = new TransactionInterfaceAdapter(
-			networkIdentifier,
 			registeredTransactions,
 		);
 	}

@@ -101,7 +101,6 @@ export abstract class BaseTransaction {
 	public static NAME_FEE = BigInt(0);
 
 	protected _id?: string;
-	protected _networkIdentifier: string;
 	protected _minFee?: bigint;
 
 	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
@@ -127,8 +126,6 @@ export abstract class BaseTransaction {
 				: (this.constructor as typeof BaseTransaction).TYPE;
 
 		this._id = tx.id;
-
-		this._networkIdentifier = tx.networkIdentifier || '';
 
 		// Additional data not related to the protocol
 		this.confirmations = tx.confirmations;
@@ -323,16 +320,14 @@ export abstract class BaseTransaction {
 		store: StateStore,
 	): Promise<TransactionResponse> {
 		const sender = await store.account.get(this.senderId);
+		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getBasicBytes();
-		if (
-			this._networkIdentifier === undefined ||
-			this._networkIdentifier === ''
-		) {
+		if (networkIdentifier === undefined || networkIdentifier === '') {
 			throw new Error(
 				'Network identifier is required to validate a transaction ',
 			);
 		}
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifierBytes,
 			transactionBytes,
@@ -372,15 +367,11 @@ export abstract class BaseTransaction {
 			readonly optionalKeys: Array<Readonly<string>>;
 		},
 	): void {
-		if (!this._networkIdentifier && !networkIdentifier) {
+		if (!networkIdentifier) {
 			throw new Error('Network identifier is required to sign a transaction');
 		}
-		// Set network identifier if it was previously not set in the transaction
-		if (!this._networkIdentifier) {
-			this._networkIdentifier = networkIdentifier;
-		}
 
-		const networkIdentifierBytes = hexToBuffer(this._networkIdentifier);
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 
 		// If senderPassphrase is passed in assume only one signature required
 		if (senderPassphrase) {

@@ -139,7 +139,6 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 
 	const transactionWithSenderInfo = {
 		...transaction,
-		networkIdentifier,
 		senderPublicKey: transaction.senderPublicKey as string,
 		asset: {
 			...transaction.asset,
