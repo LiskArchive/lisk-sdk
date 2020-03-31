@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey, hash, hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	hash,
+	intToBuffer,
+} from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import {
@@ -132,32 +136,8 @@ export const deleteVoteWeightsAfterRound = async (
 	_setVoteWeights(stateStore, newVoteWeights);
 };
 
-export const shuffleDelegateListForRound = (
-	round: number,
-	list: ReadonlyArray<string>,
-): ReadonlyArray<string> => {
-	const seedSource = round.toString();
-	const delegateList = [...list];
-	// tslint:disable-next-line:no-let
-	let currentSeed = hash(seedSource, 'utf8');
-
-	// tslint:disable-next-line one-variable-per-declaration no-let increment-decrement
-	for (let i = 0, delCount = delegateList.length; i < delCount; i++) {
-		// tslint:disable-next-line no-let increment-decrement no-magic-numbers
-		for (let x = 0; x < 4 && i < delCount; i++, x++) {
-			const newIndex = currentSeed[x] % delCount;
-			const b = delegateList[newIndex];
-			delegateList[newIndex] = delegateList[i];
-			delegateList[i] = b;
-		}
-		currentSeed = hash(currentSeed);
-	}
-
-	return delegateList;
-};
-
-export const shuffleDelegateListBasedOnRandomSeed = (
-	previousRoundSeed1: string,
+export const shuffleDelegateList = (
+	previousRoundSeed1: Buffer,
 	addresses: ReadonlyArray<string>,
 ): ReadonlyArray<string> => {
 	const delegateList = [...addresses].map(delegate => ({
@@ -165,15 +145,11 @@ export const shuffleDelegateListBasedOnRandomSeed = (
 	})) as DelegateListWithRoundHash[];
 
 	for (const delegate of delegateList) {
-		// tslint:disable-next-line:no-magic-numbers
 		const addressBuffer = intToBuffer(
 			delegate.address.slice(0, -1),
 			SIZE_UINT64,
 		);
-		const seedSource = Buffer.concat([
-			hexToBuffer(previousRoundSeed1),
-			addressBuffer,
-		]);
+		const seedSource = Buffer.concat([previousRoundSeed1, addressBuffer]);
 		delegate.roundHash = hash(seedSource);
 	}
 
@@ -435,8 +411,7 @@ export class DelegatesList {
 		}
 
 		const delegates = activeDelegateAddresses.concat(standbyDelegateAddresses);
-		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/4940 will update this function
-		const shuffuledDelegates = shuffleDelegateListForRound(round, delegates);
+		const shuffuledDelegates = shuffleDelegateList(randomSeed[0], delegates);
 		const forgerList = {
 			round,
 			delegates: shuffuledDelegates,
