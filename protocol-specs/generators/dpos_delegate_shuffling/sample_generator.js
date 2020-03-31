@@ -18,7 +18,7 @@ const { getAddressFromPassphrase } = require('@liskhq/lisk-cryptography');
 const { Mnemonic } = require('@liskhq/lisk-passphrase');
 const fs = require('fs');
 
-const [amount = 101, filePath] = process.argv.slice(2);
+const [numberOfDelegates = 101, filePath] = process.argv.slice(2);
 
 const generateDelegates = num => {
 	const delegateList = [];
@@ -28,14 +28,13 @@ const generateDelegates = num => {
 
 		delegateList.push({
 			address,
-			roundHash: '',
 		});
 	}
 
-	return { list: delegateList };
+	return { delegateList };
 };
 
-const delegates = generateDelegates(amount);
+const delegates = generateDelegates(numberOfDelegates);
 
 if (!filePath) {
 	console.info(delegates);
