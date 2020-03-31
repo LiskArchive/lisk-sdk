@@ -28,23 +28,12 @@ const {
 } = require('./errors');
 
 class FastChainSwitchingMechanism extends BaseSynchronizer {
-	constructor({
-		logger,
-		channel,
-		chain,
-		bft,
-		processor,
-		dpos,
-		activeDelegates,
-	}) {
+	constructor({ logger, channel, chain, bft, processor, dpos }) {
 		super(logger, channel);
 		this.dpos = dpos;
 		this.chain = chain;
 		this.bft = bft;
 		this.processor = processor;
-		this.constants = {
-			activeDelegates,
-		};
 		this.active = false;
 	}
 
@@ -106,7 +95,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const { lastBlock } = this.chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const twoRounds = this.constants.activeDelegates * 2;
+		const twoRounds = this.dpos.delegatesPerRound * 2;
 		if (Math.abs(receivedBlock.height - lastBlock.height) > twoRounds) {
 			return false;
 		}
@@ -170,13 +159,13 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		if (
 			this.chain.lastBlock.height - highestCommonBlock.height >
-				this.constants.activeDelegates * 2 ||
+				this.dpos.delegatesPerRound * 2 ||
 			receivedBlock.height - highestCommonBlock.height >
-				this.constants.activeDelegates * 2
+				this.dpos.delegatesPerRound * 2
 		) {
 			throw new AbortError(
-				`Height difference between both chains is higher than ${this.constants
-					.activeDelegates * 2}`,
+				`Height difference between both chains is higher than ${this.dpos
+					.delegatesPerRound * 2}`,
 			);
 		}
 
@@ -326,7 +315,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	_computeLastTwoRoundsHeights() {
 		return new Array(
-			Math.min(this.constants.activeDelegates * 2, this.chain.lastBlock.height),
+			Math.min(this.dpos.delegatesPerRound * 2, this.chain.lastBlock.height),
 		)
 			.fill(0)
 			.map((_, index) => this.chain.lastBlock.height - index);
