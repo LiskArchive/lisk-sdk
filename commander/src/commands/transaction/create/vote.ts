@@ -124,8 +124,15 @@ export default class VoteCommand extends BaseCommand {
 			throw new ValidationError('At least one vote option must be provided.');
 		}
 
+		const targetAddresses: string[] = [];
 		const votesObjects = votes.map(vote => {
 			const voteArr = vote.split(',');
+
+			if (!targetAddresses.includes(voteArr[0])) {
+				targetAddresses.push(voteArr[0]);
+			} else {
+				throw new Error('Delegate address must be unique.');
+			}
 
 			return {
 				delegateAddress: voteArr[0],
