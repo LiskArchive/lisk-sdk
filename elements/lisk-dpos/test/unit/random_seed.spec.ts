@@ -63,10 +63,9 @@ describe('random_seed', () => {
 			);
 		});
 
-		describe('protocol specs', () => {
-			describe.each(
-				testCases.map(testCase => [testCase.description, testCase]),
-			)('%s', (_description, testCase) => {
+		describe.each(testCases.map(testCase => [testCase.description, testCase]))(
+			'%s',
+			(_description, testCase) => {
 				it('should generate correct random seeds', async () => {
 					const { config, input, output } = testCase as any;
 					// Arrange
@@ -86,7 +85,7 @@ describe('random_seed', () => {
 					expect(randomSeeds[0].toString('hex')).toEqual(output.randomSeed1);
 					expect(randomSeeds[1].toString('hex')).toEqual(output.randomSeed2);
 				});
-			});
-		});
+			},
+		);
 	});
 });
