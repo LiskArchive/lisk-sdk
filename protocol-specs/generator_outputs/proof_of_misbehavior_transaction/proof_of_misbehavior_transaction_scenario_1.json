@@ -1,0 +1,75 @@
+{
+	"title": "Valid proof-of-misbehavior transaction for scenario 1",
+	"summary": "A proof-of-misbehavior transaction",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "proof_of_misbehavior_transaction",
+	"handler": "proof_of_misbehavior_transaction_scenario_1",
+	"testCases": {
+		"input": {
+			"reportingAccount": {
+				"address": "16313739661670634666L",
+				"publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+				"passphrase": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
+				"balance": "10000000000000000",
+				"encryptedPassphrase": "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1",
+				"password": "elephant tree paris dragon chair galaxy"
+			},
+			"targetAccount": {
+				"address": "10881167371402274308L",
+				"publicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+				"passphrase": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
+				"balance": "0",
+				"delegateName": "genesis_100"
+			},
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255"
+		},
+		"output": {
+			"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
+			"nonce": "1",
+			"fee": "1500000000",
+			"type": 15,
+			"asset": {
+				"header1": {
+					"version": 2,
+					"timestamp": 2000000,
+					"previousBlockId": "10620616195853047363",
+					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
+					"height": 300000,
+					"maxHeightPreviouslyForged": 90000,
+					"maxHeightPrevoted": 100000,
+					"numberOfTransactions": 0,
+					"totalAmount": "0",
+					"totalFee": "10000000000",
+					"reward": "10000000000",
+					"payloadLength": 0,
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"blockSignature": "d87f2eafb2f8022d4a1171fa5735466f5fa5749dfc6d2a3978d69d266aadfe4929a65925daaf380c1323d34049bc0aef5d5ad12916ab137c8829ef42f12d400b"
+				},
+				"header2": {
+					"version": 2,
+					"timestamp": 3000000,
+					"previousBlockId": "10620616195853047363",
+					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
+					"height": 200000,
+					"maxHeightPreviouslyForged": 100000,
+					"maxHeightPrevoted": 100000,
+					"numberOfTransactions": 0,
+					"totalAmount": "0",
+					"totalFee": "10000000000",
+					"reward": "10000000000",
+					"payloadLength": 0,
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"blockSignature": "c86e638c27d39c033cc8bb107c5a5a19f6e95361314d2d74b715d96ddfac6d156ea77d798dbd34203920e33525c5645ac01931043e3c0021a6da068048fa770a"
+				}
+			},
+			"signatures": [
+				"9cfbd524febf6b5d416921f5b6f1c0d003b6d561339383750fcef20ff26a0b20fd37412bb9dc030fa64b628c8e0a6624f76728205b218f34057522904d5a0e02"
+			],
+			"id": "7297191189562708508"
+		}
+	}
+}
