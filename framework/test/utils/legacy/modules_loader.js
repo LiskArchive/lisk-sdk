@@ -28,7 +28,7 @@ const modulesLoader = new (function() {
 	this.scope = {
 		lastCommit: '',
 		build: '',
-		config: __testContext.config.app.node,
+		config: __testContext.config,
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,

@@ -27,7 +27,7 @@ const config = require('../../fixtures/config/devnet/config');
 const createNode = ({ storage, logger, channel, options = {} }) => {
 	const nodeOptions = {
 		...nodeConfig(),
-		...config.app.node,
+		...config,
 		...options,
 		constants: constantsConfig(),
 		genesisBlock,

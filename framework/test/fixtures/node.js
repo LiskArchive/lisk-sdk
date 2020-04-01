@@ -35,9 +35,6 @@ const nodeOptions = {
 		communityIdentifier: 'Lisk',
 		payloadHash: '',
 	},
-	loading: {},
-	syncing: {},
-	broadcasts: {},
 	network: {
 		enabled: false,
 	},
@@ -46,17 +43,7 @@ const nodeOptions = {
 	},
 	constants: {
 		activeDelegates: 101,
-		blockSlotWindow: 5,
-		ADDITIONAL_DATA: {
-			MIN_LENGTH: 1,
-			MAX_LENGTH: 64,
-		},
-		blockReceiptTimeout: 20, // 2 blocks
 		maxPayloadLength: 15 * 1024,
-		MAX_PEERS: 100,
-		maxSharedTransactions: 100,
-		MAX_VOTES_PER_TRANSACTION: 33,
-		maxVotesPerAccount: 101,
 		rewards: {
 			milestones: [
 				'500000000', // Initial Reward
@@ -68,40 +55,8 @@ const nodeOptions = {
 			offset: 2160, // Start rewards at first block of the second round
 			distance: 3000000, // Distance between each milestone
 		},
-		MULTISIG_CONSTRAINTS: {
-			MIN: {
-				MINIMUM: 1,
-				MAXIMUM: 15,
-			},
-			LIFETIME: {
-				MINIMUM: 1,
-				MAXIMUM: 72,
-			},
-			KEYSGROUP: {
-				MIN_ITEMS: 1,
-				MAX_ITEMS: 15,
-			},
-		},
-		NETHASHES: [
-			// Mainnet
-			'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-			// Testnet
-			'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-		],
-		NORMALIZER: '100000000',
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		totalAmount: '10000000000000000',
-		transactionTypes: {
-			send: 0,
-			delegate: 2,
-			vote: 3,
-			multi: 4,
-			dapp: 5,
-			inTransfer: 6,
-			outTransfer: 7,
-		},
-		unconfirmedTransactionTimeout: 10800, // 1080 blocks
-		expiryInterval: 30000,
 	},
 };
 

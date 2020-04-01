@@ -118,7 +118,6 @@ module.exports = class Network {
 			maxOutboundConnections: this.options.maxOutboundConnections,
 			maxInboundConnections: this.options.maxInboundConnections,
 			peerBanTime: this.options.peerBanTime,
-			populatorInterval: this.options.populatorInterval,
 			sendPeerLimit: this.options.sendPeerLimit,
 			maxPeerDiscoveryResponseLength: this.options
 				.maxPeerDiscoveryResponseLength,

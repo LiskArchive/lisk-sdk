@@ -131,18 +131,11 @@ module.exports = class Node {
 			});
 
 			// Deactivate broadcast and syncing during snapshotting process
-			if (!Number.isNaN(parseInt(this.options.loading.rebuildUpToRound, 10))) {
-				this.options.broadcasts.active = false;
-				this.options.syncing.active = false;
-
-				await this.rebuilder.rebuild(
-					this.options.loading.rebuildUpToRound,
-					this.options.loading.loadPerIteration,
-				);
+			if (!Number.isNaN(parseInt(this.options.rebuildUpToRound, 10))) {
+				await this.rebuilder.rebuild(this.options.rebuildUpToRound);
 				this.logger.info(
 					{
-						rebuildUpToRound: this.options.loading.rebuildUpToRound,
-						loadPerIteration: this.options.loading.loadPerIteration,
+						rebuildUpToRound: this.options.rebuildUpToRound,
 					},
 					'Successfully rebuild the blockchain',
 				);
@@ -162,7 +155,7 @@ module.exports = class Node {
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
-			if (!this.options.loading.rebuildUpToRound) {
+			if (!this.options.rebuildUpToRound) {
 				this.channel.subscribe(
 					'app:networkEvent',
 					async ({ data: { event, data, peerId } }) => {
@@ -346,15 +339,11 @@ module.exports = class Node {
 			genesisBlock: this.options.genesisBlock,
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
-			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
-			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.maxPayloadLength,
-			activeDelegates: this.options.constants.activeDelegates,
 			rewardDistance: this.options.constants.rewards.distance,
 			rewardOffset: this.options.constants.rewards.offset,
 			rewardMilestones: this.options.constants.rewards.milestones,
 			totalAmount: this.options.constants.totalAmount,
-			blockSlotWindow: this.options.constants.blockSlotWindow,
 			epochTime: this.options.constants.epochTime,
 			blockTime: this.options.constants.blockTime,
 		});
@@ -489,7 +478,6 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			maxPayloadLength: this.options.constants.maxPayloadLength,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,
@@ -503,8 +491,6 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			broadcasts: this.options.broadcasts,
-			maxSharedTransactions: this.options.constants.maxSharedTransactions,
 		});
 
 		this.modules.forger = this.forger;
