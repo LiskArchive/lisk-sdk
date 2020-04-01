@@ -7,7 +7,6 @@ Object {
     "app": Object {
       "genesisConfig": Object {
         "blockTime": 10,
-        "delegateListRoundOffset": 2,
         "epochTime": "2016-05-24T17:00:00.000Z",
         "maxPayloadLength": 15360,
         "rewards": Object {
@@ -102,11 +101,6 @@ Object {
               "minimum": 2,
               "type": "number",
             },
-            "delegateListRoundOffset": Object {
-              "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
-              "minimum": 0,
-              "type": "number",
-            },
             "epochTime": Object {
               "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
               "format": "date-time",
@@ -154,7 +148,6 @@ Object {
             "epochTime",
             "blockTime",
             "maxPayloadLength",
-            "delegateListRoundOffset",
             "rewards",
           ],
           "type": "object",
