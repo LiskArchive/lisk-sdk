@@ -208,4 +208,34 @@ export class Dpos {
 			delegateListRoundOffset,
 		});
 	}
+
+	// tslint:disable-next-line: prefer-function-over-method
+	public async isDPoSProtocolCompliant(
+		blockHeader: BlockHeader,
+		store: StateStore,
+	): Promise<boolean> {
+		const lastBlockHeaders = store.consensus.lastBlockHeaders;
+		const delegateForgedBlocks = lastBlockHeaders.filter(
+			block => block.generatorPublicKey === blockHeader.generatorPublicKey,
+		);
+
+		if (!delegateForgedBlocks.length) {
+			// If the forger din't forge any block in the last three rounds
+			return true;
+		}
+
+		const { seedReveal: previousBlockSeedReveal } = delegateForgedBlocks.slice(
+			0,
+			1,
+		)[0];
+		const { seedReveal: newBlockSeedReveal } = blockHeader;
+
+		// Check if last block seedReveal is not a preimage of new block
+		if (previousBlockSeedReveal !== newBlockSeedReveal) {
+			return false;
+		}
+
+		// If the seedReveal matches the preimage
+		return true;
+	}
 }
