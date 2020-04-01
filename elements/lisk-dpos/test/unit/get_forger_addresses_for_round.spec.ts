@@ -14,13 +14,9 @@
 
 import { when } from 'jest-when';
 import { Dpos } from '../../src';
-import { delegatePublicKeys, delegateAccounts } from '../utils/round_delegates';
-import {
-	ACTIVE_DELEGATES,
-	DELEGATE_LIST_ROUND_OFFSET,
-} from '../fixtures/constants';
-import * as shuffledDelegatePublicKeys from '../fixtures/shuffled_delegate_publickeys_for_round_5.json';
+import { delegatePublicKeys } from '../utils/round_delegates';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -28,7 +24,7 @@ import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
  * need shuffled list for another round, please create/update
  * the list accordingly.
  */
-describe('dpos.getForgerPublicKeysForRound()', () => {
+describe('dpos.getForgerAddressesForRound()', () => {
 	let dpos: Dpos;
 	let chainStub: any;
 
@@ -37,14 +33,11 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 		chainStub = {
 			dataAccess: {
 				getConsensusState: jest.fn(),
-				getDelegateAccounts: jest.fn(),
 			},
 		};
 
 		dpos = new Dpos({
 			chain: chainStub,
-			activeDelegates: ACTIVE_DELEGATES,
-			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -52,17 +45,22 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 
 	it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 		// Arrange
+		const forgersList = [
+			{
+				round,
+				delegates: delegatePublicKeys.map(pk => getAddressFromPublicKey(pk)),
+				standby: [],
+			},
+		];
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_FORGERS_LIST_KEY)
-			.mockReturnValue(
-				JSON.stringify([{ round, delegates: delegatePublicKeys }]),
-			);
+			.mockReturnValue(JSON.stringify(forgersList));
 
 		// Act
-		const list = await dpos.getForgerPublicKeysForRound(round);
+		const list = await dpos.getForgerAddressesForRound(round);
 
 		// Assert
-		expect(list).toEqual(shuffledDelegatePublicKeys);
+		expect(list).toEqual(forgersList[0].delegates);
 	});
 
 	it('should throw error when chain state is empty', async () => {
@@ -70,25 +68,29 @@ describe('dpos.getForgerPublicKeysForRound()', () => {
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_FORGERS_LIST_KEY)
 			.mockReturnValue(undefined);
-		chainStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
 
 		// Act && Assert
-		return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(
+		return expect(dpos.getForgerAddressesForRound(round)).rejects.toThrow(
 			`No delegate list found for round: ${round}`,
 		);
 	});
 
 	it('should throw error when round is not in the chain state', async () => {
 		// Arrange
+
+		const forgersList = [
+			{
+				round: 7,
+				delegates: delegatePublicKeys.map(pk => getAddressFromPublicKey(pk)),
+				standby: [],
+			},
+		];
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_FORGERS_LIST_KEY)
-			.mockReturnValue(
-				JSON.stringify([{ round: 7, delegates: delegatePublicKeys }]),
-			);
-		chainStub.dataAccess.getDelegateAccounts.mockReturnValue(delegateAccounts);
+			.mockReturnValue(JSON.stringify(forgersList));
 
 		// Act && Assert
-		return expect(dpos.getForgerPublicKeysForRound(round)).rejects.toThrow(
+		return expect(dpos.getForgerAddressesForRound(round)).rejects.toThrow(
 			`No delegate list found for round: ${round}`,
 		);
 	});

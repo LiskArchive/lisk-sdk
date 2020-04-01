@@ -19,6 +19,7 @@ module.exports = {
 	type: 'object',
 	required: [
 		'activeDelegates',
+		'standbyDelegates',
 		'blockSlotWindow',
 		'blockReceiptTimeout',
 		'maxPayloadLength',
@@ -37,6 +38,13 @@ module.exports = {
 			min: 1,
 			const: 101,
 			description: 'The default number of delegates allowed to forge a block',
+		},
+		standbyDelegates: {
+			type: 'integer',
+			min: 1,
+			const: 2,
+			description:
+				'The default number of standby delegates allowed to forge a block',
 		},
 		blockSlotWindow: {
 			type: 'integer',
@@ -151,6 +159,7 @@ module.exports = {
 	additionalProperties: false,
 	default: {
 		activeDelegates: 101,
+		standbyDelegates: 2,
 		blockSlotWindow: 5,
 		blockReceiptTimeout: 20, // 2 blocks
 		maxPayloadLength: 15 * 1024,

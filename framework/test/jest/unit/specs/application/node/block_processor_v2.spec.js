@@ -15,6 +15,7 @@
 'use strict';
 
 const { StateStore } = require('@liskhq/lisk-chain');
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const {
 	BlockProcessorV2,
 	getBytes,
@@ -31,10 +32,13 @@ describe('block processor v2', () => {
 			'hex',
 		),
 	};
+	const defaultAddress = getAddressFromPublicKey(
+		defaultKeyPair.publicKey.toString('hex'),
+	);
 	const defaultAdditionalData = {
 		lastBlockHeaders: [],
 		networkIdentifier:
-			'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7',
+			'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
 	};
 
 	let blockProcessor;
@@ -147,7 +151,7 @@ describe('block processor v2', () => {
 			const previouslyForgedHeight = 100;
 			// Arrange
 			const maxHeightResult = JSON.stringify({
-				[defaultKeyPair.publicKey.toString('hex')]: { height: 100 },
+				[defaultAddress]: { height: 100 },
 			});
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(maxHeightResult);
 			// Act
@@ -170,7 +174,7 @@ describe('block processor v2', () => {
 		it('should update maxPreviouslyForgedHeight to the next higher one but not change for other delegates', async () => {
 			// Arrange
 			const list = {
-				[defaultKeyPair.publicKey.toString('hex')]: { height: 5 },
+				[defaultAddress]: { height: 5 },
 				a: { height: 4 },
 				b: { height: 6 },
 				c: { height: 7 },
@@ -191,7 +195,7 @@ describe('block processor v2', () => {
 			});
 			const maxHeightResult = JSON.stringify({
 				...list,
-				[defaultKeyPair.publicKey.toString('hex')]: {
+				[defaultAddress]: {
 					height: 11,
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged: 5,
@@ -215,7 +219,7 @@ describe('block processor v2', () => {
 				},
 			});
 			const maxHeightResult = JSON.stringify({
-				[defaultKeyPair.publicKey.toString('hex')]: {
+				[defaultAddress]: {
 					height: 11,
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged: 0,
@@ -231,7 +235,7 @@ describe('block processor v2', () => {
 			// Arrange
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(
 				JSON.stringify({
-					[defaultKeyPair.publicKey.toString('hex')]: { height: 15 },
+					[defaultAddress]: { height: 15 },
 				}),
 			);
 			// Act

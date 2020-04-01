@@ -12,6 +12,7 @@ Object {
     "maxPayloadLength": 15360,
     "maxSharedTransactions": 100,
     "maxVotesPerAccount": 101,
+    "standbyDelegates": 2,
     "totalAmount": "10000000000000000",
     "transactionTypes": Object {
       "dapp": 5,
@@ -78,6 +79,12 @@ Object {
       "min": 1,
       "type": "number",
     },
+    "standbyDelegates": Object {
+      "const": 2,
+      "description": "The default number of standby delegates allowed to forge a block",
+      "min": 1,
+      "type": "integer",
+    },
     "totalAmount": Object {
       "const": "10000000000000000",
       "description": "Total amount of LSK available in network before rewards milestone started",
@@ -141,6 +148,7 @@ Object {
   },
   "required": Array [
     "activeDelegates",
+    "standbyDelegates",
     "blockSlotWindow",
     "blockReceiptTimeout",
     "maxPayloadLength",

@@ -182,7 +182,7 @@ describe('blocks/api', () => {
 
 				it('should query storage with generatorPublicKey filter when params.generatorPublicKey exists', done => {
 					const generatorPublicKey =
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca';
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a';
 					blockRequest.request.swagger.params.generatorPublicKey.value = generatorPublicKey;
 					BlocksController.getBlocks(blockRequest, () => {
 						expect(
