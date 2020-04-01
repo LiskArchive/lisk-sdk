@@ -373,7 +373,6 @@ module.exports = class Node {
 			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.maxPayloadLength,
-			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
 			activeDelegates: this.options.constants.activeDelegates,
 			rewardDistance: this.options.constants.rewards.distance,
 			rewardOffset: this.options.constants.rewards.offset,

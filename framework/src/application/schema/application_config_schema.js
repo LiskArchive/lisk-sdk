@@ -88,7 +88,7 @@ module.exports = {
 					required: [
 						'epochTime',
 						'blockTime',
-						'maxTransactionsPerBlock',
+						'maxPayloadLength',
 						'delegateListRoundOffset',
 						'rewards',
 					],
@@ -99,19 +99,21 @@ module.exports = {
 							description:
 								'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
 						},
-						// NOTICE: blockTime and maxTransactionsPerBlock are related and it's values
+						// NOTICE: blockTime and maxPayloadLength are related and it's values
 						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
+						// TODO this recommendations need to be updated now that we changed to a byte size block
 						blockTime: {
 							type: 'number',
 							minimum: 2,
 							description: 'Slot time interval in seconds',
 						},
-						// NOTICE: blockTime and maxTransactionsPerBlock are related and it's values
+						// NOTICE: blockTime and maxPayloadLength are related and it's values
 						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
-						maxTransactionsPerBlock: {
+						// TODO this recommendations need to be updated now that we changed to a byte size block
+						maxPayloadLength: {
 							type: 'integer',
-							minimum: 1,
-							maximum: 150,
+							minimum: 10 * 1024, // Kilo Bytes
+							maximum: 30 * 1024, // Kilo Bytes
 							description: 'Maximum number of transactions allowed per block',
 						},
 						delegateListRoundOffset: {
@@ -553,7 +555,7 @@ module.exports = {
 			genesisConfig: {
 				epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 				blockTime: 10,
-				maxTransactionsPerBlock: 25,
+				maxPayloadLength: 15 * 1024, // Kilo Bytes
 				delegateListRoundOffset: 2,
 				rewards: {
 					milestones: [
