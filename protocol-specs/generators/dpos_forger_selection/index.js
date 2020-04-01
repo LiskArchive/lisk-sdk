@@ -68,7 +68,7 @@ const generateForgerSelectionWithMoreThan2EligibleStandBy = () => {
 
 	// Calculate for second standby
 	const randomSeed2 = 'fe47a9e4083414c1b50fccbbadec4205';
-	const randomSeed2Buffer = Buffer.from(randomSeed1, 'hex');
+	const randomSeed2Buffer = Buffer.from(randomSeed2, 'hex');
 	const seedNumber2 = randomSeed2Buffer.readBigUInt64BE();
 	const totalWeightAfterRemoving = candidates.reduce(
 		(prev, current) => prev + BigInt(current.voteWeight),

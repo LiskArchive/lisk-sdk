@@ -419,7 +419,7 @@ describe('data_access.storage', () => {
 					fee: '10000000',
 					nonce: '0',
 					senderPublicKey:
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 					signatures: [
 						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
 					],
@@ -436,7 +436,8 @@ describe('data_access.storage', () => {
 			blockSignature:
 				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
 			id: '7360015088758644957',
-			previousBlockId: '10620616195853047363',
+			seedReveal: '00000000000000000000000000000000',
+			previousBlockId: '1349213844499460766',
 			maxHeightPreviouslyForged: 1,
 			maxHeightPrevoted: 0,
 		} as BlockJSON;

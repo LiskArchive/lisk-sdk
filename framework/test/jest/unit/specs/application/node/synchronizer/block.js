@@ -166,7 +166,7 @@ const calculateTransactionsInfo = block => {
 };
 
 const defaultNetworkIdentifier =
-	'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7';
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties

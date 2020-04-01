@@ -12,15 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { delegateList } from '../fixtures/dpos_delegate_shuffling/delegate_address_list.json';
-import { shuffleDelegateListBasedOnRandomSeed } from '../../src/delegates_list';
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
+import * as delegateShufflingScenario from '../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
+import { shuffleDelegateList } from '../../src/delegates_list';
 
-describe('dpos.shuffleDelegateListBasedOnRandomSeed', () => {
-	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
-	const addressList = delegateList.map(delegate => delegate.address);
+describe('dpos.shuffleDelegateList', () => {
+	const previousRoundSeed1 =
+		delegateShufflingScenario.testCases.input.previousRoundSeed1;
+	const addressList = [
+		...delegateShufflingScenario.testCases.input.delegateList,
+	];
 	it('should return a list of uniformly shuffled list of delegates', () => {
-		const shuffledDelegateList = shuffleDelegateListBasedOnRandomSeed(
-			previousRoundSeed1,
+		const shuffledDelegateList = shuffleDelegateList(
+			hexToBuffer(previousRoundSeed1),
 			addressList,
 		);
 
@@ -28,7 +32,9 @@ describe('dpos.shuffleDelegateListBasedOnRandomSeed', () => {
 		shuffledDelegateList.forEach(address =>
 			expect(addressList).toContain(address),
 		);
-		// Expect the order of the list is different from the original delegate list
-		expect(shuffledDelegateList).not.toEqual(addressList);
+
+		expect(shuffledDelegateList).toEqual(
+			delegateShufflingScenario.testCases.output.delegateList,
+		);
 	});
 });

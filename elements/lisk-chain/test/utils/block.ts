@@ -30,7 +30,7 @@ const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
 export const defaultNetworkIdentifier =
-	'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7';
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 
 export const getBytes = (block: BlockInstance): Buffer => {
 	const blockVersionBuffer = intToBuffer(
@@ -179,6 +179,7 @@ export const newBlock = (
 		height: 2,
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
+		seedReveal: '00000000000000000000000000000000',
 		previousBlockId: genesisBlock.id,
 		keypair: getKeyPair(),
 		transactions: [],

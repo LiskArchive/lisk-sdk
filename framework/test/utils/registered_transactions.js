@@ -19,6 +19,8 @@ const {
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
+	NewVoteTransaction,
+	UnlockTransaction,
 } = require('@liskhq/lisk-transactions');
 
 const registeredTransactions = {
@@ -26,6 +28,8 @@ const registeredTransactions = {
 	10: DelegateTransaction,
 	11: VoteTransaction,
 	12: MultisignatureTransaction,
+	13: NewVoteTransaction,
+	14: UnlockTransaction,
 };
 
 module.exports = {

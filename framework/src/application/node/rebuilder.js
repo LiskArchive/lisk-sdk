@@ -28,9 +28,8 @@ class Rebuilder {
 		// Modules
 		processorModule,
 		chainModule,
+		dposModule,
 		bftModule,
-		// Constants
-		activeDelegates,
 	}) {
 		this.isActive = false;
 		this.isCleaning = false;
@@ -41,10 +40,8 @@ class Rebuilder {
 
 		this.processorModule = processorModule;
 		this.chainModule = chainModule;
+		this.dposModule = dposModule;
 		this.bftModule = bftModule;
-		this.constants = {
-			activeDelegates,
-		};
 	}
 
 	cleanup() {
@@ -58,7 +55,7 @@ class Rebuilder {
 			{ rebuildUpToRound, blocksCount },
 			'Rebuild process started',
 		);
-		if (blocksCount < this.constants.activeDelegates) {
+		if (blocksCount < this.dposModule.delegatesPerRound) {
 			throw new Error(
 				'Unable to rebuild, blockchain should contain at least one round of blocks',
 			);
@@ -72,13 +69,13 @@ class Rebuilder {
 			);
 		}
 		const totalRounds = Math.floor(
-			blocksCount / this.constants.activeDelegates,
+			blocksCount / this.dposModule.delegatesPerRound,
 		);
 		const targetRound =
 			parseInt(rebuildUpToRound, 10) === 0
 				? totalRounds
 				: Math.min(totalRounds, parseInt(rebuildUpToRound, 10));
-		const targetHeight = targetRound * this.constants.activeDelegates;
+		const targetHeight = targetRound * this.dposModule.delegatesPerRound;
 
 		const limit = loadPerIteration;
 		await this.chainModule.resetState();
