@@ -88,20 +88,26 @@ describe('transaction:create', () => {
 			});
 
 		setupTest()
-			.command(['transaction:create', '--type=11', '--votes=xxx,yyy'])
-			.it('should call type 11 command with flag type=11', () => {
+			.command([
+				'transaction:create',
+				'--type=13',
+				'--votes=18070133408355683425L,15000000000',
+			])
+			.it('should call type 13 command with flag type=13', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
-					'--votes',
-					'xxx,yyy',
+					'--votes=18070133408355683425L,15000000000',
 				]);
 			});
 
 		setupTest()
-			.command(['transaction:create', '-t=vote', '--votes=xxx,xxx'])
-			.it('should call type 11 command with flag type=vote', () => {
+			.command([
+				'transaction:create',
+				'-t=vote',
+				'--votes=18070133408355683425L,15000000000',
+			])
+			.it('should call type 13 command with flag type=vote', () => {
 				return expect(VoteCommand.run).to.be.calledWithExactly([
-					'--votes',
-					'xxx,xxx',
+					'--votes=18070133408355683425L,15000000000',
 				]);
 			});
 
