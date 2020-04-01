@@ -22,6 +22,7 @@ import {
 	deleteVoteWeightsAfterRound,
 	getForgerAddressesForRound,
 } from './delegates_list';
+import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
 import {
 	Block,
@@ -157,10 +158,26 @@ export class DelegatesInfo {
 				block.height + 1,
 				stateStore,
 			);
+
+			// Load 3 rounds of headers to calculate random seeds
+			const headersStartHeight = this.rounds.calcRoundStartHeight(
+				// tslint:disable-next-line:no-magic-numbers
+				round - 2,
+			);
+			const headersEndHeight = this.rounds.calcRoundEndHeight(round);
+			const headersForRandomSeeds = await this.chain.dataAccess.getBlockHeadersByHeightBetween(
+				headersStartHeight,
+				headersEndHeight,
+			);
+			const [randomSeed1, randomSeed2] = generateRandomSeeds(
+				round,
+				this.rounds,
+				headersForRandomSeeds,
+			);
+
 			await this.delegatesList.updateForgersList(
 				nextRound,
-				// TODO: Insert real random seed after https://github.com/LiskHQ/lisk-sdk/issues/4939
-				[zeroRandomSeed, zeroRandomSeed],
+				[randomSeed1, randomSeed2],
 				stateStore,
 			);
 		}
