@@ -297,7 +297,7 @@ paths:
       operationId: getForgingStatus
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
-        To edit the whitelist, please edit the `forging.access.whitelist` section in the `Control API access` described above in the Access restrictions section. *<br>
+        To edit the whitelist, please edit the `modules.http_api.forging.access.whiteList` section in the config. *<br>
         Responds with the forging status of a delegate on a node.
       produces:
         - application/json
@@ -332,7 +332,7 @@ paths:
       operationId: updateForgingStatus
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
-        To edit the whitelist, please edit the `forging.access.whitelist` section in the `Control API access` described above in the Access restrictions section. *<br>
+        To edit the whitelist, please edit the `modules.http_api.forging.access.whiteList` section in the config. *<br>
         Upon passing the correct password and publicKey, forging will be enabled or disabled for the delegate of this particular node.
         The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
       produces:
@@ -961,15 +961,15 @@ parameters:
     in: query
     description: Block ID to query.
     type: string
-    format: ID
+    format: id
     minLength: 1
     maxLength: 20
   transactionId:
-    name: ID
+    name: id
     in: query
     description: Transaction ID to query.
     type: string
-    format: ID
+    format: id
     minLength: 1
     maxLength: 20
   recipientId:
@@ -1537,7 +1537,7 @@ definitions:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: Public key of the delagate who forged the block.
+        description: Public key of the delegate who forged the block.
       payloadLength:
         type: integer
         example: 117
@@ -1734,7 +1734,7 @@ definitions:
     properties:
       transactionId:
         type: string
-        format: ID
+        format: id
         example: '15359945250124697273'
         minLength: 1
         maxLength: 20
