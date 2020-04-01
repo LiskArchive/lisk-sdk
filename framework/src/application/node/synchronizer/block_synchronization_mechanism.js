@@ -32,23 +32,12 @@ const {
 } = require('./errors');
 
 class BlockSynchronizationMechanism extends BaseSynchronizer {
-	constructor({
-		logger,
-		channel,
-		rounds,
-		bft,
-		chain,
-		processorModule,
-		activeDelegates,
-	}) {
+	constructor({ logger, channel, bft, dpos, chain, processorModule }) {
 		super(logger, channel);
 		this.bft = bft;
-		this.rounds = rounds;
 		this.chain = chain;
+		this.dpos = dpos;
 		this.processorModule = processorModule;
-		this.constants = {
-			activeDelegates,
-		};
 		this.active = false;
 	}
 
@@ -104,7 +93,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			finalizedBlock.timestamp,
 		);
 		const currentBlockSlot = this.chain.slots.getSlotNumber();
-		const threeRounds = this.constants.activeDelegates * 3;
+		const threeRounds = this.dpos.delegatesPerRound * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
@@ -353,8 +342,8 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = this.rounds.calcRound(this.chain.lastBlock.height); // Holds the current round number
-		let currentHeight = currentRound * this.constants.activeDelegates;
+		let currentRound = this.dpos.rounds.calcRound(this.chain.lastBlock.height); // Holds the current round number
+		let currentHeight = currentRound * this.dpos.delegatesPerRound;
 
 		while (
 			!highestCommonBlock &&
@@ -363,7 +352,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		) {
 			const heightList = computeBlockHeightsList(
 				this.bft.finalizedHeight,
-				this.constants.activeDelegates,
+				this.dpos.delegatesPerRound,
 				blocksPerRequestLimit,
 				currentRound,
 			);
@@ -399,7 +388,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			highestCommonBlock = data; // If no common block, data is undefined.
 
 			currentRound -= blocksPerRequestLimit;
-			currentHeight = currentRound * this.constants.activeDelegates;
+			currentHeight = currentRound * this.dpos.delegatesPerRound;
 		}
 
 		return highestCommonBlock;

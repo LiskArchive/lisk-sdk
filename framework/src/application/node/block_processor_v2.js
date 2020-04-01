@@ -23,10 +23,11 @@ const {
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
+	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 const { BaseBlockProcessor } = require('./processor');
 
-const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'previouslyForged';
+const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'forger:previouslyForged';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -253,10 +254,12 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			// Create a block with with basic block and bft properties
 			async data => {
 				const previouslyForgedMap = await this._getPreviouslyForgedMap();
-				const delegatePublicKey = data.keypair.publicKey.toString('hex');
+				const delegateAddress = getAddressFromPublicKey(
+					data.keypair.publicKey.toString('hex'),
+				);
 				const height = data.previousBlock.height + 1;
 				const previousBlockId = data.previousBlock.id;
-				const forgerInfo = previouslyForgedMap[delegatePublicKey] || {};
+				const forgerInfo = previouslyForgedMap[delegateAddress] || {};
 				const maxHeightPreviouslyForged = forgerInfo.height || 0;
 				const block = await this._create({
 					...data,
@@ -375,8 +378,9 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			maxHeightPreviouslyForged,
 			maxHeightPrevoted,
 		} = block;
+		const generatorAddress = getAddressFromPublicKey(generatorPublicKey);
 		// In order to compare with the minimum height in case of the first block, here it should be 0
-		const previouslyForged = previouslyForgedMap[generatorPublicKey] || {};
+		const previouslyForged = previouslyForgedMap[generatorAddress] || {};
 		const previouslyForgedHeightByDelegate = previouslyForged.height || 0;
 		// previously forged height only saves maximum forged height
 		if (height <= previouslyForgedHeightByDelegate) {
@@ -384,7 +388,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		}
 		const updatedPreviouslyForged = {
 			...previouslyForgedMap,
-			[generatorPublicKey]: {
+			[generatorAddress]: {
 				height,
 				maxHeightPrevoted,
 				maxHeightPreviouslyForged,

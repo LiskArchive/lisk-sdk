@@ -18,15 +18,10 @@ export interface RegisteredTransactions {
 }
 
 export class TransactionInterfaceAdapter {
-	private readonly _networkIdentifier: string;
 	// tslint:disable-next-line no-any
 	private readonly _transactionClassMap: Map<number, any>;
 
-	public constructor(
-		networkIdentifier: string,
-		registeredTransactions: RegisteredTransactions = {},
-	) {
-		this._networkIdentifier = networkIdentifier;
+	public constructor(registeredTransactions: RegisteredTransactions = {}) {
 		this._transactionClassMap = new Map();
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this._transactionClassMap.set(
@@ -46,7 +41,6 @@ export class TransactionInterfaceAdapter {
 
 		return new TransactionClass({
 			...rawTx,
-			networkIdentifier: this._networkIdentifier,
 		});
 	}
 }

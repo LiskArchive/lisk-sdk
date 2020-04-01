@@ -13,8 +13,8 @@
  */
 
 export const EVENT_ROUND_CHANGED = 'EVENT_ROUND_CHANGED';
-export const CONSENSUS_STATE_FORGERS_LIST_KEY = 'DPoS.forgersList';
-export const CONSENSUS_STATE_VOTE_WEIGHTS_KEY = 'DPoS.voteWeights';
+export const CONSENSUS_STATE_VOTE_WEIGHTS_KEY = 'dpos:voteWeights';
+export const CONSENSUS_STATE_FORGERS_LIST_KEY = 'dpos:forgersList';
 
 export const DEFAULT_ACTIVE_DELEGATE = 101;
 export const DEFAULT_STANDBY_DELEGATE = 2;

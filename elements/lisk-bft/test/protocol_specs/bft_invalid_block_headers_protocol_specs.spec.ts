@@ -16,6 +16,7 @@ import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.
 
 import { FinalityManager } from '../../src/finality_manager';
 import { StateStoreMock } from '../unit/state_store_mock';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
@@ -64,7 +65,10 @@ describe('FinalityManager', () => {
 				});
 				for (const blockHeader of testCase.config.blockHeaders) {
 					when(dposStub.getMinActiveHeight)
-						.calledWith(blockHeader.height, blockHeader.generatorPublicKey)
+						.calledWith(
+							blockHeader.height,
+							getAddressFromPublicKey(blockHeader.generatorPublicKey),
+						)
 						.mockResolvedValue(blockHeader.delegateMinHeightActive);
 				}
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(

@@ -16,9 +16,7 @@ import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
 import { Account, Block } from '../../src/types';
 import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
-// import { randomInt } from '../utils/random_int';
 import { getDelegateAccounts } from '../utils/round_delegates';
-// import { CONSENSUS_STATE_VOTE_WEIGHTS_KEY } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
 	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
@@ -173,11 +171,22 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					},
+				]);
+
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
 					},
 				]);
 
@@ -197,7 +206,10 @@ describe('Vote weight snapshot', () => {
 							],
 						},
 					],
-					{ [CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList },
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
 				);
 			});
 
@@ -210,9 +222,9 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
-				const updateddelegateInList = voteWeights[0].delegates.find(
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
+				const updateddelegateInList = voteWeights[1].delegates.find(
 					(d: Account) => d.address === updatedDelegate.address,
 				);
 				expect(updateddelegateInList).toBeUndefined();
@@ -251,16 +263,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					},
+				]);
+
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -273,10 +297,10 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
 				// 50 and the forger is in the list
-				expect(voteWeights[0].delegates).toHaveLength(50 + 1);
+				expect(voteWeights[1].delegates).toHaveLength(50 + 1);
 				const originalDelegatesCounts = voteWeights[0].delegates.reduce(
 					(prev: number, current: Account) => {
 						const exist = delegates.find(d => d.address === current.address);
@@ -333,16 +357,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					},
+				]);
+
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -355,12 +391,12 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
-				expect(voteWeights[0].delegates).toHaveLength(103);
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
+				expect(voteWeights[1].delegates).toHaveLength(103);
 				expect(
 					additionalDelegates.every((delegate: Account) =>
-						voteWeights[0].delegates.find(
+						voteWeights[1].delegates.find(
 							(d: Account) => d.address === delegate.address,
 						),
 					),
@@ -412,16 +448,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
+					},
+				]);
+
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -434,14 +482,14 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
-				expect(voteWeights[0].delegates).toHaveLength(
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
+				expect(voteWeights[1].delegates).toHaveLength(
 					delegates.length + additionalDelegates.length,
 				);
 				expect(
 					additionalDelegates.every((delegate: Account) =>
-						voteWeights[0].delegates.find(
+						voteWeights[1].delegates.find(
 							(d: Account) => d.address === delegate.address,
 						),
 					),
@@ -498,16 +546,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
+					},
+				]);
+
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -520,14 +580,14 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
 				expect(
-					voteWeights[0].delegates.find(
+					voteWeights[1].delegates.find(
 						(d: Account) => d.address === nonSelfVotedDelegate.address,
 					),
 				).toBeUndefined();
-				expect(voteWeights[0].delegates).toHaveLength(
+				expect(voteWeights[1].delegates).toHaveLength(
 					delegates.length + additionalDelegates.length - 1,
 				);
 			});
@@ -581,16 +641,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					},
+				]);
+
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -603,14 +675,14 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
 				expect(
-					voteWeights[0].delegates.find(
+					voteWeights[1].delegates.find(
 						(d: Account) => d.address === bannedDelegate.address,
 					),
 				).toBeUndefined();
-				expect(voteWeights[0].delegates).toHaveLength(
+				expect(voteWeights[1].delegates).toHaveLength(
 					delegates.length + additionalDelegates.length - 1,
 				);
 			});
@@ -653,16 +725,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					},
+				]);
+
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -675,13 +759,13 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
-				const snapshotedPunishedDelegate = voteWeights[0].delegates.find(
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
+				const snapshotedPunishedDelegate = voteWeights[1].delegates.find(
 					(d: Account) => d.address === punishedDelegate.address,
 				);
 				expect(snapshotedPunishedDelegate.voteWeight).toEqual('0');
-				expect(voteWeights[0].delegates).toHaveLength(103);
+				expect(voteWeights[1].delegates).toHaveLength(103);
 			});
 		});
 
@@ -733,16 +817,28 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					},
+				]);
+
+				const mockedVoteWeights = JSON.stringify([
+					{
+						round: 11,
+						delegates: [
+							...delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
 			});
 
@@ -755,14 +851,14 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
-				expect(voteWeights).toHaveLength(1);
-				expect(voteWeights[0].round).toEqual(13);
+				expect(voteWeights).toHaveLength(2);
+				expect(voteWeights[1].round).toEqual(13);
 				expect(
-					voteWeights[0].delegates.find(
+					voteWeights[1].delegates.find(
 						(d: Account) => d.address === punishedDelegate.address,
 					),
 				).toBeUndefined();
-				expect(voteWeights[0].delegates).toHaveLength(
+				expect(voteWeights[1].delegates).toHaveLength(
 					delegates.length + additionalDelegates.length - 1,
 				);
 			});
@@ -838,11 +934,10 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				// TODO: Remove this forgers list mock after new DPoS implementation
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.publicKey).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
 					},
 				]);
 

@@ -109,8 +109,8 @@ describe('NetworkInfo', () => {
 	});
 
 	describe('get', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Network:myKey1', value: 'myValue' };
+		const data2 = { key: 'Network:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await NetworkInfoEntity.setKey(data1.key, data1.value);
@@ -127,13 +127,15 @@ describe('NetworkInfo', () => {
 		});
 
 		it('should return empty array if no matching result found', async () => {
-			expect(await NetworkInfoEntity.get({ key: 'custom-key' })).toEqual([]);
+			expect(await NetworkInfoEntity.get({ key: 'Network:customKey' })).toEqual(
+				[],
+			);
 		});
 	});
 
 	describe('getOne', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Network:myKey1', value: 'myValue' };
+		const data2 = { key: 'Network:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await NetworkInfoEntity.setKey(data1.key, data1.value);
@@ -152,14 +154,14 @@ describe('NetworkInfo', () => {
 
 		it('should reject with error if provided filter does not match', async () => {
 			await expect(
-				NetworkInfoEntity.getOne({ key: 'custom-key' }),
+				NetworkInfoEntity.getOne({ key: 'Network:customKey' }),
 			).rejects.toThrow('No data returned from the query.');
 		});
 	});
 
 	describe('getKey', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Network:myKey1', value: 'myValue' };
+		const data2 = { key: 'Network:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await NetworkInfoEntity.setKey(data1.key, data1.value);
@@ -177,7 +179,7 @@ describe('NetworkInfo', () => {
 		});
 
 		it('should resolve with null if provided filter does not match', async () => {
-			expect(await NetworkInfoEntity.getKey('custom-key')).toBeNull();
+			expect(await NetworkInfoEntity.getKey('Network:customKey')).toBeNull();
 		});
 	});
 
@@ -189,13 +191,13 @@ describe('NetworkInfo', () => {
 		});
 
 		it('should resolve with error when invoked without value', async () => {
-			await expect(NetworkInfoEntity.setKey('myKey')).rejects.toThrow(
+			await expect(NetworkInfoEntity.setKey('Network:myKey')).rejects.toThrow(
 				'Must provide the value to set',
 			);
 		});
 
 		it('should create key value pair if not exists', async () => {
-			const key = 'myKey';
+			const key = 'Network:myKey';
 			const value = 'myValue';
 			await NetworkInfoEntity.setKey(key, value);
 
@@ -205,7 +207,7 @@ describe('NetworkInfo', () => {
 		});
 
 		it('should update the value if key already exists', async () => {
-			const key = 'myKey';
+			const key = 'Network:myKey';
 			const value = 'myValue';
 			const updatedValue = 'myUpdatedValue';
 
@@ -218,8 +220,8 @@ describe('NetworkInfo', () => {
 	});
 
 	describe('delete', () => {
-		const data1 = { key: 'myKey1', value: 'myValue' };
-		const data2 = { key: 'myKey2', value: 'myValue' };
+		const data1 = { key: 'Network:myKey1', value: 'myValue' };
+		const data2 = { key: 'Network:myKey2', value: 'myValue' };
 
 		beforeEach(async () => {
 			await NetworkInfoEntity.setKey(data1.key, data1.value);
@@ -239,7 +241,7 @@ describe('NetworkInfo', () => {
 		});
 
 		it('should not throw error if no matching record found', async () => {
-			const nonExistingKey = 'nonExistingKey';
+			const nonExistingKey = 'Network:nonExistingKey';
 
 			await expect(
 				NetworkInfoEntity.delete({ key: nonExistingKey }),

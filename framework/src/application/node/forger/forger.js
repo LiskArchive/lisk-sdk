@@ -28,25 +28,6 @@ const {
 } = require('./constant');
 const { HighFeeForgingStrategy } = require('./strategies');
 
-const getDelegateKeypairForCurrentSlot = async (
-	dposModule,
-	keypairs,
-	currentSlot,
-	round,
-	numOfActiveDelegates,
-) => {
-	const activeDelegates = await dposModule.getForgerPublicKeysForRound(round);
-
-	const currentSlotIndex = currentSlot % numOfActiveDelegates;
-	const currentSlotDelegate = activeDelegates[currentSlotIndex];
-
-	if (currentSlotDelegate && keypairs[currentSlotDelegate]) {
-		return keypairs[currentSlotDelegate];
-	}
-
-	return null;
-};
-
 class Forger {
 	constructor({
 		forgingStrategy,
@@ -61,7 +42,6 @@ class Forger {
 		transactionPoolModule,
 		chainModule,
 		// constants
-		activeDelegates,
 		maxPayloadLength,
 		forgingDelegates,
 		forgingForce,
@@ -81,7 +61,6 @@ class Forger {
 			},
 		};
 		this.constants = {
-			activeDelegates,
 			maxPayloadLength,
 		};
 
@@ -148,10 +127,14 @@ class Forger {
 
 		if (account && account.isDelegate) {
 			if (forging) {
-				this.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				this.keypairs[
+					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
+				] = keypair;
 				this.logger.info(`Forging enabled on account: ${account.address}`);
 			} else {
-				delete this.keypairs[keypair.publicKey.toString('hex')];
+				delete this.keypairs[
+					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
+				];
 				this.logger.info(`Forging disabled on account: ${account.address}`);
 			}
 
@@ -224,7 +207,9 @@ class Forger {
 				);
 			}
 			if (account.isDelegate) {
-				this.keypairs[keypair.publicKey.toString('hex')] = keypair;
+				this.keypairs[
+					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
+				] = keypair;
 				this.logger.info(`Forging enabled on account: ${account.address}`);
 			} else {
 				this.logger.warn(
@@ -317,12 +302,9 @@ class Forger {
 		let delegateKeypair;
 		try {
 			// eslint-disable-next-line no-use-before-define
-			delegateKeypair = await exportedInterfaces.getDelegateKeypairForCurrentSlot(
-				this.dposModule,
-				this.keypairs,
+			delegateKeypair = await this._getDelegateKeypairForCurrentSlot(
 				currentSlot,
 				round,
-				this.constants.activeDelegates,
 			);
 		} catch (err) {
 			this.logger.error({ err }, 'Skipping delegate slot');
@@ -519,12 +501,24 @@ class Forger {
 			usedHashOnionsStr,
 		);
 	}
+
+	async _getDelegateKeypairForCurrentSlot(currentSlot, round) {
+		const activeDelegates = await this.dposModule.getForgerAddressesForRound(
+			round,
+		);
+
+		const currentSlotIndex = currentSlot % activeDelegates.length;
+		const currentSlotDelegate = activeDelegates[currentSlotIndex];
+
+		if (currentSlotDelegate && this.keypairs[currentSlotDelegate]) {
+			return this.keypairs[currentSlotDelegate];
+		}
+
+		return null;
+	}
 }
 
-const exportedInterfaces = {
-	Forger,
-	getDelegateKeypairForCurrentSlot,
-};
-
 // Export
-module.exports = exportedInterfaces;
+module.exports = {
+	Forger,
+};

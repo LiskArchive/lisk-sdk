@@ -23,7 +23,7 @@ import {
 import { DelegatesInfo } from './delegates_info';
 import {
 	DelegatesList,
-	deleteDelegateListUntilRound,
+	deleteForgersListUntilRound,
 	deleteVoteWeightsUntilRound,
 	getForgersList,
 } from './delegates_list';
@@ -44,9 +44,6 @@ interface DposConstructor {
 	readonly standbyThreshold?: bigint;
 	readonly voteWeightCapRate?: number;
 	readonly delegateListRoundOffset?: number;
-	readonly exceptions?: {
-		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
-	};
 }
 
 export class Dpos {
@@ -58,6 +55,7 @@ export class Dpos {
 	private readonly delegatesList: DelegatesList;
 	private readonly delegatesInfo: DelegatesInfo;
 	private readonly chain: Chain;
+	private readonly _delegatesPerRound: number;
 
 	public constructor({
 		chain,
@@ -66,16 +64,16 @@ export class Dpos {
 		standbyThreshold = DEFAULT_STANDBY_THRESHOLD,
 		delegateListRoundOffset = DEFAULT_ROUND_OFFSET,
 		voteWeightCapRate = DEFAULT_VOTE_WEIGHT_CAP_RATE,
-		exceptions = {},
 	}: DposConstructor) {
 		this.events = new EventEmitter();
 		this.delegateListRoundOffset = delegateListRoundOffset;
+		this._delegatesPerRound = activeDelegates + standbyDelegates;
 		// @todo consider making this a constant and reuse it in BFT module.
 		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
 		this.chain = chain;
 		this.rounds = new Rounds({
-			blocksPerRound: activeDelegates + standbyDelegates,
+			blocksPerRound: this._delegatesPerRound,
 		});
 
 		this.delegatesList = new DelegatesList({
@@ -85,7 +83,6 @@ export class Dpos {
 			standbyThreshold,
 			voteWeightCapRate,
 			chain: this.chain,
-			exceptions,
 		});
 
 		this.delegatesInfo = new DelegatesInfo({
@@ -98,10 +95,14 @@ export class Dpos {
 		});
 	}
 
-	public async getForgerPublicKeysForRound(
+	public get delegatesPerRound(): number {
+		return this._delegatesPerRound;
+	}
+
+	public async getForgerAddressesForRound(
 		round: number,
 	): Promise<ReadonlyArray<string>> {
-		return this.delegatesList.getShuffledDelegateList(round);
+		return this.delegatesList.getDelegateList(round);
 	}
 
 	public async onBlockFinalized(
@@ -113,13 +114,13 @@ export class Dpos {
 			finalizedBlockRound -
 			this.delegateListRoundOffset -
 			this.delegateActiveRoundLimit;
-		await deleteDelegateListUntilRound(disposableDelegateList, stateStore);
+		await deleteForgersListUntilRound(disposableDelegateList, stateStore);
 		await deleteVoteWeightsUntilRound(disposableDelegateList, stateStore);
 	}
 
 	public async getMinActiveHeight(
 		height: number,
-		publicKey: string,
+		address: string,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
 	): Promise<number> {
@@ -139,7 +140,7 @@ export class Dpos {
 		);
 
 		const activeRounds = this._findEarliestActiveListRound(
-			publicKey,
+			address,
 			previousForgersList,
 			delegateActiveRoundLimit,
 		);
@@ -152,7 +153,7 @@ export class Dpos {
 	 * in descending order.
 	 */
 	private _findEarliestActiveListRound(
-		delegatePublicKey: string,
+		address: string,
 		previousLists: ForgersList,
 		delegateActiveRoundLimit: number = this.delegateActiveRoundLimit,
 	): number {
@@ -167,7 +168,7 @@ export class Dpos {
 		for (let i = 0; i < lists.length; i += 1) {
 			const { round, delegates } = lists[i];
 
-			if (delegates.indexOf(delegatePublicKey) === -1) {
+			if (delegates.indexOf(address) === -1) {
 				// Since we are iterating backwards,
 				// If the delegate is not in this list
 				// That means delegate was in the next round :)

@@ -365,7 +365,6 @@ module.exports = class Node {
 		this.chain = new Chain({
 			logger: this.logger,
 			storage: this.storage,
-			sequence: this.sequence,
 			genesisBlock: this.options.genesisBlock,
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
@@ -373,7 +372,6 @@ module.exports = class Node {
 			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.maxPayloadLength,
-			maxTransactionsPerBlock: this.options.constants.maxTransactionsPerBlock,
 			activeDelegates: this.options.constants.activeDelegates,
 			rewardDistance: this.options.constants.rewards.distance,
 			rewardOffset: this.options.constants.rewards.offset,
@@ -435,10 +433,10 @@ module.exports = class Node {
 			);
 		});
 
-		this.slots = this.chain.slots;
 		this.dpos = new Dpos({
 			chain: this.chain,
 			activeDelegates: this.options.constants.activeDelegates,
+			standbyDelegates: this.options.constants.standbyDelegates,
 			delegateListRoundOffset: this.options.constants.delegateListRoundOffset,
 			exceptions: this.options.exceptions,
 		});
@@ -470,10 +468,9 @@ module.exports = class Node {
 			storage: this.storage,
 			logger: this.logger,
 			bft: this.bft,
-			rounds: this.dpos.rounds,
+			dpos: this.dpos,
 			channel: this.channel,
 			chain: this.chain,
-			activeDelegates: this.options.constants.activeDelegates,
 			processorModule: this.processor,
 		});
 
@@ -484,7 +481,6 @@ module.exports = class Node {
 			bft: this.bft,
 			dpos: this.dpos,
 			processor: this.processor,
-			activeDelegates: this.options.constants.activeDelegates,
 		});
 
 		this.synchronizer = new Synchronizer({
@@ -504,7 +500,7 @@ module.exports = class Node {
 			chainModule: this.chain,
 			processorModule: this.processor,
 			bftModule: this.bft,
-			activeDelegates: this.options.constants.activeDelegates,
+			dposModule: this.dpos,
 		});
 		this.modules.rebuilder = this.rebuilder;
 
@@ -517,7 +513,6 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			activeDelegates: this.options.constants.activeDelegates,
 			maxPayloadLength: this.options.constants.maxPayloadLength,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,

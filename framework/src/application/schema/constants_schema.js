@@ -19,6 +19,7 @@ module.exports = {
 	type: 'object',
 	required: [
 		'activeDelegates',
+		'standbyDelegates',
 		'blockSlotWindow',
 		'blockReceiptTimeout',
 		'maxPayloadLength',
@@ -28,6 +29,7 @@ module.exports = {
 		'transactionTypes',
 		'unconfirmedTransactionTimeout',
 		'expiryInterval',
+		'delegateListRoundOffset',
 	],
 	properties: {
 		activeDelegates: {
@@ -36,6 +38,13 @@ module.exports = {
 			min: 1,
 			const: 101,
 			description: 'The default number of delegates allowed to forge a block',
+		},
+		standbyDelegates: {
+			type: 'integer',
+			min: 1,
+			const: 2,
+			description:
+				'The default number of standby delegates allowed to forge a block',
 		},
 		blockSlotWindow: {
 			type: 'integer',
@@ -140,10 +149,17 @@ module.exports = {
 			const: 30000,
 			description: 'Transaction pool expiry timer in milliseconds',
 		},
+		delegateListRoundOffset: {
+			type: 'number',
+			minimum: 0,
+			description:
+				'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - delegateListRoundOffset`',
+		},
 	},
 	additionalProperties: false,
 	default: {
 		activeDelegates: 101,
+		standbyDelegates: 2,
 		blockSlotWindow: 5,
 		blockReceiptTimeout: 20, // 2 blocks
 		maxPayloadLength: 15 * 1024,
@@ -163,5 +179,6 @@ module.exports = {
 		},
 		unconfirmedTransactionTimeout: 10800, // 1080 blocks
 		expiryInterval: 30000,
+		delegateListRoundOffset: 2,
 	},
 };

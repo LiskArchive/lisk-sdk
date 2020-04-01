@@ -25,7 +25,7 @@ describe('state store / account', () => {
 		},
 		{
 			...accountDefaultValues,
-			address: '11237980039345381032L',
+			address: '5059876081639179984L',
 			balance: '555',
 		},
 	];
@@ -38,7 +38,7 @@ describe('state store / account', () => {
 		}),
 		new Account({
 			...accountDefaultValues,
-			address: '11237980039345381032L',
+			address: '5059876081639179984L',
 			balance: '555',
 		}),
 	];

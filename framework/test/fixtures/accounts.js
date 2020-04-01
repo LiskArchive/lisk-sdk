@@ -21,23 +21,23 @@ const accounts = {};
 
 // Existing delegate account
 accounts.existingDelegate = {
-	address: '9889644732407062730L',
-	publicKey: 'd8685de16147583d1b9f2e06eb43c6af9ba03844df30e20f3cda0b681c14fb05',
+	address: '16936666638951007157L',
+	publicKey: 'c0ebb5ae59f498718ac5038b6b83fd822b4d1def918c66c05f1709a418a5cf70',
 	passphrase:
-		'dream theory eternal recall valid clever mind sell doctor empower bread cage',
+		'slight wire team gravity finger soul reopen anchor evolve genius charge sing',
 	balance: '0',
 	delegateName: 'genesis_100',
 };
 
 // Genesis account, initially holding 100M total supply
 accounts.genesis = {
-	address: '11237980039345381032L',
-	publicKey: '5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+	address: '5059876081639179984L',
+	publicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 	passphrase:
-		'creek own stem final gate scrub live shallow stage host concert they',
+		'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready',
 	balance: '10000000000000000',
 	encryptedPassphrase:
-		'iterations=10&cipherText=fed1fafa3db12ce02edccd2b3fb146fe85efcaced39e65a1d0068ea85c71185d3d4ebba1d15c239bc776bf06f5becf8c4bbe315dea71bd55d78b531f53557a83f85a981a&iv=0cc30f08e077d36733f8a623&salt=30d359df955aaa6686050a07688b001a&tag=16be3c63fd6985a3a5202beb2cca1121&version=1',
+		'iterations=10&cipherText=6541c04d7a46eacd666c07fbf030fef32c5db324466e3422e59818317ac5d15cfffb80c5f1e2589eaa6da4f8d611a94cba92eee86722fc0a4015a37cff43a5a699601121fbfec11ea022&iv=141edfe6da3a9917a42004be&salt=f523bba8316c45246c6ffa848b806188&tag=4ffb5c753d4a1dc96364c4a54865521a&version=1',
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
