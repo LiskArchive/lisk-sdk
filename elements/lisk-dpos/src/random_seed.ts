@@ -138,33 +138,14 @@ export const generateRandomSeeds = (
 	// Middle range of a round to validate
 	// tslint:disable-next-line:no-magic-numbers
 	const middleThreshold = Math.floor(rounds.blocksPerRound / 2);
-	const lastBlockHeight = Math.min(
-		rounds.calcRoundEndHeight(round),
-		headers[headers.length - 1].height,
-	);
-	const currentRound = rounds.calcRoundStartHeight(lastBlockHeight);
+	const currentRound = round;
+	const lastBlockHeight = headers[headers.length - 1].height;
 	const startOfCurrentRound = rounds.calcRoundStartHeight(currentRound);
 	const middleOfCurrentRound = rounds.calcRoundMiddleHeight(currentRound);
 	const startOfLastRound = rounds.calcRoundStartHeight(currentRound - 1);
 	const endOfLastRound = rounds.calcRoundEndHeight(currentRound - 1);
 	// tslint:disable-next-line:no-magic-numbers
 	const startOfSecondLastRound = rounds.calcRoundStartHeight(currentRound - 2);
-
-	/**
-	 * We need to build a map for current and last two rounds. To previously forged
-	 * blocks we will use only current and last round. To validate seed reveal of
-	 * any block from last round we have to load second last round as well.
-	 */
-	const headersMap = headers.reduce(
-		(acc: HeadersMap, header: BlockHeader): HeadersMap => {
-			if (header.height >= startOfSecondLastRound) {
-				acc[header.height] = header;
-			}
-
-			return acc;
-		},
-		{},
-	);
 
 	if (lastBlockHeight < middleOfCurrentRound) {
 		throw new Error(
@@ -180,6 +161,25 @@ export const generateRandomSeeds = (
 
 		return [randomSeed1ForFirstRound, randomSeed2ForFirstRound];
 	}
+
+	/**
+	 * We need to build a map for current and last two rounds. To previously forged
+	 * blocks we will use only current and last round. To validate seed reveal of
+	 * any block from last round we have to load second last round as well.
+	 */
+	const headersMap = headers.reduce(
+		(acc: HeadersMap, header: BlockHeader): HeadersMap => {
+			if (
+				header.height >= startOfSecondLastRound &&
+				header.height <= middleOfCurrentRound
+			) {
+				acc[header.height] = header;
+			}
+
+			return acc;
+		},
+		{},
+	);
 
 	// From middle of current round to middle of last round
 	const seedRevealsForRandomSeed1 = selectSeedReveals({
