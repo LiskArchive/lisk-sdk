@@ -36,6 +36,23 @@
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
+					"height": 300000,
+					"maxHeightPreviouslyForged": 90000,
+					"maxHeightPrevoted": 100000,
+					"numberOfTransactions": 0,
+					"totalAmount": "0",
+					"totalFee": "10000000000",
+					"reward": "10000000000",
+					"payloadLength": 0,
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"blockSignature": "d87f2eafb2f8022d4a1171fa5735466f5fa5749dfc6d2a3978d69d266aadfe4929a65925daaf380c1323d34049bc0aef5d5ad12916ab137c8829ef42f12d400b"
+				},
+				"header2": {
+					"version": 2,
+					"timestamp": 3000000,
+					"previousBlockId": "10620616195853047363",
+					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 200000,
 					"maxHeightPreviouslyForged": 100000,
 					"maxHeightPrevoted": 100000,
@@ -46,30 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "ef65ebf62b61f0ec1d76ed535554a64169ef6e70ef9ba528a05a4481301ac27a2f3b7a974b35431902117f08756fc76db1529281d29ed4b00e40bc1a6bd1cd0d"
-				},
-				"header2": {
-					"version": 2,
-					"timestamp": 3000000,
-					"previousBlockId": "10620616195853047363",
-					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 300000,
-					"maxHeightPreviouslyForged": 100000,
-					"maxHeightPrevoted": 100000,
-					"numberOfTransactions": 0,
-					"totalAmount": "0",
-					"totalFee": "10000000000",
-					"reward": "10000000000",
-					"payloadLength": 0,
-					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "884fbb5d12ea5e66c9a7855d83055ad1e0086807d95483a195125b8810545996c3f12f0403295eecad8dcfc8d97cb4d7003a96f5dabb52684a3777f74198f601"
+					"blockSignature": "c86e638c27d39c033cc8bb107c5a5a19f6e95361314d2d74b715d96ddfac6d156ea77d798dbd34203920e33525c5645ac01931043e3c0021a6da068048fa770a"
 				}
 			},
 			"signatures": [
-				"3dfc56c95ac557a15f12a52463b99b0626b93ba5acf73e04754592420fc14e14eb5d1f9fbc512b2a03761a118fa094e7761e391e2c85ae8c19bce49c29e62b0e"
+				"9cfbd524febf6b5d416921f5b6f1c0d003b6d561339383750fcef20ff26a0b20fd37412bb9dc030fa64b628c8e0a6624f76728205b218f34057522904d5a0e02"
 			],
-			"id": "13601767616640125548"
+			"id": "7297191189562708508"
 		}
 	}
 }
