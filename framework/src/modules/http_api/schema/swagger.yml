@@ -19,18 +19,18 @@ info:
     # Welcome!
 
     ## Access restrictions
-    The API endpoints are by default restricted to a whitelist of IPs that can be found in the [Control API access](https://lisk.io/documentation/lisk-core/3.0.0/management/api-access.html) section.
-    If it is required for your API to be accessible by the public, this can be achieved by changing `api.access.public` to `true`.
+    The API endpoints are by default restricted to a whitelist of IPs that can be found under `modules.http_api.access.whiteList` in the config.
+    If it is required for your API to be accessible by the public, this can be achieved by changing `modules.http_api.access.public` to `true`.
     This will allow anyone to make requests to your Lisk Core node.
     However some endpoints will stay private, hence this means that only a list of whitelisted IPs can successfully make API calls to that particular endpoint;
     this includes all forging related API calls.
-    By default, only the nodes' local IP is also included in the whitelist, nevertheless it is possible to change the setting in `config` in the API specification section [`forging status of a delegate`](https://lisk.io/documentation/lisk-sdk/reference/api.html#_description_11).
-    For more details, see the descriptions at the respective endpoint.
+    By default, only the nodes' local IP is also included in the whitelist, nevertheless it is possible to change the setting in `config` under `modules.http_api.forging.access.whiteList`.
+    For more details, see the [Lisk Core management docs](https://lisk.io/documentation/lisk-core/3.0.0/management/) or the descriptions at the respective endpoint below.
 
     ## Requests
     Chained filter parameters are logically connected with `AND`.
     `HTTP` is the supported URL schema by default.
-    To enable `HTTPS`, please adjust the [`ssl`](https://lisk.io/documentation/lisk-sdk/reference/api.html#_requests) in the API specification section.
+    To enable `HTTPS`, please adjust the `modules.ssl` section in the config.
 
     ## Responses
     The general response format is JSON (`application/json`).
