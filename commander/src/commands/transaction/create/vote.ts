@@ -127,15 +127,17 @@ export default class VoteCommand extends BaseCommand {
 		const votesObjects = votes.map(vote => {
 			const voteArr = vote.split(',');
 
-			if (!targetAddresses.includes(voteArr[0])) {
-				targetAddresses.push(voteArr[0]);
+                      const [delegateAddress, amount] = voteArr;
+                      
+			if (!targetAddresses.includes(delegateAddress)) {
+				targetAddresses.push(delegateAddress);
 			} else {
 				throw new Error('Delegate address must be unique.');
 			}
 
 			return {
-				delegateAddress: voteArr[0],
-				amount: voteArr[1],
+				delegateAddress,
+				amount,
 			};
 		});
 
