@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { hash, hexToBuffer, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import {
@@ -33,6 +33,7 @@ import {
 } from './types';
 
 const debug = Debug('lisk:dpos:delegate_list');
+const SIZE_UINT64 = 8;
 
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
@@ -44,6 +45,12 @@ interface DelegatesListConstructor {
 	readonly exceptions: {
 		readonly ignoreDelegateListCacheForRounds?: ReadonlyArray<number>;
 	};
+}
+
+interface DelegateListWithRoundHash {
+	readonly address: string;
+	// tslint:disable-next-line readonly-keyword
+	roundHash: Buffer;
 }
 
 export const getForgersList = async (
@@ -150,6 +157,39 @@ export const shuffleDelegateListForRound = (
 	}
 
 	return delegateList;
+};
+
+export const shuffleDelegateListBasedOnRandomSeed = (
+	previousRoundSeed1: string,
+	addresses: ReadonlyArray<string>,
+): ReadonlyArray<string> => {
+	const delegateList = [...addresses].map(delegate => ({
+		address: delegate,
+	})) as DelegateListWithRoundHash[];
+
+	for (const delegate of delegateList) {
+		// tslint:disable-next-line:no-magic-numbers
+		const addressBuffer = intToBuffer(
+			delegate.address.slice(0, -1),
+			SIZE_UINT64,
+		);
+		const seedSource = Buffer.concat([
+			hexToBuffer(previousRoundSeed1),
+			addressBuffer,
+		]);
+		delegate.roundHash = hash(seedSource);
+	}
+
+	delegateList.sort((delegate1, delegate2) => {
+		const diff = delegate1.roundHash.compare(delegate2.roundHash);
+		if (diff !== 0) {
+			return diff;
+		}
+
+		return delegate1.address.localeCompare(delegate2.address, 'en');
+	});
+
+	return delegateList.map(delegate => delegate.address);
 };
 
 /**
