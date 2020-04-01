@@ -149,7 +149,7 @@ describe('forger', () => {
 						true,
 					),
 				).rejects.toThrow(
-					'Delegate with publicKey: 5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca not found',
+					'Delegate with publicKey: 0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a not found',
 				);
 			});
 
@@ -787,7 +787,7 @@ describe('forger', () => {
 				);
 
 				await forgeModule.loadDelegates();
-				expect(Object.keys(forgeModule.keypairs)).toHaveLength(101);
+				expect(Object.keys(forgeModule.keypairs)).toHaveLength(103);
 			});
 
 			it('should update registered hash onion when seed is different', async () => {

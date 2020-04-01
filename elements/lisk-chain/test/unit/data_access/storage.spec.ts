@@ -33,7 +33,7 @@ describe('data access - storage', () => {
 
 	const defaultAccounts = [
 		{ publicKey: '1L', address: '1276152240083265771L', balance: '100' },
-		{ publicKey: '2L', address: '11237980039345381032L', balance: '555' },
+		{ publicKey: '2L', address: '5059876081639179984L', balance: '555' },
 	];
 
 	const defaultTransactions = [
