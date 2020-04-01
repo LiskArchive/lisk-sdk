@@ -68,6 +68,7 @@ describe('Vote weight snapshot', () => {
 				totalFee: BigInt(100000000),
 				seedReveal: '',
 				transactions: [],
+				seedReveal: '00000000000000000000000000000000',
 			} as Block;
 			stateStore = new StateStoreMock([...delegates]);
 		});
@@ -109,6 +110,7 @@ describe('Vote weight snapshot', () => {
 				totalFee: BigInt(100000000),
 				seedReveal: '',
 				transactions: [],
+				seedReveal: '00000000000000000000000000000000',
 			} as Block;
 			stateStore = new StateStoreMock([forgers[0], ...delegates]);
 			jest.spyOn(stateStore.consensus, 'set');
@@ -158,6 +160,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
@@ -260,6 +263,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
 
@@ -358,6 +362,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
@@ -456,6 +461,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
@@ -561,6 +567,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
@@ -663,6 +670,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
@@ -757,6 +765,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
 
@@ -853,6 +862,7 @@ describe('Vote weight snapshot', () => {
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
@@ -935,6 +945,7 @@ describe('Vote weight snapshot', () => {
 					totalFee: BigInt(100000000),
 					seedReveal: '',
 					transactions: [],
+					seedReveal: '00000000000000000000000000000000',
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
 

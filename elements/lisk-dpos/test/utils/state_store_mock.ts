@@ -22,7 +22,7 @@ interface AccountStoreMock {
 interface ConsensusStateStoreMock {
 	get: (address: string) => Promise<string | undefined>;
 	set: (key: string, v: string) => void;
-	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 
 interface ConsensusState {
@@ -49,6 +49,7 @@ export class StateStoreMock {
 		this.accountData = initialAccount
 			? initialAccount.map(a => ({ ...a }))
 			: [];
+
 		this.consensusStateData = initialState ? { ...initialState } : {};
 
 		this.account = {
