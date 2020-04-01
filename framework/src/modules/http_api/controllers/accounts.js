@@ -34,6 +34,7 @@ function accountFormatter(totalSupply, account) {
 		'nonce',
 		'asset',
 		'keys',
+		'votes',
 	]);
 
 	if (account.isDelegate) {
@@ -91,6 +92,7 @@ AccountsController.getAccounts = async (context, next) => {
 	try {
 		const lastBlock = await channel.invoke('app:getLastBlock');
 		const accounts = await storage.entities.Account.get(filters, options);
+
 		const data = accounts.map(
 			accountFormatter.bind(
 				null,
