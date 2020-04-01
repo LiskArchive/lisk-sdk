@@ -102,7 +102,7 @@ export class Dpos {
 	public async getForgerAddressesForRound(
 		round: number,
 	): Promise<ReadonlyArray<string>> {
-		return this.delegatesList.getShuffledDelegateList(round);
+		return this.delegatesList.getDelegateList(round);
 	}
 
 	public async onBlockFinalized(

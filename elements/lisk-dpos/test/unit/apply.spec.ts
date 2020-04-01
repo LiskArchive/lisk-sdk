@@ -257,7 +257,7 @@ describe('dpos.apply()', () => {
 			expect(missedBlocks).toEqual(1);
 		});
 
-		it('should save next round forgers in frogers list after applying last block of round', async () => {
+		it('should save next round forgers in forgers list after applying last block of round', async () => {
 			// Arrange
 			const currentRound = dpos.rounds.calcRound(
 				lastBlockOfTheRoundNine.height,

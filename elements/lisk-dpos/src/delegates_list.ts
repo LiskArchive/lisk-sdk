@@ -411,10 +411,10 @@ export class DelegatesList {
 		}
 
 		const delegates = activeDelegateAddresses.concat(standbyDelegateAddresses);
-		const shuffuledDelegates = shuffleDelegateList(randomSeed[0], delegates);
+		const shuffledDelegates = shuffleDelegateList(randomSeed[0], delegates);
 		const forgerList = {
 			round,
-			delegates: shuffuledDelegates,
+			delegates: shuffledDelegates,
 			standby: standbyDelegateAddresses,
 		};
 		const forgersList = await getForgersList(stateStore);
@@ -427,9 +427,7 @@ export class DelegatesList {
 		_setForgersList(stateStore, forgersList);
 	}
 
-	public async getShuffledDelegateList(
-		round: number,
-	): Promise<ReadonlyArray<string>> {
+	public async getDelegateList(round: number): Promise<ReadonlyArray<string>> {
 		const forgersListStr = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_FORGERS_LIST_KEY,
 		);
@@ -451,7 +449,7 @@ export class DelegatesList {
 		const currentSlot = this.chain.slots.getSlotNumber(block.timestamp);
 		const currentRound = this.rounds.calcRound(block.height);
 
-		const delegateList = await this.getShuffledDelegateList(currentRound);
+		const delegateList = await this.getDelegateList(currentRound);
 
 		if (!delegateList.length) {
 			throw new Error(
