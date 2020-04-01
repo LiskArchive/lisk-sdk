@@ -37,45 +37,31 @@ describe('Proof-of-misbehavior transaction', () => {
 	});
 
 	describe('applyAsset', () => {
-		it.todo('should add reward to balance of the sender', async () => {});
-		it.todo(
-			'should deduct reward to balance of the misbehaving delegate',
-		);
+		it.todo('should add reward to balance of the sender');
+		it.todo('should deduct reward to balance of the misbehaving delegate');
 
 		it.todo(
 			'should append height h to pomHeights property of misbehaving account',
 		);
 
-		it.todo(
-			'should set isBanned property to true is pomHeights.length === 5',
-		);
+		it.todo('should set isBanned property to true is pomHeights.length === 5');
 
-		it.todo(
-			'should return errors if misbehaving account is not a delegate',
-		);
+		it.todo('should return errors if misbehaving account is not a delegate');
 
-		it.todo(
-			'should return errors if misbehaving account is already banned',
-		);
+		it.todo('should return errors if misbehaving account is already banned');
 
 		it.todo(
 			'should return errors if misbehaving account is already punished at height h',
 		);
 
-		it.todo(
-			'should return errors if |header1.height - h >= 260000|',
-		);
+		it.todo('should return errors if |header1.height - h >= 260000|');
 
-		it.todo(
-			'should return errors if |header2.height - h >= 260000|',
-		);
+		it.todo('should return errors if |header2.height - h >= 260000|');
 	});
 
 	describe('undoAsset', () => {
-		it.todo('should deduct reward to balance of the sender',);
-		it.todo(
-			'should add reward to balance of the misbehaving delegate',
-		);
+		it.todo('should deduct reward to balance of the sender');
+		it.todo('should add reward to balance of the misbehaving delegate');
 
 		it.todo(
 			'should remove height h from pomHeights property of misbehaving account',
