@@ -40,9 +40,6 @@ export const accountDefaultValues = {
 	},
 	// TODO: Remove once new DPoS implementation is done
 	missedBlocks: 0,
-	voteWeight: '0',
-	nameExist: false,
-	votedDelegatesPublicKeys: [],
 	isDelegate: 0,
 };
 
@@ -84,11 +81,8 @@ export class Account {
 		numberOfSignatures: number;
 	};
 	// TODO: Remove once new DPoS implementation is done
-	public voteWeight: bigint;
 	public missedBlocks: number;
 	public isDelegate: number;
-	public votedDelegatesPublicKeys: string[];
-	public nameExist: boolean;
 
 	public constructor(accountInfo: AccountJSON) {
 		this.address = accountInfo.address;
@@ -136,12 +130,9 @@ export class Account {
 			numberOfSignatures: accountInfo.keys?.numberOfSignatures || 0,
 		};
 
-		// TODO: Remove once new DPoS implementation is done
+		// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
 		this.missedBlocks = accountInfo.missedBlocks;
 		this.isDelegate = accountInfo.isDelegate;
-		this.voteWeight = BigInt(accountInfo.voteWeight ?? 0);
-		this.nameExist = accountInfo.nameExist;
-		this.votedDelegatesPublicKeys = accountInfo.votedDelegatesPublicKeys ?? [];
 	}
 
 	public static getDefaultAccount = (address: string): Account =>
@@ -184,16 +175,9 @@ export class Account {
 				optionalKeys: this.keys.optionalKeys,
 				numberOfSignatures: this.keys.numberOfSignatures,
 			},
-			// TODO: Remove once new DPoS implementation is done
+			// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
 			isDelegate: this.isDelegate,
 			missedBlocks: this.missedBlocks,
-			voteWeight: this.voteWeight.toString(),
-			nameExist: this.nameExist,
-			votedDelegatesPublicKeys:
-				this.votedDelegatesPublicKeys.length < 1
-					? // tslint:disable-next-line:no-null-keyword
-					  null
-					: this.votedDelegatesPublicKeys,
 		};
 	}
 }

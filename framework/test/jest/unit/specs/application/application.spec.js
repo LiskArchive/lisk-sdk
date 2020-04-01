@@ -51,7 +51,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
-	const frameworkTxTypes = ['8', '10', '11', '12', '13', '14'];
+	const frameworkTxTypes = ['8', '10', '12', '13', '14'];
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),

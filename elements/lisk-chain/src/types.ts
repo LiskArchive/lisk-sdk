@@ -64,12 +64,9 @@ export interface AccountJSON {
 		readonly pomHeights: number[];
 	};
 
-	// TODO: Remove once new DPoS implementation is done
+	// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
 	readonly missedBlocks: number;
 	readonly isDelegate: number;
-	readonly voteWeight: string;
-	readonly nameExist: boolean;
-	readonly votedDelegatesPublicKeys: string[] | null;
 }
 
 export interface Context {
@@ -274,20 +271,6 @@ export interface Storage {
 		readonly ConsensusState: ConsensusStateEntity;
 		readonly TempBlock: TempBlockStorageEntity;
 	};
-}
-
-export interface ExceptionOptions {
-	readonly senderPublicKey?: ReadonlyArray<string>;
-	readonly signatures?: ReadonlyArray<string>;
-	readonly transactionWithNullByte?: ReadonlyArray<string>;
-	readonly multisignatures?: ReadonlyArray<string>;
-	readonly votes?: ReadonlyArray<string>;
-	readonly inertTransactions?: ReadonlyArray<string>;
-	readonly roundVotes?: ReadonlyArray<string>;
-	readonly blockRewards?: ReadonlyArray<string>;
-	readonly recipientLeadingZero?: { readonly [key: string]: string };
-	readonly recipientExceedingUint64?: { readonly [key: string]: string };
-	readonly duplicatedSignatures?: { readonly [key: string]: string };
 }
 
 export type WriteableTransactionResponse = {

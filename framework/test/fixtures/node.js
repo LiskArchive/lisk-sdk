@@ -44,7 +44,6 @@ const nodeOptions = {
 	forging: {
 		waitThreshold: 2,
 	},
-	exceptions: {},
 	constants: {
 		activeDelegates: 101,
 		blockSlotWindow: 5,

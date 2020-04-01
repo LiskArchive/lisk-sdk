@@ -145,12 +145,10 @@ class PgHelper {
 			"delegate",
 			"asset",
 			"keys",
-			"nameexist" as "nameExist",
 			"missedBlocks",
 			"producedBlocks",
 			"fees",
 			"rewards",
-			"voteWeight",
 			case
 			when
 				"producedBlocks" + "missedBlocks" = 0 then 0

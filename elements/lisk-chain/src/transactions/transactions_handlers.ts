@@ -23,32 +23,14 @@ import { DataAccess } from '../data_access';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
-	ExceptionOptions,
 	MatcherTransaction,
 	WriteableTransactionResponse,
 } from '../types';
 
-import * as exceptionsHandlers from './exceptions_handlers';
-import * as votesWeight from './votes_weight';
-
-export const validateTransactions = (exceptions?: ExceptionOptions) => (
+export const validateTransactions = () => (
 	transactions: ReadonlyArray<BaseTransaction>,
-): ReadonlyArray<TransactionResponse> => {
-	const transactionsResponses = transactions.map(transaction =>
-		transaction.validate(),
-	);
-
-	const invalidTransactionResponses = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
-		invalidTransactionResponses,
-		transactions,
-		exceptions,
-	);
-
-	return transactionsResponses;
-};
+): ReadonlyArray<TransactionResponse> =>
+	transactions.map(transaction => transaction.validate());
 
 export const applyGenesisTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
@@ -59,13 +41,9 @@ export const applyGenesisTransactions = () => async (
 		await transaction.prepare(stateStore);
 	}
 
-	await votesWeight.prepare(stateStore, transactions);
-
 	const transactionsResponses: TransactionResponse[] = [];
 	for (const transaction of transactions) {
 		const transactionResponse = await transaction.apply(stateStore);
-
-		await votesWeight.apply(stateStore, transaction);
 
 		// We are overriding the status of transaction because it's from genesis block
 		(transactionResponse as WriteableTransactionResponse).status =
@@ -76,7 +54,7 @@ export const applyGenesisTransactions = () => async (
 	return transactionsResponses;
 };
 
-export const applyTransactions = (exceptions?: ExceptionOptions) => async (
+export const applyTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<TransactionResponse>> => {
@@ -85,23 +63,10 @@ export const applyTransactions = (exceptions?: ExceptionOptions) => async (
 		await transaction.prepare(stateStore);
 	}
 
-	await votesWeight.prepare(stateStore, transactions);
-
 	const transactionsResponses: TransactionResponse[] = [];
 	for (const transaction of transactions) {
 		stateStore.account.createSnapshot();
 		const transactionResponse = await transaction.apply(stateStore);
-		if (transactionResponse.status !== TransactionStatus.OK) {
-			// Update transaction response mutates the transaction response object
-			exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
-				[transactionResponse],
-				transactions,
-				exceptions,
-			);
-		}
-		if (transactionResponse.status === TransactionStatus.OK) {
-			await votesWeight.apply(stateStore, transaction, exceptions);
-		}
 
 		if (transactionResponse.status !== TransactionStatus.OK) {
 			stateStore.account.restoreSnapshot();
@@ -177,7 +142,7 @@ export const checkAllowedTransactions = (contexter: Contexter) => (
 		};
 	});
 
-export const undoTransactions = (exceptions?: ExceptionOptions) => async (
+export const undoTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<TransactionResponse>> => {
@@ -186,24 +151,11 @@ export const undoTransactions = (exceptions?: ExceptionOptions) => async (
 		await transaction.prepare(stateStore);
 	}
 
-	await votesWeight.prepare(stateStore, transactions);
-
 	const transactionsResponses = [];
 	for (const transaction of transactions) {
 		const transactionResponse = await transaction.undo(stateStore);
-		await votesWeight.undo(stateStore, transaction, exceptions);
 		transactionsResponses.push(transactionResponse);
 	}
-
-	const nonUndoableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-
-	exceptionsHandlers.updateTransactionResponseForExceptionTransactions(
-		nonUndoableTransactionsResponse,
-		transactions,
-		exceptions,
-	);
 
 	return transactionsResponses;
 };

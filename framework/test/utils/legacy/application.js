@@ -56,13 +56,6 @@ const initNode = async (options, storageConfig) => {
 
 	const nodeOptions = {
 		...options,
-		exceptions: __testContext.config.app.node.exceptions,
-		// To register both v1 and v2 processors in Node
-		...{
-			exceptions: {
-				blockVersions: { 1: {}, 2: {} },
-			},
-		},
 		...nodeNetworkConfig,
 	};
 
