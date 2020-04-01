@@ -95,7 +95,6 @@ describe('block_synchronization_mechanism', () => {
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
 			registeredTransactions,
-			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,

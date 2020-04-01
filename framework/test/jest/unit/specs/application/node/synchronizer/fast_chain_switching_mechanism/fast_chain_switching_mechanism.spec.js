@@ -73,7 +73,6 @@ describe('fast_chain_switching_mechanism', () => {
 			blockReceiptTimeout: constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
-			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
