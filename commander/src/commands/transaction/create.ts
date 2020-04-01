@@ -31,8 +31,8 @@ interface TypeNumberMap {
 const typeNumberMap: TypeNumberMap = {
 	'8': 'transfer',
 	'10': 'delegate',
-	'11': 'vote',
 	'12': 'multisignature',
+	'13': 'vote',
 	'14': 'unlock',
 };
 
@@ -64,9 +64,11 @@ const resolveFlags = (
 	if (key === 'type') {
 		return accumulated;
 	}
+
 	if (typeof value === 'string') {
 		return [...accumulated, `--${key}`, value];
 	}
+
 	const boolKey = value === false ? `--no-${key}` : `--${key}`;
 
 	return [...accumulated, boolKey];
@@ -93,8 +95,6 @@ export default class CreateCommand extends BaseCommand {
 		}),
 		passphrase: flagParser.string(commonFlags.passphrase),
 		'no-signature': flagParser.boolean(commonFlags.noSignature),
-		votes: flagParser.string(commonFlags.votes),
-		unvotes: flagParser.string(commonFlags.unvotes),
 		networkIdentifier: flagParser.string(commonFlags.networkIdentifier),
 	};
 
