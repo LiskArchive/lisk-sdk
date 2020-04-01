@@ -16,23 +16,23 @@
 describe('Proof-of-misbehavior transaction', () => {
 	describe('validateAsset', () => {
 		it.todo(
-			'when header1.height is greater than or equal to header2.height but equal maxHeighPrevoted it should not return errors',
+			'when first height is greater than or equal to second height but equal maxHeighPrevoted it should not return errors',
 		);
 
 		it.todo(
-			'when header1.height is greater than header2.maxHeightPreviouslyForged it should not return errors',
+            'when height is greater than the second header\'s maxHeightPreviouslyForged it should not return errors',
 		);
 
 		it.todo(
-			'when header1.maxHeightPrevoted is greater than header2.maxHeightPrevoted it should not return errors',
+			'when maxHeightPrevoted is greater than ther second maxHeightPrevoted it should not return errors',
 		);
 
 		it.todo(
-			'when header1 is not contradicting header 2 it should return errors',
+			'when headers are not contradicting it should return errors',
 		);
 
 		it.todo(
-			'when block header 1 or 2 are not properly signed it should return errors',
+			'when headers are not properly signed it should return errors',
 		);
 	});
 
@@ -54,9 +54,9 @@ describe('Proof-of-misbehavior transaction', () => {
 			'should return errors if misbehaving account is already punished at height h',
 		);
 
-		it.todo('should return errors if |header1.height - h >= 260000|');
+		it.todo('should return errors if |header1.height - h| >= 260000');
 
-		it.todo('should return errors if |header2.height - h >= 260000|');
+		it.todo('should return errors if |header2.height - h| >= 260000');
 	});
 
 	describe('undoAsset', () => {
