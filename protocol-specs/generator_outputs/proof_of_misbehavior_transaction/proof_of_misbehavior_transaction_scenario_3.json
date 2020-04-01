@@ -23,50 +23,7 @@
 				"balance": "0",
 				"delegateName": "genesis_100"
 			},
-			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
-			"transaction": {
-				"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-				"nonce": "1",
-				"fee": "1500000000",
-				"type": 15,
-				"asset": {
-					"header1": {
-						"version": 1,
-						"timestamp": 1,
-						"previousBlockId": 1,
-						"seedReveal": "1",
-						"height": 200000,
-						"maxHeightPreviouslyForged": 100000,
-						"maxHeightPrevoted": 100001,
-						"numberOfTransactions": 0,
-						"totalAmount": 0,
-						"totalFee": 10000000000,
-						"reward": 10000000000,
-						"payloadLength": 0,
-						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"blockSignature": "ab3863feaecf88bffd11b57905197a5728796e64f0d02777a2e3b3234af8d0b53ff86ba50cca9f7decf1bec7f3c50fee4a9b6e50a4cff0e0eb70b6d63278e50d"
-					},
-					"header2": {
-						"version": 1,
-						"timestamp": 1,
-						"previousBlockId": 1,
-						"seedReveal": "1",
-						"height": 200000,
-						"maxHeightPreviouslyForged": 100000,
-						"maxHeightPrevoted": 100000,
-						"numberOfTransactions": 0,
-						"totalAmount": 0,
-						"totalFee": 10000000000,
-						"reward": 10000000000,
-						"payloadLength": 0,
-						"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-						"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-						"blockSignature": "a49845c20616cef0a8a973f722289371adec55499d0dab9192765aaa390c9046858d6a7e7e6c8e7ee30b45e8c287cbbeb85e10a0af74d3d9f9552d90267ee701"
-					}
-				},
-				"signatures": []
-			}
+			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255"
 		},
 		"output": {
 			"senderPublicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
@@ -75,44 +32,44 @@
 			"type": 15,
 			"asset": {
 				"header1": {
-					"version": 1,
-					"timestamp": 1,
-					"previousBlockId": 1,
-					"seedReveal": "1",
-					"height": 200000,
-					"maxHeightPreviouslyForged": 100000,
-					"maxHeightPrevoted": 100001,
-					"numberOfTransactions": 0,
-					"totalAmount": 0,
-					"totalFee": 10000000000,
-					"reward": 10000000000,
-					"payloadLength": 0,
-					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "ab3863feaecf88bffd11b57905197a5728796e64f0d02777a2e3b3234af8d0b53ff86ba50cca9f7decf1bec7f3c50fee4a9b6e50a4cff0e0eb70b6d63278e50d"
-				},
-				"header2": {
-					"version": 1,
-					"timestamp": 1,
-					"previousBlockId": 1,
-					"seedReveal": "1",
+					"version": 2,
+					"timestamp": 2000000,
+					"previousBlockId": "10620616195853047363",
+					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 200000,
 					"maxHeightPreviouslyForged": 100000,
 					"maxHeightPrevoted": 100000,
 					"numberOfTransactions": 0,
-					"totalAmount": 0,
-					"totalFee": 10000000000,
-					"reward": 10000000000,
+					"totalAmount": "0",
+					"totalFee": "10000000000",
+					"reward": "10000000000",
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "a49845c20616cef0a8a973f722289371adec55499d0dab9192765aaa390c9046858d6a7e7e6c8e7ee30b45e8c287cbbeb85e10a0af74d3d9f9552d90267ee701"
+					"blockSignature": "ef65ebf62b61f0ec1d76ed535554a64169ef6e70ef9ba528a05a4481301ac27a2f3b7a974b35431902117f08756fc76db1529281d29ed4b00e40bc1a6bd1cd0d"
+				},
+				"header2": {
+					"version": 2,
+					"timestamp": 2000000,
+					"previousBlockId": "10620616195853047363",
+					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
+					"height": 300000,
+					"maxHeightPreviouslyForged": 100000,
+					"maxHeightPrevoted": 100001,
+					"numberOfTransactions": 0,
+					"totalAmount": "0",
+					"totalFee": "10000000000",
+					"reward": "10000000000",
+					"payloadLength": 0,
+					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
+					"blockSignature": "91ff3195769f23a56aef8c250ce898ec0aa9e49e1364ff90491eb0f7750766aea492d6c766778b6c5eb62a21dda6b1ce6cc54f3694c4998b06ad11e1e33de70f"
 				}
 			},
 			"signatures": [
-				"78b2752c2971c4e04128245538cc51297d25852c2fb5a1abd406f1e7a561ca459cd995fe6d463f597a734ac6a6845c50fb1902282646d2ef9999d16b66e6c608"
+				"dc1c60407dca39374447706f13b60adb64673f1e8a1e90f9e3d0d9fe0414728185fb7f74d936b0789ef353e366bdb378d6ea04b0739fa24de0ea410c9bba7d01"
 			],
-			"id": "5595563147270784471"
+			"id": "14546744943603046680"
 		}
 	}
 }

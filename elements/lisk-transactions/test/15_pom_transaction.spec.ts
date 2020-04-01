@@ -14,20 +14,91 @@
  */
 
 describe('Proof-of-misbehavior transaction', () => {
-    describe('validateAsset', () => {
-        it.todo('when header1.height is greater than or equal to header2.height but equal maxHeighPrevoted it should not return errors', async () => {});
+	describe('validateAsset', () => {
+		it.todo(
+			'when header1.height is greater than or equal to header2.height but equal maxHeighPrevoted it should not return errors',
+			async () => {},
+		);
 
-        it.todo('when header1.height is greater than header2.maxHeightPreviouslyForged it should not return errors', async () => {});
+		it.todo(
+			'when header1.height is greater than header2.maxHeightPreviouslyForged it should not return errors',
+			async () => {},
+		);
 
-        it.todo('when header1.maxHeightPrevoted is greater than header2.maxHeightPrevoted it should not return errors', async () => {});
+		it.todo(
+			'when header1.maxHeightPrevoted is greater than header2.maxHeightPrevoted it should not return errors',
+			async () => {},
+		);
 
-        it.todo('when header1 is not contradicting header 2 it should return errors', async () => {});
-    });
+		it.todo(
+			'when header1 is not contradicting header 2 it should return errors',
+			async () => {},
+		);
 
-    describe('applyAsset', () => {
-        describe('asset block headers are contradicting', async () => {
-            it.todo('should add reward to balance of the sender', async () => {});
-            it.todo('should deduct reward to balance of the misbehaving delegate', async () => {});
-        });
-    });
+		it.todo(
+			'when block header 1 or 2 are not properly signed it should return errors',
+			async () => {},
+		);
+	});
+
+	describe('applyAsset', () => {
+		it.todo('should add reward to balance of the sender', async () => {});
+		it.todo(
+			'should deduct reward to balance of the misbehaving delegate',
+			async () => {},
+		);
+
+		it.todo(
+			'should append height h to pomHeights property of misbehaving account',
+			async () => {},
+		);
+
+		it.todo(
+			'should set isBanned property to true is pomHeights.length === 5',
+			async () => {},
+		);
+
+		it.todo(
+			'should return errors if misbehaving account is not a delegate',
+			async () => {},
+		);
+
+		it.todo(
+			'should return errors if misbehaving account is already banned',
+			async () => {},
+		);
+
+		it.todo(
+			'should return errors if misbehaving account is already punished at height h',
+			async () => {},
+		);
+
+		it.todo(
+			'should return errors if |header1.height - h >= 260000|',
+			async () => {},
+		);
+
+		it.todo(
+			'should return errors if |header2.height - h >= 260000|',
+			async () => {},
+		);
+	});
+
+	describe('undoAsset', () => {
+		it.todo('should deduct reward to balance of the sender', async () => {});
+		it.todo(
+			'should add reward to balance of the misbehaving delegate',
+			async () => {},
+		);
+
+		it.todo(
+			'should remove height h from pomHeights property of misbehaving account',
+			async () => {},
+		);
+
+		it.todo(
+			'should set isBanned property to false is pomHeights.length becomes less than 5',
+			async () => {},
+		);
+	});
 });

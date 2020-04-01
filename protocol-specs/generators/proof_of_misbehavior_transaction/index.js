@@ -126,7 +126,12 @@ const getBytes = block => {
 };
 
 const sign = (block, privateKey) =>
-	signDataWithPrivateKey(hash(getBytes(block)), Buffer.from(privateKey, 'hex'));
+	signDataWithPrivateKey(
+		hash(
+			Buffer.concat([Buffer.from(networkIdentifier, 'hex'), getBytes(block)]),
+		),
+		Buffer.from(privateKey, 'hex'),
+	);
 
 const getId = transactionBytes => {
 	const transactionHash = hash(transactionBytes);
@@ -201,17 +206,17 @@ const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(
 */
 
 const scenario1Header1 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
-	height: 300000,
+	version: 2,
+	timestamp: 2000000,
+	previousBlockId: '10620616195853047363',
+	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
+	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
+	totalAmount: '0',
+	totalFee: '10000000000',
+	reward: '10000000000',
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
@@ -224,17 +229,17 @@ scenario1Header1.blockSignature = sign(
 );
 
 const scenario1Header2 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
-	height: 200000,
+	version: 2,
+	timestamp: 3000000,
+	previousBlockId: '10620616195853047363',
+	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
+	height: 300000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
+	totalAmount: '0',
+	totalFee: '10000000000',
+	reward: '10000000000',
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
@@ -286,7 +291,6 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 			reportingAccount: accounts.reporter,
 			targetAccount: accounts.forger,
 			networkIdentifier,
-			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};
@@ -299,17 +303,17 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 */
 
 const scenario2Header1 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
+	version: 2,
+	timestamp: 2000000,
+	previousBlockId: '10620616195853047363',
+	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
+	totalAmount: '0',
+	totalFee: '10000000000',
+	reward: '10000000000',
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
@@ -322,17 +326,17 @@ scenario2Header1.blockSignature = sign(
 );
 
 const scenario2Header2 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
+	version: 2,
+	timestamp: 2000000,
+	previousBlockId: '10620616195853047363',
+	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 200000,
 	maxHeightPreviouslyForged: 100000,
 	maxHeightPrevoted: 50000,
 	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
+	totalAmount: '0',
+	totalFee: '10000000000',
+	reward: '10000000000',
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
@@ -384,7 +388,6 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 			reportingAccount: accounts.reporter,
 			targetAccount: accounts.forger,
 			networkIdentifier,
-			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};
@@ -397,17 +400,17 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 */
 
 const scenario3Header1 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
+	version: 2,
+	timestamp: 2000000,
+	previousBlockId: '10620616195853047363',
+	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 200000,
 	maxHeightPreviouslyForged: 100000,
-	maxHeightPrevoted: 100001,
+	maxHeightPrevoted: 100000,
 	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
+	totalAmount: '0',
+	totalFee: '10000000000',
+	reward: '10000000000',
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
@@ -420,17 +423,17 @@ scenario3Header1.blockSignature = sign(
 );
 
 const scenario3Header2 = {
-	version: 1,
-	timestamp: 1,
-	previousBlockId: 1,
-	seedReveal: '1',
-	height: 200000,
+	version: 2,
+	timestamp: 2000000,
+	previousBlockId: '10620616195853047363',
+	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
+	height: 300000,
 	maxHeightPreviouslyForged: 100000,
-	maxHeightPrevoted: 100000,
+	maxHeightPrevoted: 100001,
 	numberOfTransactions: 0,
-	totalAmount: 0,
-	totalFee: 10000000000,
-	reward: 10000000000,
+	totalAmount: '0',
+	totalFee: '10000000000',
+	reward: '10000000000',
 	payloadLength: 0,
 	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
@@ -482,7 +485,6 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 			reportingAccount: accounts.reporter,
 			targetAccount: accounts.forger,
 			networkIdentifier,
-			transaction: unsignedTransaction,
 		},
 		output: tx,
 	};
