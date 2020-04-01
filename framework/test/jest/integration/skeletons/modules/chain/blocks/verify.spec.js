@@ -70,7 +70,7 @@ describe('blocks/verify', () => {
 		);
 
 		it.todo(
-			'should fail when transactions length > maxTransactionsPerBlock constant value',
+			'should fail when transactions length > maxPayloadLength constant value',
 		);
 
 		it.todo('should fail when a transaction is of an unknown type');

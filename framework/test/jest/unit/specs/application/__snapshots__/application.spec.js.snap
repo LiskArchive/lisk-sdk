@@ -5,9 +5,8 @@ Object {
   "app": Object {
     "genesisConfig": Object {
       "blockTime": 10,
-      "delegateListRoundOffset": 2,
       "epochTime": "2016-05-24T17:00:00.000Z",
-      "maxTransactionsPerBlock": 25,
+      "maxPayloadLength": 15360,
       "rewards": Object {
         "distance": 3000000,
         "milestones": Array [

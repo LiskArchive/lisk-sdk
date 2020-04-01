@@ -174,7 +174,7 @@ describe('Application', () => {
 			const customConfig = _.cloneDeep(config);
 
 			customConfig.app.genesisConfig = {
-				maxTransactionsPerBlock: 11,
+				maxPayloadLength: 15 * 1024,
 				epochTime: '2016-05-24T17:00:00.000Z',
 				blockTime: 2,
 				rewards: {
@@ -192,7 +192,7 @@ describe('Application', () => {
 
 			const app = new Application(genesisBlock, customConfig);
 
-			expect(app.constants.maxTransactionsPerBlock).toBe(11);
+			expect(app.constants.maxPayloadLength).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {

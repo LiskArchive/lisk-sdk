@@ -10,8 +10,7 @@
 		"genesisConfig": {
 			"epochTime": "2016-05-24T17:00:00.000Z",
 			"blockTime": 10,
-			"maxTransactionsPerBlock": 25,
-			"delegateListRoundOffset": 2,
+			"maxPayloadLength": 15360,
 			"rewards": {
 				"milestones": [
 					"500000000",
