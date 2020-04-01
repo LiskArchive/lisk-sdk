@@ -28,6 +28,7 @@ module.exports = {
 		'transactionTypes',
 		'unconfirmedTransactionTimeout',
 		'expiryInterval',
+		'delegateListRoundOffset',
 	],
 	properties: {
 		activeDelegates: {
@@ -140,6 +141,12 @@ module.exports = {
 			const: 30000,
 			description: 'Transaction pool expiry timer in milliseconds',
 		},
+		delegateListRoundOffset: {
+			type: 'number',
+			minimum: 0,
+			description:
+				'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - delegateListRoundOffset`',
+		},
 	},
 	additionalProperties: false,
 	default: {
@@ -163,5 +170,6 @@ module.exports = {
 		},
 		unconfirmedTransactionTimeout: 10800, // 1080 blocks
 		expiryInterval: 30000,
+		delegateListRoundOffset: 2,
 	},
 };

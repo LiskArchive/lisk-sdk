@@ -85,13 +85,7 @@ module.exports = {
 				genesisConfig: {
 					id: '#/app/genesisConfig',
 					type: 'object',
-					required: [
-						'epochTime',
-						'blockTime',
-						'maxPayloadLength',
-						'delegateListRoundOffset',
-						'rewards',
-					],
+					required: ['epochTime', 'blockTime', 'maxPayloadLength', 'rewards'],
 					properties: {
 						epochTime: {
 							type: 'string',
@@ -115,12 +109,6 @@ module.exports = {
 							minimum: 10 * 1024, // Kilo Bytes
 							maximum: 30 * 1024, // Kilo Bytes
 							description: 'Maximum number of transactions allowed per block',
-						},
-						delegateListRoundOffset: {
-							type: 'number',
-							minimum: 0,
-							description:
-								'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - delegateListRoundOffset`',
 						},
 						rewards: {
 							id: 'rewards',
@@ -556,7 +544,6 @@ module.exports = {
 				epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 				blockTime: 10,
 				maxPayloadLength: 15 * 1024, // Kilo Bytes
-				delegateListRoundOffset: 2,
 				rewards: {
 					milestones: [
 						'500000000', // Initial Reward
