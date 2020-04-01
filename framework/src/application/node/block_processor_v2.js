@@ -189,7 +189,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				if (!isBFTProtocolCompliant) {
 					expectedReward /= BigInt(4);
 				}
-				expectedReward = await this._punishDPoSViolation(block, stateStore);
+				const reward = await this._punishDPoSViolation(block, stateStore);
+				if (reward === 0) {
+					expectedReward = reward;
+				}
 				this.chainModule.validateBlockHeader(
 					block,
 					getBytes(block),
