@@ -13,9 +13,12 @@
  */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import * as Debug from 'debug';
 
 import { Rounds } from './rounds';
 import { BlockHeader, FixedLengthArray, RandomSeed } from './types';
+
+const debug = Debug('lisk:dpos:random_seed');
 
 interface HeadersMap {
 	// tslint:disable-next-line:readonly-keyword
@@ -154,6 +157,7 @@ export const generateRandomSeeds = (
 	}
 
 	if (currentRound === 1) {
+		debug('Returning static value because current round is 1');
 		const randomSeed1ForFirstRound = strippedHash(
 			numberToBuffer(middleThreshold + 1),
 		);
@@ -182,6 +186,10 @@ export const generateRandomSeeds = (
 	);
 
 	// From middle of current round to middle of last round
+	debug('Fetching seed reveals for random seed 1', {
+		fromHeight: startOfCurrentRound + middleThreshold,
+		toHeight: startOfCurrentRound - middleThreshold,
+	});
 	const seedRevealsForRandomSeed1 = selectSeedReveals({
 		fromHeight: startOfCurrentRound + middleThreshold,
 		toHeight: startOfCurrentRound - middleThreshold,
@@ -190,6 +198,10 @@ export const generateRandomSeeds = (
 	});
 
 	// From middle of current round to middle of last round
+	debug('Fetching seed reveals for random seed 2', {
+		fromHeight: endOfLastRound,
+		toHeight: startOfLastRound,
+	});
 	const seedRevealsForRandomSeed2 = selectSeedReveals({
 		fromHeight: endOfLastRound,
 		toHeight: startOfLastRound,
