@@ -65,6 +65,7 @@ describe('Vote weight snapshot', () => {
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				totalFee: BigInt(100000000),
+				seedReveal: '',
 				transactions: [],
 			} as Block;
 			stateStore = new StateStoreMock([...delegates]);
@@ -105,6 +106,7 @@ describe('Vote weight snapshot', () => {
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				totalFee: BigInt(100000000),
+				seedReveal: '',
 				transactions: [],
 			} as Block;
 			stateStore = new StateStoreMock([forgers[0], ...delegates]);
@@ -153,6 +155,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -248,6 +251,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
@@ -339,6 +343,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -430,6 +435,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -528,6 +534,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -623,6 +630,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -710,6 +718,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
@@ -797,6 +806,7 @@ describe('Vote weight snapshot', () => {
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
+					seedReveal: '',
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
 					transactions: [],
@@ -874,6 +884,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
