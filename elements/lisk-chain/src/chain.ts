@@ -93,7 +93,6 @@ interface ChainConstructor {
 	readonly blockReceiptTimeout: number; // Set default
 	readonly loadPerIteration: number;
 	readonly maxPayloadLength: number;
-	readonly activeDelegates: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
 	readonly rewardMilestones: ReadonlyArray<string>;
@@ -222,7 +221,6 @@ export class Chain {
 		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
 		readonly loadPerIteration: number;
-		readonly activeDelegates: number;
 		readonly blockSlotWindow: number;
 	};
 	private readonly events: EventEmitter;
@@ -242,7 +240,6 @@ export class Chain {
 		blockReceiptTimeout, // Set default
 		loadPerIteration,
 		maxPayloadLength,
-		activeDelegates,
 		rewardDistance,
 		rewardOffset,
 		rewardMilestones,
@@ -257,7 +254,6 @@ export class Chain {
 		this.storage = storage;
 		this.dataAccess = new DataAccess({
 			dbStorage: storage,
-			networkIdentifier,
 			registeredTransactions,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
@@ -288,7 +284,6 @@ export class Chain {
 			blockReceiptTimeout,
 			maxPayloadLength,
 			loadPerIteration,
-			activeDelegates,
 			blockSlotWindow,
 		};
 
@@ -409,7 +404,7 @@ export class Chain {
 		expectedReward: string,
 	): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
-		validateSignature(block, blockBytes);
+		validateSignature(block, blockBytes, this._networkIdentifier);
 		validateReward(block, expectedReward, this.exceptions);
 
 		// Validate transactions

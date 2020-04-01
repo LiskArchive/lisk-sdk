@@ -18,8 +18,9 @@ import { EventEmitter } from 'events';
 import { EVENT_ROUND_CHANGED } from './constants';
 import {
 	DelegatesList,
-	deleteDelegateListAfterRound,
-	getForgerPublicKeysForRound,
+	deleteForgersListAfterRound,
+	deleteVoteWeightsAfterRound,
+	getForgerAddressesForRound,
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
@@ -36,16 +37,19 @@ interface DelegatesInfoConstructor {
 	readonly chain: Chain;
 	readonly rounds: Rounds;
 	readonly activeDelegates: number;
+	readonly standbyDelegates: number;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
 }
 
 const _isGenesisBlock = (block: BlockHeader) => block.height === 1;
+const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 
 export class DelegatesInfo {
 	private readonly chain: Chain;
 	private readonly rounds: Rounds;
 	private readonly activeDelegates: number;
+	private readonly standbyDelegates: number;
 	private readonly events: EventEmitter;
 	private readonly delegatesList: DelegatesList;
 
@@ -53,12 +57,14 @@ export class DelegatesInfo {
 		rounds,
 		chain,
 		activeDelegates,
+		standbyDelegates,
 		events,
 		delegatesList,
 	}: DelegatesInfoConstructor) {
 		this.chain = chain;
 		this.rounds = rounds;
 		this.activeDelegates = activeDelegates;
+		this.standbyDelegates = standbyDelegates;
 		this.events = events;
 		this.delegatesList = delegatesList;
 	}
@@ -101,15 +107,23 @@ export class DelegatesInfo {
 				i <= intialRound + delegateListRoundOffset;
 				i += 1
 			) {
-				await this.delegatesList.createRoundDelegateList(i, stateStore);
+				// Height is 1, but to create round 1-3, round offset should start from 0 - 2
+				await this.delegatesList.createVoteWeightsSnapshot(
+					1,
+					stateStore,
+					i - 1,
+				);
 			}
+			await this.delegatesList.updateForgersList(
+				intialRound,
+				[zeroRandomSeed, zeroRandomSeed],
+				stateStore,
+			);
 
 			return false;
 		}
 
 		const round = this.rounds.calcRound(block.height);
-		// Now rewards and fees are distributed every block. Assuming the distrubution is already done
-		await this._updateVotedDelegatesVoteWeight(block, stateStore, undo);
 
 		// Below event should only happen at the end of the round
 		if (!this._isLastBlockOfTheRound(block)) {
@@ -126,7 +140,8 @@ export class DelegatesInfo {
 				newRound: round,
 			});
 			debug('Deleting delegate list after ', round + delegateListRoundOffset);
-			await deleteDelegateListAfterRound(
+			await deleteForgersListAfterRound(round, stateStore);
+			await deleteVoteWeightsAfterRound(
 				round + delegateListRoundOffset,
 				stateStore,
 			);
@@ -137,8 +152,15 @@ export class DelegatesInfo {
 				newRound: nextRound,
 			});
 			debug('Creating delegate list for', round + delegateListRoundOffset);
-			await this.delegatesList.createRoundDelegateList(
-				nextRound + delegateListRoundOffset,
+			// Creating voteWeight snapshot for next round + offset
+			await this.delegatesList.createVoteWeightsSnapshot(
+				block.height + 1,
+				stateStore,
+			);
+			await this.delegatesList.updateForgersList(
+				nextRound,
+				// TODO: Insert real random seed after https://github.com/LiskHQ/lisk-sdk/issues/4939
+				[zeroRandomSeed, zeroRandomSeed],
 				stateStore,
 			);
 		}
@@ -154,7 +176,7 @@ export class DelegatesInfo {
 		const round = this.rounds.calcRound(blockHeader.height);
 		debug('Calculating missed block', round);
 
-		const expectedForgingPublicKeys = await getForgerPublicKeysForRound(
+		const expectedForgingAddresses = await getForgerAddressesForRound(
 			round,
 			stateStore,
 		);
@@ -170,7 +192,10 @@ export class DelegatesInfo {
 		// The blocksInRounds does not contain the last block
 		blocksInRounds.push(blockHeader);
 
-		if (blocksInRounds.length !== this.activeDelegates) {
+		if (
+			blocksInRounds.length !==
+			this.activeDelegates + this.standbyDelegates
+		) {
 			throw new Error(
 				'Fetched blocks do not match the size of the active delegates',
 			);
@@ -180,45 +205,21 @@ export class DelegatesInfo {
 			block => block.generatorPublicKey,
 		);
 
-		const missedBlocksDelegatePublicKeys = expectedForgingPublicKeys.filter(
-			expectedPublicKey =>
-				!forgedPublicKeys.find(publicKey => publicKey === expectedPublicKey),
+		const missedBlocksDelegateAddresses = expectedForgingAddresses.filter(
+			expectedAddress =>
+				!forgedPublicKeys.find(
+					publicKey => getAddressFromPublicKey(publicKey) === expectedAddress,
+				),
 		);
 
-		if (!missedBlocksDelegatePublicKeys.length) {
+		if (!missedBlocksDelegateAddresses.length) {
 			return;
 		}
 
-		for (const publicKey of missedBlocksDelegatePublicKeys) {
-			const address = getAddressFromPublicKey(publicKey);
+		for (const address of missedBlocksDelegateAddresses) {
 			const account = await stateStore.account.get(address);
 			account.missedBlocks += undo ? -1 : 1;
 			stateStore.account.set(address, account);
-		}
-	}
-
-	private async _updateVotedDelegatesVoteWeight(
-		block: Block,
-		stateStore: StateStore,
-		undo?: boolean,
-	): Promise<void> {
-		const generator = await stateStore.account.get(
-			getAddressFromPublicKey(block.generatorPublicKey),
-		);
-		if (!generator.votedDelegatesPublicKeys.length) {
-			return;
-		}
-		for (const votedDelegatesPublicKey of generator.votedDelegatesPublicKeys) {
-			const delegate = await stateStore.account.get(
-				getAddressFromPublicKey(votedDelegatesPublicKey),
-			);
-			const { totalEarning } = this.chain.getTotalEarningAndBurnt(block);
-			if (!undo) {
-				delegate.voteWeight += totalEarning;
-			} else {
-				delegate.voteWeight -= totalEarning;
-			}
-			stateStore.account.set(delegate.address, delegate);
 		}
 	}
 

@@ -45,12 +45,11 @@ describe('fast_chain_switching_mechanism', () => {
 	let bftModule;
 	let blockProcessorV2;
 	let chainModule;
-	let dpos;
+	let dposModule;
 	let processorModule;
 	let fastChainSwitchingMechanism;
 
 	let channelMock;
-	let dposModuleMock;
 	let exceptions;
 	let loggerMock;
 	let dataAccessMock;
@@ -74,8 +73,6 @@ describe('fast_chain_switching_mechanism', () => {
 			blockReceiptTimeout: constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
-			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
-			activeDelegates: constants.activeDelegates,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
@@ -99,16 +96,17 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 		chainModule.dataAccess = dataAccessMock;
 
-		dpos = new Dpos({
+		dposModule = new Dpos({
 			chain: chainModule,
 			activeDelegates: constants.activeDelegates,
+			standbyDelegates: constants.standbyDelegates,
 			delegateListRoundOffset: constants.delegateListRoundOffset,
 			exceptions: {},
 		});
 
 		bftModule = new BFT({
 			chain: chainModule,
-			dpos,
+			dpos: dposModule,
 			activeDelegates: constants.activeDelegates,
 			startingHeight: 1,
 		});
@@ -119,7 +117,7 @@ describe('fast_chain_switching_mechanism', () => {
 		blockProcessorV2 = new BlockProcessorV2({
 			chainModule,
 			bftModule,
-			dposModule: dposModuleMock,
+			dposModule,
 			logger: loggerMock,
 			constants,
 			exceptions,
@@ -139,12 +137,10 @@ describe('fast_chain_switching_mechanism', () => {
 		fastChainSwitchingMechanism = new FastChainSwitchingMechanism({
 			logger: loggerMock,
 			channel: channelMock,
-			rounds: dpos.rounds,
 			chain: chainModule,
 			bft: bftModule,
 			processor: processorModule,
-			dpos: dposModuleMock,
-			activeDelegates: constants.activeDelegates,
+			dpos: dposModule,
 		});
 	});
 
@@ -300,7 +296,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 			});
 
-			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > activeDelegates*2 ', async () => {
+			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > delegatesPerRound*2 ', async () => {
 				// Arrange
 				const storageReturnValue = [
 					{
@@ -325,16 +321,17 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue({ data: highestCommonBlock });
 
 				// Act
-				// the difference in height between the common block and the received block is > activeDelegates*2
+				// the difference in height between the common block and the received block is > delegatesPerRound*2
 				const receivedBlock = newBlock({
-					height: highestCommonBlock.height + constants.activeDelegates * 2 + 1,
+					height:
+						highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
 
 				// Assert
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${constants.activeDelegates *
+						`Height difference between both chains is higher than ${dposModule.delegatesPerRound *
 							2}`,
 					),
 				);
@@ -345,14 +342,15 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 			});
 
-			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > activeDelegates*2 ', async () => {
+			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2 ', async () => {
 				// Arrange
 				const highestCommonBlock = newBlock({
 					height: 2,
 				});
-				// Difference in height between the common block and the last block is > activeDelegates*2
+				// Difference in height between the common block and the last block is > delegatesPerRound*2
 				const lastBlock = newBlock({
-					height: highestCommonBlock.height + constants.activeDelegates * 2 + 1,
+					height:
+						highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
 				});
 				when(chainModule.dataAccess.getBlockHeaderByHeight)
 					.calledWith(1)
@@ -384,7 +382,10 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue([lastBlock]);
 
 				const heightList = new Array(
-					Math.min(constants.activeDelegates * 2, chainModule.lastBlock.height),
+					Math.min(
+						dposModule.delegatesPerRound * 2,
+						chainModule.lastBlock.height,
+					),
 				)
 					.fill(0)
 					.map((_, index) => chainModule.lastBlock.height - index);
@@ -408,14 +409,15 @@ describe('fast_chain_switching_mechanism', () => {
 
 				// Act
 				const receivedBlock = newBlock({
-					height: highestCommonBlock.height + constants.activeDelegates * 2 + 1,
+					height:
+						highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
 
 				// Assert
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${constants.activeDelegates *
+						`Height difference between both chains is higher than ${dposModule.delegatesPerRound *
 							2}`,
 					),
 				);

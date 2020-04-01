@@ -39,9 +39,21 @@ export interface Block extends BlockHeader {
 	readonly transactions: any[];
 }
 
+interface Vote {
+	readonly delegateAddress: string;
+	readonly amount: bigint;
+}
+
 // tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
+	totalVotesReceived: bigint;
+	readonly delegate: {
+		readonly isBanned: boolean;
+		readonly pomHeights: number[];
+	};
+	readonly votes: Vote[];
+	readonly username?: string;
 	balance: bigint;
 	producedBlocks: number;
 	missedBlocks: number;
@@ -66,18 +78,32 @@ export interface Chain {
 	) => { readonly totalEarning: bigint; readonly totalBurnt: bigint };
 	// tslint:disable-next-line no-mixed-interface
 	readonly dataAccess: {
-		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
+		readonly getDelegates: () => Promise<Account[]>;
 		readonly getConsensusState: (key: string) => Promise<string | undefined>;
 		readonly getBlockHeadersByHeightBetween: (
 			fromHeight: number,
 			toHeight: number,
 		) => Promise<BlockHeader[]>;
+		// TODO: Remove after implementing new DPoS #4951
+		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
 	};
+}
+
+export interface DelegateWeight {
+	readonly address: string;
+	readonly voteWeight: string;
+}
+
+export interface VoteWeight {
+	readonly round: number;
+	readonly delegates: ReadonlyArray<DelegateWeight>;
 }
 
 export interface ForgerList {
 	readonly round: number;
 	readonly delegates: ReadonlyArray<string>;
+	readonly standby: ReadonlyArray<string>;
 }
 
 export type ForgersList = ForgerList[];
+export type VoteWeights = VoteWeight[];

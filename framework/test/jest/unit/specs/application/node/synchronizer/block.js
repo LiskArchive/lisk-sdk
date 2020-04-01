@@ -46,6 +46,8 @@ const getBytes = block => {
 		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
 		: Buffer.alloc(SIZE_INT64);
 
+	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
+
 	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
 
 	const maxHeightPreviouslyForgedBuffer = intToBuffer(
@@ -102,6 +104,7 @@ const getBytes = block => {
 		blockVersionBuffer,
 		timestampBuffer,
 		previousBlockBuffer,
+		seedRevealBuffer,
 		heightBuffer,
 		maxHeightPreviouslyForgedBuffer,
 		maxHeightPrevotedBuffer,
@@ -162,17 +165,20 @@ const calculateTransactionsInfo = block => {
 	};
 };
 
+const defaultNetworkIdentifier =
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-const newBlock = block => {
+const newBlock = (block, networkIdentifier = defaultNetworkIdentifier) => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
 		previousBlockId: genesisBlock.id,
+		seedReveal: '00000000000000000000000000000000',
 		keypair: getKeyPair(),
 		transactions: [],
 		reward: '0',
@@ -199,7 +205,12 @@ const newBlock = block => {
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(getBytes(blockWithCalculatedProperties)),
+			hash(
+				Buffer.concat([
+					Buffer.from(networkIdentifier, 'hex'),
+					getBytes(blockWithCalculatedProperties),
+				]),
+			),
 			Buffer.from(keypair.privateKey, 'hex'),
 		),
 	};

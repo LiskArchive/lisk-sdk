@@ -12,47 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidNonce,
 	validateNetworkIdentifier,
-	validatePublicKeys,
 } from '@liskhq/lisk-validator';
 
-import { VoteTransaction } from './11_vote_transaction';
+import { RawAssetVote, VoteTransaction } from './13_vote_transaction';
 import { TransactionJSON } from './transaction_types';
-import {
-	createBaseTransaction,
-	prependMinusToPublicKeys,
-	prependPlusToPublicKeys,
-} from './utils';
+import { createBaseTransaction } from './utils';
 
 export interface CastVoteInputs {
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly passphrase?: string;
-	readonly secondPassphrase?: string;
-	readonly unvotes?: ReadonlyArray<string>;
-	readonly votes?: ReadonlyArray<string>;
+	readonly votes?: ReadonlyArray<RawAssetVote>;
 }
 
-interface VotesObject {
-	readonly unvotes?: ReadonlyArray<string>;
-	readonly votes?: ReadonlyArray<string>;
+interface GeneralInputs {
 	readonly networkIdentifier: string;
 	readonly fee: string;
 	readonly nonce: string;
+	readonly votes?: ReadonlyArray<RawAssetVote>;
 }
 
 const validateInputs = ({
 	fee,
 	nonce,
-	votes = [],
-	unvotes = [],
 	networkIdentifier,
-}: VotesObject): void => {
+	votes,
+}: GeneralInputs): void => {
 	if (!isValidNonce(nonce)) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
@@ -61,40 +51,22 @@ const validateInputs = ({
 		throw new Error('Fee must be a valid number in string format.');
 	}
 
-	if (!Array.isArray(votes)) {
-		throw new Error(
-			'Please provide a valid votes value. Expected an array if present.',
-		);
-	}
-	if (!Array.isArray(unvotes)) {
-		throw new Error(
-			'Please provide a valid unvotes value. Expected an array if present.',
-		);
-	}
-
-	validatePublicKeys([...votes, ...unvotes]);
-
 	validateNetworkIdentifier(networkIdentifier);
+
+	if (!votes?.length) {
+		throw new Error('Votes must present to create transaction.');
+	}
 };
 
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { networkIdentifier, passphrase, votes = [], unvotes = [] } = inputs;
-
-	const plusPrependedVotes = prependPlusToPublicKeys(votes);
-	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
-	const allVotes: ReadonlyArray<string> = [
-		...plusPrependedVotes,
-		...minusPrependedUnvotes,
-	];
+	const { networkIdentifier, passphrase, votes } = inputs;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 11,
+		type: 13,
 		asset: {
-			// TODO: Remove this after hardfork change. Amount is kept as asset property for exceptions
-			amount: '0',
-			votes: allVotes,
+			votes,
 		},
 	};
 
@@ -102,20 +74,22 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 		return transaction;
 	}
 
-	const recipientId = getAddressFromPassphrase(passphrase);
 	const transactionWithSenderInfo = {
 		...transaction,
 		// SenderId and SenderPublicKey are expected to be exist from base transaction
 		senderPublicKey: transaction.senderPublicKey as string,
 		asset: {
 			...transaction.asset,
-			recipientId,
 		},
-		networkIdentifier,
 	};
 
 	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
 	voteTransaction.sign(networkIdentifier, passphrase);
+
+	const { errors } = voteTransaction.validate();
+	if (errors.length > 0) {
+		throw new Error(errors.toString());
+	}
 
 	return voteTransaction.toJSON();
 };

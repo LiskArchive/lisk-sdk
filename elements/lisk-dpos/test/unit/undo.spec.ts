@@ -19,21 +19,21 @@ import {
 	ACTIVE_DELEGATES,
 	BLOCK_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
+	STANDBY_DELEGATES,
 } from '../fixtures/constants';
-import { randomInt } from '../utils/random_int';
-import {
-	delegateAccounts,
-	delegatesWhoForged,
-	delegatesWhoForgedNone,
-	delegateWhoForgedLast,
-	sortedDelegateAccounts,
-	votedDelegates,
-} from '../utils/round_delegates';
+import { getDelegateAccountsWithVotesReceived } from '../utils/round_delegates';
 import { Block, Account, ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import {
+	CONSENSUS_STATE_FORGERS_LIST_KEY,
+	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+} from '../../src/constants';
 
 describe('dpos.undo()', () => {
+	const delegateAccounts = getDelegateAccountsWithVotesReceived(
+		ACTIVE_DELEGATES + STANDBY_DELEGATES,
+	);
+
 	let dpos: Dpos;
 	let chainStub: any;
 	let stateStore: StateStoreMock;
@@ -42,22 +42,16 @@ describe('dpos.undo()', () => {
 		// Arrange
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
-			getTotalEarningAndBurnt: jest
-				.fn()
-				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),
-				getDelegateAccounts: jest.fn().mockResolvedValue([]),
 			},
 		};
 
 		dpos = new Dpos({
 			chain: chainStub,
-			activeDelegates: ACTIVE_DELEGATES,
-			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
-		stateStore = new StateStoreMock([...sortedDelegateAccounts], {});
+		stateStore = new StateStoreMock([...delegateAccounts], {});
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
@@ -71,10 +65,7 @@ describe('dpos.undo()', () => {
 			genesisBlock = {
 				height: 1,
 			} as Block;
-			stateStore = new StateStoreMock(
-				[generator, ...sortedDelegateAccounts],
-				{},
-			);
+			stateStore = new StateStoreMock([generator, ...delegateAccounts], {});
 		});
 
 		it('should throw exception and NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
@@ -86,37 +77,24 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is NOT the last block of the round', () => {
-		const totalEarning = BigInt(1230000000);
-
 		let generator: Account;
 		let block: Block;
 
 		beforeEach(async () => {
 			// Arrange
-			generator = { ...delegateAccounts[0], producedBlocks: 1 };
+			generator = { ...delegateAccounts[0] };
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
 			} as Block;
-			stateStore = new StateStoreMock(
-				[
-					generator,
-					...votedDelegates.map(delegate => ({ ...delegate })),
-					...sortedDelegateAccounts,
-				],
-				{
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
-						{
-							round: 1,
-							delegates: sortedDelegateAccounts.map(d => d.publicKey),
-						},
-					]),
-				},
-			);
-
-			chainStub.getTotalEarningAndBurnt.mockReturnValue({
-				totalEarning,
-				totalBurnt: BigInt(0),
+			stateStore = new StateStoreMock([generator, ...delegateAccounts], {
+				[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+					{
+						round: 1,
+						delegates: delegateAccounts.map(d => d.address),
+						standy: [],
+					},
+				]),
 			});
 		});
 
@@ -132,23 +110,7 @@ describe('dpos.undo()', () => {
 			expect(account.fees).toEqual(generator.fees);
 		});
 
-		it('should update vote weight of accounts that delegates who forged voted for', async () => {
-			// Act
-			await dpos.undo(block, stateStore);
-
-			const votedDelegatesFromGenerator = votedDelegates.filter(delegate =>
-				generator.votedDelegatesPublicKeys.includes(delegate.publicKey),
-			);
-			expect.assertions(votedDelegatesFromGenerator.length);
-			for (const delegate of votedDelegatesFromGenerator) {
-				const votedDelegate = await stateStore.account.get(delegate.address);
-				expect(votedDelegate.voteWeight.toString()).toEqual(
-					(delegate.voteWeight - totalEarning).toString(),
-				);
-			}
-		});
-
-		it('should NOT delete delegate list for rounds which are after the current round', async () => {
+		it('should NOT delete forgers list for rounds which are after the current round', async () => {
 			// Act
 			await dpos.undo(block, stateStore);
 
@@ -163,58 +125,75 @@ describe('dpos.undo()', () => {
 
 	describe('Given block is the last block of the round', () => {
 		let lastBlockOfTheRoundNine: Block;
-		let feePerDelegate: bigint;
-		let rewardPerDelegate: bigint;
+		let forgedDelegates: Account[];
+		let missedDelegate: Account;
 
 		beforeEach(() => {
-			// Arrange
-			stateStore = new StateStoreMock(
-				[
-					...delegateAccounts,
-					...votedDelegates.map(delegate => ({ ...delegate })),
-				],
-				{
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
-						{
-							round: 8,
-							delegates: sortedDelegateAccounts.map(d => d.publicKey),
-						},
-						{
-							round: 9,
-							delegates: sortedDelegateAccounts.map(d => d.publicKey),
-						},
-						{
-							round: 10,
-							delegates: sortedDelegateAccounts.map(d => d.publicKey),
-						},
-						{
-							round: 11,
-							delegates: sortedDelegateAccounts.map(d => d.publicKey),
-						},
-						{
-							round: 12,
-							delegates: sortedDelegateAccounts.map(d => d.publicKey),
-						},
-					]),
-				},
+			forgedDelegates = getDelegateAccountsWithVotesReceived(
+				ACTIVE_DELEGATES + STANDBY_DELEGATES - 1,
 			);
-
-			feePerDelegate = BigInt(randomInt(10, 100));
-
-			// Delegates who forged got their rewards
-			rewardPerDelegate = BigInt(randomInt(1, 20));
+			// Make 1 delegate forge twice
+			forgedDelegates.push({ ...forgedDelegates[10] });
+			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
+			// Arrange
+			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
+				[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: JSON.stringify([
+					{
+						round: 10,
+						delegates: forgedDelegates.map(d => ({
+							address: d.address,
+							voteWeight: d.totalVotesReceived.toString(),
+						})),
+					},
+				]),
+				[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+					{
+						round: 8,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standy: [],
+					},
+					{
+						round: 9,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+					},
+					{
+						round: 10,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+					},
+					{
+						round: 11,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+					},
+					{
+						round: 12,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+					},
+				]),
+			});
 
 			lastBlockOfTheRoundNine = {
-				height: 909,
-				generatorPublicKey: delegateWhoForgedLast.publicKey,
-				totalFee: feePerDelegate,
-				reward: rewardPerDelegate,
+				height: 927,
+				generatorPublicKey:
+					forgedDelegates[forgedDelegates.length - 1].publicKey,
 			} as Block;
-			const forgedBlocks = delegatesWhoForged.map((delegate, i) => ({
+			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
-				totalFee: feePerDelegate,
-				reward: rewardPerDelegate,
-				height: 809 + i,
+				height: 825 + i,
 			}));
 
 			forgedBlocks.splice(forgedBlocks.length - 1);
@@ -228,15 +207,32 @@ describe('dpos.undo()', () => {
 			// Act
 			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
-			expect.assertions(delegatesWhoForgedNone.length);
-			for (const delegate of delegatesWhoForgedNone) {
-				const account = await stateStore.account.get(delegate.address);
-				// Assert
-				expect(delegate.missedBlocks).toEqual(account.missedBlocks + 1);
-			}
+			// Assert
+			const { missedBlocks } = await stateStore.account.get(
+				missedDelegate.address,
+			);
+			expect(missedBlocks).toEqual(missedDelegate.missedBlocks - 1);
 		});
 
-		it('should delete delegate list for rounds which are after the current round + offset', async () => {
+		it('should delete vote weights for rounds which are after the current', async () => {
+			// Arrange
+			const roundNo = dpos.rounds.calcRound(lastBlockOfTheRoundNine.height);
+
+			// Act
+			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
+
+			// Assert
+			const consensusState =
+				(await stateStore.consensus.get(CONSENSUS_STATE_VOTE_WEIGHTS_KEY)) ??
+				'[]';
+			const voteWeights = JSON.parse(consensusState as string) as ForgersList;
+			const filteredVoteWeights = voteWeights.filter(
+				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
+			);
+			expect(filteredVoteWeights).toHaveLength(0);
+		});
+
+		it('should delete forgers list for rounds which are after the current', async () => {
 			// Arrange
 			const roundNo = dpos.rounds.calcRound(lastBlockOfTheRoundNine.height);
 
@@ -248,16 +244,15 @@ describe('dpos.undo()', () => {
 				(await stateStore.consensus.get(CONSENSUS_STATE_FORGERS_LIST_KEY)) ??
 				'[]';
 			const forgersList = JSON.parse(consensusState as string) as ForgersList;
-			const filteredList = forgersList.filter(
-				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
-			);
+			const filteredList = forgersList.filter(fl => fl.round > roundNo);
 			expect(filteredList).toHaveLength(0);
 		});
 
 		it('should should emit EVENT_ROUND_CHANGED', async () => {
 			// Arrange
 			const eventCallbackStub = jest.fn();
-			const newRound = lastBlockOfTheRoundNine.height / ACTIVE_DELEGATES;
+			const newRound =
+				lastBlockOfTheRoundNine.height / (ACTIVE_DELEGATES + STANDBY_DELEGATES);
 			(dpos as any).events.on(constants.EVENT_ROUND_CHANGED, eventCallbackStub);
 
 			// Act
@@ -273,12 +268,64 @@ describe('dpos.undo()', () => {
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
 				// Arrange
+				forgedDelegates = getDelegateAccountsWithVotesReceived(
+					ACTIVE_DELEGATES + STANDBY_DELEGATES,
+				);
+				stateStore = new StateStoreMock([...forgedDelegates], {
+					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: JSON.stringify([
+						{
+							round: 10,
+							delegates: forgedDelegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						},
+					]),
+					[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+						{
+							round: 8,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standy: [],
+						},
+						{
+							round: 9,
+							delegates: [...forgedDelegates.map(d => d.address)],
+						},
+						{
+							round: 10,
+							delegates: [...forgedDelegates.map(d => d.address)],
+						},
+						{
+							round: 11,
+							delegates: [...forgedDelegates.map(d => d.address)],
+						},
+						{
+							round: 12,
+							delegates: [...forgedDelegates.map(d => d.address)],
+						},
+					]),
+				});
+				lastBlockOfTheRoundNine = {
+					height: 927,
+					generatorPublicKey:
+						forgedDelegates[forgedDelegates.length - 1].publicKey,
+				} as Block;
+				const forgedBlocks = forgedDelegates.map((delegate, i) => ({
+					generatorPublicKey: delegate.publicKey,
+					height: 825 + i,
+				}));
+
+				forgedBlocks.splice(forgedBlocks.length - 1);
+
+				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+					forgedBlocks,
+				);
 				// Act
 				await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
-				for (const delegate of delegatesWhoForgedNone) {
+				for (const delegate of forgedDelegates) {
 					const account = await stateStore.account.get(delegate.address);
-					expect(account.missedBlocks).toEqual(delegate.missedBlocks - 1);
+					expect(account.missedBlocks).toEqual(delegate.missedBlocks);
 				}
 			});
 		});

@@ -59,6 +59,10 @@ Object {
       "format": "amount",
       "type": "string",
     },
+    "seedReveal": Object {
+      "format": "hex",
+      "type": "string",
+    },
     "timestamp": Object {
       "minimum": 0,
       "type": "integer",
@@ -139,6 +143,7 @@ Object {
     "communityIdentifier",
     "version",
     "totalAmount",
+    "seedReveal",
     "totalFee",
     "reward",
     "payloadHash",

@@ -7,9 +7,8 @@ Object {
     "app": Object {
       "genesisConfig": Object {
         "blockTime": 10,
-        "delegateListRoundOffset": 2,
         "epochTime": "2016-05-24T17:00:00.000Z",
-        "maxTransactionsPerBlock": 25,
+        "maxPayloadLength": 15360,
         "rewards": Object {
           "distance": 3000000,
           "milestones": Array [
@@ -102,20 +101,15 @@ Object {
               "minimum": 2,
               "type": "number",
             },
-            "delegateListRoundOffset": Object {
-              "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
-              "minimum": 0,
-              "type": "number",
-            },
             "epochTime": Object {
               "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
               "format": "date-time",
               "type": "string",
             },
-            "maxTransactionsPerBlock": Object {
+            "maxPayloadLength": Object {
               "description": "Maximum number of transactions allowed per block",
-              "maximum": 150,
-              "minimum": 1,
+              "maximum": 30720,
+              "minimum": 10240,
               "type": "integer",
             },
             "rewards": Object {
@@ -153,8 +147,7 @@ Object {
           "required": Array [
             "epochTime",
             "blockTime",
-            "maxTransactionsPerBlock",
-            "delegateListRoundOffset",
+            "maxPayloadLength",
             "rewards",
           ],
           "type": "object",
@@ -477,6 +470,24 @@ Object {
                       "encryptedPassphrase": Object {
                         "format": "encryptedPassphrase",
                         "type": "string",
+                      },
+                      "hashOnion": Object {
+                        "properties": Object {
+                          "count": Object {
+                            "type": "integer",
+                          },
+                          "distance": Object {
+                            "type": "integer",
+                          },
+                          "hashes": Object {
+                            "items": Object {
+                              "format": "hex",
+                              "type": "string",
+                            },
+                            "type": "array",
+                          },
+                        },
+                        "type": "object",
                       },
                       "publicKey": Object {
                         "format": "publicKey",

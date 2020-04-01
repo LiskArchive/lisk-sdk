@@ -14,15 +14,11 @@
 
 import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
-import {
-	EPOCH_TIME,
-	BLOCK_TIME,
-	ACTIVE_DELEGATES,
-	DELEGATE_LIST_ROUND_OFFSET,
-} from '../fixtures/constants';
+import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { BlockHeader } from '../../src/types';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
@@ -33,18 +29,21 @@ describe('dpos.verifyBlockForger()', () => {
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
-				getConsensusState: jest
-					.fn()
-					.mockResolvedValue(
-						JSON.stringify([{ round: 3, delegates: delegatePublicKeys }]),
-					),
+				getConsensusState: jest.fn().mockResolvedValue(
+					JSON.stringify([
+						{
+							round: 3,
+							delegates: delegatePublicKeys.map(pk =>
+								getAddressFromPublicKey(pk),
+							),
+						},
+					]),
+				),
 			},
 		};
 
 		dpos = new Dpos({
 			chain: chainStub,
-			activeDelegates: ACTIVE_DELEGATES,
-			delegateListRoundOffset: DELEGATE_LIST_ROUND_OFFSET,
 		});
 	});
 
@@ -54,7 +53,7 @@ describe('dpos.verifyBlockForger()', () => {
 			height: 302,
 			timestamp: 23450,
 			generatorPublicKey:
-				'6fb2e0882cd9d895e1e441b9f9be7f98e877aa0a16ae230ee5caceb7a1b896ae',
+				'c61d0822bbdbfe2a0b5503daff0ce8441c623115c94c0cfcf047a51f8b7160d3',
 		} as BlockHeader;
 
 		// Act
@@ -67,13 +66,18 @@ describe('dpos.verifyBlockForger()', () => {
 	it('should call the chain state to get the list', async () => {
 		// Arrange
 		chainStub.dataAccess.getConsensusState.mockResolvedValue(
-			JSON.stringify([{ round: 1, delegates: delegatePublicKeys }]),
+			JSON.stringify([
+				{
+					round: 1,
+					delegates: delegatePublicKeys.map(pk => getAddressFromPublicKey(pk)),
+				},
+			]),
 		);
 		const block = {
 			height: 99,
 			timestamp: 23450,
 			generatorPublicKey:
-				'b5341e839b25c4cc2aaf421704c0fb6ba987d537678e23e45d3ca32454a2908c',
+				'c61d0822bbdbfe2a0b5503daff0ce8441c623115c94c0cfcf047a51f8b7160d3',
 		} as BlockHeader;
 
 		// Act
@@ -90,7 +94,8 @@ describe('dpos.verifyBlockForger()', () => {
 		const block = {
 			height: 302,
 			timestamp: 23450,
-			generatorPublicKey: 'xxx',
+			generatorPublicKey:
+				'cb1c9786f1af7a11c0ef79afd9173b91b8dc2b6c3fae1bc4dbad65253af26abc',
 		} as BlockHeader;
 
 		const expectedSlot = (dpos as any).chain.slots.getSlotNumber(

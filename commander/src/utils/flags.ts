@@ -36,9 +36,9 @@ const votesDescription = `Specifies the public keys for the delegate candidates 
 	- --votes=publickey1,publickey2
 `;
 
-const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes a string of public keys separated by commas.
+const unlockDescription = `Specifies the unlock objects for the delegate candidates to unlock from. Takes a string of address amount unvoteHeight separated by commas.
 	Examples:
-	- --unvotes=publickey1,publickey2
+	- --unlock=123L,1000000,500
 `;
 
 const noSignatureDescription =
@@ -115,11 +115,11 @@ export const flags: FlagMap = {
 		char: 'w',
 		description: passwordDescription,
 	},
-	unvotes: {
-		description: unvotesDescription,
-	},
 	votes: {
 		description: votesDescription,
+	},
+	unlock: {
+		description: unlockDescription,
 	},
 	networkIdentifier: {
 		description: networkIdentifierDescription,

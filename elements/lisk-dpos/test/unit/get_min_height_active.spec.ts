@@ -35,7 +35,7 @@ describe('dpos.getMinActiveHeight()', () => {
 	let dpos: Dpos;
 	let height: number;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
-	const defaultPublicKey = 'x';
+	const defaultAddress = 'x';
 
 	beforeEach(() => {
 		// Arrange
@@ -58,7 +58,7 @@ describe('dpos.getMinActiveHeight()', () => {
 		it('should throw exception', async () => {
 			// Act
 			await expect(
-				dpos.getMinActiveHeight(height, defaultPublicKey, createStateStore()),
+				dpos.getMinActiveHeight(height, defaultAddress, createStateStore()),
 			).rejects.toThrow('No delegate list found in the database.');
 		});
 	});
@@ -80,7 +80,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -105,7 +105,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -130,7 +130,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -155,7 +155,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -180,7 +180,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -205,7 +205,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -228,7 +228,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -251,7 +251,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert
@@ -274,7 +274,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			// Act
 			const minActiveHeights = await dpos.getMinActiveHeight(
 				height,
-				defaultPublicKey,
+				defaultAddress,
 				createStateStore(lists),
 			);
 			// Assert

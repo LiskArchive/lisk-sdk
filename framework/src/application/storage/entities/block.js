@@ -31,6 +31,7 @@ const createFields = [
 	'height',
 	'maxHeightPreviouslyForged',
 	'maxHeightPrevoted',
+	'seedReveal',
 	'blockSignature',
 	'generatorPublicKey',
 	'payloadHash',

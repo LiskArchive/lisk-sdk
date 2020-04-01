@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
@@ -171,7 +172,7 @@ export class FinalityManager extends EventEmitter {
 
 		const delegateMinHeightActive = await this._dpos.getMinActiveHeight(
 			header.height,
-			header.generatorPublicKey,
+			getAddressFromPublicKey(header.generatorPublicKey),
 			stateStore,
 		);
 

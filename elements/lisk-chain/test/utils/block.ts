@@ -29,6 +29,9 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
+export const defaultNetworkIdentifier =
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
+
 export const getBytes = (block: BlockInstance): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
@@ -169,12 +172,14 @@ const calculateTransactionsInfo = (block: BlockInstance) => {
  */
 export const newBlock = (
 	block?: Partial<BlockJSON | BlockInstance>,
+	networkIdentifier: string = defaultNetworkIdentifier,
 ): BlockInstance => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
+		seedReveal: '00000000000000000000000000000000',
 		previousBlockId: genesisBlock.id,
 		keypair: getKeyPair(),
 		transactions: [],
@@ -204,7 +209,12 @@ export const newBlock = (
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(getBytes(blockWithCalculatedProperties as BlockInstance)),
+			hash(
+				Buffer.concat([
+					Buffer.from(networkIdentifier, 'hex'),
+					getBytes(blockWithCalculatedProperties as BlockInstance),
+				]),
+			),
 			keypair.privateKey,
 		),
 	};

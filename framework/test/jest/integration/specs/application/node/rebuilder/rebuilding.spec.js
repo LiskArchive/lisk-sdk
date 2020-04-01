@@ -55,7 +55,7 @@ describe('Rebuilding blocks', () => {
 		let accounts;
 
 		beforeAll(async () => {
-			for (let i = 0; i < 201; i += 1) {
+			for (let i = 0; i < 205; i += 1) {
 				const account = nodeUtils.createAccount();
 				addresses.push(account.address);
 				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
@@ -76,7 +76,7 @@ describe('Rebuilding blocks', () => {
 			}
 			// Freeze address
 			accounts = await node.chain.dataAccess.getAccountsByAddress(addresses);
-			for (let i = 0; i < 101; i += 1) {
+			for (let i = 0; i < 103; i += 1) {
 				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
@@ -117,8 +117,8 @@ describe('Rebuilding blocks', () => {
 
 			it('should remove blocks after 3 rounds', async () => {
 				const blocks = await node.chain.dataAccess.getBlockHeadersByHeightBetween(
-					203,
-					303,
+					207,
+					309,
 				);
 				expect(blocks).toHaveLength(0);
 			});
