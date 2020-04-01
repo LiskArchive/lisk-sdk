@@ -36,8 +36,8 @@
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 400000,
-					"maxHeightPreviouslyForged": 300000,
+					"height": 300000,
+					"maxHeightPreviouslyForged": 250000,
 					"maxHeightPrevoted": 200000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
@@ -46,14 +46,14 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "536d8032c354c76f2177869de4c64d3df33100fe692d48216393260777896d0e91f1aeed7970a5b99dfc9e28a184c29c0108efc7d42c9883fd32824264c87401"
+					"blockSignature": "f536833e1c0b576442e3a342e6eb81ee34a19112b68c89bbfc2ef1099e7b7f51215bfb3342d4b05800538b4ab33add4c55cd04f7634ef26228ebc5e542345909"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 400000,
+					"height": 300000,
 					"maxHeightPreviouslyForged": 300000,
 					"maxHeightPrevoted": 100000,
 					"numberOfTransactions": 0,
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "6e012a97af81f7a7decd78244ffd6a8652370f75c0139cdf98346fdcdc469af2e086869ae83ed2d87b59bf14e48bebbbe8c7338e8dbc8afcae762c8087026908"
+					"blockSignature": "514f1f60d3ce6c2471f866d7ec98a4d263cb30a7ed3231157fa08fe0b69c3f8ea3e33528816327eb2de207fc724838df606c8c03b7681c6537020db0be2bee09"
 				}
 			},
 			"signatures": [
-				"2945f7df7426f2853c0b342bfb4447f6f984c70828db612be8e040645a0553b66a376c4f942e9c9a873dea41a2f846bbf3cb41ac14c838e1f75443f5782ca20c"
+				"7ed627f896b3b63f27a5f5c7e117581645de7e717265d18d4eb3446966832bb21135c9b4284f8639e19022a5bd1e2f866cb6c9d4ce3b1df159516e85ed33f709"
 			],
-			"id": "5218967845827324375"
+			"id": "17770094041006137800"
 		}
 	}
 }

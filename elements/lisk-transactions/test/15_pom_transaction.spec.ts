@@ -20,20 +20,16 @@ describe('Proof-of-misbehavior transaction', () => {
 		);
 
 		it.todo(
-            'when height is greater than the second header\'s maxHeightPreviouslyForged it should not return errors',
+			"when height is greater than the second header's maxHeightPreviouslyForged it should not return errors",
 		);
 
 		it.todo(
 			'when maxHeightPrevoted is greater than ther second maxHeightPrevoted it should not return errors',
 		);
 
-		it.todo(
-			'when headers are not contradicting it should return errors',
-		);
+		it.todo('when headers are not contradicting it should return errors');
 
-		it.todo(
-			'when headers are not properly signed it should return errors',
-		);
+		it.todo('when headers are not properly signed it should return errors');
 	});
 
 	describe('applyAsset', () => {
