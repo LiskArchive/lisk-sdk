@@ -15,7 +15,7 @@
 'use strict';
 
 module.exports = {
-	id: '#/app/config',
+	id: '#/config',
 	type: 'object',
 	required: [
 		'version',
@@ -76,7 +76,7 @@ module.exports = {
 			},
 		},
 		genesisConfig: {
-			id: '#/app/genesisConfig',
+			id: '#/config/genesisConfig',
 			type: 'object',
 			required: ['epochTime', 'blockTime', 'maxPayloadLength', 'rewards'],
 			properties: {
@@ -104,7 +104,7 @@ module.exports = {
 					description: 'Maximum number of transactions allowed per block',
 				},
 				rewards: {
-					id: 'rewards',
+					id: '#/config/rewards',
 					type: 'object',
 					required: ['milestones', 'offset', 'distance'],
 					description: 'Object representing LSK rewards milestone',

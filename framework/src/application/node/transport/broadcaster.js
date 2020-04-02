@@ -17,12 +17,14 @@
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 
 class Broadcaster {
-	constructor({ transactionPool, logger, channel, releaseLimit, interval }) {
+	constructor({ transactionPool, releaseLimit, interval, logger, channel }) {
 		this.channel = channel;
 		this.logger = logger;
 		this.transactionPool = transactionPool;
-		this.releaseLimit = releaseLimit;
-		this.interval = interval;
+		this.config = {
+			releaseLimit,
+			interval,
+		};
 
 		this.queue = [];
 		this.transactionIdQueue = [];
@@ -33,7 +35,7 @@ class Broadcaster {
 			} catch (err) {
 				this.logger.error({ err }, 'Failed to broadcast information');
 			}
-		}, this.interval);
+		}, this.config.interval);
 	}
 
 	enqueueTransactionId(transactionId) {
@@ -53,7 +55,7 @@ class Broadcaster {
 		if (this.transactionIdQueue.length > 0) {
 			const transactionIds = this.transactionIdQueue.slice(
 				0,
-				this.releaseLimit,
+				this.config.releaseLimit,
 			);
 			await this.channel.publishToNetwork('broadcastToNetwork', {
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,

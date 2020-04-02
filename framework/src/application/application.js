@@ -584,10 +584,12 @@ class Application {
 	}
 
 	_initNode() {
+		const { components, modules, ...rootConfigs } = this.config;
+		const { network, ...nodeConfigs } = rootConfigs;
 		const node = new Node({
 			channel: this.channel,
 			options: {
-				...this.config,
+				...nodeConfigs,
 				genesisBlock: this.genesisBlock,
 				constants: this.constants,
 				registeredTransactions: this.getTransactions(),

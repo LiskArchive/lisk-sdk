@@ -24,10 +24,13 @@ const { Node } = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
 const config = require('../../fixtures/config/devnet/config');
 
+const { conpoments, modules, ...rootConfigs } = config;
+const { network, ...nodeConfigs } = rootConfigs;
+
 const createNode = ({ storage, logger, channel, options = {} }) => {
 	const nodeOptions = {
 		...nodeConfig(),
-		...config,
+		...nodeConfigs,
 		...options,
 		constants: constantsConfig(),
 		genesisBlock,
