@@ -12,11 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getAddressFromPublicKey,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
-import { isNumberString, validator } from '@liskhq/lisk-validator';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	BaseTransaction,
@@ -139,7 +136,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		this.asset = (tx.asset || {}) as ProofOfMisbehaviorAsset;
 	}
 
-	public assetToJSON(): object {
+	public assetToJSON(): ProofOfMisbehaviorAsset {
 		return {
 			header1: this.asset.header1,
 			header2: this.asset.header2,
@@ -168,5 +165,83 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		];
 
 		await store.account.cache(filterArray);
+	}
+
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		const asset = this.assetToJSON();
+		const schemaErrors = validator.validate(
+			proofOfMisbehaviorAssetFormatSchema,
+			asset,
+		);
+		const errors = convertToAssetError(
+			this.id,
+			schemaErrors,
+		) as TransactionError[];
+
+		if (
+			this.asset.header1.generatorPublicKey !==
+			this.asset.header2.generatorPublicKey
+		) {
+			errors.push(
+				new TransactionError(
+					'GeneratorPublickey of each blockheader must be matching.',
+					this.id,
+					'.asset.header1',
+				),
+			);
+		}
+
+		if (this.asset.header1.id === this.asset.header2.id) {
+			errors.push(
+				new TransactionError(
+					'Blockheader ids are the same. No contradiction detected.',
+					this.id,
+					'.asset.header1',
+				),
+			);
+		}
+
+		/*
+            Check for BFT violations:
+                1. Double forging
+                2. Disjointness 
+                3. Branch is not the one with largest maxHeighPrevoted
+        */
+
+		// tslint:disable-next-line no-let
+		let b1 = asset.header1;
+		// tslint:disable-next-line no-let
+		let b2 = asset.header2;
+
+		// Order the two block headers such that b1 must be forged first
+		if (
+			b1.maxHeightPreviouslyForged > b2.maxHeightPreviouslyForged ||
+			(b1.maxHeightPreviouslyForged === b2.maxHeightPreviouslyForged &&
+				b1.maxHeightPrevoted > b2.maxHeightPrevoted) ||
+			(b1.maxHeightPreviouslyForged === b2.maxHeightPreviouslyForged &&
+				b1.maxHeightPrevoted === b2.maxHeightPrevoted &&
+				b1.height > b2.height)
+		) {
+			b1 = asset.header2;
+			b2 = asset.header1;
+		}
+
+		if (
+			!(
+				b1.maxHeightPrevoted === b2.maxHeightPrevoted && b1.height >= b2.height
+			) &&
+			!(b1.height > b2.maxHeightPreviouslyForged) &&
+			!(b1.maxHeightPrevoted > b2.maxHeightPrevoted)
+		) {
+			errors.push(
+				new TransactionError(
+					'Blockheaders are not contradicting as per BFT violation rules.',
+					this.id,
+					'.asset.header1',
+				),
+			);
+		}
+
+		return errors;
 	}
 }
