@@ -55,7 +55,6 @@ describe('Synchronizer', () => {
 	let transactionPoolModuleStub;
 	let channelMock;
 	let dposModuleMock;
-	let exceptions;
 	let loggerMock;
 	let syncParameters;
 	let dataAccessMock;
@@ -91,7 +90,6 @@ describe('Synchronizer', () => {
 			blockReceiptTimeout: constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
-			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
 			activeDelegates: constants.activeDelegates,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
@@ -134,7 +132,6 @@ describe('Synchronizer', () => {
 			dposModule: dposModuleMock,
 			logger: loggerMock,
 			constants,
-			exceptions,
 		});
 
 		processorModule = new Processor({

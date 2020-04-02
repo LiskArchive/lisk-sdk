@@ -24,7 +24,7 @@ describe('GET /node', () => {
 	describe('/constants', () => {
 		const endPoint = new SwaggerEndpoint('GET /node/constants 200');
 		const devnetNetworkId =
-			'11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7';
+			'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 
 		let constantsResponse;
 
@@ -34,7 +34,7 @@ describe('GET /node', () => {
 			});
 		});
 
-		it('should return a result containing networkId = "11a254dc30db5eb1ce4001acde35fd5a14d62584f886d30df161e4e883220eb7"', async () => {
+		it('should return a result containing networkId = "93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e"', async () => {
 			return expect(constantsResponse.networkId).to.be.equal(devnetNetworkId);
 		});
 

@@ -16,6 +16,7 @@ import {
 	TransferTransaction,
 	DelegateTransaction,
 	VoteTransaction,
+	UnlockTransaction,
 	MultisignatureTransaction,
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
@@ -25,6 +26,7 @@ export const registeredTransactions: {
 } = {
 	8: TransferTransaction,
 	10: DelegateTransaction,
-	11: VoteTransaction,
 	12: MultisignatureTransaction,
+	13: VoteTransaction,
+	14: UnlockTransaction,
 };

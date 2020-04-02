@@ -50,7 +50,6 @@ describe('fast_chain_switching_mechanism', () => {
 	let fastChainSwitchingMechanism;
 
 	let channelMock;
-	let exceptions;
 	let loggerMock;
 	let dataAccessMock;
 
@@ -73,7 +72,6 @@ describe('fast_chain_switching_mechanism', () => {
 			blockReceiptTimeout: constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
-			maxTransactionsPerBlock: constants.maxTransactionsPerBlock,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
@@ -102,7 +100,6 @@ describe('fast_chain_switching_mechanism', () => {
 			activeDelegates: constants.activeDelegates,
 			standbyDelegates: constants.standbyDelegates,
 			delegateListRoundOffset: constants.delegateListRoundOffset,
-			exceptions: {},
 		});
 
 		bftModule = new BFT({
@@ -121,7 +118,6 @@ describe('fast_chain_switching_mechanism', () => {
 			dposModule,
 			logger: loggerMock,
 			constants,
-			exceptions,
 		});
 
 		processorModule = new Processor({

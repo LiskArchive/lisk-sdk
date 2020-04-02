@@ -85,13 +85,7 @@ module.exports = {
 				genesisConfig: {
 					id: '#/app/genesisConfig',
 					type: 'object',
-					required: [
-						'epochTime',
-						'blockTime',
-						'maxTransactionsPerBlock',
-						'delegateListRoundOffset',
-						'rewards',
-					],
+					required: ['epochTime', 'blockTime', 'maxPayloadLength', 'rewards'],
 					properties: {
 						epochTime: {
 							type: 'string',
@@ -99,26 +93,22 @@ module.exports = {
 							description:
 								'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
 						},
-						// NOTICE: blockTime and maxTransactionsPerBlock are related and it's values
+						// NOTICE: blockTime and maxPayloadLength are related and it's values
 						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
+						// TODO this recommendations need to be updated now that we changed to a byte size block
 						blockTime: {
 							type: 'number',
 							minimum: 2,
 							description: 'Slot time interval in seconds',
 						},
-						// NOTICE: blockTime and maxTransactionsPerBlock are related and it's values
+						// NOTICE: blockTime and maxPayloadLength are related and it's values
 						// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
-						maxTransactionsPerBlock: {
+						// TODO this recommendations need to be updated now that we changed to a byte size block
+						maxPayloadLength: {
 							type: 'integer',
-							minimum: 1,
-							maximum: 150,
+							minimum: 10 * 1024, // Kilo Bytes
+							maximum: 30 * 1024, // Kilo Bytes
 							description: 'Maximum number of transactions allowed per block',
-						},
-						delegateListRoundOffset: {
-							type: 'number',
-							minimum: 0,
-							description:
-								'Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round `r` will be taken from the list generated in the end of round `r - delegateListRoundOffset`',
 						},
 						rewards: {
 							id: 'rewards',
@@ -374,143 +364,8 @@ module.exports = {
 							},
 							required: ['loadPerIteration'],
 						},
-						exceptions: {
-							type: 'object',
-							properties: {
-								blockRewards: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								senderPublicKey: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								signatures: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								multisignatures: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								votes: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								inertTransactions: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								roundVotes: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-								rounds: {
-									type: 'object',
-									description:
-										'In the format: 27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 }',
-								},
-								precedent: {
-									type: 'object',
-									description:
-										'A rule/authoritative checkpoint in place to follow in future',
-									properties: {
-										disableDappTransfer: {
-											type: 'integer',
-										},
-										disableDappTransaction: {
-											type: 'integer',
-										},
-										disableV1Transactions: {
-											type: 'integer',
-										},
-									},
-									required: [
-										'disableDappTransfer',
-										'disableDappTransaction',
-										'disableV1Transactions',
-									],
-								},
-								ignoreDelegateListCacheForRounds: {
-									type: 'array',
-									items: {
-										type: 'integer',
-									},
-								},
-								blockVersions: {
-									type: 'object',
-									description:
-										'In format: { version: { start: start_height, end: end_height }}',
-								},
-								recipientLeadingZero: {
-									type: 'object',
-									description:
-										'In format: { transaction_id: "account_address"} ',
-								},
-								recipientExceedingUint64: {
-									type: 'object',
-									description:
-										'In format: { transaction_id: "account_address"} ',
-								},
-								duplicatedSignatures: {
-									type: 'object',
-									description:
-										'In format: { transaction_id: [signature1, signature2] } ',
-								},
-								transactionWithNullByte: {
-									type: 'array',
-									items: {
-										type: 'string',
-										format: 'id',
-									},
-								},
-							},
-							required: [
-								'blockRewards',
-								'senderPublicKey',
-								'signatures',
-								'multisignatures',
-								'votes',
-								'inertTransactions',
-								'rounds',
-								'precedent',
-								'ignoreDelegateListCacheForRounds',
-								'blockVersions',
-								'recipientLeadingZero',
-								'recipientExceedingUint64',
-								'duplicatedSignatures',
-								'transactionWithNullByte',
-							],
-						},
 					},
-					required: [
-						'broadcasts',
-						'forging',
-						'syncing',
-						'loading',
-						'exceptions',
-					],
+					required: ['broadcasts', 'forging', 'syncing', 'loading'],
 				},
 			},
 		},
@@ -553,8 +408,7 @@ module.exports = {
 			genesisConfig: {
 				epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 				blockTime: 10,
-				maxTransactionsPerBlock: 25,
-				delegateListRoundOffset: 2,
+				maxPayloadLength: 15 * 1024, // Kilo Bytes
 				rewards: {
 					milestones: [
 						'500000000', // Initial Reward
@@ -588,27 +442,6 @@ module.exports = {
 				loading: {
 					loadPerIteration: 5000,
 					rebuildUpToRound: null,
-				},
-				exceptions: {
-					blockRewards: [],
-					senderPublicKey: [],
-					signatures: [],
-					multisignatures: [],
-					votes: [],
-					inertTransactions: [],
-					rounds: {},
-					precedent: {
-						disableDappTransfer: 0,
-						disableDappTransaction: 0,
-						disableV1Transactions: 0,
-					},
-					ignoreDelegateListCacheForRounds: [],
-					blockVersions: {},
-					roundVotes: [],
-					recipientLeadingZero: {},
-					recipientExceedingUint64: {},
-					duplicatedSignatures: {},
-					transactionWithNullByte: [],
 				},
 			},
 		},

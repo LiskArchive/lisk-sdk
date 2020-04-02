@@ -29,7 +29,7 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Slots } from '../../src/slots';
-import { BlockInstance, ExceptionOptions } from '../../src/types';
+import { BlockInstance } from '../../src/types';
 import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
 
 jest.mock('events');
@@ -60,7 +60,6 @@ describe('blocks/header', () => {
 		genesisBlock.communityIdentifier,
 	);
 
-	let exceptions: ExceptionOptions = {};
 	let chainInstance: Chain;
 	let storageStub: any;
 	let slots: Slots;
@@ -105,7 +104,6 @@ describe('blocks/header', () => {
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
 		});
-		exceptions = {};
 
 		chainInstance = new Chain({
 			storage: storageStub,
@@ -113,7 +111,6 @@ describe('blocks/header', () => {
 			networkIdentifier,
 			registeredTransactions,
 			slots,
-			exceptions,
 			...constants,
 		});
 		(chainInstance as any)._lastBlock = {
@@ -324,48 +321,6 @@ describe('blocks/header', () => {
 	});
 
 	describe('#verify', () => {
-		describe('when skip existing check is true and a transaction is inert', () => {
-			let validTx;
-			let txApplySpy: jest.SpyInstance;
-
-			beforeEach(async () => {
-				// Arrage
-				validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				txApplySpy = jest.spyOn(validTx, 'apply');
-				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
-				block = newBlock({ transactions: [validTx] });
-				// Act
-				const stateStore = new StateStore(storageStub, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-				});
-				await chainInstance.verify(block, stateStore, {
-					skipExistingCheck: true,
-				});
-			});
-
-			it('should not call blocks entity', async () => {
-				expect(storageStub.entities.Block.isPersisted).not.toHaveBeenCalled();
-			});
-
-			it('should not call transactions entity', async () => {
-				expect(storageStub.entities.Transaction.get).not.toHaveBeenCalled();
-			});
-
-			it('should not call apply for the transaction', async () => {
-				expect(txApplySpy).not.toHaveBeenCalled();
-			});
-		});
-
 		describe('when skip existing check is true and a transaction is not allowed', () => {
 			let notAllowedTx;
 			let txApplySpy: jest.SpyInstance;
@@ -587,54 +542,6 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when transaction is inert', () => {
-			let validTx;
-			let stateStore;
-			let txApplySpy: jest.SpyInstance;
-
-			beforeEach(async () => {
-				// Arrage
-				validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				// Calling validate to inject id and min-fee
-				validTx.validate();
-				txApplySpy = jest.spyOn(validTx, 'apply');
-				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
-				block = newBlock({ transactions: [validTx] });
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: '0',
-					},
-					{ address: genesisAccount.address, balance: '0' },
-				]);
-				// Act
-				stateStore = new StateStore(storageStub, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-				});
-				await stateStore.account.cache({
-					address_in: [
-						genesisAccount.address,
-						getAddressFromPublicKey(block.generatorPublicKey),
-					],
-				});
-				await chainInstance.apply(block, stateStore);
-			});
-
-			it('should not call apply for the transaction', async () => {
-				expect(txApplySpy).not.toHaveBeenCalled();
-			});
-		});
-
 		describe('when transaction is not applicable', () => {
 			let validTx;
 			let stateStore: StateStore;
@@ -705,7 +612,6 @@ describe('blocks/header', () => {
 						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
 					username: 'genesis_200',
 					balance: '10000000000',
-					voteWeight: '0',
 				};
 				delegate2 = {
 					address: '13608682259919656227L',
@@ -715,7 +621,6 @@ describe('blocks/header', () => {
 						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
 					username: 'genesis_201',
 					balance: '10000000000',
-					voteWeight: '0',
 				};
 
 				// Act
@@ -725,7 +630,16 @@ describe('blocks/header', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
-						votes: [delegate1.publicKey, delegate2.publicKey],
+						votes: [
+							{
+								delegateAddress: delegate1.address,
+								amount: '10000000000',
+							},
+							{
+								delegateAddress: delegate2.address,
+								amount: '10000000000',
+							},
+						],
 					}) as TransactionJSON,
 				);
 				// Calling validate to inject id and min-fee
@@ -758,8 +672,7 @@ describe('blocks/header', () => {
 						},
 						{
 							address: genesisAccount.address,
-							balance: '10000000000',
-							votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
+							balance: '1000000000000',
 							nonce: '0',
 						},
 						delegate1,
@@ -815,44 +728,6 @@ describe('blocks/header', () => {
 					(BigInt(defaultBurntFee) + expected).toString(),
 				);
 			});
-
-			it('should update vote weight on voted delegate', async () => {
-				const delegateOne = await stateStore.account.get(delegate1.address);
-				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight.toString()).toBe('9880000000');
-				expect(deletateTwo.voteWeight.toString()).toBe('9880000000');
-			});
-
-			it('should update vote weight on sender and recipient', async () => {
-				const newTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '2',
-						passphrase: genesisAccount.passphrase,
-						recipientId: genesisAccount.address,
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				// Calling validate to inject id and min-fee
-				newTx.validate();
-				const nextBlock = newBlock({
-					height: chainInstance.lastBlock.height + 1,
-					transactions: [newTx],
-				});
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: getAddressFromPublicKey(nextBlock.generatorPublicKey),
-						balance: '0',
-					},
-					{ address: genesisAccount.address, balance: '0' },
-				]);
-				await chainInstance.apply(nextBlock, stateStore);
-				// expect
-				// it should decrease by fee
-				const delegateOne = await stateStore.account.get(delegate1.address);
-				expect(delegateOne.voteWeight.toString()).toBe('9870000000');
-			});
 		});
 	});
 
@@ -880,7 +755,8 @@ describe('blocks/header', () => {
 					genesisAccount.address,
 				);
 				expect(genesisAccountFromStore.balance).toBe(
-					BigInt('10000000000000000'),
+					// Genesis account now sends funds to the genesis delegates
+					BigInt('9897000000000000'),
 				);
 			});
 
@@ -936,48 +812,6 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when transaction is inert', () => {
-			let validTx;
-			let stateStore;
-			let txUndoSpy: jest.SpyInstance;
-
-			beforeEach(async () => {
-				// Arrage
-				validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				// Calling validate to inject id and min-fee
-				validTx.validate();
-				txUndoSpy = jest.spyOn(validTx, 'undo');
-				(chainInstance as any).exceptions.inertTransactions = [validTx.id];
-				block = newBlock({ transactions: [validTx] });
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: reward.toString(),
-					},
-					{ address: genesisAccount.address, balance: '0' },
-				]);
-				// Act
-				stateStore = new StateStore(storageStub, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-				});
-				await chainInstance.undo(block, stateStore);
-			});
-
-			it('should not call undo for the transaction', async () => {
-				expect(txUndoSpy).not.toHaveBeenCalled();
-			});
-		});
-
 		describe('when transactions are all valid', () => {
 			const defaultGeneratorBalance = BigInt(800000000);
 			const defaultBurntFee = BigInt(400000);
@@ -999,7 +833,6 @@ describe('blocks/header', () => {
 						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
 					username: 'genesis_200',
 					balance: '10000000000',
-					voteWeight: '9889999900',
 				};
 				delegate2 = {
 					address: '13608682259919656227L',
@@ -1009,7 +842,6 @@ describe('blocks/header', () => {
 						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
 					username: 'genesis_201',
 					balance: '10000000000',
-					voteWeight: '9889999900',
 				};
 				const recipient = {
 					address: '124L',
@@ -1022,7 +854,16 @@ describe('blocks/header', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
-						votes: [delegate1.publicKey, delegate2.publicKey],
+						votes: [
+							{
+								delegateAddress: delegate1.address,
+								amount: '10000000000',
+							},
+							{
+								delegateAddress: delegate2.address,
+								amount: '10000000000',
+							},
+						],
 					}) as TransactionJSON,
 				);
 				// Calling validate to inject id and min-fee
@@ -1054,9 +895,15 @@ describe('blocks/header', () => {
 					{
 						address: genesisAccount.address,
 						balance: '9889999900',
-						votedDelegatesPublicKeys: [
-							delegate1.publicKey,
-							delegate2.publicKey,
+						votes: [
+							{
+								delegateAddress: delegate1.address,
+								amount: '10000000000',
+							},
+							{
+								delegateAddress: delegate2.address,
+								amount: '10000000000',
+							},
 						],
 					},
 					delegate1,
@@ -1113,13 +960,6 @@ describe('blocks/header', () => {
 				expect(burntFee).toEqual(
 					(BigInt(defaultBurntFee) - expected).toString(),
 				);
-			});
-
-			it('should update vote weight on voted delegate', async () => {
-				const delegateOne = await stateStore.account.get(delegate1.address);
-				const deletateTwo = await stateStore.account.get(delegate2.address);
-				expect(delegateOne.voteWeight).toBe(BigInt('0'));
-				expect(deletateTwo.voteWeight).toBe(BigInt('0'));
 			});
 		});
 	});

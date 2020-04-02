@@ -54,7 +54,7 @@ describe('TempBlock', () => {
 	let TempBlockEntity;
 
 	const row1 = {
-		id: '10620616195853047363',
+		id: '1349213844499460766',
 		height: 1,
 		fullBlock: {
 			version: 0,
@@ -68,12 +68,13 @@ describe('TempBlock', () => {
 			payloadLength: 19619,
 			previousBlockId: null,
 			generatorPublicKey:
-				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
+				'e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8',
 			transactions: [],
 			height: 1,
+			seedReveal: '00000000000000000000000000000000',
 			blockSignature:
 				'c81204bf67474827fd98584e7787084957f42ce8041e713843dd2bb352b73e81143f68bd74b06da8372c43f5e26406c4e7250bbd790396d85dea50d448d62606',
-			id: '10620616195853047363',
+			id: '1349213844499460766',
 		},
 	};
 
@@ -92,17 +93,17 @@ describe('TempBlock', () => {
 			payloadLength: 19619,
 			previousBlockId: null,
 			generatorPublicKey:
-				'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
+				'e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8',
 			transactions: [
 				{
 					type: 0,
 					amount: '10000000000000000',
 					fee: '0',
 					timestamp: 0,
-					recipientId: '11237980039345381032L',
+					recipientId: '5059876081639179984L',
 					senderId: '1276152240083265771L',
 					senderPublicKey:
-						'edf5786bef965f1836b8009e2c566463d62b6edd94e9cced49c1f098c972b92b',
+						'e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8',
 					signature:
 						'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
 					id: '7646387794267587684',
@@ -111,7 +112,7 @@ describe('TempBlock', () => {
 			height: 2,
 			blockSignature:
 				'c81204bf67474827fd98584e7787084957f42ce8041e713843dd2bb352b73e81143f68bd74b06da8372c43f5e26406c4e7250bbd790396d85dea50d448d62606',
-			id: '10620616195853047363',
+			id: '1349213844499460766',
 		},
 	};
 	beforeAll(async () => {

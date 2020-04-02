@@ -33,7 +33,7 @@ describe('data access - storage', () => {
 
 	const defaultAccounts = [
 		{ publicKey: '1L', address: '1276152240083265771L', balance: '100' },
-		{ publicKey: '2L', address: '11237980039345381032L', balance: '555' },
+		{ publicKey: '2L', address: '5059876081639179984L', balance: '555' },
 	];
 
 	const defaultTransactions = [
@@ -344,28 +344,6 @@ describe('data access - storage', () => {
 			// Assert
 			expect(accountsInStorage).toEqual(defaultAccounts);
 			expect(storageMock.entities.Account.get).toHaveBeenCalled();
-		});
-	});
-
-	describe('#getDelegateAccounts', () => {
-		const DEFAULT_LIMIT = 101;
-		beforeEach(async () => {
-			// Arrange
-			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
-		});
-
-		it('should call storage.Account.get and return accounts', async () => {
-			// Act
-			const delegateAccountsInStorage = await storageAccess.getDelegateAccounts(
-				DEFAULT_LIMIT,
-			);
-
-			// Assert
-			expect(delegateAccountsInStorage).toEqual(defaultAccounts);
-			expect(storageMock.entities.Account.get).toHaveBeenCalledWith(
-				{ isDelegate: true },
-				{ limit: DEFAULT_LIMIT, sort: ['voteWeight:desc', 'publicKey:asc'] },
-			);
 		});
 	});
 

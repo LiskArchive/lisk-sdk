@@ -41,11 +41,6 @@ const unlockDescription = `Specifies the unlock objects for the delegate candida
 	- --unlock=123L,1000000,500
 `;
 
-const unvotesDescription = `Specifies the public keys for the delegate candidates you want to remove your vote from. Takes a string of public keys separated by commas.
-	Examples:
-	- --unvotes=publickey1,publickey2
-`;
-
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
@@ -119,9 +114,6 @@ export const flags: FlagMap = {
 	password: {
 		char: 'w',
 		description: passwordDescription,
-	},
-	unvotes: {
-		description: unvotesDescription,
 	},
 	votes: {
 		description: votesDescription,

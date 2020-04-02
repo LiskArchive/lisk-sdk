@@ -7,6 +7,7 @@ Object {
     "activeDelegates": 101,
     "blockReceiptTimeout": 20,
     "blockSlotWindow": 5,
+    "delegateListRoundOffset": 2,
     "expiryInterval": 30000,
     "maxPayloadLength": 15360,
     "maxSharedTransactions": 100,
@@ -45,6 +46,11 @@ Object {
       "description": "The default number of previous blocks to keep in memory",
       "min": 1,
       "type": "integer",
+    },
+    "delegateListRoundOffset": Object {
+      "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
+      "minimum": 0,
+      "type": "number",
     },
     "expiryInterval": Object {
       "const": 30000,
@@ -152,6 +158,7 @@ Object {
     "transactionTypes",
     "unconfirmedTransactionTimeout",
     "expiryInterval",
+    "delegateListRoundOffset",
   ],
   "type": "object",
 }

@@ -83,9 +83,9 @@ describe('genesis block', () => {
 				expect(allAccountsAreDelegate).toEqual(true);
 			});
 
-			it('should have correct vote weight for genesis delegates', async () => {
-				// All delegates has vote weight of total supply
-				const voteWeightOfDevnetDelegates = '10000000000000000';
+			it('should have correct totalVotesReceived for genesis delegates', async () => {
+				// Initial funds for genesis delegates
+				const totalVotesReceivedOfDevnetDelegates = '1000000000000';
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
@@ -105,7 +105,8 @@ describe('genesis block', () => {
 						accountsFromDb.find(
 							account =>
 								address === account.address &&
-								account.voteWeight === voteWeightOfDevnetDelegates,
+								account.totalVotesReceived ===
+									totalVotesReceivedOfDevnetDelegates,
 						),
 				);
 
@@ -155,8 +156,8 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct vote weight for genesis delegates', async () => {
-				// All delegates has vote weight of total supply
-				const voteWeightOfDevnetDelegates = '10000000000000000';
+				// Initial funds for genesis delegates
+				const totalVotesReceivedOfDevnetDelegates = '1000000000000';
 				// Get accounts of delegate registeration
 				const delegateRegistrationTransactions = genesisBlock.transactions.filter(
 					transaction =>
@@ -176,7 +177,8 @@ describe('genesis block', () => {
 						accountsFromDb.find(
 							account =>
 								address === account.address &&
-								account.voteWeight === voteWeightOfDevnetDelegates,
+								account.totalVotesReceived ===
+									totalVotesReceivedOfDevnetDelegates,
 						),
 				);
 

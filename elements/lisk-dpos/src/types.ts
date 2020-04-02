@@ -62,8 +62,6 @@ export interface Account {
 	fees: bigint;
 	rewards: bigint;
 	readonly publicKey: string;
-	voteWeight: bigint;
-	readonly votedDelegatesPublicKeys: ReadonlyArray<string>;
 }
 // tslint:enable readonly-keyword
 
@@ -86,8 +84,6 @@ export interface Chain {
 			fromHeight: number,
 			toHeight: number,
 		) => Promise<BlockHeader[]>;
-		// TODO: Remove after implementing new DPoS #4951
-		readonly getDelegateAccounts: (limit: number) => Promise<Account[]>;
 	};
 }
 

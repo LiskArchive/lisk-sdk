@@ -15,8 +15,9 @@
 import {
 	TransferTransaction,
 	DelegateTransaction,
-	VoteTransaction,
 	MultisignatureTransaction,
+	VoteTransaction,
+	UnlockTransaction,
 } from '@liskhq/lisk-transactions';
 import { TransactionInterfaceAdapter } from '../../src/data_access/transaction_interface_adapter';
 
@@ -26,8 +27,9 @@ describe('transactions', () => {
 		const registeredTransactions = {
 			8: TransferTransaction,
 			10: DelegateTransaction,
-			11: VoteTransaction,
 			12: MultisignatureTransaction,
+			13: VoteTransaction,
+			14: UnlockTransaction,
 		};
 
 		let transactions: TransactionInterfaceAdapter;
@@ -46,8 +48,9 @@ describe('transactions', () => {
 				expect([...(transactions as any)._transactionClassMap.keys()]).toEqual([
 					8,
 					10,
-					11,
 					12,
+					13,
+					14,
 				]);
 			});
 		});
@@ -69,7 +72,7 @@ describe('transactions', () => {
 					timestamp: 54196076,
 					asset: {},
 					senderPublicKey:
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 					signature:
 						'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
 					id: '7507990258936015021',
@@ -86,13 +89,13 @@ describe('transactions', () => {
 					nonce: '0',
 					fee: '100',
 					senderPublicKey:
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 					timestamp: 54196076,
 					asset: {
 						delegate: {
 							username: 'RLI0',
 							publicKey:
-								'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+								'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 						},
 					},
 					signature:
@@ -107,19 +110,22 @@ describe('transactions', () => {
 
 			it('should initialize a vote transaction', async () => {
 				const vote = {
-					type: 11,
+					type: 13,
 					nonce: '0',
 					fee: '100',
 					senderPublicKey:
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 					timestamp: 54196078,
 					asset: {
 						votes: [
-							'+900fcb60a949a9269af36f0da4a7da6e5b9a81bafb1929b2882f8aeda5960ff0',
-							'+083d534a51c358e6dce6d43f4f0de8abf5bb1d8b8ee7fe817c5b225bb4c46fd8',
-							'+2027d6af78cc6b10d1fa9712dbb6241b67531552c2d3a688d8565c37b8a307ff',
-							'+9e3f52823ebdb0e07649b1d260f864691b81a4f7e18fdf8935bbb1bcfe454663',
-							'-18982fb4caf0cae685a3ca44fe91445c26bef542f09fc8ea0e25fd33fd948fd7',
+							{
+								delegateAddress: '123L',
+								amount: '1000000000',
+							},
+							{
+								delegateAddress: '456L',
+								amount: '1000000000',
+							},
 						],
 					},
 					signature:
@@ -136,7 +142,7 @@ describe('transactions', () => {
 					nonce: '0',
 					fee: '100',
 					senderPublicKey:
-						'5c554d43301786aec29a09b13b485176e81d1532347a351aeafe018c199fd7ca',
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 					timestamp: 54196078,
 					asset: {
 						min: 5,

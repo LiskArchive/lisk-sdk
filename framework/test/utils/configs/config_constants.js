@@ -17,7 +17,6 @@
 const constantsConfig = (overriddenConfigProperties = {}) => ({
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	blockTime: 10,
-	maxTransactionsPerBlock: 25,
 	delegateListRoundOffset: 2,
 	rewards: {
 		milestones: [

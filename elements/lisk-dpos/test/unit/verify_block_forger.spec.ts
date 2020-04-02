@@ -29,18 +29,16 @@ describe('dpos.verifyBlockForger()', () => {
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
-				getConsensusState: jest
-					.fn()
-					.mockResolvedValue(
-						JSON.stringify([
-							{
-								round: 3,
-								delegates: delegatePublicKeys.map(pk =>
-									getAddressFromPublicKey(pk),
-								),
-							},
-						]),
-					),
+				getConsensusState: jest.fn().mockResolvedValue(
+					JSON.stringify([
+						{
+							round: 3,
+							delegates: delegatePublicKeys.map(pk =>
+								getAddressFromPublicKey(pk),
+							),
+						},
+					]),
+				),
 			},
 		};
 

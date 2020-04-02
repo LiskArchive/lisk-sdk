@@ -19,7 +19,6 @@ const {
 	TransferTransaction,
 	DelegateTransaction,
 	VoteTransaction,
-	NewVoteTransaction,
 	UnlockTransaction,
 	MultisignatureTransaction,
 	transactionInterface,
@@ -151,9 +150,8 @@ class Application {
 
 		this.registerTransaction(TransferTransaction);
 		this.registerTransaction(DelegateTransaction);
-		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(MultisignatureTransaction);
-		this.registerTransaction(NewVoteTransaction);
+		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(UnlockTransaction);
 
 		this.registerModule(HttpAPIModule);

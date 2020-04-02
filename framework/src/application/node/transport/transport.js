@@ -30,7 +30,6 @@ class Transport {
 		logger,
 		// Unique requirements
 		applicationState,
-		exceptions,
 		// Modules
 		synchronizer,
 		transactionPoolModule,
@@ -45,7 +44,6 @@ class Transport {
 		this.logger = logger;
 		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
-		this.exceptions = exceptions;
 
 		this.constants = {
 			broadcasts,

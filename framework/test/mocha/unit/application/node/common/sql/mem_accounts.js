@@ -30,11 +30,8 @@ const MemAccounts = {
 		'"address",' +
 		'"publicKey",' +
 		'"balance",' +
-		'"voteWeight",' +
-		'"delegates",' +
 		'"multisignatures",' +
 		'"keys",' +
-		'"nameexist",' +
 		'"producedBlocks",' +
 		'"missedBlocks",' +
 		'"fees",' +
@@ -45,11 +42,8 @@ const MemAccounts = {
 		'${address}, ' +
 		'${publicKey}, ' +
 		'${balance}, ' +
-		'${voteWeight}, ' +
-		'${delegates}, ' +
 		'${multisignatures}, ' +
 		'${keys}, ' +
-		'${nameexist}, ' +
 		'${producedBlocks}, ' +
 		'${missedBlocks}, ' +
 		'${fees}, ' +
