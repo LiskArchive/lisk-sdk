@@ -205,6 +205,46 @@ describe('delegates/api', () => {
 			const result = await __private.getDelegates();
 			expect(result).to.equal(dummyDelegates);
 		});
+
+		it('should have correct propertiees', async () => {
+			const aDelegate = {
+				username: 'genesis_31',
+				totalVotesReceived: '10100000000000000',
+				rewards: '0',
+				producedBlocks: 15,
+				missedBlocks: 1,
+				productivity: 93.75,
+				address: '10016685355739180605L',
+				publicKey:
+					'c678d19210ebf71914652d6644da5ee42e0c80948c4b520dba9f3d4514b213b2',
+				balance: '0',
+				nonce: '2',
+				asset: {},
+				keys: {
+					optionalKeys: [],
+					mandatoryKeys: [],
+					numberOfSignatures: 0,
+				},
+				votes: [
+					{
+						amount: '1000000000000',
+						delegateAddress: '10016685355739180605L',
+					},
+				],
+				delegate: {
+					isBanned: false,
+					pomHeights: [],
+					lastForgedHeight: 0,
+					registeredHeight: 0,
+					consecutiveMissedBlocks: 0,
+				},
+				unlocking: [],
+				approval: 0,
+			};
+			sinonSandbox.stub(Array.prototype, 'map').returns([aDelegate]);
+			const result = await __private.getDelegates();
+			expect(result).to.eql([aDelegate]);
+		});
 	});
 
 	describe('_getForgingStatistics()', () => {
