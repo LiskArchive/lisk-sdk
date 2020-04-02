@@ -136,22 +136,21 @@ export const generateRandomSeeds = (
 	// Middle range of a round to validate
 	// tslint:disable-next-line:no-magic-numbers
 	const middleThreshold = Math.floor(rounds.blocksPerRound / 2);
-	const currentRound = round;
 	const lastBlockHeight = headers[headers.length - 1].height;
-	const startOfCurrentRound = rounds.calcRoundStartHeight(currentRound);
-	const middleOfCurrentRound = rounds.calcRoundMiddleHeight(currentRound);
-	const startOfLastRound = rounds.calcRoundStartHeight(currentRound - 1);
-	const endOfLastRound = rounds.calcRoundEndHeight(currentRound - 1);
+	const startOfRound = rounds.calcRoundStartHeight(round);
+	const middleOfRound = rounds.calcRoundMiddleHeight(round);
+	const startOfLastRound = rounds.calcRoundStartHeight(round - 1);
+	const endOfLastRound = rounds.calcRoundEndHeight(round - 1);
 	// tslint:disable-next-line:no-magic-numbers
-	const startOfSecondLastRound = rounds.calcRoundStartHeight(currentRound - 2);
+	const startOfSecondLastRound = rounds.calcRoundStartHeight(round - 2);
 
-	if (lastBlockHeight < middleOfCurrentRound) {
+	if (lastBlockHeight < middleOfRound) {
 		throw new Error(
 			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${lastBlockHeight}`,
 		);
 	}
 
-	if (currentRound === 1) {
+	if (round === 1) {
 		debug('Returning static value because current round is 1');
 		const randomSeed1ForFirstRound = strippedHash(
 			intToBuffer(middleThreshold + 1, NUMBER_BYTE_SIZE),
@@ -172,7 +171,7 @@ export const generateRandomSeeds = (
 		(acc: HeadersMap, header: BlockHeader): HeadersMap => {
 			if (
 				header.height >= startOfSecondLastRound &&
-				header.height <= middleOfCurrentRound
+				header.height <= middleOfRound
 			) {
 				acc[header.height] = header;
 			}
@@ -184,12 +183,12 @@ export const generateRandomSeeds = (
 
 	// From middle of current round to middle of last round
 	debug('Fetching seed reveals for random seed 1', {
-		fromHeight: startOfCurrentRound + middleThreshold,
-		toHeight: startOfCurrentRound - middleThreshold,
+		fromHeight: startOfRound + middleThreshold,
+		toHeight: startOfRound - middleThreshold,
 	});
 	const seedRevealsForRandomSeed1 = selectSeedReveals({
-		fromHeight: startOfCurrentRound + middleThreshold,
-		toHeight: startOfCurrentRound - middleThreshold,
+		fromHeight: startOfRound + middleThreshold,
+		toHeight: startOfRound - middleThreshold,
 		headersMap,
 		rounds,
 	});
@@ -207,9 +206,7 @@ export const generateRandomSeeds = (
 	});
 
 	const randomSeed1 = bitwiseXOR([
-		strippedHash(
-			intToBuffer(startOfCurrentRound + middleThreshold, NUMBER_BYTE_SIZE),
-		),
+		strippedHash(intToBuffer(startOfRound + middleThreshold, NUMBER_BYTE_SIZE)),
 		...seedRevealsForRandomSeed1,
 	]);
 	const randomSeed2 = bitwiseXOR([
