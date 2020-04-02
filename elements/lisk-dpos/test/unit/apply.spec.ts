@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
 import { Account, ForgersList, Block } from '../../src/types';
@@ -39,6 +40,8 @@ describe('dpos.apply()', () => {
 	let dpos: Dpos;
 	let chainStub: any;
 	let stateStore: StateStoreMock;
+	const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+	const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
 
 	beforeEach(() => {
 		// Arrange
@@ -57,6 +60,10 @@ describe('dpos.apply()', () => {
 		});
 
 		stateStore = new StateStoreMock([...delegateAccounts], {});
+
+		jest
+			.spyOn(randomSeedModule, 'generateRandomSeeds')
+			.mockReturnValue([randomSeed1, randomSeed2]);
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
@@ -74,6 +81,7 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: generator.publicKey,
 				reward: BigInt(500000000),
 				totalFee: BigInt(100000000),
+				seedReveal: '',
 				transactions: [],
 			} as Block;
 
@@ -337,6 +345,19 @@ describe('dpos.apply()', () => {
 				oldRound,
 				newRound: oldRound + 1,
 			});
+		});
+
+		it('should call generateRandomSeeds to get random seeds', async () => {
+			// Act
+			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
+
+			// Assert
+			expect(randomSeedModule.generateRandomSeeds).toHaveBeenCalledTimes(1);
+			expect(randomSeedModule.generateRandomSeeds).toHaveBeenCalledWith(
+				9,
+				dpos.rounds,
+				expect.anything(),
+			);
 		});
 
 		describe('When all delegates successfully forges a block', () => {

@@ -21,6 +21,7 @@ export interface StateStore {
 	readonly consensus: {
 		readonly get: (key: string) => Promise<string | undefined>;
 		readonly set: (key: string, value: string) => void;
+		readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	};
 }
 
@@ -28,6 +29,7 @@ export interface BlockHeader {
 	readonly id: string;
 	readonly height: number;
 	readonly generatorPublicKey: string;
+	readonly seedReveal: string;
 	readonly reward: bigint;
 	readonly totalFee: bigint;
 	readonly timestamp: number;
@@ -103,3 +105,18 @@ export interface ForgerList {
 
 export type ForgersList = ForgerList[];
 export type VoteWeights = VoteWeight[];
+
+type Grow<T, A extends T[]> = ((x: T, ...xs: A) => void) extends (
+	...a: infer X
+) => void
+	? X
+	: never;
+type GrowToSize<T, A extends T[], N extends number> = {
+	readonly 0: A;
+	readonly 1: GrowToSize<T, Grow<T, A>, N>;
+}[A['length'] extends N ? 0 : 1];
+
+export type FixedLengthArray<T, N extends number> = GrowToSize<T, [], N>;
+
+// Look for a way to define buffer type with fixed size
+export type RandomSeed = Buffer;
