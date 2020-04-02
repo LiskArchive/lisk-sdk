@@ -155,7 +155,6 @@ export class Dpos {
 	): Promise<boolean> {
 		const forgersList = await getForgersList(stateStore);
 		const relevantRound = this.rounds.calcRound(height);
-
 		const foundForgerList = forgersList.find(
 			roundRecord => roundRecord.round === relevantRound,
 		);
@@ -164,11 +163,11 @@ export class Dpos {
 			return false;
 		}
 
-		const isStandbyDelegate = foundForgerList.standby.find(
+		const isStandby = foundForgerList.standby.find(
 			standByDelegate => standByDelegate === address,
 		);
 
-		return isStandbyDelegate ? true : false;
+		return isStandby ? true : false;
 	}
 
 	/**
