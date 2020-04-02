@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import {
+	bufferToHex,
+	hash,
+	hexToBuffer,
+	intToBuffer,
+} from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import { Rounds } from './rounds';
@@ -27,15 +32,6 @@ interface HeadersMap {
 
 const NUMBER_BYTE_SIZE = 4;
 const RANDOM_SEED_BYTE_SIZE = 16;
-
-const numberToBuffer = (data: number): Buffer => {
-	const buffer = Buffer.alloc(NUMBER_BYTE_SIZE);
-	buffer.writeUInt32BE(data, 0);
-
-	return buffer;
-};
-
-const hexStrToBuffer = (str: string): Buffer => Buffer.from(str, 'hex');
 
 const strippedHash = (data: Buffer): Buffer => {
 	if (!(data instanceof Buffer)) {
@@ -88,8 +84,7 @@ const isValidSeedReveal = (
 	seedReveal: string,
 	previousSeedReveal: string,
 ): boolean =>
-	strippedHash(hexStrToBuffer(seedReveal)).toString('hex') ===
-	previousSeedReveal;
+	bufferToHex(strippedHash(hexToBuffer(seedReveal))) === previousSeedReveal;
 
 const selectSeedReveals = ({
 	fromHeight,
@@ -126,7 +121,7 @@ const selectSeedReveals = ({
 			continue;
 		}
 
-		selected.push(hexStrToBuffer(header.seedReveal));
+		selected.push(hexToBuffer(header.seedReveal));
 	}
 
 	return selected;
@@ -135,7 +130,7 @@ const selectSeedReveals = ({
 export const generateRandomSeeds = (
 	round: number,
 	rounds: Rounds,
-	headers: BlockHeader[],
+	headers: ReadonlyArray<BlockHeader>,
 	// tslint:disable-next-line:no-magic-numbers
 ): FixedLengthArray<RandomSeed, 2> => {
 	// Middle range of a round to validate
@@ -159,9 +154,11 @@ export const generateRandomSeeds = (
 	if (currentRound === 1) {
 		debug('Returning static value because current round is 1');
 		const randomSeed1ForFirstRound = strippedHash(
-			numberToBuffer(middleThreshold + 1),
+			intToBuffer(middleThreshold + 1, NUMBER_BYTE_SIZE),
 		);
-		const randomSeed2ForFirstRound = strippedHash(numberToBuffer(0));
+		const randomSeed2ForFirstRound = strippedHash(
+			intToBuffer(0, NUMBER_BYTE_SIZE),
+		);
 
 		return [randomSeed1ForFirstRound, randomSeed2ForFirstRound];
 	}
@@ -210,11 +207,13 @@ export const generateRandomSeeds = (
 	});
 
 	const randomSeed1 = bitwiseXOR([
-		strippedHash(numberToBuffer(startOfCurrentRound + middleThreshold)),
+		strippedHash(
+			intToBuffer(startOfCurrentRound + middleThreshold, NUMBER_BYTE_SIZE),
+		),
 		...seedRevealsForRandomSeed1,
 	]);
 	const randomSeed2 = bitwiseXOR([
-		strippedHash(numberToBuffer(endOfLastRound)),
+		strippedHash(intToBuffer(endOfLastRound, NUMBER_BYTE_SIZE)),
 		...seedRevealsForRandomSeed2,
 	]);
 

@@ -159,20 +159,10 @@ export class DelegatesInfo {
 				stateStore,
 			);
 
-			// Load 3 rounds of headers to calculate random seeds
-			const headersStartHeight = this.rounds.calcRoundStartHeight(
-				// tslint:disable-next-line:no-magic-numbers
-				round - 2,
-			);
-			const headersEndHeight = this.rounds.calcRoundEndHeight(round);
-			const headersForRandomSeeds = await this.chain.dataAccess.getBlockHeadersByHeightBetween(
-				headersStartHeight,
-				headersEndHeight,
-			);
 			const [randomSeed1, randomSeed2] = generateRandomSeeds(
 				round,
 				this.rounds,
-				headersForRandomSeeds,
+				stateStore.consensus.lastBlockHeaders,
 			);
 
 			await this.delegatesList.updateForgersList(

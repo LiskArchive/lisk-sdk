@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Account } from '../../src/types';
+import { Account, BlockHeader } from '../../src/types';
 
 interface AccountStoreMock {
 	get: (address: string) => Promise<Account>;
@@ -22,10 +22,15 @@ interface AccountStoreMock {
 interface ConsensusStateStoreMock {
 	get: (address: string) => Promise<string | undefined>;
 	set: (key: string, v: string) => void;
+	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 
 interface ConsensusState {
 	[key: string]: string;
+}
+
+export interface AdditionalInformation {
+	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 
 export class StateStoreMock {
@@ -35,7 +40,11 @@ export class StateStoreMock {
 	public accountData: Account[];
 	public consensusStateData: ConsensusState;
 
-	constructor(initialAccount?: Account[], initialState?: ConsensusState) {
+	constructor(
+		initialAccount?: Account[],
+		initialState?: ConsensusState,
+		additionalInformation?: AdditionalInformation,
+	) {
 		// Make sure to be deep copy
 		this.accountData = initialAccount
 			? initialAccount.map(a => ({ ...a }))
@@ -69,6 +78,7 @@ export class StateStoreMock {
 			set: (key: string, val: string): void => {
 				this.consensusStateData[key] = val;
 			},
+			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
 		};
 	}
 }

@@ -21,6 +21,7 @@ export interface StateStore {
 	readonly consensus: {
 		readonly get: (key: string) => Promise<string | undefined>;
 		readonly set: (key: string, value: string) => void;
+		readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	};
 }
 
