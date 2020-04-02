@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as randomSeedModule from '../../src/random_seed';
 import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
 import { Account, Block } from '../../src/types';
@@ -65,6 +66,7 @@ describe('Vote weight snapshot', () => {
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				totalFee: BigInt(100000000),
+				seedReveal: '',
 				transactions: [],
 			} as Block;
 			stateStore = new StateStoreMock([...delegates]);
@@ -105,6 +107,7 @@ describe('Vote weight snapshot', () => {
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				totalFee: BigInt(100000000),
+				seedReveal: '',
 				transactions: [],
 			} as Block;
 			stateStore = new StateStoreMock([forgers[0], ...delegates]);
@@ -153,6 +156,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -211,6 +215,12 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 					},
 				);
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should affect the vote weights snapshot created', async () => {
@@ -248,6 +258,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
@@ -286,6 +297,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should snapshot all of the delegates', async () => {
@@ -339,6 +356,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -380,6 +398,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should snapshot top 103 delegates', async () => {
@@ -430,6 +454,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -471,6 +496,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should snapshot all the delegates who has more than the threshold', async () => {
@@ -528,6 +559,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -569,6 +601,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should not include the non self voted delegate', async () => {
@@ -623,6 +661,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
@@ -664,6 +703,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should not include the banned delegate', async () => {
@@ -710,6 +755,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
@@ -748,6 +794,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should include the punished delegate as vote weight 0', async () => {
@@ -797,6 +849,7 @@ describe('Vote weight snapshot', () => {
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
+					seedReveal: '',
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
 					transactions: [],
@@ -840,6 +893,12 @@ describe('Vote weight snapshot', () => {
 					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
 					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
 				});
+
+				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
+				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+				jest
+					.spyOn(randomSeedModule, 'generateRandomSeeds')
+					.mockReturnValue([randomSeed1, randomSeed2]);
 			});
 
 			it('should not include the delegate who is being punished', async () => {
@@ -874,6 +933,7 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
+					seedReveal: '',
 					transactions: [],
 				} as Block;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
