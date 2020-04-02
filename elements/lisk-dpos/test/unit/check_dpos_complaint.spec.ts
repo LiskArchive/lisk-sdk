@@ -55,6 +55,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 			// Arrange
 			const blockHeader = {
 				seedReveal: '00000000000000000000000000000000',
+				height: 5,
 				generatorPublicKey,
 			} as BlockHeader;
 
@@ -72,6 +73,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 			const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
 			const blockHeader = {
 				seedReveal: blockHeaders[0].seedReveal,
+				height: 5,
 				generatorPublicKey,
 			} as BlockHeader;
 
@@ -88,22 +90,38 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 	describe('Given delegate was not active in last rounds', () => {
 		it('should return true if the forger did not forge any block in the previous round or previously in the same round', async () => {
 			// Arrange
-			const forgingMissedRoundBlockHeaders = [...blockHeaders].filter(
-				d => d.generatorPublicKey !== generatorPublicKey,
-			) as BlockHeader[];
-
+			const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
 			const blockHeader = {
-				seedReveal: 'df927cd14e84660c0a82c5f33a6f26f7',
+				seedReveal: blockHeaders[0].seedReveal,
+				height: 404,
 				generatorPublicKey,
 			} as BlockHeader;
 
 			// Act
 			const isDPoSProtocolCompliant = await dpos.isDPoSProtocolCompliant(
 				blockHeader,
-				createStateStore({ lastBlockHeaders: forgingMissedRoundBlockHeaders }),
+				createStateStore({ lastBlockHeaders }),
 			);
 			// Assert
 			expect(isDPoSProtocolCompliant).toBeTrue();
+		});
+
+		it('should return false if the forger did forge a block in the previous round or previously in the same round but new block with wrong seed reveal', async () => {
+			// Arrange
+			const lastBlockHeaders = blockHeaders as BlockHeader[];
+			const blockHeader = {
+				seedReveal: '00000000000000000000000000000000',
+				height: 202,
+				generatorPublicKey,
+			} as BlockHeader;
+
+			// Act
+			const isDPoSProtocolCompliant = await dpos.isDPoSProtocolCompliant(
+				blockHeader,
+				createStateStore({ lastBlockHeaders }),
+			);
+			// Assert
+			expect(isDPoSProtocolCompliant).toBeFalse();
 		});
 	});
 });

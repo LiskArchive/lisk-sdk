@@ -216,8 +216,14 @@ export class Dpos {
 		blockHeader: BlockHeader,
 		store: StateStore,
 	): Promise<boolean> {
-		const delegateForgedBlocks = store.consensus.lastBlockHeaders.filter(
-			block => block.generatorPublicKey === blockHeader.generatorPublicKey,
+		const { lastBlockHeaders } = store.consensus;
+		const round = this.rounds.calcRound(blockHeader.height);
+		const startOfLastRound = this.rounds.calcRoundStartHeight(round - 1);
+
+		const delegateForgedBlocks = lastBlockHeaders.filter(
+			block =>
+				block.generatorPublicKey === blockHeader.generatorPublicKey &&
+				block.height >= startOfLastRound,
 		);
 
 		if (!delegateForgedBlocks.length) {
