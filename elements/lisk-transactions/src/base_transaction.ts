@@ -71,6 +71,7 @@ export interface AccountState {
 
 export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
+	readonly lastReward: bigint;
 	readonly networkIdentifier: string;
 }
 

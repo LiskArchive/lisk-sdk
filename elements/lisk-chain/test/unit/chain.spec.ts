@@ -300,6 +300,14 @@ describe('chain', () => {
 			);
 		});
 
+		it('should get the rewards of the last block', async () => {
+			const stateStore = await chainInstance.newStateStore();
+
+			expect(stateStore.chain.lastReward.toString()).toEqual(
+				stateStore.chain.lastBlockHeader.reward.toString(),
+			);
+		});
+
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
 			await chainInstance.newStateStore(1);
 			await expect(

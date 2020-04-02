@@ -36,6 +36,7 @@ describe('state store / chain_state', () => {
 		stateStore = new StateStore(storageStub, {
 			lastBlockHeaders,
 			networkIdentifier: 'network-identifier-chain-1',
+			lastReward: BigInt(500000000),
 		});
 	});
 
@@ -50,6 +51,12 @@ describe('state store / chain_state', () => {
 			expect(stateStore.chain.networkIdentifier).toEqual(
 				'network-identifier-chain-1',
 			);
+		});
+	});
+
+	describe('lastReward', () => {
+		it('should have reward given at the initialization', async () => {
+			expect(stateStore.chain.lastReward.toString()).toEqual('500000000');
 		});
 	});
 

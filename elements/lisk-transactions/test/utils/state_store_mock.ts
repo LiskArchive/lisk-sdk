@@ -55,6 +55,7 @@ export const defaultNetworkIdentifier =
 export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
 	readonly lastBlockHeader?: BlockHeader;
+	readonly lastReward?: bigint;
 }
 
 export class StateStoreMock {
@@ -114,6 +115,7 @@ export class StateStoreMock {
 			networkIdentifier:
 				addtionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
 			lastBlockHeader: addtionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
+			lastReward: addtionalInfo?.lastReward ?? BigInt(0),
 		};
 	}
 }
