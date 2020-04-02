@@ -2224,7 +2224,7 @@ Object {
   "components": Object {
     "cache": Object {
       "db": 0,
-      "enabled": false,
+      "enabled": true,
       "host": "127.0.0.1",
       "password": null,
       "port": 6380,
