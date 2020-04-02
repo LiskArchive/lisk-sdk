@@ -33,7 +33,6 @@ export interface BlockHeader {
 	readonly reward: bigint;
 	readonly totalFee: bigint;
 	readonly timestamp: number;
-	readonly seedReveal: string;
 }
 
 export interface Block extends BlockHeader {

@@ -81,7 +81,6 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: generator.publicKey,
 				reward: BigInt(500000000),
 				totalFee: BigInt(100000000),
-				seedReveal: '',
 				transactions: [],
 				seedReveal: '00000000000000000000000000000000',
 			} as Block;

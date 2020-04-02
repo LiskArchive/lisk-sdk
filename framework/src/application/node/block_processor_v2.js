@@ -190,7 +190,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					expectedReward /= BigInt(4);
 				}
 				const reward = await this._punishDPoSViolation(block, stateStore);
-				if (reward === 0) {
+				if (reward === BigInt(0)) {
 					expectedReward = reward;
 				}
 				this.chainModule.validateBlockHeader(
@@ -419,7 +419,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				{ id: block.id, generatorPublicKey: block.getAddressFromPublicKey },
 				'Punishing delegate for DPoS violation',
 			);
-			return 0;
+			return BigInt(0);
 		}
 
 		return block.reward;

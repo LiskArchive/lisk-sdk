@@ -216,7 +216,7 @@ export class Dpos {
 		blockHeader: BlockHeader,
 		store: StateStore,
 	): Promise<boolean> {
-		const delegateForgedBlocks = store.consensus?.lastBlockHeaders?.filter(
+		const delegateForgedBlocks = store.consensus.lastBlockHeaders.filter(
 			block => block.generatorPublicKey === blockHeader.generatorPublicKey,
 		);
 
