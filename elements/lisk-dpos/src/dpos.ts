@@ -148,6 +148,30 @@ export class Dpos {
 		return this.rounds.calcRoundStartHeight(activeRounds);
 	}
 
+	public async isStandByDelegate(
+		address: string,
+		height: number,
+		stateStore: StateStore,
+	): Promise<boolean> {
+		const forgersList = await getForgersList(stateStore);
+		const relevantRound = this.rounds.calcRound(height);
+		const foundForgerList = forgersList.find(
+			roundRecord => roundRecord.round === relevantRound,
+		);
+
+		if (!foundForgerList) {
+			throw new Error(
+				`Forger list not found for round ${relevantRound} for the given height ${height}`,
+			);
+		}
+
+		const isStandby = foundForgerList.standby.find(
+			standByDelegate => standByDelegate === address,
+		);
+
+		return isStandby ? true : false;
+	}
+
 	/**
 	 * Important: delegateLists must be sorted by round number
 	 * in descending order.
