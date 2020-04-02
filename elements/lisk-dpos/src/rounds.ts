@@ -17,7 +17,7 @@ interface RoundConstructor {
 }
 
 export class Rounds {
-	private readonly blocksPerRound: number;
+	public readonly blocksPerRound: number;
 
 	public constructor({ blocksPerRound }: RoundConstructor) {
 		this.blocksPerRound = blocksPerRound;
@@ -33,5 +33,12 @@ export class Rounds {
 
 	public calcRoundEndHeight(round: number): number {
 		return (round < 1 ? 1 : round) * this.blocksPerRound;
+	}
+
+	public calcRoundMiddleHeight(round: number): number {
+		return Math.floor(
+			// tslint:disable-next-line:no-magic-numbers
+			(this.calcRoundStartHeight(round) + this.calcRoundEndHeight(round)) / 2,
+		);
 	}
 }

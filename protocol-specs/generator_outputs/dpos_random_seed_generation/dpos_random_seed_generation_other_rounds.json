@@ -9,8 +9,10 @@
 	"testCases": [
 		{
 			"description": "Random seeds generation for two rounds",
+			"config": {
+				"blocksPerRound": 103
+			},
 			"input": {
-				"blocksPerRound": 103,
 				"blocks": [
 					{
 						"generatorPublicKey": "b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9",
@@ -1045,7 +1047,7 @@
 				]
 			},
 			"output": {
-				"randomSeed1": "b417d37d9b60c4a01355e9ceb8fbf9d8",
+				"randomSeed1": "283f543e68fea3c08e976ef66acd3586",
 				"randomSeed2": "1ebc2c57112bc594c7ca32a76a89f70e"
 			}
 		},
@@ -2604,8 +2606,8 @@
 				]
 			},
 			"output": {
-				"randomSeed1": "6b0271f8cc97121c9e25e8c731f47c94",
-				"randomSeed2": "1c13d6d2f909c16cf9c380bc9df476e3"
+				"randomSeed1": "3258f0441e5d12360684a9c965ce37f0",
+				"randomSeed2": "354c87fa7674a8061920b9daafce92af"
 			}
 		},
 		{
@@ -5193,8 +5195,8 @@
 				]
 			},
 			"output": {
-				"randomSeed1": "ccdf05f428d0084714d1b6c9718e0224",
-				"randomSeed2": "aff312515f7ea5d0c83e20313166206c"
+				"randomSeed1": "16b7720b20b50ef49b9bd66b6a2034e7",
+				"randomSeed2": "7838d2b53d7250254d5a2ce5ff36dc5a"
 			}
 		}
 	]

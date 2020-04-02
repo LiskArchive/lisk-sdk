@@ -138,8 +138,14 @@ const isValidSeedReveal = (seedReveal, previousSeedReveal) =>
 	strippedHash(hexStrToBuffer(seedReveal)).toString('hex') ===
 	previousSeedReveal;
 
-const selectSeedReveal = (fromHeight, toHeight, blocksMap, blocksPerRound) => {
+const selectSeedReveal = ({
+	fromHeight,
+	toHeight,
+	blocksMap,
+	blocksPerRound,
+}) => {
 	const selected = [];
+
 	for (let i = fromHeight; i >= toHeight; i -= 1) {
 		const block = blocksMap[i];
 		const blockRound = calcRound(block.height, blocksPerRound);
@@ -298,8 +304,8 @@ const randomSeedForMoreRounds = () => ({
 		return [
 			{
 				description: 'Random seeds generation for two rounds',
+				config: { blocksPerRound },
 				input: {
-					blocksPerRound,
 					blocks: blocksForTwoRounds,
 				},
 				output: generateRandomSeed(blocksForTwoRounds, blocksPerRound),

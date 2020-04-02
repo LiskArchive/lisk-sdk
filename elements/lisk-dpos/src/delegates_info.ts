@@ -22,6 +22,7 @@ import {
 	deleteVoteWeightsAfterRound,
 	getForgerAddressesForRound,
 } from './delegates_list';
+import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
 import {
 	Block,
@@ -157,10 +158,16 @@ export class DelegatesInfo {
 				block.height + 1,
 				stateStore,
 			);
+
+			const [randomSeed1, randomSeed2] = generateRandomSeeds(
+				round,
+				this.rounds,
+				stateStore.consensus.lastBlockHeaders,
+			);
+
 			await this.delegatesList.updateForgersList(
 				nextRound,
-				// TODO: Insert real random seed after https://github.com/LiskHQ/lisk-sdk/issues/4939
-				[zeroRandomSeed, zeroRandomSeed],
+				[randomSeed1, randomSeed2],
 				stateStore,
 			);
 		}
