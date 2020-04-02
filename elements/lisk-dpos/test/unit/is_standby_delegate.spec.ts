@@ -37,8 +37,7 @@ const createStateStore = (list: ForgersList = []) => {
 
 describe('dpos.isStandbyDelegate', () => {
 	let dpos: Dpos;
-	const defaultPublicKey = delegatePublicKeys[0];
-	const defaultAddress = getAddressFromPublicKey(defaultPublicKey);
+	const defaultAddress = getAddressFromPublicKey(delegatePublicKeys[0]);
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 
 	beforeEach(() => {

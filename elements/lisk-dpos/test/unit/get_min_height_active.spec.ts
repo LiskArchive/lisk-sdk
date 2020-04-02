@@ -66,14 +66,13 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given delegate "x" was continuously active more than 4 rounds', () => {
 		it('should return the first block height of the 12th round', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [17, 16, 15, 14, 13, 12, 11, 10];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(12);
 			// Height in round 15
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -91,14 +90,13 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given delegate "x" was continuously active in last 4 rounds', () => {
 		it('should return the first block height of the 12th round', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [17, 16, 15, 14, 13, 12, 10];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(12);
 			// Height in round 15
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -116,14 +114,13 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given delegate "x" was continuously active in last 3 rounds', () => {
 		it('should return the first block height of the 3rd round', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [17, 16, 15, 14, 13, 11, 10];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(13);
 			// Height in round 15
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -141,14 +138,13 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given delegate "x" was continuously active in last 2 rounds', () => {
 		it('should return the first block height of the 14nd round', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [17, 16, 15, 14, 12, 11, 10];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(14);
 			// Height in round 15
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -166,14 +162,13 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given delegate "x" was only active in last round', () => {
 		it('should return the first block height of the last round', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [17, 16, 15, 13, 12, 11, 10];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(15);
 			// Height in round 15
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -191,14 +186,13 @@ describe('dpos.getMinActiveHeight()', () => {
 	describe('Given blockchain just started and the first list is being used couple of times', () => {
 		it('should return the first block height of 1st round for activeRound = 1', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [3, 2, 1];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(1);
 			// Height in round 1
 			height = 90;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -214,14 +208,13 @@ describe('dpos.getMinActiveHeight()', () => {
 
 		it('should return the first block height of 1st round for activeRound = 2', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [3, 2, 1];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(1);
 			// Height in round 2
 			height = 150;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -237,14 +230,13 @@ describe('dpos.getMinActiveHeight()', () => {
 
 		it('should return the first block height of 1st round for activeRound = 3', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [3, 2, 1];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(1);
 			// Height in round 3
 			height = 250;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -260,14 +252,13 @@ describe('dpos.getMinActiveHeight()', () => {
 
 		it('should return the first block height of 1st round for activeRound = 5', async () => {
 			// Arrange
-			const publicKey = 'x';
 			const activeRounds = [5, 3, 2, 1];
 			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(5);
 			// Height in round 5
 			height = 450;
 
 			const lists = generateDelegateLists({
-				address: publicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 

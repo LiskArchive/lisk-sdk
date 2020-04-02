@@ -41,14 +41,14 @@ interface ActiveDelegateList {
 }
 
 export const generateDelegateLists = (
-	{ address: publicKey, activeRounds }: ActiveDelegateList,
+	{ address, activeRounds }: ActiveDelegateList,
 	lists = delegateLists,
 ): ForgersList => {
 	return lists.map((list: ForgerList) => {
 		if (activeRounds.includes(list.round)) {
 			return {
 				round: list.round,
-				delegates: [publicKey, ...list.delegates].slice(0, 3),
+				delegates: [address, ...list.delegates].slice(0, 3),
 				standby: [],
 			};
 		}
@@ -57,7 +57,7 @@ export const generateDelegateLists = (
 };
 
 export const generateDelegateListsWithStandby = (
-	{ address: publicKey, activeRounds }: ActiveDelegateList,
+	{ address, activeRounds }: ActiveDelegateList,
 	lists = delegateLists,
 ): ForgersList => {
 	return lists.map((list: ForgerList) => {
@@ -65,7 +65,7 @@ export const generateDelegateListsWithStandby = (
 			return {
 				round: list.round,
 				delegates: [...list.delegates].slice(0, 3),
-				standby: [publicKey],
+				standby: [address],
 			};
 		}
 		return list;
