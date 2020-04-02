@@ -46,7 +46,7 @@ module.exports = {
 		},
 		buildVersion: {
 			type: 'string',
-			example: 'v09:54:35 12/04/2017',
+			example: '2020-01-16T13:43:35.000Z',
 			description:
 				'The build number. Consists of `v` + the date and time of the build of the node.',
 		},
