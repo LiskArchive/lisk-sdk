@@ -179,7 +179,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
-			async ({ block }) => {
+			async ({ block, stateStore }) => {
 				let expectedReward = this.chainModule.blockReward.calculateReward(
 					block.height,
 				);
@@ -188,6 +188,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				);
 				if (!isBFTProtocolCompliant) {
 					expectedReward /= BigInt(4);
+				}
+				const reward = await this._punishDPoSViolation(block, stateStore);
+				if (reward === BigInt(0)) {
+					expectedReward = reward;
 				}
 				this.chainModule.validateBlockHeader(
 					block,
@@ -250,7 +254,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.create.pipe([
 			// Create a block with with basic block and bft properties
-			async data => {
+			async ({ data, stateStore }) => {
 				const previouslyForgedMap = await this._getPreviouslyForgedMap();
 				const delegateAddress = getAddressFromPublicKey(
 					data.keypair.publicKey.toString('hex'),
@@ -265,6 +269,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 					previousBlockId,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
+					stateStore,
 				});
 
 				await this._saveMaxHeightPreviouslyForged(block, previouslyForgedMap);
@@ -287,6 +292,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		timestamp,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
+		stateStore,
 	}) {
 		const reward = this.chainModule.blockReward.calculateReward(height);
 		let totalFee = BigInt(0);
@@ -344,6 +350,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			block.reward /= BigInt(4);
 		}
 
+		block.reward = await this._punishDPoSViolation(block, stateStore);
+
 		return {
 			...block,
 			blockSignature: signDataWithPrivateKey(
@@ -397,6 +405,24 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 			previouslyForgedStr,
 		);
+	}
+
+	async _punishDPoSViolation(block, stateStore) {
+		const isDPoSProtocolCompliant = await this.dposModule.isDPoSProtocolCompliant(
+			block,
+			stateStore,
+		);
+
+		// Set reward to 0 if the block violates DPoS rules
+		if (!isDPoSProtocolCompliant) {
+			this.logger.info(
+				{ id: block.id, generatorPublicKey: block.getAddressFromPublicKey },
+				'Punishing delegate for DPoS violation',
+			);
+			return BigInt(0);
+		}
+
+		return block.reward;
 	}
 }
 
