@@ -161,7 +161,7 @@ export const applyFeeAndRewards = async (
 	// Generator only gets total fee - min fee
 	const givenFee = totalFee - totalMinFee;
 	// This is necessary only for genesis block case, where total fee is 0, which is invalid
-	// Also, genesis block channot be reverted
+	// Also, genesis block cannot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
 	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 	// tslint:disable-next-line no-let

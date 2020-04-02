@@ -14,7 +14,7 @@
 
 import { BlockHeader, ChainStateEntity, StorageTransaction } from '../types';
 
-interface AdditionalInformtion {
+interface AdditionalInformation {
 	readonly lastBlockHeader: BlockHeader;
 	readonly networkIdentifier: string;
 }
@@ -36,7 +36,7 @@ export class ChainStateStore {
 
 	public constructor(
 		chainStateEntity: ChainStateEntity,
-		additionalInformation: AdditionalInformtion,
+		additionalInformation: AdditionalInformation,
 	) {
 		this._chainState = chainStateEntity;
 		this._lastBlockHeader = additionalInformation.lastBlockHeader;

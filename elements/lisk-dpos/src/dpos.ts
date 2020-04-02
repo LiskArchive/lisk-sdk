@@ -251,7 +251,7 @@ export class Dpos {
 		);
 
 		if (!delegateForgedBlocks.length) {
-			// If the forger din't forge any block in the last three rounds
+			// If the forger didn't forge any block in the last three rounds
 			return true;
 		}
 

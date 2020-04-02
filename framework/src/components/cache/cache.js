@@ -35,12 +35,12 @@ class Cache {
 
 	async bootstrap() {
 		// TODO: implement retry_strategy
-		// TOFIX: app crashes with FTL error when launchin app with CACHE_ENABLE=true
+		// FIXME: app crashes with FTL error when launching app with CACHE_ENABLE=true
 		// but cache server is not available.
 		return new Promise(resolve => {
 			this.client = redis.createClient(this.options);
 			this.client.once('error', err => {
-				// Called if the "error" event occured before "ready" event
+				// Called if the "error" event occurred before "ready" event
 				this.logger.warn({ err }, 'App was unable to connect to Cache server');
 				// Error handler needs to exist to ignore the error
 				this.client.on('error', () => {});
