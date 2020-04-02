@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
 import {
@@ -31,18 +30,11 @@ const createStateStore = (additionalInfo: AdditionalInformation) => {
 	return new StateStoreMock([], undefined, additionalInfo);
 };
 
-const lastBlockHeaders = blockHeaders.sort(
-	(a, b) => b.height - a.height,
-) as BlockHeader[];
-
-const getForgerBlocks = (publicKey: string) =>
-	lastBlockHeaders.filter(b => b.generatorPublicKey === publicKey);
-
 describe('dpos.isDPoSProtocolCompliant()', () => {
 	let dpos: Dpos;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 	const generatorPublicKey =
-		'70cfea0529643e8cf55750f8523b1e228a3db6ab38f3eacb16988dcbfc5f0a44';
+		'b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9';
 
 	beforeEach(() => {
 		// Arrange
@@ -61,9 +53,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 	describe('Given delegate was only active in last three rounds', () => {
 		it('should return false if current block seedReveal is not a preimage of previous block', async () => {
 			// Arrange
-			const [lastBlock] = getForgerBlocks(generatorPublicKey).slice(0, 1);
 			const blockHeader = {
-				height: lastBlock.height + 1,
 				seedReveal: '00000000000000000000000000000000',
 				generatorPublicKey,
 			} as BlockHeader;
@@ -71,7 +61,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 			// Act
 			const isDPoSProtocolCompliant = await dpos.isDPoSProtocolCompliant(
 				blockHeader,
-				createStateStore({ lastBlockHeaders }),
+				createStateStore({ lastBlockHeaders: blockHeaders as BlockHeader[] }),
 			);
 			// Assert
 			expect(isDPoSProtocolCompliant).toBeFalse();
@@ -79,10 +69,9 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 
 		it('should return true if current block seedReveal is a preimage of previous block', async () => {
 			// Arrange
-			const [lastBlock] = getForgerBlocks(generatorPublicKey).slice(0, 1);
+			const lastBlockHeaders = [blockHeaders[0]] as BlockHeader[];
 			const blockHeader = {
-				height: lastBlock.height + 1,
-				seedReveal: 'df927cd14e84660c0a82c5f33a6f26f7',
+				seedReveal: blockHeaders[0].seedReveal,
 				generatorPublicKey,
 			} as BlockHeader;
 
@@ -99,12 +88,11 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 	describe('Given delegate was not active in last rounds', () => {
 		it('should return true if the forger did not forge any block in the previous round or previously in the same round', async () => {
 			// Arrange
-			const forgingMissedRoundBlockHeaders = [...lastBlockHeaders].filter(
+			const forgingMissedRoundBlockHeaders = [...blockHeaders].filter(
 				d => d.generatorPublicKey !== generatorPublicKey,
-			);
+			) as BlockHeader[];
 
 			const blockHeader = {
-				height: 400,
 				seedReveal: 'df927cd14e84660c0a82c5f33a6f26f7',
 				generatorPublicKey,
 			} as BlockHeader;

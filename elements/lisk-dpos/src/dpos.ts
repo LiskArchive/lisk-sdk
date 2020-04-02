@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { hash, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import {
@@ -209,13 +210,13 @@ export class Dpos {
 		});
 	}
 
+	// This function is used in block_processor_v2 to check the dpos compliance and update/validate the reward
 	// tslint:disable-next-line: prefer-function-over-method
 	public async isDPoSProtocolCompliant(
 		blockHeader: BlockHeader,
 		store: StateStore,
 	): Promise<boolean> {
-		const lastBlockHeaders = store.consensus.lastBlockHeaders;
-		const delegateForgedBlocks = lastBlockHeaders.filter(
+		const delegateForgedBlocks = store.consensus?.lastBlockHeaders?.filter(
 			block => block.generatorPublicKey === blockHeader.generatorPublicKey,
 		);
 
@@ -224,14 +225,17 @@ export class Dpos {
 			return true;
 		}
 
-		const { seedReveal: previousBlockSeedReveal } = delegateForgedBlocks.slice(
-			0,
-			1,
-		)[0];
+		const { seedReveal: previousBlockSeedReveal } = delegateForgedBlocks[0];
 		const { seedReveal: newBlockSeedReveal } = blockHeader;
+		const SEED_REVEAL_BYTE_SIZE = 16;
+		const newBlockSeedRevealBuffer = hash(
+			hexToBuffer(newBlockSeedReveal),
+		).slice(0, SEED_REVEAL_BYTE_SIZE);
 
 		// Check if last block seedReveal is not a preimage of new block
-		if (previousBlockSeedReveal !== newBlockSeedReveal) {
+		if (
+			!hexToBuffer(previousBlockSeedReveal).equals(newBlockSeedRevealBuffer)
+		) {
 			return false;
 		}
 
