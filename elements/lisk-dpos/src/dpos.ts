@@ -232,14 +232,11 @@ export class Dpos {
 			hexToBuffer(newBlockSeedReveal),
 		).slice(0, SEED_REVEAL_BYTE_SIZE);
 
-		// Check if last block seedReveal is not a preimage of new block
-		if (
-			!hexToBuffer(previousBlockSeedReveal).equals(newBlockSeedRevealBuffer)
-		) {
-			return false;
+		// New block seed reveal should be a preimage of the last block seed reveal
+		if (hexToBuffer(previousBlockSeedReveal).equals(newBlockSeedRevealBuffer)) {
+			return true;
 		}
 
-		// If the seedReveal matches the preimage
-		return true;
+		return false;
 	}
 }
