@@ -395,6 +395,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: stateStoreStub,
 						},
 						undefined,
 					);
@@ -475,6 +476,7 @@ describe('processor', () => {
 						{
 							block: blockV0,
 							lastBlock: defaultLastBlock,
+							stateStore: stateStoreStub,
 						},
 						undefined,
 					);

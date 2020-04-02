@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { hash, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import {
@@ -231,5 +232,41 @@ export class Dpos {
 		return this.delegatesInfo.undo(block, stateStore, {
 			delegateListRoundOffset,
 		});
+	}
+
+	// This function is used in block_processor_v2 to check the dpos compliance and update/validate the reward
+	// tslint:disable-next-line: prefer-function-over-method
+	public async isDPoSProtocolCompliant(
+		blockHeader: BlockHeader,
+		store: StateStore,
+	): Promise<boolean> {
+		const { lastBlockHeaders } = store.consensus;
+		const round = this.rounds.calcRound(blockHeader.height);
+		const startOfLastRound = this.rounds.calcRoundStartHeight(round - 1);
+
+		const delegateForgedBlocks = lastBlockHeaders.filter(
+			block =>
+				block.generatorPublicKey === blockHeader.generatorPublicKey &&
+				block.height >= startOfLastRound,
+		);
+
+		if (!delegateForgedBlocks.length) {
+			// If the forger din't forge any block in the last three rounds
+			return true;
+		}
+
+		const { seedReveal: previousBlockSeedReveal } = delegateForgedBlocks[0];
+		const { seedReveal: newBlockSeedReveal } = blockHeader;
+		const SEED_REVEAL_BYTE_SIZE = 16;
+		const newBlockSeedRevealBuffer = hash(
+			hexToBuffer(newBlockSeedReveal),
+		).slice(0, SEED_REVEAL_BYTE_SIZE);
+
+		// New block seed reveal should be a preimage of the last block seed reveal
+		if (hexToBuffer(previousBlockSeedReveal).equals(newBlockSeedRevealBuffer)) {
+			return true;
+		}
+
+		return false;
 	}
 }

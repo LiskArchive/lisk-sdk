@@ -86,6 +86,7 @@ class Processor {
 			);
 			const blockProcessor = this._getBlockProcessor(block);
 			const { lastBlock } = this.chainModule;
+			const stateStore = await this.chainModule.newStateStore();
 
 			const forkStatus = await blockProcessor.forkStatus.run({
 				block,
@@ -144,6 +145,7 @@ class Processor {
 				await blockProcessor.validate.run({
 					block,
 					lastBlock,
+					stateStore,
 				});
 				const previousLastBlock = cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock, blockProcessor);
@@ -172,6 +174,7 @@ class Processor {
 			await blockProcessor.validate.run({
 				block,
 				lastBlock,
+				stateStore,
 			});
 			await this._processValidated(block, lastBlock, blockProcessor);
 		});
@@ -186,15 +189,17 @@ class Processor {
 		});
 	}
 
-	async create(values) {
-		const { previousBlock } = values;
+	async create(data) {
+		const { previousBlock } = data;
 		this.logger.trace('Creating block', {
 			previousBlockId: previousBlock.id,
 			previousBlockHeight: previousBlock.height,
 		});
 		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
 		const processor = this.processors[highestVersion];
-		return processor.create.run(values);
+		const stateStore = await this.chainModule.newStateStore();
+
+		return processor.create.run({ data, stateStore });
 	}
 
 	// validate checks the block statically
@@ -204,9 +209,12 @@ class Processor {
 			'Validating block',
 		);
 		const blockProcessor = this._getBlockProcessor(block);
+		const stateStore = await this.chainModule.newStateStore();
+
 		await blockProcessor.validate.run({
 			block,
 			lastBlock,
+			stateStore,
 		});
 	}
 
