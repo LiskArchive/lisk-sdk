@@ -69,7 +69,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 
 		it('should return true if current block seedReveal is a preimage of previous block', async () => {
 			// Arrange
-			const lastBlockHeaders = [blockHeaders[0]] as BlockHeader[];
+			const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
 			const blockHeader = {
 				seedReveal: blockHeaders[0].seedReveal,
 				generatorPublicKey,
