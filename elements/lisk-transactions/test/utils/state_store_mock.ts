@@ -20,10 +20,6 @@ import { AccountState, ChainState } from '../../src/base_transaction';
 
 export const defaultAccount = {
 	publicKey: undefined,
-	// tslint:disable-next-line:no-null-keyword
-	secondPublicKey: null,
-	secondSignature: 0,
-	// tslint:disable-next-line:no-null-keyword
 	username: null,
 	isDelegate: 0,
 	balance: BigInt('0'),
@@ -32,10 +28,7 @@ export const defaultAccount = {
 	producedBlocks: 0,
 	fees: BigInt('0'),
 	rewards: BigInt('0'),
-	voteWeight: BigInt('0'),
-	nameExist: false,
 	// tslint:disable-next-line:no-null-keyword
-	votedDelegatesPublicKeys: [],
 	asset: {},
 	// tslint:disable-next-line:no-null-keyword
 	toJSON: (): object => ({}),

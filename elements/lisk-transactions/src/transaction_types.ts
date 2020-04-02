@@ -35,10 +35,7 @@ export interface Account {
 	isDelegate: number;
 	fees: bigint;
 	rewards: bigint;
-	voteWeight: bigint;
-	nameExist: boolean;
 	asset: object;
-	votedDelegatesPublicKeys: string[];
 	keys: {
 		mandatoryKeys: string[];
 		optionalKeys: string[];

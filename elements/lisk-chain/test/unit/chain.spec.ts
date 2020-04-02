@@ -52,7 +52,6 @@ describe('chain', () => {
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
-	let exceptions = {};
 	let chainInstance: Chain;
 	let slots: Slots;
 
@@ -91,10 +90,6 @@ describe('chain', () => {
 			interval: constants.blockTime,
 		});
 
-		exceptions = {
-			transactions: [],
-		};
-
 		stubs.tx = {
 			batch: jest.fn(),
 		};
@@ -105,7 +100,6 @@ describe('chain', () => {
 			networkIdentifier,
 			registeredTransactions,
 			slots,
-			exceptions,
 			...constants,
 		});
 	});

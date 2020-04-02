@@ -185,7 +185,6 @@ describe('Delegate registration transaction class', () => {
 			expect(store.account.set).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				isDelegate: 1,
-				voteWeight: BigInt(0),
 				username: validTestTransaction.asset.username,
 			});
 		});
@@ -221,7 +220,6 @@ describe('Delegate registration transaction class', () => {
 			expect(store.account.set).toHaveBeenCalledWith(sender.address, {
 				...sender,
 				isDelegate: 0,
-				voteWeight: BigInt(0),
 				username: null,
 			});
 		});

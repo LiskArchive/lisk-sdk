@@ -50,7 +50,7 @@ describe('storage.entities.Account.get', () => {
 	});
 
 	describe('Given arguments ({publicKey}, {extended: true}, tx)', () => {
-		it('should return array that contains 1 extended account object that has "votedDelegatesPublicKeys" and "keys" properties', async () => {
+		it('should return array that contains 1 extended account object that has "keys" property', async () => {
 			// Arrange
 			const account = {
 				address: 'delegateAddress',
@@ -75,11 +75,8 @@ describe('storage.entities.Account.get', () => {
 				nonce: '0',
 				rewards: '0',
 				productivity: 0,
-				voteWeight: '0',
-				nameExist: false,
 				missedBlocks: 0,
 				isDelegate: false,
-				votedDelegatesPublicKeys: null,
 			};
 
 			await pgHelper.createAccount(account);
@@ -98,8 +95,6 @@ describe('storage.entities.Account.get', () => {
 
 			// Assert
 			expect(accounts[0]).toEqual(expectedAccount);
-			// properties that comes with "{extended: true}" option.
-			expect(accounts[0]).toHaveProperty('votedDelegatesPublicKeys');
 		});
 	});
 
@@ -128,14 +123,11 @@ describe('storage.entities.Account.get', () => {
 				isDelegate: false,
 				username: null,
 				asset: null,
-				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
 				fees: '0',
 				rewards: '0',
-				voteWeight: '0',
 				productivity: 0,
-				votedDelegatesPublicKeys: null,
 			};
 
 			const expectedAccount2 = {
@@ -144,14 +136,11 @@ describe('storage.entities.Account.get', () => {
 				isDelegate: false,
 				username: null,
 				asset: null,
-				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
 				fees: '0',
 				rewards: '0',
-				voteWeight: '0',
 				productivity: 0,
-				votedDelegatesPublicKeys: null,
 			};
 
 			await pgHelper.createAccount(account);

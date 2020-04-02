@@ -43,19 +43,16 @@ export const mem_accountsFields = [
 	'address',
 	'publicKey',
 	'balance',
-	'voteWeight',
 	'delegates',
 	'multisignatures',
 	'multimin',
 	'multilifetime',
-	'nameexist',
 	'producedBlocks',
 	'missedBlocks',
 	'fees',
 	'rewards',
 	'asset',
 	'membersPublicKeys',
-	'votedDelegatesPublicKeys',
 ];
 
 export const Account = stampit.compose({
@@ -65,15 +62,12 @@ export const Account = stampit.compose({
 		address: '',
 		publicKey: '',
 		balance: '0',
-		voteWeight: '',
 		multiMin: 0,
 		multiLifetime: 0,
-		nameExist: false,
 		producedBlocks: 9,
 		missedBlocks: 0,
 		fees: '0',
 		rewards: '0',
-		votedDelegatesPublicKeys: null,
 		membersPublicKeys: null,
 		productivity: 0,
 		asset: {},
@@ -98,17 +92,12 @@ export const Account = stampit.compose({
 			randomstring
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
-		this.voteWeight = randomstring.generate({
-			charset: '123456789',
-			length: 5,
-		});
 		this.producedBlocks = producedBlocks || 0;
 		this.missedBlocks = missedBlocks || 0;
 		this.productivity =
 			this.producedBlocks / (this.producedBlocks + this.missedBlocks) || 0;
 		this.balance = balance || '0';
 		this.asset = asset || {};
-		this.votedDelegatesPublicKeys = null;
 		this.membersPublicKeys = null;
 	},
 });
@@ -124,14 +113,11 @@ export const dbAccount = stampit.compose({
 		multiLifetime: 0,
 		multimin: 0,
 		multisignatures: null,
-		nameExist: 0,
 		producedBlocks: 0,
 		publicKey: null,
 		rewards: '0',
 		username: null,
-		voteWeight: '0',
 		asset: {},
-		votedDelegatesPublicKeys: null,
 		membersPublicKeys: null,
 	},
 	init({ address, balance }) {

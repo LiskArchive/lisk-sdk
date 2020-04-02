@@ -107,14 +107,7 @@ const validateSchema = ({ block }) => {
 };
 
 class BlockProcessorV0 extends BaseBlockProcessor {
-	constructor({
-		chainModule,
-		dposModule,
-		bftModule,
-		logger,
-		constants,
-		exceptions,
-	}) {
+	constructor({ chainModule, dposModule, bftModule, logger, constants }) {
 		super();
 		const delegateListRoundOffset = 0;
 		this.chainModule = chainModule;
@@ -122,7 +115,6 @@ class BlockProcessorV0 extends BaseBlockProcessor {
 		this.bftModule = bftModule;
 		this.logger = logger;
 		this.constants = constants;
-		this.exceptions = exceptions;
 
 		this.deserialize.pipe([
 			({ block }) => this.chainModule.deserialize(block),

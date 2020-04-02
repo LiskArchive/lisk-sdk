@@ -347,28 +347,6 @@ describe('data access - storage', () => {
 		});
 	});
 
-	describe('#getDelegateAccounts', () => {
-		const DEFAULT_LIMIT = 101;
-		beforeEach(async () => {
-			// Arrange
-			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
-		});
-
-		it('should call storage.Account.get and return accounts', async () => {
-			// Act
-			const delegateAccountsInStorage = await storageAccess.getDelegateAccounts(
-				DEFAULT_LIMIT,
-			);
-
-			// Assert
-			expect(delegateAccountsInStorage).toEqual(defaultAccounts);
-			expect(storageMock.entities.Account.get).toHaveBeenCalledWith(
-				{ isDelegate: true },
-				{ limit: DEFAULT_LIMIT, sort: ['voteWeight:desc', 'publicKey:asc'] },
-			);
-		});
-	});
-
 	describe('#resetAccountMemTables', () => {
 		it('should call storage.Account.resetMemTables', async () => {
 			// Act

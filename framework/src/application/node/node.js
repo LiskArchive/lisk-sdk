@@ -40,8 +40,6 @@ const {
 } = require('./synchronizer');
 const { Processor } = require('./processor');
 const { Rebuilder } = require('./rebuilder');
-const { BlockProcessorV0 } = require('./block_processor_v0.js');
-const { BlockProcessorV1 } = require('./block_processor_v1.js');
 const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const forgeInterval = 1000;
@@ -104,28 +102,8 @@ module.exports = class Node {
 				dposModule: this.dpos,
 				logger: this.logger,
 				constants: this.options.constants,
-				exceptions: this.options.exceptions,
 				storage: this.storage,
 			};
-
-			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
-			if (this.options.exceptions.blockVersions) {
-				if (this.options.exceptions.blockVersions[0]) {
-					const period = this.options.exceptions.blockVersions[0];
-					this.processor.register(new BlockProcessorV0(processorDependencies), {
-						matcher: ({ height }) =>
-							height >= period.start && height <= period.end,
-					});
-				}
-
-				if (this.options.exceptions.blockVersions[1]) {
-					const period = this.options.exceptions.blockVersions[1];
-					this.processor.register(new BlockProcessorV1(processorDependencies), {
-						matcher: ({ height }) =>
-							height >= period.start && height <= period.end,
-					});
-				}
-			}
 
 			this.processor.register(new BlockProcessorV2(processorDependencies));
 
@@ -368,7 +346,6 @@ module.exports = class Node {
 			genesisBlock: this.options.genesisBlock,
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
-			exceptions: this.options.exceptions,
 			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
 			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.maxPayloadLength,
@@ -438,7 +415,6 @@ module.exports = class Node {
 			activeDelegates: this.options.constants.activeDelegates,
 			standbyDelegates: this.options.constants.standbyDelegates,
 			delegateListRoundOffset: this.options.constants.delegateListRoundOffset,
-			exceptions: this.options.exceptions,
 		});
 
 		this.bft = new BFT({
@@ -524,7 +500,6 @@ module.exports = class Node {
 			logger: this.logger,
 			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
-			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,

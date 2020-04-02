@@ -255,15 +255,6 @@ export class Storage {
 		return accounts;
 	}
 
-	public async getDelegateAccounts(limit: number): Promise<AccountJSON[]> {
-		const accounts = await this._storage.entities.Account.get(
-			{ isDelegate: true },
-			{ limit, sort: ['voteWeight:desc', 'publicKey:asc'] },
-		);
-
-		return accounts;
-	}
-
 	public async getDelegates(): Promise<AccountJSON[]> {
 		const accounts = await this._storage.entities.Account.get(
 			{ isDelegate: true },

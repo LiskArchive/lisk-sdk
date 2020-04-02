@@ -14,7 +14,7 @@
  *
  */
 import {
-	newCastVotes,
+	castVotes,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
 import {
@@ -42,7 +42,7 @@ const processInputs = (
 	votes: ReadonlyArray<RawAssetVote>,
 	passphrase?: string,
 ) =>
-	newCastVotes({
+	castVotes({
 		nonce,
 		fee,
 		networkIdentifier,
@@ -127,8 +127,8 @@ export default class VoteCommand extends BaseCommand {
 		const votesObjects = votes.map(vote => {
 			const voteArr = vote.split(',');
 
-                      const [delegateAddress, amount] = voteArr;
-                      
+			const [delegateAddress, amount] = voteArr;
+
 			if (!targetAddresses.includes(delegateAddress)) {
 				targetAddresses.push(delegateAddress);
 			} else {
