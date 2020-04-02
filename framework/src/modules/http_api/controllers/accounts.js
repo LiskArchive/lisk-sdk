@@ -35,6 +35,7 @@ function accountFormatter(totalSupply, account) {
 		'asset',
 		'keys',
 		'votes',
+		'delegate',
 	]);
 
 	if (account.isDelegate) {

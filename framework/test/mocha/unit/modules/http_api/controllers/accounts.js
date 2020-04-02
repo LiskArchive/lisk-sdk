@@ -94,6 +94,13 @@ describe('accounts/api', () => {
 				mandatoryKeys: [],
 				optionalKeys: [],
 			},
+			delegate: {
+				lastForgedHeight: 0,
+				registeredHeight: 0,
+				consecutiveMissedBlocks: 0,
+				isBanned: false,
+				pomHeights: [],
+			},
 		};
 
 		storageStub = {
@@ -140,6 +147,7 @@ describe('accounts/api', () => {
 				expect(account).to.have.property('nonce');
 				expect(account).to.have.property('asset');
 				expect(account).to.have.property('votes');
+				expect(account).to.have.property('delegate');
 			});
 		});
 	});
