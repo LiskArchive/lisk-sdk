@@ -2274,27 +2274,6 @@
 			"loading": {
 				"loadPerIteration": 5000,
 				"rebuildUpToRound": null
-			},
-			"exceptions": {
-				"blockRewards": [],
-				"senderPublicKey": [],
-				"signatures": [],
-				"signSignature": [],
-				"multisignatures": [],
-				"votes": [],
-				"inertTransactions": [],
-				"rounds": {},
-				"precedent": {
-					"disableDappTransfer": 0,
-					"disableDappTransaction": 0
-				},
-				"ignoreDelegateListCacheForRounds": [],
-				"blockVersions": {},
-				"roundVotes": [],
-				"recipientLeadingZero": {},
-				"recipientExceedingUint64": {},
-				"duplicatedSignatures": {},
-				"transactionWithNullByte": []
 			}
 		},
 		"network": {

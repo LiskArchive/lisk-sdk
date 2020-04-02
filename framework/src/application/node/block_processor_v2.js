@@ -157,7 +157,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		storage,
 		logger,
 		constants,
-		exceptions,
 	}) {
 		super();
 		this.networkIdentifier = networkIdentifier;
@@ -167,7 +166,6 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.logger = logger;
 		this.storage = storage;
 		this.constants = constants;
-		this.exceptions = exceptions;
 
 		this.init.pipe([({ stateStore }) => this.bftModule.init(stateStore)]);
 

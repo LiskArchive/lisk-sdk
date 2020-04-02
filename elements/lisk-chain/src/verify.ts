@@ -23,7 +23,6 @@ import {
 	BlockHeader,
 	BlockInstance,
 	Context,
-	ExceptionOptions,
 	MatcherTransaction,
 	Storage,
 } from './types';
@@ -61,22 +60,15 @@ export const verifyPreviousBlockId = (
 
 interface BlockVerifyInput {
 	readonly dataAccess: DataAccess;
-	readonly exceptions: ExceptionOptions;
 	readonly genesisBlock: BlockHeader;
 }
 
 export class BlocksVerify {
 	private readonly dataAccess: DataAccess;
-	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockHeader;
 
-	public constructor({
-		dataAccess,
-		exceptions,
-		genesisBlock,
-	}: BlockVerifyInput) {
+	public constructor({ dataAccess, genesisBlock }: BlockVerifyInput) {
 		this.dataAccess = dataAccess;
-		this.exceptions = exceptions;
 		this.genesisBlock = genesisBlock;
 	}
 
@@ -102,6 +94,7 @@ export class BlocksVerify {
 		}
 	}
 
+	// tslint:disable-next-line prefer-function-over-method
 	public async checkTransactions(blockInstance: BlockInstance): Promise<void> {
 		const { version, height, timestamp, transactions } = blockInstance;
 		if (transactions.length === 0) {
@@ -113,18 +106,8 @@ export class BlocksVerify {
 			blockTimestamp: timestamp,
 		};
 
-		const nonInertTransactions = transactions.filter(
-			transaction =>
-				!transactionsModule.checkIfTransactionIsInert(
-					transaction,
-					this.exceptions,
-				),
-		);
-
 		const nonAllowedTxResponses = transactionsModule
-			.checkAllowedTransactions(context)(
-				nonInertTransactions as MatcherTransaction[],
-			)
+			.checkAllowedTransactions(context)(transactions as MatcherTransaction[])
 			.find(
 				(transactionResponse: TransactionResponse) =>
 					transactionResponse.status !== TransactionStatus.OK,

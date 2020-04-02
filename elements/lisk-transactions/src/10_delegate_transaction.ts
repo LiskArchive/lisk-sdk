@@ -131,7 +131,6 @@ export class DelegateTransaction extends BaseTransaction {
 		}
 		sender.username = this.asset.username;
 		sender.isDelegate = 1;
-		sender.voteWeight = BigInt(0);
 		store.account.set(sender.address, sender);
 
 		return errors;
@@ -144,7 +143,6 @@ export class DelegateTransaction extends BaseTransaction {
 		// tslint:disable-next-line:no-null-keyword
 		sender.username = null;
 		sender.isDelegate = 0;
-		sender.voteWeight = BigInt(0);
 		store.account.set(sender.address, sender);
 
 		return [];

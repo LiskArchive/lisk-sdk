@@ -19,16 +19,14 @@ const {
 	DelegateTransaction,
 	VoteTransaction,
 	MultisignatureTransaction,
-	NewVoteTransaction,
 	UnlockTransaction,
 } = require('@liskhq/lisk-transactions');
 
 const registeredTransactions = {
 	8: TransferTransaction,
 	10: DelegateTransaction,
-	11: VoteTransaction,
 	12: MultisignatureTransaction,
-	13: NewVoteTransaction,
+	13: VoteTransaction,
 	14: UnlockTransaction,
 };
 

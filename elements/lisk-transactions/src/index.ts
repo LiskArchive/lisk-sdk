@@ -14,9 +14,8 @@
  */
 
 import { DelegateTransaction } from './10_delegate_transaction';
-import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
-import { VoteTransaction as NewVoteTransaction } from './13_vote_transaction';
+import { VoteTransaction } from './13_vote_transaction';
 import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import {
@@ -24,14 +23,13 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { castVotes as newCastVotes } from './cast_votes';
+import { castVotes } from './cast_votes';
 import * as constants from './constants';
 import {
 	convertToAssetError,
 	convertToTransactionError,
 	TransactionError,
 } from './errors';
-import { castVotes } from './legacy_cast_votes';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
 import { createResponse, Status, TransactionResponse } from './response';
@@ -79,8 +77,6 @@ export {
 	registerDelegate,
 	VoteTransaction,
 	castVotes,
-	newCastVotes,
-	NewVoteTransaction,
 	MultisignatureTransaction,
 	UnlockTransaction,
 	unlockToken,

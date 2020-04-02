@@ -39,27 +39,6 @@ Object {
         "broadcastInterval": 5000,
         "releaseLimit": 25,
       },
-      "exceptions": Object {
-        "blockRewards": Array [],
-        "blockVersions": Object {},
-        "duplicatedSignatures": Object {},
-        "ignoreDelegateListCacheForRounds": Array [],
-        "inertTransactions": Array [],
-        "multisignatures": Array [],
-        "precedent": Object {
-          "disableDappTransaction": 0,
-          "disableDappTransfer": 0,
-          "disableV1Transactions": 0,
-        },
-        "recipientExceedingUint64": Object {},
-        "recipientLeadingZero": Object {},
-        "roundVotes": Array [],
-        "rounds": Object {},
-        "senderPublicKey": Array [],
-        "signatures": Array [],
-        "transactionWithNullByte": Array [],
-        "votes": Array [],
-      },
       "forging": Object {
         "defaultPassword": "elephant tree paris dragon chair galaxy",
         "delegates": Array [

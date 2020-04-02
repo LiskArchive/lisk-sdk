@@ -80,7 +80,6 @@ describe('block processor v2', () => {
 		loggerStub = {};
 
 		const defaultConstants = {};
-		const defaultExceptions = {};
 
 		blockProcessor = new BlockProcessorV2({
 			networkIdentifier: defaultAdditionalData.networkIdentifier,
@@ -90,7 +89,6 @@ describe('block processor v2', () => {
 			storage: storageStub,
 			logger: loggerStub,
 			constants: defaultConstants,
-			exceptions: defaultExceptions,
 		});
 	});
 

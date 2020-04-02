@@ -42,10 +42,7 @@ const defaultCreateValues = {
 	producedBlocks: 0,
 	fees: '0',
 	rewards: '0',
-	voteWeight: '0',
-	nameExist: false,
 	isDelegate: false,
-	votedDelegatesPublicKeys: null,
 };
 
 const readOnlyFields = ['address'];
@@ -56,8 +53,6 @@ const sqlFiles = {
 	updateOne: 'accounts/update_one.sql',
 	delete: 'accounts/delete.sql',
 	resetMemTables: 'accounts/reset_mem_tables.sql',
-	increaseFieldBy: 'accounts/increase_field_by.sql',
-	decreaseFieldBy: 'accounts/decrease_field_by.sql',
 };
 
 class ChainAccount extends AccountEntity {
@@ -110,7 +105,6 @@ class ChainAccount extends AccountEntity {
 
 		accounts = accounts.map(account => {
 			let parsedAccount = _.defaults(account, defaultCreateValues);
-			parsedAccount = ChainAccount._stringifyVotedDelegates(parsedAccount);
 			parsedAccount = ChainAccount._stringifyMembersPublicKeys(parsedAccount);
 			parsedAccount = ChainAccount._stringifyVotes(parsedAccount);
 			parsedAccount = ChainAccount._stringifyUnlocking(parsedAccount);
@@ -125,10 +119,7 @@ class ChainAccount extends AccountEntity {
 
 		this.validateFilters(filters, atLeastOneRequired);
 
-		let sanitizedCreateData = ChainAccount._stringifyVotedDelegates(data);
-		sanitizedCreateData = ChainAccount._stringifyMembersPublicKeys(
-			sanitizedCreateData,
-		);
+		let sanitizedCreateData = ChainAccount._stringifyMembersPublicKeys(data);
 		sanitizedCreateData = ChainAccount._stringifyVotes(sanitizedCreateData);
 		sanitizedCreateData = ChainAccount._stringifyUnlocking(sanitizedCreateData);
 
@@ -210,46 +201,6 @@ class ChainAccount extends AccountEntity {
 		return this.adapter.executeFile(this.SQLs.resetMemTables, {}, {}, tx);
 	}
 
-	increaseFieldBy(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'increase', tx);
-	}
-
-	decreaseFieldBy(filters, field, value, tx) {
-		return this._updateField(filters, field, value, 'decrease', tx);
-	}
-
-	_updateField(filters, field, value, mode, tx) {
-		const atLeastOneRequired = true;
-		const validFieldName = Object.keys(this.fields).includes(field);
-		assert(validFieldName, `Field name "${field}" is not valid.`);
-
-		this.validateFilters(filters, atLeastOneRequired);
-
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-		const filedName = this.fields[field].fieldName;
-
-		const params = {
-			parsedFilters,
-			field: filedName,
-			value,
-		};
-
-		const sql = {
-			increase: this.SQLs.increaseFieldBy,
-			decrease: this.SQLs.decreaseFieldBy,
-		}[mode];
-
-		return this.adapter.executeFile(
-			sql,
-			params,
-			{
-				expectedResultCount: 0,
-			},
-			tx,
-		);
-	}
-
 	static _stringifyVotes(data) {
 		if (data.votes) {
 			return {
@@ -265,16 +216,6 @@ class ChainAccount extends AccountEntity {
 			return {
 				...data,
 				unlocking: JSON.stringify(data.unlocking),
-			};
-		}
-		return data;
-	}
-
-	static _stringifyVotedDelegates(data) {
-		if (data.votedDelegatesPublicKeys) {
-			return {
-				...data,
-				votedDelegatesPublicKeys: JSON.stringify(data.votedDelegatesPublicKeys),
 			};
 		}
 		return data;

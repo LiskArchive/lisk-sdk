@@ -34,7 +34,6 @@ export const getDelegateAccounts = (num: number = 1): Account[] => {
 			balance: BigInt(balance),
 			fees: BigInt('0'),
 			rewards: BigInt('0'),
-			voteWeight: BigInt('0'),
 			totalVotesReceived: BigInt('0'),
 			username: `genesis_${index + randomInt(0, 999999)}`,
 			delegate: {
@@ -42,7 +41,6 @@ export const getDelegateAccounts = (num: number = 1): Account[] => {
 				pomHeights: [],
 			},
 			votes: [],
-			votedDelegatesPublicKeys: [],
 		});
 	}
 

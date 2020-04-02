@@ -74,7 +74,6 @@ describe('Transport', () => {
 			logger: loggerStub,
 			// Unique requirements
 			applicationState: {},
-			exceptions: {},
 			// Modules
 			synchronizer: synchronizerStub,
 			transactionPoolModule: transactionPoolStub,

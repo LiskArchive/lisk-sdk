@@ -17,8 +17,6 @@
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
 
-const { activeDelegates } = global.constants;
-
 let self;
 
 class Queries {
@@ -57,12 +55,6 @@ class Queries {
 	getDelegates() {
 		return self.storage.adapter.db.query(
 			'SELECT m.*, t.id as "transactionId" FROM mem_accounts m LEFT JOIN trs t ON t.asset->>\'username\' = m.username WHERE t.type = 10',
-		);
-	}
-
-	getDelegatesOrderedByVoteWeight() {
-		return self.storage.adapter.db.query(
-			`SELECT "publicKey", "voteWeight" FROM mem_accounts ORDER BY "voteWeight" DESC, "publicKey" ASC LIMIT ${activeDelegates}`,
 		);
 	}
 
@@ -119,16 +111,6 @@ class Queries {
 					return respObj;
 				}, {});
 			});
-	}
-
-	getVoters() {
-		return self.storage.adapter.db.query(
-			`SELECT
-			jsonb_array_elements("votedDelegatesPublicKeys") as "dependentId",
-			ARRAY_AGG(address) FROM mem_accounts WHERE "votedDelegatesPublicKeys" IS NOT NULL
-			GROUP BY address
-			ORDER BY "dependentId"`,
-		);
 	}
 	/* eslint-enable class-methods-use-this */
 }
