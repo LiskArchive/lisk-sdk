@@ -15,6 +15,7 @@
 export * from './address';
 export * from './create_base_transaction';
 export * from './format';
+export * from './get_block_bytes';
 export * from './sign_and_validate';
 export * from './verify';
 export * from './transaction_id';
