@@ -77,9 +77,9 @@ module.exports = {
 			maximum: {
 				$data: '/activeDelegates',
 			},
-			const: 101,
+			const: 10,
 			description:
-				'The maximum number of votes allowed in transaction type(3) votes',
+				'The maximum number of votes allowed in transaction type(13) votes',
 		},
 		totalAmount: {
 			type: 'string',
@@ -164,7 +164,7 @@ module.exports = {
 		blockReceiptTimeout: 20, // 2 blocks
 		maxPayloadLength: 15 * 1024,
 		maxSharedTransactions: 100,
-		maxVotesPerAccount: 101,
+		maxVotesPerAccount: 10,
 		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		totalAmount: '10000000000000000',
 		transactionTypes: {
