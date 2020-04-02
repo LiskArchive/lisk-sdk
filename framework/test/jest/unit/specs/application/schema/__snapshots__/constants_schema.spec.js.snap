@@ -11,7 +11,7 @@ Object {
     "expiryInterval": 30000,
     "maxPayloadLength": 15360,
     "maxSharedTransactions": 100,
-    "maxVotesPerAccount": 101,
+    "maxVotesPerAccount": 10,
     "standbyDelegates": 2,
     "totalAmount": "10000000000000000",
     "transactionTypes": Object {
@@ -71,8 +71,8 @@ Object {
       "type": "integer",
     },
     "maxVotesPerAccount": Object {
-      "const": 101,
-      "description": "The maximum number of votes allowed in transaction type(3) votes",
+      "const": 10,
+      "description": "The maximum number of votes allowed in transaction type(13) votes",
       "maximum": Object {
         "$data": "/activeDelegates",
       },
