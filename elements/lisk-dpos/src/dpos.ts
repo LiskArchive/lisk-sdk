@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import {
@@ -161,11 +160,13 @@ export class Dpos {
 		);
 
 		if (!foundForgerList) {
-			return false;
+			throw new Error(
+				`Forger list not found for round ${relevantRound} for the given height ${height}`,
+			);
 		}
 
 		const isStandby = foundForgerList.standby.find(
-			standByDelegate => getAddressFromPublicKey(standByDelegate) === address,
+			standByDelegate => standByDelegate === address,
 		);
 
 		return isStandby ? true : false;

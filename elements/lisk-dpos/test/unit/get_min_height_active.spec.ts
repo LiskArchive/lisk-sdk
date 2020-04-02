@@ -73,7 +73,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -98,7 +98,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -123,7 +123,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -148,7 +148,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -173,7 +173,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 15 * ACTIVE_DELEGATES;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -198,7 +198,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 90;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -221,7 +221,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 150;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -244,7 +244,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 250;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 
@@ -267,7 +267,7 @@ describe('dpos.getMinActiveHeight()', () => {
 			height = 450;
 
 			const lists = generateDelegateLists({
-				publicKey,
+				address: publicKey,
 				activeRounds,
 			});
 

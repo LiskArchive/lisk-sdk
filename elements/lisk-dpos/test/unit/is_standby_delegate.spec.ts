@@ -57,15 +57,14 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When a block is the latest block', () => {
 		// Arrange
-		const standByPublicKey = delegatePublicKeys[1];
-		const standByAddress = getAddressFromPublicKey(standByPublicKey);
+		const standByAddress = getAddressFromPublicKey(delegatePublicKeys[1]);
 		const activeRounds = [17, 14, 11];
 		// Height in round 17
 		const height = 17 * ACTIVE_DELEGATES;
 
 		it('should return true if its a standby delegate', async () => {
 			const lists = generateDelegateListsWithStandby({
-				publicKey: standByPublicKey,
+				address: standByAddress,
 				activeRounds,
 			});
 
@@ -81,7 +80,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 		it('should return false if a delegate is not present', async () => {
 			const lists = generateDelegateLists({
-				publicKey: defaultPublicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -95,9 +94,9 @@ describe('dpos.isStandbyDelegate', () => {
 			expect(isStandby).toEqual(false);
 		});
 
-		it('should return false if a delegate is a normal delegate ', async () => {
+		it('should return false if a delegate is an active delegate', async () => {
 			const lists = generateDelegateLists({
-				publicKey: defaultPublicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -114,15 +113,14 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When the latest block is 3 rounds old', () => {
 		// Arrange
-		const standByPublicKey = delegatePublicKeys[1];
-		const standByAddress = getAddressFromPublicKey(standByPublicKey);
+		const standByAddress = getAddressFromPublicKey(delegatePublicKeys[1]);
 		const activeRounds = [16, 15, 14];
 		// Height in round 17
 		const height = 14 * ACTIVE_DELEGATES;
 
 		it('should return true if its a standby delegate', async () => {
 			const lists = generateDelegateListsWithStandby({
-				publicKey: standByPublicKey,
+				address: standByAddress,
 				activeRounds,
 			});
 
@@ -138,7 +136,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 		it('should return false if a delegate does not exist', async () => {
 			const lists = generateDelegateLists({
-				publicKey: defaultPublicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 
@@ -152,9 +150,9 @@ describe('dpos.isStandbyDelegate', () => {
 			expect(isStandby).toEqual(false);
 		});
 
-		it('should return false if its a normal delegate', async () => {
+		it('should return false if its an active delegate', async () => {
 			const lists = generateDelegateLists({
-				publicKey: defaultPublicKey,
+				address: defaultAddress,
 				activeRounds,
 			});
 

@@ -36,12 +36,12 @@ export const delegateLists = deepFreeze([
 ]);
 
 interface ActiveDelegateList {
-	readonly publicKey: string;
+	readonly address: string;
 	readonly activeRounds: number[];
 }
 
 export const generateDelegateLists = (
-	{ publicKey, activeRounds }: ActiveDelegateList,
+	{ address: publicKey, activeRounds }: ActiveDelegateList,
 	lists = delegateLists,
 ): ForgersList => {
 	return lists.map((list: ForgerList) => {
@@ -57,7 +57,7 @@ export const generateDelegateLists = (
 };
 
 export const generateDelegateListsWithStandby = (
-	{ publicKey, activeRounds }: ActiveDelegateList,
+	{ address: publicKey, activeRounds }: ActiveDelegateList,
 	lists = delegateLists,
 ): ForgersList => {
 	return lists.map((list: ForgerList) => {
