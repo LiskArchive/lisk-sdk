@@ -46,11 +46,11 @@ Object {
     "tempPath": "/tmp/lisk",
     "version": "0.0.0",
   },
-  "id": "#/app/config",
+  "id": "#/config",
   "properties": Object {
     "buildVersion": Object {
       "description": "The build number. Consists of \`v\` + the date and time of the build of the node.",
-      "example": "v09:54:35 12/04/2017",
+      "example": "2020-01-16T13:43:35.000Z",
       "type": "string",
     },
     "components": Object {
@@ -141,7 +141,7 @@ Object {
     },
     "genesisConfig": Object {
       "additionalProperties": false,
-      "id": "#/app/genesisConfig",
+      "id": "#/config/genesisConfig",
       "properties": Object {
         "blockTime": Object {
           "description": "Slot time interval in seconds",
@@ -162,7 +162,7 @@ Object {
         "rewards": Object {
           "additionalProperties": false,
           "description": "Object representing LSK rewards milestone",
-          "id": "rewards",
+          "id": "#/config/rewards",
           "properties": Object {
             "distance": Object {
               "description": "Distance between each milestone",
