@@ -27,7 +27,7 @@ import { Slots } from '@liskhq/lisk-chain';
 import { ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
-// import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 const createStateStore = (list: ForgersList = []) => {
 	return new StateStoreMock([], {
@@ -37,7 +37,8 @@ const createStateStore = (list: ForgersList = []) => {
 
 describe('dpos.isStandbyDelegate', () => {
 	let dpos: Dpos;
-	const defaultPublicKey = 'x';
+	const defaultPublicKey = delegatePublicKeys[0];
+	const defaultAddress = getAddressFromPublicKey(defaultPublicKey);
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 
 	beforeEach(() => {
@@ -56,7 +57,8 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When a block is the latest block', () => {
 		// Arrange
-		const standByPublicKey = delegatePublicKeys[0];
+		const standByPublicKey = delegatePublicKeys[1];
+		const standByAddress = getAddressFromPublicKey(standByPublicKey);
 		const activeRounds = [17, 14, 11];
 		// Height in round 17
 		const height = 17 * ACTIVE_DELEGATES;
@@ -69,7 +71,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 			// Act
 			const isStandby = await dpos.isStandByDelegate(
-				standByPublicKey,
+				standByAddress,
 				height,
 				createStateStore(lists),
 			);
@@ -85,7 +87,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 			// Act
 			const isStandby = await dpos.isStandByDelegate(
-				standByPublicKey,
+				standByAddress,
 				height,
 				createStateStore(lists),
 			);
@@ -101,7 +103,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 			// Act
 			const isStandby = await dpos.isStandByDelegate(
-				defaultPublicKey,
+				defaultAddress,
 				height,
 				createStateStore(lists),
 			);
@@ -112,7 +114,8 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When the latest block is 3 rounds old', () => {
 		// Arrange
-		const standByPublicKey = delegatePublicKeys[0];
+		const standByPublicKey = delegatePublicKeys[1];
+		const standByAddress = getAddressFromPublicKey(standByPublicKey);
 		const activeRounds = [16, 15, 14];
 		// Height in round 17
 		const height = 14 * ACTIVE_DELEGATES;
@@ -125,7 +128,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 			// Act
 			const isStandby = await dpos.isStandByDelegate(
-				standByPublicKey,
+				standByAddress,
 				height,
 				createStateStore(lists),
 			);
@@ -141,7 +144,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 			// Act
 			const isStandby = await dpos.isStandByDelegate(
-				standByPublicKey,
+				standByAddress,
 				height,
 				createStateStore(lists),
 			);
@@ -157,7 +160,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 			// Act
 			const isStandby = await dpos.isStandByDelegate(
-				defaultPublicKey,
+				defaultAddress,
 				height,
 				createStateStore(lists),
 			);

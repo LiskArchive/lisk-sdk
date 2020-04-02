@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
 
 import {
@@ -164,7 +165,7 @@ export class Dpos {
 		}
 
 		const isStandby = foundForgerList.standby.find(
-			standByDelegate => standByDelegate === address,
+			standByDelegate => getAddressFromPublicKey(standByDelegate) === address,
 		);
 
 		return isStandby ? true : false;
