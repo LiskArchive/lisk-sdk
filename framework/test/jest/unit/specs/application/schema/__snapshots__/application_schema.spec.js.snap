@@ -36,27 +36,6 @@ Object {
           "broadcastInterval": 5000,
           "releaseLimit": 25,
         },
-        "exceptions": Object {
-          "blockRewards": Array [],
-          "blockVersions": Object {},
-          "duplicatedSignatures": Object {},
-          "ignoreDelegateListCacheForRounds": Array [],
-          "inertTransactions": Array [],
-          "multisignatures": Array [],
-          "precedent": Object {
-            "disableDappTransaction": 0,
-            "disableDappTransfer": 0,
-            "disableV1Transactions": 0,
-          },
-          "recipientExceedingUint64": Object {},
-          "recipientLeadingZero": Object {},
-          "roundVotes": Array [],
-          "rounds": Object {},
-          "senderPublicKey": Array [],
-          "signatures": Array [],
-          "transactionWithNullByte": Array [],
-          "votes": Array [],
-        },
         "forging": Object {
           "delegates": Array [],
           "force": false,
@@ -332,129 +311,6 @@ Object {
               ],
               "type": "object",
             },
-            "exceptions": Object {
-              "properties": Object {
-                "blockRewards": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "blockVersions": Object {
-                  "description": "In format: { version: { start: start_height, end: end_height }}",
-                  "type": "object",
-                },
-                "duplicatedSignatures": Object {
-                  "description": "In format: { transaction_id: [signature1, signature2] } ",
-                  "type": "object",
-                },
-                "ignoreDelegateListCacheForRounds": Object {
-                  "items": Object {
-                    "type": "integer",
-                  },
-                  "type": "array",
-                },
-                "inertTransactions": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "multisignatures": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "precedent": Object {
-                  "description": "A rule/authoritative checkpoint in place to follow in future",
-                  "properties": Object {
-                    "disableDappTransaction": Object {
-                      "type": "integer",
-                    },
-                    "disableDappTransfer": Object {
-                      "type": "integer",
-                    },
-                    "disableV1Transactions": Object {
-                      "type": "integer",
-                    },
-                  },
-                  "required": Array [
-                    "disableDappTransfer",
-                    "disableDappTransaction",
-                    "disableV1Transactions",
-                  ],
-                  "type": "object",
-                },
-                "recipientExceedingUint64": Object {
-                  "description": "In format: { transaction_id: \\"account_address\\"} ",
-                  "type": "object",
-                },
-                "recipientLeadingZero": Object {
-                  "description": "In format: { transaction_id: \\"account_address\\"} ",
-                  "type": "object",
-                },
-                "roundVotes": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "rounds": Object {
-                  "description": "In the format: 27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 }",
-                  "type": "object",
-                },
-                "senderPublicKey": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "signatures": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "transactionWithNullByte": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-                "votes": Object {
-                  "items": Object {
-                    "format": "id",
-                    "type": "string",
-                  },
-                  "type": "array",
-                },
-              },
-              "required": Array [
-                "blockRewards",
-                "senderPublicKey",
-                "signatures",
-                "multisignatures",
-                "votes",
-                "inertTransactions",
-                "rounds",
-                "precedent",
-                "ignoreDelegateListCacheForRounds",
-                "blockVersions",
-                "recipientLeadingZero",
-                "recipientExceedingUint64",
-                "duplicatedSignatures",
-                "transactionWithNullByte",
-              ],
-              "type": "object",
-            },
             "forging": Object {
               "properties": Object {
                 "defaultPassword": Object {
@@ -549,7 +405,6 @@ Object {
             "forging",
             "syncing",
             "loading",
-            "exceptions",
           ],
           "type": "object",
         },

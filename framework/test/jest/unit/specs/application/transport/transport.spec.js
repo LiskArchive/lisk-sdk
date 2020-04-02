@@ -106,7 +106,6 @@ describe('transport', () => {
 			channel: channelStub,
 			logger: loggerStub,
 			applicationState: {},
-			exceptions: nodeOptions.exceptions,
 			synchronizer: synchronizerStub,
 			transactionPoolModule: {
 				getProcessableTransactions: jest.fn(),

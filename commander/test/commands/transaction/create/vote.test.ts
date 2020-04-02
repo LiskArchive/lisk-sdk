@@ -56,7 +56,7 @@ describe('transaction:create:vote', () => {
 			)
 			.stub(
 				transactions,
-				'newCastVotes',
+				'castVotes',
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(validator, 'validateAddress', sandbox.stub().returns(true))
@@ -88,7 +88,7 @@ describe('transaction:create:vote', () => {
 				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultVote[0].split(',')[0],
 				);
-				expect(transactions.newCastVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
@@ -123,7 +123,7 @@ describe('transaction:create:vote', () => {
 				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultUnvote[0].split(',')[0],
 				);
-				expect(transactions.newCastVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
@@ -183,7 +183,7 @@ describe('transaction:create:vote', () => {
 				expect(validator.validateAddress).to.be.calledWithExactly(
 					defaultVote[0].split(',')[0],
 				);
-				expect(transactions.newCastVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					nonce: '1',
 					fee: '10000000000',
 					networkIdentifier: testnetNetworkIdentifier,
@@ -228,7 +228,7 @@ describe('transaction:create:vote', () => {
 					expect(validator.validateAddress).to.be.calledWithExactly(
 						defaultUnvote[1].split(',')[1],
 					);
-					expect(transactions.newCastVotes).to.be.calledWithExactly({
+					expect(transactions.castVotes).to.be.calledWithExactly({
 						nonce: '1',
 						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
@@ -274,7 +274,7 @@ describe('transaction:create:vote', () => {
 					expect(validator.validateAddress).to.be.calledWithExactly(
 						defaultUnvote[1].split(',')[1],
 					);
-					expect(transactions.newCastVotes).to.be.calledWithExactly({
+					expect(transactions.castVotes).to.be.calledWithExactly({
 						nonce: '1',
 						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,

@@ -105,7 +105,6 @@ describe('dpos.undo()', () => {
 			const account = await stateStore.account.get(generator.address);
 			// Assert
 			expect(account.missedBlocks).toEqual(generator.missedBlocks);
-			expect(account.voteWeight).toEqual(generator.voteWeight);
 			expect(account.rewards).toEqual(generator.rewards);
 			expect(account.fees).toEqual(generator.fees);
 		});

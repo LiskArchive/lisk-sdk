@@ -72,23 +72,7 @@ class Account extends BaseEntity {
 			{ filter: ft.BOOLEAN },
 			booleanToInt,
 		);
-		this.addFilter('votedDelegatesPublicKeys', ft.CUSTOM, {
-			condition:
-				// eslint-disable-next-line no-template-curly-in-string
-				'mem_accounts."votedDelegatesPublicKeys" @> ${votedDelegatesPublicKeys}',
-		});
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
-		this.addField('votedDelegatesPublicKeys', 'string');
-		this.addField('voteWeight', 'string', { filter: ft.NUMBER });
-		this.addField(
-			'nameExist',
-			'boolean',
-			{
-				filter: ft.BOOLEAN,
-				fieldName: 'nameexist',
-			},
-			booleanToInt,
-		);
 		// //TODO: Remove until here
 
 		const defaultSort = { sort: 'balance:asc' };

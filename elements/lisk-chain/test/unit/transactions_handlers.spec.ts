@@ -17,8 +17,6 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import * as transactionHandlers from '../../src/transactions/transactions_handlers';
-import * as votesWeightHandler from '../../src/transactions/votes_weight';
-import * as exceptionHandlers from '../../src/transactions/exceptions_handlers';
 import * as randomUtils from '../utils/random';
 import { Context } from '../../src/types';
 
@@ -198,21 +196,6 @@ describe('transactions', () => {
 			expect(trs2.validate).toHaveBeenCalledTimes(1);
 		});
 
-		it('should update responses for exceptions for invalid responses', async () => {
-			jest.spyOn(
-				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions',
-			);
-			transactionHandlers.validateTransactions()([trs1, trs2]);
-
-			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).toHaveBeenCalledTimes(1);
-			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).toHaveBeenCalledWith([invalidResponse], [trs1, trs2], undefined);
-		});
-
 		it('should return transaction responses', async () => {
 			const result = transactionHandlers.validateTransactions()([trs1, trs2]);
 
@@ -291,8 +274,6 @@ describe('transactions', () => {
 		beforeEach(async () => {
 			trs1.apply.mockReturnValue(trs1Response);
 			trs2.apply.mockReturnValue(trs2Response);
-			jest.spyOn(votesWeightHandler, 'prepare');
-			jest.spyOn(votesWeightHandler, 'apply');
 		});
 
 		it('should prepare all transactions', async () => {
@@ -313,15 +294,6 @@ describe('transactions', () => {
 
 			expect(trs1.apply).toHaveBeenCalledTimes(1);
 			expect(trs2.apply).toHaveBeenCalledTimes(1);
-		});
-
-		it('should call transaction to vote.apply', async () => {
-			await transactionHandlers.applyGenesisTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(votesWeightHandler.apply).toHaveBeenCalledTimes(2);
 		});
 
 		it('should override the status of transaction to TransactionStatus.OK', async () => {
@@ -367,14 +339,6 @@ describe('transactions', () => {
 
 			trs1.apply.mockReturnValue(trs1Response);
 			trs2.apply.mockReturnValue(trs2Response);
-
-			jest.spyOn(votesWeightHandler, 'prepare');
-			jest.spyOn(votesWeightHandler, 'apply');
-
-			jest.spyOn(
-				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions',
-			);
 		});
 
 		it('should prepare all transactions', async () => {
@@ -406,12 +370,6 @@ describe('transactions', () => {
 
 			trs1.undo.mockReturnValue(trs1Response);
 			trs2.undo.mockReturnValue(trs2Response);
-
-			jest.spyOn(votesWeightHandler, 'undo');
-			jest.spyOn(
-				exceptionHandlers,
-				'updateTransactionResponseForExceptionTransactions',
-			);
 		});
 
 		it('should prepare all transactions', async () => {
@@ -432,32 +390,6 @@ describe('transactions', () => {
 
 			expect(trs1.undo).toHaveBeenCalledTimes(1);
 			expect(trs2.undo).toHaveBeenCalledTimes(1);
-		});
-
-		it('should undo round information for every transaction', async () => {
-			await transactionHandlers.undoTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(votesWeightHandler.undo).toHaveBeenCalledTimes(2);
-		});
-
-		it('should update exceptions for responses which are not OK', async () => {
-			(trs1Response as any).status = TransactionStatus.FAIL;
-			trs1.undo.mockReturnValue(trs1Response);
-
-			await transactionHandlers.undoTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(
-				exceptionHandlers.updateTransactionResponseForExceptionTransactions,
-			).toHaveBeenCalledTimes(1);
-			// expect(
-			// 	exceptionHandlers.updateTransactionResponseForExceptionTransactions
-			// ).toHaveBeenCalledWith([trs1Response], [trs1, trs2]);
 		});
 
 		it('should return transaction responses and state store', async () => {

@@ -46,8 +46,6 @@ const defaultCreateValues = {
 	producedBlocks: 0,
 	fees: '0',
 	rewards: '0',
-	voteWeight: '0',
-	nameExist: false,
 	keys: { mandatoryKeys: [], optionalKeys: [], numberOfSignatures: 0 },
 };
 
@@ -77,8 +75,6 @@ describe('ChainAccount', () => {
 			'updateOne',
 			'delete',
 			'resetMemTables',
-			'increaseFieldBy',
-			'decreaseFieldBy',
 		];
 
 		validOptions = {
@@ -280,14 +276,11 @@ describe('ChainAccount', () => {
 					pomHeights: [],
 				},
 				keys: { mandatoryKeys: [], optionalKeys: [], numberOfSignatures: 0 },
-				nameExist: false,
 				missedBlocks: 0,
 				producedBlocks: 0,
 				fees: '0',
 				rewards: '0',
-				voteWeight: '0',
 				productivity: 0,
-				votedDelegatesPublicKeys: null,
 				asset: {},
 			};
 			expect(accountFromDB).to.be.eql(expectedObject);
@@ -542,20 +535,6 @@ describe('ChainAccount', () => {
 				address,
 			});
 			expect(updatedAccount.keys).to.be.eql(null);
-		});
-
-		it('should not create votedDelegatesPublicKeys records if property votedDelegatesPublicKeys is null', async () => {
-			// Arrange
-			const account = new accountFixtures.Account();
-			const address = account.address;
-			await AccountEntity.create(account);
-			// Act
-			await AccountEntity.update({ address }, { balance: 100 });
-			const updatedAccount = await AccountEntity.getOne({
-				address,
-			});
-			// Assert
-			expect(updatedAccount.votedDelegatesPublicKeys).to.be.eql(null);
 		});
 	});
 
@@ -869,156 +848,6 @@ describe('ChainAccount', () => {
 				'SELECT COUNT(*)::int AS count FROM mem_accounts',
 			);
 			expect(result[0].count).to.equal(0);
-		});
-	});
-
-	describe('increaseFieldBy()', () => {
-		it('should use the correct SQL', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			const address = '12L';
-
-			await AccountEntity.increaseFieldBy(
-				{
-					address,
-				},
-				'balance',
-				123,
-			);
-
-			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.increaseFieldBy,
-			);
-		});
-
-		it('should increase account attribute', async () => {
-			const account = new accountFixtures.Account();
-			const address = account.address;
-
-			account.balance = 15000;
-
-			await AccountEntity.create(account);
-			await AccountEntity.increaseFieldBy(
-				{
-					address,
-				},
-				'balance',
-				1000,
-			);
-
-			const updatedAccount = await AccountEntity.getOne({
-				address,
-			});
-
-			expect(updatedAccount.balance).to.eql('16000');
-		});
-
-		it('should throw error if unknown field is provided', async () => {
-			expect(() =>
-				AccountEntity.increaseFieldBy(
-					{
-						address: '12L',
-					},
-					'unknown',
-					1000,
-				),
-			).to.throw('Field name "unknown" is not valid.');
-		});
-
-		it('should increase balance with string data', async () => {
-			const account = new accountFixtures.Account();
-			const address = account.address;
-
-			account.balance = '15000';
-
-			await AccountEntity.create(account);
-			await AccountEntity.increaseFieldBy(
-				{
-					address,
-				},
-				'balance',
-				1000,
-			);
-
-			const updatedAccount = await AccountEntity.getOne({
-				address,
-			});
-
-			expect(updatedAccount.balance).to.eql('16000');
-		});
-	});
-
-	describe('decreaseFieldBy()', () => {
-		it('should use the correct SQL', async () => {
-			sinonSandbox.spy(adapter, 'executeFile');
-			const address = '12L';
-
-			await AccountEntity.decreaseFieldBy(
-				{
-					address,
-				},
-				'balance',
-				123,
-			);
-
-			return expect(adapter.executeFile.firstCall.args[0]).to.eql(
-				SQLs.decreaseFieldBy,
-			);
-		});
-
-		it('should decrease account balance by 1000', async () => {
-			const account = new accountFixtures.Account();
-			const address = account.address;
-
-			account.balance = 15000;
-
-			await AccountEntity.create(account);
-			await AccountEntity.decreaseFieldBy(
-				{
-					address,
-				},
-				'balance',
-				1000,
-			);
-
-			const updatedAccount = await AccountEntity.getOne({
-				address,
-			});
-
-			expect(updatedAccount.balance).to.eql('14000');
-		});
-
-		it('should throw error if unknown field is provided', async () => {
-			expect(() =>
-				AccountEntity.decreaseFieldBy(
-					{
-						address: '12L',
-					},
-					'unknown',
-					1000,
-				),
-			).to.throw('Field name "unknown" is not valid.');
-		});
-
-		it('should decrease account balance by "1000" as string', async () => {
-			const account = new accountFixtures.Account();
-			const address = account.address;
-
-			account.balance = '15000';
-
-			await AccountEntity.create(account);
-			await AccountEntity.decreaseFieldBy(
-				{
-					address,
-				},
-				'balance',
-				'1000',
-			);
-
-			const updatedAccount = await AccountEntity.getOne({
-				address,
-			});
-
-			expect(updatedAccount.balance).to.eql('14000');
 		});
 	});
 });

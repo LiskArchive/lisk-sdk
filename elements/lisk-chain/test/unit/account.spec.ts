@@ -29,7 +29,6 @@ describe('account', () => {
 			expect(defaultAccount).toBeInstanceOf(Account);
 			expect(defaultAccount).toHaveProperty('balance');
 			expect(defaultAccount).toHaveProperty('fees');
-			expect(defaultAccount).toHaveProperty('voteWeight');
 			expect(defaultAccount).toHaveProperty('rewards');
 			expect(defaultAccount.balance).toEqual(
 				BigInt(accountDefaultValues.balance),
@@ -38,9 +37,6 @@ describe('account', () => {
 				BigInt(accountDefaultValues.totalVotesReceived),
 			);
 			expect(defaultAccount.fees).toEqual(BigInt(accountDefaultValues.fees));
-			expect(defaultAccount.voteWeight).toEqual(
-				BigInt(accountDefaultValues.voteWeight),
-			);
 			expect(defaultAccount.rewards).toEqual(
 				BigInt(accountDefaultValues.rewards),
 			);
@@ -66,16 +62,13 @@ describe('account', () => {
 			expect(accountObj.address).toEqual(accountAddress);
 			expect(accountObj.balance).toEqual(BigInt('0'));
 			expect(accountObj.fees).toEqual(BigInt('0'));
-			expect(accountObj.voteWeight).toEqual(BigInt('0'));
 			expect(accountObj.rewards).toEqual(BigInt('0'));
 			expect(accountObj.totalVotesReceived).toEqual(BigInt('0'));
-			expect(accountObj.votedDelegatesPublicKeys).toEqual([]);
 			expect(accountObj.username).toBeNull;
 			expect(accountObj.publicKey).toEqual(undefined);
 			expect(accountObj.isDelegate).toEqual(0);
 			expect(accountObj.missedBlocks).toEqual(0);
 			expect(accountObj.producedBlocks).toEqual(0);
-			expect(accountObj.nameExist).toEqual(false);
 			expect(accountObj.asset).toEqual({});
 			expect(accountObj.keys).toEqual({
 				mandatoryKeys: [],
@@ -102,15 +95,12 @@ describe('account', () => {
 			expect(accountJSON.address).toEqual(accountAddress1);
 			expect(accountJSON.balance).toBeString();
 			expect(accountJSON.fees).toBeString();
-			expect(accountJSON.voteWeight).toBeString();
 			expect(accountJSON.rewards).toBeString();
-			expect(accountJSON.votedDelegatesPublicKeys).toBeNull();
 			expect(accountJSON.username).toBeNull();
 			expect(accountJSON.publicKey).toBeUndefined();
 			expect(accountJSON.isDelegate).toBeNumber();
 			expect(accountJSON.missedBlocks).toBeNumber();
 			expect(accountJSON.producedBlocks).toBeNumber();
-			expect(accountJSON.nameExist).toBeBoolean();
 			expect(accountJSON.asset).toBeObject();
 			expect(accountJSON.keys?.mandatoryKeys).toBeArray();
 			expect(accountJSON.keys?.optionalKeys).toBeArray();
@@ -130,16 +120,13 @@ describe('account', () => {
 			expect(accountJSON.address).toEqual(accountAddress1);
 			expect(accountJSON.balance).toEqual('0');
 			expect(accountJSON.fees).toEqual('0');
-			expect(accountJSON.voteWeight).toEqual('0');
 			expect(accountJSON.rewards).toEqual('0');
-			expect(accountJSON.votedDelegatesPublicKeys).toEqual(null);
 			expect(accountJSON.username).toBeNull;
 			expect(accountJSON.publicKey).toEqual(undefined);
 			expect(accountJSON.isDelegate).toEqual(0);
 			expect(accountJSON.missedBlocks).toEqual(0);
 			expect(accountJSON.producedBlocks).toEqual(0);
 			expect(accountJSON.totalVotesReceived).toEqual('0');
-			expect(accountJSON.nameExist).toEqual(false);
 			expect(accountJSON.asset).toEqual({});
 			expect(accountJSON.keys).toEqual({
 				mandatoryKeys: [],
