@@ -157,7 +157,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
-		const delegateId = getAddressFromPublicKey(
+		const delegateAddress = getAddressFromPublicKey(
 			this.asset.header1.generatorPublicKey,
 		);
 
@@ -166,7 +166,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				address: this.senderId,
 			},
 			{
-				address: delegateId,
+				address: delegateAddress,
 			},
 		];
 
@@ -434,10 +434,10 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update delegate account
 		*/
-		const delegateId = getAddressFromPublicKey(
+		const delegateAddress = getAddressFromPublicKey(
 			this.asset.header1.generatorPublicKey,
 		);
-		const delegateAccount = await store.account.get(delegateId);
+		const delegateAccount = await store.account.get(delegateAddress);
 		const pomIndex = delegateAccount.delegate.pomHeights.findIndex(
 			height => height === currentHeight,
 		);
