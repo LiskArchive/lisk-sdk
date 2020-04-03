@@ -14,8 +14,8 @@
  */
 import { Account } from '../transaction_types';
 
-const PUNISH_TIME_VOTE = 260000;
-const PUNISH_TIME_SELF_VOTE = 780000;
+const VOTER_PUNISH_TIME = 260000;
+const SELF_VOTE_PUNISH_TIME = 780000;
 
 export const isPunished = (
 	sender: Account,
@@ -29,8 +29,8 @@ export const isPunished = (
 	const currentHeight = lastBlockHeight + 1;
 	const punishTime =
 		sender.address === delegateAccount.address
-			? PUNISH_TIME_SELF_VOTE
-			: PUNISH_TIME_VOTE;
+			? SELF_VOTE_PUNISH_TIME
+			: VOTER_PUNISH_TIME;
 	if (currentHeight - lastPomHeight < punishTime) {
 		return true;
 	}

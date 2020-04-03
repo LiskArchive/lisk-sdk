@@ -192,7 +192,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				new TransactionError(
 					'GeneratorPublickey of each blockheader should match.',
 					this.id,
-					'.asset.header1',
+					'.asset.header1.generatorPublicKey',
 				),
 			);
 		}
@@ -301,7 +301,10 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Check if delegate is eligible to be punished
 		*/
-		const delegateAccount = await store.account.get(delegateId);
+		const delegateAddress = getAddressFromPublicKey(
+			this.asset.header1.generatorPublicKey,
+		);
+		const delegateAccount = await store.account.get(delegateAddress);
 
 		if (!delegateAccount.isDelegate || !delegateAccount.username) {
 			errors.push(
@@ -404,9 +407,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update delegate account
 		*/
-		const delegateId = getAddressFromPublicKey(
-			this.asset.header1.generatorPublicKey,
-		);
 		delegateAccount.delegate.pomHeights.push(currentHeight);
 
 		if (delegateAccount.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
