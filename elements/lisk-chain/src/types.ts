@@ -58,7 +58,6 @@ export interface AccountJSON {
 	readonly unlocking?: AccountUnlockingJSON[];
 	readonly delegate?: {
 		readonly lastForgedHeight: number;
-		readonly registeredHeight: number;
 		readonly consecutiveMissedBlocks: number;
 		readonly isBanned: boolean;
 		readonly pomHeights: number[];
