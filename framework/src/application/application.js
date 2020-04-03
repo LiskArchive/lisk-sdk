@@ -417,14 +417,10 @@ class Application {
 				'state:updated',
 				'networkEvent',
 				'networkReady',
-				'signature:change',
 				'transactions:change',
 				'rounds:change',
-				'multisignatures:signature:change',
-				'multisignatures:change',
 				'delegates:fork',
 				'loader:sync',
-				'dapps:change',
 				'rebuild',
 				'processor:sync',
 				'processor:broadcast',
@@ -479,12 +475,9 @@ class Application {
 					handler: async action =>
 						this._node.actions.updateForgingStatus(action),
 				},
-				postSignature: {
-					handler: async action => this._node.actions.postSignature(action),
-				},
-				getForgingStatusForAllDelegates: {
+				getForgingStatusOfAllDelegates: {
 					handler: async () =>
-						this._node.actions.getForgingStatusForAllDelegates(),
+						this._node.actions.getForgingStatusOfAllDelegates(),
 				},
 				getTransactionsFromPool: {
 					handler: async action =>
@@ -492,10 +485,6 @@ class Application {
 				},
 				getTransactions: {
 					handler: async action => this._node.actions.getTransactions(action),
-					isPublic: true,
-				},
-				getSignatures: {
-					handler: async () => this._node.actions.getSignatures(),
 					isPublic: true,
 				},
 				postTransaction: {
@@ -537,10 +526,6 @@ class Application {
 				},
 				getBlockByHeight: {
 					handler: async action => this._node.actions.getBlockByHeight(action),
-				},
-				getBlocksByHeights: {
-					handler: async action =>
-						this._node.actions.getBlocksByHeights(action),
 				},
 				getBlocksByHeightBetween: {
 					handler: async action =>

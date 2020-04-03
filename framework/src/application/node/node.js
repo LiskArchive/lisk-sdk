@@ -271,8 +271,8 @@ module.exports = class Node {
 					action.params.data,
 					action.params.peerId,
 				),
-			getForgingStatusForAllDelegates: async () =>
-				this.forger.getForgingStatusForAllDelegates(),
+			getForgingStatusOfAllDelegates: async () =>
+				this.forger.getForgingStatusOfAllDelegates(),
 			getTransactionsFromPool: async () =>
 				this.transactionPool.getAll().map(tx => tx.toJSON()),
 			postTransaction: async action =>
