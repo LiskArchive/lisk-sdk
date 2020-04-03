@@ -17,7 +17,7 @@ import { BlockHeader, ChainStateEntity, StorageTransaction } from '../types';
 interface AdditionalInformtion {
 	readonly lastBlockHeader: BlockHeader;
 	readonly networkIdentifier: string;
-	readonly lastReward: bigint;
+	readonly lastBlockReward: bigint;
 }
 
 interface KeyValuePair {
@@ -34,7 +34,7 @@ export class ChainStateStore {
 	private readonly _chainState: ChainStateEntity;
 	private readonly _lastBlockHeader: BlockHeader;
 	private readonly _networkIdentifier: string;
-	private readonly _lastReward: bigint;
+	private readonly _lastBlockReward: bigint;
 
 	public constructor(
 		chainStateEntity: ChainStateEntity,
@@ -43,7 +43,7 @@ export class ChainStateStore {
 		this._chainState = chainStateEntity;
 		this._lastBlockHeader = additionalInformation.lastBlockHeader;
 		this._networkIdentifier = additionalInformation.networkIdentifier;
-		this._lastReward = additionalInformation.lastReward;
+		this._lastBlockReward = additionalInformation.lastBlockReward;
 		this._data = {};
 		this._originalData = {};
 		this._updatedKeys = new Set();
@@ -65,8 +65,8 @@ export class ChainStateStore {
 		return this._lastBlockHeader;
 	}
 
-	public get lastReward(): bigint {
-		return this._lastReward;
+	public get lastBlockReward(): bigint {
+		return this._lastBlockReward;
 	}
 
 	public createSnapshot(): void {

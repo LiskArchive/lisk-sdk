@@ -348,14 +348,14 @@ export class Chain {
 			toHeight,
 		);
 
-		const lastReward = this.blockReward.calculateReward(
+		const lastBlockReward = this.blockReward.calculateReward(
 			lastBlockHeaders[0]?.height ?? 1,
 		);
 
 		return new StateStore(this.storage, {
 			networkIdentifier: this._networkIdentifier,
 			lastBlockHeaders,
-			lastReward,
+			lastBlockReward,
 		});
 	}
 

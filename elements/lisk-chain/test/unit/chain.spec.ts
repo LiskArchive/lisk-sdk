@@ -303,7 +303,7 @@ describe('chain', () => {
 		it('should get the rewards of the last block', async () => {
 			const stateStore = await chainInstance.newStateStore();
 
-			expect(stateStore.chain.lastReward.toString()).toEqual(
+			expect(stateStore.chain.lastBlockReward.toString()).toEqual(
 				stateStore.chain.lastBlockHeader.reward.toString(),
 			);
 		});

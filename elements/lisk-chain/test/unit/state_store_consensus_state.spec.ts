@@ -36,7 +36,7 @@ describe('state store / chain_state', () => {
 		stateStore = new StateStore(storageStub, {
 			lastBlockHeaders,
 			networkIdentifier: 'network-identifier-chain-1',
-			lastReward: BigInt(500000000),
+			lastBlockReward: BigInt(500000000),
 		});
 	});
 

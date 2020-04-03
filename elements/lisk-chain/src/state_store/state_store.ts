@@ -21,7 +21,7 @@ import { ConsensusStateStore } from './consensus_state_store';
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	readonly networkIdentifier: string;
-	readonly lastReward: bigint;
+	readonly lastBlockReward: bigint;
 }
 
 export class StateStore {
@@ -40,7 +40,7 @@ export class StateStore {
 		this.chain = new ChainStateStore(storage.entities.ChainState, {
 			lastBlockHeader: additionalInformation.lastBlockHeaders[0],
 			networkIdentifier: additionalInformation.networkIdentifier,
-			lastReward: additionalInformation.lastReward,
+			lastBlockReward: additionalInformation.lastBlockReward,
 		});
 	}
 
