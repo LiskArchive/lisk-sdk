@@ -30,7 +30,7 @@ info:
     ## Requests
     Chained filter parameters are logically connected with `AND`.
     `HTTP` is the supported URL schema by default.
-    To enable `HTTPS`, please adjust the `modules.ssl` section in the config.
+    To enable `HTTPS`, please adjust the `modules.http_api.ssl` section in the config.
 
     ## Responses
     The general response format is JSON (`application/json`).
