@@ -92,10 +92,6 @@ export const getBlockBytes = (block: BlockHeader) => {
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
-	const blockSignatureBuffer = block.blockSignature
-		? hexToBuffer(block.blockSignature)
-		: Buffer.alloc(0);
-
 	return Buffer.concat([
 		blockVersionBuffer,
 		timestampBuffer,
@@ -111,6 +107,14 @@ export const getBlockBytes = (block: BlockHeader) => {
 		payloadLengthBuffer,
 		payloadHashBuffer,
 		generatorPublicKeyBuffer,
-		blockSignatureBuffer,
 	]);
+};
+
+export const getBlockBytesWithSignature = (block: BlockHeader) => {
+	const blockBuffer = getBlockBytes(block);
+	const blockSignatureBuffer = block.blockSignature
+		? hexToBuffer(block.blockSignature)
+		: Buffer.alloc(0);
+
+	return Buffer.concat([blockBuffer, blockSignatureBuffer]);
 };

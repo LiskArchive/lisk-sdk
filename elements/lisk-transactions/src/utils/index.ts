@@ -22,3 +22,4 @@ export * from './transaction_id';
 export * from './sort';
 export * from './build_key_passphrase_dict';
 export * from './find_repeated_keys';
+export * from './is_punished';
