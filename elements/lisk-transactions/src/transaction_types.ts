@@ -43,7 +43,6 @@ export interface Account {
 	};
 	delegate: {
 		lastForgedHeight: number;
-		registeredHeight: number;
 		consecutiveMissedBlocks: number;
 		isBanned: boolean;
 		pomHeights: number[];

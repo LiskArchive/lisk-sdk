@@ -233,11 +233,11 @@ describe('HttpApi', () => {
 				'app:state:updated',
 			);
 			expect(channelSubscribeStub.secondCall.args[0]).to.be.eql(
-				'app:rounds:change',
+				'app:round:change',
 			);
-			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql('app:newBlock');
+			expect(channelSubscribeStub.thirdCall.args[0]).to.be.eql('app:block:new');
 			expect(channelSubscribeStub.lastCall.args[0]).to.be.eql(
-				'app:deleteBlock',
+				'app:block:delete',
 			);
 		});
 	});

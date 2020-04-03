@@ -466,10 +466,10 @@ describe('transport', () => {
 						).toHaveBeenCalledWith(transaction.id);
 					});
 
-					it('should call transportModule.channel.publish with "app:transactions:change" and transaction as arguments', async () => {
+					it('should call transportModule.channel.publish with "app:transaction:new" and transaction as arguments', async () => {
 						expect(transportModule.channel.publish).toHaveBeenCalledTimes(1);
 						expect(transportModule.channel.publish).toHaveBeenCalledWith(
-							'app:transactions:change',
+							'app:transaction:new',
 							transaction.toJSON(),
 						);
 					});
