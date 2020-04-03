@@ -171,6 +171,22 @@ describe('voters/api', () => {
 	});
 
 	describe('getVoters', () => {
-		it('should return accounts with all properties', async () => {});
+		it('should return accounts with all properties', async () => {
+			storageStub.entities.Account.getOne.resolves(mockDelegate);
+			storageStub.entities.Account.get.resolves([mockAccount]);
+			await VotersController.getVoters(contextStub, (err, res) => {
+				expect(err).to.eql(null);
+
+				const account = res.data;
+
+				expect(account).to.have.property('address');
+				expect(account).to.have.property('publicKey');
+				expect(account).to.have.property('balance');
+				expect(account).to.have.property('votes');
+				expect(account.voters[0]).to.have.property('address');
+				expect(account.voters[0]).to.have.property('publicKey');
+				expect(account.voters[0]).to.have.property('votes');
+			});
+		});
 	});
 });

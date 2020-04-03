@@ -21,7 +21,7 @@ const swaggerHelper = require('../helpers/swagger');
 const { generateParamsErrorObject } = swaggerHelper;
 
 let storage;
-const maxVotesPerAccount = 101;
+const maxVotesPerAccount = 10;
 
 const getFilterAndOptionsFormParams = params => {
 	let filters = {
