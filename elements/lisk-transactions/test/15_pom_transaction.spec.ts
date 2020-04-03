@@ -360,4 +360,111 @@ describe('Proof-of-misbehavior transaction', () => {
 			expect(updatedDelegate.delegate.isBanned).toBeTrue();
 		});
 	});
+
+	describe('undoAsset', () => {
+		let store: StateStoreMock;
+		let sender: Account;
+		let delegate: Account;
+
+		beforeEach(async () => {
+			sender = {
+				...defaultAccount,
+				...validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.reportingAccount,
+				balance: BigInt(
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.reportingAccount.balance,
+				),
+			};
+			delegate = {
+				...defaultAccount,
+				...validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.targetAccount,
+				balance: BigInt(
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.targetAccount.balance,
+				),
+				username: 'genesis_100',
+				isDelegate: 1,
+				delegate: {
+					lastForgedHeight: 300000,
+					registeredHeight: 0,
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					pomHeights: [],
+				},
+			};
+
+			store = new StateStoreMock([sender, delegate], {
+				lastBlockHeader: {
+					height:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1.height + 10,
+				} as any,
+				lastBlockReward: BigInt(1),
+			});
+		});
+
+		it('should deduct reward to balance of the sender', async () => {
+			await transactionWithScenario1.undo(store);
+			const updatedSender = await store.account.get(sender.address);
+			const expectedBalance =
+				sender.balance -
+				(transactionWithScenario1.asset.reward as bigint) +
+				transactionWithScenario1.fee;
+			expect(updatedSender.balance.toString()).toEqual(
+				expectedBalance.toString(),
+			);
+		});
+
+		it('should add reward to balance of the misbehaving delegate', async () => {
+			await transactionWithScenario1.undo(store);
+			const updatedDelegate = await store.account.get(delegate.address);
+			const expectedBalance =
+				delegate.balance + (transactionWithScenario1.asset.reward as bigint);
+
+			expect(updatedDelegate.balance).toEqual(expectedBalance);
+		});
+
+		it('should remove height h from pomHeights property of misbehaving account', async () => {
+			await transactionWithScenario1.undo(store);
+			const updatedDelegate = await store.account.get(delegate.address);
+
+			expect(updatedDelegate.delegate.pomHeights).toBeEmpty();
+		});
+
+		it('should set isBanned property to false is pomHeights.length becomes less than 5', async () => {
+			store = new StateStoreMock(
+				[
+					sender,
+					{
+						...delegate,
+						delegate: {
+							...delegate.delegate,
+							pomHeights: [
+								1,
+								2,
+								3,
+								4,
+								validProofOfMisbehaviorTransactionScenario1.testCases.output
+									.asset.header1.height + 10,
+							],
+						},
+					},
+				],
+				{
+					lastBlockHeader: {
+						height:
+							validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+								.header1.height + 10,
+					} as any,
+					lastBlockReward: BigInt(1),
+				},
+			);
+			await transactionWithScenario1.undo(store);
+			const updatedDelegate = await store.account.get(delegate.address);
+
+			expect(updatedDelegate.delegate.isBanned).toBeFalse();
+		});
+	});
 });
