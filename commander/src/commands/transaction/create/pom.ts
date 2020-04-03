@@ -1,6 +1,6 @@
 /*
  * LiskHQ/lisk-commander
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -115,16 +115,16 @@ export default class PoMCommand extends BaseCommand {
 		{
 			name: 'header1',
 			required: true,
-			description: 'Contradicting block header in JSON string.',
+			description: 'Contradicting block header as JSON string.',
 		},
 		{
 			name: 'header2',
 			required: true,
-			description: 'Contradicting block header in JSON string.',
+			description: 'Contradicting block header as JSON string.',
 		},
 	];
 	static description = `
-	Creates a transaction which will report misbehavior of delegate by providing contradicting 2 block headers.
+	Creates a transaction which will report misbehavior of delegate by providing 2 contradicting block headers.
 	`;
 
 	static examples = [
