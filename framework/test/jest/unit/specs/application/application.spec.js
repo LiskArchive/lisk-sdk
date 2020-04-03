@@ -51,7 +51,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
-	const frameworkTxTypes = ['8', '10', '11', '12', '13', '14'];
+	const frameworkTxTypes = ['8', '10', '12', '13', '14'];
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),
@@ -101,43 +101,43 @@ describe('Application', () => {
 		it('should set app label with the genesis block payload hash prefixed with `lisk-` if label not provided', () => {
 			const label = `lisk-${genesisBlock.payloadHash.slice(0, 7)}`;
 			const configWithoutLabel = _.cloneDeep(config);
-			delete configWithoutLabel.app.label;
+			delete configWithoutLabel.label;
 
 			const app = new Application(genesisBlock, configWithoutLabel);
 
-			expect(app.config.app.label).toBe(label);
+			expect(app.config.label).toBe(label);
 		});
 
 		it('should use the same app label if provided', () => {
 			const app = new Application(genesisBlock, config);
 
-			expect(app.config.app.label).toBe(config.app.label);
+			expect(app.config.label).toBe(config.label);
 		});
 
 		it('should set default tempPath if not provided', () => {
 			// Arrange
 			const tempPath = '/tmp/lisk';
 			const configWithoutTempPath = _.cloneDeep(config);
-			delete configWithoutTempPath.app.tempPath;
+			delete configWithoutTempPath.tempPath;
 
 			// Act
 			const app = new Application(genesisBlock, configWithoutTempPath);
 
 			// Assert
-			expect(app.config.app.tempPath).toBe(tempPath);
+			expect(app.config.tempPath).toBe(tempPath);
 		});
 
 		it('should set tempPath if provided', () => {
 			// Arragne
 			const customTempPath = '/my-lisk-folder';
 			const configWithCustomTempPath = _.cloneDeep(config);
-			configWithCustomTempPath.app.tempPath = customTempPath;
+			configWithCustomTempPath.tempPath = customTempPath;
 
 			// Act
 			const app = new Application(genesisBlock, configWithCustomTempPath);
 
 			// Assert
-			expect(app.config.app.tempPath).toBe(customTempPath);
+			expect(app.config.tempPath).toBe(customTempPath);
 		});
 
 		it('should set filename for logger if logger component was not provided', () => {
@@ -150,7 +150,7 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config.components.logger.logFileName).toBe(
-				`${process.cwd()}/logs/${config.app.label}/lisk.log`,
+				`${process.cwd()}/logs/${config.label}/lisk.log`,
 			);
 		});
 
@@ -173,7 +173,7 @@ describe('Application', () => {
 		it('should merge the constants with genesisConfig and assign it to app constants', () => {
 			const customConfig = _.cloneDeep(config);
 
-			customConfig.app.genesisConfig = {
+			customConfig.genesisConfig = {
 				maxPayloadLength: 15 * 1024,
 				epochTime: '2016-05-24T17:00:00.000Z',
 				blockTime: 2,
@@ -250,7 +250,7 @@ describe('Application', () => {
 		it('should throw validation error if constants are overriden by the user', () => {
 			const customConfig = _.cloneDeep(config);
 
-			customConfig.app.genesisConfig = {
+			customConfig.genesisConfig = {
 				CONSTANT: 'aConstant',
 			};
 

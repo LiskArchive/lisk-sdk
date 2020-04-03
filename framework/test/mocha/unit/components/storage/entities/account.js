@@ -63,13 +63,10 @@ describe('Account', () => {
 			'delegate',
 			'votes',
 			'unlocking',
-			'nameExist',
 			'fees',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
-			'voteWeight',
-			'votedDelegatesPublicKeys',
 			'keys',
 		];
 
@@ -85,14 +82,11 @@ describe('Account', () => {
 			'unlocking',
 			'nonce',
 			'asset',
-			'nameExist',
 			'missedBlocks',
 			'producedBlocks',
 			'fees',
 			'rewards',
-			'voteWeight',
 			'productivity',
-			'votedDelegatesPublicKeys',
 			'keys',
 		];
 
@@ -160,7 +154,6 @@ describe('Account', () => {
 			'isDelegate',
 			'isDelegate_eql',
 			'isDelegate_ne',
-			'votedDelegatesPublicKeys',
 			'missedBlocks',
 			'missedBlocks_eql',
 			'missedBlocks_ne',
@@ -169,17 +162,6 @@ describe('Account', () => {
 			'missedBlocks_lt',
 			'missedBlocks_lte',
 			'missedBlocks_in',
-			'voteWeight',
-			'voteWeight_eql',
-			'voteWeight_ne',
-			'voteWeight_gt',
-			'voteWeight_gte',
-			'voteWeight_lt',
-			'voteWeight_lte',
-			'voteWeight_in',
-			'nameExist',
-			'nameExist_eql',
-			'nameExist_ne',
 		];
 
 		validOptions = {
@@ -465,11 +447,6 @@ describe('Account', () => {
 			it('should return "rewards" as "bigint"', async () => {
 				const data = await AccountEntity.get(filters, options);
 				expect(data[0].rewards).to.be.a('string');
-			});
-
-			it('should return "voteWeight" as "bigint"', async () => {
-				const data = await AccountEntity.get(filters, options);
-				expect(data[0].voteWeight).to.be.a('string');
 			});
 
 			it('should return "producedBlocks" as "number"', async () => {

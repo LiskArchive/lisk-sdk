@@ -22,6 +22,8 @@ const schemas = require('./schemas');
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
+const DEFAULT_RELEASE_LIMIT = 25;
+const DEFAULT_RELEASE_INTERVAL = 5000;
 
 class Transport {
 	constructor({
@@ -30,14 +32,11 @@ class Transport {
 		logger,
 		// Unique requirements
 		applicationState,
-		exceptions,
 		// Modules
 		synchronizer,
 		transactionPoolModule,
 		chainModule,
 		processorModule,
-		// Constants
-		broadcasts,
 	}) {
 		this.message = {};
 
@@ -45,21 +44,17 @@ class Transport {
 		this.logger = logger;
 		this.synchronizer = synchronizer;
 		this.applicationState = applicationState;
-		this.exceptions = exceptions;
-
-		this.constants = {
-			broadcasts,
-		};
 
 		this.transactionPoolModule = transactionPoolModule;
 		this.chainModule = chainModule;
 		this.processorModule = processorModule;
 
 		this.broadcaster = new Broadcaster({
-			broadcasts: this.constants.broadcasts,
 			transactionPool: this.transactionPoolModule,
 			logger: this.logger,
 			channel: this.channel,
+			releaseLimit: DEFAULT_RELEASE_LIMIT,
+			interval: DEFAULT_RELEASE_INTERVAL,
 		});
 
 		// Rate limit for certain endpoints
@@ -161,12 +156,6 @@ class Transport {
 	}
 
 	async handleEventPostBlock(data, peerId) {
-		if (!this.constants.broadcasts.active) {
-			return this.logger.debug(
-				'Receiving blocks disabled by user through config.json',
-			);
-		}
-
 		// Should ignore received block if syncing
 		if (this.synchronizer.isActive) {
 			return this.logger.debug(
@@ -223,14 +212,14 @@ class Transport {
 			// Limit the transactions to send based on releaseLimit
 			const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
 			const transactions = Object.values(transactionsBySender).flat();
-			transactions.splice(this.constants.broadcasts.releaseLimit);
+			transactions.splice(DEFAULT_RATE_RESET_TIME);
 
 			return {
 				transactions,
 			};
 		}
 
-		if (transactionIds.length > this.constants.broadcasts.releaseLimit) {
+		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
 			const error = new Error('Received invalid request.');
 			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
 			await this.channel.invoke('app:applyPenaltyOnPeer', {

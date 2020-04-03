@@ -40,7 +40,7 @@ The lifecycle of a transaction in Lisk SDK can be summarized as follows:
    6a. Based on workflow executing `apply` and `applyAsset` functions, the state in memory is either saved to the blockchain or discarded. For instance, if the transaction is being executed within the process of saving new a block in the blockchain, the changes in the memory are saved in the database. In the other case, when the transaction is executed within the domain of the transaction pool, the changes of state in memory are discarded.
 7. It is probable, especially shortly after a block is applied, that due to the decentralized network conditions a node does the `undo` step and the block containing all of the included transactions get reverted in favour of a competing block.
 
-While implementing a custom transaction, it is necessary to implement some of the mentioned steps. For most of them, a base transaction implements a default behaviour. As you feel more confident in using Lisk SDK, it is more likely for developers to override most of the base transaction methods, so the implementation is well-tailored and implemented with the best possible performance to the application's use case.
+While implementing a custom transaction, it is necessary to implement some of the mentioned steps. For most of them, a base transaction implements a default behavior. As you feel more confident in using Lisk SDK, it is more likely for developers to override most of the base transaction methods, so the implementation is well-tailored and implemented with the best possible performance to the application's use case.
 
 ### Interface
 

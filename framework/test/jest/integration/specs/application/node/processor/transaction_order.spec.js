@@ -117,7 +117,12 @@ describe('Transaction order', () => {
 					nonce: '1',
 					networkIdentifier: node.networkIdentifier,
 					fee: convertLSKToBeddows('1'),
-					votes: [newAccount.publicKey],
+					votes: [
+						{
+							delegateAddress: newAccount.address,
+							amount: convertLSKToBeddows('10'),
+						},
+					],
 					passphrase: newAccount.passphrase,
 				});
 				newBlock = await nodeUtils.createBlock(node, [

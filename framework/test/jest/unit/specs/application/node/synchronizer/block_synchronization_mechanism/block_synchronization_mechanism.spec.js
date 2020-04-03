@@ -60,7 +60,6 @@ describe('block_synchronization_mechanism', () => {
 	let slots;
 
 	let channelMock;
-	let exceptions;
 	let loggerMock;
 
 	let aBlock;
@@ -91,8 +90,6 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			slots,
 			genesisBlock: genesisBlockDevnet,
-			blockReceiptTimeout: constants.blockReceiptTimeout,
-			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
 			registeredTransactions,
 			rewardDistance: constants.rewards.distance,
@@ -125,7 +122,6 @@ describe('block_synchronization_mechanism', () => {
 			activeDelegates: constants.activeDelegates,
 			standbyDelegates: constants.standbyDelegates,
 			delegateListRoundOffset: constants.delegateListRoundOffset,
-			exceptions: {},
 		});
 
 		bftModule = new BFT({
@@ -144,7 +140,6 @@ describe('block_synchronization_mechanism', () => {
 			dposModule,
 			logger: loggerMock,
 			constants,
-			exceptions,
 		});
 
 		processorModule = new Processor({

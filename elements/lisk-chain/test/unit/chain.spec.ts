@@ -34,8 +34,6 @@ describe('chain', () => {
 	const stubs = {} as any;
 	const constants = {
 		stateBlockSize: 309,
-		blockReceiptTimeout: 20,
-		loadPerIteration: 1000,
 		maxPayloadLength: 15 * 1024,
 		activeDelegates: 101,
 		rewardDistance: 3000000,
@@ -48,11 +46,9 @@ describe('chain', () => {
 			'100000000', // Milestone 4
 		],
 		totalAmount: '10000000000000000',
-		blockSlotWindow: 5,
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
-	let exceptions = {};
 	let chainInstance: Chain;
 	let slots: Slots;
 
@@ -91,10 +87,6 @@ describe('chain', () => {
 			interval: constants.blockTime,
 		});
 
-		exceptions = {
-			transactions: [],
-		};
-
 		stubs.tx = {
 			batch: jest.fn(),
 		};
@@ -105,7 +97,6 @@ describe('chain', () => {
 			networkIdentifier,
 			registeredTransactions,
 			slots,
-			exceptions,
 			...constants,
 		});
 	});
@@ -303,6 +294,14 @@ describe('chain', () => {
 					height_lte: chainInstance.lastBlock.height,
 				},
 				{ limit: null, sort: 'height:desc' },
+			);
+		});
+
+		it('should get the rewards of the last block', async () => {
+			const stateStore = await chainInstance.newStateStore();
+
+			expect(stateStore.chain.lastBlockReward.toString()).toEqual(
+				stateStore.chain.lastBlockHeader.reward.toString(),
 			);
 		});
 

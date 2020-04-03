@@ -40,8 +40,6 @@ const {
 } = require('./synchronizer');
 const { Processor } = require('./processor');
 const { Rebuilder } = require('./rebuilder');
-const { BlockProcessorV0 } = require('./block_processor_v0.js');
-const { BlockProcessorV1 } = require('./block_processor_v1.js');
 const { BlockProcessorV2 } = require('./block_processor_v2.js');
 
 const forgeInterval = 1000;
@@ -104,28 +102,8 @@ module.exports = class Node {
 				dposModule: this.dpos,
 				logger: this.logger,
 				constants: this.options.constants,
-				exceptions: this.options.exceptions,
 				storage: this.storage,
 			};
-
-			// TODO: Move this to core https://github.com/LiskHQ/lisk-sdk/issues/4140
-			if (this.options.exceptions.blockVersions) {
-				if (this.options.exceptions.blockVersions[0]) {
-					const period = this.options.exceptions.blockVersions[0];
-					this.processor.register(new BlockProcessorV0(processorDependencies), {
-						matcher: ({ height }) =>
-							height >= period.start && height <= period.end,
-					});
-				}
-
-				if (this.options.exceptions.blockVersions[1]) {
-					const period = this.options.exceptions.blockVersions[1];
-					this.processor.register(new BlockProcessorV1(processorDependencies), {
-						matcher: ({ height }) =>
-							height >= period.start && height <= period.end,
-					});
-				}
-			}
 
 			this.processor.register(new BlockProcessorV2(processorDependencies));
 
@@ -153,18 +131,11 @@ module.exports = class Node {
 			});
 
 			// Deactivate broadcast and syncing during snapshotting process
-			if (!Number.isNaN(parseInt(this.options.loading.rebuildUpToRound, 10))) {
-				this.options.broadcasts.active = false;
-				this.options.syncing.active = false;
-
-				await this.rebuilder.rebuild(
-					this.options.loading.rebuildUpToRound,
-					this.options.loading.loadPerIteration,
-				);
+			if (!Number.isNaN(parseInt(this.options.rebuildUpToRound, 10))) {
+				await this.rebuilder.rebuild(this.options.rebuildUpToRound);
 				this.logger.info(
 					{
-						rebuildUpToRound: this.options.loading.rebuildUpToRound,
-						loadPerIteration: this.options.loading.loadPerIteration,
+						rebuildUpToRound: this.options.rebuildUpToRound,
 					},
 					'Successfully rebuild the blockchain',
 				);
@@ -184,7 +155,7 @@ module.exports = class Node {
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
-			if (!this.options.loading.rebuildUpToRound) {
+			if (!this.options.rebuildUpToRound) {
 				this.channel.subscribe(
 					'app:networkEvent',
 					async ({ data: { event, data, peerId } }) => {
@@ -368,16 +339,11 @@ module.exports = class Node {
 			genesisBlock: this.options.genesisBlock,
 			registeredTransactions: this.options.registeredTransactions,
 			networkIdentifier: this.networkIdentifier,
-			exceptions: this.options.exceptions,
-			blockReceiptTimeout: this.options.constants.blockReceiptTimeout,
-			loadPerIteration: 1000,
 			maxPayloadLength: this.options.constants.maxPayloadLength,
-			activeDelegates: this.options.constants.activeDelegates,
 			rewardDistance: this.options.constants.rewards.distance,
 			rewardOffset: this.options.constants.rewards.offset,
 			rewardMilestones: this.options.constants.rewards.milestones,
 			totalAmount: this.options.constants.totalAmount,
-			blockSlotWindow: this.options.constants.blockSlotWindow,
 			epochTime: this.options.constants.epochTime,
 			blockTime: this.options.constants.blockTime,
 		});
@@ -405,7 +371,7 @@ module.exports = class Node {
 				});
 			}
 
-			this.logger.info(
+			this.logger.debug(
 				{
 					id: block.id,
 					height: block.height,
@@ -438,7 +404,6 @@ module.exports = class Node {
 			activeDelegates: this.options.constants.activeDelegates,
 			standbyDelegates: this.options.constants.standbyDelegates,
 			delegateListRoundOffset: this.options.constants.delegateListRoundOffset,
-			exceptions: this.options.exceptions,
 		});
 
 		this.bft = new BFT({
@@ -513,7 +478,6 @@ module.exports = class Node {
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			maxPayloadLength: this.options.constants.maxPayloadLength,
 			forgingDelegates: this.options.forging.delegates,
 			forgingForce: this.options.forging.force,
 			forgingDefaultPassword: this.options.forging.defaultPassword,
@@ -524,12 +488,9 @@ module.exports = class Node {
 			logger: this.logger,
 			synchronizer: this.synchronizer,
 			applicationState: this.applicationState,
-			exceptions: this.options.exceptions,
 			transactionPoolModule: this.transactionPool,
 			processorModule: this.processor,
 			chainModule: this.chain,
-			broadcasts: this.options.broadcasts,
-			maxSharedTransactions: this.options.constants.maxSharedTransactions,
 		});
 
 		this.modules.forger = this.forger;

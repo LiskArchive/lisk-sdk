@@ -24,19 +24,16 @@ SELECT
 	"totalVotesReceived",
 	"delegate",
 	"asset",
-	"nameexist"::int::boolean as "nameExist",
 	"missedBlocks",
 	"producedBlocks",
 	"fees",
 	"rewards",
-	"voteWeight",
 	case
 	when
 		"producedBlocks" + "missedBlocks" = 0 then 0
 	else
 		ROUND((("producedBlocks"::float / ("producedBlocks" + "missedBlocks")) * 100.0)::numeric, 2)::float
 	end AS productivity,
-	"votedDelegatesPublicKeys",
 	"keys"
 FROM
 	mem_accounts

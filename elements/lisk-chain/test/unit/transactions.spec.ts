@@ -30,10 +30,7 @@ jest.mock('events');
 
 describe('blocks/transactions', () => {
 	const constants = {
-		blockReceiptTimeout: 20,
-		loadPerIteration: 1000,
 		maxPayloadLength: 15 * 1024,
-		activeDelegates: 101,
 		rewardDistance: 3000000,
 		rewardOffset: 2160,
 		rewardMilestones: [
@@ -44,7 +41,6 @@ describe('blocks/transactions', () => {
 			'100000000', // Milestone 4
 		],
 		totalAmount: '10000000000000000',
-		blockSlotWindow: 5,
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
@@ -53,7 +49,6 @@ describe('blocks/transactions', () => {
 		genesisBlock.communityIdentifier,
 	);
 
-	let exceptions = {};
 	let chainInstance: Chain;
 	let storageStub: any;
 	let slots: Slots;
@@ -91,9 +86,6 @@ describe('blocks/transactions', () => {
 			epochTime: constants.epochTime,
 			interval: constants.blockTime,
 		});
-		exceptions = {
-			transactions: [],
-		};
 
 		storageStub.entities.Block.get.mockResolvedValue([
 			{ height: 40 },
@@ -106,7 +98,6 @@ describe('blocks/transactions', () => {
 			networkIdentifier,
 			registeredTransactions,
 			slots,
-			exceptions,
 			...constants,
 		});
 		(chainInstance as any)._lastBlock = {
@@ -537,20 +528,17 @@ describe('blocks/transactions', () => {
 					publicKey:
 						'2104c3882088fa512df4c64033a03cac911eec7e71dc03352cc2244dfc10a74c',
 					username: 'genesis_200',
-					voteWeight: '0',
 				};
 				delegate2 = {
 					address: '1002903009718862306L',
 					publicKey:
 						'2c638a3b2fccbde21b6773a595e2abf697fbda1a5b8495f040f79a118e0b291c',
 					username: 'genesis_201',
-					voteWeight: '0',
 				};
 				storageStub.entities.Account.get.mockResolvedValue([
 					{
 						address: genesisAccount.address,
 						balance: '10000000000',
-						votedPublicKeys: [delegate1.publicKey, delegate2.publicKey],
 					},
 					delegate1,
 					delegate2,
@@ -563,7 +551,16 @@ describe('blocks/transactions', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						networkIdentifier,
-						votes: [delegate1.publicKey, delegate2.publicKey],
+						votes: [
+							{
+								delegateAddress: delegate1.address,
+								amount: '1000000000',
+							},
+							{
+								delegateAddress: delegate2.address,
+								amount: '1000000000',
+							},
+						],
 					}) as TransactionJSON,
 				);
 				const validTx2 = chainInstance.deserializeTransaction(

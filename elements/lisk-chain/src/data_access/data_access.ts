@@ -245,7 +245,7 @@ export class DataAccess {
 	): Promise<BlockInstance[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
-		// To Preserve LessThan logic we are substracting by 1
+		// To Preserve LessThan logic we are subtracting by 1
 		const toHeightLT = toHeight - 1;
 
 		// Loads extended blocks from storage
@@ -326,13 +326,6 @@ export class DataAccess {
 		arrayOfAddresses: ReadonlyArray<string>,
 	): Promise<Account[]> {
 		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
-
-		return accounts.map(account => new Account(account));
-	}
-
-	// TODO: Remove after implementing new DPoS #4951
-	public async getDelegateAccounts(limit: number): Promise<Account[]> {
-		const accounts = await this._storage.getDelegateAccounts(limit);
 
 		return accounts.map(account => new Account(account));
 	}

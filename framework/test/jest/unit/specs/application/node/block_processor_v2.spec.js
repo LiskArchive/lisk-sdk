@@ -68,6 +68,7 @@ describe('block processor v2', () => {
 
 		dposModuleStub = {
 			undo: jest.fn(),
+			isDPoSProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
 		storageStub = {
 			entities: {
@@ -80,7 +81,6 @@ describe('block processor v2', () => {
 		loggerStub = {};
 
 		const defaultConstants = {};
-		const defaultExceptions = {};
 
 		blockProcessor = new BlockProcessorV2({
 			networkIdentifier: defaultAdditionalData.networkIdentifier,
@@ -90,7 +90,6 @@ describe('block processor v2', () => {
 			storage: storageStub,
 			logger: loggerStub,
 			constants: defaultConstants,
-			exceptions: defaultExceptions,
 		});
 	});
 
@@ -131,12 +130,14 @@ describe('block processor v2', () => {
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(maxHeightResult);
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				seedReveal: '00000000000000000000000000000000',
-				timestamp: 10,
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					seedReveal: '00000000000000000000000000000000',
+					timestamp: 10,
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			// Assert
@@ -156,12 +157,14 @@ describe('block processor v2', () => {
 			storageStub.entities.ForgerInfo.getKey.mockResolvedValue(maxHeightResult);
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				timestamp: 10,
-				seedReveal: '00000000000000000000000000000000',
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					timestamp: 10,
+					seedReveal: '00000000000000000000000000000000',
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			// Assert
@@ -185,12 +188,14 @@ describe('block processor v2', () => {
 			);
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				timestamp: 10,
-				seedReveal: '00000000000000000000000000000000',
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					timestamp: 10,
+					seedReveal: '00000000000000000000000000000000',
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			const maxHeightResult = JSON.stringify({
@@ -210,12 +215,14 @@ describe('block processor v2', () => {
 		it('should set maxPreviouslyForgedHeight to forging height', async () => {
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				timestamp: 10,
-				seedReveal: '00000000000000000000000000000000',
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					timestamp: 10,
+					seedReveal: '00000000000000000000000000000000',
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			const maxHeightResult = JSON.stringify({
@@ -240,12 +247,14 @@ describe('block processor v2', () => {
 			);
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				timestamp: 10,
-				seedReveal: '00000000000000000000000000000000',
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					timestamp: 10,
+					seedReveal: '00000000000000000000000000000000',
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).not.toHaveBeenCalled();
@@ -256,12 +265,14 @@ describe('block processor v2', () => {
 			const seedReveal = 'c04ecc8875400b2f51110f76cbb3dc28';
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				timestamp: 10,
-				seedReveal,
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					timestamp: 10,
+					seedReveal,
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			expect(block.height).toBe(11);
@@ -271,12 +282,14 @@ describe('block processor v2', () => {
 		it('should return a block', async () => {
 			// Act
 			block = await blockProcessor.create.run({
-				keypair: defaultKeyPair,
-				timestamp: 10,
-				seedReveal: '00000000000000000000000000000000',
-				transactions: [],
-				previousBlock: {
-					height: 10,
+				data: {
+					keypair: defaultKeyPair,
+					timestamp: 10,
+					seedReveal: '00000000000000000000000000000000',
+					transactions: [],
+					previousBlock: {
+						height: 10,
+					},
 				},
 			});
 			expect(block.height).toBe(11);

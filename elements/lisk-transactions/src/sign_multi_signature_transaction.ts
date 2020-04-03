@@ -15,8 +15,9 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 
 import { DelegateTransaction } from './10_delegate_transaction';
-import { VoteTransaction } from './11_vote_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
+import { VoteTransaction } from './13_vote_transaction';
+import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
@@ -26,8 +27,9 @@ import { sortKeysAscending } from './utils';
 const transactionMap: { readonly [key: number]: any } = {
 	8: TransferTransaction,
 	10: DelegateTransaction,
-	11: VoteTransaction,
 	12: MultisignatureTransaction,
+	13: VoteTransaction,
+	14: UnlockTransaction,
 };
 
 const sanitizeSignaturesArray = (tx: BaseTransaction, keys: MultisigKeys) => {

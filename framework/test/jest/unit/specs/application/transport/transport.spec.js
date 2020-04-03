@@ -30,8 +30,6 @@ const {
 	devnetNetworkIdentifier: networkIdentifier,
 } = require('../../../../../utils/network_identifier');
 
-const { nodeOptions } = require('../../../../../fixtures/node');
-
 describe('transport', () => {
 	let loggerStub;
 	let synchronizerStub;
@@ -106,7 +104,6 @@ describe('transport', () => {
 			channel: channelStub,
 			logger: loggerStub,
 			applicationState: {},
-			exceptions: nodeOptions.exceptions,
 			synchronizer: synchronizerStub,
 			transactionPoolModule: {
 				getProcessableTransactions: jest.fn(),
@@ -144,7 +141,6 @@ describe('transport', () => {
 				process: jest.fn(),
 				deserialize: jest.fn(),
 			},
-			broadcasts: nodeOptions.broadcasts,
 		});
 	});
 
@@ -598,29 +594,7 @@ describe('transport', () => {
 						};
 					});
 
-					describe('when transportModule.config.broadcasts.active option is false', () => {
-						beforeEach(async () => {
-							transportModule.constants.broadcasts.active = false;
-							await transportModule.handleEventPostBlock(
-								postBlockQuery,
-								defaultPeerId,
-							);
-						});
-
-						it('should call transportModule.logger.debug', async () =>
-							expect(transportModule.logger.debug).toHaveBeenCalledWith(
-								'Receiving blocks disabled by user through config.json',
-							));
-
-						it('should not call validator.validate; function should return before', async () =>
-							expect(validator.validate).not.toHaveBeenCalled());
-					});
-
 					describe('when query is specified', () => {
-						beforeEach(async () => {
-							transportModule.constants.broadcasts.active = true;
-						});
-
 						describe('when it throws', () => {
 							const blockValidationError = 'should match format "id"';
 

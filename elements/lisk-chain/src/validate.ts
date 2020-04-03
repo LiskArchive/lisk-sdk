@@ -16,7 +16,7 @@ import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
 import { Slots } from './slots';
-import { BlockInstance, ExceptionOptions } from './types';
+import { BlockInstance } from './types';
 
 export const validateSignature = (
 	block: BlockInstance,
@@ -68,15 +68,10 @@ export const validatePreviousBlockProperty = (
 export const validateReward = (
 	block: BlockInstance,
 	expectedReward: string,
-	exceptions: ExceptionOptions,
 ): void => {
 	const expectedRewardBigInt = BigInt(expectedReward);
 
-	if (
-		block.height !== 1 &&
-		expectedRewardBigInt !== BigInt(block.reward) &&
-		(!exceptions.blockRewards || !exceptions.blockRewards.includes(block.id))
-	) {
+	if (block.height !== 1 && expectedRewardBigInt !== BigInt(block.reward)) {
 		throw new Error(
 			`Invalid block reward: ${block.reward.toString()} expected: ${expectedReward}`,
 		);

@@ -43,7 +43,6 @@ import {
 	applyGenesisTransactions,
 	applyTransactions,
 	checkAllowedTransactions,
-	checkIfTransactionIsInert,
 	checkPersistedTransactions,
 	composeTransactionSteps,
 	undoTransactions,
@@ -56,7 +55,6 @@ import {
 	BlockJSON,
 	BlockRewardOptions,
 	Contexter,
-	ExceptionOptions,
 	MatcherTransaction,
 	Storage,
 	StorageTransaction,
@@ -81,7 +79,6 @@ interface ChainConstructor {
 	// Unique requirements
 	readonly genesisBlock: BlockJSON;
 	readonly slots: Slots;
-	readonly exceptions: ExceptionOptions;
 	// Modules
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
@@ -90,14 +87,11 @@ interface ChainConstructor {
 	readonly epochTime: string;
 	readonly blockTime: number;
 	readonly networkIdentifier: string;
-	readonly blockReceiptTimeout: number; // Set default
-	readonly loadPerIteration: number;
 	readonly maxPayloadLength: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
 	readonly rewardMilestones: ReadonlyArray<string>;
 	readonly totalAmount: string;
-	readonly blockSlotWindow: number;
 	readonly stateBlockSize?: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
@@ -129,17 +123,13 @@ const saveBlock = async (
 const applyConfirmedStep = async (
 	blockInstance: BlockInstance,
 	stateStore: StateStore,
-	exceptions: ExceptionOptions,
 ) => {
 	if (blockInstance.transactions.length <= 0) {
 		return;
 	}
-	const nonInertTransactions = blockInstance.transactions.filter(
-		transaction => !checkIfTransactionIsInert(transaction, exceptions),
-	);
 
-	const transactionsResponses = await applyTransactions(exceptions)(
-		nonInertTransactions,
+	const transactionsResponses = await applyTransactions()(
+		blockInstance.transactions,
 		stateStore,
 	);
 
@@ -172,20 +162,13 @@ const applyConfirmedGenesisStep = async (
 const undoConfirmedStep = async (
 	blockInstance: BlockInstance,
 	stateStore: StateStore,
-	exceptions: ExceptionOptions,
 ): Promise<void> => {
 	if (blockInstance.transactions.length === 0) {
 		return;
 	}
 
-	const nonInertTransactions = blockInstance.transactions.filter(
-		transaction =>
-			!exceptions.inertTransactions ||
-			!exceptions.inertTransactions.includes(transaction.id),
-	);
-
-	const transactionsResponses = await undoTransactions(exceptions)(
-		nonInertTransactions,
+	const transactionsResponses = await undoTransactions()(
+		blockInstance.transactions,
 		stateStore,
 	);
 
@@ -204,7 +187,9 @@ export class Chain {
 	public readonly dataAccess: DataAccess;
 	public readonly slots: Slots;
 	public readonly blockReward: {
-		readonly [key: string]: (height: number) => number | bigint;
+		readonly calculateMilestone: (height: number) => number;
+		readonly calculateReward: (height: number) => bigint;
+		readonly calculateSupply: (height: number) => bigint;
 	};
 
 	private _lastBlock: BlockInstance;
@@ -212,16 +197,12 @@ export class Chain {
 	private readonly storage: Storage;
 	private readonly _networkIdentifier: string;
 	private readonly blockRewardArgs: BlockRewardOptions;
-	private readonly exceptions: ExceptionOptions;
 	private readonly genesisBlock: BlockInstance;
 	private readonly constants: {
 		readonly stateBlockSize: number;
 		readonly epochTime: string;
 		readonly blockTime: number;
-		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
-		readonly loadPerIteration: number;
-		readonly blockSlotWindow: number;
 	};
 	private readonly events: EventEmitter;
 
@@ -230,21 +211,17 @@ export class Chain {
 		storage,
 		// Unique requirements
 		genesisBlock,
-		exceptions,
 		// Modules
 		registeredTransactions,
 		// Constants
 		epochTime,
 		blockTime,
 		networkIdentifier,
-		blockReceiptTimeout, // Set default
-		loadPerIteration,
 		maxPayloadLength,
 		rewardDistance,
 		rewardOffset,
 		rewardMilestones,
 		totalAmount,
-		blockSlotWindow,
 		stateBlockSize = DEFAULT_STATE_BLOCK_SIZE,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
@@ -262,7 +239,6 @@ export class Chain {
 		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
 		this._lastBlock = genesisInstance;
 		this._networkIdentifier = networkIdentifier;
-		this.exceptions = exceptions;
 		this.genesisBlock = genesisInstance;
 		this.slots = new Slots({ epochTime, interval: blockTime });
 		this.blockRewardArgs = {
@@ -281,15 +257,11 @@ export class Chain {
 			stateBlockSize,
 			epochTime,
 			blockTime,
-			blockReceiptTimeout,
 			maxPayloadLength,
-			loadPerIteration,
-			blockSlotWindow,
 		};
 
 		this.blocksVerify = new BlocksVerify({
 			dataAccess: this.dataAccess,
-			exceptions: this.exceptions,
 			genesisBlock: this.genesisBlock,
 		});
 	}
@@ -364,9 +336,14 @@ export class Chain {
 			toHeight,
 		);
 
+		const lastBlockReward = this.blockReward.calculateReward(
+			lastBlockHeaders[0]?.height ?? 1,
+		);
+
 		return new StateStore(this.storage, {
 			networkIdentifier: this._networkIdentifier,
 			lastBlockHeaders,
+			lastBlockReward,
 		});
 	}
 
@@ -405,12 +382,10 @@ export class Chain {
 	): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes, this._networkIdentifier);
-		validateReward(block, expectedReward, this.exceptions);
+		validateReward(block, expectedReward);
 
 		// Validate transactions
-		const transactionsResponses = validateTransactions(this.exceptions)(
-			block.transactions,
-		);
+		const transactionsResponses = validateTransactions()(block.transactions);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse =>
 				transactionResponse.status !== TransactionStatus.OK,
@@ -458,11 +433,12 @@ export class Chain {
 		await this.blocksVerify.checkTransactions(blockInstance);
 	}
 
+	// tslint:disable-next-line prefer-function-over-method
 	public async apply(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
-		await applyConfirmedStep(blockInstance, stateStore, this.exceptions);
+		await applyConfirmedStep(blockInstance, stateStore);
 		await applyFeeAndRewards(blockInstance, stateStore);
 	}
 
@@ -506,12 +482,13 @@ export class Chain {
 		});
 	}
 
+	// tslint:disable-next-line prefer-function-over-method
 	public async undo(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
 		await undoFeeAndRewards(blockInstance, stateStore);
-		await undoConfirmedStep(blockInstance, stateStore, this.exceptions);
+		await undoConfirmedStep(blockInstance, stateStore);
 	}
 
 	private async _deleteLastBlock(
@@ -612,7 +589,7 @@ export class Chain {
 		const allowedTransactions = transactions.filter(transaction =>
 			allowedTransactionsIds.includes(transaction.id),
 		);
-		const transactionsResponses = await applyTransactions(this.exceptions)(
+		const transactionsResponses = await applyTransactions()(
 			allowedTransactions,
 			stateStore,
 		);
@@ -635,7 +612,7 @@ export class Chain {
 				blockHeight: this.lastBlock.height,
 				blockTimestamp: this.lastBlock.timestamp,
 			}),
-			validateTransactions(this.exceptions),
+			validateTransactions(),
 			// Composed transaction checks are all static, so it does not need state store
 		)(transactions);
 	}
@@ -656,7 +633,7 @@ export class Chain {
 				};
 			}),
 			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(this.exceptions),
+			applyTransactions(),
 		)(transactions, stateStore);
 	}
 
@@ -666,7 +643,7 @@ export class Chain {
 	): Promise<ReadonlyArray<TransactionResponse>> {
 		return composeTransactionSteps(
 			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(this.exceptions),
+			applyTransactions(),
 		)(transactions, stateStore);
 	}
 

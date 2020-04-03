@@ -45,7 +45,7 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items;
 	}
 
-	// Refills cache up to maxCachedItems when minCachedItems is reachead
+	// Refills cache up to maxCachedItems when minCachedItems is reached
 	public refill(blockHeaders: BlockHeader[]): BlockHeader[] {
 		this.items.unshift(...blockHeaders);
 		this.needsRefill = false;

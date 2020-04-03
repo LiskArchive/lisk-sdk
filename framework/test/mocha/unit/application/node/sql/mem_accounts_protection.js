@@ -28,7 +28,6 @@ let validAccount = {
 	address: `${randomstring.generate({ charset: 'numeric', length: 20 })}L`,
 	publicKey: randomstring.generate({ charset: '0123456789ABCDE', length: 32 }),
 	balance: '0',
-	voteWeight: '10000000000000000',
 	delegates: null,
 	keys: null,
 	multisignatures: null,

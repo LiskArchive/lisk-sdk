@@ -26,7 +26,7 @@ const { formats } = require('../../../application/validator');
 let resolvedSwaggerSpec = null;
 
 function getValidator() {
-	// Get validator instace attached to Swagger
+	// Get validator instance attached to Swagger
 	const validator = SwayHelpers.getJSONSchemaValidator();
 
 	// Register lisk formats with swagger
