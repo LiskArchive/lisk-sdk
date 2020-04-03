@@ -84,10 +84,7 @@ VotersController.getVoters = async (context, next) => {
 	}
 
 	try {
-		// TODO: To keep the consistent behavior of functional tests
-		// not test the account for being a delegate
-		// const delegateFilters = { isDelegate: true, ...filters };
-		const delegateFilters = { ...filters };
+		const delegateFilters = { ...filters, isDelegate: 1 };
 
 		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
@@ -99,24 +96,16 @@ VotersController.getVoters = async (context, next) => {
 			'balance',
 		]);
 
-		// TODO: Make sure we return empty string in case of null username
-		// This can be avoided when we fix the `isDelegate` inconsistency mentioned above.
-		data.username = data.username || '';
-
-		const voters = await storage.entities.Account.get(
-			{ votedDelegatesPublicKeys: `"${delegate.publicKey}"` }, // Need to add quotes for PSQL array search
+		const delegateVoters = await storage.entities.Account.get(
+			{ votes_for_delegate: delegate.address },
 			options,
 		);
 
-		data.voters = _.map(voters, voter =>
-			_.pick(voter, ['address', 'publicKey', 'balance']),
+		data.voters = _.map(delegateVoters, voter =>
+			_.pick(voter, ['address', 'publicKey', 'totalVotesReceived', 'votes']),
 		);
 
-		const votersCount = await storage.entities.Account.count({
-			votedDelegatesPublicKeys: `"${delegate.publicKey}"`, // Need to add quotes for PSQL array search
-		});
-
-		data.votes = votersCount;
+		data.voteCount = delegateVoters.length;
 
 		return next(null, {
 			data,
