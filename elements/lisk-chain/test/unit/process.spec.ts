@@ -363,6 +363,7 @@ describe('blocks/header', () => {
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 
 				// Act && Assert
@@ -405,6 +406,7 @@ describe('blocks/header', () => {
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 				expect.assertions(1);
 				let err;
@@ -444,6 +446,7 @@ describe('blocks/header', () => {
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 
 				// Act && Assert
@@ -481,6 +484,7 @@ describe('blocks/header', () => {
 				const stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 
 				// Act && Assert
@@ -516,6 +520,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 				await stateStore.account.cache({
 					address_in: [
@@ -567,6 +572,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 				await stateStore.account.cache({
 					address_in: [genesisAccount.address],
@@ -684,6 +690,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 				await chainInstance.apply(block, stateStore);
 			});
@@ -742,6 +749,7 @@ describe('blocks/header', () => {
 			stateStore = new StateStore(storageStub, {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
+				lastBlockReward: BigInt(500000000),
 			});
 			await chainInstance.applyGenesis(genesisInstance, stateStore);
 		});
@@ -780,6 +788,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 				// Arrage
 				block = newBlock({ reward });
@@ -915,6 +924,7 @@ describe('blocks/header', () => {
 				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
 				});
 				await chainInstance.undo(block, stateStore);
 			});

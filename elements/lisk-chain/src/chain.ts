@@ -187,7 +187,9 @@ export class Chain {
 	public readonly dataAccess: DataAccess;
 	public readonly slots: Slots;
 	public readonly blockReward: {
-		readonly [key: string]: (height: number) => number | bigint;
+		readonly calculateMilestone: (height: number) => number;
+		readonly calculateReward: (height: number) => bigint;
+		readonly calculateSupply: (height: number) => bigint;
 	};
 
 	private _lastBlock: BlockInstance;
@@ -334,9 +336,14 @@ export class Chain {
 			toHeight,
 		);
 
+		const lastBlockReward = this.blockReward.calculateReward(
+			lastBlockHeaders[0]?.height ?? 1,
+		);
+
 		return new StateStore(this.storage, {
 			networkIdentifier: this._networkIdentifier,
 			lastBlockHeaders,
+			lastBlockReward,
 		});
 	}
 
