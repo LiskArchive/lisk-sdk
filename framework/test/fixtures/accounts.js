@@ -101,7 +101,7 @@ const Account = stampit({
 		this.balance = balance || '0';
 		this.asset = asset || {};
 		this.keys = null;
-		this.votes = votes;
+		this.votes = votes || null;
 	},
 });
 
