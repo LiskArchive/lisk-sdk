@@ -65,6 +65,12 @@ class Account extends BaseEntity {
 				// eslint-disable-next-line no-template-curly-in-string
 				"asset ? '${asset_exists:value}'",
 		});
+
+		this.addFilter('votes_for_delegate', ft.CUSTOM, {
+			condition:
+				// eslint-disable-next-line no-template-curly-in-string
+				'votes @> \'[{"delegateAddress":"${votes_for_delegate:value}"}]\'::jsonb',
+		});
 		// TODO: Remove once new DPoS implementation is done
 		this.addField(
 			'isDelegate',
