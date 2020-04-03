@@ -44,7 +44,6 @@ describe('account', () => {
 			expect(defaultAccount.unlocking).toEqual([]);
 			expect(defaultAccount.delegate).toEqual({
 				lastForgedHeight: 0,
-				registeredHeight: 0,
 				consecutiveMissedBlocks: 0,
 				isBanned: false,
 				pomHeights: [],
@@ -79,7 +78,6 @@ describe('account', () => {
 			expect(accountObj.unlocking).toEqual([]);
 			expect(accountObj.delegate).toEqual({
 				lastForgedHeight: 0,
-				registeredHeight: 0,
 				consecutiveMissedBlocks: 0,
 				isBanned: false,
 				pomHeights: [],
@@ -110,7 +108,6 @@ describe('account', () => {
 			expect(accountJSON.unlocking).toBeArray();
 			expect(accountJSON.delegate?.consecutiveMissedBlocks).toBeNumber();
 			expect(accountJSON.delegate?.lastForgedHeight).toBeNumber();
-			expect(accountJSON.delegate?.registeredHeight).toBeNumber();
 			expect(accountJSON.delegate?.consecutiveMissedBlocks).toBeNumber();
 			expect(accountJSON.delegate?.isBanned).toBeBoolean();
 			expect(accountJSON.delegate?.pomHeights).toBeArray();
@@ -137,7 +134,6 @@ describe('account', () => {
 			expect(accountJSON.unlocking).toEqual([]);
 			expect(accountJSON.delegate).toEqual({
 				lastForgedHeight: 0,
-				registeredHeight: 0,
 				consecutiveMissedBlocks: 0,
 				isBanned: false,
 				pomHeights: [],

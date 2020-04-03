@@ -15,17 +15,17 @@
 'use strict';
 
 module.exports = ({ channel }, { wsServer }) => {
-	channel.subscribe('app:rounds:change', event => {
+	channel.subscribe('app:round:change', event => {
 		wsServer.sockets.emit('rounds/change', event.data);
 	});
-	channel.subscribe('app:delegates:fork', event => {
+	channel.subscribe('app:chain:fork', event => {
 		wsServer.sockets.emit('delegates/fork', event.data);
 	});
 	channel.subscribe('app:loader:sync', event => {
 		wsServer.sockets.emit('loader/sync', event.data);
 	});
 
-	channel.subscribe('app:newBlock', event => {
+	channel.subscribe('app:block:new', event => {
 		wsServer.sockets.emit('blocks/change', event.data.block);
 		if (event.data.block.transactions.length) {
 			wsServer.sockets.emit(
@@ -35,7 +35,7 @@ module.exports = ({ channel }, { wsServer }) => {
 		}
 	});
 
-	channel.subscribe('app:deleteBlock', event => {
+	channel.subscribe('app:block:delete', event => {
 		wsServer.sockets.emit('blocks/change', event.data.block);
 		if (event.data.block.transactions.length) {
 			wsServer.sockets.emit(

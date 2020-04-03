@@ -21,7 +21,7 @@ const swaggerHelper = require('../helpers/swagger');
 const { generateParamsErrorObject } = swaggerHelper;
 
 let storage;
-const maxVotesPerAccount = 101;
+const maxVotesPerAccount = 10;
 
 const getFilterAndOptionsFormParams = params => {
 	let filters = {
@@ -83,10 +83,7 @@ VotersController.getVoters = async (context, next) => {
 	}
 
 	try {
-		// TODO: To keep the consistent behavior of functional tests
-		// not test the account for being a delegate
-		// const delegateFilters = { isDelegate: true, ...filters };
-		const delegateFilters = { ...filters };
+		const delegateFilters = { ...filters, isDelegate: 1 };
 
 		const delegate = await storage.entities.Account.getOne(delegateFilters);
 
@@ -98,24 +95,16 @@ VotersController.getVoters = async (context, next) => {
 			'balance',
 		]);
 
-		// TODO: Make sure we return empty string in case of null username
-		// This can be avoided when we fix the `isDelegate` inconsistency mentioned above.
-		data.username = data.username || '';
-
-		const voters = await storage.entities.Account.get(
-			{ votedDelegatesPublicKeys: `"${delegate.publicKey}"` }, // Need to add quotes for PSQL array search
+		const delegateVoters = await storage.entities.Account.get(
+			{ votes_for_delegate: delegate.address },
 			options,
 		);
 
-		data.voters = _.map(voters, voter =>
-			_.pick(voter, ['address', 'publicKey', 'balance']),
+		data.voters = _.map(delegateVoters, voter =>
+			_.pick(voter, ['address', 'publicKey', 'totalVotesReceived', 'votes']),
 		);
 
-		const votersCount = await storage.entities.Account.count({
-			votedDelegatesPublicKeys: `"${delegate.publicKey}"`, // Need to add quotes for PSQL array search
-		});
-
-		data.votes = votersCount;
+		data.voteCount = delegateVoters.length;
 
 		return next(null, {
 			data,
@@ -150,32 +139,39 @@ VotersController.getVotes = async (context, next) => {
 		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
-		const delegate = await storage.entities.Account.getOne(delegateFilters);
+		const account = await storage.entities.Account.getOne(delegateFilters);
 
-		const data = _.pick(delegate, [
+		const data = _.pick(account, [
 			'address',
 			'balance',
 			'username',
 			'publicKey',
+			'votes',
 		]);
-		const votes = await storage.entities.Account.get(
-			{ publicKey_in: delegate.votedDelegatesPublicKeys },
+
+		// Get voted delegate details
+		const votedDelegatesAddresses = data.votes.map(
+			aVote => aVote.delegateAddress,
+		);
+
+		const votedDelegates = await storage.entities.Account.get(
+			{ address_in: votedDelegatesAddresses },
 			options,
 		);
 
-		data.votesUsed = await storage.entities.Account.count({
-			publicKey_in: delegate.votedDelegatesPublicKeys,
+		data.votes.forEach(aVote => {
+			const { username, totalVotesReceived, delegate } = votedDelegates.find(
+				aDelegate => aDelegate.address === aVote.delegateAddress,
+			);
+			// eslint-disable-next-line no-param-reassign
+			aVote.delegate = {
+				username,
+				totalVotesReceived,
+				delegate,
+			};
 		});
-		data.votesAvailable = maxVotesPerAccount - data.votesUsed;
-		data.votes = votes.map(vote =>
-			_.pick(vote, ['address', 'publicKey', 'balance', 'username']),
-		);
 
-		data.votes.concat(data).forEach(entity => {
-			if (_.isNull(entity.username)) {
-				entity.username = '';
-			}
-		});
+		data.votesAvailable = maxVotesPerAccount - votedDelegatesAddresses.length;
 
 		return next(null, {
 			data,

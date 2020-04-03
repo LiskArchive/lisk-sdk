@@ -49,23 +49,23 @@ describe('init_steps/subscribeToEvents', () => {
 		sinonSandbox.restore();
 	});
 
-	it('should subscribe to "rounds:change" on channel and emit "rounds/change" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:rounds:change');
+	it('should subscribe to "round:change" on channel and emit "rounds/change" event on wsServer with proper data', async () => {
+		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:round:change');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
 			'rounds/change',
 			callbackObject.data,
 		);
 	});
 
-	it('should subscribe to "delegates:fork" on channel and emit "delegates/fork" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:delegates:fork');
+	it('should subscribe to "fork" on channel and emit "delegates/fork" event on wsServer with proper data', async () => {
+		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:chain:fork');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
 			'delegates/fork',
 			callbackObject.data,
 		);
 	});
 
-	it('should subscribe to "loader:sync" on channel and emit "loader/sync" event on wsServer with proper data', async () => {
+	it('should subscribe to "sync" on channel and emit "loader/sync" event on wsServer with proper data', async () => {
 		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:loader:sync');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
 			'loader/sync',
@@ -73,8 +73,8 @@ describe('init_steps/subscribeToEvents', () => {
 		);
 	});
 
-	it('should subscribe to "app:newBlock" on channel and emit "blocks/change" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:newBlock');
+	it('should subscribe to "app:block:new" on channel and emit "blocks/change" event on wsServer with proper data', async () => {
+		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:block:new');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
 			'blocks/change',
 			callbackObject.data.block,
@@ -85,8 +85,8 @@ describe('init_steps/subscribeToEvents', () => {
 		);
 	});
 
-	it('should subscribe to "app:deleteBlock" on channel and emit "blocks/change" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:deleteBlock');
+	it('should subscribe to "app:block:delete" on channel and emit "blocks/change" event on wsServer with proper data', async () => {
+		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:block:delete');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
 			'blocks/change',
 			callbackObject.data.block,

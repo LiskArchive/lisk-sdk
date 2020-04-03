@@ -101,14 +101,14 @@ module.exports = class HttpApi {
 			Object.assign(this.scope.applicationState, event.data);
 		});
 
-		this.channel.subscribe('app:rounds:change', async event => {
+		this.channel.subscribe('app:round:change', async event => {
 			await this.cleanCache(
 				[CACHE_KEYS_DELEGATES],
 				`${event.module}:${event.name}`,
 			);
 		});
 
-		this.channel.subscribe('app:newBlock', async event => {
+		this.channel.subscribe('app:block:new', async event => {
 			await this.handleBlockEvents(event);
 			await this.cleanCache(
 				[CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS],
@@ -116,7 +116,7 @@ module.exports = class HttpApi {
 			);
 		});
 
-		this.channel.subscribe('app:deleteBlock', async event => {
+		this.channel.subscribe('app:block:delete', async event => {
 			await this.handleBlockEvents(event);
 			await this.cleanCache(
 				[CACHE_KEYS_BLOCKS, CACHE_KEYS_TRANSACTIONS],

@@ -42,7 +42,6 @@ export const defaultAccount = {
 	unlocking: [],
 	delegate: {
 		lastForgedHeight: 0,
-		registeredHeight: 0,
 		consecutiveMissedBlocks: 0,
 		isBanned: false,
 		pomHeights: [],
@@ -55,6 +54,7 @@ export const defaultNetworkIdentifier =
 export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
 	readonly lastBlockHeader?: BlockHeader;
+	readonly lastBlockReward?: bigint;
 }
 
 export class StateStoreMock {
@@ -114,6 +114,7 @@ export class StateStoreMock {
 			networkIdentifier:
 				addtionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
 			lastBlockHeader: addtionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
+			lastBlockReward: addtionalInfo?.lastBlockReward ?? BigInt(0),
 		};
 	}
 }

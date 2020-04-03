@@ -37,7 +37,6 @@ const defaultCreateValues = {
 	totalVotesReceived: '0',
 	delegate: {
 		lastForgedHeight: 0,
-		registeredHeight: 0,
 		consecutiveMissedBlocks: 0,
 		isBanned: false,
 		pomHeights: [],
@@ -270,7 +269,6 @@ describe('ChainAccount', () => {
 				totalVotesReceived: '0',
 				delegate: {
 					lastForgedHeight: 0,
-					registeredHeight: 0,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [],

@@ -172,7 +172,6 @@ describe('Unlock transaction', () => {
 				],
 				delegate: {
 					lastForgedHeight: 0,
-					registeredHeight: 0,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [],
@@ -187,7 +186,6 @@ describe('Unlock transaction', () => {
 						username: `delegate_${i}`,
 						delegate: {
 							lastForgedHeight: 0,
-							registeredHeight: 0,
 							consecutiveMissedBlocks: 0,
 							isBanned: false,
 							pomHeights: [],
@@ -757,7 +755,6 @@ describe('Unlock transaction', () => {
 				],
 				delegate: {
 					lastForgedHeight: 0,
-					registeredHeight: 0,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [],
@@ -778,7 +775,6 @@ describe('Unlock transaction', () => {
 						username: `delegate_${i}`,
 						delegate: {
 							lastForgedHeight: 0,
-							registeredHeight: 0,
 							consecutiveMissedBlocks: 0,
 							isBanned: false,
 							pomHeights: [],

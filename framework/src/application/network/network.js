@@ -143,7 +143,7 @@ module.exports = class Network {
 		// ---- START: Bind event handlers ----
 		this.p2p.on(EVENT_NETWORK_READY, () => {
 			this.logger.debug('Node connected to the network');
-			this.channel.publish('app:networkReady');
+			this.channel.publish('app:network:ready');
 		});
 
 		this.p2p.on(EVENT_CLOSE_OUTBOUND, closePacket => {
@@ -267,7 +267,7 @@ module.exports = class Network {
 			this.logger.trace(
 				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${packet.peerId} for event ${packet.event}`,
 			);
-			this.channel.publish('app:networkEvent', packet);
+			this.channel.publish('app:network:event', packet);
 		});
 
 		this.p2p.on(EVENT_BAN_PEER, peerId => {
