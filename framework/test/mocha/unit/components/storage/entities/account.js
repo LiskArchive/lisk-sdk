@@ -151,6 +151,7 @@ describe('Account', () => {
 			'totalVotesReceived_in',
 			'asset_contains',
 			'asset_exists',
+			'votes_for_delegate',
 			'isDelegate',
 			'isDelegate_eql',
 			'isDelegate_ne',
@@ -628,6 +629,59 @@ describe('Account', () => {
 					const filters = { asset_exists: '' };
 					const accounts = await AccountEntity.get(filters);
 					expect(accounts.length).to.be.eql(0);
+				});
+			});
+
+			describe('votes_for_delegate', () => {
+				let delegateAccount = null;
+				let voterA = null;
+				let voterB = null;
+				let delegateAddress = null;
+				let voters = null;
+
+				beforeEach(async () => {
+					delegateAccount = new accountFixtures.Account({
+						username: 'OneDelegate',
+					});
+
+					await AccountEntity.create([delegateAccount]);
+					const delegate = await AccountEntity.getOne({
+						username: 'OneDelegate',
+					});
+
+					delegateAddress = delegate.address;
+
+					voterA = new accountFixtures.Account({
+						votes: [
+							{
+								amount: '10000000000',
+								delegateAddress,
+							},
+						],
+						asset: {
+							voted: true,
+						},
+					});
+
+					voterB = new accountFixtures.Account({
+						votes: [
+							{
+								amount: '10000000000',
+								delegateAddress,
+							},
+						],
+						asset: {
+							voted: true,
+						},
+					});
+					await AccountEntity.create([voterA, voterB]);
+					voters = await AccountEntity.get({ asset_exists: 'voted' });
+				});
+
+				it('should return accounts that voted for a delegate', async () => {
+					const filters = { votes_for_delegate: delegateAddress };
+					const votersFound = await AccountEntity.get(filters);
+					expect(votersFound).to.eql(voters);
 				});
 			});
 
