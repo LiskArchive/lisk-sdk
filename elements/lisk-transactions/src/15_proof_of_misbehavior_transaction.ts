@@ -365,5 +365,30 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				),
 			);
 		}
+
+		/*
+			Update sender account
+		*/
+
+		const reward =
+			store.chain.lastBlockReward > delegateAccount.balance
+				? delegateAccount.balance
+				: store.chain.lastBlockReward;
+		senderAccount.balance += reward;
+		store.account.set(senderAccount.address, senderAccount);
+
+		/*
+			Update delegate account
+		*/
+
+		delegateAccount.delegate.pomHeights.push(currentHeight);
+		// tslint:disable-next-line no-magic-numbers
+		if (delegateAccount.delegate.pomHeights.length === 5) {
+			delegateAccount.delegate.isBanned = true;
+		}
+		delegateAccount.balance -= reward;
+		store.account.set(delegateAccount.address, delegateAccount);
+
+		return errors;
 	}
 }
