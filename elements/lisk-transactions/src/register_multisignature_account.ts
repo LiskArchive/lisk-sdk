@@ -101,10 +101,13 @@ const validateInputs = ({
 	}
 
 	// Check key duplication between sets
-	const repatedKeys = findRepeatedKeys(optionalPublicKeys, mandatoryPublicKeys);
-	if (repatedKeys.length > 0) {
+	const repeatedKeys = findRepeatedKeys(
+		optionalPublicKeys,
+		mandatoryPublicKeys,
+	);
+	if (repeatedKeys.length > 0) {
 		throw new Error(
-			`There are repeated values in optional and mandatory keys: '${repatedKeys.join(
+			`There are repeated values in optional and mandatory keys: '${repeatedKeys.join(
 				', ',
 			)}'`,
 		);

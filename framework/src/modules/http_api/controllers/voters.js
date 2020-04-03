@@ -21,7 +21,7 @@ const swaggerHelper = require('../helpers/swagger');
 const { generateParamsErrorObject } = swaggerHelper;
 
 let storage;
-let maxVotesPerAccount;
+const maxVotesPerAccount = 101;
 
 const getFilterAndOptionsFormParams = params => {
 	let filters = {
@@ -63,7 +63,6 @@ const validateFilters = (filters, params) => {
 
 function VotersController(scope) {
 	({ storage } = scope.components);
-	({ maxVotesPerAccount } = scope.config.constants);
 }
 
 VotersController.getVoters = async (context, next) => {

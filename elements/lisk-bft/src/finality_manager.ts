@@ -315,13 +315,13 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	public async recompute(
-		recompteUptoHeight: number,
+		recomputeUptoHeight: number,
 		stateStore: StateStore,
 	): Promise<void> {
 		this.reset();
 
 		const blockHeaders = await this.getBFTApplicableBlockHeaders(
-			recompteUptoHeight,
+			recomputeUptoHeight,
 		);
 		if (!blockHeaders.length) {
 			throw new Error('Cannot find a block to recompute');
@@ -381,10 +381,10 @@ export class FinalityManager extends EventEmitter {
 		let earlierBlock = delegateLastBlock;
 		// tslint:disable-next-line no-let
 		let laterBlock = blockHeader;
-		const higherMaxHeightPreviouslyForgerd =
+		const higherMaxHeightPreviouslyForged =
 			earlierBlock.maxHeightPreviouslyForged >
 			laterBlock.maxHeightPreviouslyForged;
-		const sameMaxHeightPreviouslyForgerd =
+		const sameMaxHeightPreviouslyForged =
 			earlierBlock.maxHeightPreviouslyForged ===
 			laterBlock.maxHeightPreviouslyForged;
 		const higherMaxHeightPrevoted =
@@ -393,9 +393,9 @@ export class FinalityManager extends EventEmitter {
 			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted;
 		const higherHeight = earlierBlock.height > laterBlock.height;
 		if (
-			higherMaxHeightPreviouslyForgerd ||
-			(sameMaxHeightPreviouslyForgerd && higherMaxHeightPrevoted) ||
-			(sameMaxHeightPreviouslyForgerd && sameMaxHeightPrevoted && higherHeight)
+			higherMaxHeightPreviouslyForged ||
+			(sameMaxHeightPreviouslyForged && higherMaxHeightPrevoted) ||
+			(sameMaxHeightPreviouslyForged && sameMaxHeightPrevoted && higherHeight)
 		) {
 			[earlierBlock, laterBlock] = [laterBlock, earlierBlock];
 		}

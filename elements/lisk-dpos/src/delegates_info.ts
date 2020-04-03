@@ -101,11 +101,11 @@ export class DelegatesInfo {
 		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		if (_isGenesisBlock(block)) {
-			const intialRound = 1;
+			const initialRound = 1;
 			for (
 				// tslint:disable-next-line no-let
-				let i = intialRound;
-				i <= intialRound + delegateListRoundOffset;
+				let i = initialRound;
+				i <= initialRound + delegateListRoundOffset;
 				i += 1
 			) {
 				// Height is 1, but to create round 1-3, round offset should start from 0 - 2
@@ -116,7 +116,7 @@ export class DelegatesInfo {
 				);
 			}
 			await this.delegatesList.updateForgersList(
-				intialRound,
+				initialRound,
 				[zeroRandomSeed, zeroRandomSeed],
 				stateStore,
 			);

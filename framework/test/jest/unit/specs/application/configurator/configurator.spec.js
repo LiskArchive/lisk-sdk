@@ -203,39 +203,33 @@ describe('Configurator', () => {
 	describe('getConfig()', () => {
 		it('should merge and override the customData in last come as priority', () => {
 			const data1 = {
-				app: {
-					label: 'myApp1',
-					version: '1.0.0',
-					protocolVersion: '1.0',
-					minVersion: '0.9.0',
-				},
+				label: 'myApp1',
+				version: '1.0.0',
+				protocolVersion: '1.0',
 			};
-			const data2 = { app: { label: 'myApp2' } };
+			const data2 = { label: 'myApp2' };
 			const conf = new Configurator();
 			conf.loadConfig(data1);
 			conf.loadConfig(data2);
 
 			const result = conf.getConfig({}, { failOnInvalidArg: false });
-			expect(result.app.label).toEqual('myApp2');
+			expect(result.label).toEqual('myApp2');
 		});
 
 		it('should merge and override the provided override values', () => {
 			const data1 = {
-				app: {
-					label: 'myApp1',
-					version: '1.0.0',
-					protocolVersion: '1.0',
-					minVersion: '0.9.0',
-				},
+				label: 'myApp1',
+				version: '1.0.0',
+				protocolVersion: '1.0',
 			};
-			const data2 = { app: { label: 'myApp2' } };
-			const data3 = { app: { label: 'myApp3' } };
+			const data2 = { label: 'myApp2' };
+			const data3 = { label: 'myApp3' };
 			const conf = new Configurator();
 			conf.loadConfig(data1);
 			conf.loadConfig(data2);
 
 			const result = conf.getConfig(data3, { failOnInvalidArg: false });
-			expect(result.app.label).toEqual('myApp3');
+			expect(result.label).toEqual('myApp3');
 		});
 	});
 });

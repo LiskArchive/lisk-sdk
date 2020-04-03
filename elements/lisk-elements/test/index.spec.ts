@@ -18,7 +18,7 @@ import {
 	cryptography,
 	p2p,
 	passphrase,
-	transacationPool,
+	transactionPool,
 	transactions,
 	validator,
 } from '../src';
@@ -45,7 +45,7 @@ describe('lisk-elements', () => {
 	});
 
 	it('transactionPool should be an object', () => {
-		return expect(transacationPool).toBeObject();
+		return expect(transactionPool).toBeObject();
 	});
 
 	it('transactions should be an object', () => {

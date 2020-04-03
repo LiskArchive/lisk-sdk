@@ -117,7 +117,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
 			if (blocks && blocks.length) {
-				// Sort blocks with height in ascending order because blocks are returned in decending order
+				// Sort blocks with height in ascending order because blocks are returned in descending order
 				blocks.sort((a, b) => a.height - b.height);
 				[{ id: lastFetchedID }] = blocks.slice(-1);
 				const index = blocks.findIndex(block => block.id === toId);
@@ -158,7 +158,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 	/**
 	 * When there is a failure applying blocks received from the peer,
-	 * it's needede to check whether the tip of the temp block chain has
+	 * it's required to check whether the tip of the temp block chain has
 	 * preference over the current tip. If so, the temporary chain is restored
 	 * on top of the current chain and the blocks temp table is cleaned up
 	 */

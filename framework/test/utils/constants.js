@@ -26,7 +26,7 @@ const appConfig = validator.parseEnvArgAndValidate(applicationConfigSchema, {});
 
 const constants = deepFreeze({
 	...sharedConstants,
-	...appConfig.app.genesisConfig,
+	...appConfig.genesisConfig,
 });
 
 module.exports = {

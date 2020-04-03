@@ -30,24 +30,9 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 		distance: 3000000, // Distance between each milestone
 	},
 	activeDelegates: 101,
-	blockSlotWindow: 5,
-	blockReceiptTimeout: 20, // 2 blocks
 	maxPayloadLength: 15 * 1024,
-	maxSharedTransactions: 100,
-	maxVotesPerAccount: 101,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: '10000000000000000',
-	transactionTypes: {
-		send: 0,
-		delegate: 2,
-		vote: 3,
-		multi: 4,
-		dapp: 5,
-		inTransfer: 6,
-		outTransfer: 7,
-	},
-	unconfirmedTransactionTimeout: 10800, // 1080 blocks
-	expiryInterval: 30000,
 	...overriddenConfigProperties,
 });
 
