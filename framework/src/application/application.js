@@ -60,7 +60,7 @@ const { InMemoryChannel } = require('../controller/channels');
 const HttpAPIModule = require('../modules/http_api');
 
 const registerProcessHooks = app => {
-	process.title = `${app.config.app.label}(${app.config.app.version})`;
+	process.title = `${app.config.label}(${app.config.version})`;
 
 	process.on('uncaughtException', err => {
 		// Handle error safely
@@ -103,19 +103,15 @@ class Application {
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);
 
-		if (!_.has(appConfig, 'app.label')) {
-			_.set(
-				appConfig,
-				'app.label',
-				`lisk-${genesisBlock.payloadHash.slice(0, 7)}`,
-			);
+		if (!_.has(appConfig, 'label')) {
+			_.set(appConfig, 'label', `lisk-${genesisBlock.payloadHash.slice(0, 7)}`);
 		}
 
 		if (!_.has(appConfig, 'components.logger.logFileName')) {
 			_.set(
 				appConfig,
 				'components.logger.logFileName',
-				`${process.cwd()}/logs/${appConfig.app.label}/lisk.log`,
+				`${process.cwd()}/logs/${appConfig.label}/lisk.log`,
 			);
 		}
 
@@ -130,7 +126,7 @@ class Application {
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
-		this.constants = { ...constants, ...appConfig.app.genesisConfig };
+		this.constants = { ...constants, ...appConfig.genesisConfig };
 		this.genesisBlock = genesisBlock;
 		this.config = appConfig;
 		this.channel = null;
@@ -268,7 +264,7 @@ class Application {
 		Object.freeze(this.constants);
 		Object.freeze(this.config);
 
-		this.logger.info(`Starting the app - ${this.config.app.label}`);
+		this.logger.info(`Starting the app - ${this.config.label}`);
 
 		registerProcessHooks(this);
 
@@ -323,20 +319,19 @@ class Application {
 	// --------------------------------------
 	_compileAndValidateConfigurations() {
 		const modules = this.getModules();
-		this.config.app.networkId = getNetworkIdentifier(
+		this.config.networkId = getNetworkIdentifier(
 			this.genesisBlock.payloadHash,
 			this.genesisBlock.communityIdentifier,
 		);
 
 		const appConfigToShareWithModules = {
-			version: this.config.app.version,
-			minVersion: this.config.app.minVersion,
-			protocolVersion: this.config.app.protocolVersion,
-			networkId: this.config.app.networkId,
+			version: this.config.version,
+			protocolVersion: this.config.protocolVersion,
+			networkId: this.config.networkId,
 			genesisBlock: this.genesisBlock,
 			constants: this.constants,
-			lastCommitId: this.config.app.lastCommitId,
-			buildVersion: this.config.app.buildVersion,
+			lastCommitId: this.config.lastCommitId,
+			buildVersion: this.config.buildVersion,
 		};
 
 		// TODO: move this configuration to module specific config file
@@ -352,11 +347,11 @@ class Application {
 		});
 
 		this.initialState = {
-			version: this.config.app.version,
-			minVersion: this.config.app.minVersion,
-			protocolVersion: this.config.app.protocolVersion,
-			networkId: this.config.app.networkId,
-			wsPort: this.config.app.network.wsPort,
+			version: this.config.version,
+			minVersion: this.config.minVersion,
+			protocolVersion: this.config.protocolVersion,
+			networkId: this.config.networkId,
+			wsPort: this.config.network.wsPort,
 			httpPort: this.config.modules.http_api.httpPort,
 		};
 
@@ -566,11 +561,11 @@ class Application {
 
 	_initController() {
 		return new Controller({
-			appLabel: this.config.app.label,
+			appLabel: this.config.label,
 			config: {
 				components: this.config.components,
-				ipc: this.config.app.ipc,
-				tempPath: this.config.app.tempPath,
+				ipc: this.config.ipc,
+				tempPath: this.config.tempPath,
 			},
 			logger: this.logger,
 			storage: this.storage,
@@ -580,7 +575,7 @@ class Application {
 
 	_initNetwork() {
 		const network = new Network({
-			options: this.config.app.network,
+			options: this.config.network,
 			storage: this.storage,
 			logger: this.logger,
 			channel: this.channel,
@@ -589,10 +584,12 @@ class Application {
 	}
 
 	_initNode() {
+		const { components, modules, ...rootConfigs } = this.config;
+		const { network, ...nodeConfigs } = rootConfigs;
 		const node = new Node({
 			channel: this.channel,
 			options: {
-				...this.config.app.node,
+				...nodeConfigs,
 				genesisBlock: this.genesisBlock,
 				constants: this.constants,
 				registeredTransactions: this.getTransactions(),
