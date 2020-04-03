@@ -81,6 +81,7 @@ export interface BlockHeaderJSON {
 	version: number;
 	timestamp: number;
 	previousBlockId?: string | null;
+	seedReveal: string;
 	blockSignature: string;
 	generatorPublicKey: string;
 	numberOfTransactions: number;
