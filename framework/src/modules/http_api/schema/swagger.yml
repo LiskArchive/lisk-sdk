@@ -1921,7 +1921,7 @@ definitions:
       secondsSinceEpoch:
         type: integer
         example: 1533558858
-        description: Number of seconds that have elapsed since the Lisk epoch time, (Lisk timestamp).
+        description: Number of seconds that have elapsed since the Lisk epoch time (Lisk timestamp).
       syncing:
         type: boolean
         example: false
