@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getAddressFromPublicKey,
-	hexToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
 import {
@@ -24,7 +21,7 @@ import {
 	StateStorePrepare,
 } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, BlockHeader, TransactionJSON } from './transaction_types';
+import { BlockHeader, TransactionJSON } from './transaction_types';
 import {
 	getBlockBytes,
 	getBlockBytesWithSignature,
@@ -119,10 +116,11 @@ const proofOfMisbehaviorAssetFormatSchema = {
 		},
 	},
 };
-
 export interface ProofOfMisbehaviorAsset {
 	readonly header1: BlockHeader;
 	readonly header2: BlockHeader;
+	// tslint:disable-next-line readonly-keyword
+	reward?: bigint;
 }
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
@@ -135,6 +133,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || {}) as ProofOfMisbehaviorAsset;
+		this.asset.reward = BigInt(0);
 	}
 
 	public assetToJSON(): ProofOfMisbehaviorAsset {
@@ -374,6 +373,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				? delegateAccount.balance
 				: store.chain.lastBlockReward;
 		senderAccount.balance += reward;
+		// We store the correct reward value in the asset at apply time to allow for undoing the transaction at a later point in time
+		this.asset.reward = reward;
+
 		store.account.set(senderAccount.address, senderAccount);
 
 		/*
@@ -403,11 +405,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update sender account
 		*/
-		const reward =
-			store.chain.lastBlockReward < delegateAccount.balance
-				? delegateAccount.balance + store.chain.lastBlockReward
-				: store.chain.lastBlockReward;
-		senderAccount.balance -= reward;
+		senderAccount.balance -= this.asset.reward;
 		store.account.set(senderAccount.address, senderAccount);
 
 		/*
@@ -422,7 +420,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			delegateAccount.delegate.isBanned = false;
 		}
 
-		delegateAccount.balance += reward;
+		delegateAccount.balance += this.asset.reward;
 		store.account.set(delegateAccount.address, delegateAccount);
 
 		return [];
