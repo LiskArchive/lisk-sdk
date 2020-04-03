@@ -378,8 +378,10 @@ describe('processor', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish any event', async () => {
-				expect(channelStub.publish).not.toHaveBeenCalled();
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:fork', {
+					block: blockV0,
+				});
 			});
 		});
 
@@ -387,6 +389,12 @@ describe('processor', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(ForkStatus.TIE_BREAK);
 				await processor.process(blockV0);
+			});
+
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:fork', {
+					block: blockV0,
+				});
 			});
 
 			it('should validate block', async () => {
@@ -468,6 +476,12 @@ describe('processor', () => {
 				} catch (err) {
 					// Expected error
 				}
+			});
+
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:fork', {
+					block: blockV0,
+				});
 			});
 
 			it('should validate block', async () => {
@@ -578,6 +592,12 @@ describe('processor', () => {
 					block: blockV0,
 				});
 			});
+
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:fork', {
+					block: blockV0,
+				});
+			});
 		});
 
 		describe('when the fork step returns ForkStatus.DISCARD', () => {
@@ -608,8 +628,10 @@ describe('processor', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish any event', async () => {
-				expect(channelStub.publish).not.toHaveBeenCalled();
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:fork', {
+					block: blockV0,
+				});
 			});
 		});
 
