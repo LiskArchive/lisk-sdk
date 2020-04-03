@@ -20,7 +20,10 @@ import {
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
-import { MAX_BLOCK_HEIGHT_DIFFERENCE, MAX_POM_HEIGHTS } from './constants';
+import {
+	MAX_POM_HEIGHTS,
+	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
+} from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { BlockHeader, TransactionJSON } from './transaction_types';
 import {
@@ -123,7 +126,7 @@ export interface ProofOfMisbehaviorAsset {
 	readonly header1: BlockHeader;
 	readonly header2: BlockHeader;
 	// tslint:disable-next-line readonly-keyword
-	reward?: bigint;
+	reward?: bigint | string;
 }
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
@@ -146,6 +149,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		return {
 			header1: this.asset.header1,
 			header2: this.asset.header2,
+			reward: this.asset.reward ? this.asset.reward.toString() : '0',
 		};
 	}
 
@@ -271,11 +275,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		// tslint:disable-next-line no-magic-numbers
 		if (
 			Math.abs(this.asset.header1.height - currentHeight) >=
-			MAX_BLOCK_HEIGHT_DIFFERENCE
+			MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
 		) {
 			errors.push(
 				new TransactionError(
-					`Difference between header1.height and current height must be less than ${MAX_BLOCK_HEIGHT_DIFFERENCE}.`,
+					`Difference between header1.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE}.`,
 					this.id,
 					'.asset.header1',
 					this.asset.header1.height,
@@ -286,11 +290,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		// tslint:disable-next-line no-magic-numbers
 		if (
 			Math.abs(this.asset.header2.height - currentHeight) >=
-			MAX_BLOCK_HEIGHT_DIFFERENCE
+			MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
 		) {
 			errors.push(
 				new TransactionError(
-					`Difference between header2.height and current height must be less than ${MAX_BLOCK_HEIGHT_DIFFERENCE}.`,
+					`Difference between header2.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE}.`,
 					this.id,
 					'.asset.header2',
 					this.asset.header2.height,
