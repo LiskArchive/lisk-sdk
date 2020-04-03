@@ -369,7 +369,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update sender account
 		*/
-
 		const reward =
 			store.chain.lastBlockReward > delegateAccount.balance
 				? delegateAccount.balance
@@ -380,7 +379,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update delegate account
 		*/
-
 		delegateAccount.delegate.pomHeights.push(currentHeight);
 		// tslint:disable-next-line no-magic-numbers
 		if (delegateAccount.delegate.pomHeights.length === 5) {
@@ -390,5 +388,43 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		store.account.set(delegateAccount.address, delegateAccount);
 
 		return errors;
+	}
+
+	protected async undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const currentHeight = store.chain.lastBlockHeader.height + 1;
+		const delegateId = getAddressFromPublicKey(
+			this.asset.header1.generatorPublicKey,
+		);
+		const delegateAccount = await store.account.get(delegateId);
+		const senderAccount = await store.account.get(this.senderId);
+
+		/*
+			Update sender account
+		*/
+		const reward =
+			store.chain.lastBlockReward < delegateAccount.balance
+				? delegateAccount.balance + store.chain.lastBlockReward
+				: store.chain.lastBlockReward;
+		senderAccount.balance -= reward;
+		store.account.set(senderAccount.address, senderAccount);
+
+		/*
+			Update delegate account
+		*/
+		const pomIndex = delegateAccount.delegate.pomHeights.findIndex(
+			height => height === currentHeight,
+		);
+		delegateAccount.delegate.pomHeights.splice(pomIndex, 1);
+		// tslint:disable-next-line no-magic-numbers
+		if (delegateAccount.delegate.pomHeights.length < 5) {
+			delegateAccount.delegate.isBanned = false;
+		}
+
+		delegateAccount.balance += reward;
+		store.account.set(delegateAccount.address, delegateAccount);
+
+		return [];
 	}
 }
