@@ -18,6 +18,8 @@ import * as validProofOfMisbehaviorTransactionScenario3 from '../fixtures/proof_
 
 import { ProofOfMisbehaviorTransaction } from '../src/15_proof_of_misbehavior_transaction';
 import { Status } from '../src';
+import { Account } from '../src/transaction_types';
+import { StateStoreMock, defaultAccount } from './utils/state_store_mock';
 
 describe('Proof-of-misbehavior transaction', () => {
 	let transactionWithScenario1: ProofOfMisbehaviorTransaction;
@@ -86,44 +88,276 @@ describe('Proof-of-misbehavior transaction', () => {
 			expect(status).toBe(Status.FAIL);
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toInclude(
-				'Blockheader ids are identical. No contradiction detected.',
+				'Blockheaders are identical. No contradiction detected.',
 			);
 		});
 	});
 
 	describe('applyAsset', () => {
-		it.todo('should add reward to balance of the sender');
-		it.todo('should deduct reward to balance of the misbehaving delegate');
+		let store: StateStoreMock;
+		let sender: Account;
+		let delegate: Account;
 
-		it.todo(
-			'should append height h to pomHeights property of misbehaving account',
-		);
+		beforeEach(async () => {
+			sender = {
+				...defaultAccount,
+				...validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.reportingAccount,
+				balance: BigInt(
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.reportingAccount.balance,
+				),
+			};
+			delegate = {
+				...defaultAccount,
+				...validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.targetAccount,
+				balance: BigInt(
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.targetAccount.balance,
+				),
+				username: 'genesis_100',
+				isDelegate: 1,
+				delegate: {
+					lastForgedHeight: 300000,
+					registeredHeight: 0,
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					pomHeights: [],
+				},
+			};
 
-		it.todo('should set isBanned property to true is pomHeights.length === 5');
+			store = new StateStoreMock([sender, delegate], {
+				lastBlockHeader: {
+					height:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1.height + 10,
+				} as any,
+				lastBlockReward: BigInt(1),
+			});
+		});
 
-		it.todo('should return errors if misbehaving account is not a delegate');
+		it('should return errors if |header1.height - h| >= 260000', async () => {
+			const invalidTransaction = new ProofOfMisbehaviorTransaction({
+				...validProofOfMisbehaviorTransactionScenario1.testCases.output,
+				asset: {
+					header1: {
+						...validProofOfMisbehaviorTransactionScenario1.testCases.output
+							.asset.header1,
+						height:
+							validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+								.header1.height + 270000,
+					},
+					header2:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header2,
+				},
+				networkIdentifier:
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.networkIdentifier,
+			});
 
-		it.todo('should return errors if misbehaving account is already banned');
+			const { errors, status } = await invalidTransaction.apply(store);
 
-		it.todo(
-			'should return errors if misbehaving account is already punished at height h',
-		);
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(4);
+			expect(errors[2].message).toInclude(
+				'Difference between header1.height and current height must be less than 260000.',
+			);
+		});
 
-		it.todo('should return errors if |header1.height - h| >= 260000');
+		it('should return errors if |header2.height - h| >= 260000', async () => {
+			const invalidTransaction = new ProofOfMisbehaviorTransaction({
+				...validProofOfMisbehaviorTransactionScenario1.testCases.output,
+				asset: {
+					header1:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1,
+					header2: {
+						...validProofOfMisbehaviorTransactionScenario1.testCases.output
+							.asset.header2,
+						height:
+							validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+								.header2.height + 370000,
+					},
+				},
+				networkIdentifier:
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.networkIdentifier,
+			});
 
-		it.todo('should return errors if |header2.height - h| >= 260000');
-	});
+			const { errors, status } = await invalidTransaction.apply(store);
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(4);
+			expect(errors[2].message).toInclude(
+				'Difference between header2.height and current height must be less than 260000.',
+			);
+		});
 
-	describe('undoAsset', () => {
-		it.todo('should deduct reward to balance of the sender');
-		it.todo('should add reward to balance of the misbehaving delegate');
+		it('should return errors when headers are not properly signed', async () => {
+			const invalidTransaction = new ProofOfMisbehaviorTransaction({
+				...validProofOfMisbehaviorTransactionScenario1.testCases.output,
+				asset: {
+					header1:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1,
+					header2: {
+						...validProofOfMisbehaviorTransactionScenario1.testCases.output
+							.asset.header2,
+						blockSignature: validProofOfMisbehaviorTransactionScenario1.testCases.output.asset.header2.blockSignature.replace(
+							'1',
+							'2',
+						),
+					},
+				},
+				networkIdentifier:
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.networkIdentifier,
+			});
 
-		it.todo(
-			'should remove height h from pomHeights property of misbehaving account',
-		);
+			const { errors, status } = await invalidTransaction.apply(store);
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(3);
+			expect(errors[2].message).toInclude(
+				'Invalid block signature for header 2',
+			);
+		});
 
-		it.todo(
-			'should set isBanned property to false is pomHeights.length becomes less than 5',
-		);
+		it('should return errors if misbehaving account is not a delegate', async () => {
+			store = new StateStoreMock([sender, { ...delegate, isDelegate: 0 }], {
+				lastBlockHeader: {
+					height:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1.height + 10,
+				} as any,
+				lastBlockReward: BigInt(1),
+			});
+
+			const { errors, status } = await transactionWithScenario1.apply(store);
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(3);
+			expect(errors[2].message).toInclude('Account is not a delegate');
+		});
+
+		it('should return errors if misbehaving account is already banned', async () => {
+			store = new StateStoreMock(
+				[
+					sender,
+					{ ...delegate, delegate: { ...delegate.delegate, isBanned: true } },
+				],
+				{
+					lastBlockHeader: {
+						height:
+							validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+								.header1.height + 10,
+					} as any,
+					lastBlockReward: BigInt(1),
+				},
+			);
+
+			const { errors, status } = await transactionWithScenario1.apply(store);
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(3);
+			expect(errors[2].message).toInclude(
+				'Cannot apply proof-of-misbehavior. Delegate is banned.',
+			);
+		});
+
+		it('should return errors if misbehaving account is already punished at height h', async () => {
+			store = new StateStoreMock(
+				[
+					sender,
+					{
+						...delegate,
+						delegate: {
+							...delegate.delegate,
+							pomHeights: [
+								validProofOfMisbehaviorTransactionScenario1.testCases.output
+									.asset.header1.height + 10,
+							],
+						},
+					},
+				],
+				{
+					lastBlockHeader: {
+						height:
+							validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+								.header1.height + 10,
+					} as any,
+					lastBlockReward: BigInt(1),
+				},
+			);
+
+			const { errors, status } = await transactionWithScenario1.apply(store);
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(3);
+			expect(errors[2].message).toInclude(
+				'Cannot apply proof-of-misbehavior. Delegate is already punished.',
+			);
+		});
+
+		it('should add reward to balance of the sender', async () => {
+			await transactionWithScenario1.apply(store);
+			const updatedSender = await store.account.get(sender.address);
+			const expectedBalance =
+				sender.balance +
+				(transactionWithScenario1.asset.reward as bigint) -
+				transactionWithScenario1.fee;
+			expect(updatedSender.balance.toString()).toEqual(
+				expectedBalance.toString(),
+			);
+		});
+
+		it('should deduct reward to balance of the misbehaving delegate', async () => {
+			await transactionWithScenario1.apply(store);
+			const updatedDelegate = await store.account.get(delegate.address);
+			const expectedBalance =
+				delegate.balance - (transactionWithScenario1.asset.reward as bigint);
+
+			expect(updatedDelegate.balance.toString()).toEqual(
+				expectedBalance.toString(),
+			);
+		});
+
+		it('should append height h to pomHeights property of misbehaving account', async () => {
+			await transactionWithScenario1.apply(store);
+			const updatedDelegate = await store.account.get(delegate.address);
+
+			expect(updatedDelegate.delegate.pomHeights[0]).toEqual(300011);
+		});
+
+		it('should set isBanned property to true is pomHeights.length === 5', async () => {
+			store = new StateStoreMock(
+				[
+					sender,
+					{
+						...delegate,
+						delegate: {
+							...delegate.delegate,
+							pomHeights: [
+								1,
+								2,
+								3,
+								4,
+								validProofOfMisbehaviorTransactionScenario1.testCases.output
+									.asset.header1.height + 10,
+							],
+						},
+					},
+				],
+				{
+					lastBlockHeader: {
+						height:
+							validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+								.header1.height + 10,
+					} as any,
+					lastBlockReward: BigInt(1),
+				},
+			);
+			await transactionWithScenario1.apply(store);
+			const updatedDelegate = await store.account.get(delegate.address);
+
+			expect(updatedDelegate.delegate.isBanned).toBeTrue();
+		});
 	});
 });

@@ -191,11 +191,14 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		if (
-			this.asset.header1.blockSignature === this.asset.header2.blockSignature
+			Buffer.compare(
+				getBlockBytes(this.asset.header1),
+				getBlockBytes(this.asset.header2),
+			) === 0
 		) {
 			errors.push(
 				new TransactionError(
-					'Blockheader ids are identical. No contradiction detected.',
+					'Blockheaders are identical. No contradiction detected.',
 					this.id,
 					'.asset.header1',
 				),
@@ -257,14 +260,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		const delegateAccount = await store.account.get(delegateId);
 		const senderAccount = await store.account.get(this.senderId);
 		const { networkIdentifier } = store.chain;
-
 		/*
 			|header1.height - h| < 260,000.
 			|header2.height - h| < 260,000.
 		*/
 
 		// tslint:disable-next-line no-magic-numbers
-		if (Math.abs(this.asset.header1.height - currentHeight) < 260000) {
+		if (Math.abs(this.asset.header1.height - currentHeight) >= 260000) {
 			errors.push(
 				new TransactionError(
 					'Difference between header1.height and current height must be less than 260000.',
@@ -276,7 +278,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		// tslint:disable-next-line no-magic-numbers
-		if (Math.abs(this.asset.header2.height - currentHeight) < 260000) {
+		if (Math.abs(this.asset.header2.height - currentHeight) >= 260000) {
 			errors.push(
 				new TransactionError(
 					'Difference between header2.height and current height must be less than 260000.',
@@ -290,6 +292,16 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Check if delegate is eligible to be punished
 		*/
+
+		if (!delegateAccount.isDelegate || !delegateAccount.username) {
+			errors.push(
+				new TransactionError(
+					'Account is not a delegate',
+					this.id,
+					'.asset.header1.generatorPublicKey',
+				),
+			);
+		}
 
 		if (delegateAccount.delegate.isBanned) {
 			errors.push(
@@ -348,7 +360,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				),
 			);
 		}
-
 		const { valid: validHeader2Signature } = validateSignature(
 			this.asset.header2.generatorPublicKey,
 			this.asset.header2.blockSignature,
@@ -373,6 +384,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			store.chain.lastBlockReward > delegateAccount.balance
 				? delegateAccount.balance
 				: store.chain.lastBlockReward;
+
 		senderAccount.balance += reward;
 		// We store the correct reward value in the asset at apply time to allow for undoing the transaction at a later point in time
 		this.asset.reward = reward;
@@ -383,8 +395,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			Update delegate account
 		*/
 		delegateAccount.delegate.pomHeights.push(currentHeight);
+
 		// tslint:disable-next-line no-magic-numbers
-		if (delegateAccount.delegate.pomHeights.length === 5) {
+		if (delegateAccount.delegate.pomHeights.length > 4) {
 			delegateAccount.delegate.isBanned = true;
 		}
 		delegateAccount.balance -= reward;
