@@ -255,6 +255,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			this.asset.header1.generatorPublicKey,
 		);
 		const delegateAccount = await store.account.get(delegateId);
+		const senderAccount = await store.account.get(this.senderId);
+		const { networkIdentifier } = store.chain;
 
 		/*
 			|header1.height - h| < 260,000.
@@ -317,6 +319,51 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			);
 		}
 
-		return errors;
+		/* 
+			Check block signatures validity 
+		*/
+
+		const blockHeader1Bytes = Buffer.concat([
+			Buffer.from(networkIdentifier, 'hex'),
+			getBlockBytes(this.asset.header1),
+		]);
+		const blockHeader2Bytes = Buffer.concat([
+			Buffer.from(networkIdentifier, 'hex'),
+			getBlockBytes(this.asset.header2),
+		]);
+
+		const { valid: validHeader1Signature } = validateSignature(
+			this.asset.header1.generatorPublicKey,
+			this.asset.header1.blockSignature,
+			blockHeader1Bytes,
+		);
+
+		if (!validHeader1Signature) {
+			errors.push(
+				new TransactionError(
+					'Invalid block signature for header 1.',
+					this.id,
+					'.asset.header1.blockSignature',
+					this.asset.header1.blockSignature,
+				),
+			);
+		}
+
+		const { valid: validHeader2Signature } = validateSignature(
+			this.asset.header2.generatorPublicKey,
+			this.asset.header2.blockSignature,
+			blockHeader2Bytes,
+		);
+
+		if (!validHeader2Signature) {
+			errors.push(
+				new TransactionError(
+					'Invalid block signature for header 2.',
+					this.id,
+					'.asset.header2.blockSignature',
+					this.asset.header2.blockSignature,
+				),
+			);
+		}
 	}
 }
