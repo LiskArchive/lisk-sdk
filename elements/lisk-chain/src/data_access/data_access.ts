@@ -245,7 +245,7 @@ export class DataAccess {
 	): Promise<BlockInstance[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
-		// To Preserve LessThan logic we are substracting by 1
+		// To Preserve LessThan logic we are subtracting by 1
 		const toHeightLT = toHeight - 1;
 
 		// Loads extended blocks from storage

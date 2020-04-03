@@ -87,14 +87,11 @@ interface ChainConstructor {
 	readonly epochTime: string;
 	readonly blockTime: number;
 	readonly networkIdentifier: string;
-	readonly blockReceiptTimeout: number; // Set default
-	readonly loadPerIteration: number;
 	readonly maxPayloadLength: number;
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
 	readonly rewardMilestones: ReadonlyArray<string>;
 	readonly totalAmount: string;
-	readonly blockSlotWindow: number;
 	readonly stateBlockSize?: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
@@ -205,10 +202,7 @@ export class Chain {
 		readonly stateBlockSize: number;
 		readonly epochTime: string;
 		readonly blockTime: number;
-		readonly blockReceiptTimeout: number;
 		readonly maxPayloadLength: number;
-		readonly loadPerIteration: number;
-		readonly blockSlotWindow: number;
 	};
 	private readonly events: EventEmitter;
 
@@ -223,14 +217,11 @@ export class Chain {
 		epochTime,
 		blockTime,
 		networkIdentifier,
-		blockReceiptTimeout, // Set default
-		loadPerIteration,
 		maxPayloadLength,
 		rewardDistance,
 		rewardOffset,
 		rewardMilestones,
 		totalAmount,
-		blockSlotWindow,
 		stateBlockSize = DEFAULT_STATE_BLOCK_SIZE,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
@@ -266,10 +257,7 @@ export class Chain {
 			stateBlockSize,
 			epochTime,
 			blockTime,
-			blockReceiptTimeout,
 			maxPayloadLength,
-			loadPerIteration,
-			blockSlotWindow,
 		};
 
 		this.blocksVerify = new BlocksVerify({

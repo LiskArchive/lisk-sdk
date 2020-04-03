@@ -162,18 +162,20 @@ describe('Node', () => {
 			return expect(node.bootstrap.constructor.name).toEqual('AsyncFunction');
 		});
 
-		describe('when options.loading.rebuildUpToRound is set to an integer value', () => {
+		describe('when options.rebuildUpToRound is set to an integer value', () => {
 			beforeEach(async () => {
 				// Arrange
 				node = new Node({
-					channel: stubs.channel,
+					channel: {
+						invoke: jest.fn(),
+						subscribe: jest.fn((event, cb) => {
+							subscribedEvents[event] = cb;
+						}),
+						once: jest.fn(),
+					},
 					options: {
 						...nodeOptions,
-						loading: {
-							rebuildUpToRound: 0,
-						},
-						broadcasts: {},
-						syncing: {},
+						rebuildUpToRound: 0,
 					},
 					logger: stubs.logger,
 					storage: stubs.storage,
@@ -183,12 +185,11 @@ describe('Node', () => {
 				await node.bootstrap();
 			});
 
-			it('should set options.broadcasts.active=false', () => {
-				return expect(node.options.broadcasts.active).toEqual(false);
-			});
-
-			it('should set options.syncing.active=false', () => {
-				return expect(node.options.syncing.active).toEqual(false);
+			it('should not subscribe to event', () => {
+				return expect(node.channel.subscribe).not.toHaveBeenCalledWith(
+					'app:processor:broadcast',
+					expect.anything(),
+				);
 			});
 		});
 

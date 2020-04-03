@@ -90,8 +90,6 @@ describe('block_synchronization_mechanism', () => {
 			storage: storageMock,
 			slots,
 			genesisBlock: genesisBlockDevnet,
-			blockReceiptTimeout: constants.blockReceiptTimeout,
-			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
 			registeredTransactions,
 			rewardDistance: constants.rewards.distance,

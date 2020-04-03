@@ -15,9 +15,7 @@
 'use strict';
 
 const {
-	default: {
-		app: { node: defaultNodeConfig },
-	},
+	default: defaultNodeConfig,
 } = require('../../../src/application/schema/application_config_schema');
 
 const nodeConfig = (overriddenConfigProperties = {}) => ({

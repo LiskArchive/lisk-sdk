@@ -408,7 +408,7 @@ export abstract class BaseTransaction {
 		if (passphrases && keys) {
 			if (!this.senderPublicKey) {
 				throw new Error(
-					'Transaction senderPublicKey needs to be set befor signing',
+					'Transaction senderPublicKey needs to be set before signing',
 				);
 			}
 

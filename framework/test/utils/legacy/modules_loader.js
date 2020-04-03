@@ -25,10 +25,17 @@ const modulesLoader = new (function() {
 	this.storage = null;
 	this.logger = createLoggerComponent(__testContext.config.components.logger);
 
+	const {
+		conpoments,
+		modules: moduleConfig,
+		...rootConfigs
+	} = __testContext.config;
+	const { network, ...nodeConfigs } = rootConfigs;
+
 	this.scope = {
 		lastCommit: '',
 		build: '',
-		config: __testContext.config.app.node,
+		config: nodeConfigs,
 		genesisBlock: { block: __testContext.config.genesisBlock },
 		components: {
 			logger: this.logger,

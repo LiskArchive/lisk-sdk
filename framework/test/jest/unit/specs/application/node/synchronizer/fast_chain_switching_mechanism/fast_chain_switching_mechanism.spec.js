@@ -69,8 +69,6 @@ describe('fast_chain_switching_mechanism', () => {
 			storage: storageMock,
 			registeredTransactions,
 			genesisBlock: genesisBlockDevnet,
-			blockReceiptTimeout: constants.blockReceiptTimeout,
-			loadPerIteration: 1000,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,

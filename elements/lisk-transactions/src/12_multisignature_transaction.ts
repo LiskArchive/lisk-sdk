@@ -232,7 +232,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			return errors;
 		}
 
-		// Check if the lenght of mandatory, optional and sender keys matches the lenght of signatures
+		// Check if the length of mandatory, optional and sender keys matches the length of signatures
 		if (
 			mandatoryKeys.length + optionalKeys.length + 1 !==
 			this.signatures.length
