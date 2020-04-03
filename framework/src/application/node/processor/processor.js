@@ -108,7 +108,7 @@ class Processor {
 					'Discarding block',
 				);
 				const blockJSON = await this.serialize(block);
-				this.channel.publish('app:fork', { block: blockJSON });
+				this.channel.publish('app:chain:fork', { block: blockJSON });
 				return;
 			}
 			if (forkStatus === ForkStatus.IDENTICAL_BLOCK) {
@@ -124,7 +124,7 @@ class Processor {
 					'Discarding block due to double forging',
 				);
 				const blockJSON = await this.serialize(block);
-				this.channel.publish('app:fork', { block: blockJSON });
+				this.channel.publish('app:chain:fork', { block: blockJSON });
 				return;
 			}
 			// Discard block and move to different chain
@@ -134,11 +134,11 @@ class Processor {
 					'Detected different chain to sync',
 				);
 				const blockJSON = await this.serialize(block);
-				this.channel.publish('app:sync', {
+				this.channel.publish('app:chain:sync', {
 					block: blockJSON,
 					peerId,
 				});
-				this.channel.publish('app:fork', { block: blockJSON });
+				this.channel.publish('app:chain:fork', { block: blockJSON });
 				return;
 			}
 			// Replacing a block
@@ -148,7 +148,7 @@ class Processor {
 					'Received tie breaking block',
 				);
 				const blockJSON = await this.serialize(block);
-				this.channel.publish('app:fork', { block: blockJSON });
+				this.channel.publish('app:chain:fork', { block: blockJSON });
 
 				await blockProcessor.validate.run({
 					block,
@@ -305,7 +305,7 @@ class Processor {
 
 		const blockJSON = await this.serialize(block);
 		if (!skipBroadcast) {
-			this.channel.publish('app:processor:broadcast', {
+			this.channel.publish('app:block:broadcast', {
 				block: blockJSON,
 			});
 		}

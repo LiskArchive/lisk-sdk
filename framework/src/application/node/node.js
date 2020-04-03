@@ -145,7 +145,7 @@ module.exports = class Node {
 
 			this._subscribeToEvents();
 
-			this.channel.subscribe('app:networkReady', async () => {
+			this.channel.subscribe('app:network:ready', async () => {
 				await this._startLoader();
 			});
 
@@ -157,7 +157,7 @@ module.exports = class Node {
 			// Avoid receiving blocks/transactions from the network during snapshotting process
 			if (!this.options.rebuildUpToRound) {
 				this.channel.subscribe(
-					'app:networkEvent',
+					'app:network:event',
 					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactionsAnnouncement') {
@@ -351,7 +351,7 @@ module.exports = class Node {
 		this.chain.events.on(EVENT_NEW_BLOCK, eventData => {
 			const { block } = eventData;
 			// Publish to the outside
-			this.channel.publish('app:newBlock', eventData);
+			this.channel.publish('app:block:new', eventData);
 
 			// Remove any transactions from the pool on new block
 			if (block.transactions.length) {
@@ -384,7 +384,7 @@ module.exports = class Node {
 		this.chain.events.on(EVENT_DELETE_BLOCK, eventData => {
 			const { block } = eventData;
 			// Publish to the outside
-			this.channel.publish('app:deleteBlock', eventData);
+			this.channel.publish('app:block:delete', eventData);
 
 			if (block.transactions.length) {
 				for (const transaction of block.transactions) {
@@ -414,7 +414,7 @@ module.exports = class Node {
 		});
 
 		this.dpos.events.on(EVENT_ROUND_CHANGED, data => {
-			this.channel.publish('app:rounds:change', { number: data.newRound });
+			this.channel.publish('app:round:change', { number: data.newRound });
 		});
 
 		this.processor = new Processor({
@@ -539,7 +539,7 @@ module.exports = class Node {
 			await this.transport.handleBroadcastBlock(block);
 		});
 
-		this.channel.subscribe('app:sync', ({ data: { block, peerId } }) => {
+		this.channel.subscribe('app:chain:sync', ({ data: { block, peerId } }) => {
 			this.synchronizer.run(block, peerId).catch(err => {
 				this.logger.error({ err }, 'Error occurred during synchronization.');
 			});

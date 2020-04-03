@@ -66,7 +66,7 @@ class Transport {
 
 	handleBroadcastTransaction(transaction) {
 		this.broadcaster.enqueueTransactionId(transaction.id);
-		this.channel.publish('app:newUnconfirmedTransaction', transaction.toJSON());
+		this.channel.publish('app:transaction:new', transaction.toJSON());
 	}
 
 	handleBroadcastBlock(blockJSON) {

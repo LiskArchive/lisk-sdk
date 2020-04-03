@@ -65,7 +65,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			}
 
 			if (error instanceof RestartError) {
-				return this.channel.publish('app:sync', {
+				return this.channel.publish('app:chain:sync', {
 					block: receivedBlock,
 				});
 			}
