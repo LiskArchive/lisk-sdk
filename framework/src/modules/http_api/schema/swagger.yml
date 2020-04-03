@@ -70,23 +70,23 @@ basePath: /api
 # Tags for organizing operations
 tags:
   - name: Accounts
-    description: Account related API calls.
+    description: Account related API endpoints.
   - name: Blocks
     description: Block related API endpoints.
   - name: Dapps
     description: Dapps related API endpoints.
   - name: Delegates
-    description: Delegates related API calls.
+    description: Delegates related API endpoints.
   - name: Node
-    description: Node related API calls.
+    description: Node related API endpoints.
   - name: Peers
-    description: Peers related API calls.
+    description: Peers related API endpoints.
   - name: Transactions
-    description: Transactions related API calls.
+    description: Transactions related API endpoints.
   - name: Voters
     description: Votes related API endpoints.
   - name: Votes
-    description: Votes related API calls.
+    description: Votes related API endpoints.
 
 schemes:
   - http
