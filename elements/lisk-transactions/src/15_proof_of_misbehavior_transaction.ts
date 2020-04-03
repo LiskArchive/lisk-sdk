@@ -156,7 +156,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	protected assetToBytes(): Buffer {
 		return Buffer.concat([
 			getBlockBytesWithSignature(this.asset.header1),
-			getBlockBytesWithSignature(this.asset.header1),
+			getBlockBytesWithSignature(this.asset.header2),
 		]);
 	}
 
@@ -411,13 +411,17 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update delegate account
 		*/
-		delegateAccount.delegate.pomHeights.push(currentHeight);
 
-		if (delegateAccount.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
-			delegateAccount.delegate.isBanned = true;
+		// Fetch delegate account again in case sender and delegate are the same account
+		const updatedDelegateAccount = await store.account.get(delegateAddress);
+
+		updatedDelegateAccount.delegate.pomHeights.push(currentHeight);
+
+		if (updatedDelegateAccount.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
+			updatedDelegateAccount.delegate.isBanned = true;
 		}
-		delegateAccount.balance -= reward;
-		store.account.set(delegateAccount.address, delegateAccount);
+		updatedDelegateAccount.balance -= reward;
+		store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
 
 		return errors;
 	}
