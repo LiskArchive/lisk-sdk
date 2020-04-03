@@ -12,24 +12,83 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as validProofOfMisbehaviorTransactionScenario1 from '../fixtures/proof_of_misbehavior_transaction/proof_of_misbehavior_transaction_scenario_1.json';
+import * as validProofOfMisbehaviorTransactionScenario2 from '../fixtures/proof_of_misbehavior_transaction/proof_of_misbehavior_transaction_scenario_2.json';
+import * as validProofOfMisbehaviorTransactionScenario3 from '../fixtures/proof_of_misbehavior_transaction/proof_of_misbehavior_transaction_scenario_3.json';
+
+import { ProofOfMisbehaviorTransaction } from '../src/15_proof_of_misbehavior_transaction';
+import { Status } from '../src';
 
 describe('Proof-of-misbehavior transaction', () => {
+	let transactionWithScenario1: ProofOfMisbehaviorTransaction;
+	let transactionWithScenario2: ProofOfMisbehaviorTransaction;
+	let transactionWithScenario3: ProofOfMisbehaviorTransaction;
+
+	beforeEach(async () => {
+		transactionWithScenario1 = new ProofOfMisbehaviorTransaction({
+			...validProofOfMisbehaviorTransactionScenario1.testCases.output,
+			networkIdentifier:
+				validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.networkIdentifier,
+		});
+
+		transactionWithScenario2 = new ProofOfMisbehaviorTransaction({
+			...validProofOfMisbehaviorTransactionScenario2.testCases.output,
+			networkIdentifier:
+				validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.networkIdentifier,
+		});
+
+		transactionWithScenario3 = new ProofOfMisbehaviorTransaction({
+			...validProofOfMisbehaviorTransactionScenario3.testCases.output,
+			networkIdentifier:
+				validProofOfMisbehaviorTransactionScenario1.testCases.input
+					.networkIdentifier,
+		});
+	});
+
 	describe('validateAsset', () => {
-		it.todo(
-			'when first height is greater than or equal to second height but equal maxHeighPrevoted it should not return errors',
-		);
+		it('should not return errors when first height is greater than or equal to second height but equal maxHeighPrevoted it ', () => {
+			const { errors, status } = transactionWithScenario1.validate();
+			expect(status).toBe(Status.OK);
+			expect(errors).toHaveLength(0);
+		});
 
-		it.todo(
-			"when height is greater than the second header's maxHeightPreviouslyForged it should not return errors",
-		);
+		it("should not return errors when height is greater than the second header's maxHeightPreviouslyForged", () => {
+			const { errors, status } = transactionWithScenario2.validate();
+			expect(status).toBe(Status.OK);
+			expect(errors).toHaveLength(0);
+		});
 
-		it.todo(
-			'when maxHeightPrevoted is greater than ther second maxHeightPrevoted it should not return errors',
-		);
+		it('should not return errors when maxHeightPrevoted is greater than ther second maxHeightPrevoted', () => {
+			const { errors, status } = transactionWithScenario3.validate();
+			expect(status).toBe(Status.OK);
+			expect(errors).toHaveLength(0);
+		});
 
-		it.todo('when headers are not contradicting it should return errors');
+		it('should return errors when headers are not contradicting', () => {
+			const nonContradictingTransaction = new ProofOfMisbehaviorTransaction({
+				...validProofOfMisbehaviorTransactionScenario1.testCases.output,
+				asset: {
+					header1:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1,
+					header2:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1,
+				},
+				networkIdentifier:
+					validProofOfMisbehaviorTransactionScenario1.testCases.input
+						.networkIdentifier,
+			});
 
-		it.todo('when headers are not properly signed it should return errors');
+			const { errors, status } = nonContradictingTransaction.validate();
+			expect(status).toBe(Status.FAIL);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].message).toInclude(
+				'Blockheader ids are identical. No contradiction detected.',
+			);
+		});
 	});
 
 	describe('applyAsset', () => {

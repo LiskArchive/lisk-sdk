@@ -46,7 +46,6 @@ const proofOfMisbehaviorAssetFormatSchema = {
 				'numberOfTransactions',
 				'payloadLength',
 				'generatorPublicKey',
-				'transactions',
 				'blockSignature',
 			],
 			properties: {
@@ -191,7 +190,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			);
 		}
 
-		if (this.asset.header1.id === this.asset.header2.id) {
+		if (
+			this.asset.header1.blockSignature === this.asset.header2.blockSignature
+		) {
 			errors.push(
 				new TransactionError(
 					'Blockheader ids are identical. No contradiction detected.',
@@ -405,7 +406,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update sender account
 		*/
-		senderAccount.balance -= this.asset.reward;
+		senderAccount.balance -= this.asset.reward as bigint;
 		store.account.set(senderAccount.address, senderAccount);
 
 		/*
@@ -420,7 +421,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			delegateAccount.delegate.isBanned = false;
 		}
 
-		delegateAccount.balance += this.asset.reward;
+		delegateAccount.balance += this.asset.reward as bigint;
 		store.account.set(delegateAccount.address, delegateAccount);
 
 		return [];
