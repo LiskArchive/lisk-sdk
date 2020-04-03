@@ -38,7 +38,7 @@ info:
     ```javascript
     {
         "data": {}, //Contains the requested data.
-        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`
+        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`.
         "links": {} //Will contain links to connected API calls from here, e.g. pagination links.
     }
     ```
