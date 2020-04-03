@@ -13,13 +13,14 @@
  *
  */
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
+import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import {
 	BaseTransaction,
 	StateStore,
 	StateStorePrepare,
 } from './base_transaction';
+import { MAX_BLOCK_HEIGHT_DIFFERENCE, MAX_POM_HEIGHTS } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { BlockHeader, TransactionJSON } from './transaction_types';
 import {
@@ -82,7 +83,7 @@ const blockHeaderSchema = {
 			minimum: 0,
 		},
 		previousBlockId: {
-			type: ['null', 'string'],
+			type: ['string'],
 			format: 'id',
 			minLength: 1,
 			maxLength: 20,
@@ -135,7 +136,10 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset || {}) as ProofOfMisbehaviorAsset;
-		this.asset.reward = BigInt(0);
+		this.asset.reward =
+			this.asset.reward && isNumberString(this.asset.reward)
+				? BigInt(this.asset.reward)
+				: BigInt(0);
 	}
 
 	public assetToJSON(): ProofOfMisbehaviorAsset {
@@ -186,7 +190,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		) {
 			errors.push(
 				new TransactionError(
-					'GeneratorPublickey of each blockheader must be matching.',
+					'GeneratorPublickey of each blockheader should match.',
 					this.id,
 					'.asset.header1',
 				),
@@ -257,10 +261,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
 		const currentHeight = store.chain.lastBlockHeader.height + 1;
-		const delegateId = getAddressFromPublicKey(
-			this.asset.header1.generatorPublicKey,
-		);
-		const delegateAccount = await store.account.get(delegateId);
 		const senderAccount = await store.account.get(this.senderId);
 		const { networkIdentifier } = store.chain;
 		/*
@@ -269,10 +269,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		*/
 
 		// tslint:disable-next-line no-magic-numbers
-		if (Math.abs(this.asset.header1.height - currentHeight) >= 260000) {
+		if (
+			Math.abs(this.asset.header1.height - currentHeight) >=
+			MAX_BLOCK_HEIGHT_DIFFERENCE
+		) {
 			errors.push(
 				new TransactionError(
-					'Difference between header1.height and current height must be less than 260000.',
+					`Difference between header1.height and current height must be less than ${MAX_BLOCK_HEIGHT_DIFFERENCE}.`,
 					this.id,
 					'.asset.header1',
 					this.asset.header1.height,
@@ -281,10 +284,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		// tslint:disable-next-line no-magic-numbers
-		if (Math.abs(this.asset.header2.height - currentHeight) >= 260000) {
+		if (
+			Math.abs(this.asset.header2.height - currentHeight) >=
+			MAX_BLOCK_HEIGHT_DIFFERENCE
+		) {
 			errors.push(
 				new TransactionError(
-					'Difference between header2.height and current height must be less than 260000.',
+					`Difference between header2.height and current height must be less than ${MAX_BLOCK_HEIGHT_DIFFERENCE}.`,
 					this.id,
 					'.asset.header2',
 					this.asset.header2.height,
@@ -295,6 +301,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Check if delegate is eligible to be punished
 		*/
+		const delegateAccount = await store.account.get(delegateId);
 
 		if (!delegateAccount.isDelegate || !delegateAccount.username) {
 			errors.push(
@@ -397,10 +404,12 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update delegate account
 		*/
+		const delegateId = getAddressFromPublicKey(
+			this.asset.header1.generatorPublicKey,
+		);
 		delegateAccount.delegate.pomHeights.push(currentHeight);
 
-		// tslint:disable-next-line no-magic-numbers
-		if (delegateAccount.delegate.pomHeights.length > 4) {
+		if (delegateAccount.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
 			delegateAccount.delegate.isBanned = true;
 		}
 		delegateAccount.balance -= reward;
@@ -413,10 +422,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const currentHeight = store.chain.lastBlockHeader.height + 1;
-		const delegateId = getAddressFromPublicKey(
-			this.asset.header1.generatorPublicKey,
-		);
-		const delegateAccount = await store.account.get(delegateId);
+
 		const senderAccount = await store.account.get(this.senderId);
 
 		/*
@@ -428,6 +434,10 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update delegate account
 		*/
+		const delegateId = getAddressFromPublicKey(
+			this.asset.header1.generatorPublicKey,
+		);
+		const delegateAccount = await store.account.get(delegateId);
 		const pomIndex = delegateAccount.delegate.pomHeights.findIndex(
 			height => height === currentHeight,
 		);
