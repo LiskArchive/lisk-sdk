@@ -443,6 +443,24 @@ describe('Proof-of-misbehavior transaction', () => {
 			expect(updatedDelegate.balance).toEqual(expectedBalance);
 		});
 
+		it('should add deducted balance to balance of the misbehaving delegate if delegate balance was less than last block reward at apply time', async () => {
+			store = new StateStoreMock([sender, delegate], {
+				lastBlockHeader: {
+					height:
+						validProofOfMisbehaviorTransactionScenario1.testCases.output.asset
+							.header1.height + 10,
+				} as any,
+				lastBlockReward: BigInt(delegate.balance) + BigInt(10000000000000),
+			});
+			await transactionWithScenario1.apply(store);
+			const updatedDelegate1 = await store.account.get(delegate.address);
+			await transactionWithScenario1.undo(store);
+			const updatedDelegate2 = await store.account.get(delegate.address);
+			const expectedBalance = updatedDelegate1.balance + delegate.balance;
+
+			expect(updatedDelegate2.balance).toEqual(expectedBalance);
+		});
+
 		it('should remove height h from pomHeights property of misbehaving account', async () => {
 			await transactionWithScenario1.undo(store);
 			const updatedDelegate = await store.account.get(delegate.address);
