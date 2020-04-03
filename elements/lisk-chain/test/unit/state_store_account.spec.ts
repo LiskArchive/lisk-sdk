@@ -58,6 +58,7 @@ describe('state store / account', () => {
 		stateStore = new StateStore(storageStub, {
 			lastBlockHeaders: [],
 			networkIdentifier: 'network-identifier',
+			lastBlockReward: BigInt(500000000),
 		});
 	});
 
