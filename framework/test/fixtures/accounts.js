@@ -82,6 +82,7 @@ const Account = stampit({
 		missedBlocks,
 		balance,
 		asset,
+		votes,
 	}) {
 		this.isDelegate = isDelegate || this.isDelegate;
 		this.username = username || randomstring.generate(10).toLowerCase();
@@ -100,6 +101,7 @@ const Account = stampit({
 		this.balance = balance || '0';
 		this.asset = asset || {};
 		this.keys = null;
+		this.votes = votes || null;
 	},
 });
 
