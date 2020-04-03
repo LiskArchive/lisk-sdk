@@ -29,90 +29,93 @@ import {
 	validateSignature,
 } from './utils';
 
+const blockHeaderSchema = {
+	type: 'object',
+	required: [
+		'version',
+		'totalAmount',
+		'seedReveal',
+		'totalFee',
+		'reward',
+		'payloadHash',
+		'timestamp',
+		'numberOfTransactions',
+		'payloadLength',
+		'generatorPublicKey',
+		'blockSignature',
+	],
+	properties: {
+		version: {
+			type: 'integer',
+			minimum: 0,
+		},
+		totalAmount: {
+			type: 'string',
+			format: 'amount',
+		},
+		totalFee: {
+			type: 'string',
+			format: 'amount',
+		},
+		reward: {
+			type: 'string',
+			format: 'amount',
+		},
+		seedReveal: {
+			type: 'string',
+			format: 'hex',
+		},
+		payloadHash: {
+			type: 'string',
+			format: 'hex',
+		},
+		timestamp: {
+			type: 'integer',
+			minimum: 0,
+		},
+		numberOfTransactions: {
+			type: 'integer',
+			minimum: 0,
+		},
+		payloadLength: {
+			type: 'integer',
+			minimum: 0,
+		},
+		previousBlockId: {
+			type: ['null', 'string'],
+			format: 'id',
+			minLength: 1,
+			maxLength: 20,
+		},
+		generatorPublicKey: {
+			type: 'string',
+			format: 'publicKey',
+		},
+		maxHeightPrevoted: {
+			type: 'integer',
+			minimum: 0,
+		},
+		maxHeightPreviouslyForged: {
+			type: 'integer',
+			minimum: 0,
+		},
+		height: {
+			type: 'integer',
+			minimum: 1,
+		},
+		blockSignature: {
+			type: 'string',
+			format: 'signature',
+		},
+	},
+};
+
 const proofOfMisbehaviorAssetFormatSchema = {
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {
-		header1: {
-			type: 'object',
-			required: [
-				'version',
-				'totalAmount',
-				'seedReveal',
-				'totalFee',
-				'reward',
-				'payloadHash',
-				'timestamp',
-				'numberOfTransactions',
-				'payloadLength',
-				'generatorPublicKey',
-				'blockSignature',
-			],
-			properties: {
-				version: {
-					type: 'integer',
-					minimum: 0,
-				},
-				totalAmount: {
-					type: 'string',
-					format: 'amount',
-				},
-				totalFee: {
-					type: 'string',
-					format: 'amount',
-				},
-				reward: {
-					type: 'string',
-					format: 'amount',
-				},
-				seedReveal: {
-					type: 'string',
-					format: 'hex',
-				},
-				payloadHash: {
-					type: 'string',
-					format: 'hex',
-				},
-				timestamp: {
-					type: 'integer',
-					minimum: 0,
-				},
-				numberOfTransactions: {
-					type: 'integer',
-					minimum: 0,
-				},
-				payloadLength: {
-					type: 'integer',
-					minimum: 0,
-				},
-				previousBlockId: {
-					type: ['null', 'string'],
-					format: 'id',
-					minLength: 1,
-					maxLength: 20,
-				},
-				generatorPublicKey: {
-					type: 'string',
-					format: 'publicKey',
-				},
-				maxHeightPrevoted: {
-					type: 'integer',
-					minimum: 0,
-				},
-				maxHeightPreviouslyForged: {
-					type: 'integer',
-					minimum: 0,
-				},
-				height: {
-					type: 'integer',
-					minimum: 1,
-				},
-				blockSignature: {
-					type: 'string',
-					format: 'signature',
-				},
-			},
-		},
+		header1: blockHeaderSchema,
+		header2: blockHeaderSchema,
 	},
 };
 export interface ProofOfMisbehaviorAsset {

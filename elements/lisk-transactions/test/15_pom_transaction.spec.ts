@@ -120,7 +120,6 @@ describe('Proof-of-misbehavior transaction', () => {
 				isDelegate: 1,
 				delegate: {
 					lastForgedHeight: 300000,
-					registeredHeight: 0,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [],
@@ -388,7 +387,6 @@ describe('Proof-of-misbehavior transaction', () => {
 				isDelegate: 1,
 				delegate: {
 					lastForgedHeight: 300000,
-					registeredHeight: 0,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [],
