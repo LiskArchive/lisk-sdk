@@ -74,7 +74,7 @@ tags:
   - name: Blocks
     description: Block related API endpoints.
   - name: Dapps
-    description: Dapps related API calls.
+    description: Dapps related API endpoints.
   - name: Delegates
     description: Delegates related API calls.
   - name: Node
