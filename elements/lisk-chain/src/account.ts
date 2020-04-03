@@ -27,7 +27,6 @@ export const accountDefaultValues = {
 	unlocking: [],
 	delegate: {
 		lastForgedHeight: 0,
-		registeredHeight: 0,
 		consecutiveMissedBlocks: 0,
 		isBanned: false,
 		pomHeights: [],
@@ -70,7 +69,6 @@ export class Account {
 	public unlocking: Unlocking[];
 	public delegate: {
 		lastForgedHeight: number;
-		registeredHeight: number;
 		consecutiveMissedBlocks: number;
 		isBanned: boolean;
 		pomHeights: number[];
@@ -114,7 +112,6 @@ export class Account {
 		this.totalVotesReceived = BigInt(accountInfo.totalVotesReceived ?? 0);
 		this.delegate = {
 			lastForgedHeight: accountInfo.delegate?.lastForgedHeight ?? 0,
-			registeredHeight: accountInfo.delegate?.registeredHeight ?? 0,
 			consecutiveMissedBlocks:
 				accountInfo.delegate?.consecutiveMissedBlocks ?? 0,
 			isBanned: accountInfo.delegate?.isBanned ?? false,
@@ -165,7 +162,6 @@ export class Account {
 			})),
 			delegate: {
 				lastForgedHeight: this.delegate.lastForgedHeight,
-				registeredHeight: this.delegate.registeredHeight,
 				consecutiveMissedBlocks: this.delegate.consecutiveMissedBlocks,
 				isBanned: this.delegate.isBanned,
 				pomHeights: this.delegate.pomHeights,

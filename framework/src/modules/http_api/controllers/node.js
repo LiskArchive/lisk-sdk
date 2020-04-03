@@ -77,7 +77,7 @@ function _filterTransactions(transactions, filters) {
 
 async function _getForgingStatus(publicKey) {
 	const fullList = await library.channel.invoke(
-		'app:getForgingStatusForAllDelegates',
+		'app:getForgingStatusOfAllDelegates',
 	);
 
 	if (publicKey && !_.find(fullList, { publicKey })) {

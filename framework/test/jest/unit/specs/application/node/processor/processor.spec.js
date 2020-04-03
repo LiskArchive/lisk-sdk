@@ -378,8 +378,10 @@ describe('processor', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish any event', async () => {
-				expect(channelStub.publish).not.toHaveBeenCalled();
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
+					block: blockV0,
+				});
 			});
 		});
 
@@ -387,6 +389,12 @@ describe('processor', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(ForkStatus.TIE_BREAK);
 				await processor.process(blockV0);
+			});
+
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
+					block: blockV0,
+				});
 			});
 
 			it('should validate block', async () => {
@@ -454,9 +462,10 @@ describe('processor', () => {
 			});
 
 			it('should emit broadcast event for the block', async () => {
-				expect(
-					channelStub.publish,
-				).toHaveBeenCalledWith('app:processor:broadcast', { block: blockV0 });
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'app:block:broadcast',
+					{ block: blockV0 },
+				);
 			});
 		});
 
@@ -468,6 +477,12 @@ describe('processor', () => {
 				} catch (err) {
 					// Expected error
 				}
+			});
+
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
+					block: blockV0,
+				});
 			});
 
 			it('should validate block', async () => {
@@ -503,7 +518,7 @@ describe('processor', () => {
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should not emit broadcast event for the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
@@ -574,7 +589,13 @@ describe('processor', () => {
 			});
 
 			it('should publish sync', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith('app:processor:sync', {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:sync', {
+					block: blockV0,
+				});
+			});
+
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
 					block: blockV0,
 				});
 			});
@@ -608,8 +629,10 @@ describe('processor', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish any event', async () => {
-				expect(channelStub.publish).not.toHaveBeenCalled();
+			it('should publish fork event', async () => {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
+					block: blockV0,
+				});
 			});
 		});
 
@@ -642,9 +665,10 @@ describe('processor', () => {
 			});
 
 			it('should broadcast with the block', async () => {
-				expect(
-					channelStub.publish,
-				).toHaveBeenCalledWith('app:processor:broadcast', { block: blockV0 });
+				expect(channelStub.publish).toHaveBeenCalledWith(
+					'app:block:broadcast',
+					{ block: blockV0 },
+				);
 			});
 		});
 	});
@@ -825,14 +849,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -867,14 +891,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -911,14 +935,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -981,7 +1005,7 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
@@ -1061,14 +1085,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -1104,14 +1128,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -1157,14 +1181,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -1216,14 +1240,14 @@ describe('processor', () => {
 
 			it('should not broadcast the block', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
 			it('should not emit newBlock event', async () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:processor:newBlock',
+					'app:block:new',
 					expect.anything(),
 				);
 			});

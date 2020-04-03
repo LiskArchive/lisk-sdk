@@ -401,7 +401,7 @@ class Forger {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	getForgingStatusForAllDelegates() {
+	getForgingStatusOfAllDelegates() {
 		const keyPairs = this.keypairs;
 		const forgingDelegates = this.config.forging.delegates;
 		const forgersPublicKeys = {};

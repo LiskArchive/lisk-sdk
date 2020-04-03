@@ -262,7 +262,6 @@ describe('storage.entities.Account.update', () => {
 					'399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
 				delegate: {
 					lastForgedHeight: 0,
-					registeredHeight: 0,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [],
@@ -273,7 +272,6 @@ describe('storage.entities.Account.update', () => {
 				...account,
 				delegate: {
 					lastForgedHeight: 10,
-					registeredHeight: 1,
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
 					pomHeights: [5],
@@ -291,7 +289,6 @@ describe('storage.entities.Account.update', () => {
 					{
 						delegate: {
 							lastForgedHeight: 10,
-							registeredHeight: 1,
 							consecutiveMissedBlocks: 0,
 							isBanned: false,
 							pomHeights: [5],

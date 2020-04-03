@@ -187,7 +187,7 @@ describe('Node', () => {
 
 			it('should not subscribe to event', () => {
 				return expect(node.channel.subscribe).not.toHaveBeenCalledWith(
-					'app:processor:broadcast',
+					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
@@ -327,7 +327,7 @@ describe('Node', () => {
 
 		it('should subscribe to "network:subscribe" event', () => {
 			return expect(node.channel.subscribe).toHaveBeenCalledWith(
-				'app:networkEvent',
+				'app:network:event',
 				expect.any(Function),
 			);
 		});
