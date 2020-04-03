@@ -147,7 +147,7 @@ describe('voters/api', () => {
 		done();
 	});
 
-	describe('getAccounts', () => {
+	describe('getVotes', () => {
 		it('should return accounts with all properties', async () => {
 			await VotersController.getVotes(contextStub, (err, res) => {
 				expect(err).to.eql(null);
@@ -168,5 +168,9 @@ describe('voters/api', () => {
 				expect(account.votes[0].delegate).to.have.property('delegate');
 			});
 		});
+	});
+
+	describe('getVoters', () => {
+		it('should return accounts with all properties', async () => {});
 	});
 });
