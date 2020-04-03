@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
 import {
@@ -22,7 +25,12 @@ import {
 } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, BlockHeader, TransactionJSON } from './transaction_types';
-import { getBlockBytes } from './utils';
+import {
+	getBlockBytes,
+	getBlockBytesWithSignature,
+	isPunished,
+	validateSignature,
+} from './utils';
 
 const proofOfMisbehaviorAssetFormatSchema = {
 	type: 'object',
@@ -31,7 +39,6 @@ const proofOfMisbehaviorAssetFormatSchema = {
 		header1: {
 			type: 'object',
 			required: [
-				'id',
 				'version',
 				'totalAmount',
 				'seedReveal',
@@ -108,12 +115,6 @@ const proofOfMisbehaviorAssetFormatSchema = {
 					type: 'string',
 					format: 'signature',
 				},
-				id: {
-					type: 'string',
-					format: 'id',
-					minLength: 1,
-					maxLength: 20,
-				},
 			},
 		},
 	},
@@ -145,8 +146,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 	protected assetToBytes(): Buffer {
 		return Buffer.concat([
-			getBlockBytes(this.asset.header1),
-			getBlockBytes(this.asset.header1),
+			getBlockBytesWithSignature(this.asset.header1),
+			getBlockBytesWithSignature(this.asset.header1),
 		]);
 	}
 
@@ -194,7 +195,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		if (this.asset.header1.id === this.asset.header2.id) {
 			errors.push(
 				new TransactionError(
-					'Blockheader ids are the same. No contradiction detected.',
+					'Blockheader ids are identical. No contradiction detected.',
 					this.id,
 					'.asset.header1',
 				),
@@ -238,6 +239,80 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Blockheaders are not contradicting as per BFT violation rules.',
 					this.id,
 					'.asset.header1',
+				),
+			);
+		}
+
+		return errors;
+	}
+
+	protected async applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>> {
+		const errors = [];
+		const currentHeight = store.chain.lastBlockHeader.height + 1;
+		const delegateId = getAddressFromPublicKey(
+			this.asset.header1.generatorPublicKey,
+		);
+		const delegateAccount = await store.account.get(delegateId);
+
+		/*
+			|header1.height - h| < 260,000.
+			|header2.height - h| < 260,000.
+		*/
+
+		// tslint:disable-next-line no-magic-numbers
+		if (Math.abs(this.asset.header1.height - currentHeight) < 260000) {
+			errors.push(
+				new TransactionError(
+					'Difference between header1.height and current height must be less than 260000.',
+					this.id,
+					'.asset.header1',
+					this.asset.header1.height,
+				),
+			);
+		}
+
+		// tslint:disable-next-line no-magic-numbers
+		if (Math.abs(this.asset.header2.height - currentHeight) < 260000) {
+			errors.push(
+				new TransactionError(
+					'Difference between header2.height and current height must be less than 260000.',
+					this.id,
+					'.asset.header2',
+					this.asset.header2.height,
+				),
+			);
+		}
+
+		/*
+			Check if delegate is eligible to be punished
+		*/
+
+		if (delegateAccount.delegate.isBanned) {
+			errors.push(
+				new TransactionError(
+					'Cannot apply proof-of-misbehavior. Delegate is banned.',
+					this.id,
+					'.asset.header1.generatorPublicKey',
+					this.asset.header1.generatorPublicKey,
+				),
+			);
+		}
+
+		if (
+			isPunished(
+				delegateAccount,
+				delegateAccount,
+				store.chain.lastBlockHeader.height,
+			)
+		) {
+			errors.push(
+				new TransactionError(
+					'Cannot apply proof-of-misbehavior. Delegate is already punished. ',
+					this.id,
+					'.asset.header1.generatorPublicKey',
+					this.asset.header1.generatorPublicKey,
 				),
 			);
 		}
