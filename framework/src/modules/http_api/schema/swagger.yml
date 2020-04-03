@@ -1904,7 +1904,7 @@ definitions:
       currentTime:
         type: integer
         example: 1533558858128
-        description: Current time of the node in milliseconds, (Unix timestamp).
+        description: Current time of the node in milliseconds (Unix timestamp).
       height:
         type: integer
         example: 123
