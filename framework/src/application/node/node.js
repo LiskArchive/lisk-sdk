@@ -382,7 +382,7 @@ module.exports = class Node {
 				});
 			}
 
-			this.logger.info(
+			this.logger.debug(
 				{
 					id: block.id,
 					height: block.height,

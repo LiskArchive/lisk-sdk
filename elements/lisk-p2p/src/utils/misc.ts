@@ -193,7 +193,7 @@ export const getBucketId = (options: {
 		throw Error('IP address is unsupported.');
 	}
 
-	// Seperate buckets for local and private addresses
+	// Separate buckets for local and private addresses
 	if (network !== NETWORK.NET_IPV4) {
 		return (
 			hash(Buffer.concat([secretBytes, networkBytes])).readUInt32BE(0) %

@@ -74,7 +74,7 @@ export class BFTError extends Error {}
 export class BFTChainDisjointError extends BFTError {
 	public constructor() {
 		super(
-			'Violation of disjointness condition. If delegate forged a block of higher height earlier and later the block with lower height',
+			'Violation of disjointedness condition. If delegate forged a block of higher height earlier and later the block with lower height',
 		);
 	}
 }
