@@ -84,7 +84,7 @@ tags:
   - name: Transactions
     description: Transactions related API calls.
   - name: Voters
-    description: Votes related API calls.
+    description: Votes related API endpoints.
   - name: Votes
     description: Votes related API calls.
 
