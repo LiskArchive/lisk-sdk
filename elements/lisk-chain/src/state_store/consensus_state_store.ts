@@ -23,7 +23,7 @@ interface KeyValuePair {
 	[key: string]: string;
 }
 
-interface AdditionalInformtion {
+interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 
@@ -38,10 +38,10 @@ export class ConsensusStateStore {
 
 	public constructor(
 		consensusStateEntity: ConsensusStateEntity,
-		additionalInformtion: AdditionalInformtion,
+		additionalInformation: AdditionalInformation,
 	) {
 		this._consensusState = consensusStateEntity;
-		this._lastBlockHeaders = additionalInformtion.lastBlockHeaders;
+		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._data = {};
 		this._originalData = {};
 		this._updatedKeys = new Set();

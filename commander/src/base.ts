@@ -27,10 +27,10 @@ process.env.PM2_HOME = defaultLiskPm2Path;
 export const defaultConfigFolder = '.lisk';
 
 const jsonDescription =
-	'Prints output in JSON format. You can change the default behaviour in your config.json file.';
+	'Prints output in JSON format. You can change the default behavior in your config.json file.';
 
 const prettyDescription =
-	'Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table. You can change the default behaviour in your config.json file.';
+	'Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table. You can change the default behavior in your config.json file.';
 
 interface PrintFlags {
 	readonly json?: boolean;

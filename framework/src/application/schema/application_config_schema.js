@@ -87,7 +87,7 @@ module.exports = {
 						'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
 				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
-				// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
+				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 				// TODO this recommendations need to be updated now that we changed to a byte size block
 				blockTime: {
 					type: 'number',
@@ -95,7 +95,7 @@ module.exports = {
 					description: 'Slot time interval in seconds',
 				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
-				// need to be changed togeter as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
+				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 				// TODO this recommendations need to be updated now that we changed to a byte size block
 				maxPayloadLength: {
 					type: 'integer',

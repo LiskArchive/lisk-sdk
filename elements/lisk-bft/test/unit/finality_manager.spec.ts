@@ -312,7 +312,7 @@ describe('finality_manager', () => {
 					}
 				} catch (error) {
 					expect(error.message).toContain(
-						'Violation of disjointness condition.',
+						'Violation of disjointedness condition.',
 					);
 				}
 			});

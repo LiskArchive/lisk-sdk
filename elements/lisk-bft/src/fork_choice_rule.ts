@@ -29,7 +29,7 @@ export const isLastAppliedBlockReceivedWithinForgingSlot = (
 	slots: Slots,
 	lastAppliedBlock: BlockHeader,
 ): boolean => {
-	/* If the block doesn't have the property `receivedAt` it meants it was forged
+	/* If the block doesn't have the property `receivedAt` it means it was forged
 	 or synced, therefore we assume it was "received in the correct slot" */
 	if (!lastAppliedBlock.receivedAt) {
 		return true;

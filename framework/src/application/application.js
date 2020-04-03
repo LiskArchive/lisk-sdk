@@ -334,7 +334,7 @@ class Application {
 			buildVersion: this.config.buildVersion,
 		};
 
-		// TODO: move this configuration to module especific config file
+		// TODO: move this configuration to module specific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
 			: [];
