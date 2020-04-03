@@ -485,8 +485,8 @@ paths:
             - producedBlocks:asc
             - producedBlocks:desc
             - voteWeight:asc
-            - voteWeight:desc
-          default: voteWeight:desc
+            - totalVotesReceived:desc
+          default: totalVotesReceived:desc
       responses:
         200:
           description: Search results matching criteria

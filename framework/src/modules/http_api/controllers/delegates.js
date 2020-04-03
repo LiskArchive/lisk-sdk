@@ -29,19 +29,23 @@ let activeDelegates;
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
 		'username',
-		'voteWeight',
+		'totalVotesReceived',
 		'rewards',
 		'producedBlocks',
 		'missedBlocks',
 		'productivity',
+		'address',
+		'publicKey',
+		'balance',
+		'nonce',
+		'asset',
+		'keys',
+		'votes',
+		'delegate',
+		'unlocking',
 	]);
 
-	result.account = {
-		address: delegate.address,
-		publicKey: delegate.publicKey,
-	};
-
-	result.approval = calculateApproval(result.voteWeight, totalSupply);
+	result.approval = calculateApproval(result.totalVotesReceived, totalSupply);
 
 	return result;
 }
