@@ -57,10 +57,10 @@ describe('init_steps/subscribeToEvents', () => {
 		);
 	});
 
-	it('should subscribe to "delegates:fork" on channel and emit "delegates/fork" event on wsServer with proper data', async () => {
-		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:delegates:fork');
+	it('should subscribe to "fork" on channel and emit "delegates/fork" event on wsServer with proper data', async () => {
+		expect(stub.arg1.channel.subscribe).to.be.calledWith('app:fork');
 		expect(stub.arg2.wsServer.sockets.emit).to.be.calledWith(
-			'delegates/fork',
+			'fork',
 			callbackObject.data,
 		);
 	});

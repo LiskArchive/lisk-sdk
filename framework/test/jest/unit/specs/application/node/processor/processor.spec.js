@@ -574,7 +574,7 @@ describe('processor', () => {
 			});
 
 			it('should publish sync', async () => {
-				expect(channelStub.publish).toHaveBeenCalledWith('app:processor:sync', {
+				expect(channelStub.publish).toHaveBeenCalledWith('app:sync', {
 					block: blockV0,
 				});
 			});

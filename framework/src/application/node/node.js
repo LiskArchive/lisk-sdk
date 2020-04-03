@@ -535,21 +535,15 @@ module.exports = class Node {
 	}
 
 	_subscribeToEvents() {
-		this.channel.subscribe(
-			'app:processor:broadcast',
-			async ({ data: { block } }) => {
-				await this.transport.handleBroadcastBlock(block);
-			},
-		);
+		this.channel.subscribe('app:broadcast', async ({ data: { block } }) => {
+			await this.transport.handleBroadcastBlock(block);
+		});
 
-		this.channel.subscribe(
-			'app:processor:sync',
-			({ data: { block, peerId } }) => {
-				this.synchronizer.run(block, peerId).catch(err => {
-					this.logger.error({ err }, 'Error occurred during synchronization.');
-				});
-			},
-		);
+		this.channel.subscribe('app:sync', ({ data: { block, peerId } }) => {
+			this.synchronizer.run(block, peerId).catch(err => {
+				this.logger.error({ err }, 'Error occurred during synchronization.');
+			});
+		});
 
 		this.transactionPool.events.on(EVENT_TRANSACTION_REMOVED, event => {
 			this.logger.debug(event, 'Transaction was removed from the pool.');

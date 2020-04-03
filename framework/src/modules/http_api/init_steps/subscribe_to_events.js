@@ -18,7 +18,7 @@ module.exports = ({ channel }, { wsServer }) => {
 	channel.subscribe('app:rounds:change', event => {
 		wsServer.sockets.emit('rounds/change', event.data);
 	});
-	channel.subscribe('app:delegates:fork', event => {
+	channel.subscribe('app:fork', event => {
 		wsServer.sockets.emit('delegates/fork', event.data);
 	});
 	channel.subscribe('app:loader:sync', event => {
