@@ -51,7 +51,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 // eslint-disable-next-line
 describe('Application', () => {
 	// Arrange
-	const frameworkTxTypes = ['8', '10', '12', '13', '14'];
+	const frameworkTxTypes = ['8', '10', '12', '13', '14', '15'];
 	const loggerMock = {
 		info: jest.fn(),
 		error: jest.fn(),
@@ -329,11 +329,11 @@ describe('Application', () => {
 
 			// Act
 			class Sample extends Base {}
-			Sample.TYPE = 15;
+			Sample.TYPE = 99;
 			app.registerTransaction(Sample);
 
 			// Assert
-			expect(app.getTransaction(15)).toBe(Sample);
+			expect(app.getTransaction(99)).toBe(Sample);
 		});
 	});
 
