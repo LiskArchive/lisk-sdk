@@ -14,7 +14,7 @@
  *
  */
 import {
-	TransactionJSON,
+	reportMisbehavior,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
 import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
@@ -26,43 +26,12 @@ import { flags as commonFlags } from '../../../utils/flags';
 import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 
-interface PomInput {
-	readonly nonce: string;
-	readonly fee: string;
-	readonly networkIdentifier: string;
-	readonly header1: RawHeader;
-	readonly header2: RawHeader;
-	readonly passphrase?: string;
-}
-
-const reportMisbehavior = ({
-	nonce,
-	fee,
-	networkIdentifier,
-	header1,
-	header2,
-	passphrase,
-}: PomInput): Partial<TransactionJSON> => {
-	// tslint:disable-next-line no-console
-	console.log({
-		nonce,
-		fee,
-		networkIdentifier,
-		header1,
-		header2,
-		passphrase,
-	});
-
-	// tslint:disable-next-line
-	return {} as Partial<TransactionJSON>;
-};
-
 interface RawHeader {
 	readonly id: string;
 	readonly height: number;
 	readonly version: number;
 	readonly timestamp: number;
-	readonly previousBlockId?: string | null;
+	readonly previousBlockId: string;
 	readonly blockSignature: string;
 	readonly seedReveal: string;
 	readonly generatorPublicKey: string;

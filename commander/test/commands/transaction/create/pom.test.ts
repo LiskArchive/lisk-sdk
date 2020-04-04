@@ -109,7 +109,7 @@ describe('transaction:create:pom', () => {
 	describe('transaction:create:delegate nonce fee header1 header2', () => {
 		setupTest()
 			.command([
-				'transaction:create:delegate',
+				'transaction:create:pom',
 				'1',
 				'100',
 				JSON.stringify(defaultHeader1),
@@ -148,7 +148,7 @@ describe('transaction:create:pom', () => {
 				'create a transaction with the headers with the passphrase from flag',
 				() => {
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
-					expect(transactions.registerDelegate).to.be.calledWithExactly({
+					expect(transactions.reportMisbehavior).to.be.calledWithExactly({
 						nonce: '1',
 						fee: '10000000000',
 						networkIdentifier: testnetNetworkIdentifier,
@@ -166,7 +166,7 @@ describe('transaction:create:pom', () => {
 	describe('transaction:create:pom nonce fee header1 header2 --no-signature', () => {
 		setupTest()
 			.command([
-				'transaction:create:delegate',
+				'transaction:create:pom',
 				'1',
 				'100',
 				JSON.stringify(defaultHeader1),
