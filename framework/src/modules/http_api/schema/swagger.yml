@@ -1644,7 +1644,7 @@ definitions:
       - links
     properties:
       data:
-        $ref: '#/definitions/DelegateWithVotes'
+        $ref: '#/definitions/AccountWithVotes'
       meta:
         type: object
         required:
@@ -2347,12 +2347,11 @@ definitions:
         example: 1081560729258
         description: Balance of the account that voted for the queried delegate.
 
-  DelegateWithVotes:
+  AccountWithVotes:
     type: object
     required:
       - username
       - address
-      - votesUsed
       - votesAvailable
       - balance
       - votes
@@ -2376,13 +2375,9 @@ definitions:
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: Public key of the queried account.
-      votesUsed:
-        type: integer
-        example: 2
-        description: Number of votes that are already placed by the queried account.
       votesAvailable:
         type: integer
-        example: 40
+        example: 8
         description: |
           Number of votes that are available for the queried account.
           Derives from 101(max possible votes) - votesUsed(already used votes).
@@ -2390,15 +2385,15 @@ definitions:
         type: array
         description: List of placed votes by the queried account.
         items:
-          $ref: '#/definitions/Vote'
+          $ref: '#/definitions/VoteWithDelegateProperties'
 
   Vote:
     type: object
     required:
-      - address
+      - delegateAddress
       - amount
     properties:
-      address:
+      delegateAddress:
         type: string
         format: address
         example: 12668885769632475474L
@@ -2407,3 +2402,24 @@ definitions:
         type: string
         example: 1000000000000
         description: Amount the account voted the delegate for in multiples of 10 Lisk.
+  
+  VoteWithDelegateProperties:
+    type: object
+    required:
+      - delegateAddress
+      - amount
+      - delegate
+    properties:
+      delegateAddress:
+        type: string
+        format: address
+        example: 12668885769632475474L
+        description: Lisk address of the delegate the queried account voted for.
+      amount:
+        type: string
+        example: 1000000000000
+        description: Amount the account voted the delegate for in multiples of 10 Lisk.
+      delegate:
+        type: object
+        description: Delegate properties of the delegate for this vote.
+        
