@@ -22,7 +22,7 @@ import {
 } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
-import { sortUnlocking } from './utils';
+import { isPunished, sortUnlocking } from './utils';
 
 export interface Unlock {
 	readonly delegateAddress: string;
@@ -71,8 +71,6 @@ const SIZE_UINT64 = SIZE_INT64;
 const AMOUNT_MULTIPLIER_FOR_VOTES = BigInt(10) * BigInt(10) ** BigInt(8);
 const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
-const PUNISH_TIME_VOTE = 260000;
-const PUNISH_TIME_SELF_VOTE = 780000;
 
 export interface RawAssetUnlock {
 	readonly delegateAddress: string;
@@ -100,27 +98,6 @@ const hasWaited = (
 	}
 
 	return true;
-};
-
-const isPunished = (
-	sender: Account,
-	delegateAccount: Account,
-	lastBlockHeight: number,
-): boolean => {
-	if (delegateAccount.delegate.pomHeights.length === 0) {
-		return false;
-	}
-	const lastPomHeight = Math.max(...delegateAccount.delegate.pomHeights);
-	const currentHeight = lastBlockHeight + 1;
-	const punishTime =
-		sender.address === delegateAccount.address
-			? PUNISH_TIME_SELF_VOTE
-			: PUNISH_TIME_VOTE;
-	if (currentHeight - lastPomHeight < punishTime) {
-		return true;
-	}
-
-	return false;
 };
 
 export class UnlockTransaction extends BaseTransaction {

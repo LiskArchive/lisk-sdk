@@ -190,7 +190,7 @@ const accounts = {
 			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		passphrase:
 			'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
-		balance: '0',
+		balance: '10000000000000000',
 		delegateName: 'genesis_100',
 	},
 };
