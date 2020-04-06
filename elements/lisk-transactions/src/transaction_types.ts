@@ -59,7 +59,6 @@ export interface Delegate {
 }
 
 export interface BlockHeader {
-	readonly id: string;
 	readonly height: number;
 	readonly version: number;
 	readonly timestamp: number;
