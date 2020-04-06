@@ -462,7 +462,7 @@ paths:
           type: integer
           format: int32
           minimum: 1
-          maximum: 101
+          maximum: 103
           default: 10
         - name: search
           in: query
@@ -523,7 +523,7 @@ paths:
           type: integer
           format: int32
           minimum: 1
-          maximum: 101
+          maximum: 103
           default: 10
         - name: offset
           in: query
@@ -724,7 +724,7 @@ paths:
           type: integer
           format: int32
           minimum: 1
-          maximum: 101
+          maximum: 10
           default: 10
         - in: query
           name: sort
@@ -1238,7 +1238,7 @@ definitions:
             type: integer
             format: int32
             minimum: 1
-            maximum: 101
+            maximum: 103
             default: 10
       links:
         type: object
@@ -1270,7 +1270,7 @@ definitions:
             type: integer
             format: int32
             minimum: 1
-            maximum: 101
+            maximum: 103
             default: 10
           currentSlot:
             description: Currently active slot.
@@ -1657,7 +1657,7 @@ definitions:
             type: integer
             format: int32
             minimum: 1
-            maximum: 101
+            maximum: 10
             default: 10
       links:
         type: object

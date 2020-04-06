@@ -14,6 +14,7 @@
 
 'use strict';
 
+const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const { BaseSynchronizer } = require('./base_synchronizer');
 const {
 	clearBlocksTempTable,
@@ -101,11 +102,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 
 		const blockRound = this.dpos.rounds.calcRound(receivedBlock.height);
-		const delegateList = await this.dpos.getForgerPublicKeysForRound(
-			blockRound,
-		);
+		const delegateList = await this.dpos.getForgerAddressesForRound(blockRound);
 
-		return delegateList.includes(receivedBlock.generatorPublicKey);
+		return delegateList.includes(
+			getAddressFromPublicKey(receivedBlock.generatorPublicKey),
+		);
 	}
 
 	async _requestBlocksWithinIDs(peerId, fromId, toId) {

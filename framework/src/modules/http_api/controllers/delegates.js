@@ -25,6 +25,7 @@ let logger;
 let channel;
 let epochTime;
 let activeDelegates;
+let standbyDelegates;
 
 function delegateFormatter(totalSupply, delegate) {
 	const result = _.pick(delegate, [
@@ -81,28 +82,29 @@ async function _getForgers(filters) {
 	});
 
 	const activeDelegatesForRound = await channel.invoke(
-		'app:getForgerPublicKeysForRound',
+		'app:getForgerAddressesForRound',
 		{
 			round: currentRound,
 		},
 	);
+	const blocksPerRound = activeDelegates + standbyDelegates;
 
 	for (
 		let i = filters.offset + 1;
-		i <= activeDelegates && i <= filters.limit + filters.offset;
+		i <= blocksPerRound && i <= filters.limit + filters.offset;
 		// eslint-disable-next-line no-plusplus
 		i++
 	) {
-		if (activeDelegatesForRound[(currentSlot + i) % activeDelegates]) {
+		if (activeDelegatesForRound[(currentSlot + i) % blocksPerRound]) {
 			forgerKeys.push(
-				activeDelegatesForRound[(currentSlot + i) % activeDelegates],
+				activeDelegatesForRound[(currentSlot + i) % blocksPerRound],
 			);
 		}
 	}
 
 	const forgers = (
 		await storage.entities.Account.get(
-			{ isDelegate: true, publicKey_in: forgerKeys },
+			{ isDelegate: true, address_in: forgerKeys },
 			{ limit: null },
 		)
 	)
@@ -221,7 +223,7 @@ async function _getForgingStatistics(filters) {
 }
 
 function DelegatesController(scope) {
-	({ epochTime, activeDelegates } = scope.config.constants);
+	({ epochTime, activeDelegates, standbyDelegates } = scope.config.constants);
 	({
 		components: { storage, logger },
 		channel,
