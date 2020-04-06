@@ -74,6 +74,7 @@ export interface BlockHeader {
 	readonly totalAmount: bigint;
 	readonly totalFee: bigint;
 	readonly reward: bigint;
+	readonly seedReveal: string;
 }
 
 export interface TransactionJSON {
