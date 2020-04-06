@@ -421,9 +421,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		// Set reward to 0 if the block violates DPoS rules
 		if (!isDPoSProtocolCompliant) {
-			this.logger.info('Punishing delegate for DPoS violation', {
-				generatorAddress: block.generatorAddress,
-			});
+			this.logger.info(
+				{ generatorPublicKey: block.generatorPublicKey },
+				'Punishing delegate for DPoS violation',
+			);
 			return BigInt(0);
 		}
 

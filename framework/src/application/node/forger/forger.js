@@ -491,7 +491,9 @@ class Forger {
 
 	// eslint-disable-next-line class-methods-use-this
 	_filterUsedHashOnions(usedHashOnions, finalizedHeight) {
-		return usedHashOnions.filter(ho => ho.height > finalizedHeight);
+		return usedHashOnions.filter(
+			ho => ho.height > finalizedHeight - this.dposModule.delegatesPerRound * 3,
+		);
 	}
 
 	async _setUsedHashOnions(usedHashOnions) {
