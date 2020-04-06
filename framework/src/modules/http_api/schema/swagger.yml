@@ -2302,12 +2302,10 @@ definitions:
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: The public key of the delegate.
       votes:
-        type: integer
-        example: 108877
-        description: |
-          The voters weight of the delegate.
-          Represents the total amount of Lisk (in Beddows), that the delegates voters own.
-          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
+        type: array
+        description: Accounts this delegate voted for.
+        items: 
+          $ref: '#/definitions/Vote'
       address:
         type: string
         format: address
@@ -2322,7 +2320,7 @@ definitions:
       voters:
         type: array
         description: List of accounts that voted for the queried delegate.
-        items:
+        items: 
           $ref: '#/definitions/Voter'
 
   Voter:
@@ -2330,7 +2328,7 @@ definitions:
     required:
       - address
       - publicKey
-      - balance
+      - votes
     properties:
       address:
         type: string
@@ -2342,10 +2340,11 @@ definitions:
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: Public key of the account that voted for the queried delegate.
-      balance:
-        type: string
-        example: 1081560729258
-        description: Balance of the account that voted for the queried delegate.
+      votes:
+        type: array
+        description: All votes the voter for the queried delegate voted for.
+        items: 
+          $ref: '#/definitions/Vote'
 
   AccountWithVotes:
     type: object
