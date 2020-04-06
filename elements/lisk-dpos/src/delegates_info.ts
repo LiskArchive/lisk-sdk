@@ -158,11 +158,14 @@ export class DelegatesInfo {
 				block.height + 1,
 				stateStore,
 			);
+			const lastBlockHeaders = [
+				...stateStore.consensus.lastBlockHeaders,
+			].reverse();
 
 			const [randomSeed1, randomSeed2] = generateRandomSeeds(
 				round,
 				this.rounds,
-				stateStore.consensus.lastBlockHeaders,
+				lastBlockHeaders,
 			);
 
 			await this.delegatesList.updateForgersList(

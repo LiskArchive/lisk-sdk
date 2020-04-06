@@ -77,7 +77,7 @@ export class BlockCache extends Base<BlockHeader> {
 		const blocks = this.items.filter(block => ids.includes(block.id));
 
 		if (blocks.length === ids.length) {
-			return blocks;
+			return blocks.reverse();
 		}
 
 		return [];
@@ -94,7 +94,7 @@ export class BlockCache extends Base<BlockHeader> {
 
 		// Only return results if complete match to avoid inconsistencies
 		if (blocks.length === heightList.length) {
-			return blocks;
+			return blocks.reverse();
 		}
 
 		return [];
@@ -110,9 +110,9 @@ export class BlockCache extends Base<BlockHeader> {
 			fromHeight >= this.first.height &&
 			toHeight <= this.last.height
 		) {
-			return this.items.filter(
-				block => block.height >= fromHeight && block.height <= toHeight,
-			);
+			return this.items
+				.filter(block => block.height >= fromHeight && block.height <= toHeight)
+				.reverse();
 		}
 
 		return [];
