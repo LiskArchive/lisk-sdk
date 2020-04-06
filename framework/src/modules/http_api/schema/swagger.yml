@@ -1644,7 +1644,7 @@ definitions:
       - links
     properties:
       data:
-        $ref: '#/definitions/DelegateWithVotes'
+        $ref: '#/definitions/AccountWithVotes'
       meta:
         type: object
         required:
@@ -2118,6 +2118,9 @@ definitions:
       - publicKey
       - balance
       - nonce
+      - votes
+      - delegate
+      - unlocking
     properties:
       address:
         type: string
@@ -2145,8 +2148,26 @@ definitions:
         type: object
         example: { 'custom': true, 'field': true }
         description: Any JSON stored in the account's asset field.
+      votes:
+        type: array
+        items:
+          $ref: '#/definitions/Vote'
       delegate:
         $ref: '#/definitions/Delegate'
+      isDelegate:
+          type: boolean
+          description: The value indicating if the account is a deleage or not.
+      username:
+          type: string
+          example: onedelegate
+          description: If the account is a delegate, it displays the username for it.
+      unlocking:
+        type: array
+        items:
+            $ref: '#/definitions/Unlocking'
+      keys:
+        $ref: '#/definitions/MultisignatureAsset'
+
 
   Delegate:
     type: object
@@ -2197,8 +2218,7 @@ definitions:
     type: object
     required:
       - username
-      - voteWeight
-      - account
+      - totalVotesReceived
     properties:
       username:
         type: string
@@ -2208,13 +2228,12 @@ definitions:
           The delegates username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
-      voteWeight:
+      totalVotesReceived:
         type: string
         example: 1081560729258
         description: |
-          The voters weight of the delegate.
-          Represents the total amount of Lisk (in Beddows), that the delegates voters own.
-          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
+          The total votes received by the delegate.
+          Represents the total amount of Lisk (in Beddows), that the delegates voters voted this delegate.
       rewards:
         type: string
         example: 510000000
@@ -2227,18 +2246,49 @@ definitions:
         type: integer
         example: 427
         description: Total number of blocks that the delegate has missed.
-      approval:
-        type: number
-        example: 14.22
-        description: Percentage of the voters weight that the delegate owns in relation to the total supply of Lisk.
       productivity:
         type: number
         example: 96.41
         description: |
           Productivity rate.
           Percentage of successfully forged blocks (not missed), by the delegate.
-      account:
-        $ref: '#/definitions/Account'
+      address:
+        type: string
+        example: 10016685355739180605L
+        description: The LISK address for the delegate.
+      publicKey:
+        type: string
+        example: c678d19210ebf71914652d6644da5ee42e0c80948c4b520dba9f3d4514b213b2
+        description: The public key for the delegate.
+      balance:
+        type: string
+        example: 7000000000
+        description: The LISK balance for the delegate.
+      nonce:
+        type: string
+        example: 154
+        description: The current nonce associated to account for transaction processing.
+      asset:
+        type: object
+        description: The asset object for the account.
+      keys:
+        type: object
+        description: Multisignature information for the account.
+      votes:
+        type: array
+        items:
+          $ref: '#/definitions/Vote'
+      delegate:
+        type: object
+        description: Delegate propertiees associated with the account.
+      approval:
+        type: number
+        example: 14.22
+        description: Percentage of the voters weight that the delegate owns in relation to the total supply of Lisk.
+      unlocking:
+        type: array
+        items:
+          $ref: '#/definitions/Unlocking'
 
   DelegateWithVoters:
     type: object
@@ -2263,12 +2313,10 @@ definitions:
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: The public key of the delegate.
       votes:
-        type: integer
-        example: 108877
-        description: |
-          The voters weight of the delegate.
-          Represents the total amount of Lisk (in Beddows), that the delegates voters own.
-          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
+        type: array
+        description: Accounts this delegate voted for.
+        items:
+          $ref: '#/definitions/Vote'
       address:
         type: string
         format: address
@@ -2291,7 +2339,7 @@ definitions:
     required:
       - address
       - publicKey
-      - balance
+      - votes
     properties:
       address:
         type: string
@@ -2303,17 +2351,17 @@ definitions:
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: Public key of the account that voted for the queried delegate.
-      balance:
-        type: string
-        example: 1081560729258
-        description: Balance of the account that voted for the queried delegate.
+      votes:
+        type: array
+        description: All votes the voter for the queried delegate voted for.
+        items:
+          $ref: '#/definitions/Vote'
 
-  DelegateWithVotes:
+  AccountWithVotes:
     type: object
     required:
       - username
       - address
-      - votesUsed
       - votesAvailable
       - balance
       - votes
@@ -2337,13 +2385,9 @@ definitions:
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: Public key of the queried account.
-      votesUsed:
-        type: integer
-        example: 2
-        description: Number of votes that are already placed by the queried account.
       votesAvailable:
         type: integer
-        example: 40
+        example: 8
         description: |
           Number of votes that are available for the queried account.
           Derives from 101(max possible votes) - votesUsed(already used votes).
@@ -2351,32 +2395,78 @@ definitions:
         type: array
         description: List of placed votes by the queried account.
         items:
-          $ref: '#/definitions/Vote'
+          $ref: '#/definitions/VoteWithDelegateProperties'
 
   Vote:
     type: object
     required:
-      - address
-      - publicKey
-      - balance
-      - username
+      - delegateAddress
+      - amount
     properties:
-      address:
+      delegateAddress:
         type: string
         format: address
         example: 12668885769632475474L
         description: Lisk address of the delegate the queried account voted for.
-      publicKey:
+      amount:
         type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: Public key of the delegate the queried account voted for.
-      balance:
+        example: 1000000000000
+        description: Amount the account voted the delegate for in multiples of 10 Lisk.
+
+  VoteWithDelegateProperties:
+    type: object
+    required:
+      - delegateAddress
+      - amount
+      - delegate
+    properties:
+      delegateAddress:
         type: string
-        example: 1081560729258
-        description: Balance of the delegate the queried account voted for.
-      username:
+        format: address
+        example: 12668885769632475474L
+        description: Lisk address of the delegate the queried account voted for.
+      amount:
         type: string
-        format: username
-        example: liskhq
-        description: Username of the delegate the queried account voted for.
+        example: 1000000000000
+        description: Amount the account voted the delegate for in multiples of 10 Lisk.
+      delegate:
+        type: object
+        description: Delegate properties of the delegate for this vote.
+
+  Unlocking:
+      type: object
+      required:
+        - delegateAddress
+        - amount
+        - unvoteHeight
+      properties:
+        delegateAddress:
+          type: string
+          format: address
+          example: 12668885769632475474L
+          description: Lisk address of the delegate the queried account unvoted.
+        amount:
+          type: string
+          example: 1000000000000
+          description: Amount the account voted the delegate for in multiples of 10 Lisk.
+        unvoteHeight:
+          type: number
+          example: 50000
+          description: Height at which the unvote should be valid.
+
+  MultisignatureAsset:
+    type: object
+    properties:
+      mandatoryKeys:
+        type: array
+        description: Mandatory multi-signature account members
+        items:
+          type: string
+      optionalKeys:
+        type: array
+        description: Optional multi-signature account members
+        items:
+          type: string
+      numberOfSignatures:
+        type: number
+        description: Number of required signatures

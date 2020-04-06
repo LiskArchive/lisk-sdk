@@ -36,6 +36,8 @@ function accountFormatter(totalSupply, account) {
 		'keys',
 		'votes',
 		'delegate',
+		'isDelegate',
+		'username',
 	]);
 
 	if (account.isDelegate) {
