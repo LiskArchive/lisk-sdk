@@ -2120,6 +2120,7 @@ definitions:
       - nonce
       - votes
       - delegate
+      - unlocking
     properties:
       address:
         type: string
@@ -2158,8 +2159,15 @@ definitions:
           description: The value indicating if the account is a deleage or not.
       username:
           type: string
-          example: DelegateABC
+          example: onedelegate
           description: If the account is a delegate it displays the username for it.
+      unlocking:
+        type: array
+        items:
+            $ref: '#/definitions/Unlocking'
+      keys:
+        $ref: '#/definitions/MultisignatureAsset'
+
 
   Delegate:
     type: object
@@ -2226,7 +2234,6 @@ definitions:
         description: |
           The total votes received by the delegate.
           Represents the total amount of Lisk (in Beddows), that the delegates voters voted this delegate.
-          It takes into account the calculation of self versus received votes.
       rewards:
         type: string
         example: 510000000
@@ -2278,6 +2285,10 @@ definitions:
         type: number
         example: 14.22
         description: Percentage of the voters weight that the delegate owns in relation to the total supply of Lisk.
+      unlocking:
+        type: array
+        items:
+          $ref: '#/definitions/Unlocking'
 
   DelegateWithVoters:
     type: object
@@ -2421,4 +2432,41 @@ definitions:
       delegate:
         type: object
         description: Delegate properties of the delegate for this vote.
-        
+
+  Unlocking:
+      type: object
+      required:
+        - delegateAddress
+        - amount
+        - unvoteHeight
+      properties:
+        delegateAddress:
+          type: string
+          format: address
+          example: 12668885769632475474L
+          description: Lisk address of the delegate the queried account unvoted.
+        amount:
+          type: string
+          example: 1000000000000
+          description: Amount the account voted the delegate for in multiples of 10 Lisk.      
+        unvoteHeight:
+          type: number
+          example: 50000
+          description: Height at which the unvote should be valid.
+
+  MultisignatureAsset:
+    type: object  
+    properties:
+      mandatoryKeys:
+        type: array
+        description: Mandatory multi-signature account members
+        items:
+          type: string
+      optionalKeys:
+        type: array
+        description: Optional multi-signature account members
+        items:
+          type: string
+      numberOfSignatures:
+        type: number
+        description: Number of required signatures
