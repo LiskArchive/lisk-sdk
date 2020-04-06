@@ -158,6 +158,17 @@ export class FinalityManager extends EventEmitter {
 
 		// Get delegate public key
 		const { generatorPublicKey: delegatePublicKey } = header;
+		const delegateAddress = getAddressFromPublicKey(delegatePublicKey);
+
+		const isStandby = await this._dpos.isStandbyDelegate(
+			delegateAddress,
+			header.height,
+			stateStore,
+		);
+
+		if (isStandby) {
+			return false;
+		}
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
 		const delegateState = this.state[delegatePublicKey] || {
@@ -172,7 +183,7 @@ export class FinalityManager extends EventEmitter {
 
 		const delegateMinHeightActive = await this._dpos.getMinActiveHeight(
 			header.height,
-			getAddressFromPublicKey(header.generatorPublicKey),
+			delegateAddress,
 			stateStore,
 		);
 
