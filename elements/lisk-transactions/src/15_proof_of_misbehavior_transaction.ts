@@ -137,7 +137,7 @@ export interface ProofOfMisbehaviorAsset {
 	readonly header1: BlockHeaderJSON;
 	readonly header2: BlockHeaderJSON;
 	// tslint:disable-next-line readonly-keyword
-	reward?: bigint | string;
+	reward: bigint;
 }
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
@@ -156,11 +156,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				: BigInt(0);
 	}
 
-	public assetToJSON(): ProofOfMisbehaviorAsset {
+	public assetToJSON(): object {
 		return {
 			header1: this.asset.header1,
 			header2: this.asset.header2,
-			reward: this.asset.reward ? this.asset.reward.toString() : '0',
+			reward: this.asset.reward.toString(),
 		};
 	}
 
@@ -230,14 +230,14 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
             Check for BFT violations:
                 1. Double forging
-                2. Disjointness 
+                2. Disjointness
                 3. Branch is not the one with largest maxHeighPrevoted
         */
 
 		// tslint:disable-next-line no-let
-		let b1 = asset.header1;
+		let b1 = this.asset.header1;
 		// tslint:disable-next-line no-let
-		let b2 = asset.header2;
+		let b2 = this.asset.header2;
 
 		// Order the two block headers such that b1 must be forged first
 		if (
@@ -248,8 +248,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				b1.maxHeightPrevoted === b2.maxHeightPrevoted &&
 				b1.height > b2.height)
 		) {
-			b1 = asset.header2;
-			b2 = asset.header1;
+			b1 = this.asset.header2;
+			b2 = this.asset.header1;
 		}
 
 		if (
@@ -359,8 +359,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			);
 		}
 
-		/* 
-			Check block signatures validity 
+		/*
+			Check block signatures validity
 		*/
 
 		const blockHeader1Bytes = Buffer.concat([
@@ -447,7 +447,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
 			Update sender account
 		*/
-		senderAccount.balance -= this.asset.reward as bigint;
+		senderAccount.balance -= this.asset.reward;
 		store.account.set(senderAccount.address, senderAccount);
 
 		/*
@@ -466,7 +466,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			delegateAccount.delegate.isBanned = false;
 		}
 
-		delegateAccount.balance += this.asset.reward as bigint;
+		delegateAccount.balance += this.asset.reward;
 		store.account.set(delegateAccount.address, delegateAccount);
 
 		return [];
