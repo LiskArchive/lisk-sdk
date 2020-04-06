@@ -20,12 +20,12 @@ import {
 	LITTLE_ENDIAN,
 } from '@liskhq/lisk-cryptography';
 
-import { BlockHeader } from '../transaction_types';
+import { BlockHeaderJSON } from '../15_proof_of_misbehavior_transaction';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-export const getBlockBytes = (block: BlockHeader) => {
+export const getBlockBytes = (block: BlockHeaderJSON) => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -110,7 +110,7 @@ export const getBlockBytes = (block: BlockHeader) => {
 	]);
 };
 
-export const getBlockBytesWithSignature = (block: BlockHeader) => {
+export const getBlockBytesWithSignature = (block: BlockHeaderJSON) => {
 	const blockBuffer = getBlockBytes(block);
 	const blockSignatureBuffer = block.blockSignature
 		? hexToBuffer(block.blockSignature)

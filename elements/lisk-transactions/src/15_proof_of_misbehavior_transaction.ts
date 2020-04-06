@@ -122,9 +122,20 @@ const proofOfMisbehaviorAssetFormatSchema = {
 		header2: blockHeaderSchema,
 	},
 };
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type BlockHeaderJSON = Modify<
+	BlockHeader,
+	{
+		readonly totalAmount: string;
+		readonly totalFee: string;
+		readonly reward: string;
+	}
+>;
 export interface ProofOfMisbehaviorAsset {
-	readonly header1: BlockHeader;
-	readonly header2: BlockHeader;
+	readonly header1: BlockHeaderJSON;
+	readonly header2: BlockHeaderJSON;
 	// tslint:disable-next-line readonly-keyword
 	reward?: bigint | string;
 }

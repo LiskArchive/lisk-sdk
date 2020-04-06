@@ -32,20 +32,23 @@ describe('Proof-of-misbehavior transaction', () => {
 			networkIdentifier:
 				validProofOfMisbehaviorTransactionScenario1.testCases.input
 					.networkIdentifier,
+			nonce: validProofOfMisbehaviorTransactionScenario1.testCases.output.nonce,
 		});
 
 		transactionWithScenario2 = new ProofOfMisbehaviorTransaction({
 			...validProofOfMisbehaviorTransactionScenario2.testCases.output,
 			networkIdentifier:
-				validProofOfMisbehaviorTransactionScenario1.testCases.input
+				validProofOfMisbehaviorTransactionScenario2.testCases.input
 					.networkIdentifier,
+			nonce: validProofOfMisbehaviorTransactionScenario2.testCases.output.nonce,
 		});
 
 		transactionWithScenario3 = new ProofOfMisbehaviorTransaction({
 			...validProofOfMisbehaviorTransactionScenario3.testCases.output,
 			networkIdentifier:
-				validProofOfMisbehaviorTransactionScenario1.testCases.input
+				validProofOfMisbehaviorTransactionScenario3.testCases.input
 					.networkIdentifier,
+			nonce: validProofOfMisbehaviorTransactionScenario3.testCases.output.nonce,
 		});
 	});
 
@@ -134,6 +137,12 @@ describe('Proof-of-misbehavior transaction', () => {
 				} as any,
 				lastBlockReward: BigInt(1),
 			});
+		});
+
+		it('should not return errors with valid transactions', () => {
+			const { errors, status } = transactionWithScenario1.validate();
+			expect(status).toBe(Status.OK);
+			expect(errors).toHaveLength(0);
 		});
 
 		it('should return errors if |header1.height - h| >= 260000', async () => {
@@ -234,8 +243,8 @@ describe('Proof-of-misbehavior transaction', () => {
 
 			const { errors, status } = await transactionWithScenario1.apply(store);
 			expect(status).toBe(Status.FAIL);
-			expect(errors).toHaveLength(3);
-			expect(errors[2].message).toInclude('Account is not a delegate');
+			expect(errors).toHaveLength(2);
+			expect(errors[1].message).toInclude('Account is not a delegate');
 		});
 
 		it('should return errors if misbehaving account is already banned', async () => {
@@ -256,8 +265,8 @@ describe('Proof-of-misbehavior transaction', () => {
 
 			const { errors, status } = await transactionWithScenario1.apply(store);
 			expect(status).toBe(Status.FAIL);
-			expect(errors).toHaveLength(3);
-			expect(errors[2].message).toInclude(
+			expect(errors).toHaveLength(2);
+			expect(errors[1].message).toInclude(
 				'Cannot apply proof-of-misbehavior. Delegate is banned.',
 			);
 		});
@@ -289,8 +298,8 @@ describe('Proof-of-misbehavior transaction', () => {
 
 			const { errors, status } = await transactionWithScenario1.apply(store);
 			expect(status).toBe(Status.FAIL);
-			expect(errors).toHaveLength(3);
-			expect(errors[2].message).toInclude(
+			expect(errors).toHaveLength(2);
+			expect(errors[1].message).toInclude(
 				'Cannot apply proof-of-misbehavior. Delegate is already punished.',
 			);
 		});
