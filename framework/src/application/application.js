@@ -21,6 +21,7 @@ const {
 	VoteTransaction,
 	UnlockTransaction,
 	MultisignatureTransaction,
+	ProofOfMisbehaviorTransaction,
 	transactionInterface,
 } = require('@liskhq/lisk-transactions');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
@@ -149,6 +150,7 @@ class Application {
 		this.registerTransaction(MultisignatureTransaction);
 		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(UnlockTransaction);
+		this.registerTransaction(ProofOfMisbehaviorTransaction);
 
 		this.registerModule(HttpAPIModule);
 		this.overrideModuleOptions(HttpAPIModule.alias, {

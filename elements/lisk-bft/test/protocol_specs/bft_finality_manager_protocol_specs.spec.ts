@@ -51,6 +51,7 @@ describe('FinalityManager', () => {
 	};
 	let dposStub: {
 		getMinActiveHeight: jest.Mock;
+		isStandbyDelegate: jest.Mock;
 	};
 	let stateStore: StateStoreMock;
 
@@ -73,6 +74,7 @@ describe('FinalityManager', () => {
 					};
 					dposStub = {
 						getMinActiveHeight: jest.fn(),
+						isStandbyDelegate: jest.fn(),
 					};
 					stateStore = new StateStoreMock();
 					finalityManager = new FinalityManager({
@@ -152,6 +154,7 @@ describe('FinalityManager', () => {
 				};
 				dposStub = {
 					getMinActiveHeight: jest.fn(),
+					isStandbyDelegate: jest.fn(),
 				};
 				stateStore = new StateStoreMock();
 				finalityManager = new FinalityManager({
@@ -269,6 +272,7 @@ describe('FinalityManager', () => {
 				};
 				dposStub = {
 					getMinActiveHeight: jest.fn(),
+					isStandbyDelegate: jest.fn(),
 				};
 				stateStore = new StateStoreMock();
 				finalityManager = new FinalityManager({

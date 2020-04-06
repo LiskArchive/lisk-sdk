@@ -42,6 +42,12 @@ const blockSchema = {
 		maxHeightPrevoted: {
 			type: 'integer',
 		},
+		seedReveal: {
+			type: 'string',
+			format: 'hex',
+			minLength: 32,
+			maxLength: 32,
+		},
 	},
 	required: [
 		...baseBlockSchema.required,

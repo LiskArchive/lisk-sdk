@@ -59,7 +59,6 @@ export interface Delegate {
 }
 
 export interface BlockHeader {
-	readonly id: string;
 	readonly height: number;
 	readonly version: number;
 	readonly timestamp: number;
@@ -74,6 +73,7 @@ export interface BlockHeader {
 	readonly totalAmount: bigint;
 	readonly totalFee: bigint;
 	readonly reward: bigint;
+	readonly seedReveal: string;
 }
 
 export interface TransactionJSON {

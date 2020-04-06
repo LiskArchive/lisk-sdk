@@ -17,6 +17,7 @@ import { DelegateTransaction } from './10_delegate_transaction';
 import { MultisignatureTransaction } from './12_multisignature_transaction';
 import { VoteTransaction } from './13_vote_transaction';
 import { UnlockTransaction } from './14_unlock_transaction';
+import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import {
 	BaseTransaction,
@@ -32,6 +33,7 @@ import {
 } from './errors';
 import { registerDelegate } from './register_delegate';
 import { registerMultisignature } from './register_multisignature_account';
+import { reportMisbehavior } from './report_misbehavior';
 import { createResponse, Status, TransactionResponse } from './response';
 import { transactionInterface } from './schema';
 import { signMultiSignatureTransaction } from './sign_multi_signature_transaction';
@@ -80,7 +82,9 @@ export {
 	MultisignatureTransaction,
 	UnlockTransaction,
 	unlockToken,
+	reportMisbehavior,
 	createResponse,
+	ProofOfMisbehaviorTransaction,
 	registerMultisignature,
 	signMultiSignatureTransaction,
 	Status,

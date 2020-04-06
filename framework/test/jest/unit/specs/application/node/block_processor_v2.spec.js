@@ -52,6 +52,8 @@ describe('block processor v2', () => {
 		chainModuleStub = {
 			newStateStore: jest.fn().mockResolvedValue({}),
 			undo: jest.fn(),
+			validateBlockHeader: jest.fn(),
+			verifyInMemory: jest.fn(),
 			blockReward: {
 				calculateReward: jest.fn().mockReturnValue(5),
 			},
@@ -62,12 +64,14 @@ describe('block processor v2', () => {
 		bftModuleStub = {
 			init: jest.fn(),
 			deleteBlocks: jest.fn(),
+			validateBlock: jest.fn(),
 			maxHeightPrevoted: 0,
 			isBFTProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
 
 		dposModuleStub = {
 			undo: jest.fn(),
+			verifyBlockForger: jest.fn(),
 			isDPoSProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
 		storageStub = {
@@ -100,6 +104,49 @@ describe('block processor v2', () => {
 			await blockProcessor.init.run({ stateStore });
 			// Assert
 			expect(bftModuleStub.init).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('validate', () => {
+		it('should throw error on invalid data', async () => {
+			// Arrange & Act
+			const block = {
+				version: 2,
+				timestamp: 0,
+				previousBlockId: '1349213843333333333',
+				height: 1,
+				seedReveal: 'no-hex-value-000000FFFFFFFF',
+				maxHeightPreviouslyForged: 0,
+				maxHeightPrevoted: 0,
+				reward: '0',
+				totalFee: '0',
+				communityIdentifier: 'Lisk',
+				generatorPublicKey:
+					'e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8',
+				payloadHash:
+					'19074b69c97e6f6b86969bb62d4f15b888898b499777bda56a3a2ee642a7f20a',
+				payloadLength: 39677,
+				totalAmount: '10000000000000000',
+				numberOfTransactions: 310,
+				blockSignature:
+					'9eb81604dec27d2386b7b7cdaf91c00eada99d6d3fac76ea25ef68a9eaca6f6877ed84c3b0864cec1cd1700e1f3bbffcf32dde9e26e174c75347ccf4da6eeb09',
+				id: '1349213844499460766',
+				transactions: [],
+			};
+			// Assert
+			expect.assertions(3);
+			try {
+				await blockProcessor.validate.run({ block });
+			} catch (errors) {
+				// eslint-disable-next-line jest/no-try-expect
+				expect(errors).toHaveLength(2);
+				// eslint-disable-next-line jest/no-try-expect
+				expect(errors[0].message).toContain(
+					'should NOT be shorter than 32 characters',
+				);
+				// eslint-disable-next-line jest/no-try-expect
+				expect(errors[1].message).toContain('should match format "hex"');
+			}
 		});
 	});
 

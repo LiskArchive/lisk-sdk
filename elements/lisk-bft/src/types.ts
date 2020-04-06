@@ -31,6 +31,11 @@ export interface DPoS {
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
 	) => Promise<number>;
+	readonly isStandbyDelegate: (
+		address: string,
+		height: number,
+		stateStore: StateStore,
+	) => Promise<boolean>;
 }
 
 export interface Chain {
