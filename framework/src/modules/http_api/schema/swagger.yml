@@ -2160,7 +2160,7 @@ definitions:
       username:
           type: string
           example: onedelegate
-          description: If the account is a delegate it displays the username for it.
+          description: If the account is a delegate, it displays the username for it.
       unlocking:
         type: array
         items:
@@ -2277,7 +2277,7 @@ definitions:
       votes:
         type: array
         items:
-          $ref: '#/definitions/Vote'      
+          $ref: '#/definitions/Vote'
       delegate:
         type: object
         description: Delegate propertiees associated with the account.
@@ -2315,7 +2315,7 @@ definitions:
       votes:
         type: array
         description: Accounts this delegate voted for.
-        items: 
+        items:
           $ref: '#/definitions/Vote'
       address:
         type: string
@@ -2331,7 +2331,7 @@ definitions:
       voters:
         type: array
         description: List of accounts that voted for the queried delegate.
-        items: 
+        items:
           $ref: '#/definitions/Voter'
 
   Voter:
@@ -2354,7 +2354,7 @@ definitions:
       votes:
         type: array
         description: All votes the voter for the queried delegate voted for.
-        items: 
+        items:
           $ref: '#/definitions/Vote'
 
   AccountWithVotes:
@@ -2412,7 +2412,7 @@ definitions:
         type: string
         example: 1000000000000
         description: Amount the account voted the delegate for in multiples of 10 Lisk.
-  
+
   VoteWithDelegateProperties:
     type: object
     required:
@@ -2448,14 +2448,14 @@ definitions:
         amount:
           type: string
           example: 1000000000000
-          description: Amount the account voted the delegate for in multiples of 10 Lisk.      
+          description: Amount the account voted the delegate for in multiples of 10 Lisk.
         unvoteHeight:
           type: number
           example: 50000
           description: Height at which the unvote should be valid.
 
   MultisignatureAsset:
-    type: object  
+    type: object
     properties:
       mandatoryKeys:
         type: array
