@@ -64,6 +64,7 @@ describe('bft', () => {
 		};
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
+			isStandbyDelegate: jest.Mock;
 		};
 		let lastBlock: BlockHeader;
 
@@ -85,6 +86,7 @@ describe('bft', () => {
 
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
+				isStandbyDelegate: jest.fn(),
 			};
 			activeDelegates = 101;
 			startingHeight = 0;

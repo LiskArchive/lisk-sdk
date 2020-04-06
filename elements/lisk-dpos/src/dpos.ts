@@ -149,7 +149,7 @@ export class Dpos {
 		return this.rounds.calcRoundStartHeight(activeRounds);
 	}
 
-	public async isStandByDelegate(
+	public async isStandbyDelegate(
 		address: string,
 		height: number,
 		stateStore: StateStore,
@@ -235,7 +235,6 @@ export class Dpos {
 	}
 
 	// This function is used in block_processor_v2 to check the dpos compliance and update/validate the reward
-	// tslint:disable-next-line: prefer-function-over-method
 	public async isDPoSProtocolCompliant(
 		blockHeader: BlockHeader,
 		store: StateStore,
