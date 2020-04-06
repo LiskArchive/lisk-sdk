@@ -413,9 +413,9 @@ describe('delegates/api', () => {
 			);
 		});
 
-		it('should call channel.invoke with app:getForgerPublicKeysForRound action', async () => {
+		it('should call channel.invoke with app:getForgerAddressesForRound action', async () => {
 			expect(channelStub.invoke.getCall(4)).to.be.calledWith(
-				'app:getForgerPublicKeysForRound',
+				'app:getForgerAddressesForRound',
 			);
 		});
 
