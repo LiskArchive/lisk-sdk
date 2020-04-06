@@ -200,8 +200,8 @@ module.exports = class Node {
 				this.chain.blockReward.calculateMilestone(action.params.height),
 			calculateReward: action =>
 				this.chain.blockReward.calculateReward(action.params.height),
-			getForgerPublicKeysForRound: async action =>
-				this.dpos.getForgerPublicKeysForRound(action.params.round),
+			getForgerAddressesForRound: async action =>
+				this.dpos.getForgerAddressesForRound(action.params.round),
 			updateForgingStatus: async action =>
 				this.forger.updateForgingStatus(
 					action.params.publicKey,

@@ -398,7 +398,7 @@ class Application {
 		storage.registerEntity('TempBlock', TempBlockEntity);
 
 		storage.entities.Account.extendDefaultOptions({
-			limit: this.constants.activeDelegates,
+			limit: this.constants.activeDelegates + this.constants.standbyDelegates,
 		});
 
 		return storage;
@@ -468,9 +468,9 @@ class Application {
 				calculateReward: {
 					handler: action => this._node.actions.calculateReward(action),
 				},
-				getForgerPublicKeysForRound: {
+				getForgerAddressesForRound: {
 					handler: async action =>
-						this._node.actions.getForgerPublicKeysForRound(action),
+						this._node.actions.getForgerAddressesForRound(action),
 				},
 				updateForgingStatus: {
 					handler: async action =>
