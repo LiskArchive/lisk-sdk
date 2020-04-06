@@ -27,7 +27,6 @@ import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 interface RawHeader {
-	readonly id: string;
 	readonly height: number;
 	readonly version: number;
 	readonly timestamp: number;
