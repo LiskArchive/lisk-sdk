@@ -2159,7 +2159,7 @@ definitions:
       username:
           type: string
           example: DelegateABC
-          description: If the account is a delegate it displays the username for it.
+          description: If the account is a delegate, it displays the username for it.
 
   Delegate:
     type: object
