@@ -39,6 +39,7 @@ describe('bft', () => {
 		};
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
+			isStandbyDelegate: jest.Mock;
 		};
 
 		beforeEach(async () => {
@@ -55,6 +56,7 @@ describe('bft', () => {
 			};
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
+				isStandbyDelegate: jest.fn(),
 			};
 
 			activeDelegates = 101;

@@ -68,7 +68,7 @@ describe('dpos.isStandbyDelegate', () => {
 			});
 
 			// Act
-			const isStandby = await dpos.isStandByDelegate(
+			const isStandby = await dpos.isStandbyDelegate(
 				standByAddress,
 				height,
 				createStateStore(lists),
@@ -84,7 +84,7 @@ describe('dpos.isStandbyDelegate', () => {
 			});
 
 			// Act
-			const isStandby = await dpos.isStandByDelegate(
+			const isStandby = await dpos.isStandbyDelegate(
 				standByAddress,
 				height,
 				createStateStore(lists),
@@ -100,7 +100,7 @@ describe('dpos.isStandbyDelegate', () => {
 			});
 
 			// Act
-			const isStandby = await dpos.isStandByDelegate(
+			const isStandby = await dpos.isStandbyDelegate(
 				defaultAddress,
 				height,
 				createStateStore(lists),
@@ -124,7 +124,7 @@ describe('dpos.isStandbyDelegate', () => {
 			});
 
 			// Act
-			const isStandby = await dpos.isStandByDelegate(
+			const isStandby = await dpos.isStandbyDelegate(
 				standByAddress,
 				height,
 				createStateStore(lists),
@@ -140,7 +140,7 @@ describe('dpos.isStandbyDelegate', () => {
 			});
 
 			// Act
-			const isStandby = await dpos.isStandByDelegate(
+			const isStandby = await dpos.isStandbyDelegate(
 				standByAddress,
 				height,
 				createStateStore(lists),
@@ -156,7 +156,7 @@ describe('dpos.isStandbyDelegate', () => {
 			});
 
 			// Act
-			const isStandby = await dpos.isStandByDelegate(
+			const isStandby = await dpos.isStandbyDelegate(
 				defaultAddress,
 				height,
 				createStateStore(lists),
