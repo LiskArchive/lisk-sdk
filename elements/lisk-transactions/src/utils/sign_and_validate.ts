@@ -23,12 +23,12 @@ import {
 export const validateSignature = (
 	publicKey: string,
 	signature: string,
-	transactionBytes: Buffer,
+	bytes: Buffer,
 	id?: string,
 ): IsValidResponseWithError => {
-	const transactionHash = cryptography.hash(transactionBytes);
+	const hashedBytes = cryptography.hash(bytes);
 
-	const valid = cryptography.verifyData(transactionHash, signature, publicKey);
+	const valid = cryptography.verifyData(hashedBytes, signature, publicKey);
 
 	return {
 		valid,
