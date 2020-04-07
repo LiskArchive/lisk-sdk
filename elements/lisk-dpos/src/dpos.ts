@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { hash, hexToBuffer } from '@liskhq/lisk-cryptography';
+import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import {
@@ -46,6 +47,8 @@ interface DposConstructor {
 	readonly voteWeightCapRate?: number;
 	readonly delegateListRoundOffset?: number;
 }
+
+const debug = Debug('lisk:dpos');
 
 export class Dpos {
 	public readonly rounds: Rounds;
@@ -251,6 +254,11 @@ export class Dpos {
 
 		if (!delegateForgedBlocks.length) {
 			// If the forger didn't forge any block in the last three rounds
+			debug('Delegate did not forge any block in current or last round', {
+				generatorPublicKey: blockHeader.generatorPublicKey,
+				height: blockHeader.height,
+			});
+
 			return true;
 		}
 
@@ -265,6 +273,13 @@ export class Dpos {
 		if (hexToBuffer(previousBlockSeedReveal).equals(newBlockSeedRevealBuffer)) {
 			return true;
 		}
+
+		debug('New block SeedReveal is not the preimage of last block', {
+			newBlockSeedReveal: newBlockSeedRevealBuffer.toString('hex'),
+			previousBlockSeedReveal,
+			delegate: blockHeader.generatorPublicKey,
+			height: blockHeader.height,
+		});
 
 		return false;
 	}

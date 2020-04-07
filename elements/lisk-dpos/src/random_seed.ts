@@ -136,7 +136,7 @@ export const generateRandomSeeds = (
 	// Middle range of a round to validate
 	// tslint:disable-next-line:no-magic-numbers
 	const middleThreshold = Math.floor(rounds.blocksPerRound / 2);
-	const lastBlockHeight = headers[headers.length - 1].height;
+	const lastBlockHeight = headers[0].height;
 	const startOfRound = rounds.calcRoundStartHeight(round);
 	const middleOfRound = rounds.calcRoundMiddleHeight(round);
 	const startOfLastRound = rounds.calcRoundStartHeight(round - 1);

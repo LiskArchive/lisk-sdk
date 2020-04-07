@@ -491,7 +491,29 @@ class Forger {
 
 	// eslint-disable-next-line class-methods-use-this
 	_filterUsedHashOnions(usedHashOnions, finalizedHeight) {
-		return usedHashOnions.filter(ho => ho.height > finalizedHeight);
+		const filteredObject = usedHashOnions.reduce(
+			({ others, highest }, current) => {
+				const prevUsed = highest[current.address];
+				if (prevUsed === undefined) {
+					// eslint-disable-next-line no-param-reassign
+					highest[current.address] = current;
+				} else if (prevUsed.height < current.height) {
+					others.push(prevUsed);
+					// eslint-disable-next-line no-param-reassign
+					highest[current.address] = current;
+				}
+				return {
+					highest,
+					others,
+				};
+			},
+			{ others: [], highest: {} },
+		);
+
+		const filtered = filteredObject.others.filter(
+			ho => ho.height > finalizedHeight,
+		);
+		return filtered.concat(Object.values(filteredObject.highest));
 	}
 
 	async _setUsedHashOnions(usedHashOnions) {

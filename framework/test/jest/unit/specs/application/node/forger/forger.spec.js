@@ -1213,12 +1213,12 @@ describe('forger', () => {
 							},
 							{
 								count: 6,
-								height: 12,
+								height: 412,
 								address: getAddressFromPublicKey(targetDelegate.publicKey),
 							},
 						]),
 					);
-				forgeModule.bftModule.finalizedHeight = 9;
+				forgeModule.bftModule.finalizedHeight = 318;
 
 				// Act
 				await forgeModule.forge();
@@ -1230,7 +1230,7 @@ describe('forger', () => {
 					JSON.stringify([
 						{
 							count: 6,
-							height: 12,
+							height: 412,
 							address: getAddressFromPublicKey(targetDelegate.publicKey),
 						},
 						{
