@@ -67,13 +67,11 @@ export const validatePreviousBlockProperty = (
 
 export const validateReward = (
 	block: BlockInstance,
-	expectedReward: string,
+	maxReward: bigint,
 ): void => {
-	const expectedRewardBigInt = BigInt(expectedReward);
-
-	if (block.height !== 1 && expectedRewardBigInt !== BigInt(block.reward)) {
+	if (block.reward > maxReward) {
 		throw new Error(
-			`Invalid block reward: ${block.reward.toString()} expected: ${expectedReward}`,
+			`Invalid block reward: ${block.reward.toString()} maximum allowed: ${maxReward.toString()}`,
 		);
 	}
 };

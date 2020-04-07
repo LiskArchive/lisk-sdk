@@ -51,7 +51,6 @@ describe('blocks/header', () => {
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
-	const defaultReward = '0';
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.payloadHash,
 		genesisBlock.communityIdentifier,
@@ -126,7 +125,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).toThrow('Invalid previous block');
 			});
 		});
@@ -138,7 +137,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).toThrow('Invalid block signature');
 			});
 		});
@@ -146,11 +145,11 @@ describe('blocks/header', () => {
 		describe('when reward is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
-				block = newBlock();
+				block = newBlock({ reward: BigInt(1000000000) });
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, '5'),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).toThrow('Invalid block reward');
 			});
 		});
@@ -173,7 +172,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).toThrow();
 			});
 		});
@@ -198,7 +197,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).toThrow('Payload length is too long');
 			});
 		});
@@ -222,7 +221,7 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).toThrow('Invalid payload hash');
 			});
 		});
@@ -246,21 +245,32 @@ describe('blocks/header', () => {
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes, defaultReward),
+					chainInstance.validateBlockHeader(block, blockBytes),
 				).not.toThrow();
 			});
 		});
 	});
 
-	describe('#verifyInMemory', () => {
+	describe('#verify', () => {
+		let stateStore: StateStore;
+
+		beforeEach(async () => {
+			// Arrange
+			stateStore = new StateStore(storageStub, {
+				lastBlockHeaders: [],
+				networkIdentifier: defaultNetworkIdentifier,
+				lastBlockReward: BigInt(500000000),
+			});
+		});
+
 		describe('when previous block id is invalid', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				block = newBlock({ previousBlockId: '123' });
 				// Act & assert
-				await expect(() =>
-					chainInstance.verifyInMemory(block, chainInstance.lastBlock),
-				).toThrow('Invalid previous block');
+				await expect(
+					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
+				).rejects.toThrow('Invalid previous block');
 			});
 		});
 
@@ -271,9 +281,9 @@ describe('blocks/header', () => {
 				block = newBlock({ timestamp: futureTimestamp });
 				expect.assertions(1);
 				// Act & Assert
-				await expect(() =>
-					chainInstance.verifyInMemory(block, genesisBlock as any),
-				).toThrow('Invalid block timestamp');
+				await expect(
+					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
+				).rejects.toThrow('Invalid block timestamp');
 			});
 
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
@@ -281,23 +291,27 @@ describe('blocks/header', () => {
 				block = newBlock({ timestamp: 0 });
 				expect.assertions(1);
 				// Act & Assert
-				await expect(() =>
-					chainInstance.verifyInMemory(block, genesisBlock as any),
-				).toThrow('Invalid block timestamp');
+				await expect(
+					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
+				).rejects.toThrow('Invalid block timestamp');
 			});
 
 			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
+				(chainInstance as any)._lastBlock = {
+					...genesisBlock,
+					timestamp: 200,
+					receivedAt: new Date(),
+				};
 				// Arrange
-				const lastBlock = newBlock({});
 				block = newBlock({
-					previousBlockId: lastBlock.id,
-					height: lastBlock.height + 1,
+					previousBlockId: chainInstance.lastBlock.id,
+					height: chainInstance.lastBlock.height + 1,
+					timestamp: chainInstance.lastBlock.timestamp - 10,
 				});
-				expect.assertions(1);
 				// Act & Assert
-				await expect(() =>
-					chainInstance.verifyInMemory(block, lastBlock),
-				).toThrow('Invalid block timestamp');
+				await expect(
+					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
+				).rejects.toThrow('Invalid block timestamp');
 			});
 		});
 
@@ -308,16 +322,16 @@ describe('blocks/header', () => {
 				// Act & assert
 				let err;
 				try {
-					await chainInstance.verifyInMemory(block, chainInstance.lastBlock);
+					await chainInstance.verify(block, stateStore, {
+						skipExistingCheck: true,
+					});
 				} catch (error) {
 					err = error;
 				}
 				expect(err).toBeUndefined();
 			});
 		});
-	});
 
-	describe('#verify', () => {
 		describe('when skip existing check is true and a transaction is not allowed', () => {
 			let notAllowedTx;
 			let txApplySpy: jest.SpyInstance;

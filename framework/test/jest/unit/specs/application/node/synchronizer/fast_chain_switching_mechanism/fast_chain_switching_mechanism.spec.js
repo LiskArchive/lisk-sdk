@@ -147,32 +147,43 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		beforeEach(async () => {
-			jest.spyOn(dposModule, 'getForgerAddressesForRound');
-			chainModule._lastBlock = { height: 340 };
-			dposModule.getForgerAddressesForRound.mockResolvedValue([
-				defaultGenerator.address,
-			]);
+			jest.spyOn(dposModule, 'isActiveDelegate');
+			chainModule._lastBlock = { height: 310 };
 		});
 
-		describe('when reveivedBlock is at the same round as the last block', () => {
-			it('should return true', async () => {
+		describe('when reveivedBlock is within the two rounds of the last block', () => {
+			it('should return true when the receivedBlock is from active delegate', async () => {
+				dposModule.isActiveDelegate.mockResolvedValue(true);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						generatorPublicKey: defaultGenerator.publicKey,
-						height: 400,
+						height: 515,
 					},
 					'peer-id',
 				);
 				expect(isValid).toEqual(true);
 			});
-		});
 
-		describe('when reveivedBlock is not at the same round as the last block', () => {
-			it('should return false', async () => {
+			it('should return false when the receivedBlock is not from active delegate', async () => {
+				dposModule.isActiveDelegate.mockResolvedValue(false);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						generatorPublicKey: defaultGenerator.publicKey,
-						height: 900,
+						height: 515,
+					},
+					'peer-id',
+				);
+				expect(isValid).toEqual(false);
+			});
+		});
+
+		describe('when reveivedBlock is not within two rounds of the last block', () => {
+			it('should return false even when the block is from active delegate', async () => {
+				dposModule.isActiveDelegate.mockResolvedValue(true);
+				const isValid = await fastChainSwitchingMechanism.isValidFor(
+					{
+						generatorPublicKey: defaultGenerator.publicKey,
+						height: 619,
 					},
 					'peer-id',
 				);
@@ -520,21 +531,15 @@ describe('fast_chain_switching_mechanism', () => {
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				let previousBlock = await processorModule.deserialize(
-					highestCommonBlock,
-				);
 
 				for (const block of requestedBlocks) {
 					const blockInstance = await processorModule.deserialize(block);
 
-					expect(processorModule.validate).toHaveBeenCalledWith(blockInstance, {
-						lastBlock: previousBlock,
-					});
+					expect(processorModule.validate).toHaveBeenCalledWith(blockInstance);
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{ blockId: block.id, height: block.height },
 						'Validating block',
 					);
-					previousBlock = blockInstance;
 				}
 
 				expect(loggerMock.debug).toHaveBeenCalledWith(
@@ -542,7 +547,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				expect(
 					fastChainSwitchingMechanism._validateBlocks,
-				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeerId);
+				).toHaveBeenCalledWith(requestedBlocks, aPeerId);
 			});
 
 			it('should apply penalty and abort if any of the blocks fail to validate', async () => {
@@ -598,7 +603,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				expect(
 					fastChainSwitchingMechanism._validateBlocks,
-				).toHaveBeenCalledWith(requestedBlocks, highestCommonBlock, aPeerId);
+				).toHaveBeenCalledWith(requestedBlocks, aPeerId);
 			});
 		});
 
