@@ -214,10 +214,9 @@ const _pickStandByDelegate = (
 	const seedNumber = randomSeed.readBigUInt64BE();
 	const totalVoteWeight = _getTotalVoteWeight(delegateWeights);
 
-	// To pass voteWeight = 0, initialize threshold with negative value
+	// Assuming that totalVoteWeight can't be zero
 	// tslint:disable-next-line no-let
-	let threshold =
-		totalVoteWeight === BigInt(0) ? BigInt(-1) : seedNumber % totalVoteWeight;
+	let threshold = seedNumber % totalVoteWeight;
 	// tslint:disable-next-line no-let
 	for (let i = 0; i < delegateWeights.length; i += 1) {
 		const voteWeight = BigInt(delegateWeights[i].voteWeight);
@@ -382,17 +381,25 @@ export class DelegatesList {
 		}
 		// Expect that voteWeight is stored in order of voteWeight and address
 		const hasStandbySlot = voteWeight.delegates.length > this.activeDelegates;
-		const activeDelegateSlots = this.activeDelegates;
 		const activeDelegateAddresses = voteWeight.delegates
-			.slice(0, activeDelegateSlots)
+			.slice(0, this.activeDelegates)
 			.map(vw => vw.address);
 		const standbyDelegateAddresses = [];
 		const standbyDelegateVoteWeights = hasStandbySlot
-			? voteWeight.delegates.slice(activeDelegateSlots)
+			? voteWeight.delegates.slice(this.activeDelegates)
 			: [];
 
-		// Only choose standby delegate if it exists
-		if (standbyDelegateVoteWeights.length !== 0) {
+		// If standby delegates are less or equal to what required
+		// Then don't choose based on random seed and consider those as standby
+		if (
+			standbyDelegateVoteWeights.length > 0 &&
+			standbyDelegateVoteWeights.length <= this.standbyDelegates
+		) {
+			standbyDelegateVoteWeights.map(delegate => {
+				standbyDelegateAddresses.push(delegate.address);
+			});
+			// If standby delegates are more than what required then choose based on random seed
+		} else if (standbyDelegateVoteWeights.length > this.standbyDelegates) {
 			// tslint:disable-next-line no-let
 			for (let i = 0; i < this.standbyDelegates; i += 1) {
 				const standbyDelegateIndex = _pickStandByDelegate(
