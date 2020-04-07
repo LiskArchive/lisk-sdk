@@ -319,7 +319,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		const delegateAddress = getAddressFromPublicKey(
 			this.asset.header1.generatorPublicKey,
 		);
-		const delegateAccount = await store.account.get(delegateAddress);
+		const delegateAccount = await store.account.getOrDefault(delegateAddress);
 
 		if (!delegateAccount.isDelegate || !delegateAccount.username) {
 			errors.push(
@@ -329,6 +329,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'.asset.header1.generatorPublicKey',
 				),
 			);
+
+			return errors;
 		}
 
 		if (delegateAccount.delegate.isBanned) {
@@ -340,6 +342,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					this.asset.header1.generatorPublicKey,
 				),
 			);
+
+			return errors;
 		}
 
 		if (
@@ -357,6 +361,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					this.asset.header1.generatorPublicKey,
 				),
 			);
+
+			return errors;
 		}
 
 		/*

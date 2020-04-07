@@ -218,13 +218,23 @@ export class UnlockTransaction extends BaseTransaction {
 
 		for (const unlock of this.asset.unlockingObjects) {
 			const sender = await store.account.get(this.senderId);
-			const delegate = await store.account.get(unlock.delegateAddress);
+			const delegate = await store.account.getOrDefault(unlock.delegateAddress);
+			if (!delegate.username) {
+				errors.push(
+					new TransactionError(
+						'Voted delegate is not registered',
+						this.id,
+						'.asset.unlockingObjects.delegateAddress',
+					),
+				);
+				continue;
+			}
 			if (
 				!hasWaited(sender, delegate, store.chain.lastBlockHeader.height, unlock)
 			) {
 				errors.push(
 					new TransactionError(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as it has passed the waiting time',
 						this.id,
 						'.asset.unlockingObjects.unvoteHeight',
 						unlock.unvoteHeight,
@@ -234,7 +244,7 @@ export class UnlockTransaction extends BaseTransaction {
 			if (isPunished(sender, delegate, store.chain.lastBlockHeader.height)) {
 				errors.push(
 					new TransactionError(
-						'Delegate is currently being punished',
+						'Unlocking is not permitted as delegate is currently being punished',
 						this.id,
 						'.asset.unlockingObjects.delegateAddress',
 						unlock.unvoteHeight,

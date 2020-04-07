@@ -243,7 +243,9 @@ export class VoteTransaction extends BaseTransaction {
 
 		for (const vote of assetCopy) {
 			const sender = await store.account.get(this.senderId);
-			const votedDelegate = await store.account.get(vote.delegateAddress);
+			const votedDelegate = await store.account.getOrDefault(
+				vote.delegateAddress,
+			);
 
 			if (!votedDelegate.username) {
 				errors.push(

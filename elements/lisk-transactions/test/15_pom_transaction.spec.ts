@@ -361,14 +361,7 @@ describe('Proof-of-misbehavior transaction', () => {
 						...delegate,
 						delegate: {
 							...delegate.delegate,
-							pomHeights: [
-								1,
-								2,
-								3,
-								4,
-								validProofOfMisbehaviorTransactionScenario1.testCases.output
-									.asset.header1.height + 10,
-							],
+							pomHeights: [1, 2, 3, 4],
 						},
 					},
 				],
