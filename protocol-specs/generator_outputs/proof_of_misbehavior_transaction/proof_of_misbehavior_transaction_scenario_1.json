@@ -36,9 +36,9 @@
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 300000,
-					"maxHeightPreviouslyForged": 90000,
-					"maxHeightPrevoted": 100000,
+					"height": 900000,
+					"maxHeightPreviouslyForged": 690000,
+					"maxHeightPrevoted": 700000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
 					"totalFee": "10000000000",
@@ -46,16 +46,16 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "d87f2eafb2f8022d4a1171fa5735466f5fa5749dfc6d2a3978d69d266aadfe4929a65925daaf380c1323d34049bc0aef5d5ad12916ab137c8829ef42f12d400b"
+					"blockSignature": "f6f086e9be5b64a8df6e5d54b8303ba29e60cfe6ff8eb3b158fd948ea5338f3c81a0a11081b6319c37beb5739eb716a586b0b5254ba4bb00eec7edaeb163ff02"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 3000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 200000,
-					"maxHeightPreviouslyForged": 100000,
-					"maxHeightPrevoted": 100000,
+					"height": 800000,
+					"maxHeightPreviouslyForged": 700000,
+					"maxHeightPrevoted": 700000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
 					"totalFee": "10000000000",
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "c86e638c27d39c033cc8bb107c5a5a19f6e95361314d2d74b715d96ddfac6d156ea77d798dbd34203920e33525c5645ac01931043e3c0021a6da068048fa770a"
+					"blockSignature": "44d5712d25b1f7cf8bb370c734e837351f7a379b89fad30d6df11db3e505c0457d228bc7c1d28478807fc7654713d50bf16c0b7170c637642197daca923d9f0d"
 				}
 			},
 			"signatures": [
-				"9cfbd524febf6b5d416921f5b6f1c0d003b6d561339383750fcef20ff26a0b20fd37412bb9dc030fa64b628c8e0a6624f76728205b218f34057522904d5a0e02"
+				"1035b826ab2a06729a64bd08c19633ed2375bed89c6c061efe3a81712aefb0f46dbf31c4d8b88f30e9407084dc48c1398ec1e032be4a65ce4d657ca25443ca08"
 			],
-			"id": "7297191189562708508"
+			"id": "2719154307096595232"
 		}
 	}
 }

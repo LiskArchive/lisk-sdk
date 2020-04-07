@@ -162,6 +162,8 @@ describe('Unlock transaction', () => {
 				balance:
 					BigInt(validUnlockTransactionScenario.testCases.output.fee) +
 					minBalance,
+				username: 'sender_delegate',
+				isDelegate: 1,
 				unlocking: [
 					...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.map(
 						u => ({
@@ -184,6 +186,7 @@ describe('Unlock transaction', () => {
 						address: delegate.address,
 						publicKey: delegate.publicKey,
 						username: `delegate_${i}`,
+						isDelegate: 1,
 						delegate: {
 							lastForgedHeight: 0,
 							consecutiveMissedBlocks: 0,
@@ -215,6 +218,8 @@ describe('Unlock transaction', () => {
 					);
 					sender = {
 						...sender,
+						username: 'sender_delegate',
+						isDelegate: 1,
 						unlocking: [
 							...tx.asset.unlockingObjects.map(u => ({
 								...u,
@@ -261,7 +266,7 @@ describe('Unlock transaction', () => {
 						expect(status).toBe(Status.FAIL);
 						expect(errors).toHaveLength(1);
 						expect(errors[0].message).toContain(
-							'Unlocking is not permitted as delegate is currently being punished',
+							'Unlocking is not permitted as it has passed the waiting time',
 						);
 					});
 				});
@@ -311,7 +316,7 @@ describe('Unlock transaction', () => {
 						expect(status).toBe(Status.FAIL);
 						expect(errors).toHaveLength(1);
 						expect(errors[0].message).toContain(
-							'Unlocking is not permitted as delegate is currently being punished',
+							'Unlocking is not permitted as it has passed the waiting time',
 						);
 					});
 				});
@@ -475,7 +480,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(3);
 					expect(errors[0].message).toContain(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as it has passed the waiting time',
 					);
 				});
 			});
@@ -517,7 +522,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toContain(
-						'Unlocking is not permitted as delegate is currently being punished',
+						'Unlocking is not permitted as it has passed the waiting time',
 					);
 				});
 			});
@@ -560,7 +565,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(3);
 					expect(errors[0].message).toContain(
-						'Delegate is currently being punished',
+						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
 			});
@@ -593,7 +598,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toContain(
-						'Delegate is currently being punished',
+						'Unlocking is not permitted as delegate is currently being punished',
 					);
 				});
 			});
@@ -745,6 +750,8 @@ describe('Unlock transaction', () => {
 				balance:
 					BigInt(validUnlockTransactionScenario.testCases.output.fee) +
 					minBalance,
+				username: 'sender_delegate',
+				isDelegate: 1,
 				unlocking: [
 					...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.map(
 						u => ({
