@@ -535,9 +535,12 @@ module.exports = class Node {
 	}
 
 	_subscribeToEvents() {
-		this.channel.subscribe('app:broadcast', async ({ data: { block } }) => {
-			await this.transport.handleBroadcastBlock(block);
-		});
+		this.channel.subscribe(
+			'app:block:broadcast',
+			async ({ data: { block } }) => {
+				await this.transport.handleBroadcastBlock(block);
+			},
+		);
 
 		this.channel.subscribe('app:chain:sync', ({ data: { block, peerId } }) => {
 			this.synchronizer.run(block, peerId).catch(err => {
