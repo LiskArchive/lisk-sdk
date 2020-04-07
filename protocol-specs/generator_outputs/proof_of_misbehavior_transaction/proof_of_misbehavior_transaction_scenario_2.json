@@ -36,9 +36,9 @@
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 200000,
-					"maxHeightPreviouslyForged": 100000,
-					"maxHeightPrevoted": 100000,
+					"height": 800000,
+					"maxHeightPreviouslyForged": 700000,
+					"maxHeightPrevoted": 700000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
 					"totalFee": "10000000000",
@@ -46,16 +46,16 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "ef65ebf62b61f0ec1d76ed535554a64169ef6e70ef9ba528a05a4481301ac27a2f3b7a974b35431902117f08756fc76db1529281d29ed4b00e40bc1a6bd1cd0d"
+					"blockSignature": "26f1b581b43a185cd83ad28688a6f6208f28d95286f1d9eea03f2f8db3f91d7e6f763e803d7811d6579f25067d2ba041f67b562531c81fc834e8f6b89653bd0f"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 200000,
-					"maxHeightPreviouslyForged": 100000,
-					"maxHeightPrevoted": 50000,
+					"height": 800000,
+					"maxHeightPreviouslyForged": 700000,
+					"maxHeightPrevoted": 650000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
 					"totalFee": "10000000000",
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "5ba773b5c86b814d7728f76d415496d5142e391668ef1aa55ac964972c656b51c17269befc0d228bac9417008b7baefb0cefc2bdb4f27f202d3a722cd1734a06"
+					"blockSignature": "5038cbcfcd0d8fd6c1921f0462e19efdb78bd047de4e5a435bd59edf391736825ece84f91908d500d9ccd867c2dff0bbe6417a9d4324d42baf6019d51a9b030c"
 				}
 			},
 			"signatures": [
-				"a3e3dffdf7df87a52111bdf32cf3361bf8be582acda5fb293f8ee42f32a222d4f7b0f3350f30f31cab3360c1cf53239da52d93d975d1d9b3969ecd7a87198108"
+				"e1c5302f96dd0eef70c71f99fb7b063484c524e09384e0e796a5c3ceddd05decf91aa1f1808286f617c99af1a0f1a4c48dd46c60ad2cb8a085d7de937ad3450c"
 			],
-			"id": "18277536623113747127"
+			"id": "14962908724680038897"
 		}
 	}
 }
