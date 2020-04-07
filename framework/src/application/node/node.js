@@ -371,7 +371,7 @@ module.exports = class Node {
 				});
 			}
 
-			this.logger.debug(
+			this.logger.info(
 				{
 					id: block.id,
 					height: block.height,
