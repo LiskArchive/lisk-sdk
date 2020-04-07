@@ -24,15 +24,17 @@ import { Rounds } from '../../src/rounds';
 import { BlockHeader } from '../../src/types';
 
 const generateHeadersFromTest = (blocks: any): BlockHeader[] =>
-	blocks.map((block: any) => ({
-		...block,
-		...{
-			id: '',
-			reward: BigInt(0),
-			totalFee: BigInt(0),
-			timestamp: 0,
-		},
-	}));
+	blocks
+		.map((block: any) => ({
+			...block,
+			...{
+				id: '',
+				reward: BigInt(0),
+				totalFee: BigInt(0),
+				timestamp: 0,
+			},
+		}))
+		.reverse();
 
 describe('random_seed', () => {
 	let rounds: Rounds;

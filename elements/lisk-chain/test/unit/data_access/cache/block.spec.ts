@@ -48,19 +48,19 @@ describe('data_access.cache.block', () => {
 
 			expect(blocksCache.items).toStrictEqual(blocks);
 			expect(blocksCache.items.length).toEqual(DEFAULT_CACHE_SIZE);
-			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks);
+			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks.reverse());
 		});
 
-		it('should remove the least height block header and add new heighest height block header', () => {
+		it('should remove the least height block header and add new highest height block header', () => {
 			const [blocks] = Array.from({ length: 510 }, (_, i) =>
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const maxHeight = Math.max(...blocksCache.items.map(b => b.height));
 			const minHeight = Math.min(...blocksCache.items.map(b => b.height));
-			const [lowesHeightBlock] = blocks.filter(b => b.height === minHeight);
+			const [lowestHeightBlock] = blocks.filter(b => b.height === minHeight);
 			const newBlock = BlockHeaderInstance({ height: maxHeight + 1 });
 
-			expect(blocksCache.getByHeight(minHeight)).toEqual(lowesHeightBlock);
+			expect(blocksCache.getByHeight(minHeight)).toEqual(lowestHeightBlock);
 
 			blocksCache.add(newBlock);
 			const [newMinHeightBlock] = blocks.filter(
@@ -77,10 +77,10 @@ describe('data_access.cache.block', () => {
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const minHeight = Math.min(...blocksCache.items.map(b => b.height));
-			const [lowesHeightBlock] = blocks.filter(b => b.height === minHeight);
+			const [lowestHeightBlock] = blocks.filter(b => b.height === minHeight);
 			const newBlock = BlockHeaderInstance({ height: minHeight + 1 });
 
-			expect(blocksCache.getByHeight(minHeight)).toEqual(lowesHeightBlock);
+			expect(blocksCache.getByHeight(minHeight)).toEqual(lowestHeightBlock);
 
 			expect(() => {
 				blocksCache.add(newBlock);
@@ -146,7 +146,7 @@ describe('data_access.cache.block', () => {
 			const blockIds = blocks.map(b => b.id);
 
 			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks);
+			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks.reverse());
 		});
 	});
 
@@ -177,14 +177,7 @@ describe('data_access.cache.block', () => {
 			expect(blocksCache.items).toStrictEqual(blocks);
 			expect(
 				blocksCache.getByHeightBetween(fromHeight, toHeight),
-			).toStrictEqual(blocks);
-			expect(
-				blocksCache.getByHeightBetween(fromHeight + 2, toHeight - 5),
-			).toStrictEqual(
-				blocks.filter(
-					b => b.height >= fromHeight + 2 && b.height <= toHeight - 5,
-				),
-			);
+			).toStrictEqual(blocks.reverse());
 		});
 	});
 });
