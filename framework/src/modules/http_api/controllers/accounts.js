@@ -42,7 +42,6 @@ function accountFormatter(totalSupply, account) {
 
 	if (account.isDelegate) {
 		formattedAccount.delegate = _.pick(account, [
-			'username',
 			'voteWeight',
 			'rewards',
 			'producedBlocks',
