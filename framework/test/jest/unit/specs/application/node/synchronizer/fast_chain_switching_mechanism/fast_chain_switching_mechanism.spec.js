@@ -139,6 +139,48 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 	});
 
+	describe('isValidFor', () => {
+		beforeEach(async () => {
+			jest.spyOn(dposModule, 'getForgerAddressesForRound');
+		});
+
+		describe('when reveivedBlock is at the same round as the last block', () => {
+			it('should return true', async () => {
+				chainModule._lastBlock = { height: 340 };
+				dposModule.getForgerAddressesForRound.mockResolvedValue([
+					'11121761073292744822L',
+				]);
+				const isValid = await fastChainSwitchingMechanism.isValidFor(
+					{
+						generatorPublicKey:
+							'20d381308d9a809455567af249dddd68bd2e23753e69913961fe04ac07732594',
+						height: 400,
+					},
+					'peer-id',
+				);
+				expect(isValid).toEqual(true);
+			});
+		});
+
+		describe('when reveivedBlock is not at the same round as the last block', () => {
+			it('should return false', async () => {
+				chainModule._lastBlock = { height: 340 };
+				dposModule.getForgerAddressesForRound.mockResolvedValue([
+					'11121761073292744822L',
+				]);
+				const isValid = await fastChainSwitchingMechanism.isValidFor(
+					{
+						generatorPublicKey:
+							'20d381308d9a809455567af249dddd68bd2e23753e69913961fe04ac07732594',
+						height: 900,
+					},
+					'peer-id',
+				);
+				expect(isValid).toEqual(false);
+			});
+		});
+	});
+
 	describe('async run()', () => {
 		const aPeerId = '127.0.0.1:5000';
 		let aBlock;

@@ -96,12 +96,12 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const { lastBlock } = this.chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const twoRounds = this.dpos.delegatesPerRound * 2;
-		if (Math.abs(receivedBlock.height - lastBlock.height) > twoRounds) {
+		const blockRound = this.dpos.rounds.calcRound(receivedBlock.height);
+		const lastBlockRound = this.dpos.rounds.calcRound(lastBlock.height);
+		if (blockRound !== lastBlockRound) {
 			return false;
 		}
 
-		const blockRound = this.dpos.rounds.calcRound(receivedBlock.height);
 		const delegateList = await this.dpos.getForgerAddressesForRound(blockRound);
 
 		return delegateList.includes(
