@@ -213,8 +213,11 @@ const _pickStandByDelegate = (
 ): number => {
 	const seedNumber = randomSeed.readBigUInt64BE();
 	const totalVoteWeight = _getTotalVoteWeight(delegateWeights);
+
+	// To pass voteWeight = 0, initialize threshold with negative value
 	// tslint:disable-next-line no-let
-	let threshold = seedNumber % totalVoteWeight;
+	let threshold =
+		totalVoteWeight === BigInt(0) ? BigInt(-1) : seedNumber % totalVoteWeight;
 	// tslint:disable-next-line no-let
 	for (let i = 0; i < delegateWeights.length; i += 1) {
 		const voteWeight = BigInt(delegateWeights[i].voteWeight);
@@ -378,12 +381,8 @@ export class DelegatesList {
 			throw new Error(`Corresponding vote weight for round ${round} not found`);
 		}
 		// Expect that voteWeight is stored in order of voteWeight and address
-		const hasStandbySlot =
-			voteWeight.delegates.length >
-			this.activeDelegates + this.standbyDelegates;
-		const activeDelegateSlots = hasStandbySlot
-			? this.activeDelegates
-			: this.activeDelegates + this.standbyDelegates;
+		const hasStandbySlot = voteWeight.delegates.length > this.activeDelegates;
+		const activeDelegateSlots = this.activeDelegates;
 		const activeDelegateAddresses = voteWeight.delegates
 			.slice(0, activeDelegateSlots)
 			.map(vw => vw.address);
