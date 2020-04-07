@@ -214,7 +214,6 @@ const _pickStandByDelegate = (
 	const seedNumber = randomSeed.readBigUInt64BE();
 	const totalVoteWeight = _getTotalVoteWeight(delegateWeights);
 
-	// Assuming that totalVoteWeight can't be zero
 	// tslint:disable-next-line no-let
 	let threshold = seedNumber % totalVoteWeight;
 	// tslint:disable-next-line no-let
@@ -395,9 +394,9 @@ export class DelegatesList {
 			standbyDelegateVoteWeights.length > 0 &&
 			standbyDelegateVoteWeights.length <= this.standbyDelegates
 		) {
-			standbyDelegateVoteWeights.map(delegate => {
+			for (const delegate of standbyDelegateVoteWeights) {
 				standbyDelegateAddresses.push(delegate.address);
-			});
+			}
 			// If standby delegates are more than what required then choose based on random seed
 		} else if (standbyDelegateVoteWeights.length > this.standbyDelegates) {
 			// tslint:disable-next-line no-let
