@@ -774,7 +774,8 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [...forgers.map(d => d.address).slice(0, 100)],
+						standby: [...forgers.map(d => d.address).slice(101, 102)],
 					},
 				]);
 
@@ -782,7 +783,13 @@ describe('Vote weight snapshot', () => {
 					{
 						round: 11,
 						delegates: [
-							...delegates.map(d => ({
+							...delegates.slice(0, 100).map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						],
+						standby: [
+							...delegates.slice(101, 102).map(d => ({
 								address: d.address,
 								voteWeight: d.totalVotesReceived.toString(),
 							})),
