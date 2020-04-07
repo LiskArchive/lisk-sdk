@@ -222,7 +222,7 @@ export class UnlockTransaction extends BaseTransaction {
 			if (!delegate.username) {
 				errors.push(
 					new TransactionError(
-						'Voted delegate is not registered',
+						'Voted account is not registered as delegate',
 						this.id,
 						'.asset.unlockingObjects.delegateAddress',
 					),
