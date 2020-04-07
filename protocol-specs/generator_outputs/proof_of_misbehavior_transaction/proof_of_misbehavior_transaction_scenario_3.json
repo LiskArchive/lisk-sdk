@@ -36,9 +36,9 @@
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 300000,
-					"maxHeightPreviouslyForged": 250000,
-					"maxHeightPrevoted": 200000,
+					"height": 900000,
+					"maxHeightPreviouslyForged": 850000,
+					"maxHeightPrevoted": 800000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
 					"totalFee": "10000000000",
@@ -46,16 +46,16 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "f536833e1c0b576442e3a342e6eb81ee34a19112b68c89bbfc2ef1099e7b7f51215bfb3342d4b05800538b4ab33add4c55cd04f7634ef26228ebc5e542345909"
+					"blockSignature": "941a519ea7509454c7f8950fd07a5cffc81937c7994a089f70cdac5f74cb1dfa3f4f51ab75da1d7fdbafe43ccbb5cac19f01b842c00cbd2a44ac015fb0fd530d"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 2000000,
 					"previousBlockId": "10620616195853047363",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
-					"height": 300000,
-					"maxHeightPreviouslyForged": 300000,
-					"maxHeightPrevoted": 100000,
+					"height": 900000,
+					"maxHeightPreviouslyForged": 900000,
+					"maxHeightPrevoted": 700000,
 					"numberOfTransactions": 0,
 					"totalAmount": "0",
 					"totalFee": "10000000000",
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "514f1f60d3ce6c2471f866d7ec98a4d263cb30a7ed3231157fa08fe0b69c3f8ea3e33528816327eb2de207fc724838df606c8c03b7681c6537020db0be2bee09"
+					"blockSignature": "76d22cbb87e3d9ffae13f44bb5163da5f402705e595926a2ec93689f66f313822729e7cacf86ebc6c8af3a824a90d0369d6cb37d3cdcfe30f81d8fc38dc05607"
 				}
 			},
 			"signatures": [
-				"7ed627f896b3b63f27a5f5c7e117581645de7e717265d18d4eb3446966832bb21135c9b4284f8639e19022a5bd1e2f866cb6c9d4ce3b1df159516e85ed33f709"
+				"3b91a84f6d009c0a9f28d32507536378aea2a78aa74f47ff962543ed06232b03c14ff3060bbe83ac9296f68688addcb7bd44c6e8918acb94f78cb586ea763308"
 			],
-			"id": "17770094041006137800"
+			"id": "3260543478560139595"
 		}
 	}
 }

@@ -350,7 +350,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			await transactionWithScenario1.apply(store);
 			const updatedDelegate = await store.account.get(delegate.address);
 
-			expect(updatedDelegate.delegate.pomHeights[0]).toEqual(300011);
+			expect(updatedDelegate.delegate.pomHeights[0]).toEqual(900011);
 		});
 
 		it('should set isBanned property to true is pomHeights.length === 5', async () => {
@@ -361,14 +361,7 @@ describe('Proof-of-misbehavior transaction', () => {
 						...delegate,
 						delegate: {
 							...delegate.delegate,
-							pomHeights: [
-								1,
-								2,
-								3,
-								4,
-								validProofOfMisbehaviorTransactionScenario1.testCases.output
-									.asset.header1.height + 10,
-							],
+							pomHeights: [1, 2, 3, 4],
 						},
 					},
 				],
