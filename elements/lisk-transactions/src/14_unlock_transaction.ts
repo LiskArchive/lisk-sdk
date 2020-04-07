@@ -22,7 +22,7 @@ import {
 } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
-import { isPunished, sortUnlocking } from './utils';
+import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
 	readonly delegateAddress: string;
@@ -82,22 +82,19 @@ interface RawAsset {
 	readonly unlockingObjects: ReadonlyArray<RawAssetUnlock>;
 }
 
-const hasWaited = (
+const getWaitingPeriod = (
 	sender: Account,
 	delegateAccount: Account,
 	lastBlockHeight: number,
 	unlockObject: Unlock,
-): boolean => {
+): number => {
 	const currentHeight = lastBlockHeight + 1;
 	const waitTime =
 		sender.address === delegateAccount.address
 			? WAIT_TIME_SELF_VOTE
 			: WAIT_TIME_VOTE;
-	if (currentHeight - unlockObject.unvoteHeight < waitTime) {
-		return false;
-	}
 
-	return true;
+	return waitTime - (currentHeight - unlockObject.unvoteHeight);
 };
 
 export class UnlockTransaction extends BaseTransaction {
@@ -229,25 +226,37 @@ export class UnlockTransaction extends BaseTransaction {
 				);
 				continue;
 			}
-			if (
-				!hasWaited(sender, delegate, store.chain.lastBlockHeader.height, unlock)
-			) {
+
+			const waitingPeriod = getWaitingPeriod(
+				sender,
+				delegate,
+				store.chain.lastBlockHeader.height,
+				unlock,
+			);
+			if (waitingPeriod > 0) {
 				errors.push(
 					new TransactionError(
-						'Unlocking is not permitted as it has passed the waiting time',
+						'Unlocking is not permitted as it is still within the waiting period',
 						this.id,
 						'.asset.unlockingObjects.unvoteHeight',
-						unlock.unvoteHeight,
+						waitingPeriod,
+						0,
 					),
 				);
 			}
-			if (isPunished(sender, delegate, store.chain.lastBlockHeader.height)) {
+			const punishmentPeriod = getPunishmentPeriod(
+				sender,
+				delegate,
+				store.chain.lastBlockHeader.height,
+			);
+			if (punishmentPeriod > 0) {
 				errors.push(
 					new TransactionError(
 						'Unlocking is not permitted as delegate is currently being punished',
 						this.id,
 						'.asset.unlockingObjects.delegateAddress',
-						unlock.unvoteHeight,
+						punishmentPeriod,
+						0,
 					),
 				);
 			}

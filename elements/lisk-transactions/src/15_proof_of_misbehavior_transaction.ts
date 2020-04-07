@@ -29,7 +29,7 @@ import { BlockHeader, TransactionJSON } from './transaction_types';
 import {
 	getBlockBytes,
 	getBlockBytesWithSignature,
-	isPunished,
+	getPunishmentPeriod,
 	validateSignature,
 } from './utils';
 
@@ -347,11 +347,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		}
 
 		if (
-			isPunished(
+			getPunishmentPeriod(
 				delegateAccount,
 				delegateAccount,
 				store.chain.lastBlockHeader.height,
-			)
+			) > 0
 		) {
 			errors.push(
 				new TransactionError(
