@@ -14,11 +14,9 @@
 
 'use strict';
 
-const rewire = require('rewire');
+const { cloneDeep } = require('lodash');
 
-const VotersController = rewire(
-	'../../../../../../src/modules/http_api/controllers/voters',
-);
+const VotersController = require('../../../../../../src/modules/http_api/controllers/voters');
 
 describe('voters/api', () => {
 	let storageStub;
@@ -166,6 +164,26 @@ describe('voters/api', () => {
 					'totalVotesReceived',
 				);
 				expect(account.votes[0].delegate).to.have.property('delegate');
+			});
+		});
+
+		it('should not fail when account has not casted votes', async () => {
+			const accountWithNoVotes = cloneDeep(mockAccount);
+			accountWithNoVotes.votes = [];
+
+			storageStub.entities.Account.getOne.resolves(accountWithNoVotes);
+
+			await VotersController.getVotes(contextStub, (err, res) => {
+				expect(err).to.eql(null);
+
+				const account = res.data;
+
+				expect(account).to.have.property('address');
+				expect(account).to.have.property('publicKey');
+				expect(account).to.have.property('balance');
+				expect(account)
+					.to.have.property('votes')
+					.to.be.an.empty('array');
 			});
 		});
 	});
