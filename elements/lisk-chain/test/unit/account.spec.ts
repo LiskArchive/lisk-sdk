@@ -49,6 +49,76 @@ describe('account', () => {
 				pomHeights: [],
 			});
 		});
+		it('should create an Account object with supplied account object in the constructor', () => {
+			const pomHeights = [1090, 1900, 2888];
+			const mandatoryKeys = ['x', 'y'];
+			const optionalKeys = ['z'];
+			const accountJSON = {
+				address: accountAddress1,
+				publicKey: undefined,
+				balance: '0',
+				username: null,
+				nonce: '0',
+				producedBlocks: 0,
+				fees: '0',
+				rewards: '0',
+				totalVotesReceived: '0',
+				votes: [],
+				unlocking: [],
+				delegate: {
+					lastForgedHeight: 0,
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					pomHeights,
+				},
+				asset: {},
+				keys: {
+					mandatoryKeys,
+					optionalKeys,
+					numberOfSignatures: 0,
+				},
+				missedBlocks: 0,
+				isDelegate: 0,
+			};
+			const accountObj = new Account(accountJSON);
+
+			// Check for delegate.pomHeights array
+			accountObj.delegate.pomHeights.push(900);
+			expect(accountObj.delegate.pomHeights as number[]).toIncludeAnyMembers([
+				900,
+			]);
+			// Make sure the original object's value is not modified
+			expect(
+				accountJSON.delegate.pomHeights as number[],
+			).not.toIncludeAnyMembers([900]);
+
+			// Check for keys.mandatoryKeys array
+			accountObj.keys.mandatoryKeys.push('xx');
+			expect(accountObj.keys.mandatoryKeys).toIncludeAnyMembers(['xx']);
+			// Make sure the original object's value is not modified
+			expect(accountJSON.keys.mandatoryKeys).not.toIncludeAnyMembers(['xx']);
+
+			// Check for votes array
+			const voteObject = {
+				delegateAddress: 'xx',
+				amount: BigInt(100),
+			};
+			accountObj.votes.push(voteObject);
+			expect(accountObj.votes).toIncludeAnyMembers([voteObject]);
+			// Make sure the original object's value is not modified
+			expect(accountJSON.votes).toEqual([]);
+
+			// Check for unlocking array
+			const unlockingObject = {
+				delegateAddress: 'xx',
+				amount: BigInt(100),
+				unvoteHeight: 100,
+			};
+			accountObj.unlocking.push(unlockingObject);
+			expect(accountObj.unlocking).toIncludeAnyMembers([unlockingObject]);
+			// Make sure the original object's value is not modified
+			expect(accountJSON.unlocking).toEqual([]);
+		});
 	});
 
 	describe('getDefaultAccount', () => {
