@@ -17,13 +17,13 @@ import { Account } from '../transaction_types';
 const VOTER_PUNISH_TIME = 260000;
 const SELF_VOTE_PUNISH_TIME = 780000;
 
-export const isPunished = (
+export const getPunishmentPeriod = (
 	sender: Account,
 	delegateAccount: Account,
 	lastBlockHeight: number,
-): boolean => {
+): number => {
 	if (delegateAccount.delegate.pomHeights.length === 0) {
-		return false;
+		return 0;
 	}
 	const lastPomHeight = Math.max(...delegateAccount.delegate.pomHeights);
 	const currentHeight = lastBlockHeight + 1;
@@ -31,9 +31,6 @@ export const isPunished = (
 		sender.address === delegateAccount.address
 			? SELF_VOTE_PUNISH_TIME
 			: VOTER_PUNISH_TIME;
-	if (currentHeight - lastPomHeight < punishTime) {
-		return true;
-	}
 
-	return false;
+	return punishTime - (currentHeight - lastPomHeight);
 };
