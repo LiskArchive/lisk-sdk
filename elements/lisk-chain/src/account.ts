@@ -121,10 +121,10 @@ export class Account {
 		};
 		this.keys = {
 			mandatoryKeys: accountInfo.keys?.mandatoryKeys?.length
-				? [...accountInfo.keys?.mandatoryKeys]
+				? [...accountInfo.keys.mandatoryKeys]
 				: [],
 			optionalKeys: accountInfo.keys?.optionalKeys?.length
-				? [...accountInfo.keys?.optionalKeys]
+				? [...accountInfo.keys.optionalKeys]
 				: [],
 			numberOfSignatures: accountInfo.keys?.numberOfSignatures || 0,
 		};
