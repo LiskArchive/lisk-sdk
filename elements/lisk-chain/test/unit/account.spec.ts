@@ -49,6 +49,7 @@ describe('account', () => {
 				pomHeights: [],
 			});
 		});
+
 		it('should create an Account object with supplied account object in the constructor', () => {
 			const pomHeights = [1090, 1900, 2888];
 			const mandatoryKeys = ['x', 'y'];
@@ -97,6 +98,12 @@ describe('account', () => {
 			expect(accountObj.keys.mandatoryKeys).toIncludeAnyMembers(['xx']);
 			// Make sure the original object's value is not modified
 			expect(accountJSON.keys.mandatoryKeys).not.toIncludeAnyMembers(['xx']);
+
+			// Check for keys.optionalKeys array
+			accountObj.keys.optionalKeys.push('zz');
+			expect(accountObj.keys.optionalKeys).toIncludeAnyMembers(['zz']);
+			// Make sure the original object's value is not modified
+			expect(accountJSON.keys.optionalKeys).not.toIncludeAnyMembers(['zz']);
 
 			// Check for votes array
 			const voteObject = {
