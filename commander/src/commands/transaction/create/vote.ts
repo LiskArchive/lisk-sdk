@@ -157,7 +157,7 @@ export default class VoteCommand extends BaseCommand {
 
 			return {
 				delegateAddress,
-				amount: String(BigInt(normalizedAmount) * BigInt(sign)),
+				amount: (BigInt(normalizedAmount) * BigInt(sign)).toString(),
 			};
 		});
 
