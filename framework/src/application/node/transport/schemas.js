@@ -149,7 +149,7 @@ module.exports = {
 					format: 'id',
 				},
 				minItems: 1,
-				maxItems: 25,
+				maxItems: 100,
 			},
 		},
 	},

@@ -22,7 +22,7 @@ const schemas = require('./schemas');
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
-const DEFAULT_RELEASE_LIMIT = 25;
+const DEFAULT_RELEASE_LIMIT = 100;
 const DEFAULT_RELEASE_INTERVAL = 5000;
 
 class Transport {
@@ -115,7 +115,8 @@ class Transport {
 		const lastBlockHeight = lastBlock.height;
 
 		// Calculate max block height for database query
-		const fetchUntilHeight = lastBlockHeight + 34;
+		// 15kb * 103 is about 1.5MB where it's half of 3MB payload limit
+		const fetchUntilHeight = lastBlockHeight + 103;
 
 		const blocks = await this.chainModule.dataAccess.getBlocksByHeightBetween(
 			lastBlockHeight + 1,

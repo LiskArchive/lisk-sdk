@@ -23,7 +23,7 @@ const jobsQueue = require('../../../../../../../src/application/node/utils/jobs_
 
 describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
-	const defaultReleaseLimit = 25;
+	const defaultReleaseLimit = 100;
 
 	let transport;
 	let transactionPoolStub;
@@ -398,7 +398,9 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called without ids, but exceeds maximum', () => {
-			const ids = new Array(30).fill(0).map((_, v) => `100000000000000000${v}`);
+			const ids = new Array(defaultReleaseLimit + 10)
+				.fill(0)
+				.map((_, v) => `10000000000000000${v}`);
 
 			it('should throw an error', async () => {
 				await expect(
