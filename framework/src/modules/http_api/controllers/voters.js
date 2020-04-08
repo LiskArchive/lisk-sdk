@@ -134,9 +134,6 @@ VotersController.getVotes = async (context, next) => {
 	}
 
 	try {
-		// TODO: To keep the consistent behavior of functional tests
-		// not test the account for being a delegate
-		// const delegateFilters = { isDelegate: true, ...filters };
 		const delegateFilters = { ...filters };
 
 		const account = await storage.entities.Account.getOne(delegateFilters);
@@ -154,10 +151,12 @@ VotersController.getVotes = async (context, next) => {
 			aVote => aVote.delegateAddress,
 		);
 
-		const votedDelegates = await storage.entities.Account.get(
-			{ address_in: votedDelegatesAddresses },
-			options,
-		);
+		const votedDelegates = votedDelegatesAddresses.length
+			? await storage.entities.Account.get(
+					{ address_in: votedDelegatesAddresses },
+					options,
+			  )
+			: [];
 
 		data.votes.forEach(aVote => {
 			const { username, totalVotesReceived, delegate } = votedDelegates.find(
