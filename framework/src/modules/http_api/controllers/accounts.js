@@ -35,6 +35,8 @@ function accountFormatter(totalSupply, account) {
 		'asset',
 		'keys',
 		'votes',
+		'totalVotesReceived',
+		'unlocking',
 		'delegate',
 		'isDelegate',
 		'username',
@@ -42,6 +44,8 @@ function accountFormatter(totalSupply, account) {
 
 	if (account.isDelegate) {
 		formattedAccount.delegate = _.pick(account, [
+			'fees',
+			'rewards',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',

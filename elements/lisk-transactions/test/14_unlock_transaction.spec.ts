@@ -266,7 +266,7 @@ describe('Unlock transaction', () => {
 						expect(status).toBe(Status.FAIL);
 						expect(errors).toHaveLength(1);
 						expect(errors[0].message).toContain(
-							'Unlocking is not permitted as it has passed the waiting time',
+							'Unlocking is not permitted as it is still within the waiting period',
 						);
 					});
 				});
@@ -316,7 +316,7 @@ describe('Unlock transaction', () => {
 						expect(status).toBe(Status.FAIL);
 						expect(errors).toHaveLength(1);
 						expect(errors[0].message).toContain(
-							'Unlocking is not permitted as it has passed the waiting time',
+							'Unlocking is not permitted as it is still within the waiting period',
 						);
 					});
 				});
@@ -480,7 +480,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(3);
 					expect(errors[0].message).toContain(
-						'Unlocking is not permitted as it has passed the waiting time',
+						'Unlocking is not permitted as it is still within the waiting period',
 					);
 				});
 			});
@@ -522,7 +522,7 @@ describe('Unlock transaction', () => {
 					expect(status).toBe(Status.FAIL);
 					expect(errors).toHaveLength(1);
 					expect(errors[0].message).toContain(
-						'Unlocking is not permitted as it has passed the waiting time',
+						'Unlocking is not permitted as it is still within the waiting period',
 					);
 				});
 			});
