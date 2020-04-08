@@ -213,7 +213,7 @@ class Processor {
 	async validate(block) {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
-			'Validating detached block',
+			'Validating block',
 		);
 		const blockProcessor = this._getBlockProcessor(block);
 		await blockProcessor.validate.run({
