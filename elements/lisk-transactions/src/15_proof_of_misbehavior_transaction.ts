@@ -36,50 +36,50 @@ import {
 const blockHeaderSchema = {
 	type: 'object',
 	required: [
-		'version',
-		'totalAmount',
-		'seedReveal',
-		'totalFee',
-		'reward',
-		'payloadHash',
-		'timestamp',
-		'numberOfTransactions',
-		'payloadLength',
-		'generatorPublicKey',
 		'blockSignature',
+		'generatorPublicKey',
+		'height',
+		'maxHeightPreviouslyForged',
+		'maxHeightPrevoted',
+		'numberOfTransactions',
+		'payloadHash',
+		'payloadLength',
+		'previousBlockId',
+		'reward',
+		'seedReveal',
+		'timestamp',
+		'totalAmount',
+		'totalFee',
+		'version',
 	],
 	properties: {
-		version: {
+		blockSignature: {
+			type: 'string',
+			format: 'signature',
+		},
+		generatorPublicKey: {
+			type: 'string',
+			format: 'publicKey',
+		},
+		height: {
+			type: 'integer',
+			minimum: 1,
+		},
+		maxHeightPreviouslyForged: {
 			type: 'integer',
 			minimum: 0,
 		},
-		totalAmount: {
-			type: 'string',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'string',
-			format: 'amount',
-		},
-		reward: {
-			type: 'string',
-			format: 'amount',
-		},
-		seedReveal: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadHash: {
-			type: 'string',
-			format: 'hex',
-		},
-		timestamp: {
+		maxHeightPrevoted: {
 			type: 'integer',
 			minimum: 0,
 		},
 		numberOfTransactions: {
 			type: 'integer',
 			minimum: 0,
+		},
+		payloadHash: {
+			type: 'string',
+			format: 'hex',
 		},
 		payloadLength: {
 			type: 'integer',
@@ -91,25 +91,29 @@ const blockHeaderSchema = {
 			minLength: 1,
 			maxLength: 20,
 		},
-		generatorPublicKey: {
+		reward: {
 			type: 'string',
-			format: 'publicKey',
+			format: 'amount',
 		},
-		maxHeightPrevoted: {
+		seedReveal: {
+			type: 'string',
+			format: 'hex',
+		},
+		timestamp: {
 			type: 'integer',
 			minimum: 0,
 		},
-		maxHeightPreviouslyForged: {
+		totalAmount: {
+			type: 'string',
+			format: 'amount',
+		},
+		totalFee: {
+			type: 'string',
+			format: 'amount',
+		},
+		version: {
 			type: 'integer',
 			minimum: 0,
-		},
-		height: {
-			type: 'integer',
-			minimum: 1,
-		},
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
 		},
 	},
 };
