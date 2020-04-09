@@ -104,7 +104,6 @@ describe('accounts/api', () => {
 			},
 			delegate: {
 				lastForgedHeight: 0,
-				registeredHeight: 0,
 				consecutiveMissedBlocks: 0,
 				isBanned: false,
 				pomHeights: [],
@@ -120,8 +119,13 @@ describe('accounts/api', () => {
 		};
 
 		channelStub = {
-			invoke: sinonSandbox.stub().resolves({ height: 1 }),
+			invoke: sinonSandbox.stub(),
 		};
+
+		channelStub.invoke.withArgs('app:getLastBlock').resolves({ height: 1 });
+		channelStub.invoke
+			.withArgs('app:calculateSupply')
+			.resolves('10000000000000');
 
 		new AccountsController({
 			components: {
@@ -158,6 +162,14 @@ describe('accounts/api', () => {
 				expect(account).to.have.property('totalVotesReceived');
 				expect(account).to.have.property('unlocking');
 				expect(account).to.have.property('delegate');
+				expect(account.delegate).to.have.property('lastForgedHeight');
+				expect(account.delegate).to.have.property('consecutiveMissedBlocks');
+				expect(account.delegate).to.have.property('isBanned');
+				expect(account.delegate).to.have.property('pomHeights');
+				expect(account).to.have.property('keys');
+				expect(account.keys).to.have.property('numberOfSignatures');
+				expect(account.keys).to.have.property('mandatoryKeys');
+				expect(account.keys).to.have.property('optionalKeys');
 			});
 		});
 	});

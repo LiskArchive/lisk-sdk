@@ -2100,6 +2100,7 @@ definitions:
       - votes
       - delegate
       - unlocking
+      - keys
     properties:
       address:
         type: string
