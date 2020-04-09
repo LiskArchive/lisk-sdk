@@ -37,6 +37,7 @@ const _parseBlock = raw => {
 		totalAmount: raw.totalAmount,
 		totalFee: raw.totalFee,
 		reward: raw.reward,
+		seedReveal: raw.seedReveal,
 		payloadLength: parseInt(raw.payloadLength, 10),
 		payloadHash: raw.payloadHash,
 		generatorPublicKey: raw.generatorPublicKey,
