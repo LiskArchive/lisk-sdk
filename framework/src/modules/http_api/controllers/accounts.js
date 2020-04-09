@@ -35,6 +35,8 @@ function accountFormatter(totalSupply, account) {
 		'asset',
 		'keys',
 		'votes',
+		'totalVotesReceived',
+		'unlocking',
 		'delegate',
 		'isDelegate',
 		'username',
@@ -42,8 +44,8 @@ function accountFormatter(totalSupply, account) {
 
 	if (account.isDelegate) {
 		formattedAccount.delegate = _.pick(account, [
-			'username',
-			'voteWeight',
+			'fees',
+			'rewards',
 			'rewards',
 			'producedBlocks',
 			'missedBlocks',
@@ -52,7 +54,7 @@ function accountFormatter(totalSupply, account) {
 
 		// Computed fields
 		formattedAccount.delegate.approval = calculateApproval(
-			formattedAccount.delegate.voteWeight,
+			formattedAccount.totalVotesReceived,
 			totalSupply,
 		);
 	}

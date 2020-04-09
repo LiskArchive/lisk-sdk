@@ -69,7 +69,7 @@ module.exports = class Node {
 				this.options.forging.waitThreshold >= this.options.constants.blockTime
 			) {
 				throw Error(
-					`app.node.forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to app.genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for modules.chain.forging.waitThreshold`,
+					`forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
 
@@ -371,7 +371,7 @@ module.exports = class Node {
 				});
 			}
 
-			this.logger.debug(
+			this.logger.info(
 				{
 					id: block.id,
 					height: block.height,

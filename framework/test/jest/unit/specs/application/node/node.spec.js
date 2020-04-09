@@ -236,7 +236,7 @@ describe('Node', () => {
 			expect(node.logger.fatal).toHaveBeenCalledWith(
 				expect.objectContaining({
 					message: expect.stringContaining(
-						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.blockTime=4',
+						'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=4',
 					),
 				}),
 				'Failed to initialization node',
@@ -266,7 +266,7 @@ describe('Node', () => {
 			expect(node.logger.fatal).toHaveBeenCalledWith(
 				expect.objectContaining({
 					message: expect.stringContaining(
-						'app.node.forging.waitThreshold=5 is greater or equal to app.genesisConfig.blockTime=5',
+						'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=5',
 					),
 				}),
 				'Failed to initialization node',

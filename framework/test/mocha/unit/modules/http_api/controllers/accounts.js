@@ -89,6 +89,14 @@ describe('accounts/api', () => {
 					delegateAddress: '10045031187186962062L',
 				},
 			],
+			unlocking: [
+				{
+					amount: '10000000000',
+					delegateAddress: '10045031187186962062L',
+					unvoteHeight: 30,
+				},
+			],
+			totalVotesReceived: '990000000000',
 			keys: {
 				numberOfSignatures: 0,
 				mandatoryKeys: [],
@@ -147,6 +155,8 @@ describe('accounts/api', () => {
 				expect(account).to.have.property('nonce');
 				expect(account).to.have.property('asset');
 				expect(account).to.have.property('votes');
+				expect(account).to.have.property('totalVotesReceived');
+				expect(account).to.have.property('unlocking');
 				expect(account).to.have.property('delegate');
 			});
 		});
