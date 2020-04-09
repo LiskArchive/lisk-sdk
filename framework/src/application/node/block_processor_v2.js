@@ -185,6 +185,16 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.validate.pipe([
 			data => this._validateVersion(data),
 			data => validateSchema(data),
+			({ block }) =>
+				this.chainModule.validateBlockHeader(block, getBytes(block)),
+			({ block }) => this.bftModule.validateBlock(block),
+		]);
+
+		this.forkStatus.pipe([
+			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
+		]);
+
+		this.verify.pipe([
 			async ({ block, stateStore }) => {
 				let expectedReward = this.chainModule.blockReward.calculateReward(
 					block.height,
@@ -199,34 +209,13 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				if (reward === BigInt(0)) {
 					expectedReward = reward;
 				}
-				this.chainModule.validateBlockHeader(
-					block,
-					getBytes(block),
-					expectedReward,
-				);
+				if (block.reward !== expectedReward) {
+					throw new Error(
+						`Invalid block reward: ${block.reward.toString()} expected: ${expectedReward}`,
+					);
+				}
 			},
-			({ block, lastBlock }) =>
-				this.chainModule.verifyInMemory(block, lastBlock),
 			({ block }) => this.dposModule.verifyBlockForger(block),
-			({ block }) => this.bftModule.validateBlock(block),
-		]);
-
-		this.validateDetached.pipe([
-			data => this._validateVersion(data),
-			data => validateSchema(data),
-			({ block }) =>
-				this.chainModule.validateBlockHeader(
-					block,
-					getBytes(block),
-					block.reward, // Because it cannot calculate BFT compliance, it assumes that reward is correct
-				),
-		]);
-
-		this.forkStatus.pipe([
-			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
-		]);
-
-		this.verify.pipe([
 			({ block }) => this.bftModule.verifyNewBlock(block),
 			({ block, stateStore, skipExistingCheck }) =>
 				this.chainModule.verify(block, stateStore, { skipExistingCheck }),

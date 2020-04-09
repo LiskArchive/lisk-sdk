@@ -30,8 +30,6 @@ class BaseBlockProcessor {
 
 		this.validate = new Pipeline();
 
-		this.validateDetached = new Pipeline();
-
 		this.verify = new Pipeline();
 
 		this.apply = new Pipeline();

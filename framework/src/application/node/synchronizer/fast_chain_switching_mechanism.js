@@ -49,7 +49,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				highestCommonBlock,
 				peerId,
 			);
-			await this._validateBlocks(blocks, highestCommonBlock, peerId);
+			await this._validateBlocks(blocks, peerId);
 			await this._switchChain(highestCommonBlock, blocks, peerId);
 		} catch (err) {
 			if (err instanceof ApplyPenaltyAndAbortError) {
@@ -96,17 +96,16 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const { lastBlock } = this.chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const blockRound = this.dpos.rounds.calcRound(receivedBlock.height);
-		const lastBlockRound = this.dpos.rounds.calcRound(lastBlock.height);
-		if (blockRound !== lastBlockRound) {
+		const twoRounds = this.dpos.delegatesPerRound * 2;
+		if (Math.abs(receivedBlock.height - lastBlock.height) > twoRounds) {
 			return false;
 		}
 
-		const delegateList = await this.dpos.getForgerAddressesForRound(blockRound);
-
-		return delegateList.includes(
-			getAddressFromPublicKey(receivedBlock.generatorPublicKey),
+		const generatorAddress = getAddressFromPublicKey(
+			receivedBlock.generatorPublicKey,
 		);
+
+		return this.dpos.isActiveDelegate(generatorAddress, receivedBlock.height);
 	}
 
 	async _requestBlocksWithinIDs(peerId, fromId, toId) {
@@ -195,7 +194,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	async _validateBlocks(blocks, commonBlock, peerId) {
+	async _validateBlocks(blocks, peerId) {
 		this.logger.debug(
 			{
 				blocks: blocks.map(block => ({
@@ -206,20 +205,13 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			'Validating blocks',
 		);
 		try {
-			const commonFullBlock = await this.chain.dataAccess.getBlockByID(
-				commonBlock.id,
-			);
-			let previousBlock = await this.processor.deserialize(commonFullBlock);
 			for (const block of blocks) {
 				this.logger.trace(
 					{ blockId: block.id, height: block.height },
 					'Validating block',
 				);
 				const blockInstance = await this.processor.deserialize(block);
-				await this.processor.validate(blockInstance, {
-					lastBlock: previousBlock,
-				});
-				previousBlock = blockInstance;
+				await this.processor.validate(blockInstance);
 			}
 		} catch (err) {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Block validation failed');

@@ -115,14 +115,16 @@ export class Account {
 			consecutiveMissedBlocks:
 				accountInfo.delegate?.consecutiveMissedBlocks ?? 0,
 			isBanned: accountInfo.delegate?.isBanned ?? false,
-			pomHeights: accountInfo.delegate?.pomHeights ?? [],
+			pomHeights: accountInfo.delegate?.pomHeights
+				? [...accountInfo.delegate.pomHeights]
+				: [],
 		};
 		this.keys = {
 			mandatoryKeys: accountInfo.keys?.mandatoryKeys?.length
-				? accountInfo.keys?.mandatoryKeys
+				? [...accountInfo.keys.mandatoryKeys]
 				: [],
 			optionalKeys: accountInfo.keys?.optionalKeys?.length
-				? accountInfo.keys?.optionalKeys
+				? [...accountInfo.keys.optionalKeys]
 				: [],
 			numberOfSignatures: accountInfo.keys?.numberOfSignatures || 0,
 		};

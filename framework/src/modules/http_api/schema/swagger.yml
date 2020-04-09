@@ -484,7 +484,7 @@ paths:
             - missedBlocks:desc
             - producedBlocks:asc
             - producedBlocks:desc
-            - voteWeight:asc
+            - totalVotesReceived:asc
             - totalVotesReceived:desc
           default: totalVotesReceived:desc
       responses:
@@ -1191,7 +1191,7 @@ definitions:
         description: List of accounts.
         type: array
         items:
-          $ref: '#/definitions/AccountExtended'
+          $ref: '#/definitions/Account'
       meta:
         $ref: '#/definitions/Meta'
       links:
@@ -2095,27 +2095,6 @@ definitions:
     required:
       - address
       - publicKey
-    properties:
-      address:
-        type: string
-        format: address
-        example: 12668885769632475474L
-        description: |
-          The Lisk address is the human readable representation of the accounts owners public key.
-          It consists of multiple numbers followed by a capital 'L' at the end.
-      publicKey:
-        type: string
-        format: publicKey
-        example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
-        description: |
-          The public key is derived from the private key of the owner of the account.
-          It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
-
-  AccountExtended:
-    type: object
-    required:
-      - address
-      - publicKey
       - balance
       - nonce
       - votes
@@ -2167,13 +2146,17 @@ definitions:
             $ref: '#/definitions/Unlocking'
       keys:
         $ref: '#/definitions/MultisignatureAsset'
-
+      totalVotesReceived:
+        type: string
+        example: 1081560729258
+        description: |
+          The total votes received by the delegate.
+          Represents the total amount of Lisk (in Beddows), that the delegates voters voted this delegate.
 
   Delegate:
     type: object
     required:
       - username
-      - voteWeight
     properties:
       username:
         type: string
@@ -2183,13 +2166,6 @@ definitions:
           The delegates username.
           A delegate chooses the username by registering a delegate on the Lisk network.
           It is unique and cannot be changed later.
-      voteWeight:
-        type: string
-        example: 1081560729258
-        description: |
-          The voters weight of the delegate.
-          Represents the total amount of Lisk (in Beddows), that the delegates voters own.
-          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
       rewards:
         type: string
         example: 510000000

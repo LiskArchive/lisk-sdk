@@ -135,9 +135,29 @@ export default class VoteCommand extends BaseCommand {
 				throw new Error('Delegate address must be unique.');
 			}
 
+			const numberAmount = Number(amount);
+
+			if (Number.isNaN(numberAmount)) {
+				throw new ValidationError(
+					'Enter a valid amount in number string format.',
+				);
+			}
+
+			const sign = numberAmount < 0 ? -1 : 1;
+
+			const normalizedAmount = transactionUtils.convertLSKToBeddows(
+				String(Math.abs(numberAmount)),
+			);
+
+			if (!isValidFee(normalizedAmount)) {
+				throw new ValidationError(
+					'Enter a valid vote amount in number string format.',
+				);
+			}
+
 			return {
 				delegateAddress,
-				amount,
+				amount: (BigInt(normalizedAmount) * BigInt(sign)).toString(),
 			};
 		});
 

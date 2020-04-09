@@ -483,11 +483,11 @@ describe('Synchronizer', () => {
 		});
 
 		it('should validate the block before sync', async () => {
-			jest.spyOn(processorModule, 'validateDetached');
+			jest.spyOn(processorModule, 'validate');
 
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
-			expect(processorModule.validateDetached).toHaveBeenCalledWith(
+			expect(processorModule.validate).toHaveBeenCalledWith(
 				await processorModule.deserialize(aReceivedBlock),
 			);
 		});

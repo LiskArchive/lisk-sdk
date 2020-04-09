@@ -135,7 +135,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 						const deserializedBlock = await this.processorModule.deserialize(
 							block,
 						);
-						await this.processorModule.process(deserializedBlock);
+						await this.processorModule.processValidated(deserializedBlock);
 					}
 				} catch (err) {
 					this.logger.error({ err }, 'Block processing failed');
@@ -452,7 +452,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 */
 	async _blockDetachedStatus(networkLastBlock) {
 		try {
-			await this.processorModule.validateDetached(networkLastBlock);
+			await this.processorModule.validate(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
 			return { valid: false, err };
