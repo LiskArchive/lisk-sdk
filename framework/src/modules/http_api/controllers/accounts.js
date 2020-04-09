@@ -27,46 +27,13 @@ function AccountsController(scope) {
 }
 
 function accountFormatter(totalSupply, account) {
-	const formattedAccount = _.pick(account, [
-		'address',
-		'publicKey',
-		'balance',
-		'nonce',
-		'asset',
-		'keys',
-		'votes',
-		'totalVotesReceived',
-		'unlocking',
-		'delegate',
-		'isDelegate',
-		'username',
-	]);
+	account.delegate.approval = calculateApproval(
+		account.totalVotesReceived,
+		totalSupply,
+	);
+	account.publicKey = account.publicKey || '';
 
-	if (account.isDelegate) {
-		formattedAccount.delegate = _.pick(account, [
-			'fees',
-			'rewards',
-			'rewards',
-			'producedBlocks',
-			'missedBlocks',
-			'productivity',
-		]);
-
-		// Computed fields
-		formattedAccount.delegate.approval = calculateApproval(
-			formattedAccount.totalVotesReceived,
-			totalSupply,
-		);
-	}
-
-	// If an account is not multi signature, then do not include keys for response
-	if (formattedAccount.keys.numberOfSignatures === 0) {
-		delete formattedAccount.keys;
-	}
-
-	formattedAccount.publicKey = formattedAccount.publicKey || '';
-
-	return formattedAccount;
+	return account;
 }
 
 AccountsController.getAccounts = async (context, next) => {

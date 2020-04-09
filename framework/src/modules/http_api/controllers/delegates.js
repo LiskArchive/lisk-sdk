@@ -27,28 +27,14 @@ let epochTime;
 let activeDelegates;
 let standbyDelegates;
 
-function delegateFormatter(totalSupply, delegate) {
-	const result = _.pick(delegate, [
-		'username',
-		'totalVotesReceived',
-		'rewards',
-		'producedBlocks',
-		'missedBlocks',
-		'productivity',
-		'address',
-		'publicKey',
-		'balance',
-		'nonce',
-		'asset',
-		'keys',
-		'votes',
-		'delegate',
-		'unlocking',
-	]);
+function delegateFormatter(totalSupply, account) {
+	account.delegate.approval = calculateApproval(
+		account.totalVotesReceived,
+		totalSupply,
+	);
+	account.publicKey = account.publicKey || '';
 
-	result.approval = calculateApproval(result.totalVotesReceived, totalSupply);
-
-	return result;
+	return account;
 }
 
 async function _getDelegates(filters, options) {
