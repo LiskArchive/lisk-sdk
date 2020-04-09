@@ -28,17 +28,13 @@ let activeDelegates;
 let standbyDelegates;
 
 function delegateFormatter(totalSupply, account) {
-	const formattedAccount = {
-		...account,
-		delegate: {
-			...account.delegate,
-			approval: calculateApproval(account.totalVotesReceived, totalSupply),
-		},
-	};
+	account.delegate.approval = calculateApproval(
+		account.totalVotesReceived,
+		totalSupply,
+	);
+	account.publicKey = account.publicKey || '';
 
-	formattedAccount.publicKey = formattedAccount.publicKey || '';
-
-	return formattedAccount;
+	return account;
 }
 
 async function _getDelegates(filters, options) {

@@ -27,17 +27,13 @@ function AccountsController(scope) {
 }
 
 function accountFormatter(totalSupply, account) {
-	const formattedAccount = {
-		...account,
-		delegate: {
-			...account.delegate,
-			approval: calculateApproval(account.totalVotesReceived, totalSupply),
-		},
-	};
+	account.delegate.approval = calculateApproval(
+		account.totalVotesReceived,
+		totalSupply,
+	);
+	account.publicKey = account.publicKey || '';
 
-	formattedAccount.publicKey = formattedAccount.publicKey || '';
-
-	return formattedAccount;
+	return account;
 }
 
 AccountsController.getAccounts = async (context, next) => {
