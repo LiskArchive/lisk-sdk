@@ -1225,7 +1225,7 @@ definitions:
         description: List of delegates.
         type: array
         items:
-          $ref: '#/definitions/DelegateWithAccount'
+          $ref: '#/definitions/Account'
       meta:
         type: object
         required:
@@ -2100,6 +2100,7 @@ definitions:
       - votes
       - delegate
       - unlocking
+      - keys
     properties:
       address:
         type: string
@@ -2152,119 +2153,50 @@ definitions:
         description: |
           The total votes received by the delegate.
           Represents the total amount of Lisk (in Beddows), that the delegates voters voted this delegate.
+      rewards:
+        type: string
+        example: 510000000
+        description: Total sum of block rewards that the delegate has forged.
+      producedBlocks:
+        type: integer
+        example: 20131
+        description: Total number of blocks that the delegate has forged.
+      missedBlocks:
+        type: integer
+        example: 427
+        description: Total number of blocks that the delegate has missed.
+      productivity:
+        type: number
+        example: 96.41
+        description: |
+          Productivity rate.
+          Percentage of successfully forged blocks (not missed), by the delegate.
 
   Delegate:
     type: object
-    required:
-      - username
     properties:
-      username:
-        type: string
-        example: isabella
-        format: username
-        description: |
-          The delegates username.
-          A delegate chooses the username by registering a delegate on the Lisk network.
-          It is unique and cannot be changed later.
-      rewards:
-        type: string
-        example: 510000000
-        description: Total sum of block rewards that the delegate has forged.
-      producedBlocks:
+      lastForgedHeight:
         type: integer
-        example: 20131
-        description: Total number of blocks that the delegate has forged.
-      missedBlocks:
+        example: 100
+        description: Height of the block which delegate forged last time.
+      consecutiveMissedBlocks:
         type: integer
-        example: 427
-        description: Total number of blocks that the delegate has missed.
+        example: 10
+        description: Number of blocks that the delegate missed consecutively.
+      isBanned:
+        type: boolean
+        example: false
+        description: Whether the delegate is banned or not.
+      pomHeights:
+        type: array
+        description: Height of blocks where delegate has been reported for misbehavior.
+        items:
+          type: integer
       approval:
         type: number
         example: 14.22
         description: Percentage of the voters weight that the delegate owns in relation to the total supply of Lisk.
-      productivity:
-        type: number
-        example: 96.41
-        description: |
-          Productivity rate.
-          Percentage of successfully forged blocks (not missed), by the delegate.
 
-
-  DelegateWithAccount:
-    type: object
-    required:
-      - username
-      - totalVotesReceived
-    properties:
-      username:
-        type: string
-        example: isabella
-        format: username
-        description: |
-          The delegates username.
-          A delegate chooses the username by registering a delegate on the Lisk network.
-          It is unique and cannot be changed later.
-      totalVotesReceived:
-        type: string
-        example: 1081560729258
-        description: |
-          The total votes received by the delegate.
-          Represents the total amount of Lisk (in Beddows), that the delegates voters voted this delegate.
-      rewards:
-        type: string
-        example: 510000000
-        description: Total sum of block rewards that the delegate has forged.
-      producedBlocks:
-        type: integer
-        example: 20131
-        description: Total number of blocks that the delegate has forged.
-      missedBlocks:
-        type: integer
-        example: 427
-        description: Total number of blocks that the delegate has missed.
-      productivity:
-        type: number
-        example: 96.41
-        description: |
-          Productivity rate.
-          Percentage of successfully forged blocks (not missed), by the delegate.
-      address:
-        type: string
-        example: 10016685355739180605L
-        description: The LISK address for the delegate.
-      publicKey:
-        type: string
-        example: c678d19210ebf71914652d6644da5ee42e0c80948c4b520dba9f3d4514b213b2
-        description: The public key for the delegate.
-      balance:
-        type: string
-        example: 7000000000
-        description: The LISK balance for the delegate.
-      nonce:
-        type: string
-        example: 154
-        description: The current nonce associated to account for transaction processing.
-      asset:
-        type: object
-        description: The asset object for the account.
-      keys:
-        type: object
-        description: Multisignature information for the account.
-      votes:
-        type: array
-        items:
-          $ref: '#/definitions/Vote'
-      delegate:
-        type: object
-        description: Delegate propertiees associated with the account.
-      approval:
-        type: number
-        example: 14.22
-        description: Percentage of the voters weight that the delegate owns in relation to the total supply of Lisk.
-      unlocking:
-        type: array
-        items:
-          $ref: '#/definitions/Unlocking'
 
   DelegateWithVoters:
     type: object
