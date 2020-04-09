@@ -22,14 +22,8 @@ import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
 describe('transaction:create:vote', () => {
-	const defaultVote = [
-		'356975984361330918L,1000000000',
-		'7539210577161571444L,3000000000',
-	];
-	const defaultUnvote = [
-		'356975984361330918L,-1000000000',
-		'7539210577161571444L,-3000000000',
-	];
+	const defaultVote = ['356975984361330918L,10', '7539210577161571444L,30'];
+	const defaultUnvote = ['356975984361330918L,-10', '7539210577161571444L,-30'];
 	const testnetNetworkIdentifier =
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	const defaultInputs = '123';
@@ -71,7 +65,7 @@ describe('transaction:create:vote', () => {
 		const voteValues = defaultVote[0].split(',');
 		const vote = {
 			delegateAddress: voteValues[0],
-			amount: voteValues[1],
+			amount: String(Number(voteValues[1]) ** 9),
 		};
 		setupStub()
 			.command([
@@ -105,7 +99,7 @@ describe('transaction:create:vote', () => {
 		const voteValues = defaultUnvote[0].split(',');
 		const vote = {
 			delegateAddress: voteValues[0],
-			amount: voteValues[1],
+			amount: String(Number(voteValues[1]) ** 9),
 		};
 
 		setupStub()
@@ -140,7 +134,7 @@ describe('transaction:create:vote', () => {
 		const voteValues = defaultVote[0].split(',');
 		const vote = {
 			delegateAddress: voteValues[0],
-			amount: voteValues[1],
+			amount: String(Number(voteValues[1]) ** 9),
 		};
 
 		const unvote = { ...vote };
@@ -154,8 +148,8 @@ describe('transaction:create:vote', () => {
 				'transaction:create:vote',
 				'1',
 				'100',
-				`--votes=${vote.delegateAddress},${vote.amount}`,
-				`--votes=${unvote.delegateAddress},${unvote.amount}`,
+				`--votes=${vote.delegateAddress},${voteValues[1]}`,
+				`--votes=${unvote.delegateAddress},-${voteValues[1]}`,
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
@@ -169,8 +163,8 @@ describe('transaction:create:vote', () => {
 				'transaction:create:vote',
 				'1',
 				'100',
-				`--votes=${vote.delegateAddress},${vote.amount}`,
-				`--votes=${validUnvote.delegateAddress},${validUnvote.amount}`,
+				`--votes=${vote.delegateAddress},${voteValues[1]}`,
+				`--votes=${validUnvote.delegateAddress},-${voteValues[1]}`,
 			])
 			.it('should create a transaction with votes and unvotes', () => {
 				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
@@ -202,11 +196,11 @@ describe('transaction:create:vote', () => {
 
 		const vote = {
 			delegateAddress: voteValues[0],
-			amount: voteValues[1],
+			amount: String(Number(voteValues[1]) ** 9),
 		};
 		const unvote = {
-			delegateAddress: unvoteValues[1],
-			amount: unvoteValues[1],
+			delegateAddress: unvoteValues[0],
+			amount: '-3000000000',
 		};
 
 		setupStub()
@@ -214,19 +208,20 @@ describe('transaction:create:vote', () => {
 				'transaction:create:vote',
 				'1',
 				'100',
-				`--votes=${vote.delegateAddress},${vote.amount}`,
-				`--votes=${unvote.delegateAddress},${unvote.amount}`,
+				`--votes=${vote.delegateAddress},${voteValues[1]}`,
+				`--votes=${unvote.delegateAddress},-30`,
 				'--no-signature',
 			])
 			.it(
 				'should create a transaction with votes and unvotes without signature',
 				() => {
+					console.log(unvote, unvoteValues);
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(validator.validateAddress).to.be.calledWithExactly(
-						defaultVote[0].split(',')[0],
+						voteValues[0],
 					);
 					expect(validator.validateAddress).to.be.calledWithExactly(
-						defaultUnvote[1].split(',')[1],
+						unvoteValues[0],
 					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						nonce: '1',
@@ -248,11 +243,11 @@ describe('transaction:create:vote', () => {
 
 		const vote = {
 			delegateAddress: voteValues[0],
-			amount: voteValues[1],
+			amount: String(Number(voteValues[1]) ** 9),
 		};
 		const unvote = {
-			delegateAddress: unvoteValues[1],
-			amount: unvoteValues[1],
+			delegateAddress: unvoteValues[0],
+			amount: '-3000000000',
 		};
 
 		setupStub()
@@ -260,8 +255,8 @@ describe('transaction:create:vote', () => {
 				'transaction:create:vote',
 				'1',
 				'100',
-				`--votes=${vote.delegateAddress},${vote.amount}`,
-				`--votes=${unvote.delegateAddress},${unvote.amount}`,
+				`--votes=${vote.delegateAddress},${voteValues[1]}`,
+				`--votes=${unvote.delegateAddress},-30`,
 				'--passphrase=123',
 			])
 			.it(
@@ -272,7 +267,7 @@ describe('transaction:create:vote', () => {
 						defaultVote[0].split(',')[0],
 					);
 					expect(validator.validateAddress).to.be.calledWithExactly(
-						defaultUnvote[1].split(',')[1],
+						defaultUnvote[1].split(',')[0],
 					);
 					expect(transactions.castVotes).to.be.calledWithExactly({
 						nonce: '1',
