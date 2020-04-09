@@ -38,6 +38,7 @@ describe('blocks/api', () => {
 				'68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516',
 			blockSignature:
 				'51356c69d94762ef355a95a960002aabc80d331da136cc07082bf98856e57ea9d13d2c74dd923c412221b36f4c3e276b2d83d9019521ddf003d0b39698d4ae0a',
+			seedReveal: 'c26fa00cf52c227e4224aa79f87e5972',
 			height: 1860,
 			totalFee: '0',
 			reward: '0',
@@ -124,6 +125,7 @@ describe('blocks/api', () => {
 				expect(block).to.have.property('timestamp');
 				expect(block).to.have.property('height');
 				expect(block).to.have.property('previousBlockId');
+				expect(block).to.have.property('seedReveal');
 				expect(block).to.have.property('numberOfTransactions');
 				expect(block).to.have.property('totalAmount');
 				expect(block).to.have.property('totalFee');
