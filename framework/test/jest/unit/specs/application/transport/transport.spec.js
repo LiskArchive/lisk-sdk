@@ -560,7 +560,7 @@ describe('transport', () => {
 							).toHaveBeenCalledWith(query.blockId);
 							return expect(
 								transportModule.chainModule.dataAccess.getBlocksByHeightBetween,
-							).toHaveBeenCalledWith(3, 36);
+							).toHaveBeenCalledWith(3, 105);
 						});
 					});
 

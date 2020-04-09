@@ -210,29 +210,13 @@ class Processor {
 		return processor.create.run({ data, stateStore });
 	}
 
-	// validate checks the block statically
-	async validate(block, { lastBlock } = this.chainModule) {
+	async validate(block) {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
 			'Validating block',
 		);
 		const blockProcessor = this._getBlockProcessor(block);
-		const stateStore = await this.chainModule.newStateStore();
-
 		await blockProcessor.validate.run({
-			block,
-			lastBlock,
-			stateStore,
-		});
-	}
-
-	async validateDetached(block) {
-		this.logger.debug(
-			{ id: block.id, height: block.height },
-			'Validating detached block',
-		);
-		const blockProcessor = this._getBlockProcessor(block);
-		await blockProcessor.validateDetached.run({
 			block,
 		});
 	}
@@ -295,7 +279,6 @@ class Processor {
 		{ saveOnlyState, skipBroadcast, removeFromTempTable = false } = {},
 	) {
 		const stateStore = await this.chainModule.newStateStore();
-
 		await processor.verify.run({
 			block,
 			lastBlock,

@@ -150,7 +150,6 @@ describe('block_synchronization_mechanism', () => {
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.validate = jest.fn();
-		processorModule.process = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV2);
 
@@ -797,17 +796,17 @@ describe('block_synchronization_mechanism', () => {
 					requestedBlocks.findIndex(block => block.id === aBlock.id) + 1,
 				);
 
-				expect(processorModule.process).toHaveBeenCalledTimes(
+				expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					blocksToApply.length,
 				);
 				for (const requestedBlock of blocksToApply) {
-					expect(processorModule.process).toHaveBeenCalledWith(
+					expect(processorModule.processValidated).toHaveBeenCalledWith(
 						await processorModule.deserialize(requestedBlock),
 					);
 				}
 
 				for (const requestedBlock of blocksToNotApply) {
-					expect(processorModule.process).not.toHaveBeenCalledWith(
+					expect(processorModule.processValidated).not.toHaveBeenCalledWith(
 						await processorModule.deserialize(requestedBlock),
 					);
 				}
@@ -842,7 +841,7 @@ describe('block_synchronization_mechanism', () => {
 				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(12);
 				expect(channelMock.invoke).toHaveBeenCalledTimes(2);
 
-				expect(processorModule.process).not.toHaveBeenCalled();
+				expect(processorModule.processValidated).not.toHaveBeenCalled();
 
 				expectApplyPenaltyAndRestartIsCalled(
 					aBlock,
@@ -923,7 +922,9 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValueOnce(newBlock({ height: 1 }));
 
 					const processingError = new Error('Error processing blocks');
-					processorModule.process.mockRejectedValueOnce(processingError);
+					processorModule.processValidated.mockRejectedValueOnce(
+						processingError,
+					);
 
 					await blockSynchronizationMechanism.run(aBlock);
 
@@ -1019,7 +1020,9 @@ describe('block_synchronization_mechanism', () => {
 					]);
 
 					const processingError = new Error('Error processing blocks');
-					processorModule.process.mockRejectedValueOnce(processingError);
+					processorModule.processValidated.mockRejectedValueOnce(
+						processingError,
+					);
 
 					chainModule._lastBlock = aBlock;
 
@@ -1035,7 +1038,7 @@ describe('block_synchronization_mechanism', () => {
 					);
 
 					expect(loggerMock.debug).toHaveBeenNthCalledWith(
-						15,
+						14,
 						{
 							currentTip: chainModule.lastBlock.id,
 							previousTip: previousTip.id,
@@ -1044,7 +1047,7 @@ describe('block_synchronization_mechanism', () => {
 					);
 
 					expect(loggerMock.debug).toHaveBeenNthCalledWith(
-						16,
+						15,
 						'Cleaning blocks temporary table',
 					);
 

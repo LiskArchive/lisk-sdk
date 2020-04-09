@@ -16,6 +16,7 @@ import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import {
+	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 	DEFAULT_ACTIVE_DELEGATE,
 	DEFAULT_ROUND_OFFSET,
 	DEFAULT_STANDBY_DELEGATE,
@@ -37,6 +38,7 @@ import {
 	DPoSProcessingOptions,
 	ForgersList,
 	StateStore,
+	VoteWeights,
 } from './types';
 
 interface DposConstructor {
@@ -60,6 +62,7 @@ export class Dpos {
 	private readonly delegatesInfo: DelegatesInfo;
 	private readonly chain: Chain;
 	private readonly _delegatesPerRound: number;
+	private readonly _activeDelegates: number;
 
 	public constructor({
 		chain,
@@ -71,6 +74,7 @@ export class Dpos {
 	}: DposConstructor) {
 		this.events = new EventEmitter();
 		this.delegateListRoundOffset = delegateListRoundOffset;
+		this._activeDelegates = activeDelegates;
 		this._delegatesPerRound = activeDelegates + standbyDelegates;
 		// @todo consider making this a constant and reuse it in BFT module.
 		// tslint:disable-next-line:no-magic-numbers
@@ -150,6 +154,37 @@ export class Dpos {
 		);
 
 		return this.rounds.calcRoundStartHeight(activeRounds);
+	}
+
+	public async isActiveDelegate(
+		address: string,
+		height: number,
+	): Promise<boolean> {
+		const relevantRound = this.rounds.calcRound(height);
+		const voteWeightsStr = await this.chain.dataAccess.getConsensusState(
+			CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+		);
+		const voteWeights: VoteWeights = voteWeightsStr
+			? JSON.parse(voteWeightsStr)
+			: [];
+
+		const voteWeight = voteWeights.find(
+			roundRecord => roundRecord.round === relevantRound,
+		);
+
+		if (!voteWeight) {
+			throw new Error(
+				`Vote weight not found for round ${relevantRound} for the given height ${height}`,
+			);
+		}
+		const activeDelegateVoteWeights = voteWeight.delegates.slice(
+			0,
+			this._activeDelegates,
+		);
+
+		return (
+			activeDelegateVoteWeights.findIndex(vw => vw.address === address) > -1
+		);
 	}
 
 	public async isStandbyDelegate(

@@ -375,14 +375,10 @@ export class Chain {
 		}
 	}
 
-	public validateBlockHeader(
-		block: BlockInstance,
-		blockBytes: Buffer,
-		expectedReward: string,
-	): void {
+	public validateBlockHeader(block: BlockInstance, blockBytes: Buffer): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
 		validateSignature(block, blockBytes, this._networkIdentifier);
-		validateReward(block, expectedReward);
+		validateReward(block, this.blockReward.calculateReward(block.height));
 
 		// Validate transactions
 		const transactionsResponses = validateTransactions()(block.transactions);
@@ -407,16 +403,13 @@ export class Chain {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
-	public verifyInMemory(block: BlockInstance, lastBlock: BlockInstance): void {
-		verifyPreviousBlockId(block, lastBlock, this.genesisBlock);
-		validateBlockSlot(block, lastBlock, this.slots);
-	}
-
 	public async verify(
 		blockInstance: BlockInstance,
 		_: StateStore,
 		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
 	): Promise<void> {
+		verifyPreviousBlockId(blockInstance, this._lastBlock, this.genesisBlock);
+		validateBlockSlot(blockInstance, this._lastBlock, this.slots);
 		if (!skipExistingCheck) {
 			await verifyBlockNotExists(this.storage, blockInstance);
 			const transactionsResponses = await checkPersistedTransactions(
