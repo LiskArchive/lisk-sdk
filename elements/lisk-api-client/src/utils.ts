@@ -32,6 +32,7 @@ export const toQueryString = (obj: HashMap): string => {
 const urlParamRegex = /{[^}]+}/;
 export const solveURLParams = (url: string, params: HashMap = {}): string => {
 	if (Object.keys(params).length === 0) {
+		// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 		if (url.match(urlParamRegex) !== null) {
 			throw new Error('URL is not completely solved');
 		}
@@ -44,6 +45,7 @@ export const solveURLParams = (url: string, params: HashMap = {}): string => {
 		url,
 	);
 
+	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 	if (solvedURL.match(urlParamRegex) !== null) {
 		throw new Error('URL is not completely solved');
 	}

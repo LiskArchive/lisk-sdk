@@ -23,7 +23,7 @@ describe('BlocksResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new BlocksResource(apiClient);
 		return Promise.resolve();

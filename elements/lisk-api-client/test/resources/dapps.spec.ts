@@ -23,7 +23,7 @@ describe('DappsResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new DappsResource(apiClient);
 		return Promise.resolve();

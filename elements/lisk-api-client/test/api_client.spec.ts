@@ -32,9 +32,9 @@ describe('APIClient module', () => {
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const testnetNodes: ReadonlyArray<string> = ['https://testnet.lisk.io:443'];
 	const locale =
-		process.env.LC_ALL ||
-		process.env.LC_MESSAGES ||
-		process.env.LANG ||
+		process.env.LC_ALL ??
+		process.env.LC_MESSAGES ??
+		process.env.LANG ??
 		process.env.LANGUAGE;
 	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
@@ -66,7 +66,7 @@ describe('APIClient module', () => {
 
 	let apiClient: APIClient;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient(defaultNodes);
 		return Promise.resolve();
 	});
@@ -74,7 +74,7 @@ describe('APIClient module', () => {
 	describe('#constructor', () => {
 		let initializeStub: jest.SpyInstance;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			initializeStub = jest.spyOn(APIClient.prototype, 'initialize');
 			return Promise.resolve();
 		});
@@ -103,7 +103,7 @@ describe('APIClient module', () => {
 
 	describe('#createMainnetAPIClient', () => {
 		let client: APIClient;
-		beforeEach(() => {
+		beforeEach(async () => {
 			client = APIClient.createMainnetAPIClient();
 			return Promise.resolve();
 		});
@@ -123,7 +123,7 @@ describe('APIClient module', () => {
 
 	describe('#createTestnetAPIClient', () => {
 		let client: APIClient;
-		beforeEach(() => {
+		beforeEach(async () => {
 			client = APIClient.createTestnetAPIClient();
 			return Promise.resolve();
 		});
@@ -149,19 +149,17 @@ describe('APIClient module', () => {
 
 	describe('#initialize', () => {
 		it('should throw an error if no arguments are passed to constructor', () => {
-			return expect(apiClient.initialize.bind(apiClient)).toThrowError(Error);
+			return expect(apiClient.initialize.bind(apiClient)).toThrow(Error);
 		});
 
 		it('should throw an error if first argument passed to constructor is not array', () => {
 			return expect(
 				apiClient.initialize.bind(apiClient, 'non-array' as any),
-			).toThrowError(Error);
+			).toThrow(Error);
 		});
 
 		it('should throw an error if first argument passed to constructor is empty array', () => {
-			return expect(apiClient.initialize.bind(apiClient, [])).toThrowError(
-				Error,
-			);
+			return expect(apiClient.initialize.bind(apiClient, [])).toThrow(Error);
 		});
 
 		it('should throw an error if second argument passed to constructor is a string', () => {
@@ -171,13 +169,13 @@ describe('APIClient module', () => {
 					defaultNodes,
 					'option string' as any,
 				),
-			).toThrowError(Error);
+			).toThrow(Error);
 		});
 
 		it('should throw an error if second argument passed to constructor is an array', () => {
 			return expect(
 				apiClient.initialize.bind(apiClient, defaultNodes, [] as any),
-			).toThrowError(Error);
+			).toThrow(Error);
 		});
 
 		describe('headers', () => {
@@ -263,7 +261,7 @@ describe('APIClient module', () => {
 	describe('#getNewNode', () => {
 		it('should throw an error if all relevant nodes are banned', () => {
 			apiClient.bannedNodes = [...defaultNodes];
-			return expect(apiClient.getNewNode.bind(apiClient)).toThrowError(
+			return expect(apiClient.getNewNode.bind(apiClient)).toThrow(
 				'Cannot get new node: all nodes have been banned.',
 			);
 		});
@@ -273,7 +271,8 @@ describe('APIClient module', () => {
 			return expect(defaultNodes).toEqual(expect.arrayContaining([result]));
 		});
 
-		it('should randomly select the node', () => {
+		// eslint-disable-next-line jest/expect-expect
+		it('should randomly select the node', async () => {
 			const firstResult = apiClient.getNewNode();
 			let nextResult = apiClient.getNewNode();
 			// Test will almost certainly time out if not random
@@ -304,7 +303,7 @@ describe('APIClient module', () => {
 	describe('#banActiveNode', () => {
 		let currentNode: string;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			({ currentNode } = apiClient);
 			return Promise.resolve();
 		});

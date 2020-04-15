@@ -23,7 +23,7 @@ describe('PeersResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new PeersResource(apiClient);
 		return Promise.resolve();
