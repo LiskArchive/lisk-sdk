@@ -21,10 +21,12 @@ class BaseSynchronizer {
 		this.channel = channel;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run() {
 		throw new Error('#run method must be implemented');
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async isValidFor() {
 		throw new Error('#isValidFor method must be implemented');
 	}

@@ -88,7 +88,7 @@ module.exports = class Node {
 				},
 			});
 
-			await this._initModules();
+			this._initModules();
 
 			this.components = {
 				logger: this.logger,
@@ -221,35 +221,39 @@ module.exports = class Node {
 				return accounts.map(account => account.toJSON());
 			},
 			getBlockByID: async action => {
-				const block = this.chain.dataAccess.getBlockByID(action.params.id);
+				const block = await this.chain.dataAccess.getBlockByID(
+					action.params.id,
+				);
 
 				return block ? this.chain.dataAccess.deserialize(block) : undefined;
 			},
 			getBlocksByIDs: async action => {
-				const blocks = this.chain.dataAccess.getBlocksByIDs(action.params.ids);
+				const blocks = await this.chain.dataAccess.getBlocksByIDs(
+					action.params.ids,
+				);
 
 				return blocks.length > 0
-					? blocks.map(this.chain.dataAccess.deserialize)
+					? blocks.map(b => this.chain.dataAccess.deserialize(b))
 					: [];
 			},
 			getBlockByHeight: async action => {
-				const block = this.chain.dataAccess.getBlockByHeight(
+				const block = await this.chain.dataAccess.getBlockByHeight(
 					action.params.height,
 				);
 
 				return block ? this.chain.dataAccess.deserialize(block) : undefined;
 			},
 			getBlocksByHeightBetween: async action => {
-				const blocks = this.chain.dataAccess.getBlocksByHeightBetween(
+				const blocks = await this.chain.dataAccess.getBlocksByHeightBetween(
 					action.params.heights,
 				);
 
 				return blocks.length > 0
-					? blocks.map(this.chain.dataAccess.deserialize)
+					? blocks.map(b => this.chain.dataAccess.deserialize(b))
 					: [];
 			},
 			getTransactionByID: async action => {
-				const [transaction] = this.chain.dataAccess.getTransactionsByIDs(
+				const [transaction] = await this.chain.dataAccess.getTransactionsByIDs(
 					action.params.id,
 				);
 
@@ -258,12 +262,14 @@ module.exports = class Node {
 					: undefined;
 			},
 			getTransactionsByIDs: async action => {
-				const transactions = this.chain.dataAccess.getTransactionsByIDs(
+				const transactions = await this.chain.dataAccess.getTransactionsByIDs(
 					action.params.ids,
 				);
 
 				return transactions.length > 0
-					? transactions.map(this.chain.dataAccess.deserializeTransaction)
+					? transactions.map(tx =>
+							this.chain.dataAccess.deserializeTransaction(tx),
+					  )
 					: [];
 			},
 			getTransactions: async action =>
@@ -271,19 +277,18 @@ module.exports = class Node {
 					action.params.data,
 					action.params.peerId,
 				),
-			getForgingStatusOfAllDelegates: async () =>
+			getForgingStatusOfAllDelegates: () =>
 				this.forger.getForgingStatusOfAllDelegates(),
-			getTransactionsFromPool: async () =>
+			getTransactionsFromPool: () =>
 				this.transactionPool.getAll().map(tx => tx.toJSON()),
 			postTransaction: async action =>
 				this.transport.handleEventPostTransaction(action.params),
-			getSlotNumber: async action =>
+			getSlotNumber: action =>
 				action.params
 					? this.chain.slots.getSlotNumber(action.params.epochTime)
 					: this.chain.slots.getSlotNumber(),
-			calcSlotRound: async action =>
-				this.dpos.rounds.calcRound(action.params.height),
-			getNodeStatus: async () => ({
+			calcSlotRound: action => this.dpos.rounds.calcRound(action.params.height),
+			getNodeStatus: () => ({
 				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getAll().length,
 				secondsSinceEpoch: this.chain.slots.getEpochTime(),
@@ -305,7 +310,7 @@ module.exports = class Node {
 	}
 
 	async cleanup(error) {
-		await this.transactionPool.stop();
+		this.transactionPool.stop();
 		this._unsubscribeToEvents();
 		const { modules } = this;
 
@@ -330,7 +335,7 @@ module.exports = class Node {
 		this.logger.info('Cleaned up successfully');
 	}
 
-	async _initModules() {
+	_initModules() {
 		this.modules = {};
 
 		this.chain = new Chain({
@@ -381,14 +386,14 @@ module.exports = class Node {
 			);
 		});
 
-		this.chain.events.on(EVENT_DELETE_BLOCK, eventData => {
+		this.chain.events.on(EVENT_DELETE_BLOCK, async eventData => {
 			const { block } = eventData;
 			// Publish to the outside
 			this.channel.publish('app:block:delete', eventData);
 
 			if (block.transactions.length) {
 				for (const transaction of block.transactions) {
-					this.transactionPool.add(
+					await this.transactionPool.add(
 						this.chain.deserializeTransaction(transaction),
 					);
 				}
@@ -552,8 +557,8 @@ module.exports = class Node {
 			this.logger.debug(event, 'Transaction was removed from the pool.');
 		});
 
-		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, ({ height }) => {
-			this.dpos.onBlockFinalized({ height });
+		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, async ({ height }) => {
+			await this.dpos.onBlockFinalized({ height });
 		});
 	}
 

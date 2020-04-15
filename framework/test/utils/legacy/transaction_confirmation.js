@@ -43,6 +43,7 @@ function confirmation(
 				apiHelpers
 					.getUnconfirmedTransactionPromise(transaction.id)
 					.then(res => {
+						// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 						expect(res.body.data).to.be.empty;
 					}),
 			));

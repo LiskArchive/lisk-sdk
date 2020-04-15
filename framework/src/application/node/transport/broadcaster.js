@@ -29,6 +29,7 @@ class Broadcaster {
 		this.queue = [];
 		this.transactionIdQueue = [];
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setInterval(async () => {
 			try {
 				await this._broadcast();

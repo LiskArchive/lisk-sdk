@@ -311,7 +311,7 @@ class Application {
 		// TODO: Fix the cause of circular exception
 		// await this._network.stop();
 		// await this._node.cleanup();
-		await this.storage.cleanup();
+		this.storage.cleanup();
 
 		process.exit(errorCode);
 	}
@@ -436,7 +436,7 @@ class Application {
 					handler: () => this.applicationState.state,
 				},
 				updateApplicationState: {
-					handler: action => this.applicationState.update(action.params),
+					handler: async action => this.applicationState.update(action.params),
 				},
 				sendToNetwork: {
 					handler: action => this._network.send(action.params),
@@ -445,10 +445,10 @@ class Application {
 					handler: action => this._network.broadcast(action.params),
 				},
 				requestFromNetwork: {
-					handler: action => this._network.request(action.params),
+					handler: async action => this._network.request(action.params),
 				},
 				requestFromPeer: {
-					handler: action => this._network.requestFromPeer(action.params),
+					handler: async action => this._network.requestFromPeer(action.params),
 				},
 				getConnectedPeers: {
 					handler: action => this._network.getConnectedPeers(action.params),
@@ -477,10 +477,12 @@ class Application {
 						this._node.actions.updateForgingStatus(action),
 				},
 				getForgingStatusOfAllDelegates: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async () =>
 						this._node.actions.getForgingStatusOfAllDelegates(),
 				},
 				getTransactionsFromPool: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action =>
 						this._node.actions.getTransactionsFromPool(action),
 				},
@@ -492,12 +494,15 @@ class Application {
 					handler: async action => this._node.actions.postTransaction(action),
 				},
 				getSlotNumber: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action => this._node.actions.getSlotNumber(action),
 				},
 				calcSlotRound: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action => this._node.actions.calcSlotRound(action),
 				},
 				getNodeStatus: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async () => this._node.actions.getNodeStatus(),
 				},
 				getLastBlock: {

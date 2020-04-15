@@ -113,6 +113,7 @@ class ChainAccount extends AccountEntity {
 		return accounts;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async update(filters, data, _options, tx) {
 		const atLeastOneRequired = true;
 

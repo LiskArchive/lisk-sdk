@@ -31,7 +31,7 @@ function convertErrorsToString(errors) {
 	}
 
 	if (errors instanceof Error) {
-		return errors.toString();
+		return errors.message;
 	}
 
 	if (typeof errors === 'string') {

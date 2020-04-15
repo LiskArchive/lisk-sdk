@@ -88,6 +88,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return true;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async isValidFor(receivedBlock, peerId) {
 		if (!peerId) {
 			// If peerId is not specified, fast chain switching cannot be done

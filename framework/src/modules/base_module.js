@@ -51,10 +51,12 @@ module.exports = class BaseModule {
 		return {};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async load(channel) {
 		throw new ImplementationMissingError();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async unload() {
 		// This interface is not required.
 		return true;

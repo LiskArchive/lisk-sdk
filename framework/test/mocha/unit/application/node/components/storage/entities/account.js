@@ -345,7 +345,7 @@ describe('ChainAccount', () => {
 			account.mergeFilters = sinonSandbox.stub();
 			account.parseFilters = sinonSandbox.stub();
 			// Act
-			account.update(validFilter, {
+			await account.update(validFilter, {
 				username: 'not_a_rand_name',
 			});
 			// Assert
@@ -364,7 +364,7 @@ describe('ChainAccount', () => {
 			account.mergeFilters = sinonSandbox.stub().returns(validFilter);
 			account.parseFilters = sinonSandbox.stub();
 			// Act
-			account.update(validFilter, {
+			await account.update(validFilter, {
 				username: 'not_a_rand_name',
 			});
 			// Assert
@@ -385,7 +385,7 @@ describe('ChainAccount', () => {
 			account.parseFilters = sinonSandbox.stub();
 			account.getUpdateSet = sinonSandbox.stub();
 			// Act
-			account.update(validFilter, randomAccount);
+			await account.update(validFilter, randomAccount);
 			// Assert
 			expect(account.getUpdateSet.calledWith(randomAccount)).to.be.true;
 		});

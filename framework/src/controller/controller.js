@@ -116,6 +116,7 @@ class Controller {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async _loadMigrations(migrationsObj) {
 		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}

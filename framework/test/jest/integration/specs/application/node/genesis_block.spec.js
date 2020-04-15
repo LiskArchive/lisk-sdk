@@ -71,7 +71,7 @@ describe('genesis block', () => {
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(address =>
+					delegateAccountsAddressesInGenesisBlock.map(async address =>
 						storageUtils.getAccount(storage, address),
 					),
 				);
@@ -96,7 +96,7 @@ describe('genesis block', () => {
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(address =>
+					delegateAccountsAddressesInGenesisBlock.map(async address =>
 						storageUtils.getAccount(storage, address),
 					),
 				);
@@ -143,7 +143,7 @@ describe('genesis block', () => {
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(address =>
+					delegateAccountsAddressesInGenesisBlock.map(async address =>
 						storageUtils.getAccount(storage, address),
 					),
 				);
@@ -168,7 +168,7 @@ describe('genesis block', () => {
 				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(address =>
+					delegateAccountsAddressesInGenesisBlock.map(async address =>
 						storageUtils.getAccount(storage, address),
 					),
 				);

@@ -50,6 +50,7 @@ class HttpAPIModule extends BaseModule {
 		return {};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async load(channel) {
 		this.httpApi = new HttpApi(channel, this.options);
 

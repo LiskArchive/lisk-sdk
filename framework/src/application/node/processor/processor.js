@@ -66,12 +66,14 @@ class Processor {
 	}
 
 	// Serialize a block instance to a JSON format of the block
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async serialize(blockInstance) {
 		const blockProcessor = this._getBlockProcessor(blockInstance);
 		return blockProcessor.serialize.run({ block: blockInstance });
 	}
 
 	// DeSerialize a block instance to a JSON format of the block
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async deserialize(blockJSON) {
 		const blockProcessor = this._getBlockProcessor(blockJSON);
 		return blockProcessor.deserialize.run({ block: blockJSON });
@@ -188,6 +190,7 @@ class Processor {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async forkStatus(receivedBlock, lastBlock) {
 		const blockProcessor = this._getBlockProcessor(receivedBlock);
 

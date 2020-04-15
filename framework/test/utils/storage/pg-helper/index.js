@@ -38,7 +38,7 @@ class PgHelper {
 		this.storage = null;
 	}
 
-	_dropDB() {
+	async _dropDB() {
 		return new Promise(resolve => {
 			childProcess.exec(`dropdb --if-exists  ${this.database}`, err => {
 				if (err) {
@@ -53,7 +53,7 @@ class PgHelper {
 		});
 	}
 
-	_createDB() {
+	async _createDB() {
 		return new Promise((resolve, reject) => {
 			childProcess.exec(`createdb ${this.database}`, err => {
 				if (err) {

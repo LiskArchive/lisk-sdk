@@ -39,9 +39,11 @@ class Sequence {
 				this.config.onWarning(this.queue.length, this.config.warningLimit);
 			}
 			await this._tick();
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			setTimeout(nextSequence, defaultTickInterval);
 		};
 
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		nextSequence();
 	}
 
@@ -58,7 +60,7 @@ class Sequence {
 		}
 	}
 
-	add(worker) {
+	async add(worker) {
 		if (!util.types.isAsyncFunction(worker)) {
 			throw new Error('Worker must be an async function.');
 		}

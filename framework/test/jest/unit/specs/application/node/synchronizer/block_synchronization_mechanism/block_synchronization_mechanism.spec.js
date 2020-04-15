@@ -419,7 +419,11 @@ describe('block_synchronization_mechanism', () => {
 						})),
 					]);
 
-				await blockSynchronizationMechanism.run(aBlock);
+				try {
+					await blockSynchronizationMechanism.run(aBlock);
+				} catch (err) {
+					// Expected error
+				}
 
 				expect(loggerMock.info).toHaveBeenCalledWith(
 					{
@@ -508,7 +512,11 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValue({ data: cloneDeep(requestedBlocks).reverse() });
 				}
 
-				await blockSynchronizationMechanism.run(receivedBlock);
+				try {
+					await blockSynchronizationMechanism.run(receivedBlock);
+				} catch (err) {
+					// Expected error
+				}
 
 				expect(
 					blockSynchronizationMechanism._revertToLastCommonBlock,
@@ -536,7 +544,11 @@ describe('block_synchronization_mechanism', () => {
 						});
 				}
 
-				await blockSynchronizationMechanism.run(aBlock);
+				try {
+					await blockSynchronizationMechanism.run(aBlock);
+				} catch (err) {
+					// Expected error
+				}
 
 				expect(
 					blockSynchronizationMechanism._revertToLastCommonBlock,
@@ -628,7 +640,11 @@ describe('block_synchronization_mechanism', () => {
 
 					await chainModule.init();
 
-					await blockSynchronizationMechanism.run(receivedBlock);
+					try {
+						await blockSynchronizationMechanism.run(receivedBlock);
+					} catch (err) {
+						// Expected error
+					}
 
 					expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(3);
 					expect(channelMock.invoke).toHaveBeenCalledTimes(2);
@@ -706,7 +722,11 @@ describe('block_synchronization_mechanism', () => {
 
 					chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
 
-					await blockSynchronizationMechanism.run(aBlock);
+					try {
+						await blockSynchronizationMechanism.run(aBlock);
+					} catch (err) {
+						// Expected error
+					}
 
 					expect(
 						blockSynchronizationMechanism._requestAndApplyBlocksToCurrentChain,
@@ -826,7 +846,11 @@ describe('block_synchronization_mechanism', () => {
 						})
 						.mockResolvedValue({ data: undefined });
 				}
-				await blockSynchronizationMechanism.run(aBlock);
+				try {
+					await blockSynchronizationMechanism.run(aBlock);
+				} catch (err) {
+					// Expected error
+				}
 
 				expect(channelMock.invokeFromNetwork).toHaveBeenCalledWith(
 					'requestFromPeer',
@@ -927,7 +951,11 @@ describe('block_synchronization_mechanism', () => {
 						processingError,
 					);
 
-					await blockSynchronizationMechanism.run(aBlock);
+					try {
+						await blockSynchronizationMechanism.run(aBlock);
+					} catch (err) {
+						// Expected error
+					}
 
 					expect(loggerMock.error).toHaveBeenCalledWith(
 						{ err: processingError },
@@ -1027,7 +1055,11 @@ describe('block_synchronization_mechanism', () => {
 
 					chainModule._lastBlock = aBlock;
 
-					await blockSynchronizationMechanism.run(aBlock);
+					try {
+						await blockSynchronizationMechanism.run(aBlock);
+					} catch (err) {
+						// Expected error
+					}
 
 					expect(loggerMock.error).toHaveBeenCalledWith(
 						{ err: processingError },

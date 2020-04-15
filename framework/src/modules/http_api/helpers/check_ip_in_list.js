@@ -22,8 +22,8 @@ function CheckIpInList(list, addr) {
 	if (!_.isArray(list) || list.length === 0) {
 		return false;
 	}
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < list.length; i++) {
+	// eslint-disable-next-line no-plusplus,@typescript-eslint/prefer-for-of
+	for (let i = 0; i < list.length; i += 1) {
 		entry = list[i];
 		if (ip.isV4Format(entry)) {
 			// IPv4 host entry

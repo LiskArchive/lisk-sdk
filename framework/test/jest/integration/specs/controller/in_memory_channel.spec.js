@@ -96,7 +96,7 @@ describe('InMemoryChannel', () => {
 		});
 
 		describe('#subscribe', () => {
-			it('should be able to subscribe to an event.', () => {
+			it('should be able to subscribe to an event.', async () => {
 				// Arrange
 				const betaEventData = '#DATA';
 				const eventName = beta.events[0].key();
@@ -121,7 +121,7 @@ describe('InMemoryChannel', () => {
 				return donePromise;
 			});
 
-			it('should be able to subscribe to an event once.', () => {
+			it('should be able to subscribe to an event once.', async () => {
 				// Arrange
 				const betaEventData = '#DATA';
 				const eventName = beta.events[0].key();
@@ -181,7 +181,7 @@ describe('InMemoryChannel', () => {
 		});
 
 		describe('#publish', () => {
-			it('should be able to publish an event.', () => {
+			it('should be able to publish an event.', async () => {
 				// Arrange
 				const alphaEventData = '#DATA';
 				const eventName = alpha.events[0].key();

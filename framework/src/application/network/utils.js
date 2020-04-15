@@ -17,7 +17,7 @@
 const net = require('net');
 const dns = require('dns');
 
-const lookupPromise = (hostname, options) =>
+const lookupPromise = async (hostname, options) =>
 	new Promise((resolve, reject) => {
 		dns.lookup(hostname, options, (err, address) => {
 			if (err) {

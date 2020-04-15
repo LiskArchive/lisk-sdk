@@ -26,7 +26,7 @@ function convertErrorsToString(e) {
 	}
 
 	if (e instanceof Error) {
-		return e.toString();
+		return e.message;
 	}
 
 	if (typeof e === 'string') {

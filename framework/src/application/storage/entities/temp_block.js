@@ -68,10 +68,12 @@ class TempBlock extends BaseEntity {
 		);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async get(filters = {}, options = {}, tx = null) {
 		return this._getResults(filters, options, tx);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async getOne(filters = {}, options = {}, tx = null) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);

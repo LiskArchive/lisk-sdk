@@ -72,7 +72,7 @@ class ChildProcessChannel extends BaseChannel {
 		return this.setupSockets();
 	}
 
-	setupSockets() {
+	async setupSockets() {
 		return Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
@@ -183,6 +183,7 @@ class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async cleanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
@@ -295,7 +296,7 @@ class ChildProcessChannel extends BaseChannel {
 	// eslint-disable-next-line class-methods-use-this
 	async _rejectWhenTimeout(timeInMillis) {
 		return new Promise((_, reject) => {
-			setTimeout(async () => {
+			setTimeout(() => {
 				reject(new Error('ChildProcessChannel sockets setup timeout'));
 			}, timeInMillis);
 		});
