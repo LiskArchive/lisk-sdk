@@ -477,14 +477,10 @@ class Application {
 						this._node.actions.updateForgingStatus(action),
 				},
 				getForgingStatusOfAllDelegates: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async () =>
-						this._node.actions.getForgingStatusOfAllDelegates(),
+					handler: () => this._node.actions.getForgingStatusOfAllDelegates(),
 				},
 				getTransactionsFromPool: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async action =>
-						this._node.actions.getTransactionsFromPool(action),
+					handler: action => this._node.actions.getTransactionsFromPool(action),
 				},
 				getTransactions: {
 					handler: async action => this._node.actions.getTransactions(action),
@@ -494,16 +490,13 @@ class Application {
 					handler: async action => this._node.actions.postTransaction(action),
 				},
 				getSlotNumber: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async action => this._node.actions.getSlotNumber(action),
+					handler: action => this._node.actions.getSlotNumber(action),
 				},
 				calcSlotRound: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async action => this._node.actions.calcSlotRound(action),
+					handler: action => this._node.actions.calcSlotRound(action),
 				},
 				getNodeStatus: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async () => this._node.actions.getNodeStatus(),
+					handler: () => this._node.actions.getNodeStatus(),
 				},
 				getLastBlock: {
 					handler: async () => this._node.actions.getLastBlock(),
