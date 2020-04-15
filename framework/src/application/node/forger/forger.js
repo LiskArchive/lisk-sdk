@@ -344,7 +344,7 @@ class Forger {
 		const nextHeight = previousBlock.height + 1;
 
 		const usedHashOnions = await this._getUsedHashOnions();
-		const nextHashOnion = await this._getNextHashOnion(
+		const nextHashOnion = this._getNextHashOnion(
 			usedHashOnions,
 			delegateAddress,
 			nextHeight,
@@ -418,7 +418,7 @@ class Forger {
 		return fullList;
 	}
 
-	async _getNextHashOnion(usedHashOnions, address, height) {
+	_getNextHashOnion(usedHashOnions, address, height) {
 		// Get highest hashonion that is used by this address below height
 		const usedHashOnion = usedHashOnions.reduce((prev, current) => {
 			if (current.address !== address) {

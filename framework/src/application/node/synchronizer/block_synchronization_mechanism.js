@@ -57,7 +57,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
-				return this._applyPenaltyAndRestartSync(
+				await this._applyPenaltyAndRestartSync(
 					error.peerId,
 					receivedBlock,
 					error.reason,
@@ -65,13 +65,13 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			}
 
 			if (error instanceof RestartError) {
-				return this.channel.publish('app:chain:sync', {
+				await this.channel.publish('app:chain:sync', {
 					block: receivedBlock,
 				});
 			}
 
 			if (error instanceof AbortError) {
-				return this.logger.info(
+				this.logger.info(
 					{ error, reason: error.reason },
 					'Aborting synchronization mechanism',
 				);
