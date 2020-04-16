@@ -69,7 +69,11 @@ module.exports = class Node {
 				this.options.forging.waitThreshold >= this.options.constants.blockTime
 			) {
 				throw Error(
-					`forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
+					`forging.waitThreshold=${
+						this.options.forging.waitThreshold
+					} is greater or equal to genesisConfig.blockTime=${
+						this.options.constants.blockTime
+					}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
 
@@ -393,9 +397,16 @@ module.exports = class Node {
 
 			if (block.transactions.length) {
 				for (const transaction of block.transactions) {
-					await this.transactionPool.add(
-						this.chain.deserializeTransaction(transaction),
-					);
+					try {
+						await this.transactionPool.add(
+							this.chain.deserializeTransaction(transaction),
+						);
+					} catch (err) {
+						this.logger.error(
+							{ err },
+							'Failed to add transaction back to the pool',
+						);
+					}
 				}
 			}
 			this.logger.info(
@@ -555,10 +566,6 @@ module.exports = class Node {
 
 		this.transactionPool.events.on(EVENT_TRANSACTION_REMOVED, event => {
 			this.logger.debug(event, 'Transaction was removed from the pool.');
-		});
-
-		this.bft.on(EVENT_BFT_BLOCK_FINALIZED, async ({ height }) => {
-			await this.dpos.onBlockFinalized({ height });
 		});
 	}
 
