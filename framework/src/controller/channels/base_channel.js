@@ -58,7 +58,7 @@ class BaseChannel {
 		return _actions.get(this);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
+	// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
 	async registerToBus() {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
@@ -89,14 +89,14 @@ class BaseChannel {
 
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	// eslint-disable-next-line @typescript-eslint/require-await, no-unused-vars, class-methods-use-this
 	async invoke(actionName, params) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
 
 	// Call action network module when requesting from the network or a specific peer
 	// Specified as actionName for request available on the network
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	// eslint-disable-next-line @typescript-eslint/require-await, no-unused-vars, class-methods-use-this
 	async invokeFromNetwork(actionName, params) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}
@@ -104,7 +104,7 @@ class BaseChannel {
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	// Specified action must be defined as publicly callable
-	// eslint-disable-next-line no-unused-vars, class-methods-use-this
+	// eslint-disable-next-line @typescript-eslint/require-await, no-unused-vars, class-methods-use-this
 	async invokePublic(actionName, params) {
 		throw new TypeError('This method must be implemented in child classes. ');
 	}

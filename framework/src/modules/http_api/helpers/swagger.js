@@ -44,7 +44,7 @@ function getSchema() {
 	);
 }
 
-function getSchemaAsJSON() {
+async function getSchemaAsJSON() {
 	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
 	}

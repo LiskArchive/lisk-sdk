@@ -136,10 +136,12 @@ class MigrationEntity extends BaseEntity {
 			.then(result => result.exists);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async readPending(migrationsObj, savedMigrations) {
 		return Object.keys(migrationsObj).reduce((prev, namespace) => {
 			const curr = migrationsObj[namespace]
 				.map(migrationFile => {
+					// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 					const migration = path
 						.basename(migrationFile)
 						.match(/(\d+)_(.+).sql/);
@@ -194,12 +196,13 @@ class MigrationEntity extends BaseEntity {
 
 		if (pendingMigrations.length > 0) {
 			for (const migration of pendingMigrations) {
-				const execute = tx => this.applyPendingMigration(migration, tx);
+				const execute = async tx => this.applyPendingMigration(migration, tx);
 				await this.begin('migrations:applyAll', execute);
 			}
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async defineSchema() {
 		return this.adapter.executeFile(this.SQLs.defineSchema);
 	}

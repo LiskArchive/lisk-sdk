@@ -165,7 +165,7 @@ module.exports = class HttpApi {
 			this.scope.components.cache &&
 			this.scope.components.cache.isReady()
 		) {
-			const tasks = cacheKeysToClear.map(key =>
+			const tasks = cacheKeysToClear.map(async key =>
 				this.scope.components.cache.removeByPattern(key),
 			);
 			try {

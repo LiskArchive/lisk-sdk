@@ -58,7 +58,7 @@ describe('Sequence', () => {
 
 	describe('#add', () => {
 		it('should throw an error if the input is not async function', async () => {
-			expect(() => sequence.add(() => true)).toThrow(
+			await expect(sequence.add(() => true)).rejects.toThrow(
 				'Worker must be an async function.',
 			);
 		});

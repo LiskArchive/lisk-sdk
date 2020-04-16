@@ -105,7 +105,7 @@ describe('Application State', () => {
 				applicationState.channel = {
 					publish: jest
 						.fn()
-						.mockImplementation(() => Promise.reject(errorMessage)),
+						.mockImplementation(async () => Promise.reject(errorMessage)),
 				};
 			});
 

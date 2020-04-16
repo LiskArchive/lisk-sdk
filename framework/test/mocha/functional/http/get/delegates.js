@@ -257,7 +257,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length.at.least(1);
 						res.body.data.map(d => {
-							return expect(/99/.test(d.username)).to.be.true;
+							return expect(d.username.includes('99')).to.be.true;
 						});
 					});
 			});

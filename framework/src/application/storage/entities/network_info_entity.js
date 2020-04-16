@@ -50,6 +50,7 @@ class NetworkInfo extends BaseEntity {
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async getKey(key, tx) {
 		assert(key, 'Must provide the key to get');
 
@@ -62,6 +63,7 @@ class NetworkInfo extends BaseEntity {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setKey(key, value, tx) {
 		assert(key, 'Must provide the key to set');
 		assert(

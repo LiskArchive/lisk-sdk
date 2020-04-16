@@ -379,6 +379,7 @@ describe('Migration', () => {
 			savedMigrations = Object.keys(modulesMigrations).reduce(
 				(prev, namespace) => {
 					const curr = modulesMigrations[namespace].map(migrationFile => {
+						// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 						const migration = path
 							.basename(migrationFile)
 							.match(/(\d+)_(.+).sql/);

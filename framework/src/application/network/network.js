@@ -231,6 +231,7 @@ module.exports = class Network {
 			this.logger.error(error.message || error);
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.p2p.on(EVENT_REQUEST_RECEIVED, async request => {
 			this.logger.trace(
 				`EVENT_REQUEST_RECEIVED: Received inbound request for procedure ${request.procedure}`,
@@ -239,6 +240,7 @@ module.exports = class Network {
 			if (request.wasResponseSent) {
 				return;
 			}
+			// eslint-disable-next-line @typescript-eslint/prefer-includes
 			const hasTargetModule = hasNamespaceReg.test(request.procedure);
 			// If the request has no target module, default to app (to support legacy protocol).
 			const sanitizedProcedure = hasTargetModule
@@ -263,7 +265,7 @@ module.exports = class Network {
 			}
 		});
 
-		this.p2p.on(EVENT_MESSAGE_RECEIVED, async packet => {
+		this.p2p.on(EVENT_MESSAGE_RECEIVED, packet => {
 			this.logger.trace(
 				`EVENT_MESSAGE_RECEIVED: Received inbound message from ${packet.peerId} for event ${packet.event}`,
 			);
@@ -284,6 +286,7 @@ module.exports = class Network {
 			);
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setInterval(async () => {
 			const triedPeers = this.p2p.getTriedPeers();
 			if (triedPeers.length) {

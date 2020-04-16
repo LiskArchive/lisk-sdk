@@ -69,7 +69,11 @@ module.exports = class Node {
 				this.options.forging.waitThreshold >= this.options.constants.blockTime
 			) {
 				throw Error(
-					`forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
+					`forging.waitThreshold=${
+						this.options.forging.waitThreshold
+					} is greater or equal to genesisConfig.blockTime=${
+						this.options.constants.blockTime
+					}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
 
@@ -233,7 +237,7 @@ module.exports = class Node {
 				);
 
 				return blocks.length > 0
-					? blocks.map(this.chain.dataAccess.deserialize)
+					? blocks.map(b => this.chain.dataAccess.deserialize(b))
 					: [];
 			},
 			getBlockByHeight: async action => {
@@ -249,7 +253,7 @@ module.exports = class Node {
 				);
 
 				return blocks.length > 0
-					? blocks.map(this.chain.dataAccess.deserialize)
+					? blocks.map(b => this.chain.dataAccess.deserialize(b))
 					: [];
 			},
 			getTransactionByID: async action => {
@@ -267,7 +271,9 @@ module.exports = class Node {
 				);
 
 				return transactions.length > 0
-					? transactions.map(this.chain.dataAccess.deserializeTransaction)
+					? transactions.map(tx =>
+							this.chain.dataAccess.deserializeTransaction(tx),
+					  )
 					: [];
 			},
 			getTransactions: async action =>
@@ -275,19 +281,18 @@ module.exports = class Node {
 					action.params.data,
 					action.params.peerId,
 				),
-			getForgingStatusOfAllDelegates: async () =>
+			getForgingStatusOfAllDelegates: () =>
 				this.forger.getForgingStatusOfAllDelegates(),
-			getTransactionsFromPool: async () =>
+			getTransactionsFromPool: () =>
 				this.transactionPool.getAll().map(tx => tx.toJSON()),
 			postTransaction: async action =>
 				this.transport.handleEventPostTransaction(action.params),
-			getSlotNumber: async action =>
+			getSlotNumber: action =>
 				action.params
 					? this.chain.slots.getSlotNumber(action.params.epochTime)
 					: this.chain.slots.getSlotNumber(),
-			calcSlotRound: async action =>
-				this.dpos.rounds.calcRound(action.params.height),
-			getNodeStatus: async () => ({
+			calcSlotRound: action => this.dpos.rounds.calcRound(action.params.height),
+			getNodeStatus: () => ({
 				syncing: this.synchronizer.isActive,
 				unconfirmedTransactions: this.transactionPool.getAll().length,
 				secondsSinceEpoch: this.chain.slots.getEpochTime(),

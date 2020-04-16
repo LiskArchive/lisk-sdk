@@ -23,15 +23,16 @@
 		"node": ">=12.13.0 <=12",
 		"npm": ">=6.12.0"
 	},
-	"main": "src/index.js",
+	"main": "dist-node/index.js",
 	"scripts": {
 		"start": "node src/index.js",
 		"start:test:app": "node test/test_app",
-		"lint": "eslint .",
-		"lint:fix": "eslint --fix .",
+		"lint": "eslint . --ext .js,.ts",
+		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"format": "prettier --write '**/*'",
 		"test": "npm run jest:unit",
 		"mocha": "mocha",
+		"build": "tsc",
 		"jest:unit": "jest --config=./test/jest/unit/jest.config.js",
 		"jest:integration": "jest --config=./test/jest/integration/jest.config.js",
 		"jest:functional": "jest --config=./test/jest/functional/jest.config.js --passWithNoTests",
@@ -86,6 +87,10 @@
 	},
 	"devDependencies": {
 		"@liskhq/lisk-passphrase": "3.0.1-alpha.0",
+		"@types/lodash": "4.14.149",
+		"@types/node": "12.12.11",
+		"@typescript-eslint/eslint-plugin": "2.28.0",
+		"@typescript-eslint/parser": "2.28.0",
 		"async": "3.2.0",
 		"bluebird": "3.7.2",
 		"chai": "4.2.0",
@@ -93,6 +98,7 @@
 		"eslint": "6.8.0",
 		"eslint-config-airbnb-base": "14.0.0",
 		"eslint-config-lisk-base": "1.2.2",
+		"eslint-config-prettier": "6.10.0",
 		"eslint-plugin-chai-expect": "2.1.0",
 		"eslint-plugin-import": "2.20.1",
 		"eslint-plugin-jest": "23.8.2",
@@ -114,6 +120,9 @@
 		"sinon": "9.0.0",
 		"sinon-chai": "3.5.0",
 		"stampit": "4.3.1",
-		"supertest": "4.0.2"
+		"supertest": "3.3.0",
+		"ts-jest": "24.2.0",
+		"ts-node": "8.5.2",
+		"typescript": "3.8.3"
 	}
 }

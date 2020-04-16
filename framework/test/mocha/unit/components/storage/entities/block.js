@@ -617,8 +617,8 @@ describe('Block', () => {
 			const block = new Block(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(block, 'mergeFilters');
 
-			await expect(() => {
-				block.get(validFilter);
+			await expect(async () => {
+				await block.get(validFilter);
 			}).not.to.throw(NonSupportedFilterTypeError);
 			expect(mergeFiltersSpy.calledWith(validFilter)).to.be.true;
 		});
@@ -626,8 +626,8 @@ describe('Block', () => {
 		it('should accept filters as array of objects', async () => {
 			const block = new Block(adapter);
 			const mergeFiltersSpy = sinonSandbox.spy(block, 'mergeFilters');
-			expect(() => {
-				block.get([validFilter, validFilter]);
+			expect(async () => {
+				await block.get([validFilter, validFilter]);
 			}).not.to.throw(NonSupportedFilterTypeError);
 			expect(mergeFiltersSpy.calledWith([validFilter, validFilter])).to.be.true;
 		});

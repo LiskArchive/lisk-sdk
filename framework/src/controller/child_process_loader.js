@@ -41,9 +41,10 @@ const _loadModule = async (config, moduleOptions) => {
 	channel.publish(`${moduleAlias}:loading:finished`);
 };
 
-process.on('message', ({ loadModule, config, moduleOptions }) => {
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+process.on('message', async ({ loadModule, config, moduleOptions }) => {
 	if (loadModule) {
-		_loadModule(config, moduleOptions);
+		await _loadModule(config, moduleOptions);
 	}
 });
 

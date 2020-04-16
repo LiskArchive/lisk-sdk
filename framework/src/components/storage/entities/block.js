@@ -108,11 +108,11 @@ class Block extends BaseEntity {
 		throw new NonSupportedOperationError();
 	}
 
-	get(filters = {}, options = {}, tx) {
+	async get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
-	getOne(filters, options = {}, tx) {
+	async getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
 	}

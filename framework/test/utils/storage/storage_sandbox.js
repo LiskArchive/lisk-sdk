@@ -55,7 +55,7 @@ const dbNames = [];
  * @param {Object} storage
  * @param {function} cb
  */
-function clearDatabaseTable(storageInstance, logger, table) {
+async function clearDatabaseTable(storageInstance, logger, table) {
 	return new Promise((resolve, reject) => {
 		storageInstance.adapter.db
 			.query(`DELETE FROM ${table}`)
@@ -119,13 +119,13 @@ class StorageSandbox extends Storage {
 		super.cleanup();
 	}
 
-	_dropDB() {
+	async _dropDB() {
 		return new Promise(resolve => {
 			child_process.exec(`dropdb ${this.options.database}`, () => resolve());
 		});
 	}
 
-	_createDB() {
+	async _createDB() {
 		return new Promise((resolve, reject) => {
 			child_process.exec(`createdb ${this.options.database}`, error => {
 				if (error) {
@@ -137,12 +137,8 @@ class StorageSandbox extends Storage {
 	}
 
 	async _createSchema() {
-		try {
-			await this.entities.Migration.defineSchema();
-			await this.entities.Migration.applyAll(modulesMigrations);
-		} catch (err) {
-			Promise.reject(err);
-		}
+		await this.entities.Migration.defineSchema();
+		await this.entities.Migration.applyAll(modulesMigrations);
 	}
 }
 

@@ -36,6 +36,7 @@ module.exports = function create(fittingDef) {
 		}
 
 		// Check if cache is enabled for the endpoint in swagger.yml
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
 		if (!!context.request.swagger.operation[cacheSpecKey] === false) {
 			debug(
 				`Cache not enabled for endpoint: ${context.request.swagger.operation.pathToDefinition.join(

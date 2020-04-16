@@ -311,7 +311,7 @@ class Application {
 		// TODO: Fix the cause of circular exception
 		// await this._network.stop();
 		// await this._node.cleanup();
-		await this.storage.cleanup();
+		this.storage.cleanup();
 
 		process.exit(errorCode);
 	}
@@ -436,7 +436,7 @@ class Application {
 					handler: () => this.applicationState.state,
 				},
 				updateApplicationState: {
-					handler: action => this.applicationState.update(action.params),
+					handler: async action => this.applicationState.update(action.params),
 				},
 				sendToNetwork: {
 					handler: action => this._network.send(action.params),
@@ -445,10 +445,10 @@ class Application {
 					handler: action => this._network.broadcast(action.params),
 				},
 				requestFromNetwork: {
-					handler: action => this._network.request(action.params),
+					handler: async action => this._network.request(action.params),
 				},
 				requestFromPeer: {
-					handler: action => this._network.requestFromPeer(action.params),
+					handler: async action => this._network.requestFromPeer(action.params),
 				},
 				getConnectedPeers: {
 					handler: action => this._network.getConnectedPeers(action.params),
@@ -477,12 +477,10 @@ class Application {
 						this._node.actions.updateForgingStatus(action),
 				},
 				getForgingStatusOfAllDelegates: {
-					handler: async () =>
-						this._node.actions.getForgingStatusOfAllDelegates(),
+					handler: () => this._node.actions.getForgingStatusOfAllDelegates(),
 				},
 				getTransactionsFromPool: {
-					handler: async action =>
-						this._node.actions.getTransactionsFromPool(action),
+					handler: action => this._node.actions.getTransactionsFromPool(action),
 				},
 				getTransactions: {
 					handler: async action => this._node.actions.getTransactions(action),
@@ -492,13 +490,13 @@ class Application {
 					handler: async action => this._node.actions.postTransaction(action),
 				},
 				getSlotNumber: {
-					handler: async action => this._node.actions.getSlotNumber(action),
+					handler: action => this._node.actions.getSlotNumber(action),
 				},
 				calcSlotRound: {
-					handler: async action => this._node.actions.calcSlotRound(action),
+					handler: action => this._node.actions.calcSlotRound(action),
 				},
 				getNodeStatus: {
-					handler: async () => this._node.actions.getNodeStatus(),
+					handler: () => this._node.actions.getNodeStatus(),
 				},
 				getLastBlock: {
 					handler: async () => this._node.actions.getLastBlock(),

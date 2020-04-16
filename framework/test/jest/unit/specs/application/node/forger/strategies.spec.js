@@ -118,7 +118,7 @@ describe('strategies', () => {
 				await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(mockTxPool.getProcessableTransactions).toBeCalledTimes(1);
+				expect(mockTxPool.getProcessableTransactions).toHaveBeenCalledTimes(1);
 			});
 			it('should return transactions in order by highest feePriority and lowest nonce', async () => {
 				// Arrange

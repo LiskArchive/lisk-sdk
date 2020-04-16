@@ -1,0 +1,36 @@
+module.exports = {
+	extends: ['../../.eslintrc.js', 'lisk-base/mocha', 'lisk-base/jest'],
+	globals: {
+		_: true,
+		__testContext: true,
+		expect: true,
+		gc: true,
+		sinonSandbox: true,
+	},
+	parserOptions: {
+		project: '../tsconfig.json',
+		tsconfigRootDir: __dirname,
+	},
+	rules: {
+		'callback-return': 'error',
+		camelcase: 'off',
+		'func-names': 'off',
+		'no-plusplus': 'off',
+		'no-new': 'off',
+		'no-template-curly-in-string': 'off',
+		'global-require': 'off',
+		'prefer-destructuring': 'off',
+		'arrow-body-style': 'off',
+		'no-unused-expressions': 'off',
+		'chai-expect/missing-assertion': 'error',
+		'chai-expect/no-inner-compare': 'error',
+		'space-before-function-paren': 'off',
+		'import/no-extraneous-dependencies': [
+			'error',
+			{
+				devDependencies: ['./**'],
+			},
+		],
+		'@typescript-eslint/require-await': ['warn'],
+	},
+};

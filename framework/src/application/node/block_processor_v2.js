@@ -223,8 +223,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.apply.pipe([
 			({ block, stateStore }) => this.chainModule.apply(block, stateStore),
-			async ({ block, stateStore }) =>
-				this.bftModule.addNewBlock(block, stateStore),
+			({ block, stateStore }) => this.bftModule.addNewBlock(block, stateStore),
 			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 			({ stateStore }) => {
 				this.dposModule.onBlockFinalized(
@@ -297,7 +296,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		const blockTransactions = [];
 		const transactionsBytesArray = [];
 
-		// eslint-disable-next-line no-plusplus
+		// eslint-disable-next-line no-plusplus,@typescript-eslint/prefer-for-of
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
 			const transactionBytes = transaction.getBytes(transaction);

@@ -22,9 +22,9 @@ const ISTANBUL_PATH = process.env.MOCHA_PATH || 'node_modules/.bin/istanbul';
 const children = {};
 const currentTests = {};
 
-const promisifyChildExit = child => {
+const promisifyChildExit = async child => {
 	let error = null;
-	child.once('error', err => {
+	child.once('error', async err => {
 		console.info(
 			`Child process '${currentTests[child.pid]}(pid: ${
 				child.pid
@@ -66,7 +66,7 @@ const getIstanbulOptions = (testFile, mochaCliOptions) => {
 	];
 };
 
-const spawn = (testFile, mochaCliOptions) => {
+const spawn = async (testFile, mochaCliOptions) => {
 	const istanbulOptions = getIstanbulOptions(testFile, mochaCliOptions);
 
 	const child = child_process.spawn(ISTANBUL_PATH, istanbulOptions, {

@@ -80,6 +80,7 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async registerChannel(
 		moduleAlias,
 		events,
@@ -226,7 +227,8 @@ class Bus extends EventEmitter2 {
 		return Object.keys(this.events);
 	}
 
-	async cleanup() {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async leanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
 		}

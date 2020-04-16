@@ -113,7 +113,7 @@ const middleware = {
 
 		return queryParser({
 			parser(value, radix, name) {
-				if (ignoredPramList.indexOf(name) >= 0) {
+				if (ignoredPramList.includes(name)) {
 					return value;
 				}
 
@@ -297,7 +297,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 
 const promisifiedBootstrapSwagger = promisify(bootstrapSwagger);
 
-module.exports = (scope, expressApp) =>
+module.exports = async (scope, expressApp) =>
 	promisifiedBootstrapSwagger(
 		expressApp,
 		scope.config,

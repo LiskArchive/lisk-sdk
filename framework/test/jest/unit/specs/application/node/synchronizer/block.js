@@ -141,8 +141,8 @@ const calculateTransactionsInfo = block => {
 	let totalAmount = BigInt(0);
 	let payloadLength = 0;
 
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < sortedTransactions.length; i++) {
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let i = 0; i < sortedTransactions.length; i += 1) {
 		const transaction = sortedTransactions[i];
 		const transactionBytes = transaction.getBytes(transaction);
 

@@ -43,6 +43,7 @@ class Cache {
 				// Called if the "error" event occurred before "ready" event
 				this.logger.warn({ err }, 'App was unable to connect to Cache server');
 				// Error handler needs to exist to ignore the error
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
 				this.client.on('error', () => {});
 				resolve();
 			});
@@ -98,6 +99,7 @@ class Cache {
 		return JSON.parse(value);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setJsonForKey(key, value) {
 		this.logger.debug(
 			['Cache - Set value for key:', key, '| Status:', this.isReady()].join(
@@ -112,6 +114,7 @@ class Cache {
 		return this.setAsync(key, JSON.stringify(value));
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async deleteJsonForKey(key) {
 		this.logger.debug(
 			['Cache - Delete value for key:', key, '| Status:', this.isReady()].join(
@@ -125,6 +128,7 @@ class Cache {
 		return this.delAsync(key);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async removeByPattern(pattern) {
 		this.logger.trace(
 			['Cache - removeByPattern', pattern, '| Status:', this.isReady()].join(
@@ -159,6 +163,7 @@ class Cache {
 		return scan();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async flushDb() {
 		this.logger.debug('Cache: Flush database');
 		if (!this.isReady()) {
@@ -172,6 +177,7 @@ class Cache {
 		return this.quit();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async quit() {
 		this.logger.debug('Cache: Quit database');
 		if (!this.isReady()) {

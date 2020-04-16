@@ -312,7 +312,7 @@ describe('transport', () => {
 
 				await expect(
 					transportModule._receiveTransaction(transaction),
-				).rejects.toThrowError(invalidTrsError.message);
+				).rejects.toThrow(invalidTrsError.message);
 			});
 
 			describe('when transaction and peer are defined', () => {

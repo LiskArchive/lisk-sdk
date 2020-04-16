@@ -57,6 +57,7 @@ class InMemoryChannel extends BaseChannel {
 		this.bus.publish(event.key(), event.serialize());
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async invoke(actionName, params) {
 		const action =
 			typeof actionName === 'string'
@@ -83,6 +84,7 @@ class InMemoryChannel extends BaseChannel {
 		return this.invoke(`app:${actionName}`, data);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async invokePublic(actionName, params) {
 		const action =
 			typeof actionName === 'string'

@@ -272,6 +272,7 @@ describe('block_synchronization_mechanism', () => {
 			})
 			.mockResolvedValueOnce(genesisBlockDevnet);
 
+		// eslint-disable-next-line require-atomic-updates
 		chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
 	});
 
