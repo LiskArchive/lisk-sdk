@@ -23,7 +23,7 @@ describe('VotesResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new VotesResource(apiClient);
 		return Promise.resolve();

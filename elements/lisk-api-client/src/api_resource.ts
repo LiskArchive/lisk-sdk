@@ -23,10 +23,10 @@ const API_RECONNECT_MAX_RETRY_COUNT = 3;
 const REQUEST_RETRY_TIMEOUT = 1000;
 
 export class APIResource {
-	public apiClient: APIClient;
+	public readonly apiClient: APIClient;
 	public path: string;
 
-	public constructor(apiClient: APIClient) {
+	public constructor(apiClient: Readonly<APIClient>) {
 		this.apiClient = apiClient;
 		this.path = '';
 	}
@@ -67,21 +67,23 @@ export class APIResource {
 	public async request(
 		req: AxiosRequestConfig,
 		retry: boolean,
-		retryCount: number = 1,
+		retryCount = 1,
 	): Promise<APIResponse> {
 		const request = Axios.request(req)
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			.then((res: AxiosResponse) => res.data)
 			.catch((error: AxiosError): void => {
 				if (error.response) {
 					const { status } = error.response;
 					if (error.response.data) {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 						const {
 							error: errorString,
 							errors,
 							message,
 						}: APIErrorResponse = error.response.data;
 						throw new APIError(
-							message || errorString || 'An unknown error has occurred.',
+							message ?? errorString ?? 'An unknown error has occurred.',
 							status,
 							errors,
 						);
@@ -92,11 +94,13 @@ export class APIResource {
 			});
 
 		if (retry) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			return request.catch(async (err: Error) =>
 				this.handleRetry(err, req, retryCount),
 			);
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return request;
 	}
 }

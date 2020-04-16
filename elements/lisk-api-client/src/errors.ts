@@ -10,7 +10,7 @@ export class APIError extends Error {
 	public errors?: ReadonlyArray<APIErrorData>;
 
 	public constructor(
-		message: string = '',
+		message = '',
 		errno: number = defaultErrorNo,
 		errors?: ReadonlyArray<APIErrorData>,
 	) {

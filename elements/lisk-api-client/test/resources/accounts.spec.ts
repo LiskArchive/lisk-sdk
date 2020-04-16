@@ -23,7 +23,7 @@ describe('AccountsResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new AccountsResource(apiClient);
 		return Promise.resolve();

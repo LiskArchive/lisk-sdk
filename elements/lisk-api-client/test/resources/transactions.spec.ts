@@ -23,7 +23,7 @@ describe('TransactionsResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new TransactionsResource(apiClient);
 		return Promise.resolve();

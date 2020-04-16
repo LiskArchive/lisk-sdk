@@ -38,7 +38,7 @@ describe('API method module', () => {
 	let handler: APIHandler;
 	let validationError: Error;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		requestResult = { success: true, sendRequest: true };
 		resource = {
 			path: defaultResourcePath,
@@ -52,7 +52,7 @@ describe('API method module', () => {
 
 	describe('#apiMethod', () => {
 		describe('when no parameters are passed', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				handler = apiMethod().bind(resource);
 
 				return Promise.resolve();
@@ -62,7 +62,7 @@ describe('API method module', () => {
 				return expect(handler).toBeFunction();
 			});
 
-			it('should request GET with default URL', () => {
+			it('should request GET with default URL', async () => {
 				return handler().then(() => {
 					expect(resource.request).toHaveBeenCalledTimes(1);
 					return expect(resource.request).toHaveBeenCalledWith(
@@ -80,7 +80,7 @@ describe('API method module', () => {
 		describe('when initialized with POST / parameters', () => {
 			const parameterStringError = 'Parameter must be a string or a number';
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				handler = apiMethod({
 					method: POST,
 					path: '/{related}/ids/{id}',
@@ -102,36 +102,36 @@ describe('API method module', () => {
 				return expect(handler).toBeFunction();
 			});
 
-			it('should be rejected with error without param', () => {
-				return expect(handler()).rejects.toThrowError(errorArgumentNumber);
+			it('should be rejected with error without param', async () => {
+				return expect(handler()).rejects.toThrow(errorArgumentNumber);
 			});
 
-			it('should be rejected with error without enough param', () => {
-				return expect(handler(firstURLParam)).rejects.toThrowError(
+			it('should be rejected with error without enough param', async () => {
+				return expect(handler(firstURLParam)).rejects.toThrow(
 					errorArgumentNumber,
 				);
 			});
 
-			it('should throw an error if input is not a string or a number', () => {
+			it('should throw an error if input is not a string or a number', async () => {
 				return expect(
 					handler({ num: 3 }, secondURLParam, { needed: true }),
 				).rejects.toEqual(new Error(parameterStringError));
 			});
 
-			it('should be rejected with no data', () => {
+			it('should be rejected with no data', async () => {
 				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(
 					validationError,
 				);
 			});
 
-			it('should call request with the given data', () => {
+			it('should call request with the given data', async () => {
 				return handler(firstURLParam, secondURLParam, { needed: true }).then(
 					() => {
 						expect(resource.request).toHaveBeenCalledTimes(1);
 						return expect(resource.request).toHaveBeenCalledWith(
 							{
 								method: POST,
-								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam}`,
+								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam.toString()}`,
 								headers: defaultHeaders,
 								data: {
 									needed: true,
@@ -146,7 +146,7 @@ describe('API method module', () => {
 		});
 
 		describe('when initialized with GET / parameters', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				handler = apiMethod({
 					method: GET,
 					path: '/{related}/ids/{id}',
@@ -167,32 +167,32 @@ describe('API method module', () => {
 				return expect(handler).toBeFunction();
 			});
 
-			it('should be rejected with error without parameters', () => {
+			it('should be rejected with error without parameters', async () => {
 				return expect(handler()).rejects.toEqual(
 					new Error(errorArgumentNumber),
 				);
 			});
 
-			it('should be rejected with error without enough parameters', () => {
+			it('should be rejected with error without enough parameters', async () => {
 				return expect(handler(firstURLParam)).rejects.toEqual(
 					new Error(errorArgumentNumber),
 				);
 			});
 
-			it('should be rejected with no data', () => {
+			it('should be rejected with no data', async () => {
 				return expect(handler(firstURLParam, secondURLParam)).rejects.toEqual(
 					validationError,
 				);
 			});
 
-			it('should be request with the given data', () => {
+			it('should be request with the given data', async () => {
 				return handler(firstURLParam, secondURLParam, { needed: true }).then(
 					() => {
 						expect(resource.request).toHaveBeenCalledTimes(1);
 						return expect(resource.request).toHaveBeenCalledWith(
 							{
 								method: GET,
-								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam}?sort=id&needed=true`,
+								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam.toString()}?sort=id&needed=true`,
 								headers: defaultHeaders,
 							},
 							false,
