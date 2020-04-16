@@ -228,7 +228,7 @@ class Bus extends EventEmitter2 {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async leanup() {
+	async cleanup() {
 		if (this.pubSocket) {
 			this.pubSocket.close();
 		}
