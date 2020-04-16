@@ -94,6 +94,7 @@ import {
 	checkPeerCompatibility,
 	outgoingPeerInfoSanitization,
 	sanitizePeerLists,
+	validateMessage,
 } from './validation';
 
 export {
@@ -716,6 +717,7 @@ export class P2P extends EventEmitter {
 
 			try {
 				const parsed = JSON.parse(message);
+				validateMessage(parsed);
 
 				const invalidEvents: Set<string> = new Set([
 					'#authenticate',

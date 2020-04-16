@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { validator } from '@liskhq/lisk-validator';
 import { gte as isVersionGTE, valid as isValidVersion } from 'semver';
 import { isIP, isNumeric, isPort } from 'validator';
 import {
@@ -343,4 +344,30 @@ export const sanitizePeerLists = (
 		whitelisted,
 		previousPeers,
 	};
+};
+
+const messageSchema = {
+	type: 'object',
+	additionalProperties: false,
+	properties: {
+		event: {
+			type: 'string',
+		},
+		cid: {
+			type: 'integer',
+		},
+		rid: {
+			type: 'integer',
+		},
+		data: {
+			type: 'object',
+		},
+	},
+};
+
+export const validateMessage = (message: object) => {
+	const errors = validator.validate(messageSchema, message);
+	if (errors.length) {
+		throw new Error('Invalid message schema');
+	}
 };

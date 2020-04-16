@@ -23,13 +23,6 @@ const definitions = require('../schema/definitions');
 const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
 
-function incrementRelays(packet) {
-	if (!Number.isInteger(packet.relays)) {
-		packet.relays = 0;
-	}
-	packet.relays += 1;
-}
-
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
@@ -103,8 +96,6 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(signature);
 			this.broadcaster.enqueue(
 				{},
 				{
@@ -129,8 +120,6 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(transaction);
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
 				{},
@@ -157,9 +146,6 @@ class Transport {
 	onBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
-
-		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-		incrementRelays(block);
 
 		if (this.loaderModule.syncing()) {
 			this.logger.debug(
