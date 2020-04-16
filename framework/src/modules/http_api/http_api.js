@@ -147,11 +147,11 @@ module.exports = class HttpApi {
 
 		try {
 			if (components !== undefined) {
-				Object.keys(components).forEach(async key => {
+				for (const key of Object.keys(components)) {
 					if (components[key].cleanup) {
 						await components[key].cleanup();
 					}
-				});
+				}
 			}
 		} catch (componentCleanupError) {
 			this.logger.error(componentCleanupError);
