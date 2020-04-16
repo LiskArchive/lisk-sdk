@@ -13,8 +13,10 @@
  *
  */
 import { bufferToHex, hexToBuffer } from './buffer';
+// eslint-disable-next-line import/no-cycle
 import { getAddressFromPublicKey } from './convert';
 import { hash } from './hash';
+// eslint-disable-next-line import/no-cycle
 import { getKeyPair, getPublicKey } from './nacl';
 
 export interface KeypairBytes {

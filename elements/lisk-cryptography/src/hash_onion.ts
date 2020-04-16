@@ -21,7 +21,7 @@ const INPUT_SIZE = 64;
 const defaultCount = 1000000;
 const defaultDistance = 1000;
 
-export const generateHashOnionSeed = () =>
+export const generateHashOnionSeed = (): Buffer =>
 	hash(getRandomBytes(INPUT_SIZE)).slice(0, HASH_SIZE);
 
 export const hashOnion = (

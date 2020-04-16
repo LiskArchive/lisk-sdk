@@ -23,7 +23,9 @@ import {
 	getAddressFromPrivateKey,
 } from '../src/keys';
 // Require is used for stubbing
+// eslint-disable-next-line
 const buffer = require('../src/buffer');
+// eslint-disable-next-line
 const hashModule = require('../src/hash');
 
 describe('keys', () => {

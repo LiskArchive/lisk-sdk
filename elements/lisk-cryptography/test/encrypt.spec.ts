@@ -20,12 +20,15 @@ import {
 	decryptPassphraseWithPassword,
 } from '../src/encrypt';
 // Require is used for stubbing
+// eslint-disable-next-line
 const convert = require('../src/convert');
+// eslint-disable-next-line
 const keys = require('../src/keys');
+// eslint-disable-next-line
 const hashModule = require('../src/hash');
 
 describe('encrypt', () => {
-	const regHexadecimal: RegExp = /[0-9A-Za-z]/g;
+	const regHexadecimal = /[0-9A-Za-z]/g;
 	const PBKDF2_ITERATIONS = 1e6;
 	const ENCRYPTION_VERSION = '1';
 	const defaultPassphrase =
@@ -42,7 +45,7 @@ describe('encrypt', () => {
 
 	let hashStub: any;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		defaultEncryptedMessageWithNonce = {
 			encryptedMessage:
 				'299390b9cbb92fe6a43daece2ceaecbacd01c7c03cfdba51d693b5c0e2b65c634115',
@@ -88,7 +91,7 @@ describe('encrypt', () => {
 	describe('#encryptMessageWithPassphrase', () => {
 		let encryptedMessage: EncryptedMessageWithNonce;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			encryptedMessage = encryptMessageWithPassphrase(
 				defaultMessage,
 				defaultPassphrase,
@@ -103,7 +106,7 @@ describe('encrypt', () => {
 		});
 
 		it('should output the nonce', () => {
-			expect(encryptedMessage);
+			expect(encryptedMessage).not.toBeUndefined();
 			expect(encryptedMessage).toHaveProperty('nonce');
 			expect(regHexadecimal.test(encryptedMessage.nonce)).toBe(true);
 		});
@@ -130,7 +133,7 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPublicKey,
 				),
-			).toThrowError('Expected nonce to be 24 bytes.');
+			).toThrow('Expected nonce to be 24 bytes.');
 		});
 
 		it('should inform the user if something goes wrong during decryption', () => {
@@ -142,7 +145,7 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPublicKey,
 				),
-			).toThrowError(
+			).toThrow(
 				'Something went wrong during decryption. Is this the full encrypted message?',
 			);
 		});
@@ -161,7 +164,7 @@ describe('encrypt', () => {
 		describe('#encryptPassphraseWithPassword', () => {
 			let encryptedPassphrase: EncryptedPassphraseObject;
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -220,7 +223,7 @@ describe('encrypt', () => {
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
-			let encryptedPassphrase = {
+			const encryptedPassphrase = {
 				iterations: undefined,
 				cipherText:
 					'5cfd7bcc13022a482e7c8bd250cd73ef3eb7c49c849d5e761ce717608293f777cca8e0e18587ee307beab65bcc1b273caeb23d4985010b675391b354c38f8e84e342c1e7aa',
@@ -249,7 +252,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutCipherText as any,
 						defaultPassword,
 					),
-				).toThrowError('Cipher text must be a string.');
+				).toThrow('Cipher text must be a string.');
 			});
 
 			it('should inform the user if iv is missing', () => {
@@ -260,7 +263,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutIv as any,
 						defaultPassword,
 					),
-				).toThrowError('IV must be a string.');
+				).toThrow('IV must be a string.');
 			});
 
 			it('should inform the user if salt is missing', () => {
@@ -271,7 +274,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutSalt as any,
 						defaultPassword,
 					),
-				).toThrowError('Salt must be a string.');
+				).toThrow('Salt must be a string.');
 			});
 
 			it('should inform the user if tag is missing', () => {
@@ -282,7 +285,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithoutTag as any,
 						defaultPassword,
 					),
-				).toThrowError('Tag must be a string.');
+				).toThrow('Tag must be a string.');
 			});
 
 			it('should inform the user if the salt has been altered', () => {
@@ -297,7 +300,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredSalt,
 						defaultPassword,
 					),
-				).toThrowError('Unsupported state or unable to authenticate data');
+				).toThrow('Unsupported state or unable to authenticate data');
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
@@ -312,7 +315,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredTag,
 						defaultPassword,
 					),
-				).toThrowError('Tag must be 16 bytes.');
+				).toThrow('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
@@ -327,7 +330,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredTag,
 						defaultPassword,
 					),
-				).toThrowError('Tag must be a valid hex string.');
+				).toThrow('Tag must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
@@ -342,7 +345,7 @@ describe('encrypt', () => {
 						encryptedPassphraseWithAlteredTag,
 						defaultPassword,
 					),
-				).toThrowError('Unsupported state or unable to authenticate data');
+				).toThrow('Unsupported state or unable to authenticate data');
 			});
 
 			it('should decrypt a passphrase with a password and a custom number of iterations', () => {

@@ -4,7 +4,9 @@ module.exports = {
 		'arrow-body-style': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',
 		'@typescript-eslint/no-require-imports': 'off',
-		'@typescript-eslint/no-unsafe-member-access': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
+		'@typescript-eslint/no-unsafe-assignment': 'off',
+		'@typescript-eslint/no-unsafe-member-access': 'off',
+		'@typescript-eslint/no-unsafe-call': 'off',
 	},
 };

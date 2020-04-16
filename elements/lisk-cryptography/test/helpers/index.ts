@@ -13,6 +13,6 @@
  *
  */
 export const makeInvalid = (str: string): string => {
-	const char = str[0] === '0' ? '1' : '0';
+	const char = str.startsWith('0') ? '1' : '0';
 	return `${char}${str.slice(1)}`;
 };

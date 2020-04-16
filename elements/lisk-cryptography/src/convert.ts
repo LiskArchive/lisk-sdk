@@ -13,14 +13,16 @@
  *
  */
 // Required because first level function export
-// tslint:disable-next-line no-require-imports
-import reverse = require('buffer-reverse');
 import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
 
 import { bufferToIntAsString } from './buffer';
+// eslint-disable-next-line import/no-cycle
 import { EncryptedPassphraseObject } from './encrypt';
 import { hash } from './hash';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import reverse = require('buffer-reverse');
 
 export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	const BUFFER_SIZE = 8;

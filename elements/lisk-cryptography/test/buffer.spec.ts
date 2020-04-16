@@ -37,47 +37,47 @@ describe('buffer', () => {
 		});
 
 		it('should throw TypeError with number', () => {
-			expect(hexToBuffer.bind(null, 123 as any)).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, 123 as any)).toThrow(TypeError);
 		});
 
 		it('should throw TypeError with object', () => {
-			expect(hexToBuffer.bind(null, {} as any)).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, {} as any)).toThrow(TypeError);
 		});
 
 		it('should throw an error for a non-string input with custom argument name', () => {
-			expect(hexToBuffer.bind(null, {} as any, 'Custom')).toThrowError(
+			expect(hexToBuffer.bind(null, {} as any, 'Custom')).toThrow(
 				'Custom must be a string.',
 			);
 		});
 
 		it('should throw TypeError with non hex string', () => {
-			expect(hexToBuffer.bind(null, 'yKJj')).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, 'yKJj')).toThrow(TypeError);
 		});
 
 		it('should throw TypeError with partially correct hex string', () => {
-			expect(hexToBuffer.bind(null, 'Abxzzzz')).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, 'Abxzzzz')).toThrow(TypeError);
 		});
 
 		it('should throw TypeError with odd number of string with partially correct hex string', () => {
-			expect(hexToBuffer.bind(null, 'Abxzzab')).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, 'Abxzzab')).toThrow(TypeError);
 		});
 
 		it('should throw TypeError with odd number hex string with invalid hex', () => {
-			expect(hexToBuffer.bind(null, '123xxxx')).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, '123xxxx')).toThrow(TypeError);
 		});
 
 		it('should throw an error for a non-hex string input with custom argument name', () => {
-			expect(hexToBuffer.bind(null, 'yKJj', 'Custom')).toThrowError(
+			expect(hexToBuffer.bind(null, 'yKJj', 'Custom')).toThrow(
 				'Custom must be a valid hex string.',
 			);
 		});
 
 		it('should throw TypeError with odd-length hex string', () => {
-			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a')).toThrowError(TypeError);
+			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a')).toThrow(TypeError);
 		});
 
 		it('should throw an error for an odd-length hex string input with custom argument name', () => {
-			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a', 'Custom')).toThrowError(
+			expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a', 'Custom')).toThrow(
 				'Custom must have a valid length of hex string.',
 			);
 		});

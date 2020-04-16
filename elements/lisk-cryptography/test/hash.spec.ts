@@ -20,7 +20,7 @@ describe('hash', () => {
 		let arrayToHash: ReadonlyArray<number>;
 		let defaultHash: Buffer;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			defaultHash = Buffer.from(
 				'7607d6792843d6003c12495b54e34517a508d2a8622526aff1884422c5478971',
 				'hex',
@@ -47,13 +47,13 @@ describe('hash', () => {
 		});
 
 		it('should throw on unknown format when trying a string with format "utf32"', () => {
-			expect(hashFunction.bind(null, defaultText, 'utf32')).toThrowError(
+			expect(hashFunction.bind(null, defaultText, 'utf32')).toThrow(
 				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);
 		});
 
 		it('should throw on unknown format when using an array', () => {
-			expect(hashFunction.bind(null, arrayToHash as any)).toThrowError(
+			expect(hashFunction.bind(null, arrayToHash as any)).toThrow(
 				'Unsupported data:1,2,3 and format:undefined. Currently only Buffers or hex and utf8 strings are supported.',
 			);
 		});
