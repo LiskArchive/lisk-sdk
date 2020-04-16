@@ -20,7 +20,7 @@ const { createNode } = require('../node');
 const { storageConfig: defaultStorageConfig } = require('../configs');
 const {
 	app: { node: nodeNetworkConfig },
-} = require('../../fixtures/config/devnet/config');
+} = require('../../fixtures/config/devnet/config.json');
 
 const channelStub = {
 	invoke: sinonSandbox.stub(),

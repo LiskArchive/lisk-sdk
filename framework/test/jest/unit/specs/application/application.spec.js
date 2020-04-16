@@ -31,8 +31,8 @@ const {
 } = require('../../../../../src/application/schema');
 const loggerComponent = require('../../../../../src/components/logger');
 const storageComponent = require('../../../../../src/components/storage');
-const networkConfig = require('../../../../fixtures/config/devnet/config');
-const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block');
+const networkConfig = require('../../../../fixtures/config/devnet/config.json');
+const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block.json');
 
 const config = {
 	...networkConfig,

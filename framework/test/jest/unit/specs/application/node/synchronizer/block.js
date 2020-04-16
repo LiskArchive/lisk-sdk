@@ -24,7 +24,7 @@ const {
 	LITTLE_ENDIAN,
 } = require('@liskhq/lisk-cryptography');
 const { Mnemonic } = require('@liskhq/lisk-passphrase');
-const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block');
+const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
