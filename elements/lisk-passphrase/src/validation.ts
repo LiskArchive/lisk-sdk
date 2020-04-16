@@ -95,10 +95,10 @@ export const locateConsecutiveWhitespaces = (
 					index !== passphrase.length - 1 &&
 					character.match(passphraseRegularExpression.whitespaceRegExp) !==
 						null &&
-					passphrase
-						.split('')
-						[index - 1].match(passphraseRegularExpression.whitespaceRegExp) !==
-						null
+					passphrase.split('')[
+						// eslint-disable-next-line no-unexpected-multiline
+						index - 1
+					].match(passphraseRegularExpression.whitespaceRegExp) !== null
 				) {
 					return [...whitespaceIndexes, index];
 				}
@@ -117,7 +117,7 @@ export const locateConsecutiveWhitespaces = (
 export const getPassphraseValidationErrors = (
 	passphrase: string,
 	wordlists?: ReadonlyArray<string>,
-	expectedWords: number = 12,
+	expectedWords = 12,
 ): ReadonlyArray<PassphraseError> => {
 	const expectedWhitespaces = expectedWords - 1;
 	const expectedUppercaseCharacterCount = 0;
@@ -128,21 +128,21 @@ export const getPassphraseValidationErrors = (
 		actual: wordsInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WORDS',
 		expected: expectedWords,
-		message: `Passphrase contains ${wordsInPassphrase} words instead of expected ${expectedWords}. Please check the passphrase.`,
+		message: `Passphrase contains ${wordsInPassphrase.toString()} words instead of expected ${expectedWords.toString()}. Please check the passphrase.`,
 	};
 	const whiteSpaceError: PassphraseError = {
 		actual: whiteSpacesInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WHITESPACES',
 		expected: expectedWhitespaces,
 		location: locateConsecutiveWhitespaces(passphrase),
-		message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
+		message: `Passphrase contains ${whiteSpacesInPassphrase.toString()} whitespaces instead of expected ${expectedWhitespaces.toString()}. Please check the passphrase.`,
 	};
 	const uppercaseCharacterError: PassphraseError = {
 		actual: uppercaseCharacterInPassphrase,
 		code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
 		expected: expectedUppercaseCharacterCount,
 		location: locateUppercaseCharacters(passphrase),
-		message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacterCount}. Please check the passphrase.`,
+		message: `Passphrase contains ${uppercaseCharacterInPassphrase.toString()} uppercase character instead of expected ${expectedUppercaseCharacterCount.toString()}. Please check the passphrase.`,
 	};
 	const validationError: PassphraseError = {
 		actual: false,
