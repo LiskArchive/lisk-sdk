@@ -58,6 +58,8 @@ const getIstanbulOptions = (testFile, mochaCliOptions) => {
 		'--dir',
 		'test/mocha/.coverage-unit',
 		'--include-pid',
+		'-x',
+		'**/dist-node/**',
 		'--print',
 		'none',
 		MOCHA_PATH,
