@@ -172,18 +172,18 @@ module.exports = class Chain {
 			if (!this.options.loading.rebuildUpToRound) {
 				this.channel.subscribe(
 					'network:event',
-					async ({ data: { event, data } }) => {
+					async ({ data: { event, data, peerId } }) => {
 						try {
 							if (event === 'postTransactions') {
-								await this.transport.postTransactions(data);
+								await this.transport.postTransactions(data, peerId);
 								return;
 							}
 							if (event === 'postSignatures') {
-								await this.transport.postSignatures(data);
+								await this.transport.postSignatures(data, peerId);
 								return;
 							}
 							if (event === 'postBlock') {
-								await this.transport.postBlock(data);
+								await this.transport.postBlock(data, peerId);
 								return;
 							}
 						} catch (error) {

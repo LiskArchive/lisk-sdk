@@ -360,7 +360,7 @@ const messageSchema = {
 			type: 'integer',
 		},
 		data: {
-			type: 'object',
+			type: ['object', 'string'],
 		},
 	},
 };
