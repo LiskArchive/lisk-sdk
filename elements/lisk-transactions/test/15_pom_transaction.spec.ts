@@ -379,6 +379,18 @@ describe('Proof-of-misbehavior transaction', () => {
 
 			expect(updatedDelegate.delegate.isBanned).toBeTrue();
 		});
+
+		it('should not return balance related errors with valid transactions from same sender and delegate account', async () => {
+			const sameAccountTransaction = new ProofOfMisbehaviorTransaction({
+				...validProofOfMisbehaviorTransactionScenario1.testCases.output,
+				senderPublicKey: delegate.publicKey,
+			});
+
+			const { errors } = await sameAccountTransaction.apply(store);
+
+			// returned errors here are unrelated to the tested issue: nonce and signature
+			expect(errors.length).toEqual(2);
+		});
 	});
 
 	describe('undoAsset', () => {
