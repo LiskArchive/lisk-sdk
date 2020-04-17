@@ -18,8 +18,8 @@ const path = require('path');
 const {
 	Application,
 	configurator,
-	/* eslint-disable import/no-unresolved */
-} = require('../../src');
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('../../dist-node');
 
 process.env.NODE_ENV = 'test';
 
