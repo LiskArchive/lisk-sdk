@@ -18,11 +18,8 @@ import {
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
 
-import {
-	BlockHeaderJSON,
-	ProofOfMisbehaviorTransaction,
-} from './15_proof_of_misbehavior_transaction';
-import { TransactionJSON } from './transaction_types';
+import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
+import { BlockHeaderJSON, TransactionJSON } from './transaction_types';
 import { createBaseTransaction } from './utils';
 
 export interface ReportMisbehaviorInputs {
@@ -52,10 +49,12 @@ const validateInputs = ({
 
 	validateNetworkIdentifier(networkIdentifier);
 
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!header1) {
 		throw new Error('Header 1 is required for poof of misbehavior');
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!header2) {
 		throw new Error('Header 2 is required for poof of misbehavior');
 	}

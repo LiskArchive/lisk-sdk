@@ -21,7 +21,7 @@ describe('#castVotes transaction', () => {
 	let castVotesTransaction: Partial<TransactionJSON>;
 
 	describe('when the transaction is created with one passphrase and the votes', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			castVotesTransaction = castVotes({
 				passphrase:
 					validMixvoteTransactionScenario.testCases.input.account.passphrase,
@@ -33,7 +33,7 @@ describe('#castVotes transaction', () => {
 			});
 		});
 
-		it('should create a cast votes transaction', async () => {
+		it('should create a cast votes transaction', () => {
 			expect(castVotesTransaction.id).toEqual(
 				validMixvoteTransactionScenario.testCases.output.id,
 			);
@@ -55,7 +55,7 @@ describe('#castVotes transaction', () => {
 					fee: validMixvoteTransactionScenario.testCases.output.fee,
 					nonce: validMixvoteTransactionScenario.testCases.output.nonce,
 				}),
-			).toThrowError('Votes must present to create transaction.');
+			).toThrow('Votes must present to create transaction.');
 		});
 	});
 
@@ -84,7 +84,7 @@ describe('#castVotes transaction', () => {
 						fee: validMixvoteTransactionScenario.testCases.output.fee,
 						nonce: validMixvoteTransactionScenario.testCases.output.nonce,
 					}),
-				).toThrowError('Delegate address must be unique');
+				).toThrow('Delegate address must be unique');
 			});
 		});
 
@@ -107,14 +107,14 @@ describe('#castVotes transaction', () => {
 						fee: validMixvoteTransactionScenario.testCases.output.fee,
 						nonce: validMixvoteTransactionScenario.testCases.output.nonce,
 					}),
-				).toThrowError('should NOT have more than 20 item');
+				).toThrow('should NOT have more than 20 item');
 			});
 		});
 	});
 
 	describe('unsigned cast votes transaction', () => {
 		describe('when the cast votes transaction is created without a passphrase', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				castVotesTransaction = castVotes({
 					votes: validMixvoteTransactionScenario.testCases.output.asset.votes.slice(),
 					networkIdentifier:

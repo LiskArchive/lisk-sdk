@@ -18,6 +18,7 @@ import { FIXED_POINT } from '../constants';
 
 const LISK_MAX_DECIMAL_POINTS = 8;
 const getDecimalPlaces = (amount: string): number =>
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	(amount.split('.')[1] || '').length;
 
 export const convertBeddowsToLSK = (beddowsAmount?: string): string => {

@@ -13,6 +13,7 @@
  *
  */
 import { TransactionError } from './errors';
+
 export interface AccountVote {
 	readonly delegateAddress: string;
 	// tslint:disable-next-line readonly-keyword
@@ -75,6 +76,17 @@ export interface BlockHeader {
 	readonly reward: bigint;
 	readonly seedReveal: string;
 }
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type BlockHeaderJSON = Modify<
+	BlockHeader,
+	{
+		readonly totalAmount: string;
+		readonly totalFee: string;
+		readonly reward: string;
+	}
+>;
 
 export interface TransactionJSON {
 	readonly asset: object;

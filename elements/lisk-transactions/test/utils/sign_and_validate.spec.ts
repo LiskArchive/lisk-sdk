@@ -43,7 +43,7 @@ describe('signAndVerify module', () => {
 			(validTestTransaction as any).getBasicBytes(),
 		]);
 
-		it('should call cryptography hash', async () => {
+		it('should call cryptography hash', () => {
 			const cryptographyHashStub = jest
 				.spyOn(cryptography, 'hash')
 				.mockReturnValue(
@@ -62,7 +62,7 @@ describe('signAndVerify module', () => {
 			expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call cryptography verifyData', async () => {
+		it('should call cryptography verifyData', () => {
 			const cryptographyVerifyDataStub = jest
 				.spyOn(cryptography, 'verifyData')
 				.mockReturnValue(true);
@@ -76,7 +76,7 @@ describe('signAndVerify module', () => {
 			expect(cryptographyVerifyDataStub).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return a valid response with valid signature', async () => {
+		it('should return a valid response with valid signature', () => {
 			const { valid } = validateSignature(
 				defaultTransferTransaction.senderPublicKey,
 				defaultTransferTransaction.signatures[0],
@@ -86,7 +86,7 @@ describe('signAndVerify module', () => {
 			expect(valid).toBe(true);
 		});
 
-		it('should return an invalid response with invalid signature', async () => {
+		it('should return an invalid response with invalid signature', () => {
 			const { valid, error } = validateSignature(
 				defaultTransferTransaction.senderPublicKey,
 				defaultTransferTransaction.signatures[0].replace('1', '0'),
@@ -97,6 +97,7 @@ describe('signAndVerify module', () => {
 			expect(error).toBeInstanceOf(TransactionError);
 			expect(error).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Failed to validate signature ${defaultTransferTransaction.signatures[0].replace(
 					'1',
 					'0',
@@ -118,7 +119,7 @@ describe('signAndVerify module', () => {
 			membersPublicKeys: memberPublicKeys,
 		} = defaultMultisignatureAccount;
 
-		it('should return a valid response with valid signatures', async () => {
+		it('should return a valid response with valid signatures', () => {
 			const { valid } = validateMultisignatures(
 				memberPublicKeys as ReadonlyArray<string>,
 				defaultMultisignatureTransaction.signatures,
@@ -129,7 +130,7 @@ describe('signAndVerify module', () => {
 			expect(valid).toBe(true);
 		});
 
-		it('should return a verification fail response with invalid signatures', async () => {
+		it('should return a verification fail response with invalid signatures', () => {
 			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys as ReadonlyArray<string>,
 				defaultMultisignatureTransaction.signatures.map((signature: string) =>
@@ -144,6 +145,7 @@ describe('signAndVerify module', () => {
 				expect(error).toBeInstanceOf(TransactionError);
 				expect(error).toHaveProperty(
 					'message',
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					`Failed to validate signature ${defaultMultisignatureTransaction.signatures[
 						i
 					].replace('1', '0')}`,
@@ -151,7 +153,7 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a verification fail response with invalid extra signatures', async () => {
+		it('should return a verification fail response with invalid extra signatures', () => {
 			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys as ReadonlyArray<string>,
 				[
@@ -168,7 +170,7 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return a verification fail response with duplicate signatures', async () => {
+		it('should return a verification fail response with duplicate signatures', () => {
 			const { valid, errors } = validateMultisignatures(
 				memberPublicKeys as ReadonlyArray<string>,
 				[
@@ -185,7 +187,7 @@ describe('signAndVerify module', () => {
 			});
 		});
 
-		it('should return false when a transaction has missing signatures', async () => {
+		it('should return false when a transaction has missing signatures', () => {
 			const { valid } = validateMultisignatures(
 				memberPublicKeys as ReadonlyArray<string>,
 				defaultMultisignatureTransaction.signatures.slice(0, 2),

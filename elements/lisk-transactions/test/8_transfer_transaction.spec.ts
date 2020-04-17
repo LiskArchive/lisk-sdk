@@ -30,7 +30,7 @@ describe('Transfer transaction class', () => {
 	let recipient: Account;
 	let store: StateStoreMock;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		validTransferTestTransaction = new TransferTransaction(
 			validTransferTransaction,
 		);
@@ -57,23 +57,23 @@ describe('Transfer transaction class', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should create instance of TransferTransaction', async () => {
+		it('should create instance of TransferTransaction', () => {
 			expect(validTransferTestTransaction).toBeInstanceOf(TransferTransaction);
 		});
 
-		it('should set transfer asset data', async () => {
+		it('should set transfer asset data', () => {
 			expect(validTransferTestTransaction.asset.data).toEqual(
 				validTransferTestTransaction.asset.data,
 			);
 		});
 
-		it('should set transfer asset amount', async () => {
+		it('should set transfer asset amount', () => {
 			expect(validTransferTestTransaction.asset.amount.toString()).toEqual(
 				validTransferTransaction.asset.amount,
 			);
 		});
 
-		it('should set transfer asset recipientId', async () => {
+		it('should set transfer asset recipientId', () => {
 			expect(validTransferTestTransaction.asset.recipientId).toEqual(
 				validTransferTransaction.asset.recipientId,
 			);
@@ -81,7 +81,7 @@ describe('Transfer transaction class', () => {
 	});
 
 	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', async () => {
+		it('should return an object of type transfer asset', () => {
 			expect(
 				(validTransferTestTransaction.assetToJSON() as any).data,
 			).toBeString();
@@ -99,12 +99,12 @@ describe('Transfer transaction class', () => {
 	});
 
 	describe('#validateAsset', () => {
-		it('should return no errors with a valid transfer transaction', async () => {
+		it('should return no errors with a valid transfer transaction', () => {
 			const errors = (validTransferTestTransaction as any).validateAsset();
 			expect(Object.keys(errors)).toHaveLength(0);
 		});
 
-		it('should return error with invalid recipientId', async () => {
+		it('should return error with invalid recipientId', () => {
 			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
 				{
 					...validTransferTransaction,
@@ -122,7 +122,7 @@ describe('Transfer transaction class', () => {
 			);
 		});
 
-		it('should return error if recipientId exceed uint64 limit', async () => {
+		it('should return error if recipientId exceed uint64 limit', () => {
 			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
 				{
 					...validTransferTransaction,
@@ -138,7 +138,7 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
-		it('should return error if recipientId contains leading zeros', async () => {
+		it('should return error if recipientId contains leading zeros', () => {
 			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
 				{
 					...validTransferTransaction,
@@ -154,7 +154,7 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
-		it('should return error with invalid amount', async () => {
+		it('should return error with invalid amount', () => {
 			const transferTransactionWithInvalidAmount = new TransferTransaction({
 				...validTransferTransaction,
 				asset: {
@@ -171,7 +171,7 @@ describe('Transfer transaction class', () => {
 			expect(errors[0].dataPath).toEqual('.asset.amount');
 		});
 
-		it('should return error with invalid asset', async () => {
+		it('should return error with invalid asset', () => {
 			const transferTransactionWithInvalidAsset = new TransferTransaction({
 				...validTransferTransaction,
 				asset: {
@@ -185,7 +185,7 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
-		it('should return error if asset data containing null string', async () => {
+		it('should return error if asset data containing null string', () => {
 			const transferTransactionWithValiddAsset = new TransferTransaction({
 				...validTransferTransaction,
 				asset: {
@@ -199,7 +199,7 @@ describe('Transfer transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 
-		it('should return error with asset data containing overflowed string', async () => {
+		it('should return error with asset data containing overflowed string', () => {
 			const transferTransactionWithInvalidAsset = new TransferTransaction({
 				...validTransferTransaction,
 				asset: {
@@ -214,7 +214,7 @@ describe('Transfer transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
-		it('should return no errors', async () => {
+		it('should return no errors', () => {
 			const errors = (validTransferTestTransaction as any).applyAsset(store);
 
 			expect(Object.keys(errors)).toHaveLength(0);
@@ -313,11 +313,11 @@ describe('Transfer transaction class', () => {
 	describe('#signAll', () => {
 		const { transaction, account, networkIdentifier } = validTransferInput;
 		let validTransferInstance: BaseTransaction;
-		beforeEach(async () => {
+		beforeEach(() => {
 			validTransferInstance = new TransferTransaction(transaction);
 		});
 
-		it('should have one signature for single key pair account', async () => {
+		it('should have one signature for single key pair account', () => {
 			validTransferInstance.sign(
 				networkIdentifier,
 				account.passphrase,
@@ -329,7 +329,7 @@ describe('Transfer transaction class', () => {
 			);
 		});
 
-		it('should have two signatures for a multisignature account used as 2nd passphrase account', async () => {
+		it('should have two signatures for a multisignature account used as 2nd passphrase account', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 
@@ -342,7 +342,7 @@ describe('Transfer transaction class', () => {
 				},
 			);
 
-			expect(validTransferInstance.signatures.length).toBe(2);
+			expect(validTransferInstance.signatures).toHaveLength(2);
 			expect(validTransferInstance.signatures).toStrictEqual([
 				'80d364c0fa5f3a53587986d96316404313b1831408c35ead1eac02d264919708034f8b61198cad29c966d0336c5526acfc37215b7ee17152aebd85f6963dec0c',
 				'be8498bf26315480bb9d242b784b3d3a7fcd67fd74aede35e359a478a5932ea40287f85bc3e6b8dbaac2642162b11ae4341bd510048bf58f742d3db1d4f0a50d',

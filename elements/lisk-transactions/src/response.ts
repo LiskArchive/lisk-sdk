@@ -28,8 +28,8 @@ export interface TransactionResponse {
 export const createResponse = (
 	id: string,
 	errors?: ReadonlyArray<TransactionError>,
-) => ({
+): TransactionResponse => ({
 	id,
 	status: errors && errors.length > 0 ? Status.FAIL : Status.OK,
-	errors: errors ? errors : [],
+	errors: errors ?? [],
 });

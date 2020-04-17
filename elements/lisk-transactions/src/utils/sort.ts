@@ -27,7 +27,7 @@ export const sortKeysAscending = (publicKeys: string[]): string[] =>
 		return 0;
 	});
 
-export const sortUnlocking = (unlockings: AccountUnlocking[]) => {
+export const sortUnlocking = (unlockings: AccountUnlocking[]): void => {
 	unlockings.sort((a, b) => {
 		if (a.delegateAddress !== b.delegateAddress) {
 			return a.delegateAddress.localeCompare(b.delegateAddress, 'en');

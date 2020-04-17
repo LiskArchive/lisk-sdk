@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/* eslint-disable class-methods-use-this,max-classes-per-file,@typescript-eslint/require-await */
 import { BaseTransaction } from '../../src/base_transaction';
 import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
@@ -23,23 +24,22 @@ export class TestTransaction extends BaseTransaction {
 		return this.asset;
 	}
 
-	public async prepare() {
-		return;
-	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	public async prepare(): Promise<void> {}
 
 	public assetToBytes(): Buffer {
 		return Buffer.alloc(0);
 	}
 
-	public validateAsset() {
+	public validateAsset(): TransactionError[] {
 		return [];
 	}
 
-	public async applyAsset() {
+	public async applyAsset(): Promise<TransactionError[]> {
 		return [];
 	}
 
-	public async undoAsset() {
+	public async undoAsset(): Promise<TransactionError[]> {
 		return [];
 	}
 
@@ -55,15 +55,15 @@ export class TestTransaction extends BaseTransaction {
 export class TestTransactionBasicImpl extends BaseTransaction {
 	public static TYPE = 1;
 
-	public validateAsset() {
+	public validateAsset(): TransactionError[] {
 		return [];
 	}
 
-	public async applyAsset() {
+	public async applyAsset(): Promise<TransactionError[]> {
 		return [];
 	}
 
-	public async undoAsset() {
+	public async undoAsset(): Promise<TransactionError[]> {
 		return [];
 	}
 }
