@@ -51,23 +51,26 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
+// Disabling method-signature-style otherwise type is not compatible with lisk-chain
+/* eslint-disable @typescript-eslint/method-signature-style */
 export interface StateStorePrepare {
 	readonly account: {
-		cache: (
+		cache(
 			filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-		) => Promise<ReadonlyArray<Account>>;
+		): Promise<ReadonlyArray<Account>>;
 	};
 }
 
 export interface AccountState {
-	cache: (
+	cache(
 		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-	) => Promise<ReadonlyArray<Account>>;
-	get: (key: string) => Promise<Account>;
-	getOrDefault: (key: string) => Promise<Account>;
-	find: (func: (item: Account) => boolean) => Account | undefined;
-	set: (key: string, value: Account) => void;
+	): Promise<ReadonlyArray<Account>>;
+	get(key: string): Promise<Account>;
+	getOrDefault(key: string): Promise<Account>;
+	find(func: (item: Account) => boolean): Account | undefined;
+	set(key: string, value: Account): void;
 }
+/* eslint-enable @typescript-eslint/method-signature-style */
 
 export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;

@@ -51,7 +51,6 @@ export interface Account {
 	votes: AccountVote[];
 	unlocking: AccountUnlocking[];
 	totalVotesReceived: bigint;
-	// tslint:disable-next-line:no-mixed-interface
 	readonly toJSON: () => object;
 }
 // tslint:enable readonly-keyword
