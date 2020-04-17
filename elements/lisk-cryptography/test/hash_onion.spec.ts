@@ -32,7 +32,7 @@ describe('hash onion', () => {
 	describe('#hashOnion', () => {
 		let seed: Buffer;
 		let hashOnionBuffers: ReadonlyArray<Buffer>;
-		beforeAll(async () => {
+		beforeAll(() => {
 			seed = generateHashOnionSeed();
 			hashOnionBuffers = hashOnion(seed);
 		});

@@ -26,6 +26,7 @@ import {
 	digestMessage,
 } from '../src/sign';
 // Require is used for stubbing
+// eslint-disable-next-line
 const keys = require('../src/keys');
 
 const changeLength = (str: string): string => `00${str}`;
@@ -131,7 +132,7 @@ ${defaultSignature}
 					signature: defaultSignature,
 					publicKey: changeLength(defaultPublicKey),
 				}),
-			).toThrowError('Invalid publicKey, expected 32-byte publicKey');
+			).toThrow('Invalid publicKey, expected 32-byte publicKey');
 		});
 
 		it('should detect invalid signatures', () => {
@@ -141,7 +142,7 @@ ${defaultSignature}
 					signature: changeLength(defaultSignature),
 					publicKey: defaultPublicKey,
 				}),
-			).toThrowError('Invalid signature length, expected 64-byte signature');
+			).toThrow('Invalid signature length, expected 64-byte signature');
 		});
 
 		it('should return false if the signature is invalid', () => {
@@ -183,7 +184,7 @@ ${defaultSignature}
 	describe('#signData', () => {
 		let signature: string;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			signature = signData(defaultData, defaultPassphrase);
 			return Promise.resolve();
 		});
@@ -196,7 +197,7 @@ ${defaultSignature}
 	describe('#signDataWithPassphrase', () => {
 		let signature: string;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
 			return Promise.resolve();
 		});
@@ -209,7 +210,7 @@ ${defaultSignature}
 	describe('#signDataWithPrivateKey', () => {
 		let signature: string;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			signature = signDataWithPrivateKey(
 				defaultData,
 				Buffer.from(defaultPrivateKey, 'hex'),

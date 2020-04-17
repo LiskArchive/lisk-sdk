@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line no-implicit-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as sodium from 'sodium-native';
 
 import { NaclInterface } from './nacl_types';

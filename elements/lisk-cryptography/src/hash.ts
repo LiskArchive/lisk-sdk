@@ -41,12 +41,13 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 	}
 
 	throw new Error(
-		`Unsupported data:${data} and format:${format}. Currently only Buffers or hex and utf8 strings are supported.`,
+		`Unsupported data:${data} and format:${format ??
+			'undefined'}. Currently only Buffers or hex and utf8 strings are supported.`,
 	);
 };
 
 export const getNetworkIdentifier = (
 	genesisBlockPayloadHash: string,
 	communityIdentifier: string,
-) =>
+): string =>
 	hash(genesisBlockPayloadHash + communityIdentifier, 'utf8').toString('hex');
