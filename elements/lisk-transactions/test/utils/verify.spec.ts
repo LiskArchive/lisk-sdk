@@ -109,7 +109,7 @@ describe('#verify', () => {
 				...defaultTransferTransaction,
 				keys: defaultTransferTransaction.asset,
 			};
-			expect(isMultisignatureAccount(senderAccount)).toBeFalse();
+			expect(isMultisignatureAccount(senderAccount)).toBeTrue();
 		});
 	});
 
@@ -133,7 +133,7 @@ describe('#verify', () => {
 
 		it('should return empty array when signatures are valid', () => {
 			const { signatures, asset: keys } = defaultTransferTransaction;
-			const [result] = validateKeysSignatures(
+			const result = validateKeysSignatures(
 				keys,
 				signatures,
 				defaultTransferTransactionBytes,
