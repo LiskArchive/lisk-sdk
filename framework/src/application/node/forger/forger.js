@@ -19,6 +19,7 @@ const {
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	hashOnion,
+	generateHashOnionSeed,
 	getAddressFromPublicKey,
 } = require('@liskhq/lisk-cryptography');
 
@@ -439,7 +440,13 @@ class Forger {
 		const { count: usedCount } = usedHashOnion;
 		const nextCount = usedCount + 1;
 		if (nextCount > hashOnionConfig.count) {
-			throw new Error('All of the hash onion has been used already');
+			this.logger.warn(
+				'All of the hash onion has been used already. Please update to the new hash onion.',
+			);
+			return {
+				hash: generateHashOnionSeed().toString('hex'),
+				count: 0,
+			};
 		}
 		const nextCheckpointIndex = Math.ceil(nextCount / hashOnionConfig.distance);
 		const nextCheckpoint = Buffer.from(
