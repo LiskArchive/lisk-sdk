@@ -28,7 +28,8 @@ export const wrapTransactionWithoutUniqueData = (
 		nonce: BigInt(transaction.nonce),
 		fee: BigInt(transaction.fee),
 		minFee: BigInt(100000),
-		getBytes: () => Buffer.from(new Array(10)),
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		getBytes: (): Buffer => Buffer.from(new Array(10)),
 	};
 };
 
@@ -40,12 +41,13 @@ export const wrapTransactionWithUniqueData = (
 		nonce: BigInt(transaction.nonce),
 		fee: BigInt(transaction.fee),
 		minFee: BigInt(100000),
-		getBytes: () => Buffer.from(new Array(10)),
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		getBytes: (): Buffer => Buffer.from(new Array(10)),
 	};
 };
 
 export const wrapTransaction = (transaction: TransactionJSON): Transaction => {
-	return [0, 1].includes(transaction.type as number)
+	return [0, 1].includes(transaction.type)
 		? wrapTransactionWithoutUniqueData(transaction)
 		: wrapTransactionWithUniqueData(transaction);
 };
