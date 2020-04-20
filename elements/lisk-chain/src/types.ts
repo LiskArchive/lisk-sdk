@@ -17,6 +17,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+// eslint-disable-next-line import/no-cycle
 import { Account } from './account';
 
 export interface Indexable {
@@ -140,7 +141,7 @@ export interface ChainState {
 }
 
 export interface StorageTransaction {
-	// tslint:disable-next-line no-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly batch: <T = any>(input: any[]) => Promise<T>;
 }
 
@@ -227,13 +228,13 @@ export interface StorageEntity<T> {
 	) => Promise<number>;
 	readonly upsert: (
 		filters: StorageFilters,
-		// tslint:disable-next-line no-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		data: any,
 		options: StorageOptions | null,
 		tx?: StorageTransaction,
 	) => Promise<void>;
 	readonly create: (
-		// tslint:disable-next-line no-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		data: any,
 		filters?: StorageFilters,
 		tx?: StorageTransaction,
@@ -259,7 +260,7 @@ export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 
 export interface TempBlockStorageEntity extends StorageEntity<TempBlock> {
 	readonly isEmpty: () => Promise<boolean>;
-	readonly truncate: () => void;
+	readonly truncate: () => Promise<void>;
 }
 
 export interface Storage {

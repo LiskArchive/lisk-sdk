@@ -72,6 +72,7 @@ export class DataAccess {
 
 		// Get the height limits to fetch
 		// The method getBlocksByHeightBetween uses gte & lte so we need to adjust values
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const upperHeightToFetch = this._blocksCache.items[0]?.height - 1 || 0;
 
 		const lowerHeightToFetch = Math.max(
@@ -130,6 +131,7 @@ export class DataAccess {
 		}
 		const block = await this._storage.getBlockByHeight(height);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		return block ? this.deserializeBlockHeader(block) : undefined;
 	}
 
@@ -171,6 +173,7 @@ export class DataAccess {
 	public async getLastBlockHeader(): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.last;
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (cachedBlock) {
 			return cachedBlock;
 		}
@@ -186,12 +189,14 @@ export class DataAccess {
 		const blocks = this._blocksCache.getByIDs(arrayOfBlockIds);
 		const cachedBlock = blocks[blocks.length - 1];
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (cachedBlock) {
 			return cachedBlock;
 		}
 
 		const block = await this._storage.getLastCommonBlockHeader(arrayOfBlockIds);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		return block ? this.deserializeBlockHeader(block) : undefined;
 	}
 
@@ -208,6 +213,7 @@ export class DataAccess {
 	public async getBlockByID(id: string): Promise<BlockInstance | undefined> {
 		const blockJSON = await this._storage.getBlockByID(id);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		return blockJSON ? this.deserialize(blockJSON) : undefined;
 	}
 
@@ -224,6 +230,7 @@ export class DataAccess {
 	): Promise<BlockHeader | undefined> {
 		const block = await this._storage.getBlockByHeight(height);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		return block ? this.deserialize(block) : undefined;
 	}
 
@@ -241,7 +248,7 @@ export class DataAccess {
 
 	public async getBlocksWithLimitAndOffset(
 		limit: number,
-		offset: number = 0,
+		offset = 0,
 	): Promise<BlockInstance[]> {
 		// Calculate toHeight
 		const toHeight = offset + limit;
@@ -261,6 +268,7 @@ export class DataAccess {
 	public async getLastBlock(): Promise<BlockInstance | undefined> {
 		const block = await this._storage.getLastBlock();
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		return block && this.deserialize(block);
 	}
 
@@ -288,8 +296,8 @@ export class DataAccess {
 		return isEmpty;
 	}
 
-	public clearTempBlocks(): void {
-		this._storage.clearTempBlocks();
+	public async clearTempBlocks(): Promise<void> {
+		await this._storage.clearTempBlocks();
 	}
 	/** End: Blocks */
 
@@ -380,20 +388,24 @@ export class DataAccess {
 
 	public deserialize(blockJSON: BlockJSON): BlockInstance {
 		const transactions =
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			blockJSON.transactions?.map(transaction =>
 				this._transactionAdapter.fromJSON(transaction),
 			) ?? [];
 
 		return {
 			...blockJSON,
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			totalAmount: BigInt(blockJSON.totalAmount || 0),
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			totalFee: BigInt(blockJSON.totalFee || 0),
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			reward: BigInt(blockJSON.reward || 0),
 			transactions,
 		};
 	}
 
-	// tslint:disable-next-line:prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public serializeBlockHeader(blockHeader: BlockHeader): BlockHeaderJSON {
 		return {
 			...blockHeader,
@@ -403,12 +415,15 @@ export class DataAccess {
 		};
 	}
 
-	// tslint:disable-next-line:prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public deserializeBlockHeader(blockHeader: BlockHeaderJSON): BlockHeader {
 		return {
 			...blockHeader,
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			totalAmount: BigInt(blockHeader.totalAmount || 0),
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			totalFee: BigInt(blockHeader.totalFee || 0),
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			reward: BigInt(blockHeader.reward || 0),
 		};
 	}

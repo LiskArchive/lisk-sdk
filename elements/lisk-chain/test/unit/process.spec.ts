@@ -62,7 +62,7 @@ describe('blocks/header', () => {
 	let block: BlockInstance;
 	let blockBytes: Buffer;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageStub = {
 			entities: {
 				Account: {
@@ -119,7 +119,7 @@ describe('blocks/header', () => {
 
 	describe('#validateBlockHeader', () => {
 		describe('when previous block property is invalid', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				block = newBlock({ previousBlockId: undefined, height: 3 });
 				blockBytes = getBytes(block);
@@ -131,7 +131,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when signature is invalid', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				block = newBlock({ blockSignature: 'aaaa' });
 				blockBytes = getBytes(block);
@@ -143,7 +143,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when reward is invalid', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				block = newBlock({ reward: BigInt(1000000000) });
 				blockBytes = getBytes(block);
@@ -155,7 +155,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when a transaction included is invalid', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				const invalidTx = chainInstance.deserializeTransaction(
 					transfer({
@@ -178,7 +178,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when payload length exceeds maximum allowed', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				(chainInstance as any).constants.maxPayloadLength = 100;
 				const txs = new Array(200).fill(0).map((_, v) =>
@@ -187,7 +187,7 @@ describe('blocks/header', () => {
 							passphrase: genesisAccount.passphrase,
 							fee: '10000000',
 							nonce: '0',
-							recipientId: `${v + 1}L`,
+							recipientId: `${(v + 1).toString()}L`,
 							amount: '100',
 							networkIdentifier,
 						}) as TransactionJSON,
@@ -203,7 +203,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when payload hash is incorrect', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map((_, v) =>
 					chainInstance.deserializeTransaction(
@@ -211,7 +211,7 @@ describe('blocks/header', () => {
 							fee: '10000000',
 							nonce: '0',
 							passphrase: genesisAccount.passphrase,
-							recipientId: `${v + 1}L`,
+							recipientId: `${(v + 1).toString()}L`,
 							amount: '100',
 							networkIdentifier,
 						}) as TransactionJSON,
@@ -227,7 +227,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when all the value is valid', () => {
-			it('should not throw error', async () => {
+			it('should not throw error', () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map((_, v) =>
 					chainInstance.deserializeTransaction(
@@ -235,7 +235,7 @@ describe('blocks/header', () => {
 							fee: '10000000',
 							nonce: '0',
 							passphrase: genesisAccount.passphrase,
-							recipientId: `${v + 1}L`,
+							recipientId: `${(v + 1).toString()}L`,
 							amount: '100',
 							networkIdentifier,
 						}) as TransactionJSON,
@@ -254,7 +254,7 @@ describe('blocks/header', () => {
 	describe('#verify', () => {
 		let stateStore: StateStore;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			stateStore = new StateStore(storageStub, {
 				lastBlockHeaders: [],
@@ -337,7 +337,7 @@ describe('blocks/header', () => {
 			let txApplySpy: jest.SpyInstance;
 			let originalClass: typeof BaseTransaction;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrage
 				notAllowedTx = chainInstance.deserializeTransaction(
 					transfer({
@@ -354,7 +354,7 @@ describe('blocks/header', () => {
 				);
 				originalClass = transactionClass;
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
-					get: () => () => false,
+					get: () => (): boolean => false,
 					configurable: true,
 				});
 				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
@@ -365,16 +365,16 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: [notAllowedTx] });
 			});
 
-			afterEach(async () => {
+			afterEach(() => {
 				Object.defineProperty(originalClass.prototype, 'matcher', {
-					get: () => () => true,
+					get: () => (): boolean => true,
 					configurable: true,
 				});
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				const stateStore = new StateStore(storageStub, {
+				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -397,7 +397,7 @@ describe('blocks/header', () => {
 		describe('when skip existing check is true and transactions are valid', () => {
 			let invalidTx;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrage
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000000000' },
@@ -417,7 +417,7 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
-				const stateStore = new StateStore(storageStub, {
+				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -436,7 +436,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when skip existing check is false and block exists in database', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrage
 				storageStub.entities.Block.isPersisted.mockResolvedValue(true);
 				storageStub.entities.Account.get.mockResolvedValue([
@@ -457,7 +457,7 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				const stateStore = new StateStore(storageStub, {
+				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -473,7 +473,7 @@ describe('blocks/header', () => {
 		});
 
 		describe('when skip existing check is false and block does not exist in database but transaction does', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrage
 				storageStub.entities.Account.get.mockResolvedValue([
 					{ address: genesisAccount.address, balance: '100000000000000' },
@@ -495,7 +495,7 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				const stateStore = new StateStore(storageStub, {
+				stateStore = new StateStore(storageStub, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -537,6 +537,7 @@ describe('blocks/header', () => {
 					lastBlockReward: BigInt(500000000),
 				});
 				await stateStore.account.cache({
+					// eslint-disable-next-line camelcase
 					address_in: [
 						genesisAccount.address,
 						getAddressFromPublicKey(block.generatorPublicKey),
@@ -553,7 +554,7 @@ describe('blocks/header', () => {
 				expect(generator.balance).toEqual(block.reward);
 			});
 
-			it('should not have updated burnt fee', async () => {
+			it('should not have updated burnt fee', () => {
 				expect(storageStub.entities.ChainState.getKey).not.toHaveBeenCalled();
 			});
 		});
@@ -589,6 +590,7 @@ describe('blocks/header', () => {
 					lastBlockReward: BigInt(500000000),
 				});
 				await stateStore.account.cache({
+					// eslint-disable-next-line camelcase
 					address_in: [genesisAccount.address],
 				});
 			});
@@ -605,7 +607,7 @@ describe('blocks/header', () => {
 				]);
 			});
 
-			it('should not set the block to the last block', async () => {
+			it('should not set the block to the last block', () => {
 				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock);
 			});
 		});
@@ -709,12 +711,12 @@ describe('blocks/header', () => {
 				await chainInstance.apply(block, stateStore);
 			});
 
-			it('should call apply for the transaction', async () => {
+			it('should call apply for the transaction', () => {
 				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});
 
-			it('should not call account update', async () => {
+			it('should not call account update', () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
@@ -779,7 +781,7 @@ describe('blocks/header', () => {
 				);
 			});
 
-			it('should not call account update', async () => {
+			it('should not call account update', () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
@@ -816,7 +818,7 @@ describe('blocks/header', () => {
 				await chainInstance.undo(block, stateStore);
 			});
 
-			it('should not call account update', async () => {
+			it('should not call account update', () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
@@ -827,7 +829,7 @@ describe('blocks/header', () => {
 				expect(generator.balance.toString()).toEqual('0');
 			});
 
-			it('should not deduct burntFee from chain state', async () => {
+			it('should not deduct burntFee from chain state', () => {
 				expect(storageStub.entities.ChainState.getKey).not.toHaveBeenCalled();
 			});
 		});
@@ -943,12 +945,12 @@ describe('blocks/header', () => {
 				await chainInstance.undo(block, stateStore);
 			});
 
-			it('should call undo for the transaction', async () => {
+			it('should call undo for the transaction', () => {
 				expect(validTxUndoSpy).toHaveBeenCalledTimes(1);
 				expect(validTx2UndoSpy).toHaveBeenCalledTimes(1);
 			});
 
-			it('should not call account update', async () => {
+			it('should not call account update', () => {
 				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 

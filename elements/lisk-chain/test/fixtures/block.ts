@@ -67,10 +67,13 @@ export const Block = stampit.compose({
 		this.totalAmount = faker.random
 			.number({ min: 1000, max: 10000 })
 			.toString();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.version = version || 0;
 
 		if (this.version === 2) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this.maxHeightPrevoted = maxHeightPrevoted || 0;
 		}
 	},

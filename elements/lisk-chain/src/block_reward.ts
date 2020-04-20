@@ -117,10 +117,10 @@ export const calculateSupply = (
 		}
 	}
 
-	// tslint:disable-next-line prefer-for-of no-let
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < rewards.length; i += 1) {
 		const reward = rewards[i];
-		supply = supply + BigInt(reward[0]) * BigInt(reward[1]);
+		supply += BigInt(reward[0]) * BigInt(reward[1]);
 	}
 
 	return supply;
@@ -131,7 +131,7 @@ export const getTotalFees = (
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	blockInstance.transactions.reduce(
 		(prev, current) => {
-			const minFee = current.minFee;
+			const { minFee } = current;
 
 			return {
 				totalFee: prev.totalFee + current.fee,
@@ -165,7 +165,7 @@ export const applyFeeAndRewards = async (
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
 	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 	// tslint:disable-next-line no-let
-	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
+	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store
@@ -194,7 +194,7 @@ export const undoFeeAndRewards = async (
 	generator.balance -= totalFee - totalMinFee;
 	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 	// tslint:disable-next-line no-let
-	let totalFeeBurnt = BigInt(totalFeeBurntStr || 0);
+	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
 	totalFeeBurnt -= totalMinFee;
 
 	// Update state store

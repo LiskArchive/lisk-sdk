@@ -105,6 +105,7 @@ const saveBlock = async (
 	blockJSON: BlockJSON,
 	tx: StorageTransaction,
 ): Promise<void> => {
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!tx) {
 		throw new Error('Block should only be saved in a database tx');
 	}
@@ -123,7 +124,7 @@ const saveBlock = async (
 const applyConfirmedStep = async (
 	blockInstance: BlockInstance,
 	stateStore: StateStore,
-) => {
+): Promise<void> => {
 	if (blockInstance.transactions.length <= 0) {
 		return;
 	}
@@ -181,6 +182,7 @@ const undoConfirmedStep = async (
 	}
 };
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:chain');
 
 export class Chain {
@@ -248,10 +250,12 @@ export class Chain {
 			totalAmount,
 		};
 		this.blockReward = {
-			calculateMilestone: height =>
+			calculateMilestone: (height: number): number =>
 				calculateMilestone(height, this.blockRewardArgs),
-			calculateReward: height => calculateReward(height, this.blockRewardArgs),
-			calculateSupply: height => calculateSupply(height, this.blockRewardArgs),
+			calculateReward: (height: number): bigint =>
+				calculateReward(height, this.blockRewardArgs),
+			calculateSupply: (height: number): bigint =>
+				calculateSupply(height, this.blockRewardArgs),
 		};
 		this.constants = {
 			stateBlockSize,
@@ -325,7 +329,7 @@ export class Chain {
 		this.dataAccess.resetBlockHeaderCache();
 	}
 
-	public async newStateStore(skipLastHeights: number = 0): Promise<StateStore> {
+	public async newStateStore(skipLastHeights = 0): Promise<StateStore> {
 		const fromHeight = Math.max(
 			1,
 			this._lastBlock.height - this.constants.stateBlockSize - skipLastHeights,
@@ -337,6 +341,7 @@ export class Chain {
 		);
 
 		const lastBlockReward = this.blockReward.calculateReward(
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			lastBlockHeaders[0]?.height ?? 1,
 		);
 
@@ -345,34 +350,6 @@ export class Chain {
 			lastBlockHeaders,
 			lastBlockReward,
 		});
-	}
-
-	private async _cacheBlockHeaders(
-		storageLastBlock: BlockInstance,
-	): Promise<void> {
-		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
-		const fromHeight = Math.max(
-			storageLastBlock.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
-			1,
-		);
-		const toHeight = storageLastBlock.height;
-
-		debug(
-			{ h: storageLastBlock.height, fromHeight, toHeight },
-			'Cache block headers during chain init',
-		);
-		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
-			fromHeight,
-			toHeight,
-		);
-		const sortedBlockHeaders = [...blockHeaders].sort(
-			(a: BlockHeader, b: BlockHeader) => a.height - b.height,
-		);
-
-		for (const blockHeader of sortedBlockHeaders) {
-			debug({ height: blockHeader.height }, 'Add block header to cache');
-			this.dataAccess.addBlockHeader(blockHeader);
-		}
 	}
 
 	public validateBlockHeader(block: BlockInstance, blockBytes: Buffer): void {
@@ -394,6 +371,7 @@ export class Chain {
 		validatePayload(block, this.constants.maxPayloadLength);
 
 		// Update id
+		// eslint-disable-next-line no-param-reassign
 		block.id = blocksUtils.getId(blockBytes);
 	}
 
@@ -426,7 +404,7 @@ export class Chain {
 		await this.blocksVerify.checkTransactions(blockInstance);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public async apply(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
@@ -435,7 +413,7 @@ export class Chain {
 		await applyFeeAndRewards(blockInstance, stateStore);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public async applyGenesis(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
@@ -475,33 +453,13 @@ export class Chain {
 		});
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public async undo(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
 	): Promise<void> {
 		await undoFeeAndRewards(blockInstance, stateStore);
 		await undoConfirmedStep(blockInstance, stateStore);
-	}
-
-	private async _deleteLastBlock(
-		lastBlock: BlockInstance,
-		tx?: StorageTransaction,
-	): Promise<BlockInstance> {
-		if (lastBlock.height === 1) {
-			throw new Error('Cannot delete genesis block');
-		}
-		const block = await this.dataAccess.getBlockByID(
-			lastBlock.previousBlockId as string,
-		);
-
-		if (!block) {
-			throw new Error('PreviousBlock is null');
-		}
-
-		await this.storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
-
-		return block;
 	}
 
 	public async remove(
@@ -641,7 +599,7 @@ export class Chain {
 	}
 
 	// Temporally added because DPoS uses totalEarning to calculate the vote weight change
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public getTotalEarningAndBurnt(
 		blockInstance: BlockInstance,
 	): { readonly totalEarning: bigint; readonly totalBurnt: bigint } {
@@ -651,5 +609,53 @@ export class Chain {
 			totalEarning: blockInstance.reward + totalFee - totalMinFee,
 			totalBurnt: totalMinFee,
 		};
+	}
+
+	private async _cacheBlockHeaders(
+		storageLastBlock: BlockInstance,
+	): Promise<void> {
+		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
+		const fromHeight = Math.max(
+			storageLastBlock.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
+			1,
+		);
+		const toHeight = storageLastBlock.height;
+
+		debug(
+			{ h: storageLastBlock.height, fromHeight, toHeight },
+			'Cache block headers during chain init',
+		);
+		const blockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
+			fromHeight,
+			toHeight,
+		);
+		const sortedBlockHeaders = [...blockHeaders].sort(
+			(a: BlockHeader, b: BlockHeader) => a.height - b.height,
+		);
+
+		for (const blockHeader of sortedBlockHeaders) {
+			debug({ height: blockHeader.height }, 'Add block header to cache');
+			this.dataAccess.addBlockHeader(blockHeader);
+		}
+	}
+
+	private async _deleteLastBlock(
+		lastBlock: BlockInstance,
+		tx?: StorageTransaction,
+	): Promise<BlockInstance> {
+		if (lastBlock.height === 1) {
+			throw new Error('Cannot delete genesis block');
+		}
+		const block = await this.dataAccess.getBlockByID(
+			lastBlock.previousBlockId as string,
+		);
+
+		if (!block) {
+			throw new Error('PreviousBlock is null');
+		}
+
+		await this.storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
+
+		return block;
 	}
 }

@@ -34,17 +34,17 @@ describe('transactions', () => {
 
 		let transactions: TransactionInterfaceAdapter;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Act
 			transactions = new TransactionInterfaceAdapter(registeredTransactions);
 		});
 
 		describe('constructor', () => {
-			it('should create initTransaction with correct properties', async () => {
+			it('should create initTransaction with correct properties', () => {
 				expect(transactions).toHaveProperty('_transactionClassMap');
 			});
 
-			it('should have transactionClassMap property with Lisk transaction types', async () => {
+			it('should have transactionClassMap property with Lisk transaction types', () => {
 				expect([...(transactions as any)._transactionClassMap.keys()]).toEqual([
 					8,
 					10,
@@ -56,13 +56,13 @@ describe('transactions', () => {
 		});
 
 		describe('fromJSON', () => {
-			it('should throw an error if transaction type is not registered', async () => {
+			it('should throw an error if transaction type is not registered', () => {
 				expect(() => transactions.fromJSON({ type: 1 } as any)).toThrow(
 					'Transaction type not found.',
 				);
 			});
 
-			it('should initialize a transfer transaction', async () => {
+			it('should initialize a transfer transaction', () => {
 				const transfer = {
 					type: 8,
 					nonce: '0',
@@ -83,7 +83,7 @@ describe('transactions', () => {
 				);
 			});
 
-			it('should initialize a delegate transaction', async () => {
+			it('should initialize a delegate transaction', () => {
 				const delegate = {
 					type: 10,
 					nonce: '0',
@@ -108,7 +108,7 @@ describe('transactions', () => {
 				);
 			});
 
-			it('should initialize a vote transaction', async () => {
+			it('should initialize a vote transaction', () => {
 				const vote = {
 					type: 13,
 					nonce: '0',
@@ -136,7 +136,7 @@ describe('transactions', () => {
 				expect(transactions.fromJSON(vote)).toBeInstanceOf(VoteTransaction);
 			});
 
-			it('should initialize a multisignature transaction', async () => {
+			it('should initialize a multisignature transaction', () => {
 				const multisignature = {
 					type: 12,
 					nonce: '0',

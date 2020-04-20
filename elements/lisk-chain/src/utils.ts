@@ -28,11 +28,13 @@ export const getId = (blockBytes: Buffer): string => {
 	return id;
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const uniqBy = <T extends { readonly [key: string]: unknown }>(
 	arr: ReadonlyArray<T>,
 	property: string,
 	set = new Set(),
-) =>
+): T[] =>
 	arr.filter(element =>
+		// eslint-disable-next-line
 		(value => !set.has(value) && set.add(value))(element[property]),
 	);

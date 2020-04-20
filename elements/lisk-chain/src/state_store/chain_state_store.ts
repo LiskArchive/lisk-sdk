@@ -21,7 +21,6 @@ interface AdditionalInformation {
 }
 
 interface KeyValuePair {
-	// tslint:disable-next-line readonly-keyword
 	[key: string]: string;
 }
 
@@ -115,7 +114,7 @@ export class ChainStateStore {
 		}
 
 		await Promise.all(
-			Array.from(this._updatedKeys).map(key =>
+			Array.from(this._updatedKeys).map(async key =>
 				this._chainState.setKey(key, this._data[key], tx),
 			),
 		);

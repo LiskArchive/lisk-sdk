@@ -95,17 +95,19 @@ export const validatePayload = (
 	block.transactions.forEach(transaction => {
 		const transactionBytes = transaction.getBytes();
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (appliedTransactions[transaction.id]) {
 			throw new Error(`Encountered duplicate transaction: ${transaction.id}`);
 		}
 
 		appliedTransactions[transaction.id] = transaction;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (transactionBytes) {
 			transactionsBytesArray.push(transactionBytes);
 		}
-		// tslint:disable-next-line no-any
-		totalAmount = totalAmount + BigInt((transaction.asset as any).amount || 0);
-		totalFee = totalFee + BigInt(transaction.fee);
+		// eslint-disable-next-line
+		totalAmount += BigInt((transaction.asset as any).amount || 0);
+		totalFee += BigInt(transaction.fee);
 	});
 
 	const transactionsBuffer = Buffer.concat(transactionsBytesArray);

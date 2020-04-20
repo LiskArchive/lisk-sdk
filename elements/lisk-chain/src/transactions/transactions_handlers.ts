@@ -35,7 +35,7 @@ export const validateTransactions = () => (
 export const applyGenesisTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
-) => {
+): Promise<TransactionResponse[]> => {
 	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
 	for (const transaction of transactions) {
 		await transaction.prepare(stateStore);
@@ -79,7 +79,7 @@ export const applyTransactions = () => async (
 
 export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
-) => {
+): Promise<TransactionResponse[]> => {
 	if (!transactions.length) {
 		return [];
 	}
@@ -125,6 +125,7 @@ export const checkAllowedTransactions = (contexter: Contexter) => (
 	transactions.map(transaction => {
 		const context = typeof contexter === 'function' ? contexter() : contexter;
 		const allowed =
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			!(transaction as MatcherTransaction).matcher ||
 			(transaction as MatcherTransaction).matcher(context);
 
@@ -135,7 +136,7 @@ export const checkAllowedTransactions = (contexter: Contexter) => (
 				? []
 				: [
 						new TransactionError(
-							`Transaction type ${transaction.type} is currently not allowed.`,
+							`Transaction type ${transaction.type.toString()} is currently not allowed.`,
 							transaction.id,
 						),
 				  ],

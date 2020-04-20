@@ -22,9 +22,9 @@ import {
 	LITTLE_ENDIAN,
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import * as genesisBlock from '../fixtures/genesis_block.json';
-import { BlockJSON, BlockInstance } from '../../src/types.js';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
+import * as genesisBlock from '../fixtures/genesis_block.json';
+import { BlockJSON, BlockInstance } from '../../src/types';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -119,10 +119,11 @@ export const getBytes = (block: BlockInstance): Buffer => {
 	]);
 };
 
-const sortTransactions = (transactions: BaseTransaction[]) =>
+const sortTransactions = (transactions: BaseTransaction[]): void => {
 	transactions.sort((a, b) => (a.type > b.type || a.id > b.id) as any);
+};
 
-const getKeyPair = () => {
+const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const {
 		publicKeyBytes: publicKey,
@@ -134,21 +135,22 @@ const getKeyPair = () => {
 	};
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const calculateTransactionsInfo = (block: BlockInstance) => {
-	const sortedTransactions = sortTransactions(block.transactions);
+	sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
 	let totalFee = BigInt(0);
 	let totalAmount = BigInt(0);
 	let payloadLength = 0;
 
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < sortedTransactions.length; i++) {
-		const transaction = sortedTransactions[i];
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let i = 0; i < block.transactions.length; i += 1) {
+		const transaction = block.transactions[i];
 		const transactionBytes = transaction.getBytes();
 
-		totalFee = totalFee + BigInt(transaction.fee);
-		totalAmount =
-			totalAmount + BigInt((transaction as any).asset.amount || '0');
+		totalFee += BigInt(transaction.fee);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		totalAmount += BigInt((transaction as any).asset.amount || '0');
 
 		payloadLength += transactionBytes.length;
 		transactionsBytesArray.push(transactionBytes);

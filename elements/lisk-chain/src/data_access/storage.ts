@@ -42,6 +42,7 @@ export class Storage {
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
+			// eslint-disable-next-line camelcase
 			{ id_in: arrayOfBlockIds },
 			{ limit: arrayOfBlockIds.length },
 		);
@@ -60,8 +61,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
+			// eslint-disable-next-line camelcase
 			{ height_gte: fromHeight, height_lte: toHeight },
-			// tslint:disable-next-line:no-null-keyword
 			{ limit: null, sort: 'height:desc' },
 		);
 
@@ -73,6 +74,7 @@ export class Storage {
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
 			{
+				// eslint-disable-next-line camelcase
 				height_in: heightList,
 			},
 			{
@@ -98,6 +100,7 @@ export class Storage {
 	): Promise<BlockJSON> {
 		const [block] = await this._storage.entities.Block.get(
 			{
+				// eslint-disable-next-line camelcase
 				id_in: arrayOfBlockIds,
 			},
 			{ sort: 'height:desc', limit: 1 },
@@ -129,6 +132,7 @@ export class Storage {
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
+			// eslint-disable-next-line camelcase
 			{ id_in: arrayOfBlockIds },
 			{ extended: true },
 		);
@@ -150,8 +154,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<BlockJSON[]> {
 		const blocks = await this._storage.entities.Block.get(
+			// eslint-disable-next-line camelcase
 			{ height_gte: fromHeight, height_lte: toHeight },
-			// tslint:disable-next-line no-null-keyword
 			{ extended: true, limit: null, sort: 'height:desc' },
 		);
 
@@ -183,14 +187,15 @@ export class Storage {
 		return isEmpty;
 	}
 
-	public clearTempBlocks(): void {
-		this._storage.entities.TempBlock.truncate();
+	public async clearTempBlocks(): Promise<void> {
+		await this._storage.entities.TempBlock.truncate();
 	}
 
 	public async deleteBlocksWithHeightGreaterThan(
 		height: number,
 	): Promise<void> {
 		await this._storage.entities.Block.delete({
+			// eslint-disable-next-line camelcase
 			height_gt: height,
 		});
 	}
@@ -228,6 +233,7 @@ export class Storage {
 		arrayOfPublicKeys: ReadonlyArray<string>,
 	): Promise<AccountJSON[]> {
 		const accounts = await this._storage.entities.Account.get(
+			// eslint-disable-next-line camelcase
 			{ publicKey_in: arrayOfPublicKeys },
 			{ limit: arrayOfPublicKeys.length },
 		);
@@ -248,6 +254,7 @@ export class Storage {
 		arrayOfAddresses: ReadonlyArray<string>,
 	): Promise<AccountJSON[]> {
 		const accounts = await this._storage.entities.Account.get(
+			// eslint-disable-next-line camelcase
 			{ address_in: arrayOfAddresses },
 			{ limit: arrayOfAddresses.length },
 		);
@@ -278,6 +285,7 @@ export class Storage {
 	): Promise<TransactionJSON[]> {
 		const transactions = await this._storage.entities.Transaction.get(
 			{
+				// eslint-disable-next-line camelcase
 				id_in: arrayOfTransactionIds,
 			},
 			{ limit: arrayOfTransactionIds.length },

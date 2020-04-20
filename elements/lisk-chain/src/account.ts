@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// eslint-disable-next-line import/no-cycle
 import { AccountJSON } from './types';
 
 export const accountDefaultValues = {
@@ -109,6 +110,7 @@ export class Account {
 					unvoteHeight: unlock.unvoteHeight,
 			  }))
 			: [];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.totalVotesReceived = BigInt(accountInfo.totalVotesReceived ?? 0);
 		this.delegate = {
 			lastForgedHeight: accountInfo.delegate?.lastForgedHeight ?? 0,
@@ -126,7 +128,7 @@ export class Account {
 			optionalKeys: accountInfo.keys?.optionalKeys?.length
 				? [...accountInfo.keys.optionalKeys]
 				: [],
-			numberOfSignatures: accountInfo.keys?.numberOfSignatures || 0,
+			numberOfSignatures: accountInfo.keys?.numberOfSignatures ?? 0,
 		};
 
 		// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
