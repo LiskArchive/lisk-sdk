@@ -1241,6 +1241,52 @@ describe('forger', () => {
 					]),
 				);
 			});
+
+			it('should use random seedReveal when all seedReveal are used', async () => {
+				const targetDelegate = genesisDelegates.delegates[0];
+				jest
+					.spyOn(forgeModule, '_getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(targetDelegate);
+				forgeModule.config.forging.delegates = genesisDelegates.delegates;
+				const maxCount = forgeModule.config.forging.delegates.find(
+					d => d.publicKey === targetDelegate.publicKey,
+				).hashOnion.count;
+				when(forgeModule.storage.entities.ForgerInfo.getKey)
+					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
+					.mockResolvedValue(
+						JSON.stringify([
+							{
+								count: maxCount,
+								height: 10,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+							},
+						]),
+					);
+
+				// Act
+				await forgeModule.forge();
+				// Assert
+				expect(forgeModule.logger.warn).toHaveBeenCalledWith(
+					'All of the hash onion has been used already. Please update to the new hash onion.',
+				);
+				expect(
+					forgeModule.storage.entities.ForgerInfo.setKey,
+				).toHaveBeenCalledWith(
+					FORGER_INFO_KEY_USED_HASH_ONION,
+					JSON.stringify([
+						{
+							count: maxCount,
+							height: 10,
+							address: getAddressFromPublicKey(targetDelegate.publicKey),
+						},
+						{
+							count: 0,
+							address: getAddressFromPublicKey(targetDelegate.publicKey),
+							height: lastBlock.height + 1,
+						},
+					]),
+				);
+			});
 		});
 	});
 
