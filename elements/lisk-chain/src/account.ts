@@ -17,7 +17,6 @@ import { AccountJSON } from './types';
 export const accountDefaultValues = {
 	publicKey: undefined,
 	balance: '0',
-	// tslint:disable-next-line no-null-keyword
 	username: null,
 	nonce: '0',
 	producedBlocks: 0,
@@ -45,7 +44,6 @@ export const accountDefaultValues = {
 
 interface Vote {
 	readonly delegateAddress: string;
-	// tslint:disable-next-line readonly-keyword
 	amount: bigint;
 }
 
@@ -146,7 +144,6 @@ export class Account {
 		return {
 			address: this.address,
 			publicKey: this.publicKey,
-			// tslint:disable-next-line:no-null-keyword
 			username: this.username,
 			balance: this.balance.toString(),
 			nonce: this.nonce.toString(),

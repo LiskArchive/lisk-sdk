@@ -76,7 +76,6 @@ export interface Context {
 }
 export type Contexter = (() => Context) | Context;
 export interface BlockHeaderJSON {
-	/* tslint:disable:readonly-keyword */
 	id: string;
 	height: number;
 	version: number;
@@ -93,11 +92,9 @@ export interface BlockHeaderJSON {
 	reward: string;
 	maxHeightPreviouslyForged: number;
 	maxHeightPrevoted: number;
-	/* tslint:enable:readonly-keyword */
 }
 
 export interface BlockJSON extends BlockHeaderJSON {
-	// tslint:disable-next-line readonly-keyword
 	transactions: ReadonlyArray<TransactionJSON>;
 }
 
@@ -240,7 +237,6 @@ export interface StorageEntity<T> {
 		tx?: StorageTransaction,
 	) => Promise<void>;
 	readonly delete: (
-		// tslint:disable-next-line no-any
 		filters?: StorageFilters,
 		options?: StorageOptions | null,
 		tx?: StorageTransaction,

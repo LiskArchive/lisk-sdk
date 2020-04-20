@@ -371,7 +371,6 @@ export class DataAccess {
 	}
 	/** End: Transactions */
 
-	// tslint:disable-next-line:prefer-function-over-method
 	public serialize(blockInstance: BlockInstance): BlockJSON {
 		const { transactions, ...blockHeader } = blockInstance;
 		const blockHeaderJSON = this.serializeBlockHeader(blockHeader);

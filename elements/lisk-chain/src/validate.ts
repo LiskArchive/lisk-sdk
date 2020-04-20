@@ -84,12 +84,9 @@ export const validatePayload = (
 		throw new Error('Payload length is too long');
 	}
 
-	// tslint:disable-next-line no-let
 	let totalAmount = BigInt(0);
-	// tslint:disable-next-line no-let
 	let totalFee = BigInt(0);
 	const transactionsBytesArray: Buffer[] = [];
-	// tslint:disable-next-line readonly-keyword
 	const appliedTransactions: { [id: string]: BaseTransaction } = {};
 
 	block.transactions.forEach(transaction => {

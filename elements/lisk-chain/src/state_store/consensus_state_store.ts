@@ -19,7 +19,6 @@ import {
 } from '../types';
 
 interface KeyValuePair {
-	// tslint:disable-next-line readonly-keyword
 	[key: string]: string;
 }
 

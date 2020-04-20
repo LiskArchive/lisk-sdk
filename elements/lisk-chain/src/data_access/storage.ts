@@ -174,7 +174,6 @@ export class Storage {
 	public async getTempBlocks(): Promise<TempBlock[]> {
 		const tempBlocks = await this._storage.entities.TempBlock.get(
 			{},
-			// tslint:disable-next-line:no-null-keyword
 			{ sort: 'height:asc', limit: null },
 		);
 
@@ -266,7 +265,6 @@ export class Storage {
 		const accounts = await this._storage.entities.Account.get(
 			{ isDelegate: true },
 			// Sort address:asc is always added in the storage
-			// tslint:disable-next-line no-null-keyword
 			{ limit: null, sort: ['totalVotesReceived:desc'] },
 		);
 

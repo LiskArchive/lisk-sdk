@@ -97,7 +97,6 @@ interface ChainConstructor {
 	readonly maxBlockHeaderCache?: number;
 }
 
-// tslint:disable-next-line no-magic-numbers
 const TRANSACTION_TYPES_VOTE = [3, 11];
 
 const saveBlock = async (

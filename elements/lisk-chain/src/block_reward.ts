@@ -71,10 +71,8 @@ export const calculateSupply = (
 	height: number,
 	blockRewardArgs: BlockRewardOptions,
 ): bigint => {
-	// tslint:disable-next-line no-let
 	let parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
-	// tslint:disable-next-line no-let
 	let supply = BigInt(blockRewardArgs.totalAmount);
 
 	if (parsedHeight < blockRewardArgs.rewardOffset) {
@@ -85,15 +83,12 @@ export const calculateSupply = (
 	const milestone = calculateMilestone(parsedHeight, blockRewardArgs);
 	const rewards = [];
 
-	// tslint:disable-next-line no-let
 	let amount = 0;
-	// tslint:disable-next-line no-let
 	let multiplier;
 
 	// Remove offset from height
 	parsedHeight -= blockRewardArgs.rewardOffset - 1;
 
-	// tslint:disable-next-line prefer-for-of no-let
 	for (let i = 0; i < blockRewardArgs.milestones.length; i += 1) {
 		if (milestone >= i) {
 			multiplier = blockRewardArgs.milestones[i];
@@ -164,7 +159,6 @@ export const applyFeeAndRewards = async (
 	// Also, genesis block cannot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
 	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	// tslint:disable-next-line no-let
 	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
@@ -193,7 +187,6 @@ export const undoFeeAndRewards = async (
 
 	generator.balance -= totalFee - totalMinFee;
 	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	// tslint:disable-next-line no-let
 	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
 	totalFeeBurnt -= totalMinFee;
 

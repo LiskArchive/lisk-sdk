@@ -40,7 +40,6 @@ export const composeTransactionSteps = (
 	const successfulResponses: TransactionResponse[] = [];
 	const failedResponses: TransactionResponse[] = [];
 
-	// tslint:disable-next-line no-let
 	for (let i = 0; i < steps.length; i += 1) {
 		const filteredTransactions =
 			failedResponses.length > 0
