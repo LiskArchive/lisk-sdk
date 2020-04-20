@@ -24,6 +24,7 @@ export class MaxHeap<T, K = bigint | number> extends MinHeap<T, K> {
 			if (this._nodes[parentIndex].key < node.key) {
 				this._nodes[index] = this._nodes[parentIndex];
 				index = parentIndex;
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			break;
@@ -32,10 +33,9 @@ export class MaxHeap<T, K = bigint | number> extends MinHeap<T, K> {
 	}
 
 	protected _moveDown(originalIndex: number): void {
-		// tslint:disable-next-line no-let
 		let index = originalIndex;
 		const node = this._nodes[index];
-		// tslint:disable-next-line no-bitwise
+		// eslint-disable-next-line no-bitwise
 		const halfCount = this.count >> 1;
 
 		while (index < halfCount) {

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable max-classes-per-file
 export class TransactionPoolError extends Error {
 	public message: string;
 	public id: string;
@@ -20,9 +19,9 @@ export class TransactionPoolError extends Error {
 	public actual?: string | number;
 	public expected?: string | number;
 	public constructor(
-		message: string = '',
-		id: string = '',
-		dataPath: string = '',
+		message = '',
+		id = '',
+		dataPath = '',
 		actual?: string | number,
 		expected?: string | number,
 	) {
@@ -38,10 +37,12 @@ export class TransactionPoolError extends Error {
 	public toString(): string {
 		const defaultMessage = `TransactionPool: ${this.id} failed to process at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
-			? `${defaultMessage}, actual: ${this.actual}`
+			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			  `${defaultMessage}, actual: ${this.actual}`
 			: defaultMessage;
 		const withExpected = this.expected
-			? `${withActual}, expected: ${this.expected}`
+			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			  `${withActual}, expected: ${this.expected}`
 			: withActual;
 
 		return withExpected;

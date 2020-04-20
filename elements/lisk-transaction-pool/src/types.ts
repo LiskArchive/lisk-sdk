@@ -33,7 +33,7 @@ export interface TransactionObject {
 }
 
 export interface TransactionFunctions {
-	getBytes(): Buffer;
+	getBytes: () => Buffer;
 }
 
 export enum Status {

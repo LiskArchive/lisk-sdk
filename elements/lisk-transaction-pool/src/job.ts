@@ -23,6 +23,7 @@ export class Job<T> {
 		this._job = job;
 	}
 
+	// eslint-disable-next-line consistent-return
 	public async start(): Promise<void> {
 		if (!this._active) {
 			this._active = true;
@@ -41,11 +42,10 @@ export class Job<T> {
 
 	private async callJobAfterTimeout(): Promise<void> {
 		return new Promise<void>(resolve => {
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			this._id = setTimeout(async () => {
 				await this._job();
 				resolve();
-
-				return;
 			}, this._interval);
 		});
 	}
