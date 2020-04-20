@@ -371,3 +371,22 @@ export const validateMessage = (message: object) => {
 		throw new Error('Invalid message schema');
 	}
 };
+
+export const isEmptyMessage = (data: unknown): boolean => {
+	if (data === undefined || data === null) {
+		return true;
+	}
+	if (
+		typeof data === 'object' &&
+		data !== null &&
+		!Array.isArray(data) &&
+		Object.keys(data).length === 0
+	) {
+		return true;
+	}
+	if (Array.isArray(data) && data.length === 0) {
+		return true;
+	}
+
+	return false;
+};
