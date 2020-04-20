@@ -1,5 +1,5 @@
 {
-	"extends": ["../.eslintrc.json"],
+	"extends": ["../.eslintrc.js"],
 	"rules": {
 		"camelcase": "off",
 		"comma-dangle": [

@@ -32,7 +32,6 @@ interface AddressBytes {
 	readonly dBytes: Buffer;
 }
 
-/* tslint:disable no-magic-numbers */
 export const getIPGroup = (address: string, groupNumber: number): number => {
 	if (groupNumber > 3) {
 		throw new Error('Invalid IP group.');
@@ -79,7 +78,6 @@ export const isPrivate = (address: string): boolean =>
 
 export const isLocal = (address: string): boolean =>
 	getIPGroup(address, 0) === 127 || address === '0.0.0.0';
-/* tslint:enable no-magic-numbers */
 
 export const getNetwork = (address: string): NETWORK => {
 	if (isLocal(address)) {

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable
 import { p2p as firstP2P, run as runNode1 } from './node1';
 import { p2p as secondP2P, run as runNode2 } from './node2';
 import { p2p as thirdP2P, run as runNode3 } from './node3';

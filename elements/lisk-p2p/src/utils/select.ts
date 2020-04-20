@@ -72,7 +72,6 @@ export const selectPeersForSend = (
 ): ReadonlyArray<P2PPeerInfo> => {
 	const shuffledPeers = shuffle(input.peers);
 	const peerLimit = input.peerLimit as number;
-	// tslint:disable: no-magic-numbers
 	const halfPeerLimit = Math.round(peerLimit / 2);
 
 	const outboundPeers = shuffledPeers.filter((peerInfo: P2PPeerInfo) =>
@@ -87,9 +86,7 @@ export const selectPeersForSend = (
 			: false,
 	);
 
-	// tslint:disable: no-let
 	let shortestPeersList;
-	// tslint:disable: no-let
 	let longestPeersList;
 
 	if (outboundPeers.length < inboundPeers.length) {

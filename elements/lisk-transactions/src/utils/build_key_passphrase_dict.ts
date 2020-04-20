@@ -16,7 +16,6 @@
 import { getPrivateAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 
 interface PublicKeyPassphraseDict {
-	// tslint:disable-next-line: readonly-keyword
 	[key: string]: {
 		readonly privateKey: string;
 		readonly publicKey: string;

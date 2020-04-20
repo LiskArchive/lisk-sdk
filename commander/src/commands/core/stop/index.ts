@@ -63,9 +63,7 @@ export default class StopCommand extends BaseCommand {
 			return;
 		}
 
-		// tslint:disable-next-line await-promise
 		await CacheCommand.run([name]);
-		// tslint:disable-next-line await-promise
 		await DatabaseCommand.run([name]);
 
 		const tasks = new Listr([

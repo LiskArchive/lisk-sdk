@@ -46,11 +46,9 @@ export interface P2PPenalty {
 }
 
 export interface P2PSharedState {
-	// tslint:disable-next-line: no-mixed-interface
 	readonly [key: string]: unknown;
 }
 // Disable readonly properties as its going to change
-// tslint:disable:readonly-keyword
 export interface P2PInternalState {
 	dateAdded?: Date;
 	peerKind: PeerKind;
@@ -73,7 +71,6 @@ export interface P2PInternalState {
 	connectionKind: ConnectionKind;
 	advertiseAddress: boolean;
 }
-// tslint:enable:readonly-keyword
 export interface P2PPeerInfo {
 	// String to uniquely identify each peer
 	readonly peerId: string;

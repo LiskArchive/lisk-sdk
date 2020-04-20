@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable
 import {
 	EVENT_CONNECT_OUTBOUND,
 	EVENT_MESSAGE_RECEIVED,

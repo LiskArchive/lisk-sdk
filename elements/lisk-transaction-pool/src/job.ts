@@ -51,7 +51,6 @@ export class Job<T> {
 	}
 
 	private async run(): Promise<void> {
-		// tslint:disable-next-line:no-loop-statement
 		while (this._active) {
 			await this.callJobAfterTimeout();
 		}

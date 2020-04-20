@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:no-magic-numbers */
 export const FIXED_POINT = 10 ** 8;
 
 export const MIN_FEE_PER_BYTE = 1000;

@@ -85,9 +85,7 @@ const setMemberAccounts = async (
 };
 
 export interface MultiSignatureAsset {
-	// tslint:disable-next-line: readonly-keyword
 	mandatoryKeys: Array<Readonly<string>>;
-	// tslint:disable-next-line: readonly-keyword
 	optionalKeys: Array<Readonly<string>>;
 	readonly numberOfSignatures: number;
 }
@@ -378,7 +376,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const sortedMandatoryKeys = [...mandatoryKeys].sort();
 		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const sortedOptionalKeys = [...optionalKeys].sort();
-		// tslint:disable-next-line: no-let
 		for (let i = 0; i < sortedMandatoryKeys.length; i += 1) {
 			if (mandatoryKeys[i] !== sortedMandatoryKeys[i]) {
 				errors.push(
@@ -393,7 +390,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			}
 		}
 
-		// tslint:disable-next-line: no-let
 		for (let i = 0; i < sortedOptionalKeys.length; i += 1) {
 			if (optionalKeys[i] !== sortedOptionalKeys[i]) {
 				errors.push(

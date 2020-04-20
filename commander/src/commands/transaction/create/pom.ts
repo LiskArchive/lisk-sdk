@@ -137,7 +137,6 @@ export default class PoMCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
-		// tslint:disable-next-line no-let
 		let header1: RawHeader;
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -149,7 +148,6 @@ export default class PoMCommand extends BaseCommand {
 			);
 		}
 
-		// tslint:disable-next-line no-let
 		let header2: RawHeader;
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

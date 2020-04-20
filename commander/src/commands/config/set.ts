@@ -193,7 +193,6 @@ export default class SetCommand extends BaseCommand {
 		{
 			name: 'variable',
 			required: true,
-			// tslint:disable-next-line array-type
 			options: CONFIG_VARIABLES as Array<string>,
 			description: '',
 		},

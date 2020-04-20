@@ -30,7 +30,7 @@
 	"scripts": {
 		"start": "ts-node src/index.js",
 		"format": "prettier --write '**/*'",
-		"lint": "eslint . --ext .js,.ts",
+		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"test": "TS_NODE_TRANSPILE_ONLY=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha",
 		"test:watch": "npm run test:local -- --watch",

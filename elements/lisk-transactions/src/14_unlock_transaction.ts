@@ -67,7 +67,6 @@ const unlockAssetFormatSchema = {
 const SIZE_UINT32 = 4;
 const SIZE_INT64 = 8;
 const SIZE_UINT64 = SIZE_INT64;
-// tslint:disable-next-line no-magic-numbers
 const AMOUNT_MULTIPLIER_FOR_VOTES = BigInt(10) * BigInt(10) ** BigInt(8);
 const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
@@ -122,7 +121,6 @@ export class UnlockTransaction extends BaseTransaction {
 				}),
 			};
 		} else {
-			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = { unlockingObjects: [] };
 		}
 	}

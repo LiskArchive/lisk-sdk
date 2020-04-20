@@ -27,7 +27,6 @@ import {
 	P2PConfig,
 	P2PNodeInfo,
 } from '../../src';
-// tslint:disable: no-console
 // Node info for Testnet
 const nodeInfo: P2PNodeInfo = {
 	os: platform(),

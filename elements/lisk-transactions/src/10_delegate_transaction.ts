@@ -140,7 +140,6 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
-		// tslint:disable-next-line:no-null-keyword
 		sender.username = null;
 		sender.isDelegate = 0;
 		store.account.set(sender.address, sender);

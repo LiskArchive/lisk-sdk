@@ -62,7 +62,6 @@ const voteAssetFormatSchema = {
 
 const SIZE_INT64 = 8;
 const SIZE_UINT64 = SIZE_INT64;
-// tslint:disable-next-line no-magic-numbers
 const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
@@ -100,7 +99,6 @@ export class VoteTransaction extends BaseTransaction {
 				}),
 			};
 		} else {
-			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = { votes: [] };
 		}
 	}
@@ -156,9 +154,7 @@ export class VoteTransaction extends BaseTransaction {
 			schemaErrors,
 		) as TransactionError[];
 
-		// tslint:disable-next-line no-let
 		let upvoteCount = 0;
-		// tslint:disable-next-line no-let
 		let downvoteCount = 0;
 		const addressSet = new Set();
 		for (const vote of this.asset.votes) {

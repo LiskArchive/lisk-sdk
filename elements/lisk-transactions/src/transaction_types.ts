@@ -16,7 +16,6 @@ import { TransactionError } from './errors';
 
 export interface AccountVote {
 	readonly delegateAddress: string;
-	// tslint:disable-next-line readonly-keyword
 	amount: bigint;
 }
 export interface AccountUnlocking {
@@ -24,7 +23,6 @@ export interface AccountUnlocking {
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
-// tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
 	balance: bigint;
@@ -53,7 +51,6 @@ export interface Account {
 	totalVotesReceived: bigint;
 	readonly toJSON: () => object;
 }
-// tslint:enable readonly-keyword
 export interface Delegate {
 	readonly username: string;
 }

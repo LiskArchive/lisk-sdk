@@ -81,7 +81,6 @@ export class TransferTransaction extends BaseTransaction {
 				),
 			};
 		} else {
-			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = {
 				amount: BigInt('0'),
 				recipientId: '',

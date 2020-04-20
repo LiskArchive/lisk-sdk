@@ -49,7 +49,6 @@ const getKeyValueArray = (array: ReadonlyArray<object>) =>
 		? array.map(getKeyValueObject).join('\n\n')
 		: array.join('\n');
 
-// tslint:disable-next-line readonly-array
 const addValuesToTable = (table: object[], data: object) => {
 	Object.entries(data).forEach(([key, values]) => {
 		const strValue = Array.isArray(values)
@@ -71,7 +70,6 @@ export const tablify = (data: ReadonlyArray<object> | object) => {
 
 	if (Array.isArray(data)) {
 		data.forEach((value, key) => {
-			// tslint:disable-next-line readonly-array
 			const cell: Cell[] = [
 				{
 					colSpan: 2,
