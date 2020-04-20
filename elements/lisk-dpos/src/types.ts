@@ -37,7 +37,7 @@ export interface BlockHeader {
 
 export interface Block extends BlockHeader {
 	// Temporally required to create this type, since total reward and fee are required to calculated in the DPoS for vote weight change
-	// tslint:disable-next-line: no-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly transactions: any[];
 }
 
@@ -46,7 +46,6 @@ interface Vote {
 	readonly amount: bigint;
 }
 
-// tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
 	totalVotesReceived: bigint;
@@ -63,7 +62,6 @@ export interface Account {
 	rewards: bigint;
 	readonly publicKey: string;
 }
-// tslint:enable readonly-keyword
 
 export interface DPoSProcessingOptions {
 	readonly delegateListRoundOffset: number;
@@ -72,11 +70,9 @@ export interface DPoSProcessingOptions {
 
 export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
-	// tslint:disable-next-line no-mixed-interface
 	readonly getTotalEarningAndBurnt: (
 		block: BlockHeader,
 	) => { readonly totalEarning: bigint; readonly totalBurnt: bigint };
-	// tslint:disable-next-line no-mixed-interface
 	readonly dataAccess: {
 		readonly getDelegates: () => Promise<Account[]>;
 		readonly getConsensusState: (key: string) => Promise<string | undefined>;

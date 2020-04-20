@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Slots } from '@liskhq/lisk-chain';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos } from '../../src';
-import { Slots } from '@liskhq/lisk-chain';
 import { Account, Block } from '../../src/types';
 import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
 import { getDelegateAccounts } from '../utils/round_delegates';
@@ -32,7 +32,7 @@ describe('Vote weight snapshot', () => {
 	let chainStub: any;
 	let stateStore: StateStoreMock;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			getTotalEarningAndBurnt: jest
@@ -53,7 +53,7 @@ describe('Vote weight snapshot', () => {
 		let delegates: Account[];
 		let genesisBlock: Block;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			delegates = getDelegateAccounts(103);
 			for (const delegate of delegates) {
@@ -94,7 +94,7 @@ describe('Vote weight snapshot', () => {
 		let delegates: Account[];
 		let genesisBlock: Block;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			delegates = getDelegateAccounts(103);
 			for (const delegate of delegates) {
@@ -133,7 +133,7 @@ describe('Vote weight snapshot', () => {
 		describe('when there are changes in the last block', () => {
 			let updatedDelegate: Account;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(200);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(900, 5000);
@@ -242,7 +242,7 @@ describe('Vote weight snapshot', () => {
 		});
 
 		describe('when number of registered delegates is less than 103', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(50);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(500, 999);
@@ -332,7 +332,7 @@ describe('Vote weight snapshot', () => {
 
 		describe('when there are less than 2 delegates who have received votes more than the threshold (1000 * 10^8)', () => {
 			let additionalDelegates: Account[];
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 1100);
@@ -430,7 +430,7 @@ describe('Vote weight snapshot', () => {
 
 		describe('when there are more than 2 delegates who have received votes more than the threshold (1000 * 10^8)', () => {
 			let additionalDelegates: Account[];
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
@@ -532,7 +532,7 @@ describe('Vote weight snapshot', () => {
 			let additionalDelegates: Account[];
 			let nonSelfVotedDelegate: Account;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
@@ -541,7 +541,7 @@ describe('Vote weight snapshot', () => {
 						amount: delegate.totalVotesReceived,
 					});
 				}
-				nonSelfVotedDelegate = delegates[0];
+				[nonSelfVotedDelegate] = delegates;
 				// Update not to self vote
 				(nonSelfVotedDelegate.votes[0] as any).delegateAddress = '123L';
 				additionalDelegates = getDelegateAccounts(300);
@@ -635,7 +635,7 @@ describe('Vote weight snapshot', () => {
 			let additionalDelegates: Account[];
 			let bannedDelegate: Account;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
@@ -644,7 +644,7 @@ describe('Vote weight snapshot', () => {
 						amount: delegate.totalVotesReceived,
 					});
 				}
-				bannedDelegate = delegates[0];
+				[bannedDelegate] = delegates;
 				(delegates[0].delegate as any).isBanned = true;
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
@@ -736,7 +736,7 @@ describe('Vote weight snapshot', () => {
 		describe('when there are delegates who are being punished within the top 101 delegates, and the list is not sufficent', () => {
 			let punishedDelegate: Account;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				// 102 because forger is included as zero vote weight delegate
 				delegates = getDelegateAccounts(102);
 				for (const delegate of delegates) {
@@ -746,7 +746,7 @@ describe('Vote weight snapshot', () => {
 						amount: delegate.totalVotesReceived,
 					});
 				}
-				punishedDelegate = delegates[0];
+				[punishedDelegate] = delegates;
 				delegates[0].delegate.pomHeights.push(10);
 				block = {
 					id: 'random-block',
@@ -832,7 +832,7 @@ describe('Vote weight snapshot', () => {
 			let additionalDelegates: Account[];
 			let punishedDelegate: Account;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
 					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
@@ -841,7 +841,7 @@ describe('Vote weight snapshot', () => {
 						amount: delegate.totalVotesReceived,
 					});
 				}
-				punishedDelegate = delegates[0];
+				[punishedDelegate] = delegates;
 				delegates[0].delegate.pomHeights.push(10);
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
@@ -931,7 +931,7 @@ describe('Vote weight snapshot', () => {
 		});
 
 		describe('when undo is called', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				delegates = getDelegateAccounts(103);
 				block = {
 					id: 'random-block',

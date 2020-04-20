@@ -19,21 +19,21 @@ import { ACTIVE_DELEGATES } from '../fixtures/constants';
 describe('Slots', () => {
 	let rounds: Rounds;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		rounds = new Rounds({
 			blocksPerRound: ACTIVE_DELEGATES,
 		});
 	});
 
 	describe('calc', () => {
-		it('should calculate round number from given block height', async () => {
+		it('should calculate round number from given block height', () => {
 			expect(rounds.calcRound(100)).toEqual(1);
 			expect(rounds.calcRound(200)).toEqual(2);
 			expect(rounds.calcRound(303)).toEqual(3);
 			return expect(rounds.calcRound(304)).toEqual(4);
 		});
 
-		it('should calculate round number from Number.MAX_VALUE', async () => {
+		it('should calculate round number from Number.MAX_VALUE', () => {
 			const res = rounds.calcRound(Number.MAX_VALUE);
 			expect(typeof res === 'number').toBe(true);
 			return expect(res).toBeLessThan(Number.MAX_VALUE);

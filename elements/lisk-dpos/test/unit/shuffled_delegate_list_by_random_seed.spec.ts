@@ -17,8 +17,7 @@ import * as delegateShufflingScenario from '../fixtures/dpos_delegate_shuffling/
 import { shuffleDelegateList } from '../../src/delegates_list';
 
 describe('dpos.shuffleDelegateList', () => {
-	const previousRoundSeed1 =
-		delegateShufflingScenario.testCases.input.previousRoundSeed1;
+	const { previousRoundSeed1 } = delegateShufflingScenario.testCases.input;
 	const addressList = [
 		...delegateShufflingScenario.testCases.input.delegateList,
 	];

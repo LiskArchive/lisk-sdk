@@ -36,6 +36,7 @@ import {
 	VoteWeights,
 } from './types';
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_list');
 const SIZE_UINT64 = 8;
 
@@ -50,7 +51,6 @@ interface DelegatesListConstructor {
 
 interface DelegateListWithRoundHash {
 	readonly address: string;
-	// tslint:disable-next-line readonly-keyword
 	roundHash: Buffer;
 }
 
@@ -178,7 +178,7 @@ export const getForgerAddressesForRound = async (
 		?.delegates;
 
 	if (!delegateAddresses) {
-		throw new Error(`No delegate list found for round: ${round}`);
+		throw new Error(`No delegate list found for round: ${round.toString()}`);
 	}
 
 	return delegateAddresses;
@@ -214,9 +214,7 @@ const _pickStandByDelegate = (
 	const seedNumber = randomSeed.readBigUInt64BE();
 	const totalVoteWeight = _getTotalVoteWeight(delegateWeights);
 
-	// tslint:disable-next-line no-let
 	let threshold = seedNumber % totalVoteWeight;
-	// tslint:disable-next-line no-let
 	for (let i = 0; i < delegateWeights.length; i += 1) {
 		const voteWeight = BigInt(delegateWeights[i].voteWeight);
 		if (voteWeight > threshold) {
@@ -258,13 +256,12 @@ export class DelegatesList {
 		roundOffset: number = DEFAULT_ROUND_OFFSET,
 	): Promise<void> {
 		const round = this.rounds.calcRound(height) + roundOffset;
-		debug(`Creating vote weight snapshot for round: ${round}`);
+		debug(`Creating vote weight snapshot for round: ${round.toString()}`);
 		// This list is before executing the current block in process
 		const originalDelegates = await this.chain.dataAccess.getDelegates();
 
 		// Merge updated delegate accounts
 		const updatedAccounts = stateStore.account.getUpdated();
-		// tslint:disable-next-line readonly-keyword
 		const updatedAccountsMap: { [address: string]: Account } = {};
 		// Convert updated accounts to map for better search
 		for (const account of updatedAccounts) {
@@ -286,6 +283,7 @@ export class DelegatesList {
 			// If the account is being punished, then consider them as vote weight 0
 			if (isCurrentlyPunished(height, account.delegate.pomHeights)) {
 				account.totalVotesReceived = BigInt(0);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			const selfVote = account.votes.find(
@@ -315,6 +313,7 @@ export class DelegatesList {
 		for (const account of delegates) {
 			// If the account is banned, do not include in the list
 			if (account.delegate.isBanned) {
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -324,6 +323,7 @@ export class DelegatesList {
 					address: account.address,
 					voteWeight: account.totalVotesReceived.toString(),
 				});
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -333,6 +333,7 @@ export class DelegatesList {
 					address: account.address,
 					voteWeight: account.totalVotesReceived.toString(),
 				});
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -344,6 +345,7 @@ export class DelegatesList {
 					address: account.address,
 					voteWeight: account.totalVotesReceived.toString(),
 				});
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			break;
@@ -376,7 +378,9 @@ export class DelegatesList {
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeight = voteWeights.find(vw => vw.round === round);
 		if (!voteWeight) {
-			throw new Error(`Corresponding vote weight for round ${round} not found`);
+			throw new Error(
+				`Corresponding vote weight for round ${round.toString()} not found`,
+			);
 		}
 		// Expect that voteWeight is stored in order of voteWeight and address
 		const hasStandbySlot = voteWeight.delegates.length > this.activeDelegates;
@@ -399,7 +403,6 @@ export class DelegatesList {
 			}
 			// If standby delegates are more than what required then choose based on random seed
 		} else if (standbyDelegateVoteWeights.length > this.standbyDelegates) {
-			// tslint:disable-next-line no-let
 			for (let i = 0; i < this.standbyDelegates; i += 1) {
 				const standbyDelegateIndex = _pickStandByDelegate(
 					standbyDelegateVoteWeights,
@@ -444,7 +447,7 @@ export class DelegatesList {
 			?.delegates;
 
 		if (!delegateAddresses) {
-			throw new Error(`No delegate list found for round: ${round}`);
+			throw new Error(`No delegate list found for round: ${round.toString()}`);
 		}
 
 		return delegateAddresses;
@@ -458,7 +461,9 @@ export class DelegatesList {
 
 		if (!delegateList.length) {
 			throw new Error(
-				`Failed to verify slot: ${currentSlot} for block ID: ${block.id} - No delegateList was found`,
+				`Failed to verify slot: ${currentSlot.toString()} for block ID: ${
+					block.id
+				} - No delegateList was found`,
 			);
 		}
 
@@ -473,7 +478,9 @@ export class DelegatesList {
 				expectedForgerAddress
 		) {
 			throw new Error(
-				`Failed to verify slot: ${currentSlot}. Block ID: ${block.id}. Block Height: ${block.height}`,
+				`Failed to verify slot: ${currentSlot.toString()}. Block ID: ${
+					block.id
+				}. Block Height: ${block.height.toString()}`,
 			);
 		}
 

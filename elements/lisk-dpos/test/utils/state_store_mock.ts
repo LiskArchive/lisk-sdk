@@ -40,6 +40,7 @@ export class StateStoreMock {
 	public accountData: Account[];
 	public consensusStateData: ConsensusState;
 
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
 	constructor(
 		initialAccount?: Account[],
 		initialState?: ConsensusState,
@@ -53,6 +54,7 @@ export class StateStoreMock {
 		this.consensusStateData = initialState ? { ...initialState } : {};
 
 		this.account = {
+			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: string): Promise<Account> => {
 				const account = this.accountData.find(acc => acc.address === address);
 				if (!account) {
@@ -70,9 +72,11 @@ export class StateStoreMock {
 				}
 				this.accountData.push(account);
 			},
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			getUpdated: () => this.accountData,
 		};
 		this.consensus = {
+			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (key: string): Promise<string | undefined> => {
 				return this.consensusStateData[key];
 			},

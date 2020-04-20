@@ -11,8 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
+import { Dpos } from '../../src';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
@@ -26,7 +26,9 @@ import {
 import { BlockHeader } from '../../src/types';
 import { blockHeaders } from '../utils/block_headers';
 
-const createStateStore = (additionalInfo: AdditionalInformation) => {
+const createStateStore = (
+	additionalInfo: AdditionalInformation,
+): StateStoreMock => {
 	return new StateStoreMock([], undefined, additionalInfo);
 };
 
