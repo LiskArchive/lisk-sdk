@@ -374,7 +374,7 @@ describe('validation', () => {
 			return expect(isUsername('4miners^net')).toBeFalse();
 		});
 
-		it('should return false when username includes forbidden character', () => {
+		it('should return false when username includes forbidden null character', () => {
 			return expect(isUsername('4miners\0net')).toBeFalse();
 		});
 	});
@@ -604,30 +604,30 @@ describe('validation', () => {
 	});
 
 	describe('#isSignature', () => {
-		it('should return false if value is not in hex format', function() {
+		it('should return false if value is not in hex format', () => {
 			const invalidSignature =
 				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(isSignature(invalidSignature)).toBeFalse();
 		});
 
-		it('should return false for empty string values', function() {
+		it('should return false for empty string values', () => {
 			const invalidSignature = '';
 			return expect(isSignature(invalidSignature)).toBeFalse();
 		});
 
-		it('should return false if value < 128', function() {
+		it('should return false if value < 128', () => {
 			const invalidLengthSignature =
 				'3d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(isSignature(invalidLengthSignature)).toBeFalse();
 		});
 
-		it('should return false if value > 128', function() {
+		it('should return false if value > 128', () => {
 			const invalidLengthSignature =
 				'1231d8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(isSignature(invalidLengthSignature)).toBeFalse();
 		});
 
-		it('should return true for valid signature', function() {
+		it('should return true for valid signature', () => {
 			const validSignature =
 				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(isSignature(validSignature)).toBeTrue();
@@ -635,21 +635,21 @@ describe('validation', () => {
 	});
 
 	describe('#isValidTransferData', () => {
-		it('should return false if string is longer than maxLength in characters', function() {
+		it('should return false if string is longer than maxLength in characters', () => {
 			// Generate string of length 65
 			const invalidDataMaxLength = `1${Array(64 + 1).join('1')}`;
 
 			return expect(isValidTransferData(invalidDataMaxLength)).toBeFalse();
 		});
 
-		it('should return false if string is longer than maxLength in bytes', function() {
+		it('should return false if string is longer than maxLength in bytes', () => {
 			// Generate string of length 64 but byte size 65
 			const invalidDataWith2ByteUnicode = `1${Array(64 - 1).join('1')}现`;
 
 			expect(isValidTransferData(invalidDataWith2ByteUnicode)).toBeFalse();
 		});
 
-		it('should return true if string is between minLength and maxLength', function() {
+		it('should return true if string is between minLength and maxLength', () => {
 			const validDataMinimum = `1`;
 			const validDataMaximum = `1${Array(64).join('1')}`;
 

@@ -18,7 +18,7 @@ describe('validator', () => {
 	const baseSchemaId = 'test/schema';
 	let baseSchema: object;
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		baseSchema = {
 			$id: baseSchemaId,
 			type: 'object',
@@ -27,7 +27,7 @@ describe('validator', () => {
 
 	describe('signature', () => {
 		let signatureSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			signatureSchema = {
 				allOf: [
 					baseSchema,
@@ -43,7 +43,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid signature is provided', async () => {
+		it('should validate to true when valid signature is provided', () => {
 			expect(
 				validator.validate(signatureSchema, {
 					target:
@@ -52,7 +52,7 @@ describe('validator', () => {
 			).toHaveLength(0);
 		});
 
-		it('should validate to false when non-hex character is in the signature', async () => {
+		it('should validate to false when non-hex character is in the signature', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -71,7 +71,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when the signature is under 128 characters', async () => {
+		it('should validate to false when the signature is under 128 characters', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -90,7 +90,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when the signature is over 128 characters', async () => {
+		it('should validate to false when the signature is over 128 characters', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -112,7 +112,7 @@ describe('validator', () => {
 
 	describe('id', () => {
 		let idSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			idSchema = {
 				allOf: [
 					baseSchema,
@@ -128,17 +128,17 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid id is provided', async () => {
+		it('should validate to true when valid id is provided', () => {
 			expect(
 				validator.validate(idSchema, { target: '3543510233978718399' }),
 			).toEqual([]);
 		});
 
-		it('should validate to true when valid id with leading zeros is provided', async () => {
+		it('should validate to true when valid id with leading zeros is provided', () => {
 			expect(validator.validate(idSchema, { target: '00123' })).toEqual([]);
 		});
 
-		it('should validate to false when number greater than maximum is provided', async () => {
+		it('should validate to false when number greater than maximum is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -154,7 +154,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when number is provided', async () => {
+		it('should validate to false when number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'type',
@@ -170,7 +170,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -188,7 +188,7 @@ describe('validator', () => {
 
 	describe('emptyString', () => {
 		let emptyStringSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			emptyStringSchema = {
 				allOf: [
 					baseSchema,
@@ -204,11 +204,11 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when empty string is provided', async () => {
+		it('should validate to true when empty string is provided', () => {
 			expect(validator.validate(emptyStringSchema, { target: '' })).toEqual([]);
 		});
 
-		it('should validate to false when non empty string provided', async () => {
+		it('should validate to false when non empty string provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -229,7 +229,7 @@ describe('validator', () => {
 
 	describe('address', () => {
 		let addressSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			addressSchema = {
 				allOf: [
 					baseSchema,
@@ -243,16 +243,16 @@ describe('validator', () => {
 					},
 				],
 			};
-			//validate = validator.compile(addressSchema);
+			// validate = validator.compile(addressSchema);
 		});
 
-		it('should validate to true when valid address is provided', async () => {
+		it('should validate to true when valid address is provided', () => {
 			expect(
 				validator.validate(addressSchema, { target: '14815133512790761431L' }),
 			).toEqual([]);
 		});
 
-		it('should validate to false when address with leading zeros is provided', async () => {
+		it('should validate to false when address with leading zeros is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -268,7 +268,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when address including `.` is provided', async () => {
+		it('should validate to false when address including `.` is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -284,7 +284,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when number greater than maximum is provided', async () => {
+		it('should validate to false when number greater than maximum is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -300,7 +300,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when the address does not end with "L"', async () => {
+		it('should validate to false when the address does not end with "L"', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -316,7 +316,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when the address only contains numbers', async () => {
+		it('should validate to false when the address only contains numbers', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -331,7 +331,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when the address is less than 2 characters', async () => {
+		it('should validate to false when the address is less than 2 characters', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -347,7 +347,7 @@ describe('validator', () => {
 			);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -366,7 +366,7 @@ describe('validator', () => {
 
 	describe('non-transfer amount', () => {
 		let nonTransferAmountSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			nonTransferAmountSchema = {
 				allOf: [
 					baseSchema,
@@ -383,13 +383,13 @@ describe('validator', () => {
 			// validate = validator.compile(nonTransferAmountSchema);
 		});
 
-		it('should validate to true when valid amount is provided', async () => {
+		it('should validate to true when valid amount is provided', () => {
 			expect(
 				validator.validate(nonTransferAmountSchema, { target: '0' }),
 			).toEqual([]);
 		});
 
-		it('should validate to false when invalid amount with leading zeros is provided', async () => {
+		it('should validate to false when invalid amount with leading zeros is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -405,7 +405,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when number greater than maximum is provided', async () => {
+		it('should validate to false when number greater than maximum is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -423,7 +423,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when decimal number is provided', async () => {
+		it('should validate to false when decimal number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -439,7 +439,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when number is provided', async () => {
+		it('should validate to false when number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'type',
@@ -455,7 +455,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -474,7 +474,7 @@ describe('validator', () => {
 
 	describe('transfer amount', () => {
 		let transferAmountSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			transferAmountSchema = {
 				allOf: [
 					baseSchema,
@@ -490,19 +490,19 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid amount is provided', async () => {
+		it('should validate to true when valid amount is provided', () => {
 			expect(
 				validator.validate(transferAmountSchema, { target: '100' }),
 			).toEqual([]);
 		});
 
-		it('should validate to true when valid amount with leading zeros is provided', async () => {
+		it('should validate to true when valid amount with leading zeros is provided', () => {
 			expect(
 				validator.validate(transferAmountSchema, { target: '000000100' }),
 			).toEqual([]);
 		});
 
-		it('should validate to false when amount is 0', async () => {
+		it('should validate to false when amount is 0', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -518,7 +518,7 @@ describe('validator', () => {
 			);
 		});
 
-		it('should validate to false when number greater than maximum is provided', async () => {
+		it('should validate to false when number greater than maximum is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -536,7 +536,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when decimal number is provided', async () => {
+		it('should validate to false when decimal number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -552,7 +552,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when number is provided', async () => {
+		it('should validate to false when number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'type',
@@ -568,7 +568,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -587,7 +587,7 @@ describe('validator', () => {
 
 	describe('fee', () => {
 		let feeSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			feeSchema = {
 				allOf: [
 					baseSchema,
@@ -603,17 +603,17 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid fee is provided', async () => {
+		it('should validate to true when valid fee is provided', () => {
 			expect(validator.validate(feeSchema, { target: '100' })).toEqual([]);
 		});
 
-		it('should validate to true when valid fee with leading zeros is provided', async () => {
+		it('should validate to true when valid fee with leading zeros is provided', () => {
 			expect(validator.validate(feeSchema, { target: '000000100' })).toEqual(
 				[],
 			);
 		});
 
-		it('should validate to false when amount is 0', async () => {
+		it('should validate to false when amount is 0', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -629,7 +629,7 @@ describe('validator', () => {
 			);
 		});
 
-		it('should validate to false when number greater than maximum is provided', async () => {
+		it('should validate to false when number greater than maximum is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -645,7 +645,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when decimal number is provided', async () => {
+		it('should validate to false when decimal number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -661,7 +661,7 @@ describe('validator', () => {
 			);
 		});
 
-		it('should validate to false when number is provided', async () => {
+		it('should validate to false when number is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'type',
@@ -676,7 +676,7 @@ describe('validator', () => {
 			);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -695,7 +695,7 @@ describe('validator', () => {
 
 	describe('emptyOrPublicKey', () => {
 		let emptyOrPublicKeySchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			emptyOrPublicKeySchema = {
 				allOf: [
 					baseSchema,
@@ -711,7 +711,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid publicKey is provided', async () => {
+		it('should validate to true when valid publicKey is provided', () => {
 			expect(
 				validator.validate(emptyOrPublicKeySchema, {
 					target:
@@ -720,7 +720,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to true when null is provided', async () => {
+		it('should validate to true when null is provided', () => {
 			expect(
 				validator.validate(emptyOrPublicKeySchema, {
 					target: null,
@@ -728,7 +728,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to true when undefined is provided', async () => {
+		it('should validate to true when undefined is provided', () => {
 			expect(
 				validator.validate(emptyOrPublicKeySchema, {
 					target: undefined,
@@ -736,7 +736,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to true when empty string is provided', async () => {
+		it('should validate to true when empty string is provided', () => {
 			expect(
 				validator.validate(emptyOrPublicKeySchema, {
 					target: '',
@@ -744,7 +744,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to false when non-hex character is in the publicKey', async () => {
+		it('should validate to false when non-hex character is in the publicKey', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -766,7 +766,7 @@ describe('validator', () => {
 
 	describe('publicKey', () => {
 		let publicKeySchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			publicKeySchema = {
 				allOf: [
 					baseSchema,
@@ -782,7 +782,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid publicKey is provided', async () => {
+		it('should validate to true when valid publicKey is provided', () => {
 			expect(
 				validator.validate(publicKeySchema, {
 					target:
@@ -791,7 +791,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to false when non-hex character is in the publicKey', async () => {
+		it('should validate to false when non-hex character is in the publicKey', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -810,7 +810,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKey is shorter', async () => {
+		it('should validate to false when publicKey is shorter', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -829,7 +829,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKey is longer', async () => {
+		it('should validate to false when publicKey is longer', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -848,7 +848,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when signed publicKey is provided', async () => {
+		it('should validate to false when signed publicKey is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -867,7 +867,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -886,7 +886,7 @@ describe('validator', () => {
 
 	describe('signedPublicKey', () => {
 		let signedPublicKeySchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			signedPublicKeySchema = {
 				allOf: [
 					baseSchema,
@@ -902,7 +902,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid + and publicKey is provided', async () => {
+		it('should validate to true when valid + and publicKey is provided', () => {
 			expect(
 				validator.validate(signedPublicKeySchema, {
 					target:
@@ -911,7 +911,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to true when valid - and publicKey is provided', async () => {
+		it('should validate to true when valid - and publicKey is provided', () => {
 			expect(
 				validator.validate(signedPublicKeySchema, {
 					target:
@@ -920,7 +920,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to false when non-hex character is in the publicKey', async () => {
+		it('should validate to false when non-hex character is in the publicKey', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -939,7 +939,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKey is shorter', async () => {
+		it('should validate to false when publicKey is shorter', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -958,7 +958,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKey is longer', async () => {
+		it('should validate to false when publicKey is longer', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -977,7 +977,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when non-signed publicKey is provided', async () => {
+		it('should validate to false when non-signed publicKey is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -996,7 +996,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1015,7 +1015,7 @@ describe('validator', () => {
 
 	describe('additionPublicKey', () => {
 		let additionPublicKeySchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			additionPublicKeySchema = {
 				allOf: [
 					baseSchema,
@@ -1031,7 +1031,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid + and publicKey is provided', async () => {
+		it('should validate to true when valid + and publicKey is provided', () => {
 			expect(
 				validator.validate(additionPublicKeySchema, {
 					target:
@@ -1040,7 +1040,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to false when valid - and publicKey is provided', async () => {
+		it('should validate to false when valid - and publicKey is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1059,7 +1059,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when non-hex character is in the publicKey', async () => {
+		it('should validate to false when non-hex character is in the publicKey', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1078,7 +1078,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKey is shorter', async () => {
+		it('should validate to false when publicKey is shorter', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1097,7 +1097,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKey is longer', async () => {
+		it('should validate to false when publicKey is longer', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1116,7 +1116,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when non-signed publicKey is provided', async () => {
+		it('should validate to false when non-signed publicKey is provided', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1135,7 +1135,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when it is empty', async () => {
+		it('should validate to false when it is empty', () => {
 			const expectedError = [
 				{
 					keyword: 'format',
@@ -1154,7 +1154,7 @@ describe('validator', () => {
 
 	describe('uniqueSignedPublicKeys', () => {
 		let uniqueSignedPublicKeysSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			uniqueSignedPublicKeysSchema = {
 				allOf: [
 					baseSchema,
@@ -1170,7 +1170,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when unique signedPublicKey is provided', async () => {
+		it('should validate to true when unique signedPublicKey is provided', () => {
 			expect(
 				validator.validate(uniqueSignedPublicKeysSchema, {
 					target: [
@@ -1181,7 +1181,7 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to false when publicKeys are duplicated without the sign', async () => {
+		it('should validate to false when publicKeys are duplicated without the sign', () => {
 			const expectedError = [
 				{
 					keyword: 'uniqueSignedPublicKeys',
@@ -1201,7 +1201,7 @@ describe('validator', () => {
 			).toEqual(expectedError);
 		});
 
-		it('should validate to false when publicKeys are duplicated with the same sign', async () => {
+		it('should validate to false when publicKeys are duplicated with the same sign', () => {
 			const expectedError = [
 				{
 					keyword: 'uniqueSignedPublicKeys',
@@ -1225,7 +1225,7 @@ describe('validator', () => {
 
 	describe('noNullCharacter', () => {
 		let noNullCharacterSchema: object;
-		beforeEach(async () => {
+		beforeEach(() => {
 			noNullCharacterSchema = {
 				allOf: [
 					baseSchema,
@@ -1241,7 +1241,7 @@ describe('validator', () => {
 			};
 		});
 
-		it('should validate to true when valid string is provided', async () => {
+		it('should validate to true when valid string is provided', () => {
 			expect(
 				validator.validate(noNullCharacterSchema, {
 					target: 'some normal string',
@@ -1249,13 +1249,13 @@ describe('validator', () => {
 			).toEqual([]);
 		});
 
-		it('should validate to true when it is empty', async () => {
+		it('should validate to true when it is empty', () => {
 			expect(validator.validate(noNullCharacterSchema, { target: '' })).toEqual(
 				[],
 			);
 		});
 
-		it('should validate to false when string with null byte is provided', async () => {
+		it('should validate to false when string with null byte is provided', () => {
 			const nullCharacterList = ['\0', '\x00', '\u0000'];
 			nullCharacterList.forEach(nullChar => {
 				const expectedError = [

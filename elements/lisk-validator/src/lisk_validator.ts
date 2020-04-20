@@ -31,12 +31,14 @@ class LiskValidator {
 		for (const formatName of Object.keys(formats)) {
 			this.validator.addFormat(
 				formatName,
+				// eslint-disable-next-line import/namespace
 				formats[formatName as keyof typeof formats],
 			);
 		}
 
 		this.validator.addKeyword('uniqueSignedPublicKeys', {
 			type: 'array',
+			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			compile: () => (data: ReadonlyArray<string>) =>
 				new Set(
 					data
