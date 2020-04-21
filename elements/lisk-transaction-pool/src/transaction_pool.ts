@@ -219,20 +219,14 @@ export class TransactionPool {
 		}
 
 		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
-		const { added, removedID } = this._transactionList[incomingTxAddress].add(
-			incomingTx,
-			txStatus === TransactionStatus.PROCESSABLE,
-		);
+		const { added, removedID, reason } = this._transactionList[
+			incomingTxAddress
+		].add(incomingTx, txStatus === TransactionStatus.PROCESSABLE);
 
 		if (!added) {
 			return {
 				status: Status.FAIL,
-				errors: [
-					new TransactionPoolError(
-						'Transaction was not added to the pool as it exceeds maximum transaction limit per account',
-						incomingTx.id,
-					),
-				],
+				errors: [new TransactionPoolError(reason, incomingTx.id)],
 			};
 		}
 
