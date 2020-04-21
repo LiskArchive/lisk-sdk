@@ -34,6 +34,13 @@ module.exports = {
 		'@typescript-eslint/no-unused-vars': 'off',
 		'@typescript-eslint/no-unused-vars-experimental': 'off',
 		'@typescript-eslint/array-type': 'off',
+		'@typescript-eslint/restrict-template-expressions': [
+			'error',
+			{
+				allowNumber: true,
+				allowBoolean: true,
+			},
+		],
 		'import/extensions': [
 			'error',
 			'ignorePackages',

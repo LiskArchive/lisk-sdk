@@ -69,11 +69,14 @@ export const BlockHeader = stampit.compose({
 		this.totalAmount = faker.random
 			.number({ min: 1000, max: 10000 })
 			.toString();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.version = version ?? this.version;
 
 		if (this.version === 2) {
 			this.maxHeightPreviouslyForged =
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				maxHeightPreviouslyForged ?? this.maxHeightPreviouslyForged;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this.maxHeightPrevoted = maxHeightPrevoted ?? this.maxHeightPrevoted;
 		}
 	},

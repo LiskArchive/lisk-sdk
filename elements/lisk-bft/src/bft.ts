@@ -31,13 +31,14 @@ export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
  * BFT class responsible to hold integration logic for finality manager with the framework
  */
 export class BFT extends EventEmitter {
-	private _finalityManager?: FinalityManager;
-	private readonly _chain: Chain;
-	private readonly _dpos: DPoS;
 	public readonly constants: {
 		activeDelegates: number;
 		startingHeight: number;
 	};
+
+	private _finalityManager?: FinalityManager;
+	private readonly _chain: Chain;
+	private readonly _dpos: DPoS;
 
 	public constructor({
 		chain,
@@ -72,11 +73,13 @@ export class BFT extends EventEmitter {
 		await this.finalityManager.recompute(lastBlock.height, stateStore);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public serialize(blockInstance: BlockHeader): BlockHeader {
 		return {
 			...blockInstance,
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			maxHeightPrevoted: blockInstance.maxHeightPrevoted || 0,
 		};
 	}
@@ -177,35 +180,6 @@ export class BFT extends EventEmitter {
 		return ForkStatus.DISCARD;
 	}
 
-	private async _initFinalityManager(
-		stateStore: StateStore,
-	): Promise<FinalityManager> {
-		// Check what finalized height was stored last time
-		const storedFinalizedHeight = await stateStore.consensus.get(
-			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
-		);
-		const finalizedHeightStored = storedFinalizedHeight
-			? parseInt(storedFinalizedHeight, 10)
-			: 1;
-
-		/* Check BFT migration height
-		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
-		const bftMigrationHeight =
-			this.constants.startingHeight -
-			this.constants.activeDelegates * BFT_MIGRATION_ROUND_OFFSET;
-
-		// Choose max between stored finalized height or migration height
-		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
-
-		// Initialize consensus manager
-		return new FinalityManager({
-			chain: this._chain,
-			dpos: this._dpos,
-			finalizedHeight,
-			activeDelegates: this.constants.activeDelegates,
-		});
-	}
-
 	public async isBFTProtocolCompliant(
 		blockHeader: BlockHeader,
 	): Promise<boolean> {
@@ -253,8 +227,37 @@ export class BFT extends EventEmitter {
 		this.finalityManager.reset();
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public validateBlock(block: BlockHeader): void {
 		validateBlockHeader(block);
+	}
+
+	private async _initFinalityManager(
+		stateStore: StateStore,
+	): Promise<FinalityManager> {
+		// Check what finalized height was stored last time
+		const storedFinalizedHeight = await stateStore.consensus.get(
+			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+		);
+		const finalizedHeightStored = storedFinalizedHeight
+			? parseInt(storedFinalizedHeight, 10)
+			: 1;
+
+		/* Check BFT migration height
+		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
+		const bftMigrationHeight =
+			this.constants.startingHeight -
+			this.constants.activeDelegates * BFT_MIGRATION_ROUND_OFFSET;
+
+		// Choose max between stored finalized height or migration height
+		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
+
+		// Initialize consensus manager
+		return new FinalityManager({
+			chain: this._chain,
+			dpos: this._dpos,
+			finalizedHeight,
+			activeDelegates: this.constants.activeDelegates,
+		});
 	}
 }

@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BFT } from '../../src/bft';
 import { Slots } from '@liskhq/lisk-chain';
+import { BFT } from '../../src/bft';
 
-const forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
+import forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
@@ -42,7 +42,7 @@ describe('bft', () => {
 			isStandbyDelegate: jest.Mock;
 		};
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			const slots = new Slots({
 				epochTime: constants.EPOCH_TIME,
 				interval: constants.BLOCK_TIME,
@@ -75,7 +75,7 @@ describe('bft', () => {
 		describe(`when running scenario "${forkChoiceSpecs.handler}"`, () => {
 			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
-					it('should have accurate fork status', async () => {
+					it('should have accurate fork status', () => {
 						const epochTime = testCase.config
 							? testCase.config.epochTime
 							: forkChoiceSpecs.config.epochTime;
@@ -90,6 +90,7 @@ describe('bft', () => {
 						(chainStub.slots as any)._interval = interval;
 
 						Date.now = jest.fn(
+							// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,
 						);
 

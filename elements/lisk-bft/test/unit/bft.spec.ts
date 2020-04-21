@@ -19,6 +19,7 @@ import { BFT, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../../src';
 import { BlockHeader, Chain, DPoS } from '../../src/types';
 import { StateStoreMock } from './state_store_mock';
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const extractBFTInfo = (bft: BFT) => ({
 	finalizedHeight: bft.finalizedHeight,
 	maxHeightPrevoted: bft.maxHeightPrevoted,
@@ -99,11 +100,11 @@ describe('bft', () => {
 		});
 
 		describe('#constructor', () => {
-			it('should create instance of BFT', async () => {
+			it('should create instance of BFT', () => {
 				expect(new BFT(bftParams)).toBeInstanceOf(BFT);
 			});
 
-			it('should assign all parameters correctly', async () => {
+			it('should assign all parameters correctly', () => {
 				const bft = new BFT(bftParams);
 
 				expect(bft.finalityManager).toBeUndefined();
@@ -129,13 +130,15 @@ describe('bft', () => {
 
 				await bft.init(stateStore);
 
-				expect(chainStub.dataAccess.getLastBlockHeader).toBeCalledTimes(1);
+				expect(chainStub.dataAccess.getLastBlockHeader).toHaveBeenCalledTimes(
+					1,
+				);
 				expect(
 					chainStub.dataAccess.getBlockHeadersByHeightBetween,
-				).toBeCalledTimes(1);
+				).toHaveBeenCalledTimes(1);
 				expect(
 					chainStub.dataAccess.getBlockHeadersByHeightBetween,
-				).toBeCalledWith(1, 1);
+				).toHaveBeenCalledWith(1, 1);
 			});
 
 			it('should set the finality height to the value from chain state', async () => {
@@ -257,7 +260,7 @@ describe('bft', () => {
 				// Act & Assert
 				expect(
 					chainStub.dataAccess.getBlockHeadersByHeightBetween,
-				).toBeCalledWith(1, 5);
+				).toHaveBeenCalledWith(1, 5);
 			});
 		});
 		describe('#reset', () => {

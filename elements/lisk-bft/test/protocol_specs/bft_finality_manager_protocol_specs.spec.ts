@@ -11,11 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
 import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
 import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_partial_switch.json';
 import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
+import { FinalityManager } from '../../src/finality_manager';
+import { StateStoreMock } from '../unit/state_store_mock';
 
 const bftScenarios = [
 	scenario4DelegatesMissedSlots,
@@ -25,17 +28,17 @@ const bftScenarios = [
 	scenario11DelegatesPartialSwitch,
 ];
 
-import { FinalityManager } from '../../src/finality_manager';
-import { StateStoreMock } from '../unit/state_store_mock';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-
-const pick = (calcKeyPair: { [key: string]: number }, minHeight: number) =>
-	Object.keys(calcKeyPair).reduce((prev, key) => {
-		if (parseInt(key) >= minHeight) {
+const pick = (
+	calcKeyPair: { [key: string]: number },
+	minHeight: number,
+): { [key: string]: number } =>
+	Object.keys(calcKeyPair).reduce<{ [key: string]: number }>((prev, key) => {
+		if (parseInt(key, 10) >= minHeight) {
+			// eslint-disable-next-line no-param-reassign
 			prev[key] = calcKeyPair[key];
 		}
 		return prev;
-	}, {} as { [key: string]: number });
+	}, {});
 
 describe('FinalityManager', () => {
 	let chainStub: {
@@ -57,10 +60,11 @@ describe('FinalityManager', () => {
 
 	describe('addBlockHeader', () => {
 		for (const scenario of bftScenarios) {
+			// eslint-disable-next-line no-loop-func
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				let finalityManager: FinalityManager;
 
-				beforeAll(async () => {
+				beforeAll(() => {
 					chainStub = {
 						dataAccess: {
 							getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
@@ -88,7 +92,7 @@ describe('FinalityManager', () => {
 						(tc: any) => tc.input.blockHeader,
 					);
 					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
-						(from: number, to: number) => {
+						async (from: number, to: number) => {
 							const headers = blockHeaders.filter(
 								(bf: any) => bf.height >= from && bf.height <= to,
 							);
@@ -97,7 +101,7 @@ describe('FinalityManager', () => {
 						},
 					);
 					dposStub.getMinActiveHeight.mockImplementation(
-						(height: number, address: string) => {
+						async (height: number, address: string) => {
 							const header = blockHeaders.find(
 								(bh: any) =>
 									bh.height === height &&
@@ -109,6 +113,7 @@ describe('FinalityManager', () => {
 				});
 
 				for (const testCase of scenario.testCases) {
+					// eslint-disable-next-line no-loop-func
 					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
 						await finalityManager.addBlockHeader(
 							testCase.input.blockHeader as any,
@@ -140,7 +145,8 @@ describe('FinalityManager', () => {
 		for (const scenario of bftScenarios) {
 			let finalityManager: FinalityManager;
 
-			beforeAll(async () => {
+			// eslint-disable-next-line no-loop-func
+			beforeAll(() => {
 				chainStub = {
 					dataAccess: {
 						getBlockHeadersByHeightBetween: jest.fn(),
@@ -167,7 +173,7 @@ describe('FinalityManager', () => {
 					(tc: any) => tc.input.blockHeader,
 				);
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
-					(from: number, to: number) => {
+					async (from: number, to: number) => {
 						const headers = blockHeaders.filter(
 							(bf: any) => bf.height >= from && bf.height <= to,
 						);
@@ -176,7 +182,7 @@ describe('FinalityManager', () => {
 					},
 				);
 				dposStub.getMinActiveHeight.mockImplementation(
-					(height: number, address: string) => {
+					async (height: number, address: string) => {
 						const header = blockHeaders.find(
 							(bh: any) =>
 								bh.height === height &&
@@ -187,6 +193,7 @@ describe('FinalityManager', () => {
 				);
 			});
 
+			// eslint-disable-next-line no-loop-func
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				it('should have accurate information after recompute', async () => {
 					// Let's first compute in proper way
@@ -258,7 +265,8 @@ describe('FinalityManager', () => {
 		for (const scenario of bftScenarios) {
 			let finalityManager: FinalityManager;
 
-			beforeAll(async () => {
+			// eslint-disable-next-line no-loop-func
+			beforeAll(() => {
 				chainStub = {
 					dataAccess: {
 						getBlockHeadersByHeightBetween: jest.fn(),
@@ -285,7 +293,7 @@ describe('FinalityManager', () => {
 					(tc: any) => tc.input.blockHeader,
 				);
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
-					(from: number, to: number) => {
+					async (from: number, to: number) => {
 						const headers = blockHeaders.filter(
 							(bf: any) => bf.height >= from && bf.height <= to,
 						);
@@ -294,7 +302,7 @@ describe('FinalityManager', () => {
 					},
 				);
 				dposStub.getMinActiveHeight.mockImplementation(
-					(height: number, address: string) => {
+					async (height: number, address: string) => {
 						const header = blockHeaders.find(
 							(bh: any) =>
 								bh.height === height &&
@@ -305,6 +313,7 @@ describe('FinalityManager', () => {
 				);
 			});
 
+			// eslint-disable-next-line no-loop-func
 			describe(`when running scenario "${scenario.handler}"`, () => {
 				it('should have accurate information after recompute', async () => {
 					// Arrange - Let's first compute in proper way

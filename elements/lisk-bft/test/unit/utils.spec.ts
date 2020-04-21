@@ -18,12 +18,12 @@ import { validateBlockHeader } from '../../src/utils';
 
 describe('utils', () => {
 	describe('validateBlockHeader', () => {
-		it('should be ok for valid headers', async () => {
+		it('should be ok for valid headers', () => {
 			const header = blockHeaderFixture();
 			expect(() => validateBlockHeader(header)).not.toThrow();
 		});
 
-		it('should throw error if any header is not valid format', async () => {
+		it('should throw error if any header is not valid format', () => {
 			let header: BlockHeader;
 
 			// Setting non-integer value

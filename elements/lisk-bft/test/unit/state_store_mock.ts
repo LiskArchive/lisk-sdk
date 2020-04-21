@@ -26,11 +26,13 @@ export class StateStoreMock {
 
 	public consensusData: ConsensusState;
 
+	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
 	constructor(initialState?: ConsensusState) {
 		// Make sure to be deep copy
 		this.consensusData = initialState ? { ...initialState } : {};
 
 		this.consensus = {
+			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (key: string): Promise<string | undefined> => {
 				return this.consensusData[key];
 			},
