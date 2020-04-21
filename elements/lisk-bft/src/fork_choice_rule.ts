@@ -83,6 +83,7 @@ export const isDifferentChain = (
 	lastBlock: BlockHeader,
 	currentBlock: BlockHeader,
 ): boolean => {
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const maxHeightPrevoted = lastBlock.maxHeightPrevoted || 0;
 
 	return (

@@ -23,7 +23,7 @@ import { Account as accountFixture } from '../fixtures/accounts';
 import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
 import { StateStoreMock } from './state_store_mock';
 
-const generateValidHeaders = (count: number) => {
+const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
 		return blockHeaderFixture({
 			height: index + 1,
@@ -58,7 +58,7 @@ describe('finality_manager', () => {
 			isStandbyDelegate: jest.Mock;
 		};
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			chainStub = {
 				dataAccess: {
 					getBlockHeadersByHeightBetween: jest.fn(),
@@ -85,7 +85,7 @@ describe('finality_manager', () => {
 		});
 
 		describe('constructor', () => {
-			it('should initialize the object correctly', async () => {
+			it('should initialize the object correctly', () => {
 				expect(finalityManager).toBeInstanceOf(FinalityManager);
 				expect(finalityManager.activeDelegates).toEqual(activeDelegates);
 				expect(finalityManager.preVoteThreshold).toEqual(preVoteThreshold);
@@ -96,7 +96,7 @@ describe('finality_manager', () => {
 				expect(finalityManager.maxHeaders).toEqual(maxHeaders);
 			});
 
-			it('should throw error if activeDelegates is not positive', async () => {
+			it('should throw error if activeDelegates is not positive', () => {
 				expect(
 					() =>
 						new FinalityManager({
@@ -110,7 +110,7 @@ describe('finality_manager', () => {
 		});
 
 		describe('verifyBlockHeaders', () => {
-			it('should throw error if maxHeightPrevoted is not accurate', async () => {
+			it('should throw error if maxHeightPrevoted is not accurate', () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				const bftHeaders = generateValidHeaders(
 					finalityManager.processingThreshold + 1,
@@ -122,13 +122,14 @@ describe('finality_manager', () => {
 				try {
 					finalityManager.verifyBlockHeaders(header, bftHeaders);
 				} catch (error) {
+					// eslint-disable-next-line jest/no-try-expect
 					expect(error.message).toContain(
 						'Wrong maxHeightPrevoted in blockHeader.',
 					);
 				}
 			});
 
-			it('should not throw error if maxHeightPrevoted is accurate', async () => {
+			it('should not throw error if maxHeightPrevoted is accurate', () => {
 				// Add the header directly to list so verifyBlockHeaders can be validated against it
 				const bftHeaders = generateValidHeaders(
 					finalityManager.processingThreshold + 1,
@@ -141,13 +142,13 @@ describe('finality_manager', () => {
 				).not.toThrow();
 			});
 
-			it("should return true if delegate didn't forge any block previously", async () => {
+			it("should return true if delegate didn't forge any block previously", () => {
 				const header = blockHeaderFixture();
 
 				expect(finalityManager.verifyBlockHeaders(header, [])).toBeTruthy();
 			});
 
-			it('should throw error if same delegate forged block on different height', async () => {
+			it('should throw error if same delegate forged block on different height', () => {
 				const maxHeightPrevoted = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
@@ -168,7 +169,7 @@ describe('finality_manager', () => {
 				).toThrow(BFTForkChoiceRuleError);
 			});
 
-			it('should throw error if delegate forged block on same height', async () => {
+			it('should throw error if delegate forged block on same height', () => {
 				const maxHeightPreviouslyForged = 10;
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
@@ -187,7 +188,7 @@ describe('finality_manager', () => {
 				).toThrow(BFTForkChoiceRuleError);
 			});
 
-			it('should throw error if maxHeightPreviouslyForged has wrong value', async () => {
+			it('should throw error if maxHeightPreviouslyForged has wrong value', () => {
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
 					generatorPublicKey: delegateAccount.publicKey,
@@ -203,7 +204,7 @@ describe('finality_manager', () => {
 				).toThrow(BFTChainDisjointError);
 			});
 
-			it('should throw error if maxHeightPrevoted has wrong value', async () => {
+			it('should throw error if maxHeightPrevoted has wrong value', () => {
 				const delegateAccount = accountFixture();
 				const lastBlock = blockHeaderFixture({
 					generatorPublicKey: delegateAccount.publicKey,
@@ -222,7 +223,7 @@ describe('finality_manager', () => {
 				).toThrow(BFTLowerChainBranchError);
 			});
 
-			it('should return true if headers are valid', async () => {
+			it('should return true if headers are valid', () => {
 				const [lastBlock, currentBlock] = generateValidHeaders(2);
 
 				expect(
@@ -235,7 +236,7 @@ describe('finality_manager', () => {
 			let stateStore: StateStoreMock;
 			let bftHeaders: ReadonlyArray<BlockHeader>;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				stateStore = new StateStoreMock();
 				bftHeaders = generateValidHeaders(
 					finalityManager.processingThreshold + 1,
@@ -304,7 +305,7 @@ describe('finality_manager', () => {
 				);
 
 				// Ignores a standby delegate from prevotes and precommit calculations
-				expect(
+				await expect(
 					finalityManager.updatePreVotesPreCommits(
 						header1,
 						stateStore,
@@ -325,6 +326,7 @@ describe('finality_manager', () => {
 				});
 				const headers = [header1];
 				for (
+					// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 					let height = header1.height + 1;
 					height < header2.height;
 					height += 1
@@ -342,6 +344,7 @@ describe('finality_manager', () => {
 						await finalityManager.addBlockHeader(header, stateStore);
 					}
 				} catch (error) {
+					// eslint-disable-next-line jest/no-try-expect
 					expect(error.message).toContain(
 						'Violation of disjointedness condition.',
 					);
@@ -349,6 +352,7 @@ describe('finality_manager', () => {
 			});
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		describe('recompute', () => {});
 	});
 });

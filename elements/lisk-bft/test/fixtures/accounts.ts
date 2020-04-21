@@ -37,6 +37,7 @@ export const genesis = {
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
+// eslint-disable-next-line camelcase
 export const mem_accountsFields = [
 	'username',
 	'isDelegate',
@@ -92,11 +93,16 @@ export const Account = stampit.compose({
 			randomstring
 				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.producedBlocks = producedBlocks || 0;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.missedBlocks = missedBlocks || 0;
 		this.productivity =
+			// eslint-disable-next-line
 			this.producedBlocks / (this.producedBlocks + this.missedBlocks) || 0;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.balance = balance || '0';
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.asset = asset || {};
 		this.membersPublicKeys = null;
 	},
