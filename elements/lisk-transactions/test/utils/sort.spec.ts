@@ -16,7 +16,7 @@ import { sortUnlocking } from '../../src/utils/sort';
 
 describe('sort', () => {
 	describe('#sortUnlocking', () => {
-		it('should sort unlocking object by delegateAddress, unvoteHeight and amount', async () => {
+		it('should sort unlocking object by delegateAddress, unvoteHeight and amount', () => {
 			// Arrange
 			const expected = [
 				{

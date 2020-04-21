@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import {
 	Account,
 	TransactionJSON,
@@ -74,9 +75,11 @@ export class StateStoreMock {
 		this.account = {
 			cache: async (
 				_filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
+				// eslint-disable-next-line @typescript-eslint/require-await
 			): Promise<ReadonlyArray<Account>> => {
 				return [];
 			},
+			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: string): Promise<Account> => {
 				const account = this.accountData.find(acc => acc.address === address);
 				if (!account) {
@@ -84,10 +87,11 @@ export class StateStoreMock {
 				}
 				return { ...account };
 			},
+			// eslint-disable-next-line @typescript-eslint/require-await
 			getOrDefault: async (address: string): Promise<Account> => {
 				const account = this.accountData.find(acc => acc.address === address);
 				if (!account) {
-					return { ...defaultAccount, address: address };
+					return { ...defaultAccount, address };
 				}
 				return { ...account };
 			},

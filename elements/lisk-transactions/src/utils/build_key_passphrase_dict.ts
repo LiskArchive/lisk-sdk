@@ -26,11 +26,12 @@ interface PublicKeyPassphraseDict {
 
 export const buildPublicKeyPassphraseDict = (
 	passphrases: readonly string[],
-) => {
+): PublicKeyPassphraseDict => {
 	const publicKeyPassphrase: PublicKeyPassphraseDict = {};
 
 	passphrases.forEach(aPassphrase => {
 		const keys = getPrivateAndPublicKeyFromPassphrase(aPassphrase);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!publicKeyPassphrase[keys.publicKey]) {
 			publicKeyPassphrase[keys.publicKey] = {
 				...keys,

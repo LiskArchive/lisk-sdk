@@ -48,7 +48,6 @@ describe('#transfer transaction', () => {
 					fee,
 					nonce,
 				});
-				return Promise.resolve();
 			});
 
 			it('should create a transfer transaction', () => {
@@ -116,7 +115,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					} as any),
-				).toThrowError('Network identifier can not be empty');
+				).toThrow('Network identifier can not be empty');
 			});
 		});
 
@@ -131,7 +130,6 @@ describe('#transfer transaction', () => {
 					fee,
 					nonce,
 				});
-				return Promise.resolve();
 			});
 
 			it('should handle invalid (non-utf8 string) data', () => {
@@ -145,7 +143,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).toThrowError(
+				).toThrow(
 					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
 				);
 			});
@@ -166,7 +164,7 @@ describe('#transfer transaction', () => {
 	});
 
 	describe('with multiple passphrases', () => {
-		it('should return two signatures for two mandatory public keys and two passphrases', async () => {
+		it('should return two signatures for two mandatory public keys and two passphrases', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 			const accountOwnerPk = cryptography.getAddressAndPublicKeyFromPassphrase(
@@ -205,7 +203,7 @@ describe('#transfer transaction', () => {
 			);
 		});
 
-		it('should return one signature for two mandatory public keys and one passphrase', async () => {
+		it('should return one signature for two mandatory public keys and one passphrase', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 			const accountOwnerPk = cryptography.getAddressAndPublicKeyFromPassphrase(
@@ -237,7 +235,7 @@ describe('#transfer transaction', () => {
 			expect((transferTransaction as any).signatures[1]).toBe('');
 		});
 
-		it('should return one signature for two mandatory public keys and one passphrase in the right order', async () => {
+		it('should return one signature for two mandatory public keys and one passphrase in the right order', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 			const accountOwnerPk = cryptography.getAddressAndPublicKeyFromPassphrase(
@@ -279,7 +277,6 @@ describe('#transfer transaction', () => {
 					fee,
 					nonce,
 				});
-				return Promise.resolve();
 			});
 
 			it('should throw error when amount is 0', () => {
@@ -290,7 +287,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).toThrowError('Amount must be a valid number in string format.');
+				).toThrow('Amount must be a valid number in string format.');
 			});
 
 			it('should throw error when amount is greater than max transaction amount', () => {
@@ -301,7 +298,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).toThrowError('Amount must be a valid number in string format.');
+				).toThrow('Amount must be a valid number in string format.');
 			});
 
 			it('should throw error when recipientId & non-matching recipientPublicKey provided', () => {
@@ -314,7 +311,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).toThrowError('recipientId does not match recipientPublicKey.');
+				).toThrow('recipientId does not match recipientPublicKey.');
 			});
 
 			it('should non throw error when recipientId & matching recipientPublicKey provided', () => {
@@ -327,7 +324,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).not.toThrowError();
+				).not.toThrow();
 			});
 
 			it('should throw error when neither recipientId nor recipientPublicKey were provided', () => {
@@ -340,9 +337,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).toThrowError(
-					'Either recipientId or recipientPublicKey must be provided.',
-				);
+				).toThrow('Either recipientId or recipientPublicKey must be provided.');
 			});
 
 			it('should set recipientId when recipientId was not provided but recipientPublicKey was provided', () => {
@@ -370,7 +365,7 @@ describe('#transfer transaction', () => {
 						fee,
 						nonce,
 					}),
-				).toThrowError('Transaction data field cannot exceed 64 bytes.');
+				).toThrow('Transaction data field cannot exceed 64 bytes.');
 			});
 
 			it('should have the type', () => {

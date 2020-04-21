@@ -22,19 +22,19 @@ import {
 describe('format', () => {
 	describe('#convertBeddowsToLSK', () => {
 		it('should error if not given a string', () => {
-			return expect(
-				convertBeddowsToLSK.bind(null, 12345678 as any),
-			).toThrowError('Cannot convert non-string amount');
+			return expect(convertBeddowsToLSK.bind(null, 12345678 as any)).toThrow(
+				'Cannot convert non-string amount',
+			);
 		});
 		it('should error on 0.1', () => {
-			return expect(convertBeddowsToLSK.bind(null, '0.1')).toThrowError(
+			return expect(convertBeddowsToLSK.bind(null, '0.1')).toThrow(
 				'Beddows amount should not have decimal points',
 			);
 		});
 		it('should error on 18446744073709551616', () => {
 			return expect(
 				convertBeddowsToLSK.bind(null, '18446744073709551616'),
-			).toThrowError('Beddows amount out of range');
+			).toThrow('Beddows amount out of range');
 		});
 		it('should convert 100000000 to 1', () => {
 			return expect(convertBeddowsToLSK('100000000')).toBe('1');
@@ -56,19 +56,19 @@ describe('format', () => {
 	});
 	describe('#convertLSKToBeddows', () => {
 		it('should error if not given a string', () => {
-			return expect(
-				convertLSKToBeddows.bind(null, 12345678 as any),
-			).toThrowError('Cannot convert non-string amount');
+			return expect(convertLSKToBeddows.bind(null, 12345678 as any)).toThrow(
+				'Cannot convert non-string amount',
+			);
 		});
 		it('should error on 0.000000001', () => {
-			return expect(convertLSKToBeddows.bind(null, '0.000000001')).toThrowError(
+			return expect(convertLSKToBeddows.bind(null, '0.000000001')).toThrow(
 				'LSK amount has too many decimal points',
 			);
 		});
 		it('should error on 184467440737.09551616', () => {
 			return expect(
 				convertLSKToBeddows.bind(null, '184467440737.09551616'),
-			).toThrowError('LSK amount out of range');
+			).toThrow('LSK amount out of range');
 		});
 		it('should convert 1 to 100000000', () => {
 			return expect(convertLSKToBeddows('1')).toBe('100000000');

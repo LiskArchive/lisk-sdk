@@ -41,7 +41,6 @@ describe('#registerDelegate transaction', () => {
 				username,
 				networkIdentifier,
 			});
-			return Promise.resolve();
 		});
 
 		it('should create a register delegate transaction', () => {
@@ -90,14 +89,16 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should have the provided username as a string', () => {
-				const { username } = registerDelegateTransaction.asset as DelegateAsset;
-				return expect(username).toBe(username);
+				const {
+					username: assetUsername,
+				} = registerDelegateTransaction.asset as DelegateAsset;
+				return expect(assetUsername).toBe(username);
 			});
 		});
 	});
 
 	describe('with multiple passphrases', () => {
-		it('should return two signatures for two mandatory public keys and two passphrases', async () => {
+		it('should return two signatures for two mandatory public keys and two passphrases', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 			const accountOwnerPk = getAddressAndPublicKeyFromPassphrase(
@@ -135,7 +136,7 @@ describe('#registerDelegate transaction', () => {
 			);
 		});
 
-		it('should return one signature for two mandatory public keys and one passphrase', async () => {
+		it('should return one signature for two mandatory public keys and one passphrase', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 			const accountOwnerPk = getAddressAndPublicKeyFromPassphrase(
@@ -166,7 +167,7 @@ describe('#registerDelegate transaction', () => {
 			expect((registerDelegateTransaction as any).signatures[1]).toBe('');
 		});
 
-		it('should return one signature for two mandatory public keys and one passphrase in the right order', async () => {
+		it('should return one signature for two mandatory public keys and one passphrase in the right order', () => {
 			const { members } = secondSignatureReg.testCases.input;
 			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
 			const accountOwnerPk = getAddressAndPublicKeyFromPassphrase(
@@ -206,11 +207,10 @@ describe('#registerDelegate transaction', () => {
 					nonce,
 					username,
 				});
-				return Promise.resolve();
 			});
 
 			it('should throw error when username was not provided', () => {
-				return expect(registerDelegate.bind(null, {} as any)).toThrowError(
+				return expect(registerDelegate.bind(null, {} as any)).toThrow(
 					'Please provide a username. Expected string.',
 				);
 			});
@@ -223,7 +223,7 @@ describe('#registerDelegate transaction', () => {
 						nonce,
 						username: '',
 					}),
-				).toThrowError('Please provide a username. Expected string.');
+				).toThrow('Please provide a username. Expected string.');
 			});
 
 			it('should throw error when invalid username was provided', () => {
@@ -234,7 +234,7 @@ describe('#registerDelegate transaction', () => {
 						nonce,
 						username: '12345678901234567890a',
 					}),
-				).toThrowError(
+				).toThrow(
 					'Username length does not match requirements. Expected to be no more than 20 characters.',
 				);
 			});

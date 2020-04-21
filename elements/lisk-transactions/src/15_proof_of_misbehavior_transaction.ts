@@ -25,7 +25,7 @@ import {
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { BlockHeader, TransactionJSON } from './transaction_types';
+import { BlockHeaderJSON, TransactionJSON } from './transaction_types';
 import {
 	getBlockBytes,
 	getBlockBytesWithSignature,
@@ -127,16 +127,6 @@ const proofOfMisbehaviorAssetFormatSchema = {
 	},
 };
 
-type Modify<T, R> = Omit<T, keyof R> & R;
-
-export type BlockHeaderJSON = Modify<
-	BlockHeader,
-	{
-		readonly totalAmount: string;
-		readonly totalFee: string;
-		readonly reward: string;
-	}
->;
 export interface ProofOfMisbehaviorAsset {
 	readonly header1: BlockHeaderJSON;
 	readonly header2: BlockHeaderJSON;
@@ -145,15 +135,15 @@ export interface ProofOfMisbehaviorAsset {
 }
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
-	public readonly asset: ProofOfMisbehaviorAsset;
 	public static TYPE = 15;
+	public readonly asset: ProofOfMisbehaviorAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset || {}) as ProofOfMisbehaviorAsset;
+		this.asset = (tx.asset ?? {}) as ProofOfMisbehaviorAsset;
 		this.asset.reward =
 			this.asset.reward && isNumberString(this.asset.reward)
 				? BigInt(this.asset.reward)
@@ -166,13 +156,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			header2: this.asset.header2,
 			reward: this.asset.reward.toString(),
 		};
-	}
-
-	protected assetToBytes(): Buffer {
-		return Buffer.concat([
-			getBlockBytesWithSignature(this.asset.header1),
-			getBlockBytesWithSignature(this.asset.header2),
-		]);
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -190,6 +173,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		];
 
 		await store.account.cache(filterArray);
+	}
+
+	protected assetToBytes(): Buffer {
+		return Buffer.concat([
+			getBlockBytesWithSignature(this.asset.header1),
+			getBlockBytesWithSignature(this.asset.header2),
+		]);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
@@ -294,7 +284,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		) {
 			errors.push(
 				new TransactionError(
-					`Difference between header1.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE}.`,
+					`Difference between header1.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE.toString()}.`,
 					this.id,
 					'.asset.header1',
 					this.asset.header1.height,
@@ -309,7 +299,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		) {
 			errors.push(
 				new TransactionError(
-					`Difference between header2.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE}.`,
+					`Difference between header2.height and current height must be less than ${MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE.toString()}.`,
 					this.id,
 					'.asset.header2',
 					this.asset.header2.height,

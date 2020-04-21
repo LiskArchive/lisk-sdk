@@ -77,8 +77,8 @@ interface RawAsset {
 }
 
 export class VoteTransaction extends BaseTransaction {
-	public readonly asset: VoteAsset;
 	public static TYPE = 13;
+	public readonly asset: VoteAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -114,6 +114,20 @@ export class VoteTransaction extends BaseTransaction {
 		};
 	}
 
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		const addressArray = this.asset.votes.map(vote => ({
+			address: vote.delegateAddress,
+		}));
+		const filterArray = [
+			{
+				address: this.senderId,
+			},
+			...addressArray,
+		];
+
+		await store.account.cache(filterArray);
+	}
+
 	protected assetToBytes(): Buffer {
 		const bufferArray = [];
 		for (const vote of this.asset.votes) {
@@ -132,20 +146,6 @@ export class VoteTransaction extends BaseTransaction {
 		}
 
 		return Buffer.concat(bufferArray);
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const addressArray = this.asset.votes.map(vote => ({
-			address: vote.delegateAddress,
-		}));
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...addressArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
@@ -255,6 +255,7 @@ export class VoteTransaction extends BaseTransaction {
 						'.asset.votes.delegateAddress',
 					),
 				);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			if (vote.amount < BigInt(0)) {
@@ -269,6 +270,7 @@ export class VoteTransaction extends BaseTransaction {
 							'.asset.votes.delegateAddress',
 						),
 					);
+					// eslint-disable-next-line no-continue
 					continue;
 				}
 				sender.votes[originalUpvoteIndex].amount += vote.amount;
@@ -300,7 +302,7 @@ export class VoteTransaction extends BaseTransaction {
 				if (sender.unlocking.length > MAX_UNLOCKING) {
 					errors.push(
 						new TransactionError(
-							`Cannot downvote which exceeds account.unlocking to have more than ${MAX_UNLOCKING}`,
+							`Cannot downvote which exceeds account.unlocking to have more than ${MAX_UNLOCKING.toString()}`,
 							this.id,
 							'.asset.votes',
 						),
@@ -341,7 +343,7 @@ export class VoteTransaction extends BaseTransaction {
 				if (sender.votes.length > MAX_VOTE) {
 					errors.push(
 						new TransactionError(
-							`Account can only vote upto ${MAX_VOTE}`,
+							`Account can only vote upto ${MAX_VOTE.toString()}`,
 							this.id,
 							'.asset.votes.amount',
 						),

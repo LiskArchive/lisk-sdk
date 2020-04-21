@@ -44,7 +44,7 @@ const validateInputs = ({
 
 	if (username.length > USERNAME_MAX_LENGTH) {
 		throw new Error(
-			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
+			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH.toString()} characters.`,
 		);
 	}
 

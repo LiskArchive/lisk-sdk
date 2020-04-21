@@ -26,7 +26,7 @@ describe('Proof-of-misbehavior transaction', () => {
 	let transactionWithScenario2: ProofOfMisbehaviorTransaction;
 	let transactionWithScenario3: ProofOfMisbehaviorTransaction;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		transactionWithScenario1 = new ProofOfMisbehaviorTransaction({
 			...validProofOfMisbehaviorTransactionScenario1.testCases.output,
 			networkIdentifier:
@@ -101,7 +101,7 @@ describe('Proof-of-misbehavior transaction', () => {
 		let sender: Account;
 		let delegate: Account;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			sender = {
 				...defaultAccount,
 				...validProofOfMisbehaviorTransactionScenario1.testCases.input
@@ -309,7 +309,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			const updatedSender = await store.account.get(sender.address);
 			const expectedBalance =
 				sender.balance +
-				(transactionWithScenario1.asset.reward as bigint) -
+				transactionWithScenario1.asset.reward -
 				transactionWithScenario1.fee;
 			expect(updatedSender.balance.toString()).toEqual(
 				expectedBalance.toString(),
@@ -339,7 +339,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			await transactionWithScenario1.apply(store);
 			const updatedDelegate = await store.account.get(delegate.address);
 			const expectedBalance =
-				delegate.balance - (transactionWithScenario1.asset.reward as bigint);
+				delegate.balance - transactionWithScenario1.asset.reward;
 
 			expect(updatedDelegate.balance.toString()).toEqual(
 				expectedBalance.toString(),
@@ -398,7 +398,7 @@ describe('Proof-of-misbehavior transaction', () => {
 		let sender: Account;
 		let delegate: Account;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			sender = {
 				...defaultAccount,
 				...validProofOfMisbehaviorTransactionScenario1.testCases.input
@@ -441,7 +441,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			const updatedSender = await store.account.get(sender.address);
 			const expectedBalance =
 				sender.balance -
-				(transactionWithScenario1.asset.reward as bigint) +
+				transactionWithScenario1.asset.reward +
 				transactionWithScenario1.fee;
 			expect(updatedSender.balance.toString()).toEqual(
 				expectedBalance.toString(),
@@ -452,7 +452,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			await transactionWithScenario1.undo(store);
 			const updatedDelegate = await store.account.get(delegate.address);
 			const expectedBalance =
-				delegate.balance + (transactionWithScenario1.asset.reward as bigint);
+				delegate.balance + transactionWithScenario1.asset.reward;
 
 			expect(updatedDelegate.balance).toEqual(expectedBalance);
 		});

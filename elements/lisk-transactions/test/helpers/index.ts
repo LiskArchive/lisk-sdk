@@ -17,4 +17,5 @@ import {
 	TestTransaction,
 	TestTransactionBasicImpl,
 } from './test_transaction_class';
+
 export { addTransactionFields, TestTransaction, TestTransactionBasicImpl };

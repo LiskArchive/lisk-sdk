@@ -25,7 +25,7 @@ import { TransactionError } from '../../src/errors';
 import { TransferTransaction } from '../../src';
 import * as multisigFixture from '../../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 
-const getMemberPublicKeys = (members: any) =>
+const getMemberPublicKeys = (members: any): string[] =>
 	Object.values(members).map((member: any) => member.publicKey);
 
 describe('#verify', () => {
@@ -51,14 +51,14 @@ describe('#verify', () => {
 	]);
 
 	describe('#verifySenderPublicKey', () => {
-		it('should return undefined when sender public key and public key is the same', async () => {
+		it('should return undefined when sender public key and public key is the same', () => {
 			const publicKey = 'sender-public-key';
 			expect(
 				verifySenderPublicKey(defaultId, { publicKey } as any, publicKey),
 			).toBeUndefined();
 		});
 
-		it('should return TransactionError when sender public key and account public key is not the same', async () => {
+		it('should return TransactionError when sender public key and account public key is not the same', () => {
 			const publicKey = 'sender-public-key';
 			const result = verifySenderPublicKey(
 				defaultId,
@@ -71,7 +71,7 @@ describe('#verify', () => {
 	});
 
 	describe('#verifyMinRemainingBalance', () => {
-		it('should return undefined when account balance is greater than minimum remaining balance', async () => {
+		it('should return undefined when account balance is greater than minimum remaining balance', () => {
 			const minRemainingBalance = BigInt('1000');
 			expect(
 				verifyMinRemainingBalance(
@@ -82,7 +82,7 @@ describe('#verify', () => {
 			).toBeUndefined();
 		});
 
-		it('should return transaction errorr when account balance is less than minimum remaining balance', async () => {
+		it('should return transaction errorr when account balance is less than minimum remaining balance', () => {
 			const minRemainingBalance = BigInt('100000000');
 			const result = verifyMinRemainingBalance(
 				defaultId,
@@ -96,20 +96,20 @@ describe('#verify', () => {
 	});
 
 	describe('#isMultisignatureAccount', () => {
-		it('should return false for non multi signature account', async () => {
+		it('should return false for non multi signature account', () => {
 			expect(
 				isMultisignatureAccount({
 					keys: { mandatoryKeys: [], optionalKeys: [], numberOfSignatures: 0 },
 				} as any),
-			).toBeFalse;
+			).toBeFalse();
 		});
 
-		it('should return true for multi signature account', async () => {
+		it('should return true for multi signature account', () => {
 			const senderAccount = {
 				...defaultTransferTransaction,
 				keys: defaultTransferTransaction.asset,
 			};
-			expect(isMultisignatureAccount(senderAccount)).toBeFalse;
+			expect(isMultisignatureAccount(senderAccount)).toBeTrue();
 		});
 	});
 
@@ -126,19 +126,20 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Failed to validate signature ${invalidSignature}`,
 			);
 		});
 
 		it('should return empty array when signatures are valid', () => {
 			const { signatures, asset: keys } = defaultTransferTransaction;
-			const [result] = validateKeysSignatures(
+			const result = validateKeysSignatures(
 				keys,
 				signatures,
 				defaultTransferTransactionBytes,
 			);
 
-			expect(result).toBeEmpty;
+			expect(result).toBeEmpty();
 		});
 	});
 
@@ -227,6 +228,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Transaction signatures does not match required number of signatures: ${numberOfSignatures}`,
 			);
 		});
@@ -247,6 +249,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Transaction signatures does not match required number of signatures: ${defaultTransferTransaction.asset.numberOfSignatures}`,
 			);
 		});
@@ -270,6 +273,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Failed to validate signature ${senderAccount.signatures[0]}`,
 			);
 		});
@@ -293,6 +297,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Failed to validate signature ${senderAccount.signatures[0].replace(
 					0,
 					1,
@@ -316,6 +321,7 @@ describe('#verify', () => {
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Failed to validate signature ${senderAccount.signatures[0].replace(
 					0,
 					1,

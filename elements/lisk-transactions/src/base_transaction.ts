@@ -51,6 +51,8 @@ export interface TransactionResponse {
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
+// Disabling method-signature-style otherwise type is not compatible with lisk-chain
+/* eslint-disable @typescript-eslint/method-signature-style */
 export interface StateStorePrepare {
 	readonly account: {
 		cache(
@@ -68,6 +70,7 @@ export interface AccountState {
 	find(func: (item: Account) => boolean): Account | undefined;
 	set(key: string, value: Account): void;
 }
+/* eslint-enable @typescript-eslint/method-signature-style */
 
 export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
@@ -84,6 +87,12 @@ export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
 export abstract class BaseTransaction {
+	public static TYPE: number;
+	// Minimum remaining balance requirement for any account to perform a transaction
+	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
+	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
+	public static NAME_FEE = BigInt(0);
+
 	public readonly blockId?: string;
 	public readonly height?: number;
 	public readonly confirmations?: number;
@@ -95,28 +104,15 @@ export abstract class BaseTransaction {
 	public senderPublicKey: string;
 	public signatures: string[];
 
-	public static TYPE: number;
-	// Minimum remaining balance requirement for any account to perform a transaction
-	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
-	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
-	public static NAME_FEE = BigInt(0);
-
 	protected _id?: string;
 	protected _minFee?: bigint;
-
-	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
-	protected abstract applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>>;
-	protected abstract undoAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>>;
 
 	public constructor(rawTransaction: unknown) {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.senderPublicKey = tx.senderPublicKey || '';
+		this.senderPublicKey = tx.senderPublicKey ?? '';
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.signatures = (tx.signatures as string[]) || [];
 		this.nonce =
 			tx.nonce && isValidNonce(tx.nonce) ? BigInt(tx.nonce) : BigInt(0);
@@ -133,11 +129,11 @@ export abstract class BaseTransaction {
 		this.blockId = tx.blockId;
 		this.height = tx.height;
 		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
-		this.asset = tx.asset || {};
+		this.asset = tx.asset ?? {};
 	}
 
 	public get id(): string {
-		return this._id || 'incalculable-id';
+		return this._id ?? 'incalculable-id';
 	}
 
 	public get minFee(): bigint {
@@ -247,13 +243,13 @@ export abstract class BaseTransaction {
 
 		// Verify Signatures
 		const { errors: signaturesErr } = await this.verifySignatures(store);
-		if (signaturesErr) {
+		if (signaturesErr.length) {
 			errors.push(...signaturesErr);
 		}
 
 		// Update sender balance
 		sender.balance -= this.fee;
-		sender.publicKey = sender.publicKey || this.senderPublicKey;
+		sender.publicKey = sender.publicKey ?? this.senderPublicKey;
 
 		// Increment sender nonce
 		sender.nonce += BigInt(1);
@@ -284,7 +280,7 @@ export abstract class BaseTransaction {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const updatedBalance = sender.balance + this.fee;
 		sender.balance = updatedBalance;
-		sender.publicKey = sender.publicKey || this.senderPublicKey;
+		sender.publicKey = sender.publicKey ?? this.senderPublicKey;
 		const errors =
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
@@ -422,6 +418,7 @@ export abstract class BaseTransaction {
 			sortKeysAscending(keys.optionalKeys);
 			// Sign with all keys
 			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
@@ -433,11 +430,7 @@ export abstract class BaseTransaction {
 				}
 			}
 			this._id = getId(this.getBytes());
-
-			return;
 		}
-
-		return;
 	}
 
 	public getBasicBytes(): Buffer {
@@ -504,4 +497,12 @@ export abstract class BaseTransaction {
 
 		return errors;
 	}
+
+	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
+	protected abstract applyAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>>;
+	protected abstract undoAsset(
+		store: StateStore,
+	): Promise<ReadonlyArray<TransactionError>>;
 }

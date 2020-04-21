@@ -20,6 +20,7 @@ import * as multisigFixture from '../fixtures/transaction_multisignature_registr
 import * as multisigOnlyMandatory from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_mandatory_members.json';
 import * as multisigOptionalOnly from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_optional_members.json';
 import * as senderIsMember from '../fixtures/transaction_multisignature_registration/multisignature_transaction_sender_is_mandatory_member.json';
+
 import cloneDeep = require('lodash.clonedeep');
 
 describe('Multisignature transaction class', () => {
@@ -53,7 +54,7 @@ describe('Multisignature transaction class', () => {
 	let storeAccountSetStub: jest.SpyInstance;
 	let store: StateStoreMock;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		validTestTransaction = new MultisignatureTransaction({
 			...validMultisignatureRegistrationTransaction,
 			networkIdentifier,
@@ -80,21 +81,22 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should create instance of MultisignatureTransaction', async () => {
+		it('should create instance of MultisignatureTransaction', () => {
 			expect(validTestTransaction).toBeInstanceOf(MultisignatureTransaction);
 		});
 
-		it('should set multisignature asset', async () => {
+		it('should set multisignature asset', () => {
 			expect(validTestTransaction.asset).toEqual(
 				validMultisignatureRegistrationTransaction.asset,
 			);
 		});
 
+		// eslint-disable-next-line jest/no-disabled-tests,@typescript-eslint/no-empty-function
 		it.skip('should set fee to multisignature transaction fee amount', async () => {});
 	});
 
 	describe('#assetToBytes', () => {
-		it('should return valid buffer', async () => {
+		it('should return valid buffer', () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
 
 			expect(assetBytes).toEqual(
@@ -107,7 +109,7 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', async () => {
+		it('should return an object of type transfer asset', () => {
 			expect(validTestTransaction.assetToJSON()).toEqual(
 				validMultisignatureRegistrationTransaction.asset,
 			);
@@ -134,12 +136,12 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#validateSchema', () => {
-		it('should return no errors', async () => {
+		it('should return no errors', () => {
 			const errors = (validTestTransaction as any).validateAsset();
 			expect(errors).toHaveLength(0);
 		});
 
-		it('should return error when numberOfSignatures is bigger than 64', async () => {
+		it('should return error when numberOfSignatures is bigger than 64', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -154,7 +156,7 @@ describe('Multisignature transaction class', () => {
 			expect(errors[0].message).toBe(`'.numberOfSignatures' should be <= 64`);
 		});
 
-		it('should return error when numberOfSignatures is less than 1', async () => {
+		it('should return error when numberOfSignatures is less than 1', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -169,7 +171,7 @@ describe('Multisignature transaction class', () => {
 			expect(errors[0].message).toBe(`'.numberOfSignatures' should be >= 1`);
 		});
 
-		it('should return error when optionalKeys includes invalid keys', async () => {
+		it('should return error when optionalKeys includes invalid keys', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -185,7 +187,7 @@ describe('Multisignature transaction class', () => {
 			expect(errors).toHaveLength(2);
 		});
 
-		it('should return error when mandatoryKeys includes invalid keys', async () => {
+		it('should return error when mandatoryKeys includes invalid keys', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -201,7 +203,7 @@ describe('Multisignature transaction class', () => {
 			expect(errors).toHaveLength(2);
 		});
 
-		it('should return error when mandatoryKeys has too many keys', async () => {
+		it('should return error when mandatoryKeys has too many keys', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -284,7 +286,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return error when optionalKeys has too many keys', async () => {
+		it('should return error when optionalKeys has too many keys', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -367,7 +369,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when mandatory keys are not unique', async () => {
+		it('should return errors when mandatory keys are not unique', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -388,7 +390,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when optional keys are not unique', async () => {
+		it('should return errors when optional keys are not unique', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -411,7 +413,7 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#validateAsset', () => {
-		it('should return no errors when transaction is valid', async () => {
+		it('should return no errors when transaction is valid', () => {
 			const transaction = new MultisignatureTransaction(
 				validMultisignatureRegistrationTransaction,
 			);
@@ -420,7 +422,7 @@ describe('Multisignature transaction class', () => {
 			expect(errors).toHaveLength(0);
 		});
 
-		it('should return errors when numberOfSignatures is bigger than the sum of all keys', async () => {
+		it('should return errors when numberOfSignatures is bigger than the sum of all keys', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -437,7 +439,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when numberOfSignatures is smaller than mandatory key count', async () => {
+		it('should return errors when numberOfSignatures is smaller than mandatory key count', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -454,7 +456,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when mandatory and optional key sets are not disjointed', async () => {
+		it('should return errors when mandatory and optional key sets are not disjointed', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -478,7 +480,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when mandatory keys set is not sorted', async () => {
+		it('should return errors when mandatory keys set is not sorted', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -499,7 +501,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when optional keys set is not sorted', async () => {
+		it('should return errors when optional keys set is not sorted', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -520,7 +522,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when the number of optional and mandatory keys is more than 64', async () => {
+		it('should return errors when the number of optional and mandatory keys is more than 64', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -670,7 +672,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return errors when the number of optional and mandatory keys is less than 1', async () => {
+		it('should return errors when the number of optional and mandatory keys is less than 1', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -693,7 +695,7 @@ describe('Multisignature transaction class', () => {
 			);
 		});
 
-		it('should return error when number of mandatory, optional and sender keys do not match the number of signatures', async () => {
+		it('should return error when number of mandatory, optional and sender keys do not match the number of signatures', () => {
 			const invalidTransaction = {
 				...validMultisignatureRegistrationTransaction,
 				asset: {
@@ -717,7 +719,7 @@ describe('Multisignature transaction class', () => {
 		it('should not fail to validate valid signatures', async () => {
 			const result = await validTestTransaction.verifySignatures(store);
 			expect(result.status).toBe(1);
-			expect(result.errors.length).toBe(0);
+			expect(result.errors).toHaveLength(0);
 		});
 
 		it('should return error if first signature is not from the sender public key', async () => {
@@ -824,7 +826,7 @@ describe('Multisignature transaction class', () => {
 	});
 
 	describe('#applyAsset', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			storeAccountGetStub.mockReturnValue({
 				...targetMultisigAccount,
 				keys: {

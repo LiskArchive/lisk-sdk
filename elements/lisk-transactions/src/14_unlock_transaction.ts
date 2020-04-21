@@ -98,8 +98,8 @@ const getWaitingPeriod = (
 };
 
 export class UnlockTransaction extends BaseTransaction {
-	public readonly asset: UnlockAsset;
 	public static TYPE = 14;
+	public readonly asset: UnlockAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -137,6 +137,20 @@ export class UnlockTransaction extends BaseTransaction {
 		};
 	}
 
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		const addressArray = this.asset.unlockingObjects.map(unlock => ({
+			address: unlock.delegateAddress,
+		}));
+		const filterArray = [
+			{
+				address: this.senderId,
+			},
+			...addressArray,
+		];
+
+		await store.account.cache(filterArray);
+	}
+
 	protected assetToBytes(): Buffer {
 		const bufferArray = [];
 		for (const unlock of this.asset.unlockingObjects) {
@@ -157,20 +171,6 @@ export class UnlockTransaction extends BaseTransaction {
 		}
 
 		return Buffer.concat(bufferArray);
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const addressArray = this.asset.unlockingObjects.map(unlock => ({
-			address: unlock.delegateAddress,
-		}));
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...addressArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
@@ -224,6 +224,7 @@ export class UnlockTransaction extends BaseTransaction {
 						'.asset.unlockingObjects.delegateAddress',
 					),
 				);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -274,6 +275,7 @@ export class UnlockTransaction extends BaseTransaction {
 						'.asset.unlockingObjects',
 					),
 				);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			sender.unlocking.splice(unlockIndex, 1);
