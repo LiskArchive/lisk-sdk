@@ -389,7 +389,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			const { errors } = await sameAccountTransaction.apply(store);
 
 			// returned errors here are unrelated to the tested issue: nonce and signature
-			expect(errors.length).toEqual(2);
+			expect(errors).toHaveLength(2);
 		});
 	});
 
