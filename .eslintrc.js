@@ -22,9 +22,8 @@ module.exports = {
 		'operator-linebreak': 'off',
 		'import/prefer-default-export': 'off',
 		'lines-between-class-members': 'off', // Off because typescript has members and methods
-		'@typescript-eslint/explicit-function-return-type': 'off',
-		'@typescript-eslint/no-type-alias': 'off',
 		'@typescript-eslint/typedef': 'off',
+		'@typescript-eslint/explicit-function-return-type': 'off',
 		'@typescript-eslint/prefer-readonly-parameter-types': 'off',
 		'@typescript-eslint/no-type-alias': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',

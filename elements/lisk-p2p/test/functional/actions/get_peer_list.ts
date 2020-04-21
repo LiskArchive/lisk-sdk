@@ -38,8 +38,9 @@ describe('PeerPool actions', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it('should discover all peers and add them to the connectedPeers list within each node', async () => {
+		it('should discover all peers and add them to the connectedPeers list within each node', () => {
 			const firstNode = p2pNodeList[0];
+			// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 			const peerPorts = firstNode
 				.getConnectedPeers()
 				.map(peerInfo => peerInfo.wsPort)
@@ -90,8 +91,8 @@ describe('PeerPool actions', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it('should have disjoint connected and disconnected peers', async () => {
-			for (let p2p of p2pNodeList) {
+		it('should have disjoint connected and disconnected peers', () => {
+			for (const p2p of p2pNodeList) {
 				const connectedPeers = p2p.getConnectedPeers();
 				const disconnectedPeers = p2p.getDisconnectedPeers();
 

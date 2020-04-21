@@ -24,7 +24,7 @@ import { constructPeerId } from '../../src/utils';
 
 describe('P2P protocol message limit', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
-	let bannedPeer: string = '';
+	let bannedPeer = '';
 
 	beforeEach(async () => {
 		const customConfig = (index: number) => ({
@@ -41,13 +41,14 @@ describe('P2P protocol message limit', () => {
 			customConfig,
 		});
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on(events.EVENT_BAN_PEER, peerId => {
 				bannedPeer = peerId;
 			});
 		}
 
-		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+		await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
 		await wait(NETWORK_CREATION_WAIT_TIME);
 	});

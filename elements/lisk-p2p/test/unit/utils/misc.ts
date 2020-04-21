@@ -44,9 +44,7 @@ describe('utils/misc', () => {
 		});
 
 		it('should throw an error for second argument greater than 3', () => {
-			expect(() => getIPGroup(IPv4Address, 4)).toThrowError(
-				'Invalid IP group.',
-			);
+			expect(() => getIPGroup(IPv4Address, 4)).toThrow('Invalid IP group.');
 		});
 	});
 
@@ -59,11 +57,11 @@ describe('utils/misc', () => {
 			return expect(getIPBytes(IPv4Address)).toHaveProperty('bBytes');
 		});
 
-		it('should return an object with property groupBBytes', () => {
+		it('should return an object with property groupCBytes', () => {
 			return expect(getIPBytes(IPv4Address)).toHaveProperty('cBytes');
 		});
 
-		it('should return an object with property groupBBytes', () => {
+		it('should return an object with property groupDBytes', () => {
 			return expect(getIPBytes(IPv4Address)).toHaveProperty('dBytes');
 		});
 	});
@@ -98,7 +96,7 @@ describe('utils/misc', () => {
 		it(`should throw an error if network is equal to ${NETWORK.NET_OTHER}`, () => {
 			expect(() =>
 				getNetgroup('wrong ipAddress', DEFAULT_RANDOM_SECRET),
-			).toThrowError('IP address is unsupported.');
+			).toThrow('IP address is unsupported.');
 		});
 
 		it('should return a number netgroup', () => {
@@ -108,9 +106,9 @@ describe('utils/misc', () => {
 		});
 
 		it('should return different netgroup for different addresses', () => {
-			const secondIPv4Address = '1.161.10.240';
+			const anotherSecondIPv4Address = '1.161.10.240';
 			const firstNetgroup = getNetgroup(IPv4Address, secret);
-			const secondNetgroup = getNetgroup(secondIPv4Address, secret);
+			const secondNetgroup = getNetgroup(anotherSecondIPv4Address, secret);
 
 			return expect(firstNetgroup).not.toEqual(secondNetgroup);
 		});
@@ -139,16 +137,16 @@ describe('utils/misc', () => {
 		});
 	});
 
-	describe.skip('#evictPeerRandomlyFromBucket', () => {
-		it('must return the evicted peer info');
+	describe('#evictPeerRandomlyFromBucket', () => {
+		it.todo('must return the evicted peer info');
 	});
 
-	describe.skip('#expirePeerFromBucket', () => {
+	describe('#expirePeerFromBucket', () => {
 		describe('when bucket contains old peers', () => {
-			it('should return the evicted peer info');
+			it.todo('should return the evicted peer info');
 		});
 		describe('when bucket does not contains old peers', () => {
-			it('should return undefined');
+			it.todo('should return undefined');
 		});
 	});
 
@@ -184,11 +182,11 @@ describe('utils/misc', () => {
 					peerType: PEER_TYPE.NEW_PEER,
 					bucketCount: MAX_NEW_BUCKETS,
 				}),
-			).toThrowError('IP address is unsupported.');
+			).toThrow('IP address is unsupported.');
 		});
 
 		it('should return different buckets for different target addresses', () => {
-			const secondIPv4Address = '1.161.10.240';
+			const anotherSecondIPv4Address = '1.161.10.240';
 			const firstBucket = getBucketId({
 				secret,
 				targetAddress: IPv4Address,
@@ -198,8 +196,8 @@ describe('utils/misc', () => {
 			});
 			const secondBucket = getBucketId({
 				secret,
-				targetAddress: secondIPv4Address,
-				sourceAddress: secondIPv4Address,
+				targetAddress: anotherSecondIPv4Address,
+				sourceAddress: anotherSecondIPv4Address,
 				peerType: PEER_TYPE.NEW_PEER,
 				bucketCount: MAX_NEW_BUCKETS,
 			});
@@ -269,7 +267,7 @@ describe('utils/misc', () => {
 		it('should return the same bucket given random ip addresses in the same group for new peers', () => {
 			const collectedBuckets = new Array(MAX_GROUP_NUM)
 				.fill(0)
-				.map(() => '61.26.254.' + Math.floor(Math.random() * 256))
+				.map(() => `61.26.254.${Math.floor(Math.random() * 256)}`)
 				.map(address =>
 					getBucketId({
 						secret,
@@ -363,7 +361,7 @@ describe('utils/misc', () => {
 				(MAX_PEER_ADDRESSES / MAX_TRIED_BUCKETS) * 1.7;
 			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
 				.fill(0)
-				.reduce((collectedBuckets: any) => {
+				.reduce((prev: any) => {
 					const targetAddress = `${Math.floor(
 						Math.random() * 256,
 					)}.${Math.floor(Math.random() * 256)}.254.1`;
@@ -374,12 +372,14 @@ describe('utils/misc', () => {
 						peerType: PEER_TYPE.TRIED_PEER,
 						bucketCount: MAX_TRIED_BUCKETS,
 					});
-					if (!collectedBuckets[bucket]) {
-						collectedBuckets[bucket] = 0;
+					if (!prev[bucket]) {
+						// eslint-disable-next-line no-param-reassign
+						prev[bucket] = 0;
 					}
-					collectedBuckets[bucket]++;
+					// eslint-disable-next-line no-param-reassign
+					prev[bucket] += 1;
 
-					return collectedBuckets;
+					return prev;
 				}, {});
 
 			Object.values(collectedBuckets).forEach((bucketCount: any) => {
@@ -398,7 +398,7 @@ describe('utils/misc', () => {
 				(MAX_PEER_ADDRESSES / MAX_NEW_BUCKETS) * 2.7;
 			const collectedBuckets = new Array(MAX_PEER_ADDRESSES)
 				.fill(0)
-				.reduce((collectedBuckets: any) => {
+				.reduce((prev: any) => {
 					const targetAddress = `${Math.floor(
 						Math.random() * 256,
 					)}.${Math.floor(Math.random() * 256)}.254.1`;
@@ -409,12 +409,14 @@ describe('utils/misc', () => {
 						peerType: PEER_TYPE.NEW_PEER,
 						bucketCount: MAX_NEW_BUCKETS,
 					});
-					if (!collectedBuckets[bucket]) {
-						collectedBuckets[bucket] = 0;
+					if (!prev[bucket]) {
+						// eslint-disable-next-line no-param-reassign
+						prev[bucket] = 0;
 					}
-					collectedBuckets[bucket]++;
+					// eslint-disable-next-line no-param-reassign
+					prev[bucket] += 1;
 
-					return collectedBuckets;
+					return prev;
 				}, {});
 			Object.values(collectedBuckets).forEach((bucketCount: any) => {
 				expect(bucketCount).toBeGreaterThan(

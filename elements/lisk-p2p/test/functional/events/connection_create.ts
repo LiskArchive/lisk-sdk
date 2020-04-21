@@ -64,7 +64,7 @@ describe(`Connection Create`, () => {
 				collectedEvents.set(EVENT_UPDATED_PEER_INFO, res);
 			});
 
-			await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+			await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
 			await wait(1000);
 		});
@@ -73,7 +73,7 @@ describe(`Connection Create`, () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, async () => {
+		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
@@ -83,7 +83,7 @@ describe(`Connection Create`, () => {
 			});
 		});
 
-		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, async () => {
+		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
@@ -93,7 +93,7 @@ describe(`Connection Create`, () => {
 			});
 		});
 
-		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, async () => {
+		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, () => {
 			const firstNode = p2pNodeList[0];
 			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
@@ -103,7 +103,7 @@ describe(`Connection Create`, () => {
 			});
 		});
 
-		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, async () => {
+		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, () => {
 			const secondNode = p2pNodeList[1];
 			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
@@ -113,7 +113,7 @@ describe(`Connection Create`, () => {
 			});
 		});
 
-		it(`should update peerBook with connected peer`, async () => {
+		it(`should update peerBook with connected peer`, () => {
 			const firstNode = p2pNodeList[0];
 			const disconnectedPeers = firstNode.getDisconnectedPeers();
 
@@ -168,7 +168,7 @@ describe(`Connection Create`, () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, async () => {
+		it(`should fire ${EVENT_FAILED_TO_ADD_INBOUND_PEER} events`, () => {
 			expect(collectedErrors).toEqual(
 				expect.arrayContaining([INVALID_CONNECTION_SELF_REASON]),
 			);

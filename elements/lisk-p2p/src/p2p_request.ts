@@ -51,11 +51,12 @@ export class P2PRequest {
 		this._data = options.data;
 		this._peerId = options.id;
 		this._rate = options.rate;
+		// eslint-disable-next-line no-param-reassign
 		options.productivity.requestCounter += 1;
 		this._respondCallback = (
 			responseError?: Error,
 			responsePacket?: P2PResponsePacket,
-		) => {
+		): void => {
 			if (this._wasResponseSent) {
 				throw new RPCResponseAlreadySentError(
 					`A response has already been sent for the request procedure <<${options.procedure}>>`,
@@ -64,9 +65,12 @@ export class P2PRequest {
 			this._wasResponseSent = true;
 			// We assume peer performed useful work and update peer response rate
 			if (!responseError && responsePacket) {
+				// eslint-disable-next-line no-param-reassign
 				options.productivity.lastResponded = Date.now();
+				// eslint-disable-next-line no-param-reassign
 				options.productivity.responseCounter += 1;
 			}
+			// eslint-disable-next-line no-param-reassign
 			options.productivity.responseRate =
 				options.productivity.responseCounter /
 				options.productivity.requestCounter;

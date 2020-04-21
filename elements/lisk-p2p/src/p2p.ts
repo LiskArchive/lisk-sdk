@@ -73,7 +73,7 @@ import {
 import { P2PRequest } from './p2p_request';
 import { PeerBook } from './peer_book';
 import { PeerPool, PeerPoolConfig } from './peer_pool';
-import { PeerServer } from './peer_server/';
+import { PeerServer } from './peer_server';
 import {
 	IncomingPeerConnection,
 	P2PClosePacket,
@@ -238,10 +238,10 @@ export class P2P extends EventEmitter {
 			},
 			{
 				peerId: constructPeerId(
-					config.hostIp || DEFAULT_NODE_HOST_IP,
+					config.hostIp ?? DEFAULT_NODE_HOST_IP,
 					config.nodeInfo.wsPort,
 				),
-				ipAddress: config.hostIp || DEFAULT_NODE_HOST_IP,
+				ipAddress: config.hostIp ?? DEFAULT_NODE_HOST_IP,
 				wsPort: config.nodeInfo.wsPort,
 			},
 			this._secret,
@@ -256,7 +256,7 @@ export class P2P extends EventEmitter {
 		});
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handlePeerPoolRPC = (request: P2PRequest) => {
+		this._handlePeerPoolRPC = (request: P2PRequest): void => {
 			// Process protocol messages
 			switch (request.procedure) {
 				case REMOTE_EVENT_RPC_GET_PEERS_LIST:
@@ -273,12 +273,12 @@ export class P2P extends EventEmitter {
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handlePeerPoolMessage = (message: P2PMessagePacket) => {
+		this._handlePeerPoolMessage = (message: P2PMessagePacket): void => {
 			// Re-emit the message for external use.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
-		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo): void => {
 			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(peerInfo);
 			}
@@ -292,7 +292,7 @@ export class P2P extends EventEmitter {
 			}
 		};
 
-		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo): void => {
 			if (this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.downgradePeer(peerInfo);
 			}
@@ -301,7 +301,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 
-		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
+		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket): void => {
 			const { peerInfo } = closePacket;
 			// Update connection kind when closing connection
 			if (this._peerBook.getPeer(closePacket.peerInfo)) {
@@ -316,7 +316,7 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 
-		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+		this._handlePeerCloseInbound = (closePacket: P2PClosePacket): void => {
 			const { peerInfo } = closePacket;
 			// Update connection kind when closing connection
 			if (this._peerBook.getPeer(closePacket.peerInfo)) {
@@ -331,14 +331,14 @@ export class P2P extends EventEmitter {
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
 
-		this._handleFailedInboundPeerConnect = (err: Error) => {
+		this._handleFailedInboundPeerConnect = (err: Error): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
 		};
 
 		this._handleInboundPeerConnect = (
 			incomingPeerConnection: IncomingPeerConnection,
-		) => {
+		): void => {
 			try {
 				this._peerPool.addInboundPeer(
 					incomingPeerConnection.peerInfo,
@@ -374,17 +374,15 @@ export class P2P extends EventEmitter {
 
 				// Re-emit the message to allow it to bubble up the class hierarchy.
 				this.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER, err);
-
-				return;
 			}
 		};
 
-		this._handleRemovePeer = (peerId: string) => {
+		this._handleRemovePeer = (peerId: string): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REMOVE_PEER, peerId);
 		};
 
-		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo): void => {
 			if (!this._peerBook.hasPeer(peerInfo)) {
 				this._peerBook.addPeer(peerInfo);
 			}
@@ -398,22 +396,22 @@ export class P2P extends EventEmitter {
 			}
 		};
 
-		this._handleFailedPeerInfoUpdate = (error: Error) => {
+		this._handleFailedPeerInfoUpdate = (error: Error): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
 
-		this._handleFailedToFetchPeerInfo = (error: Error) => {
+		this._handleFailedToFetchPeerInfo = (error: Error): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 		};
 
-		this._handleFailedToFetchPeers = (error: Error) => {
+		this._handleFailedToFetchPeers = (error: Error): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 		};
 
-		this._handleFailedToCollectPeerDetails = (error: Error) => {
+		this._handleFailedToCollectPeerDetails = (error: Error): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
@@ -432,7 +430,7 @@ export class P2P extends EventEmitter {
 		};
 
 		// When peer is fetched for peerList add them into the update the peerBook
-		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo) => {
+		this._handleDiscoveredPeer = (detailedPeerInfo: P2PPeerInfo): void => {
 			if (this._peerBook.hasPeer(detailedPeerInfo)) {
 				return;
 			}
@@ -444,22 +442,22 @@ export class P2P extends EventEmitter {
 			}
 		};
 
-		this._handleFailedToPushNodeInfo = (error: Error) => {
+		this._handleFailedToPushNodeInfo = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
 		};
 
-		this._handleFailedToSendMessage = (error: Error) => {
+		this._handleFailedToSendMessage = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_SEND_MESSAGE, error);
 		};
 
-		this._handleOutboundSocketError = (error: Error) => {
+		this._handleOutboundSocketError = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		};
 
-		this._handleInboundSocketError = (error: Error) => {
+		this._handleInboundSocketError = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
@@ -549,7 +547,7 @@ export class P2P extends EventEmitter {
 
 	// Make sure you always share shared peer state to a user
 	public getDisconnectedPeers(): ReadonlyArray<ProtocolPeerInfo> {
-		const allPeers = this._peerBook.allPeers;
+		const { allPeers } = this._peerBook;
 		const connectedPeers = this.getConnectedPeers();
 		const disconnectedPeers = allPeers.filter(peer => {
 			if (
@@ -599,6 +597,123 @@ export class P2P extends EventEmitter {
 
 	public sendToPeer(message: P2PMessagePacket, peerId: string): void {
 		this._peerPool.sendToPeer(message, peerId);
+	}
+
+	public async start(): Promise<void> {
+		if (this._isActive) {
+			throw new Error('Node cannot start because it is already active.');
+		}
+
+		if (this._config.maxInboundConnections !== 0) {
+			this._peerServer = new PeerServer({
+				nodeInfo: this._nodeInfo,
+				hostIp: this._config.hostIp ?? DEFAULT_NODE_HOST_IP,
+				secret: this._secret,
+				peerBook: this._peerBook,
+				maxPayload: this._config.wsMaxPayload
+					? this._config.wsMaxPayload
+					: DEFAULT_WS_MAX_PAYLOAD,
+				maxPeerInfoSize: this._config.maxPeerInfoSize
+					? this._config.maxPeerInfoSize
+					: DEFAULT_MAX_PEER_INFO_SIZE,
+				peerHandshakeCheck: this._config.peerHandshakeCheck
+					? this._config.peerHandshakeCheck
+					: validatePeerCompatibility,
+			});
+			this._bindHandlersToPeerServer(this._peerServer);
+
+			try {
+				await this._peerServer.start();
+			} catch (err) {
+				this._isActive = false;
+				throw new Error('Peer server did not start successfully');
+			}
+		}
+		// This is set to true when peer sever started successfully or when number of inbound connections is zero
+		this._isActive = true;
+		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (this._isActive) {
+			// Initial discovery and disconnect from SeedPeers (LIP-0004)
+			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
+				this._peerPool.discoverFromSeedPeers();
+				this._nextSeedPeerDiscovery =
+					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
+			}
+
+			this._startPopulator();
+		}
+	}
+
+	public async stop(): Promise<void> {
+		if (!this._isActive) {
+			throw new Error('Node cannot be stopped because it is not active.');
+		}
+		this._isActive = false;
+		this._hasConnected = false;
+		this._stopPopulator();
+		this._peerPool.removeAllPeers();
+		this._peerBook.cleanUpTimers();
+
+		if (this._peerServer) {
+			await this._peerServer.stop();
+			this._removeListeners(this._peerServer);
+		}
+
+		this._removeListeners(this._peerPool);
+	}
+
+	private _handleGetNodeInfo(request: P2PRequest): void {
+		request.end(this._nodeInfo);
+	}
+
+	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
+		peerPool.on(EVENT_REQUEST_RECEIVED, this._handlePeerPoolRPC);
+		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
+		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handleOutboundPeerConnect);
+		peerPool.on(
+			EVENT_CONNECT_ABORT_OUTBOUND,
+			this._handleOutboundPeerConnectAbort,
+		);
+		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
+		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
+		peerPool.on(EVENT_REMOVE_PEER, this._handleRemovePeer);
+		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
+		peerPool.on(
+			EVENT_FAILED_PEER_INFO_UPDATE,
+			this._handleFailedPeerInfoUpdate,
+		);
+		peerPool.on(
+			EVENT_FAILED_TO_FETCH_PEER_INFO,
+			this._handleFailedToFetchPeerInfo,
+		);
+		peerPool.on(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
+		peerPool.on(
+			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
+			this._handleFailedToCollectPeerDetails,
+		);
+		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
+		peerPool.on(
+			EVENT_FAILED_TO_PUSH_NODE_INFO,
+			this._handleFailedToPushNodeInfo,
+		);
+		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);
+		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
+		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
+		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
+	}
+
+	private _bindHandlersToPeerServer(peerServer: PeerServer): void {
+		peerServer.on(EVENT_BAN_PEER, this._handleBanPeer);
+		peerServer.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
+		peerServer.on(
+			EVENT_FAILED_TO_ADD_INBOUND_PEER,
+			this._handleFailedInboundPeerConnect,
+		);
+		peerServer.on(
+			EVENT_NEW_INBOUND_PEER_CONNECTION,
+			this._handleInboundPeerConnect,
+		);
 	}
 
 	private _startPopulator(): void {
@@ -689,127 +804,10 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	private _handleGetNodeInfo(request: P2PRequest): void {
-		request.end(this._nodeInfo);
-	}
-
-	public async start(): Promise<void> {
-		if (this._isActive) {
-			throw new Error('Node cannot start because it is already active.');
-		}
-
-		if (this._config.maxInboundConnections !== 0) {
-			this._peerServer = new PeerServer({
-				nodeInfo: this._nodeInfo,
-				hostIp: this._config.hostIp || DEFAULT_NODE_HOST_IP,
-				secret: this._secret,
-				peerBook: this._peerBook,
-				maxPayload: this._config.wsMaxPayload
-					? this._config.wsMaxPayload
-					: DEFAULT_WS_MAX_PAYLOAD,
-				maxPeerInfoSize: this._config.maxPeerInfoSize
-					? this._config.maxPeerInfoSize
-					: DEFAULT_MAX_PEER_INFO_SIZE,
-				peerHandshakeCheck: this._config.peerHandshakeCheck
-					? this._config.peerHandshakeCheck
-					: validatePeerCompatibility,
-			});
-			this._bindHandlersToPeerServer(this._peerServer);
-
-			try {
-				await this._peerServer.start();
-			} catch (err) {
-				this._isActive = false;
-				throw new Error('Peer server did not start successfully');
-			}
-		}
-		// This is set to true when peer sever started successfully or when number of inbound connections is zero
-		this._isActive = true;
-		// We need this check this._isActive in case the P2P library is shut down while it was in the middle of starting up.
-		if (this._isActive) {
-			// Initial discovery and disconnect from SeedPeers (LIP-0004)
-			if (this._peerBook.triedPeers.length < DEFAULT_MIN_TRIED_PEER_COUNT) {
-				this._peerPool.discoverFromSeedPeers();
-				this._nextSeedPeerDiscovery =
-					Date.now() + this._fallbackSeedPeerDiscoveryInterval;
-			}
-
-			this._startPopulator();
-		}
-	}
-
-	public async stop(): Promise<void> {
-		if (!this._isActive) {
-			throw new Error('Node cannot be stopped because it is not active.');
-		}
-		this._isActive = false;
-		this._hasConnected = false;
-		this._stopPopulator();
-		this._peerPool.removeAllPeers();
-		this._peerBook.cleanUpTimers();
-
-		if (this._peerServer) {
-			await this._peerServer.stop();
-			this._removeListeners(this._peerServer);
-		}
-
-		this._removeListeners(this._peerPool);
-	}
-
-	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
-		peerPool.on(EVENT_REQUEST_RECEIVED, this._handlePeerPoolRPC);
-		peerPool.on(EVENT_MESSAGE_RECEIVED, this._handlePeerPoolMessage);
-		peerPool.on(EVENT_CONNECT_OUTBOUND, this._handleOutboundPeerConnect);
-		peerPool.on(
-			EVENT_CONNECT_ABORT_OUTBOUND,
-			this._handleOutboundPeerConnectAbort,
-		);
-		peerPool.on(EVENT_CLOSE_INBOUND, this._handlePeerCloseInbound);
-		peerPool.on(EVENT_CLOSE_OUTBOUND, this._handlePeerCloseOutbound);
-		peerPool.on(EVENT_REMOVE_PEER, this._handleRemovePeer);
-		peerPool.on(EVENT_UPDATED_PEER_INFO, this._handlePeerInfoUpdate);
-		peerPool.on(
-			EVENT_FAILED_PEER_INFO_UPDATE,
-			this._handleFailedPeerInfoUpdate,
-		);
-		peerPool.on(
-			EVENT_FAILED_TO_FETCH_PEER_INFO,
-			this._handleFailedToFetchPeerInfo,
-		);
-		peerPool.on(EVENT_FAILED_TO_FETCH_PEERS, this._handleFailedToFetchPeers);
-		peerPool.on(
-			EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT,
-			this._handleFailedToCollectPeerDetails,
-		);
-		peerPool.on(EVENT_DISCOVERED_PEER, this._handleDiscoveredPeer);
-		peerPool.on(
-			EVENT_FAILED_TO_PUSH_NODE_INFO,
-			this._handleFailedToPushNodeInfo,
-		);
-		peerPool.on(EVENT_FAILED_TO_SEND_MESSAGE, this._handleFailedToSendMessage);
-		peerPool.on(EVENT_OUTBOUND_SOCKET_ERROR, this._handleOutboundSocketError);
-		peerPool.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
-		peerPool.on(EVENT_BAN_PEER, this._handleBanPeer);
-	}
-
-	private _bindHandlersToPeerServer(peerServer: PeerServer): void {
-		peerServer.on(EVENT_BAN_PEER, this._handleBanPeer);
-		peerServer.on(EVENT_INBOUND_SOCKET_ERROR, this._handleInboundSocketError);
-		peerServer.on(
-			EVENT_FAILED_TO_ADD_INBOUND_PEER,
-			this._handleFailedInboundPeerConnect,
-		);
-		peerServer.on(
-			EVENT_NEW_INBOUND_PEER_CONNECTION,
-			this._handleInboundPeerConnect,
-		);
-	}
-
-	// tslint:disable-next-line: prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	private _removeListeners(emitter: PeerServer | PeerPool): void {
 		emitter.eventNames().forEach((eventName: string | symbol) => {
 			emitter.removeAllListeners(eventName);
 		});
 	}
-	// tslint:disable-next-line:max-file-line-count
 }

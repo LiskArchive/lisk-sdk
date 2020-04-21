@@ -28,9 +28,9 @@ describe('Backup and Restore', () => {
 	let firstNode: P2P;
 	let secondNode: P2P;
 	let messageCounter = 0;
-	let bannedMessages: any[] = [];
-	let removedPeer: any[] = [];
-	let disconnectMessages: any[] = [];
+	const bannedMessages: any[] = [];
+	const removedPeer: any[] = [];
+	const disconnectMessages: any[] = [];
 
 	beforeEach(async () => {
 		const customConfig = () => ({
@@ -40,11 +40,10 @@ describe('Backup and Restore', () => {
 		});
 
 		p2pNodeList = await createNetwork({ customConfig, networkSize: 2 });
-		firstNode = p2pNodeList[0];
-		secondNode = p2pNodeList[1];
+		[firstNode, secondNode] = p2pNodeList;
 
 		secondNode.on(EVENT_MESSAGE_RECEIVED, _message => {
-			messageCounter++;
+			messageCounter += 1;
 		});
 		secondNode.on(EVENT_BAN_PEER, peerId => {
 			bannedMessages.push(peerId);
@@ -66,7 +65,7 @@ describe('Backup and Restore', () => {
 		const TOTAL_SENDS = 5;
 		const CUSTOM_DISCONNECT_MESSAGE = 'Intentional disconnect **';
 
-		for (let i = 0; i < TOTAL_SENDS; i++) {
+		for (let i = 0; i < TOTAL_SENDS; i += 1) {
 			await wait(2);
 			try {
 				firstNode.sendToPeer(
@@ -76,6 +75,7 @@ describe('Backup and Restore', () => {
 					},
 					targetPeerId,
 				);
+				// eslint-disable-next-line no-empty
 			} catch (error) {}
 		}
 		await wait(50);
@@ -106,18 +106,16 @@ describe('Backup and Restore', () => {
 
 			await wait(10);
 
-			expect(
-				disconnectMessages
-					.map(msg => msg.reason)
-					.includes(CUSTOM_DISCONNECT_MESSAGE),
-			).toBe(true);
+			expect(disconnectMessages.map(msg => msg.reason)).toContain(
+				CUSTOM_DISCONNECT_MESSAGE,
+			);
 
 			const getFirstNodeSecondTime = secondNode['_peerPool']['_peerMap'].get(
 				`127.0.0.1:${firstNode.nodeInfo.wsPort}`,
 			);
 
 			if (getFirstNodeSecondTime) {
-				for (let i = 0; i < TOTAL_SENDS; i++) {
+				for (let i = 0; i < TOTAL_SENDS; i += 1) {
 					await wait(2);
 					try {
 						firstNode.sendToPeer(
@@ -127,6 +125,7 @@ describe('Backup and Restore', () => {
 							},
 							targetPeerId,
 						);
+						// eslint-disable-next-line no-empty
 					} catch (error) {}
 				}
 				await wait(20);
@@ -140,6 +139,7 @@ describe('Backup and Restore', () => {
 
 			expect(removedPeer.length).toBeGreaterThan(0);
 			// Now send more messages to get banned
+			// eslint-disable-next-line no-plusplus
 			for (let i = 0; i < 200; i++) {
 				await wait(1);
 				try {
@@ -150,11 +150,12 @@ describe('Backup and Restore', () => {
 						},
 						targetPeerId,
 					);
+					// eslint-disable-next-line no-empty
 				} catch (error) {}
 			}
 			await wait(200);
 
-			expect(bannedMessages.length).toBe(1);
+			expect(bannedMessages).toHaveLength(1);
 		}
 	});
 });

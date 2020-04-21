@@ -25,7 +25,7 @@ describe('P2P.request', () => {
 	beforeAll(async () => {
 		p2pNodeList = await createNetwork();
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
 			// Collect port numbers to check which peer handled which request.
 			p2p.on(events.EVENT_REQUEST_RECEIVED, request => {
 				if (!request.wasResponseSent) {
@@ -48,7 +48,7 @@ describe('P2P.request', () => {
 		// Arrange
 		const secondP2PNode = p2pNodeList[1];
 
-		//Act
+		// Act
 		const response = await secondP2PNode.request({
 			procedure: 'foo',
 			data: 'bar',
@@ -78,13 +78,13 @@ describe('P2P.request', () => {
 		const expectedRequestsLowerBound = expectedAverageRequestsPerNode * 0.5;
 		const expectedRequestsUpperBound = expectedAverageRequestsPerNode * 1.5;
 
-		//Act
-		for (let i = 0; i < TOTAL_REQUESTS; i++) {
+		// Act
+		for (let i = 0; i < TOTAL_REQUESTS; i += 1) {
 			const response = await lastP2PNode.request({
 				procedure: 'foo',
 				data: i,
 			});
-			let resultData = response.data as any;
+			const resultData = response.data as any;
 			if (!nodePortToResponsesMap[resultData.nodePort]) {
 				nodePortToResponsesMap[resultData.nodePort] = [];
 			}
@@ -92,7 +92,9 @@ describe('P2P.request', () => {
 		}
 
 		// Assert
-		for (let requestsHandled of Object.values(nodePortToResponsesMap) as any) {
+		for (const requestsHandled of Object.values(
+			nodePortToResponsesMap,
+		) as any) {
 			expect(requestsHandled).toEqual(expect.any(Array));
 
 			expect(requestsHandled.length).toBeGreaterThan(

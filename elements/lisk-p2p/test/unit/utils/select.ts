@@ -40,7 +40,7 @@ describe('peer selector', () => {
 		let peerList = initPeerInfoList();
 
 		describe('get a list of n number of good peers', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				peerList = initPeerInfoList();
 			});
 
@@ -125,7 +125,7 @@ describe('peer selector', () => {
 		});
 
 		describe('peers with lower blockheight', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				peerList = initPeerInfoList();
 			});
 			const lowHeightPeers = peerList.filter(
@@ -148,7 +148,7 @@ describe('peer selector', () => {
 	});
 
 	describe('#selectPeersForSend', () => {
-		let peerList = initPeerInfoListWithSuffix('111.112.113', 120);
+		const peerList = initPeerInfoListWithSuffix('111.112.113', 120);
 
 		it('should return an array containing an even number of inbound and outbound peers', () => {
 			const selectedPeers = selectPeersForSend({
@@ -158,15 +158,17 @@ describe('peer selector', () => {
 				messagePacket: { event: 'foo', data: {} },
 			});
 
-			let peerKindCounts = selectedPeers.reduce(
+			const peerKindCounts = selectedPeers.reduce(
 				(peerKindTracker: any, peerInfo: P2PPeerInfo) => {
 					const kind = peerInfo.internalState
 						? (peerInfo.internalState.connectionKind as string)
 						: '';
 					if (!peerKindTracker[kind]) {
+						// eslint-disable-next-line no-param-reassign
 						peerKindTracker[kind] = 0;
 					}
-					peerKindTracker[kind]++;
+					// eslint-disable-next-line no-param-reassign
+					peerKindTracker[kind] += 1;
 					return peerKindTracker;
 				},
 				{},
@@ -189,7 +191,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 20,
 				});
-				expect(selectedPeers).toBeEmpty;
+				expect(selectedPeers).toBeEmpty();
 			});
 		});
 
@@ -212,7 +214,7 @@ describe('peer selector', () => {
 					newPeers: [],
 					peerLimit: 0,
 				});
-				expect(selectedPeers).toBeEmpty;
+				expect(selectedPeers).toBeEmpty();
 			});
 		});
 
@@ -342,9 +344,9 @@ describe('peer selector', () => {
 
 				for (const peer of selectedPeers) {
 					if (triedPeers.find(triedPeer => peer.peerId === triedPeer.peerId)) {
-						triedCount++;
+						triedCount += 1;
 					} else {
-						newCount++;
+						newCount += 1;
 					}
 				}
 
@@ -374,9 +376,9 @@ describe('peer selector', () => {
 
 				for (const peer of selectedPeers) {
 					if (triedPeers.find(triedPeer => peer.peerId === triedPeer.peerId)) {
-						triedCount++;
+						triedCount += 1;
 					} else {
-						newCount++;
+						newCount += 1;
 					}
 				}
 
@@ -387,7 +389,7 @@ describe('peer selector', () => {
 
 		describe('when there are multiple peer from same IP with different height', () => {
 			it('should return only unique IPs', () => {
-				let uniqIpAddresses: Array<string> = [];
+				const uniqIpAddresses: Array<string> = [];
 
 				const triedPeers: Array<P2PPeerInfo> = [...Array(10)].map((_e, i) => ({
 					peerId: `205.120.0.20:${10001 + i}`,
@@ -425,7 +427,9 @@ describe('peer selector', () => {
 				selectedPeers.map(peer => uniqIpAddresses.push(peer.ipAddress));
 
 				expect(Object.keys(selectedPeers)).not.toHaveLength(0);
-				expect(selectedPeers.length).toBe([...new Set(uniqIpAddresses)].length);
+				expect(selectedPeers).toHaveLength(
+					[...new Set(uniqIpAddresses)].length,
+				);
 			});
 		});
 	});

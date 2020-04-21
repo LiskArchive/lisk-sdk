@@ -18,10 +18,7 @@
  * interacting with and handling aggregated events from a collection of peers.
  */
 import { EventEmitter } from 'events';
-// tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
 import { SCServerSocket } from 'socketcluster-server';
-
 import {
 	ConnectionKind,
 	DEFAULT_LOCALHOST_IP,
@@ -79,6 +76,9 @@ import {
 	P2PResponsePacket,
 } from './types';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import shuffle = require('lodash.shuffle');
+
 interface FilterPeersOptions {
 	readonly category: PROTECTION_CATEGORY;
 	readonly percentage: number;
@@ -95,22 +95,25 @@ export const filterPeersByCategory = (
 	peers: Peer[],
 	options: FilterPeersOptions,
 ): Peer[] => {
-	// tslint:disable-next-line no-magic-numbers
 	if (options.percentage > 1 || options.percentage < 0) {
 		return peers;
 	}
 	const numberOfProtectedPeers = Math.ceil(peers.length * options.percentage);
 	const sign = options.protectBy === PROTECT_BY.HIGHEST ? -1 : 1;
 
-	// tslint:disable-next-line no-any
-	return peers
-		.sort((peerA: any, peerB: any) =>
-			peerA.internalState[options.category] >
-			peerB.internalState[options.category]
-				? sign
-				: sign * -1,
-		)
-		.slice(0, numberOfProtectedPeers);
+	return (
+		peers
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.sort((peerA: any, peerB: any) =>
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				peerA.internalState[options.category] >
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				peerB.internalState[options.category]
+					? sign
+					: sign * -1,
+			)
+			.slice(0, numberOfProtectedPeers)
+	);
 };
 
 export enum PROTECTION_CATEGORY {
@@ -182,7 +185,7 @@ export class PeerPool extends EventEmitter {
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
-		this._peerMap = new Map();
+		this._peerMap = new Map<string, Peer>();
 		this._peerPoolConfig = peerPoolConfig;
 		this._peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
@@ -234,22 +237,22 @@ export class PeerPool extends EventEmitter {
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
 		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
-			const peerId = closePacket.peerInfo.peerId;
+			const { peerId } = closePacket.peerInfo;
 			this.removePeer(
 				peerId,
 				closePacket.code,
-				`Outbound peer ${peerId} disconnected with reason: ${closePacket.reason ||
+				`Outbound peer ${peerId} disconnected with reason: ${closePacket.reason ??
 					'Unknown reason'}`,
 			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
 		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
-			const peerId = closePacket.peerInfo.peerId;
+			const { peerId } = closePacket.peerInfo;
 			this.removePeer(
 				peerId,
 				closePacket.code,
-				`Inbound peer ${peerId} disconnected with reason: ${closePacket.reason ||
+				`Inbound peer ${peerId} disconnected with reason: ${closePacket.reason ??
 					'Unknown reason'}`,
 			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
@@ -350,6 +353,7 @@ export class PeerPool extends EventEmitter {
 			...peer.peerInfo,
 			internalState: {
 				...peer.peerInfo.internalState,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				advertiseAddress: peer.peerInfo.internalState
 					? peer.peerInfo.internalState.advertiseAddress
 					: true,
@@ -414,11 +418,11 @@ export class PeerPool extends EventEmitter {
 		this._peerBook.seedPeers.forEach(peer => {
 			const isConnectedSeedPeer = this.getPeer(peer.peerId);
 			if (isConnectedSeedPeer) {
-				// tslint:disable-next-line: no-floating-promises
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				(async () => {
 					try {
 						await isConnectedSeedPeer.discoverPeers();
-						// tslint:disable-next-line: no-empty
+						// eslint-disable-next-line no-empty
 					} catch (error) {}
 				})();
 			}
@@ -500,44 +504,6 @@ export class PeerPool extends EventEmitter {
 		peer.connect();
 
 		return peer;
-	}
-
-	private _addOutboundPeer(
-		peerInfo: P2PPeerInfo,
-		nodeInfo: P2PNodeInfo,
-	): boolean {
-		if (
-			this.hasPeer(peerInfo.peerId) ||
-			this._peerBook.bannedIPs.has(peerInfo.ipAddress)
-		) {
-			return false;
-		}
-
-		// Check if we got already Outbound connection into the IP address of the Peer
-		const outboundConnectedPeer = this.getPeers(OutboundPeer).find(
-			p =>
-				p.ipAddress === peerInfo.ipAddress &&
-				p.ipAddress !== DEFAULT_LOCALHOST_IP,
-		);
-		if (outboundConnectedPeer) {
-			return false;
-		}
-
-		/*
-			Inject our nodeInfo for validation during handshake on outbound peer connection
-		*/
-		const peer = new OutboundPeer(peerInfo, {
-			...this._peerConfig,
-			serverNodeInfo: nodeInfo,
-		});
-
-		this._peerMap.set(peer.id, peer);
-		this._bindHandlersToPeer(peer);
-		if (this._nodeInfo) {
-			this._applyNodeInfoOnPeer(peer);
-		}
-
-		return true;
 	}
 
 	public getPeersCountPerKind(): P2PPeersCount {
@@ -758,13 +724,13 @@ export class PeerPool extends EventEmitter {
 			return;
 		}
 
-		// tslint:disable-next-line strict-comparisons
 		if (kind === OutboundPeer) {
 			const selectedPeer = shuffle(
 				peers.filter(
 					peer => peer.internalState.peerKind !== PeerKind.FIXED_PEER,
 				),
 			)[0];
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (selectedPeer) {
 				this.removePeer(
 					selectedPeer.id,
@@ -774,10 +740,10 @@ export class PeerPool extends EventEmitter {
 			}
 		}
 
-		// tslint:disable-next-line strict-comparisons
 		if (kind === InboundPeer) {
 			const evictionCandidates = this._selectPeersForEviction();
 			const peerToEvict = shuffle(evictionCandidates)[0];
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (peerToEvict) {
 				this.removePeer(
 					peerToEvict.id,
@@ -841,5 +807,43 @@ export class PeerPool extends EventEmitter {
 		);
 		peer.removeListener(EVENT_BAN_PEER, this._handleBanPeer);
 		peer.removeListener(EVENT_DISCOVERED_PEER, this._handleDiscoverPeer);
+	}
+
+	private _addOutboundPeer(
+		peerInfo: P2PPeerInfo,
+		nodeInfo: P2PNodeInfo,
+	): boolean {
+		if (
+			this.hasPeer(peerInfo.peerId) ||
+			this._peerBook.bannedIPs.has(peerInfo.ipAddress)
+		) {
+			return false;
+		}
+
+		// Check if we got already Outbound connection into the IP address of the Peer
+		const outboundConnectedPeer = this.getPeers(OutboundPeer).find(
+			p =>
+				p.ipAddress === peerInfo.ipAddress &&
+				p.ipAddress !== DEFAULT_LOCALHOST_IP,
+		);
+		if (outboundConnectedPeer) {
+			return false;
+		}
+
+		/*
+			Inject our nodeInfo for validation during handshake on outbound peer connection
+		*/
+		const peer = new OutboundPeer(peerInfo, {
+			...this._peerConfig,
+			serverNodeInfo: nodeInfo,
+		});
+
+		this._peerMap.set(peer.id, peer);
+		this._bindHandlersToPeer(peer);
+		if (this._nodeInfo) {
+			this._applyNodeInfoOnPeer(peer);
+		}
+
+		return true;
 	}
 }

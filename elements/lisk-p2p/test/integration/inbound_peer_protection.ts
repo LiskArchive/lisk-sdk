@@ -52,13 +52,13 @@ describe('Peer inbound eviction for connection time', () => {
 
 	// Due to randomization from shuffling and timing of the nodes
 	// This test may experience some instability and not always evict.
-	it('should not evict earliest connected peers', async () => {
+	it('should not evict earliest connected peers', () => {
 		const firstNode = p2pNodeList[0];
 		const inboundPeers = firstNode['_peerPool']
 			.getPeers(InboundPeer)
 			.map(peer => peer.wsPort);
 		expect(inboundPeers).toSatisfy(
-			(n: Number[]) => n.includes(5001) || n.includes(5002),
+			(n: number[]) => n.includes(5001) || n.includes(5002),
 		);
 	});
 });

@@ -60,15 +60,18 @@ export class InboundPeer extends Peer {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
 		this._handleInboundSocketClose = (code, reasonMessage) => {
-			const reason = reasonMessage
-				? reasonMessage
-				: socketErrorStatusCodes[code] || 'Unknown reason';
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const reason =
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				reasonMessage ?? socketErrorStatusCodes[code] ?? 'Unknown reason';
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (this._pingTimeoutId) {
 				clearTimeout(this._pingTimeoutId);
 			}
 			this.emit(EVENT_CLOSE_INBOUND, {
 				peerInfo,
 				code,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				reason,
 			});
 		};

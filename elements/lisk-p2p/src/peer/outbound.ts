@@ -146,6 +146,7 @@ export class OutboundPeer extends Peer {
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		outboundSocket.on('connect', async () => {
 			try {
 				await this.fetchAndUpdateStatus();
@@ -171,12 +172,14 @@ export class OutboundPeer extends Peer {
 		outboundSocket.on(
 			'close',
 			(code: number, reasonMessage: string | undefined) => {
-				const reason = reasonMessage
-					? reasonMessage
-					: socketErrorStatusCodes[code] || 'Unknown reason';
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				const reason =
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+					reasonMessage ?? socketErrorStatusCodes[code] ?? 'Unknown reason';
 				this.emit(EVENT_CLOSE_OUTBOUND, {
 					peerInfo: this._peerInfo,
 					code,
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 					reason,
 				});
 			},

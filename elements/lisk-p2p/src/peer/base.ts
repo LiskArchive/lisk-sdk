@@ -67,7 +67,9 @@ import {
 	validateRPCRequest,
 } from '../utils';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes = {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
 	...(socketClusterClient.SCClientSocket as any).errorStatuses,
 	1000: 'Intentionally disconnected',
 };
@@ -78,8 +80,11 @@ const RATE_NORMALIZATION_FACTOR = 1000;
 export type SCClientSocket = socketClusterClient.SCClientSocket;
 
 export type SCServerSocketUpdated = {
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	destroy(code?: number, data?: string | object): void;
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	on(event: string | unknown, listener: (packet?: unknown) => void): void;
+	// eslint-disable-next-line @typescript-eslint/method-signature-style,@typescript-eslint/no-explicit-any
 	on(event: string, listener: (packet: any, respond: any) => void): void;
 } & SCServerSocket;
 
@@ -107,13 +112,10 @@ export interface PeerConfig {
 }
 
 export class Peer extends EventEmitter {
-	private readonly _counterResetInterval: NodeJS.Timer;
 	protected _peerInfo: ConnectedPeerInfo;
-	private readonly _productivityResetInterval: NodeJS.Timer;
 	protected readonly _peerConfig: PeerConfig;
 	protected _serverNodeInfo: P2PNodeInfo | undefined;
 	protected _rateInterval: number;
-
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
@@ -122,6 +124,8 @@ export class Peer extends EventEmitter {
 	protected readonly _handleRawMessage: (packet: unknown) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
 
+	private readonly _counterResetInterval: NodeJS.Timer;
+	private readonly _productivityResetInterval: NodeJS.Timer;
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
@@ -237,6 +241,7 @@ export class Peer extends EventEmitter {
 	}
 
 	public get state(): ConnectionState {
+		// eslint-disable-next-line no-nested-ternary
 		const state = this._socket
 			? this._socket.state === this._socket.OPEN
 				? ConnectionState.OPEN
@@ -255,15 +260,6 @@ export class Peer extends EventEmitter {
 
 	public get peerInfo(): ConnectedPeerInfo {
 		return this._peerInfo;
-	}
-
-	private _initializeInternalState(peerInfo: P2PPeerInfo): P2PPeerInfo {
-		return peerInfo.internalState
-			? peerInfo
-			: {
-					...peerInfo,
-					internalState: assignInternalInfo(peerInfo, this._peerConfig.secret),
-			  };
 	}
 
 	public updatePeerInfo(newPeerInfo: P2PPeerInfo): void {
@@ -466,23 +462,23 @@ export class Peer extends EventEmitter {
 					this.applyPenalty(this._peerConfig.wsMaxMessageRatePenalty);
 				}
 
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
 				return [key, rate] as any;
 			}),
 		);
 
-		this._peerInfo.internalState.rpcCounter = new Map();
+		this._peerInfo.internalState.rpcCounter = new Map<string, number>();
 
 		this._peerInfo.internalState.messageRates = new Map(
 			[...this.internalState.messageCounter.entries()].map(([key, value]) => {
 				const rate = value / this._rateInterval;
 
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
 				return [key, rate] as any;
 			}),
 		);
 
-		this._peerInfo.internalState.messageCounter = new Map();
-
-		return;
+		this._peerInfo.internalState.messageCounter = new Map<string, number>();
 	}
 
 	private _resetProductivity(): void {
@@ -544,26 +540,35 @@ export class Peer extends EventEmitter {
 
 	private _updateRPCCounter(packet: P2PRequestPacket): void {
 		const key = packet.procedure;
-		const count = (this.internalState.rpcCounter.get(key) || 0) + 1;
+		const count = (this.internalState.rpcCounter.get(key) ?? 0) + 1;
 		this.peerInfo.internalState.rpcCounter.set(key, count);
 	}
 
 	private _getRPCRate(packet: P2PRequestPacket): number {
 		const rate =
-			this.peerInfo.internalState.rpcRates.get(packet.procedure) || 0;
+			this.peerInfo.internalState.rpcRates.get(packet.procedure) ?? 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;
 	}
 
 	private _updateMessageCounter(packet: P2PMessagePacket): void {
 		const key = packet.event;
-		const count = (this.internalState.messageCounter.get(key) || 0) + 1;
+		const count = (this.internalState.messageCounter.get(key) ?? 0) + 1;
 		this.peerInfo.internalState.messageCounter.set(key, count);
 	}
 
 	private _getMessageRate(packet: P2PMessagePacket): number {
-		const rate = this.internalState.messageRates.get(packet.event) || 0;
+		const rate = this.internalState.messageRates.get(packet.event) ?? 0;
 
 		return rate * RATE_NORMALIZATION_FACTOR;
+	}
+
+	private _initializeInternalState(peerInfo: P2PPeerInfo): P2PPeerInfo {
+		return peerInfo.internalState
+			? peerInfo
+			: {
+					...peerInfo,
+					internalState: assignInternalInfo(peerInfo, this._peerConfig.secret),
+			  };
 	}
 }

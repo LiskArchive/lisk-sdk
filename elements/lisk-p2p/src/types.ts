@@ -15,6 +15,7 @@
 import { SCServerSocket } from 'socketcluster-server';
 
 import { ConnectionKind, PeerKind } from './constants';
+// eslint-disable-next-line import/no-cycle
 import { PeerBook } from './peer_book';
 
 export interface P2PRequestPacket {
@@ -109,11 +110,10 @@ export interface P2PNodeInfo extends P2PSharedState {
 // TODO later: Switch to LIP protocol format.
 // TODO: Include peerId as field
 export interface ProtocolPeerInfo {
+	readonly [key: string]: unknown;
 	// To support the existing protocol
 	readonly ipAddress: string;
 	readonly wsPort: number;
-	// tslint:disable-next-line: no-mixed-interface
-	readonly [key: string]: unknown;
 }
 
 export interface IncomingPeerConnection {

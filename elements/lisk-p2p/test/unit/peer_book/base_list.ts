@@ -15,13 +15,13 @@
 import { BaseList } from '../../../src/peer_book/base_list';
 import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../../../src/types';
 import { initPeerInfoList } from '../../utils/peers';
-import { PEER_TYPE } from '../../../src/utils';
+import { PEER_TYPE, getBucketId } from '../../../src/utils';
 import {
 	DEFAULT_NEW_BUCKET_SIZE,
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_RANDOM_SECRET,
 } from '../../../src/constants';
-import { getBucketId } from '../../../src/utils';
+
 import { errors } from '../../../src';
 import 'jest-extended';
 
@@ -68,7 +68,7 @@ describe('Peers base list', () => {
 					return n >= 0 && n <= DEFAULT_NEW_BUCKET_COUNT;
 				});
 
-				expect(peer[1]).toBeEmpty;
+				expect(peer[1]).toBeEmpty();
 			}
 		});
 	});
@@ -80,11 +80,10 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 			peerListObj.addPeer(samplePeers[2]);
-			peerListObj.peerList as ReadonlyArray<P2PPeerInfo>;
 		});
 
 		it('should return tried peers list', () => {
-			expect(peerListObj.peerList.length).toEqual(3);
+			expect(peerListObj.peerList).toHaveLength(3);
 			expect(peerListObj.peerList.map(peer => peer.peerId)).toEqual(
 				expect.arrayContaining([samplePeers[0].peerId]),
 			);
@@ -177,7 +176,7 @@ describe('Peers base list', () => {
 			peerListObj.addPeer(samplePeers[0]);
 			peerListObj.addPeer(samplePeers[1]);
 
-			expect(peerListObj.makeSpace).toBeCalled;
+			expect(peerListObj.makeSpace).toHaveBeenCalled();
 		});
 
 		describe('when bucket is not full', () => {
@@ -218,7 +217,7 @@ describe('Peers base list', () => {
 
 		describe('when trying to update a peer that exist', () => {
 			it('should update the peer from the incoming peerInfo', () => {
-				let updatedPeer = {
+				const updatedPeer = {
 					...samplePeers[0],
 					height: 0,
 					version: '1.2.3',
@@ -232,7 +231,7 @@ describe('Peers base list', () => {
 
 		describe('when trying to update a peer that does not exist', () => {
 			it('should return false when the peer does not exist', () => {
-				let updatedPeer = {
+				const updatedPeer = {
 					...samplePeers[2],
 					height: 0,
 					version: '1.2.3',
@@ -290,7 +289,7 @@ describe('Peers base list', () => {
 
 		describe('when bucket is not full', () => {
 			it('should not evict any peer', () => {
-				const bucket = new Map<string, P2PEnhancedPeerInfo>();
+				bucket = new Map<string, P2PEnhancedPeerInfo>();
 				calculateBucketStub({ bucketId: 1234, bucket });
 				const evictedPeer = peerListObj.makeSpace(bucket);
 

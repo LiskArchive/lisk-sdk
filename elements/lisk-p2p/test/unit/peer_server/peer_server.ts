@@ -47,7 +47,7 @@ describe('peerServer', () => {
 	};
 
 	const peerServerConfig = {
-		nodeInfo: nodeInfo,
+		nodeInfo,
 		hostIp: '0.0.0.0',
 		secret: DEFAULT_RANDOM_SECRET,
 		peerBook: new PeerBook(peerBookConfig),

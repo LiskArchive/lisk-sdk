@@ -24,7 +24,8 @@ describe('P2P.requestFromPeer', () => {
 
 		collectedMessages = [];
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on('requestReceived', request => {
 				if (request.procedure === 'foo') {
 					collectedMessages.push({
@@ -34,11 +35,10 @@ describe('P2P.requestFromPeer', () => {
 				}
 
 				if (request.procedure === 'getGreeting') {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					request.end(`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`);
-				} else {
-					if (!request.wasResponseSent) {
-						request.end(456);
-					}
+				} else if (!request.wasResponseSent) {
+					request.end(456);
 				}
 			});
 		}
@@ -61,7 +61,7 @@ describe('P2P.requestFromPeer', () => {
 			`${targetPeer.ipAddress}:${targetPeer.wsPort}`,
 		);
 
-		expect(collectedMessages.length).toBe(1);
+		expect(collectedMessages).toHaveLength(1);
 		expect(collectedMessages[0]).toHaveProperty('request');
 		expect(collectedMessages[0].request.procedure).toBe('foo');
 		expect(collectedMessages[0].request.data).toBe(123456);

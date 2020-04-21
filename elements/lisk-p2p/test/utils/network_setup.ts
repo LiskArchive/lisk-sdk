@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { platform } from 'os';
 import { P2P, constants } from '../../src/index';
 import { wait } from './helpers';
-import { platform } from 'os';
 
 const {
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
@@ -58,9 +58,9 @@ export const createNetwork = async ({
 	startNodePort,
 	networkDiscoveryWaitTime,
 	customConfig,
-}: TestNetworkConfig = {}) => {
-	const numberOfPeers = networkSize ? networkSize : NETWORK_PEER_COUNT;
-	const startPort = startNodePort ? startNodePort : NETWORK_START_PORT;
+}: TestNetworkConfig = {}): Promise<P2P[]> => {
+	const numberOfPeers = networkSize ?? NETWORK_PEER_COUNT;
+	const startPort = startNodePort ?? NETWORK_START_PORT;
 
 	const p2pNodeList = [...new Array(numberOfPeers).keys()].map(index => {
 		// Each node will have the previous node in the sequence as a seed peer except the first node.
@@ -109,13 +109,9 @@ export const createNetwork = async ({
 	});
 
 	if (networkDiscoveryWaitTime !== 0) {
-		await Promise.all(p2pNodeList.map(p2p => p2p.start()));
+		await Promise.all(p2pNodeList.map(async p2p => p2p.start()));
 
-		await wait(
-			networkDiscoveryWaitTime
-				? networkDiscoveryWaitTime
-				: NETWORK_CREATION_WAIT_TIME,
-		);
+		await wait(networkDiscoveryWaitTime ?? NETWORK_CREATION_WAIT_TIME);
 	}
 
 	return p2pNodeList;
@@ -124,11 +120,9 @@ export const createNetwork = async ({
 export const destroyNetwork = async (
 	p2pNodeList: ReadonlyArray<P2P>,
 	networkDestroyWaitTime?: number,
-) => {
+): Promise<void> => {
 	await Promise.all(
-		p2pNodeList.filter(p2p => p2p.isActive).map(p2p => p2p.stop()),
+		p2pNodeList.filter(p2p => p2p.isActive).map(async p2p => p2p.stop()),
 	);
-	await wait(
-		networkDestroyWaitTime ? networkDestroyWaitTime : NETWORK_DESTROY_WAIT_TIME,
-	);
+	await wait(networkDestroyWaitTime ?? NETWORK_DESTROY_WAIT_TIME);
 };

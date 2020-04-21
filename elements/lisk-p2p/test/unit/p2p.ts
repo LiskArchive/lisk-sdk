@@ -19,7 +19,7 @@ describe('p2p', () => {
 	let P2PNode: P2P;
 
 	const generatedPeers = [...Array(10).keys()].map(i => ({
-		ipAddress: '120.0.0.' + i,
+		ipAddress: `120.0.0.${i}`,
 		wsPort: 5000 + i,
 	}));
 
@@ -53,6 +53,7 @@ describe('p2p', () => {
 	afterEach(async () => {
 		try {
 			await P2PNode.stop();
+			// eslint-disable-next-line no-empty
 		} catch (e) {}
 	});
 
@@ -65,25 +66,25 @@ describe('p2p', () => {
 			return expect(P2PNode).toBeInstanceOf(P2P);
 		});
 
-		it('should load PeerBook with correct fixedPeer hierarchy', async () => {
+		it('should load PeerBook with correct fixedPeer hierarchy', () => {
 			const expectedFixedPeers = generatedPeers
 				.slice(0, 6)
 				.map(peer => constructPeerId(peer.ipAddress, peer.wsPort));
 
 			expect(expectedFixedPeers).toIncludeSameMembers(
 				P2PNode['_peerBook'].allPeers
-					.filter(peer => peer.internalState?.peerKind == 'fixedPeer')
+					.filter(peer => peer.internalState?.peerKind === 'fixedPeer')
 					.map(peer => peer.peerId),
 			);
 		});
 
 		it('should reject at multiple start attempt', async () => {
-			expect(P2PNode.start()).rejects.toThrow();
+			await expect(P2PNode.start()).rejects.toThrow();
 		});
 
 		it('should reject at multiple stop attempt', async () => {
 			await P2PNode.stop();
-			expect(P2PNode.stop()).rejects.toThrow();
+			await expect(P2PNode.stop()).rejects.toThrow();
 		});
 	});
 });
