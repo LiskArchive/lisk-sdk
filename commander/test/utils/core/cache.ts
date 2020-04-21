@@ -16,6 +16,7 @@
 import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fsExtra from 'fs-extra';
+import { SinonStub } from 'sinon';
 import {
 	isCacheEnabled,
 	isCacheRunning,
@@ -27,7 +28,6 @@ import * as workerProcess from '../../../src/utils/worker-process';
 import * as coreConfig from '../../../src/utils/core/config';
 import * as pm2 from '../../../src/utils/core/pm2';
 import * as liskConfig from './fixtures';
-import { SinonStub } from 'sinon';
 
 describe('cache node utils', () => {
 	let pm2Stub: SinonStub;
@@ -37,6 +37,7 @@ describe('cache node utils', () => {
 		sandbox.stub(fsExtra, 'writeJSONSync').returns();
 		pm2Stub = sandbox.stub(pm2, 'describeApplication');
 		pm2Stub.resolves({
+			// eslint-disable-next-line camelcase
 			pm2_env: {
 				LISK_REDIS_PORT: 6380,
 			},
@@ -91,6 +92,7 @@ describe('cache node utils', () => {
 			it('should return true', async () => {
 				workerProcessStub.resolves({ stdout: 'PONG', stderr: null });
 				pm2Stub.resolves({
+					// eslint-disable-next-line camelcase
 					pm2_env: {
 						LISK_REDIS_PORT: 6380,
 					},

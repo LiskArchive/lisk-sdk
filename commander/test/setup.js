@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const os = require('os');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -22,7 +23,7 @@ const { Assertion } = chai;
 
 process.env.NODE_ENV = 'test';
 process.env.LISK_COMMANDER_CONFIG_DIR =
-	process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
+	process.env.LISK_COMMANDER_CONFIG_DIR ?? `${os.homedir()}/.lisk-commander`;
 
 Assertion.addMethod('matchAny', function handleAssert(matcher) {
 	const obj = this._obj;

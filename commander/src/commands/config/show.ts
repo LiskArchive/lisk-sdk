@@ -26,7 +26,7 @@ export default class ShowCommand extends BaseCommand {
 		...BaseCommand.flags,
 	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		this.print(this.userConfig);
 	}

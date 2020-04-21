@@ -46,7 +46,7 @@ export default class HashOnionCommand extends BaseCommand {
 		}),
 	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const {
 			flags: { output, count, distance },

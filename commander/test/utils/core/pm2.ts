@@ -2,6 +2,7 @@ import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import pm2 from 'pm2';
 import fsExtra from 'fs-extra';
+import { SinonStub } from 'sinon';
 import {
 	registerApplication,
 	unRegisterApplication,
@@ -12,7 +13,6 @@ import {
 	PM2ProcessInstance,
 } from '../../../src/utils/core/pm2';
 import { NETWORK } from '../../../src/utils/constants';
-import { SinonStub } from 'sinon';
 
 describe('pm2 node utils', () => {
 	const monit = {
@@ -20,12 +20,15 @@ describe('pm2 node utils', () => {
 		memory: 10,
 	};
 
+	// eslint-disable-next-line camelcase
 	const pm2_env = {
 		LISK_DB_PORT: '5432',
 		LISK_REDIS_PORT: '6380',
 		LISK_WS_PORT: '5000',
 		LISK_HTTP_PORT: '4000',
+		// eslint-disable-next-line camelcase
 		pm_cwd: '.lisk/instances',
+		// eslint-disable-next-line camelcase
 		pm_uptime: new Date(),
 		status: 'online',
 		version: '2.0.0',
@@ -37,6 +40,7 @@ describe('pm2 node utils', () => {
 			name: 'testnet',
 			pid: 123,
 			monit,
+			// eslint-disable-next-line camelcase
 			pm2_env,
 		},
 	];

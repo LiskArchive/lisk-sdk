@@ -68,6 +68,7 @@ const stopCommand = async (
 	name: string,
 ): Promise<string> => {
 	const config = await getLiskConfig(installDir, network);
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const password = config?.components?.cache?.password;
 	const { redisPort } = (await describeApplication(name)) as PM2ProcessInstance;
 
@@ -99,6 +100,7 @@ export const isCacheEnabled = async (
 	network: NETWORK,
 ): Promise<boolean> => {
 	const config = await getLiskConfig(installDir, network);
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const enabled = config?.components?.cache?.enabled;
 	if (enabled === undefined) {
 		throw new Error('Cache config is not found.');

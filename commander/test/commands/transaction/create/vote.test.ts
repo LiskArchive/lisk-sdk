@@ -215,7 +215,6 @@ describe('transaction:create:vote', () => {
 			.it(
 				'should create a transaction with votes and unvotes without signature',
 				() => {
-					console.log(unvote, unvoteValues);
 					expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 					expect(validator.validateAddress).to.be.calledWithExactly(
 						voteValues[0],

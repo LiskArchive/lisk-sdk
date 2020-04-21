@@ -103,7 +103,7 @@ export default class DecryptCommand extends BaseCommand {
 			nonce,
 			senderPublicKey,
 			passphrase,
-			message || dataFromSource,
+			message ?? dataFromSource,
 		);
 		this.print({ message: result });
 	}

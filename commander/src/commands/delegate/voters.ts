@@ -112,17 +112,19 @@ export default class VotersCommand extends BaseCommand {
 		const usernames = usernamesStr.split(',').filter(Boolean);
 
 		const { limit, offset, sort } = processFlagInputs(
-			limitStr as string,
-			offsetStr as string,
-			sortStr as string,
+			limitStr,
+			offsetStr,
+			sortStr,
 		);
 
 		const req = usernames.map(username => ({
 			query: {
 				username,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				limit: limit || DEFAULT_LIMIT,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				offset: offset || DEFAULT_OFFSET,
-				sort: sort || DEFAULT_SORT,
+				sort: sort ?? DEFAULT_SORT,
 			},
 			placeholder: {
 				username,

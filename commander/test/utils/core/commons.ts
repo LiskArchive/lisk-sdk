@@ -2,6 +2,7 @@ import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fsExtra from 'fs-extra';
 import * as os from 'os';
+import { SinonStub } from 'sinon';
 import {
 	liskInstall,
 	installDirectory,
@@ -34,7 +35,6 @@ import { defaultLiskInstancePath } from '../../../src/utils/core/config';
 import * as release from '../../../src/utils/core/release';
 import * as workerProcess from '../../../src/utils/worker-process';
 import * as pm2 from '../../../src/utils/core/pm2';
-import { SinonStub } from 'sinon';
 
 const envConfig = {
 	LISK_REDIS_PORT: 6380,
@@ -53,6 +53,7 @@ describe('commons core utils', () => {
 		pm2Stub = sandbox.stub(pm2, 'listApplication');
 		pm2Stub.resolves([
 			{
+				// eslint-disable-next-line camelcase
 				pm2_env: envConfig,
 			},
 		]);
@@ -60,6 +61,7 @@ describe('commons core utils', () => {
 
 	describe('#liskInstall', () => {
 		it('should return resolved home directory', () => {
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			return expect(liskInstall('~/.lisk')).to.equal(`${os.homedir}/.lisk`);
 		});
 	});
@@ -67,6 +69,7 @@ describe('commons core utils', () => {
 	describe('#installDirectory', () => {
 		it('should return resolved installation directory', () => {
 			return expect(installDirectory('~/.lisk', 'test')).to.equal(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`${os.homedir}/.lisk/test`,
 			);
 		});
@@ -101,26 +104,28 @@ describe('commons core utils', () => {
 
 	describe('#liskLatestUrl', () => {
 		it('should return lisk latest url', () => {
-			const url: string = 'https://downloads.lisk.io/lisk/';
-			return expect(liskLatestUrl(url, NETWORK.MAINNET)).to.equal(
-				`${url}/${NETWORK.MAINNET}/latest.txt`,
+			const downloadURL = 'https://downloads.lisk.io/lisk/';
+			return expect(liskLatestUrl(downloadURL, NETWORK.MAINNET)).to.equal(
+				`${downloadURL}/${NETWORK.MAINNET}/latest.txt`,
 			);
 		});
 	});
 
 	describe('#liskSnapshotUrl', () => {
 		it('should construct snapshot url', () => {
-			const url: string =
+			const downloadURL =
 				'https://downloads.lisk.io/lisk/mainnet/blockchain.db.gz';
-			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(
+			return expect(liskSnapshotUrl(downloadURL, NETWORK.MAINNET)).to.equal(
 				`${RELEASE_URL}/${NETWORK.MAINNET}/blockchain.db.gz`,
 			);
 		});
 
 		it('should return same url if it is a valid url', () => {
-			const url: string =
+			const downloadURL =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
-			return expect(liskSnapshotUrl(url, NETWORK.MAINNET)).to.equal(url);
+			return expect(liskSnapshotUrl(downloadURL, NETWORK.MAINNET)).to.equal(
+				downloadURL,
+			);
 		});
 
 		it('should return empty string if network is not testnet or mainnet', () => {
@@ -130,10 +135,10 @@ describe('commons core utils', () => {
 		});
 
 		it('should return custom snapshot url for dev/alpha/beta net if specified', () => {
-			const url: string =
+			const downloadURL =
 				'http://snapshots.lisk.io.s3-eu-west-1.amazonaws.com/lisk/mainnet/blockchain.db.gz';
 			return [NETWORK.ALPHANET, NETWORK.BETANET, NETWORK.DEVNET].map(network =>
-				expect(liskSnapshotUrl(url, network)).to.equal(url),
+				expect(liskSnapshotUrl(downloadURL, network)).to.equal(downloadURL),
 			);
 		});
 	});
@@ -331,7 +336,7 @@ describe('commons core utils', () => {
 	});
 
 	describe('#getDownloadedFileInfo', () => {
-		it('should get fileName, fileDir, filePath from url', async () => {
+		it('should get fileName, fileDir, filePath from url', () => {
 			return expect(getDownloadedFileInfo(url, '~/.cache')).to.deep.equal({
 				fileDir: '~/.cache/downloads.lisk.io/lisk/testnet/1.6.0-rc.4',
 				fileName: 'lisk-1.6.0-rc.4-Darwin-x86_64.tar.gz',
@@ -342,7 +347,7 @@ describe('commons core utils', () => {
 	});
 
 	describe('#dateDiff', () => {
-		it('should return number of days difference', async () => {
+		it('should return number of days difference', () => {
 			expect(
 				dateDiff(new Date('25-Apr-2019 13:43'), new Date('24-Apr-2019 13:43')),
 			).to.deep.equal(1);

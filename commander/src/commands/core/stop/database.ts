@@ -18,10 +18,7 @@ import Listr from 'listr';
 
 import BaseCommand from '../../../base';
 import { stopDatabase } from '../../../utils/core/database';
-import {
-	describeApplication,
-	PM2ProcessInstance,
-} from '../../../utils/core/pm2';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -64,7 +61,7 @@ export default class DatabaseCommand extends BaseCommand {
 			return;
 		}
 
-		const { installationPath } = instance as PM2ProcessInstance;
+		const { installationPath } = instance;
 
 		const tasks = new Listr([
 			{

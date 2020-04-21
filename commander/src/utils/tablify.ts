@@ -34,6 +34,7 @@ const chars = {
 };
 
 const getKeyValueObject = (object: object) => {
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!object || typeof object !== 'object') {
 		return object;
 	}
@@ -58,7 +59,7 @@ const addValuesToTable = (table: object[], data: object) => {
 	});
 };
 
-// tslint:disable-next-line no-null-undefined-union
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const tablify = (data: ReadonlyArray<object> | object) => {
 	const table = new CliTable3({
 		chars,

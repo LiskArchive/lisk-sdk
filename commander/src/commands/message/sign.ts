@@ -76,7 +76,7 @@ export default class SignCommand extends BaseCommand {
 				? await readFileSource(messageSource)
 				: messageSource;
 
-		const result = processInputs(passphrase, message || dataFromSource);
+		const result = processInputs(passphrase, message ?? dataFromSource);
 		this.print(result);
 	}
 }

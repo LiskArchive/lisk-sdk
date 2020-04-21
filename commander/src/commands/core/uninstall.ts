@@ -21,7 +21,6 @@ import BaseCommand from '../../base';
 import { defaultBackupPath } from '../../utils/core/config';
 import {
 	describeApplication,
-	PM2ProcessInstance,
 	unRegisterApplication,
 } from '../../utils/core/pm2';
 
@@ -72,7 +71,7 @@ export default class UnInstallCommand extends BaseCommand {
 			// tslint:disable-next-line await-promise
 			await StopCommand.run([name]);
 
-			const { installationPath, network } = instance as PM2ProcessInstance;
+			const { installationPath, network } = instance;
 
 			const tasks = new Listr([
 				{

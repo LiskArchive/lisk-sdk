@@ -32,6 +32,7 @@ export const getAPIClient = ({
 	network,
 }: APIClientOptions): APIClient => {
 	const genesisBlockPayloadHash = NETHASHES[network] || network;
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
 
 	return new APIClient(clientNodes, { genesisBlockPayloadHash });

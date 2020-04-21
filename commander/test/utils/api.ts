@@ -14,8 +14,8 @@
  *
  */
 import { expect } from 'chai';
-import { getAPIClient } from '../../src/utils/api';
 import { APIClient } from '@liskhq/lisk-api-client';
+import { getAPIClient } from '../../src/utils/api';
 
 describe('api utils', () => {
 	const mainnetNethash =
@@ -49,7 +49,6 @@ describe('api utils', () => {
 				nodes: ['http://localhost:4000'],
 			};
 			apiClient = getAPIClient(apiConfig);
-			return Promise.resolve();
 		});
 
 		it('should have mainnet nethash', () => {
@@ -62,13 +61,13 @@ describe('api utils', () => {
 	});
 
 	describe('when the network is set to main and nodes are empty', () => {
+		// eslint-disable-next-line mocha/no-synchronous-tests
 		beforeEach(() => {
 			apiConfig = {
 				network: 'main',
 				nodes: [],
 			};
 			apiClient = getAPIClient(apiConfig);
-			return Promise.resolve();
 		});
 
 		it('should have mainnet nethash', () => {
@@ -87,7 +86,6 @@ describe('api utils', () => {
 				nodes: ['http://localhost:4000'],
 			};
 			apiClient = getAPIClient(apiConfig);
-			return Promise.resolve();
 		});
 
 		it('should have testnet nethash', () => {
@@ -106,7 +104,6 @@ describe('api utils', () => {
 				nodes: [],
 			};
 			apiClient = getAPIClient(apiConfig);
-			return Promise.resolve();
 		});
 
 		it('should have testnet nethash', () => {
@@ -126,7 +123,6 @@ describe('api utils', () => {
 				nodes: ['http://localhost:4000'],
 			};
 			apiClient = getAPIClient(apiConfig);
-			return Promise.resolve();
 		});
 
 		it('should have the custom nethash', () => {
@@ -145,7 +141,6 @@ describe('api utils', () => {
 					'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
 				nodes: [],
 			};
-			return Promise.resolve();
 		});
 
 		it('should throw an error', () => {

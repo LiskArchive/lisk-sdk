@@ -95,9 +95,7 @@ describe('transaction:create:unlock', () => {
 				);
 			})
 			.it('should throw an error for invalid address format in unlock object');
-	});
 
-	describe('transaction:create:unlock --unlock="x,y,z"', () => {
 		setupStub()
 			.command([
 				'transaction:create:unlock',
@@ -129,7 +127,7 @@ describe('transaction:create:unlock', () => {
 			});
 	});
 
-	describe('transaction:create:unlock --unlock="x,y,z"', () => {
+	describe('transaction:create:unlock --unlock="x,y,z" --unlock="x,y,z"', () => {
 		setupStub()
 			.command([
 				'transaction:create:unlock',

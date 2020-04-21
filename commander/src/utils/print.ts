@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line match-default-export-name
+// eslint-disable-next-line camelcase
 import strip_ansi from 'strip-ansi';
 
 import { tablify } from './tablify';
@@ -28,8 +28,7 @@ interface PrintInput {
 }
 
 interface Printer {
-	// tslint:disable-next-line readonly-array
-	log(message?: string, ...args: unknown[]): void;
+	log: (message?: string, ...args: unknown[]) => void;
 }
 
 const removeANSIFromObject = (object: StringMap) =>
@@ -61,6 +60,7 @@ export const print = ({ json, pretty }: PrintInput = {}) =>
 			? JSON.stringify(resultToPrint, undefined, pretty ? '\t' : undefined)
 			: tablify(resultToPrint).toString();
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const logger = this && this.log ? this : console;
 		logger.log(output);
 	};
