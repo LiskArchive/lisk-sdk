@@ -13,10 +13,10 @@
  */
 
 import { when } from 'jest-when';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Dpos } from '../../src';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -71,7 +71,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 
 		// Act && Assert
 		return expect(dpos.getForgerAddressesForRound(round)).rejects.toThrow(
-			`No delegate list found for round: ${round}`,
+			`No delegate list found for round: ${round.toString()}`,
 		);
 	});
 
@@ -91,7 +91,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 
 		// Act && Assert
 		return expect(dpos.getForgerAddressesForRound(round)).rejects.toThrow(
-			`No delegate list found for round: ${round}`,
+			`No delegate list found for round: ${round.toString()}`,
 		);
 	});
 });

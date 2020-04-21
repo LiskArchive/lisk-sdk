@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Slots } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	generateDelegateLists,
 	generateDelegateListsWithStandby,
@@ -23,13 +25,11 @@ import {
 } from '../fixtures/constants';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Dpos } from '../../src';
-import { Slots } from '@liskhq/lisk-chain';
 import { ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-const createStateStore = (list: ForgersList = []) => {
+const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	return new StateStoreMock([], {
 		[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(list),
 	});

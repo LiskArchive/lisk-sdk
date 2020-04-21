@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Slots } from '@liskhq/lisk-chain';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
-import { Slots } from '@liskhq/lisk-chain';
 import { Account, ForgersList, Block } from '../../src/types';
 import {
 	BLOCK_TIME,
@@ -68,7 +68,6 @@ describe('dpos.apply()', () => {
 
 	describe('Given block is the genesis block (height === 1)', () => {
 		let genesisBlock: Block;
-		let stateStore: StateStoreMock;
 		let generator: Account;
 
 		beforeEach(() => {
@@ -363,7 +362,7 @@ describe('dpos.apply()', () => {
 		describe('When all delegates successfully forges a block', () => {
 			it('should NOT update "missedBlocks" for anyone', async () => {
 				// Arrange
-				const forgedDelegates = getDelegateAccounts(103);
+				forgedDelegates = getDelegateAccounts(103);
 				const forgedBlocks = forgedDelegates.map((delegate, i) => ({
 					generatorPublicKey: delegate.publicKey,
 					height: 809 + i,

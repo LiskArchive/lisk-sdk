@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
+import { Dpos } from '../../src';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
@@ -25,7 +25,7 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
 import { ForgersList } from '../../src/types';
 
-const createStateStore = (list: ForgersList = []) => {
+const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	return new StateStoreMock([], {
 		[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(list),
 	});

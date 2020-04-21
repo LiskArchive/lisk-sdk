@@ -19,7 +19,7 @@ import { Account } from '../../src/types';
 
 export { delegatePublicKeys };
 
-export const getDelegateAccounts = (num: number = 1): Account[] => {
+export const getDelegateAccounts = (num = 1): Account[] => {
 	const accounts = [];
 	for (let index = 0; index < num; index += 1) {
 		const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(
@@ -35,7 +35,7 @@ export const getDelegateAccounts = (num: number = 1): Account[] => {
 			fees: BigInt('0'),
 			rewards: BigInt('0'),
 			totalVotesReceived: BigInt('0'),
-			username: `genesis_${index + randomInt(0, 999999)}`,
+			username: `genesis_${(index + randomInt(0, 999999)).toString()}`,
 			delegate: {
 				isBanned: false,
 				pomHeights: [],
@@ -47,9 +47,7 @@ export const getDelegateAccounts = (num: number = 1): Account[] => {
 	return accounts;
 };
 
-export const getDelegateAccountsWithVotesReceived = (
-	num: number = 1,
-): Account[] => {
+export const getDelegateAccountsWithVotesReceived = (num = 1): Account[] => {
 	const accounts = getDelegateAccounts(num);
 	for (const account of accounts) {
 		account.totalVotesReceived = randomBigIntWithPowerof8(1000, 100000);
