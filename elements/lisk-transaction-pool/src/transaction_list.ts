@@ -25,7 +25,7 @@ const DEFAULT_MAX_SIZE = 64;
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 
-type AddResult =
+type AddStatus =
 	| { added: true; removedID?: string; reason?: undefined }
 	| { added: false; removedID?: undefined; reason: string };
 
@@ -54,7 +54,7 @@ export class TransactionList {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(incomingTx: Transaction, processable: boolean = false): AddResult {
+	public add(incomingTx: Transaction, processable: boolean = false): AddStatus {
 		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
 		if (existingTx) {
