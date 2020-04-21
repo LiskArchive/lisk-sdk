@@ -307,7 +307,7 @@ describe('peer/base', () => {
 			);
 		});
 
-		it('should emit if socket exists', async () => {
+		it('should emit if socket exists', () => {
 			// Arrange
 			const p2pPacket = {
 				data: 'myData',
@@ -316,7 +316,8 @@ describe('peer/base', () => {
 			(defaultPeer as any)._socket = createSocketStubInstance();
 
 			// Act
-			await defaultPeer.request(p2pPacket);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			defaultPeer.request(p2pPacket);
 
 			// Assert
 			expect((defaultPeer as any)._socket.emit).toHaveBeenCalledTimes(1);
