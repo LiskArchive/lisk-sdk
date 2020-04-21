@@ -25,6 +25,10 @@ const DEFAULT_MAX_SIZE = 64;
 // tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 
+type AddStatus =
+	| { added: true; removedID?: string; reason?: undefined }
+	| { added: false; removedID?: undefined; reason: string };
+
 export class TransactionList {
 	public readonly address: string;
 
@@ -42,23 +46,25 @@ export class TransactionList {
 		this._processable = [];
 		this._maxSize = options?.maxSize ?? DEFAULT_MAX_SIZE;
 		this._minReplacementFeeDifference =
-			options?.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
+			options?.minReplacementFeeDifference ??
+			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 	}
 
 	public get(nonce: bigint): Transaction | undefined {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(
-		incomingTx: Transaction,
-		processable: boolean = false,
-	): { added: boolean; removedID?: string } {
+	public add(incomingTx: Transaction, processable: boolean = false): AddStatus {
 		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
 		if (existingTx) {
 			// If the fee is lower than the original fee + replacement, reject
 			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
-				return { added: false };
+				return {
+					added: false,
+					reason:
+						'Incoming transaction fee is not sufficient to replace existing transaction',
+				};
 			}
 			// Mark this and all subsequent nonce unprocessable
 			this._demoteAfter(incomingTx.nonce);
@@ -73,7 +79,11 @@ export class TransactionList {
 		if (this._nonceHeap.count >= this._maxSize) {
 			// If incoming nonce is bigger than the highest nonce, then reject
 			if (incomingTx.nonce > highestNonce) {
-				return { added: false };
+				return {
+					added: false,
+					reason:
+						'Incoming transaction exceeds maximum transaction limit per account',
+				};
 			}
 			// If incoming nonce is lower than the highest nonce, remove the largest nonce transaction instead
 			removedID = this.remove(highestNonce);
