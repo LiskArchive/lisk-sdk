@@ -24,6 +24,10 @@ export interface TransactionListOptions {
 const DEFAULT_MAX_SIZE = 64;
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 
+type AddStatus =
+	| { added: true; removedID?: string; reason?: undefined }
+	| { added: false; removedID?: undefined; reason: string };
+
 export class TransactionList {
 	public readonly address: string;
 
@@ -49,17 +53,18 @@ export class TransactionList {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(
-		incomingTx: Transaction,
-		processable = false,
-	): { added: boolean; removedID?: string } {
+	public add(incomingTx: Transaction, processable = false): AddStatus {
 		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (existingTx) {
 			// If the fee is lower than the original fee + replacement, reject
 			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
-				return { added: false };
+				return {
+					added: false,
+					reason:
+						'Incoming transaction fee is not sufficient to replace existing transaction',
+				};
 			}
 			// Mark this and all subsequent nonce unprocessable
 			this._demoteAfter(incomingTx.nonce);
@@ -73,7 +78,11 @@ export class TransactionList {
 		if (this._nonceHeap.count >= this._maxSize) {
 			// If incoming nonce is bigger than the highest nonce, then reject
 			if (incomingTx.nonce > highestNonce) {
-				return { added: false };
+				return {
+					added: false,
+					reason:
+						'Incoming transaction exceeds maximum transaction limit per account',
+				};
 			}
 			// If incoming nonce is lower than the highest nonce, remove the largest nonce transaction instead
 			removedID = this.remove(highestNonce);

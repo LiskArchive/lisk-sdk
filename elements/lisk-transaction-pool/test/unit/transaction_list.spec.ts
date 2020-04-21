@@ -144,9 +144,12 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee - BigInt(100),
 					};
 					// Act
-					const { added } = transactionList.add(replacing);
+					const { added, reason } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
+					expect(reason).toEqual(
+						'Incoming transaction fee is not sufficient to replace existing transaction',
+					);
 					expect(transactionList.size).toEqual(5);
 					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
 						addedTxs[0].id,
@@ -280,9 +283,12 @@ describe('TransactionList class', () => {
 						fee: addedTxs[0].fee + BigInt(5),
 					};
 					// Act
-					const { added } = transactionList.add(replacing);
+					const { added, reason } = transactionList.add(replacing);
 					// Assert
 					expect(added).toEqual(false);
+					expect(reason).toEqual(
+						'Incoming transaction fee is not sufficient to replace existing transaction',
+					);
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
 						addedTxs[0].id,
@@ -340,9 +346,12 @@ describe('TransactionList class', () => {
 						nonce: BigInt(100),
 					} as Transaction;
 					// Act
-					const { added } = transactionList.add(adding);
+					const { added, reason } = transactionList.add(adding);
 					// Assert
 					expect(added).toEqual(false);
+					expect(reason).toEqual(
+						'Incoming transaction exceeds maximum transaction limit per account',
+					);
 					expect(transactionList.size).toEqual(10);
 				});
 			});
