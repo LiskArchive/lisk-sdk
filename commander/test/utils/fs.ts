@@ -34,7 +34,6 @@ describe('fs utils', () => {
 				sandbox.stub(fs, 'readFileSync').returns(fileContents);
 				sandbox.stub(JSON, 'parse').returns(fileObject);
 				result = readJSONSync(path);
-				return Promise.resolve();
 			});
 
 			it('fs.readFileSync should be called with the path and encoding', () => {
@@ -56,7 +55,6 @@ describe('fs utils', () => {
 				sandbox.stub(fs, 'readFileSync').returns(bomFileContents);
 				sandbox.stub(JSON, 'parse').returns(fileObject);
 				result = readJSONSync(path);
-				return Promise.resolve();
 			});
 
 			it('fs.readFileSync should be called with the path and encoding', () => {
@@ -85,7 +83,6 @@ describe('fs utils', () => {
 			sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
 			sandbox.stub(fs, 'writeFileSync');
 			writeJSONSync(path, writingObject);
-			return Promise.resolve();
 		});
 
 		it('JSON.stringify should be called with the object using tab indentation', () => {

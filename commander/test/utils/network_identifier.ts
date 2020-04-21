@@ -26,21 +26,21 @@ describe('network identifier utils', () => {
 			'7777777777777777777777777777777777777777777777777777777777777777';
 
 		describe('when input main is defined', () => {
-			it('should return mainnet network identifier', async () => {
+			it('should return mainnet network identifier', () => {
 				const result = getNetworkIdentifierWithInput('main', 'test');
 				expect(result).to.eql(mainnetNetworkIdentifier);
 			});
 		});
 
 		describe('when input test is defined', () => {
-			it('should return testnet network identifier', async () => {
+			it('should return testnet network identifier', () => {
 				const result = getNetworkIdentifierWithInput('test', 'main');
 				expect(result).to.eql(testnetNetworkIdentifier);
 			});
 		});
 
 		describe('when input network identifier hex is defined', () => {
-			it('should return hex value', async () => {
+			it('should return hex value', () => {
 				const result = getNetworkIdentifierWithInput(
 					defaultNetworkIdentifier,
 					'main',
@@ -50,7 +50,7 @@ describe('network identifier utils', () => {
 		});
 
 		describe('when input network identifier is not valid hex string', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				let error;
 				try {
 					getNetworkIdentifierWithInput('zzz', 'main');
@@ -63,21 +63,21 @@ describe('network identifier utils', () => {
 		});
 
 		describe('when input is undefined and network config is main', () => {
-			it('should return mainnet network identifier', async () => {
+			it('should return mainnet network identifier', () => {
 				const result = getNetworkIdentifierWithInput(undefined, 'main');
 				expect(result).to.eql(mainnetNetworkIdentifier);
 			});
 		});
 
 		describe('when input is undefined and network config is test', () => {
-			it('should return mainnet network identifier', async () => {
+			it('should return mainnet network identifier', () => {
 				const result = getNetworkIdentifierWithInput(undefined, 'test');
 				expect(result).to.eql(testnetNetworkIdentifier);
 			});
 		});
 
 		describe('when input is undefined and network config is undefined', () => {
-			it('should throw error', async () => {
+			it('should throw error', () => {
 				let err;
 				try {
 					getNetworkIdentifierWithInput(undefined, undefined);

@@ -14,14 +14,14 @@
  *
  */
 import * as axios from 'axios';
-
 import { NETWORK, RELEASE_URL } from '../constants';
-
+// eslint-disable-next-line import/no-cycle
 import { getSemver, liskTar, liskTarSHA256 } from './commons';
 
 export const getLatestVersion = async (url: string): Promise<string> => {
 	const version = await axios.default.get(url);
 
+	// eslint-disable-next-line
 	return version.data.trim();
 };
 
@@ -35,6 +35,7 @@ export const getReleaseInfo = async (
 	releaseUrl: string,
 	network?: NETWORK,
 	installVersion?: string,
+	// eslint-disable-next-line @typescript-eslint/require-await
 ): Promise<ReleaseInfo> => {
 	if (releaseUrl && releaseUrl.search('.tar.gz') >= 0) {
 		return {
@@ -45,6 +46,7 @@ export const getReleaseInfo = async (
 	}
 
 	const version = (installVersion as unknown) as string;
+	// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 	const urlPath = `${RELEASE_URL}/${network}/${(version as unknown) as string}`;
 	const liskTarUrl = `${urlPath}/${liskTar((version as unknown) as string)}`;
 	const liskTarSHA256Url = `${urlPath}/${liskTarSHA256(

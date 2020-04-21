@@ -153,6 +153,7 @@ export default class UnlockCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!unlocks?.length) {
 			throw new ValidationError(
 				'At least one unlock object options must be provided.',

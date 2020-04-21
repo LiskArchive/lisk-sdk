@@ -57,9 +57,12 @@ export default class BroadcastCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { transaction },
 		} = this.parse(BroadcastCommand);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const transactionInput = transaction || (await getTransactionInput());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const transactionObject = parseTransactionString(transactionInput);
 		const client = getAPIClient(this.userConfig.api);
 		const response = await client.transactions.broadcast(transactionObject);

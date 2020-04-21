@@ -22,10 +22,7 @@ import {
 	isCacheRunning,
 	stopCache,
 } from '../../../utils/core/cache';
-import {
-	describeApplication,
-	PM2ProcessInstance,
-} from '../../../utils/core/pm2';
+import { describeApplication } from '../../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -68,7 +65,7 @@ export default class CacheCommand extends BaseCommand {
 			return;
 		}
 
-		const { installationPath, network } = instance as PM2ProcessInstance;
+		const { installationPath, network } = instance;
 
 		const tasks = new Listr([
 			{

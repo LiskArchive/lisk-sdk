@@ -13,11 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const removeUndefinedValues = (obj: object) =>
+export const removeUndefinedValues = (obj: object): object =>
 	Object.entries(obj).reduce((prev, [key, val]) => {
 		if (val !== undefined) {
 			return {
 				...prev,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				[key]: val,
 			};
 		}

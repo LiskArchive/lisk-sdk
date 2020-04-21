@@ -24,15 +24,17 @@ import {
 
 import { ValidationError } from './error';
 
-export const parseTransactionString = (transactionStr: string) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const parseTransactionString = (transactionStr: string): any => {
 	try {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return JSON.parse(transactionStr);
 	} catch (error) {
 		throw new ValidationError('Could not parse transaction JSON.');
 	}
 };
 
-// tslint:disable-next-line no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const defaultTransactions: { readonly [key: number]: any } = {
 	8: TransferTransaction,
 	10: DelegateTransaction,
@@ -50,8 +52,9 @@ export const instantiateTransaction = (
 	if (!Object.keys(defaultTransactions).includes(String(data.type))) {
 		throw new Error(`Transaction type ${data.type} is not supported`);
 	}
-	// tslint:disable-next-line variable-name
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const TransactionClass = defaultTransactions[data.type];
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
 	return new TransactionClass(data);
 };

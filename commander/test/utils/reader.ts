@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import fs from 'fs';
 import readline from 'readline';
 import inquirer from 'inquirer';
+import { SinonStub } from 'sinon';
 import { createFakeInterface } from '../helpers/utils';
 import {
 	readStdIn,
@@ -26,7 +27,6 @@ import {
 	readFileSource,
 } from '../../src/utils/reader';
 import { FileSystemError, ValidationError } from '../../src/utils/error';
-import { SinonStub } from 'sinon';
 
 describe('reader', () => {
 	describe('readPassphraseFromPrompt', () => {
@@ -88,15 +88,15 @@ describe('reader', () => {
 	});
 
 	describe('isFileSource', () => {
-		it('should return false when input is undefined', async () => {
+		it('should return false when input is undefined', () => {
 			expect(isFileSource()).to.be.false;
 		});
 
-		it('should return false when there is no source identifier', async () => {
+		it('should return false when there is no source identifier', () => {
 			expect(isFileSource('random string')).to.be.false;
 		});
 
-		it('should return true when it has correct source identifier', async () => {
+		it('should return true when it has correct source identifier', () => {
 			expect(isFileSource('file:path/to/file')).to.be.true;
 		});
 	});
@@ -106,7 +106,7 @@ describe('reader', () => {
 		const source = `file:${path}`;
 		const resultFileData = 'file data';
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			sandbox.stub(fs, 'readFileSync').returns(resultFileData);
 		});
 

@@ -30,12 +30,12 @@ interface TypeNumberMap {
 }
 
 const typeNumberMap: TypeNumberMap = {
-	'8': 'transfer',
-	'10': 'delegate',
-	'12': 'multisignature',
-	'13': 'vote',
-	'14': 'unlock',
-	'15': 'pom',
+	8: 'transfer',
+	10: 'delegate',
+	12: 'multisignature',
+	13: 'vote',
+	14: 'unlock',
+	15: 'pom',
 };
 
 const options = Object.entries(typeNumberMap).reduce(

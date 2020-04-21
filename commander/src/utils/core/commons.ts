@@ -35,6 +35,7 @@ import {
 	PM2ProcessInstance,
 	ReadableInstanceType,
 } from './pm2';
+// eslint-disable-next-line import/no-cycle
 import { getLatestVersion } from './release';
 
 export const liskInstall = (installPath: string): string =>
@@ -52,7 +53,7 @@ export const liskTar = (version: string): string =>
 export const liskTarSHA256 = (version: string): string =>
 	`${liskTar(version)}.SHA256`;
 
-export const liskLatestUrl = (url: string, network: NETWORK) =>
+export const liskLatestUrl = (url: string, network: NETWORK): string =>
 	`${url}/${network}/latest.txt`;
 
 export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
@@ -70,12 +71,13 @@ export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
 	return url;
 };
 
-export const logsDir = (installPath: string) =>
+export const logsDir = (installPath: string): string =>
 	`${liskInstall(installPath)}/logs`;
 
 export const SH_LOG_FILE = 'logs/lisk.out';
 
 export const validateNotARootUser = (): void => {
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (process.getuid && process.getuid() === 0) {
 		throw new Error('Error: Lisk should not be run be as root. Exiting.');
 	}
@@ -126,7 +128,7 @@ export const getVersionToInstall = async (
 	network: NETWORK,
 	version?: string,
 	releaseUrl?: string,
-) => {
+): Promise<string> => {
 	if (!version) {
 		if (releaseUrl) {
 			return getSemver(releaseUrl);
@@ -180,11 +182,13 @@ export const validateVersion = async (
 	try {
 		await getLatestVersion(releaseUrl);
 	} catch (error) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (error.message === 'Request failed with status code 404') {
 			throw new Error(
 				`Upgrade version: ${version} doesn't exists in ${RELEASE_URL}`,
 			);
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		throw new Error(error.message);
 	}
 };

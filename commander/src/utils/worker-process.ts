@@ -15,7 +15,7 @@
  */
 import childProcess from 'child_process';
 import fsExtra from 'fs-extra';
-
+// eslint-disable-next-line import/no-cycle
 import { defaultLiskInstancePath } from './core/config';
 
 export interface ExecResult {

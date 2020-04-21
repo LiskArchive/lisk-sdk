@@ -25,7 +25,7 @@ export const encryptMessage = ({
 	message,
 	passphrase,
 	recipient,
-}: EncryptMessageInputs) =>
+}: EncryptMessageInputs): cryptography.EncryptedMessageWithNonce =>
 	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);
 
 interface DecryptMessageInputs {
@@ -40,7 +40,7 @@ export const decryptMessage = ({
 	nonce,
 	passphrase,
 	senderPublicKey,
-}: DecryptMessageInputs) => ({
+}: DecryptMessageInputs): { message: string } => ({
 	message: cryptography.decryptMessageWithPassphrase(
 		cipher,
 		nonce,
@@ -57,7 +57,7 @@ interface EncryptPassphraseInputs {
 export const encryptPassphrase = ({
 	passphrase,
 	password,
-}: EncryptPassphraseInputs) => {
+}: EncryptPassphraseInputs): { encryptedPassphrase: string } => {
 	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
 		passphrase,
 		password,
@@ -77,7 +77,7 @@ interface DecryptPassphraseInput {
 export const decryptPassphrase = ({
 	encryptedPassphrase,
 	password,
-}: DecryptPassphraseInput) => {
+}: DecryptPassphraseInput): { passphrase: string } => {
 	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
 		encryptedPassphrase,
 	);
@@ -102,7 +102,10 @@ interface SignMessageInputs {
 	readonly passphrase: string;
 }
 
-export const signMessage = ({ message, passphrase }: SignMessageInputs) =>
+export const signMessage = ({
+	message,
+	passphrase,
+}: SignMessageInputs): cryptography.SignedMessageWithOnePassphrase =>
 	cryptography.signMessageWithPassphrase(message, passphrase);
 
 interface VerifyMessageInputs {
@@ -115,7 +118,7 @@ export const verifyMessage = ({
 	publicKey,
 	signature,
 	message,
-}: VerifyMessageInputs) => ({
+}: VerifyMessageInputs): { verified: boolean } => ({
 	verified: cryptography.verifyMessageWithPublicKey({
 		publicKey,
 		signature,

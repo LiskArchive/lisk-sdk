@@ -84,6 +84,7 @@ export default class MultisignatureCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { fee: feeSource, nonce },
 			flags: {
 				networkIdentifier: networkIdentifierSource,
@@ -95,9 +96,12 @@ export default class MultisignatureCommand extends BaseCommand {
 			},
 		} = this.parse(MultisignatureCommand);
 
-		const numberOfSignatures = numberOfSignaturesSource || 0;
+		const numberOfSignatures = numberOfSignaturesSource ?? 0;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const mandatoryKeys = mandatoryKeysSource || [];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const optionalKeys = optionalKeysSource || [];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const memberPassphrases = memberPassphrasesSource || [];
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
@@ -129,6 +133,7 @@ export default class MultisignatureCommand extends BaseCommand {
 			optionalKeys,
 			numberOfSignatures,
 			networkIdentifier,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			nonce,
 			fee,
 		});

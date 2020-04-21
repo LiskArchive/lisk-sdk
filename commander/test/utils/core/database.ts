@@ -2,6 +2,7 @@ import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fs from 'fs';
 import fsExtra from 'fs-extra';
+import { SinonStub } from 'sinon';
 import {
 	initDB,
 	startDatabase,
@@ -15,7 +16,6 @@ import { NETWORK } from '../../../src/utils/constants';
 import * as coreConfig from '../../../src/utils/core/config';
 import * as pm2 from '../../../src/utils/core/pm2';
 import * as liskConfig from './fixtures';
-import { SinonStub } from 'sinon';
 
 describe('database core utils', () => {
 	let pm2Stub: SinonStub;
@@ -24,6 +24,7 @@ describe('database core utils', () => {
 		sandbox.stub(fsExtra, 'writeJSONSync').returns();
 		pm2Stub = sandbox.stub(pm2, 'describeApplication');
 		pm2Stub.resolves({
+			// eslint-disable-next-line camelcase
 			pm2_env: {
 				LISK_REDIS_PORT: 6380,
 			},
@@ -60,7 +61,7 @@ describe('database core utils', () => {
 			);
 		});
 
-		it('should throw error when failed to initialized  database ', async () => {
+		it('should throw error when failed to initialized database ', async () => {
 			existsSyncStub.returns(false);
 			workerProcessStub.resolves({ stdout: '' });
 
@@ -223,7 +224,7 @@ describe('database core utils', () => {
 			);
 		});
 
-		it('should create user successfully ', async () => {
+		it('should create user successfully', async () => {
 			workerProcessStub.resolves({ stdout: '' });
 
 			const result = await restoreSnapshot(

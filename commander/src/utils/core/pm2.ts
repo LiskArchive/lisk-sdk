@@ -28,9 +28,12 @@ export interface Pm2Env {
 	readonly LISK_REDIS_PORT: string;
 	readonly LISK_WS_PORT: string;
 	readonly LISK_HTTP_PORT: string;
+	// eslint-disable-next-line camelcase
 	readonly pm_cwd: string;
+	// eslint-disable-next-line camelcase
 	readonly pm_uptime: number;
 	readonly status: ProcessStatus;
+	// eslint-disable-next-line camelcase
 	readonly unstable_restarts: number;
 	readonly version: string;
 }
@@ -47,6 +50,7 @@ interface Instance {
 	readonly status: ProcessStatus;
 	readonly version: string;
 	readonly network: NETWORK;
+	// eslint-disable-next-line camelcase
 	readonly started_at: string;
 	readonly cpu?: number;
 	readonly memory?: number;
@@ -62,6 +66,7 @@ export type PM2ProcessInstance = Instance & InstanceIndex;
 const connectPM2 = async (): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		connect(err => {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (err) {
 				reject(err);
 
@@ -77,13 +82,16 @@ const startPM2 = async (
 	name: string,
 	envConfig: object,
 ): Promise<void> => {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const { apps } = await fsExtra.readJson(`${installPath}/etc/pm2-lisk.json`);
 
 	return new Promise<void>((resolve, reject) => {
 		start(
 			{
 				name,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				script: apps[0].script,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				args: apps[0].args,
 				interpreter: `${installPath}/bin/node`,
 				cwd: installPath,
@@ -94,22 +102,25 @@ const startPM2 = async (
 				pid: path.join(installPath, '/pids/lisk.app.pid'),
 				output: path.join(installPath, '/logs/lisk.app.log'),
 				error: path.join(installPath, '/logs/lisk.app.err'),
+				// eslint-disable-next-line camelcase
 				log_date_format: 'YYYY-MM-DD HH:mm:ss SSS',
 				watch: false,
+				// eslint-disable-next-line camelcase
 				kill_timeout: 10000,
+				// eslint-disable-next-line camelcase
 				max_memory_restart: '1024M',
+				// eslint-disable-next-line camelcase
 				min_uptime: 20000,
+				// eslint-disable-next-line camelcase
 				max_restarts: 10,
 			},
 			err => {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (err) {
 					reject(err);
-
 					return;
 				}
 				resolve();
-
-				return;
 			},
 		);
 	});
@@ -118,6 +129,7 @@ const startPM2 = async (
 const restartPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		restart(process, err => {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (err && err.message !== 'process name not found') {
 				reject(err.message);
 
@@ -130,6 +142,7 @@ const restartPM2 = async (process: string | number): Promise<void> =>
 const stopPM2 = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		stop(process, err => {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (err && err.message !== 'process name not found') {
 				reject();
 
@@ -144,6 +157,7 @@ const describePM2 = async (
 ): Promise<ProcessDescription> =>
 	new Promise<ProcessDescription>((resolve, reject) => {
 		describe(process, (err, descs) => {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (err && err.message !== 'process name not found') {
 				reject(err);
 
@@ -162,6 +176,7 @@ const describePM2 = async (
 const listPM2 = async (): Promise<ReadonlyArray<ProcessDescription>> =>
 	new Promise<ReadonlyArray<ProcessDescription>>((resolve, reject) => {
 		list((err, res) => {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (err) {
 				reject(err);
 
@@ -174,14 +189,13 @@ const listPM2 = async (): Promise<ReadonlyArray<ProcessDescription>> =>
 const deleteProcess = async (process: string | number): Promise<void> =>
 	new Promise<void>((resolve, reject) => {
 		del(process, err => {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (err) {
 				reject(err);
 
 				return;
 			}
 			resolve();
-
-			return;
 		});
 	});
 
@@ -218,9 +232,11 @@ export const stopApplication = async (name: string): Promise<void> => {
 const extractProcessDetails = (
 	appDesc: ProcessDescription,
 ): PM2ProcessInstance => {
+	// eslint-disable-next-line camelcase
 	const { pm2_env, monit, name, pid } = appDesc;
 	const {
 		status,
+		// eslint-disable-next-line camelcase
 		pm_uptime,
 		pm_cwd: installationPath,
 		version,
@@ -229,6 +245,7 @@ const extractProcessDetails = (
 		LISK_REDIS_PORT: redisPort,
 		LISK_HTTP_PORT: httpPort,
 		LISK_WS_PORT: wsPort,
+		// eslint-disable-next-line camelcase
 	} = pm2_env as Pm2Env;
 
 	return {
@@ -242,6 +259,7 @@ const extractProcessDetails = (
 		httpPort,
 		wsPort,
 		installationPath,
+		// eslint-disable-next-line camelcase
 		started_at: new Date(pm_uptime).toLocaleString(),
 		...monit,
 	};
