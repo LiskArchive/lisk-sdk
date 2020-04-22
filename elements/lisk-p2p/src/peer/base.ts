@@ -68,7 +68,7 @@ import {
 } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-export const socketErrorStatusCodes = {
+export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
 	...(socketClusterClient.SCClientSocket as any).errorStatuses,
 	1000: 'Intentionally disconnected',

@@ -172,10 +172,10 @@ export class OutboundPeer extends Peer {
 		outboundSocket.on(
 			'close',
 			(code: number, reasonMessage: string | undefined) => {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const reason =
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-					reasonMessage ?? socketErrorStatusCodes[code] ?? 'Unknown reason';
+				const reason: string =
+					reasonMessage !== undefined && reasonMessage !== ''
+						? reasonMessage
+						: socketErrorStatusCodes[code] ?? 'Unknown reason';
 				this.emit(EVENT_CLOSE_OUTBOUND, {
 					peerInfo: this._peerInfo,
 					code,
