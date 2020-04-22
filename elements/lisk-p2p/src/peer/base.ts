@@ -35,6 +35,7 @@ import { constructPeerIdFromPeerInfo, getNetgroup } from '../utils';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
 import {
+	isEmptyMessage,
 	validatePeerInfo,
 	validatePeersInfoList,
 	validateProtocolMessage,
@@ -594,6 +595,13 @@ export class Peer extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
+		if (!isEmptyMessage(request.data)) {
+			// tslint:disable-next-line no-magic-numbers
+			this.applyPenalty(100);
+			request.error(new Error('Invalid request schema'));
+
+			return;
+		}
 		const legacyNodeInfo = this._nodeInfo
 			? convertNodeInfoToLegacyFormat(this._nodeInfo)
 			: {};
