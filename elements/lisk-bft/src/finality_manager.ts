@@ -30,6 +30,7 @@ import {
 } from './types';
 import { validateBlockHeader } from './utils';
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
 
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
@@ -81,7 +82,6 @@ export class FinalityManager extends EventEmitter {
 		// Set constants
 		this.activeDelegates = activeDelegates;
 
-		/* tslint:disable:no-magic-numbers */
 		// Threshold to consider a block pre-voted
 		this.preVoteThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
@@ -103,8 +103,6 @@ export class FinalityManager extends EventEmitter {
 		this.state = {};
 		this.preVotes = {};
 		this.preCommits = {};
-
-		/* tslint:enable:no-magic-numbers */
 	}
 
 	public async addBlockHeader(
@@ -171,6 +169,7 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const delegateState = this.state[delegatePublicKey] || {
 			maxPreVoteHeight: 0,
 			maxPreCommitHeight: 0,
@@ -200,11 +199,11 @@ export class FinalityManager extends EventEmitter {
 		// Delegate can't pre-commit the blocks on tip of the chain
 		const maxPreCommitHeight = header.height - 1;
 
-		/* tslint:disable-next-line: no-let*/
 		for (let j = minPreCommitHeight; j <= maxPreCommitHeight; j += 1) {
 			// Add pre-commit if threshold is reached
 			if (this.preVotes[j] >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				this.preCommits[j] = (this.preCommits[j] || 0) + 1;
 
 				// Keep track of the last pre-commit point
@@ -225,8 +224,8 @@ export class FinalityManager extends EventEmitter {
 		// Pre-vote upto current block height
 		const maxPreVoteHeight = header.height;
 
-		/* tslint:disable-next-line: no-let*/
 		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j += 1) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			this.preVotes[j] = (this.preVotes[j] || 0) + 1;
 		}
 		// Update delegate state
@@ -267,64 +266,6 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	/**
-	 * Get the min height from which a delegate can make pre-commits
-	 *
-	 * The flow is as following:
-	 * - We search backward from top block to bottom block in the chain
-	 * - We can search down to current block height - processingThreshold(302)
-	 * -
-	 */
-	private _getMinValidHeightToPreCommit(
-		header: BlockHeader,
-		bftApplicableBlocks: ReadonlyArray<BlockHeader>,
-	): number {
-		// tslint:disable-next-line no-let
-		let needleHeight = Math.max(
-			header.maxHeightPreviouslyForged,
-			header.height - this.processingThreshold,
-		);
-		/* We should search down to the height we have in our headers list
-			and within the processing threshold which is three rounds	*/
-		const searchTillHeight = Math.max(
-			1,
-			header.height - this.processingThreshold,
-		);
-		// Hold reference for the previously forged height
-		// tslint:disable-next-line no-let
-		let previousBlockHeight = header.maxHeightPreviouslyForged;
-
-		const blocksIncludingCurrent = [header, ...bftApplicableBlocks];
-		while (needleHeight >= searchTillHeight) {
-			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
-			// MaxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
-			if (needleHeight === previousBlockHeight) {
-				const previousBlockHeader = blocksIncludingCurrent.find(
-					bftHeader => bftHeader.height === needleHeight,
-				);
-				if (!previousBlockHeader) {
-					// If the height is not in the cache, it should not be considered
-					debug('Fail to get cached block header');
-
-					return 0;
-				}
-				if (
-					previousBlockHeader.generatorPublicKey !==
-						header.generatorPublicKey ||
-					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
-				) {
-					return needleHeight + 1;
-				}
-				previousBlockHeight = previousBlockHeader.maxHeightPreviouslyForged;
-				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
-			} else {
-				needleHeight -= 1;
-			}
-		}
-
-		return Math.max(needleHeight + 1, searchTillHeight);
-	}
-
 	public async recompute(
 		recomputeUptoHeight: number,
 		stateStore: StateStore,
@@ -338,7 +279,6 @@ export class FinalityManager extends EventEmitter {
 			throw new Error('Cannot find a block to recompute');
 		}
 
-		// tslint:disable-next-line no-let
 		for (let i = blockHeaders.length - 1; i >= 0; i -= 1) {
 			const blockHeader = blockHeaders[i];
 			const bftBlockHeader = blockHeaders.slice(i + 1);
@@ -388,9 +328,7 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		// Order the two block headers such that earlierBlock must be forged first
-		// tslint:disable-next-line no-let
 		let earlierBlock = delegateLastBlock;
-		// tslint:disable-next-line no-let
 		let laterBlock = blockHeader;
 		const higherMaxHeightPreviouslyForged =
 			earlierBlock.maxHeightPreviouslyForged >
@@ -446,8 +384,64 @@ export class FinalityManager extends EventEmitter {
 		);
 	}
 
+	/**
+	 * Get the min height from which a delegate can make pre-commits
+	 *
+	 * The flow is as following:
+	 * - We search backward from top block to bottom block in the chain
+	 * - We can search down to current block height - processingThreshold(302)
+	 * -
+	 */
+	private _getMinValidHeightToPreCommit(
+		header: BlockHeader,
+		bftApplicableBlocks: ReadonlyArray<BlockHeader>,
+	): number {
+		let needleHeight = Math.max(
+			header.maxHeightPreviouslyForged,
+			header.height - this.processingThreshold,
+		);
+		/* We should search down to the height we have in our headers list
+			and within the processing threshold which is three rounds	*/
+		const searchTillHeight = Math.max(
+			1,
+			header.height - this.processingThreshold,
+		);
+		// Hold reference for the previously forged height
+		let previousBlockHeight = header.maxHeightPreviouslyForged;
+
+		const blocksIncludingCurrent = [header, ...bftApplicableBlocks];
+		while (needleHeight >= searchTillHeight) {
+			// We need to ensure that the delegate forging header did not forge on any other chain, i.e.,
+			// MaxHeightPreviouslyForged always refers to a height with a block forged by the same delegate.
+			if (needleHeight === previousBlockHeight) {
+				const previousBlockHeader = blocksIncludingCurrent.find(
+					// eslint-disable-next-line no-loop-func
+					bftHeader => bftHeader.height === needleHeight,
+				);
+				if (!previousBlockHeader) {
+					// If the height is not in the cache, it should not be considered
+					debug('Fail to get cached block header');
+
+					return 0;
+				}
+				if (
+					previousBlockHeader.generatorPublicKey !==
+						header.generatorPublicKey ||
+					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
+				) {
+					return needleHeight + 1;
+				}
+				previousBlockHeight = previousBlockHeader.maxHeightPreviouslyForged;
+				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
+			} else {
+				needleHeight -= 1;
+			}
+		}
+
+		return Math.max(needleHeight + 1, searchTillHeight);
+	}
+
 	private _cleanup(): void {
-		// tslint:disable:no-delete no-dynamic-delete
 		Object.keys(this.preVotes)
 			.slice(0, this.maxHeaders * -1)
 			.forEach(key => {
@@ -459,6 +453,5 @@ export class FinalityManager extends EventEmitter {
 			.forEach(key => {
 				delete this.preCommits[key];
 			});
-		// tslint:enable:no-delete no-dynamic-delete
 	}
 }

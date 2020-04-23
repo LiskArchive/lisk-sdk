@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { TransactionList } from '../../src/transaction_list';
 import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
 import { generateRandomPublicKeys } from '../utils/cryptography';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('TransactionPool class', () => {
 	let transactionPool: TransactionPool;
@@ -34,7 +34,7 @@ describe('TransactionPool class', () => {
 
 	describe('constructor', () => {
 		describe('when only applyTransaction is given', () => {
-			it('should set default values', async () => {
+			it('should set default values', () => {
 				expect((transactionPool as any)._maxTransactions).toEqual(4096);
 				expect((transactionPool as any)._maxTransactionsPerAccount).toEqual(64);
 				expect((transactionPool as any)._minEntranceFeePriority).toEqual(
@@ -50,7 +50,7 @@ describe('TransactionPool class', () => {
 		});
 
 		describe('when all the config properties are given', () => {
-			it('should set the value to given option values', async () => {
+			it('should set the value to given option values', () => {
 				transactionPool = new TransactionPool({
 					applyTransactions: jest.fn(),
 					maxTransactions: 2048,
@@ -93,11 +93,11 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(tx);
 		});
 
-		it('should return transaction if exist', async () => {
+		it('should return transaction if exist', () => {
 			expect(transactionPool.get('1')).toEqual(tx);
 		});
 
-		it('should return undefined if it does not exist', async () => {
+		it('should return undefined if it does not exist', () => {
 			expect(transactionPool.get('2')).toBeUndefined();
 		});
 	});
@@ -120,11 +120,11 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(tx);
 		});
 
-		it('should return transaction if exist', async () => {
+		it('should return transaction if exist', () => {
 			expect(transactionPool.contains('1')).toBe(true);
 		});
 
-		it('should return undefined if it does not exist', async () => {
+		it('should return undefined if it does not exist', () => {
 			expect(transactionPool.contains('2')).toBe(false);
 		});
 	});
@@ -187,7 +187,7 @@ describe('TransactionPool class', () => {
 			]['_demoteAfter'](BigInt(0));
 		});
 
-		it('should return copy of processable transactions list', async () => {
+		it('should return copy of processable transactions list', () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
 			const transactionFromSender0 =
 				processableTransactions[getAddressFromPublicKey(senderPublicKeys[0])];
@@ -218,7 +218,7 @@ describe('TransactionPool class', () => {
 			).toHaveLength(1);
 		});
 
-		it('should not include the sender key if processable transactions are empty', async () => {
+		it('should not include the sender key if processable transactions are empty', () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
 			const transactionFromSender2 =
 				processableTransactions[getAddressFromPublicKey(senderPublicKeys[2])];
@@ -247,7 +247,7 @@ describe('TransactionPool class', () => {
 			const originalTrxObj =
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(BigInt(1)) || {};
+				].get(BigInt(1)) ?? {};
 
 			expect(originalTrxObj).toEqual(tx);
 			const trxSenderAddressList =
@@ -278,7 +278,7 @@ describe('TransactionPool class', () => {
 			const originalTrxObj =
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(BigInt(1)) || {};
+				].get(BigInt(1)) ?? {};
 
 			expect(originalTrxObj).toEqual(tx);
 			const trxSenderAddressList =
@@ -295,9 +295,7 @@ describe('TransactionPool class', () => {
 			expect(status1).toEqual(Status.OK);
 			expect(status2).toEqual(Status.OK);
 			// Check if its not added to the transaction list
-			expect(Object.keys(transactionPool['_allTransactions']).length).toEqual(
-				1,
-			);
+			expect(Object.keys(transactionPool['_allTransactions'])).toHaveLength(1);
 		});
 
 		it('should throw when a transaction is invalid', async () => {
@@ -311,9 +309,11 @@ describe('TransactionPool class', () => {
 			try {
 				await transactionPool.add(tx);
 			} catch (error) {
+				// eslint-disable-next-line jest/no-try-expect
 				expect(transactionPool['_getStatus']).toHaveReturnedWith(
 					TransactionStatus.INVALID,
 				);
+				// eslint-disable-next-line jest/no-try-expect
 				expect(error.message).toContain(
 					`transaction id ${tx.id} is an invalid transaction`,
 				);
@@ -334,7 +334,7 @@ describe('TransactionPool class', () => {
 				senderPublicKey: generateRandomPublicKeys()[0],
 			} as Transaction;
 
-			let tempTxGetBytesStub = jest.fn();
+			const tempTxGetBytesStub = jest.fn();
 			lowFeeTrx.getBytes = tempTxGetBytesStub.mockReturnValue(
 				Buffer.from(new Array(10)),
 			);
@@ -351,13 +351,13 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 			});
 
-			let tempApplyTransactionsStub = jest.fn();
+			const tempApplyTransactionsStub = jest.fn();
 			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
-			for (let i = 0; i < MAX_TRANSACTIONS; i++) {
+			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
-					id: `${i}`,
+					id: `${i.toString()}`,
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -374,7 +374,7 @@ describe('TransactionPool class', () => {
 				await transactionPool.add(tempTx);
 			}
 
-			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
+			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
 
 			const highFeePriorityTx = {
 				id: '11',
@@ -405,13 +405,13 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 			});
 
-			let tempApplyTransactionsStub = jest.fn();
+			const tempApplyTransactionsStub = jest.fn();
 			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
-			for (let i = 0; i < MAX_TRANSACTIONS - 1; i++) {
+			for (let i = 0; i < MAX_TRANSACTIONS - 1; i += 1) {
 				const tempTx = {
-					id: `${i}`,
+					id: `${i.toString()}`,
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -448,7 +448,7 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(nonSequentialTx);
 
 			expect(transactionPool.getAll()).toContain(nonSequentialTx);
-			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
+			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
 
 			const highFeePriorityTx = {
 				id: '11',
@@ -481,13 +481,13 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 			});
 
-			let tempApplyTransactionsStub = jest.fn();
+			const tempApplyTransactionsStub = jest.fn();
 			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
 
 			txGetBytesStub = jest.fn();
-			for (let i = 0; i < MAX_TRANSACTIONS; i++) {
+			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
-					id: `${i}`,
+					id: `${i.toString()}`,
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -504,7 +504,7 @@ describe('TransactionPool class', () => {
 				await transactionPool.add(tempTx);
 			}
 
-			expect(transactionPool.getAll().length).toEqual(MAX_TRANSACTIONS);
+			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
 
 			const lowFeePriorityTx = {
 				id: '11',
@@ -546,6 +546,7 @@ describe('TransactionPool class', () => {
 			senderPublicKey,
 		} as Transaction;
 
+		// eslint-disable-next-line prefer-const
 		txGetBytesStub = jest.fn().mockReturnValue(Buffer.from(new Array(10)));
 		tx.getBytes = txGetBytesStub;
 		additionalTx.getBytes = txGetBytesStub;
@@ -555,12 +556,12 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(additionalTx);
 		});
 
-		afterEach(async () => {
+		afterEach(() => {
 			transactionPool.remove(tx);
 			transactionPool.remove(additionalTx);
 		});
 
-		it('should return false when a tx id does not exist', async () => {
+		it('should return false when a tx id does not exist', () => {
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
@@ -580,7 +581,7 @@ describe('TransactionPool class', () => {
 			expect(removeStatus).toEqual(false);
 		});
 
-		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', async () => {
+		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', () => {
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
@@ -591,18 +592,16 @@ describe('TransactionPool class', () => {
 			// Remove the above transaction
 			const removeStatus = transactionPool.remove(tx);
 			expect(removeStatus).toEqual(true);
-			expect(transactionPool.getAll().length).toEqual(1);
+			expect(transactionPool.getAll()).toHaveLength(1);
 			expect(
 				transactionPool['_transactionList'][
 					getAddressFromPublicKey(tx.senderPublicKey)
 				].get(tx.nonce),
-			).toEqual(undefined);
-			expect(
-				transactionPool['_feePriorityQueue'].values.includes(tx.id),
-			).toEqual(false);
+			).toBeUndefined();
+			expect(transactionPool['_feePriorityQueue'].values).not.toContain(tx.id);
 		});
 
-		it('should remove the transaction list key if the list is empty', async () => {
+		it('should remove the transaction list key if the list is empty', () => {
 			transactionPool.remove(tx);
 			transactionPool.remove(additionalTx);
 			expect(
@@ -632,6 +631,7 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 		];
 		let txGetBytesStub: any;
+		// eslint-disable-next-line prefer-const
 		txGetBytesStub = jest.fn();
 		transactions[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
@@ -653,12 +653,12 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(transactions[1]);
 		});
 
-		afterEach(async () => {
-			await transactionPool.remove(transactions[0]);
-			await transactionPool.remove(transactions[1]);
+		afterEach(() => {
+			transactionPool.remove(transactions[0]);
+			transactionPool.remove(transactions[1]);
 		});
 
-		it('should evict unprocessable transaction with lowest fee', async () => {
+		it('should evict unprocessable transaction with lowest fee', () => {
 			const isEvicted = (transactionPool as any)._evictUnprocessable();
 
 			expect(isEvicted).toBe(true);
@@ -710,6 +710,7 @@ describe('TransactionPool class', () => {
 			transactionsFromSender2[1],
 		];
 		let txGetBytesStub: any;
+		// eslint-disable-next-line prefer-const
 		txGetBytesStub = jest.fn();
 		transactionsFromSender1[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
@@ -739,14 +740,14 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(transactionsFromSender2[1]);
 		});
 
-		afterEach(async () => {
-			await transactionPool.remove(transactionsFromSender1[0]);
-			await transactionPool.remove(transactionsFromSender1[1]);
-			await transactionPool.remove(transactionsFromSender2[0]);
-			await transactionPool.remove(transactionsFromSender2[1]);
+		afterEach(() => {
+			transactionPool.remove(transactionsFromSender1[0]);
+			transactionPool.remove(transactionsFromSender1[1]);
+			transactionPool.remove(transactionsFromSender2[0]);
+			transactionPool.remove(transactionsFromSender2[1]);
 		});
 
-		it('should evict processable transaction with lowest fee', async () => {
+		it('should evict processable transaction with lowest fee', () => {
 			const isEvicted = (transactionPool as any)._evictProcessable();
 
 			expect(isEvicted).toBe(true);
@@ -797,6 +798,7 @@ describe('TransactionPool class', () => {
 		];
 
 		let txGetBytesStub: any;
+		// eslint-disable-next-line prefer-const
 		txGetBytesStub = jest.fn();
 		transactionsFromSender1[0].getBytes = txGetBytesStub.mockReturnValue(
 			Buffer.from(new Array(10)),
@@ -829,12 +831,14 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(transactionsFromSender1[1]);
 			await transactionPool.add(transactionsFromSender1[2]);
 			await transactionPool.add(transactionsFromSender2[0]);
+			// eslint-disable-next-line prefer-destructuring
 			address = Object.keys((transactionPool as any)._transactionList)[0];
 			txList = (transactionPool as any)._transactionList[address];
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			transactionPool.start();
 		});
 
-		afterEach(async () => {
+		afterEach(() => {
 			transactionPool.remove(transactionsFromSender1[0]);
 			transactionPool.remove(transactionsFromSender1[1]);
 			transactionPool.remove(transactionsFromSender1[2]);
@@ -842,7 +846,7 @@ describe('TransactionPool class', () => {
 			transactionPool.stop();
 		});
 
-		it('should not promote unprocessable transactions to processable transactions', async () => {
+		it('should not promote unprocessable transactions to processable transactions', () => {
 			transactionPool.remove(transactionsFromSender1[1]);
 			jest.advanceTimersByTime(2);
 			const unprocessableTransactions = txList.getUnprocessable();
@@ -850,7 +854,7 @@ describe('TransactionPool class', () => {
 			expect(unprocessableTransactions).toContain(transactionsFromSender1[2]);
 		});
 
-		it('should call apply function with processable transaction', async () => {
+		it('should call apply function with processable transaction', () => {
 			// First transaction is processable
 			jest.advanceTimersByTime(2);
 
@@ -914,15 +918,15 @@ describe('TransactionPool class', () => {
 
 		beforeEach(() => {
 			(transactionPool as any)._allTransactions = {
-				'1': transactionsForSender1[0],
-				'2': transactionsForSender1[1],
-				'3': transactionsForSender1[2],
-				'11': transactionsForSender2[0],
-				'12': transactionsForSender2[1],
+				1: transactionsForSender1[0],
+				2: transactionsForSender1[1],
+				3: transactionsForSender1[2],
+				11: transactionsForSender2[0],
+				12: transactionsForSender2[1],
 			};
 		});
 
-		it('should expire old transactions', async () => {
+		it('should expire old transactions', () => {
 			(transactionPool as any).remove = jest.fn().mockReturnValue(true);
 			(transactionPool as any)._expire();
 			expect((transactionPool as any).remove).toHaveBeenCalledWith(

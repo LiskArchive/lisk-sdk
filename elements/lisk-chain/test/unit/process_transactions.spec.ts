@@ -54,12 +54,12 @@ describe('#composeTransactionSteps', () => {
 		result = await composedFunction(testTransactions, {} as any);
 	});
 
-	it('should return a combination of the result of executing both steps', async () => {
+	it('should return a combination of the result of executing both steps', () => {
 		// Assert
 		expect(result).toEqual([...step1Response, ...step2Response]);
 	});
 
-	it('should only pass successfull transactions to the next step', async () => {
+	it('should only pass successfull transactions to the next step', () => {
 		// Assert
 		expect(step2).toHaveBeenCalledWith([testTransactions[1]], {});
 	});

@@ -74,27 +74,25 @@ export const multisignatureAssetFormatSchema = {
 const setMemberAccounts = async (
 	store: StateStore,
 	membersPublicKeys: ReadonlyArray<string>,
-) => {
+): Promise<void> => {
 	for (const memberPublicKey of membersPublicKeys) {
 		const address = getAddressFromPublicKey(memberPublicKey);
 		// Key might not exists in the blockchain yet so we fetch or default
 		const memberAccount = await store.account.getOrDefault(address);
-		memberAccount.publicKey = memberAccount.publicKey || memberPublicKey;
+		memberAccount.publicKey = memberAccount.publicKey ?? memberPublicKey;
 		store.account.set(memberAccount.address, memberAccount);
 	}
 };
 
 export interface MultiSignatureAsset {
-	// tslint:disable-next-line: readonly-keyword
 	mandatoryKeys: Array<Readonly<string>>;
-	// tslint:disable-next-line: readonly-keyword
 	optionalKeys: Array<Readonly<string>>;
 	readonly numberOfSignatures: number;
 }
 
 export class MultisignatureTransaction extends BaseTransaction {
-	public readonly asset: MultiSignatureAsset;
 	public static TYPE = 12;
+	public readonly asset: MultiSignatureAsset;
 	private readonly MAX_KEYS_COUNT = 64;
 
 	public constructor(rawTransaction: unknown) {
@@ -102,7 +100,149 @@ export class MultisignatureTransaction extends BaseTransaction {
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset || {}) as MultiSignatureAsset;
+		this.asset = (tx.asset ?? {}) as MultiSignatureAsset;
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		const membersAddresses = [
+			...this.asset.mandatoryKeys,
+			...this.asset.optionalKeys,
+		].map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
+
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+			...membersAddresses,
+		]);
+	}
+
+	// Verifies multisig signatures as per LIP-0017
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async verifySignatures(
+		store: StateStore,
+	): Promise<TransactionResponse> {
+		const { networkIdentifier } = store.chain;
+		const transactionBytes = this.getBasicBytes();
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			transactionBytes,
+		]);
+
+		const { mandatoryKeys, optionalKeys } = this.asset;
+
+		// For multisig registration we need all signatures to be present
+		if (
+			mandatoryKeys.length + optionalKeys.length + 1 !==
+			this.signatures.length
+		) {
+			return createResponse(this.id, [
+				new TransactionError('There are missing signatures'),
+			]);
+		}
+
+		// Check if empty signatures are present
+		if (this.signatures.includes('')) {
+			return createResponse(this.id, [
+				new TransactionError(
+					'A signature is required for each registered key.',
+				),
+			]);
+		}
+
+		// Verify first signature is from senderPublicKey
+		const { valid, error } = validateSignature(
+			this.senderPublicKey,
+			this.signatures[0],
+			transactionWithNetworkIdentifierBytes,
+		);
+
+		if (!valid) {
+			return createResponse(this.id, [error as TransactionError]);
+		}
+
+		// Verify each mandatory key signed in order
+		const mandatorySignaturesErrors = validateKeysSignatures(
+			mandatoryKeys,
+			this.signatures.slice(1, mandatoryKeys.length + 1),
+			transactionWithNetworkIdentifierBytes,
+		);
+
+		if (mandatorySignaturesErrors.length) {
+			return createResponse(this.id, mandatorySignaturesErrors);
+		}
+		// Verify each optional key signed in order
+		const optionalSignaturesErrors = validateKeysSignatures(
+			optionalKeys,
+			this.signatures.slice(mandatoryKeys.length + 1),
+			transactionWithNetworkIdentifierBytes,
+		);
+		if (optionalSignaturesErrors.length) {
+			return createResponse(this.id, optionalSignaturesErrors);
+		}
+
+		return createResponse(this.id, []);
+	}
+
+	public sign(
+		networkIdentifier: string,
+		senderPassphrase: string,
+		passphrases?: ReadonlyArray<string>,
+		keys?: {
+			readonly mandatoryKeys: Array<Readonly<string>>;
+			readonly optionalKeys: Array<Readonly<string>>;
+			readonly numberOfSignatures: number;
+		},
+	): void {
+		// Sort the keys in the transaction
+		sortKeysAscending(this.asset.mandatoryKeys);
+		sortKeysAscending(this.asset.optionalKeys);
+
+		// Sign with sender
+		const { publicKey } = getAddressAndPublicKeyFromPassphrase(
+			senderPassphrase,
+		);
+
+		if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
+			throw new Error(
+				'Transaction senderPublicKey does not match public key from passphrase',
+			);
+		}
+
+		this.senderPublicKey = publicKey;
+
+		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
+		const transactionWithNetworkIdentifierBytes = Buffer.concat([
+			networkIdentifierBytes,
+			this.getBasicBytes(),
+		]);
+
+		this.signatures.push(
+			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
+		);
+
+		// Sign with members
+		if (keys && passphrases) {
+			const keysAndPassphrases = buildPublicKeyPassphraseDict([...passphrases]);
+			// Make sure passed in keys are sorted
+			sortKeysAscending(keys.mandatoryKeys);
+			sortKeysAscending(keys.optionalKeys);
+			// Sign with all keys
+			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (keysAndPassphrases[aKey]) {
+					const { passphrase } = keysAndPassphrases[aKey];
+					this.signatures.push(
+						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+					);
+				} else {
+					// Push an empty signature if a passphrase is missing
+					this.signatures.push('');
+				}
+			}
+		}
+		this._id = getId(this.getBytes());
 	}
 
 	protected assetToBytes(): Buffer {
@@ -118,20 +258,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 		]);
 
 		return assetBuffer;
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const membersAddresses = [
-			...this.asset.mandatoryKeys,
-			...this.asset.optionalKeys,
-		].map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
-
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			...membersAddresses,
-		]);
 	}
 
 	protected verifyAgainstTransactions(
@@ -246,9 +372,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check keys are sorted lexicographically
+		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const sortedMandatoryKeys = [...mandatoryKeys].sort();
+		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const sortedOptionalKeys = [...optionalKeys].sort();
-		// tslint:disable-next-line: no-let
 		for (let i = 0; i < sortedMandatoryKeys.length; i += 1) {
 			if (mandatoryKeys[i] !== sortedMandatoryKeys[i]) {
 				errors.push(
@@ -263,7 +390,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			}
 		}
 
-		// tslint:disable-next-line: no-let
 		for (let i = 0; i < sortedOptionalKeys.length; i += 1) {
 			if (optionalKeys[i] !== sortedOptionalKeys[i]) {
 				errors.push(
@@ -326,131 +452,5 @@ export class MultisignatureTransaction extends BaseTransaction {
 		store.account.set(sender.address, sender);
 
 		return [];
-	}
-
-	// Verifies multisig signatures as per LIP-0017
-	public async verifySignatures(
-		store: StateStore,
-	): Promise<TransactionResponse> {
-		const { networkIdentifier } = store.chain;
-		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			transactionBytes,
-		]);
-
-		const { mandatoryKeys, optionalKeys } = this.asset;
-
-		// For multisig registration we need all signatures to be present
-		if (
-			mandatoryKeys.length + optionalKeys.length + 1 !==
-			this.signatures.length
-		) {
-			return createResponse(this.id, [
-				new TransactionError('There are missing signatures'),
-			]);
-		}
-
-		// Check if empty signatures are present
-		if (this.signatures.includes('')) {
-			return createResponse(this.id, [
-				new TransactionError(
-					'A signature is required for each registered key.',
-				),
-			]);
-		}
-
-		// Verify first signature is from senderPublicKey
-		const { valid, error } = validateSignature(
-			this.senderPublicKey,
-			this.signatures[0],
-			transactionWithNetworkIdentifierBytes,
-		);
-
-		if (!valid) {
-			return createResponse(this.id, [error as TransactionError]);
-		}
-
-		// Verify each mandatory key signed in order
-		const mandatorySignaturesErrors = validateKeysSignatures(
-			mandatoryKeys,
-			this.signatures.slice(1, mandatoryKeys.length + 1),
-			transactionWithNetworkIdentifierBytes,
-		);
-
-		if (mandatorySignaturesErrors.length) {
-			return createResponse(this.id, mandatorySignaturesErrors);
-		}
-		// Verify each optional key signed in order
-		const optionalSignaturesErrors = validateKeysSignatures(
-			optionalKeys,
-			this.signatures.slice(mandatoryKeys.length + 1),
-			transactionWithNetworkIdentifierBytes,
-		);
-		if (optionalSignaturesErrors.length) {
-			return createResponse(this.id, optionalSignaturesErrors);
-		}
-
-		return createResponse(this.id, []);
-	}
-
-	public sign(
-		networkIdentifier: string,
-		senderPassphrase: string,
-		passphrases?: ReadonlyArray<string>,
-		keys?: {
-			readonly mandatoryKeys: Array<Readonly<string>>;
-			readonly optionalKeys: Array<Readonly<string>>;
-			readonly numberOfSignatures: number;
-		},
-	): void {
-		// Sort the keys in the transaction
-		sortKeysAscending(this.asset.mandatoryKeys);
-		sortKeysAscending(this.asset.optionalKeys);
-
-		// Sign with sender
-		const { publicKey } = getAddressAndPublicKeyFromPassphrase(
-			senderPassphrase,
-		);
-
-		if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
-			throw new Error(
-				'Transaction senderPublicKey does not match public key from passphrase',
-			);
-		}
-
-		this.senderPublicKey = publicKey;
-
-		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
-		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
-			this.getBasicBytes(),
-		]);
-
-		this.signatures.push(
-			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
-		);
-
-		// Sign with members
-		if (keys && passphrases) {
-			const keysAndPassphrases = buildPublicKeyPassphraseDict([...passphrases]);
-			// Make sure passed in keys are sorted
-			sortKeysAscending(keys.mandatoryKeys);
-			sortKeysAscending(keys.optionalKeys);
-			// Sign with all keys
-			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
-				if (keysAndPassphrases[aKey]) {
-					const { passphrase } = keysAndPassphrases[aKey];
-					this.signatures.push(
-						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
-					);
-				} else {
-					// Push an empty signature if a passphrase is missing
-					this.signatures.push('');
-				}
-			}
-		}
-		this._id = getId(this.getBytes());
 	}
 }

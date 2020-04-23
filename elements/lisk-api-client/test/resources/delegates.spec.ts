@@ -23,7 +23,7 @@ describe('DelegatesResource', () => {
 	let apiClient: APIClient;
 	let resource: APIResource;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = new APIClient([defaultBasePath]);
 		resource = new DelegatesResource(apiClient);
 		return Promise.resolve();

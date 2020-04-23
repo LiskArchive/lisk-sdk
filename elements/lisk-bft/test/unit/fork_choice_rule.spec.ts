@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Slots } from '@liskhq/lisk-chain';
 import {
 	isDifferentChain,
 	isDoubleForging,
@@ -21,8 +22,6 @@ import {
 	isValidBlock,
 } from '../../src/fork_choice_rule';
 import { BlockHeader } from '../../src/types';
-
-import { Slots } from '@liskhq/lisk-chain';
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
@@ -52,7 +51,7 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isValidBlock', () => {
-		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockId', async () => {
+		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockId', () => {
 			const last = createBlock({
 				height: 1,
 				id: '1',
@@ -67,7 +66,7 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDuplicateBlock', () => {
-		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockId === current.previousBlockId', async () => {
+		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockId === current.previousBlockId', () => {
 			const last = createBlock({
 				height: 1,
 				maxHeightPrevoted: 0,
@@ -85,7 +84,7 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isIdenticalBlock', () => {
-		it('should return true if last.id === current.id', async () => {
+		it('should return true if last.id === current.id', () => {
 			const last = createBlock({
 				height: 1,
 				id: '1',
@@ -95,7 +94,7 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDoubleForging', () => {
-		it('should return true if _isDuplicateBlock(last, current) && last.generatorPublicKey === current.generatorPublicKey', async () => {
+		it('should return true if _isDuplicateBlock(last, current) && last.generatorPublicKey === current.generatorPublicKey', () => {
 			const last = createBlock({
 				height: 1,
 				maxHeightPrevoted: 0,
@@ -137,7 +136,7 @@ describe('Fork Choice Rule', () => {
 		 * - The the last block that was received from the network and then applied
 		 *   was not received within its designated forging slot but the new received block is.
 		 */
-		it('should return true if it matches the conditions described in _isTieBreak', async () => {
+		it('should return true if it matches the conditions described in _isTieBreak', () => {
 			const lastReceivedAndAppliedBlock = {
 				receivedTime: 100000,
 				id: '1',
@@ -171,7 +170,7 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDifferentChain', () => {
-		it('should return true if last.heightPrevoted < current.heightPrevoted', async () => {
+		it('should return true if last.heightPrevoted < current.heightPrevoted', () => {
 			const last = createBlock({
 				height: 1,
 				maxHeightPrevoted: 0,
@@ -192,7 +191,7 @@ describe('Fork Choice Rule', () => {
 			expect(isDifferentChain(last, current)).toBeTruthy();
 		});
 
-		it('OR should return true if (last.height < current.height && last.heightPrevoted === current.heightPrevoted)', async () => {
+		it('OR should return true if (last.height < current.height && last.heightPrevoted === current.heightPrevoted)', () => {
 			const last = createBlock({
 				height: 1,
 				maxHeightPrevoted: 0,

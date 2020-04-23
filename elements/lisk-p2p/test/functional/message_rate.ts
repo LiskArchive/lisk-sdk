@@ -31,19 +31,20 @@ describe('Message rate limit', () => {
 	beforeEach(async () => {
 		const customConfig = (index: number) => ({
 			// For the third node, make the message rate limit higher.
-			wsMaxMessageRate: index == 2 ? 100000 : 110,
+			wsMaxMessageRate: index === 2 ? 100000 : 110,
 			rateCalculationInterval: 100,
 			fallbackSeedPeerDiscoveryInterval: 10000,
 		});
 		p2pNodeList = await createNetwork({ customConfig });
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on(EVENT_MESSAGE_RECEIVED, message => {
 				collectedMessages.push({
 					nodePort: p2p.nodeInfo.wsPort,
 					message,
 				});
-				let peerRates = messageRates.get(p2p.nodeInfo.wsPort) || [];
+				const peerRates = messageRates.get(p2p.nodeInfo.wsPort) ?? [];
 				peerRates.push(message.rate);
 				messageRates.set(p2p.nodeInfo.wsPort, peerRates);
 			});
@@ -94,7 +95,7 @@ describe('Message rate limit', () => {
 			const targetPeerPort = NETWORK_START_PORT + 3;
 			const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 
-			for (let i = 0; i < TOTAL_SENDS; i++) {
+			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				await wait(10);
 				try {
 					firstP2PNode.sendToPeer(
@@ -104,11 +105,12 @@ describe('Message rate limit', () => {
 						},
 						targetPeerId,
 					);
+					// eslint-disable-next-line no-empty
 				} catch (error) {}
 			}
 
 			await wait(50);
-			const secondPeerRates = messageRates.get(targetPeerPort) || [];
+			const secondPeerRates = messageRates.get(targetPeerPort) ?? [];
 			const lastRate = secondPeerRates[secondPeerRates.length - 1];
 
 			expect(lastRate).toBeGreaterThan(ratePerSecondLowerBound);
@@ -121,7 +123,7 @@ describe('Message rate limit', () => {
 			const secondP2PNode = p2pNodeList[1];
 			const targetPeerId = `127.0.0.1:${secondP2PNode.nodeInfo.wsPort}`;
 
-			for (let i = 0; i < TOTAL_SENDS; i++) {
+			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				await wait(1);
 				try {
 					firstP2PNode.sendToPeer(
@@ -131,6 +133,7 @@ describe('Message rate limit', () => {
 						},
 						targetPeerId,
 					);
+					// eslint-disable-next-line no-empty
 				} catch (error) {}
 			}
 
@@ -143,13 +146,13 @@ describe('Message rate limit', () => {
 	});
 
 	describe('P2P.requestFromPeer', () => {
-		let collectedMessages: Array<any> = [];
 		let requestRates: Map<number, Array<number>> = new Map();
 
 		beforeEach(() => {
 			collectedMessages = [];
 			requestRates = new Map();
-			for (let p2p of p2pNodeList) {
+			for (const p2p of p2pNodeList) {
+				// eslint-disable-next-line no-loop-func
 				p2p.on('requestReceived', request => {
 					collectedMessages.push({
 						nodePort: p2p.nodeInfo.wsPort,
@@ -157,14 +160,13 @@ describe('Message rate limit', () => {
 					});
 					if (request.procedure === 'getGreeting') {
 						request.end(
+							// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 							`Hello ${request.data} from peer ${p2p.nodeInfo.wsPort}`,
 						);
-					} else {
-						if (!request.wasResponseSent) {
-							request.end(456);
-						}
+					} else if (!request.wasResponseSent) {
+						request.end(456);
 					}
-					let peerRates = requestRates.get(p2p.nodeInfo.wsPort) || [];
+					const peerRates = requestRates.get(p2p.nodeInfo.wsPort) ?? [];
 					peerRates.push(request.rate);
 					requestRates.set(p2p.nodeInfo.wsPort, peerRates);
 				});
@@ -180,7 +182,7 @@ describe('Message rate limit', () => {
 			const targetPeerPort = NETWORK_START_PORT;
 			const targetPeerId = `127.0.0.1:${targetPeerPort}`;
 
-			for (let i = 0; i < TOTAL_SENDS; i++) {
+			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				await wait(10);
 				await requesterP2PNode.requestFromPeer(
 					{
@@ -192,7 +194,7 @@ describe('Message rate limit', () => {
 			}
 
 			await wait(50);
-			const secondPeerRates = requestRates.get(targetPeerPort) || [];
+			const secondPeerRates = requestRates.get(targetPeerPort) ?? [];
 			const lastRate = secondPeerRates[secondPeerRates.length - 1];
 
 			expect(lastRate).toBeGreaterThan(ratePerSecondLowerBound);
@@ -206,8 +208,9 @@ describe('Message rate limit', () => {
 
 			const targetPeerId = `127.0.0.1:${targetP2PNode.nodeInfo.wsPort}`;
 
-			for (let i = 0; i < TOTAL_SENDS; i++) {
+			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				await wait(1);
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				(async () => {
 					try {
 						await requesterP2PNode.requestFromPeer(
@@ -217,6 +220,7 @@ describe('Message rate limit', () => {
 							},
 							targetPeerId,
 						);
+						// eslint-disable-next-line no-empty
 					} catch (error) {}
 				})();
 			}

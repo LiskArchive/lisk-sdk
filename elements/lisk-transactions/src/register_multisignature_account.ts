@@ -71,7 +71,7 @@ const validateInputs = ({
 		numberOfSignatures > MAX_NUMBER_OF_SIGNATURES
 	) {
 		throw new Error(
-			`Please provide a valid numberOfSignatures value. Expected integer between ${MIN_NUMBER_OF_SIGNATURES} and ${MAX_NUMBER_OF_SIGNATURES}.`,
+			`Please provide a valid numberOfSignatures value. Expected integer between ${MIN_NUMBER_OF_SIGNATURES.toString()} and ${MAX_NUMBER_OF_SIGNATURES.toString()}.`,
 		);
 	}
 
@@ -86,7 +86,11 @@ const validateInputs = ({
 		mandatoryPublicKeys.length + optionalPublicKeys.length
 	) {
 		throw new Error(
-			`Please provide a valid numberOfSignatures. numberOfSignatures (${numberOfSignatures}) is bigger than the count of optional (${optionalPublicKeys.length}) and mandatory (${mandatoryPublicKeys.length}) keys.`,
+			`Please provide a valid numberOfSignatures. numberOfSignatures (${numberOfSignatures.toString()}) is bigger than the count of optional (${
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				optionalPublicKeys.length
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			}) and mandatory (${mandatoryPublicKeys.length}) keys.`,
 		);
 	}
 
@@ -96,7 +100,7 @@ const validateInputs = ({
 		mandatoryPublicKeys.length + optionalPublicKeys.length < MIN_NUMBER_OF_KEYS
 	) {
 		throw new Error(
-			`Please provide a valid number of mandatory and optional keys. Expected integer between ${MIN_NUMBER_OF_SIGNATURES} and ${MAX_NUMBER_OF_SIGNATURES}.`,
+			`Please provide a valid number of mandatory and optional keys. Expected integer between ${MIN_NUMBER_OF_SIGNATURES.toString()} and ${MAX_NUMBER_OF_SIGNATURES.toString()}.`,
 		);
 	}
 
@@ -164,6 +168,7 @@ export const registerMultisignature = (
 
 	const multisignatureTransaction = new MultisignatureTransaction(transaction);
 
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!passphrases || !senderPassphrase) {
 		return multisignatureTransaction.toJSON();
 	}

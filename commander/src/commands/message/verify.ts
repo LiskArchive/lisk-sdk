@@ -96,7 +96,7 @@ export default class VerifyCommand extends BaseCommand {
 		const result = processInputs(
 			publicKey,
 			signature,
-			message || dataFromSource,
+			message ?? dataFromSource,
 		);
 		this.print(result);
 	}

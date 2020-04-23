@@ -32,6 +32,7 @@ import {
 	StateStore,
 } from './types';
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_info');
 
 interface DelegatesInfoConstructor {
@@ -43,7 +44,7 @@ interface DelegatesInfoConstructor {
 	readonly delegatesList: DelegatesList;
 }
 
-const _isGenesisBlock = (block: BlockHeader) => block.height === 1;
+const _isGenesisBlock = (block: BlockHeader): boolean => block.height === 1;
 const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 
 export class DelegatesInfo {
@@ -103,7 +104,6 @@ export class DelegatesInfo {
 		if (_isGenesisBlock(block)) {
 			const initialRound = 1;
 			for (
-				// tslint:disable-next-line no-let
 				let i = initialRound;
 				i <= initialRound + delegateListRoundOffset;
 				i += 1

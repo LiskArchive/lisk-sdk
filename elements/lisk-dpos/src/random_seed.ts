@@ -23,10 +23,10 @@ import * as Debug from 'debug';
 import { Rounds } from './rounds';
 import { BlockHeader, FixedLengthArray, RandomSeed } from './types';
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:random_seed');
 
 interface HeadersMap {
-	// tslint:disable-next-line:readonly-keyword
 	[key: number]: BlockHeader;
 }
 
@@ -53,9 +53,8 @@ const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
 	const outputSize = [...bufferSizes][0];
 	const result = Buffer.alloc(outputSize, 0, 'hex');
 
-	// tslint:disable-next-line:no-let
 	for (let i = 0; i < outputSize; i += 1) {
-		// tslint:disable-next-line:no-bitwise
+		// eslint-disable-next-line no-bitwise
 		result[i] = bufferArray.map(b => b[i]).reduce((a, b) => a ^ b, 0);
 	}
 
@@ -70,7 +69,6 @@ const findPreviousHeaderOfDelegate = (
 	const { height, generatorPublicKey } = header;
 	const searchTill = Math.max(searchTillHeight, 1);
 
-	// tslint:disable-next-line:no-let
 	for (let i = height - 1; i >= searchTill; i -= 1) {
 		if (headersMap[i].generatorPublicKey === generatorPublicKey) {
 			return headersMap[i];
@@ -99,7 +97,6 @@ const selectSeedReveals = ({
 }): Buffer[] => {
 	const selected = [];
 
-	// tslint:disable-next-line:no-let
 	for (let i = fromHeight; i >= toHeight; i -= 1) {
 		const header = headersMap[i];
 		const blockRound = rounds.calcRound(header.height);
@@ -112,12 +109,14 @@ const selectSeedReveals = ({
 
 		// If delegate not forged any other block earlier in current and last round
 		if (!lastForgedBlock) {
+			// eslint-disable-next-line no-continue
 			continue;
 		}
 
 		// To validate seed reveal of any block in the last round
 		// We have to check till second last round
 		if (!isValidSeedReveal(header.seedReveal, lastForgedBlock.seedReveal)) {
+			// eslint-disable-next-line no-continue
 			continue;
 		}
 
@@ -131,22 +130,19 @@ export const generateRandomSeeds = (
 	round: number,
 	rounds: Rounds,
 	headers: ReadonlyArray<BlockHeader>,
-	// tslint:disable-next-line:no-magic-numbers
 ): FixedLengthArray<RandomSeed, 2> => {
 	// Middle range of a round to validate
-	// tslint:disable-next-line:no-magic-numbers
 	const middleThreshold = Math.floor(rounds.blocksPerRound / 2);
 	const lastBlockHeight = headers[0].height;
 	const startOfRound = rounds.calcRoundStartHeight(round);
 	const middleOfRound = rounds.calcRoundMiddleHeight(round);
 	const startOfLastRound = rounds.calcRoundStartHeight(round - 1);
 	const endOfLastRound = rounds.calcRoundEndHeight(round - 1);
-	// tslint:disable-next-line:no-magic-numbers
 	const startOfSecondLastRound = rounds.calcRoundStartHeight(round - 2);
 
 	if (lastBlockHeight < middleOfRound) {
 		throw new Error(
-			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${lastBlockHeight}`,
+			`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${lastBlockHeight.toString()}`,
 		);
 	}
 

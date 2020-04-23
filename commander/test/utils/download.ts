@@ -2,9 +2,9 @@ import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fs from 'fs-extra';
 import * as axios from 'axios';
+import { SinonStub } from 'sinon';
 import * as commons from '../../src/utils/core/commons';
 import * as downloadUtil from '../../src/utils/download';
-import { SinonStub } from 'sinon';
 
 describe('download utils', () => {
 	const url =

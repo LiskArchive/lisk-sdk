@@ -21,7 +21,7 @@ const INPUT_SIZE = 64;
 const defaultCount = 1000000;
 const defaultDistance = 1000;
 
-export const generateHashOnionSeed = () =>
+export const generateHashOnionSeed = (): Buffer =>
 	hash(getRandomBytes(INPUT_SIZE)).slice(0, HASH_SIZE);
 
 export const hashOnion = (
@@ -39,11 +39,9 @@ export const hashOnion = (
 		throw new Error('Invalid count. Count must be multiple of distance');
 	}
 
-	// tslint:disable-next-line no-let
 	let previousHash = seed;
 	const hashes = [seed];
 
-	// tslint:disable-next-line no-let
 	for (let i = 1; i <= count; i += 1) {
 		const nextHash = hash(previousHash).slice(0, HASH_SIZE);
 		if (i % distance === 0) {

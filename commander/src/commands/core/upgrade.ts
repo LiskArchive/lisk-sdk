@@ -33,7 +33,6 @@ import {
 import { startDatabase, stopDatabase } from '../../utils/core/database';
 import {
 	describeApplication,
-	PM2ProcessInstance,
 	registerApplication,
 	restartApplication,
 	stopApplication,
@@ -102,11 +101,7 @@ export default class UpgradeCommand extends BaseCommand {
 			);
 		}
 
-		const {
-			installationPath,
-			network,
-			version: currentVersion,
-		} = instance as PM2ProcessInstance;
+		const { installationPath, network, version: currentVersion } = instance;
 
 		const upgradeVersion: string = await getVersionToInstall(
 			network,

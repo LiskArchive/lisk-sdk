@@ -48,11 +48,11 @@ describe('random_seed', () => {
 	];
 
 	describe('generateRandomSeeds', () => {
-		it('should throw error if called before middle of the round', async () => {
+		it('should throw error if called before middle of the round', () => {
 			// Arrange
 			const { config, input } = randomSeedNotPassedMiddle.testCases[0] as any;
 			rounds = new Rounds({
-				blocksPerRound: (config as any).blocksPerRound,
+				blocksPerRound: config.blocksPerRound,
 			});
 			const round = rounds.calcRound(
 				input.blocks[input.blocks.length - 1].height,
@@ -61,6 +61,7 @@ describe('random_seed', () => {
 
 			// Act & Assert
 			expect(() => generateRandomSeeds(round, rounds, headers)).toThrow(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Random seed can't be calculated earlier in a round. Wait till you pass middle of round. Current height: ${input.blocks.length}`,
 			);
 		});
@@ -68,11 +69,11 @@ describe('random_seed', () => {
 		describe.each(testCases.map(testCase => [testCase.description, testCase]))(
 			'%s',
 			(_description, testCase) => {
-				it('should generate correct random seeds', async () => {
+				it('should generate correct random seeds', () => {
 					const { config, input, output } = testCase as any;
 					// Arrange
 					rounds = new Rounds({
-						blocksPerRound: (config as any).blocksPerRound,
+						blocksPerRound: config.blocksPerRound,
 					});
 
 					const round = rounds.calcRound(

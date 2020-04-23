@@ -21,8 +21,8 @@ const {
 } = require('../../utils/registered_transactions');
 const { createMockChannel } = require('../channel');
 const { Node } = require('../../../src/application/node');
-const genesisBlock = require('../../fixtures/config/devnet/genesis_block');
-const config = require('../../fixtures/config/devnet/config');
+const genesisBlock = require('../../fixtures/config/devnet/genesis_block.json');
+const config = require('../../fixtures/config/devnet/config.json');
 
 const { conpoments, modules, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;

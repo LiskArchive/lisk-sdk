@@ -22,6 +22,7 @@ import {
 	parseEncryptedPassphrase,
 } from '../src/convert';
 // Require is used for stubbing
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires
 const hashModule = require('../src/hash');
 
 describe('convert', () => {
@@ -78,7 +79,7 @@ describe('convert', () => {
 			const bufferExceedError =
 				'The buffer for Lisk addresses must not have more than 8 bytes';
 			const bufferInit = Buffer.from(defaultStringWithMoreThanEightCharacters);
-			expect(toAddress.bind(null, bufferInit)).toThrowError(bufferExceedError);
+			expect(toAddress.bind(null, bufferInit)).toThrow(bufferExceedError);
 		});
 	});
 
@@ -125,7 +126,7 @@ describe('convert', () => {
 				'salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
 			expect(
 				stringifyEncryptedPassphrase.bind(null, encryptedPassphrase as any),
-			).toThrowError('Encrypted passphrase to stringify must be an object.');
+			).toThrow('Encrypted passphrase to stringify must be an object.');
 		});
 
 		it('should format an encrypted passphrase as a string', () => {
@@ -170,7 +171,7 @@ describe('convert', () => {
 					null,
 					stringifiedEncryptedPassphrase as any,
 				),
-			).toThrowError('Encrypted passphrase to parse must be a string.');
+			).toThrow('Encrypted passphrase to parse must be a string.');
 		});
 
 		it('should throw an error if iterations is present but not a valid number', () => {
@@ -178,7 +179,7 @@ describe('convert', () => {
 				'iterations=null&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
 			expect(
 				parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase),
-			).toThrowError('Could not parse iterations.');
+			).toThrow('Could not parse iterations.');
 		});
 
 		it('should throw an error if multiple values are in a key', () => {
@@ -186,7 +187,7 @@ describe('convert', () => {
 				'salt=xxx&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
 			expect(
 				parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase),
-			).toThrowError(
+			).toThrow(
 				'Encrypted passphrase to parse must have only one value per key.',
 			);
 		});

@@ -53,7 +53,7 @@ describe('blocks/transactions', () => {
 	let storageStub: any;
 	let slots: Slots;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageStub = {
 			entities: {
 				Account: {
@@ -136,7 +136,7 @@ describe('blocks/transactions', () => {
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
-					get: () => () => false,
+					get: () => (): boolean => false,
 					configurable: true,
 				});
 				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
@@ -234,14 +234,14 @@ describe('blocks/transactions', () => {
 				);
 			});
 
-			it('should return all transactions', async () => {
+			it('should return all transactions', () => {
 				// Assert
 				expect(result).toHaveLength(2);
 				expect(result[0].id).toBe(validTx.id);
 				expect(result[1].id).toBe(validTx2.id);
 			});
 
-			it('should call apply for all transactions', async () => {
+			it('should call apply for all transactions', () => {
 				// Assert
 				expect(validTxSpy).toHaveBeenCalledTimes(1);
 				expect(validTx2Spy).toHaveBeenCalledTimes(1);
@@ -279,7 +279,7 @@ describe('blocks/transactions', () => {
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
-					get: () => () => false,
+					get: () => (): boolean => false,
 					configurable: true,
 				});
 				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
@@ -393,14 +393,14 @@ describe('blocks/transactions', () => {
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
-			it('should return all transactions response which are all ok', async () => {
+			it('should return all transactions response which are all ok', () => {
 				// Assert
 				expect(responses).toHaveLength(2);
 				expect(responses.every(res => res.status === 1)).toBeTrue();
 				expect(responses.every(res => res.errors.length === 0)).toBeTrue();
 			});
 
-			it('should invoke transaction validations', async () => {
+			it('should invoke transaction validations', () => {
 				expect(validTxValidateSpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ValidateSpy).toHaveBeenCalledTimes(1);
 			});
@@ -438,7 +438,7 @@ describe('blocks/transactions', () => {
 					notAllowedTx.type,
 				);
 				Object.defineProperty(transactionClass.prototype, 'matcher', {
-					get: () => () => false,
+					get: () => (): boolean => false,
 					configurable: true,
 				});
 				(chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.set(
@@ -583,13 +583,13 @@ describe('blocks/transactions', () => {
 				responses = transactionsResponses as TransactionResponse[];
 			});
 
-			it('should return transaction with all status 1', async () => {
+			it('should return transaction with all status 1', () => {
 				expect(responses).toHaveLength(2);
 				expect(responses.every(res => res.status === 1)).toBeTrue();
 				expect(responses.every(res => res.errors.length === 0)).toBeTrue();
 			});
 
-			it('should call apply for all the transactions', async () => {
+			it('should call apply for all the transactions', () => {
 				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});

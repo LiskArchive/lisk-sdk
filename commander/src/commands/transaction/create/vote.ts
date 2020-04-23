@@ -161,6 +161,7 @@ export default class VoteCommand extends BaseCommand {
 			};
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const validatedVotes = votesObjects ? validateAddresses(votesObjects) : [];
 
 		const networkIdentifier = getNetworkIdentifierWithInput(

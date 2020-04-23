@@ -47,8 +47,8 @@ const splitSource = (source: string): SplitSource => {
 };
 
 export const getPassphraseFromPrompt = async (
-	displayName: string = 'passphrase',
-	shouldConfirm: boolean = false,
+	displayName = 'passphrase',
+	shouldConfirm = false,
 ): Promise<string> => {
 	const questions = [
 		{
@@ -65,9 +65,8 @@ export const getPassphraseFromPrompt = async (
 		});
 	}
 
-	const { passphrase, passphraseRepeat } = (await inquirer.prompt(
-		questions,
-	)) as { readonly passphrase?: string; readonly passphraseRepeat?: string };
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const { passphrase, passphraseRepeat } = await inquirer.prompt(questions);
 
 	if (!passphrase || (shouldConfirm && passphrase !== passphraseRepeat)) {
 		throw new ValidationError(getPassphraseVerificationFailError(displayName));
@@ -92,11 +91,11 @@ export const getPassphraseFromPrompt = async (
 						),
 					'Warning: ',
 				);
-			// tslint:disable-next-line no-console
 			console.warn(passphraseWarning);
 		}
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return passphrase;
 };
 
@@ -116,7 +115,6 @@ export const isFileSource = (source?: string): boolean => {
 	}
 	const delimiter = ':';
 	const sourceParts = source.split(delimiter);
-	// tslint:disable-next-line no-magic-numbers
 	if (sourceParts.length === 2 && sourceParts[0] === 'file') {
 		return true;
 	}
@@ -124,6 +122,7 @@ export const isFileSource = (source?: string): boolean => {
 	return false;
 };
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const readFileSource = async (source?: string): Promise<string> => {
 	if (!source) {
 		throw new ValidationError(ERROR_DATA_MISSING);
@@ -137,10 +136,13 @@ export const readFileSource = async (source?: string): Promise<string> => {
 	try {
 		return getDataFromFile(path);
 	} catch (error) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const { message } = error;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		if (message.match(/ENOENT/)) {
 			throw new FileSystemError(getFileDoesNotExistError(path));
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		if (message.match(/EACCES/)) {
 			throw new FileSystemError(getFileUnreadableError(path));
 		}
@@ -152,7 +154,6 @@ const DEFAULT_TIMEOUT = 100;
 
 export const readStdIn = async (): Promise<string[]> => {
 	const readFromStd = new Promise<string[]>((resolve, reject) => {
-		// tslint:disable readonly-array
 		const lines: string[] = [];
 		const rl = readline.createInterface({ input: process.stdin });
 

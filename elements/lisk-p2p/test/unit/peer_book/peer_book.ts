@@ -56,10 +56,10 @@ describe('peerBook', () => {
 			...peerBookConfig,
 			sanitizedPeerLists: {
 				blacklistedIPs: ['192.1.0.1', '192.1.0.1'],
-				seedPeers: seedPeers,
-				fixedPeers: fixedPeers,
-				whitelisted: whitelisted,
-				previousPeers: previousPeers,
+				seedPeers,
+				fixedPeers,
+				whitelisted,
+				previousPeers,
 			},
 		});
 
@@ -111,6 +111,7 @@ describe('peerBook', () => {
 
 			// Assert
 			peerBook.allPeers.forEach(peer => {
+				// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check,default-case
 				switch (peer.internalState?.peerKind) {
 					case PeerKind.FIXED_PEER:
 						fixedPeerCount += 1;
@@ -398,15 +399,15 @@ describe('peerBook', () => {
 
 		describe('when peer exists in the new peers list', () => {
 			it('should return false if disconnection was not successful', () => {
-				//Arrange
+				// Arrange
 				jest
 					.spyOn((peerBook as any)._newPeers, 'failedConnectionAction')
 					.mockReturnValue(false);
 
-				//Act
+				// Act
 				peerBook.addPeer(samplePeers[0]);
 
-				//Assert
+				// Assert
 
 				expect(peerBook.newPeers).toHaveLength(1);
 				expect(peerBook.downgradePeer(samplePeers[0])).toBe(false);
@@ -504,10 +505,10 @@ describe('peerBook', () => {
 					...peerBookConfig,
 					sanitizedPeerLists: {
 						blacklistedIPs: [],
-						seedPeers: seedPeers,
-						fixedPeers: fixedPeers,
-						whitelisted: whitelisted,
-						previousPeers: previousPeers,
+						seedPeers,
+						fixedPeers,
+						whitelisted,
+						previousPeers,
 					},
 				});
 			});
@@ -559,9 +560,9 @@ describe('peerBook', () => {
 				// Act
 				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME);
 
-				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME),
-					// Assert
-					expect((peerBook as any)._unbanTimers).toHaveLength(1);
+				peerBook.addBannedPeer(previousPeers[0].peerId, DEFAULT_BAN_TIME);
+				// Assert
+				expect((peerBook as any)._unbanTimers).toHaveLength(1);
 			});
 		});
 	});

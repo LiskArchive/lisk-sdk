@@ -25,6 +25,7 @@ export interface CreateBaseTransactionInput {
 	readonly secondPassphrase?: string;
 }
 
+// eslint-disable-next-line
 export const createBaseTransaction = ({
 	passphrase,
 	nonce,
@@ -44,7 +45,9 @@ export const createBaseTransaction = ({
 export const SIGNATURE_NOT_PRESENT = Buffer.from('00', 'hex');
 export const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
 
-export const serializeSignatures = (signatures: ReadonlyArray<string>) => {
+export const serializeSignatures = (
+	signatures: ReadonlyArray<string>,
+): Buffer => {
 	const signaturesBuffer = signatures.map(signature => {
 		// If signature is empty append 0x00 to byteBuffer
 		if (signature.length === 0) {

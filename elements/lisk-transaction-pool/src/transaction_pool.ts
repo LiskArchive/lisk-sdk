@@ -28,6 +28,7 @@ import {
 	TransactionStatus,
 } from './types';
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:transaction_pool');
 
 type ApplyFunction = (
@@ -41,7 +42,6 @@ export interface TransactionPoolConfig {
 	readonly minEntranceFeePriority?: bigint;
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
-	// tslint:disable-next-line no-mixed-interface
 	readonly applyTransactions: ApplyFunction;
 }
 
@@ -53,11 +53,8 @@ interface AddTransactionResponse {
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
 export const DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT = 64;
 export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(0);
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in ms
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRE_INTERVAL = 60 * 60 * 1000; // 1 hour in ms
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 export const DEFAULT_REORGANIZE_TIME = 500;
 export const events = {
@@ -65,7 +62,6 @@ export const events = {
 };
 
 // FIXME: Remove this once implemented
-// tslint:disable
 export class TransactionPool {
 	public events: EventEmitter;
 
@@ -101,14 +97,20 @@ export class TransactionPool {
 			config.minReplacementFeeDifference ??
 			DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 		this._reorganizeJob = new Job(
-			() => this._reorganize(),
+			async () => this._reorganize(),
 			this._transactionReorganizationInterval,
 		);
-		this._expireJob = new Job(() => this._expire(), DEFAULT_EXPIRE_INTERVAL);
+		this._expireJob = new Job(
+			async () => this._expire(),
+			DEFAULT_EXPIRE_INTERVAL,
+		);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async start(): Promise<void> {
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this._reorganizeJob.start();
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this._expireJob.start();
 	}
 
@@ -138,6 +140,7 @@ export class TransactionPool {
 	*/
 	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
 		// Check for duplicate
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this._allTransactions[incomingTx.id]) {
 			debug('Received duplicate transaction', incomingTx.id);
 
@@ -147,6 +150,7 @@ export class TransactionPool {
 		}
 
 		// Check for minimum entrance fee priority to the TxPool and if its low then reject the incoming tx
+		// eslint-disable-next-line no-param-reassign
 		incomingTx.feePriority = this._calculateFeePriority(incomingTx);
 		if (incomingTx.feePriority < this._minEntranceFeePriority) {
 			const error = new TransactionPoolError(
@@ -208,6 +212,7 @@ export class TransactionPool {
 		}
 
 		// Add address of incoming trx if it doesn't exist in transaction list
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!this._transactionList[incomingTxAddress]) {
 			this._transactionList[incomingTxAddress] = new TransactionList(
 				incomingTxAddress,
@@ -243,6 +248,7 @@ export class TransactionPool {
 		}
 
 		// Add received time to the incoming tx object
+		// eslint-disable-next-line no-param-reassign
 		incomingTx.receivedAt = new Date();
 		this._allTransactions[incomingTx.id] = incomingTx;
 
@@ -257,6 +263,7 @@ export class TransactionPool {
 
 	public remove(tx: Transaction): boolean {
 		const foundTx = this._allTransactions[tx.id];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!foundTx) {
 			return false;
 		}
@@ -297,10 +304,12 @@ export class TransactionPool {
 		return processableTransactions;
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	private _calculateFeePriority(trx: Transaction): bigint {
 		return (trx.fee - trx.minFee) / BigInt(trx.getBytes().length);
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	private _getStatus(
 		txResponse: ReadonlyArray<TransactionResponse>,
 	): TransactionStatus {
@@ -402,6 +411,7 @@ export class TransactionPool {
 			const promotableTransactions = txList.getPromotable();
 			// If no promotable transactions, check next list
 			if (!promotableTransactions.length) {
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			const processableTransactions = txList.getProcessable();
@@ -432,7 +442,7 @@ export class TransactionPool {
 
 			// Remove invalid transaction and all subsequent transactions
 			const invalidTransaction = firstInvalidTransactionId
-				? allTransactions.find(tx => tx.id == firstInvalidTransactionId)
+				? allTransactions.find(tx => tx.id === firstInvalidTransactionId)
 				: undefined;
 
 			if (invalidTransaction) {
@@ -451,6 +461,7 @@ export class TransactionPool {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _expire(): Promise<void> {
 		for (const transaction of Object.values(this._allTransactions)) {
 			const timeDifference = Math.round(

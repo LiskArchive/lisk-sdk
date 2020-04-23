@@ -35,12 +35,12 @@ describe('Custom nodeInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', async () => {
-		for (let p2p of p2pNodeList) {
-			const triedPeers = (p2p as any)._peerBook.triedPeers;
-			const newPeers = (p2p as any)._peerBook.newPeers;
+	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
+		for (const p2p of p2pNodeList) {
+			const { triedPeers } = (p2p as any)._peerBook;
+			const { newPeers } = (p2p as any)._peerBook;
 
-			for (let peer of triedPeers) {
+			for (const peer of triedPeers) {
 				expect(peer).toMatchObject({
 					sharedState: {
 						modules: { names: expect.any(Array), active: expect.any(Boolean) },
@@ -48,7 +48,7 @@ describe('Custom nodeInfo', () => {
 				});
 			}
 
-			for (let peer of newPeers) {
+			for (const peer of newPeers) {
 				if (peer.modules) {
 					expect(peer).toMatchObject({
 						sharedState: {
@@ -61,7 +61,7 @@ describe('Custom nodeInfo', () => {
 				}
 			}
 
-			for (let peer of p2p.getConnectedPeers()) {
+			for (const peer of p2p.getConnectedPeers()) {
 				expect(peer).toMatchObject({
 					modules: { names: expect.any(Array), active: expect.any(Boolean) },
 				});

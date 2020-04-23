@@ -45,10 +45,9 @@ const getTransactionInput = async (): Promise<string> => {
 };
 
 const getPassphrasesFromPrompt = async (
-	numberOfPassphrases: number = 1,
+	numberOfPassphrases = 1,
 ): Promise<ReadonlyArray<string>> => {
 	const passphrases = [];
-	// tslint:disable-next-line: no-let
 	for (let index = 0; index < numberOfPassphrases; index += 1) {
 		const passphrase = await getPassphraseFromPrompt('passphrase', true);
 		passphrases.push(passphrase);
@@ -113,9 +112,11 @@ export default class SignCommand extends BaseCommand {
 		} = this.parse(SignCommand);
 
 		const { transaction }: Args = args;
-		const transactionInput = transaction || (await getTransactionInput());
+		const transactionInput = transaction ?? (await getTransactionInput());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const transactionObject = parseTransactionString(transactionInput);
 		const passphrase =
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			passphraseSource ?? (await getPassphrasesFromPrompt(numberOfPassphrases));
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
@@ -128,10 +129,13 @@ export default class SignCommand extends BaseCommand {
 		});
 
 		const keys = {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			mandatoryKeys: mandatoryKeys ?? [],
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			optionalKeys: optionalKeys ?? [],
 		};
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (mandatoryKeys?.length || optionalKeys?.length) {
 			// Sign for multi signature transaction
 			passphrase.forEach(p => {

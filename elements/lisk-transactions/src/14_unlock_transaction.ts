@@ -67,7 +67,6 @@ const unlockAssetFormatSchema = {
 const SIZE_UINT32 = 4;
 const SIZE_INT64 = 8;
 const SIZE_UINT64 = SIZE_INT64;
-// tslint:disable-next-line no-magic-numbers
 const AMOUNT_MULTIPLIER_FOR_VOTES = BigInt(10) * BigInt(10) ** BigInt(8);
 const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
@@ -98,8 +97,8 @@ const getWaitingPeriod = (
 };
 
 export class UnlockTransaction extends BaseTransaction {
-	public readonly asset: UnlockAsset;
 	public static TYPE = 14;
+	public readonly asset: UnlockAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -122,7 +121,6 @@ export class UnlockTransaction extends BaseTransaction {
 				}),
 			};
 		} else {
-			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = { unlockingObjects: [] };
 		}
 	}
@@ -135,6 +133,20 @@ export class UnlockTransaction extends BaseTransaction {
 				unvoteHeight: unlock.unvoteHeight,
 			})),
 		};
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		const addressArray = this.asset.unlockingObjects.map(unlock => ({
+			address: unlock.delegateAddress,
+		}));
+		const filterArray = [
+			{
+				address: this.senderId,
+			},
+			...addressArray,
+		];
+
+		await store.account.cache(filterArray);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -157,20 +169,6 @@ export class UnlockTransaction extends BaseTransaction {
 		}
 
 		return Buffer.concat(bufferArray);
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const addressArray = this.asset.unlockingObjects.map(unlock => ({
-			address: unlock.delegateAddress,
-		}));
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...addressArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
@@ -224,6 +222,7 @@ export class UnlockTransaction extends BaseTransaction {
 						'.asset.unlockingObjects.delegateAddress',
 					),
 				);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -274,6 +273,7 @@ export class UnlockTransaction extends BaseTransaction {
 						'.asset.unlockingObjects',
 					),
 				);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			sender.unlocking.splice(unlockIndex, 1);

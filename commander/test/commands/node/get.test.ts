@@ -85,13 +85,10 @@ describe('node:get', () => {
 			.command(['node:get'])
 			.it('should get the node status without forging status', () => {
 				expect(apiClientStub.node.getForgingStatus).not.to.be.called;
-				return expect(printMethodStub).to.be.calledWithExactly(
-					Object.assign(
-						{},
-						defaultGetConstantsResponse.data,
-						defaultGetStatusResponse.data,
-					),
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultGetConstantsResponse.data,
+					...defaultGetStatusResponse.data,
+				});
 			});
 	});
 
@@ -105,47 +102,32 @@ describe('node:get', () => {
 			)
 			.command(['node:get', '--forging-status'])
 			.it('should get the node status with forging status error', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					Object.assign(
-						{},
-						defaultGetConstantsResponse.data,
-						defaultGetStatusResponse.data,
-						{
-							forgingStatus: errorMessage,
-						},
-					),
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultGetConstantsResponse.data,
+					...defaultGetStatusResponse.data,
+					forgingStatus: errorMessage,
+				});
 			});
 
 		setupTest()
 			.stub(apiClientStub.node, 'getForgingStatus', sandbox.stub().resolves({}))
 			.command(['node:get', '--forging-status'])
 			.it('should get the node status and empty forging status', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					Object.assign(
-						{},
-						defaultGetConstantsResponse.data,
-						defaultGetStatusResponse.data,
-						{
-							forgingStatus: [],
-						},
-					),
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultGetConstantsResponse.data,
+					...defaultGetStatusResponse.data,
+					forgingStatus: [],
+				});
 			});
 
 		setupTest()
 			.command(['node:get', '--forging-status'])
 			.it('should get the node status and forging status', () => {
-				return expect(printMethodStub).to.be.calledWithExactly(
-					Object.assign(
-						{},
-						defaultGetConstantsResponse.data,
-						defaultGetStatusResponse.data,
-						{
-							forgingStatus: defaultForgingStatusResponse.data,
-						},
-					),
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultGetConstantsResponse.data,
+					...defaultGetStatusResponse.data,
+					forgingStatus: defaultForgingStatusResponse.data,
+				});
 			});
 	});
 });

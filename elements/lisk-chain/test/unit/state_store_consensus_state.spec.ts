@@ -23,7 +23,7 @@ describe('state store / chain_state', () => {
 		{ height: 20 },
 	] as unknown) as ReadonlyArray<BlockHeader>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageStub = {
 			entities: {
 				ConsensusState: {
@@ -41,7 +41,7 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('lastBlockHeaders', () => {
-		it('should have first element as lastBlockHeader', async () => {
+		it('should have first element as lastBlockHeader', () => {
 			expect(stateStore.consensus.lastBlockHeaders).toEqual(lastBlockHeaders);
 		});
 	});
@@ -92,7 +92,7 @@ describe('state store / chain_state', () => {
 	describe('set', () => {
 		it('should set value to data and set the updated keys', async () => {
 			// Act
-			await stateStore.consensus.set('key3', 'value3');
+			stateStore.consensus.set('key3', 'value3');
 			// Assert
 			expect(await stateStore.consensus.get('key3')).toBe('value3');
 			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
@@ -100,8 +100,8 @@ describe('state store / chain_state', () => {
 
 		it('should set value to data and set the updated keys only once', async () => {
 			// Act
-			await stateStore.consensus.set('key3', 'value3');
-			await stateStore.consensus.set('key3', 'value4');
+			stateStore.consensus.set('key3', 'value3');
+			stateStore.consensus.set('key3', 'value4');
 			// Assert
 			expect(await stateStore.consensus.get('key3')).toBe('value4');
 			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
@@ -109,7 +109,7 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('finalize', () => {
-		let txStub = {} as StorageTransaction;
+		const txStub = {} as StorageTransaction;
 
 		it('should not call storage if nothing is set', async () => {
 			// Act
@@ -120,9 +120,9 @@ describe('state store / chain_state', () => {
 
 		it('should call storage for all the updated keys', async () => {
 			// Act
-			await stateStore.consensus.set('key3', 'value3');
-			await stateStore.consensus.set('key3', 'value4');
-			await stateStore.consensus.set('key4', 'value5');
+			stateStore.consensus.set('key3', 'value3');
+			stateStore.consensus.set('key3', 'value4');
+			stateStore.consensus.set('key4', 'value5');
 			await stateStore.consensus.finalize(txStub);
 			// Assert
 			expect(storageStub.entities.ConsensusState.setKey).toHaveBeenCalledWith(
@@ -139,11 +139,11 @@ describe('state store / chain_state', () => {
 
 		it('should handle promise rejection', async () => {
 			// Prepare
-			storageStub.entities.ConsensusState.setKey.mockImplementation(() =>
+			storageStub.entities.ConsensusState.setKey.mockImplementation(async () =>
 				Promise.reject(new Error('Fake storage layer error')),
 			);
 			// Act
-			await stateStore.consensus.set('key3', 'value3');
+			stateStore.consensus.set('key3', 'value3');
 			// Assert
 			return expect(stateStore.consensus.finalize(txStub)).rejects.toThrow(
 				'Fake storage layer error',

@@ -50,6 +50,7 @@ interface DposConstructor {
 	readonly delegateListRoundOffset?: number;
 }
 
+// eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos');
 
 export class Dpos {
@@ -77,7 +78,6 @@ export class Dpos {
 		this._activeDelegates = activeDelegates;
 		this._delegatesPerRound = activeDelegates + standbyDelegates;
 		// @todo consider making this a constant and reuse it in BFT module.
-		// tslint:disable-next-line:no-magic-numbers
 		this.delegateActiveRoundLimit = 3;
 		this.chain = chain;
 		this.rounds = new Rounds({
@@ -164,6 +164,7 @@ export class Dpos {
 		const voteWeightsStr = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 		);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const voteWeights: VoteWeights = voteWeightsStr
 			? JSON.parse(voteWeightsStr)
 			: [];
@@ -174,7 +175,7 @@ export class Dpos {
 
 		if (!voteWeight) {
 			throw new Error(
-				`Vote weight not found for round ${relevantRound} for the given height ${height}`,
+				`Vote weight not found for round ${relevantRound.toString()} for the given height ${height.toString()}`,
 			);
 		}
 		const activeDelegateVoteWeights = voteWeight.delegates.slice(
@@ -200,7 +201,7 @@ export class Dpos {
 
 		if (!foundForgerList) {
 			throw new Error(
-				`Forger list not found for round ${relevantRound} for the given height ${height}`,
+				`Forger list not found for round ${relevantRound.toString()} for the given height ${height.toString()}`,
 			);
 		}
 
@@ -208,40 +209,7 @@ export class Dpos {
 			standByDelegate => standByDelegate === address,
 		);
 
-		return isStandby ? true : false;
-	}
-
-	/**
-	 * Important: delegateLists must be sorted by round number
-	 * in descending order.
-	 */
-	private _findEarliestActiveListRound(
-		address: string,
-		previousLists: ForgersList,
-		delegateActiveRoundLimit: number = this.delegateActiveRoundLimit,
-	): number {
-		if (!previousLists.length) {
-			return 0;
-		}
-
-		// Checking the latest 303 blocks is enough
-		const lists = previousLists.slice(0, delegateActiveRoundLimit);
-
-		// tslint:disable-next-line:no-let prefer-for-of
-		for (let i = 0; i < lists.length; i += 1) {
-			const { round, delegates } = lists[i];
-
-			if (delegates.indexOf(address) === -1) {
-				// Since we are iterating backwards,
-				// If the delegate is not in this list
-				// That means delegate was in the next round :)
-				return round + 1;
-			}
-		}
-
-		// If the loop above is not broken until this point that means,
-		// Delegate was always active in the given `previousLists`.
-		return lists[lists.length - 1].round;
+		return !!isStandby;
 	}
 
 	public async verifyBlockForger(block: BlockHeader): Promise<boolean> {
@@ -273,6 +241,7 @@ export class Dpos {
 	}
 
 	// This function is used in block_processor_v2 to check the dpos compliance and update/validate the reward
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async isDPoSProtocolCompliant(
 		blockHeader: BlockHeader,
 		store: StateStore,
@@ -317,5 +286,38 @@ export class Dpos {
 		});
 
 		return false;
+	}
+
+	/**
+	 * Important: delegateLists must be sorted by round number
+	 * in descending order.
+	 */
+	private _findEarliestActiveListRound(
+		address: string,
+		previousLists: ForgersList,
+		delegateActiveRoundLimit: number = this.delegateActiveRoundLimit,
+	): number {
+		if (!previousLists.length) {
+			return 0;
+		}
+
+		// Checking the latest 303 blocks is enough
+		const lists = previousLists.slice(0, delegateActiveRoundLimit);
+
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < lists.length; i += 1) {
+			const { round, delegates } = lists[i];
+
+			if (!delegates.includes(address)) {
+				// Since we are iterating backwards,
+				// If the delegate is not in this list
+				// That means delegate was in the next round :)
+				return round + 1;
+			}
+		}
+
+		// If the loop above is not broken until this point that means,
+		// Delegate was always active in the given `previousLists`.
+		return lists[lists.length - 1].round;
 	}
 }

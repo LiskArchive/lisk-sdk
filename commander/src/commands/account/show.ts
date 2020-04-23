@@ -20,7 +20,9 @@ import BaseCommand from '../../base';
 import { flags as commonFlags } from '../../utils/flags';
 import { getPassphraseFromPrompt } from '../../utils/reader';
 
-const processInput = (passphrase: string) => {
+const processInput = (
+	passphrase: string,
+): { privateKey: string; publicKey: string; address: string } => {
 	const { privateKey, publicKey } = getKeys(passphrase);
 	const address = getAddressFromPublicKey(publicKey);
 

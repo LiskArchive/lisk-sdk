@@ -52,7 +52,7 @@ describe('data access - storage', () => {
 	let storageMock: any;
 	let storageAccess: StorageAccess;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageMock = {
 			entities: {
 				Block: {
@@ -85,7 +85,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getBlockHeadersByIDs', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
@@ -104,7 +104,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getBlockHeadersByHeightBetween', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
@@ -123,7 +123,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getBlockHeadersWithHeights', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
@@ -141,7 +141,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getLastBlockHeader', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
 		});
@@ -157,7 +157,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getLastCommonBlockHeader', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
 		});
@@ -176,7 +176,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getBlocksCount', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.count.mockResolvedValue(2);
 		});
@@ -192,7 +192,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getBlocksByIDs', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
@@ -208,7 +208,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getBlocksByHeightBetween', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue(defaultBlocks);
 		});
@@ -227,7 +227,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getLastBlock', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.get.mockResolvedValue([defaultBlocks[1]]);
 		});
@@ -243,7 +243,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getTempBlocks', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.TempBlock.get.mockResolvedValue(defaultBlocks);
 		});
@@ -259,7 +259,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#isTempBlockEmpty', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.TempBlock.isEmpty.mockResolvedValue(true);
 		});
@@ -295,7 +295,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#isBlockPersisted', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Block.isPersisted.mockResolvedValue(true);
 		});
@@ -311,7 +311,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getAccountsByPublicKey', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
 		});
@@ -329,7 +329,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getAccountsByAddress', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Account.get.mockResolvedValue(defaultAccounts);
 		});
@@ -358,7 +358,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#getTransactionsByIDs', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Transaction.get.mockResolvedValue(
 				defaultTransactions,
@@ -379,7 +379,7 @@ describe('data access - storage', () => {
 	});
 
 	describe('#isTransactionPersisted', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageMock.entities.Transaction.isPersisted.mockResolvedValue(true);
 		});

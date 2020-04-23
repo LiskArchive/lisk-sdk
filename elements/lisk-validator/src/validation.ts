@@ -139,7 +139,7 @@ export const isRangedSemVer = (version: string): boolean =>
 export const isLessThanRangedVersion = isLessThanVersionInRange;
 export const isGreaterThanRangedVersion = isGreaterThanVersionInRange;
 
-export const isProtocolString = (data: string) =>
+export const isProtocolString = (data: string): boolean =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
 const IPV4_NUMBER = '4';
@@ -153,7 +153,7 @@ export const isIPV6 = (data: string): boolean =>
 
 export const isIP = (data: string): boolean => isIPV4(data) || isIPV6(data);
 
-export const isPort = (port: string) => validator.isPort(port);
+export const isPort = (port: string): boolean => validator.isPort(port);
 
 export const validatePublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
@@ -203,7 +203,7 @@ export const validateAddress = (address: string): boolean => {
 		);
 	}
 
-	if (address[address.length - 1] !== 'L') {
+	if (!address.endsWith('L')) {
 		throw new Error(
 			'Address format does not match requirements. Expected "L" at the end.',
 		);
@@ -276,7 +276,9 @@ export const isValidTransferData = (data: string): boolean =>
 	Buffer.byteLength(data, 'utf8') <= MAX_TRANSFER_ASSET_DATA_LENGTH;
 
 const NETWORK_IDENTIFIER_LENGTH = 32;
-export const validateNetworkIdentifier = (networkIdentifier: string) => {
+export const validateNetworkIdentifier = (
+	networkIdentifier: string,
+): boolean => {
 	if (!networkIdentifier) {
 		throw new Error(`Network identifier can not be empty.`);
 	}

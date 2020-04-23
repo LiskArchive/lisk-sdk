@@ -42,15 +42,15 @@ describe('api utils module', () => {
 		});
 
 		it('should throw error if url has variable but no param', () => {
-			return expect(
-				solveURLParams.bind(null, `${defaultURL}/{id}`),
-			).toThrowError(Error);
+			return expect(solveURLParams.bind(null, `${defaultURL}/{id}`)).toThrow(
+				Error,
+			);
 		});
 
 		it('should throw error if url has variable but not matching params', () => {
 			return expect(
 				solveURLParams.bind(null, `${defaultURL}/{id}`, { accountId: '123' }),
-			).toThrowError(Error);
+			).toThrow(Error);
 		});
 
 		it('should replace variable with correct id', () => {

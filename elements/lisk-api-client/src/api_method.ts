@@ -28,8 +28,7 @@ import { solveURLParams, toQueryString } from './utils';
 export const apiMethod = (options: RequestConfig = {}): APIHandler =>
 	async function apiHandler(
 		this: Resource,
-		// tslint:disable-next-line readonly-array
-		...args: Array<number | string | object>
+		...args: ReadonlyArray<number | string | object>
 	): Promise<APIResponse> {
 		const {
 			method = GET,
@@ -59,7 +58,6 @@ export const apiMethod = (options: RequestConfig = {}): APIHandler =>
 		}
 
 		const resolvedURLObject = urlParams.reduce(
-			// tslint:disable-next-line no-inferred-empty-object-type
 			(accumulator: HashMap, param: string, i: number): HashMap => {
 				const value = args[i];
 				if (typeof value !== 'string' && typeof value !== 'number') {

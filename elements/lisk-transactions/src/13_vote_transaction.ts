@@ -62,7 +62,6 @@ const voteAssetFormatSchema = {
 
 const SIZE_INT64 = 8;
 const SIZE_UINT64 = SIZE_INT64;
-// tslint:disable-next-line no-magic-numbers
 const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
@@ -77,8 +76,8 @@ interface RawAsset {
 }
 
 export class VoteTransaction extends BaseTransaction {
-	public readonly asset: VoteAsset;
 	public static TYPE = 13;
+	public readonly asset: VoteAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -100,7 +99,6 @@ export class VoteTransaction extends BaseTransaction {
 				}),
 			};
 		} else {
-			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = { votes: [] };
 		}
 	}
@@ -112,6 +110,20 @@ export class VoteTransaction extends BaseTransaction {
 				amount: vote.amount.toString(),
 			})),
 		};
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		const addressArray = this.asset.votes.map(vote => ({
+			address: vote.delegateAddress,
+		}));
+		const filterArray = [
+			{
+				address: this.senderId,
+			},
+			...addressArray,
+		];
+
+		await store.account.cache(filterArray);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -134,20 +146,6 @@ export class VoteTransaction extends BaseTransaction {
 		return Buffer.concat(bufferArray);
 	}
 
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const addressArray = this.asset.votes.map(vote => ({
-			address: vote.delegateAddress,
-		}));
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...addressArray,
-		];
-
-		await store.account.cache(filterArray);
-	}
-
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
 		const schemaErrors = validator.validate(voteAssetFormatSchema, asset);
@@ -156,9 +154,7 @@ export class VoteTransaction extends BaseTransaction {
 			schemaErrors,
 		) as TransactionError[];
 
-		// tslint:disable-next-line no-let
 		let upvoteCount = 0;
-		// tslint:disable-next-line no-let
 		let downvoteCount = 0;
 		const addressSet = new Set();
 		for (const vote of this.asset.votes) {
@@ -255,6 +251,7 @@ export class VoteTransaction extends BaseTransaction {
 						'.asset.votes.delegateAddress',
 					),
 				);
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			if (vote.amount < BigInt(0)) {
@@ -269,6 +266,7 @@ export class VoteTransaction extends BaseTransaction {
 							'.asset.votes.delegateAddress',
 						),
 					);
+					// eslint-disable-next-line no-continue
 					continue;
 				}
 				sender.votes[originalUpvoteIndex].amount += vote.amount;
@@ -300,7 +298,7 @@ export class VoteTransaction extends BaseTransaction {
 				if (sender.unlocking.length > MAX_UNLOCKING) {
 					errors.push(
 						new TransactionError(
-							`Cannot downvote which exceeds account.unlocking to have more than ${MAX_UNLOCKING}`,
+							`Cannot downvote which exceeds account.unlocking to have more than ${MAX_UNLOCKING.toString()}`,
 							this.id,
 							'.asset.votes',
 						),
@@ -341,7 +339,7 @@ export class VoteTransaction extends BaseTransaction {
 				if (sender.votes.length > MAX_VOTE) {
 					errors.push(
 						new TransactionError(
-							`Account can only vote upto ${MAX_VOTE}`,
+							`Account can only vote upto ${MAX_VOTE.toString()}`,
 							this.id,
 							'.asset.votes.amount',
 						),

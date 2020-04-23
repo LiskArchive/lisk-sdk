@@ -40,7 +40,7 @@ describe(`Event on ${EVENT_NETWORK_READY}`, () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should fire ${EVENT_NETWORK_READY} event`, async () => {
+	it(`should fire ${EVENT_NETWORK_READY} event`, () => {
 		expect(collectedEvents.get(EVENT_NETWORK_READY)).toBeDefined();
 	});
 });

@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Dpos, constants } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
+import { Dpos, constants } from '../../src';
 import {
 	EPOCH_TIME,
 	ACTIVE_DELEGATES,
@@ -56,7 +56,6 @@ describe('dpos.undo()', () => {
 
 	describe('Given block is the genesis block (height === 1)', () => {
 		let genesisBlock: Block;
-		let stateStore: StateStoreMock;
 		let generator: Account;
 
 		beforeEach(() => {
@@ -80,7 +79,7 @@ describe('dpos.undo()', () => {
 		let generator: Account;
 		let block: Block;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			generator = { ...delegateAccounts[0] };
 			block = {
@@ -224,7 +223,7 @@ describe('dpos.undo()', () => {
 			const consensusState =
 				(await stateStore.consensus.get(CONSENSUS_STATE_VOTE_WEIGHTS_KEY)) ??
 				'[]';
-			const voteWeights = JSON.parse(consensusState as string) as ForgersList;
+			const voteWeights = JSON.parse(consensusState) as ForgersList;
 			const filteredVoteWeights = voteWeights.filter(
 				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
 			);
@@ -242,7 +241,7 @@ describe('dpos.undo()', () => {
 			const consensusState =
 				(await stateStore.consensus.get(CONSENSUS_STATE_FORGERS_LIST_KEY)) ??
 				'[]';
-			const forgersList = JSON.parse(consensusState as string) as ForgersList;
+			const forgersList = JSON.parse(consensusState) as ForgersList;
 			const filteredList = forgersList.filter(fl => fl.round > roundNo);
 			expect(filteredList).toHaveLength(0);
 		});

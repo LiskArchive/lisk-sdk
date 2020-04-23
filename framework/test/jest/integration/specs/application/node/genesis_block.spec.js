@@ -20,7 +20,7 @@ const {
 	storageUtils,
 	configUtils,
 } = require('../../../../../utils');
-const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block');
+const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block.json');
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';

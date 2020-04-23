@@ -44,15 +44,16 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 		}),
 	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const {
 			flags: { 'community-identifier': communityIdentifier },
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { genesisPayloadHash },
 		} = this.parse(NetworkIdentifierCommand);
 		const networkIdentifier = getNetworkIdentifier(
 			genesisPayloadHash as string,
-			communityIdentifier as string,
+			communityIdentifier,
 		);
 		this.print({ networkIdentifier });
 	}

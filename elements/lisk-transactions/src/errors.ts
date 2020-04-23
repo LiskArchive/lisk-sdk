@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable max-classes-per-file
 export class TransactionError extends Error {
 	public message: string;
 	public id: string;
@@ -20,9 +19,9 @@ export class TransactionError extends Error {
 	public actual?: string | number;
 	public expected?: string | number;
 	public constructor(
-		message: string = '',
-		id: string = '',
-		dataPath: string = '',
+		message = '',
+		id = '',
+		dataPath = '',
 		actual?: string | number,
 		expected?: string | number,
 	) {
@@ -38,10 +37,12 @@ export class TransactionError extends Error {
 	public toString(): string {
 		const defaultMessage = `Transaction: ${this.id} failed at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
-			? `${defaultMessage}, actual: ${this.actual}`
+			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			  `${defaultMessage}, actual: ${this.actual}`
 			: defaultMessage;
 		const withExpected = this.expected
-			? `${withActual}, expected: ${this.expected}`
+			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			  `${withActual}, expected: ${this.expected}`
 			: withActual;
 
 		return withExpected;
@@ -55,7 +56,6 @@ interface ErrorObject {
 
 export const convertToTransactionError = (
 	id: string,
-	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -65,6 +65,7 @@ export const convertToTransactionError = (
 	return errors.map(
 		error =>
 			new TransactionError(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`'${error.dataPath}' ${error.message}`,
 				id,
 				error.dataPath,
@@ -74,7 +75,6 @@ export const convertToTransactionError = (
 
 export const convertToAssetError = (
 	id: string,
-	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -84,8 +84,10 @@ export const convertToAssetError = (
 	return errors.map(
 		error =>
 			new TransactionError(
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition,@typescript-eslint/restrict-template-expressions
 				`'${error.dataPath || '.asset'}' ${error.message}`,
 				id,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				error.dataPath || '.asset',
 			),
 	);

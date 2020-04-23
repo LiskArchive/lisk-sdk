@@ -45,7 +45,7 @@ describe('Delegate registration transaction class', () => {
 		},
 	};
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		validTestTransaction = new DelegateTransaction({
 			...validDelegateTransaction,
 			networkIdentifier,
@@ -66,17 +66,17 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#constructor', () => {
-		it('should create instance of  DelegateTransaction', async () => {
+		it('should create instance of  DelegateTransaction', () => {
 			expect(validTestTransaction).toBeInstanceOf(DelegateTransaction);
 		});
 
-		it('should set the delegate asset', async () => {
+		it('should set the delegate asset', () => {
 			expect(validTestTransaction.asset.username).toEqual(
 				validDelegateTransaction.asset.username,
 			);
 		});
 
-		it('should not throw when asset is not valid string', async () => {
+		it('should not throw when asset is not valid string', () => {
 			const invalidDelegateTransactionData = {
 				...validDelegateTransaction,
 				asset: {
@@ -85,10 +85,10 @@ describe('Delegate registration transaction class', () => {
 			};
 			expect(
 				() => new DelegateTransaction(invalidDelegateTransactionData),
-			).not.toThrowError();
+			).not.toThrow();
 		});
 
-		it('should create instance of DelegateTransaction when rawTransaction is empty', async () => {
+		it('should create instance of DelegateTransaction when rawTransaction is empty', () => {
 			const validEmptyTestTransaction = new DelegateTransaction(null);
 			expect(validEmptyTestTransaction).toBeInstanceOf(DelegateTransaction);
 		});
@@ -107,7 +107,7 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#assetToBytes', () => {
-		it('should return valid buffer', async () => {
+		it('should return valid buffer', () => {
 			const assetBytes = (validTestTransaction as any).assetToBytes();
 			expect(assetBytes).toEqual(
 				Buffer.from(validDelegateTransaction.asset.username, 'utf8'),
@@ -116,7 +116,7 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', async () => {
+		it('should return an object of type transfer asset', () => {
 			expect(validTestTransaction.assetToJSON()).toHaveProperty('username');
 		});
 	});
@@ -132,12 +132,12 @@ describe('Delegate registration transaction class', () => {
 	});
 
 	describe('#validateAsset', () => {
-		it('should no errors', async () => {
+		it('should no errors', () => {
 			const errors = (validTestTransaction as any).validateAsset();
 			expect(errors).toHaveLength(0);
 		});
 
-		it('should return error when asset includes invalid characters', async () => {
+		it('should return error when asset includes invalid characters', () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
@@ -149,7 +149,7 @@ describe('Delegate registration transaction class', () => {
 			expect(errors).toHaveLength(1);
 		});
 
-		it('should return error when asset includes uppercase', async () => {
+		it('should return error when asset includes uppercase', () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {
@@ -161,7 +161,7 @@ describe('Delegate registration transaction class', () => {
 			expect(errors).toHaveLength(1);
 		});
 
-		it('should error when asset is potential address', async () => {
+		it('should error when asset is potential address', () => {
 			const invalidTransaction = {
 				...validDelegateTransaction,
 				asset: {

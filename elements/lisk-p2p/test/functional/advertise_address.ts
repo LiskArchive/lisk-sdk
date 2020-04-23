@@ -24,7 +24,7 @@ import { wait } from '../utils/helpers';
 describe('Advertise Address', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-	const p2pConfig = (wsPort: number, advertiseAddress: boolean = true) => ({
+	const p2pConfig = (wsPort: number, advertiseAddress = true) => ({
 		connectTimeout: 100,
 		ackTimeout: 200,
 		seedPeers: [
@@ -61,7 +61,7 @@ describe('Advertise Address', () => {
 		await p2pNode.start();
 		await wait(400);
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
 				.filter(p => p.wsPort === advertisePeerPort);
@@ -77,7 +77,7 @@ describe('Advertise Address', () => {
 		await p2pNode.start();
 		await wait(400);
 
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
 			const connectedPeers = p2p
 				.getConnectedPeers()
 				.filter(p => p.wsPort === advertisePeerPort);

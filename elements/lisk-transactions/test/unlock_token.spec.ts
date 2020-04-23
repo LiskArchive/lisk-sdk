@@ -21,7 +21,7 @@ describe('#unlockToken transaction', () => {
 	let unlockTokenTransaction: Partial<TransactionJSON>;
 
 	describe('when the transaction is created with one passphrase and the unlocking objects', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			unlockTokenTransaction = unlockToken({
 				passphrase:
 					validUnlockTransactionScenario.testCases.input.account.passphrase,
@@ -33,7 +33,7 @@ describe('#unlockToken transaction', () => {
 			});
 		});
 
-		it('should create a unlock transaction', async () => {
+		it('should create a unlock transaction', () => {
 			expect(unlockTokenTransaction.id).toEqual(
 				validUnlockTransactionScenario.testCases.output.id,
 			);
@@ -56,7 +56,7 @@ describe('#unlockToken transaction', () => {
 						fee: validUnlockTransactionScenario.testCases.output.fee,
 						nonce: validUnlockTransactionScenario.testCases.output.nonce,
 					}),
-				).toThrowError('Unlocking object must present to create transaction.');
+				).toThrow('Unlocking object must present to create transaction.');
 			});
 		});
 
@@ -82,7 +82,7 @@ describe('#unlockToken transaction', () => {
 						fee: validUnlockTransactionScenario.testCases.output.fee,
 						nonce: validUnlockTransactionScenario.testCases.output.nonce,
 					}),
-				).toThrowError('Amount cannot be less than or equal to zero');
+				).toThrow('Amount cannot be less than or equal to zero');
 			});
 		});
 
@@ -105,14 +105,14 @@ describe('#unlockToken transaction', () => {
 						fee: validUnlockTransactionScenario.testCases.output.fee,
 						nonce: validUnlockTransactionScenario.testCases.output.nonce,
 					}),
-				).toThrowError('should NOT have more than 20 item');
+				).toThrow('should NOT have more than 20 item');
 			});
 		});
 	});
 
 	describe('unsigned unlock transaction', () => {
 		describe('when the unlock transaction is created without a passphrase', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				unlockTokenTransaction = unlockToken({
 					unlockingObjects: validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
 					networkIdentifier:

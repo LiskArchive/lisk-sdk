@@ -14,9 +14,10 @@
  */
 import { when } from 'jest-when';
 // Require is used for stubbing
+// eslint-disable-next-line
 const moduleLibrary = require('module');
 
-const resetTest = () => {
+const resetTest = (): void => {
 	// Reset environment variable
 	delete process.env.NACL_FAST;
 	// Delete require cache to force it to re-load module
@@ -47,40 +48,43 @@ describe('nacl index.js', () => {
 			resetTest();
 		});
 
-		it('should load nacl fast if process.env.NACL_FAST is set to enable', async () => {
+		it('should load nacl fast if process.env.NACL_FAST is set to enable', () => {
 			// Arrange
 			process.env.NACL_FAST = 'enable';
-			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			const requireMock = jest.spyOn(moduleLibrary.prototype, 'require');
 			// Act
+			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 			// Assert
 			// Loading chain of Sodium-native module
-			expect(requireMock).toBeCalledWith('fs');
-			expect(requireMock).toBeCalledWith('path');
-			expect(requireMock).toBeCalledWith('os');
+			expect(requireMock).toHaveBeenCalledWith('fs');
+			expect(requireMock).toHaveBeenCalledWith('path');
+			expect(requireMock).toHaveBeenCalledWith('os');
 		});
 
-		it('should load nacl slow if process.env.NACL_FAST is set to disable', async () => {
+		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			// Arrange
 			process.env.NACL_FAST = 'disable';
-			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			const requireMock = jest.spyOn(moduleLibrary.prototype, 'require');
 			// Act
+			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 			// Assert
-			expect(requireMock).toBeCalledWith('crypto');
+			expect(requireMock).toHaveBeenCalledWith('crypto');
 		});
 
-		it('should load nacl fast if process.env.NACL_FAST is undefined', async () => {
+		it('should load nacl fast if process.env.NACL_FAST is undefined', () => {
 			// Arrange
 			process.env.NACL_FAST = undefined;
-			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			const requireMock = jest.spyOn(moduleLibrary.prototype, 'require');
 			// Act
+			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 			// Assert
 			// Loading chain of Sodium-native module
-			expect(requireMock).toBeCalledWith('fs');
-			expect(requireMock).toBeCalledWith('path');
-			expect(requireMock).toBeCalledWith('os');
+			expect(requireMock).toHaveBeenCalledWith('fs');
+			expect(requireMock).toHaveBeenCalledWith('path');
+			expect(requireMock).toHaveBeenCalledWith('os');
 		});
 	});
 
@@ -91,8 +95,8 @@ describe('nacl index.js', () => {
 			resetTest();
 		});
 
-		it('should not set process.env.NACL_FAST to disable', async () => {
-			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+		it('should not set process.env.NACL_FAST to disable', () => {
+			const requireMock = jest.spyOn(moduleLibrary.prototype, 'require');
 
 			when(requireMock)
 				.calledWith('fs')
@@ -100,20 +104,22 @@ describe('nacl index.js', () => {
 					throw moduleNotFoundError;
 				});
 
+			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 			expect(process.env.NACL_FAST).not.toEqual('disable');
 		});
 
-		it('should load nacl slow if process.env.NACL_FAST is set to disable', async () => {
+		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			// Arrange
 			process.env.NACL_FAST = 'disable';
-			const requireMock = jest.spyOn(moduleLibrary.prototype as any, 'require');
+			const requireMock = jest.spyOn(moduleLibrary.prototype, 'require');
 
 			// Act
+			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 
 			// Assert
-			expect(requireMock).toBeCalledWith('crypto');
+			expect(requireMock).toHaveBeenCalledWith('crypto');
 		});
 	});
 });

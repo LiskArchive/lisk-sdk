@@ -33,6 +33,7 @@ describe('Cleanup unresponsive peers', () => {
 
 	it('should remove crashed nodes from network status of other nodes', async () => {
 		// Arrange
+		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const peerPortsbeforePeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
 			.map(peerInfo => peerInfo.wsPort)
@@ -44,6 +45,7 @@ describe('Cleanup unresponsive peers', () => {
 		await wait(DEFAULT_CONNECTION_TIMEOUT);
 
 		// Assert
+		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 		const peerPortsAfterPeerCrash = p2pNodeList[2]
 			.getConnectedPeers()
 			.map(peerInfo => peerInfo.wsPort)

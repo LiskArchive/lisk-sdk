@@ -60,18 +60,18 @@ export default abstract class BaseCommand extends Command {
 		pretty: true,
 	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
 			this.error(error instanceof Error ? error.message : error);
 		}
 	}
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async init(): Promise<void> {
 		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
 		const { flags } = this.parse(
-			// tslint:disable-next-line no-any
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(this.constructor as unknown) as flagParser.Input<any>,
 		);
 		this.printFlags = flags as PrintFlags;
@@ -79,7 +79,7 @@ export default abstract class BaseCommand extends Command {
 		process.stdout.on('error', handleEPIPE);
 
 		process.env.XDG_CONFIG_HOME =
-			process.env.LISK_COMMANDER_CONFIG_DIR ||
+			process.env.LISK_COMMANDER_CONFIG_DIR ??
 			`${os.homedir()}/${defaultConfigFolder}`;
 		this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
 	}

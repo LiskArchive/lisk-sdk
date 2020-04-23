@@ -33,6 +33,7 @@ export const config = {
 		system: {},
 	},
 	modules: {
+		// eslint-disable-next-line camelcase
 		http_api: {
 			access: {
 				public: true,

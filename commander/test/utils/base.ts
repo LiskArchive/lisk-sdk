@@ -32,6 +32,7 @@ describe('base command', () => {
 	const printMethodStub = sandbox.stub();
 
 	class BaseExtended extends BaseCommand {
+		// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
 		async run(): Promise<void> {}
 	}
 
@@ -119,7 +120,7 @@ describe('base command', () => {
 
 		setupTest()
 			.env({ XDG_CONFIG_HOME: 'home' })
-			.do(async ctx => ctx.command.print(result, true))
+			.do(ctx => ctx.command.print(result, true))
 			.it(
 				'should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true',
 				() =>
@@ -129,7 +130,7 @@ describe('base command', () => {
 			);
 
 		setupTest()
-			.do(async ctx => {
+			.do(ctx => {
 				ctx.command.userConfig = {} as any;
 				return ctx.command.print(result);
 			})
@@ -139,7 +140,7 @@ describe('base command', () => {
 			);
 
 		setupTest()
-			.do(async ctx => {
+			.do(ctx => {
 				ctx.command.userConfig = {} as any;
 				return ctx.command.print(result);
 			})
@@ -148,7 +149,7 @@ describe('base command', () => {
 			);
 
 		setupTest()
-			.do(async ctx => {
+			.do(ctx => {
 				ctx.command.userConfig = {
 					json: false,
 				} as any;
@@ -166,7 +167,7 @@ describe('base command', () => {
 				json: true,
 				pretty: false,
 			})
-			.do(async ctx => {
+			.do(ctx => {
 				ctx.command.userConfig = {
 					json: false,
 					pretty: true,

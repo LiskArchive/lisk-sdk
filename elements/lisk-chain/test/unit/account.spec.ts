@@ -85,13 +85,9 @@ describe('account', () => {
 
 			// Check for delegate.pomHeights array
 			accountObj.delegate.pomHeights.push(900);
-			expect(accountObj.delegate.pomHeights as number[]).toIncludeAnyMembers([
-				900,
-			]);
+			expect(accountObj.delegate.pomHeights).toIncludeAnyMembers([900]);
 			// Make sure the original object's value is not modified
-			expect(
-				accountJSON.delegate.pomHeights as number[],
-			).not.toIncludeAnyMembers([900]);
+			expect(accountJSON.delegate.pomHeights).not.toIncludeAnyMembers([900]);
 
 			// Check for keys.mandatoryKeys array
 			accountObj.keys.mandatoryKeys.push('xx');
@@ -133,15 +129,15 @@ describe('account', () => {
 		let accountObj: Account;
 		it('should return an instance of Account class with default values for a given address', () => {
 			accountObj = Account.getDefaultAccount(accountAddress);
-			expect(accountObj).toBeObject;
+			expect(accountObj).toBeObject();
 			expect(accountObj).toHaveProperty('address');
 			expect(accountObj.address).toEqual(accountAddress);
 			expect(accountObj.balance).toEqual(BigInt('0'));
 			expect(accountObj.fees).toEqual(BigInt('0'));
 			expect(accountObj.rewards).toEqual(BigInt('0'));
 			expect(accountObj.totalVotesReceived).toEqual(BigInt('0'));
-			expect(accountObj.username).toBeNull;
-			expect(accountObj.publicKey).toEqual(undefined);
+			expect(accountObj.username).toBeNull();
+			expect(accountObj.publicKey).toBeUndefined();
 			expect(accountObj.isDelegate).toEqual(0);
 			expect(accountObj.missedBlocks).toEqual(0);
 			expect(accountObj.producedBlocks).toEqual(0);
@@ -195,8 +191,8 @@ describe('account', () => {
 			expect(accountJSON.balance).toEqual('0');
 			expect(accountJSON.fees).toEqual('0');
 			expect(accountJSON.rewards).toEqual('0');
-			expect(accountJSON.username).toBeNull;
-			expect(accountJSON.publicKey).toEqual(undefined);
+			expect(accountJSON.username).toBeNull();
+			expect(accountJSON.publicKey).toBeUndefined();
 			expect(accountJSON.isDelegate).toEqual(0);
 			expect(accountJSON.missedBlocks).toEqual(0);
 			expect(accountJSON.producedBlocks).toEqual(0);

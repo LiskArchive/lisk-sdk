@@ -16,8 +16,9 @@ import { registerMultisignature } from '../src/register_multisignature_account';
 import { signMultiSignatureTransaction } from '../src/sign_multi_signature_transaction';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { TransactionJSON } from '../src/transaction_types';
-import cloneDeep = require('lodash.clonedeep');
 import { TransferTransaction } from '../src';
+
+import cloneDeep = require('lodash.clonedeep');
 
 describe('#sign multi signature transaction', () => {
 	let registrationTx: Partial<TransactionJSON>;
@@ -43,11 +44,11 @@ describe('#sign multi signature transaction', () => {
 	};
 
 	describe('Members signing', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			registrationTx = registerMultisignature(registerMultisignatureInput);
 		});
 
-		it('should return a transaction signed by first mandatory key', async () => {
+		it('should return a transaction signed by first mandatory key', () => {
 			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
 
 			const txSignedByMember = signMultiSignatureTransaction({
@@ -73,7 +74,7 @@ describe('#sign multi signature transaction', () => {
 			);
 		});
 
-		it('should return a transaction signed by second mandatory key', async () => {
+		it('should return a transaction signed by second mandatory key', () => {
 			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
 
 			const txSignedByMember = signMultiSignatureTransaction({
@@ -99,7 +100,7 @@ describe('#sign multi signature transaction', () => {
 			);
 		});
 
-		it('should return a transaction signed by first optional key', async () => {
+		it('should return a transaction signed by first optional key', () => {
 			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
 
 			const txSignedByMember = signMultiSignatureTransaction({
@@ -125,7 +126,7 @@ describe('#sign multi signature transaction', () => {
 			);
 		});
 
-		it('should return a transaction signed by second optional key', async () => {
+		it('should return a transaction signed by second optional key', () => {
 			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
 
 			const txSignedByMember = signMultiSignatureTransaction({
@@ -151,7 +152,7 @@ describe('#sign multi signature transaction', () => {
 			);
 		});
 
-		it('should return a transaction with third signature and empty string for the rest', async () => {
+		it('should return a transaction with third signature and empty string for the rest', () => {
 			const validTransfer = new TransferTransaction({
 				id: 123,
 				senderPublicKey:
@@ -190,7 +191,7 @@ describe('#sign multi signature transaction', () => {
 			]);
 		});
 
-		it('should return a transaction with third signature added and existing ones unmodified', async () => {
+		it('should return a transaction with third signature added and existing ones unmodified', () => {
 			const validTransfer = new TransferTransaction({
 				id: 123,
 				senderPublicKey:
@@ -233,7 +234,7 @@ describe('#sign multi signature transaction', () => {
 			]);
 		});
 
-		it('should return a transaction with no modifications if signature already present', async () => {
+		it('should return a transaction with no modifications if signature already present', () => {
 			const validTransfer = new TransferTransaction({
 				senderPublicKey:
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
@@ -275,7 +276,7 @@ describe('#sign multi signature transaction', () => {
 			]);
 		});
 
-		it('should return signature in the correct position', async () => {
+		it('should return signature in the correct position', () => {
 			const validTransfer = new TransferTransaction({
 				senderPublicKey:
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',

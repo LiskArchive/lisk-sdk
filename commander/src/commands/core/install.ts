@@ -230,18 +230,21 @@ export default class InstallCommand extends BaseCommand {
 									flags as Flags,
 									name,
 								);
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 								ctx.options = options;
 							},
 						},
 						{
 							title: 'Validate root user, flags, prerequisites',
 							task: async ctx => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 								const { installDir, latestUrl } = ctx.options;
 								validateNotARootUser();
 								validateFlags(flags as Flags);
 								validatePrerequisite(installDir);
 								if (liskVersion) {
 									await validateVersion(latestUrl, liskVersion);
+									// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 									ctx.options.version = liskVersion;
 								}
 							},
@@ -249,6 +252,7 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Download Lisk Core Release and Blockchain Snapshot',
 							task: async ctx => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 								const { liskTarUrl }: Options = ctx.options;
 
 								if (!noSnapshot && snapshotURL.trim() !== '') {
@@ -260,6 +264,7 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Extract Lisk Core',
 							task: async ctx => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 								const { installDir, liskTarUrl }: Options = ctx.options;
 								const { fileName, fileDir } = getDownloadedFileInfo(
 									liskTarUrl,
@@ -273,6 +278,7 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Register Lisk Core',
 							task: async ctx => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 								const { installDir }: Options = ctx.options;
 								const envConfig = await generateEnvConfig(network);
 
@@ -282,6 +288,7 @@ export default class InstallCommand extends BaseCommand {
 						{
 							title: 'Create Database and restore Lisk Blockchain Snapshot',
 							task: async ctx => {
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 								const { installDir }: Options = ctx.options;
 
 								await initDB(installDir);
@@ -314,7 +321,6 @@ export default class InstallCommand extends BaseCommand {
 
 			await tasks.run();
 			if (!noStart) {
-				// tslint:disable-next-line await-promise
 				await StartCommand.run([name]);
 				const newInstance = await describeApplication(name);
 				this.print(newInstance);
@@ -323,6 +329,7 @@ export default class InstallCommand extends BaseCommand {
 			}
 		} catch (error) {
 			await unRegisterApplication(name);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 			const { installDir }: Options = error.context.options;
 			const dirPath = installDir.substr(0, installDir.length - 1);
 

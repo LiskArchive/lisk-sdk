@@ -1,28 +1,12 @@
 module.exports = {
-	parser: '@typescript-eslint/parser',
+	extends: ['../.eslintrc.js'],
 	parserOptions: {
 		project: './tsconfig.json',
 		tsconfigRootDir: __dirname,
 	},
-	plugins: ['@typescript-eslint'],
-	extends: [
-		'../.eslintrc.json',
-		'plugin:@typescript-eslint/eslint-recommended',
-		'plugin:@typescript-eslint/all',
-		'prettier/@typescript-eslint',
-	],
 	rules: {
 		camelcase: ['warn', { properties: 'never' }],
 		strict: 'off',
-		'max-len': 'off',
-		'no-underscore-dangle': 'off',
-		'@typescript-eslint/no-throw-literal': 'off',
-		'@typescript-eslint/no-dynamic-delete': 'off',
-		'@typescript-eslint/no-implied-eval': 'off',
-		'@typescript-eslint/strict-boolean-expressions': 'off',
-		// Enforced by typescript
-		'@typescript-eslint/no-unused-vars': 'off',
-		'@typescript-eslint/no-unused-vars-experimental': 'off',
 		'space-before-function-paren': ['warn'],
 		'no-param-reassign': ['warn'],
 		'no-throw-literal': ['warn'],

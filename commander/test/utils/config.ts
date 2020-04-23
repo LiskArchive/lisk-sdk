@@ -18,10 +18,10 @@ import { expect } from 'chai';
 import fs from 'fs';
 import os from 'os';
 import lockfile from 'lockfile';
+import { SinonStub } from 'sinon';
 import { getConfig, setConfig } from '../../src/utils/config';
 import * as fsUtils from '../../src/utils/fs';
 import * as defaultConfig from '../../src/default_config.json';
-import { SinonStub } from 'sinon';
 
 describe('config utils', () => {
 	const configDirName = '.lisk';
@@ -37,7 +37,6 @@ describe('config utils', () => {
 
 	beforeEach(() => {
 		writeJSONSyncStub = sandbox.stub(fsUtils, 'writeJSONSync');
-		return Promise.resolve();
 	});
 
 	describe('#getConfig', () => {
@@ -47,7 +46,6 @@ describe('config utils', () => {
 			readJSONSyncStub = sandbox
 				.stub(fsUtils, 'readJSONSync')
 				.returns(defaultConfig);
-			return Promise.resolve();
 		});
 
 		describe('when config folder does not exist', () => {
@@ -96,9 +94,7 @@ describe('config utils', () => {
 			});
 
 			it('should return the custom config when it is valid', () => {
-				const customConfig = Object.assign({}, defaultConfig, {
-					name: 'custom config',
-				});
+				const customConfig = { ...defaultConfig, name: 'custom config' };
 				readJSONSyncStub.returns(customConfig);
 				const result = getConfig(defaultPath);
 				expect(fsUtils.readJSONSync).to.be.calledWithExactly(
@@ -135,7 +131,6 @@ describe('config utils', () => {
 			checkSyncStub = sandbox.stub(lockfile, 'checkSync');
 			sandbox.stub(lockfile, 'lockSync');
 			sandbox.stub(lockfile, 'unlockSync');
-			return Promise.resolve();
 		});
 
 		describe('when lockfile exists', () => {

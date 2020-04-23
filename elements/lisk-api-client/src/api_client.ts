@@ -42,9 +42,9 @@ const getClientHeaders = (clientOptions: ClientOptions): HashMap => {
 	const liskElementsInformation =
 		'LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements)';
 	const locale: string | undefined =
-		process.env.LC_ALL ||
-		process.env.LC_MESSAGES ||
-		process.env.LANG ||
+		process.env.LC_ALL ??
+		process.env.LC_MESSAGES ??
+		process.env.LANG ??
 		process.env.LANGUAGE;
 	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
@@ -62,24 +62,6 @@ export interface ClientOptions {
 }
 
 export class APIClient {
-	public static get constants(): typeof constants {
-		return constants;
-	}
-
-	public static createMainnetAPIClient(options?: InitOptions): APIClient {
-		return new APIClient(constants.MAINNET_NODES, {
-			genesisBlockPayloadHash: constants.MAINNET_NETHASH,
-			...options,
-		});
-	}
-
-	public static createTestnetAPIClient(options?: InitOptions): APIClient {
-		return new APIClient(constants.TESTNET_NODES, {
-			genesisBlockPayloadHash: constants.TESTNET_NETHASH,
-			...options,
-		});
-	}
-
 	public accounts: AccountsResource;
 	public bannedNodes!: ReadonlyArray<string>;
 	public blocks: BlocksResource;
@@ -109,6 +91,24 @@ export class APIClient {
 		this.transactions = new TransactionsResource(this);
 		this.voters = new VotersResource(this);
 		this.votes = new VotesResource(this);
+	}
+
+	public static get constants(): typeof constants {
+		return constants;
+	}
+
+	public static createMainnetAPIClient(options?: InitOptions): APIClient {
+		return new APIClient(constants.MAINNET_NODES, {
+			genesisBlockPayloadHash: constants.MAINNET_NETHASH,
+			...options,
+		});
+	}
+
+	public static createTestnetAPIClient(options?: InitOptions): APIClient {
+		return new APIClient(constants.TESTNET_NODES, {
+			genesisBlockPayloadHash: constants.TESTNET_NETHASH,
+			...options,
+		});
 	}
 
 	public banActiveNode(): boolean {
@@ -177,8 +177,8 @@ export class APIClient {
 		};
 
 		this.nodes = nodes;
-		this.bannedNodes = [...(options.bannedNodes || [])];
-		this.currentNode = options.node || this.getNewNode();
+		this.bannedNodes = [...(options.bannedNodes ?? [])];
+		this.currentNode = options.node ?? this.getNewNode();
 		this.randomizeNodes = options.randomizeNodes !== false;
 	}
 

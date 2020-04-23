@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { platform } from 'os';
 import { P2P, events } from '../../../src/index';
 import { InvalidNodeInfoError } from '../../../src/errors';
 import { wait } from '../../utils/helpers';
-import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../../utils/network_setup';
 
 const { EVENT_MESSAGE_RECEIVED, REMOTE_EVENT_POST_NODE_INFO } = events;
@@ -28,7 +28,8 @@ describe('P2P.applyNodeInfo', () => {
 		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on(EVENT_MESSAGE_RECEIVED, request => {
 				if (request.event === REMOTE_EVENT_POST_NODE_INFO) {
 					collectedMessages.push({
@@ -61,7 +62,7 @@ describe('P2P.applyNodeInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should throw error when applying too large NodeInfo', async () => {
+	it('should throw error when applying too large NodeInfo', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		expect(() =>
@@ -77,19 +78,19 @@ describe('P2P.applyNodeInfo', () => {
 				nonce: 'nonce',
 				advertiseAddress: true,
 			}),
-		).toThrowError(InvalidNodeInfoError);
+		).toThrow(InvalidNodeInfoError);
 	});
 
-	it('should send the node info to peers', async () => {
+	it('should send the node info to peers', () => {
 		const firstP2PNode = p2pNodeList[0];
 		const nodePortToMessagesMap: any = {};
 
 		const connectedPeerCount = firstP2PNode.getConnectedPeers().length;
 
 		// Each peer of firstP2PNode should receive a message.
-		expect(collectedMessages.length).toBe(connectedPeerCount);
+		expect(collectedMessages).toHaveLength(connectedPeerCount);
 
-		for (let receivedMessageData of collectedMessages) {
+		for (const receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
@@ -102,12 +103,11 @@ describe('P2P.applyNodeInfo', () => {
 		Object.values(nodePortToMessagesMap)
 			.filter(
 				(receivedMessages: any) =>
-					receivedMessages &&
-					receivedMessages[0] &&
+					receivedMessages?.[0] &&
 					receivedMessages[0].nodePort !== firstP2PNode.nodeInfo.wsPort,
 			)
 			.forEach((receivedMessages: any) => {
-				expect(receivedMessages.length).toBe(1);
+				expect(receivedMessages).toHaveLength(1);
 
 				expect(receivedMessages[0].request).toMatchObject({
 					data: { height: 10 },
@@ -115,7 +115,7 @@ describe('P2P.applyNodeInfo', () => {
 			});
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
-		for (let p2pNode of p2pNodeList.slice(1)) {
+		for (const p2pNode of p2pNodeList.slice(1)) {
 			const firstP2PNodePeerInfo = p2pNode
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);
@@ -131,11 +131,11 @@ describe('P2P.applyNodeInfo', () => {
 		}
 	});
 
-	it('should update itself and reflect new node info', async () => {
+	it('should update itself and reflect new node info', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		// For each peer of firstP2PNode, check that the firstP2PNode's P2PPeerInfo was updated with the new height.
-		for (let p2pNode of p2pNodeList.slice(1)) {
+		for (const p2pNode of p2pNodeList.slice(1)) {
 			const firstNodeInConnectedPeer = p2pNode
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.wsPort === firstP2PNode.nodeInfo.wsPort);

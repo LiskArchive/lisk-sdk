@@ -43,7 +43,7 @@ const {
 	registeredTransactions,
 } = require('../../../../../../../utils/registered_transactions');
 
-const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block');
+const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block.json');
 const peersList = require('./peers');
 
 const ChannelMock = jest.genMockFromModule(

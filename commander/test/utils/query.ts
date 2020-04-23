@@ -15,8 +15,8 @@
  */
 import * as sandbox from 'sinon';
 import { expect } from 'chai';
-import { query, queryNodeTransaction } from '../../src/utils/query';
 import { APIClient } from '@liskhq/lisk-api-client';
+import { query, queryNodeTransaction } from '../../src/utils/query';
 
 describe('query utils', () => {
 	const defaultEndpoint = 'accounts';
@@ -59,7 +59,6 @@ describe('query utils', () => {
 				},
 			} as any;
 			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
-			return Promise.resolve();
 		});
 
 		it('should call API client and should reject with an error', () => {
@@ -84,7 +83,6 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			} as any;
-			return Promise.resolve();
 		});
 
 		it('should call API client and should reject with an error', () => {
@@ -132,7 +130,6 @@ describe('query utils', () => {
 				},
 			} as any;
 			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
-			return Promise.resolve();
 		});
 
 		it('should call API client and resolve to an object', () => {
@@ -164,7 +161,6 @@ describe('query utils', () => {
 				},
 			} as any;
 			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
-			return Promise.resolve();
 		});
 
 		it('should call API client and resolve to an array', () => {
@@ -189,7 +185,6 @@ describe('query utils', () => {
 				},
 			} as any;
 			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
-			return Promise.resolve();
 		});
 
 		it('should call API client and resolve to an object', () => {
@@ -201,7 +196,7 @@ describe('query utils', () => {
 	});
 
 	describe('an array of parameters objects is provided', () => {
-		beforeEach(() => {
+		beforeEach(async () => {
 			response = {
 				data: [
 					{
@@ -214,15 +209,13 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			} as any;
-			query(apiClient, defaultEndpoint, defaultArrayParameters);
-			return Promise.resolve();
+			return query(apiClient, defaultEndpoint, defaultArrayParameters);
 		});
 
 		it('should call API client', () => {
 			defaultArrayParameters.forEach(param =>
 				expect(apiClient.accounts.get).to.be.calledWithExactly(param.query),
 			);
-			return Promise.resolve();
 		});
 	});
 
@@ -261,7 +254,6 @@ describe('query utils', () => {
 				txnState,
 				transactionArray,
 			);
-			return Promise.resolve();
 		});
 
 		it('should call node API client and resolve to an object', () => {
@@ -311,7 +303,6 @@ describe('query utils', () => {
 				txnState,
 				transactionArray,
 			);
-			return Promise.resolve();
 		});
 
 		it('should call getTransaction handler of node API client', () => {
@@ -321,7 +312,6 @@ describe('query utils', () => {
 					param.query,
 				),
 			);
-			return Promise.resolve();
 		});
 	});
 });

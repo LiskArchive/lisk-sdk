@@ -71,7 +71,7 @@ describe('Min heap', () => {
 		});
 
 		it('should not remove the root values', () => {
-			const count = heap.count;
+			const { count } = heap;
 			heap.peek();
 			expect(heap.count).toEqual(count);
 		});

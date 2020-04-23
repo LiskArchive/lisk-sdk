@@ -13,9 +13,9 @@
  *
  */
 import { TransactionError } from './errors';
+
 export interface AccountVote {
 	readonly delegateAddress: string;
-	// tslint:disable-next-line readonly-keyword
 	amount: bigint;
 }
 export interface AccountUnlocking {
@@ -23,7 +23,6 @@ export interface AccountUnlocking {
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
-// tslint:disable readonly-keyword
 export interface Account {
 	readonly address: string;
 	balance: bigint;
@@ -50,10 +49,8 @@ export interface Account {
 	votes: AccountVote[];
 	unlocking: AccountUnlocking[];
 	totalVotesReceived: bigint;
-	// tslint:disable-next-line:no-mixed-interface
 	readonly toJSON: () => object;
 }
-// tslint:enable readonly-keyword
 export interface Delegate {
 	readonly username: string;
 }
@@ -75,6 +72,17 @@ export interface BlockHeader {
 	readonly reward: bigint;
 	readonly seedReveal: string;
 }
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type BlockHeaderJSON = Modify<
+	BlockHeader,
+	{
+		readonly totalAmount: string;
+		readonly totalFee: string;
+		readonly reward: string;
+	}
+>;
 
 export interface TransactionJSON {
 	readonly asset: object;

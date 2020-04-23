@@ -1,5 +1,4 @@
 import { APIClient } from '@liskhq/lisk-api-client';
-// tslint:disable-next-line no-submodule-imports
 import { NodeResource } from '@liskhq/lisk-api-client/dist-node/resources/node';
 
 /*

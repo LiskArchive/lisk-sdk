@@ -32,11 +32,11 @@ describe('#getId', () => {
 	validTestTransaction.validate();
 	const defaultTransactionBytes = (validTestTransaction as any).getBytes();
 
-	it('should return a valid id', async () => {
+	it('should return a valid id', () => {
 		expect(getId(defaultTransactionBytes)).toEqual(validTestTransaction.id);
 	});
 
-	it('should call cryptography hash', async () => {
+	it('should call cryptography hash', () => {
 		const cryptographyHashStub = jest
 			.spyOn(cryptography, 'hash')
 			.mockReturnValue(
@@ -50,7 +50,7 @@ describe('#getId', () => {
 		expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
 	});
 
-	it('should call cryptography getFirstEightBytesReversed', async () => {
+	it('should call cryptography getFirstEightBytesReversed', () => {
 		const cryptographygetFirstEightBytesReversedStub = jest
 			.spyOn(cryptography, 'getFirstEightBytesReversed')
 			.mockReturnValue(Buffer.from('db9620af8de763da', 'hex'));
@@ -59,7 +59,7 @@ describe('#getId', () => {
 		expect(cryptographygetFirstEightBytesReversedStub).toHaveBeenCalledTimes(1);
 	});
 
-	it('should call cryptography bufferToIntAsString', async () => {
+	it('should call cryptography bufferToIntAsString', () => {
 		const cryptographybufferToIntAsStringStub = jest
 			.spyOn(cryptography, 'bufferToIntAsString')
 			.mockReturnValue('15822870279184933850');

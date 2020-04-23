@@ -252,7 +252,7 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb', () => {
+	describe('transaction:sign transaction --passphrase=yyy --mandatory-key=aaa --optional-key=bbb --number-of-passphrase=2', () => {
 		setupTest()
 			.command([
 				'transaction:sign',

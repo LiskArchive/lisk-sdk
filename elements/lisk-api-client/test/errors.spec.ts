@@ -19,7 +19,7 @@ describe('api errors module', () => {
 	const defaultMessage = 'this is an error';
 	const defaultErrno = 401;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiError = new APIError();
 		return Promise.resolve();
 	});
@@ -42,7 +42,7 @@ describe('api errors module', () => {
 		});
 
 		describe('when passed errno', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				apiError = new APIError(defaultMessage, defaultErrno);
 				return Promise.resolve();
 			});
@@ -68,7 +68,7 @@ describe('api errors module', () => {
 				},
 			];
 
-			beforeEach(() => {
+			beforeEach(async () => {
 				apiError = new APIError(defaultMessage, defaultErrno, errors);
 				return Promise.resolve();
 			});

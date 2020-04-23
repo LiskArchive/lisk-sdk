@@ -109,17 +109,20 @@ export default class VotesCommand extends BaseCommand {
 		const { addresses: addressesStr } = args as Args;
 		const addresses = addressesStr.split(',').filter(Boolean);
 		const { limit, offset, sort } = processFlagInputs(
-			limitStr as string,
-			offsetStr as string,
-			sortStr as string,
+			limitStr,
+			offsetStr,
+			sortStr,
 		);
 
 		const req = addresses.map(address => ({
 			query: {
 				address,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				limit: limit || DEFAULT_LIMIT,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				offset: offset || DEFAULT_OFFSET,
-				sort: sort || DEFAULT_SORT,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				sort: sort ?? DEFAULT_SORT,
 			},
 			placeholder: {
 				address,

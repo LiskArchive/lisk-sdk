@@ -14,8 +14,8 @@
  */
 import {
 	EPOCH_TIME,
-	EPOCH_TIME_SECONDS,
 	EPOCH_TIME_MILLISECONDS,
+	EPOCH_TIME_SECONDS,
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_ID,
 	MAX_TRANSACTION_AMOUNT,
@@ -26,38 +26,38 @@ import {
 
 describe('lisk-constants', () => {
 	it('EPOCH_TIME should be a Date instance', () => {
-		return expect(EPOCH_TIME).toBeInstanceOf(Date);
+		expect(EPOCH_TIME).toBeInstanceOf(Date);
 	});
 
 	it('EPOCH_TIME_SECONDS should be an integer', () => {
-		return expect(typeof EPOCH_TIME_SECONDS).toBe('number');
+		expect(typeof EPOCH_TIME_SECONDS).toBe('number');
 	});
 
 	it('EPOCH_TIME_MILLISECONDS should be an integer', () => {
-		return expect(typeof EPOCH_TIME_MILLISECONDS).toBe('number');
+		expect(typeof EPOCH_TIME_MILLISECONDS).toBe('number');
 	});
 
 	it('MAX_ADDRESS_NUMBER should be a string', () => {
-		return expect(MAX_ADDRESS_NUMBER).toBeString();
+		expect(MAX_ADDRESS_NUMBER).toBeString();
 	});
 
 	it('MAX_TRANSACTION_ID should be a string', () => {
-		return expect(MAX_TRANSACTION_ID).toBeString();
+		expect(MAX_TRANSACTION_ID).toBeString();
 	});
 
 	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
-		return expect(MAX_TRANSACTION_AMOUNT).toBeString();
+		expect(MAX_TRANSACTION_AMOUNT).toBeString();
 	});
 
 	it('TESTNET_NETHASH should be a string', () => {
-		return expect(TESTNET_NETHASH).toBeString();
+		expect(TESTNET_NETHASH).toBeString();
 	});
 
 	it('MAINNET_NETHASH should be a string', () => {
-		return expect(MAINNET_NETHASH).toBeString();
+		expect(MAINNET_NETHASH).toBeString();
 	});
 
 	it('SIGNED_MESSAGE_PREFIX should be a string', () => {
-		return expect(SIGNED_MESSAGE_PREFIX).toBeString();
+		expect(SIGNED_MESSAGE_PREFIX).toBeString();
 	});
 });

@@ -55,12 +55,12 @@ export default class CreateCommand extends BaseCommand {
 		}),
 	};
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const {
 			flags: { number: numberStr },
 		} = this.parse(CreateCommand);
-		const numberOfAccounts = parseInt(numberStr as string, 10);
+		const numberOfAccounts = parseInt(numberStr, 10);
 		if (
 			numberStr !== numberOfAccounts.toString() ||
 			!Number.isInteger(numberOfAccounts) ||

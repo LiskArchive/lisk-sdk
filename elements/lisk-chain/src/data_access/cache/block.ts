@@ -26,11 +26,13 @@ export class BlockCache extends Base<BlockHeader> {
 		if (this.items.length) {
 			assert(
 				blockHeader.height === this.last.height + 1,
-				`Block header with height ${this.last.height +
-					1} can only be added, instead received height ${blockHeader.height}`,
+				`Block header with height ${(
+					this.last.height + 1
+				).toString()} can only be added, instead received height ${blockHeader.height.toString()}`,
 			);
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this.first && blockHeader.height === this.last.height + 1) {
 			this.items.push(blockHeader);
 		} else {

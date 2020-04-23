@@ -49,8 +49,6 @@ export abstract class Base<T> {
 		return this.items[this.length - 1];
 	}
 
-	public abstract add(item: T): T[];
-
 	public empty(): T[] {
 		this._items = [];
 
@@ -64,4 +62,6 @@ export abstract class Base<T> {
 	public get needsRefill(): boolean {
 		return this._needsRefill;
 	}
+
+	public abstract add(item: T): T[];
 }

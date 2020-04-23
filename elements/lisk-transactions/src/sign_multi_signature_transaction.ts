@@ -23,7 +23,7 @@ import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './transaction_types';
 import { sortKeysAscending } from './utils';
 
-// tslint:disable-next-line no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const transactionMap: { readonly [key: number]: any } = {
 	8: TransferTransaction,
 	10: DelegateTransaction,
@@ -32,17 +32,19 @@ const transactionMap: { readonly [key: number]: any } = {
 	14: UnlockTransaction,
 };
 
-const sanitizeSignaturesArray = (tx: BaseTransaction, keys: MultisigKeys) => {
-	// tslint:disable-next-line: no-let
+const sanitizeSignaturesArray = (
+	tx: BaseTransaction,
+	keys: MultisigKeys,
+): void => {
 	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
 	// Add one extra for multisig account registration
 	if (tx.type === MultisignatureTransaction.TYPE) {
 		numberOfSignatures += 1;
 	}
 
-	// tslint:disable-next-line: no-let
 	for (let i = 0; i < numberOfSignatures; i += 1) {
 		if (tx.signatures[i] === undefined) {
+			// eslint-disable-next-line no-param-reassign
 			tx.signatures[i] = '';
 		}
 	}
@@ -72,8 +74,9 @@ export const signMultiSignatureTransaction = (options: {
 	sortKeysAscending(keys.mandatoryKeys);
 	sortKeysAscending(keys.optionalKeys);
 
-	// tslint:disable-next-line variable-name
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const TransactionClass = transactionMap[transaction.type];
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 	const tx = new TransactionClass({
 		...transaction,
 		networkIdentifier,
@@ -110,7 +113,6 @@ export const signMultiSignatureTransaction = (options: {
 
 	// If it's a mandatory Public Key find where to add the signature
 	if (mandatoryKeyIndex !== -1) {
-		// tslint:disable-next-line: no-let
 		let signatureOffset = 0;
 
 		if (tx.type === MultisignatureTransaction.TYPE) {
@@ -121,7 +123,6 @@ export const signMultiSignatureTransaction = (options: {
 	}
 
 	if (optionalKeyIndex !== -1) {
-		// tslint:disable-next-line: no-let
 		let signatureOffset = 0;
 
 		if (tx.type === MultisignatureTransaction.TYPE) {

@@ -70,7 +70,7 @@ describe('nacl', () => {
 				const size = 24;
 				let randomBuffer: Buffer;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					randomBuffer = getRandomBytes(size);
 					return Promise.resolve();
 				});
@@ -82,14 +82,14 @@ describe('nacl', () => {
 				});
 
 				it('should return an uint8array of size 24', () => {
-					expect(randomBuffer.length).toEqual(24);
+					expect(randomBuffer).toHaveLength(24);
 				});
 			});
 
 			describe('#getKeyPair', () => {
 				let signedKeys: KeypairBytes;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					signedKeys = getKeyPair(Buffer.from(defaultHash, 'hex'));
 					return Promise.resolve();
 				});
@@ -122,7 +122,7 @@ describe('nacl', () => {
 			describe('#getPublicKey', () => {
 				let publicKey: Buffer;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					publicKey = getPublicKey(Buffer.from(defaultPrivateKey, 'hex'));
 
 					return Promise.resolve();
@@ -153,7 +153,7 @@ describe('nacl', () => {
 			describe('#signDetached', () => {
 				let signatureBytes: Buffer;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					signatureBytes = signDetached(
 						Buffer.from(defaultDigest, 'hex'),
 						Buffer.from(defaultPrivateKey, 'hex'),
@@ -197,7 +197,7 @@ describe('nacl', () => {
 			describe('#box', () => {
 				let encryptedMessageBytes: Buffer;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					encryptedMessageBytes = box(
 						Buffer.from(defaultMessage, 'utf8'),
 						Buffer.from(defaultNonce, 'hex'),
@@ -217,7 +217,7 @@ describe('nacl', () => {
 			describe('#openBox', () => {
 				let decryptedMessageBytes: Buffer;
 
-				beforeEach(() => {
+				beforeEach(async () => {
 					decryptedMessageBytes = openBox(
 						Buffer.from(defaultEncryptedMessage, 'hex'),
 						Buffer.from(defaultNonce, 'hex'),
@@ -245,7 +245,7 @@ describe('nacl', () => {
 							Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
 							Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
 						),
-					).toThrowError(Error);
+					).toThrow(Error);
 				});
 			});
 

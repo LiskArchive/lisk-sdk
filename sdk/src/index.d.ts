@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-/* tslint:disable */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';

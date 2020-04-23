@@ -17,6 +17,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { NETWORK } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import { exec } from '../worker-process';
 
 interface AppConfig {

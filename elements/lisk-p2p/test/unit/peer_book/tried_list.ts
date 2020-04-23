@@ -70,7 +70,6 @@ describe('Tried Peers List', () => {
 	});
 
 	describe('#failedConnectionAction', () => {
-		let triedPeersList: TriedList;
 		let bucket: Map<string, P2PEnhancedPeerInfo>;
 		const samplePeers = initPeerInfoList();
 

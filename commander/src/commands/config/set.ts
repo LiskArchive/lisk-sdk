@@ -48,7 +48,8 @@ const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PR
 	', ',
 )}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
-const checkBoolean = (value: string) => ['true', 'false'].includes(value);
+const checkBoolean = (value: string): boolean =>
+	['true', 'false'].includes(value);
 
 const setNestedConfigProperty = (
 	config: ConfigOptions,
@@ -63,10 +64,12 @@ const setNestedConfigProperty = (
 					`Config file could not be written: property '${dotNotationArray.join(
 						'.',
 					)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						process.env.XDG_CONFIG_HOME
 					} or remove it (a fresh default configuration file will be created when you run Lisk Commander again).`,
 				);
 			}
+			// eslint-disable-next-line no-param-reassign
 			obj[pathComponent] = value;
 
 			return config;
@@ -106,7 +109,7 @@ const setValue = (
 	config: ConfigOptions,
 	dotNotation: string,
 	value: WritableValue,
-) => {
+): WriteResult => {
 	setNestedConfigProperty(config, dotNotation, value);
 
 	return attemptWriteToFile(config, value, dotNotation);
@@ -116,7 +119,7 @@ const setBoolean = (
 	config: ConfigOptions,
 	dotNotation: string,
 	value: string,
-) => {
+): WriteResult => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
@@ -130,7 +133,7 @@ const setArrayURL = (
 	dotNotation: string,
 	_: string,
 	inputs: ReadonlyArray<string>,
-) => {
+): WriteResult => {
 	inputs.forEach(input => {
 		const { protocol, hostname } = url.parse(input);
 		if (
@@ -149,7 +152,7 @@ const setNethash = (
 	config: ConfigOptions,
 	dotNotation: string,
 	value: string,
-) => {
+): WriteResult => {
 	if (
 		dotNotation === 'api.network' &&
 		!Object.keys(NETHASHES).includes(value)
@@ -190,7 +193,6 @@ export default class SetCommand extends BaseCommand {
 		{
 			name: 'variable',
 			required: true,
-			// tslint:disable-next-line array-type
 			options: CONFIG_VARIABLES as Array<string>,
 			description: '',
 		},
@@ -213,12 +215,14 @@ export default class SetCommand extends BaseCommand {
 		'config:set api.nodes https://127.0.0.1:4000,http://mynode.com:7000',
 	];
 
-	// tslint:disable-next-line no-async-without-await
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async run(): Promise<void> {
 		const { args } = this.parse(SetCommand);
 		const { variable, values: valuesStr = '' } = args as Args;
 		const values = valuesStr.split(',').filter(Boolean);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const safeValues = values || [];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const safeValue = safeValues[0] || '';
 		const result = handlers[variable](
 			this.userConfig,

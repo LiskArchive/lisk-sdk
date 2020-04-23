@@ -23,12 +23,12 @@ import {
 describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
-	let disconnectReasons: Array<any> = [];
+	const disconnectReasons: Array<any> = [];
 	let dataLargerThanMaxPayload: Array<string>;
 
 	beforeEach(async () => {
 		dataLargerThanMaxPayload = [];
-		for (let i = 0; i < 1000; i++) {
+		for (let i = 0; i < 1000; i += 1) {
 			dataLargerThanMaxPayload.push(`message${i}`);
 		}
 

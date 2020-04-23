@@ -15,8 +15,8 @@
  */
 import * as sandbox from 'sinon';
 import { expect } from 'chai';
-import { print, StringMap } from '../../src/utils/print';
 import { SinonStub } from 'sinon';
+import { print, StringMap } from '../../src/utils/print';
 import * as tablifyUtil from '../../src/utils/tablify';
 
 describe('print utils', () => {
@@ -44,14 +44,12 @@ describe('print utils', () => {
 	beforeEach(() => {
 		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult as any);
 		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
-		return Promise.resolve();
 	});
 
 	describe('when json and pretty are false', () => {
 		let printer: Printer;
 		beforeEach(() => {
 			printer = print();
-			return Promise.resolve();
 		});
 
 		describe('when result is array', () => {
@@ -79,7 +77,6 @@ describe('print utils', () => {
 			beforeEach(() => {
 				log = sandbox.stub();
 				print({ json: true }).call({ log }, arrayToPrint);
-				return Promise.resolve();
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
@@ -100,7 +97,6 @@ describe('print utils', () => {
 			beforeEach(() => {
 				log = sandbox.stub();
 				print({ json: true }).call({ log }, objectToPrint);
-				return Promise.resolve();
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
@@ -121,12 +117,10 @@ describe('print utils', () => {
 		let log: SinonStub;
 		beforeEach(() => {
 			log = sandbox.stub();
-			return Promise.resolve();
 		});
 		describe('when result is array', () => {
 			beforeEach(() => {
 				print({ json: true, pretty: true }).call({ log }, arrayToPrint);
-				return Promise.resolve();
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {
@@ -145,7 +139,6 @@ describe('print utils', () => {
 		describe('when result is object', () => {
 			beforeEach(() => {
 				print({ json: true, pretty: true }).call({ log }, objectToPrint);
-				return Promise.resolve();
 			});
 
 			it('should call JSON.stringify without the ANSI', () => {

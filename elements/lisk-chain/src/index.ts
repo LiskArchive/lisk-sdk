@@ -13,6 +13,7 @@
  */
 import { Chain } from './chain';
 import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK } from './constants';
+
 const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
 
 export { Account } from './account';

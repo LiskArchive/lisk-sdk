@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Slots } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Dpos } from '../../src';
-import { Slots } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.isActiveDelegate', () => {
 	const defaultAddress = getAddressFromPublicKey(delegatePublicKeys[0]);
@@ -39,7 +39,7 @@ describe('dpos.isActiveDelegate', () => {
 		};
 
 		dpos = new Dpos({
-			chain: chainMock as any,
+			chain: chainMock,
 		});
 	});
 

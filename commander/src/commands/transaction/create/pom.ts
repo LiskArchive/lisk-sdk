@@ -137,22 +137,24 @@ export default class PoMCommand extends BaseCommand {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
-		// tslint:disable-next-line no-let
 		let header1: RawHeader;
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			header1 = JSON.parse(header1Str);
 		} catch (error) {
 			throw new Error(
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
 				`Invalid block header 1. Fail to parse the input. ${error.message}`,
 			);
 		}
 
-		// tslint:disable-next-line no-let
 		let header2: RawHeader;
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			header2 = JSON.parse(header2Str);
 		} catch (error) {
 			throw new Error(
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/restrict-template-expressions
 				`Invalid block header 1. Fail to parse the input. ${error.message}`,
 			);
 		}

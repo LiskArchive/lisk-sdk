@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { when } from 'jest-when';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
 import { FinalityManager } from '../../src/finality_manager';
 import { StateStoreMock } from '../unit/state_store_mock';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
@@ -37,7 +37,7 @@ describe('FinalityManager', () => {
 		};
 		let stateStore: StateStoreMock;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			chainStub = {
 				dataAccess: {
 					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),

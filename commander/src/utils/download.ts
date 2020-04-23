@@ -72,8 +72,10 @@ export const download = async (
 		responseType: 'stream',
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 	response.data.pipe(writeStream);
 
+	// eslint-disable-next-line consistent-return
 	return new Promise<void>((resolve, reject) => {
 		writeStream.on('finish', resolve);
 		writeStream.on('error', reject);
@@ -91,7 +93,10 @@ export const extract = async (
 		strip: 1,
 	});
 
-export const downloadAndValidate = async (url: string, cacheDir: string) => {
+export const downloadAndValidate = async (
+	url: string,
+	cacheDir: string,
+): Promise<void> => {
 	await download(url, cacheDir);
 	await download(`${url}.SHA256`, cacheDir);
 

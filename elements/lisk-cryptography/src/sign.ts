@@ -82,13 +82,13 @@ export const verifyMessageWithPublicKey = ({
 
 	if (publicKeyBytes.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
 		throw new Error(
-			`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH}-byte publicKey`,
+			`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH.toString()}-byte publicKey`,
 		);
 	}
 
 	if (signatureBytes.length !== NACL_SIGN_SIGNATURE_LENGTH) {
 		throw new Error(
-			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH}-byte signature`,
+			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH.toString()}-byte signature`,
 		);
 	}
 

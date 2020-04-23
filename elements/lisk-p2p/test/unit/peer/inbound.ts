@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { InboundPeer, PeerConfig } from '../../../src/peer';
 import { SCServerSocket } from 'socketcluster-server';
+import { InboundPeer, PeerConfig } from '../../../src/peer';
 import {
 	DEFAULT_RANDOM_SECRET,
 	DEFAULT_PING_INTERVAL_MAX,
@@ -25,10 +25,10 @@ import {
 	REMOTE_SC_EVENT_RPC_REQUEST,
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
-import { p2p_types } from '../../../src';
+import { p2pTypes } from '../../../src';
 
 describe('peer/inbound', () => {
-	let defaultPeerInfo: p2p_types.P2PPeerInfo;
+	let defaultPeerInfo: p2pTypes.P2PPeerInfo;
 	let defaultPeerConfig: PeerConfig;
 	let defaultInboundPeer: InboundPeer;
 	let inboundSocket: SCServerSocket;
@@ -54,6 +54,7 @@ describe('peer/inbound', () => {
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
 		};
+		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 		inboundSocket = <SCServerSocket>({
 			on: jest.fn(),
 			off: jest.fn(),
@@ -87,7 +88,7 @@ describe('peer/inbound', () => {
 			));
 
 		it('should set ping timeout', () => {
-			expect((defaultInboundPeer as any)._pingTimeoutId).toBeDefined;
+			expect((defaultInboundPeer as any)._pingTimeoutId).toBeDefined();
 		});
 
 		it('should get socket property', () =>
@@ -95,7 +96,7 @@ describe('peer/inbound', () => {
 
 		it('should send ping at least once after some time', () => {
 			jest.spyOn(defaultInboundPeer as any, '_sendPing');
-			expect((defaultInboundPeer as any)._sendPing).not.toBeCalled;
+			expect((defaultInboundPeer as any)._sendPing).not.toHaveBeenCalled();
 
 			jest.advanceTimersByTime(
 				DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1,
@@ -118,7 +119,7 @@ describe('peer/inbound', () => {
 		});
 
 		it('should bind handlers to inbound socket', () => {
-			expect((defaultInboundPeer as any)._socket.on).toBeCalledTimes(5);
+			expect((defaultInboundPeer as any)._socket.on).toHaveBeenCalledTimes(5);
 			expect((defaultInboundPeer as any)._socket.on).toHaveBeenCalledWith(
 				'close',
 				(defaultInboundPeer as any)._handleInboundSocketClose,
@@ -146,6 +147,7 @@ describe('peer/inbound', () => {
 		let newInboundSocket: SCServerSocket;
 
 		beforeEach(() => {
+			// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 			newInboundSocket = <SCServerSocket>({
 				on: jest.fn(),
 				off: jest.fn(),
@@ -195,7 +197,7 @@ describe('peer/inbound', () => {
 			jest.advanceTimersByTime(
 				DEFAULT_PING_INTERVAL_MAX + DEFAULT_PING_INTERVAL_MIN + 1,
 			);
-			expect((defaultInboundPeer as any)._sendPing).not.toHaveBeenCalled;
+			expect((defaultInboundPeer as any)._sendPing).not.toHaveBeenCalled();
 		});
 
 		it('should call _unbindHandlersFromInboundSocket with inbound socket', () => {
@@ -208,7 +210,7 @@ describe('peer/inbound', () => {
 
 		it('should unbind handlers from an inbound socket', () => {
 			defaultInboundPeer.disconnect();
-			expect((defaultInboundPeer as any)._socket.off).toBeCalledTimes(4);
+			expect((defaultInboundPeer as any)._socket.off).toHaveBeenCalledTimes(4);
 			expect((defaultInboundPeer as any)._socket.off).toHaveBeenCalledWith(
 				'close',
 				(defaultInboundPeer as any)._handleInboundSocketClose,

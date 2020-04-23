@@ -23,13 +23,13 @@ import {
 	P2PPeerSelectionForConnectionInput,
 } from '../../src/types';
 
-const { ConnectionKind } = constants;
-
 import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_PEER_COUNT,
 } from '../utils/network_setup';
+
+const { ConnectionKind } = constants;
 
 describe('Custom peer selection', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
@@ -110,7 +110,7 @@ describe('Custom peer selection', () => {
 		const customConfig = (index: number) => ({
 			peerSelectionForSend: peerSelectionForSendRequest as P2PPeerSelectionForSendFunction,
 			peerSelectionForRequest: peerSelectionForSendRequest as P2PPeerSelectionForRequestFunction,
-			peerSelectionForConnection: peerSelectionForConnection as P2PPeerSelectionForConnectionFunction,
+			peerSelectionForConnection,
 			nodeInfo: customNodeInfo(index),
 		});
 
@@ -123,15 +123,15 @@ describe('Custom peer selection', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should start all the nodes with custom selection functions without fail', async () => {
-		for (let p2p of p2pNodeList) {
+	it('should start all the nodes with custom selection functions without fail', () => {
+		for (const p2p of p2pNodeList) {
 			expect(p2p).toHaveProperty('isActive', true);
 		}
 	});
 
 	describe('Peer Discovery', () => {
-		it('should run peer discovery successfully', async () => {
-			for (let p2p of p2pNodeList) {
+		it('should run peer discovery successfully', () => {
+			for (const p2p of p2pNodeList) {
 				expect(p2p.isActive).toBe(true);
 				expect(p2p.getConnectedPeers().length).toBeGreaterThan(1);
 			}
@@ -140,7 +140,7 @@ describe('Custom peer selection', () => {
 
 	describe('P2P.request', () => {
 		beforeEach(() => {
-			for (let p2p of p2pNodeList) {
+			for (const p2p of p2pNodeList) {
 				// Collect port numbers to check which peer handled which request.
 				p2p.on('requestReceived', request => {
 					if (!request.wasResponseSent) {
@@ -178,7 +178,8 @@ describe('Custom peer selection', () => {
 
 		beforeEach(() => {
 			collectedMessages = [];
-			for (let p2p of p2pNodeList) {
+			for (const p2p of p2pNodeList) {
+				// eslint-disable-next-line no-loop-func
 				p2p.on('messageReceived', message => {
 					collectedMessages.push({
 						nodePort: p2p.nodeInfo.wsPort,
@@ -198,14 +199,14 @@ describe('Custom peer selection', () => {
 			const expectedMessagesLowerBound = expectedAverageMessagesPerNode * 0.5;
 			const expectedMessagesUpperBound = expectedAverageMessagesPerNode * 1.5;
 
-			for (let i = 0; i < TOTAL_SENDS; i++) {
+			for (let i = 0; i < TOTAL_SENDS; i += 1) {
 				middleP2PNode.send({ event: 'bar', data: i });
 			}
 
 			await wait(100);
 
-			expect(Object.keys(collectedMessages)).not.toBeEmpty;
-			for (let receivedMessageData of collectedMessages) {
+			expect(Object.keys(collectedMessages)).not.toBeEmpty();
+			for (const receivedMessageData of collectedMessages) {
 				if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 					nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 				}
@@ -217,7 +218,7 @@ describe('Custom peer selection', () => {
 			expect(Object.keys(nodePortToMessagesMap)).toHaveLength(
 				NETWORK_PEER_COUNT / 2 - 1,
 			);
-			for (let receivedMessages of Object.values(
+			for (const receivedMessages of Object.values(
 				nodePortToMessagesMap,
 			) as any) {
 				expect(receivedMessages).toEqual(expect.any(Array));

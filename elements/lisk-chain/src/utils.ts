@@ -15,11 +15,8 @@ import { hash } from '@liskhq/lisk-cryptography';
 
 export const getId = (blockBytes: Buffer): string => {
 	const hashedBlock = hash(blockBytes);
-	// tslint:disable-next-line no-magic-numbers
 	const temp = Buffer.alloc(8);
-	// tslint:disable-next-line no-magic-numbers no-let
 	for (let i = 0; i < 8; i += 1) {
-		// tslint:disable-next-line no-magic-numbers
 		temp[i] = hashedBlock[7 - i];
 	}
 
@@ -28,11 +25,13 @@ export const getId = (blockBytes: Buffer): string => {
 	return id;
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const uniqBy = <T extends { readonly [key: string]: unknown }>(
 	arr: ReadonlyArray<T>,
 	property: string,
 	set = new Set(),
-) =>
+): T[] =>
 	arr.filter(element =>
+		// eslint-disable-next-line
 		(value => !set.has(value) && set.add(value))(element[property]),
 	);

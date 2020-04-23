@@ -23,7 +23,7 @@ import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 describe('Vote transaction', () => {
 	describe('validateAsset', () => {
 		describe('when asset.votes contains valid contents', () => {
-			it('should not return errors with valid upvote case', async () => {
+			it('should not return errors with valid upvote case', () => {
 				const tx = new VoteTransaction({
 					...validUpvoteTransactionScenario.testCases.output,
 				});
@@ -32,7 +32,7 @@ describe('Vote transaction', () => {
 				expect(errors).toHaveLength(0);
 			});
 
-			it('should not return errors with valid downvote case', async () => {
+			it('should not return errors with valid downvote case', () => {
 				const tx = new VoteTransaction({
 					...validDownvoteTransactionScenario.testCases.output,
 				});
@@ -41,7 +41,7 @@ describe('Vote transaction', () => {
 				expect(errors).toHaveLength(0);
 			});
 
-			it('should not return errors with valid mix votes case', async () => {
+			it('should not return errors with valid mix votes case', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 				});
@@ -52,7 +52,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes does not include any vote', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validUpvoteTransactionScenario.testCases.output,
 				});
@@ -67,7 +67,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes more than 20 elements', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 				});
@@ -88,7 +88,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes more than 10 positive votes', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validUpvoteTransactionScenario.testCases.output,
 				});
@@ -109,7 +109,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes more than 10 negative votes', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validDownvoteTransactionScenario.testCases.output,
 				});
@@ -130,7 +130,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes duplicate delegates within positive amount', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validUpvoteTransactionScenario.testCases.output,
 					asset: {
@@ -155,7 +155,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes duplicate delegates within positive and negative amount', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					asset: {
@@ -180,7 +180,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes zero amount', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					asset: {
@@ -205,7 +205,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes amount which is greater than int64 range', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					asset: {
@@ -229,7 +229,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes amount which is less than int64 range', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					asset: {
@@ -253,7 +253,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes includes amount which is not multiple of 10 * 10^8', () => {
-			it('should return errors', async () => {
+			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					asset: {
@@ -328,7 +328,7 @@ describe('Vote transaction', () => {
 								...defaultAccount,
 								address: delegate.address,
 								publicKey: delegate.publicKey,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 							}),
 						),
 					],
@@ -491,7 +491,7 @@ describe('Vote transaction', () => {
 							(delegate, i) => ({
 								...defaultAccount,
 								address: delegate.delegateAddress,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 								totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
 							}),
 						),
@@ -599,7 +599,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes contain negative and positive amount which makes account.votes to be 10 entries', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:
@@ -651,7 +651,7 @@ describe('Vote transaction', () => {
 							(delegate, i) => ({
 								...defaultAccount,
 								address: delegate.delegateAddress,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 								totalVotesReceived:
 									BigInt(delegate.amount) < BigInt(0)
 										? BigInt(delegate.amount) * BigInt(-1)
@@ -737,7 +737,7 @@ describe('Vote transaction', () => {
 				}
 			});
 
-			it('shoud not change transaction asset', async () => {
+			it('shoud not change transaction asset', () => {
 				const txJSON = tx.toJSON();
 				expect((txJSON.asset as any).votes).toStrictEqual(
 					validMixvoteTransactionScenario.testCases.output.asset.votes,
@@ -749,7 +749,7 @@ describe('Vote transaction', () => {
 			let sender: Account;
 			let totalSpending: bigint;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:
@@ -793,7 +793,7 @@ describe('Vote transaction', () => {
 							(delegate, i) => ({
 								...defaultAccount,
 								address: delegate.delegateAddress,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 								totalVotesReceived:
 									BigInt(delegate.amount) < BigInt(0)
 										? BigInt(delegate.amount) * BigInt(-1)
@@ -953,7 +953,7 @@ describe('Vote transaction', () => {
 			const senderBalnce = BigInt('1230000000000');
 			const voteAmount = BigInt('1000000000000');
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:
@@ -1012,7 +1012,7 @@ describe('Vote transaction', () => {
 			const senderBalnce = BigInt('1230000000000');
 			const voteAmount = BigInt('-1000000000000');
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:
@@ -1133,7 +1133,7 @@ describe('Vote transaction', () => {
 						...defaultAccount,
 						address: delegate.address,
 						publicKey: delegate.publicKey,
-						username: `delegate_${i}`,
+						username: `delegate_${i.toString()}`,
 					}),
 				);
 				store = new StateStoreMock(
@@ -1144,7 +1144,7 @@ describe('Vote transaction', () => {
 								...defaultAccount,
 								address: delegate.address,
 								publicKey: delegate.publicKey,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 							}),
 						),
 					],
@@ -1260,7 +1260,7 @@ describe('Vote transaction', () => {
 					(delegate, i) => ({
 						...defaultAccount,
 						address: delegate.delegateAddress,
-						username: `delegate_${i}`,
+						username: `delegate_${i.toString()}`,
 						totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
 					}),
 				);
@@ -1271,7 +1271,7 @@ describe('Vote transaction', () => {
 							(delegate, i) => ({
 								...defaultAccount,
 								address: delegate.delegateAddress,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 								totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
 							}),
 						),
@@ -1327,7 +1327,7 @@ describe('Vote transaction', () => {
 		});
 
 		describe('when asset.votes contain negative and positive amount which makes account.votes to be 10 entries', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:
@@ -1388,7 +1388,7 @@ describe('Vote transaction', () => {
 					(delegate, i) => ({
 						...defaultAccount,
 						address: delegate.delegateAddress,
-						username: `delegate_${i}`,
+						username: `delegate_${i.toString()}`,
 						totalVotesReceived:
 							BigInt(delegate.amount) < BigInt(0)
 								? BigInt(delegate.amount) * BigInt(-1)
@@ -1402,7 +1402,7 @@ describe('Vote transaction', () => {
 							(delegate, i) => ({
 								...defaultAccount,
 								address: delegate.delegateAddress,
-								username: `delegate_${i}`,
+								username: `delegate_${i.toString()}`,
 								totalVotesReceived:
 									BigInt(delegate.amount) < BigInt(0)
 										? BigInt(delegate.amount) * BigInt(-1)
@@ -1452,7 +1452,7 @@ describe('Vote transaction', () => {
 			const senderBalnce = BigInt('1230000000000');
 			const voteAmount = BigInt('1000000000000');
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:
@@ -1516,7 +1516,7 @@ describe('Vote transaction', () => {
 			const senderBalnce = BigInt('1230000000000');
 			const voteAmount = BigInt('-1000000000000');
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new VoteTransaction({
 					...validMixvoteTransactionScenario.testCases.output,
 					networkIdentifier:

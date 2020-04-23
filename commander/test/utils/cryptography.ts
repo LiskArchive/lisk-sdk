@@ -33,7 +33,6 @@ describe('crypto utils', () => {
 			sandbox
 				.stub(cryptographyModule, 'encryptMessageWithPassphrase')
 				.returns(result as any);
-			return Promise.resolve();
 		});
 
 		it('should call encryptMessageWithPassphrase', () => {
@@ -66,7 +65,6 @@ describe('crypto utils', () => {
 			sandbox
 				.stub(cryptographyModule, 'decryptMessageWithPassphrase')
 				.returns(result);
-			return Promise.resolve();
 		});
 
 		it('should call decryptMessageWithPassphrase', () => {

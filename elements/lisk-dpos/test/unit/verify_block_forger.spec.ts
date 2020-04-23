@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Dpos } from '../../src';
 import { Slots } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { Dpos } from '../../src';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { BlockHeader } from '../../src/types';
 import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
@@ -104,6 +104,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 		// Act && Assert
 		const error = new Error(
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			`Failed to verify slot: ${expectedSlot}. Block ID: ${block.id}. Block Height: ${block.height}`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
@@ -125,6 +126,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 		// Act && Assert
 		const error = new Error(
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			`No delegate list found for round: ${expectedRound}`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);

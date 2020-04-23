@@ -51,10 +51,12 @@ export default class GetCommand extends BaseCommand {
 			.getForgingStatus()
 			.then(forgingResponse => ({
 				...baseInfo,
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				forgingStatus: forgingResponse.data || [],
 			}))
 			.catch(error => ({
 				...baseInfo,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				forgingStatus: error.message,
 			}));
 

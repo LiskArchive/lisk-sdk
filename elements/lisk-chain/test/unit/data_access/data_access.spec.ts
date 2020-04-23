@@ -21,7 +21,7 @@ describe('data_access.storage', () => {
 	let storageMock: any;
 	let block: BlockInstance;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageMock = {
 			entities: {
 				Block: {
@@ -52,11 +52,12 @@ describe('data_access.storage', () => {
 
 		dataAccess = new DataAccess({
 			dbStorage: storageMock,
-			registeredTransactions: { '8': TransferTransaction },
+			registeredTransactions: { 8: TransferTransaction },
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
 		block = {
+			// eslint-disable-next-line new-cap
 			...BlockHeaderInstance({ height: 1 }),
 			totalAmount: 1,
 			totalFee: 1,
@@ -73,11 +74,11 @@ describe('data_access.storage', () => {
 	});
 
 	describe('#addBlockHeader', () => {
-		it('should call blocksCache.add', async () => {
+		it('should call blocksCache.add', () => {
 			// Arrange
 			(dataAccess as any)._blocksCache = { add: jest.fn() };
 			// Act
-			await dataAccess.addBlockHeader(block);
+			dataAccess.addBlockHeader(block);
 
 			// Assert
 			expect((dataAccess as any)._blocksCache.add).toHaveBeenCalled();
@@ -452,8 +453,9 @@ describe('data_access.storage', () => {
 			]);
 
 			const blocks = [];
-			for (let i = 0; i < 5; i++) {
+			for (let i = 0; i < 5; i += 1) {
 				block = {
+					// eslint-disable-next-line new-cap
 					...BlockHeaderInstance({ height: i + 10 }),
 					totalAmount: 1,
 					totalFee: 1,

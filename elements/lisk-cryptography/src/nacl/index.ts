@@ -12,18 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// eslint-disable-next-line import/no-cycle
 import { NaclInterface } from './nacl_types';
 
-// tslint:disable-next-line no-let no-require-imports no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
 let lib: NaclInterface = require('./slow');
 
 // Use try/catch for browser fallback support
 try {
 	if (process.env.NACL_FAST !== 'disable') {
-		// tslint:disable-next-line no-var-requires no-require-imports
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,global-require
 		lib = require('./fast');
 	}
-	// tslint:disable-next-line no-empty
+	// eslint-disable-next-line no-empty
 } catch (err) {}
 
 export const NACL_SIGN_PUBLICKEY_LENGTH = 32;

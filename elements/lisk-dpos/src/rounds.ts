@@ -37,7 +37,6 @@ export class Rounds {
 
 	public calcRoundMiddleHeight(round: number): number {
 		return Math.floor(
-			// tslint:disable-next-line:no-magic-numbers
 			(this.calcRoundStartHeight(round) + this.calcRoundEndHeight(round)) / 2,
 		);
 	}

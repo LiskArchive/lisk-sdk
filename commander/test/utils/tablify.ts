@@ -106,7 +106,6 @@ describe('tablify utils', () => {
 
 	describe('a cyclic object', () => {
 		it('should throw an error', () => {
-			// tslint:disable-next-line no-any
 			const printValue: any = {
 				root: 'value',
 				nested: {

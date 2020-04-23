@@ -17,6 +17,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
+// eslint-disable-next-line import/no-cycle
 import { Account } from './account';
 
 export interface Indexable {
@@ -75,7 +76,6 @@ export interface Context {
 }
 export type Contexter = (() => Context) | Context;
 export interface BlockHeaderJSON {
-	/* tslint:disable:readonly-keyword */
 	id: string;
 	height: number;
 	version: number;
@@ -92,11 +92,9 @@ export interface BlockHeaderJSON {
 	reward: string;
 	maxHeightPreviouslyForged: number;
 	maxHeightPrevoted: number;
-	/* tslint:enable:readonly-keyword */
 }
 
 export interface BlockJSON extends BlockHeaderJSON {
-	// tslint:disable-next-line readonly-keyword
 	transactions: ReadonlyArray<TransactionJSON>;
 }
 
@@ -140,7 +138,7 @@ export interface ChainState {
 }
 
 export interface StorageTransaction {
-	// tslint:disable-next-line no-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly batch: <T = any>(input: any[]) => Promise<T>;
 }
 
@@ -227,19 +225,18 @@ export interface StorageEntity<T> {
 	) => Promise<number>;
 	readonly upsert: (
 		filters: StorageFilters,
-		// tslint:disable-next-line no-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		data: any,
 		options: StorageOptions | null,
 		tx?: StorageTransaction,
 	) => Promise<void>;
 	readonly create: (
-		// tslint:disable-next-line no-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		data: any,
 		filters?: StorageFilters,
 		tx?: StorageTransaction,
 	) => Promise<void>;
 	readonly delete: (
-		// tslint:disable-next-line no-any
 		filters?: StorageFilters,
 		options?: StorageOptions | null,
 		tx?: StorageTransaction,
@@ -259,7 +256,7 @@ export interface BlockStorageEntity extends StorageEntity<BlockJSON> {
 
 export interface TempBlockStorageEntity extends StorageEntity<TempBlock> {
 	readonly isEmpty: () => Promise<boolean>;
-	readonly truncate: () => void;
+	readonly truncate: () => Promise<void>;
 }
 
 export interface Storage {

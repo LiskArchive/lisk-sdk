@@ -24,7 +24,7 @@ describe('Peer banning mechanism', () => {
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({ networkSize: 1 });
-		P2PNode = p2pNodeList[0];
+		[P2PNode] = p2pNodeList;
 	});
 
 	afterEach(async () => {
@@ -35,11 +35,11 @@ describe('Peer banning mechanism', () => {
 		describe('Peer Banning', () => {
 			const peerId = constructPeerId('127.0.0.1', 6000);
 
-			it(`should Re-emit ${EVENT_BAN_PEER} Event`, async () => {
+			it(`should Re-emit ${EVENT_BAN_PEER} Event`, () => {
 				// Arrange
 				const bannedPeerId: string[] = [];
-				P2PNode.on(EVENT_BAN_PEER, peerId => {
-					bannedPeerId.push(peerId);
+				P2PNode.on(EVENT_BAN_PEER, id => {
+					bannedPeerId.push(id);
 				});
 
 				// Act
@@ -49,11 +49,11 @@ describe('Peer banning mechanism', () => {
 				expect(bannedPeerId[0]).toBe(peerId);
 			});
 
-			it(`should call removePeer from PeerPool`, async () => {
+			it(`should call removePeer from PeerPool`, () => {
 				// Arrange
 				const bannedPeerId: string[] = [];
-				P2PNode.on(EVENT_BAN_PEER, peerId => {
-					bannedPeerId.push(peerId);
+				P2PNode.on(EVENT_BAN_PEER, id => {
+					bannedPeerId.push(id);
 				});
 
 				jest.spyOn((P2PNode as any)._peerPool, 'hasPeer').mockReturnValue(true);
@@ -63,11 +63,11 @@ describe('Peer banning mechanism', () => {
 				(P2PNode as any)._peerServer.emit(EVENT_BAN_PEER, peerId);
 
 				// Assert
-				expect((P2PNode as any)._peerPool.hasPeer).toBeCalled();
-				expect((P2PNode as any)._peerPool.removePeer).toBeCalled();
+				expect((P2PNode as any)._peerPool.hasPeer).toHaveBeenCalled();
+				expect((P2PNode as any)._peerPool.removePeer).toHaveBeenCalled();
 			});
 
-			it(`should add unbanTimer into PeerBook`, async () => {
+			it(`should add unbanTimer into PeerBook`, () => {
 				// Act
 				(P2PNode as any)._peerServer.emit(EVENT_BAN_PEER, peerId);
 

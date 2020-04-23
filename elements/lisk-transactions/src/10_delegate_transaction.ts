@@ -41,22 +41,16 @@ export const delegateAssetFormatSchema = {
 };
 
 export class DelegateTransaction extends BaseTransaction {
-	public readonly asset: DelegateAsset;
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
+	public readonly asset: DelegateAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset || { delegate: {} }) as DelegateAsset;
-	}
-
-	protected assetToBytes(): Buffer {
-		const { username } = this.asset;
-
-		return Buffer.from(username, 'utf8');
+		this.asset = (tx.asset ?? { delegate: {} }) as DelegateAsset;
 	}
 
 	public async prepare(store: StateStorePrepare): Promise<void> {
@@ -68,6 +62,12 @@ export class DelegateTransaction extends BaseTransaction {
 				username: this.asset.username,
 			},
 		]);
+	}
+
+	protected assetToBytes(): Buffer {
+		const { username } = this.asset;
+
+		return Buffer.from(username, 'utf8');
 	}
 
 	protected verifyAgainstTransactions(
@@ -140,7 +140,6 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
-		// tslint:disable-next-line:no-null-keyword
 		sender.username = null;
 		sender.isDelegate = 0;
 		store.account.set(sender.address, sender);

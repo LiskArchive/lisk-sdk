@@ -27,13 +27,14 @@ describe('data_access.cache.block', () => {
 	describe('constructor', () => {
 		it('should initialize private variables', () => {
 			expect(blocksCache.maxCachedItems).toEqual(DEFAULT_CACHE_SIZE);
-			expect(blocksCache.length).toEqual(0);
+			expect(blocksCache).toHaveLength(0);
 			expect(blocksCache.items).toEqual([]);
 		});
 	});
 
 	describe('add', () => {
 		it('should add block header to cache', () => {
+			// eslint-disable-next-line new-cap
 			const block = BlockHeaderInstance({ height: 1 });
 			blocksCache.add(block);
 
@@ -42,22 +43,25 @@ describe('data_access.cache.block', () => {
 
 		it('should only contain maximum of 500 block header at given point in time', () => {
 			const [blocks] = Array.from({ length: 510 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const blockIds = blocks.map(b => b.id);
 
 			expect(blocksCache.items).toStrictEqual(blocks);
-			expect(blocksCache.items.length).toEqual(DEFAULT_CACHE_SIZE);
+			expect(blocksCache.items).toHaveLength(DEFAULT_CACHE_SIZE);
 			expect(blocksCache.getByIDs(blockIds)).toStrictEqual(blocks.reverse());
 		});
 
 		it('should remove the least height block header and add new highest height block header', () => {
 			const [blocks] = Array.from({ length: 510 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const maxHeight = Math.max(...blocksCache.items.map(b => b.height));
 			const minHeight = Math.min(...blocksCache.items.map(b => b.height));
 			const [lowestHeightBlock] = blocks.filter(b => b.height === minHeight);
+			// eslint-disable-next-line new-cap
 			const newBlock = BlockHeaderInstance({ height: maxHeight + 1 });
 
 			expect(blocksCache.getByHeight(minHeight)).toEqual(lowestHeightBlock);
@@ -74,10 +78,12 @@ describe('data_access.cache.block', () => {
 
 		it('should only allow to insert block header with highest height', () => {
 			const [blocks] = Array.from({ length: 510 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const minHeight = Math.min(...blocksCache.items.map(b => b.height));
 			const [lowestHeightBlock] = blocks.filter(b => b.height === minHeight);
+			// eslint-disable-next-line new-cap
 			const newBlock = BlockHeaderInstance({ height: minHeight + 1 });
 
 			expect(blocksCache.getByHeight(minHeight)).toEqual(lowestHeightBlock);
@@ -93,6 +99,7 @@ describe('data_access.cache.block', () => {
 	describe('remove', () => {
 		it('if the cache is emptied below the min cache size it should set needsRefill to true', () => {
 			const [blocks] = Array.from({ length: 303 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 
@@ -103,19 +110,21 @@ describe('data_access.cache.block', () => {
 
 	describe('getByID', () => {
 		it('should return undefined if block does not exists', () => {
+			// eslint-disable-next-line new-cap
 			const block = BlockHeaderInstance({ height: 1 });
 			blocksCache.add(block);
 
 			expect(blocksCache.items).toStrictEqual([block]);
-			expect(blocksCache.getByID('123')).toBeUndefined;
+			expect(blocksCache.getByID('123')).toBeUndefined();
 		});
 
-		it('should return undefined if block does not exists', () => {
+		it('should return undefined if block does not exists when empty', () => {
 			expect(blocksCache.items).toStrictEqual([]);
-			expect(blocksCache.getByID('123')).toBeUndefined;
+			expect(blocksCache.getByID('123')).toBeUndefined();
 		});
 
 		it('should return the block for a given id', () => {
+			// eslint-disable-next-line new-cap
 			const block = BlockHeaderInstance({ height: 1 });
 			blocksCache.add(block);
 
@@ -131,6 +140,7 @@ describe('data_access.cache.block', () => {
 
 		it('should return empty array if matching block ids does not exists', () => {
 			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const blockIds = blocks.map(b => b.id);
@@ -141,6 +151,7 @@ describe('data_access.cache.block', () => {
 
 		it('should return all the blocks for given block ids', () => {
 			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i })),
 			);
 			const blockIds = blocks.map(b => b.id);
@@ -157,6 +168,7 @@ describe('data_access.cache.block', () => {
 
 		it('should return empty array if blocks does not exists between height range', () => {
 			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i + 1 })),
 			);
 
@@ -168,6 +180,7 @@ describe('data_access.cache.block', () => {
 
 		it('should return all the blocks for given block height range', () => {
 			const [blocks] = Array.from({ length: 10 }, (_, i) =>
+				// eslint-disable-next-line new-cap
 				blocksCache.add(BlockHeaderInstance({ height: i + 1 })),
 			);
 			const heights = blocks.map(b => b.height);

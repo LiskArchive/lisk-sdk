@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { DelegatesList } from '../../src/delegates_list';
 import { Slots } from '@liskhq/lisk-chain';
+import { DelegatesList } from '../../src/delegates_list';
 import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
 import {
 	DEFAULT_STANDBY_THRESHOLD,
@@ -37,7 +37,7 @@ describe('Forger selection', () => {
 	let chainStub: any;
 	let stateStore: StateStoreMock;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			getTotalEarningAndBurnt: jest
@@ -73,6 +73,7 @@ describe('Forger selection', () => {
 		const defaultRound = 5;
 
 		for (const scenario of scenarios) {
+			// eslint-disable-next-line no-loop-func
 			describe(scenario.title, () => {
 				it('should result in the expected forgers list', async () => {
 					// Forger selection relies on vote weight to be sorted
@@ -111,6 +112,7 @@ describe('Forger selection', () => {
 					expect(forgersList).toHaveLength(1);
 					expect(forgersList[0].round).toEqual(defaultRound);
 					expect(forgersList[0].delegates.sort()).toEqual(
+						// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
 						scenario.testCases.output.selectedForgers.sort(),
 					);
 				});

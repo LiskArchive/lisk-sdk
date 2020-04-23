@@ -3,6 +3,7 @@ import path from 'path';
 import * as sandbox from 'sinon';
 import { expect } from 'chai';
 import fsExtra from 'fs-extra';
+import { SinonStub } from 'sinon';
 import {
 	defaultBackupPath,
 	defaultLiskInstancePath,
@@ -13,7 +14,6 @@ import {
 import * as workerProcess from '../../../src/utils/worker-process';
 import { NETWORK } from '../../../src/utils/constants';
 import * as liskConfig from './fixtures';
-import { SinonStub } from 'sinon';
 
 describe('config core utils', () => {
 	it('should return defaultLiskPath constant', () => {

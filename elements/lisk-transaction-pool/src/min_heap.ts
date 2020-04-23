@@ -75,33 +75,7 @@ export class MinHeap<T, K = bigint | number> {
 		return this._nodes.map(n => n.value);
 	}
 
-	private _insertAll(heap: MinHeap<T, K>): void {
-		if (!(heap instanceof MinHeap)) {
-			throw new Error('Only heap instance can be inserted');
-		}
-		this._insertAllFromHeap(heap);
-	}
-
-	private _insertAllFromHeap(heap: MinHeap<T, K>): void {
-		const keys = heap.keys;
-		const values = heap.values;
-		if (this.count <= 0) {
-			// Assume that the order of input heap is correct
-			// tslint:disable-next-line no-let
-			for (let i = 0; i < heap.count; i += 1) {
-				this._nodes.push(new Node(keys[i], values[i]));
-			}
-
-			return;
-		}
-		// tslint:disable-next-line no-let
-		for (let i = 0; i < heap.count; i += 1) {
-			this.push(keys[i], values[i]);
-		}
-	}
-
 	protected _moveUp(originalIndex: number): void {
-		// tslint:disable-next-line no-let
 		let index = originalIndex;
 		const node = this._nodes[index];
 		while (index > 0) {
@@ -109,6 +83,7 @@ export class MinHeap<T, K = bigint | number> {
 			if (this._nodes[parentIndex].key > node.key) {
 				this._nodes[index] = this._nodes[parentIndex];
 				index = parentIndex;
+				// eslint-disable-next-line no-continue
 				continue;
 			}
 			break;
@@ -117,11 +92,10 @@ export class MinHeap<T, K = bigint | number> {
 	}
 
 	protected _moveDown(originalIndex: number): void {
-		// tslint:disable-next-line no-let
 		let index = originalIndex;
 
 		const node = this._nodes[index];
-		// tslint:disable-next-line no-bitwise
+		// eslint-disable-next-line no-bitwise
 		const halfCount = this.count >> 1;
 
 		while (index < halfCount) {
@@ -144,22 +118,41 @@ export class MinHeap<T, K = bigint | number> {
 		this._nodes[index] = node;
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	protected _parentIndex(index: number): number {
-		// Equivalent to index / 2 when index is integer
-		// tslint:disable-next-line no-bitwise
+		// eslint-disable-next-line no-bitwise
 		return (index - 1) >> 1;
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	protected _leftChildIndex(index: number): number {
-		// tslint:disable-next-line no-magic-numbers
 		return index * 2 + 1;
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	protected _rightChildIndex(index: number): number {
-		// tslint:disable-next-line no-magic-numbers
 		return index * 2 + 2;
+	}
+
+	private _insertAll(heap: MinHeap<T, K>): void {
+		if (!(heap instanceof MinHeap)) {
+			throw new Error('Only heap instance can be inserted');
+		}
+		this._insertAllFromHeap(heap);
+	}
+
+	private _insertAllFromHeap(heap: MinHeap<T, K>): void {
+		const { keys, values } = heap;
+		if (this.count <= 0) {
+			// Assume that the order of input heap is correct
+			for (let i = 0; i < heap.count; i += 1) {
+				this._nodes.push(new Node(keys[i], values[i]));
+			}
+
+			return;
+		}
+		for (let i = 0; i < heap.count; i += 1) {
+			this.push(keys[i], values[i]);
+		}
 	}
 }

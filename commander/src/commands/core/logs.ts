@@ -17,7 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import * as childProcess from 'child_process';
 
 import BaseCommand from '../../base';
-import { describeApplication, PM2ProcessInstance } from '../../utils/core/pm2';
+import { describeApplication } from '../../utils/core/pm2';
 
 interface Args {
 	readonly name: string;
@@ -61,17 +61,19 @@ export default class LogsCommand extends BaseCommand {
 			return;
 		}
 
-		const { installationPath, network } = instance as PM2ProcessInstance;
+		const { installationPath, network } = instance;
 		const fileName = `${installationPath}/logs/${network}/lisk.log`;
 
 		const tail = childProcess.spawn('tail', ['-f', fileName]);
 		const { stderr, stdout } = tail;
 
 		stdout.on('data', data => {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 			this.log(data.toString('utf-8').replace(/\n/, ''));
 		});
 
 		stderr.on('data', data => {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			this.log(data.message);
 		});
 

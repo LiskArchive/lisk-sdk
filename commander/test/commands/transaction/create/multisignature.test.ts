@@ -164,7 +164,7 @@ describe('transaction:create:multisignature', () => {
 					networkIdentifier: testnetNetworkIdentifier,
 					senderPassphrase: defaultInputs,
 					numberOfSignatures: 0,
-					mandatoryKeys: mandatoryKeys,
+					mandatoryKeys,
 					optionalKeys: [],
 					passphrases: [],
 				});

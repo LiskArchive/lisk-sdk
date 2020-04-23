@@ -68,7 +68,8 @@ export default class VerifyCommand extends BaseCommand {
 		} = this.parse(VerifyCommand);
 
 		const { transaction }: Args = args;
-		const transactionInput = transaction || (await getTransactionInput());
+		const transactionInput = transaction ?? (await getTransactionInput());
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const transactionObject = parseTransactionString(transactionInput);
 
 		const networkIdentifier = getNetworkIdentifierWithInput(

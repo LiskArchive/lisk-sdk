@@ -21,7 +21,7 @@ describe('#reportMisbehavior transaction', () => {
 	let reportMisbehaviorTransaction: Partial<TransactionJSON>;
 
 	describe('when the transaction is created with one passphrase and the contradicting headers', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			reportMisbehaviorTransaction = reportMisbehavior({
 				passphrase:
 					validPoMTransactionScenario.testCases.input.reportingAccount
@@ -35,7 +35,7 @@ describe('#reportMisbehavior transaction', () => {
 			});
 		});
 
-		it('should create a report misbehavior transaction', async () => {
+		it('should create a report misbehavior transaction', () => {
 			expect(reportMisbehaviorTransaction.id).toEqual(
 				validPoMTransactionScenario.testCases.output.id,
 			);
@@ -59,13 +59,13 @@ describe('#reportMisbehavior transaction', () => {
 					fee: validPoMTransactionScenario.testCases.output.fee,
 					nonce: validPoMTransactionScenario.testCases.output.nonce,
 				}),
-			).toThrowError('Header 1 is required for poof of misbehavior');
+			).toThrow('Header 1 is required for poof of misbehavior');
 		});
 	});
 
 	describe('unsigned misbehavior transaction', () => {
 		describe('when the proof of misbehavior transaction is created without a passphrase', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				reportMisbehaviorTransaction = reportMisbehavior({
 					header1: validPoMTransactionScenario.testCases.output.asset.header1,
 					header2: validPoMTransactionScenario.testCases.output.asset.header2,

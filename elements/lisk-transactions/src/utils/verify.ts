@@ -96,10 +96,9 @@ export const validateKeysSignatures = (
 	keys: readonly string[],
 	signatures: readonly string[],
 	transactionBytes: Buffer,
-) => {
+): TransactionError[] => {
 	const errors = [];
 
-	// tslint:disable-next-line: prefer-for-of no-let
 	for (let i = 0; i < keys.length; i += 1) {
 		if (signatures[i].length === 0) {
 			errors.push(
@@ -131,7 +130,7 @@ export const verifyMultiSignatureTransaction = (
 	sender: Account,
 	signatures: ReadonlyArray<string>,
 	transactionBytes: Buffer,
-) => {
+): TransactionError[] => {
 	const errors = [];
 
 	const { mandatoryKeys, optionalKeys, numberOfSignatures } = sender.keys;
@@ -146,7 +145,7 @@ export const verifyMultiSignatureTransaction = (
 		signatures.length !== numMandatoryKeys + numOptionalKeys
 	) {
 		const error = new TransactionError(
-			`Transaction signatures does not match required number of signatures: ${numberOfSignatures}`,
+			`Transaction signatures does not match required number of signatures: ${numberOfSignatures.toString()}`,
 			id,
 			'.signatures',
 			signatures.join(','),
@@ -164,7 +163,6 @@ export const verifyMultiSignatureTransaction = (
 	errors.push(...mandatoryKeysError);
 
 	// Iterate through non empty optional keys for signature validity
-	// tslint:disable-next-line: prefer-for-of no-let
 	for (let k = 0; k < numOptionalKeys; k += 1) {
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];

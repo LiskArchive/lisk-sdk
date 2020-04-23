@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { AxiosRequestConfig } from 'axios';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
-import { AxiosRequestConfig } from 'axios';
 // Required for stub
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires
 const axios = require('axios');
 
 describe('API resource module', () => {
@@ -55,11 +56,11 @@ describe('API resource module', () => {
 	let resource: APIResource;
 	let apiClient: FakeAPIClient;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		apiClient = {
 			headers: { ...defaultHeaders },
 			currentNode: defaultBasePath,
-			hasAvailableNodes: () => true,
+			hasAvailableNodes: (): boolean => true,
 			randomizeNodes: false,
 			banActiveNodeAndSelect: jest.fn(),
 		};
@@ -96,7 +97,7 @@ describe('API resource module', () => {
 		let requestStub: jest.SpyInstance;
 		let handleRetryStub: jest.SpyInstance;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			requestStub = jest.spyOn(axios, 'request').mockResolvedValue({
 				status: 200,
 				data: sendRequestResult,
@@ -105,7 +106,7 @@ describe('API resource module', () => {
 			return Promise.resolve();
 		});
 
-		it('should make a request to API without calling retry', () => {
+		it('should make a request to API without calling retry', async () => {
 			return resource
 				.request(defaultRequest as AxiosRequestConfig, false)
 				.then(res => {
@@ -116,7 +117,7 @@ describe('API resource module', () => {
 				});
 		});
 
-		it('should make a request to API without calling retry when it succeeds', () => {
+		it('should make a request to API without calling retry when it succeeds', async () => {
 			return resource
 				.request(defaultRequest as AxiosRequestConfig, true)
 				.then(res => {
@@ -128,7 +129,7 @@ describe('API resource module', () => {
 		});
 
 		describe('when response status is greater than 300', () => {
-			it('should reject with errno if status code is supplied', () => {
+			it('should reject with errno if status code is supplied', async () => {
 				const statusCode = 300;
 				requestStub.mockRejectedValue({
 					response: {
@@ -144,7 +145,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should reject with "An unknown error has occured." message if there is no data is supplied', () => {
+			it('should reject with "An unknown error has occured." message if there is no data is supplied', async () => {
 				const statusCode = 300;
 				requestStub.mockRejectedValue({
 					response: {
@@ -160,7 +161,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
+			it('should reject with "An unknown error has occured." message if there is no message is supplied', async () => {
 				const statusCode = 300;
 				requestStub.mockRejectedValue({
 					response: {
@@ -176,7 +177,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should reject with error message from server if message is supplied', () => {
+			it('should reject with error message from server if message is supplied', async () => {
 				const serverErrorMessage = 'validation error';
 				const statusCode = 300;
 				requestStub.mockRejectedValue({
@@ -193,7 +194,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should reject with error message from server if message is undefined and error is supplied', () => {
+			it('should reject with error message from server if message is undefined and error is supplied', async () => {
 				const serverErrorMessage = 'error from server';
 				const statusCode = 300;
 				requestStub.mockRejectedValue({
@@ -210,7 +211,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should reject with errors from server if errors are supplied', () => {
+			it('should reject with errors from server if errors are supplied', async () => {
 				const serverErrorMessage = 'validation error';
 				const statusCode = 300;
 				const errors = [
@@ -237,7 +238,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should reject with error if client rejects with plain error', () => {
+			it('should reject with error if client rejects with plain error', async () => {
 				const clientError = new Error('client error');
 				requestStub.mockRejectedValue(clientError);
 				return resource
@@ -247,7 +248,7 @@ describe('API resource module', () => {
 					});
 			});
 
-			it('should make a request to API with calling retry', () => {
+			it('should make a request to API with calling retry', async () => {
 				const statusCode = 300;
 				requestStub.mockRejectedValue({
 					response: {
@@ -268,7 +269,7 @@ describe('API resource module', () => {
 	describe('#handleRetry', () => {
 		let requestStub: jest.SpyInstance;
 		let defaultError: Error;
-		beforeEach(() => {
+		beforeEach(async () => {
 			defaultError = new Error('could not connect to a node');
 			requestStub = jest
 				.spyOn(resource, 'request')
@@ -277,13 +278,13 @@ describe('API resource module', () => {
 		});
 
 		describe('when there is available node', () => {
-			beforeEach(() => {
+			beforeEach(async () => {
 				jest.useFakeTimers();
-				apiClient.hasAvailableNodes = () => true;
+				apiClient.hasAvailableNodes = (): boolean => true;
 				return Promise.resolve();
 			});
 
-			it('should call banActiveNode when randomizeNodes is true', () => {
+			it('should call banActiveNode when randomizeNodes is true', async () => {
 				apiClient.randomizeNodes = true;
 				const req = resource.handleRetry(
 					defaultError,
@@ -302,7 +303,7 @@ describe('API resource module', () => {
 				});
 			});
 
-			it('should not call ban active node when randomizeNodes is false', () => {
+			it('should not call ban active node when randomizeNodes is false', async () => {
 				apiClient.randomizeNodes = false;
 				const req = resource.handleRetry(
 					defaultError,
@@ -321,7 +322,7 @@ describe('API resource module', () => {
 				});
 			});
 
-			it('should throw an error when randomizeNodes is false and the maximum retry count has been reached', () => {
+			it('should throw an error when randomizeNodes is false and the maximum retry count has been reached', async () => {
 				apiClient.randomizeNodes = false;
 				const req = resource.handleRetry(
 					defaultError,
@@ -334,12 +335,12 @@ describe('API resource module', () => {
 		});
 
 		describe('when there is no available node', () => {
-			beforeEach(() => {
-				apiClient.hasAvailableNodes = () => false;
+			beforeEach(async () => {
+				apiClient.hasAvailableNodes = (): boolean => false;
 				return Promise.resolve();
 			});
 
-			it('should throw an error that is the same as input error', () => {
+			it('should throw an error that is the same as input error', async () => {
 				const res = resource.handleRetry(
 					defaultError,
 					defaultRequest as AxiosRequestConfig,

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { ValidationError } from '../utils/error';
+import { ValidationError } from './error';
 
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
 
@@ -42,6 +42,7 @@ export const validateMinimum = (minimum: string): boolean => {
 };
 
 export const validateAmount = (amount: string): boolean => {
+	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 	if (!amount.match(regExpAmount)) {
 		throw new ValidationError(
 			'Amount must be a number with no more than 8 decimal places.',
@@ -67,7 +68,7 @@ interface ErrorObject {
 	readonly errno: string | number;
 }
 
-export const handleEPIPE = (err: ErrorObject) => {
+export const handleEPIPE = (err: ErrorObject): void => {
 	if (err.errno !== 'EPIPE') {
 		throw err;
 	}

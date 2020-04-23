@@ -23,7 +23,7 @@ describe('state store / chain_state', () => {
 		{ height: 20 },
 	] as unknown) as ReadonlyArray<BlockHeader>;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageStub = {
 			entities: {
 				ChainState: {
@@ -41,13 +41,13 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('lastBlockHeader', () => {
-		it('should have first element as lastBlockHeader', async () => {
+		it('should have first element as lastBlockHeader', () => {
 			expect(stateStore.chain.lastBlockHeader).toEqual({ height: 30 });
 		});
 	});
 
 	describe('networkIdentifier', () => {
-		it('should have first element as lastBlockHeader', async () => {
+		it('should have first element as lastBlockHeader', () => {
 			expect(stateStore.chain.networkIdentifier).toEqual(
 				'network-identifier-chain-1',
 			);
@@ -55,7 +55,7 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('lastBlockReward', () => {
-		it('should have reward given at the initialization', async () => {
+		it('should have reward given at the initialization', () => {
 			expect(stateStore.chain.lastBlockReward.toString()).toEqual('500000000');
 		});
 	});
@@ -106,7 +106,7 @@ describe('state store / chain_state', () => {
 	describe('set', () => {
 		it('should set value to data and set the updated keys', async () => {
 			// Act
-			await stateStore.chain.set('key3', 'value3');
+			stateStore.chain.set('key3', 'value3');
 			// Assert
 			expect(await stateStore.chain.get('key3')).toBe('value3');
 			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
@@ -114,8 +114,8 @@ describe('state store / chain_state', () => {
 
 		it('should set value to data and set the updated keys only once', async () => {
 			// Act
-			await stateStore.chain.set('key3', 'value3');
-			await stateStore.chain.set('key3', 'value4');
+			stateStore.chain.set('key3', 'value3');
+			stateStore.chain.set('key3', 'value4');
 			// Assert
 			expect(await stateStore.chain.get('key3')).toBe('value4');
 			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
@@ -123,7 +123,7 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('finalize', () => {
-		let txStub = {} as StorageTransaction;
+		const txStub = {} as StorageTransaction;
 
 		it('should not call storage if nothing is set', async () => {
 			// Act
@@ -134,9 +134,9 @@ describe('state store / chain_state', () => {
 
 		it('should call storage for all the updated keys', async () => {
 			// Act
-			await stateStore.chain.set('key3', 'value3');
-			await stateStore.chain.set('key3', 'value4');
-			await stateStore.chain.set('key4', 'value5');
+			stateStore.chain.set('key3', 'value3');
+			stateStore.chain.set('key3', 'value4');
+			stateStore.chain.set('key4', 'value5');
 			await stateStore.chain.finalize(txStub);
 			// Assert
 			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
@@ -153,11 +153,11 @@ describe('state store / chain_state', () => {
 
 		it('should handle promise rejection', async () => {
 			// Prepare
-			storageStub.entities.ChainState.setKey.mockImplementation(() =>
+			storageStub.entities.ChainState.setKey.mockImplementation(async () =>
 				Promise.reject(new Error('Fake storage layer error')),
 			);
 			// Act
-			await stateStore.chain.set('key3', 'value3');
+			stateStore.chain.set('key3', 'value3');
 			// Assert
 			return expect(stateStore.chain.finalize(txStub)).rejects.toThrow(
 				'Fake storage layer error',

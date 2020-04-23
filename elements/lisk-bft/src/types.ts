@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 
 export interface BlockHeader {
 	readonly height: number;
@@ -73,8 +74,6 @@ export interface StateStore {
 }
 
 export class BFTError extends Error {}
-
-/* tslint:disable:max-classes-per-file */
 
 export class BFTChainDisjointError extends BFTError {
 	public constructor() {

@@ -15,8 +15,11 @@
 import * as crypto from 'crypto';
 
 import { bufferToHex, hexToBuffer } from './buffer';
+// eslint-disable-next-line import/no-cycle
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
+// eslint-disable-next-line import/no-cycle
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+// eslint-disable-next-line import/no-cycle
 import { box, getRandomBytes, openBox } from './nacl';
 
 const PBKDF2_ITERATIONS = 1e6;
@@ -105,7 +108,8 @@ export const decryptMessageWithPassphrase = (
 		return Buffer.from(decoded).toString();
 	} catch (error) {
 		if (
-			error.message.match(
+			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+			(error as Error).message.match(
 				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
 			)
 		) {
@@ -131,14 +135,13 @@ const getKeyFromPassword = (
 	);
 
 export interface EncryptedPassphraseObject {
+	readonly [key: string]: string | number | undefined;
 	readonly cipherText: string;
 	readonly iterations?: number;
 	readonly iv: string;
 	readonly salt: string;
 	readonly tag: string;
 	readonly version: string;
-	// tslint:disable-next-line no-mixed-interface
-	readonly [key: string]: string | number | undefined;
 }
 
 const encryptAES256GCMWithPassword = (

@@ -22,7 +22,6 @@ export interface TransactionListOptions {
 }
 
 const DEFAULT_MAX_SIZE = 64;
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 
 type AddStatus =
@@ -54,9 +53,10 @@ export class TransactionList {
 		return this._transactions[nonce.toString()];
 	}
 
-	public add(incomingTx: Transaction, processable: boolean = false): AddStatus {
+	public add(incomingTx: Transaction, processable = false): AddStatus {
 		const existingTx = this._transactions[incomingTx.nonce.toString()];
 		// If the same nonce already exist in the pool try to replace
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (existingTx) {
 			// If the fee is lower than the original fee + replacement, reject
 			if (incomingTx.fee < existingTx.fee + this._minReplacementFeeDifference) {
@@ -74,7 +74,6 @@ export class TransactionList {
 		}
 
 		const highestNonce = this._highestNonce();
-		// tslint:disable-next-line no-let
 		let removedID;
 		if (this._nonceHeap.count >= this._maxSize) {
 			// If incoming nonce is bigger than the highest nonce, then reject
@@ -101,13 +100,13 @@ export class TransactionList {
 
 	public remove(nonce: bigint): string | undefined {
 		const removingTx = this._transactions[nonce.toString()];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!removingTx) {
 			return undefined;
 		}
-		// tslint:disable-next-line no-dynamic-delete
 		delete this._transactions[nonce.toString()];
 		// Recreate heap: it could remove in the middle of the heap
-		const keys = this._nonceHeap.keys;
+		const { keys } = this._nonceHeap;
 		this._nonceHeap.clear();
 		for (const key of keys) {
 			if (key !== nonce) {
@@ -124,6 +123,7 @@ export class TransactionList {
 		const promotingNonces = [];
 		for (const tx of txs) {
 			const promotingTx = this._transactions[tx.nonce.toString()];
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!promotingTx) {
 				return false;
 			}
@@ -167,7 +167,6 @@ export class TransactionList {
 		}
 		const remainingCount = clonedHeap.count;
 		const unprocessableTx: Transaction[] = [];
-		// tslint:disable-next-line no-let
 		for (let i = 0; i < remainingCount; i += 1) {
 			const { key } = clonedHeap.pop() as { key: bigint };
 			unprocessableTx.push(this._transactions[key.toString()]);
@@ -205,11 +204,9 @@ export class TransactionList {
 		];
 
 		const remainingNonces = clonedHeap.count;
-		// tslint:disable-next-line no-let
 		let lastPromotedNonce = this._transactions[
 			firstUnprocessable.key.toString()
 		].nonce;
-		// tslint:disable-next-line no-let
 		for (let i = 0; i < remainingNonces; i += 1) {
 			const { key } = clonedHeap.pop() as { key: bigint };
 			if (lastPromotedNonce + BigInt(1) === key) {
@@ -229,9 +226,9 @@ export class TransactionList {
 	}
 
 	private _highestNonce(): bigint {
-		// tslint:disable-next-line no-let
 		const highestNonce = BigInt(-1);
-		const keys = this._nonceHeap.keys;
+		const { keys } = this._nonceHeap;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!keys) {
 			return highestNonce;
 		}

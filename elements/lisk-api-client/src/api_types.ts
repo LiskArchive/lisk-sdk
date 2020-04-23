@@ -14,9 +14,8 @@ import { Method } from 'axios';
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable no-mixed-interface */
+// eslint-disable-next-line @typescript-eslint/no-type-alias
 export type APIHandler = (
-	// tslint:disable-next-line readonly-array
 	...args: Array<number | string | object>
 ) => Promise<APIResponse>;
 

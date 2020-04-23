@@ -62,8 +62,8 @@ interface RawAsset {
 }
 
 export class TransferTransaction extends BaseTransaction {
-	public readonly asset: TransferAsset;
 	public static TYPE = 8;
+	public readonly asset: TransferAsset;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -81,12 +81,30 @@ export class TransferTransaction extends BaseTransaction {
 				),
 			};
 		} else {
-			// tslint:disable-next-line no-object-literal-type-assertion
 			this.asset = {
 				amount: BigInt('0'),
 				recipientId: '',
 			} as TransferAsset;
 		}
+	}
+
+	public assetToJSON(): object {
+		return {
+			data: this.asset.data,
+			amount: this.asset.amount.toString(),
+			recipientId: this.asset.recipientId,
+		};
+	}
+
+	public async prepare(store: StateStorePrepare): Promise<void> {
+		await store.account.cache([
+			{
+				address: this.senderId,
+			},
+			{
+				address: this.asset.recipientId,
+			},
+		]);
 	}
 
 	protected assetToBytes(): Buffer {
@@ -110,25 +128,6 @@ export class TransferTransaction extends BaseTransaction {
 			transactionAmount,
 			transactionRecipientID,
 			dataBuffer,
-		]);
-	}
-
-	public assetToJSON(): object {
-		return {
-			data: this.asset.data,
-			amount: this.asset.amount.toString(),
-			recipientId: this.asset.recipientId,
-		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{
-				address: this.asset.recipientId,
-			},
 		]);
 	}
 

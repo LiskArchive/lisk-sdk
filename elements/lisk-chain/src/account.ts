@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// eslint-disable-next-line import/no-cycle
 import { AccountJSON } from './types';
 
 export const accountDefaultValues = {
 	publicKey: undefined,
 	balance: '0',
-	// tslint:disable-next-line no-null-keyword
 	username: null,
 	nonce: '0',
 	producedBlocks: 0,
@@ -44,7 +44,6 @@ export const accountDefaultValues = {
 
 interface Vote {
 	readonly delegateAddress: string;
-	// tslint:disable-next-line readonly-keyword
 	amount: bigint;
 }
 
@@ -109,6 +108,7 @@ export class Account {
 					unvoteHeight: unlock.unvoteHeight,
 			  }))
 			: [];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this.totalVotesReceived = BigInt(accountInfo.totalVotesReceived ?? 0);
 		this.delegate = {
 			lastForgedHeight: accountInfo.delegate?.lastForgedHeight ?? 0,
@@ -126,7 +126,7 @@ export class Account {
 			optionalKeys: accountInfo.keys?.optionalKeys?.length
 				? [...accountInfo.keys.optionalKeys]
 				: [],
-			numberOfSignatures: accountInfo.keys?.numberOfSignatures || 0,
+			numberOfSignatures: accountInfo.keys?.numberOfSignatures ?? 0,
 		};
 
 		// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
@@ -144,7 +144,6 @@ export class Account {
 		return {
 			address: this.address,
 			publicKey: this.publicKey,
-			// tslint:disable-next-line:no-null-keyword
 			username: this.username,
 			balance: this.balance.toString(),
 			nonce: this.nonce.toString(),
