@@ -2,3 +2,5 @@ docs/
 lisk/
 templates/
 types/
+examples/
+**/*.d.ts

@@ -48,7 +48,6 @@ const getPassphrasesFromPrompt = async (
 	numberOfPassphrases = 1,
 ): Promise<ReadonlyArray<string>> => {
 	const passphrases = [];
-	// tslint:disable-next-line: no-let
 	for (let index = 0; index < numberOfPassphrases; index += 1) {
 		const passphrase = await getPassphraseFromPrompt('passphrase', true);
 		passphrases.push(passphrase);

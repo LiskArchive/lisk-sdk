@@ -21,13 +21,9 @@ export interface RequestOptions {
 	readonly id: string;
 	readonly rate: number;
 	productivity: {
-		// tslint:disable-next-line: readonly-keyword
 		requestCounter: number;
-		// tslint:disable-next-line: readonly-keyword
 		responseCounter: number;
-		// tslint:disable-next-line: readonly-keyword
 		responseRate: number;
-		// tslint:disable-next-line: readonly-keyword
 		lastResponded: number;
 	};
 }

@@ -42,7 +42,6 @@ export interface TransactionPoolConfig {
 	readonly minEntranceFeePriority?: bigint;
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
-	// tslint:disable-next-line no-mixed-interface
 	readonly applyTransactions: ApplyFunction;
 }
 
@@ -54,11 +53,8 @@ interface AddTransactionResponse {
 export const DEFAULT_MAX_TRANSACTIONS = 4096;
 export const DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT = 64;
 export const DEFAULT_MIN_ENTRANCE_FEE_PRIORITY = BigInt(0);
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRY_TIME = 3 * 60 * 60 * 1000; // 3 hours in ms
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_EXPIRE_INTERVAL = 60 * 60 * 1000; // 1 hour in ms
-// tslint:disable-next-line no-magic-numbers
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 export const DEFAULT_REORGANIZE_TIME = 500;
 export const events = {
@@ -66,7 +62,6 @@ export const events = {
 };
 
 // FIXME: Remove this once implemented
-// tslint:disable
 export class TransactionPool {
 	public events: EventEmitter;
 

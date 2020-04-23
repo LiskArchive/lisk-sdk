@@ -68,7 +68,6 @@ export default class UnInstallCommand extends BaseCommand {
 
 				return;
 			}
-			// tslint:disable-next-line await-promise
 			await StopCommand.run([name]);
 
 			const { installationPath, network } = instance;

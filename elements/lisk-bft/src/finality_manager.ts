@@ -82,7 +82,6 @@ export class FinalityManager extends EventEmitter {
 		// Set constants
 		this.activeDelegates = activeDelegates;
 
-		/* tslint:disable:no-magic-numbers */
 		// Threshold to consider a block pre-voted
 		this.preVoteThreshold = Math.ceil((this.activeDelegates * 2) / 3);
 
@@ -104,8 +103,6 @@ export class FinalityManager extends EventEmitter {
 		this.state = {};
 		this.preVotes = {};
 		this.preCommits = {};
-
-		/* tslint:enable:no-magic-numbers */
 	}
 
 	public async addBlockHeader(
@@ -282,7 +279,6 @@ export class FinalityManager extends EventEmitter {
 			throw new Error('Cannot find a block to recompute');
 		}
 
-		// tslint:disable-next-line no-let
 		for (let i = blockHeaders.length - 1; i >= 0; i -= 1) {
 			const blockHeader = blockHeaders[i];
 			const bftBlockHeader = blockHeaders.slice(i + 1);
@@ -332,9 +328,7 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		// Order the two block headers such that earlierBlock must be forged first
-		// tslint:disable-next-line no-let
 		let earlierBlock = delegateLastBlock;
-		// tslint:disable-next-line no-let
 		let laterBlock = blockHeader;
 		const higherMaxHeightPreviouslyForged =
 			earlierBlock.maxHeightPreviouslyForged >
@@ -402,7 +396,6 @@ export class FinalityManager extends EventEmitter {
 		header: BlockHeader,
 		bftApplicableBlocks: ReadonlyArray<BlockHeader>,
 	): number {
-		// tslint:disable-next-line no-let
 		let needleHeight = Math.max(
 			header.maxHeightPreviouslyForged,
 			header.height - this.processingThreshold,
@@ -414,7 +407,6 @@ export class FinalityManager extends EventEmitter {
 			header.height - this.processingThreshold,
 		);
 		// Hold reference for the previously forged height
-		// tslint:disable-next-line no-let
 		let previousBlockHeight = header.maxHeightPreviouslyForged;
 
 		const blocksIncludingCurrent = [header, ...bftApplicableBlocks];
@@ -450,7 +442,6 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	private _cleanup(): void {
-		// tslint:disable:no-delete no-dynamic-delete
 		Object.keys(this.preVotes)
 			.slice(0, this.maxHeaders * -1)
 			.forEach(key => {
@@ -462,6 +453,5 @@ export class FinalityManager extends EventEmitter {
 			.forEach(key => {
 				delete this.preCommits[key];
 			});
-		// tslint:enable:no-delete no-dynamic-delete
 	}
 }

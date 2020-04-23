@@ -6,3 +6,4 @@ release
 ssl
 stacktrace*
 tmp
+index.d.ts

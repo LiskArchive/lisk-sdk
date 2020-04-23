@@ -16,7 +16,6 @@ import { MinHeap } from './min_heap';
 
 export class MaxHeap<T, K = bigint | number> extends MinHeap<T, K> {
 	protected _moveUp(originalIndex: number): void {
-		// tslint:disable-next-line no-let
 		let index = originalIndex;
 		const node = this._nodes[index];
 		while (index > 0) {

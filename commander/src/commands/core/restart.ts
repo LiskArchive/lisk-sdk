@@ -61,9 +61,7 @@ export default class RestartCommand extends BaseCommand {
 
 			return;
 		}
-		// tslint:disable-next-line await-promise
 		await StopCommand.run([name]);
-		// tslint:disable-next-line await-promise
 		await StartCommand.run([name]);
 	}
 }

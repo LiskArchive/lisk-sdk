@@ -39,11 +39,9 @@ export const hashOnion = (
 		throw new Error('Invalid count. Count must be multiple of distance');
 	}
 
-	// tslint:disable-next-line no-let
 	let previousHash = seed;
 	const hashes = [seed];
 
-	// tslint:disable-next-line no-let
 	for (let i = 1; i <= count; i += 1) {
 		const nextHash = hash(previousHash).slice(0, HASH_SIZE);
 		if (i % distance === 0) {

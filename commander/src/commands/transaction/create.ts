@@ -108,7 +108,6 @@ export default class CreateCommand extends BaseCommand {
 			? typeNumberMap[type]
 			: type;
 		const resolvedFlags = Object.entries(flags).reduce(resolveFlags, []);
-		// tslint:disable-next-line await-promise
 		await typeClassMap[commandType].run([...argv, ...resolvedFlags]);
 	}
 }

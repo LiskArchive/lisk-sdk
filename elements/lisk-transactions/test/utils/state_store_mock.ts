@@ -29,9 +29,7 @@ export const defaultAccount = {
 	producedBlocks: 0,
 	fees: BigInt('0'),
 	rewards: BigInt('0'),
-	// tslint:disable-next-line:no-null-keyword
 	asset: {},
-	// tslint:disable-next-line:no-null-keyword
 	toJSON: (): object => ({}),
 	keys: {
 		mandatoryKeys: [],

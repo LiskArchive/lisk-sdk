@@ -321,7 +321,6 @@ export default class InstallCommand extends BaseCommand {
 
 			await tasks.run();
 			if (!noStart) {
-				// tslint:disable-next-line await-promise
 				await StartCommand.run([name]);
 				const newInstance = await describeApplication(name);
 				this.print(newInstance);

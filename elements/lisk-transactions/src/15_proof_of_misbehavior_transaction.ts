@@ -130,7 +130,6 @@ const proofOfMisbehaviorAssetFormatSchema = {
 export interface ProofOfMisbehaviorAsset {
 	readonly header1: BlockHeaderJSON;
 	readonly header2: BlockHeaderJSON;
-	// tslint:disable-next-line readonly-keyword
 	reward: bigint;
 }
 
@@ -228,9 +227,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
                 3. Branch is not the one with largest maxHeighPrevoted
         */
 
-		// tslint:disable-next-line no-let
 		let b1 = this.asset.header1;
-		// tslint:disable-next-line no-let
 		let b2 = this.asset.header2;
 
 		// Order the two block headers such that b1 must be forged first
@@ -277,7 +274,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			|header2.height - h| < 260,000.
 		*/
 
-		// tslint:disable-next-line no-magic-numbers
 		if (
 			Math.abs(this.asset.header1.height - currentHeight) >=
 			MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
@@ -292,7 +288,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			);
 		}
 
-		// tslint:disable-next-line no-magic-numbers
 		if (
 			Math.abs(this.asset.header2.height - currentHeight) >=
 			MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE
@@ -461,7 +456,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			height => height === currentHeight,
 		);
 		delegateAccount.delegate.pomHeights.splice(pomIndex, 1);
-		// tslint:disable-next-line no-magic-numbers
 		if (delegateAccount.delegate.pomHeights.length < 5) {
 			delegateAccount.delegate.isBanned = false;
 		}

@@ -91,7 +91,6 @@ export const getPassphraseFromPrompt = async (
 						),
 					'Warning: ',
 				);
-			// tslint:disable-next-line no-console
 			console.warn(passphraseWarning);
 		}
 	});
@@ -116,7 +115,6 @@ export const isFileSource = (source?: string): boolean => {
 	}
 	const delimiter = ':';
 	const sourceParts = source.split(delimiter);
-	// tslint:disable-next-line no-magic-numbers
 	if (sourceParts.length === 2 && sourceParts[0] === 'file') {
 		return true;
 	}
@@ -156,7 +154,6 @@ const DEFAULT_TIMEOUT = 100;
 
 export const readStdIn = async (): Promise<string[]> => {
 	const readFromStd = new Promise<string[]>((resolve, reject) => {
-		// tslint:disable readonly-array
 		const lines: string[] = [];
 		const rl = readline.createInterface({ input: process.stdin });
 

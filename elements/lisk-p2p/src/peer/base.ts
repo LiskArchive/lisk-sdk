@@ -93,11 +93,9 @@ export enum ConnectionState {
 	OPEN = 'open',
 	CLOSED = 'closed',
 }
-// tslint:disable:readonly-keyword
 export interface ConnectedPeerInfo extends P2PPeerInfo {
 	internalState: P2PInternalState;
 }
-// tslint:enable:readonly-keyword
 export interface PeerConfig {
 	readonly connectTimeout?: number;
 	readonly ackTimeout?: number;
@@ -146,7 +144,6 @@ export class Peer extends EventEmitter {
 			packet: unknown,
 			respond: (responseError?: Error, responseData?: unknown) => void,
 		): void => {
-			// tslint:disable-next-line:no-let
 			let rawRequest;
 			try {
 				rawRequest = validateRPCRequest(packet);
@@ -195,7 +192,6 @@ export class Peer extends EventEmitter {
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handleRawMessage = (packet: unknown) => {
-			// tslint:disable-next-line:no-let
 			let message;
 			try {
 				message = validateProtocolMessage(packet);
@@ -385,7 +381,6 @@ export class Peer extends EventEmitter {
 	}
 
 	public async fetchAndUpdateStatus(): Promise<P2PPeerInfo> {
-		// tslint:disable-next-line:no-let
 		let response: P2PResponsePacket;
 		try {
 			response = await this.request({

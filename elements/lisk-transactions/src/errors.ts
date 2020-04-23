@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable max-classes-per-file
 export class TransactionError extends Error {
 	public message: string;
 	public id: string;
@@ -57,7 +56,6 @@ interface ErrorObject {
 
 export const convertToTransactionError = (
 	id: string,
-	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -77,7 +75,6 @@ export const convertToTransactionError = (
 
 export const convertToAssetError = (
 	id: string,
-	// tslint:disable-next-line no-null-undefined-union
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {

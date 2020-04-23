@@ -22,7 +22,6 @@ import {
 	locateConsecutiveWhitespaces,
 } from '../src/validation';
 
-/* tslint:disable: no-magic-numbers */
 describe('passphrase validation', () => {
 	describe('countPassphraseWhitespaces', () => {
 		describe('given a valid passphrase', () => {

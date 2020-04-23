@@ -83,7 +83,6 @@ export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 	if (!matchedHex || matchedHex.length !== hex.length) {
 		throw new TypeError(`${argumentName} must be a valid hex string.`);
 	}
-	// tslint:disable-next-line no-magic-numbers
 	if (matchedHex.length % 2 !== 0) {
 		throw new TypeError(
 			`${argumentName} must have a valid length of hex string.`,

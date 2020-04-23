@@ -36,14 +36,12 @@ const sanitizeSignaturesArray = (
 	tx: BaseTransaction,
 	keys: MultisigKeys,
 ): void => {
-	// tslint:disable-next-line: no-let
 	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
 	// Add one extra for multisig account registration
 	if (tx.type === MultisignatureTransaction.TYPE) {
 		numberOfSignatures += 1;
 	}
 
-	// tslint:disable-next-line: no-let
 	for (let i = 0; i < numberOfSignatures; i += 1) {
 		if (tx.signatures[i] === undefined) {
 			// eslint-disable-next-line no-param-reassign
@@ -115,7 +113,6 @@ export const signMultiSignatureTransaction = (options: {
 
 	// If it's a mandatory Public Key find where to add the signature
 	if (mandatoryKeyIndex !== -1) {
-		// tslint:disable-next-line: no-let
 		let signatureOffset = 0;
 
 		if (tx.type === MultisignatureTransaction.TYPE) {
@@ -126,7 +123,6 @@ export const signMultiSignatureTransaction = (options: {
 	}
 
 	if (optionalKeyIndex !== -1) {
-		// tslint:disable-next-line: no-let
 		let signatureOffset = 0;
 
 		if (tx.type === MultisignatureTransaction.TYPE) {
