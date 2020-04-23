@@ -3,7 +3,6 @@ module.exports = {
 	rules: {
 		'arrow-body-style': 'off',
 		'dot-notation': 'off',
-		'@typescript-eslint/unbound-method': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',
 		'@typescript-eslint/unbound-method': 'off',
 		'@typescript-eslint/no-require-imports': 'off',

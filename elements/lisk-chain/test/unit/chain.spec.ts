@@ -102,7 +102,7 @@ describe('chain', () => {
 	});
 
 	describe('constructor', () => {
-		it('should initialize private variables correctly', async () => {
+		it('should initialize private variables correctly', () => {
 			// Assert stubbed values are assigned
 			Object.entries(stubs.dependencies).forEach(([stubName, stubValue]) => {
 				expect((chainInstance as any)[stubName]).toEqual(stubValue);
@@ -127,7 +127,7 @@ describe('chain', () => {
 				receivedAt: new Date(),
 			};
 		});
-		it('return the _lastBlock without the receivedAt property', async () => {
+		it('return the _lastBlock without the receivedAt property', () => {
 			// Arrange
 			const { receivedAt, ...block } = genesisBlock as any;
 			// Assert
@@ -136,7 +136,7 @@ describe('chain', () => {
 	});
 
 	describe('init', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
 				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
 			);
@@ -147,7 +147,7 @@ describe('chain', () => {
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 				genesisBlock,
 			]);
-			stubs.tx.batch.mockImplementation((promises: any) =>
+			stubs.tx.batch.mockImplementation(async (promises: any) =>
 				Promise.all(promises),
 			);
 			const random101DelegateAccounts = new Array(101)
@@ -212,7 +212,7 @@ describe('chain', () => {
 
 			it('should not throw when genesis block matches', async () => {
 				// Act & Assert
-				await expect(chainInstance.init()).resolves.toEqual(undefined);
+				await expect(chainInstance.init()).resolves.toBeUndefined();
 			});
 		});
 
@@ -262,7 +262,8 @@ describe('chain', () => {
 	});
 
 	describe('newStateStore', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
+			// eslint-disable-next-line dot-notation
 			chainInstance['_lastBlock'] = newBlock({ height: 532 });
 			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
 				newBlock(),
@@ -271,13 +272,16 @@ describe('chain', () => {
 		});
 
 		it('should populate the chain state with genesis block', async () => {
+			// eslint-disable-next-line dot-notation
 			chainInstance['_lastBlock'] = newBlock({ height: 1 });
 			await chainInstance.newStateStore();
-			await expect(
+			expect(
 				stubs.dependencies.storage.entities.Block.get,
 			).toHaveBeenCalledWith(
 				{
+					// eslint-disable-next-line camelcase
 					height_gte: 1,
+					// eslint-disable-next-line camelcase
 					height_lte: 1,
 				},
 				{ limit: null, sort: 'height:desc' },
@@ -286,11 +290,13 @@ describe('chain', () => {
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
 			await chainInstance.newStateStore();
-			await expect(
+			expect(
 				stubs.dependencies.storage.entities.Block.get,
 			).toHaveBeenCalledWith(
 				{
+					// eslint-disable-next-line camelcase
 					height_gte: chainInstance.lastBlock.height - 309,
+					// eslint-disable-next-line camelcase
 					height_lte: chainInstance.lastBlock.height,
 				},
 				{ limit: null, sort: 'height:desc' },
@@ -307,11 +313,13 @@ describe('chain', () => {
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
 			await chainInstance.newStateStore(1);
-			await expect(
+			expect(
 				stubs.dependencies.storage.entities.Block.get,
 			).toHaveBeenCalledWith(
 				{
+					// eslint-disable-next-line camelcase
 					height_gte: chainInstance.lastBlock.height - 310,
+					// eslint-disable-next-line camelcase
 					height_lte: chainInstance.lastBlock.height - 1,
 				},
 				{ limit: null, sort: 'height:desc' },
@@ -403,8 +411,8 @@ describe('chain', () => {
 			Account.getDefaultAccount('5678L'),
 		];
 
-		beforeEach(async () => {
-			stubs.tx.batch.mockImplementation((promises: any) =>
+		beforeEach(() => {
+			stubs.tx.batch.mockImplementation(async (promises: any) =>
 				Promise.all(promises),
 			);
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
@@ -499,8 +507,8 @@ describe('chain', () => {
 			const block = newBlock();
 
 			// Act & Assert
-			await chainInstance.save(block, stateStoreStub),
-				expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
+			await chainInstance.save(block, stateStoreStub);
+			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 			expect(stateStoreStub.finalize).toHaveBeenCalledWith(stubs.tx);
 		});
 
@@ -511,9 +519,9 @@ describe('chain', () => {
 			// Act & Assert
 			expect.assertions(1);
 
-			await expect(chainInstance.save(block, stateStoreStub)).resolves.toEqual(
-				undefined,
-			);
+			await expect(
+				chainInstance.save(block, stateStoreStub),
+			).resolves.toBeUndefined();
 		});
 
 		it('should throw error when storage create fails', async () => {
@@ -558,14 +566,14 @@ describe('chain', () => {
 			Account.getDefaultAccount('5678L'),
 		];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
 					getUpdated: jest.fn().mockReturnValue(fakeAccounts),
 				},
 			} as any;
-			stubs.tx.batch.mockImplementation((promises: any) =>
+			stubs.tx.batch.mockImplementation(async (promises: any) =>
 				Promise.all(promises),
 			);
 			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
@@ -626,7 +634,7 @@ describe('chain', () => {
 		});
 
 		describe('when saveToTemp parameter is set to true', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				stubs.dependencies.storage.entities.TempBlock.create.mockResolvedValue();
 			});
 
@@ -707,7 +715,7 @@ describe('chain', () => {
 	});
 
 	describe('exists()', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
 				true,
 			);
@@ -752,7 +760,7 @@ describe('chain', () => {
 				},
 			];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
 					validBlocks,
 				);
@@ -764,6 +772,7 @@ describe('chain', () => {
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
+					// eslint-disable-next-line camelcase
 					{ height_gte: 0, height_lte: 0 },
 					{ extended: true, limit: null, sort: 'height:desc' },
 				);
@@ -782,7 +791,7 @@ describe('chain', () => {
 				},
 			];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
 					validBlocks,
 				);
@@ -797,6 +806,7 @@ describe('chain', () => {
 				expect(
 					stubs.dependencies.storage.entities.Block.get,
 				).toHaveBeenCalledWith(
+					// eslint-disable-next-line camelcase
 					{ height_gte: 100, height_lte: 101 },
 					{ extended: true, limit: null, sort: 'height:desc' },
 				);

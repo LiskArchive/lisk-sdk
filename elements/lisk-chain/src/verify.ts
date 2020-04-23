@@ -30,7 +30,7 @@ import {
 export const verifyBlockNotExists = async (
 	storage: Storage,
 	block: BlockInstance,
-) => {
+): Promise<void> => {
 	const isPersisted = await storage.entities.Block.isPersisted({
 		id: block.id,
 	});
@@ -43,7 +43,7 @@ export const verifyPreviousBlockId = (
 	block: BlockInstance,
 	lastBlock: BlockInstance,
 	genesisBlock: BlockInstance,
-) => {
+): void => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
 		!block.previousBlockId &&
@@ -94,7 +94,7 @@ export class BlocksVerify {
 		}
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
 	public async checkTransactions(blockInstance: BlockInstance): Promise<void> {
 		const { version, height, timestamp, transactions } = blockInstance;
 		if (transactions.length === 0) {

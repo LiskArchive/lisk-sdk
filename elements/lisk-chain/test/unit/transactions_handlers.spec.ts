@@ -33,10 +33,10 @@ describe('transactions', () => {
 	let dataAccessMock: any;
 	let stateStoreMock: any;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		// Add matcher to transactions
-		trs1.matcher = () => true;
-		trs2.matcher = () => true;
+		trs1.matcher = (): boolean => true;
+		trs2.matcher = (): boolean => true;
 
 		// Add prepare steps to transactions
 		trs1.prepare = jest.fn();
@@ -70,7 +70,7 @@ describe('transactions', () => {
 	});
 
 	describe('#checkAllowedTransactions', () => {
-		it('should return a proper response format', async () => {
+		it('should return a proper response format', () => {
 			// Act
 			const response = transactionHandlers.checkAllowedTransactions(
 				dummyState,
@@ -86,11 +86,11 @@ describe('transactions', () => {
 			]);
 		});
 
-		it('in case of non allowed transactions, it should return responses with TransactionStatus.FAIL and proper error message', async () => {
+		it('in case of non allowed transactions, it should return responses with TransactionStatus.FAIL and proper error message', () => {
 			// Arrange
 			const disallowedTransaction = {
 				...trs1,
-				matcher: () => false,
+				matcher: (): boolean => false,
 			};
 
 			// Act
@@ -99,17 +99,18 @@ describe('transactions', () => {
 			)([disallowedTransaction]);
 
 			// Assert
-			expect(response.length).toBe(1);
+			expect(response).toHaveLength(1);
 			expect(response[0]).toHaveProperty('id', disallowedTransaction.id);
 			expect(response[0]).toHaveProperty('status', TransactionStatus.FAIL);
-			expect(response[0].errors.length).toBe(1);
+			expect(response[0].errors).toHaveLength(1);
 			expect(response[0].errors[0]).toBeInstanceOf(Error);
 			expect(response[0].errors[0].message).toBe(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Transaction type ${disallowedTransaction.type} is currently not allowed.`,
 			);
 		});
 
-		it('should report a transaction as allowed if it does not implement matcher', async () => {
+		it('should report a transaction as allowed if it does not implement matcher', () => {
 			// Arrange
 			const { matcher, ...transactionWithoutMatcherImpl } = trs1;
 
@@ -119,20 +120,20 @@ describe('transactions', () => {
 			)([transactionWithoutMatcherImpl]);
 
 			// Assert
-			expect(response.length).toBe(1);
+			expect(response).toHaveLength(1);
 			expect(response[0]).toHaveProperty(
 				'id',
 				transactionWithoutMatcherImpl.id,
 			);
 			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
-			expect(response[0].errors.length).toBe(0);
+			expect(response[0].errors).toHaveLength(0);
 		});
 
-		it('in case of allowed transactions, it should return responses with TransactionStatus.OK and no errors', async () => {
+		it('in case of allowed transactions, it should return responses with TransactionStatus.OK and no errors', () => {
 			// Arrange
 			const allowedTransaction = {
 				...trs1,
-				matcher: () => true,
+				matcher: (): boolean => true,
 			};
 
 			// Act
@@ -141,19 +142,19 @@ describe('transactions', () => {
 			)([allowedTransaction]);
 
 			// Assert
-			expect(response.length).toBe(1);
+			expect(response).toHaveLength(1);
 			expect(response[0]).toHaveProperty('id', allowedTransaction.id);
 			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
-			expect(response[0].errors.length).toBe(0);
+			expect(response[0].errors).toHaveLength(0);
 		});
 
-		it('should return a mix of responses including allowed and disallowed transactions', async () => {
+		it('should return a mix of responses including allowed and disallowed transactions', () => {
 			// Arrange
 			const testTransactions = [
 				trs1, // Allowed
 				{
 					...trs1,
-					matcher: () => false, // Disallowed
+					matcher: (): boolean => false, // Disallowed
 				},
 			];
 
@@ -163,18 +164,19 @@ describe('transactions', () => {
 			);
 
 			// Assert
-			expect(response.length).toBe(2);
+			expect(response).toHaveLength(2);
 			// Allowed transaction formatted response check
 			expect(response[0]).toHaveProperty('id', testTransactions[0].id);
 			expect(response[0]).toHaveProperty('status', TransactionStatus.OK);
-			expect(response[0].errors.length).toBe(0);
+			expect(response[0].errors).toHaveLength(0);
 
 			// Allowed transaction formatted response check
 			expect(response[1]).toHaveProperty('id', testTransactions[1].id);
 			expect(response[1]).toHaveProperty('status', TransactionStatus.FAIL);
-			expect(response[1].errors.length).toBe(1);
+			expect(response[1].errors).toHaveLength(1);
 			expect(response[1].errors[0]).toBeInstanceOf(Error);
 			expect(response[1].errors[0].message).toBe(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Transaction type ${testTransactions[1].type} is currently not allowed.`,
 			);
 		});
@@ -184,19 +186,19 @@ describe('transactions', () => {
 		const validResponse = { status: TransactionStatus.OK, id: trs1.id };
 		const invalidResponse = { status: TransactionStatus.FAIL, id: trs2.id };
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			trs1.validate = jest.fn().mockReturnValue(validResponse);
 			trs2.validate = jest.fn().mockReturnValue(invalidResponse);
 		});
 
-		it('should invoke validate() on each transaction', async () => {
+		it('should invoke validate() on each transaction', () => {
 			transactionHandlers.validateTransactions()([trs1, trs2]);
 
 			expect(trs1.validate).toHaveBeenCalledTimes(1);
 			expect(trs2.validate).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return transaction responses', async () => {
+		it('should return transaction responses', () => {
 			const result = transactionHandlers.validateTransactions()([trs1, trs2]);
 
 			expect(result).toEqual([validResponse, invalidResponse]);
@@ -256,6 +258,7 @@ describe('transactions', () => {
 			);
 			expect((transactionResponse as any).errors).toHaveLength(1);
 			expect((transactionResponse as any).errors[0].message).toEqual(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Transaction is already confirmed: ${trs1.id}`,
 			);
 		});
@@ -271,7 +274,7 @@ describe('transactions', () => {
 			id: trs2.id,
 		};
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			trs1.apply.mockReturnValue(trs1Response);
 			trs2.apply.mockReturnValue(trs2Response);
 		});
@@ -325,7 +328,7 @@ describe('transactions', () => {
 		let trs1Response: TransactionResponse;
 		let trs2Response: TransactionResponse;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			trs1Response = {
 				status: TransactionStatus.OK,
 				id: trs1.id,
@@ -356,7 +359,7 @@ describe('transactions', () => {
 		let trs1Response: TransactionResponse;
 		let trs2Response: TransactionResponse;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			trs1Response = {
 				status: TransactionStatus.OK,
 				id: trs1.id,

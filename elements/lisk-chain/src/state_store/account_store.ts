@@ -11,11 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// tslint:disable-next-line no-require-imports
-import cloneDeep = require('lodash.clonedeep');
-// tslint:disable-next-line no-require-imports
-import isEqual = require('lodash.isequal');
-
 import { Account } from '../account';
 import {
 	AccountJSON,
@@ -25,6 +20,11 @@ import {
 	StorageTransaction,
 } from '../types';
 import { uniqBy } from '../utils';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import cloneDeep = require('lodash.clonedeep');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import isEqual = require('lodash.isequal');
 
 export class AccountStore {
 	private readonly _account: StorageEntity<AccountJSON>;
@@ -46,7 +46,6 @@ export class AccountStore {
 	}
 
 	public async cache(filter: StorageFilters): Promise<ReadonlyArray<Account>> {
-		// tslint:disable-next-line no-null-keyword
 		const result = await this._account.get(filter, { limit: null });
 		const resultAccountObjects = result.map(
 			accountJSON => new Account(accountJSON),
@@ -83,13 +82,12 @@ export class AccountStore {
 		}
 
 		// Account was not cached previously so we try to fetch it from db
-		// tslint:disable-next-line no-null-keyword
 		const [elementFromDB] = await this._account.get(
 			{ [this._primaryKey]: primaryValue },
-			// tslint:disable-next-line no-null-keyword
 			{ limit: null },
 		);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (elementFromDB) {
 			this._data.push(new Account(elementFromDB));
 
@@ -112,13 +110,12 @@ export class AccountStore {
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
-		// tslint:disable-next-line no-null-keyword
 		const [elementFromDB] = await this._account.get(
 			{ [this._primaryKey]: primaryValue },
-			// tslint:disable-next-line no-null-keyword
 			{ limit: null },
 		);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (elementFromDB) {
 			this._data.push(new Account(elementFromDB));
 
@@ -159,20 +156,21 @@ export class AccountStore {
 			);
 		}
 
-		const updatedKeys = Object.entries(updatedElement).reduce(
+		const updatedKeys = Object.entries(updatedElement).reduce<string[]>(
 			(existingUpdatedKeys, [key, value]) => {
 				const account = this._data[elementIndex];
-				// tslint:disable-next-line:no-any
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
 				if (!isEqual(value, (account as any)[key])) {
 					existingUpdatedKeys.push(key);
 				}
 
 				return existingUpdatedKeys;
 			},
-			[] as string[],
+			[],
 		);
 
 		this._data[elementIndex] = updatedElement;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		this._updatedKeys[elementIndex] = this._updatedKeys[elementIndex]
 			? [...new Set([...this._updatedKeys[elementIndex], ...updatedKeys])]
 			: updatedKeys;
@@ -189,21 +187,17 @@ export class AccountStore {
 		const updateToAccounts = affectedAccounts.map(
 			async ({ updatedItem, updatedKeys }) => {
 				const filter = { [this._primaryKey]: updatedItem[this._primaryKey] };
-				const updatedData = updatedKeys.reduce((data, key) => {
-					// tslint:disable-next-line:no-any
-					(data as any)[key] = (updatedItem as any)[key];
+				const updatedData = updatedKeys.reduce<Partial<AccountJSON>>(
+					(data, key) => {
+						// eslint-disable-next-line
+						(data as any)[key] = (updatedItem as any)[key];
 
-					return data;
-					// tslint:disable-next-line readonly-keyword no-object-literal-type-assertion
-				}, {} as Partial<AccountJSON>);
-
-				return this._account.upsert(
-					filter,
-					updatedData,
-					// tslint:disable-next-line:no-null-keyword
-					null,
-					tx,
+						return data;
+					},
+					{},
 				);
+
+				return this._account.upsert(filter, updatedData, null, tx);
 			},
 		);
 

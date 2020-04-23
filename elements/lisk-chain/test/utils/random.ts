@@ -32,7 +32,7 @@ const networkIdentifier = getNetworkIdentifier(
 	'Lisk',
 );
 
-const delegateName = () => {
+const delegateName = (): string => {
 	const randomLetter = randomstring.generate({
 		length: 1,
 		charset: 'alphabetic',
@@ -47,6 +47,7 @@ const delegateName = () => {
 	return randomLetter.concat(username);
 };
 
+// eslint-disable-next-line
 export const account = (balance = '0', nonDelegate = false) => {
 	const passphrase = Mnemonic.generateMnemonic();
 	return {
@@ -63,7 +64,7 @@ export const transaction = (nonce?: string): TransactionJSON =>
 	transfer({
 		networkIdentifier,
 		fee: '10000000',
-		nonce: nonce ? nonce : '0',
+		nonce: nonce ?? '0',
 		amount: '1',
 		passphrase: genesisAccount.passphrase,
 		recipientId: account().address,

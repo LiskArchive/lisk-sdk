@@ -46,7 +46,7 @@ describe('state store / account', () => {
 	let stateStore: StateStore;
 	let storageStub: any;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		storageStub = {
 			entities: {
 				Account: {
@@ -63,7 +63,7 @@ describe('state store / account', () => {
 	});
 
 	describe('cache', () => {
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
 		});
@@ -233,7 +233,7 @@ describe('state store / account', () => {
 	});
 
 	describe('finalize', () => {
-		let txStub = {} as StorageTransaction;
+		const txStub = {} as StorageTransaction;
 		let existingAccount;
 		let updatedAccount;
 		let missedBlocks: number;

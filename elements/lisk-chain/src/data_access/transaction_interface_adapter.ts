@@ -18,10 +18,11 @@ export interface RegisteredTransactions {
 }
 
 export class TransactionInterfaceAdapter {
-	// tslint:disable-next-line no-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly _transactionClassMap: Map<number, any>;
 
 	public constructor(registeredTransactions: RegisteredTransactions = {}) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._transactionClassMap = new Map();
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			this._transactionClassMap.set(
@@ -32,13 +33,14 @@ export class TransactionInterfaceAdapter {
 	}
 
 	public fromJSON(rawTx: TransactionJSON): BaseTransaction {
-		// tslint:disable-next-line variable-name
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const TransactionClass = this._transactionClassMap.get(rawTx.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
 		return new TransactionClass({
 			...rawTx,
 		});

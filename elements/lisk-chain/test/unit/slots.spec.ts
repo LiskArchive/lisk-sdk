@@ -26,7 +26,7 @@ describe('Slots', () => {
 		interval: DEFAULT_BLOCK_TIME,
 	});
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		jest
 			.spyOn(Date, 'now')
 			.mockReturnValue(
@@ -35,13 +35,13 @@ describe('Slots', () => {
 	});
 
 	describe('getEpochTime', () => {
-		it('should return time after epoch in second', async () => {
+		it('should return time after epoch in second', () => {
 			expect(slots.getEpochTime()).toBe(10);
 		});
 	});
 
 	describe('getRealTime', () => {
-		it('should return time after epoch in second', async () => {
+		it('should return time after epoch in second', () => {
 			expect(slots.getRealTime(1000)).toBe(
 				new Date(DEFAULT_EPOCH_TIME).getTime() + 1000 * 1000,
 			);
@@ -49,41 +49,41 @@ describe('Slots', () => {
 	});
 
 	describe('getSlotNumber', () => {
-		it('should return correct slot number from default epoch', async () => {
+		it('should return correct slot number from default epoch', () => {
 			expect(slots.getSlotNumber()).toBe(1);
 		});
 
-		it('should return correct slot number from input epoch', async () => {
+		it('should return correct slot number from input epoch', () => {
 			expect(slots.getSlotNumber(20)).toBe(2);
 		});
 	});
 
 	describe('getSlotTime', () => {
-		it('should return correct time corresponds to the slot', async () => {
+		it('should return correct time corresponds to the slot', () => {
 			expect(slots.getSlotTime(2)).toBe(20);
 		});
 	});
 
 	describe('getNextSlot', () => {
-		it('should return correct next slot', async () => {
+		it('should return correct next slot', () => {
 			expect(slots.getNextSlot()).toBe(2);
 		});
 	});
 
 	describe('isWithinTimeslot', () => {
-		it('should return true if the slot is within time', async () => {
+		it('should return true if the slot is within time', () => {
 			expect(slots.isWithinTimeslot(5, 55)).toBeTrue();
 		});
 
-		it('should return true if the slot is begining of the time', async () => {
+		it('should return true if the slot is begining of the time', () => {
 			expect(slots.isWithinTimeslot(5, 50)).toBeTrue();
 		});
 
-		it('should return true if the slot is end of the time', async () => {
+		it('should return true if the slot is end of the time', () => {
 			expect(slots.isWithinTimeslot(5, 59)).toBeTrue();
 		});
 
-		it('should return false if the slot is out of the time', async () => {
+		it('should return false if the slot is out of the time', () => {
 			expect(slots.isWithinTimeslot(5, 49)).toBeFalse();
 		});
 	});

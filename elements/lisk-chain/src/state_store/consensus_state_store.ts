@@ -19,7 +19,6 @@ import {
 } from '../types';
 
 interface KeyValuePair {
-	// tslint:disable-next-line readonly-keyword
 	[key: string]: string;
 }
 
@@ -105,7 +104,7 @@ export class ConsensusStateStore {
 		}
 
 		await Promise.all(
-			Array.from(this._updatedKeys).map(key =>
+			Array.from(this._updatedKeys).map(async key =>
 				this._consensusState.setKey(key, this._data[key], tx),
 			),
 		);
