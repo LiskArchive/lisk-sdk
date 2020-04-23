@@ -18,6 +18,7 @@ import {
 	DEFAULT_REPUTATION_SCORE,
 	PeerKind,
 } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import {
 	P2PEnhancedPeerInfo,
 	P2PInternalState,
@@ -26,6 +27,7 @@ import {
 	ProtocolPeerInfo,
 } from '../types';
 
+// eslint-disable-next-line import/no-cycle
 import { constructPeerId, getNetgroup } from './misc';
 
 export const assignInternalInfo = (
@@ -39,10 +41,10 @@ export const assignInternalInfo = (
 				netgroup: getNetgroup(peerInfo.ipAddress, secret),
 				latency: 0,
 				connectTime: Date.now(),
-				rpcCounter: new Map(),
-				rpcRates: new Map(),
-				messageCounter: new Map(),
-				messageRates: new Map(),
+				rpcCounter: new Map<string, number>(),
+				rpcRates: new Map<string, number>(),
+				messageCounter: new Map<string, number>(),
+				messageRates: new Map<string, number>(),
 				wsMessageCount: 0,
 				wsMessageRate: 0,
 				productivity: { ...DEFAULT_PRODUCTIVITY },
@@ -76,6 +78,7 @@ export const sanitizeIncomingPeerInfo = (
 	};
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
 	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
 	ipAddress: peerInfo.ipAddress,

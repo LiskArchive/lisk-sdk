@@ -18,7 +18,7 @@ import {
 	destroyNetwork,
 	SEED_PEER_IP,
 } from '../../utils/network_setup';
-import { P2P, events, p2p_types } from '../../../src/index';
+import { P2P, events, p2pTypes } from '../../../src/index';
 
 const { EVENT_BAN_PEER, EVENT_CLOSE_INBOUND } = events;
 
@@ -40,7 +40,7 @@ describe('Peer banning mechanism', () => {
 	});
 
 	describe('when penalty is under 100', () => {
-		it('should not ban any peer', async () => {
+		it('should not ban any peer', () => {
 			const firstP2PNode = p2pNodeList[0];
 			const badPeer = firstP2PNode.getConnectedPeers()[1];
 			const peerPenalty = {
@@ -56,9 +56,9 @@ describe('Peer banning mechanism', () => {
 	});
 
 	describe('when penalty is 100 or more', () => {
-		let badPeer: p2p_types.ProtocolPeerInfo;
+		let badPeer: p2pTypes.ProtocolPeerInfo;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			const firstNode = p2pNodeList[0];
 			firstNode.on(EVENT_BAN_PEER, peerId => {
 				collectedEvents.set('EVENT_BAN_PEER', peerId);
@@ -74,34 +74,34 @@ describe('Peer banning mechanism', () => {
 			firstNode.applyPenalty(peerPenalty);
 		});
 
-		it('should ban the peer', async () => {
+		it('should ban the peer', () => {
 			const updatedConnectedPeers = p2pNodeList[0].getConnectedPeers();
 			expect(updatedConnectedPeers.map(peer => peer.wsPort)).toEqual(
 				expect.not.arrayContaining([badPeer.wsPort]),
 			);
 		});
 
-		it(`should fire ${EVENT_BAN_PEER} event`, async () => {
+		it(`should fire ${EVENT_BAN_PEER} event`, () => {
 			expect(collectedEvents.get('EVENT_BAN_PEER')).toBeDefined();
 		});
 
-		it(`should fire ${EVENT_BAN_PEER} event with peerId`, async () => {
+		it(`should fire ${EVENT_BAN_PEER} event with peerId`, () => {
 			expect(collectedEvents.get('EVENT_BAN_PEER')).toEqual(
 				`${badPeer.ipAddress}:${badPeer.wsPort}`,
 			);
 		});
 
-		it(`should add Peer IP address into PeerBook BannedIPs`, async () => {
+		it(`should add Peer IP address into PeerBook BannedIPs`, () => {
 			expect((p2pNodeList[0] as any)._peerBook.bannedIPs).toEqual(
 				new Set([badPeer.ipAddress]),
 			);
 		});
 
-		it(`should unbanTimer into PeerBook `, async () => {
+		it(`should unbanTimer into PeerBook `, () => {
 			expect((p2pNodeList[0] as any)._peerBook._unbanTimers).toHaveLength(1);
 		});
 
-		it(`should fire ${EVENT_CLOSE_INBOUND} event`, async () => {
+		it(`should fire ${EVENT_CLOSE_INBOUND} event`, () => {
 			expect(collectedEvents.get('EVENT_CLOSE_INBOUND')).toBeDefined();
 		});
 

@@ -15,6 +15,7 @@
 import { hash } from '@liskhq/lisk-cryptography';
 import { isIPv4 } from 'net';
 
+// eslint-disable-next-line import/no-cycle
 import { P2PEnhancedPeerInfo } from '../types';
 
 const BYTES_4 = 4;
@@ -71,12 +72,12 @@ export enum PEER_TYPE {
 	TRIED_PEER = 'triedPeer',
 }
 
-export const isPrivate = (address: string) =>
+export const isPrivate = (address: string): boolean =>
 	getIPGroup(address, 0) === 10 ||
 	(getIPGroup(address, 0) === 172 &&
 		(getIPGroup(address, 1) >= 16 || getIPGroup(address, 1) <= 31));
 
-export const isLocal = (address: string) =>
+export const isLocal = (address: string): boolean =>
 	getIPGroup(address, 0) === 127 || address === '0.0.0.0';
 /* tslint:enable no-magic-numbers */
 
@@ -124,6 +125,7 @@ export const getNetgroup = (address: string, secret: number): number => {
 export const constructPeerId = (ipAddress: string, wsPort: number): string =>
 	`${ipAddress}:${wsPort}`;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
 export const getByteSize = (object: any): number =>
 	Buffer.byteLength(JSON.stringify(object));
 

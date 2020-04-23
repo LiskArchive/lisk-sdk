@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// eslint-disable-next-line import/no-cycle
 import { ExistingPeerError } from '../errors';
+// eslint-disable-next-line import/no-cycle
 import { P2PEnhancedPeerInfo, P2PPeerInfo } from '../types';
+// eslint-disable-next-line import/no-cycle
 import {
 	evictPeerRandomlyFromBucket,
 	getBucketId,
@@ -37,7 +40,7 @@ export interface BucketInfo {
 
 export class BaseList {
 	protected bucketIdToBucket: Map<number, Bucket>;
-	/* 
+	/*
 		Auxillary map for direct peerId => peerInfo lookups
 		Required because peerLists may be provided by discrete sources
 	*/
@@ -57,9 +60,9 @@ export class BaseList {
 			peerType,
 			secret,
 		};
-		this.bucketIdToBucket = new Map();
+		this.bucketIdToBucket = new Map<number, Bucket>();
 		this._initBuckets();
-		this.peerIdToPeerInfo = new Map();
+		this.peerIdToPeerInfo = new Map<string, P2PEnhancedPeerInfo>();
 	}
 
 	public get peerList(): ReadonlyArray<P2PPeerInfo> {
@@ -154,7 +157,7 @@ export class BaseList {
 		return false;
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
+	// eslint-disable-next-line class-methods-use-this
 	public makeSpace(bucket: Bucket): P2PEnhancedPeerInfo | undefined {
 		return evictPeerRandomlyFromBucket(bucket);
 	}

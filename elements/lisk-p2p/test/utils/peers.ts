@@ -89,8 +89,8 @@ export const initPeerInfoListWithSuffix = (
 	ipSuffix: string,
 	qty: number,
 ): ReadonlyArray<P2PPeerInfo> => {
-	let peerInfos = [];
-	for (let i = 1; i <= qty; i++) {
+	const peerInfos = [];
+	for (let i = 1; i <= qty; i += 1) {
 		peerInfos.push({
 			peerId: `${i % 255}.${ipSuffix}:${5000 + (i % 40000)}`,
 			ipAddress: `${i % 255}.${ipSuffix}`,

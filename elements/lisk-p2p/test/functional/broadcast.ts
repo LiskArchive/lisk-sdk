@@ -27,7 +27,8 @@ describe('P2P.broadcast', () => {
 		p2pNodeList = await createNetwork();
 
 		collectedMessages = [];
-		for (let p2p of p2pNodeList) {
+		for (const p2p of p2pNodeList) {
+			// eslint-disable-next-line no-loop-func
 			p2p.on(events.EVENT_MESSAGE_RECEIVED, message => {
 				if (message.event === BROADCAST_EVENT) {
 					collectedMessages.push({
@@ -58,7 +59,7 @@ describe('P2P.broadcast', () => {
 			numOfConnectedPeers - 1,
 		);
 
-		for (let receivedMessageData of collectedMessages) {
+		for (const receivedMessageData of collectedMessages) {
 			if (!nodePortToMessagesMap[receivedMessageData.nodePort]) {
 				nodePortToMessagesMap[receivedMessageData.nodePort] = [];
 			}
@@ -70,7 +71,9 @@ describe('P2P.broadcast', () => {
 		expect(Object.keys(nodePortToMessagesMap).length).toBeGreaterThanOrEqual(
 			numOfConnectedPeers - 1,
 		);
-		for (let receivedMessages of Object.values(nodePortToMessagesMap) as any) {
+		for (const receivedMessages of Object.values(
+			nodePortToMessagesMap,
+		) as any) {
 			expect(receivedMessages).toEqual(expect.any(Array));
 			expect(receivedMessages).toHaveLength(1);
 		}

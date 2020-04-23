@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable-next-line no-require-imports
-import shuffle = require('lodash.shuffle');
-
 import {
 	DEFAULT_NEW_BUCKET_COUNT,
 	DEFAULT_NEW_BUCKET_SIZE,
@@ -22,12 +19,18 @@ import {
 	DEFAULT_TRIED_BUCKET_SIZE,
 	PeerKind,
 } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import { ExistingPeerError } from '../errors';
+// eslint-disable-next-line import/no-cycle
 import { P2PEnhancedPeerInfo, P2PPeerInfo, PeerLists } from '../types';
+// eslint-disable-next-line import/no-cycle
 import { assignInternalInfo, PEER_TYPE } from '../utils';
-
+// eslint-disable-next-line import/no-cycle
 import { NewList } from './new_list';
+// eslint-disable-next-line import/no-cycle
 import { TriedList } from './tried_list';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import shuffle = require('lodash.shuffle');
 
 export interface PeerBookConfig {
 	readonly sanitizedPeerLists: PeerLists;
@@ -45,10 +48,7 @@ export class PeerBook {
 	private readonly _unbanTimers: Array<NodeJS.Timer | undefined>;
 	private readonly _secret: number;
 
-	public constructor({
-		sanitizedPeerLists: sanitizedPeerLists,
-		secret,
-	}: PeerBookConfig) {
+	public constructor({ sanitizedPeerLists, secret }: PeerBookConfig) {
 		this._newPeers = new NewList({
 			secret,
 			numOfBuckets: DEFAULT_NEW_BUCKET_COUNT,
@@ -127,7 +127,6 @@ export class PeerBook {
 	): ReadonlyArray<P2PPeerInfo> {
 		const allPeers = [...this.newPeers, ...this.triedPeers];
 
-		/* tslint:disable no-magic-numbers*/
 		const min = Math.ceil(
 			Math.min(maxPeerDiscoveryResponseLength, allPeers.length * 0.25),
 		);
@@ -271,8 +270,6 @@ export class PeerBook {
 		}, peerBanTime);
 
 		this._unbanTimers.push(unbanTimeout);
-
-		return;
 	}
 
 	private _removeBannedPeer(peerId: string): void {

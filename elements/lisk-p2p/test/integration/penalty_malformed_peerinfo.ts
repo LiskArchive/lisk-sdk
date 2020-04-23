@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { platform } from 'os';
 import { P2P, events } from '../../src/index';
 import { wait } from '../utils/helpers';
-import { platform } from 'os';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { EVENT_BAN_PEER } = events;
@@ -55,7 +55,7 @@ describe('penalty sending malformed peerInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should fire ${EVENT_BAN_PEER} event`, async () => {
+	it(`should fire ${EVENT_BAN_PEER} event`, () => {
 		expect(collectedEvents.get(EVENT_BAN_PEER)).toBe('127.0.0.1:5000');
 	});
 });

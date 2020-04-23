@@ -31,7 +31,7 @@ describe('P2P.sendToPeer', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should send message to a specific peer within the network', async () => {
+	it('should send message to a specific peer within the network', () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		const targetPeer = firstP2PNode.getConnectedPeers()[0];

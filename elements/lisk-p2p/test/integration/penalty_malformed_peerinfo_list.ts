@@ -39,7 +39,7 @@ describe('penalty sending malformed Peer List', () => {
 				customConfig,
 			});
 
-			for (let i = 0; i < 1000; i++) {
+			for (let i = 0; i < 1000; i += 1) {
 				const generatedIP = `${Math.floor(Math.random() * 254) +
 					1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(
 					Math.random() * 254,
@@ -68,7 +68,7 @@ describe('penalty sending malformed Peer List', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should ban the emitter`, async () => {
+		it(`should ban the emitter`, () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
 				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
 			);
@@ -106,7 +106,7 @@ describe('penalty sending malformed Peer List', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should ban the emitter`, async () => {
+		it(`should ban the emitter`, () => {
 			expect(collectedEvents.get(EVENT_BAN_PEER)).toEqual(
 				constructPeerId(SEED_PEER_IP, p2pNodeList[0].nodeInfo.wsPort),
 			);

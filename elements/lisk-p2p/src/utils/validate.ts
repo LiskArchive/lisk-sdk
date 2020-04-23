@@ -20,6 +20,7 @@ import {
 	INVALID_PEER_INFO_LIST_REASON,
 	PEER_INFO_LIST_TOO_LONG_REASON,
 } from '../constants';
+// eslint-disable-next-line import/no-cycle
 import {
 	InvalidNodeInfoError,
 	InvalidPeerInfoError,
@@ -27,6 +28,7 @@ import {
 	InvalidProtocolMessageError,
 	InvalidRPCRequestError,
 } from '../errors';
+// eslint-disable-next-line import/no-cycle
 import {
 	P2PCompatibilityCheckReturnType,
 	P2PMessagePacket,
@@ -35,6 +37,7 @@ import {
 	P2PRequestPacket,
 } from '../types';
 
+// eslint-disable-next-line import/no-cycle
 import { getByteSize, sanitizeIncomingPeerInfo } from '.';
 
 interface RPCPeerListResponse {
@@ -158,8 +161,6 @@ export const validateNodeInfo = (
 			`Invalid NodeInfo was larger than the maximum allowed ${maxByteSize} bytes`,
 		);
 	}
-
-	return;
 };
 
 export const validatePeerInfoList = (
