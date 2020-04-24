@@ -12,21 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+export class CommonBlockError extends Error {
+	public lastBlockId: string;
 
-class CommonBlockError extends Error {
-	constructor(message, lastBlockId) {
+	public constructor(message: string, lastBlockId: string) {
 		super(message);
 		this.lastBlockId = lastBlockId;
 	}
 }
 
-// TODO: Move this functionality to logger component
-function convertErrorsToString(errors) {
+export const convertErrorsToString = (
+	errors?: string | Error | ReadonlyArray<Error>,
+): string => {
 	if (Array.isArray(errors) && errors.length > 0) {
 		return errors
-			.filter(e => e instanceof Error)
-			.map(error => error.toString())
+			.filter((e: Error) => e instanceof Error)
+			.map((error: Error) => error.message)
 			.join(', ');
 	}
 
@@ -39,9 +40,4 @@ function convertErrorsToString(errors) {
 	}
 
 	return '';
-}
-
-module.exports = {
-	CommonBlockError,
-	convertErrorsToString,
 };

@@ -11,67 +11,64 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
-const {
-	Sequence,
-} = require('../../../../../../../src/application/node/utils/sequence');
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import { Sequence } from '../../../../../../../src/application/node/utils/sequence';
 
 describe('Sequence', () => {
-	let sequence;
+	jest.useFakeTimers();
 
-	beforeEach(async () => {
-		jest.useFakeTimers();
+	let sequence: Sequence;
+
+	beforeEach(() => {
 		sequence = new Sequence();
 	});
 
 	describe('#constructor', () => {
-		it('should have the default config', async () => {
-			expect(sequence.config.warningLimit).toEqual(50);
-			expect(sequence.config.onWarning).toBeNull();
+		it('should have the default config', () => {
+			expect(sequence['_config'].warningLimit).toEqual(50);
+			expect(sequence['_config'].onWarning).toBeUndefined();
 		});
 
-		it('should call the _tick after event loop', async () => {
-			const tickSpy = jest.spyOn(sequence, '_tick');
+		it('should call the _tick after event loop', () => {
+			const tickSpy = jest.spyOn(sequence, '_tick' as any);
 			jest.advanceTimersByTime(3);
-			await expect(tickSpy).toHaveBeenCalledTimes(1);
+			expect(tickSpy).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#count', () => {
-		it('should register worker and count is correct', async () => {
-			sequence.add(async () => true);
-			sequence.add(async () => 1);
-			sequence.add(async () => 'new');
+		it('should register worker and count is correct', () => {
+			sequence.add(async () => Promise.resolve(true));
+			sequence.add(async () => Promise.resolve(1));
+			sequence.add(async () => Promise.resolve('new'));
 			expect(sequence.count()).toEqual(3);
 		});
 
-		it('should register worker and count should decrease after tick', async () => {
-			sequence.add(async () => true);
-			sequence.add(async () => 1);
-			sequence.add(async () => 'new');
-			sequence._tick();
+		it('should register worker and count should decrease after tick', () => {
+			sequence.add(async () => Promise.resolve(true));
+			sequence.add(async () => Promise.resolve(1));
+			sequence.add(async () => Promise.resolve('new'));
+			sequence['_tick']();
 			expect(sequence.count()).toEqual(2);
 		});
 	});
 
 	describe('#add', () => {
 		it('should throw an error if the input is not async function', async () => {
-			await expect(sequence.add(() => true)).rejects.toThrow(
+			await expect(sequence.add((() => true) as any)).rejects.toThrow(
 				'Worker must be an async function.',
 			);
 		});
 
-		it('should enqueue the input to the sequence', async () => {
-			sequence.add(async () => true);
-			expect(sequence.queue).toHaveLength(1);
+		it('should enqueue the input to the sequence', () => {
+			sequence.add(async () => Promise.resolve(true));
+			expect(sequence['_queue']).toHaveLength(1);
 		});
 	});
 
 	describe('#tick', () => {
 		it('should resolve undefined when there is no task in the queue', async () => {
-			const result = await sequence._tick();
+			const result = await sequence['_tick']();
 			expect(result).toBeUndefined();
 		});
 
@@ -106,8 +103,8 @@ describe('Sequence', () => {
 					}, 2);
 				});
 			});
-			sequence._tick();
-			sequence._tick();
+			sequence['_tick']();
+			sequence['_tick']();
 			jest.runAllTimers();
 
 			const [result1, result2] = await Promise.all([
