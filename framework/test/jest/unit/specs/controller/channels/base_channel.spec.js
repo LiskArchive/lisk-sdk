@@ -14,15 +14,15 @@
 
 'use strict';
 
+jest.mock('../../../../../../src/controller/action');
+jest.mock('../../../../../../src/controller/event');
+
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 const {
 	INTERNAL_EVENTS,
 } = require('../../../../../../src/controller/channels/base/constants');
 const Action = require('../../../../../../src/controller/action');
 const Event = require('../../../../../../src/controller/event');
-
-jest.mock('../../../../../../src/controller/action');
-jest.mock('../../../../../../src/controller/event');
 
 describe('Base Channel', () => {
 	// Arrange

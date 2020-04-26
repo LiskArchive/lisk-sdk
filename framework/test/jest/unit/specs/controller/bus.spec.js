@@ -14,13 +14,13 @@
 
 'use strict';
 
-const { EventEmitter2 } = require('eventemitter2');
-
-const Bus = require('../../../../../src/controller/bus');
-
 jest.mock('eventemitter2');
 jest.mock('pm2-axon');
 jest.mock('pm2-axon-rpc');
+
+const { EventEmitter2 } = require('eventemitter2');
+
+const Bus = require('../../../../../src/controller/bus');
 
 describe('Bus', () => {
 	const options = {};

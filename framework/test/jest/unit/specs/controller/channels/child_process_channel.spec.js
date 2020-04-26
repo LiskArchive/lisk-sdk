@@ -14,12 +14,6 @@
 
 'use strict';
 
-const EventEmitter2 = require('eventemitter2');
-const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
-const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
-const Event = require('../../../../../../src/controller/event');
-const Action = require('../../../../../../src/controller/action');
-
 jest.mock('eventemitter2');
 jest.mock('pm2-axon-rpc', () => ({
 	Client: jest.fn(() => ({
@@ -31,6 +25,12 @@ jest.mock('pm2-axon-rpc', () => ({
 }));
 jest.mock('pm2-axon');
 jest.mock('../../../../../../src/controller/channels/child_process');
+
+const EventEmitter2 = require('eventemitter2');
+const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
+const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
+const Event = require('../../../../../../src/controller/event');
+const Action = require('../../../../../../src/controller/action');
 
 describe('ChildProcessChannel Channel', () => {
 	// Arrange
