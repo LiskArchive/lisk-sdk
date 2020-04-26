@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { isIPv4 } from 'net';
+import { lookup, LookupOptions } from 'dns';
+import { SeedPeerInfo } from '../../types';
 
-const net = require('net');
-const dns = require('dns');
-
-const lookupPromise = async (hostname, options) =>
+const lookupPromise = async (hostname: string, options: LookupOptions) =>
 	new Promise((resolve, reject) => {
-		dns.lookup(hostname, options, (err, address) => {
+		lookup(hostname, options, (err, address) => {
 			if (err) {
 				return reject(err);
 			}
@@ -28,7 +27,10 @@ const lookupPromise = async (hostname, options) =>
 		});
 	});
 
-const lookupPeersIPs = async (peersList, enabled) => {
+export const lookupPeersIPs = async (
+	peersList: ReadonlyArray<SeedPeerInfo>,
+	enabled: boolean,
+): Promise<ReadonlyArray<SeedPeerInfo>> => {
 	// If peers layer is not enabled there is no need to create the peer's list
 	if (!enabled) {
 		return [];
@@ -36,27 +38,24 @@ const lookupPeersIPs = async (peersList, enabled) => {
 
 	// In case domain names are used, resolve those to IP addresses.
 	return Promise.all(
-		peersList.map(async peer => {
-			if (net.isIPv4(peer.ip)) {
+		peersList.map(async (peer: SeedPeerInfo) => {
+			const ip = peer.ip as string;
+			if (isIPv4(ip)) {
 				return peer;
 			}
 
 			try {
-				const address = await lookupPromise(peer.ip, { family: 4 });
+				const address = await lookupPromise(ip, { family: 4 });
 				return {
 					...peer,
 					ip: address,
 				};
 			} catch (err) {
 				console.error(
-					`Failed to resolve peer domain name ${peer.ip} to an IP address`,
+					`Failed to resolve peer domain name ${ip} to an IP address`,
 				);
 				return peer;
 			}
 		}),
 	);
-};
-
-module.exports = {
-	lookupPeersIPs,
 };
