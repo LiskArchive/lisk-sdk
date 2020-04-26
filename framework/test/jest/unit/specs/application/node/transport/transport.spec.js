@@ -19,7 +19,6 @@ const { TransferTransaction } = require('@liskhq/lisk-transactions');
 const {
 	Transport,
 } = require('../../../../../../../src/application/node/transport');
-const jobsQueue = require('../../../../../../../src/application/node/utils/jobs_queue');
 
 describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
@@ -35,7 +34,6 @@ describe('Transport', () => {
 
 	beforeEach(async () => {
 		// Needs to reset the job registered
-		jobsQueue.jobs = {};
 		channelStub = {
 			invoke: jest.fn(),
 			invokeFromNetwork: jest.fn(),

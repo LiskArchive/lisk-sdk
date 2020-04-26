@@ -26,11 +26,11 @@ const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const {
 	TransactionPool,
+	Job,
 	events: { EVENT_TRANSACTION_REMOVED },
 } = require('@liskhq/lisk-transaction-pool');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const { JobsQueue } = require('./utils/jobs_queue');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -539,10 +539,7 @@ module.exports = class Node {
 		} catch (err) {
 			this.logger.error({ err }, 'Failed to load delegates for forging');
 		}
-		this.forgingJob = new JobsQueue(
-			async () => this._forgingTask(),
-			forgeInterval,
-		);
+		this.forgingJob = new Job(async () => this._forgingTask(), forgeInterval);
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this.forgingJob.start();
 	}
