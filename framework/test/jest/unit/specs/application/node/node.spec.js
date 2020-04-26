@@ -95,10 +95,6 @@ describe('Node', () => {
 
 		stubs.applicationState = {};
 
-		stubs.jobsQueue = {
-			register: jest.spyOn(jobQueue, 'register'),
-		};
-
 		when(stubs.channel.invoke)
 			.calledWith('app:getComponentConfig', 'cache')
 			.mockResolvedValue(cacheConfig);
@@ -472,11 +468,7 @@ describe('Node', () => {
 			const forgeInterval = 1000;
 			await node._startForging();
 
-			expect(stubs.jobsQueue.register).toHaveBeenCalledWith(
-				'nextForge',
-				expect.any(Function),
-				forgeInterval,
-			);
+			expect(node.forgingJob).not.toBeUndefined();
 		});
 	});
 });
