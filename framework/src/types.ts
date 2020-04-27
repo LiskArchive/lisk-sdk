@@ -13,14 +13,11 @@
  */
 import * as liskP2p from '@liskhq/lisk-p2p';
 
-export interface Channel<T> {
+export interface Channel<T = unknown> {
 	readonly publish: (procedure: string, params?: object) => void;
 	readonly subscribe: (procedure: string, callback: Function) => void;
 	readonly invoke: (eventName: string) => Promise<T>;
-	readonly invokePublic: (
-		procedure: string,
-		params?: object,
-	) => Promise<object>;
+	readonly invokePublic: (procedure: string, params?: object) => Promise<T>;
 }
 
 export interface Logger {
@@ -63,9 +60,6 @@ export type P2PConfig = Modify<
 	{
 		readonly advertiseAddress: boolean;
 		readonly seedPeers: ReadonlyArray<SeedPeerInfo>;
-		// readonly fixedPeers: ReadonlyArray<SeedPeerInfo>,
-		// readonly whitelistedPeers: ReadonlyArray<SeedPeerInfo>,
-		// readonly blacklistedIPs: ReadonlyArray<string>,
 	}
 >;
 

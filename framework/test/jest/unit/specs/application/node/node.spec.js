@@ -359,16 +359,16 @@ describe('Node', () => {
 					'Failed to initialization node',
 				);
 			});
-			it('should emit an event "cleanup" on the process', () => {
+			it('should emit an event "beforeExit" on the process', () => {
 				return expect(processEmitStub).toHaveBeenCalledWith(
-					'cleanup',
+					'beforeExit',
 					expect.any(Object),
 				);
 			});
 		});
 	});
 
-	describe('cleanup', () => {
+	describe('beforeExit', () => {
 		beforeEach(async () => {
 			// Arrange
 			await node.bootstrap();

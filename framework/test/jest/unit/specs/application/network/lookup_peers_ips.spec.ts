@@ -47,7 +47,7 @@ describe('init_steps/lookup_peers_ips', () => {
 
 			expect(resolvedIps).toHaveLength(peers.list.length);
 			return resolvedIps.forEach(peer => {
-				expect(ipv4Regex.test(peer.ip)).toBeTrue();
+				expect(ipv4Regex.test(peer.ip as string)).toBeTrue();
 			});
 		});
 	});

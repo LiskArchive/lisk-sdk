@@ -224,7 +224,7 @@ describe('components: cache', () => {
 		});
 	});
 
-	describe('cleanup', () => {});
+	describe('beforeExit', () => {});
 
 	describe('quit', () => {});
 });

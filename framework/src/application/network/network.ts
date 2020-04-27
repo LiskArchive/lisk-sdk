@@ -372,8 +372,7 @@ export class Network {
 				},
 				'Failed to initialize network',
 			);
-			// We need to emit beforeExit event and cleanup in application
-			// process.emit('cleanup', error);
+			process.emit('beforeExit', error);
 		}
 	}
 

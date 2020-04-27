@@ -62,7 +62,7 @@ class PgpAdapter extends BaseAdapter {
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
 				// https://vitaly-t.github.io/pg-promise/global.html#event:error
 				if (e.cn) {
-					process.emit('cleanup', new Error('DB Connection Error'));
+					process.emit('beforeExit', new Error('DB Connection Error'));
 				}
 			},
 			connect: () => {
