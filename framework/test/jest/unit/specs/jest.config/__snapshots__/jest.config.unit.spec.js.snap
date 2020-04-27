@@ -14,6 +14,11 @@ Object {
     "lcov",
     "cobertura",
   ],
+  "globals": Object {
+    "ts-jest": Object {
+      "tsConfig": "./test/tsconfig.json",
+    },
+  },
   "resetModules": true,
   "restoreMocks": true,
   "rootDir": "../../../",
@@ -21,8 +26,11 @@ Object {
     "<rootDir>/test/jest/config/setup.js",
   ],
   "testMatch": Array [
-    "<rootDir>/test/jest/unit/specs/**/*.(spec|test).js",
+    "<rootDir>/test/jest/unit/specs/**/*.(spec|test).(js|ts)",
   ],
+  "transform": Object {
+    "^.+\\\\.(ts|tsx)$": "ts-jest",
+  },
   "verbose": true,
 }
 `;

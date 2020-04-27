@@ -14,12 +14,8 @@
 
 'use strict';
 
-jest.mock('../../../../../../src/application/node/utils/jobs_queue');
-
 const { when } = require('jest-when');
 const { BFT } = require('@liskhq/lisk-bft');
-
-const jobQueue = require('../../../../../../src/application/node/utils/jobs_queue');
 
 const Node = require('../../../../../../src/application/node/node');
 const {
@@ -94,10 +90,6 @@ describe('Node', () => {
 		};
 
 		stubs.applicationState = {};
-
-		stubs.jobsQueue = {
-			register: jest.spyOn(jobQueue, 'register'),
-		};
 
 		when(stubs.channel.invoke)
 			.calledWith('app:getComponentConfig', 'cache')
@@ -472,11 +464,7 @@ describe('Node', () => {
 			const forgeInterval = 1000;
 			await node._startForging();
 
-			expect(stubs.jobsQueue.register).toHaveBeenCalledWith(
-				'nextForge',
-				expect.any(Function),
-				forgeInterval,
-			);
+			expect(node.forgingJob).not.toBeUndefined();
 		});
 	});
 });

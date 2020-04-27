@@ -14,12 +14,12 @@
 
 'use strict';
 
+jest.mock('../../../../../../src/controller/bus');
+
 const InMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
 const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
 const Bus = require('../../../../../../src/controller/bus');
 const Event = require('../../../../../../src/controller/event');
-
-jest.mock('../../../../../../src/controller/bus');
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange

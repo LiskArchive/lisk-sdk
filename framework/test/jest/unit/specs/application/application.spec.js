@@ -15,6 +15,16 @@
 
 'use strict';
 
+jest.mock('../../../../../src/components/logger');
+jest.mock('../../../../../src/components/storage');
+jest.mock('@liskhq/lisk-validator', () => ({
+	validator: {
+		validate: jest.fn().mockImplementation(() => {
+			return [];
+		}),
+	},
+}));
+
 const {
 	BaseTransaction: Base,
 	TransferTransaction,
@@ -37,16 +47,6 @@ const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block.j
 const config = {
 	...networkConfig,
 };
-
-jest.mock('../../../../../src/components/logger');
-jest.mock('../../../../../src/components/storage');
-jest.mock('@liskhq/lisk-validator', () => ({
-	validator: {
-		validate: jest.fn().mockImplementation(() => {
-			return [];
-		}),
-	},
-}));
 
 // eslint-disable-next-line
 describe('Application', () => {

@@ -11,15 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
 module.exports = {
+	globals: {
+		'ts-jest': {
+			tsConfig: './test/tsconfig.json',
+		},
+	},
 	verbose: true,
 	collectCoverage: true,
 	coverageReporters: ['json', 'lcov', 'cobertura'],
 	rootDir: '../../../',
 	setupFilesAfterEnv: ['<rootDir>/test/jest/config/setup.js'],
+	transform: {
+		'^.+\\.(ts|tsx)$': 'ts-jest',
+	},
 	/**
 		coverageThreshold: {
 			global: {

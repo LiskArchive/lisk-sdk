@@ -25,7 +25,6 @@ const {
 const {
 	InvalidTransactionError,
 } = require('../../../../../../src/application/node/transport/errors');
-const jobsQueue = require('../../../../../../src/application/node/utils/jobs_queue');
 const {
 	devnetNetworkIdentifier: networkIdentifier,
 } = require('../../../../../utils/network_identifier');
@@ -97,7 +96,6 @@ describe('transport', () => {
 			invokeFromNetwork: jest.fn(),
 		};
 
-		jest.spyOn(jobsQueue, 'register');
 		jest.spyOn(validator, 'validate');
 
 		transportModule = new TransportModule({

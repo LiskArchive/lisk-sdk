@@ -26,11 +26,11 @@ const { EVENT_BFT_BLOCK_FINALIZED, BFT } = require('@liskhq/lisk-bft');
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const {
 	TransactionPool,
+	Job,
 	events: { EVENT_TRANSACTION_REMOVED },
 } = require('@liskhq/lisk-transaction-pool');
 const { convertErrorsToString } = require('./utils/error_handlers');
 const { Sequence } = require('./utils/sequence');
-const jobQueue = require('./utils/jobs_queue');
 const { Forger } = require('./forger');
 const { Transport } = require('./transport');
 const {
@@ -69,11 +69,7 @@ module.exports = class Node {
 				this.options.forging.waitThreshold >= this.options.constants.blockTime
 			) {
 				throw Error(
-					`forging.waitThreshold=${
-						this.options.forging.waitThreshold
-					} is greater or equal to genesisConfig.blockTime=${
-						this.options.constants.blockTime
-					}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
+					`forging.waitThreshold=${this.options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this.options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
 
@@ -543,11 +539,9 @@ module.exports = class Node {
 		} catch (err) {
 			this.logger.error({ err }, 'Failed to load delegates for forging');
 		}
-		jobQueue.register(
-			'nextForge',
-			async () => this._forgingTask(),
-			forgeInterval,
-		);
+		this.forgingJob = new Job(async () => this._forgingTask(), forgeInterval);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		this.forgingJob.start();
 	}
 
 	_subscribeToEvents() {
