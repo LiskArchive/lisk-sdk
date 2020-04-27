@@ -372,7 +372,7 @@ export class Network {
 				},
 				'Failed to initialize network',
 			);
-			process.emit('beforeExit', error);
+			process.exit(0);
 		}
 	}
 

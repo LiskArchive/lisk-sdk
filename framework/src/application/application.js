@@ -89,8 +89,6 @@ const registerProcessHooks = app => {
 
 	process.once('SIGINT', () => app.shutdown(1));
 
-	process.once('beforeExit', (error, code) => app.shutdown(code, error));
-
 	process.once('exit', (error, code) => app.shutdown(code, error));
 };
 
