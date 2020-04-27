@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as liskP2p from '@liskhq/lisk-p2p';
+import { p2pTypes } from '@liskhq/lisk-p2p';
 
 export interface Channel<T = unknown> {
 	readonly publish: (procedure: string, params?: object) => void;
@@ -56,18 +56,12 @@ export interface StorageTransaction {
 /* Start P2P */
 type Modify<T, R> = Omit<T, keyof R> & R;
 export type P2PConfig = Modify<
-	liskP2p.p2pTypes.P2PConfig,
+	p2pTypes.P2PConfig,
 	{
 		readonly advertiseAddress: boolean;
 		readonly seedPeers: ReadonlyArray<SeedPeerInfo>;
 	}
 >;
-
-export interface ProtocolPeerInfo {
-	readonly [key: string]: unknown;
-	readonly ipAddress: string;
-	readonly wsPort: number;
-}
 
 export interface SeedPeerInfo {
 	readonly ip: string | unknown;
