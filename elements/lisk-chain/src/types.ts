@@ -110,6 +110,20 @@ export type BlockHeader = Modify<
 	}
 >;
 
+export type GenesisBlockJSON = Modify<
+	BlockJSON,
+	{
+		previousBlockId?: string | null;
+	}
+>;
+
+export type GenesisBlock = Modify<
+	BlockInstance,
+	{
+		previousBlockId?: string | null;
+	}
+>;
+
 export interface BlockRewardOptions {
 	readonly totalAmount: string;
 	readonly distance: number;

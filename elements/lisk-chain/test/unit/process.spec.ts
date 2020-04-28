@@ -759,7 +759,7 @@ describe('blocks/header', () => {
 			// Arrage
 			storageStub.entities.Account.get.mockResolvedValue([]);
 			// Act
-			genesisInstance = chainInstance.deserialize(genesisBlock);
+			genesisInstance = chainInstance.deserialize(genesisBlock as any);
 			genesisInstance.transactions.forEach(tx => tx.validate());
 			// Act
 			stateStore = new StateStore(storageStub, {

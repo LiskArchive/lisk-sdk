@@ -245,7 +245,7 @@ export class Processor {
 		);
 		const highestVersion = Math.max.apply(
 			null,
-			Object.keys(this.processors).map(parseInt),
+			Object.keys(this.processors).map(v => parseInt(v, 10)),
 		);
 		const processor = this.processors[highestVersion];
 		const stateStore = await this.chainModule.newStateStore();
