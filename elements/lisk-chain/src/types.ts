@@ -80,7 +80,7 @@ export interface BlockHeaderJSON {
 	height: number;
 	version: number;
 	timestamp: number;
-	previousBlockId?: string | null;
+	previousBlockId: string;
 	seedReveal: string;
 	blockSignature: string;
 	generatorPublicKey: string;
@@ -104,9 +104,9 @@ type Modify<T, R> = Omit<T, keyof R> & R;
 export type BlockHeader = Modify<
 	BlockHeaderJSON,
 	{
-		readonly totalAmount: bigint;
-		readonly totalFee: bigint;
-		readonly reward: bigint;
+		totalAmount: bigint;
+		totalFee: bigint;
+		reward: bigint;
 	}
 >;
 
@@ -119,7 +119,7 @@ export interface BlockRewardOptions {
 
 export interface BlockInstance extends BlockHeader {
 	readonly transactions: BaseTransaction[];
-	readonly receivedAt?: Date;
+	readonly receivedAt?: number;
 }
 
 export interface TempBlock {

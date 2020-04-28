@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { baseBlockSchema } = require('@liskhq/lisk-chain');
-const { validator } = require('@liskhq/lisk-validator');
-const {
+import {
+	baseBlockSchema,
+	BlockInstance,
+	Chain,
+	StateStore,
+} from '@liskhq/lisk-chain';
+import { validator } from '@liskhq/lisk-validator';
+import {
 	BIG_ENDIAN,
 	hash,
 	signDataWithPrivateKey,
@@ -24,8 +27,65 @@ const {
 	intToBuffer,
 	LITTLE_ENDIAN,
 	getAddressFromPublicKey,
-} = require('@liskhq/lisk-cryptography');
-const { BaseBlockProcessor } = require('./processor');
+} from '@liskhq/lisk-cryptography';
+import { BFT } from '@liskhq/lisk-bft';
+import { Dpos } from '@liskhq/lisk-dpos';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { BaseBlockProcessor } from './processor';
+import { Logger } from '../../types';
+
+interface BlockProcessorInput {
+	readonly networkIdentifier: string;
+	readonly chainModule: Chain;
+	readonly bftModule: BFT;
+	readonly dposModule: Dpos;
+	readonly storage: Storage;
+	readonly logger: Logger;
+	readonly constants: {
+		readonly maxPayloadLength: number;
+	};
+}
+
+interface ForgedMap {
+	[address: string]:
+		| {
+				height: number;
+				maxHeightPrevoted: number;
+				maxHeightPreviouslyForged: number;
+		  }
+		| undefined;
+}
+
+interface CreateInput {
+	readonly transactions: ReadonlyArray<BaseTransaction>;
+	readonly height: number;
+	readonly previousBlockId: string;
+	readonly keypair: {
+		publicKey: Buffer;
+		privateKey: Buffer;
+	};
+	readonly seedReveal: string;
+	readonly timestamp: number;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly stateStore: StateStore;
+}
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+type BlockWithoutID = Modify<
+	BlockInstance,
+	{
+		id?: string;
+	}
+>;
+type BlockWithoutIDAndSign = Modify<
+	BlockInstance,
+	{
+		id?: string;
+		blockSignature?: string;
+	}
+>;
 
 const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'forger:previouslyForged';
 
@@ -57,7 +117,9 @@ const blockSchema = {
 	],
 };
 
-const getBytes = block => {
+export const getBytes = (
+	block: BlockWithoutIDAndSign | BlockWithoutID,
+): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -147,15 +209,27 @@ const getBytes = block => {
 	]);
 };
 
-const validateSchema = ({ block }) => {
+const validateSchema = ({ block }: { block: BlockInstance }) => {
 	const errors = validator.validate(blockSchema, block);
 	if (errors.length) {
 		throw errors;
 	}
 };
 
-class BlockProcessorV2 extends BaseBlockProcessor {
-	constructor({
+export class BlockProcessorV2 extends BaseBlockProcessor {
+	public readonly version = 2;
+
+	private readonly networkIdentifier: string;
+	private readonly chainModule: Chain;
+	private readonly bftModule: BFT;
+	private readonly dposModule: Dpos;
+	private readonly storage: Storage;
+	private readonly logger: Logger;
+	private readonly constants: {
+		readonly maxPayloadLength: number;
+	};
+
+	public constructor({
 		networkIdentifier,
 		chainModule,
 		bftModule,
@@ -163,7 +237,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		storage,
 		logger,
 		constants,
-	}) {
+	}: BlockProcessorInput) {
 		super();
 		this.networkIdentifier = networkIdentifier;
 		this.chainModule = chainModule;
@@ -173,25 +247,36 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		this.storage = storage;
 		this.constants = constants;
 
-		this.init.pipe([({ stateStore }) => this.bftModule.init(stateStore)]);
+		this.init.pipe([async ({ stateStore }) => this.bftModule.init(stateStore)]);
 
-		this.deserialize.pipe([({ block }) => this.chainModule.deserialize(block)]);
+		this.deserialize.pipe([
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async ({ block }) => this.chainModule.deserialize(block),
+		]);
 
 		this.serialize.pipe([
-			({ block }) => this.chainModule.serialize(block),
-			(_, updatedBlock) => this.bftModule.serialize(updatedBlock),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async ({ block }) => this.chainModule.serialize(block),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async (_, updatedBlock) => this.bftModule.serialize(updatedBlock),
 		]);
 
 		this.validate.pipe([
-			data => this._validateVersion(data),
-			data => validateSchema(data),
-			({ block }) =>
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async data => this._validateVersion(data),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async data => validateSchema(data),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async ({ block }) =>
 				this.chainModule.validateBlockHeader(block, getBytes(block)),
-			({ block }) => this.bftModule.validateBlock(block),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async ({ block }) => this.bftModule.validateBlock(block),
 		]);
 
 		this.forkStatus.pipe([
-			({ block, lastBlock }) => this.bftModule.forkChoice(block, lastBlock), // validate common block header
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async ({ block, lastBlock }) =>
+				this.bftModule.forkChoice(block, lastBlock), // validate common block header
 		]);
 
 		this.verify.pipe([
@@ -211,22 +296,27 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				}
 				if (block.reward !== expectedReward) {
 					throw new Error(
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`Invalid block reward: ${block.reward.toString()} expected: ${expectedReward}`,
 					);
 				}
 			},
-			({ block }) => this.dposModule.verifyBlockForger(block),
-			({ block }) => this.bftModule.verifyNewBlock(block),
-			({ block, stateStore, skipExistingCheck }) =>
-				this.chainModule.verify(block, stateStore, { skipExistingCheck }),
+			async ({ block }) => this.dposModule.verifyBlockForger(block),
+			async ({ block }) => this.bftModule.verifyNewBlock(block),
+			async ({ block, stateStore, skipExistingCheck }) =>
+				this.chainModule.verify(block, stateStore, {
+					skipExistingCheck: !!skipExistingCheck,
+				}),
 		]);
 
 		this.apply.pipe([
-			({ block, stateStore }) => this.chainModule.apply(block, stateStore),
-			({ block, stateStore }) => this.bftModule.addNewBlock(block, stateStore),
-			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
-			({ stateStore }) => {
-				this.dposModule.onBlockFinalized(
+			async ({ block, stateStore }) =>
+				this.chainModule.apply(block, stateStore),
+			async ({ block, stateStore }) =>
+				this.bftModule.addNewBlock(block, stateStore),
+			async ({ block, stateStore }) => this.dposModule.apply(block, stateStore),
+			async ({ stateStore }) => {
+				await this.dposModule.onBlockFinalized(
 					stateStore,
 					this.bftModule.finalizedHeight,
 				);
@@ -234,16 +324,16 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 
 		this.applyGenesis.pipe([
-			({ block, stateStore }) =>
+			async ({ block, stateStore }) =>
 				this.chainModule.applyGenesis(block, stateStore),
-			({ block, stateStore }) => this.dposModule.apply(block, stateStore),
+			async ({ block, stateStore }) => this.dposModule.apply(block, stateStore),
 		]);
 
 		this.undo.pipe([
-			({ block, stateStore }) => this.chainModule.undo(block, stateStore),
-			({ block, stateStore }) =>
+			async ({ block, stateStore }) => this.chainModule.undo(block, stateStore),
+			async ({ block, stateStore }) =>
 				this.bftModule.deleteBlocks([block], stateStore),
-			({ block, stateStore }) => this.dposModule.undo(block, stateStore),
+			async ({ block, stateStore }) => this.dposModule.undo(block, stateStore),
 		]);
 
 		this.create.pipe([
@@ -253,10 +343,11 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 				const delegateAddress = getAddressFromPublicKey(
 					data.keypair.publicKey.toString('hex'),
 				);
+				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 				const height = data.previousBlock.height + 1;
 				const previousBlockId = data.previousBlock.id;
-				const forgerInfo = previouslyForgedMap[delegateAddress] || {};
-				const maxHeightPreviouslyForged = forgerInfo.height || 0;
+				const forgerInfo = previouslyForgedMap[delegateAddress];
+				const maxHeightPreviouslyForged = forgerInfo?.height ?? 0;
 				const block = await this._create({
 					...data,
 					height,
@@ -272,12 +363,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		]);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	get version() {
-		return 2;
-	}
-
-	async _create({
+	private async _create({
 		transactions,
 		height,
 		previousBlockId,
@@ -287,7 +373,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
 		stateStore,
-	}) {
+	}: CreateInput): Promise<BlockWithoutID> {
 		const reward = this.chainModule.blockReward.calculateReward(height);
 		let totalFee = BigInt(0);
 		let totalAmount = BigInt(0);
@@ -299,7 +385,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		// eslint-disable-next-line no-plusplus,@typescript-eslint/prefer-for-of
 		for (let i = 0; i < transactions.length; i++) {
 			const transaction = transactions[i];
-			const transactionBytes = transaction.getBytes(transaction);
+			const transactionBytes = transaction.getBytes();
 
 			if (size + transactionBytes.length > this.constants.maxPayloadLength) {
 				break;
@@ -308,7 +394,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			size += transactionBytes.length;
 
 			totalFee += BigInt(transaction.fee);
-			totalAmount += BigInt(transaction.asset.amount || 0);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			totalAmount += BigInt((transaction.asset as any).amount ?? 0);
 
 			blockTransactions.push(transaction);
 			transactionsBytesArray.push(transactionBytes);
@@ -317,7 +404,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		const transactionsBuffer = Buffer.concat(transactionsBytesArray);
 		const payloadHash = hash(transactionsBuffer).toString('hex');
 
-		const block = {
+		const block: BlockWithoutIDAndSign = {
 			version: this.version,
 			totalAmount,
 			totalFee,
@@ -333,6 +420,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 			height,
 			maxHeightPreviouslyForged,
 			maxHeightPrevoted,
+			receivedAt: undefined,
 		};
 
 		const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
@@ -360,7 +448,7 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		};
 	}
 
-	async _getPreviouslyForgedMap() {
+	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
 		const previouslyForgedStr = await this.storage.entities.ForgerInfo.getKey(
 			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 		);
@@ -371,7 +459,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 	 * Saving a height which delegate last forged. this needs to be saved before broadcasting
 	 * so it needs to be outside of the DB transaction
 	 */
-	async _saveMaxHeightPreviouslyForged(block, previouslyForgedMap) {
+	private async _saveMaxHeightPreviouslyForged(
+		block: BlockWithoutID,
+		previouslyForgedMap: ForgedMap,
+	) {
 		const {
 			generatorPublicKey,
 			height,
@@ -380,8 +471,8 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		} = block;
 		const generatorAddress = getAddressFromPublicKey(generatorPublicKey);
 		// In order to compare with the minimum height in case of the first block, here it should be 0
-		const previouslyForged = previouslyForgedMap[generatorAddress] || {};
-		const previouslyForgedHeightByDelegate = previouslyForged.height || 0;
+		const previouslyForged = previouslyForgedMap[generatorAddress];
+		const previouslyForgedHeightByDelegate = previouslyForged?.height ?? 0;
 		// previously forged height only saves maximum forged height
 		if (height <= previouslyForgedHeightByDelegate) {
 			return;
@@ -401,7 +492,10 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		);
 	}
 
-	async _punishDPoSViolation(block, stateStore) {
+	private async _punishDPoSViolation(
+		block: BlockWithoutIDAndSign,
+		stateStore: StateStore,
+	) {
 		const isDPoSProtocolCompliant = await this.dposModule.isDPoSProtocolCompliant(
 			block,
 			stateStore,
@@ -419,8 +513,3 @@ class BlockProcessorV2 extends BaseBlockProcessor {
 		return block.reward;
 	}
 }
-
-module.exports = {
-	BlockProcessorV2,
-	getBytes,
-};

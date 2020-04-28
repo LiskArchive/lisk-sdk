@@ -12,12 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { Processor } = require('./processor');
-const { BaseBlockProcessor } = require('./base_block_processor');
-
-module.exports = {
-	Processor,
-	BaseBlockProcessor,
-};
+export { Processor } from './processor';
+export { BaseBlockProcessor } from './base_block_processor';

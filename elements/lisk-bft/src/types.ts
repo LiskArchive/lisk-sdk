@@ -15,7 +15,6 @@
 
 export interface BlockHeader {
 	readonly height: number;
-	readonly id: string;
 	readonly generatorPublicKey: string;
 	readonly previousBlockId: string;
 	readonly timestamp: number;
@@ -24,6 +23,8 @@ export interface BlockHeader {
 	readonly maxHeightPreviouslyForged: number;
 	readonly version: number;
 }
+
+export type BlockHeaderWithID = BlockHeader & { readonly id: string };
 
 export interface DPoS {
 	readonly getMinActiveHeight: (
