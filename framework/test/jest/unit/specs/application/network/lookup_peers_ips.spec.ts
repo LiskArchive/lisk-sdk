@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const {
-	lookupPeersIPs,
-} = require('../../../../../../src/application/network/utils');
-const {
-	peers: { list },
-} = require('../../../../../mocha/data/app_config.json');
+import { lookupPeersIPs } from '../../../../../../src/application/network/utils';
+import { peers } from '../../../../../mocha/data/app_config.json';
 
 const ipv4Regex = new RegExp(
 	/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/,
@@ -27,20 +21,20 @@ const ipv4Regex = new RegExp(
 
 describe('init_steps/lookup_peers_ips', () => {
 	it('should return empty array if peers are not enabled', async () => {
-		const result = await lookupPeersIPs(list, false);
+		const result = await lookupPeersIPs(peers.list, false);
 
 		return expect(result).toEqual([]);
 	});
 
 	describe('for each peer', () => {
-		let spyConsoleError = null;
+		let spyConsoleError: jest.SpyInstance;
 
 		beforeEach(() => {
 			spyConsoleError = jest.spyOn(console, 'error');
 		});
 
 		it('should throw error when failed to resolve hostname', async () => {
-			await lookupPeersIPs([{ ip: 'https://lisk.io/' }], true);
+			await lookupPeersIPs([{ ip: 'https://lisk.io/', wsPort: 4000 }], true);
 
 			expect(spyConsoleError).toHaveBeenCalledTimes(1);
 			return expect(spyConsoleError).toHaveBeenCalledWith(
@@ -48,12 +42,12 @@ describe('init_steps/lookup_peers_ips', () => {
 			);
 		});
 
-		it('should resolve hostnames to ip address', async () => {
-			const resolvedIps = await lookupPeersIPs(list, true);
+		it('should resolve hostname to ip address', async () => {
+			const resolvedIps = await lookupPeersIPs(peers.list, true);
 
-			expect(resolvedIps).toHaveLength(list.length);
+			expect(resolvedIps).toHaveLength(peers.list.length);
 			return resolvedIps.forEach(peer => {
-				expect(ipv4Regex.test(peer.ip)).toBeTrue();
+				expect(ipv4Regex.test(peer.ip as string)).toBeTrue();
 			});
 		});
 	});

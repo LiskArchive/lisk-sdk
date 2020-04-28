@@ -139,7 +139,7 @@ module.exports = class Node {
 					},
 					'Successfully rebuild the blockchain',
 				);
-				process.emit('cleanup');
+				process.exit(0);
 				return;
 			}
 
@@ -188,7 +188,7 @@ module.exports = class Node {
 				},
 				'Failed to initialization node',
 			);
-			process.emit('cleanup', error);
+			process.exit(0);
 		}
 	}
 

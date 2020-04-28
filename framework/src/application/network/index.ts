@@ -12,10 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const Network = require('./network');
-
-module.exports = {
-	Network,
-};
+export { Network } from './network';

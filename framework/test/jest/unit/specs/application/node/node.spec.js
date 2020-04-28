@@ -30,15 +30,23 @@ const {
 } = require('../../../../../../src/application/node/forger');
 const { cacheConfig, nodeOptions } = require('../../../../../fixtures/node');
 
+const setProperty = (object, property, value) => {
+	const originalProperty = Object.getOwnPropertyDescriptor(object, property);
+	Object.defineProperty(object, property, { value });
+	return originalProperty;
+};
+
 describe('Node', () => {
 	let node;
 	let subscribedEvents;
 	const stubs = {};
 	const lastBlock = { ...nodeOptions.genesisBlock };
+	const mockExit = jest.fn();
 
 	beforeEach(async () => {
 		// Arrange
 		subscribedEvents = {};
+		setProperty(process, 'exit', mockExit);
 
 		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(null);
 		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(null);
@@ -331,7 +339,6 @@ describe('Node', () => {
 		});
 
 		describe('if any error thrown', () => {
-			let processEmitStub;
 			beforeEach(async () => {
 				// Arrange
 				node = new Node({
@@ -343,7 +350,6 @@ describe('Node', () => {
 					logger: stubs.logger,
 					storage: stubs.storage,
 				});
-				processEmitStub = jest.spyOn(process, 'emit');
 
 				// Act
 				try {
@@ -359,16 +365,13 @@ describe('Node', () => {
 					'Failed to initialization node',
 				);
 			});
-			it('should emit an event "cleanup" on the process', () => {
-				return expect(processEmitStub).toHaveBeenCalledWith(
-					'cleanup',
-					expect.any(Object),
-				);
+			it('should emit an event "beforeExit" on the process', () => {
+				return expect(mockExit).toHaveBeenCalledWith(0);
 			});
 		});
 	});
 
-	describe('cleanup', () => {
+	describe('beforeExit', () => {
 		beforeEach(async () => {
 			// Arrange
 			await node.bootstrap();
