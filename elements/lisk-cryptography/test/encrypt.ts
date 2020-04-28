@@ -175,11 +175,9 @@ describe('encrypt', () => {
 		});
 
 		describe('#encryptPassphraseWithPassword', () => {
-			let startTime: number;
 			let encryptedPassphrase: EncryptedPassphraseObject;
 
 			beforeEach(() => {
-				startTime = Date.now();
 				encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -220,16 +218,6 @@ describe('encrypt', () => {
 				return expect(encryptedPassphrase)
 					.to.have.property('iterations')
 					.equal(PBKDF2_ITERATIONS);
-			});
-
-			it('should take more than 0.5 seconds @node-only', () => {
-				const endTime = Date.now();
-				return expect(endTime - startTime).to.be.above(500);
-			});
-
-			it('should take less than 2 seconds @node-only', () => {
-				const endTime = Date.now();
-				return expect(endTime - startTime).to.be.below(2e3);
 			});
 
 			it('should accept and output a custom number of iterations', () => {

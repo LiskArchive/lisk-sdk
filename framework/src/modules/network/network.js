@@ -260,10 +260,10 @@ module.exports = class Network {
 				? request.procedure
 				: `chain:${request.procedure}`;
 			try {
-				const result = await this.channel.invokePublic(
-					sanitizedProcedure,
-					request.data,
-				);
+				const result = await this.channel.invokePublic(sanitizedProcedure, {
+					data: request.data,
+					peerId: request.peerId,
+				});
 				this.logger.trace(
 					`Peer request fulfilled event: Responded to peer request ${
 						request.procedure

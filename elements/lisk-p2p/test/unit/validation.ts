@@ -21,6 +21,7 @@ import {
 	validateProtocolMessage,
 	incomingPeerInfoSanitization,
 	outgoingPeerInfoSanitization,
+	validateMessage,
 } from '../../src/validation';
 import { ProtocolPeerInfo } from '../../src/p2p_types';
 import {
@@ -310,6 +311,20 @@ describe('response handlers', () => {
 			expect(outgoingPeerInfoSanitization(samplePeers[0])).eql(
 				protocolPeerInfo,
 			);
+		});
+	});
+
+	describe('#validateMessage', () => {
+		it('should not throw an error if the mssage is as expected', async () => {
+			expect(() => validateMessage({ rid: 2, data: {} })).not.to.throw(
+				'Invalid message schema',
+			);
+		});
+
+		it('should throw an error if the mssage contains additional keywords', async () => {
+			expect(() =>
+				validateMessage({ cid: 4, invalidProperty: { something: 'invalid' } }),
+			).to.throw('Invalid message schema');
 		});
 	});
 });

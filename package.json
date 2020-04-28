@@ -38,6 +38,20 @@
 		"cover": "lerna run cover",
 		"init": "./scripts/init.sh"
 	},
+	"workspaces": {
+		"packages": [
+			"framework",
+			"elements/*",
+			"commander",
+			"sdk"
+		],
+		"nohoist": [
+			"**@types/mocha",
+			"**@types/jest",
+			"**jest-extended",
+			"**@types/jest-when"
+		]
+	},
 	"husky": {
 		"hooks": {
 			"pre-commit": "lint-staged"

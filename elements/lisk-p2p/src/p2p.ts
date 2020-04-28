@@ -92,8 +92,10 @@ import {
 import { constructPeerIdFromPeerInfo } from './utils';
 import {
 	checkPeerCompatibility,
+	isEmptyMessage,
 	outgoingPeerInfoSanitization,
 	sanitizePeerLists,
+	validateMessage,
 } from './validation';
 
 export {
@@ -716,6 +718,7 @@ export class P2P extends EventEmitter {
 
 			try {
 				const parsed = JSON.parse(message);
+				validateMessage(parsed);
 
 				const invalidEvents: Set<string> = new Set([
 					'#authenticate',
@@ -1093,6 +1096,15 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetPeersRequest(request: P2PRequest): void {
+		if (!isEmptyMessage(request.data)) {
+			this.applyPenalty({
+				peerId: request.peerId as string,
+				penalty: 100,
+			});
+			request.error(new Error('Invalid request schema'));
+
+			return;
+		}
 		const minimumPeerDiscoveryThreshold = this._config
 			.minimumPeerDiscoveryThreshold
 			? this._config.minimumPeerDiscoveryThreshold

@@ -18,6 +18,7 @@ module.exports = {
 	Signature: {
 		id: 'Signature',
 		type: 'object',
+		additionalProperties: false,
 		required: ['transactionId', 'publicKey', 'signature'],
 		properties: {
 			transactionId: {
@@ -75,6 +76,7 @@ module.exports = {
 		id: 'WSSignaturesList',
 		type: 'object',
 		required: ['signatures'],
+		additionalProperties: false,
 		properties: {
 			nonce: {
 				type: 'string',
@@ -90,6 +92,9 @@ module.exports = {
 				minItems: 1,
 				maxItems: 25,
 			},
+			relays: {
+				type: 'integer',
+			},
 		},
 	},
 	WSBlocksList: {
@@ -102,6 +107,7 @@ module.exports = {
 	WSBlocksCommonRequest: {
 		id: 'WSBlocksCommonRequest',
 		type: 'object',
+		additionalProperties: false,
 		required: ['ids'],
 		properties: {
 			ids: {
@@ -114,6 +120,7 @@ module.exports = {
 		id: 'WSTransactionsRequest',
 		type: 'object',
 		required: ['transactions'],
+		additionalProperties: false,
 		properties: {
 			nonce: {
 				type: 'string',
@@ -163,8 +170,15 @@ module.exports = {
 	WSBlocksBroadcast: {
 		id: 'WSBlocksBroadcast',
 		type: 'object',
+		additionalProperties: false,
 		required: ['block'],
 		properties: {
+			nonce: {
+				type: 'string',
+				example: 'sYHEDBKcScaAAAYg',
+				minLength: 16,
+				maxLength: 16,
+			},
 			block: {
 				type: 'object',
 				required: ['id', 'height', 'timestamp', 'generatorPublicKey'],

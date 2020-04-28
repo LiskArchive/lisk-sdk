@@ -23,13 +23,6 @@ const definitions = require('../schema/definitions');
 const blocksUtils = require('../blocks');
 const transactionsModule = require('../transactions');
 
-function incrementRelays(packet) {
-	if (!Number.isInteger(packet.relays)) {
-		packet.relays = 0;
-	}
-	packet.relays += 1;
-}
-
 /**
  * Main transport methods. Initializes library with scope content and generates a Broadcaster instance.
  *
@@ -103,8 +96,6 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onSignature(signature, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(signature);
 			this.broadcaster.enqueue(
 				{},
 				{
@@ -129,8 +120,6 @@ class Transport {
 	// eslint-disable-next-line class-methods-use-this
 	onUnconfirmedTransaction(transaction, broadcast) {
 		if (broadcast) {
-			// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-			incrementRelays(transaction);
 			const transactionJSON = transaction.toJSON();
 			this.broadcaster.enqueue(
 				{},
@@ -157,9 +146,6 @@ class Transport {
 	onBroadcastBlock(block, broadcast) {
 		// Exit immediately when 'broadcast' flag is not set
 		if (!broadcast) return null;
-
-		// TODO: Remove the relays property as part of the next hard fork. This needs to be set for backwards compatibility.
-		incrementRelays(block);
 
 		if (this.loaderModule.syncing()) {
 			this.logger.debug(
@@ -220,7 +206,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async blocksCommon(query) {
+	async blocksCommon({ data: query, peerId }) {
 		query = query || {};
 
 		if (query.ids && query.ids.split(',').length > 1000) {
@@ -234,6 +220,10 @@ class Transport {
 			this.logger.debug('Common block request validation failed', {
 				err: error.toString(),
 				req: query,
+			});
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
 			});
 			throw new Error(error);
 		}
@@ -293,7 +283,7 @@ class Transport {
 	 * @todo Add description of the function
 	 */
 	// eslint-disable-next-line consistent-return
-	async blocks(query) {
+	async blocks({ data: query }) {
 		// Get 34 blocks with all data (joins) from provided block id
 		// According to maxium payload of 58150 bytes per block with every transaction being a vote
 		// Discounting maxium compression setting used in middleware
@@ -344,7 +334,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postBlock(query = {}) {
+	async postBlock(query = {}, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving blocks disabled by user through config.json',
@@ -362,7 +352,10 @@ class Transport {
 					query,
 				},
 			);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
@@ -389,11 +382,15 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignature(query) {
+	async postSignature(query, peerId) {
 		const errors = validator.validate(definitions.Signature, query.signature);
 
 		if (errors.length) {
 			const error = new TransactionError(errors[0].message);
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			return {
 				success: false,
 				code: 400,
@@ -422,7 +419,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postSignatures(query) {
+	async postSignatures(query, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving signatures disabled by user through config.json',
@@ -432,12 +429,15 @@ class Transport {
 		const errors = validator.validate(definitions.WSSignaturesList, query);
 
 		if (errors.length) {
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			this.logger.debug('Invalid signatures body', errors);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
 			throw errors;
 		}
 
-		return this._receiveSignatures(query.signatures);
+		return this._receiveSignatures(query.signatures, peerId);
 	}
 
 	/**
@@ -517,7 +517,7 @@ class Transport {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	async postTransactions(query) {
+	async postTransactions(query, peerId) {
 		if (!this.constants.broadcasts.active) {
 			return this.logger.debug(
 				'Receiving transactions disabled by user through config.json',
@@ -528,7 +528,10 @@ class Transport {
 
 		if (errors.length) {
 			this.logger.debug('Invalid transactions body', errors);
-			// TODO: If there is an error, invoke the applyPenalty action on the Network module once it is implemented.
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
@@ -542,12 +545,12 @@ class Transport {
 	 * @implements {__private.receiveSignature}
 	 * @param {Array} signatures - Array of signatures
 	 */
-	async _receiveSignatures(signatures = []) {
+	async _receiveSignatures(signatures = [], peerId) {
 		// eslint-disable-next-line no-restricted-syntax
 		for (const signature of signatures) {
 			try {
 				// eslint-disable-next-line no-await-in-loop
-				await this._receiveSignature(signature);
+				await this._receiveSignature(signature, peerId);
 			} catch (err) {
 				this.logger.debug(err, signature);
 			}
@@ -564,10 +567,14 @@ class Transport {
 	 * @returns {Promise.<boolean, Error>}
 	 * @todo Add description for the params
 	 */
-	async _receiveSignature(signature) {
+	async _receiveSignature(signature, peerId) {
 		const errors = validator.validate(definitions.Signature, signature);
 
 		if (errors.length) {
+			await this.channel.invoke('network:applyPenalty', {
+				peerId,
+				penalty: 100,
+			});
 			throw errors;
 		}
 
