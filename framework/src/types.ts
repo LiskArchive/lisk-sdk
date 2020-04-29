@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
+import { BlockJSON } from '@liskhq/lisk-chain';
+import { BlockInstance } from '@liskhq/lisk-chain';
 
 export interface Channel {
 	readonly publish: (procedure: string, params?: object) => void;
@@ -28,7 +30,7 @@ export interface Channel {
 		procedure: string,
 		params?: object,
 	) => Promise<T>;
-	readonly publishToNetwork: <T=unknown>(eventName: string, data?: object) => Promise<T>;
+	readonly publishToNetwork: <T = unknown>(eventName: string, data?: object) => Promise<T>;
 }
 
 export interface Logger {
@@ -79,9 +81,25 @@ export interface SeedPeerInfo {
 	readonly ip: string | unknown;
 	readonly wsPort: number;
 }
+
+export interface RPCBlocksByIdData {
+	readonly blockId: string;
+}
+
+export interface EventPostBlockData {
+	readonly block: BlockJSON;
+}
+
+export interface RPCTransactionsByIdData {
+	readonly transactionIds: string[];
+}
+
+export interface RPCHighestCommonBlockData {
+	readonly ids: string[];
+}
 /* End P2P */
 
-export interface ApplicationState {
+export interface AppStateProperties {
 	readonly os: string;
 	readonly version: string;
 	readonly wsPort: number;
@@ -91,4 +109,25 @@ export interface ApplicationState {
 	readonly blockVersion: number;
 	readonly maxHeightPrevoted: number;
 	readonly networkId: string;
+}
+
+export interface ApplicationState {
+	readonly logger: Logger;
+	readonly set: (logger: Logger) => void;
+	readonly update: (appState: AppStateProperties) => boolean;
+}
+
+export interface Processor {
+	readonly process: (
+		block: BlockInstance,
+		{ peerId: string }: p2pTypes.P2PPeerInfo,
+	) => Promise<void>;
+	readonly deserialize: (block: BlockJSON) => Promise<BlockInstance>;
+}
+
+export interface Synchronizer {
+	readonly isActive: boolean;
+	readonly init: () => Promise<void>;
+	readonly run: (receivedBlock: BlockJSON, peerId: string) => Promise<void>;
+	readonly loadUnconfirmedTransactions: () => Promise<void>;
 }
