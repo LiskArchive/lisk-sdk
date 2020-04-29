@@ -28,6 +28,7 @@ export interface Channel {
 		procedure: string,
 		params?: object,
 	) => Promise<T>;
+	readonly publishToNetwork: <T=unknown>(eventName: string, data?: object) => Promise<T>;
 }
 
 export interface Logger {

@@ -12,12 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { Logger, Channel } from '../../../types';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 
+interface BroadcasterConfig {
+	readonly releaseLimit: number;
+	readonly interval: number;
+}
+
+interface BroadcasterConstructor extends BroadcasterConfig {
+	readonly transactionPool: TransactionPool;
+	readonly logger: Logger;
+	readonly channel: Channel;
+}
+
 class Broadcaster {
-	constructor({ transactionPool, releaseLimit, interval, logger, channel }) {
+	private readonly channel: Channel;
+	private readonly logger: Logger;
+	private readonly transactionPool: TransactionPool;
+	private readonly config: BroadcasterConfig;
+	private transactionIdQueue: string[];
+
+	constructor({
+		transactionPool,
+		releaseLimit,
+		interval,
+		logger,
+		channel,
+	}: BroadcasterConstructor) {
 		this.channel = channel;
 		this.logger = logger;
 		this.transactionPool = transactionPool;
@@ -25,8 +49,6 @@ class Broadcaster {
 			releaseLimit,
 			interval,
 		};
-
-		this.queue = [];
 		this.transactionIdQueue = [];
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -39,7 +61,7 @@ class Broadcaster {
 		}, this.config.interval);
 	}
 
-	enqueueTransactionId(transactionId) {
+	enqueueTransactionId(transactionId: string) {
 		if (
 			this.transactionIdQueue.find(id => id === transactionId) !== undefined
 		) {
