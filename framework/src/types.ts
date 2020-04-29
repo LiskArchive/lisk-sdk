@@ -80,3 +80,15 @@ export interface SeedPeerInfo {
 	readonly wsPort: number;
 }
 /* End P2P */
+
+export interface ApplicationState {
+	readonly os: string;
+	readonly version: string;
+	readonly wsPort: number;
+	readonly httpPort: number;
+	readonly protocolVersion: string;
+	readonly height: number;
+	readonly blockVersion: number;
+	readonly maxHeightPrevoted: number;
+	readonly networkId: string;
+}

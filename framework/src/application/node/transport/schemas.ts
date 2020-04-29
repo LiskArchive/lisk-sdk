@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-module.exports = {
+export const schemas = {
 	getBlocksFromIdRequest: {
 		id: 'getBlocksFromIdRequest',
 		type: 'object',

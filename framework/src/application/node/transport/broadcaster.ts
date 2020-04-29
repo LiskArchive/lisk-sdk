@@ -22,13 +22,13 @@ interface BroadcasterConfig {
 	readonly interval: number;
 }
 
-interface BroadcasterConstructor extends BroadcasterConfig {
+export interface BroadcasterConstructor extends BroadcasterConfig {
 	readonly transactionPool: TransactionPool;
 	readonly logger: Logger;
 	readonly channel: Channel;
 }
 
-class Broadcaster {
+export class Broadcaster {
 	private readonly channel: Channel;
 	private readonly logger: Logger;
 	private readonly transactionPool: TransactionPool;
@@ -61,17 +61,18 @@ class Broadcaster {
 		}, this.config.interval);
 	}
 
-	enqueueTransactionId(transactionId: string) {
+	enqueueTransactionId(transactionId: string): boolean {
 		if (
 			this.transactionIdQueue.find(id => id === transactionId) !== undefined
 		) {
 			return false;
 		}
 		this.transactionIdQueue.push(transactionId);
+
 		return true;
 	}
 
-	async _broadcast() {
+	async _broadcast(): Promise<void> {
 		this.transactionIdQueue = this.transactionIdQueue.filter(id =>
 			this.transactionPool.contains(id),
 		);
@@ -80,17 +81,17 @@ class Broadcaster {
 				0,
 				this.config.releaseLimit,
 			);
+
 			await this.channel.publishToNetwork('broadcastToNetwork', {
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
 					transactionIds,
 				},
 			});
+
 			this.transactionIdQueue = this.transactionIdQueue.filter(
 				id => !transactionIds.includes(id),
 			);
 		}
 	}
 }
-
-module.exports = Broadcaster;

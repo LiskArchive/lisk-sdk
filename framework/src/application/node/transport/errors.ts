@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-class InvalidTransactionError extends Error {
+export class InvalidTransactionError extends Error {
 	public readonly message: string;
 	public readonly id: string;
 	public readonly errors: Error[];
@@ -24,7 +24,3 @@ class InvalidTransactionError extends Error {
 		this.errors = errors;
 	}
 }
-
-module.exports = {
-	InvalidTransactionError,
-};
