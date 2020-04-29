@@ -13,11 +13,21 @@
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
 
-export interface Channel<T = unknown> {
+export interface Channel {
 	readonly publish: (procedure: string, params?: object) => void;
 	readonly subscribe: (procedure: string, callback: Function) => void;
-	readonly invoke: (eventName: string) => Promise<T>;
-	readonly invokePublic: (procedure: string, params?: object) => Promise<T>;
+	readonly invoke: <T = unknown>(
+		eventName: string,
+		params?: object,
+	) => Promise<T>;
+	readonly invokePublic: <T = unknown>(
+		procedure: string,
+		params?: object,
+	) => Promise<T>;
+	readonly invokeFromNetwork: <T = unknown>(
+		procedure: string,
+		params?: object,
+	) => Promise<T>;
 }
 
 export interface Logger {

@@ -12,23 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as assert from 'assert';
+import { validator } from '@liskhq/lisk-validator';
+import {
+	Status as TransactionStatus,
+	TransactionJSON,
+} from '@liskhq/lisk-transactions';
+import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import * as definitions from './schema';
+import * as utils from './utils';
+import { Logger, Channel } from '../../../types';
+import { Processor } from '../processor';
+import { BaseSynchronizer } from './base_synchronizer';
 
-const assert = require('assert');
-const { validator } = require('@liskhq/lisk-validator');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const definitions = require('./schema');
-const utils = require('./utils');
+interface SynchronizerInput {
+	readonly logger: Logger;
+	readonly channel: Channel;
+	readonly chainModule: Chain;
+	readonly processorModule: Processor;
+	readonly transactionPoolModule: TransactionPool;
+	readonly mechanisms: BaseSynchronizer[];
+}
 
-class Synchronizer {
-	constructor({
+export class Synchronizer {
+	public active: boolean;
+	protected logger: Logger;
+	protected channel: Channel;
+	private readonly chainModule: Chain;
+	private readonly processorModule: Processor;
+	private readonly transactionPoolModule: TransactionPool;
+	private readonly mechanisms: BaseSynchronizer[];
+	private readonly loadTransactionsRetries: number;
+
+	public constructor({
 		channel,
 		logger,
 		chainModule,
 		processorModule,
 		transactionPoolModule,
 		mechanisms = [],
-	}) {
+	}: SynchronizerInput) {
 		assert(
 			Array.isArray(mechanisms),
 			'mechanisms should be an array of mechanisms',
@@ -45,20 +69,7 @@ class Synchronizer {
 		this._checkMechanismsInterfaces();
 	}
 
-	_checkMechanismsInterfaces() {
-		for (const mechanism of this.mechanisms) {
-			assert(
-				typeof mechanism.isValidFor === 'function',
-				`Mechanism ${mechanism.constructor.name} should implement "isValidFor" method`,
-			);
-			assert(
-				typeof mechanism.run === 'function',
-				`Mechanism ${mechanism.constructor.name} should implement "run" method`,
-			);
-		}
-	}
-
-	async init() {
+	public async init(): Promise<void> {
 		const isEmpty = await this.chainModule.dataAccess.isTempBlockEmpty();
 		if (!isEmpty) {
 			try {
@@ -76,7 +87,7 @@ class Synchronizer {
 		}
 	}
 
-	async run(receivedBlock, peerId) {
+	public async run(receivedBlock: BlockJSON, peerId: string): Promise<void> {
 		if (this.isActive) {
 			throw new Error('Synchronizer is already running');
 		}
@@ -128,24 +139,12 @@ class Synchronizer {
 		}
 	}
 
-	get isActive() {
+	public get isActive(): boolean {
 		return this.active;
 	}
 
-	// eslint-disable-next-line class-methods-use-this, no-unused-vars
-	async _determineSyncMechanism(receivedBlock, peerId) {
-		for (const mechanism of this.mechanisms) {
-			if (await mechanism.isValidFor(receivedBlock, peerId)) {
-				return mechanism;
-			}
-		}
-
-		return undefined;
-	}
-
-	async loadUnconfirmedTransactions() {
-		// eslint-disable-next-line no-plusplus
-		for (let retry = 0; retry < this.loadTransactionsRetries; retry++) {
+	public async loadUnconfirmedTransactions(): Promise<void> {
+		for (let retry = 0; retry < this.loadTransactionsRetries; retry += 1) {
 			try {
 				await this._getUnconfirmedTransactionsFromNetwork();
 
@@ -161,21 +160,33 @@ class Synchronizer {
 		}
 	}
 
+	private async _determineSyncMechanism(
+		receivedBlock: BlockInstance,
+		peerId: string,
+	) {
+		for (const mechanism of this.mechanisms) {
+			if (await mechanism.isValidFor(receivedBlock, peerId)) {
+				return mechanism;
+			}
+		}
+
+		return undefined;
+	}
+
 	/**
 	 * Loads transactions from the network:
 	 * - Validates each transaction from the network and applies a penalty if invalid.
 	 * - Calls processUnconfirmedTransaction for each transaction.
 	 */
-	async _getUnconfirmedTransactionsFromNetwork() {
+	private async _getUnconfirmedTransactionsFromNetwork() {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
-		const { data: result } = await this.channel.invokeFromNetwork(
-			'requestFromNetwork',
-			{
-				procedure: 'getTransactions',
-			},
-		);
+		const { data: result } = await this.channel.invokeFromNetwork<{
+			data: { transactions: TransactionJSON[] };
+		}>('requestFromNetwork', {
+			procedure: 'getTransactions',
+		});
 
 		const validatorErrors = validator.validate(
 			definitions.WSTransactionsResponse,
@@ -214,8 +225,7 @@ class Synchronizer {
 		}
 
 		const transactionCount = transactions.length;
-		// eslint-disable-next-line no-plusplus
-		for (let i = 0; i < transactionCount; i++) {
+		for (let i = 0; i < transactionCount; i += 1) {
 			const { errors } = await this.transactionPoolModule.add(transactions[i]);
 
 			if (errors.length) {
@@ -224,6 +234,17 @@ class Synchronizer {
 			}
 		}
 	}
-}
 
-module.exports = { Synchronizer };
+	private _checkMechanismsInterfaces() {
+		for (const mechanism of this.mechanisms) {
+			assert(
+				typeof mechanism.isValidFor === 'function',
+				`Mechanism ${mechanism.constructor.name} should implement "isValidFor" method`,
+			);
+			assert(
+				typeof mechanism.run === 'function',
+				`Mechanism ${mechanism.constructor.name} should implement "run" method`,
+			);
+		}
+	}
+}

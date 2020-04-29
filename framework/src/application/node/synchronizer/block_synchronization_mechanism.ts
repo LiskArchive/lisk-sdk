@@ -12,27 +12,59 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { groupBy } = require('lodash');
-const { ForkStatus } = require('@liskhq/lisk-bft');
-const { BaseSynchronizer } = require('./base_synchronizer');
-const {
+import { groupBy } from 'lodash';
+import { ForkStatus, BFT } from '@liskhq/lisk-bft';
+import { BlockInstance, BlockJSON, Chain } from '@liskhq/lisk-chain';
+import { Dpos } from '@liskhq/lisk-dpos';
+import { BaseSynchronizer } from './base_synchronizer';
+import {
 	computeLargestSubsetMaxBy,
 	computeBlockHeightsList,
 	deleteBlocksAfterHeight,
 	restoreBlocks,
 	clearBlocksTempTable,
-} = require('./utils');
-const {
+} from './utils';
+import {
 	AbortError,
 	ApplyPenaltyAndRestartError,
 	RestartError,
 	BlockProcessingError,
-} = require('./errors');
+} from './errors';
+import { Processor } from '../processor';
+import { Logger, Channel } from '../../../types';
 
-class BlockSynchronizationMechanism extends BaseSynchronizer {
-	constructor({ logger, channel, bft, dpos, chain, processorModule }) {
+interface Peer {
+	readonly peerId: string;
+	readonly maxHeightPrevoted: number;
+	readonly lastBlockId: number;
+	readonly height: number;
+	readonly blockVersion: number;
+}
+
+interface BlockSynchronizationMechanismInput {
+	readonly logger: Logger;
+	readonly channel: Channel;
+	readonly bft: BFT;
+	readonly dpos: Dpos;
+	readonly chain: Chain;
+	readonly processorModule: Processor;
+}
+
+export class BlockSynchronizationMechanism extends BaseSynchronizer {
+	public active: boolean;
+	private readonly bft: BFT;
+	private readonly dpos: Dpos;
+	private readonly chain: Chain;
+	private readonly processorModule: Processor;
+
+	public constructor({
+		logger,
+		channel,
+		bft,
+		dpos,
+		chain,
+		processorModule,
+	}: BlockSynchronizationMechanismInput) {
 		super(logger, channel);
 		this.bft = bft;
 		this.chain = chain;
@@ -42,7 +74,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	}
 
 	// eslint-disable-next-line consistent-return
-	async run(receivedBlock) {
+	public async run(receivedBlock: BlockInstance): Promise<void> {
 		this.active = true;
 		try {
 			const bestPeer = await this._computeBestPeer();
@@ -65,7 +97,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			}
 
 			if (error instanceof RestartError) {
-				await this.channel.publish('app:chain:sync', {
+				this.channel.publish('app:chain:sync', {
 					block: receivedBlock,
 				});
 			}
@@ -83,12 +115,14 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 	}
 
-	// eslint-disable-next-line no-unused-vars
-	async isValidFor() {
+	public async isValidFor(): Promise<boolean> {
 		// 2. Step: Check whether current chain justifies triggering the block synchronization mechanism
 		const finalizedBlock = await this.chain.dataAccess.getBlockHeaderByHeight(
 			this.bft.finalizedHeight,
 		);
+		if (!finalizedBlock) {
+			throw new Error('Finalized block should exist');
+		}
 		const finalizedBlockSlot = this.chain.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);
@@ -98,25 +132,28 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
 
-	async _requestAndApplyBlocksWithinIDs(peerId, fromId, toId) {
+	private async _requestAndApplyBlocksWithinIDs(
+		peerId: string,
+		fromId: string,
+		toId: string,
+	): Promise<void> {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
 		let lastFetchedID = fromId;
 		let finished = false;
 
 		while (!finished && failedAttempts < maxFailedAttempts) {
-			const { data: blocks } = await this.channel.invokeFromNetwork(
-				'requestFromPeer',
-				{
-					procedure: 'getBlocksFromId',
-					peerId,
-					data: {
-						blockId: lastFetchedID,
-					},
+			const { data: blocks } = await this.channel.invokeFromNetwork<{
+				data: BlockJSON[] | undefined;
+			}>('requestFromPeer', {
+				procedure: 'getBlocksFromId',
+				peerId,
+				data: {
+					blockId: lastFetchedID,
 				},
-			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
-			if (blocks && blocks.length) {
+			if (blocks?.length) {
 				// Sort blocks with height in ascending order because blocks are returned in descending order
 				blocks.sort((a, b) => a.height - b.height);
 				[{ id: lastFetchedID }] = blocks.slice(-1);
@@ -162,12 +199,18 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * preference over the current tip. If so, the temporary chain is restored
 	 * on top of the current chain and the blocks temp table is cleaned up
 	 */
-	async _handleBlockProcessingError(lastCommonBlock, peerId) {
+	private async _handleBlockProcessingError(
+		lastCommonBlock: BlockInstance,
+		peerId: string,
+	) {
 		// If the list of blocks has not been fully applied
 		this.logger.debug('Failed to apply obtained blocks from peer');
 		const tempBlocks = await this.chain.dataAccess.getTempBlocks();
-		const [tipBeforeApplying] = [...tempBlocks].sort((a, b) => b - a);
+		const [tipBeforeApplying] = [...tempBlocks].sort(
+			(a, b) => b.height - a.height,
+		);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!tipBeforeApplying) {
 			this.logger.error('Blocks temp table should not be empty');
 			throw new RestartError('Blocks temp table should not be empty');
@@ -238,10 +281,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 	}
 
-	async _requestAndApplyBlocksToCurrentChain(
-		receivedBlock,
-		lastCommonBlock,
-		peerId,
+	private async _requestAndApplyBlocksToCurrentChain(
+		receivedBlock: BlockInstance,
+		lastCommonBlock: BlockInstance,
+		peerId: string,
 	) {
 		this.logger.debug(
 			{
@@ -282,7 +325,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		return true;
 	}
 
-	async _revertToLastCommonBlock(peerId) {
+	private async _revertToLastCommonBlock(peerId: string) {
 		this.logger.debug(
 			{ peerId },
 			'Reverting chain to the last common block with peer',
@@ -336,7 +379,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 */
-	async _requestLastCommonBlock(peerId) {
+	private async _requestLastCommonBlock(peerId: string) {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 3; // Maximum number of requests to be made to the remote peer
 
@@ -361,7 +404,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 				heightList,
 			);
 
-			let data;
+			let data: BlockJSON | undefined;
 
 			try {
 				// Request the highest common block with the previously computed list
@@ -391,7 +434,9 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			currentHeight = currentRound * this.dpos.delegatesPerRound;
 		}
 
-		return highestCommonBlock;
+		return highestCommonBlock
+			? this.chain.deserialize(highestCommonBlock)
+			: undefined;
 	}
 
 	/**
@@ -403,7 +448,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * This behavior is defined in section `2. Step: Obtain tip of chain` in LIP-0014
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
-	async _requestAndValidateLastBlock(peerId) {
+	private async _requestAndValidateLastBlock(peerId: string) {
 		this.logger.debug({ peerId }, 'Requesting tip of the chain from peer');
 
 		const { data } = await this.channel.invokeFromNetwork('requestFromPeer', {
@@ -450,7 +495,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
 	 */
-	async _blockDetachedStatus(networkLastBlock) {
+	private async _blockDetachedStatus(networkLastBlock: BlockInstance) {
 		try {
 			await this.processorModule.validate(networkLastBlock);
 			return { valid: true, err: null };
@@ -465,8 +510,10 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 *
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
-	async _computeBestPeer() {
-		const peers = await this.channel.invoke('app:getConnectedPeers');
+	private async _computeBestPeer() {
+		const peers = await this.channel.invoke<ReadonlyArray<Peer> | undefined>(
+			'app:getConnectedPeers',
+		);
 
 		if (!peers || peers.length === 0) {
 			throw new Error('List of connected peers is empty');
@@ -511,7 +558,7 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		const blockIds = Object.keys(peersGroupedByBlockId);
 		let maxNumberOfPeersInSet = 0;
-		let selectedPeers = [];
+		let selectedPeers: Peer[] = [];
 		let selectedBlockId = blockIds[0];
 		// Find the largest subset with same block ID
 		// eslint-disable-next-line no-restricted-syntax
@@ -537,7 +584,9 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 			version: selectedPeers[randomPeerIndex].blockVersion,
 		};
 
-		const forkStatus = await this.processorModule.forkStatus(peersTip);
+		const forkStatus = await this.processorModule.forkStatus(
+			peersTip as BlockInstance,
+		);
 
 		const tipHasPreference = forkStatus === ForkStatus.DIFFERENT_CHAIN;
 
@@ -558,5 +607,3 @@ class BlockSynchronizationMechanism extends BaseSynchronizer {
 		return bestPeer;
 	}
 }
-
-module.exports = { BlockSynchronizationMechanism };

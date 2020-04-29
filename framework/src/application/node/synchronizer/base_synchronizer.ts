@@ -12,26 +12,23 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { BlockInstance } from '@liskhq/lisk-chain';
+import { Logger, Channel } from '../../../types';
 
-'use strict';
+export abstract class BaseSynchronizer {
+	protected logger: Logger;
+	protected channel: Channel;
 
-class BaseSynchronizer {
-	constructor(logger, channel) {
+	public constructor(logger: Logger, channel: Channel) {
 		this.logger = logger;
 		this.channel = channel;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async run() {
-		throw new Error('#run method must be implemented');
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async isValidFor() {
-		throw new Error('#isValidFor method must be implemented');
-	}
-
-	async _applyPenaltyAndRestartSync(peerId, receivedBlock, reason) {
+	protected async _applyPenaltyAndRestartSync(
+		peerId: string,
+		receivedBlock: BlockInstance,
+		reason: string,
+	): Promise<void> {
 		this.logger.info(
 			{ peerId, reason },
 			'Applying penalty to peer and restarting synchronizer',
@@ -40,10 +37,17 @@ class BaseSynchronizer {
 			peerId,
 			penalty: 100,
 		});
-		await this.channel.publish('app:chain:sync', {
+		this.channel.publish('app:chain:sync', {
 			block: receivedBlock,
 		});
 	}
-}
 
-module.exports = { BaseSynchronizer };
+	public abstract async run(
+		receivedBlock: BlockInstance,
+		peerId: string,
+	): Promise<void>;
+	public abstract async isValidFor(
+		receivedBlock: BlockInstance,
+		peerId: string,
+	): Promise<boolean>;
+}
