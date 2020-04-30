@@ -27,11 +27,16 @@ export interface ActionObject {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ActionCallback = (action: ActionObject) => any;
 
+export interface ActionsObject {
+	[key: string]: Action;
+}
+
 export class Action {
 	public module: string;
 	public name: string;
 	public source?: string;
 	public params?: object;
+	public isPublic?: boolean;
 
 	public constructor(name: string, params?: object, source?: string) {
 		assert(

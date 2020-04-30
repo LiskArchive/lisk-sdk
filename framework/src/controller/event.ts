@@ -24,6 +24,8 @@ export interface EventObject {
 
 export type EventCallback = (action: EventObject) => void;
 
+export type EventsArray = ReadonlyArray<string>;
+
 export class Event {
 	public module: string;
 	public name: string;
