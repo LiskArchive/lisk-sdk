@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,11 +10,9 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
-
-'use strict';
-
-module.exports = {
+export const applicationConfigSchema = {
 	id: '#/config',
 	type: 'object',
 	required: [
@@ -99,7 +97,9 @@ module.exports = {
 				// TODO this recommendations need to be updated now that we changed to a byte size block
 				maxPayloadLength: {
 					type: 'integer',
+					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 					minimum: 10 * 1024, // Kilo Bytes
+					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 					maximum: 30 * 1024, // Kilo Bytes
 					description: 'Maximum number of transactions allowed per block',
 				},
@@ -330,6 +330,7 @@ module.exports = {
 			type: 'object',
 			required: ['http_api'],
 			properties: {
+				// eslint-disable-next-line @typescript-eslint/camelcase
 				http_api: {
 					type: 'object',
 				},
@@ -346,8 +347,10 @@ module.exports = {
 			enabled: false,
 		},
 		genesisConfig: {
+			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 			blockTime: 10,
+			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxPayloadLength: 15 * 1024, // Kilo Bytes
 			rewards: {
 				milestones: [
@@ -377,6 +380,7 @@ module.exports = {
 			storage: {},
 		},
 		modules: {
+			// eslint-disable-next-line @typescript-eslint/camelcase
 			http_api: {},
 		},
 	},
