@@ -24,17 +24,16 @@ export interface ActionObject {
 	readonly params?: object;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ActionCallback = (action: ActionObject) => any;
+
 export class Action {
 	public module: string;
 	public name: string;
 	public source?: string;
 	public params?: object;
 
-	public constructor(
-		name: string,
-		params: object | undefined,
-		source: string | undefined,
-	) {
+	public constructor(name: string, params?: object, source?: string) {
 		assert(
 			actionWithModuleNameReg.test(name),
 			`Action name "${name}" must be a valid name with module name.`,

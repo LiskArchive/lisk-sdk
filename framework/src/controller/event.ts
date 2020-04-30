@@ -22,6 +22,8 @@ export interface EventObject {
 	readonly data?: object | string;
 }
 
+export type EventCallback = (action: EventObject) => void;
+
 export class Event {
 	public module: string;
 	public name: string;
