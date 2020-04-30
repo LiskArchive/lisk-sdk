@@ -344,14 +344,14 @@ export class Transport {
 
 	public async handleEventPostTransaction(
 		data: EventPostTransactionData,
-	): Promise<{ transactionId: string }> {
+	): Promise<{ transactionId: string } | object> {
 		try {
 			const id = await this._receiveTransaction(data.transaction);
 			return {
 				transactionId: id,
 			};
 		} catch (err) {
-			throw {
+			return {
 				message: 'Transaction was rejected with errors',
 				errors: err.errors || err,
 			};
