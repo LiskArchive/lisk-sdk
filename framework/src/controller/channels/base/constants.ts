@@ -12,17 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const INTERNAL_EVENTS = Object.freeze([
+export const INTERNAL_EVENTS = Object.freeze([
 	'registeredToBus',
 	'loading:started',
 	'loading:finished',
 ]);
 
-const eventWithModuleNameReg = /^([^\d][\w]+)((?::[^\d][\w]+)+)$/;
-
-module.exports = {
-	eventWithModuleNameReg,
-	INTERNAL_EVENTS,
-};
+export const eventWithModuleNameReg = /^([^\d][\w]+)((?::[^\d][\w]+)+)$/;
