@@ -12,15 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const assert = require('assert');
+import { strict as assert } from 'assert';
 
 const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*:[a-zA-Z][a-zA-Z0-9]*$/;
 
-class Action {
-	constructor(name, params = null, source = null) {
+export interface ActionObject {
+	readonly module: string;
+	readonly name: string;
+	readonly source?: string;
+	readonly params?: object;
+}
+
+export class Action {
+	public module: string;
+	public name: string;
+	public source?: string;
+	public params?: object;
+
+	public constructor(
+		name: string,
+		params: object | undefined,
+		source: string | undefined,
+	) {
 		assert(
 			actionWithModuleNameReg.test(name),
 			`Action name "${name}" must be a valid name with module name.`,
@@ -37,7 +51,19 @@ class Action {
 		}
 	}
 
-	serialize() {
+	public static deserialize(data: ActionObject | string): Action {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const parsedAction: ActionObject =
+			typeof data === 'string' ? JSON.parse(data) : data;
+
+		return new Action(
+			`${parsedAction.module}:${parsedAction.name}`,
+			parsedAction.params,
+			parsedAction.source,
+		);
+	}
+
+	public serialize(): ActionObject {
 		return {
 			name: this.name,
 			module: this.module,
@@ -46,22 +72,11 @@ class Action {
 		};
 	}
 
-	static deserialize(data) {
-		const parsedAction = typeof data === 'string' ? JSON.parse(data) : data;
-		return new Action(
-			`${parsedAction.module}:${parsedAction.name}`,
-			parsedAction.params,
-			parsedAction.source,
-		);
+	public toString(): string {
+		return `${this.source ?? 'undefined'} -> ${this.module}:${this.name}`;
 	}
 
-	toString() {
-		return `${this.source} -> ${this.module}:${this.name}`;
-	}
-
-	key() {
+	public key(): string {
 		return `${this.module}:${this.name}`;
 	}
 }
-
-module.exports = Action;
