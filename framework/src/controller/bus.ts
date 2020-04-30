@@ -12,18 +12,67 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const axon = require('pm2-axon');
-const { Server: RPCServer, Client: RPCClient } = require('pm2-axon-rpc');
-const { EventEmitter2 } = require('eventemitter2');
-const Action = require('./action');
+import * as axon from 'pm2-axon';
+import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
+import { EventEmitter2, Listener } from 'eventemitter2';
+import {
+	PubEmitterSocket,
+	RepSocket,
+	ReqSocket,
+	SubEmitterSocket,
+} from 'pm2-axon';
+import { Action, ActionObject, ActionsObject } from './action';
+import { Logger } from '../types';
+import { BaseChannel } from './channels/base_channel';
+import { EventsArray } from './event';
 
 const CONTROLLER_IDENTIFIER = 'app';
 const SOCKET_TIMEOUT_TIME = 2000;
 
-class Bus extends EventEmitter2 {
-	constructor(options, logger, config) {
+interface BusConfiguration {
+	ipc: {
+		readonly enabled: boolean;
+	};
+	socketsPath: {
+		readonly pub: string;
+		readonly sub: string;
+		readonly rpc: string;
+	};
+}
+
+interface RegisterChannelOptions {
+	readonly type: string;
+	readonly channel: BaseChannel;
+	readonly rpcSocketPath?: string;
+}
+
+interface ChannelInfo {
+	readonly channel: BaseChannel;
+	readonly actions: ActionsObject;
+	readonly events: EventsArray;
+	readonly type: string;
+}
+
+export class Bus extends EventEmitter2 {
+	public logger: Logger;
+	public config: BusConfiguration;
+	public actions: { [key: string]: Action };
+	public events: { [key: string]: boolean };
+	public channels: {
+		[key: string]: ChannelInfo;
+	};
+	public rpcClients: { [key: string]: ReqSocket };
+	public pubSocket?: PubEmitterSocket;
+	public subSocket?: SubEmitterSocket;
+	public rpcSocket?: RepSocket;
+	public rpcServer?: RPCServer;
+	public channel?: BaseChannel;
+
+	public constructor(
+		options: object,
+		logger: Logger,
+		config: BusConfiguration,
+	) {
 		super(options);
 		this.logger = logger;
 		this.config = config;
@@ -35,18 +84,18 @@ class Bus extends EventEmitter2 {
 		this.rpcClients = {};
 	}
 
-	async setup() {
+	public async setup(): Promise<boolean> {
 		if (!this.config.ipc.enabled) {
 			return true;
 		}
 
-		this.pubSocket = axon.socket('pub-emitter');
+		this.pubSocket = axon.socket('pub-emitter') as PubEmitterSocket;
 		this.pubSocket.bind(this.config.socketsPath.pub);
 
-		this.subSocket = axon.socket('sub-emitter');
+		this.subSocket = axon.socket('sub-emitter') as SubEmitterSocket;
 		this.subSocket.bind(this.config.socketsPath.sub);
 
-		this.rpcSocket = axon.socket('rep');
+		this.rpcSocket = axon.socket('rep') as RepSocket;
 		this.rpcServer = new RPCServer(this.rpcSocket);
 		this.rpcSocket.bind(this.config.socketsPath.rpc);
 
@@ -71,22 +120,23 @@ class Bus extends EventEmitter2 {
 				.catch(error => cb(error));
 		});
 
-		return Promise.race([
+		await Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
 			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
-		]).finally(() => {
-			this._removeAllListeners();
-		});
+		]);
+		await this._removeAllListeners();
+
+		return true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async registerChannel(
-		moduleAlias,
-		events,
-		actions,
-		options = { type: 'inMemory' },
-	) {
+	public async registerChannel(
+		moduleAlias: string,
+		events: EventsArray,
+		actions: ActionsObject,
+		options: RegisterChannelOptions,
+	): Promise<void> {
 		events.forEach(eventName => {
 			const eventFullName = `${moduleAlias}:${eventName}`;
 			if (this.events[eventFullName]) {
@@ -112,8 +162,12 @@ class Bus extends EventEmitter2 {
 		let { channel } = options;
 
 		if (options.rpcSocketPath) {
-			const rpcSocket = axon.socket('req');
+			const rpcSocket = axon.socket('req') as ReqSocket;
 			rpcSocket.connect(options.rpcSocketPath);
+
+			// TODO: Fix this override
+			// eslint-disable-next-line
+			// @ts-ignore
 			channel = new RPCClient(rpcSocket);
 			this.rpcClients[moduleAlias] = rpcSocket;
 		}
@@ -126,26 +180,37 @@ class Bus extends EventEmitter2 {
 		};
 	}
 
-	async invoke(actionData) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	public async invoke(actionData: string | ActionObject): Promise<any> {
 		const action = Action.deserialize(actionData);
+		const actionModule = action.module;
+		const actionFullName = action.key();
+		const actionParams = action.params;
 
-		if (!this.actions[action.key()]) {
+		if (this.actions[actionFullName] === undefined) {
 			throw new Error(`Action '${action.key()}' is not registered to bus.`);
 		}
 
-		if (action.module === CONTROLLER_IDENTIFIER) {
-			return this.channels[CONTROLLER_IDENTIFIER].channel.invoke(action);
+		const channelInfo = this.channels[actionFullName];
+
+		if (actionModule === CONTROLLER_IDENTIFIER) {
+			return channelInfo.channel.invoke(actionFullName, actionParams);
 		}
 
-		if (this.channels[action.module].type === 'inMemory') {
-			return this.channels[action.module].channel.invoke(action);
+		if (channelInfo.type === 'inMemory') {
+			return channelInfo.channel.invoke(actionFullName, actionParams);
 		}
 
 		return new Promise((resolve, reject) => {
-			this.channels[action.module].channel.call(
+			// TODO: Fix when both channel types are converted to typescript
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+			(channelInfo.channel as any).call(
 				'invoke',
 				action.serialize(),
-				(err, data) => {
+				// eslint-disable-next-line
+				// @ts-ignore
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(err?: string | object, data: any) => {
 					if (err) {
 						return reject(err);
 					}
@@ -155,11 +220,12 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
-	async invokePublic(actionData) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	public async invokePublic(actionData: string | ActionObject): Promise<any> {
 		const action = Action.deserialize(actionData);
 
 		// Check if action exists
-		if (!this.actions[action.key()]) {
+		if (this.actions[action.key()] === undefined) {
 			throw new Error(`Action '${action.key()}' is not registered to bus.`);
 		}
 
@@ -173,7 +239,8 @@ class Bus extends EventEmitter2 {
 		return this.invoke(actionData);
 	}
 
-	publish(eventName, eventValue) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
+	public publish(eventName: string, eventValue: any): void | never {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}
@@ -182,11 +249,11 @@ class Bus extends EventEmitter2 {
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
-			this.pubSocket.emit(eventName, eventValue);
+			this.pubSocket?.emit(eventName, eventValue);
 		}
 	}
 
-	subscribe(eventName, cb) {
+	public subscribe(eventName: string, cb: Listener): void {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(
 				`Event ${eventName} was subscribed but not registered to the bus yet.`,
@@ -198,11 +265,13 @@ class Bus extends EventEmitter2 {
 
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
-			this.subSocket.on(eventName, cb);
+			this.subSocket?.on(eventName, cb);
 		}
 	}
 
-	once(eventName, cb) {
+	// eslint-disable-next-line
+	// @ts-ignore
+	public once(eventName: string, cb: Listener): void {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(
 				`Event ${eventName} was subscribed but not registered to the bus yet.`,
@@ -210,25 +279,25 @@ class Bus extends EventEmitter2 {
 		}
 
 		// Communicate through event emitter
-		super.once(eventName, cb);
+		super.once([eventName], cb);
 
 		// TODO: make it `once` instead of `on`
 		// Communicate through unix socket
 		if (this.config.ipc.enabled) {
-			this.subSocket.on(eventName, cb);
+			this.subSocket?.on(eventName, cb);
 		}
 	}
 
-	getActions() {
+	public getActions(): ReadonlyArray<string> {
 		return Object.keys(this.actions);
 	}
 
-	getEvents() {
+	public getEvents(): ReadonlyArray<string> {
 		return Object.keys(this.events);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async cleanup() {
+	public async cleanup(): Promise<void> {
 		if (this.pubSocket) {
 			this.pubSocket.close();
 		}
@@ -240,8 +309,8 @@ class Bus extends EventEmitter2 {
 		}
 	}
 
-	async _resolveWhenAllSocketsBound() {
-		return Promise.all([
+	private async _resolveWhenAllSocketsBound(): Promise<void> {
+		await Promise.all([
 			new Promise(resolve => {
 				/*
 				Here, the reason of calling .sock.once instead of pubSocket.once
@@ -249,37 +318,37 @@ class Bus extends EventEmitter2 {
 				However the actual socket does, by inheriting it from EventEmitter
 				prototype
 				 */
-				this.subSocket.sock.once('bind', () => {
+				this.subSocket?.sock.once('bind', () => {
 					resolve();
 				});
 			}),
 			new Promise(resolve => {
-				this.pubSocket.sock.once('bind', () => {
+				this.pubSocket?.sock.once('bind', () => {
 					resolve();
 				});
 			}),
 			new Promise(resolve => {
-				this.rpcSocket.once('bind', () => {
+				this.rpcSocket?.once('bind', () => {
 					resolve();
 				});
 			}),
 		]);
 	}
 
-	async _rejectWhenAnySocketFailsToBind() {
-		return Promise.race([
+	private async _rejectWhenAnySocketFailsToBind(): Promise<void> {
+		await Promise.race([
 			new Promise((_, reject) => {
-				this.subSocket.sock.once('error', () => {
+				this.subSocket?.sock.once('error', () => {
 					reject();
 				});
 			}),
 			new Promise((_, reject) => {
-				this.pubSocket.sock.once('error', () => {
+				this.pubSocket?.sock.once('error', () => {
 					reject();
 				});
 			}),
 			new Promise((_, reject) => {
-				this.rpcSocket.once('error', () => {
+				this.rpcSocket?.once('error', () => {
 					reject();
 				});
 			}),
@@ -287,7 +356,7 @@ class Bus extends EventEmitter2 {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	async _rejectWhenTimeout(timeInMillis) {
+	private async _rejectWhenTimeout(timeInMillis: number): Promise<void> {
 		return new Promise((_, reject) => {
 			setTimeout(() => {
 				reject(new Error('Bus sockets setup timeout'));
@@ -295,14 +364,13 @@ class Bus extends EventEmitter2 {
 		});
 	}
 
-	_removeAllListeners() {
-		this.subSocket.sock.removeAllListeners('bind');
-		this.subSocket.sock.removeAllListeners('error');
-		this.pubSocket.sock.removeAllListeners('bind');
-		this.pubSocket.sock.removeAllListeners('error');
-		this.rpcSocket.removeAllListeners('bind');
-		this.rpcSocket.removeAllListeners('error');
+	// eslint-disable-next-line @typescript-eslint/require-await
+	private async _removeAllListeners(): Promise<void> {
+		this.subSocket?.sock.removeAllListeners('bind');
+		this.subSocket?.sock.removeAllListeners('error');
+		this.pubSocket?.sock.removeAllListeners('bind');
+		this.pubSocket?.sock.removeAllListeners('error');
+		this.rpcSocket?.removeAllListeners('bind');
+		this.rpcSocket?.removeAllListeners('error');
 	}
 }
-
-module.exports = Bus;
