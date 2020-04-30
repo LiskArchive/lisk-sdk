@@ -14,6 +14,7 @@
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { BlockJSON } from '@liskhq/lisk-chain';
 import { BlockInstance } from '@liskhq/lisk-chain';
+import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 export interface Channel {
 	readonly publish: (procedure: string, params?: object) => void;
@@ -88,6 +89,14 @@ export interface RPCBlocksByIdData {
 
 export interface EventPostBlockData {
 	readonly block: BlockJSON;
+}
+
+export interface EventPostTransactionData {
+	readonly transaction: TransactionJSON;
+}
+
+export interface EventPostTransactionsAnnouncementData {
+	readonly transactionIds: string[];
 }
 
 export interface RPCTransactionsByIdData {

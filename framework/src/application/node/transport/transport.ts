@@ -12,18 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { validator } = require('@liskhq/lisk-validator');
-const { convertErrorsToString } = require('../utils/error_handlers');
-const { InvalidTransactionError } = require('./errors');
-import { schemas } from './schemas';
-import { Channel, Logger, Synchronizer, Processor, RPCBlocksByIdData, RPCHighestCommonBlockData, EventPostBlockData, RPCTransactionsByIdData } from '../../../types';
-import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { Chain, BlockJSON } from '@liskhq/lisk-chain';
-import { Broadcaster } from './broadcaster';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { validator } from '@liskhq/lisk-validator';
+import { Chain, BlockJSON, BlockHeaderJSON } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
+import { TransactionPool, Transaction } from '@liskhq/lisk-transaction-pool';
+import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
+import { convertErrorsToString } from '../utils/error_handlers';
+import { InvalidTransactionError } from './errors';
+import { schemas } from './schemas';
+import {
+	Channel,
+	Logger,
+	Synchronizer,
+	Processor,
+	RPCBlocksByIdData,
+	RPCHighestCommonBlockData,
+	EventPostBlockData,
+	RPCTransactionsByIdData,
+	EventPostTransactionData,
+	EventPostTransactionsAnnouncementData,
+} from '../../../types';
+import { Broadcaster } from './broadcaster';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -39,11 +48,11 @@ export interface TransportConstructor {
 	readonly processorModule: Processor;
 }
 
-type RateTracker = {
-	[key: string]: { [key:string]: number};
-};
+interface RateTracker {
+	[key: string]: { [key: string]: number };
+}
 
-class Transport {
+export class Transport {
 	private rateTracker: RateTracker;
 	private readonly channel: Channel;
 	private readonly logger: Logger;
@@ -87,12 +96,12 @@ class Transport {
 		}, DEFAULT_RATE_RESET_TIME);
 	}
 
-	handleBroadcastTransaction(transaction: BaseTransaction) {
+	handleBroadcastTransaction(transaction: BaseTransaction): void {
 		this.broadcaster.enqueueTransactionId(transaction.id);
 		this.channel.publish('app:transaction:new', transaction.toJSON());
 	}
 
-	handleBroadcastBlock(blockJSON: BlockJSON) {
+	async handleBroadcastBlock(blockJSON: BlockJSON): Promise<unknown> {
 		if (this.synchronizerModule.isActive) {
 			this.logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
@@ -107,7 +116,10 @@ class Transport {
 		});
 	}
 
-	async handleRPCGetBlocksFromId(data: RPCBlocksByIdData, peerId: string) {
+	async handleRPCGetBlocksFromId(
+		data: RPCBlocksByIdData,
+		peerId: string,
+	): Promise<BlockJSON[]> {
 		const errors = validator.validate(schemas.getBlocksFromIdRequest, data);
 
 		if (errors.length) {
@@ -149,7 +161,10 @@ class Transport {
 		return blocks && blocks.map(block => this.chainModule.serialize(block));
 	}
 
-	async handleRPCGetGetHighestCommonBlock(data: RPCHighestCommonBlockData, peerId: string) {
+	async handleRPCGetGetHighestCommonBlock(
+		data: RPCHighestCommonBlockData,
+		peerId: string,
+	): Promise<BlockHeaderJSON | null> {
 		const valid = validator.validate(
 			schemas.getHighestCommonBlockRequest,
 			data,
@@ -157,7 +172,7 @@ class Transport {
 
 		if (valid.length) {
 			const err = valid;
-			const error = `${err[0].message}: ${err[0].path}`;
+			const error = `${err[0].message}: ${err[0].dataPath}`;
 			this.logger.warn(
 				{
 					err: error,
@@ -179,7 +194,10 @@ class Transport {
 			: null;
 	}
 
-	async handleEventPostBlock(data: EventPostBlockData, peerId: string) {
+	async handleEventPostBlock(
+		data: EventPostBlockData,
+		peerId: string,
+	): Promise<void> {
 		// Should ignore received block if syncing
 		if (this.synchronizerModule.isActive) {
 			return this.logger.debug(
@@ -208,10 +226,15 @@ class Transport {
 
 		const block = await this.processorModule.deserialize(data.block);
 
-		return this.processorModule.process(block, { peerId } as p2pTypes.P2PPeerInfo);
+		return this.processorModule.process(block, {
+			peerId,
+		} as p2pTypes.P2PPeerInfo);
 	}
 
-	async handleRPCGetTransactions(data: RPCTransactionsByIdData = { transactionIds: [] }, peerId: string) {
+	async handleRPCGetTransactions(
+		data: RPCTransactionsByIdData = { transactionIds: [] },
+		peerId: string,
+	): Promise<{ transactions: TransactionJSON[] }> {
 		await this._addRateLimit(
 			'getTransactions',
 			peerId,
@@ -258,7 +281,7 @@ class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const transaction = this.transactionPoolModule.get(id);
+			const transaction = this.transactionPoolModule.get(id) as BaseTransaction;
 
 			if (transaction) {
 				transactionsFromQueues.push(transaction.toJSON());
@@ -274,7 +297,9 @@ class Transport {
 			);
 
 			return {
-				transactions: transactionsFromQueues.concat(transactionsFromDatabase),
+				transactions: transactionsFromQueues.concat(
+					transactionsFromDatabase.map(t => t.toJSON()),
+				),
 			};
 		}
 
@@ -283,14 +308,16 @@ class Transport {
 		};
 	}
 
-	async handleEventPostTransaction(data) {
+	async handleEventPostTransaction(
+		data: EventPostTransactionData,
+	): Promise<{ transactionId: string }> {
 		try {
 			const id = await this._receiveTransaction(data.transaction);
 			return {
 				transactionId: id,
 			};
 		} catch (err) {
-			return {
+			throw {
 				message: 'Transaction was rejected with errors',
 				errors: err.errors || err,
 			};
@@ -301,7 +328,10 @@ class Transport {
 	 * Process transactions IDs announcement. First validates, filter the known transactions
 	 * and finally ask to the emitter the ones that are unknown.
 	 */
-	async handleEventPostTransactionsAnnouncement(data, peerId) {
+	async handleEventPostTransactionsAnnouncement(
+		data: EventPostTransactionsAnnouncementData,
+		peerId: string,
+	): Promise<null> {
 		await this._addRateLimit(
 			'postTransactionsAnnouncement',
 			peerId,
@@ -335,10 +365,11 @@ class Transport {
 					data: { transactionIds: unknownTransactionIDs },
 					peerId,
 				},
-			)) as { data: {transactions: BaseTransaction[]} };
+			)) as { data: { transactions: TransactionJSON[] } };
 			try {
 				for (const transaction of result.transactions) {
-					transaction.bundled = true;
+					/* eslint-disable-next-line  @typescript-eslint/no-explicit-any */
+					(transaction as any).bundled = true;
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
@@ -355,7 +386,7 @@ class Transport {
 		return null;
 	}
 
-	async _obtainUnknownTransactionIDs(ids) {
+	async _obtainUnknownTransactionIDs(ids: string[]): Promise<string[]> {
 		// Check if any transaction is in the queues.
 		const unknownTransactionsIDs = ids.filter(
 			id => !this.transactionPoolModule.contains(id),
@@ -378,7 +409,7 @@ class Transport {
 		return unknownTransactionsIDs;
 	}
 
-	async _receiveTransaction(transactionJSON) {
+	async _receiveTransaction(transactionJSON: TransactionJSON): Promise<string> {
 		let transaction;
 		try {
 			transaction = this.chainModule.deserializeTransaction(transactionJSON);
@@ -395,7 +426,7 @@ class Transport {
 			const errString = convertErrorsToString(errors);
 			const err = new InvalidTransactionError(
 				errString,
-				transactionJSON.id,
+				transactionJSON.id as string,
 				errors,
 			);
 			this.logger.error(
@@ -416,7 +447,9 @@ class Transport {
 		// Broadcast transaction to network if not present in pool
 		this.handleBroadcastTransaction(transaction);
 
-		const { errors } = await this.transactionPoolModule.add(transaction);
+		const { errors } = await this.transactionPoolModule.add(
+			transaction as Transaction,
+		);
 
 		if (!errors.length) {
 			this.logger.info(
@@ -434,7 +467,11 @@ class Transport {
 		throw errors;
 	}
 
-	async _addRateLimit(procedure, peerId, limit) {
+	async _addRateLimit(
+		procedure: string,
+		peerId: string,
+		limit: number,
+	): Promise<void> {
 		if (this.rateTracker[procedure] === undefined) {
 			this.rateTracker[procedure] = { [peerId]: 0 };
 		}
@@ -449,6 +486,3 @@ class Transport {
 		}
 	}
 }
-
-// Export
-module.exports = { Transport };
