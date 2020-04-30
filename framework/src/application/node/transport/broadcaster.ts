@@ -29,11 +29,11 @@ export interface BroadcasterConstructor extends BroadcasterConfig {
 }
 
 export class Broadcaster {
-	private readonly channel: Channel;
-	private readonly logger: Logger;
-	private readonly transactionPool: TransactionPool;
-	private readonly config: BroadcasterConfig;
-	private transactionIdQueue: string[];
+	private readonly _channel: Channel;
+	private readonly _logger: Logger;
+	private readonly _transactionPool: TransactionPool;
+	private readonly _config: BroadcasterConfig;
+	private _transactionIdQueue: string[];
 
 	constructor({
 		transactionPool,
@@ -42,54 +42,54 @@ export class Broadcaster {
 		logger,
 		channel,
 	}: BroadcasterConstructor) {
-		this.channel = channel;
-		this.logger = logger;
-		this.transactionPool = transactionPool;
-		this.config = {
+		this._channel = channel;
+		this._logger = logger;
+		this._transactionPool = transactionPool;
+		this._config = {
 			releaseLimit,
 			interval,
 		};
-		this.transactionIdQueue = [];
+		this._transactionIdQueue = [];
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setInterval(async () => {
 			try {
 				await this._broadcast();
 			} catch (err) {
-				this.logger.error({ err }, 'Failed to broadcast information');
+				this._logger.error({ err }, 'Failed to broadcast information');
 			}
-		}, this.config.interval);
+		}, this._config.interval);
 	}
 
-	enqueueTransactionId(transactionId: string): boolean {
+	public enqueueTransactionId(transactionId: string): boolean {
 		if (
-			this.transactionIdQueue.find(id => id === transactionId) !== undefined
+			this._transactionIdQueue.find(id => id === transactionId) !== undefined
 		) {
 			return false;
 		}
-		this.transactionIdQueue.push(transactionId);
+		this._transactionIdQueue.push(transactionId);
 
 		return true;
 	}
 
-	async _broadcast(): Promise<void> {
-		this.transactionIdQueue = this.transactionIdQueue.filter(id =>
-			this.transactionPool.contains(id),
+	private async _broadcast(): Promise<void> {
+		this._transactionIdQueue = this._transactionIdQueue.filter(id =>
+			this._transactionPool.contains(id),
 		);
-		if (this.transactionIdQueue.length > 0) {
-			const transactionIds = this.transactionIdQueue.slice(
+		if (this._transactionIdQueue.length > 0) {
+			const transactionIds = this._transactionIdQueue.slice(
 				0,
-				this.config.releaseLimit,
+				this._config.releaseLimit,
 			);
 
-			await this.channel.publishToNetwork('broadcastToNetwork', {
+			await this._channel.publishToNetwork('broadcastToNetwork', {
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
 					transactionIds,
 				},
 			});
 
-			this.transactionIdQueue = this.transactionIdQueue.filter(
+			this._transactionIdQueue = this._transactionIdQueue.filter(
 				id => !transactionIds.includes(id),
 			);
 		}
