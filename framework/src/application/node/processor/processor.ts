@@ -195,7 +195,11 @@ export class Processor {
 					await this._processValidated(block, newLastBlock, blockProcessor);
 				} catch (err) {
 					this.logger.error(
-						{ id: block.id, previousBlockId: previousLastBlock.id, err },
+						{
+							id: block.id,
+							previousBlockId: previousLastBlock.id,
+							err: err as Error,
+						},
 						'Failed to apply newly received block. restoring previous block.',
 					);
 					await this._processValidated(

@@ -26,5 +26,9 @@ module.exports = {
 		'@typescript-eslint/prefer-nullish-coalescing': ['warn'],
 		'@typescript-eslint/restrict-plus-operands': ['warn'],
 		'@typescript-eslint/no-unnecessary-condition': ['warn'],
+		'@typescript-eslint/no-unsafe-member-access': ['warn'],
+		'@typescript-eslint/no-unsafe-assignment': ['warn'],
+		'@typescript-eslint/no-unsafe-return': ['warn'],
+		'@typescript-eslint/no-unsafe-call': ['warn'],
 	},
 };
