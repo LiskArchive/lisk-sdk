@@ -53,14 +53,14 @@ interface RateTracker {
 }
 
 export class Transport {
-	private rateTracker: RateTracker;
-	private readonly channel: Channel;
-	private readonly logger: Logger;
-	private readonly synchronizerModule: Synchronizer;
-	private readonly transactionPoolModule: TransactionPool;
-	private readonly chainModule: Chain;
-	private readonly processorModule: Processor;
-	private readonly broadcaster: Broadcaster;
+	private _rateTracker: RateTracker;
+	private readonly _channel: Channel;
+	private readonly _logger: Logger;
+	private readonly _synchronizerModule: Synchronizer;
+	private readonly _transactionPoolModule: TransactionPool;
+	private readonly _chainModule: Chain;
+	private readonly _processorModule: Processor;
+	private readonly _broadcaster: Broadcaster;
 
 	constructor({
 		// components
@@ -73,42 +73,74 @@ export class Transport {
 		chainModule,
 		processorModule,
 	}: TransportConstructor) {
-		this.channel = channel;
-		this.logger = logger;
-		this.synchronizerModule = synchronizerModule;
+		this._channel = channel;
+		this._logger = logger;
+		this._synchronizerModule = synchronizerModule;
 
-		this.transactionPoolModule = transactionPoolModule;
-		this.chainModule = chainModule;
-		this.processorModule = processorModule;
+		this._transactionPoolModule = transactionPoolModule;
+		this._chainModule = chainModule;
+		this._processorModule = processorModule;
 
-		this.broadcaster = new Broadcaster({
-			transactionPool: this.transactionPoolModule,
-			logger: this.logger,
-			channel: this.channel,
+		this._broadcaster = new Broadcaster({
+			transactionPool: this._transactionPoolModule,
+			logger: this._logger,
+			channel: this._channel,
 			releaseLimit: DEFAULT_RELEASE_LIMIT,
 			interval: DEFAULT_RELEASE_INTERVAL,
 		});
 
 		// Rate limit for certain endpoints
-		this.rateTracker = {};
+		this._rateTracker = {};
 		setInterval(() => {
-			this.rateTracker = {};
+			this._rateTracker = {};
 		}, DEFAULT_RATE_RESET_TIME);
 	}
 
-	handleBroadcastTransaction(transaction: BaseTransaction): void {
-		this.broadcaster.enqueueTransactionId(transaction.id);
-		this.channel.publish('app:transaction:new', transaction.toJSON());
+	public get rateTracker(): RateTracker {
+		return this._rateTracker;
 	}
 
-	async handleBroadcastBlock(blockJSON: BlockJSON): Promise<unknown> {
-		if (this.synchronizerModule.isActive) {
-			this.logger.debug(
+	public get channel(): Channel {
+		return this._channel;
+	}
+
+	public get logger(): Logger {
+		return this._logger;
+	}
+
+	public get synchronizerModule(): Synchronizer {
+		return this._synchronizerModule;
+	}
+
+	public get transactionPoolModule(): TransactionPool {
+		return this._transactionPoolModule;
+	}
+
+	public get chainModule(): Chain {
+		return this._chainModule;
+	}
+
+	public get processorModule(): Processor {
+		return this._processorModule;
+	}
+
+	public get broadcaster(): Broadcaster {
+		return this._broadcaster;
+	}
+
+	public handleBroadcastTransaction(transaction: BaseTransaction): void {
+		this._broadcaster.enqueueTransactionId(transaction.id);
+		this._channel.publish('app:transaction:new', transaction.toJSON());
+	}
+
+	public async handleBroadcastBlock(blockJSON: BlockJSON): Promise<unknown> {
+		if (this._synchronizerModule.isActive) {
+			this._logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 			);
 			return null;
 		}
-		return this.channel.publishToNetwork('sendToNetwork', {
+		return this._channel.publishToNetwork('sendToNetwork', {
 			event: 'postBlock',
 			data: {
 				block: blockJSON,
@@ -116,7 +148,7 @@ export class Transport {
 		});
 	}
 
-	async handleRPCGetBlocksFromId(
+	public async handleRPCGetBlocksFromId(
 		data: RPCBlocksByIdData,
 		peerId: string,
 	): Promise<BlockJSON[]> {
@@ -125,14 +157,14 @@ export class Transport {
 		if (errors.length) {
 			const error = `${errors[0].message}`;
 
-			this.logger.warn(
+			this._logger.warn(
 				{
 					err: error,
 					req: data,
 				},
 				'getBlocksFromID request validation failed',
 			);
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -140,7 +172,7 @@ export class Transport {
 		}
 
 		// Get height of block with supplied ID
-		const lastBlock = await this.chainModule.dataAccess.getBlockHeaderByID(
+		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(
 			data.blockId,
 		);
 		if (!lastBlock) {
@@ -153,15 +185,15 @@ export class Transport {
 		// 15kb * 103 is about 1.5MB where it's half of 3MB payload limit
 		const fetchUntilHeight = lastBlockHeight + 103;
 
-		const blocks = await this.chainModule.dataAccess.getBlocksByHeightBetween(
+		const blocks = await this._chainModule.dataAccess.getBlocksByHeightBetween(
 			lastBlockHeight + 1,
 			fetchUntilHeight,
 		);
 
-		return blocks && blocks.map(block => this.chainModule.serialize(block));
+		return blocks && blocks.map(block => this._chainModule.serialize(block));
 	}
 
-	async handleRPCGetGetHighestCommonBlock(
+	public async handleRPCGetGetHighestCommonBlock(
 		data: RPCHighestCommonBlockData,
 		peerId: string,
 	): Promise<BlockHeaderJSON | null> {
@@ -173,34 +205,34 @@ export class Transport {
 		if (valid.length) {
 			const err = valid;
 			const error = `${err[0].message}: ${err[0].dataPath}`;
-			this.logger.warn(
+			this._logger.warn(
 				{
 					err: error,
 					req: data,
 				},
 				'getHighestCommonBlock request validation failed',
 			);
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
 			throw new Error(error);
 		}
 
-		const commonBlock = await this.chainModule.getHighestCommonBlock(data.ids);
+		const commonBlock = await this._chainModule.getHighestCommonBlock(data.ids);
 
 		return commonBlock
-			? this.chainModule.serializeBlockHeader(commonBlock)
+			? this._chainModule.serializeBlockHeader(commonBlock)
 			: null;
 	}
 
-	async handleEventPostBlock(
+	public async handleEventPostBlock(
 		data: EventPostBlockData,
 		peerId: string,
 	): Promise<void> {
 		// Should ignore received block if syncing
-		if (this.synchronizerModule.isActive) {
-			return this.logger.debug(
+		if (this._synchronizerModule.isActive) {
+			return this._logger.debug(
 				{ blockId: data.block.id, height: data.block.height },
 				"Client is syncing. Can't process new block at the moment.",
 			);
@@ -209,7 +241,7 @@ export class Transport {
 		const errors = validator.validate(schemas.postBlockEvent, data);
 
 		if (errors.length) {
-			this.logger.warn(
+			this._logger.warn(
 				{
 					errors,
 					module: 'transport',
@@ -217,21 +249,21 @@ export class Transport {
 				},
 				'Received post block broadcast request in unexpected format',
 			);
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
 			throw errors;
 		}
 
-		const block = await this.processorModule.deserialize(data.block);
+		const block = await this._processorModule.deserialize(data.block);
 
-		return this.processorModule.process(block, {
+		return this._processorModule.process(block, {
 			peerId,
 		} as p2pTypes.P2PPeerInfo);
 	}
 
-	async handleRPCGetTransactions(
+	public async handleRPCGetTransactions(
 		data: RPCTransactionsByIdData = { transactionIds: [] },
 		peerId: string,
 	): Promise<{ transactions: TransactionJSON[] }> {
@@ -242,11 +274,11 @@ export class Transport {
 		);
 		const errors = validator.validate(schemas.getTransactionsRequest, data);
 		if (errors.length) {
-			this.logger.warn(
+			this._logger.warn(
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -257,7 +289,7 @@ export class Transport {
 		if (!transactionIds) {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
-			const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
+			const transactionsBySender = this._transactionPoolModule.getProcessableTransactions();
 			const transactions = Object.values(transactionsBySender).flat();
 			transactions.splice(DEFAULT_RATE_RESET_TIME);
 
@@ -268,8 +300,8 @@ export class Transport {
 
 		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
 			const error = new Error('Received invalid request.');
-			this.logger.warn({ err: error, peerId }, 'Received invalid request.');
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -281,7 +313,9 @@ export class Transport {
 
 		for (const id of transactionIds) {
 			// Check if any transaction is in the queues.
-			const transaction = this.transactionPoolModule.get(id) as BaseTransaction;
+			const transaction = this._transactionPoolModule.get(
+				id,
+			) as BaseTransaction;
 
 			if (transaction) {
 				transactionsFromQueues.push(transaction.toJSON());
@@ -292,7 +326,7 @@ export class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase = await this.chainModule.dataAccess.getTransactionsByIDs(
+			const transactionsFromDatabase = await this._chainModule.dataAccess.getTransactionsByIDs(
 				idsNotInPool,
 			);
 
@@ -308,7 +342,7 @@ export class Transport {
 		};
 	}
 
-	async handleEventPostTransaction(
+	public async handleEventPostTransaction(
 		data: EventPostTransactionData,
 	): Promise<{ transactionId: string }> {
 		try {
@@ -328,7 +362,7 @@ export class Transport {
 	 * Process transactions IDs announcement. First validates, filter the known transactions
 	 * and finally ask to the emitter the ones that are unknown.
 	 */
-	async handleEventPostTransactionsAnnouncement(
+	public async handleEventPostTransactionsAnnouncement(
 		data: EventPostTransactionsAnnouncementData,
 		peerId: string,
 	): Promise<null> {
@@ -343,11 +377,11 @@ export class Transport {
 		);
 
 		if (errors.length) {
-			this.logger.warn(
+			this._logger.warn(
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 100,
 			});
@@ -358,7 +392,7 @@ export class Transport {
 			data.transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
-			const { data: result } = (await this.channel.invokeFromNetwork(
+			const { data: result } = (await this._channel.invokeFromNetwork(
 				'requestFromPeer',
 				{
 					procedure: 'getTransactions',
@@ -373,9 +407,9 @@ export class Transport {
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
-				this.logger.warn({ err, peerId }, 'Received invalid transactions.');
+				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
-					await this.channel.invoke('app:applyPenaltyOnPeer', {
+					await this._channel.invoke('app:applyPenaltyOnPeer', {
 						peerId,
 						penalty: 100,
 					});
@@ -386,15 +420,15 @@ export class Transport {
 		return null;
 	}
 
-	async _obtainUnknownTransactionIDs(ids: string[]): Promise<string[]> {
+	private async _obtainUnknownTransactionIDs(ids: string[]): Promise<string[]> {
 		// Check if any transaction is in the queues.
 		const unknownTransactionsIDs = ids.filter(
-			id => !this.transactionPoolModule.contains(id),
+			id => !this._transactionPoolModule.contains(id),
 		);
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions = await this.chainModule.dataAccess.getTransactionsByIDs(
+			const existingTransactions = await this._chainModule.dataAccess.getTransactionsByIDs(
 				unknownTransactionsIDs,
 			);
 
@@ -409,13 +443,15 @@ export class Transport {
 		return unknownTransactionsIDs;
 	}
 
-	async _receiveTransaction(transactionJSON: TransactionJSON): Promise<string> {
+	private async _receiveTransaction(
+		transactionJSON: TransactionJSON,
+	): Promise<string> {
 		let transaction;
 		try {
-			transaction = this.chainModule.deserializeTransaction(transactionJSON);
+			transaction = this._chainModule.deserializeTransaction(transactionJSON);
 
 			// Composed transaction checks are all static, so it does not need state store
-			const transactionsResponses = await this.chainModule.validateTransactions(
+			const transactionsResponses = await this._chainModule.validateTransactions(
 				[transaction],
 			);
 
@@ -429,7 +465,7 @@ export class Transport {
 				transactionJSON.id as string,
 				errors,
 			);
-			this.logger.error(
+			this._logger.error(
 				{
 					err,
 					module: 'transport',
@@ -440,19 +476,19 @@ export class Transport {
 			throw err;
 		}
 
-		if (this.transactionPoolModule.contains(transaction.id)) {
+		if (this._transactionPoolModule.contains(transaction.id)) {
 			return transaction.id;
 		}
 
 		// Broadcast transaction to network if not present in pool
 		this.handleBroadcastTransaction(transaction);
 
-		const { errors } = await this.transactionPoolModule.add(
+		const { errors } = await this._transactionPoolModule.add(
 			transaction as Transaction,
 		);
 
 		if (!errors.length) {
-			this.logger.info(
+			this._logger.info(
 				{
 					id: transaction.id,
 					nonce: transaction.nonce.toString(),
@@ -463,23 +499,23 @@ export class Transport {
 			return transaction.id;
 		}
 
-		this.logger.error({ errors }, 'Failed to add transaction to pool');
+		this._logger.error({ errors }, 'Failed to add transaction to pool');
 		throw errors;
 	}
 
-	async _addRateLimit(
+	private async _addRateLimit(
 		procedure: string,
 		peerId: string,
 		limit: number,
 	): Promise<void> {
-		if (this.rateTracker[procedure] === undefined) {
-			this.rateTracker[procedure] = { [peerId]: 0 };
+		if (this._rateTracker[procedure] === undefined) {
+			this._rateTracker[procedure] = { [peerId]: 0 };
 		}
-		this.rateTracker[procedure][peerId] = this.rateTracker[procedure][peerId]
-			? this.rateTracker[procedure][peerId] + 1
+		this._rateTracker[procedure][peerId] = this._rateTracker[procedure][peerId]
+			? this._rateTracker[procedure][peerId] + 1
 			: 1;
-		if (this.rateTracker[procedure][peerId] > limit) {
-			await this.channel.invoke('app:applyPenaltyOnPeer', {
+		if (this._rateTracker[procedure][peerId] > limit) {
+			await this._channel.invoke('app:applyPenaltyOnPeer', {
 				peerId,
 				penalty: 10,
 			});
