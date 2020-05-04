@@ -12,29 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { MaxHeap, TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { Status as TransactionStatus, BaseTransaction } from '@liskhq/lisk-transactions';
+import { Chain } from '@liskhq/lisk-chain';
 
-const { MaxHeap } = require('@liskhq/lisk-transaction-pool');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+export class HighFeeForgingStrategy {
+	private readonly chainModule: Chain;
+	private readonly transactionPoolModule: TransactionPool;
+	private readonly constants: {
+		readonly maxPayloadLength: number
+	};
 
-class HighFeeForgingStrategy {
-	constructor({
-		// components
-		logger,
+	public constructor({
 		// Modules
 		chainModule,
 		transactionPoolModule,
 		// constants
 		maxPayloadLength,
+	}: {
+		readonly chainModule: Chain,
+		readonly transactionPoolModule: TransactionPool,
+		readonly maxPayloadLength: number
 	}) {
 		this.chainModule = chainModule;
 		this.transactionPoolModule = transactionPoolModule;
-		this.logger = logger;
-
 		this.constants = { maxPayloadLength };
 	}
 
-	async getTransactionsForBlock() {
+	public async getTransactionsForBlock(): Promise<BaseTransaction[]> {
 		// Initialize array to select transactions
 		const readyTransactions = [];
 
@@ -56,8 +61,7 @@ class HighFeeForgingStrategy {
 		// Loop till we have last account exhausted to pick transactions
 		while (Object.keys(transactionsBySender).length !== 0) {
 			// Get the transaction with highest fee and lowest nonce
-			const lowestNonceHighestFeeTrx = feePriorityHeap.pop().value;
-
+			const lowestNonceHighestFeeTrx = (feePriorityHeap.pop()?.value) as BaseTransaction;
 			// Try to process transaction
 			const result = await this.chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
@@ -119,5 +123,3 @@ class HighFeeForgingStrategy {
 		return readyTransactions;
 	}
 }
-
-module.exports = { HighFeeForgingStrategy };

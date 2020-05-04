@@ -16,7 +16,11 @@ import { BlockJSON } from '@liskhq/lisk-chain';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 
-export interface Channel {
+export interface StringKeyVal {
+	[key: string]: string
+}
+
+export interface Channel<T = unknown> {
 	readonly publish: (procedure: string, params?: object) => void;
 	readonly subscribe: (procedure: string, callback: Function) => void;
 	readonly invoke: <T = unknown>(
@@ -40,17 +44,19 @@ export interface Logger {
 	readonly info: (data?: object | unknown, message?: string) => void;
 	readonly warn: (data?: object | unknown, message?: string) => void;
 	readonly error: (data?: object | unknown, message?: string) => void;
+	readonly warn: (data?: object | unknown, message?: string) => void;
 	readonly fatal: (data?: object | unknown, message?: string) => void;
 }
 
 /* Start Database  */
 export interface Storage {
 	readonly entities: {
-		readonly NetworkInfo: NetworkInfoEntity;
+		readonly NetworkInfo: KeyValEntity;
+		readonly ForgerInfo: KeyValEntity;
 	};
 }
 
-export interface NetworkInfoEntity {
+export interface KeyValEntity {
 	readonly getKey: (
 		key: string,
 		tx?: StorageTransaction,

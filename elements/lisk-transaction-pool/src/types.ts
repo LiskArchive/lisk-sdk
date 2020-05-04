@@ -26,7 +26,7 @@ export interface TransactionObject {
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
 	verifiedOnce?: boolean;
-	feePriority?: bigint;
+	feePriority: bigint;
 }
 
 export interface TransactionFunctions {
