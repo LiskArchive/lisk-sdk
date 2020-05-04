@@ -24,13 +24,13 @@ describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
 	const defaultReleaseLimit = 100;
 
-	let transport;
-	let transactionPoolStub;
-	let synchronizerStub;
-	let chainStub;
-	let loggerStub;
-	let processorStub;
-	let channelStub;
+	let transport: any;
+	let transactionPoolStub: any;
+	let synchronizerStub: any;
+	let chainStub: any;
+	let loggerStub: any;
+	let processorStub: any;
+	let channelStub: any;
 
 	beforeEach(async () => {
 		// Needs to reset the job registered
@@ -84,6 +84,7 @@ describe('Transport', () => {
 				active: true,
 			},
 		});
+		jest.spyOn(transport.broadcaster, 'enqueueTransactionId');
 		jest.useFakeTimers();
 	});
 
@@ -97,8 +98,10 @@ describe('Transport', () => {
 				const tx = new TransferTransaction({
 					asset: { amount: '100', recipientId: '123L' },
 				});
+				transport['_broadcaster']._transactionIdQueue = [];
+
 				await transport.handleBroadcastTransaction(tx);
-				expect(transport.broadcaster.transactionIdQueue).toHaveLength(1);
+				expect(transport._broadcaster._transactionIdQueue).toHaveLength(1);
 			});
 
 			it('should broadcast after 5 sec', async () => {
@@ -126,9 +129,10 @@ describe('Transport', () => {
 				const tx = new TransferTransaction({
 					asset: { amount: '100', recipientId: '123L' },
 				});
+				transport['_broadcaster']._transactionIdQueue = [];
 				await transport.handleBroadcastTransaction(tx);
 				await transport.handleBroadcastTransaction(tx);
-				expect(transport.broadcaster.transactionIdQueue).toHaveLength(1);
+				expect(transport._broadcaster._transactionIdQueue).toHaveLength(1);
 			});
 		});
 
@@ -156,6 +160,7 @@ describe('Transport', () => {
 
 		describe('when 25 transactions are given', () => {
 			it('should enqueue to the broadcaster', async () => {
+				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(25).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
@@ -167,10 +172,11 @@ describe('Transport', () => {
 				for (const tx of txs) {
 					await transport.handleBroadcastTransaction(tx);
 				}
-				expect(transport.broadcaster.transactionIdQueue).toHaveLength(25);
+				expect(transport._broadcaster._transactionIdQueue).toHaveLength(25);
 			});
 
 			it('should broadcast all after 5 sec', async () => {
+				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(25).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
@@ -197,6 +203,7 @@ describe('Transport', () => {
 
 		describe('when 50 transactions are given', () => {
 			it('should enqueue to the broadcaster', async () => {
+				transport['_broadcaster']._transactionIdQueue = [];
 				const txs = new Array(50).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
@@ -208,7 +215,7 @@ describe('Transport', () => {
 				for (const tx of txs) {
 					await transport.handleBroadcastTransaction(tx);
 				}
-				expect(transport.broadcaster.transactionIdQueue).toHaveLength(50);
+				expect(transport._broadcaster._transactionIdQueue).toHaveLength(50);
 			});
 
 			it('should broadcast all after 10 sec', async () => {
@@ -350,37 +357,36 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called with undefined', () => {
-			let tx;
+			let tx: any;
 			beforeEach(async () => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
 				const processableTransactions = {};
-				processableTransactions[tx.id] = [tx];
+				(processableTransactions as any)[tx.id] = [tx];
 				transactionPoolStub.getProcessableTransactions.mockReturnValue(
 					processableTransactions,
 				);
 			});
 
-			it('should return transaction from pool', async () => {
-				const result = await transport.handleRPCGetTransactions(
-					undefined,
-					defaultPeerId,
-				);
-				expect(result.transactions).toStrictEqual([tx]);
+			it('should throw an error when no transaction ids are provided', async () => {
+				/* eslint-disable-next-line  @typescript-eslint/no-floating-promises */
+				expect(
+					transport.handleRPCGetTransactions(undefined, defaultPeerId),
+				).toReject();
 			});
 		});
 
 		describe('when it is called without ids', () => {
-			let tx;
+			let tx: any;
 			beforeEach(async () => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
 				});
 				const processableTransactions = {};
-				processableTransactions[tx.id] = [tx];
+				(processableTransactions as any)[tx.id] = [tx];
 				transactionPoolStub.getProcessableTransactions.mockReturnValue(
 					processableTransactions,
 				);
@@ -427,7 +433,7 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called without ids, and all exists in the pool', () => {
-			let tx;
+			let tx: any;
 			beforeEach(async () => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
@@ -455,8 +461,8 @@ describe('Transport', () => {
 		});
 
 		describe('when it is called without ids, and some exists in the pool and some in database', () => {
-			let tx;
-			let txDatabase;
+			let tx: any;
+			let txDatabase: any;
 			beforeEach(async () => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
@@ -468,7 +474,7 @@ describe('Transport', () => {
 					asset: { amount: '100', recipientId: '125L' },
 				});
 				txDatabaseInstance.sign('1234567890', 'signature');
-				txDatabase = txDatabaseInstance.toJSON();
+				txDatabase = txDatabaseInstance;
 				when(transactionPoolStub.get)
 					.calledWith(tx.id)
 					.mockReturnValue(tx);
@@ -496,7 +502,10 @@ describe('Transport', () => {
 				);
 				expect(transactionPoolStub.get).toHaveBeenCalledWith(tx.id);
 				expect(result.transactions).toHaveLength(2);
-				expect(result.transactions).toStrictEqual([tx.toJSON(), txDatabase]);
+				expect(result.transactions).toStrictEqual([
+					tx.toJSON(),
+					txDatabase.toJSON(),
+				]);
 			});
 		});
 	});
@@ -504,9 +513,9 @@ describe('Transport', () => {
 	describe('handleEventPostTransactionsAnnouncement', () => {
 		const defaultPeerId = 'peer-id';
 
-		let tx;
-		let tx2;
-		let validTransactionsRequest;
+		let tx: any;
+		let tx2: any;
+		let validTransactionsRequest: any;
 
 		beforeEach(async () => {
 			const txInstance = new TransferTransaction({

@@ -20,13 +20,13 @@ import {
 } from '@liskhq/lisk-transactions';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
-import { Logger, Channel, Processor } from '../../../../../../src/types';
-import { Transport } from '../../../../../../src/application/node/transport';
+import { Logger, Channel, Processor } from '../../../../../../../src/types';
+import { Transport } from '../../../../../../../src/application/node/transport';
 
-import { genesis } from '../../../../../fixtures/accounts';
-import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
-import { Block, GenesisBlock } from '../../../../../fixtures/blocks';
-import { InvalidTransactionError } from '../../../../../../src/application/node/transport/errors';
+import { genesis } from '../../../../../../fixtures/accounts';
+import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../../utils/network_identifier';
+import { Block, GenesisBlock } from '../../../../../../fixtures/blocks';
+import { InvalidTransactionError } from '../../../../../../../src/application/node/transport/errors';
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 describe('transport', () => {
 	let loggerStub: Logger;
