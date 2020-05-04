@@ -19,3 +19,7 @@ export const INTERNAL_EVENTS = Object.freeze([
 ]);
 
 export const eventWithModuleNameReg = /^([^\d][\w]+)((?::[^\d][\w]+)+)$/;
+export const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+export const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*:[a-zA-Z][a-zA-Z0-9]*$/;
+export const CONTROLLER_IDENTIFIER = 'app';
+export const SOCKET_TIMEOUT_TIME = 2000;

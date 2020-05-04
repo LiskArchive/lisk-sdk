@@ -13,9 +13,7 @@
  */
 
 import { strict as assert } from 'assert';
-
-const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
-const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*:[a-zA-Z][a-zA-Z0-9]*$/;
+import { actionWithModuleNameReg, moduleNameReg } from './constants';
 
 export interface ActionInfoObject {
 	readonly module: string;
