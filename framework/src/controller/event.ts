@@ -16,13 +16,13 @@ import { strict as assert } from 'assert';
 
 import { eventWithModuleNameReg } from './channels/base/constants';
 
-export interface EventObject {
+export interface EventInfoObject {
 	readonly module: string;
 	readonly name: string;
 	readonly data?: object | string;
 }
 
-export type EventCallback = (action: EventObject) => void;
+export type EventCallback = (action: EventInfoObject) => void;
 
 export type EventsArray = ReadonlyArray<string>;
 
@@ -43,9 +43,9 @@ export class Event {
 		this.data = data;
 	}
 
-	public static deserialize(data: EventObject | string): Event {
+	public static deserialize(data: EventInfoObject | string): Event {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const parsedEvent: EventObject =
+		const parsedEvent: EventInfoObject =
 			typeof data === 'string' ? JSON.parse(data) : data;
 
 		return new Event(
@@ -54,7 +54,7 @@ export class Event {
 		);
 	}
 
-	public serialize(): EventObject {
+	public serialize(): EventInfoObject {
 		return {
 			name: this.name,
 			module: this.module,

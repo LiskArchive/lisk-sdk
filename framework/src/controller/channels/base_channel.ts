@@ -13,7 +13,7 @@
  */
 
 import { Event, EventCallback } from '../event';
-import { Action, ActionCallback } from '../action';
+import { Action, ActionsDefinition, ActionsObject } from '../action';
 import { INTERNAL_EVENTS, eventWithModuleNameReg } from './base/constants';
 
 export interface BaseChannelOptions {
@@ -24,14 +24,14 @@ export abstract class BaseChannel {
 	public readonly moduleAlias: string;
 	public readonly options: object;
 
-	public readonly eventsList: ReadonlyArray<Event>;
-	public readonly actionsList: ReadonlyArray<Action>;
-	public readonly actions: { [key: string]: ActionCallback };
+	public readonly eventsList: ReadonlyArray<string>;
+	public readonly actionsList: ReadonlyArray<string>;
+	public readonly actions: ActionsObject;
 
 	protected constructor(
 		moduleAlias: string,
 		events: ReadonlyArray<string>,
-		actions: { [key: string]: ActionCallback },
+		actions: ActionsDefinition,
 		options: BaseChannelOptions = {},
 	) {
 		this.moduleAlias = moduleAlias;
@@ -41,15 +41,29 @@ export abstract class BaseChannel {
 			? events
 			: [...events, ...INTERNAL_EVENTS];
 
-		this.eventsList = eventList.map(
-			eventName => new Event(`${this.moduleAlias}:${eventName}`),
+		this.eventsList = eventList.map(eventName =>
+			new Event(`${this.moduleAlias}:${eventName}`).key(),
 		);
 
-		this.actionsList = Object.keys(actions).map(
-			actionName => new Action(`${this.moduleAlias}:${actionName}`),
-		);
+		this.actions = {};
+		for (const actionName of Object.keys(actions)) {
+			const actionData = actions[actionName];
 
-		this.actions = actions;
+			const handler =
+				typeof actionData === 'object' ? actionData.handler : actionData;
+			const isPublic =
+				typeof actionData === 'object' ? actionData.isPublic ?? true : true;
+
+			const action = new Action(
+				`${this.moduleAlias}:${actionName}`,
+				undefined,
+				undefined,
+				isPublic,
+				handler,
+			);
+			this.actions[action.key()] = action;
+		}
+		this.actionsList = Object.keys(this.actions);
 	}
 
 	public isValidEventName(name: string, throwError = true): boolean | never {
@@ -70,8 +84,6 @@ export abstract class BaseChannel {
 
 		return result;
 	}
-
-	abstract async registerToBus(): Promise<void>;
 
 	// Listen to any event happening in the application
 	// Specified as moduleName:eventName
