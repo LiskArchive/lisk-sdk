@@ -12,14 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const BaseChannel = require('./base_channel.js');
-const InMemoryChannel = require('./in_memory_channel.js');
-const ChildProcessChannel = require('./child_process_channel.js');
-
-module.exports = {
-	BaseChannel,
-	InMemoryChannel,
-	ChildProcessChannel,
-};
+export { BaseChannel } from './base_channel';
+export { InMemoryChannel } from './in_memory_channel';
+export { ChildProcessChannel } from './child_process_channel';
