@@ -21,7 +21,7 @@ import {
 	ReqSocket,
 	SubEmitterSocket,
 } from 'pm2-axon';
-import { Action, ActionObject, ActionsObject } from './action';
+import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../types';
 import { BaseChannel } from './channels/base_channel';
 import { EventsArray } from './event';
@@ -138,25 +138,18 @@ export class Bus extends EventEmitter2 {
 		options: RegisterChannelOptions,
 	): Promise<void> {
 		events.forEach(eventName => {
-			const eventFullName = `${moduleAlias}:${eventName}`;
-			if (this.events[eventFullName]) {
-				throw new Error(
-					`Event "${eventFullName}" already registered with bus.`,
-				);
+			if (this.events[eventName]) {
+				throw new Error(`Event "${eventName}" already registered with bus.`);
 			}
-			this.events[eventFullName] = true;
+			this.events[eventName] = true;
 		});
 
 		Object.keys(actions).forEach(actionName => {
-			const actionFullName = `${moduleAlias}:${actionName}`;
-
-			if (this.actions[actionFullName]) {
-				throw new Error(
-					`Action "${actionFullName}" already registered with bus.`,
-				);
+			if (this.actions[actionName] === undefined) {
+				throw new Error(`Action "${actionName}" already registered with bus.`);
 			}
 
-			this.actions[actionFullName] = actions[actionName];
+			this.actions[actionName] = actions[actionName];
 		});
 
 		let { channel } = options;
@@ -181,7 +174,7 @@ export class Bus extends EventEmitter2 {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async invoke(actionData: string | ActionObject): Promise<any> {
+	public async invoke(actionData: string | ActionInfoObject): Promise<any> {
 		const action = Action.deserialize(actionData);
 		const actionModule = action.module;
 		const actionFullName = action.key();
@@ -220,8 +213,10 @@ export class Bus extends EventEmitter2 {
 		});
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async invokePublic(actionData: string | ActionObject): Promise<any> {
+	public async invokePublic(
+		actionData: string | ActionInfoObject,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	): Promise<any> {
 		const action = Action.deserialize(actionData);
 
 		// Check if action exists
