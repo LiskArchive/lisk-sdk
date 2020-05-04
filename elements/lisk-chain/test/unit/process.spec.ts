@@ -28,7 +28,6 @@ import { Chain, StateStore } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
-import { Slots } from '../../src/slots';
 import { BlockInstance } from '../../src/types';
 import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
 
@@ -58,7 +57,6 @@ describe('blocks/header', () => {
 
 	let chainInstance: Chain;
 	let storageStub: any;
-	let slots: Slots;
 	let block: BlockInstance;
 	let blockBytes: Buffer;
 
@@ -96,17 +94,11 @@ describe('blocks/header', () => {
 			},
 		};
 
-		slots = new Slots({
-			epochTime: constants.epochTime,
-			interval: constants.blockTime,
-		});
-
 		chainInstance = new Chain({
 			storage: storageStub,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
-			slots,
 			...constants,
 		});
 		(chainInstance as any)._lastBlock = {
@@ -277,7 +269,9 @@ describe('blocks/header', () => {
 		describe('when block slot is invalid', () => {
 			it('should throw when block timestamp is in the future', async () => {
 				// Arrange
-				const futureTimestamp = slots.getSlotTime(slots.getNextSlot());
+				const futureTimestamp = chainInstance.slots.getSlotTime(
+					chainInstance.slots.getNextSlot(),
+				);
 				block = newBlock({ timestamp: futureTimestamp });
 				expect.assertions(1);
 				// Act & Assert
