@@ -12,30 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { when } from 'jest-when';
 
-const { when } = require('jest-when');
-
-const {
+import {
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	hashOnion,
-} = require('@liskhq/lisk-cryptography');
-const {
+} from '@liskhq/lisk-cryptography';
+import {
 	Forger,
-} = require('../../../../../../../src/application/node/forger/forger');
-const {
+} from '../../../../../../../src/application/node/forger';
+import {
 	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 	FORGER_INFO_KEY_USED_HASH_ONION,
-} = require('../../../../../../../src/application/node/forger/constant');
-const genesisDelegates = require('../../../../../../mocha/data/genesis_delegates.json');
-const delegatesRoundsList = require('../../../../../../mocha/data/delegates_rounds_list.json');
-const accountFixtures = require('../../../../../../fixtures//accounts');
+} from '../../../../../../../src/application/node/forger/constant';
+import * as genesisDelegates from '../../../../../../mocha/data/genesis_delegates.json';
+import * as delegatesRoundsList from '../../../../../../mocha/data/delegates_rounds_list.json';
+import * as accountFixtures from '../../../../../../fixtures/accounts';
 
 describe('forger', () => {
-	const mockChannel = {
-		publish: jest.fn(),
-	};
 	const mockLogger = {
 		trace: jest.fn(),
 		debug: jest.fn(),
@@ -50,8 +45,8 @@ describe('forger', () => {
 	const delegatesPerRound = 103;
 	const forgingWaitThreshold = 2;
 
-	let forgeModule;
-	let defaultPassword;
+	let forgeModule: any;
+	let defaultPassword: string;
 	let mockStorage;
 
 	beforeEach(async () => {
@@ -64,27 +59,27 @@ describe('forger', () => {
 			},
 		};
 		forgeModule = new Forger({
-			forgingStrategy: mockStrategy,
-			channel: mockChannel,
-			logger: mockLogger,
-			storage: mockStorage,
+			forgingStrategy: mockStrategy as any,
+			maxPayloadLength: 15 * 1024,
+			logger: mockLogger as any,
+			storage: mockStorage as any,
 			forgingDelegates: genesisDelegates.delegates,
 			forgingForce: false,
 			forgingDefaultPassword: testDelegate.password,
 			forgingWaitThreshold,
 			bftModule: {
 				finalizedHeight: 1,
-			},
+			} as any,
 			dposModule: {
 				getForgerAddressesForRound: jest.fn(),
 				delegatesPerRound,
 				rounds: {
 					calcRound: jest.fn(),
 				},
-			},
+			} as any,
 			transactionPoolModule: {
 				getUnconfirmedTransactionList: jest.fn(),
-			},
+			} as any,
 			chainModule: {
 				filterReadyTransactions: jest.fn().mockReturnValue([]),
 				slots: {
@@ -106,7 +101,7 @@ describe('forger', () => {
 						},
 					]),
 				},
-			},
+			} as any,
 			processorModule: {
 				create: jest.fn(),
 				process: jest.fn(),
@@ -229,7 +224,7 @@ describe('forger', () => {
 				},
 			];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				forgeModule.config.forging.force = true;
 				forgeModule.config.forging.delegates = [];
 				forgeModule.chainModule.dataAccess.getAccountsByAddress.mockResolvedValue(
@@ -240,7 +235,7 @@ describe('forger', () => {
 						},
 					],
 				);
-				when(forgeModule.chainModule.dataAccess.getAccountsByPublicKey)
+				forgeModule.chainModule.dataAccess.getAccountsByPublicKey
 					.calledWith([delegates[0].publicKey])
 					.mockResolvedValue([
 						{
@@ -656,7 +651,7 @@ describe('forger', () => {
 				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					[
 						'Account with public key:',
-						accountDetails.publicKey.toString('hex'),
+						accountDetails.publicKey.toString(),
 						'not found',
 					].join(' '),
 				);
@@ -769,14 +764,12 @@ describe('forger', () => {
 
 			it('should load all 101 delegates', async () => {
 				for (const delegate of genesisDelegates.delegates) {
-					when(forgeModule.chainModule.dataAccess.getAccountsByPublicKey)
-						.calledWith([delegate.publicKey])
-						.mockResolvedValue([
-							{
-								address: getAddressFromPublicKey(delegate.publicKey),
-								isDelegate: true,
-							},
-						]);
+					forgeModule.chainModule.dataAccess.getAccountsByPublicKey.calledWith([delegate.publicKey]).mockResolvedValue([
+						{
+							address: getAddressFromPublicKey(delegate.publicKey),
+							isDelegate: true,
+						},
+					]);
 				}
 				forgeModule.config.forging.delegates = genesisDelegates.delegates.map(
 					delegate => ({
@@ -794,7 +787,7 @@ describe('forger', () => {
 				// Arrange
 				const newSeed = '00000000000000000000000000000001';
 				forgeModule.config.forging.delegates = delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS)
 					.mockResolvedValue(
 						JSON.stringify({
@@ -805,13 +798,13 @@ describe('forger', () => {
 				// Act
 				await forgeModule.loadDelegates();
 
-				const originalKey = {};
+				const originalKey: any = {};
 				for (const delegate of delegates) {
 					originalKey[getAddressFromPublicKey(delegate.publicKey)] =
 						delegate.hashOnion.hashes[delegate.hashOnion.hashes.length - 1];
 				}
 
-				// Aeert
+				// Assert
 				expect(forgeModule.logger.warn).toHaveBeenCalledTimes(1);
 				expect(forgeModule.logger.warn).toHaveBeenCalledWith(
 					expect.stringContaining('Overwriting with new hash onion'),
@@ -826,7 +819,7 @@ describe('forger', () => {
 
 			it('should warn if hash onion used is at the last checkpoint', async () => {
 				forgeModule.config.forging.delegates = delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -841,7 +834,7 @@ describe('forger', () => {
 				// Act
 				await forgeModule.loadDelegates();
 
-				// Aeert
+				// Assert
 				expect(forgeModule.logger.warn).toHaveBeenCalledTimes(1);
 				expect(forgeModule.logger.warn).toHaveBeenCalledWith(
 					expect.any(Object),
@@ -851,7 +844,7 @@ describe('forger', () => {
 
 			it('should throw an error if all hash onion are used already', async () => {
 				forgeModule.config.forging.delegates = delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -871,7 +864,7 @@ describe('forger', () => {
 		});
 
 		describe('forge', () => {
-			let getSlotNumberStub;
+			let getSlotNumberStub: jest.MockInstance<unknown, any[]>;
 
 			const lastBlock = {
 				id: '6846255774763267134',
@@ -1055,7 +1048,7 @@ describe('forger', () => {
 					.spyOn(forgeModule, '_getDelegateKeypairForCurrentSlot')
 					.mockResolvedValue(targetDelegate);
 				forgeModule.config.forging.delegates = genesisDelegates.delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1096,7 +1089,7 @@ describe('forger', () => {
 					.spyOn(forgeModule, '_getDelegateKeypairForCurrentSlot')
 					.mockResolvedValue(targetDelegate);
 				forgeModule.config.forging.delegates = genesisDelegates.delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1146,7 +1139,7 @@ describe('forger', () => {
 					.spyOn(forgeModule, '_getDelegateKeypairForCurrentSlot')
 					.mockResolvedValue(targetDelegate);
 				forgeModule.config.forging.delegates = genesisDelegates.delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1202,7 +1195,7 @@ describe('forger', () => {
 					.spyOn(forgeModule, '_getDelegateKeypairForCurrentSlot')
 					.mockResolvedValue(targetDelegate);
 				forgeModule.config.forging.delegates = genesisDelegates.delegates;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1249,9 +1242,9 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				forgeModule.config.forging.delegates = genesisDelegates.delegates;
 				const maxCount = forgeModule.config.forging.delegates.find(
-					d => d.publicKey === targetDelegate.publicKey,
+					(d: { publicKey: string; }) => d.publicKey === targetDelegate.publicKey,
 				).hashOnion.count;
-				when(forgeModule.storage.entities.ForgerInfo.getKey)
+				forgeModule.storage.entities.ForgerInfo.getKey
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1312,9 +1305,9 @@ describe('forger', () => {
 				'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 		};
 
-		let genesis1Keypair;
-		let genesis2Keypair;
-		let genesis3Keypair;
+		let genesis1Keypair: { publicKey: any; privateKey: any; };
+		let genesis2Keypair: { publicKey: any; privateKey: any; };
+		let genesis3Keypair: { publicKey: any; privateKey: any; };
 
 		beforeEach(async () => {
 			const genesis1KeypairBuffer = getPrivateAndPublicKeyBytesFromPassphrase(
@@ -1355,7 +1348,7 @@ describe('forger', () => {
 			const currentSlot = 35;
 			const round = 1;
 
-			when(forgeModule.dposModule.getForgerAddressesForRound)
+			forgeModule.dposModule.getForgerAddressesForRound
 				.calledWith(round)
 				.mockResolvedValue(
 					delegatesRoundsList[round].map(pk => getAddressFromPublicKey(pk)),

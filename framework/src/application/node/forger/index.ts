@@ -12,13 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+export { Forger } from './forger';
+export { HighFeeForgingStrategy } from './strategies';
 
-const { Forger, getDelegateKeypairForCurrentSlot } = require('./forger');
-const { HighFeeForgingStrategy } = require('./strategies');
-
-module.exports = {
-	Forger,
-	HighFeeForgingStrategy,
-	getDelegateKeypairForCurrentSlot,
-};

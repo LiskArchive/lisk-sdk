@@ -12,21 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { when } = require('jest-when');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
-const {
+import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
+import {
 	HighFeeForgingStrategy,
-} = require('../../../../../../../src/application/node/forger/strategies');
-const {
+} from '../../../../../../../src/application/node/forger/strategies';
+import {
 	allValidCase,
 	maxPayloadLengthCase,
 	invalidTxCase,
 	allInvalidCase,
-} = require('./forging_fixtures');
+} from './forging_fixtures';
 
 const getTxMock = (
+	// eslint-disable-next-line @typescript-eslint/default-param-last
 	{
 		id,
 		senderId,
@@ -36,8 +34,8 @@ const getTxMock = (
 		bytes = 0,
 		basicBytes = 0,
 		valid = true,
-	} = {},
-	chainMock,
+	} = {} as any,
+	chainMock: any,
 ) => {
 	const tx = {
 		id,
@@ -49,7 +47,7 @@ const getTxMock = (
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
 	};
 
-	when(chainMock.applyTransactionsWithStateStore)
+	chainMock.applyTransactionsWithStateStore
 		.calledWith([tx], undefined)
 		.mockResolvedValueOnce([
 			{
@@ -61,12 +59,12 @@ const getTxMock = (
 	return tx;
 };
 
-const buildProcessableTxMock = (input, chainMock) => {
+const buildProcessableTxMock = (input: any, chainMock: jest.Mock) => {
 	const result = input
-		.map(tx => {
+		.map((tx: any) => {
 			return getTxMock(tx, chainMock);
 		})
-		.reduce((res, tx) => {
+		.reduce((res: any, tx: any) => {
 			if (!res[tx.senderId]) {
 				res[tx.senderId] = [];
 			}
@@ -78,7 +76,7 @@ const buildProcessableTxMock = (input, chainMock) => {
 
 	for (const senderId of Object.keys(result)) {
 		// Ascending sort by nonce
-		result[senderId] = result[senderId].sort((a, b) => a.nonce > b.nonce);
+		result[senderId] = result[senderId].sort((a: any, b: any) => a.nonce > b.nonce);
 	}
 
 	return result;
@@ -89,23 +87,15 @@ describe('strategies', () => {
 		const maxPayloadLength = 1000;
 		const mockTxPool = {
 			getProcessableTransactions: jest.fn().mockReturnValue({}),
-		};
-		const mockLogger = {
-			trace: jest.fn(),
-			debug: jest.fn(),
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-		};
+		} as any;
 		const mockChainModule = {
 			newStateStore: jest.fn(),
 			applyTransactionsWithStateStore: jest.fn(),
-		};
-		let strategy;
+		} as any;
+		let strategy: any;
 
 		beforeEach(() => {
 			strategy = new HighFeeForgingStrategy({
-				logger: mockLogger,
 				transactionPoolModule: mockTxPool,
 				chainModule: mockChainModule,
 				maxPayloadLength,
@@ -136,7 +126,7 @@ describe('strategies', () => {
 				const result = await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(result.map(tx => tx.id)).toEqual(
+				expect(result.map((tx: any) => tx.id)).toEqual(
 					allValidCase.output.map(tx => tx.id),
 				);
 			});
@@ -157,7 +147,7 @@ describe('strategies', () => {
 				const result = await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(result.map(tx => tx.id)).toEqual(
+				expect(result.map((tx: any) => tx.id)).toEqual(
 					maxPayloadLengthCase.output.map(tx => tx.id),
 				);
 			});
@@ -178,7 +168,7 @@ describe('strategies', () => {
 				const result = await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(result.map(tx => tx.id)).toEqual(
+				expect(result.map((tx: any) => tx.id)).toEqual(
 					invalidTxCase.output.map(tx => tx.id),
 				);
 			});
