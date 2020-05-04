@@ -12,5 +12,8 @@ declare module 'pm2-axon-rpc' {
 
 	export class Client {
 		public constructor(socket: ReqSocket);
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		public call(...args: any[]): void;
 	}
 }

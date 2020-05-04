@@ -29,15 +29,18 @@ import { EventsArray } from './event';
 const CONTROLLER_IDENTIFIER = 'app';
 const SOCKET_TIMEOUT_TIME = 2000;
 
+export interface socketPathObject {
+	readonly pub: string;
+	readonly sub: string;
+	readonly rpc: string;
+	readonly root: string;
+}
+
 interface BusConfiguration {
 	ipc: {
 		readonly enabled: boolean;
 	};
-	socketsPath: {
-		readonly pub: string;
-		readonly sub: string;
-		readonly rpc: string;
-	};
+	socketsPath: socketPathObject;
 }
 
 interface RegisterChannelOptions {
