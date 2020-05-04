@@ -49,7 +49,7 @@ export class ChildProcessChannel extends BaseChannel {
 	public rpcSocket?: RepSocket;
 	public rpcServer?: RPCServer;
 
-	protected constructor(
+	public constructor(
 		moduleAlias: string,
 		events: ReadonlyArray<string>,
 		actions: ActionsDefinition,
@@ -139,7 +139,7 @@ export class ChildProcessChannel extends BaseChannel {
 		}
 	}
 
-	public publish(eventName: string, data: object): void {
+	public publish(eventName: string, data?: object): void {
 		const event = new Event(eventName, data);
 
 		if (event.module !== this.moduleAlias) {
