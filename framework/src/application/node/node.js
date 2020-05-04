@@ -40,7 +40,7 @@ const {
 } = require('./synchronizer');
 const { Processor } = require('./processor');
 const { Rebuilder } = require('./rebuilder');
-const { BlockProcessorV2 } = require('./block_processor_v2.js');
+const { BlockProcessorV2 } = require('./block_processor_v2');
 
 const forgeInterval = 1000;
 

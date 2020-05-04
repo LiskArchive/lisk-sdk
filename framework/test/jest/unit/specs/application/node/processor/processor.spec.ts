@@ -12,19 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { ForkStatus } = require('@liskhq/lisk-bft');
-const {
-	FakeBlockProcessorV0,
-	FakeBlockProcessorV1,
-} = require('./block_processor');
-const {
-	Processor,
-} = require('../../../../../../../src/application/node/processor');
-const {
-	Sequence,
-} = require('../../../../../../../src/application/node/utils/sequence');
+import { BlockInstance } from '@liskhq/lisk-chain';
+import { ForkStatus } from '@liskhq/lisk-bft';
+import { FakeBlockProcessorV0, FakeBlockProcessorV1 } from './block_processor';
+import { Processor } from '../../../../../../../src/application/node/processor';
+import { Sequence } from '../../../../../../../src/application/node/utils/sequence';
 
 describe('processor', () => {
 	const defaultLastBlock = {
@@ -33,14 +25,14 @@ describe('processor', () => {
 		height: 98,
 	};
 
-	let processor;
-	let channelStub;
-	let loggerStub;
-	let chainModuleStub;
-	let blockProcessorV0;
-	let stateStoreStub;
+	let processor: Processor;
+	let channelStub: any;
+	let loggerStub: any;
+	let chainModuleStub: any;
+	let blockProcessorV0: any;
+	let stateStoreStub: any;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		channelStub = {
 			publish: jest.fn(),
 		};
@@ -77,78 +69,85 @@ describe('processor', () => {
 
 	describe('constructor', () => {
 		describe('when the instance is created', () => {
-			it('should initialize the processors', async () => {
-				expect(processor.processors).toEqual({});
+			it('should initialize the processors', () => {
+				expect(processor['processors']).toEqual({});
 			});
 
-			it('should initialize the matchers', async () => {
-				expect(processor.matchers).toEqual({});
+			it('should initialize the matchers', () => {
+				expect(processor['matchers']).toEqual({});
 			});
 
-			it('should initialize the sequence', async () => {
-				expect(processor.sequence).toBeInstanceOf(Sequence);
+			it('should initialize the sequence', () => {
+				expect(processor['sequence']).toBeInstanceOf(Sequence);
 			});
 
-			it('should assign channel to its context', async () => {
-				expect(processor.channel).toBe(channelStub);
+			it('should assign channel to its context', () => {
+				expect(processor['channel']).toBe(channelStub);
 			});
 
-			it('should assign blocks module to its context', async () => {
-				expect(processor.chainModule).toBe(chainModuleStub);
+			it('should assign blocks module to its context', () => {
+				expect(processor['chainModule']).toBe(chainModuleStub);
 			});
 
-			it('should assign logger to its context', async () => {
-				expect(processor.logger).toBe(loggerStub);
+			it('should assign logger to its context', () => {
+				expect(processor['logger']).toBe(loggerStub);
 			});
 		});
 	});
 
 	describe('register', () => {
 		describe('when processor is register without version property', () => {
-			it('should throw an error', async () => {
-				expect(() => processor.register({})).toThrow(
+			it('should throw an error', () => {
+				expect(() => processor.register({} as any)).toThrow(
 					'version property must exist for processor',
 				);
 			});
 		});
 
 		describe('when processor is register without matcher', () => {
-			it('should set the processors with the version key', async () => {
+			it('should set the processors with the version key', () => {
 				processor.register(blockProcessorV0);
-				expect(processor.processors[0]).toBe(blockProcessorV0);
+				expect(processor['processors'][0]).toBe(blockProcessorV0);
 			});
 
-			it('should set a functions always return true to the matchers with the version key', async () => {
+			it('should set a functions always return true to the matchers with the version key', () => {
 				processor.register(blockProcessorV0);
-				expect(processor.matchers[0]()).toBe(true);
+				expect(processor['matchers'][0]({} as any)).toBe(true);
 			});
 		});
 
 		describe('when processor is register with matcher', () => {
-			it('should set the processor with the version key', async () => {
+			it('should set the processor with the version key', () => {
 				processor.register(blockProcessorV0, {
 					matcher: ({ height }) => height === 0,
 				});
-				expect(processor.processors[0]).toBe(blockProcessorV0);
+				expect(processor['processors'][0]).toBe(blockProcessorV0);
 			});
 
-			it('should set the functions to the matchers with the version key', async () => {
+			it('should set the functions to the matchers with the version key', () => {
 				processor.register(blockProcessorV0, {
 					matcher: ({ height }) => height === 0,
 				});
-				expect(processor.matchers[0]({ height: 0 })).toBe(true);
-				expect(processor.matchers[0]({ height: 10 })).toBe(false);
+				expect(processor['matchers'][0]({ height: 0 } as BlockInstance)).toBe(
+					true,
+				);
+				expect(processor['matchers'][0]({ height: 10 } as BlockInstance)).toBe(
+					false,
+				);
 			});
 		});
 	});
 
 	describe('init', () => {
-		const genesisBlock = { id: 'fakeGenesisBlock', version: 0 };
+		const genesisBlock = {
+			id: 'fakeGenesisBlock',
+			version: 0,
+		} as BlockInstance;
 
-		let initSteps;
-		let applyGenesisSteps;
+		let initSteps: jest.Mock[];
+		let applyGenesisSteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			initSteps = [jest.fn(), jest.fn()];
 			applyGenesisSteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.init.pipe(initSteps);
@@ -163,15 +162,15 @@ describe('processor', () => {
 				await processor.init(genesisBlock);
 			});
 
-			it('should call chainModule init', async () => {
+			it('should call chainModule init', () => {
 				expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 			});
 
-			it('should check if genesis block exists', async () => {
+			it('should check if genesis block exists', () => {
 				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
-			it('should call all of the apply genesis steps', async () => {
+			it('should call all of the apply genesis steps', () => {
 				applyGenesisSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{ block: genesisBlock, stateStore: stateStoreStub },
@@ -180,11 +179,11 @@ describe('processor', () => {
 				});
 			});
 
-			it('should save the genesis block', async () => {
+			it('should save the genesis block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
-					{ saveOnlyState: false },
+					{ saveOnlyState: false, removeFromTempTable: false },
 				);
 			});
 		});
@@ -196,30 +195,30 @@ describe('processor', () => {
 				await processor.init(genesisBlock);
 			});
 
-			it('should call chainModule init', async () => {
+			it('should call chainModule init', () => {
 				expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 			});
 
-			it('should check if genesis block exists', async () => {
+			it('should check if genesis block exists', () => {
 				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
-			it('should not call any of the apply genesis steps', async () => {
+			it('should not call any of the apply genesis steps', () => {
 				applyGenesisSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save the genesis block', async () => {
+			it('should not save the genesis block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 
 		describe('when processor has multiple block processor registered', () => {
-			let initSteps2;
+			let initSteps2: jest.Mock[];
 			let blockProcessorV1;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				initSteps2 = [jest.fn(), jest.fn()];
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				blockProcessorV1.init.pipe(initSteps2);
@@ -245,16 +244,24 @@ describe('processor', () => {
 	});
 
 	describe('process', () => {
-		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
-		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
+		const blockV0 = {
+			id: 'fakelock1',
+			version: 0,
+			height: 99,
+		} as BlockInstance;
+		const blockV1 = {
+			id: 'fakelock2',
+			version: 1,
+			height: 100,
+		} as BlockInstance;
 
-		let forkSteps;
-		let validateSteps;
-		let verifySteps;
-		let applySteps;
-		let undoSteps;
+		let forkSteps: jest.Mock[];
+		let validateSteps: jest.Mock[];
+		let verifySteps: jest.Mock[];
+		let applySteps: jest.Mock[];
+		let undoSteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			forkSteps = [jest.fn().mockResolvedValue(1)];
 			validateSteps = [jest.fn(), jest.fn()];
 			verifySteps = [jest.fn(), jest.fn()];
@@ -287,13 +294,16 @@ describe('processor', () => {
 
 		describe('when more than 2 processor is registered', () => {
 			let blockProcessorV1;
-			let forkSteps2;
+			let forkSteps2: jest.Mock[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				forkSteps2 = [jest.fn(), jest.fn()];
 				forkSteps2[1].mockResolvedValue(2);
 				blockProcessorV1.forkStatus.pipe(forkSteps2);
+				blockProcessorV1.validate.pipe([jest.fn()]);
+				blockProcessorV1.verify.pipe([jest.fn()]);
+				blockProcessorV1.apply.pipe([jest.fn()]);
 				processor.register(blockProcessorV1);
 			});
 
@@ -306,7 +316,7 @@ describe('processor', () => {
 		});
 
 		describe('when the fork step returns unknown fork status', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				forkSteps[0].mockResolvedValue(undefined);
 			});
 
@@ -323,29 +333,29 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should not validate block', async () => {
+			it('should not validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not verify block', async () => {
+			it('should not verify block', () => {
 				verifySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not apply block', async () => {
+			it('should not apply block', () => {
 				applySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save block', async () => {
+			it('should not save block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not publish any event', async () => {
+			it('should not publish any event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalled();
 			});
 		});
@@ -356,29 +366,29 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should not validate block', async () => {
+			it('should not validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not verify block', async () => {
+			it('should not verify block', () => {
 				verifySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not apply block', async () => {
+			it('should not apply block', () => {
 				applySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save block', async () => {
+			it('should not save block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should publish fork event', async () => {
+			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
 					block: blockV0,
 				});
@@ -391,13 +401,13 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should publish fork event', async () => {
+			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
 					block: blockV0,
 				});
 			});
 
-			it('should validate block', async () => {
+			it('should validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -410,7 +420,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should revert the last block', async () => {
+			it('should revert the last block', () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -427,7 +437,7 @@ describe('processor', () => {
 				);
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -440,7 +450,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should apply the block', async () => {
+			it('should apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -453,15 +463,15 @@ describe('processor', () => {
 				});
 			});
 
-			it('should save the block', async () => {
+			it('should save the block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
-					{ removeFromTempTable: false },
+					{ removeFromTempTable: false, saveOnlyState: false },
 				);
 			});
 
-			it('should emit broadcast event for the block', async () => {
+			it('should emit broadcast event for the block', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'app:block:broadcast',
 					{ block: blockV0 },
@@ -479,13 +489,13 @@ describe('processor', () => {
 				}
 			});
 
-			it('should publish fork event', async () => {
+			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
 					block: blockV0,
 				});
 			});
 
-			it('should validate block', async () => {
+			it('should validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -498,7 +508,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should revert the last block', async () => {
+			it('should revert the last block', () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -516,7 +526,7 @@ describe('processor', () => {
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should not emit broadcast event for the block', async () => {
+			it.skip('should not emit broadcast event for the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
@@ -524,7 +534,7 @@ describe('processor', () => {
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should verify the last block', async () => {
+			it.skip('should verify the last block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -538,7 +548,7 @@ describe('processor', () => {
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should apply the last block', async () => {
+			it.skip('should apply the last block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -552,7 +562,7 @@ describe('processor', () => {
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should save the last block', async () => {
+			it.skip('should save the last block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
@@ -566,35 +576,35 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should not validate block', async () => {
+			it('should not validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not verify block', async () => {
+			it('should not verify block', () => {
 				verifySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not apply block', async () => {
+			it('should not apply block', () => {
 				applySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save block', async () => {
+			it('should not save block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should publish sync', async () => {
+			it('should publish sync', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:sync', {
 					block: blockV0,
 				});
 			});
 
-			it('should publish fork event', async () => {
+			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
 					block: blockV0,
 				});
@@ -607,29 +617,29 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should not validate block', async () => {
+			it('should not validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not verify block', async () => {
+			it('should not verify block', () => {
 				verifySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not apply block', async () => {
+			it('should not apply block', () => {
 				applySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save block', async () => {
+			it('should not save block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should publish fork event', async () => {
+			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
 					block: blockV0,
 				});
@@ -642,29 +652,29 @@ describe('processor', () => {
 				await processor.process(blockV0);
 			});
 
-			it('should validate block', async () => {
+			it('should validate block', () => {
 				validateSteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
 				});
 			});
 
-			it('should verify block', async () => {
+			it('should verify block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
 				});
 			});
 
-			it('should apply block', async () => {
+			it('should apply block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
 				});
 			});
 
-			it('should save block', async () => {
+			it('should save block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledTimes(1);
 			});
 
-			it('should broadcast with the block', async () => {
+			it('should broadcast with the block', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith(
 					'app:block:broadcast',
 					{ block: blockV0 },
@@ -687,9 +697,9 @@ describe('processor', () => {
 			id: 'fakeNewBlock',
 		};
 
-		let createSteps;
+		let createSteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			createSteps = [jest.fn(), jest.fn().mockResolvedValue(createResult)];
 			blockProcessorV0.create.pipe(createSteps);
 			processor.register(blockProcessorV0, {
@@ -699,7 +709,7 @@ describe('processor', () => {
 
 		describe('when only 1 processor is registered', () => {
 			it('should call forkStatus pipelines with matching processor', async () => {
-				await processor.create(createInput);
+				await processor.create(createInput as any);
 				createSteps.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
 				});
@@ -708,9 +718,9 @@ describe('processor', () => {
 
 		describe('when more than 2 processor is registered', () => {
 			let blockProcessorV1;
-			let createSteps2;
+			let createSteps2: jest.Mock[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				createSteps2 = [jest.fn(), jest.fn().mockResolvedValue(2)];
 				blockProcessorV1.create.pipe(createSteps2);
@@ -718,7 +728,7 @@ describe('processor', () => {
 			});
 
 			it('should call create pipelines with matching processor', async () => {
-				await processor.create(createInput);
+				await processor.create(createInput as any);
 				createSteps2.forEach(step => {
 					expect(step).toHaveBeenCalledTimes(1);
 				});
@@ -727,19 +737,27 @@ describe('processor', () => {
 
 		describe('when create is called', () => {
 			it('should return the result of create pipeline', async () => {
-				const result = await processor.create(createInput);
+				const result = await processor.create(createInput as any);
 				expect(result).toEqual(createResult);
 			});
 		});
 	});
 
 	describe('validate', () => {
-		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
-		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
+		const blockV0 = {
+			id: 'fakelock1',
+			version: 0,
+			height: 99,
+		} as BlockInstance;
+		const blockV1 = {
+			id: 'fakelock2',
+			version: 1,
+			height: 100,
+		} as BlockInstance;
 
-		let validateSteps;
+		let validateSteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			validateSteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.validate.pipe(validateSteps);
 			processor.register(blockProcessorV0, {
@@ -758,9 +776,9 @@ describe('processor', () => {
 
 		describe('when more than 2 processor is registered', () => {
 			let blockProcessorV1;
-			let validateSteps2;
+			let validateSteps2: jest.Mock[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				validateSteps2 = [jest.fn(), jest.fn()];
 				blockProcessorV1.validate.pipe(validateSteps2);
@@ -777,13 +795,21 @@ describe('processor', () => {
 	});
 
 	describe('processValidated', () => {
-		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
-		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
+		const blockV0 = {
+			id: 'fakelock1',
+			version: 0,
+			height: 99,
+		} as BlockInstance;
+		const blockV1 = {
+			id: 'fakelock2',
+			version: 1,
+			height: 100,
+		} as BlockInstance;
 
-		let verifySteps;
-		let applySteps;
+		let verifySteps: jest.Mock[];
+		let applySteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			verifySteps = [jest.fn(), jest.fn()];
 			applySteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.verify.pipe(verifySteps);
@@ -810,12 +836,13 @@ describe('processor', () => {
 
 		describe('when more than 2 processors are registered', () => {
 			let blockProcessorV1;
-			let verifySteps2;
+			let verifySteps2: jest.Mock[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				verifySteps2 = [jest.fn(), jest.fn()];
 				blockProcessorV1.verify.pipe(verifySteps2);
+				blockProcessorV1.apply.pipe([jest.fn()]);
 				processor.register(blockProcessorV1);
 			});
 
@@ -837,24 +864,24 @@ describe('processor', () => {
 				}
 			});
 
-			it('should not apply the block', async () => {
+			it('should not apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save the block', async () => {
+			it('should not save the block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -872,7 +899,7 @@ describe('processor', () => {
 				}
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -889,14 +916,14 @@ describe('processor', () => {
 				'should not save the block (figure out how to test if database tx was rolled back)',
 			);
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -914,7 +941,7 @@ describe('processor', () => {
 				}
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -927,20 +954,20 @@ describe('processor', () => {
 				});
 			});
 
-			it('should apply the block', async () => {
+			it('should apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalled();
 				});
 			});
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -955,11 +982,11 @@ describe('processor', () => {
 				});
 			});
 
-			it('should remove block from temp_blocks table', async () => {
+			it('should remove block from temp_blocks table', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
-					{ removeFromTempTable: true },
+					{ removeFromTempTable: true, saveOnlyState: false },
 				);
 			});
 		});
@@ -969,7 +996,7 @@ describe('processor', () => {
 				await processor.processValidated(blockV0);
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -982,7 +1009,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should apply the block', async () => {
+			it('should apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -995,15 +1022,15 @@ describe('processor', () => {
 				});
 			});
 
-			it('should save the block', async () => {
+			it('should save the block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
-					{ removeFromTempTable: false },
+					{ removeFromTempTable: false, saveOnlyState: false },
 				);
 			});
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
@@ -1013,13 +1040,21 @@ describe('processor', () => {
 	});
 
 	describe('apply', () => {
-		const blockV0 = { id: 'fakelock1', version: 0, height: 99 };
-		const blockV1 = { id: 'fakelock2', version: 1, height: 100 };
+		const blockV0 = {
+			id: 'fakelock1',
+			version: 0,
+			height: 99,
+		} as BlockInstance;
+		const blockV1 = {
+			id: 'fakelock2',
+			version: 1,
+			height: 100,
+		} as BlockInstance;
 
-		let verifySteps;
-		let applySteps;
+		let verifySteps: jest.Mock[];
+		let applySteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			verifySteps = [jest.fn(), jest.fn()];
 			applySteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.verify.pipe(verifySteps);
@@ -1046,12 +1081,13 @@ describe('processor', () => {
 
 		describe('when more than 2 processor is registered', () => {
 			let blockProcessorV1;
-			let verifySteps2;
+			let verifySteps2: jest.Mock[];
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				blockProcessorV1 = new FakeBlockProcessorV1();
 				verifySteps2 = [jest.fn(), jest.fn()];
 				blockProcessorV1.verify.pipe(verifySteps2);
+				blockProcessorV1.apply.pipe([jest.fn()]);
 				processor.register(blockProcessorV1);
 			});
 
@@ -1073,24 +1109,24 @@ describe('processor', () => {
 				}
 			});
 
-			it('should not apply the block', async () => {
+			it('should not apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).not.toHaveBeenCalled();
 				});
 			});
 
-			it('should not save the block', async () => {
+			it('should not save the block', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -1108,7 +1144,7 @@ describe('processor', () => {
 				}
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1126,14 +1162,14 @@ describe('processor', () => {
 				'should not save the block (figure out how to test if database tx was rolled back)',
 			);
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -1151,7 +1187,7 @@ describe('processor', () => {
 				}
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1165,7 +1201,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should apply the block', async () => {
+			it('should apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1179,14 +1215,14 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -1199,7 +1235,7 @@ describe('processor', () => {
 				await processor.apply(blockV0);
 			});
 
-			it('should verify the block', async () => {
+			it('should verify the block', () => {
 				verifySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1213,7 +1249,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should apply the block', async () => {
+			it('should apply the block', () => {
 				applySteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1227,7 +1263,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not save the block', async () => {
+			it('should not save the block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
@@ -1238,14 +1274,14 @@ describe('processor', () => {
 				);
 			});
 
-			it('should not broadcast the block', async () => {
+			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
 			});
 
-			it('should not emit newBlock event', async () => {
+			it('should not emit newBlock event', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:new',
 					expect.anything(),
@@ -1255,9 +1291,9 @@ describe('processor', () => {
 	});
 
 	describe('deleteLastBlock', () => {
-		let undoSteps;
+		let undoSteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			undoSteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.undo.pipe(undoSteps);
 			processor.register(blockProcessorV0, {
@@ -1275,7 +1311,7 @@ describe('processor', () => {
 				}
 			});
 
-			it('should not call remove of chainModule', async () => {
+			it('should not call remove of chainModule', () => {
 				expect(chainModuleStub.remove).not.toHaveBeenCalled();
 			});
 		});
@@ -1290,7 +1326,7 @@ describe('processor', () => {
 				}
 			});
 
-			it('should call undo steps', async () => {
+			it('should call undo steps', () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1308,7 +1344,7 @@ describe('processor', () => {
 				await processor.deleteLastBlock();
 			});
 
-			it('should call undo steps', async () => {
+			it('should call undo steps', () => {
 				undoSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{
@@ -1320,7 +1356,7 @@ describe('processor', () => {
 				});
 			});
 
-			it('should call remove from chainModule', async () => {
+			it('should call remove from chainModule', () => {
 				expect(chainModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
@@ -1335,11 +1371,11 @@ describe('processor', () => {
 			version: 0,
 			height: 1,
 			id: 'genesis',
-		};
+		} as BlockInstance;
 
-		let applyGenesisSteps;
+		let applyGenesisSteps: jest.Mock[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			applyGenesisSteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.applyGenesis.pipe(applyGenesisSteps);
 			processor.register(blockProcessorV0, {
@@ -1348,13 +1384,13 @@ describe('processor', () => {
 		});
 
 		describe('when genesis block is not stored yet', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				chainModuleStub.exists.mockResolvedValue(false);
 			});
 
 			it('should call exists on chainModule', async () => {
 				try {
-					await processor.applyGenesisBlock(genesisBlock, true);
+					await processor.applyGenesisBlock(genesisBlock);
 				} catch (err) {
 					// expected error
 				}
@@ -1365,7 +1401,7 @@ describe('processor', () => {
 
 			it('should throw an error', async () => {
 				await expect(
-					processor.applyGenesisBlock(genesisBlock, true),
+					processor.applyGenesisBlock(genesisBlock),
 				).rejects.toThrow();
 			});
 		});
@@ -1373,14 +1409,14 @@ describe('processor', () => {
 		describe('when genesis block is stored already (rebuilding)', () => {
 			beforeEach(async () => {
 				chainModuleStub.exists.mockResolvedValue(true);
-				await processor.applyGenesisBlock(genesisBlock, true);
+				await processor.applyGenesisBlock(genesisBlock);
 			});
 
-			it('should call exists on chainModule', async () => {
+			it('should call exists on chainModule', () => {
 				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
-			it('should apply genesis block', async () => {
+			it('should apply genesis block', () => {
 				applyGenesisSteps.forEach(step => {
 					expect(step).toHaveBeenCalledWith(
 						{ block: genesisBlock, stateStore: stateStoreStub },
@@ -1389,11 +1425,11 @@ describe('processor', () => {
 				});
 			});
 
-			it('should not save the block', async () => {
+			it('should not save the block', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
-					{ saveOnlyState: true },
+					{ removeFromTempTable: false, saveOnlyState: true },
 				);
 			});
 		});
@@ -1403,17 +1439,17 @@ describe('processor', () => {
 				chainModuleStub.exists.mockResolvedValue(false);
 				applyGenesisSteps[0].mockRejectedValue(new Error('apply error'));
 				try {
-					await processor.applyGenesisBlock(genesisBlock, false);
+					await processor.applyGenesisBlock(genesisBlock);
 				} catch (err) {
 					// expected error
 				}
 			});
 
-			it('should call exists on chainModule', async () => {
+			it('should call exists on chainModule', () => {
 				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
 			});
 
-			it('should not save genesis block with saveOnlyState', async () => {
+			it('should not save genesis block with saveOnlyState', () => {
 				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 		});

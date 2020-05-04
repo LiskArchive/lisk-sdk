@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { cloneDeep } = require('lodash');
-const { ForkStatus } = require('@liskhq/lisk-bft');
-const { Sequence } = require('../utils/sequence');
+import { cloneDeep } from 'lodash';
+import { ForkStatus } from '@liskhq/lisk-bft';
+import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { Sequence } from '../utils/sequence';
+import { Channel, Logger } from '../../../types';
+import { BaseBlockProcessor } from './base_block_processor';
 
 const forkStatusList = [
 	ForkStatus.IDENTICAL_BLOCK,
@@ -27,8 +29,31 @@ const forkStatusList = [
 	ForkStatus.DISCARD,
 ];
 
-class Processor {
-	constructor({ channel, logger, chainModule }) {
+interface ProcessorInput {
+	readonly channel: Channel;
+	readonly logger: Logger;
+	readonly chainModule: Chain;
+}
+
+interface CreateInput {
+	readonly keypair: { publicKey: Buffer; privateKey: Buffer };
+	readonly timestamp: number;
+	readonly transactions: BaseTransaction[];
+	readonly previousBlock: BlockInstance;
+	readonly seedReveal: string;
+}
+
+type Matcher = (block: BlockInstance | BlockJSON) => boolean;
+
+export class Processor {
+	private readonly channel: Channel;
+	private readonly logger: Logger;
+	private readonly chainModule: Chain;
+	private readonly sequence: Sequence;
+	private readonly processors: { [key: string]: BaseBlockProcessor };
+	private readonly matchers: { [key: string]: Matcher };
+
+	public constructor({ channel, logger, chainModule }: ProcessorInput) {
 		this.channel = channel;
 		this.logger = logger;
 		this.chainModule = chainModule;
@@ -38,16 +63,19 @@ class Processor {
 	}
 
 	// register a block processor with particular version
-	register(processor, { matcher } = {}) {
+	public register(
+		processor: BaseBlockProcessor,
+		{ matcher }: { matcher?: Matcher } = {},
+	): void {
 		if (typeof processor.version !== 'number') {
 			throw new Error('version property must exist for processor');
 		}
 		this.processors[processor.version] = processor;
-		this.matchers[processor.version] = matcher || (() => true);
+		this.matchers[processor.version] = matcher ?? (() => true);
 	}
 
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
-	async init(genesisBlock) {
+	public async init(genesisBlock: BlockInstance): Promise<void> {
 		this.logger.debug(
 			{ id: genesisBlock.id, payloadHash: genesisBlock.payloadHash },
 			'Initializing processor',
@@ -67,20 +95,23 @@ class Processor {
 
 	// Serialize a block instance to a JSON format of the block
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async serialize(blockInstance) {
+	public async serialize(blockInstance: BlockInstance): Promise<BlockJSON> {
 		const blockProcessor = this._getBlockProcessor(blockInstance);
 		return blockProcessor.serialize.run({ block: blockInstance });
 	}
 
 	// DeSerialize a block instance to a JSON format of the block
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async deserialize(blockJSON) {
+	public async deserialize(blockJSON: BlockJSON): Promise<BlockInstance> {
 		const blockProcessor = this._getBlockProcessor(blockJSON);
 		return blockProcessor.deserialize.run({ block: blockJSON });
 	}
 
 	// process is for standard processing of block, especially when received from network
-	async process(block, { peerId } = {}) {
+	public async process(
+		block: BlockInstance,
+		{ peerId }: { peerId?: string } = {},
+	): Promise<void> {
 		return this.sequence.add(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
@@ -164,7 +195,11 @@ class Processor {
 					await this._processValidated(block, newLastBlock, blockProcessor);
 				} catch (err) {
 					this.logger.error(
-						{ id: block.id, previousBlockId: previousLastBlock.id, err },
+						{
+							id: block.id,
+							previousBlockId: previousLastBlock.id,
+							err: err as Error,
+						},
 						'Failed to apply newly received block. restoring previous block.',
 					);
 					await this._processValidated(
@@ -191,29 +226,38 @@ class Processor {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async forkStatus(receivedBlock, lastBlock) {
+	public async forkStatus(
+		receivedBlock: BlockInstance,
+		lastBlock?: BlockInstance,
+	): Promise<number> {
 		const blockProcessor = this._getBlockProcessor(receivedBlock);
 
 		return blockProcessor.forkStatus.run({
 			block: receivedBlock,
-			lastBlock: lastBlock || this.chainModule.lastBlock,
+			lastBlock: lastBlock ?? this.chainModule.lastBlock,
 		});
 	}
 
-	async create(data) {
+	public async create(data: CreateInput): Promise<BlockInstance> {
 		const { previousBlock } = data;
-		this.logger.trace('Creating block', {
-			previousBlockId: previousBlock.id,
-			previousBlockHeight: previousBlock.height,
-		});
-		const highestVersion = Math.max.apply(null, Object.keys(this.processors));
+		this.logger.trace(
+			{
+				previousBlockId: previousBlock.id,
+				previousBlockHeight: previousBlock.height,
+			},
+			'Creating block',
+		);
+		const highestVersion = Math.max.apply(
+			null,
+			Object.keys(this.processors).map(v => parseInt(v, 10)),
+		);
 		const processor = this.processors[highestVersion];
 		const stateStore = await this.chainModule.newStateStore();
 
 		return processor.create.run({ data, stateStore });
 	}
 
-	async validate(block) {
+	public async validate(block: BlockInstance): Promise<void> {
 		this.logger.debug(
 			{ id: block.id, height: block.height },
 			'Validating block',
@@ -225,8 +269,11 @@ class Processor {
 	}
 
 	// processValidated processes a block assuming that statically it's valid
-	async processValidated(block, { removeFromTempTable = false } = {}) {
-		return this.sequence.add(async () => {
+	public async processValidated(
+		block: BlockInstance,
+		{ removeFromTempTable = false }: { removeFromTempTable?: boolean } = {},
+	): Promise<BlockInstance> {
+		return this.sequence.add<BlockInstance>(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
 				'Processing validated block',
@@ -241,8 +288,8 @@ class Processor {
 	}
 
 	// apply processes a block assuming that statically it's valid without saving a block
-	async apply(block) {
-		return this.sequence.add(async () => {
+	public async apply(block: BlockInstance): Promise<BlockInstance> {
+		return this.sequence.add<BlockInstance>(async () => {
 			this.logger.debug(
 				{ id: block.id, height: block.height },
 				'Applying block',
@@ -256,8 +303,10 @@ class Processor {
 		});
 	}
 
-	async deleteLastBlock({ saveTempBlock = false } = {}) {
-		return this.sequence.add(async () => {
+	public async deleteLastBlock({
+		saveTempBlock = false,
+	}: { saveTempBlock?: boolean } = {}): Promise<BlockInstance> {
+		return this.sequence.add<BlockInstance>(async () => {
 			const { lastBlock } = this.chainModule;
 			this.logger.debug(
 				{ id: lastBlock.id, height: lastBlock.height },
@@ -269,18 +318,26 @@ class Processor {
 		});
 	}
 
-	async applyGenesisBlock(block) {
+	public async applyGenesisBlock(block: BlockInstance): Promise<BlockInstance> {
 		this.logger.info({ id: block.id }, 'Applying genesis block');
 		const blockProcessor = this._getBlockProcessor(block);
 		return this._processGenesis(block, blockProcessor, { saveOnlyState: true });
 	}
 
-	async _processValidated(
-		block,
-		lastBlock,
-		processor,
-		{ saveOnlyState, skipBroadcast, removeFromTempTable = false } = {},
-	) {
+	private async _processValidated(
+		block: BlockInstance,
+		lastBlock: BlockInstance,
+		processor: BaseBlockProcessor,
+		{
+			saveOnlyState,
+			skipBroadcast,
+			removeFromTempTable = false,
+		}: {
+			saveOnlyState?: boolean;
+			skipBroadcast?: boolean;
+			removeFromTempTable?: boolean;
+		} = {},
+	): Promise<BlockInstance> {
 		const stateStore = await this.chainModule.newStateStore();
 		await processor.verify.run({
 			block,
@@ -306,16 +363,16 @@ class Processor {
 		});
 
 		await this.chainModule.save(block, stateStore, {
-			saveOnlyState,
+			saveOnlyState: !!saveOnlyState,
 			removeFromTempTable,
 		});
 
 		return block;
 	}
 
-	async _processGenesis(
-		block,
-		processor,
+	private async _processGenesis(
+		block: BlockInstance,
+		processor: BaseBlockProcessor,
 		{ saveOnlyState } = { saveOnlyState: false },
 	) {
 		const stateStore = await this.chainModule.newStateStore();
@@ -331,12 +388,19 @@ class Processor {
 			block,
 			stateStore,
 		});
-		await this.chainModule.save(block, stateStore, { saveOnlyState });
+		await this.chainModule.save(block, stateStore, {
+			saveOnlyState,
+			removeFromTempTable: false,
+		});
 
 		return block;
 	}
 
-	async _deleteBlock(block, processor, saveTempBlock = false) {
+	private async _deleteBlock(
+		block: BlockInstance,
+		processor: BaseBlockProcessor,
+		saveTempBlock = false,
+	) {
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = await this.chainModule.newStateStore(1);
 		await processor.undo.run({
@@ -346,13 +410,18 @@ class Processor {
 		await this.chainModule.remove(block, stateStore, { saveTempBlock });
 	}
 
-	_getBlockProcessor(block) {
+	private _getBlockProcessor(
+		block: BlockInstance | BlockJSON,
+	): BaseBlockProcessor {
 		const { version } = block;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!this.processors[version]) {
 			throw new Error('Block processing version is not registered');
 		}
 		// Sort in asc order
-		const matcherVersions = Object.keys(this.matchers).sort((a, b) => a - b);
+		const matcherVersions = Object.keys(this.matchers).sort((a, b) =>
+			a.localeCompare(b, 'en'),
+		);
 		// eslint-disable-next-line no-restricted-syntax
 		for (const matcherVersion of matcherVersions) {
 			const matcher = this.matchers[matcherVersion];
@@ -363,7 +432,3 @@ class Processor {
 		throw new Error('No matching block processor found');
 	}
 }
-
-module.exports = {
-	Processor,
-};

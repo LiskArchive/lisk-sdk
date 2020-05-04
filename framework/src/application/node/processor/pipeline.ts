@@ -12,21 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StageFunction<T> = (data: T, lastResult?: any) => Promise<any>;
+type ErrorFunction<T> = (data: T, error?: Error) => Promise<void>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FinalFunction<T> = (data: T, lastResult?: any) => Promise<void>;
 
-class Pipeline {
-	constructor(stages) {
-		this.stages = stages || [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export class Pipeline<T, K = void> {
+	private readonly stages: StageFunction<T>[];
+	private catchStage: ErrorFunction<T> | undefined;
+	private finallyStage: FinalFunction<T> | undefined;
+
+	public constructor(stages: StageFunction<T>[] = []) {
+		this.stages = stages;
 		this.catchStage = undefined;
 		this.finallyStage = undefined;
 	}
 
-	pipe(fns) {
+	public pipe(fns: StageFunction<T>[]): Pipeline<T, K> {
 		this.stages.push(...fns);
 		return this;
 	}
 
-	catchError(fn) {
+	public catchError(fn: StageFunction<T>): Pipeline<T, K> {
 		if (this.catchStage) {
 			throw new Error('Catch stage is already registered');
 		}
@@ -34,17 +43,17 @@ class Pipeline {
 		return this;
 	}
 
-	doFinally(fn) {
+	public doFinally(fn: StageFunction<T>): Pipeline<T, K> {
 		if (this.finallyStage) {
 			throw new Error('Finally stage is already registered');
 		}
-		this.finallyStages = fn;
+		this.finallyStage = fn;
 		return this;
 	}
 
-	async run(data) {
+	public async run(data: T): Promise<K> {
 		if (this.stages.length === 0) {
-			return undefined;
+			throw new Error('No stage registered to the pipeline');
 		}
 
 		let lastResult;
@@ -52,23 +61,19 @@ class Pipeline {
 			// eslint-disable-next-line no-restricted-syntax
 			for (const stage of this.stages) {
 				// eslint-disable-next-line no-await-in-loop
-				lastResult = await stage(data, lastResult);
+				lastResult = (await stage(data, lastResult)) as K;
 			}
 		} catch (error) {
 			if (this.catchStage) {
-				return this.catchStage(data, error);
+				await this.catchStage(data, error);
 			}
 			throw error;
 		} finally {
 			if (this.finallyStage) {
-				this.finallyStages(data, lastResult);
+				await this.finallyStage(data, lastResult);
 			}
 		}
 
-		return lastResult;
+		return lastResult as K;
 	}
 }
-
-module.exports = {
-	Pipeline,
-};

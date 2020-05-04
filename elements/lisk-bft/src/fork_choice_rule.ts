@@ -12,22 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Chain } from './types';
+import { BlockHeaderWithID, Chain } from './types';
 
 type Slots = Chain['slots'];
 
-export const forgingSlot = (slots: Slots, block: BlockHeader): number =>
+export const forgingSlot = (slots: Slots, block: BlockHeaderWithID): number =>
 	slots.getSlotNumber(block.timestamp);
 
 export const isBlockReceivedWithinForgingSlot = (
 	slots: Slots,
-	{ timestamp, receivedAt }: BlockHeader,
+	{ timestamp, receivedAt }: BlockHeaderWithID,
 ): boolean =>
 	slots.isWithinTimeslot(slots.getSlotNumber(timestamp), receivedAt);
 
 export const isLastAppliedBlockReceivedWithinForgingSlot = (
 	slots: Slots,
-	lastAppliedBlock: BlockHeader,
+	lastAppliedBlock: BlockHeaderWithID,
 ): boolean => {
 	/* If the block doesn't have the property `receivedAt` it means it was forged
 	 or synced, therefore we assume it was "received in the correct slot" */
@@ -39,28 +39,28 @@ export const isLastAppliedBlockReceivedWithinForgingSlot = (
 };
 
 export const isValidBlock = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
+	lastBlock: BlockHeaderWithID,
+	currentBlock: BlockHeaderWithID,
 ): boolean =>
 	lastBlock.height + 1 === currentBlock.height &&
 	lastBlock.id === currentBlock.previousBlockId;
 
 export const isIdenticalBlock = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
+	lastBlock: BlockHeaderWithID,
+	currentBlock: BlockHeaderWithID,
 ): boolean => lastBlock.id === currentBlock.id;
 
 export const isDuplicateBlock = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
+	lastBlock: BlockHeaderWithID,
+	currentBlock: BlockHeaderWithID,
 ): boolean =>
 	lastBlock.height === currentBlock.height &&
 	lastBlock.maxHeightPrevoted === currentBlock.maxHeightPrevoted &&
 	lastBlock.previousBlockId === currentBlock.previousBlockId;
 
 export const isDoubleForging = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
+	lastBlock: BlockHeaderWithID,
+	currentBlock: BlockHeaderWithID,
 ): boolean =>
 	isDuplicateBlock(lastBlock, currentBlock) &&
 	lastBlock.generatorPublicKey === currentBlock.generatorPublicKey;
@@ -71,8 +71,8 @@ export const isTieBreak = ({
 	receivedBlock,
 }: {
 	readonly slots: Slots;
-	readonly lastAppliedBlock: BlockHeader;
-	readonly receivedBlock: BlockHeader;
+	readonly lastAppliedBlock: BlockHeaderWithID;
+	readonly receivedBlock: BlockHeaderWithID;
 }): boolean =>
 	isDuplicateBlock(lastAppliedBlock, receivedBlock) &&
 	forgingSlot(slots, lastAppliedBlock) < forgingSlot(slots, receivedBlock) &&
@@ -80,8 +80,8 @@ export const isTieBreak = ({
 	isBlockReceivedWithinForgingSlot(slots, receivedBlock);
 
 export const isDifferentChain = (
-	lastBlock: BlockHeader,
-	currentBlock: BlockHeader,
+	lastBlock: BlockHeaderWithID,
+	currentBlock: BlockHeaderWithID,
 ): boolean => {
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	const maxHeightPrevoted = lastBlock.maxHeightPrevoted || 0;

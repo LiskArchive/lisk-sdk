@@ -20,7 +20,7 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Chain } from '../../src';
+import { Chain, GenesisBlockJSON } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
@@ -94,7 +94,7 @@ describe('blocks/transactions', () => {
 
 		chainInstance = new Chain({
 			storage: storageStub,
-			genesisBlock,
+			genesisBlock: genesisBlock as GenesisBlockJSON,
 			networkIdentifier,
 			registeredTransactions,
 			slots,

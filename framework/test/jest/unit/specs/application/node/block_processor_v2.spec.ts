@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { StateStore } = require('@liskhq/lisk-chain');
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const {
+import { StateStore, BlockInstance } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
 	BlockProcessorV2,
 	getBytes,
-} = require('../../../../../../src/application/node/block_processor_v2');
+} from '../../../../../../src/application/node/block_processor_v2';
+import { BaseBlockProcessor } from '../../../../../../src/application/node/processor/base_block_processor';
 
 describe('block processor v2', () => {
 	const defaultKeyPair = {
@@ -39,16 +38,17 @@ describe('block processor v2', () => {
 		lastBlockHeaders: [],
 		networkIdentifier:
 			'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
+		lastBlockReward: BigInt(1000),
 	};
 
-	let blockProcessor;
-	let chainModuleStub;
-	let bftModuleStub;
-	let dposModuleStub;
-	let storageStub;
-	let loggerStub;
+	let blockProcessor: BaseBlockProcessor;
+	let chainModuleStub: any;
+	let bftModuleStub: any;
+	let dposModuleStub: any;
+	let storageStub: any;
+	let loggerStub: any;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		chainModuleStub = {
 			newStateStore: jest.fn().mockResolvedValue({}),
 			undo: jest.fn(),
@@ -84,7 +84,9 @@ describe('block processor v2', () => {
 		};
 		loggerStub = {};
 
-		const defaultConstants = {};
+		const defaultConstants = {
+			maxPayloadLength: 15000,
+		};
 
 		blockProcessor = new BlockProcessorV2({
 			networkIdentifier: defaultAdditionalData.networkIdentifier,
@@ -136,7 +138,7 @@ describe('block processor v2', () => {
 			// Assert
 			expect.assertions(3);
 			try {
-				await blockProcessor.validate.run({ block });
+				await blockProcessor.validate.run({ block } as any);
 			} catch (errors) {
 				// eslint-disable-next-line jest/no-try-expect
 				expect(errors).toHaveLength(2);
@@ -155,7 +157,10 @@ describe('block processor v2', () => {
 			const stateStore = new StateStore(storageStub, defaultAdditionalData);
 			dposModuleStub.undo.mockRejectedValue(new Error('Invalid error'));
 			await expect(
-				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
+				blockProcessor.undo.run({
+					block: { height: 1 } as BlockInstance,
+					stateStore,
+				}),
 			).rejects.toThrow('Invalid error');
 		});
 
@@ -163,12 +168,16 @@ describe('block processor v2', () => {
 			const stateStore = new StateStore(storageStub, defaultAdditionalData);
 			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
 			await expect(
-				blockProcessor.undo.run({ block: { height: 1 }, stateStore }),
+				blockProcessor.undo.run({
+					block: { height: 1 } as BlockInstance,
+					stateStore,
+				}),
 			).rejects.toThrow('Invalid error');
 		});
 	});
 
 	describe('create', () => {
+		const stateStore = {} as StateStore;
 		let block;
 
 		it('should set maxPreviouslyForgedHeight to zero when the delegate did not forge before', async () => {
@@ -184,8 +193,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			// Assert
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
@@ -211,8 +221,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			// Assert
 			expect(storageStub.entities.ForgerInfo.getKey).toHaveBeenCalledWith(
@@ -242,8 +253,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			const maxHeightResult = JSON.stringify({
 				...list,
@@ -269,8 +281,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			const maxHeightResult = JSON.stringify({
 				[defaultAddress]: {
@@ -301,8 +314,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			expect(storageStub.entities.ForgerInfo.setKey).not.toHaveBeenCalled();
 		});
@@ -319,8 +333,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			expect(block.height).toBe(11);
 			expect(block.seedReveal).toBe(seedReveal);
@@ -336,8 +351,9 @@ describe('block processor v2', () => {
 					transactions: [],
 					previousBlock: {
 						height: 10,
-					},
+					} as BlockInstance,
 				},
+				stateStore,
 			});
 			expect(block.height).toBe(11);
 			expect(block.generatorPublicKey).toBe(
@@ -371,8 +387,8 @@ describe('block processor v2', () => {
 				'768a0a5709861b4ea7ff502d5049219a3ebb0a79554abac17eaabb4fe0acf19e80e4799c1a718baccd95e8062026631c181077c70f768d6ec2ef08dde45fe90e',
 		};
 
-		it('should include seedReveal after previousBlockId', async () => {
-			const bytes = getBytes(block);
+		it('should include seedReveal after previousBlockId', () => {
+			const bytes = getBytes(block as any);
 			// version(4), timestamp(4), previousBlockID(8)
 			const seedRevealBytes = bytes.slice(16, 16 + 16);
 			expect(seedRevealBytes.toString('hex')).toEqual(defaultSeedReveal);

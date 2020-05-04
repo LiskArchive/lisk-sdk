@@ -23,6 +23,7 @@ import {
 	BlockHeader,
 	BlockInstance,
 	Context,
+	GenesisBlock,
 	MatcherTransaction,
 	Storage,
 } from './types';
@@ -42,7 +43,7 @@ export const verifyBlockNotExists = async (
 export const verifyPreviousBlockId = (
 	block: BlockInstance,
 	lastBlock: BlockInstance,
-	genesisBlock: BlockInstance,
+	genesisBlock: GenesisBlock,
 ): void => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&
@@ -60,12 +61,12 @@ export const verifyPreviousBlockId = (
 
 interface BlockVerifyInput {
 	readonly dataAccess: DataAccess;
-	readonly genesisBlock: BlockHeader;
+	readonly genesisBlock: GenesisBlock;
 }
 
 export class BlocksVerify {
 	private readonly dataAccess: DataAccess;
-	private readonly genesisBlock: BlockHeader;
+	private readonly genesisBlock: GenesisBlock;
 
 	public constructor({ dataAccess, genesisBlock }: BlockVerifyInput) {
 		this.dataAccess = dataAccess;

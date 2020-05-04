@@ -24,6 +24,7 @@ export interface Logger {
 	readonly trace: (data?: object | unknown, message?: string) => void;
 	readonly debug: (data?: object | unknown, message?: string) => void;
 	readonly info: (data?: object | unknown, message?: string) => void;
+	readonly warn: (data?: object | unknown, message?: string) => void;
 	readonly error: (data?: object | unknown, message?: string) => void;
 	readonly fatal: (data?: object | unknown, message?: string) => void;
 }
