@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const {
+import {
 	hash,
 	signDataWithPrivateKey,
 	getPrivateAndPublicKeyBytesFromPassphrase,
@@ -22,14 +20,16 @@ const {
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
-} = require('@liskhq/lisk-cryptography');
-const { Mnemonic } = require('@liskhq/lisk-passphrase');
-const genesisBlock = require('../../../../../../fixtures/config/devnet/genesis_block.json');
+} from '@liskhq/lisk-cryptography';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { BlockInstance } from '@liskhq/lisk-chain';
+import * as genesisBlock from '../../../../../../fixtures/config/devnet/genesis_block.json';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
-const getBytes = block => {
+export const getBytes = (block: BlockInstance): Buffer => {
 	const blockVersionBuffer = intToBuffer(
 		block.version,
 		SIZE_INT32,
@@ -119,8 +119,8 @@ const getBytes = block => {
 	]);
 };
 
-const sortTransactions = transactions =>
-	transactions.sort((a, b) => a.type > b.type || a.id > b.id);
+const sortTransactions = (transactions: BaseTransaction[]) =>
+	transactions.sort((a, b) => (a.type > b.type || a.id > b.id ? 1 : -1));
 
 const getKeyPair = () => {
 	const passphrase = Mnemonic.generateMnemonic();
@@ -134,7 +134,7 @@ const getKeyPair = () => {
 	};
 };
 
-const calculateTransactionsInfo = block => {
+const calculateTransactionsInfo = (block: BlockInstance) => {
 	const sortedTransactions = sortTransactions(block.transactions);
 	const transactionsBytesArray = [];
 	let totalFee = BigInt(0);
@@ -144,10 +144,10 @@ const calculateTransactionsInfo = block => {
 	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < sortedTransactions.length; i += 1) {
 		const transaction = sortedTransactions[i];
-		const transactionBytes = transaction.getBytes(transaction);
+		const transactionBytes = transaction.getBytes();
 
 		totalFee += BigInt(transaction.fee);
-		totalAmount += BigInt(transaction.asset.amount || '0');
+		totalAmount += BigInt((transaction.asset as any).amount ?? '0');
 
 		payloadLength += transactionBytes.length;
 		transactionsBytesArray.push(transactionBytes);
@@ -171,7 +171,10 @@ const defaultNetworkIdentifier =
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-const newBlock = (block, networkIdentifier = defaultNetworkIdentifier) => {
+export const newBlock = (
+	block?: Partial<BlockInstance>,
+	networkIdentifier = defaultNetworkIdentifier,
+): BlockInstance => {
 	const defaultBlockValues = {
 		version: 2,
 		height: 2,
@@ -189,7 +192,9 @@ const newBlock = (block, networkIdentifier = defaultNetworkIdentifier) => {
 		...block,
 	};
 
-	const transactionsInfo = calculateTransactionsInfo(blockWithDefaultValues);
+	const transactionsInfo = calculateTransactionsInfo(
+		blockWithDefaultValues as BlockInstance,
+	);
 	const blockWithCalculatedProperties = {
 		...transactionsInfo,
 		...blockWithDefaultValues,
@@ -208,13 +213,13 @@ const newBlock = (block, networkIdentifier = defaultNetworkIdentifier) => {
 			hash(
 				Buffer.concat([
 					Buffer.from(networkIdentifier, 'hex'),
-					getBytes(blockWithCalculatedProperties),
+					getBytes(blockWithCalculatedProperties as BlockInstance),
 				]),
 			),
-			Buffer.from(keypair.privateKey, 'hex'),
+			keypair.privateKey,
 		),
 	};
-	const hashedBlockBytes = hash(getBytes(blockWithSignature));
+	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockInstance));
 
 	const temp = Buffer.alloc(8);
 	// eslint-disable-next-line no-plusplus
@@ -225,10 +230,5 @@ const newBlock = (block, networkIdentifier = defaultNetworkIdentifier) => {
 	return {
 		...blockWithSignature,
 		id: temp.readBigUInt64BE().toString(),
-	};
-};
-
-module.exports = {
-	newBlock,
-	getBytes,
+	} as BlockInstance;
 };

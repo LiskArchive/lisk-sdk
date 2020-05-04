@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as Errors from './errors';
+
 export { Synchronizer } from './synchronizer';
 export { BlockSynchronizationMechanism } from './block_synchronization_mechanism';
 export { FastChainSwitchingMechanism } from './fast_chain_switching_mechanism';
-export * from './errors';
+export { Errors };

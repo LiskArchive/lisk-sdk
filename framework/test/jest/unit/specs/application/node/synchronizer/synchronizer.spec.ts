@@ -12,54 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { when } from 'jest-when';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { BlockJSON, Chain } from '@liskhq/lisk-chain';
+import { BFT } from '@liskhq/lisk-bft';
+import { Rounds } from '@liskhq/lisk-dpos';
+import { BlockProcessorV2 } from '../../../../../../../src/application/node/block_processor_v2';
+import { Synchronizer } from '../../../../../../../src/application/node/synchronizer/synchronizer';
+import { Processor } from '../../../../../../../src/application/node/processor';
+import { constants } from '../../../../../../utils';
+import { newBlock } from './block';
+import * as synchronizerUtils from '../../../../../../../src/application/node/synchronizer/utils';
+import { registeredTransactions } from '../../../../../../utils/registered_transactions';
 
-const { when } = require('jest-when');
-const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { Chain } = require('@liskhq/lisk-chain');
-const { BFT } = require('@liskhq/lisk-bft');
-const { Rounds } = require('@liskhq/lisk-dpos');
+import * as genesisBlockDevnet from '../../../../../../fixtures/config/devnet/genesis_block.json';
 
-const {
-	BlockProcessorV2,
-} = require('../../../../../../../src/application/node/block_processor_v2');
-const {
-	Synchronizer,
-} = require('../../../../../../../src/application/node/synchronizer/synchronizer');
-const {
-	Processor,
-} = require('../../../../../../../src/application/node/processor');
-const { constants } = require('../../../../../../utils');
-const { newBlock } = require('./block');
-const synchronizerUtils = require('../../../../../../../src/application/node/synchronizer/utils');
-const {
-	registeredTransactions,
-} = require('../../../../../../utils/registered_transactions');
-
-const genesisBlockDevnet = require('../../../../../../fixtures/config/devnet/genesis_block.json');
-
-const ChannelMock = jest.genMockFromModule(
+const ChannelMock: any = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
 );
 
 describe('Synchronizer', () => {
 	let bftModule;
 	let blockProcessorV2;
-	let chainModule;
-	let processorModule;
-	let synchronizer;
-	let syncMechanism1;
-	let syncMechanism2;
+	let chainModule: any;
+	let processorModule: Processor;
+	let synchronizer: Synchronizer;
+	let syncMechanism1: any;
+	let syncMechanism2: any;
 	let rounds;
 
-	let transactionPoolModuleStub;
-	let channelMock;
-	let dposModuleMock;
-	let loggerMock;
+	let transactionPoolModuleStub: any;
+	let channelMock: any;
+	let dposModuleMock: any;
+	let loggerMock: any;
 	let syncParameters;
 	let dataAccessMock;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		jest.spyOn(synchronizerUtils, 'restoreBlocksUponStartup');
 		loggerMock = {
 			info: jest.fn(),
@@ -67,7 +56,7 @@ describe('Synchronizer', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		const storageMock = {};
+		const storageMock: any = {};
 
 		transactionPoolModuleStub = {
 			add: jest.fn(),
@@ -83,16 +72,14 @@ describe('Synchronizer', () => {
 
 		chainModule = new Chain({
 			networkIdentifier,
-			logger: loggerMock,
 			storage: storageMock,
-			genesisBlock: genesisBlockDevnet,
+			genesisBlock: genesisBlockDevnet as any,
 			registeredTransactions,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			blockSlotWindow: constants.blockSlotWindow,
 			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
@@ -117,13 +104,14 @@ describe('Synchronizer', () => {
 
 		bftModule = new BFT({
 			chain: chainModule,
-			dpos: { rounds },
-			slots: chainModule.slots,
+			dpos: { rounds } as any,
 			activeDelegates: constants.activeDelegates,
 			startingHeight: 1,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
+			networkIdentifier: '',
+			storage: storageMock,
 			chainModule,
 			bftModule,
 			dposModule: dposModuleMock,
@@ -133,7 +121,6 @@ describe('Synchronizer', () => {
 
 		processorModule = new Processor({
 			channel: channelMock,
-			storage: storageMock,
 			chainModule,
 			logger: loggerMock,
 		});
@@ -155,7 +142,6 @@ describe('Synchronizer', () => {
 			logger: loggerMock,
 			processorModule,
 			chainModule,
-			storageModule: storageMock,
 			transactionPoolModule: transactionPoolModuleStub,
 			mechanisms: [syncMechanism1, syncMechanism2],
 		};
@@ -169,16 +155,16 @@ describe('Synchronizer', () => {
 			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(1)
-				.mockResolvedValue(genesisBlockDevnet);
+				.mockResolvedValue(genesisBlockDevnet as never);
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
-				.mockResolvedValue(lastBlock);
+				.mockResolvedValue(lastBlock as never);
 			when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 				.calledWith(1, 2)
-				.mockResolvedValue([lastBlock]);
+				.mockResolvedValue([lastBlock] as never);
 			when(chainModule.dataAccess.getAccountsByPublicKey)
 				.calledWith()
-				.mockResolvedValue([{ publicKey: 'aPublicKey' }]);
+				.mockResolvedValue([{ publicKey: 'aPublicKey' }] as never);
 		});
 
 		describe('given that the blocks temporary table is not empty', () => {
@@ -194,7 +180,11 @@ describe('Synchronizer', () => {
 					.map((_, index) => ({
 						height: index,
 						id: `${index}`,
-						fullBlock: newBlock({ height: index, id: index, version: 2 }),
+						fullBlock: newBlock({
+							height: index,
+							id: index.toString(),
+							version: 2,
+						}),
 					}))
 					.slice(genesisBlockDevnet.height + 2);
 				const initialLastBlock = {
@@ -207,17 +197,17 @@ describe('Synchronizer', () => {
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 					.calledWith(1, 4)
-					.mockResolvedValue([initialLastBlock]);
+					.mockResolvedValue([initialLastBlock] as never);
 
 				when(chainModule.dataAccess.getTempBlocks)
 					.calledWith()
-					.mockResolvedValue(blocksTempTableEntries);
+					.mockResolvedValue(blocksTempTableEntries as never);
 
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
-					.mockResolvedValue(initialLastBlock);
+					.mockResolvedValue(initialLastBlock as never);
 
-				when(processorModule.deleteLastBlock)
+				when(processorModule.deleteLastBlock as jest.Mock)
 					.calledWith({
 						saveTempBlock: false,
 					})
@@ -249,7 +239,7 @@ describe('Synchronizer', () => {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
-						await processorModule.deserialize(tempBlock),
+						await processorModule.deserialize(tempBlock as any),
 						{
 							removeFromTempTable: true,
 						},
@@ -283,7 +273,7 @@ describe('Synchronizer', () => {
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
-					.mockResolvedValue(initialLastBlock);
+					.mockResolvedValue(initialLastBlock as never);
 
 				await chainModule.init();
 
@@ -310,7 +300,7 @@ describe('Synchronizer', () => {
 					const tempBlock = blocksTempTableEntries[i].fullBlock;
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
-						await processorModule.deserialize(tempBlock),
+						await processorModule.deserialize(tempBlock as any),
 						{
 							removeFromTempTable: true,
 						},
@@ -338,7 +328,7 @@ describe('Synchronizer', () => {
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
-					.mockResolvedValue(initialLastBlock);
+					.mockResolvedValue(initialLastBlock as never);
 
 				await chainModule.init();
 
@@ -369,7 +359,11 @@ describe('Synchronizer', () => {
 				.map((_, index) => ({
 					height: index,
 					id: `${index}`,
-					fullBlock: newBlock({ height: index, id: index, version: 2 }),
+					fullBlock: newBlock({
+						height: index,
+						id: index.toString(),
+						version: 2,
+					}),
 				}))
 				.slice(genesisBlockDevnet.height + 2);
 			const initialLastBlock = {
@@ -384,10 +378,10 @@ describe('Synchronizer', () => {
 			// To load storage tip block into lastBlock in memory variable
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
-				.mockResolvedValue(initialLastBlock);
+				.mockResolvedValue(initialLastBlock as never);
 
 			const error = new Error('error while deleting last block');
-			processorModule.processValidated.mockRejectedValue(error);
+			(processorModule.processValidated as jest.Mock).mockRejectedValue(error);
 
 			await chainModule.init();
 
@@ -414,11 +408,18 @@ describe('Synchronizer', () => {
 			};
 
 			const aSynchronizer = new Synchronizer({
-				mechanisms: [aSyncingMechanism, anotherSyncingMechanism],
+				channel: channelMock,
+				logger: loggerMock,
+				processorModule,
+				chainModule,
+				transactionPoolModule: transactionPoolModuleStub,
+				mechanisms: [aSyncingMechanism, anotherSyncingMechanism] as any,
 			});
 
-			expect(aSynchronizer.mechanisms).toInclude(aSyncingMechanism);
-			expect(aSynchronizer.mechanisms).toInclude(anotherSyncingMechanism);
+			expect(aSynchronizer['mechanisms']).toInclude(aSyncingMechanism as any);
+			expect(aSynchronizer['mechanisms']).toInclude(
+				anotherSyncingMechanism as any,
+			);
 		});
 
 		it('should enforce mandatory interfaces for passed mechanisms (isValidFor)', () => {
@@ -429,7 +430,12 @@ describe('Synchronizer', () => {
 			expect(
 				() =>
 					new Synchronizer({
-						mechanisms: [aSyncingMechanism],
+						channel: channelMock,
+						logger: loggerMock,
+						processorModule,
+						chainModule,
+						transactionPoolModule: transactionPoolModuleStub,
+						mechanisms: [aSyncingMechanism] as any,
 					}),
 			).toThrow('Mechanism Object should implement "isValidFor" method');
 		});
@@ -442,19 +448,24 @@ describe('Synchronizer', () => {
 			expect(
 				() =>
 					new Synchronizer({
-						mechanisms: [aSyncingMechanism],
+						channel: channelMock,
+						logger: loggerMock,
+						processorModule,
+						chainModule,
+						transactionPoolModule: transactionPoolModuleStub,
+						mechanisms: [aSyncingMechanism] as any,
 					}),
 			).toThrow('Mechanism Object should implement "run" method');
 		});
 	});
 
 	describe('get isActive()', () => {
-		it('should return false if the synchronizer is not running', async () => {
+		it('should return false if the synchronizer is not running', () => {
 			synchronizer.active = false;
 			expect(synchronizer.isActive).toBeFalsy();
 		});
 
-		it('should return true if the synchronizer is running', async () => {
+		it('should return true if the synchronizer is running', () => {
 			synchronizer.active = true;
 			expect(synchronizer.isActive).toBeTruthy();
 		});
@@ -462,7 +473,7 @@ describe('Synchronizer', () => {
 
 	describe('async run()', () => {
 		const aPeerId = '127.0.0.1:5000';
-		let aReceivedBlock;
+		let aReceivedBlock: BlockJSON;
 
 		beforeEach(async () => {
 			aReceivedBlock = await chainModule.serializeBlockHeader(newBlock()); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
@@ -476,7 +487,7 @@ describe('Synchronizer', () => {
 		});
 
 		it('should reject with error if required properties are missing (block)', async () => {
-			await expect(synchronizer.run()).rejects.toThrow(
+			await expect((synchronizer as any).run()).rejects.toThrow(
 				'A block must be provided to the Synchronizer in order to run',
 			);
 			expect(synchronizer.active).toBeFalsy();
@@ -554,9 +565,8 @@ describe('Synchronizer', () => {
 
 	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
 		let chainModuleStub;
-		beforeEach(async () => {
+		beforeEach(() => {
 			chainModuleStub = {
-				recoverChain: jest.fn(),
 				lastBlock: {
 					id: 'blockID',
 				},
@@ -569,13 +579,11 @@ describe('Synchronizer', () => {
 				]),
 			};
 
-			const storageMock = {};
 			syncParameters = {
 				channel: channelMock,
 				logger: loggerMock,
 				processorModule,
-				chainModule: chainModuleStub,
-				storageModule: storageMock,
+				chainModule: chainModuleStub as any,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [syncMechanism1, syncMechanism2],
 			};
@@ -606,7 +614,7 @@ describe('Synchronizer', () => {
 				],
 			};
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				channelMock.invokeFromNetwork.mockReturnValue({
 					data: validtransactions,
 				});
@@ -619,7 +627,7 @@ describe('Synchronizer', () => {
 			it('should not throw an error', async () => {
 				let error;
 				try {
-					await synchronizer._getUnconfirmedTransactionsFromNetwork();
+					await synchronizer['_getUnconfirmedTransactionsFromNetwork']();
 				} catch (err) {
 					error = err;
 				}
@@ -627,14 +635,14 @@ describe('Synchronizer', () => {
 			});
 
 			it('should process the transaction with transactionPoolModule', async () => {
-				await synchronizer._getUnconfirmedTransactionsFromNetwork();
+				await synchronizer['_getUnconfirmedTransactionsFromNetwork']();
 				expect(transactionPoolModuleStub.add).toHaveBeenCalledTimes(1);
 			});
 		});
 
 		describe('when peer returns invalid transaction response', () => {
 			const invalidTransactions = { signatures: [] };
-			beforeEach(async () => {
+			beforeEach(() => {
 				channelMock.invokeFromNetwork.mockReturnValue({
 					data: invalidTransactions,
 				});
@@ -643,7 +651,7 @@ describe('Synchronizer', () => {
 			it('should throw an error', async () => {
 				let error;
 				try {
-					await synchronizer._getUnconfirmedTransactionsFromNetwork();
+					await synchronizer['_getUnconfirmedTransactionsFromNetwork']();
 				} catch (err) {
 					error = err;
 				}
