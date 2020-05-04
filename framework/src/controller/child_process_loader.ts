@@ -12,16 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 // Parameters passed by `child_process.fork(_, parameters)`
-const modulePath = process.argv[2];
+import { socketPathObject } from './bus';
 
-const { ChildProcessChannel } = require('./channels');
+import { ChildProcessChannel } from './channels';
+
+const modulePath: string = process.argv[2];
 // eslint-disable-next-line import/no-dynamic-require
 const Klass = require(modulePath);
 
-const _loadModule = async (config, moduleOptions) => {
+const _loadModule = async (config: object, moduleOptions: object) => {
 	const module = new Klass(moduleOptions);
 	const moduleAlias = module.constructor.alias;
 
@@ -31,7 +31,8 @@ const _loadModule = async (config, moduleOptions) => {
 		module.actions,
 	);
 
-	await channel.registerToBus(config.socketsPath);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	await channel.registerToBus((config as any).socketsPath as socketPathObject);
 
 	channel.publish(`${moduleAlias}:registeredToBus`);
 	channel.publish(`${moduleAlias}:loading:started`);
