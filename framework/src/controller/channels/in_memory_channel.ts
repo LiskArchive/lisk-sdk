@@ -43,7 +43,7 @@ export class InMemoryChannel extends BaseChannel {
 		);
 	}
 
-	public publish(eventName: string, data: object): void {
+	public publish(eventName: string, data?: object): void {
 		const event = new Event(eventName, data);
 
 		if (event.module !== this.moduleAlias) {

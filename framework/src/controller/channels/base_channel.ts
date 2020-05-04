@@ -28,7 +28,7 @@ export abstract class BaseChannel {
 	public readonly actionsList: ReadonlyArray<string>;
 	public readonly actions: ActionsObject;
 
-	protected constructor(
+	public constructor(
 		moduleAlias: string,
 		events: ReadonlyArray<string>,
 		actions: ActionsDefinition,

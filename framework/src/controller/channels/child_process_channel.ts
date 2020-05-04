@@ -25,7 +25,7 @@ import {
 import { Action, ActionsDefinition } from '../action';
 import { Event, EventCallback, EventInfoObject } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
-import { socketPathObject } from '../bus';
+import { SocketPaths } from '../types';
 
 export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
 	process.once('SIGTERM', () => channel.cleanup(1));
@@ -45,7 +45,7 @@ export class ChildProcessChannel extends BaseChannel {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public busRpcClientCallPromisified: any;
 	public pubSocket?: PubEmitterSocket;
-	public rpcSocketPath?: socketPathObject | string;
+	public rpcSocketPath?: SocketPaths | string;
 	public rpcSocket?: RepSocket;
 	public rpcServer?: RPCServer;
 
@@ -61,7 +61,7 @@ export class ChildProcessChannel extends BaseChannel {
 		setupProcessHandlers(this);
 	}
 
-	public async registerToBus(socketsPath: socketPathObject): Promise<void> {
+	public async registerToBus(socketsPath: SocketPaths): Promise<void> {
 		this.subSocket = axon.socket('sub-emitter') as SubEmitterSocket;
 		this.subSocket.connect(socketsPath.pub);
 
