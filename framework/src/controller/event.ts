@@ -14,7 +14,7 @@
 
 import { strict as assert } from 'assert';
 
-import { eventWithModuleNameReg } from './channels/base/constants';
+import { eventWithModuleNameReg } from './constants';
 
 export interface EventInfoObject {
 	readonly module: string;

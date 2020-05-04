@@ -23,12 +23,10 @@ import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../types';
-import { BaseChannel } from './channels/base_channel';
+import { BaseChannel } from './channels';
 import { EventsArray } from './event';
 import { SocketPaths } from './types';
-
-const CONTROLLER_IDENTIFIER = 'app';
-const SOCKET_TIMEOUT_TIME = 2000;
+import { CONTROLLER_IDENTIFIER, SOCKET_TIMEOUT_TIME } from './constants';
 
 interface BusConfiguration {
 	ipc: {

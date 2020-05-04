@@ -14,7 +14,7 @@
 
 import { Event, EventCallback } from '../event';
 import { Action, ActionsDefinition, ActionsObject } from '../action';
-import { INTERNAL_EVENTS, eventWithModuleNameReg } from './base/constants';
+import { INTERNAL_EVENTS, eventWithModuleNameReg } from '../constants';
 
 export interface BaseChannelOptions {
 	readonly skipInternalEvents?: boolean;
