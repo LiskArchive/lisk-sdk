@@ -78,8 +78,15 @@ export const sanitizeIncomingPeerInfo = (
 	};
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const sanitizeInitialPeerInfo = (peerInfo: ProtocolPeerInfo) => ({
+interface SanitizedPeer {
+	peerId: string;
+	wsPort: number;
+	ipAddress: string;
+}
+
+export const sanitizeInitialPeerInfo = (
+	peerInfo: ProtocolPeerInfo,
+): SanitizedPeer => ({
 	peerId: constructPeerId(peerInfo.ipAddress, peerInfo.wsPort),
 	ipAddress: peerInfo.ipAddress,
 	wsPort: peerInfo.wsPort,

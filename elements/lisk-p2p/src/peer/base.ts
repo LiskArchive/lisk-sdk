@@ -186,12 +186,12 @@ export class Peer extends EventEmitter {
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
-		this._handleWSMessage = () => {
+		this._handleWSMessage = (): void => {
 			this._peerInfo.internalState.wsMessageCount += 1;
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handleRawMessage = (packet: unknown) => {
+		this._handleRawMessage = (packet: unknown): void => {
 			let message;
 			try {
 				message = validateProtocolMessage(packet);
