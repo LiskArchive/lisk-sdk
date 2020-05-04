@@ -77,7 +77,11 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 				peerId,
 			);
 			await this._validateBlocks(blocks, peerId);
-			await this._switchChain(highestCommonBlock, blocks, peerId);
+			await this._switchChain(
+				highestCommonBlock as BlockInstance,
+				blocks,
+				peerId,
+			);
 		} catch (err) {
 			if (err instanceof ApplyPenaltyAndAbortError) {
 				this.logger.info(
@@ -144,7 +148,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		peerId: string,
 		fromId: string,
 		toId: string,
-	) {
+	): Promise<BlockJSON[]> {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		const blocks = [];
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
@@ -181,7 +185,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		receivedBlock: BlockInstance,
 		highestCommonBlock: BlockInstance | undefined,
 		peerId: string,
-	) {
+	): Promise<BlockJSON[]> {
 		if (!highestCommonBlock) {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
@@ -236,7 +240,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	private async _validateBlocks(
 		blocks: ReadonlyArray<BlockJSON>,
 		peerId: string,
-	) {
+	): Promise<void> {
 		this.logger.debug(
 			{
 				blocks: blocks.map(block => ({
@@ -261,7 +265,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this.logger.debug('Successfully validated blocks');
 	}
 
-	private async _applyBlocks(blocksToApply: ReadonlyArray<BlockJSON>) {
+	private async _applyBlocks(
+		blocksToApply: ReadonlyArray<BlockJSON>,
+	): Promise<void> {
 		try {
 			for (const block of blocksToApply) {
 				this.logger.trace(
@@ -283,7 +289,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		error: Error,
 		highestCommonBlock: BlockInstance,
 		peerId: string,
-	) {
+	): Promise<void> {
 		this.logger.error({ err: error }, 'Error while processing blocks');
 		this.logger.debug(
 			{ height: highestCommonBlock.height },
@@ -307,7 +313,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		highestCommonBlock: BlockInstance,
 		blocksToApply: ReadonlyArray<BlockJSON>,
 		peerId: string,
-	) {
+	): Promise<void> {
 		this.logger.info('Switching chain');
 		this.logger.debug(
 			{ height: highestCommonBlock.height },
@@ -356,7 +362,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
-	private _computeLastTwoRoundsHeights() {
+	private _computeLastTwoRoundsHeights(): number[] {
 		return new Array(
 			Math.min(this.dpos.delegatesPerRound * 2, this.chain.lastBlock.height),
 		)
@@ -369,7 +375,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 */
-	private async _requestLastCommonBlock(peerId: string) {
+	private async _requestLastCommonBlock(
+		peerId: string,
+	): Promise<BlockInstance | undefined> {
 		this.logger.debug({ peerId }, 'Requesting the last common block with peer');
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
@@ -384,23 +392,22 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			// Request the highest common block with the previously computed list
 			// to the given peer
 			try {
-				const { data } = await this.channel.invokeFromNetwork(
-					'requestFromPeer',
-					{
-						procedure: 'getHighestCommonBlock',
-						peerId,
-						data: {
-							ids: blockIds,
-						},
+				const { data } = await this.channel.invokeFromNetwork<{
+					data: BlockJSON | undefined;
+				}>('requestFromPeer', {
+					procedure: 'getHighestCommonBlock',
+					peerId,
+					data: {
+						ids: blockIds,
 					},
-				);
+				});
 
 				if (data) {
 					this.logger.debug(
 						{ blockId: data.id, height: data.height },
 						'Common block found',
 					);
-					return data;
+					return this.chain.deserialize(data);
 				}
 			} finally {
 				numberOfRequests += 1;

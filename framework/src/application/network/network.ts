@@ -120,7 +120,9 @@ export class Network {
 			this.secret = Number(secret);
 		}
 
-		const sanitizeNodeInfo = (nodeInfo: liskP2p.p2pTypes.P2PNodeInfo) => ({
+		const sanitizeNodeInfo = (
+			nodeInfo: liskP2p.p2pTypes.P2PNodeInfo,
+		): liskP2p.p2pTypes.P2PNodeInfo => ({
 			...nodeInfo,
 			advertiseAddress: this.options.advertiseAddress,
 		});

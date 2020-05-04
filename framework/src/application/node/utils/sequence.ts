@@ -47,7 +47,7 @@ export class Sequence {
 			warningLimit,
 		};
 
-		const nextSequence = async () => {
+		const nextSequence = async (): Promise<void> => {
 			if (
 				this._config.onWarning &&
 				this._queue.length >= this._config.warningLimit

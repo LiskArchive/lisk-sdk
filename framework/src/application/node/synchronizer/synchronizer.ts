@@ -17,6 +17,7 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	Status as TransactionStatus,
 	TransactionJSON,
+	TransactionError,
 } from '@liskhq/lisk-transactions';
 import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
@@ -80,7 +81,7 @@ export class Synchronizer {
 				);
 			} catch (err) {
 				this.logger.error(
-					{ err },
+					{ err: err as Error },
 					'Failed to restore blocks from temp table upon startup',
 				);
 			}
@@ -152,7 +153,7 @@ export class Synchronizer {
 			} catch (err) {
 				if (err && retry === this.loadTransactionsRetries - 1) {
 					this.logger.error(
-						{ err },
+						{ err: err as Error },
 						`Failed to get transactions from network after ${this.loadTransactionsRetries} retries`,
 					);
 				}
@@ -163,7 +164,7 @@ export class Synchronizer {
 	private async _determineSyncMechanism(
 		receivedBlock: BlockInstance,
 		peerId: string,
-	) {
+	): Promise<BaseSynchronizer | undefined> {
 		for (const mechanism of this.mechanisms) {
 			if (await mechanism.isValidFor(receivedBlock, peerId)) {
 				return mechanism;
@@ -178,7 +179,7 @@ export class Synchronizer {
 	 * - Validates each transaction from the network and applies a penalty if invalid.
 	 * - Calls processUnconfirmedTransaction for each transaction.
 	 */
-	private async _getUnconfirmedTransactionsFromNetwork() {
+	private async _getUnconfirmedTransactionsFromNetwork(): Promise<void> {
 		this.logger.info('Loading transactions from the network');
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
@@ -212,7 +213,8 @@ export class Synchronizer {
 				throw invalidTransactionResponse.errors;
 			}
 		} catch (errors) {
-			const error =
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const error: TransactionError =
 				Array.isArray(errors) && errors.length > 0 ? errors[0] : errors;
 			this.logger.error(
 				{
@@ -235,7 +237,7 @@ export class Synchronizer {
 		}
 	}
 
-	private _checkMechanismsInterfaces() {
+	private _checkMechanismsInterfaces(): void {
 		for (const mechanism of this.mechanisms) {
 			assert(
 				typeof mechanism.isValidFor === 'function',

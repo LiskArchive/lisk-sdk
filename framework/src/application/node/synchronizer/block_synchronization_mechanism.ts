@@ -175,7 +175,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 						await this.processorModule.processValidated(deserializedBlock);
 					}
 				} catch (err) {
-					this.logger.error({ err }, 'Block processing failed');
+					this.logger.error({ err: err as Error }, 'Block processing failed');
 					throw new BlockProcessingError();
 				}
 
@@ -202,7 +202,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	private async _handleBlockProcessingError(
 		lastCommonBlock: BlockInstance,
 		peerId: string,
-	) {
+	): Promise<void> {
 		// If the list of blocks has not been fully applied
 		this.logger.debug('Failed to apply obtained blocks from peer');
 		const tempBlocks = await this.chain.dataAccess.getTempBlocks();
@@ -253,7 +253,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				await clearBlocksTempTable(this.chain);
 			} catch (error) {
 				this.logger.error(
-					{ err: error },
+					{ err: error as Error },
 					'Failed to restore blocks from blocks temp table',
 				);
 			}
@@ -285,7 +285,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		receivedBlock: BlockInstance,
 		lastCommonBlock: BlockInstance,
 		peerId: string,
-	) {
+	): Promise<boolean> {
 		this.logger.debug(
 			{
 				peerId,
@@ -325,7 +325,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		return true;
 	}
 
-	private async _revertToLastCommonBlock(peerId: string) {
+	private async _revertToLastCommonBlock(
+		peerId: string,
+	): Promise<BlockInstance> {
 		this.logger.debug(
 			{ peerId },
 			'Reverting chain to the last common block with peer',
@@ -379,7 +381,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 */
-	private async _requestLastCommonBlock(peerId: string) {
+	private async _requestLastCommonBlock(
+		peerId: string,
+	): Promise<BlockInstance | undefined> {
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 3; // Maximum number of requests to be made to the remote peer
 
@@ -448,10 +452,12 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * This behavior is defined in section `2. Step: Obtain tip of chain` in LIP-0014
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
-	private async _requestAndValidateLastBlock(peerId: string) {
+	private async _requestAndValidateLastBlock(peerId: string): Promise<void> {
 		this.logger.debug({ peerId }, 'Requesting tip of the chain from peer');
 
-		const { data } = await this.channel.invokeFromNetwork('requestFromPeer', {
+		const { data } = await this.channel.invokeFromNetwork<{
+			data: BlockJSON | undefined;
+		}>('requestFromPeer', {
 			procedure: 'getLastBlock',
 			peerId,
 		});
@@ -495,12 +501,14 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
 	 */
-	private async _blockDetachedStatus(networkLastBlock: BlockInstance) {
+	private async _blockDetachedStatus(
+		networkLastBlock: BlockInstance,
+	): Promise<{ valid: boolean; err: Error | null }> {
 		try {
 			await this.processorModule.validate(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
-			return { valid: false, err };
+			return { valid: false, err: err as Error };
 		}
 	}
 
@@ -510,7 +518,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 *
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
-	private async _computeBestPeer() {
+	private async _computeBestPeer(): Promise<Peer> {
 		const peers = await this.channel.invoke<ReadonlyArray<Peer> | undefined>(
 			'app:getConnectedPeers',
 		);

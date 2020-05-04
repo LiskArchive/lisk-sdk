@@ -184,7 +184,7 @@ export const newBlock = (
 		seedReveal: '00000000000000000000000000000000',
 		keypair: getKeyPair(),
 		transactions: [],
-		reward: '0',
+		reward: BigInt(0),
 		timestamp: 1000,
 	};
 	const blockWithDefaultValues = {
