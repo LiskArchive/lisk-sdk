@@ -13,34 +13,28 @@
  */
 
 import * as axon from 'pm2-axon';
-import { Server as RPCServer, Client as RPCClient } from 'pm2-axon-rpc';
-import { EventEmitter2, Listener } from 'eventemitter2';
 import {
 	PubEmitterSocket,
 	RepSocket,
 	ReqSocket,
 	SubEmitterSocket,
 } from 'pm2-axon';
+import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
+import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../types';
 import { BaseChannel } from './channels/base_channel';
 import { EventsArray } from './event';
+import { SocketPaths } from './types';
 
 const CONTROLLER_IDENTIFIER = 'app';
 const SOCKET_TIMEOUT_TIME = 2000;
-
-export interface socketPathObject {
-	readonly pub: string;
-	readonly sub: string;
-	readonly rpc: string;
-	readonly root: string;
-}
 
 interface BusConfiguration {
 	ipc: {
 		readonly enabled: boolean;
 	};
-	socketsPath: socketPathObject;
+	socketsPath: SocketPaths;
 }
 
 interface RegisterChannelOptions {

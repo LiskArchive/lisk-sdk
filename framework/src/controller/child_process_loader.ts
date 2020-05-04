@@ -13,9 +13,9 @@
  */
 
 // Parameters passed by `child_process.fork(_, parameters)`
-import { socketPathObject } from './bus';
 
 import { ChildProcessChannel } from './channels';
+import { SocketPaths } from './types';
 
 const modulePath: string = process.argv[2];
 // eslint-disable-next-line import/no-dynamic-require
@@ -32,7 +32,7 @@ const _loadModule = async (config: object, moduleOptions: object) => {
 	);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	await channel.registerToBus((config as any).socketsPath as socketPathObject);
+	await channel.registerToBus((config as any).socketsPath as SocketPaths);
 
 	channel.publish(`${moduleAlias}:registeredToBus`);
 	channel.publish(`${moduleAlias}:loading:started`);

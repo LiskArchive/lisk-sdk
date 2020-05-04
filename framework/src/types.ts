@@ -45,6 +45,7 @@ export interface Logger {
 	readonly warn: (data?: object | unknown, message?: string) => void;
 	readonly error: (data?: object | unknown, message?: string) => void;
 	readonly fatal: (data?: object | unknown, message?: string) => void;
+	readonly level: () => number;
 }
 
 /* Start Database  */
@@ -56,6 +57,17 @@ export interface Storage {
 }
 
 export interface KeyValEntity {
+	readonly NetworkInfo: NetworkInfoEntity;
+	readonly Migration: MigrationEntity;
+}
+
+export interface MigrationEntity {
+	readonly applyAll: (migrations: {
+		readonly [key: string]: ReadonlyArray<string>;
+	}) => Promise<void>;
+}
+
+export interface NetworkInfoEntity {
 	readonly getKey: (
 		key: string,
 		tx?: StorageTransaction,
