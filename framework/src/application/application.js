@@ -443,9 +443,11 @@ class Application {
 					handler: action => this._network.broadcast(action.params),
 				},
 				requestFromNetwork: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action => this._network.request(action.params),
 				},
 				requestFromPeer: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action => this._network.requestFromPeer(action.params),
 				},
 				getConnectedPeers: {
