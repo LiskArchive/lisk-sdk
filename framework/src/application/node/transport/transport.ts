@@ -109,38 +109,6 @@ export class Transport {
 		}, DEFAULT_RATE_RESET_TIME);
 	}
 
-	public get rateTracker(): RateTracker {
-		return this._rateTracker;
-	}
-
-	public get channel(): Channel {
-		return this._channel;
-	}
-
-	public get logger(): Logger {
-		return this._logger;
-	}
-
-	public get synchronizerModule(): Synchronizer {
-		return this._synchronizerModule;
-	}
-
-	public get transactionPoolModule(): TransactionPool {
-		return this._transactionPoolModule;
-	}
-
-	public get chainModule(): Chain {
-		return this._chainModule;
-	}
-
-	public get processorModule(): Processor {
-		return this._processorModule;
-	}
-
-	public get broadcaster(): Broadcaster {
-		return this._broadcaster;
-	}
-
 	public handleBroadcastTransaction(transaction: BaseTransaction): void {
 		this._broadcaster.enqueueTransactionId(transaction.id);
 		this._channel.publish('app:transaction:new', transaction.toJSON());
