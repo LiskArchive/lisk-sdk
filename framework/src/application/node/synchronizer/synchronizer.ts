@@ -18,6 +18,7 @@ import {
 	Status as TransactionStatus,
 	TransactionJSON,
 	TransactionError,
+	BaseTransaction,
 } from '@liskhq/lisk-transactions';
 import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
@@ -34,6 +35,10 @@ interface SynchronizerInput {
 	readonly processorModule: Processor;
 	readonly transactionPoolModule: TransactionPool;
 	readonly mechanisms: BaseSynchronizer[];
+}
+
+interface TransactionPoolTransaction extends BaseTransaction {
+	asset: { [key: string]: string | number | readonly string[] | undefined };
 }
 
 export class Synchronizer {
@@ -228,7 +233,9 @@ export class Synchronizer {
 
 		const transactionCount = transactions.length;
 		for (let i = 0; i < transactionCount; i += 1) {
-			const { errors } = await this.transactionPoolModule.add(transactions[i]);
+			const { errors } = await this.transactionPoolModule.add(
+				transactions[i] as TransactionPoolTransaction,
+			);
 
 			if (errors.length) {
 				this.logger.error({ errors }, 'Failed to add transaction to pool');
