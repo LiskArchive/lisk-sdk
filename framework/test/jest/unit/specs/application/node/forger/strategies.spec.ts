@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { when } from 'jest-when';
+
 import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
-import {
-	HighFeeForgingStrategy,
-} from '../../../../../../../src/application/node/forger/strategies';
+import { HighFeeForgingStrategy } from '../../../../../../../src/application/node/forger/strategies';
 import {
 	allValidCase,
 	maxPayloadLengthCase,
@@ -47,14 +47,14 @@ const getTxMock = (
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
 	};
 
-	chainMock.applyTransactionsWithStateStore
+	when(chainMock.applyTransactionsWithStateStore)
 		.calledWith([tx], undefined)
 		.mockResolvedValueOnce([
 			{
 				id,
 				status: valid ? TransactionStatus.OK : TransactionStatus.FAIL,
 			},
-		]);
+		] as never);
 
 	return tx;
 };
@@ -76,7 +76,9 @@ const buildProcessableTxMock = (input: any, chainMock: jest.Mock) => {
 
 	for (const senderId of Object.keys(result)) {
 		// Ascending sort by nonce
-		result[senderId] = result[senderId].sort((a: any, b: any) => a.nonce > b.nonce);
+		result[senderId] = result[senderId].sort(
+			(a: any, b: any) => a.nonce > b.nonce,
+		);
 	}
 
 	return result;
