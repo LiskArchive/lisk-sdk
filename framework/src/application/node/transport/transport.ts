@@ -61,6 +61,10 @@ export interface HandleRPCGetTransactionsReturn {
 	transactions: TransactionJSON[];
 }
 
+export interface RPCGetTransactionsReturn {
+	data: { transactions: TransactionJSON[] };
+}
+
 interface RateTracker {
 	[key: string]: { [key: string]: number };
 }
@@ -130,10 +134,13 @@ export class Transport {
 	}
 
 	public async handleRPCGetBlocksFromId(
-		data: RPCBlocksByIdData,
+		data: unknown,
 		peerId: string,
 	): Promise<BlockJSON[]> {
-		const errors = validator.validate(schemas.getBlocksFromIdRequest, data);
+		const errors = validator.validate(
+			schemas.getBlocksFromIdRequest,
+			data as object,
+		);
 
 		if (errors.length) {
 			const error = `${errors[0].message}`;
@@ -154,10 +161,12 @@ export class Transport {
 
 		// Get height of block with supplied ID
 		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(
-			data.blockId,
+			(data as RPCBlocksByIdData).blockId,
 		);
 		if (!lastBlock) {
-			throw new Error(`Invalid blockId requested: ${data.blockId}`);
+			throw new Error(
+				`Invalid blockId requested: ${(data as RPCBlocksByIdData).blockId}`,
+			);
 		}
 
 		const lastBlockHeight = lastBlock.height;
@@ -175,12 +184,12 @@ export class Transport {
 	}
 
 	public async handleRPCGetGetHighestCommonBlock(
-		data: RPCHighestCommonBlockData,
+		data: unknown,
 		peerId: string,
 	): Promise<BlockHeaderJSON | null> {
 		const valid = validator.validate(
 			schemas.getHighestCommonBlockRequest,
-			data,
+			data as object,
 		);
 
 		if (valid.length) {
@@ -200,7 +209,9 @@ export class Transport {
 			throw new Error(error);
 		}
 
-		const commonBlock = await this._chainModule.getHighestCommonBlock(data.ids);
+		const commonBlock = await this._chainModule.getHighestCommonBlock(
+			(data as RPCHighestCommonBlockData).ids,
+		);
 
 		return commonBlock
 			? this._chainModule.serializeBlockHeader(commonBlock)
@@ -208,18 +219,21 @@ export class Transport {
 	}
 
 	public async handleEventPostBlock(
-		data: EventPostBlockData,
+		data: unknown,
 		peerId: string,
 	): Promise<void> {
 		// Should ignore received block if syncing
 		if (this._synchronizerModule.isActive) {
 			return this._logger.debug(
-				{ blockId: data.block.id, height: data.block.height },
+				{
+					blockId: (data as EventPostBlockData)?.block.id,
+					height: (data as EventPostBlockData)?.block.height,
+				},
 				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
 
-		const errors = validator.validate(schemas.postBlockEvent, data);
+		const errors = validator.validate(schemas.postBlockEvent, data as object);
 
 		if (errors.length) {
 			this._logger.warn(
@@ -237,7 +251,9 @@ export class Transport {
 			throw errors;
 		}
 
-		const block = await this._processorModule.deserialize(data.block);
+		const block = await this._processorModule.deserialize(
+			(data as EventPostBlockData).block,
+		);
 
 		return this._processorModule.process(block, {
 			peerId,
@@ -245,7 +261,7 @@ export class Transport {
 	}
 
 	public async handleRPCGetTransactions(
-		data: RPCTransactionsByIdData = { transactionIds: [] },
+		data: unknown = { transactionIds: [] },
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
 		await this._addRateLimit(
@@ -253,7 +269,10 @@ export class Transport {
 			peerId,
 			DEFAULT_RATE_LIMIT_FREQUENCY,
 		);
-		const errors = validator.validate(schemas.getTransactionsRequest, data);
+		const errors = validator.validate(
+			schemas.getTransactionsRequest,
+			data as object,
+		);
 		if (errors.length) {
 			this._logger.warn(
 				{ err: errors, peerId },
@@ -266,7 +285,7 @@ export class Transport {
 			throw errors;
 		}
 
-		const { transactionIds } = data;
+		const { transactionIds } = data as RPCTransactionsByIdData;
 		if (!transactionIds) {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
@@ -344,7 +363,7 @@ export class Transport {
 	 * and finally ask to the emitter the ones that are unknown.
 	 */
 	public async handleEventPostTransactionsAnnouncement(
-		data: EventPostTransactionsAnnouncementData,
+		data: unknown,
 		peerId: string,
 	): Promise<null> {
 		await this._addRateLimit(
@@ -354,7 +373,7 @@ export class Transport {
 		);
 		const errors = validator.validate(
 			schemas.postTransactionsAnnouncementEvent,
-			data,
+			data as object,
 		);
 
 		if (errors.length) {
@@ -370,7 +389,7 @@ export class Transport {
 		}
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
-			data.transactionIds,
+			(data as EventPostTransactionsAnnouncementData).transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
 			const { data: result } = (await this._channel.invokeFromNetwork(
@@ -380,7 +399,7 @@ export class Transport {
 					data: { transactionIds: unknownTransactionIDs },
 					peerId,
 				},
-			)) as { data: { transactions: TransactionJSON[] } };
+			)) as RPCGetTransactionsReturn;
 			try {
 				for (const transaction of result.transactions) {
 					/* eslint-disable-next-line  @typescript-eslint/no-explicit-any */
