@@ -12,17 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+export class InvalidTransactionError extends Error {
+	public readonly message: string;
+	public readonly id: string;
+	public readonly errors: Error[];
 
-class InvalidTransactionError extends Error {
-	constructor(message, id, errors) {
+	constructor(message: string, id: string, errors: Error[]) {
 		super(message);
 		this.message = message;
 		this.id = id;
 		this.errors = errors;
 	}
 }
-
-module.exports = {
-	InvalidTransactionError,
-};

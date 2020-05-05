@@ -12,10 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { Transport } = require('./transport');
-
-module.exports = {
-	Transport,
-};
+export * from './transport';
