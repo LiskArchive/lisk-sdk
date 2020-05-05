@@ -15,7 +15,7 @@
 import { validator } from '@liskhq/lisk-validator';
 import { Chain, BlockJSON, BlockHeaderJSON } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
-import { TransactionPool, Transaction } from '@liskhq/lisk-transaction-pool';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 import { convertErrorsToString } from '../utils/error_handlers';
 import { InvalidTransactionError } from './errors';
@@ -38,6 +38,10 @@ const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
 const DEFAULT_RELEASE_LIMIT = 100;
 const DEFAULT_RELEASE_INTERVAL = 5000;
+
+interface TransactionPoolTransaction extends BaseTransaction {
+	asset: { [key: string]: string | number | readonly string[] | undefined };
+}
 
 export interface TransportConstructor {
 	readonly channel: Channel;
@@ -484,7 +488,7 @@ export class Transport {
 		this.handleBroadcastTransaction(transaction);
 
 		const { errors } = await this._transactionPoolModule.add(
-			transaction as Transaction,
+			transaction as TransactionPoolTransaction,
 		);
 
 		if (!errors.length) {
