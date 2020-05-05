@@ -294,7 +294,7 @@ export class Transport {
 			transactions.splice(DEFAULT_RATE_RESET_TIME);
 
 			return {
-				transactions,
+				transactions: (transactions as unknown) as TransactionJSON[],
 			};
 		}
 
