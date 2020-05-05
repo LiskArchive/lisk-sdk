@@ -392,18 +392,18 @@ export class Transport {
 			(data as EventPostTransactionsAnnouncementData).transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
-			const { data: result } = (await this._channel.invokeFromNetwork(
+			const { data: result } = await this._channel.invokeFromNetwork(
 				'requestFromPeer',
 				{
 					procedure: 'getTransactions',
 					data: { transactionIds: unknownTransactionIDs },
 					peerId,
 				},
-			)) as RPCGetTransactionsReturn;
+			);
 			try {
 				for (const transaction of result.transactions) {
 					/* eslint-disable-next-line  @typescript-eslint/no-explicit-any */
-					(transaction as any).bundled = true;
+					transaction.bundled = true;
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
