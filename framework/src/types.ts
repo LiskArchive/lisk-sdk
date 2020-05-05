@@ -17,7 +17,7 @@ import { BlockInstance } from '@liskhq/lisk-chain';
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 export interface StringKeyVal {
-	[key: string]: string
+	[key: string]: string;
 }
 
 export interface Channel<T = unknown> {
@@ -44,7 +44,6 @@ export interface Logger {
 	readonly info: (data?: object | unknown, message?: string) => void;
 	readonly warn: (data?: object | unknown, message?: string) => void;
 	readonly error: (data?: object | unknown, message?: string) => void;
-	readonly warn: (data?: object | unknown, message?: string) => void;
 	readonly fatal: (data?: object | unknown, message?: string) => void;
 }
 

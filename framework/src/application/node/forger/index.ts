@@ -14,4 +14,3 @@
 
 export { Forger } from './forger';
 export { HighFeeForgingStrategy } from './strategies';
-
