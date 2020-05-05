@@ -13,14 +13,17 @@
  */
 
 import { MaxHeap, TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { Status as TransactionStatus, BaseTransaction } from '@liskhq/lisk-transactions';
+import {
+	Status as TransactionStatus,
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
 import { Chain } from '@liskhq/lisk-chain';
 
 export class HighFeeForgingStrategy {
 	private readonly chainModule: Chain;
 	private readonly transactionPoolModule: TransactionPool;
 	private readonly constants: {
-		readonly maxPayloadLength: number
+		readonly maxPayloadLength: number;
 	};
 
 	public constructor({
@@ -30,9 +33,9 @@ export class HighFeeForgingStrategy {
 		// constants
 		maxPayloadLength,
 	}: {
-		readonly chainModule: Chain,
-		readonly transactionPoolModule: TransactionPool,
-		readonly maxPayloadLength: number
+		readonly chainModule: Chain;
+		readonly transactionPoolModule: TransactionPool;
+		readonly maxPayloadLength: number;
 	}) {
 		this.chainModule = chainModule;
 		this.transactionPoolModule = transactionPoolModule;
@@ -55,13 +58,17 @@ export class HighFeeForgingStrategy {
 		const feePriorityHeap = new MaxHeap();
 		for (const senderId of Object.keys(transactionsBySender)) {
 			const lowestNonceTrx = transactionsBySender[senderId][0];
-			feePriorityHeap.push(lowestNonceTrx.feePriority, lowestNonceTrx);
+			feePriorityHeap.push(
+				lowestNonceTrx.feePriority as bigint,
+				lowestNonceTrx,
+			);
 		}
 
 		// Loop till we have last account exhausted to pick transactions
 		while (Object.keys(transactionsBySender).length !== 0) {
 			// Get the transaction with highest fee and lowest nonce
-			const lowestNonceHighestFeeTrx = (feePriorityHeap.pop()?.value) as BaseTransaction;
+			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()
+				?.value as BaseTransaction;
 			// Try to process transaction
 			const result = await this.chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
@@ -115,7 +122,7 @@ export class HighFeeForgingStrategy {
 			const nextLowestNonceTransaction =
 				transactionsBySender[lowestNonceHighestFeeTrx.senderId][0];
 			feePriorityHeap.push(
-				nextLowestNonceTransaction.feePriority,
+				nextLowestNonceTransaction.feePriority as bigint,
 				nextLowestNonceTransaction,
 			);
 		}

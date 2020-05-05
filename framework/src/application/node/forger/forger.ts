@@ -207,7 +207,8 @@ export class Forger {
 			keypair.publicKey.toString('hex'),
 		]);
 
-		if (account.isDelegate) {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (account?.isDelegate) {
 			if (forging) {
 				this.keypairs[
 					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
