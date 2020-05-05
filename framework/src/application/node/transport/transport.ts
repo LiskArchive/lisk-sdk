@@ -52,6 +52,15 @@ export interface TransportConstructor {
 	readonly processorModule: Processor;
 }
 
+export interface handlePostTransactionReturn {
+	transactionId?: string;
+	message?: string;
+	errors?: Error[] | Error;
+}
+export interface HandleRPCGetTransactionsReturn {
+	transactions: TransactionJSON[];
+}
+
 interface RateTracker {
 	[key: string]: { [key: string]: number };
 }
@@ -270,7 +279,7 @@ export class Transport {
 	public async handleRPCGetTransactions(
 		data: RPCTransactionsByIdData = { transactionIds: [] },
 		peerId: string,
-	): Promise<{ transactions: TransactionJSON[] }> {
+	): Promise<HandleRPCGetTransactionsReturn> {
 		await this._addRateLimit(
 			'getTransactions',
 			peerId,
@@ -348,7 +357,7 @@ export class Transport {
 
 	public async handleEventPostTransaction(
 		data: EventPostTransactionData,
-	): Promise<{ transactionId: string } | object> {
+	): Promise<handlePostTransactionReturn> {
 		try {
 			const id = await this._receiveTransaction(data.transaction);
 			return {
