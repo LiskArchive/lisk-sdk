@@ -20,7 +20,7 @@ export interface StringKeyVal {
 	[key: string]: string;
 }
 
-export interface Channel<T = unknown> {
+export interface Channel {
 	readonly publish: (procedure: string, params?: object) => void;
 	readonly subscribe: (procedure: string, callback: Function) => void;
 	readonly invoke: <T = unknown>(
