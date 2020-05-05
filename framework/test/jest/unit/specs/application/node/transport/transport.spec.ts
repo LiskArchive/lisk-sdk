@@ -84,7 +84,7 @@ describe('Transport', () => {
 				active: true,
 			},
 		});
-		jest.spyOn(transport.broadcaster, 'enqueueTransactionId');
+		jest.spyOn(transport['_broadcaster'], 'enqueueTransactionId');
 		jest.useFakeTimers();
 	});
 

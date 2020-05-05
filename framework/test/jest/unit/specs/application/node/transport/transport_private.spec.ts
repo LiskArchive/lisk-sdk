@@ -27,6 +27,7 @@ import { genesis } from '../../../../../../fixtures/accounts';
 import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../../utils/network_identifier';
 import { Block, GenesisBlock } from '../../../../../../fixtures/blocks';
 import { InvalidTransactionError } from '../../../../../../../src/application/node/transport/errors';
+
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 describe('transport', () => {
 	let loggerStub: Logger;
@@ -147,11 +148,11 @@ describe('transport', () => {
 	describe('constructor', () => {
 		describe('transportModule', () => {
 			it('should assign scope variables when instantiating', () => {
-				expect(transportModule).toHaveProperty('logger');
-				expect(transportModule.logger).toBe(loggerStub);
-				expect(transportModule).toHaveProperty('channel');
-				expect(transportModule.channel).toBe(channelStub);
-				expect(transportModule).toHaveProperty('broadcaster');
+				expect(transportModule).toHaveProperty('_logger');
+				expect(transportModule['_logger']).toBe(loggerStub);
+				expect(transportModule).toHaveProperty('_channel');
+				expect(transportModule['_channel']).toBe(channelStub);
+				expect(transportModule).toHaveProperty('_broadcaster');
 			});
 		});
 	});
@@ -168,12 +169,12 @@ describe('transport', () => {
 
 			describe('when transaction is neither in the queues, nor in the database', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.contains = jest
-						.fn()
-						.mockReturnValue(false);
-					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest
-						.fn()
-						.mockResolvedValue([]);
+					transportModule[
+						'_transactionPoolModule'
+					].contains = jest.fn().mockReturnValue(false);
+					transportModule[
+						'_chainModule'
+					].dataAccess.getTransactionsByIDs = jest.fn().mockResolvedValue([]);
 					resultTransactionsIDsCheck = await (transportModule as any)._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -182,14 +183,14 @@ describe('transport', () => {
 				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
-							transportModule.transactionPoolModule.contains,
+							transportModule['_transactionPoolModule'].contains,
 						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
 
-				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', () => {
+				it('should call transportModule._chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', () => {
 					expect(
-						transportModule.chainModule.dataAccess.getTransactionsByIDs,
+						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
 					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
 				});
 
@@ -204,10 +205,12 @@ describe('transport', () => {
 
 			describe('when transaction is in the queues', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.contains = jest
-						.fn()
-						.mockReturnValue(true);
-					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest.fn();
+					transportModule[
+						'_transactionPoolModule'
+					].contains = jest.fn().mockReturnValue(true);
+					transportModule[
+						'_chainModule'
+					].dataAccess.getTransactionsByIDs = jest.fn();
 					resultTransactionsIDsCheck = await (transportModule as any)._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -216,14 +219,14 @@ describe('transport', () => {
 				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
-							transportModule.transactionPoolModule.contains,
+							transportModule['_transactionPoolModule'].contains,
 						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
 
-				it('should not call transportModule.chainModule.dataAccess.getTransactionsByIDs', () => {
+				it('should not call transportModule._chainModule.dataAccess.getTransactionsByIDs', () => {
 					expect(
-						transportModule.chainModule.dataAccess.getTransactionsByIDs,
+						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
 					).not.toHaveBeenCalled();
 				});
 
@@ -235,10 +238,12 @@ describe('transport', () => {
 
 			describe('when transaction exists in the database', () => {
 				beforeEach(async () => {
-					transportModule.transactionPoolModule.contains = jest
-						.fn()
-						.mockReturnValue(false);
-					transportModule.chainModule.dataAccess.getTransactionsByIDs = jest
+					transportModule[
+						'_transactionPoolModule'
+					].contains = jest.fn().mockReturnValue(false);
+					transportModule[
+						'_chainModule'
+					].dataAccess.getTransactionsByIDs = jest
 						.fn()
 						.mockResolvedValue(transactionsList);
 					resultTransactionsIDsCheck = await (transportModule as any)._obtainUnknownTransactionIDs(
@@ -249,14 +254,14 @@ describe('transport', () => {
 				it('should call transactionPoolModule.contains with query.transaction.ids as arguments', () => {
 					for (const transactionToCheck of transactionsList) {
 						expect(
-							transportModule.transactionPoolModule.contains,
+							transportModule['_transactionPoolModule'].contains,
 						).toHaveBeenCalledWith(transactionToCheck.id);
 					}
 				});
 
-				it('should call transportModule.chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', () => {
+				it('should call transportModule._chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', () => {
 					expect(
-						transportModule.chainModule.dataAccess.getTransactionsByIDs,
+						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
 					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
 				});
 
@@ -269,11 +274,12 @@ describe('transport', () => {
 
 		describe('_receiveTransaction', () => {
 			beforeEach(() => {
-				(transportModule.transactionPoolModule.add as any).mockResolvedValue({
+				(transportModule['_transactionPoolModule']
+					.add as any).mockResolvedValue({
 					status: 1,
 					errors: [],
 				});
-				(transportModule.chainModule
+				(transportModule['_chainModule']
 					.deserializeTransaction as any).mockReturnValue({
 					...transaction,
 					toJSON: () => transaction,
@@ -281,7 +287,7 @@ describe('transport', () => {
 			});
 
 			afterEach(() => {
-				(transportModule.chainModule
+				(transportModule['_chainModule']
 					.deserializeTransaction as any).mockReturnValue({
 					...transaction,
 				});
@@ -290,14 +296,14 @@ describe('transport', () => {
 			it('should call validateTransactions', async () => {
 				await transportModule['_receiveTransaction'](transaction);
 				return expect(
-					transportModule.chainModule.validateTransactions,
+					transportModule['_chainModule'].validateTransactions,
 				).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call validateTransactions with an array of transactions', async () => {
 				await transportModule['_receiveTransaction'](transaction);
 				return expect(
-					transportModule.chainModule.validateTransactions,
+					transportModule['_chainModule'].validateTransactions,
 				).toHaveBeenCalledTimes(1);
 			});
 
@@ -308,7 +314,7 @@ describe('transport', () => {
 					[new Error()],
 				);
 
-				(transportModule.chainModule
+				(transportModule['_chainModule']
 					.validateTransactions as any).mockResolvedValue([
 					{
 						errors: [invalidTrsError],
@@ -327,7 +333,7 @@ describe('transport', () => {
 
 				it('should call modules.transactionPool.add with transaction argument', () => {
 					expect(
-						transportModule.transactionPoolModule.add,
+						transportModule['_transactionPoolModule'].add,
 					).toHaveBeenCalledTimes(1);
 				});
 			});
@@ -341,7 +347,7 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
-					(transportModule.chainModule
+					(transportModule['_chainModule']
 						.validateTransactions as any).mockResolvedValue([
 						{
 							status: 1,
@@ -389,7 +395,8 @@ describe('transport', () => {
 				beforeEach(async () => {
 					addError = `Transaction is already processed: ${transaction.id}`;
 
-					(transportModule.transactionPoolModule.add as any).mockResolvedValue({
+					(transportModule['_transactionPoolModule']
+						.add as any).mockResolvedValue({
 						status: 0,
 						errors: [new Error(addError)],
 					});
@@ -465,17 +472,19 @@ describe('transport', () => {
 
 					it('should call transportModule.broadcaster.enqueueTransactionId transactionId', () => {
 						expect(
-							transportModule.broadcaster.enqueueTransactionId,
+							transportModule['_broadcaster'].enqueueTransactionId,
 						).toHaveBeenCalledTimes(1);
 
 						return expect(
-							transportModule.broadcaster.enqueueTransactionId,
+							transportModule['_broadcaster'].enqueueTransactionId,
 						).toHaveBeenCalledWith(transaction.id);
 					});
 
 					it('should call transportModule.channel.publish with "app:transaction:new" and transaction as arguments', async () => {
-						expect(transportModule.channel.publish).toHaveBeenCalledTimes(1);
-						expect(transportModule.channel.publish).toHaveBeenCalledWith(
+						expect(transportModule['_channel'].publish).toHaveBeenCalledTimes(
+							1,
+						);
+						expect(transportModule['_channel'].publish).toHaveBeenCalledWith(
 							'app:transaction:new',
 							(transaction as any).toJSON(),
 						);
@@ -520,12 +529,14 @@ describe('transport', () => {
 
 					describe('when modules.synchronizer.isActive = true', () => {
 						beforeEach(() => {
-							transportModule.synchronizerModule.isActive = true;
+							transportModule['_synchronizerModule'].isActive = true;
 							transportModule.handleBroadcastBlock(block);
 						});
 
 						it('should call transportModule.logger.debug with proper error message', () => {
-							return expect(transportModule.logger.debug).toHaveBeenCalledWith(
+							return expect(
+								transportModule['_logger'].debug,
+							).toHaveBeenCalledWith(
 								'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
 							);
 						});
@@ -563,10 +574,11 @@ describe('transport', () => {
 
 							await transportModule.handleRPCGetBlocksFromId(query);
 							expect(
-								transportModule.chainModule.dataAccess.getBlockHeaderByID,
+								transportModule['_chainModule'].dataAccess.getBlockHeaderByID,
 							).toHaveBeenCalledWith(query.blockId);
 							return expect(
-								transportModule.chainModule.dataAccess.getBlocksByHeightBetween,
+								transportModule['_chainModule'].dataAccess
+									.getBlocksByHeightBetween,
 							).toHaveBeenCalledWith(3, 105);
 						});
 					});
@@ -580,7 +592,9 @@ describe('transport', () => {
 							const errorMessage = 'Failed to load blocks...';
 							const loadBlockFailed = new Error(errorMessage);
 
-							transportModule.chainModule.dataAccess.getBlockHeaderByID.mockResolvedValue(
+							transportModule[
+								'_chainModule'
+							].dataAccess.getBlockHeaderByID.mockResolvedValue(
 								Promise.reject(loadBlockFailed),
 							);
 
@@ -639,16 +653,16 @@ describe('transport', () => {
 										block: genesisBlock,
 									});
 									expect(
-										transportModule.processorModule.deserialize,
+										transportModule['_processorModule'].deserialize,
 									).toHaveBeenCalledWith(genesisBlock);
 								});
 							});
 
 							it('should call transportModule.processorModule.process with block', async () => {
 								const blockWithProperties = {};
-								transportModule.processorModule.deserialize.mockResolvedValue(
-									blockWithProperties,
-								);
+								transportModule[
+									'_processorModule'
+								].deserialize.mockResolvedValue(blockWithProperties);
 								await transportModule.handleEventPostBlock(
 									{
 										block: genesisBlock,
@@ -656,7 +670,7 @@ describe('transport', () => {
 									'127.0.0.1:5000',
 								);
 								expect(
-									transportModule.processorModule.process,
+									transportModule['_processorModule'].process,
 								).toHaveBeenCalledWith(blockWithProperties, {
 									peerId: '127.0.0.1:5000',
 								});
