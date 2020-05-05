@@ -20,9 +20,9 @@ import {
 import { Chain } from '@liskhq/lisk-chain';
 
 export class HighFeeForgingStrategy {
-	private readonly chainModule: Chain;
-	private readonly transactionPoolModule: TransactionPool;
-	private readonly constants: {
+	private readonly _chainModule: Chain;
+	private readonly _transactionPoolModule: TransactionPool;
+	private readonly _constants: {
 		readonly maxPayloadLength: number;
 	};
 
@@ -37,9 +37,9 @@ export class HighFeeForgingStrategy {
 		readonly transactionPoolModule: TransactionPool;
 		readonly maxPayloadLength: number;
 	}) {
-		this.chainModule = chainModule;
-		this.transactionPoolModule = transactionPoolModule;
-		this.constants = { maxPayloadLength };
+		this._chainModule = chainModule;
+		this._transactionPoolModule = transactionPoolModule;
+		this._constants = { maxPayloadLength };
 	}
 
 	public async getTransactionsForBlock(): Promise<BaseTransaction[]> {
@@ -47,11 +47,11 @@ export class HighFeeForgingStrategy {
 		const readyTransactions = [];
 
 		// Initialize state store which will be discarded after selection
-		const stateStore = await this.chainModule.newStateStore();
+		const stateStore = await this._chainModule.newStateStore();
 
 		// Get processable transactions from transaction pool
 		// transactions are sorted by lowest nonce per account
-		const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
+		const transactionsBySender = this._transactionPoolModule.getProcessableTransactions();
 
 		// Initialize block size with 0
 		let blockPayloadSize = 0;
@@ -70,7 +70,7 @@ export class HighFeeForgingStrategy {
 			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()
 				?.value as BaseTransaction;
 			// Try to process transaction
-			const result = await this.chainModule.applyTransactionsWithStateStore(
+			const result = await this._chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
 				stateStore,
 			);
@@ -88,7 +88,7 @@ export class HighFeeForgingStrategy {
 			// then discard all transactions from that account as
 			// other transactions will be higher nonce
 			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
-			if (blockPayloadSize + trsByteSize > this.constants.maxPayloadLength) {
+			if (blockPayloadSize + trsByteSize > this._constants.maxPayloadLength) {
 				// End up filling the block
 				break;
 			}

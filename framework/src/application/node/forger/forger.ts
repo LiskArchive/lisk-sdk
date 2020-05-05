@@ -50,6 +50,11 @@ interface HashOnionConfig {
 	readonly hashes: string[];
 }
 
+interface ForgingStatus {
+	readonly publicKey: string;
+	readonly forging: boolean;
+}
+
 interface KeyPair {
 	[key: string]: Buffer;
 }
@@ -86,15 +91,15 @@ interface ForgerConstructor {
 }
 
 export class Forger {
-	private readonly logger: Logger;
-	private readonly storage: Storage;
-	private readonly processorModule: ProcessorModule;
-	private readonly dposModule: Dpos;
-	private readonly bftModule: BFT;
-	private readonly transactionPoolModule: TransactionPool;
-	private readonly chainModule: Chain;
-	private readonly keypairs: KeyPairs;
-	private readonly config: {
+	private readonly _logger: Logger;
+	private readonly _storage: Storage;
+	private readonly _processorModule: ProcessorModule;
+	private readonly _dposModule: Dpos;
+	private readonly _bftModule: BFT;
+	private readonly _transactionPoolModule: TransactionPool;
+	private readonly _chainModule: Chain;
+	private readonly _keypairs: KeyPairs;
+	private readonly _config: {
 		readonly forging: {
 			readonly force?: boolean;
 			delegates?: ReadonlyArray<DelegateConfig>;
@@ -102,10 +107,10 @@ export class Forger {
 			readonly waitThreshold: number;
 		};
 	};
-	private readonly constants: {
+	private readonly _constants: {
 		readonly maxPayloadLength: number;
 	};
-	private readonly forgingStrategy?: HighFeeForgingStrategy;
+	private readonly _forgingStrategy?: HighFeeForgingStrategy;
 
 	public constructor({
 		forgingStrategy,
@@ -125,10 +130,10 @@ export class Forger {
 		forgingDefaultPassword,
 		forgingWaitThreshold,
 	}: ForgerConstructor) {
-		this.keypairs = {};
-		this.logger = logger;
-		this.storage = storage;
-		this.config = {
+		this._keypairs = {};
+		this._logger = logger;
+		this._storage = storage;
+		this._config = {
 			forging: {
 				delegates: forgingDelegates,
 				force: forgingForce,
@@ -136,36 +141,36 @@ export class Forger {
 				waitThreshold: forgingWaitThreshold,
 			},
 		};
-		this.constants = {
+		this._constants = {
 			maxPayloadLength,
 		};
 
-		this.processorModule = processorModule;
-		this.dposModule = dposModule;
-		this.bftModule = bftModule;
-		this.transactionPoolModule = transactionPoolModule;
-		this.chainModule = chainModule;
+		this._processorModule = processorModule;
+		this._dposModule = dposModule;
+		this._bftModule = bftModule;
+		this._transactionPoolModule = transactionPoolModule;
+		this._chainModule = chainModule;
 
-		this.forgingStrategy =
+		this._forgingStrategy =
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			forgingStrategy ??
 			new HighFeeForgingStrategy({
-				transactionPoolModule: this.transactionPoolModule,
-				chainModule: this.chainModule,
-				maxPayloadLength: this.constants.maxPayloadLength,
+				transactionPoolModule: this._transactionPoolModule,
+				chainModule: this._chainModule,
+				maxPayloadLength: this._constants.maxPayloadLength,
 			});
 	}
 
 	public delegatesEnabled(): boolean {
-		return Object.keys(this.keypairs).length > 0;
+		return Object.keys(this._keypairs).length > 0;
 	}
 
 	public async updateForgingStatus(
 		publicKey: string,
 		password: string,
 		forging: boolean,
-	): Promise<{ readonly publicKey: string; readonly forging: boolean }> {
-		const encryptedList = this.config.forging.delegates;
+	): Promise<ForgingStatus> {
+		const encryptedList = this._config.forging.delegates;
 		const encryptedItem = encryptedList?.find(
 			item => item.publicKey === publicKey,
 		);
@@ -200,22 +205,24 @@ export class Forger {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const [account] = await this.chainModule.dataAccess.getAccountsByPublicKey([
+		const [
+			account,
+		] = await this._chainModule.dataAccess.getAccountsByPublicKey([
 			keypair.publicKey.toString('hex'),
 		]);
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (account?.isDelegate) {
 			if (forging) {
-				this.keypairs[
+				this._keypairs[
 					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
 				] = keypair;
-				this.logger.info(`Forging enabled on account: ${account.address}`);
+				this._logger.info(`Forging enabled on account: ${account.address}`);
 			} else {
-				delete this.keypairs[
+				delete this._keypairs[
 					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
 				];
-				this.logger.info(`Forging disabled on account: ${account.address}`);
+				this._logger.info(`Forging disabled on account: ${account.address}`);
 			}
 
 			return {
@@ -227,17 +234,17 @@ export class Forger {
 	}
 
 	public async loadDelegates(): Promise<void> {
-		const encryptedList = this.config.forging.delegates;
+		const encryptedList = this._config.forging.delegates;
 
 		if (
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			!encryptedList?.length ||
-			!this.config.forging.force ||
-			!this.config.forging.defaultPassword
+			!this._config.forging.force ||
+			!this._config.forging.defaultPassword
 		) {
 			return;
 		}
-		this.logger.info(
+		this._logger.info(
 			`Loading ${encryptedList.length} delegates using encrypted passphrases from config`,
 		);
 
@@ -249,13 +256,13 @@ export class Forger {
 			try {
 				passphrase = decryptPassphraseWithPassword(
 					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
-					this.config.forging.defaultPassword,
+					this._config.forging.defaultPassword,
 				);
 			} catch (error) {
 				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${
 					encryptedItem.publicKey
 				}. ${(error as Error).message}`;
-				this.logger.error(decryptionError);
+				this._logger.error(decryptionError);
 				throw new Error(decryptionError);
 			}
 
@@ -277,7 +284,7 @@ export class Forger {
 
 			const [
 				account,
-			] = await this.chainModule.dataAccess.getAccountsByPublicKey([
+			] = await this._chainModule.dataAccess.getAccountsByPublicKey([
 				keypair.publicKey.toString('hex'),
 			]);
 
@@ -290,12 +297,12 @@ export class Forger {
 				);
 			}
 			if (account.isDelegate) {
-				this.keypairs[
+				this._keypairs[
 					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
 				] = keypair;
-				this.logger.info(`Forging enabled on account: ${account.address}`);
+				this._logger.info(`Forging enabled on account: ${account.address}`);
 			} else {
-				this.logger.warn(
+				this._logger.warn(
 					{},
 					`Account with public key: ${keypair.publicKey.toString(
 						'hex',
@@ -315,7 +322,7 @@ export class Forger {
 				registeredHashOnionSeed &&
 				registeredHashOnionSeed !== configHashOnionSeed
 			) {
-				this.logger.warn(
+				this._logger.warn(
 					`Hash onion for Account ${account.address} is not the same as previous one. Overwriting with new hash onion`,
 				);
 				usedHashOnions = usedHashOnions.filter(
@@ -346,7 +353,7 @@ export class Forger {
 			// If hash onion used is close to being used up, then put the warning message
 			const { count: highestCount } = highestUsedHashOnion;
 			if (highestCount > hashOnionConfig.count - hashOnionConfig.distance) {
-				this.logger.warn(
+				this._logger.warn(
 					{
 						hashOnionUsed: highestCount,
 					},
@@ -363,20 +370,20 @@ export class Forger {
 	}
 
 	public async forge(): Promise<void> {
-		const currentSlot = this.chainModule.slots.getSlotNumber();
-		const currentSlotTime = this.chainModule.slots.getRealTime(
-			this.chainModule.slots.getSlotTime(currentSlot),
+		const currentSlot = this._chainModule.slots.getSlotNumber();
+		const currentSlotTime = this._chainModule.slots.getRealTime(
+			this._chainModule.slots.getSlotTime(currentSlot),
 		);
 
 		const currentTime = new Date().getTime();
-		const waitThreshold = this.config.forging.waitThreshold * 1000;
-		const { lastBlock } = this.chainModule;
-		const lastBlockSlot = this.chainModule.slots.getSlotNumber(
+		const waitThreshold = this._config.forging.waitThreshold * 1000;
+		const { lastBlock } = this._chainModule;
+		const lastBlockSlot = this._chainModule.slots.getSlotNumber(
 			lastBlock.timestamp,
 		);
 
 		if (currentSlot === lastBlockSlot) {
-			this.logger.trace(
+			this._logger.trace(
 				{ slot: currentSlot },
 				'Block already forged for the current slot',
 			);
@@ -384,8 +391,8 @@ export class Forger {
 		}
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
-		const round = this.dposModule.rounds.calcRound(
-			this.chainModule.lastBlock.height + 1,
+		const round = this._dposModule.rounds.calcRound(
+			this._chainModule.lastBlock.height + 1,
 		);
 
 		let delegateKeypair: KeyPair | null;
@@ -396,13 +403,13 @@ export class Forger {
 				round,
 			);
 		} catch (err) {
-			this.logger.error({ err: err as Error }, 'Skipping delegate slot');
+			this._logger.error({ err: err as Error }, 'Skipping delegate slot');
 			throw err;
 		}
 
 		if (delegateKeypair === null) {
-			this.logger.trace(
-				{ currentSlot: this.chainModule.slots.getSlotNumber() },
+			this._logger.trace(
+				{ currentSlot: this._chainModule.slots.getSlotNumber() },
 				'Waiting for delegate slot',
 			);
 			return;
@@ -414,8 +421,8 @@ export class Forger {
 			lastBlockSlot < currentSlot - 1 &&
 			currentTime <= currentSlotTime + waitThreshold
 		) {
-			this.logger.info('Skipping forging to wait for last block');
-			this.logger.debug(
+			this._logger.info('Skipping forging to wait for last block');
+			this._logger.debug(
 				{
 					currentSlot,
 					lastBlockSlot,
@@ -426,9 +433,9 @@ export class Forger {
 			return;
 		}
 
-		const timestamp = this.chainModule.slots.getSlotTime(currentSlot);
-		const previousBlock = this.chainModule.lastBlock;
-		const transactions = await this.forgingStrategy?.getTransactionsForBlock();
+		const timestamp = this._chainModule.slots.getSlotTime(currentSlot);
+		const previousBlock = this._chainModule.lastBlock;
+		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
 
 		const delegateAddress = getAddressFromPublicKey(
 			delegateKeypair.publicKey.toString('hex'),
@@ -458,11 +465,11 @@ export class Forger {
 
 		const updatedUsedHashOnion = this._filterUsedHashOnions(
 			usedHashOnions,
-			this.bftModule.finalizedHeight,
+			this._bftModule.finalizedHeight,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const forgedBlock = await this.processorModule.create({
+		const forgedBlock = await this._processorModule.create({
 			keypair: delegateKeypair,
 			timestamp,
 			transactions: transactions as BaseTransaction[],
@@ -472,16 +479,16 @@ export class Forger {
 
 		await this._setUsedHashOnions(updatedUsedHashOnion);
 
-		await this.processorModule.process(forgedBlock);
+		await this._processorModule.process(forgedBlock);
 
-		this.logger.info(
+		this._logger.info(
 			{
 				id: forgedBlock.id,
 				generatorAddress: delegateAddress,
 				seedReveal: nextHashOnion.hash,
 				height: forgedBlock.height,
-				round: this.dposModule.rounds.calcRound(forgedBlock.height),
-				slot: this.chainModule.slots.getSlotNumber(forgedBlock.timestamp),
+				round: this._dposModule.rounds.calcRound(forgedBlock.height),
+				slot: this._chainModule.slots.getSlotNumber(forgedBlock.timestamp),
 				reward: forgedBlock.reward.toString(),
 			},
 			'Forged new block',
@@ -490,18 +497,13 @@ export class Forger {
 
 	// eslint-disable-next-line class-methods-use-this
 	public getForgersKeyPairs(): KeyPairs {
-		return this.keypairs;
+		return this._keypairs;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public getForgingStatusOfAllDelegates():
-		| {
-				forging: boolean;
-				publicKey: string;
-		  }[]
-		| undefined {
-		const keyPairs = this.keypairs;
-		const forgingDelegates = this.config.forging.delegates;
+	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
+		const keyPairs = this._keypairs;
+		const forgingDelegates = this._config.forging.delegates;
 		const forgersPublicKeys: { [key: string]: boolean } = {};
 
 		Object.keys(keyPairs).forEach(key => {
@@ -552,7 +554,7 @@ export class Forger {
 		const { count: usedCount } = usedHashOnion;
 		const nextCount = usedCount + 1;
 		if (nextCount > hashOnionConfig.count) {
-			this.logger.warn(
+			this._logger.warn(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
 			return {
@@ -574,7 +576,7 @@ export class Forger {
 	}
 
 	private _getHashOnionConfig(address: string): HashOnionConfig {
-		const delegateConfig = this.config.forging.delegates?.find(
+		const delegateConfig = this._config.forging.delegates?.find(
 			d => getAddressFromPublicKey(d.publicKey) === address,
 		);
 		if (!delegateConfig?.hashOnion) {
@@ -586,7 +588,7 @@ export class Forger {
 	}
 
 	private async _getRegisteredHashOnionSeeds(): Promise<StringKeyVal> {
-		const registeredHashOnionSeedsStr = await this.storage.entities.ForgerInfo.getKey(
+		const registeredHashOnionSeedsStr = await this._storage.entities.ForgerInfo.getKey(
 			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -601,14 +603,14 @@ export class Forger {
 		const registeredHashOnionSeedsStr = JSON.stringify(
 			registeredHashOnionSeeds,
 		);
-		await this.storage.entities.ForgerInfo.setKey(
+		await this._storage.entities.ForgerInfo.setKey(
 			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 			registeredHashOnionSeedsStr,
 		);
 	}
 
 	private async _getUsedHashOnions(): Promise<UsedHashOnion[]> {
-		const usedHashOnionsStr = await this.storage.entities.ForgerInfo.getKey(
+		const usedHashOnionsStr = await this._storage.entities.ForgerInfo.getKey(
 			FORGER_INFO_KEY_USED_HASH_ONION,
 		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -653,7 +655,7 @@ export class Forger {
 		usedHashOnions: UsedHashOnion[],
 	): Promise<void> {
 		const usedHashOnionsStr = JSON.stringify(usedHashOnions);
-		await this.storage.entities.ForgerInfo.setKey(
+		await this._storage.entities.ForgerInfo.setKey(
 			FORGER_INFO_KEY_USED_HASH_ONION,
 			usedHashOnionsStr,
 		);
@@ -663,7 +665,7 @@ export class Forger {
 		currentSlot: number,
 		round: number,
 	): Promise<KeyPair | null> {
-		const activeDelegates = await this.dposModule.getForgerAddressesForRound(
+		const activeDelegates = await this._dposModule.getForgerAddressesForRound(
 			round,
 		);
 
@@ -671,8 +673,8 @@ export class Forger {
 		const currentSlotDelegate = activeDelegates[currentSlotIndex];
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (currentSlotDelegate && this.keypairs[currentSlotDelegate]) {
-			return this.keypairs[currentSlotDelegate];
+		if (currentSlotDelegate && this._keypairs[currentSlotDelegate]) {
+			return this._keypairs[currentSlotDelegate];
 		}
 
 		return null;

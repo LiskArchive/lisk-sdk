@@ -120,7 +120,7 @@ describe('strategies', () => {
 						mockChainModule,
 					),
 				);
-				strategy.constants.maxPayloadLength = BigInt(
+				strategy._constants.maxPayloadLength = BigInt(
 					allValidCase.input.maxPayloadLength,
 				);
 
@@ -141,7 +141,7 @@ describe('strategies', () => {
 						mockChainModule,
 					),
 				);
-				strategy.constants.maxPayloadLength = BigInt(
+				strategy._constants.maxPayloadLength = BigInt(
 					maxPayloadLengthCase.input.maxPayloadLength,
 				);
 
@@ -162,7 +162,7 @@ describe('strategies', () => {
 						mockChainModule,
 					),
 				);
-				strategy.constants.maxPayloadLength = BigInt(
+				strategy._constants.maxPayloadLength = BigInt(
 					invalidTxCase.input.maxPayloadLength,
 				);
 
@@ -193,7 +193,7 @@ describe('strategies', () => {
 						mockChainModule,
 					),
 				);
-				strategy.constants.maxPayloadLength = BigInt(
+				strategy._constants.maxPayloadLength = BigInt(
 					allInvalidCase.input.maxPayloadLength,
 				);
 
