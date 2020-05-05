@@ -12,54 +12,65 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { MaxHeap, TransactionPool } from '@liskhq/lisk-transaction-pool';
+import {
+	Status as TransactionStatus,
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
+import { Chain } from '@liskhq/lisk-chain';
 
-const { MaxHeap } = require('@liskhq/lisk-transaction-pool');
-const { Status: TransactionStatus } = require('@liskhq/lisk-transactions');
+export class HighFeeForgingStrategy {
+	private readonly _chainModule: Chain;
+	private readonly _transactionPoolModule: TransactionPool;
+	private readonly _constants: {
+		readonly maxPayloadLength: number;
+	};
 
-class HighFeeForgingStrategy {
-	constructor({
-		// components
-		logger,
+	public constructor({
 		// Modules
 		chainModule,
 		transactionPoolModule,
 		// constants
 		maxPayloadLength,
+	}: {
+		readonly chainModule: Chain;
+		readonly transactionPoolModule: TransactionPool;
+		readonly maxPayloadLength: number;
 	}) {
-		this.chainModule = chainModule;
-		this.transactionPoolModule = transactionPoolModule;
-		this.logger = logger;
-
-		this.constants = { maxPayloadLength };
+		this._chainModule = chainModule;
+		this._transactionPoolModule = transactionPoolModule;
+		this._constants = { maxPayloadLength };
 	}
 
-	async getTransactionsForBlock() {
+	public async getTransactionsForBlock(): Promise<BaseTransaction[]> {
 		// Initialize array to select transactions
 		const readyTransactions = [];
 
 		// Initialize state store which will be discarded after selection
-		const stateStore = await this.chainModule.newStateStore();
+		const stateStore = await this._chainModule.newStateStore();
 
 		// Get processable transactions from transaction pool
 		// transactions are sorted by lowest nonce per account
-		const transactionsBySender = this.transactionPoolModule.getProcessableTransactions();
+		const transactionsBySender = this._transactionPoolModule.getProcessableTransactions();
 
 		// Initialize block size with 0
 		let blockPayloadSize = 0;
 		const feePriorityHeap = new MaxHeap();
 		for (const senderId of Object.keys(transactionsBySender)) {
 			const lowestNonceTrx = transactionsBySender[senderId][0];
-			feePriorityHeap.push(lowestNonceTrx.feePriority, lowestNonceTrx);
+			feePriorityHeap.push(
+				lowestNonceTrx.feePriority as bigint,
+				lowestNonceTrx,
+			);
 		}
 
 		// Loop till we have last account exhausted to pick transactions
 		while (Object.keys(transactionsBySender).length !== 0) {
 			// Get the transaction with highest fee and lowest nonce
-			const lowestNonceHighestFeeTrx = feePriorityHeap.pop().value;
-
+			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()
+				?.value as BaseTransaction;
 			// Try to process transaction
-			const result = await this.chainModule.applyTransactionsWithStateStore(
+			const result = await this._chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
 				stateStore,
 			);
@@ -77,7 +88,7 @@ class HighFeeForgingStrategy {
 			// then discard all transactions from that account as
 			// other transactions will be higher nonce
 			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
-			if (blockPayloadSize + trsByteSize > this.constants.maxPayloadLength) {
+			if (blockPayloadSize + trsByteSize > this._constants.maxPayloadLength) {
 				// End up filling the block
 				break;
 			}
@@ -111,7 +122,7 @@ class HighFeeForgingStrategy {
 			const nextLowestNonceTransaction =
 				transactionsBySender[lowestNonceHighestFeeTrx.senderId][0];
 			feePriorityHeap.push(
-				nextLowestNonceTransaction.feePriority,
+				nextLowestNonceTransaction.feePriority as bigint,
 				nextLowestNonceTransaction,
 			);
 		}
@@ -119,5 +130,3 @@ class HighFeeForgingStrategy {
 		return readyTransactions;
 	}
 }
-
-module.exports = { HighFeeForgingStrategy };

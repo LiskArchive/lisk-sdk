@@ -295,7 +295,7 @@ describe('Node', () => {
 			});
 
 			it('should initialize forger module with high fee strategy', async () => {
-				expect(node.forger.forgingStrategy).toBeInstanceOf(
+				expect(node.forger._forgingStrategy).toBeInstanceOf(
 					HighFeeForgingStrategy,
 				);
 			});

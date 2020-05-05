@@ -12,25 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { transfer, utils } from '@liskhq/lisk-transactions';
+import { nodeUtils, storageUtils, configUtils } from '../../../../../../utils';
+import { accounts } from '../../../../../../fixtures';
 
-const {
-	transfer,
-	utils: { convertLSKToBeddows },
-} = require('@liskhq/lisk-transactions');
-const {
-	nodeUtils,
-	storageUtils,
-	configUtils,
-} = require('../../../../../../utils');
-const {
-	accounts: { genesis },
-} = require('../../../../../../fixtures');
+const { convertLSKToBeddows } = utils;
+const { genesis } = accounts;
 
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';
-	let storage;
-	let node;
+	let storage: any;
+	let node: any;
 
 	beforeAll(async () => {
 		storage = new storageUtils.StorageSandbox(
@@ -47,7 +39,7 @@ describe('Transaction pool', () => {
 	});
 
 	describe('given a valid transaction while forging is disabled', () => {
-		let transaction;
+		let transaction: any;
 
 		beforeAll(async () => {
 			const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
@@ -66,7 +58,7 @@ describe('Transaction pool', () => {
 		});
 
 		describe('when transaction is pass to the transaction pool', () => {
-			it('should be added to the transaction pool', async () => {
+			it('should be added to the transaction pool', () => {
 				expect(node.transactionPool.contains(transaction.id)).toBeTrue();
 			});
 

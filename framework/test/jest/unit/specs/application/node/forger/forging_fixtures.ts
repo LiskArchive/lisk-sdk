@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const allValidCase = {
+export const allValidCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
@@ -34,7 +32,7 @@ const allValidCase = {
 	],
 };
 
-const maxPayloadLengthCase = {
+export const maxPayloadLengthCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
@@ -53,7 +51,7 @@ const maxPayloadLengthCase = {
 	],
 };
 
-const invalidTxCase = {
+export const invalidTxCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
@@ -71,7 +69,7 @@ const invalidTxCase = {
 	],
 };
 
-const allInvalidCase = {
+export const allInvalidCase = {
 	input: {
 		maxPayloadLength: 1000,
 		transactions: [
@@ -83,11 +81,4 @@ const allInvalidCase = {
 		],
 	},
 	output: [],
-};
-
-module.exports = {
-	allValidCase,
-	maxPayloadLengthCase,
-	invalidTxCase,
-	allInvalidCase,
 };
