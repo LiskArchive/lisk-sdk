@@ -23,9 +23,6 @@ export interface TransactionObject {
 	receivedAt?: Date;
 	// TODO: Remove unnecessary properties
 	readonly senderPublicKey: string;
-	readonly asset: {
-		[key: string]: string | number | ReadonlyArray<string> | undefined;
-	};
 	signatures?: ReadonlyArray<string>;
 	readonly type: number;
 	verifiedOnce?: boolean;

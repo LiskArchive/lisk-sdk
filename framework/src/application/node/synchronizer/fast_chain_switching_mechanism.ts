@@ -12,24 +12,49 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const { BaseSynchronizer } = require('./base_synchronizer');
-const {
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { BFT } from '@liskhq/lisk-bft';
+import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
+import { Dpos } from '@liskhq/lisk-dpos';
+import { BaseSynchronizer } from './base_synchronizer';
+import {
 	clearBlocksTempTable,
 	restoreBlocks,
 	deleteBlocksAfterHeight,
-} = require('./utils');
-const {
+} from './utils';
+import {
 	ApplyPenaltyAndAbortError,
 	AbortError,
 	BlockProcessingError,
 	RestartError,
-} = require('./errors');
+} from './errors';
+import { Processor } from '../processor';
+import { Logger, Channel } from '../../../types';
 
-class FastChainSwitchingMechanism extends BaseSynchronizer {
-	constructor({ logger, channel, chain, bft, processor, dpos }) {
+interface FastChainSwitchingMechanismInput {
+	readonly logger: Logger;
+	readonly channel: Channel;
+	readonly bft: BFT;
+	readonly dpos: Dpos;
+	readonly chain: Chain;
+	readonly processor: Processor;
+}
+
+export class FastChainSwitchingMechanism extends BaseSynchronizer {
+	public active: boolean;
+	private readonly bft: BFT;
+	private readonly dpos: Dpos;
+	private readonly chain: Chain;
+	private readonly processor: Processor;
+
+	public constructor({
+		logger,
+		channel,
+		chain,
+		bft,
+		processor,
+		dpos,
+	}: FastChainSwitchingMechanismInput) {
 		super(logger, channel);
 		this.dpos = dpos;
 		this.chain = chain;
@@ -38,8 +63,10 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this.active = false;
 	}
 
-	// eslint-disable-next-line class-methods-use-this,no-empty-function
-	async run(receivedBlock, peerId) {
+	public async run(
+		receivedBlock: BlockInstance,
+		peerId: string,
+	): Promise<void> {
 		this.active = true;
 
 		try {
@@ -50,14 +77,18 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 				peerId,
 			);
 			await this._validateBlocks(blocks, peerId);
-			await this._switchChain(highestCommonBlock, blocks, peerId);
+			await this._switchChain(
+				highestCommonBlock as BlockInstance,
+				blocks,
+				peerId,
+			);
 		} catch (err) {
 			if (err instanceof ApplyPenaltyAndAbortError) {
 				this.logger.info(
 					{ err, peerId, reason: err.reason },
 					'Applying penalty to peer and aborting synchronization mechanism',
 				);
-				return this.channel.invoke('app:applyPenaltyOnPeer', {
+				await this.channel.invoke('app:applyPenaltyOnPeer', {
 					peerId,
 					penalty: 100,
 				});
@@ -66,30 +97,34 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			if (err instanceof RestartError) {
 				this.logger.info(
 					{ err, reason: err.reason },
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					`Restarting synchronization mechanism with reason: ${err.reason}`,
 				);
-				return this.channel.publish('app:chain:sync', {
+				this.channel.publish('app:chain:sync', {
 					block: receivedBlock,
 				});
+				return;
 			}
 
 			if (err instanceof AbortError) {
-				return this.logger.info(
+				this.logger.info(
 					{ err, reason: err.reason },
 					`Aborting synchronization mechanism with reason: ${err.reason}`,
 				);
+				return;
 			}
 
 			throw err;
 		} finally {
 			this.active = false;
 		}
-
-		return true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async isValidFor(receivedBlock, peerId) {
+	public async isValidFor(
+		receivedBlock: BlockInstance,
+		peerId: string,
+	): Promise<boolean> {
 		if (!peerId) {
 			// If peerId is not specified, fast chain switching cannot be done
 			return false;
@@ -109,24 +144,27 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return this.dpos.isActiveDelegate(generatorAddress, receivedBlock.height);
 	}
 
-	async _requestBlocksWithinIDs(peerId, fromId, toId) {
+	private async _requestBlocksWithinIDs(
+		peerId: string,
+		fromId: string,
+		toId: string,
+	): Promise<BlockJSON[]> {
 		const maxFailedAttempts = 10; // TODO: Probably expose this to the configuration layer?
 		const blocks = [];
 		let failedAttempts = 0; // Failed attempt === the peer doesn't return any block or there is a network failure (no response or takes too long to answer)
 		let lastFetchedID = fromId;
 		while (failedAttempts < maxFailedAttempts) {
-			const { data: chunkOfBlocks } = await this.channel.invokeFromNetwork(
-				'requestFromPeer',
-				{
-					procedure: 'getBlocksFromId',
-					peerId,
-					data: {
-						blockId: lastFetchedID,
-					},
+			const { data: chunkOfBlocks } = await this.channel.invokeFromNetwork<{
+				data: BlockJSON[] | undefined;
+			}>('requestFromPeer', {
+				procedure: 'getBlocksFromId',
+				peerId,
+				data: {
+					blockId: lastFetchedID,
 				},
-			); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+			}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
 
-			if (chunkOfBlocks && chunkOfBlocks.length) {
+			if (chunkOfBlocks?.length) {
 				// Sort blocks with height in ascending order because blocks are returned in descending order
 				chunkOfBlocks.sort((a, b) => a.height - b.height);
 				blocks.push(...chunkOfBlocks);
@@ -143,7 +181,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	async _queryBlocks(receivedBlock, highestCommonBlock, peerId) {
+	private async _queryBlocks(
+		receivedBlock: BlockInstance,
+		highestCommonBlock: BlockInstance | undefined,
+		peerId: string,
+	): Promise<BlockJSON[]> {
 		if (!highestCommonBlock) {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
@@ -185,7 +227,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			receivedBlock.id,
 		);
 
-		if (!blocks || !blocks.length) {
+		if (!blocks.length) {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
 				`Peer didn't return any requested block within IDs ${highestCommonBlock.id} and ${receivedBlock.id}`,
@@ -195,7 +237,10 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return blocks;
 	}
 
-	async _validateBlocks(blocks, peerId) {
+	private async _validateBlocks(
+		blocks: ReadonlyArray<BlockJSON>,
+		peerId: string,
+	): Promise<void> {
 		this.logger.debug(
 			{
 				blocks: blocks.map(block => ({
@@ -220,7 +265,9 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this.logger.debug('Successfully validated blocks');
 	}
 
-	async _applyBlocks(blocksToApply) {
+	private async _applyBlocks(
+		blocksToApply: ReadonlyArray<BlockJSON>,
+	): Promise<void> {
 		try {
 			for (const block of blocksToApply) {
 				this.logger.trace(
@@ -238,7 +285,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
-	async _handleBlockProcessingFailure(error, highestCommonBlock, peerId) {
+	private async _handleBlockProcessingFailure(
+		error: Error,
+		highestCommonBlock: BlockInstance,
+		peerId: string,
+	): Promise<void> {
 		this.logger.error({ err: error }, 'Error while processing blocks');
 		this.logger.debug(
 			{ height: highestCommonBlock.height },
@@ -258,7 +309,11 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		);
 	}
 
-	async _switchChain(highestCommonBlock, blocksToApply, peerId) {
+	private async _switchChain(
+		highestCommonBlock: BlockInstance,
+		blocksToApply: ReadonlyArray<BlockJSON>,
+		peerId: string,
+	): Promise<void> {
 		this.logger.info('Switching chain');
 		this.logger.debug(
 			{ height: highestCommonBlock.height },
@@ -307,7 +362,7 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 	}
 
-	_computeLastTwoRoundsHeights() {
+	private _computeLastTwoRoundsHeights(): number[] {
 		return new Array(
 			Math.min(this.dpos.delegatesPerRound * 2, this.chain.lastBlock.height),
 		)
@@ -320,7 +375,9 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 	 * In order to do that, sends a set of network calls which include a set of block ids
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 */
-	async _requestLastCommonBlock(peerId) {
+	private async _requestLastCommonBlock(
+		peerId: string,
+	): Promise<BlockInstance | undefined> {
 		this.logger.debug({ peerId }, 'Requesting the last common block with peer');
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
@@ -335,23 +392,22 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 			// Request the highest common block with the previously computed list
 			// to the given peer
 			try {
-				const { data } = await this.channel.invokeFromNetwork(
-					'requestFromPeer',
-					{
-						procedure: 'getHighestCommonBlock',
-						peerId,
-						data: {
-							ids: blockIds,
-						},
+				const { data } = await this.channel.invokeFromNetwork<{
+					data: BlockJSON | undefined;
+				}>('requestFromPeer', {
+					procedure: 'getHighestCommonBlock',
+					peerId,
+					data: {
+						ids: blockIds,
 					},
-				);
+				});
 
 				if (data) {
 					this.logger.debug(
 						{ blockId: data.id, height: data.height },
 						'Common block found',
 					);
-					return data;
+					return this.chain.deserialize(data);
 				}
 			} finally {
 				numberOfRequests += 1;
@@ -361,5 +417,3 @@ class FastChainSwitchingMechanism extends BaseSynchronizer {
 		return undefined;
 	}
 }
-
-module.exports = { FastChainSwitchingMechanism };

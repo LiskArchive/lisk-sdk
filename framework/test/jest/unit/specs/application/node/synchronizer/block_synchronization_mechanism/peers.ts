@@ -12,14 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 /**
  * Fixtures used by Block Synchronization Mechanism's Peer selection algorithm
  * It represents an array of Peers supposedly returned by the network module
  * @type {*[]}
  */
-module.exports = {
+export const peersList = {
 	connectedPeers: [
 		{
 			lastBlockId: '12343245',

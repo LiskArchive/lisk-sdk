@@ -80,7 +80,6 @@ interface ChainConstructor {
 	readonly storage: Storage;
 	// Unique requirements
 	readonly genesisBlock: GenesisBlockJSON;
-	readonly slots: Slots;
 	// Modules
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;

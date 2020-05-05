@@ -211,32 +211,32 @@ export class PeerPool extends EventEmitter {
 		}, peerPoolConfig.outboundShuffleInterval);
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handlePeerRPC = (request: P2PRequest) => {
+		this._handlePeerRPC = (request: P2PRequest): void => {
 			// Re-emit the request to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_REQUEST_RECEIVED, request);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handlePeerMessage = (message: P2PMessagePacket) => {
+		this._handlePeerMessage = (message: P2PMessagePacket): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
 		// This needs to be an arrow function so that it can be used as a listener.
-		this._handleDiscoverPeer = (peerInfo: P2PPeerInfo) => {
+		this._handleDiscoverPeer = (peerInfo: P2PPeerInfo): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_DISCOVERED_PEER, peerInfo);
 		};
 
-		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnect = (peerInfo: P2PPeerInfo): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_OUTBOUND, peerInfo);
 		};
-		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo) => {
+		this._handleOutboundPeerConnectAbort = (peerInfo: P2PPeerInfo): void => {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CONNECT_ABORT_OUTBOUND, peerInfo);
 		};
-		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket) => {
+		this._handlePeerCloseOutbound = (closePacket: P2PClosePacket): void => {
 			const { peerId } = closePacket.peerInfo;
 			this.removePeer(
 				peerId,
@@ -247,7 +247,7 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
 		};
-		this._handlePeerCloseInbound = (closePacket: P2PClosePacket) => {
+		this._handlePeerCloseInbound = (closePacket: P2PClosePacket): void => {
 			const { peerId } = closePacket.peerInfo;
 			this.removePeer(
 				peerId,
@@ -258,35 +258,35 @@ export class PeerPool extends EventEmitter {
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
 		};
-		this._handlePeerOutboundSocketError = (error: Error) => {
+		this._handlePeerOutboundSocketError = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_OUTBOUND_SOCKET_ERROR, error);
 		};
-		this._handlePeerInboundSocketError = (error: Error) => {
+		this._handlePeerInboundSocketError = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo) => {
+		this._handlePeerInfoUpdate = (peerInfo: P2PPeerInfo): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_UPDATED_PEER_INFO, peerInfo);
 		};
-		this._handleFailedPeerInfoUpdate = (error: Error) => {
+		this._handleFailedPeerInfoUpdate = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 		};
-		this._handleFailedToFetchPeerInfo = (error: Error) => {
+		this._handleFailedToFetchPeerInfo = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEER_INFO, error);
 		};
-		this._handleFailedToFetchPeers = (error: Error) => {
+		this._handleFailedToFetchPeers = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_FETCH_PEERS, error);
 		};
-		this._handleFailedToCollectPeerDetails = (error: Error) => {
+		this._handleFailedToCollectPeerDetails = (error: Error): void => {
 			// Re-emit the error to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT, error);
 		};
-		this._handleBanPeer = (peerId: string) => {
+		this._handleBanPeer = (peerId: string): void => {
 			// Re-emit the peerId to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_BAN_PEER, peerId);
 		};
@@ -419,7 +419,7 @@ export class PeerPool extends EventEmitter {
 			const isConnectedSeedPeer = this.getPeer(peer.peerId);
 			if (isConnectedSeedPeer) {
 				// eslint-disable-next-line @typescript-eslint/no-floating-promises
-				(async () => {
+				(async (): Promise<void> => {
 					try {
 						await isConnectedSeedPeer.discoverPeers();
 						// eslint-disable-next-line no-empty

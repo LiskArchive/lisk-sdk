@@ -71,7 +71,7 @@ export class Processor {
 			throw new Error('version property must exist for processor');
 		}
 		this.processors[processor.version] = processor;
-		this.matchers[processor.version] = matcher ?? (() => true);
+		this.matchers[processor.version] = matcher ?? ((): boolean => true);
 	}
 
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
@@ -374,7 +374,7 @@ export class Processor {
 		block: BlockInstance,
 		processor: BaseBlockProcessor,
 		{ saveOnlyState } = { saveOnlyState: false },
-	) {
+	): Promise<BlockInstance> {
 		const stateStore = await this.chainModule.newStateStore();
 		const isPersisted = await this.chainModule.exists(block);
 		if (saveOnlyState && !isPersisted) {
@@ -400,7 +400,7 @@ export class Processor {
 		block: BlockInstance,
 		processor: BaseBlockProcessor,
 		saveTempBlock = false,
-	) {
+	): Promise<void> {
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = await this.chainModule.newStateStore(1);
 		await processor.undo.run({

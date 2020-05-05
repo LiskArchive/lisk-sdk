@@ -12,15 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { maxBy } from 'lodash';
+import { ForkStatus } from '@liskhq/lisk-bft';
+import { Chain } from '@liskhq/lisk-chain';
+import { Processor } from '../processor';
+import { Logger } from '../../../types';
 
-const { maxBy } = require('lodash');
-const { ForkStatus } = require('@liskhq/lisk-bft');
-
-const restoreBlocks = async (chainModule, processorModule) => {
+export const restoreBlocks = async (
+	chainModule: Chain,
+	processorModule: Processor,
+): Promise<boolean> => {
 	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
 
-	if (!tempBlocks || tempBlocks.length === 0) {
+	if (tempBlocks.length === 0) {
 		return false;
 	}
 
@@ -36,16 +40,16 @@ const restoreBlocks = async (chainModule, processorModule) => {
 	return true;
 };
 
-const clearBlocksTempTable = chainModule =>
+export const clearBlocksTempTable = async (chainModule: Chain): Promise<void> =>
 	chainModule.dataAccess.clearTempBlocks();
 
-const deleteBlocksAfterHeight = async (
-	processorModule,
-	chainModule,
-	logger,
-	desiredHeight,
+export const deleteBlocksAfterHeight = async (
+	processorModule: Processor,
+	chainModule: Chain,
+	logger: Logger,
+	desiredHeight: number,
 	backup = false,
-) => {
+): Promise<void> => {
 	let { height: currentHeight } = chainModule.lastBlock;
 	logger.debug(
 		{ desiredHeight, lastBlockHeight: currentHeight },
@@ -76,11 +80,11 @@ const deleteBlocksAfterHeight = async (
  * we continue applying blocks using the `restoreBlocks` function.
  * Otherwise we truncate the temp_blocks table.
  */
-const restoreBlocksUponStartup = async (
-	logger,
-	chainModule,
-	processorModule,
-) => {
+export const restoreBlocksUponStartup = async (
+	logger: Logger,
+	chainModule: Chain,
+	processorModule: Processor,
+): Promise<void> => {
 	// Get all blocks and find lowest height (next one to be applied)
 	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
 	const blockLowestHeight = tempBlocks[0];
@@ -113,12 +117,12 @@ const restoreBlocksUponStartup = async (
 	}
 };
 
-const computeBlockHeightsList = (
-	finalizedHeight,
-	activeDelegates,
-	listSizeLimit,
-	currentRound,
-) => {
+export const computeBlockHeightsList = (
+	finalizedHeight: number,
+	activeDelegates: number,
+	listSizeLimit: number,
+	currentRound: number,
+): number[] => {
 	const startingHeight = Math.max(1, (currentRound - 1) * activeDelegates);
 	const heightList = new Array(listSizeLimit)
 		.fill(0)
@@ -132,9 +136,11 @@ const computeBlockHeightsList = (
 		: heightListAfterFinalized;
 };
 
-// eslint-disable-next-line class-methods-use-this
-const computeLargestSubsetMaxBy = (arrayOfObjects, propertySelectorFunc) => {
-	const maximumBy = maxBy(arrayOfObjects, propertySelectorFunc);
+export const computeLargestSubsetMaxBy = <T>(
+	arrayOfObjects: T[],
+	propertySelectorFunc: (param: T) => number,
+): T[] => {
+	const maximumBy = maxBy(arrayOfObjects, propertySelectorFunc) as T;
 	const absoluteMax = propertySelectorFunc(maximumBy);
 	const largestSubset = [];
 	// eslint-disable-next-line no-restricted-syntax
@@ -144,13 +150,4 @@ const computeLargestSubsetMaxBy = (arrayOfObjects, propertySelectorFunc) => {
 		}
 	}
 	return largestSubset;
-};
-
-module.exports = {
-	computeBlockHeightsList,
-	computeLargestSubsetMaxBy,
-	deleteBlocksAfterHeight,
-	restoreBlocksUponStartup,
-	restoreBlocks,
-	clearBlocksTempTable,
 };

@@ -12,21 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { ForkStatus } = require('@liskhq/lisk-bft');
-const {
+import { ForkStatus } from '@liskhq/lisk-bft';
+import { TempBlock } from '@liskhq/lisk-chain';
+import {
 	restoreBlocks,
 	restoreBlocksUponStartup,
-} = require('../../../../../../../src/application/node/synchronizer/utils');
+} from '../../../../../../../src/application/node/synchronizer/utils';
 
 describe('#synchronizer/utils', () => {
-	let chainMock;
-	let processorMock;
-	let storageMock;
-	let loggerMock;
+	let chainMock: any;
+	let processorMock: any;
+	let loggerMock: any;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		chainMock = {
 			lastBlock: jest.fn(),
 			dataAccess: {
@@ -46,15 +44,6 @@ describe('#synchronizer/utils', () => {
 			forkStatus: jest.fn(),
 			deserialize: jest.fn(),
 			deleteLastBlock: jest.fn(),
-		};
-
-		storageMock = {
-			entities: {
-				TempBlock: {
-					get: jest.fn(),
-					truncate: jest.fn(),
-				},
-			},
 		};
 	});
 
@@ -112,27 +101,26 @@ describe('#synchronizer/utils', () => {
 	});
 
 	describe('restoreBlocksUponStartup()', () => {
-		let tempBlocks;
-		beforeEach(async () => {
+		let tempBlocks: TempBlock[];
+		beforeEach(() => {
 			tempBlocks = [
 				{
-					id: 1,
+					id: '1',
 					height: 10,
 					fullBlock: {
 						height: 10,
-						heightPrevoted: 6,
+						maxHeightPrevoted: 6,
 					},
 				},
 				{
-					id: 2,
+					id: '2',
 					height: 11,
 					fullBlock: {
 						height: 11,
-						heightPrevoted: 5,
+						maxHeightPrevoted: 5,
 					},
 				},
-			];
-			storageMock.entities.TempBlock.get.mockResolvedValue(tempBlocks);
+			] as TempBlock[];
 			chainMock.dataAccess.getTempBlocks.mockResolvedValue(tempBlocks);
 		});
 
@@ -143,16 +131,10 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				processorMock,
-				storageMock,
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
-			expect(storageMock.entities.TempBlock.truncate).not.toHaveBeenCalled();
 		});
 
 		it('should restore blocks if fork status = ForkStatus.VALID_BLOCK', async () => {
@@ -162,12 +144,7 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				processorMock,
-				storageMock,
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -186,12 +163,7 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(chainMock.lastBlock);
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				processorMock,
-				storageMock,
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -204,12 +176,7 @@ describe('#synchronizer/utils', () => {
 			processorMock.deserialize.mockResolvedValue(tempBlocks[0].fullBlock);
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				processorMock,
-				storageMock,
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
 
 			// Assert
 			expect(processorMock.forkStatus).toHaveBeenCalledWith(

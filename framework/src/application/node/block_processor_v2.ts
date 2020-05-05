@@ -209,6 +209,7 @@ export const getBytes = (
 	]);
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const validateSchema = ({ block }: { block: BlockInstance }) => {
 	const errors = validator.validate(blockSchema, block);
 	if (errors.length) {
@@ -247,6 +248,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		this.storage = storage;
 		this.constants = constants;
 
+		/* eslint-disable @typescript-eslint/explicit-function-return-type */
 		this.init.pipe([async ({ stateStore }) => this.bftModule.init(stateStore)]);
 
 		this.deserialize.pipe([
@@ -361,6 +363,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 				return block;
 			},
 		]);
+		/* eslint-enable @typescript-eslint/explicit-function-return-type */
 	}
 
 	private async _create({
@@ -394,7 +397,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			size += transactionBytes.length;
 
 			totalFee += BigInt(transaction.fee);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
 			totalAmount += BigInt((transaction.asset as any).amount ?? 0);
 
 			blockTransactions.push(transaction);
@@ -449,10 +452,13 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	}
 
 	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
-		const previouslyForgedStr = await this.storage.entities.ForgerInfo.getKey(
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+		const previouslyForgedStr = (await this.storage.entities.ForgerInfo.getKey(
 			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
-		);
-		return previouslyForgedStr ? JSON.parse(previouslyForgedStr) : {};
+		)) as string | undefined;
+		return previouslyForgedStr
+			? (JSON.parse(previouslyForgedStr) as ForgedMap)
+			: {};
 	}
 
 	/**
@@ -462,7 +468,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	private async _saveMaxHeightPreviouslyForged(
 		block: BlockWithoutID,
 		previouslyForgedMap: ForgedMap,
-	) {
+	): Promise<void> {
 		const {
 			generatorPublicKey,
 			height,
@@ -486,6 +492,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
 		await this.storage.entities.ForgerInfo.setKey(
 			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 			previouslyForgedStr,
@@ -495,7 +502,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	private async _punishDPoSViolation(
 		block: BlockWithoutIDAndSign,
 		stateStore: StateStore,
-	) {
+	): Promise<bigint> {
 		const isDPoSProtocolCompliant = await this.dposModule.isDPoSProtocolCompliant(
 			block,
 			stateStore,

@@ -12,45 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { when } from 'jest-when';
+import { BlockInstance, Chain } from '@liskhq/lisk-chain';
+import { BFT } from '@liskhq/lisk-bft';
+import { Dpos } from '@liskhq/lisk-dpos';
 
-const { when } = require('jest-when');
-const { Chain } = require('@liskhq/lisk-chain');
-const { BFT } = require('@liskhq/lisk-bft');
-const { Dpos } = require('@liskhq/lisk-dpos');
-
-const {
-	BlockProcessorV2,
-} = require('../../../../../../../../src/application/node/block_processor_v2');
-const {
+import { BlockProcessorV2 } from '../../../../../../../../src/application/node/block_processor_v2';
+import {
 	FastChainSwitchingMechanism,
 	Errors,
-} = require('../../../../../../../../src/application/node/synchronizer');
-const {
-	Processor,
-} = require('../../../../../../../../src/application/node/processor');
-const { constants } = require('../../../../../../../utils');
-const { newBlock } = require('../block');
-const {
-	registeredTransactions,
-} = require('../../../../../../../utils/registered_transactions');
+} from '../../../../../../../../src/application/node/synchronizer';
+import { Processor } from '../../../../../../../../src/application/node/processor';
+import { constants } from '../../../../../../../utils';
+import { newBlock } from '../block';
+import { registeredTransactions } from '../../../../../../../utils/registered_transactions';
 
-const genesisBlockDevnet = require('../../../../../../../fixtures/config/devnet/genesis_block.json');
+import * as genesisBlockDevnet from '../../../../../../../fixtures/config/devnet/genesis_block.json';
 
-const ChannelMock = jest.genMockFromModule(
+const ChannelMock: any = jest.genMockFromModule(
 	'../../../../../../../../src/controller/channels/in_memory_channel',
 );
 
 describe('fast_chain_switching_mechanism', () => {
-	let bftModule;
+	let bftModule: any;
 	let blockProcessorV2;
-	let chainModule;
-	let dposModule;
-	let processorModule;
-	let fastChainSwitchingMechanism;
+	let chainModule: any;
+	let dposModule: any;
+	let processorModule: any;
+	let fastChainSwitchingMechanism: FastChainSwitchingMechanism;
 
-	let channelMock;
-	let loggerMock;
+	let channelMock: any;
+	let loggerMock: any;
 	let dataAccessMock;
 
 	beforeEach(() => {
@@ -60,21 +52,20 @@ describe('fast_chain_switching_mechanism', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		const storageMock = {};
+		const storageMock: any = {};
 
 		channelMock = new ChannelMock();
 
 		chainModule = new Chain({
-			logger: loggerMock,
+			networkIdentifier: '',
 			storage: storageMock,
+			genesisBlock: genesisBlockDevnet as any,
 			registeredTransactions,
-			genesisBlock: genesisBlockDevnet,
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			blockSlotWindow: constants.blockSlotWindow,
 			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
@@ -111,6 +102,8 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
+			networkIdentifier: '',
+			storage: storageMock,
 			chainModule,
 			bftModule,
 			dposModule,
@@ -120,7 +113,6 @@ describe('fast_chain_switching_mechanism', () => {
 
 		processorModule = new Processor({
 			channel: channelMock,
-			storage: storageMock,
 			chainModule,
 			logger: loggerMock,
 		});
@@ -146,7 +138,7 @@ describe('fast_chain_switching_mechanism', () => {
 				'20d381308d9a809455567af249dddd68bd2e23753e69913961fe04ac07732594',
 		};
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			jest.spyOn(dposModule, 'isActiveDelegate');
 			chainModule._lastBlock = { height: 310 };
 		});
@@ -158,7 +150,7 @@ describe('fast_chain_switching_mechanism', () => {
 					{
 						generatorPublicKey: defaultGenerator.publicKey,
 						height: 515,
-					},
+					} as BlockInstance,
 					'peer-id',
 				);
 				expect(isValid).toEqual(true);
@@ -170,7 +162,7 @@ describe('fast_chain_switching_mechanism', () => {
 					{
 						generatorPublicKey: defaultGenerator.publicKey,
 						height: 515,
-					},
+					} as BlockInstance,
 					'peer-id',
 				);
 				expect(isValid).toEqual(false);
@@ -184,7 +176,7 @@ describe('fast_chain_switching_mechanism', () => {
 					{
 						generatorPublicKey: defaultGenerator.publicKey,
 						height: 619,
-					},
+					} as BlockInstance,
 					'peer-id',
 				);
 				expect(isValid).toEqual(false);
@@ -194,9 +186,9 @@ describe('fast_chain_switching_mechanism', () => {
 
 	describe('async run()', () => {
 		const aPeerId = '127.0.0.1:5000';
-		let aBlock;
+		let aBlock: BlockInstance;
 
-		const checkApplyPenaltyAndAbortIsCalled = (peerId, err) => {
+		const checkApplyPenaltyAndAbortIsCalled = (peerId: string, err: any) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{ err, peerId, reason: err.reason },
 				'Applying penalty to peer and aborting synchronization mechanism',
@@ -210,12 +202,13 @@ describe('fast_chain_switching_mechanism', () => {
 			);
 		};
 
-		const checkIfAbortIsCalled = error => {
+		const checkIfAbortIsCalled = (error: any) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
 				{
 					err: error,
 					reason: error.reason,
 				},
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Aborting synchronization mechanism with reason: ${error.reason}`,
 			);
 		};
@@ -229,28 +222,28 @@ describe('fast_chain_switching_mechanism', () => {
 			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(1)
-				.mockResolvedValue(genesisBlockDevnet);
+				.mockResolvedValue(genesisBlockDevnet as never);
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
-				.mockResolvedValue(lastBlock);
+				.mockResolvedValue(lastBlock as never);
 			when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 				.calledWith(1, 2)
-				.mockResolvedValue([lastBlock]);
+				.mockResolvedValue([lastBlock] as never);
 			when(chainModule.dataAccess.addBlockHeader)
 				.calledWith(lastBlock)
-				.mockResolvedValue([]);
+				.mockResolvedValue([] as never);
 			when(chainModule.dataAccess.getLastBlockHeader)
 				.calledWith()
-				.mockResolvedValue(lastBlock);
+				.mockResolvedValue(lastBlock as never);
 			when(chainModule.dataAccess.getBlockHeadersWithHeights)
 				.calledWith([2, 1])
-				.mockResolvedValue([genesisBlockDevnet, lastBlock]);
+				.mockResolvedValue([genesisBlockDevnet, lastBlock] as never);
 
 			// Simulate finalized height stored in ConsensusState table is 0
 
-			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks');
-			jest.spyOn(fastChainSwitchingMechanism, '_switchChain');
-			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks');
+			jest.spyOn(fastChainSwitchingMechanism, '_queryBlocks' as never);
+			jest.spyOn(fastChainSwitchingMechanism, '_switchChain' as never);
+			jest.spyOn(fastChainSwitchingMechanism, '_validateBlocks' as never);
 
 			await chainModule.init();
 		});
@@ -282,10 +275,14 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: undefined });
+					.mockResolvedValue({ data: undefined } as never);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				try {
+					await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				} catch (err) {
+					// Expected Error
+				}
 
 				// Assert
 				expect(channelMock.invokeFromNetwork).toHaveBeenCalledTimes(9);
@@ -324,10 +321,14 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				try {
+					await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				} catch (err) {
+					// Expected error
+				}
 
 				// Assert
 				checkApplyPenaltyAndAbortIsCalled(
@@ -337,11 +338,9 @@ describe('fast_chain_switching_mechanism', () => {
 						'Common block height 0 is lower than the finalized height of the chain 1',
 					),
 				);
-				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
-					aBlock,
-					highestCommonBlock,
-					aPeerId,
-				);
+				expect(
+					fastChainSwitchingMechanism['_queryBlocks'],
+				).toHaveBeenCalledWith(aBlock, highestCommonBlock, aPeerId);
 			});
 
 			it('should abort the syncing mechanism if the difference in height between the common block and the received block is > delegatesPerRound*2 ', async () => {
@@ -366,7 +365,7 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 
 				// Act
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
@@ -383,11 +382,9 @@ describe('fast_chain_switching_mechanism', () => {
 							2}`,
 					),
 				);
-				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
-					receivedBlock,
-					highestCommonBlock,
-					aPeerId,
-				);
+				expect(
+					fastChainSwitchingMechanism['_queryBlocks'],
+				).toHaveBeenCalledWith(receivedBlock, highestCommonBlock, aPeerId);
 			});
 
 			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2 ', async () => {
@@ -402,10 +399,10 @@ describe('fast_chain_switching_mechanism', () => {
 				});
 				when(chainModule.dataAccess.getBlockHeaderByHeight)
 					.calledWith(1)
-					.mockResolvedValue(genesisBlockDevnet);
+					.mockResolvedValue(genesisBlockDevnet as never);
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
-					.mockResolvedValue(lastBlock);
+					.mockResolvedValue(lastBlock as never);
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 					.calledWith(
 						expect.objectContaining({
@@ -413,21 +410,21 @@ describe('fast_chain_switching_mechanism', () => {
 							toHeight: expect.any(Number),
 						}),
 					)
-					.mockResolvedValue([lastBlock]);
+					.mockResolvedValue([lastBlock] as never);
 
 				when(chainModule.dataAccess.addBlockHeader)
 					.calledWith(lastBlock)
-					.mockResolvedValue([lastBlock]);
+					.mockResolvedValue([lastBlock] as never);
 				when(chainModule.dataAccess.getLastBlockHeader)
 					.calledWith()
-					.mockResolvedValue(lastBlock);
+					.mockResolvedValue(lastBlock as never);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
-					.mockResolvedValue([genesisBlockDevnet, lastBlock]);
+					.mockResolvedValue([genesisBlockDevnet, lastBlock] as never);
 
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 					.calledWith(1, 205)
-					.mockResolvedValue([lastBlock]);
+					.mockResolvedValue([lastBlock] as never);
 
 				const heightList = new Array(
 					Math.min(
@@ -443,7 +440,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith(heightList)
-					.mockResolvedValue(storageReturnValue);
+					.mockResolvedValue(storageReturnValue as never);
 
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
@@ -453,7 +450,7 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 
 				// Act
 				const receivedBlock = newBlock({
@@ -469,11 +466,9 @@ describe('fast_chain_switching_mechanism', () => {
 							2}`,
 					),
 				);
-				expect(fastChainSwitchingMechanism._queryBlocks).toHaveBeenCalledWith(
-					receivedBlock,
-					highestCommonBlock,
-					aPeerId,
-				);
+				expect(
+					fastChainSwitchingMechanism['_queryBlocks'],
+				).toHaveBeenCalledWith(receivedBlock, highestCommonBlock, aPeerId);
 			});
 		});
 
@@ -495,19 +490,19 @@ describe('fast_chain_switching_mechanism', () => {
 				const requestedBlocks = [
 					newBlock({
 						height: highestCommonBlock.height + 1,
-						previousBlock: highestCommonBlock.id,
+						previousBlockId: highestCommonBlock.id,
 					}),
 					...new Array(34).fill(0).map(() => newBlock()),
 					aBlock,
 				];
 
-				fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
-					.fn()
-					.mockResolvedValue(requestedBlocks);
+				fastChainSwitchingMechanism[
+					'_requestBlocksWithinIDs'
+				] = jest.fn().mockResolvedValue(requestedBlocks);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
-					.mockResolvedValue(storageReturnValue);
+					.mockResolvedValue(storageReturnValue as never);
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
@@ -516,16 +511,16 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValue(genesisBlockDevnet);
+					.mockResolvedValue(genesisBlockDevnet as never);
 
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
-					.mockResolvedValue(highestCommonBlock);
+					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
@@ -546,7 +541,7 @@ describe('fast_chain_switching_mechanism', () => {
 					'Successfully validated blocks',
 				);
 				expect(
-					fastChainSwitchingMechanism._validateBlocks,
+					fastChainSwitchingMechanism['_validateBlocks'],
 				).toHaveBeenCalledWith(requestedBlocks, aPeerId);
 			});
 
@@ -567,15 +562,15 @@ describe('fast_chain_switching_mechanism', () => {
 				const requestedBlocks = [
 					newBlock({
 						height: highestCommonBlock.height + 1,
-						previousBlock: highestCommonBlock.id,
+						previousBlockId: highestCommonBlock.id,
 					}),
 					...new Array(34).fill(0).map(() => newBlock()),
 					aBlock,
 				];
 
-				fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
-					.fn()
-					.mockResolvedValue(requestedBlocks);
+				fastChainSwitchingMechanism[
+					'_requestBlocksWithinIDs'
+				] = jest.fn().mockResolvedValue(requestedBlocks);
 
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
@@ -585,13 +580,17 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 				processorModule.validate.mockRejectedValue(
 					new Error('validation error'),
 				);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				try {
+					await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				} catch (err) {
+					// Expected error
+				}
 
 				// Assert
 				checkApplyPenaltyAndAbortIsCalled(
@@ -602,7 +601,7 @@ describe('fast_chain_switching_mechanism', () => {
 					),
 				);
 				expect(
-					fastChainSwitchingMechanism._validateBlocks,
+					fastChainSwitchingMechanism['_validateBlocks'],
 				).toHaveBeenCalledWith(requestedBlocks, aPeerId);
 			});
 		});
@@ -624,15 +623,15 @@ describe('fast_chain_switching_mechanism', () => {
 				const requestedBlocks = [
 					newBlock({
 						height: highestCommonBlock.height + 1,
-						previousBlock: highestCommonBlock.id,
+						previousBlockId: highestCommonBlock.id,
 					}),
 					...new Array(34).fill(0).map(() => newBlock()),
 					aBlock,
 				];
 
-				fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
-					.fn()
-					.mockResolvedValue(requestedBlocks);
+				fastChainSwitchingMechanism[
+					'_requestBlocksWithinIDs'
+				] = jest.fn().mockResolvedValue(requestedBlocks);
 
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
@@ -642,29 +641,27 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValue(genesisBlockDevnet);
+					.mockResolvedValue(genesisBlockDevnet as never);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
-					.mockResolvedValue(storageReturnValue);
+					.mockResolvedValue(storageReturnValue as never);
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
-					.mockResolvedValue(highestCommonBlock);
+					.mockResolvedValue(highestCommonBlock as never);
 
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
 
 				// Assert
-				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
-					highestCommonBlock,
-					requestedBlocks,
-					aPeerId,
-				);
+				expect(
+					fastChainSwitchingMechanism['_switchChain'],
+				).toHaveBeenCalledWith(highestCommonBlock, requestedBlocks, aPeerId);
 				expect(loggerMock.info).toHaveBeenCalledWith('Switching chain');
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					{ height: highestCommonBlock.height },
@@ -734,15 +731,15 @@ describe('fast_chain_switching_mechanism', () => {
 				const requestedBlocks = [
 					newBlock({
 						height: highestCommonBlock.height + 1,
-						previousBlock: highestCommonBlock.id,
+						previousBlockId: highestCommonBlock.id,
 					}),
 					...new Array(34).fill(0).map(() => newBlock()),
 					aBlock,
 				];
 
-				fastChainSwitchingMechanism._requestBlocksWithinIDs = jest
-					.fn()
-					.mockResolvedValue(requestedBlocks);
+				fastChainSwitchingMechanism[
+					'_requestBlocksWithinIDs'
+				] = jest.fn().mockResolvedValue(requestedBlocks);
 
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
@@ -752,24 +749,24 @@ describe('fast_chain_switching_mechanism', () => {
 							ids: storageReturnValue.map(blocks => blocks.id),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock });
+					.mockResolvedValue({ data: highestCommonBlock } as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
-					.mockResolvedValue(storageReturnValue);
+					.mockResolvedValue(storageReturnValue as never);
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
-					.mockResolvedValue(highestCommonBlock);
+					.mockResolvedValue(highestCommonBlock as never);
 
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValueOnce(genesisBlockDevnet)
+					.mockResolvedValueOnce(genesisBlockDevnet as never)
 					.calledWith({
 						saveTempBlock: false,
 					})
-					.mockResolvedValueOnce(genesisBlockDevnet);
+					.mockResolvedValueOnce(genesisBlockDevnet as never);
 
 				const blocksInTempTable = [
 					{
@@ -787,14 +784,16 @@ describe('fast_chain_switching_mechanism', () => {
 				processorModule.processValidated.mockRejectedValueOnce(processingError);
 
 				// Act
-				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				try {
+					await fastChainSwitchingMechanism.run(aBlock, aPeerId);
+				} catch (err) {
+					// Expected error
+				}
 
 				// Assert
-				expect(fastChainSwitchingMechanism._switchChain).toHaveBeenCalledWith(
-					highestCommonBlock,
-					requestedBlocks,
-					aPeerId,
-				);
+				expect(
+					fastChainSwitchingMechanism['_switchChain'],
+				).toHaveBeenCalledWith(highestCommonBlock, requestedBlocks, aPeerId);
 				expect(processorModule.processValidated).toHaveBeenCalled();
 				expect(loggerMock.error).toHaveBeenCalledWith(
 					{ err: processingError },

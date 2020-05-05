@@ -12,6 +12,7 @@ module.exports = {
 		'no-param-reassign': ['warn'],
 		'no-throw-literal': ['warn'],
 		'@typescript-eslint/restrict-template-expressions': ['warn'],
+		'@typescript-eslint/explicit-function-return-type': ['warn'],
 		'@typescript-eslint/no-var-requires': ['warn'],
 		'@typescript-eslint/camelcase': ['warn'],
 		'@typescript-eslint/no-this-alias': ['warn'],

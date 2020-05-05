@@ -46,7 +46,7 @@ const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 interface NetworkConstructor {
 	readonly options: P2PConfig;
-	readonly channel: Channel<liskP2p.p2pTypes.P2PNodeInfo>;
+	readonly channel: Channel;
 	readonly logger: Logger;
 	readonly storage: Storage;
 	secret: string;
@@ -71,7 +71,7 @@ interface P2PRequest {
 
 export class Network {
 	private readonly options: P2PConfig;
-	private readonly channel: Channel<liskP2p.p2pTypes.P2PNodeInfo>;
+	private readonly channel: Channel;
 	private readonly logger: Logger;
 	private readonly storage: Storage;
 	private secret: number | null;
@@ -120,7 +120,9 @@ export class Network {
 			this.secret = Number(secret);
 		}
 
-		const sanitizeNodeInfo = (nodeInfo: liskP2p.p2pTypes.P2PNodeInfo) => ({
+		const sanitizeNodeInfo = (
+			nodeInfo: liskP2p.p2pTypes.P2PNodeInfo,
+		): liskP2p.p2pTypes.P2PNodeInfo => ({
 			...nodeInfo,
 			advertiseAddress: this.options.advertiseAddress,
 		});
@@ -310,7 +312,9 @@ export class Network {
 				? request.procedure
 				: `app:${request.procedure}`;
 			try {
-				const result = await this.channel.invokePublic(sanitizedProcedure, {
+				const result = await this.channel.invokePublic<
+					liskP2p.p2pTypes.P2PNodeInfo
+				>(sanitizedProcedure, {
 					data: request.data,
 					peerId: request.peerId,
 				});

@@ -13,29 +13,33 @@
  */
 /* eslint-disable max-classes-per-file */
 
-'use strict';
+import { FrameworkError } from '../../../errors';
 
-const { FrameworkError } = require('../../../errors');
+export class SynchronizerError extends FrameworkError {}
 
-class SynchronizerError extends FrameworkError {}
+export class BlockProcessingError extends SynchronizerError {}
 
-class BlockProcessingError extends SynchronizerError {}
-
-class RestartError extends SynchronizerError {
-	constructor(reason) {
+export class RestartError extends SynchronizerError {
+	public reason: string;
+	public constructor(reason: string) {
 		super(`Restart synchronization mechanism with reason: ${reason}`);
+		this.reason = reason;
 	}
 }
 
-class AbortError extends SynchronizerError {
-	constructor(reason) {
+export class AbortError extends SynchronizerError {
+	public reason: string;
+	public constructor(reason: string) {
 		super(`Abort synchronization mechanism with reason: ${reason}`);
 		this.reason = reason;
 	}
 }
 
-class ApplyPenaltyAndRestartError extends SynchronizerError {
-	constructor(peerId, reason) {
+export class ApplyPenaltyAndRestartError extends SynchronizerError {
+	public reason: string;
+	public peerId: string;
+
+	public constructor(peerId: string, reason: string) {
 		super(
 			`Apply penalty and restart synchronization mechanism with reason: ${reason}`,
 		);
@@ -44,8 +48,11 @@ class ApplyPenaltyAndRestartError extends SynchronizerError {
 	}
 }
 
-class ApplyPenaltyAndAbortError extends SynchronizerError {
-	constructor(peerId, reason) {
+export class ApplyPenaltyAndAbortError extends SynchronizerError {
+	public reason: string;
+	public peerId: string;
+
+	public constructor(peerId: string, reason: string) {
 		super(
 			`Apply penalty and abort synchronization mechanism with reason: ${reason}`,
 		);
@@ -53,11 +60,3 @@ class ApplyPenaltyAndAbortError extends SynchronizerError {
 		this.peerId = peerId;
 	}
 }
-
-module.exports = {
-	BlockProcessingError,
-	RestartError,
-	AbortError,
-	ApplyPenaltyAndAbortError,
-	ApplyPenaltyAndRestartError,
-};
