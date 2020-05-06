@@ -15,3 +15,4 @@
 export * from './transaction_pool';
 export { MaxHeap } from './max_heap';
 export { MinHeap } from './min_heap';
+export { Job } from './job';

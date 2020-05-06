@@ -16,7 +16,7 @@ import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 
 import { Slots } from './slots';
-import { BlockInstance } from './types';
+import { BlockInstance, GenesisBlock } from './types';
 
 export const validateSignature = (
 	block: BlockInstance,
@@ -48,7 +48,7 @@ export const validateSignature = (
 
 export const validatePreviousBlockProperty = (
 	block: BlockInstance,
-	genesisBlock: BlockInstance,
+	genesisBlock: GenesisBlock,
 ): void => {
 	const isGenesisBlock =
 		block.id === genesisBlock.id &&

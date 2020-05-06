@@ -22,3 +22,4 @@ export { Chain, events };
 export { baseBlockSchema } from './schema';
 export { StateStore } from './state_store';
 export { Slots } from './slots';
+export * from './types';

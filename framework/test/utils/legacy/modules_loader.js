@@ -18,7 +18,6 @@ const express = require('express');
 const async = require('async');
 const { Sequence } = require('../../../src/application/node/utils/sequence');
 const { createLoggerComponent } = require('../../../src/components/logger');
-const jobsQueue = require('../../../src/application/node/utils/jobs_queue');
 
 // TODO: Remove this file
 const modulesLoader = new (function() {
@@ -87,7 +86,6 @@ const modulesLoader = new (function() {
 	 * @param {function} cb
 	 */
 	this.initLogic = function(Logic, scope, cb) {
-		jobsQueue.jobs = {};
 		scope = _.defaultsDeep(scope, this.scope);
 		if (Logic.name === 'Block') {
 			return new Logic(scope.ed, this.transactions, cb);
@@ -104,7 +102,6 @@ const modulesLoader = new (function() {
 	 * @param {function} cb
 	 */
 	this.initModule = function(Module, scope, cb) {
-		jobsQueue.jobs = {};
 		scope = _.defaultsDeep(scope, this.scope);
 		return new Module(cb, scope);
 	};

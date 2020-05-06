@@ -21,7 +21,14 @@ import {
 	FinalityManager,
 } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
-import { BlockHeader, Chain, DPoS, ForkStatus, StateStore } from './types';
+import {
+	BlockHeader,
+	BlockHeaderWithID,
+	Chain,
+	DPoS,
+	ForkStatus,
+	StateStore,
+} from './types';
 import { validateBlockHeader } from './utils';
 
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
@@ -131,7 +138,10 @@ export class BFT extends EventEmitter {
 		return this.finalityManager.verifyBlockHeaders(blockHeader, bftHeaders);
 	}
 
-	public forkChoice(block: BlockHeader, lastBlock: BlockHeader): ForkStatus {
+	public forkChoice(
+		block: BlockHeaderWithID,
+		lastBlock: BlockHeaderWithID,
+	): ForkStatus {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
 			...block,

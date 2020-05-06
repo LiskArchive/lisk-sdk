@@ -289,10 +289,10 @@ export class TransactionPool {
 	}
 
 	public getProcessableTransactions(): {
-		readonly [address: string]: ReadonlyArray<Transaction>;
+		[address: string]: Transaction[];
 	} {
 		const processableTransactions: {
-			[address: string]: ReadonlyArray<Transaction>;
+			[address: string]: Transaction[];
 		} = {};
 		for (const address of Object.keys(this._transactionList)) {
 			const transactions = this._transactionList[address].getProcessable();

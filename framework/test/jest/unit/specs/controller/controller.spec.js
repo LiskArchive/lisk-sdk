@@ -14,13 +14,13 @@
 
 'use strict';
 
-const fs = require('fs-extra');
-const Controller = require('../../../../../src/controller/controller');
-const Bus = require('../../../../../src/controller/bus');
-
 jest.mock('fs-extra');
 jest.mock('../../../../../src/controller/bus');
 jest.mock('../../../../../src/controller/channels/in_memory_channel');
+
+const fs = require('fs-extra');
+const Controller = require('../../../../../src/controller/controller');
+const Bus = require('../../../../../src/controller/bus');
 
 describe('Controller Class', () => {
 	// Arrange

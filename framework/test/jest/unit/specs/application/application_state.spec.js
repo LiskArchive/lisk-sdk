@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const { AssertionError } = require('assert');
-const ApplicationState = require('../../../../../src/application/application_state');
-
 jest.mock('os', () => ({
 	platform: jest.fn(() => 'platform'),
 	release: jest.fn(() => 'release'),
 }));
+
+const { AssertionError } = require('assert');
+const ApplicationState = require('../../../../../src/application/application_state');
 
 describe('Application State', () => {
 	let applicationState;

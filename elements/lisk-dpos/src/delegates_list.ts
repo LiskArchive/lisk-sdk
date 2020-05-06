@@ -461,8 +461,8 @@ export class DelegatesList {
 
 		if (!delegateList.length) {
 			throw new Error(
-				`Failed to verify slot: ${currentSlot.toString()} for block ID: ${
-					block.id
+				`Failed to verify slot: ${currentSlot.toString()} for block Height: ${
+					block.height
 				} - No delegateList was found`,
 			);
 		}
@@ -478,9 +478,7 @@ export class DelegatesList {
 				expectedForgerAddress
 		) {
 			throw new Error(
-				`Failed to verify slot: ${currentSlot.toString()}. Block ID: ${
-					block.id
-				}. Block Height: ${block.height.toString()}`,
+				`Failed to verify slot: ${currentSlot.toString()}. Block Height: ${block.height.toString()}`,
 			);
 		}
 

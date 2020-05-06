@@ -15,8 +15,9 @@
 export interface StateStore {
 	readonly account: {
 		readonly get: (primaryValue: string) => Promise<Account>;
-		readonly getUpdated: () => Account[];
-		readonly set: (primaryValue: string, account: Account) => void;
+		readonly getUpdated: () => ReadonlyArray<Account>;
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
+		set(key: string, value: Account): void;
 	};
 	readonly consensus: {
 		readonly get: (key: string) => Promise<string | undefined>;
@@ -26,7 +27,6 @@ export interface StateStore {
 }
 
 export interface BlockHeader {
-	readonly id: string;
 	readonly height: number;
 	readonly generatorPublicKey: string;
 	readonly seedReveal: string;
@@ -54,13 +54,13 @@ export interface Account {
 		readonly pomHeights: number[];
 	};
 	readonly votes: Vote[];
-	readonly username?: string;
+	readonly username: string | null;
 	balance: bigint;
 	producedBlocks: number;
 	missedBlocks: number;
 	fees: bigint;
 	rewards: bigint;
-	readonly publicKey: string;
+	readonly publicKey?: string;
 }
 
 export interface DPoSProcessingOptions {
