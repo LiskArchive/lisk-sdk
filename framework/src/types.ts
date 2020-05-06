@@ -35,7 +35,10 @@ export interface Channel {
 		procedure: string,
 		params?: object,
 	) => Promise<T>;
-	readonly publishToNetwork: <T = unknown>(eventName: string, data?: object) => Promise<T>;
+	readonly publishToNetwork: <T = unknown>(
+		eventName: string,
+		data?: object,
+	) => Promise<T>;
 }
 
 export interface Logger {
@@ -53,21 +56,11 @@ export interface Storage {
 	readonly entities: {
 		readonly NetworkInfo: KeyValEntity;
 		readonly ForgerInfo: KeyValEntity;
+		readonly Migration: MigrationEntity;
 	};
 }
 
 export interface KeyValEntity {
-	readonly NetworkInfo: NetworkInfoEntity;
-	readonly Migration: MigrationEntity;
-}
-
-export interface MigrationEntity {
-	readonly applyAll: (migrations: {
-		readonly [key: string]: ReadonlyArray<string>;
-	}) => Promise<void>;
-}
-
-export interface NetworkInfoEntity {
 	readonly getKey: (
 		key: string,
 		tx?: StorageTransaction,
@@ -77,6 +70,12 @@ export interface NetworkInfoEntity {
 		value: string,
 		tx?: StorageTransaction,
 	) => Promise<void>;
+}
+
+export interface MigrationEntity {
+	readonly applyAll: (migrations: {
+		readonly [key: string]: ReadonlyArray<string>;
+	}) => Promise<void>;
 }
 
 export interface StorageTransaction {
