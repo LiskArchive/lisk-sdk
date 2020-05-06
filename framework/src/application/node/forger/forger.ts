@@ -20,7 +20,7 @@ import {
 	generateHashOnionSeed,
 	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
-import { Chain, BlockInstance } from '@liskhq/lisk-chain';
+import { Chain } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BFT } from '@liskhq/lisk-bft';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
@@ -30,6 +30,7 @@ import {
 	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 } from './constant';
 import { HighFeeForgingStrategy } from './strategies';
+import { Processor } from '../processor';
 import { Logger, Storage, StringKeyVal } from '../../../types';
 
 interface UsedHashOnion {
@@ -56,29 +57,19 @@ interface ForgingStatus {
 }
 
 interface KeyPair {
-	[key: string]: Buffer;
+	publicKey: Buffer;
+	privateKey: Buffer;
 }
 
 interface KeyPairs {
 	[key: string]: KeyPair;
 }
 
-interface ProcessorModule {
-	readonly create: (input: {
-		readonly keypair: KeyPair;
-		readonly timestamp: number;
-		transactions: BaseTransaction[];
-		readonly previousBlock: BlockInstance;
-		readonly seedReveal: string;
-	}) => Promise<BlockInstance>;
-	readonly process: (block: BlockInstance) => Promise<void>;
-}
-
 interface ForgerConstructor {
 	readonly forgingStrategy?: HighFeeForgingStrategy;
 	readonly logger: Logger;
 	readonly storage: Storage;
-	readonly processorModule: ProcessorModule;
+	readonly processorModule: Processor;
 	readonly dposModule: Dpos;
 	readonly bftModule: BFT;
 	readonly transactionPoolModule: TransactionPool;
@@ -93,7 +84,7 @@ interface ForgerConstructor {
 export class Forger {
 	private readonly _logger: Logger;
 	private readonly _storage: Storage;
-	private readonly _processorModule: ProcessorModule;
+	private readonly _processorModule: Processor;
 	private readonly _dposModule: Dpos;
 	private readonly _bftModule: BFT;
 	private readonly _transactionPoolModule: TransactionPool;
