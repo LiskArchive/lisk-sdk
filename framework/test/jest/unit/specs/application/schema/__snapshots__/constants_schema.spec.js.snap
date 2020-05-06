@@ -2,46 +2,48 @@
 
 exports[`schema/constants_schema.js constants schema must match to the snapshot. 1`] = `
 Object {
-  "additionalProperties": false,
-  "default": Object {
-    "activeDelegates": 101,
-    "delegateListRoundOffset": 2,
-    "standbyDelegates": 2,
-    "totalAmount": "10000000000000000",
+  "constantsSchema": Object {
+    "additionalProperties": false,
+    "default": Object {
+      "activeDelegates": 101,
+      "delegateListRoundOffset": 2,
+      "standbyDelegates": 2,
+      "totalAmount": "10000000000000000",
+    },
+    "id": "#constants",
+    "properties": Object {
+      "activeDelegates": Object {
+        "const": 101,
+        "description": "The default number of delegates allowed to forge a block",
+        "format": "oddInteger",
+        "min": 1,
+        "type": "number",
+      },
+      "delegateListRoundOffset": Object {
+        "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
+        "minimum": 0,
+        "type": "number",
+      },
+      "standbyDelegates": Object {
+        "const": 2,
+        "description": "The default number of standby delegates allowed to forge a block",
+        "min": 1,
+        "type": "integer",
+      },
+      "totalAmount": Object {
+        "const": "10000000000000000",
+        "description": "Total amount of LSK available in network before rewards milestone started",
+        "format": "amount",
+        "type": "string",
+      },
+    },
+    "required": Array [
+      "activeDelegates",
+      "standbyDelegates",
+      "totalAmount",
+      "delegateListRoundOffset",
+    ],
+    "type": "object",
   },
-  "id": "#constants",
-  "properties": Object {
-    "activeDelegates": Object {
-      "const": 101,
-      "description": "The default number of delegates allowed to forge a block",
-      "format": "oddInteger",
-      "min": 1,
-      "type": "number",
-    },
-    "delegateListRoundOffset": Object {
-      "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
-      "minimum": 0,
-      "type": "number",
-    },
-    "standbyDelegates": Object {
-      "const": 2,
-      "description": "The default number of standby delegates allowed to forge a block",
-      "min": 1,
-      "type": "integer",
-    },
-    "totalAmount": Object {
-      "const": "10000000000000000",
-      "description": "Total amount of LSK available in network before rewards milestone started",
-      "format": "amount",
-      "type": "string",
-    },
-  },
-  "required": Array [
-    "activeDelegates",
-    "standbyDelegates",
-    "totalAmount",
-    "delegateListRoundOffset",
-  ],
-  "type": "object",
 }
 `;

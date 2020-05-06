@@ -2,158 +2,160 @@
 
 exports[`schema/genesis_block_schema.js genesis block schema must match to the snapshot. 1`] = `
 Object {
-  "$id": "#genesisBlock",
-  "additionalProperties": false,
-  "properties": Object {
-    "blockSignature": Object {
-      "format": "signature",
-      "type": "string",
-    },
-    "communityIdentifier": Object {
-      "type": "string",
-    },
-    "generatorPublicKey": Object {
-      "format": "publicKey",
-      "type": "string",
-    },
-    "height": Object {
-      "minimum": 1,
-      "type": "integer",
-    },
-    "id": Object {
-      "format": "id",
-      "maxLength": 20,
-      "minLength": 1,
-      "type": "string",
-    },
-    "maxHeightPreviouslyForged": Object {
-      "minimum": 0,
-      "type": "integer",
-    },
-    "maxHeightPrevoted": Object {
-      "minimum": 0,
-      "type": "integer",
-    },
-    "numberOfTransactions": Object {
-      "minimum": 0,
-      "type": "integer",
-    },
-    "payloadHash": Object {
-      "format": "hex",
-      "type": "string",
-    },
-    "payloadLength": Object {
-      "minimum": 0,
-      "type": "integer",
-    },
-    "previousBlockId": Object {
-      "format": "id",
-      "maxLength": 20,
-      "minLength": 1,
-      "type": Array [
-        "null",
-        "string",
-      ],
-    },
-    "reward": Object {
-      "format": "amount",
-      "type": "string",
-    },
-    "seedReveal": Object {
-      "format": "hex",
-      "type": "string",
-    },
-    "timestamp": Object {
-      "minimum": 0,
-      "type": "integer",
-    },
-    "totalAmount": Object {
-      "format": "amount",
-      "type": "string",
-    },
-    "totalFee": Object {
-      "format": "amount",
-      "type": "string",
-    },
-    "transactions": Object {
-      "items": Object {
-        "additionalProperties": false,
-        "properties": Object {
-          "asset": Object {
-            "description": "Send relevant data with transaction like delegate, vote, signature, ...",
-            "type": "object",
-          },
-          "fee": Object {
-            "format": "amount",
-            "type": "string",
-          },
-          "id": Object {
-            "format": "id",
-            "maxLength": 20,
-            "minLength": 1,
-            "type": "string",
-          },
-          "nonce": Object {
-            "format": "amount",
-            "type": "string",
-          },
-          "senderPublicKey": Object {
-            "format": "publicKey",
-            "type": "string",
-          },
-          "signatures": Object {
-            "items": Object {
-              "oneOf": Array [
-                Object {
-                  "format": "signature",
-                  "type": "string",
-                },
-                Object {
-                  "format": "emptyString",
-                  "type": "string",
-                },
-              ],
-            },
-            "maxItems": 64,
-            "minItems": 1,
-            "type": "array",
-          },
-          "type": Object {
-            "type": "integer",
-          },
-        },
-        "required": Array [
-          "type",
-          "nonce",
-          "senderPublicKey",
-          "signatures",
-          "fee",
-        ],
-        "type": "object",
+  "genesisBlockSchema": Object {
+    "$id": "#genesisBlock",
+    "additionalProperties": false,
+    "properties": Object {
+      "blockSignature": Object {
+        "format": "signature",
+        "type": "string",
       },
-      "type": "array",
-      "uniqueItems": true,
+      "communityIdentifier": Object {
+        "type": "string",
+      },
+      "generatorPublicKey": Object {
+        "format": "publicKey",
+        "type": "string",
+      },
+      "height": Object {
+        "minimum": 1,
+        "type": "integer",
+      },
+      "id": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": "string",
+      },
+      "maxHeightPreviouslyForged": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+      "maxHeightPrevoted": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+      "numberOfTransactions": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+      "payloadHash": Object {
+        "format": "hex",
+        "type": "string",
+      },
+      "payloadLength": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+      "previousBlockId": Object {
+        "format": "id",
+        "maxLength": 20,
+        "minLength": 1,
+        "type": Array [
+          "null",
+          "string",
+        ],
+      },
+      "reward": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "seedReveal": Object {
+        "format": "hex",
+        "type": "string",
+      },
+      "timestamp": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
+      "totalAmount": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "totalFee": Object {
+        "format": "amount",
+        "type": "string",
+      },
+      "transactions": Object {
+        "items": Object {
+          "additionalProperties": false,
+          "properties": Object {
+            "asset": Object {
+              "description": "Send relevant data with transaction like delegate, vote, signature, ...",
+              "type": "object",
+            },
+            "fee": Object {
+              "format": "amount",
+              "type": "string",
+            },
+            "id": Object {
+              "format": "id",
+              "maxLength": 20,
+              "minLength": 1,
+              "type": "string",
+            },
+            "nonce": Object {
+              "format": "amount",
+              "type": "string",
+            },
+            "senderPublicKey": Object {
+              "format": "publicKey",
+              "type": "string",
+            },
+            "signatures": Object {
+              "items": Object {
+                "oneOf": Array [
+                  Object {
+                    "format": "signature",
+                    "type": "string",
+                  },
+                  Object {
+                    "format": "emptyString",
+                    "type": "string",
+                  },
+                ],
+              },
+              "maxItems": 64,
+              "minItems": 1,
+              "type": "array",
+            },
+            "type": Object {
+              "type": "integer",
+            },
+          },
+          "required": Array [
+            "type",
+            "nonce",
+            "senderPublicKey",
+            "signatures",
+            "fee",
+          ],
+          "type": "object",
+        },
+        "type": "array",
+        "uniqueItems": true,
+      },
+      "version": Object {
+        "minimum": 0,
+        "type": "integer",
+      },
     },
-    "version": Object {
-      "minimum": 0,
-      "type": "integer",
-    },
+    "required": Array [
+      "communityIdentifier",
+      "version",
+      "totalAmount",
+      "seedReveal",
+      "totalFee",
+      "reward",
+      "payloadHash",
+      "timestamp",
+      "numberOfTransactions",
+      "payloadLength",
+      "generatorPublicKey",
+      "transactions",
+      "blockSignature",
+    ],
+    "type": "object",
   },
-  "required": Array [
-    "communityIdentifier",
-    "version",
-    "totalAmount",
-    "seedReveal",
-    "totalFee",
-    "reward",
-    "payloadHash",
-    "timestamp",
-    "numberOfTransactions",
-    "payloadLength",
-    "generatorPublicKey",
-    "transactions",
-    "blockSignature",
-  ],
-  "type": "object",
 }
 `;
