@@ -12,13 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { when } = require('jest-when');
-const { TransferTransaction } = require('@liskhq/lisk-transactions');
-const {
-	Transport,
-} = require('../../../../../../../src/application/node/transport');
+import { when } from 'jest-when';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { Transport } from '../../../../../../../src/application/node/transport';
 
 describe('Transport', () => {
 	const defaultBroadcastInterval = 5000;
@@ -32,7 +28,7 @@ describe('Transport', () => {
 	let processorStub: any;
 	let channelStub: any;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		// Needs to reset the job registered
 		channelStub = {
 			invoke: jest.fn(),
@@ -70,25 +66,17 @@ describe('Transport', () => {
 		transport = new Transport({
 			channel: channelStub,
 			logger: loggerStub,
-			// Unique requirements
-			applicationState: {},
 			// Modules
 			synchronizer: synchronizerStub,
 			transactionPoolModule: transactionPoolStub,
 			chainModule: chainStub,
 			processorModule: processorStub,
-			// Constants
-			broadcasts: {
-				broadcastInterval: defaultBroadcastInterval,
-				releaseLimit: defaultReleaseLimit,
-				active: true,
-			},
 		});
 		jest.spyOn(transport['_broadcaster'], 'enqueueTransactionId');
 		jest.useFakeTimers();
 	});
 
-	afterEach(async () => {
+	afterEach(() => {
 		jest.clearAllTimers();
 	});
 
@@ -286,7 +274,7 @@ describe('Transport', () => {
 		});
 
 		describe('when commonBlock has not been found', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				chainStub.getHighestCommonBlock.mockResolvedValue(null);
 				chainStub.serializeBlockHeader.mockResolvedValue(null);
 			});
@@ -312,7 +300,7 @@ describe('Transport', () => {
 				id: '15196562876801949910',
 			};
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				chainStub.getHighestCommonBlock.mockResolvedValue(validBlock);
 				chainStub.serializeBlockHeader.mockResolvedValue(validBlock);
 			});
@@ -345,7 +333,7 @@ describe('Transport', () => {
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 
-				await jest.advanceTimersByTime(defaultRateLimit);
+				jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
 					'app:applyPenaltyOnPeer',
 					{
@@ -358,7 +346,7 @@ describe('Transport', () => {
 
 		describe('when it is called with undefined', () => {
 			let tx: any;
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
@@ -371,8 +359,7 @@ describe('Transport', () => {
 			});
 
 			it('should throw an error when no transaction ids are provided', async () => {
-				/* eslint-disable-next-line  @typescript-eslint/no-floating-promises */
-				expect(
+				await expect(
 					transport.handleRPCGetTransactions(undefined, defaultPeerId),
 				).toReject();
 			});
@@ -380,7 +367,7 @@ describe('Transport', () => {
 
 		describe('when it is called without ids', () => {
 			let tx: any;
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
@@ -434,7 +421,7 @@ describe('Transport', () => {
 
 		describe('when it is called without ids, and all exists in the pool', () => {
 			let tx: any;
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
@@ -463,7 +450,7 @@ describe('Transport', () => {
 		describe('when it is called without ids, and some exists in the pool and some in database', () => {
 			let tx: any;
 			let txDatabase: any;
-			beforeEach(async () => {
+			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
 					asset: { amount: '100', recipientId: '123L' },
@@ -517,7 +504,7 @@ describe('Transport', () => {
 		let tx2: any;
 		let validTransactionsRequest: any;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			const txInstance = new TransferTransaction({
 				networkIdentifier: '1234567890',
 				asset: { amount: '100', recipientId: '123L' },
@@ -555,7 +542,7 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				await jest.advanceTimersByTime(defaultRateLimit);
+				jest.advanceTimersByTime(defaultRateLimit);
 				expect(channelStub.invoke).toHaveBeenCalledWith(
 					'app:applyPenaltyOnPeer',
 					{
@@ -592,7 +579,7 @@ describe('Transport', () => {
 		});
 
 		describe('when none of the transactions ids are known', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				transactionPoolStub.contains.mockReturnValue(false);
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				when(channelStub.invokeFromNetwork)
@@ -600,7 +587,7 @@ describe('Transport', () => {
 					.mockResolvedValue({
 						data: { transactions: [tx, tx2] },
 						peerId: defaultPeerId,
-					});
+					} as never);
 			});
 
 			it('should request all the transactions', async () => {
@@ -665,7 +652,7 @@ describe('Transport', () => {
 			});
 		});
 		describe('when some of the transactions ids are known', () => {
-			beforeEach(async () => {
+			beforeEach(() => {
 				when(transactionPoolStub.contains)
 					.calledWith(tx.id)
 					.mockReturnValue(true);
@@ -674,7 +661,7 @@ describe('Transport', () => {
 					.mockResolvedValue({
 						data: { transactions: [tx2] },
 						peerId: defaultPeerId,
-					});
+					} as never);
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 			});
 

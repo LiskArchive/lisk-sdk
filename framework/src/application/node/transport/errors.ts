@@ -17,7 +17,7 @@ export class InvalidTransactionError extends Error {
 	public readonly id: string;
 	public readonly errors: Error[];
 
-	constructor(message: string, id: string, errors: Error[]) {
+	public constructor(message: string, id: string, errors: Error[]) {
 		super(message);
 		this.message = message;
 		this.id = id;
