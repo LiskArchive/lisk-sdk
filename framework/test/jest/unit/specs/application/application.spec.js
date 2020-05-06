@@ -339,53 +339,53 @@ describe('Application', () => {
 
 	describe('#_initChannel', () => {
 		let app;
-		let actions;
+		let actionsList;
 
 		beforeEach(() => {
 			// Arrange
 			app = new Application(genesisBlock, config);
 			app.channel = app._initChannel();
-			actions = app.channel.actionsList.map(action => action.name);
+			actionsList = app.channel.actionsList;
 		});
 
 		it('should create getAccount action', () => {
 			// Assert
-			expect(actions).toContain('getAccount');
+			expect(actionsList).toContain('getAccount');
 		});
 
 		it('should create getAccounts action', () => {
 			// Assert
-			expect(actions).toContain('getAccounts');
+			expect(actionsList).toContain('getAccounts');
 		});
 
 		it('should create getBlockByID action', () => {
 			// Assert
-			expect(actions).toContain('getBlockByID');
+			expect(actionsList).toContain('getBlockByID');
 		});
 
 		it('should create getBlocksByIDs action', () => {
 			// Assert
-			expect(actions).toContain('getBlocksByIDs');
+			expect(actionsList).toContain('getBlocksByIDs');
 		});
 
 		it('should create getBlockByHeight action', () => {
 			// Assert
-			expect(actions).toContain('getBlockByHeight');
+			expect(actionsList).toContain('getBlockByHeight');
 		});
 
 		it('should create getBlocksByHeightBetween action', () => {
 			// Assert
-			expect(actions).toContain('getBlocksByHeightBetween');
+			expect(actionsList).toContain('getBlocksByHeightBetween');
 		});
 
 		it('should create getTransactionByID action', () => {
 			// Assert
-			expect(actions).toContain('getTransactionByID');
+			expect(actionsList).toContain('getTransactionByID');
 		});
 
 		it('should create getTransactionsByIDs action', () => {
 			// Assert
-			expect(actions).toContain('getTransactionsByIDs');
+			expect(actionsList).toContain('getTransactionsByIDs');
 		});
 	});
 });

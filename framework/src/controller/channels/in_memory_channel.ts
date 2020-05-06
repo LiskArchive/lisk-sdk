@@ -59,8 +59,6 @@ export class InMemoryChannel extends BaseChannel {
 	public async invoke(actionName: string, params?: object): Promise<any> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
-		console.info(this.actions);
-
 		if (action.module === this.moduleAlias) {
 			if (this.actions[action.name] === undefined) {
 				throw new Error(
