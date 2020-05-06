@@ -1,0 +1,18 @@
+{
+	"title": "Valid number encodings",
+	"summary": "Examples of encoding numbers as required by lisk-codec",
+	"config": "devnet",
+	"runner": "lisk_codec",
+	"handler": "validNumberEncodings",
+	"testCases": {
+		"input": {
+			"message": {
+				"number": 10
+			}
+		},
+		"output": {
+			"numberEncoded32": "080a",
+			"numberEncoded64": "080a"
+		}
+	}
+}

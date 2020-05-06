@@ -1,0 +1,9 @@
+syntax = 'proto2';
+
+message Number32 {
+	required uint32 number = 1;
+}
+
+message Number64 {
+	required uint64 number = 1;
+}
