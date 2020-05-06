@@ -20,7 +20,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
-import { Logger, Channel, Processor } from '../../../../../../../src/types';
+import { Logger, Channel } from '../../../../../../../src/types';
 import { Transport } from '../../../../../../../src/application/node/transport';
 
 import { genesis } from '../../../../../../fixtures/accounts';
@@ -31,7 +31,7 @@ import { InvalidTransactionError } from '../../../../../../../src/application/no
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 describe('transport', () => {
 	let loggerStub: Logger;
-	let synchronizerStub;
+	let synchronizerStub: any;
 	let channelStub: Partial<Channel>;
 	let transportModule: any;
 	let transaction: any;
@@ -105,7 +105,7 @@ describe('transport', () => {
 		transportModule = new Transport({
 			channel: channelStub as Channel,
 			logger: loggerStub,
-			synchronizerModule: synchronizerStub,
+			synchronizer: synchronizerStub,
 			transactionPoolModule: {
 				getProcessableTransactions: jest.fn(),
 				add: jest.fn(),
@@ -141,7 +141,7 @@ describe('transport', () => {
 				validate: jest.fn(),
 				process: jest.fn(),
 				deserialize: jest.fn(),
-			} as Processor,
+			} as any,
 		});
 	});
 
@@ -393,6 +393,7 @@ describe('transport', () => {
 				let addError: any;
 
 				beforeEach(async () => {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					addError = `Transaction is already processed: ${transaction.id}`;
 
 					(transportModule['_transactionPoolModule']
@@ -480,7 +481,7 @@ describe('transport', () => {
 						).toHaveBeenCalledWith(transaction.id);
 					});
 
-					it('should call transportModule.channel.publish with "app:transaction:new" and transaction as arguments', async () => {
+					it('should call transportModule.channel.publish with "app:transaction:new" and transaction as arguments', () => {
 						expect(transportModule['_channel'].publish).toHaveBeenCalledTimes(
 							1,
 						);
@@ -717,7 +718,7 @@ describe('transport', () => {
 							result = await transportModule.handleEventPostTransaction(query);
 						});
 
-						it('should resolve with object { message: err }', async () => {
+						it('should resolve with object { message: err }', () => {
 							expect(result).toHaveProperty('errors');
 							expect(result.errors).toEqual(receiveTransactionError);
 						});
@@ -736,7 +737,7 @@ describe('transport', () => {
 							result = await transportModule.handleEventPostTransaction(query);
 						});
 
-						it('should resolve with object { message: err }', async () => {
+						it('should resolve with object { message: err }', () => {
 							expect(result).toHaveProperty('errors');
 							expect(result.errors).toEqual(receiveTransactionError);
 						});
