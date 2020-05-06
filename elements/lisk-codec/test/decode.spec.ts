@@ -12,4 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './codec';
+describe('decode', () => {
+	it.todo('it should decode an Buffer to an object');
+});

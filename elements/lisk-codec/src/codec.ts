@@ -12,4 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './codec';
+export class Codec {
+	// eslint-disable-next-line
+	public addSchema(_schema: object): void {}
+
+	// eslint-disable-next-line
+	public encode(_schema: object, _message: any): Buffer {
+		return Buffer.alloc(0);
+	}
+
+	// eslint-disable-next-line
+	public decode<T>(_schema: object, _message: Buffer): T {
+		return {} as T;
+	}
+}
+
+export const codec = new Codec();

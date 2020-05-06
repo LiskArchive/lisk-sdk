@@ -12,4 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './codec';
+describe('addSchema', () => {
+	it.todo('it should add schema and and cache them');
+});
