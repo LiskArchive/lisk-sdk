@@ -134,6 +134,7 @@ declare module 'pm2-axon' {
 	}
 
 	export class RepSocket extends Socket {
+		public sock: Socket;
 		public onmessage(sock: NetSocket): (args: Buffer | Buffer[]) => void;
 	}
 

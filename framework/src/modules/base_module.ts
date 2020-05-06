@@ -44,7 +44,10 @@ export abstract class BaseModule {
 		return [];
 	}
 
-	public abstract get defaults(): object;
+	// eslint-disable-next-line class-methods-use-this
+	public get defaults(): object {
+		return {};
+	}
 	public abstract get events(): EventsArray;
 	public abstract get actions(): ActionsDefinition;
 	public abstract async load(channel: BaseChannel): Promise<void>;

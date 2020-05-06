@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Event, EventCallback } from '../event';
+import { EventCallback } from '../event';
 import { Action, ActionsDefinition, ActionsObject } from '../action';
 import { INTERNAL_EVENTS, eventWithModuleNameReg } from '../constants';
 
@@ -41,9 +41,7 @@ export abstract class BaseChannel {
 			? events
 			: [...events, ...INTERNAL_EVENTS];
 
-		this.eventsList = eventList.map(eventName =>
-			new Event(`${this.moduleAlias}:${eventName}`).key(),
-		);
+		this.eventsList = eventList;
 
 		this.actions = {};
 		for (const actionName of Object.keys(actions)) {
@@ -61,7 +59,7 @@ export abstract class BaseChannel {
 				isPublic,
 				handler,
 			);
-			this.actions[action.key()] = action;
+			this.actions[actionName] = action;
 		}
 		this.actionsList = Object.keys(this.actions);
 	}

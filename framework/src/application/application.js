@@ -27,7 +27,7 @@ const {
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const _ = require('lodash');
-const Controller = require('../controller/controller');
+const { Controller } = require('../controller/controller');
 const version = require('../version');
 const validator = require('./validator');
 const configurator = require('./default_configurator');

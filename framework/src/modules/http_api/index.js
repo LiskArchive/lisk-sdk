@@ -15,7 +15,7 @@
 'use strict';
 
 const HttpApi = require('./http_api');
-const BaseModule = require('../base_module');
+const { BaseModule } = require('../base_module');
 const { config: defaultConfig } = require('./defaults');
 
 /* eslint-disable class-methods-use-this */

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 jest.mock('eventemitter2');
 jest.mock('pm2-axon-rpc', () => ({
 	Client: jest.fn(() => ({
@@ -24,13 +22,18 @@ jest.mock('pm2-axon-rpc', () => ({
 	})),
 }));
 jest.mock('pm2-axon');
-jest.mock('../../../../../../src/controller/channels/child_process');
 
-const EventEmitter2 = require('eventemitter2');
-const ChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
-const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
-const Event = require('../../../../../../src/controller/event');
-const Action = require('../../../../../../src/controller/action');
+// eslint-disable-next-line import/first
+import { EventEmitter2 } from 'eventemitter2';
+// eslint-disable-next-line import/first
+import {
+	ChildProcessChannel,
+	BaseChannel,
+} from '../../../../../../src/controller/channels';
+// eslint-disable-next-line import/first
+import { Event } from '../../../../../../src/controller/event';
+// eslint-disable-next-line import/first
+import { Action } from '../../../../../../src/controller/action';
 
 describe('ChildProcessChannel Channel', () => {
 	// Arrange
@@ -60,8 +63,8 @@ describe('ChildProcessChannel Channel', () => {
 		rpc: 'rpc',
 	};
 
-	let childProcessChannel;
-	let spies;
+	let childProcessChannel: ChildProcessChannel;
+	let spies: any;
 
 	beforeEach(() => {
 		childProcessChannel = new ChildProcessChannel(
@@ -78,42 +81,14 @@ describe('ChildProcessChannel Channel', () => {
 		};
 	});
 
+	afterEach(async () => {
+		childProcessChannel.cleanup();
+	});
+
 	describe('inheritance', () => {
 		it('should be extended from BaseChannel class', () => {
 			// Assert
-			expect(Object.getPrototypeOf(childProcessChannel)).toBeInstanceOf(
-				BaseChannel,
-			);
-		});
-
-		it('should call BaseChannel class constructor with arguments', () => {
-			// Arrange
-			let IsolatedChildProcessChannel = null;
-			let IsolatedBaseChannel = null;
-
-			jest.isolateModules(() => {
-				jest.doMock('../../../../../../src/controller/channels/base_channel');
-				// eslint-disable-next-line global-require
-				IsolatedChildProcessChannel = require('../../../../../../src/controller/channels/child_process_channel');
-				// eslint-disable-next-line global-require
-				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
-			});
-
-			// Act
-			childProcessChannel = new IsolatedChildProcessChannel(
-				params.moduleAlias,
-				params.events,
-				params.actions,
-				params.options,
-			);
-
-			// Assert
-			expect(IsolatedBaseChannel).toHaveBeenCalledWith(
-				params.moduleAlias,
-				params.events,
-				params.actions,
-				params.options,
-			);
+			expect(ChildProcessChannel.prototype).toBeInstanceOf(BaseChannel);
 		});
 	});
 
@@ -125,32 +100,32 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#registerToBus', () => {
-		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
+		beforeEach(async () => childProcessChannel.registerToBus(socketsPath));
 
 		it('should connect pubSocket', async () => {
 			// Assert
-			expect(childProcessChannel.pubSocket.connect).toHaveBeenCalledWith(
+			expect(childProcessChannel.pubSocket?.connect).toHaveBeenCalledWith(
 				socketsPath.sub,
 			);
 		});
 
 		it('should connect subSocket', () => {
 			// Assert
-			expect(childProcessChannel.subSocket.connect).toHaveBeenCalledWith(
+			expect(childProcessChannel.subSocket?.connect).toHaveBeenCalledWith(
 				socketsPath.pub,
 			);
 		});
 
 		it('should connect busRpcSocket', () => {
 			// Assert
-			expect(childProcessChannel.busRpcSocket.connect).toHaveBeenCalledWith(
+			expect(childProcessChannel.busRpcSocket?.connect).toHaveBeenCalledWith(
 				socketsPath.rpc,
 			);
 		});
 
 		it('should expose "invoke" event on rpcServer and call this.invoke with action', () => {
 			// Assert
-			expect(childProcessChannel.rpcServer.expose).toHaveBeenCalledWith(
+			expect(childProcessChannel.rpcServer?.expose).toHaveBeenCalledWith(
 				'invoke',
 				expect.any(Function),
 			);
@@ -158,7 +133,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should bind the rpcSocket to rpcSocketPath', () => {
 			// Assert
-			expect(childProcessChannel.rpcSocket.bind).toHaveBeenCalledWith(
+			expect(childProcessChannel.rpcSocket?.bind).toHaveBeenCalledWith(
 				childProcessChannel.rpcSocketPath,
 			);
 		});
@@ -193,7 +168,7 @@ describe('ChildProcessChannel Channel', () => {
 			childProcessChannel.subscribe(invalidEventName, () => {});
 
 			// Assert
-			expect(childProcessChannel.subSocket.on).toHaveBeenCalledWith(
+			expect(childProcessChannel.subSocket?.on).toHaveBeenCalledWith(
 				invalidEventName,
 				expect.any(Function),
 			);
@@ -223,7 +198,7 @@ describe('ChildProcessChannel Channel', () => {
 			childProcessChannel.once(invalidEventName, () => {});
 
 			// Assert
-			expect(childProcessChannel.subSocket.on).toHaveBeenCalledWith(
+			expect(childProcessChannel.subSocket?.on).toHaveBeenCalledWith(
 				invalidEventName,
 				expect.any(Function),
 			);
@@ -249,7 +224,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should call localBus.emit with proper arguments', async () => {
 			// Arrange
-			const data = '#DATA';
+			const data = { data: '#DATA' };
 			const event = new Event(validEventName, data);
 
 			// Act
@@ -264,14 +239,14 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should call pubSocket.emit with proper arguments', async () => {
 			// Arrange
-			const data = '#DATA';
+			const data = { data: '#DATA' };
 			const event = new Event(validEventName, data);
 
 			// Act
 			childProcessChannel.publish(validEventName, data);
 
 			// Assert
-			expect(childProcessChannel.pubSocket.emit).toHaveBeenCalledWith(
+			expect(childProcessChannel.pubSocket?.emit).toHaveBeenCalledWith(
 				event.key(),
 				event.serialize(),
 			);
@@ -279,7 +254,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should not call pubSocket.emit when eventList is empty', async () => {
 			// Arrange
-			const data = '#DATA';
+			const data = { data: '#DATA' };
 			const anotherChildProcessChannel = new ChildProcessChannel(
 				params.moduleAlias,
 				[],
@@ -317,10 +292,13 @@ describe('ChildProcessChannel Channel', () => {
 			// Act
 			await childProcessChannel.registerToBus(socketsPath);
 			const action = new Action(actionName, actionParams);
-			await childProcessChannel.invoke(action, actionParams);
+			await childProcessChannel.invoke(action.key(), actionParams);
 
 			// Assert
-			expect(params.actions.action1.handler).toHaveBeenCalledWith(action);
+			expect(params.actions.action1.handler).toHaveBeenCalledWith({
+				...action.serialize(),
+				source: childProcessChannel.moduleAlias,
+			});
 		});
 	});
 
@@ -333,19 +311,19 @@ describe('ChildProcessChannel Channel', () => {
 			childProcessChannel.cleanup();
 
 			// Assert
-			expect(childProcessChannel.rpcSocket.close).toHaveBeenCalled();
+			expect(childProcessChannel.rpcSocket?.close).toHaveBeenCalled();
 		});
 	});
 
 	describe('#_resolveWhenAllSocketsBound', () => {
 		beforeEach(async () => {
 			await childProcessChannel.registerToBus(socketsPath);
-			childProcessChannel._resolveWhenAllSocketsBound();
+			(childProcessChannel as any)._resolveWhenAllSocketsBound();
 		});
 
 		it('should call pubSocket.sock.once with proper arguments', () => {
 			// Assert
-			expect(childProcessChannel.pubSocket.sock.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.pubSocket?.sock.once).toHaveBeenCalledWith(
 				'connect',
 				expect.any(Function),
 			);
@@ -353,7 +331,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should call subSocket.sock.once with proper arguments', () => {
 			// Assert
-			expect(childProcessChannel.subSocket.sock.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.subSocket?.sock.once).toHaveBeenCalledWith(
 				'connect',
 				expect.any(Function),
 			);
@@ -361,7 +339,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should call rpcSocket.once with proper arguments', () => {
 			// Assert
-			expect(childProcessChannel.rpcSocket.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.rpcSocket?.once).toHaveBeenCalledWith(
 				'bind',
 				expect.any(Function),
 			);
@@ -369,7 +347,7 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should call busRpcSocket.once with proper arguments', () => {
 			// Assert
-			expect(childProcessChannel.busRpcSocket.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.busRpcSocket?.once).toHaveBeenCalledWith(
 				'connect',
 				expect.any(Function),
 			);
@@ -377,11 +355,11 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should call busRpcClient.call with proper arguments when busRpcSocket receives a "connect" event', () => {
 			// Assert
-			expect(childProcessChannel.busRpcClient.call).toHaveBeenCalledWith(
+			expect(childProcessChannel.busRpcClient?.call).toHaveBeenCalledWith(
 				'registerChannel',
 				childProcessChannel.moduleAlias,
-				childProcessChannel.eventsList.map(event => event.name),
-				childProcessChannel.actionsList.map(action => action.name),
+				childProcessChannel.eventsList,
+				childProcessChannel.actionsList,
 				{ type: 'ipcSocket', rpcSocketPath: childProcessChannel.rpcSocketPath },
 				expect.any(Function),
 			);
@@ -394,17 +372,17 @@ describe('ChildProcessChannel Channel', () => {
 		it('should reject if any of the sockets receive an "error" event', () => {
 			// Assert
 			return expect(
-				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
 			).rejects.toBe('#MOCKED_ONCE');
 		});
 
 		it('should call pubSocket.sock.once with proper arguments', async () => {
 			// Act && Assert
 			await expect(
-				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
 			).toReject();
 
-			expect(childProcessChannel.pubSocket.sock.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.pubSocket?.sock.once).toHaveBeenCalledWith(
 				'error',
 				expect.any(Function),
 			);
@@ -413,10 +391,10 @@ describe('ChildProcessChannel Channel', () => {
 		it('should call subSocket.sock.once with proper arguments', async () => {
 			// Act && Assert
 			await expect(
-				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
 			).toReject();
 
-			expect(childProcessChannel.subSocket.sock.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.subSocket?.sock.once).toHaveBeenCalledWith(
 				'error',
 				expect.any(Function),
 			);
@@ -425,10 +403,10 @@ describe('ChildProcessChannel Channel', () => {
 		it('should call rpcSocket.once with proper arguments', async () => {
 			// Act && Assert
 			await expect(
-				childProcessChannel._rejectWhenAnySocketFailsToBind(),
+				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
 			).toReject();
 
-			expect(childProcessChannel.rpcSocket.sock.once).toHaveBeenCalledWith(
+			expect(childProcessChannel.rpcSocket?.sock.once).toHaveBeenCalledWith(
 				'error',
 				expect.any(Function),
 			);
@@ -440,9 +418,9 @@ describe('ChildProcessChannel Channel', () => {
 
 		it('should reject with an Error object with proper message', () => {
 			// Assert
-			return expect(childProcessChannel._rejectWhenTimeout(1)).rejects.toThrow(
-				'ChildProcessChannel sockets setup timeout',
-			);
+			return expect(
+				(childProcessChannel as any)._rejectWhenTimeout(1),
+			).rejects.toThrow('ChildProcessChannel sockets setup timeout');
 		});
 	});
 
@@ -452,46 +430,46 @@ describe('ChildProcessChannel Channel', () => {
 			await childProcessChannel.registerToBus(socketsPath);
 
 			// Act
-			childProcessChannel._removeAllListeners();
+			(childProcessChannel as any)._removeAllListeners();
 		});
 
 		it('should remove all listeners on subSocket ', () => {
 			// Assert
 			expect(
-				childProcessChannel.subSocket.sock.removeAllListeners,
+				childProcessChannel.subSocket?.sock.removeAllListeners,
 			).toHaveBeenCalledWith('connect');
 			expect(
-				childProcessChannel.subSocket.sock.removeAllListeners,
+				childProcessChannel.subSocket?.sock.removeAllListeners,
 			).toHaveBeenCalledWith('error');
 		});
 
 		it('should remove all listeners on pubSocket', () => {
 			// Assert
 			expect(
-				childProcessChannel.pubSocket.sock.removeAllListeners,
+				childProcessChannel.pubSocket?.sock.removeAllListeners,
 			).toHaveBeenCalledWith('connect');
 			expect(
-				childProcessChannel.pubSocket.sock.removeAllListeners,
+				childProcessChannel.pubSocket?.sock.removeAllListeners,
 			).toHaveBeenCalledWith('error');
 		});
 
 		it('should remove all listeners on busRpcSocket', () => {
 			// Assert
 			expect(
-				childProcessChannel.busRpcSocket.removeAllListeners,
+				childProcessChannel.busRpcSocket?.removeAllListeners,
 			).toHaveBeenCalledWith('connect');
 			expect(
-				childProcessChannel.busRpcSocket.removeAllListeners,
+				childProcessChannel.busRpcSocket?.removeAllListeners,
 			).toHaveBeenCalledWith('error');
 		});
 
 		it('should remove all listeners on rpcSocket', () => {
 			// Assert
 			expect(
-				childProcessChannel.rpcSocket.removeAllListeners,
+				childProcessChannel.rpcSocket?.removeAllListeners,
 			).toHaveBeenCalledWith('bind');
 			expect(
-				childProcessChannel.rpcSocket.removeAllListeners,
+				childProcessChannel.rpcSocket?.removeAllListeners,
 			).toHaveBeenCalledWith('error');
 		});
 	});

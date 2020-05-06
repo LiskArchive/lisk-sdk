@@ -31,7 +31,7 @@ import { registeredTransactions } from '../../../../../../../utils/registered_tr
 import * as genesisBlockDevnet from '../../../../../../../fixtures/config/devnet/genesis_block.json';
 import { peersList } from './peers';
 
-const ChannelMock: any = jest.genMockFromModule(
+const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../../src/controller/channels/in_memory_channel',
 );
 

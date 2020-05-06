@@ -163,7 +163,7 @@ export class ChildProcessChannel extends BaseChannel {
 			// eslint-disable-next-line
 			// @ts-ignore
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return this.actions[action.name].handler(action);
+			return this.actions[action.name].handler(action.serialize());
 		}
 
 		return new Promise((resolve, reject) => {

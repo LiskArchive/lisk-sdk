@@ -59,19 +59,19 @@ export class InMemoryChannel extends BaseChannel {
 	public async invoke(actionName: string, params?: object): Promise<any> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
+		console.info(this.actions);
+
 		if (action.module === this.moduleAlias) {
-			if (this.actions[action.key()] === undefined) {
+			if (this.actions[action.name] === undefined) {
 				throw new Error(
-					`The action '${action.key()}' on module '${
-						this.moduleAlias
-					}' does not exist.`,
+					`The action '${action.name}' on module '${this.moduleAlias}' does not exist.`,
 				);
 			}
 
 			// eslint-disable-next-line
 			// @ts-ignore
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return this.actions[action.key()].handler(action.serialize());
+			return this.actions[action.name].handler(action.serialize());
 		}
 
 		return (this.bus as Bus).invoke(action.serialize());

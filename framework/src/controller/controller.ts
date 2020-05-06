@@ -73,7 +73,7 @@ interface Migrations {
 	readonly [key: string]: ReadonlyArray<string>;
 }
 
-class Controller {
+export class Controller {
 	public readonly logger: Logger;
 	public readonly storage: Storage;
 	public readonly appLabel: string;
@@ -131,6 +131,35 @@ class Controller {
 		this.logger.debug(this.bus?.getActions(), 'Bus ready for actions');
 	}
 
+	public async unloadModules(
+		modules = Object.keys(this.modules),
+	): Promise<void> {
+		// To perform operations in sequence and not using bluebird
+
+		for (const alias of modules) {
+			await this.modules[alias].unload();
+			delete this.modules[alias];
+		}
+	}
+
+	public async cleanup(_code?: number, reason?: string): Promise<void> {
+		this.logger.info('Cleanup controller...');
+
+		if (reason) {
+			this.logger.error(`Reason: ${reason}`);
+		}
+
+		this.childrenList.forEach(child => child.kill());
+
+		try {
+			await this.bus?.cleanup();
+			await this.unloadModules();
+			this.logger.info('Unload completed');
+		} catch (err) {
+			this.logger.error({ err }, 'Caused error during modules cleanup');
+		}
+	}
+
 	// eslint-disable-next-line class-methods-use-this
 	private async _setupDirectories(): Promise<void> {
 		// Make sure all directories exists
@@ -139,7 +168,7 @@ class Controller {
 		await fs.ensureDir(this.config.dirs.pids);
 	}
 
-	private async _validatePidFile() {
+	private async _validatePidFile(): Promise<void> {
 		const pidPath = `${this.config.dirs.pids}/controller.pid`;
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
@@ -160,7 +189,7 @@ class Controller {
 		await fs.writeFile(pidPath, process.pid);
 	}
 
-	private async _setupBus() {
+	private async _setupBus(): Promise<void> {
 		this.bus = new Bus(
 			{
 				wildcard: true,
@@ -176,7 +205,7 @@ class Controller {
 		await this.channel.registerToBus(this.bus);
 
 		// If log level is greater than info
-		if (this.logger.level && this.logger.level() < 30) {
+		if (this.logger.level !== undefined && this.logger.level() < 30) {
 			this.bus.onAny(event => {
 				this.logger.trace(`eventName: ${event},`, 'Monitor Bus Channel');
 			});
@@ -184,7 +213,7 @@ class Controller {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	private async _loadMigrations(migrationsObj: Migrations) {
+	private async _loadMigrations(migrationsObj: Migrations): Promise<void> {
 		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
@@ -329,35 +358,4 @@ class Controller {
 			}),
 		]);
 	}
-
-	public async unloadModules(
-		modules = Object.keys(this.modules),
-	): Promise<void> {
-		// To perform operations in sequence and not using bluebird
-
-		for (const alias of modules) {
-			await this.modules[alias].unload();
-			delete this.modules[alias];
-		}
-	}
-
-	public async cleanup(_code: number, reason: string): Promise<void> {
-		this.logger.info('Cleanup controller...');
-
-		if (reason) {
-			this.logger.error(`Reason: ${reason}`);
-		}
-
-		this.childrenList.forEach(child => child.kill());
-
-		try {
-			await this.bus?.cleanup();
-			await this.unloadModules();
-			this.logger.info('Unload completed');
-		} catch (err) {
-			this.logger.error({ err }, 'Caused error during modules cleanup');
-		}
-	}
 }
-
-module.exports = Controller;

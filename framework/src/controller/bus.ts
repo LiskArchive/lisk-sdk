@@ -128,23 +128,24 @@ export class Bus extends EventEmitter2 {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async registerChannel(
 		moduleAlias: string,
+		// Events should also include the module alias
 		events: EventsArray,
 		actions: ActionsObject,
 		options: RegisterChannelOptions,
 	): Promise<void> {
 		events.forEach(eventName => {
-			if (this.events[eventName]) {
+			if (this.events[`${moduleAlias}:${eventName}`] !== undefined) {
 				throw new Error(`Event "${eventName}" already registered with bus.`);
 			}
-			this.events[eventName] = true;
+			this.events[`${moduleAlias}:${eventName}`] = true;
 		});
 
 		Object.keys(actions).forEach(actionName => {
-			if (this.actions[actionName] === undefined) {
+			if (this.actions[`${moduleAlias}:${actionName}`] !== undefined) {
 				throw new Error(`Action "${actionName}" already registered with bus.`);
 			}
 
-			this.actions[actionName] = actions[actionName];
+			this.actions[`${moduleAlias}:${actionName}`] = actions[actionName];
 		});
 
 		let { channel } = options;

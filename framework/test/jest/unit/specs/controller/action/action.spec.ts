@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const Action = require('../../../../../../src/controller/action');
-const {
+import { Action } from '../../../../../../src/controller/action';
+import {
 	ACTION_NAME,
 	MODULE_NAME,
 	INVALID_ACTION_NAME_ARG,
@@ -23,16 +21,10 @@ const {
 	VALID_ACTION_NAME_ARG,
 	VALID_ACTION_SOURCE_ARG,
 	PARAMS,
-} = require('./constants');
+} from './constants';
 
 describe('Action class', () => {
 	describe('#constructor', () => {
-		// Act & Assert
-		it('should throw an error when name argument was not provided.', () => {
-			expect(() => new Action()).toThrow(
-				'Action name "undefined" must be a valid name with module name.',
-			);
-		});
 		it('should throw an error when invalid name was provided.', () => {
 			// Act & Assert
 			expect(() => new Action(INVALID_ACTION_NAME_ARG)).toThrow(
@@ -43,8 +35,7 @@ describe('Action class', () => {
 		it('should throw an error when invalid source was provided.', () => {
 			// Act & Assert
 			expect(
-				() =>
-					new Action(VALID_ACTION_NAME_ARG, null, INVALID_ACTION_SOURCE_ARG),
+				() => new Action(VALID_ACTION_NAME_ARG, {}, INVALID_ACTION_SOURCE_ARG),
 			).toThrow(
 				`Source name "${INVALID_ACTION_SOURCE_ARG}" must be a valid module name.`,
 			);
@@ -75,7 +66,7 @@ describe('Action class', () => {
 	});
 
 	describe('methods', () => {
-		let action;
+		let action: Action;
 		beforeEach(() => {
 			// Arrange
 			action = new Action(
@@ -146,10 +137,10 @@ describe('Action class', () => {
 
 				// Assert
 				expect(action).toBeInstanceOf(Action);
-				expect(action.module).toBe(MODULE_NAME);
-				expect(action.name).toBe(ACTION_NAME);
-				expect(action.params).toBe(PARAMS);
-				expect(action.source).toBe(VALID_ACTION_SOURCE_ARG);
+				expect(action.module).toEqual(MODULE_NAME);
+				expect(action.name).toEqual(ACTION_NAME);
+				expect(action.params).toEqual(PARAMS);
+				expect(action.source).toEqual(VALID_ACTION_SOURCE_ARG);
 			});
 
 			it('should return action instance with given object config.', () => {

@@ -12,17 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const MODULE_NAME = 'module';
-const ACTION_NAME = 'action';
-
-module.exports = Object.freeze({
-	ACTION_NAME,
-	MODULE_NAME,
-	INVALID_ACTION_NAME_ARG: '09',
-	INVALID_ACTION_SOURCE_ARG: '123',
-	VALID_ACTION_NAME_ARG: `${MODULE_NAME}:${ACTION_NAME}`,
-	VALID_ACTION_SOURCE_ARG: 'source',
-	PARAMS: '#params',
-});
+export const MODULE_NAME = 'module';
+export const EVENT_NAME = 'event';
+export const VALID_EVENT_NAME_ARG = `${MODULE_NAME}:${EVENT_NAME}`;
+export const INVALID_EVENT_NAME_ARG = `${MODULE_NAME}`;
+export const DATA = '#data';
