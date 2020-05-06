@@ -13,7 +13,6 @@
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { BlockJSON } from '@liskhq/lisk-chain';
-import { BlockInstance } from '@liskhq/lisk-chain';
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 export interface StringKeyVal {
@@ -140,19 +139,4 @@ export interface ApplicationState {
 	readonly logger: Logger;
 	readonly set: (logger: Logger) => void;
 	readonly update: (appState: AppStateProperties) => boolean;
-}
-
-export interface Processor {
-	readonly process: (
-		block: BlockInstance,
-		{ peerId: string }: p2pTypes.P2PPeerInfo,
-	) => Promise<void>;
-	readonly deserialize: (block: BlockJSON) => Promise<BlockInstance>;
-}
-
-export interface Synchronizer {
-	readonly isActive: boolean;
-	readonly init: () => Promise<void>;
-	readonly run: (receivedBlock: BlockJSON, peerId: string) => Promise<void>;
-	readonly loadUnconfirmedTransactions: () => Promise<void>;
 }

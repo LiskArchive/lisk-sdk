@@ -35,7 +35,7 @@ export class Broadcaster {
 	private readonly _config: BroadcasterConfig;
 	private _transactionIdQueue: string[];
 
-	constructor({
+	public constructor({
 		transactionPool,
 		releaseLimit,
 		interval,
@@ -56,6 +56,7 @@ export class Broadcaster {
 			try {
 				await this._broadcast();
 			} catch (err) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				this._logger.error({ err }, 'Failed to broadcast information');
 			}
 		}, this._config.interval);

@@ -10,11 +10,9 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
-
-'use strict';
-
-module.exports = {
+export const constantsSchema = {
 	id: '#constants',
 	type: 'object',
 	required: [

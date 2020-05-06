@@ -20,11 +20,11 @@ import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 import { convertErrorsToString } from '../utils/error_handlers';
 import { InvalidTransactionError } from './errors';
 import { schemas } from './schemas';
+import { Synchronizer } from '../synchronizer';
+import { Processor } from '../processor';
 import {
 	Channel,
 	Logger,
-	Synchronizer,
-	Processor,
 	RPCBlocksByIdData,
 	RPCHighestCommonBlockData,
 	EventPostBlockData,
@@ -46,7 +46,7 @@ interface TransactionPoolTransaction extends BaseTransaction {
 export interface TransportConstructor {
 	readonly channel: Channel;
 	readonly logger: Logger;
-	readonly synchronizerModule: Synchronizer;
+	readonly synchronizer: Synchronizer;
 	readonly transactionPoolModule: TransactionPool;
 	readonly chainModule: Chain;
 	readonly processorModule: Processor;
@@ -79,20 +79,20 @@ export class Transport {
 	private readonly _processorModule: Processor;
 	private readonly _broadcaster: Broadcaster;
 
-	constructor({
+	public constructor({
 		// components
 		channel,
 		logger,
 		// Unique requirements
 		// Modules
-		synchronizerModule,
+		synchronizer,
 		transactionPoolModule,
 		chainModule,
 		processorModule,
 	}: TransportConstructor) {
 		this._channel = channel;
 		this._logger = logger;
-		this._synchronizerModule = synchronizerModule;
+		this._synchronizerModule = synchronizer;
 
 		this._transactionPoolModule = transactionPoolModule;
 		this._chainModule = chainModule;
@@ -143,6 +143,7 @@ export class Transport {
 		);
 
 		if (errors.length) {
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			const error = `${errors[0].message}`;
 
 			this._logger.warn(
@@ -163,6 +164,7 @@ export class Transport {
 		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(
 			(data as RPCBlocksByIdData).blockId,
 		);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!lastBlock) {
 			throw new Error(
 				`Invalid blockId requested: ${(data as RPCBlocksByIdData).blockId}`,
@@ -180,7 +182,8 @@ export class Transport {
 			fetchUntilHeight,
 		);
 
-		return blocks && blocks.map(block => this._chainModule.serialize(block));
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		return blocks?.map(block => this._chainModule.serialize(block));
 	}
 
 	public async handleRPCGetGetHighestCommonBlock(
@@ -194,6 +197,7 @@ export class Transport {
 
 		if (valid.length) {
 			const err = valid;
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			const error = `${err[0].message}: ${err[0].dataPath}`;
 			this._logger.warn(
 				{
@@ -226,7 +230,9 @@ export class Transport {
 		if (this._synchronizerModule.isActive) {
 			return this._logger.debug(
 				{
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					blockId: (data as EventPostBlockData)?.block.id,
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					height: (data as EventPostBlockData)?.block.height,
 				},
 				"Client is syncing. Can't process new block at the moment.",
@@ -261,6 +267,7 @@ export class Transport {
 	}
 
 	public async handleRPCGetTransactions(
+		// eslint-disable-next-line @typescript-eslint/default-param-last
 		data: unknown = { transactionIds: [] },
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
@@ -286,6 +293,7 @@ export class Transport {
 		}
 
 		const { transactionIds } = data as RPCTransactionsByIdData;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!transactionIds) {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
@@ -317,6 +325,7 @@ export class Transport {
 				id,
 			) as BaseTransaction;
 
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
 				transactionsFromQueues.push(transaction.toJSON());
 			} else {
@@ -353,6 +362,7 @@ export class Transport {
 		} catch (err) {
 			return {
 				message: 'Transaction was rejected with errors',
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				errors: err.errors || err,
 			};
 		}
@@ -392,6 +402,7 @@ export class Transport {
 			(data as EventPostTransactionsAnnouncementData).transactionIds,
 		);
 		if (unknownTransactionIDs.length > 0) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const { data: result } = await this._channel.invokeFromNetwork(
 				'requestFromPeer',
 				{
@@ -401,12 +412,14 @@ export class Transport {
 				},
 			);
 			try {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				for (const transaction of result.transactions) {
-					/* eslint-disable-next-line  @typescript-eslint/no-explicit-any */
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					transaction.bundled = true;
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
 					await this._channel.invoke('app:applyPenaltyOnPeer', {

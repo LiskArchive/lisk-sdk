@@ -10,13 +10,12 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-'use strict';
-
-const applicationConfigSchema = require('./application_config_schema');
-const constantsSchema = require('./constants_schema');
-const genesisBlockSchema = require('./genesis_block_schema');
+import { applicationConfigSchema } from './application_config_schema';
+import { constantsSchema } from './constants_schema';
+import { genesisBlockSchema } from './genesis_block_schema';
 
 module.exports = {
 	applicationConfigSchema,
