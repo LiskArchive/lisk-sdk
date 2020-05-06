@@ -4,3 +4,4 @@ templates/
 types/
 examples/
 **/*.d.ts
+jest.config.js
