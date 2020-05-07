@@ -16,12 +16,8 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 
 export const getId = (transactionBytes: Buffer): string => {
 	const transactionHash = cryptography.hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const transactionId = cryptography.bufferToIntAsString(
-		bufferFromFirstEntriesReversed,
-	);
+
+	const transactionId = cryptography.bufferToHex(transactionHash);
 
 	return transactionId;
 };
