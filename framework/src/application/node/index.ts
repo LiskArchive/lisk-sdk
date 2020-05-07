@@ -12,8 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const Node = require('./node');
-
-module.exports = { Node };
+export { Node } from './node';

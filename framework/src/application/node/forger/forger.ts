@@ -51,7 +51,7 @@ interface HashOnionConfig {
 	readonly hashes: string[];
 }
 
-interface ForgingStatus {
+export interface ForgingStatus {
 	readonly publicKey: string;
 	readonly forging: boolean;
 }
