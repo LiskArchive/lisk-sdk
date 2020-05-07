@@ -390,7 +390,7 @@ describe('block processor v2', () => {
 		it('should include seedReveal after previousBlockId', () => {
 			const bytes = getBytes(block as any);
 			// version(4), timestamp(4), previousBlockID(8)
-			const seedRevealBytes = bytes.slice(16, 16 + 16);
+			const seedRevealBytes = bytes.slice(40, 40 + 16);
 			expect(seedRevealBytes.toString('hex')).toEqual(defaultSeedReveal);
 		});
 	});
