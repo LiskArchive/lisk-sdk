@@ -32,13 +32,13 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public subscribe(eventName: string, cb: EventCallback): void {
-		(this.bus as Bus).subscribe(new Event(eventName).key(), data =>
+		(this.bus as Bus).subscribe(eventName, data =>
 			setImmediate(cb, Event.deserialize(data)),
 		);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
-		(this.bus as Bus).once(new Event(eventName).key(), data =>
+		(this.bus as Bus).once(eventName, data =>
 			setImmediate(cb, Event.deserialize(data)),
 		);
 	}
@@ -51,7 +51,6 @@ export class InMemoryChannel extends BaseChannel {
 				`Event "${eventName}" not registered in "${this.moduleAlias}" module.`,
 			);
 		}
-
 		(this.bus as Bus).publish(event.key(), event.serialize());
 	}
 

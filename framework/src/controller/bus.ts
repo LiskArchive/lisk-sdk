@@ -180,7 +180,7 @@ export class Bus extends EventEmitter2 {
 			throw new Error(`Action '${action.key()}' is not registered to bus.`);
 		}
 
-		const channelInfo = this.channels[actionFullName];
+		const channelInfo = this.channels[action.module];
 
 		return channelInfo.channel.invoke<T>(actionFullName, actionParams);
 	}
@@ -244,7 +244,7 @@ export class Bus extends EventEmitter2 {
 		}
 
 		// Communicate through event emitter
-		super.once([eventName], cb);
+		super.once(eventName, cb);
 
 		// TODO: make it `once` instead of `on`
 		// Communicate through unix socket
