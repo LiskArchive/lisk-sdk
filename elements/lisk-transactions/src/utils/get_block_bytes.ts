@@ -37,7 +37,7 @@ export const getBlockBytes = (block: BlockHeaderJSON): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex'): Buffer.alloc(32);
+	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 

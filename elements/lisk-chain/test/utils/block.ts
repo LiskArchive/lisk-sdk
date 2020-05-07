@@ -44,7 +44,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex'): Buffer.alloc(32);
+	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
 
 	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
 
