@@ -204,7 +204,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Load Swagger controllers and bind the scope
 	const controllerFolder = '/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
-		if (path.extname(file) === 'js' && path.basename(file) !== 'index.js') {
+		if (path.extname(file) === '.js' && path.basename(file) !== 'index.js') {
 			// eslint-disable-next-line import/no-dynamic-require,global-require
 			require(config.root + controllerFolder + file)(scope);
 		}
