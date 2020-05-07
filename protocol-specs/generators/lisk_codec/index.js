@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -90,6 +91,10 @@ const generateValidNumberEncodings = () => {
 	const signedNumberEncoded64 = SignedNumber64.encode(input.messageSigned64.object).finish();
 
 	return {
+		description: 'Encoding of numeric types',
+		config: {
+			network: 'devnet'
+		},
 		input: {
 			message32: input.message32,
 			messageSigned32: input.message32,
@@ -111,10 +116,12 @@ const generateValidNumberEncodings = () => {
 const validNumberEncodingsSuite = () => ({
 	title: 'Valid number encodings',
 	summary: 'Examples of encoding numbers as required by lisk-codec',
-	config: 'devnet',
+	config: {
+		network: 'devnet'
+	},
 	runner: 'lisk_codec',
 	handler: 'validNumberEncodings',
-	testCases: generateValidNumberEncodings(),
+	testCases: [generateValidNumberEncodings()],
 });
 
 
