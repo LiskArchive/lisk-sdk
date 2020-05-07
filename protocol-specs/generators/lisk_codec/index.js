@@ -23,34 +23,78 @@ const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffe
 
 
 const generateValidNumberEncodings = () => {
-	const message32 = {
-		number: 10,
+	const input = {
+		message32: {
+			object: {
+				number: 10,
+			},
+			schema: {
+					type: 'object',
+					properties: {
+						number: {
+							dataType: 'uint32',
+							fieldNumber: 1
+						}
+					}
+			},
+		},
+		messageSigned32: {
+			object: {
+				number: -10,
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					number: {
+						dataType: 'sint32',
+						fieldNumber: 1
+					}
+				}
+			},
+		},
+		message64: {
+			object: {
+				number: 372036854775807,
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					number: {
+						dataType: 'uint64',
+						fieldNumber: 1
+					}
+				}
+			},
+		},
+		messageSigned64: {
+			object: {
+				number: -223372036854775807,
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					number: {
+						dataType: 'sint64',
+						fieldNumber: 1
+					}
+				}
+			},
+		},
 	}
 
-	const messageSigned32 = {
-		number: -10,
-	}
-
-	const message64 = {
-		number: 372036854775807,
-	}
-
-	const messageSigned64 = {
-		number: -223372036854775807,
-	}
 
 
-
-	const numberEncoded32 = Number32.encode(message32).finish();
-	const signedNumberEncoded32 = SignedNumber32.encode(messageSigned32).finish();
-	const numberEncoded64 = Number64.encode(message64).finish();
-	const signedNumberEncoded64 = SignedNumber64.encode(messageSigned64).finish();
+	const numberEncoded32 = Number32.encode(input.message32.object).finish();
+	const signedNumberEncoded32 = SignedNumber32.encode(input.messageSigned32.object).finish();
+	const numberEncoded64 = Number64.encode(input.message64.object).finish();
+	const signedNumberEncoded64 = SignedNumber64.encode(input.messageSigned64.object).finish();
 
 	return {
 		input: {
-			message32,
-			messageSigned32,
-			message64
+			message32: input.message32,
+			messageSigned32: input.message32,
+			message64: input.message64,
+			messageSigned64: input.messageSigned64,
 		},
 		output: {
 			numberEncoded32: numberEncoded32.toString('hex'),
