@@ -23,12 +23,14 @@ const prepareProtobuffersBooleans = () => protobuf.loadSync('./generators/lisk_c
 const prepareProtobuffersStrings = () => protobuf.loadSync('./generators/lisk_codec/proto_files/strings.proto');
 const prepareProtobuffersBytes = () => protobuf.loadSync('./generators/lisk_codec/proto_files/bytes.proto');
 const prepareProtobuffersObjects = () => protobuf.loadSync('./generators/lisk_codec/proto_files/object.proto');
+const prepareProtobuffersArrays = () => protobuf.loadSync('./generators/lisk_codec/proto_files/arrays.proto');
 
 const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
 const { Boolean } = prepareProtobuffersBooleans();
 const { String } = prepareProtobuffersStrings();
 const { Bytes } = prepareProtobuffersBytes();
 const { Objects } = prepareProtobuffersObjects();
+const { ArrayInts, ArrayBools, ArrayObjects } = prepareProtobuffersArrays();
 
 
 const generateValidNumberEncodings = () => {
@@ -334,6 +336,110 @@ const generateValidObjectEncodings = () => {
 };
 
 
+const generateValidArrayEncodings = () => {
+	const input = {
+		arrayInts: {
+			object: {
+				list: [3, 1, 4, 1, 5, 9, 2, 6, 5],
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					list: {
+						dataType: 'array',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+		arrayBools: {
+			object: {
+				list: [true, true, false, true, false, false],
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					list: {
+						dataType: 'array',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+		arrayObjects: {
+			object: {
+				myArray: [
+					{ address: 'e11a11364738225813f86ea85214400e5db08d6e', amount: 100000 },
+					{ address: 'aa2a11364738225813f86ea85214400e5db08fff', amount: 300000 },
+				],
+			},
+			schema: {
+				schema: {
+					type: 'object',
+					properties: {
+						list: {
+							dataType: 'array',
+							fieldNumber: 1,
+							items: {
+								type: 'object',
+								properties: {
+									address: {
+										dataType: 'string',
+										fieldNumber: 1,
+									},
+									amount: {
+										dataType: 'uint64',
+										fieldNumber: 2,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		emptyArray: {
+			object: {
+				list: [],
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					list: {
+						dataType: 'array',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	};
+
+	const arrayIntsEncoded = ArrayInts.encode(input.arrayInts.object).finish();
+	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
+	const arrayOfObjectsEncoded = ArrayObjects.encode(input.arrayObjects.object).finish();
+	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
+
+	return {
+		description: 'Encoding of boolean types',
+		config: {
+			network: 'devnet',
+		},
+		input: {
+			arrayInts: input.arrayInts,
+			arrayBools: input.arrayBools,
+			arrayOfObjects: input.arrayObjects,
+			emptyArray: input.emptyArray,
+		},
+		output: {
+			arrayIntsEncoded: arrayIntsEncoded.toString('hex'),
+			arrayBoolsEncoded: arrayBoolsEncoded.toString('hex'),
+			arrayOfObjectsEncoded: arrayOfObjectsEncoded.toString('hex'),
+			emptyArrayEncoded: emptyArrayEncoded.toString('hex'),
+		},
+	};
+};
+
+
 const validNumberEncodingsSuite = () => ({
 	title: 'Valid number encodings',
 	summary: 'Examples of encoding numbers as required by lisk-codec',
@@ -389,6 +495,17 @@ const validObjectEncodingsSuite = () => ({
 	testCases: [generateValidObjectEncodings()],
 });
 
+const validArrayEncodingsSuite = () => ({
+	title: 'Valid array encodings',
+	summary: 'Examples of encoding arrays as required by lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'validArrayEncodings',
+	testCases: [generateValidArrayEncodings()],
+});
+
 
 module.exports = BaseGenerator.runGenerator(
 	'lisk_codec',
@@ -398,5 +515,6 @@ module.exports = BaseGenerator.runGenerator(
 		validStringEncodingsSuite,
 		validBytesEncodingsSuite,
 		validObjectEncodingsSuite,
+		validArrayEncodingsSuite,
 	],
 );
