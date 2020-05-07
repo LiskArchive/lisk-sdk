@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, getStartPrefix, getEndPrefix } from '../src/utils';
+import { formatInt, getFirstPrefix, getLastPrefix } from '../src/utils';
 
 describe('utils', () => {
 	describe('formatInt', () => {
 		describe('when bigint is provided', () => {
-			it('should return string which can be sorted lexigraphically', () => {
+			it('should return string which can be sorted lexicographically', () => {
 				const str1 = formatInt(BigInt(100));
 				const str2 = formatInt(BigInt(10));
 				const str3 = formatInt(BigInt(11));
@@ -37,7 +37,7 @@ describe('utils', () => {
 		});
 
 		describe('when number is provided', () => {
-			it('should return string which can be sorted lexigraphically', () => {
+			it('should return string which can be sorted lexicographically', () => {
 				const str1 = formatInt(100);
 				const str2 = formatInt(10);
 				const str3 = formatInt(11);
@@ -57,12 +57,12 @@ describe('utils', () => {
 		});
 	});
 
-	describe('getStartPrefix', () => {
+	describe('getFirstPrefix', () => {
 		it('should return string which is the next ascii string by binary', () => {
 			const prefix = 'block:id';
 			const defaultKey =
 				'0000000000000000000000000000000000000000000000000000000000000000';
-			const startPrefix = getStartPrefix(prefix);
+			const startPrefix = getFirstPrefix(prefix);
 			// start prefix should come before the expected value
 			expect(
 				`${prefix}:${defaultKey}`.localeCompare(startPrefix, 'en'),
@@ -74,12 +74,12 @@ describe('utils', () => {
 		});
 	});
 
-	describe('getEndPrefix', () => {
+	describe('getLastPrefix', () => {
 		it('should return next ascii string by binary', () => {
 			const prefix = 'block:id';
 			const defaultKey =
 				'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz';
-			const endPrefix = getEndPrefix(prefix);
+			const endPrefix = getLastPrefix(prefix);
 			// end prefix should come after the expected value
 			expect(`${prefix}:${defaultKey}`.localeCompare(endPrefix, 'en')).toEqual(
 				-1,

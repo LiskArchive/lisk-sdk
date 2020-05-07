@@ -17,7 +17,7 @@ import { debug } from 'debug';
 import encodingDown from 'encoding-down';
 import levelup, { LevelUp } from 'levelup';
 import rocksDB from 'rocksdb';
-import { NotFoundError } from './error';
+import { NotFoundError } from './errors';
 
 const logger = debug('db');
 
@@ -56,6 +56,7 @@ export class KVStore {
 			throw new Error(`${parentDir} does not exist`);
 		}
 		this._db = (levelup(
+			// TODO: When converting to Buffer, this should be removed
 			encodingDown(rocksDB(file), { valueEncoding: 'json' }),
 		) as unknown) as LevelUp<string, Promise<unknown>>;
 	}

@@ -24,5 +24,5 @@ export const formatInt = (num: number | bigint): string => {
 	return buf.toString('binary');
 };
 
-export const getStartPrefix = (prefix: string): string => `${prefix}\x00`;
-export const getEndPrefix = (prefix: string): string => `${prefix}\xFF`;
+export const getFirstPrefix = (prefix: string): string => `${prefix}\x00`;
+export const getLastPrefix = (prefix: string): string => `${prefix}\xFF`;

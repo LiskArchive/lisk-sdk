@@ -14,7 +14,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { KVStore } from '../src/kv_store';
-import { NotFoundError } from '../src/error';
+import { NotFoundError } from '../src/errors';
 
 interface KeyValuePair {
 	key: string;
