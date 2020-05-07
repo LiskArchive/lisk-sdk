@@ -24,9 +24,9 @@ import { DuplicateAppInstanceError } from '../errors';
 import { validateModuleSpec } from '../application/validator';
 import { Logger, Storage } from '../types';
 import { SocketPaths } from './types';
-import { BaseModule } from '../modules/base_module';
+import { BaseModule, InstantiableModule } from '../modules/base_module';
 
-const isPidRunning = async (pid: number) =>
+const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
 
 export interface ControllerOptions {
@@ -56,7 +56,7 @@ interface ControllerConfig {
 }
 
 interface ModulesObject {
-	readonly [key: string]: typeof BaseModule;
+	readonly [key: string]: InstantiableModule<BaseModule>;
 }
 
 interface ModuleOptions {
@@ -156,7 +156,7 @@ export class Controller {
 			await this.unloadModules();
 			this.logger.info('Unload completed');
 		} catch (err) {
-			this.logger.error({ err }, 'Caused error during modules cleanup');
+			this.logger.error(err, 'Caused error during modules cleanup');
 		}
 	}
 
@@ -180,7 +180,7 @@ export class Controller {
 
 			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
-					{ app_name: this.appLabel },
+					{ appLabel: this.appLabel },
 					'An instance of application is already running, please change application name to run another instance',
 				);
 				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
@@ -207,7 +207,10 @@ export class Controller {
 		// If log level is greater than info
 		if (this.logger.level !== undefined && this.logger.level() < 30) {
 			this.bus.onAny(event => {
-				this.logger.trace(`eventName: ${event},`, 'Monitor Bus Channel');
+				this.logger.trace(
+					`eventName: ${event as string},`,
+					'Monitor Bus Channel',
+				);
 			});
 		}
 	}
@@ -243,15 +246,13 @@ export class Controller {
 
 	private async _loadInMemoryModule(
 		alias: string,
-		Klass: typeof BaseModule,
+		Klass: InstantiableModule<BaseModule>,
 		options: ModuleOptions,
 	): Promise<void> {
 		const moduleAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
 
-		// eslint-disable-next-line
-		// @ts-ignore
-		const module = new Klass(options);
+		const module: BaseModule = new Klass(options);
 		validateModuleSpec(module);
 
 		this.logger.info(
@@ -281,16 +282,14 @@ export class Controller {
 
 	private async _loadChildProcessModule(
 		alias: string,
-		Klass: typeof BaseModule,
+		Klass: InstantiableModule<BaseModule>,
 		options: ModuleOptions,
 	): Promise<void> {
-		// eslint-disable-next-line
-		// @ts-ignore
-		const module = new Klass(options);
-		validateModuleSpec(module);
+		const moduleAlias = alias || Klass.alias;
+		const { name, version } = Klass.info;
 
-		const moduleAlias = alias || module.constructor.alias;
-		const { name, version } = module.constructor.info;
+		const module: BaseModule = new Klass(options);
+		validateModuleSpec(module);
 
 		this.logger.info(
 			{ name, version, moduleAlias },

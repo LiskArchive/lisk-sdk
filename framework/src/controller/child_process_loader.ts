@@ -15,15 +15,22 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { ChildProcessChannel } from './channels';
+import { InstantiableModule, BaseModule } from '../modules/base_module';
 import { SocketPaths } from './types';
 
 const modulePath: string = process.argv[2];
-// eslint-disable-next-line import/no-dynamic-require
-const Klass = require(modulePath);
+// eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
+const Klass: InstantiableModule<BaseModule> = require(modulePath);
 
-const _loadModule = async (config: object, moduleOptions: object) => {
-	const module = new Klass(moduleOptions);
-	const moduleAlias = module.constructor.alias;
+const _loadModule = async (
+	config: {
+		[key: string]: unknown;
+		socketsPath: SocketPaths;
+	},
+	moduleOptions: object,
+): Promise<void> => {
+	const moduleAlias = Klass.alias;
+	const module: BaseModule = new Klass(moduleOptions);
 
 	const channel = new ChildProcessChannel(
 		moduleAlias,
@@ -31,8 +38,7 @@ const _loadModule = async (config: object, moduleOptions: object) => {
 		module.actions,
 	);
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	await channel.registerToBus((config as any).socketsPath as SocketPaths);
+	await channel.registerToBus(config.socketsPath);
 
 	channel.publish(`${moduleAlias}:registeredToBus`);
 	channel.publish(`${moduleAlias}:loading:started`);

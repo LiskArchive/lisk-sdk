@@ -15,7 +15,7 @@
 import { ImplementationMissingError } from '../errors';
 import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
-import { BaseChannel } from '../controller/channels/base_channel';
+import { BaseChannel } from '../controller/channels';
 
 export interface ModuleInfo {
 	readonly author: string;
@@ -23,10 +23,20 @@ export interface ModuleInfo {
 	readonly name: string;
 }
 
+export interface InstantiableModule<T, U = object> {
+	alias: string;
+	info: ModuleInfo;
+	migrations: ReadonlyArray<string>;
+	defaults: object;
+	load: () => Promise<void>;
+	unload: () => Promise<void>;
+	new (...args: U[]): T;
+}
+
 export abstract class BaseModule {
 	public readonly options: object;
 
-	public constructor(options: object) {
+	protected constructor(options: object) {
 		this.options = options;
 	}
 

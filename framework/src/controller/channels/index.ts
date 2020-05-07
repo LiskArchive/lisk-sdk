@@ -13,7 +13,5 @@
  */
 
 export { BaseChannel } from './base_channel';
-// TODO: Fix cycle dependencies
-// eslint-disable-next-line import/no-cycle
-export { InMemoryChannel } from './in_memory_channel';
 export { ChildProcessChannel } from './child_process_channel';
+export { InMemoryChannel } from './in_memory_channel';

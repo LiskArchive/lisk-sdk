@@ -33,7 +33,7 @@ export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
 	process.once('exit', code => channel.cleanup(code));
 };
 
-type NodeCallback = (error: Error | null, result?: number) => void;
+type NodeCallback = (error: Error | null, result?: unknown) => void;
 
 const SOCKET_TIMEOUT_TIME = 2000;
 
@@ -172,7 +172,7 @@ export class ChildProcessChannel extends BaseChannel {
 				action.serialize(),
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(err: Error, data: any) => {
-					if (err) {
+					if (err !== undefined) {
 						return reject(err);
 					}
 
@@ -182,7 +182,7 @@ export class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	public async invokeFromNetwork(
+	public async invokeFromNetwork<T>(
 		remoteMethod: string,
 		params: object,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -199,7 +199,10 @@ export class ChildProcessChannel extends BaseChannel {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async invokePublic(actionName: string, params?: object): Promise<any> {
+	public async invokePublic<T>(
+		actionName: string,
+		params?: object,
+	): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {
@@ -221,7 +224,7 @@ export class ChildProcessChannel extends BaseChannel {
 				action.serialize(),
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				(err: Error, data: any) => {
-					if (err) {
+					if (err !== undefined) {
 						return reject(err);
 					}
 
@@ -292,7 +295,7 @@ export class ChildProcessChannel extends BaseChannel {
 							{ type: 'ipcSocket', rpcSocketPath: this.rpcSocketPath },
 							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							(err: Error, result: any) => {
-								if (err) {
+								if (err !== undefined) {
 									reject(err);
 								}
 								resolve(result);
@@ -306,7 +309,7 @@ export class ChildProcessChannel extends BaseChannel {
 		await Promise.all(promises);
 	}
 
-	private async _rejectWhenAnySocketFailsToBind() {
+	private async _rejectWhenAnySocketFailsToBind(): Promise<void> {
 		const promises = [];
 
 		if (this.pubSocket) {
@@ -339,11 +342,11 @@ export class ChildProcessChannel extends BaseChannel {
 			);
 		}
 
-		return Promise.race(promises);
+		await Promise.race(promises);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _rejectWhenTimeout(timeInMillis: number) {
+	private async _rejectWhenTimeout(timeInMillis: number): Promise<void> {
 		return new Promise((_, reject) => {
 			setTimeout(() => {
 				reject(new Error('ChildProcessChannel sockets setup timeout'));

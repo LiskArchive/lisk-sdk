@@ -19,7 +19,7 @@ import { eventWithModuleNameReg } from './constants';
 export interface EventInfoObject {
 	readonly module: string;
 	readonly name: string;
-	readonly data?: object | string;
+	readonly data?: object;
 }
 
 export type EventCallback = (action: EventInfoObject) => void;
@@ -29,9 +29,9 @@ export type EventsArray = ReadonlyArray<string>;
 export class Event {
 	public module: string;
 	public name: string;
-	public data?: object | string;
+	public data?: object;
 
-	public constructor(name: string, data?: object | string) {
+	public constructor(name: string, data?: object) {
 		assert(
 			eventWithModuleNameReg.test(name),
 			`Event name "${name}" must be a valid name with module name.`,

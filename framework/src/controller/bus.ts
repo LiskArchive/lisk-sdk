@@ -23,10 +23,10 @@ import { Client as RPCClient, Server as RPCServer } from 'pm2-axon-rpc';
 import { EventEmitter2, Listener } from 'eventemitter2';
 import { Action, ActionInfoObject, ActionsObject } from './action';
 import { Logger } from '../types';
-import { BaseChannel } from './channels';
+import { BaseChannel } from './channels/base_channel';
 import { EventsArray } from './event';
 import { SocketPaths } from './types';
-import { CONTROLLER_IDENTIFIER, SOCKET_TIMEOUT_TIME } from './constants';
+import { SOCKET_TIMEOUT_TIME } from './constants';
 
 interface BusConfiguration {
 	ipc: {
@@ -40,6 +40,8 @@ interface RegisterChannelOptions {
 	readonly channel: BaseChannel;
 	readonly rpcSocketPath?: string;
 }
+
+type NodeCallback = (error: Error | null, result?: unknown) => void;
 
 interface ChannelInfo {
 	readonly channel: BaseChannel;
@@ -96,20 +98,20 @@ export class Bus extends EventEmitter2 {
 
 		this.rpcServer.expose(
 			'registerChannel',
-			(moduleAlias, events, actions, options, cb) => {
+			(moduleAlias, events, actions, options, cb: NodeCallback) => {
 				this.registerChannel(moduleAlias, events, actions, options)
 					.then(() => cb(null))
 					.catch(error => cb(error));
 			},
 		);
 
-		this.rpcServer.expose('invoke', (action, cb) => {
+		this.rpcServer.expose('invoke', (action, cb: NodeCallback) => {
 			this.invoke(action)
 				.then(data => cb(null, data))
 				.catch(error => cb(error));
 		});
 
-		this.rpcServer.expose('invokePublic', (action, cb) => {
+		this.rpcServer.expose('invokePublic', (action, cb: NodeCallback) => {
 			this.invokePublic(action)
 				.then(data => cb(null, data))
 				.catch(error => cb(error));
@@ -172,7 +174,6 @@ export class Bus extends EventEmitter2 {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
 		const action = Action.deserialize(actionData);
-		const actionModule = action.module;
 		const actionFullName = action.key();
 		const actionParams = action.params;
 
@@ -182,37 +183,13 @@ export class Bus extends EventEmitter2 {
 
 		const channelInfo = this.channels[actionFullName];
 
-		if (actionModule === CONTROLLER_IDENTIFIER) {
-			return channelInfo.channel.invoke(actionFullName, actionParams);
-		}
-
-		if (channelInfo.type === 'inMemory') {
-			return channelInfo.channel.invoke(actionFullName, actionParams);
-		}
-
-		return new Promise((resolve, reject) => {
-			// TODO: Fix when both channel types are converted to typescript
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-			(channelInfo.channel as any).call(
-				'invoke',
-				action.serialize(),
-				// eslint-disable-next-line
-				// @ts-ignore
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(err?: string | object, data: any) => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve(data);
-				},
-			);
-		});
+		return channelInfo.channel.invoke<T>(actionFullName, actionParams);
 	}
 
-	public async invokePublic(
+	public async invokePublic<T>(
 		actionData: string | ActionInfoObject,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<any> {
+	): Promise<T> {
 		const action = Action.deserialize(actionData);
 
 		// Check if action exists
@@ -231,7 +208,7 @@ export class Bus extends EventEmitter2 {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
-	public publish<T>(eventName: string, eventValue: T): void {
+	public publish(eventName: string, eventValue: object): void {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}

@@ -56,7 +56,7 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await,@typescript-eslint/no-explicit-any
-	public async invoke(actionName: string, params?: object): Promise<any> {
+	public async invoke<T>(actionName: string, params?: object): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {
@@ -75,11 +75,11 @@ export class InMemoryChannel extends BaseChannel {
 		return (this.bus as Bus).invoke(action.serialize());
 	}
 
-	public async invokeFromNetwork(
+	public async invokeFromNetwork<T>(
 		remoteMethod: string,
 		params?: object,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<any> {
+	): Promise<T> {
 		return this.invoke(`app:${remoteMethod}`, params);
 	}
 
@@ -92,7 +92,10 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async invokePublic(actionName: string, params?: object): Promise<any> {
+	public async invokePublic<T>(
+		actionName: string,
+		params?: object,
+	): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {

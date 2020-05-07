@@ -14,7 +14,7 @@
 
 import { EventCallback } from '../event';
 import { Action, ActionsDefinition, ActionsObject } from '../action';
-import { INTERNAL_EVENTS, eventWithModuleNameReg } from '../constants';
+import { eventWithModuleNameReg, INTERNAL_EVENTS } from '../constants';
 
 export interface BaseChannelOptions {
 	readonly skipInternalEvents?: boolean;
@@ -37,11 +37,9 @@ export abstract class BaseChannel {
 		this.moduleAlias = moduleAlias;
 		this.options = options;
 
-		const eventList = options.skipInternalEvents
+		this.eventsList = options.skipInternalEvents
 			? events
 			: [...events, ...INTERNAL_EVENTS];
-
-		this.eventsList = eventList;
 
 		this.actions = {};
 		for (const actionName of Object.keys(actions)) {
@@ -52,14 +50,13 @@ export abstract class BaseChannel {
 			const isPublic =
 				typeof actionData === 'object' ? actionData.isPublic ?? true : true;
 
-			const action = new Action(
+			this.actions[actionName] = new Action(
 				`${this.moduleAlias}:${actionName}`,
 				undefined,
 				undefined,
 				isPublic,
 				handler,
 			);
-			this.actions[actionName] = action;
 		}
 		this.actionsList = Object.keys(this.actions);
 	}
@@ -100,20 +97,20 @@ export abstract class BaseChannel {
 
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
-	abstract async invoke(actionName: string, params?: object): Promise<void>;
+	abstract async invoke<T>(actionName: string, params?: object): Promise<T>;
 
 	// Call action network module when requesting from the network or a specific peer
 	// Specified as actionName for request available on the network
-	abstract async invokeFromNetwork(
+	abstract async invokeFromNetwork<T>(
 		actionName: string,
 		params?: object,
-	): Promise<void>;
+	): Promise<T>;
 
 	// Call action of any moduleAlias through controller
 	// Specified as moduleName:actionName
 	// Specified action must be defined as publicly callable
-	abstract async invokePublic(
+	abstract async invokePublic<T>(
 		actionName: string,
 		params?: object,
-	): Promise<void>;
+	): Promise<T>;
 }
