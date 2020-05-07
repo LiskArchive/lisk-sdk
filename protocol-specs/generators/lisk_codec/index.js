@@ -22,10 +22,12 @@ const BaseGenerator = require('../base_generator');
 const prepareProtobuffersNumbers = () => protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
 const prepareProtobuffersBooleans = () => protobuf.loadSync('./generators/lisk_codec/proto_files/booleans.proto');
 const prepareProtobuffersStrings = () => protobuf.loadSync('./generators/lisk_codec/proto_files/strings.proto');
+const prepareProtobuffersBytes = () => protobuf.loadSync('./generators/lisk_codec/proto_files/bytes.proto');
 
 const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
 const { Boolean } = prepareProtobuffersBooleans();
 const { String } = prepareProtobuffersStrings();
+const { Bytes } = prepareProtobuffersBytes();
 
 
 const generateValidNumberEncodings = () => {
@@ -217,6 +219,58 @@ const generateValidStringEncodings = () => {
 };
 
 
+const generateValidBytesEncodings = () => {
+	const input = {
+		bytes: {
+			object: {
+				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+		emptyBytes: {
+			object: {
+				address: Buffer.from(''),
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			},
+		}
+	};
+
+	const bytesEncoded = Bytes.encode(input.bytes.object).finish();
+	const emptyBytesEncoded = Bytes.encode(input.emptyBytes.object).finish();
+
+	return {
+		description: 'Encoding of bytes types',
+		config: {
+			network: 'devnet',
+		},
+		input: {
+			bytes: input.bytes,
+			emptyBytes: input.emptyBytes,
+		},
+		output: {
+			bytes: bytesEncoded.toString('hex'),
+			emptyBytes: emptyBytesEncoded.toString('hex'),
+		},
+	};
+};
+
+
 const validNumberEncodingsSuite = () => ({
 	title: 'Valid number encodings',
 	summary: 'Examples of encoding numbers as required by lisk-codec',
@@ -250,6 +304,17 @@ const validStringEncodingsSuite = () => ({
 	testCases: [generateValidStringEncodings()],
 });
 
+const validBytesEncodingsSuite = () => ({
+	title: 'Valid bytes encodings',
+	summary: 'Examples of encoding bytes as required by lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'validBytesEncodings',
+	testCases: [generateValidBytesEncodings()],
+});
+
 
 module.exports = BaseGenerator.runGenerator(
 	'lisk_codec',
@@ -257,5 +322,6 @@ module.exports = BaseGenerator.runGenerator(
 		validNumberEncodingsSuite,
 		validBooleanEncodingsSuite,
 		validStringEncodingsSuite,
+		validBytesEncodingsSuite,
 	],
 );
