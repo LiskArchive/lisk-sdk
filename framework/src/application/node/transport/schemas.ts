@@ -20,7 +20,7 @@ export const schemas = {
 		properties: {
 			blockId: {
 				type: 'string',
-				format: 'id',
+				format: 'hex',
 			},
 		},
 	},
@@ -49,10 +49,11 @@ export const schemas = {
 				properties: {
 					id: {
 						type: 'string',
-						format: 'id',
+						format: 'hex',
 						minLength: 1,
-						maxLength: 20,
-						example: '6258354802676165798',
+						maxLength: 64,
+						example:
+							'9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 					},
 					version: {
 						type: 'integer',
@@ -113,8 +114,9 @@ export const schemas = {
 					},
 					previousBlockId: {
 						type: 'string',
-						format: 'id',
-						example: '15918760246746894806',
+						format: 'hex',
+						example:
+							'9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 					},
 				},
 			},
@@ -160,7 +162,7 @@ export const schemas = {
 				type: 'array',
 				items: {
 					type: 'string',
-					format: 'id',
+					format: 'hex',
 				},
 				uniqueItems: true,
 				minItems: 1,

@@ -17,9 +17,9 @@ export const baseBlockSchema = {
 	properties: {
 		id: {
 			type: 'string',
-			format: 'id',
+			format: 'hex',
 			minLength: 1,
-			maxLength: 20,
+			maxLength: 64,
 		},
 		height: {
 			type: 'integer',
@@ -44,9 +44,9 @@ export const baseBlockSchema = {
 		},
 		previousBlockId: {
 			type: 'string',
-			format: 'id',
+			format: 'hex',
 			minLength: 1,
-			maxLength: 20,
+			maxLength: 64,
 		},
 		timestamp: {
 			type: 'integer',

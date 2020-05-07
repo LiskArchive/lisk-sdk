@@ -87,9 +87,9 @@ const blockHeaderSchema = {
 		},
 		previousBlockId: {
 			type: ['string'],
-			format: 'id',
+			format: 'hex',
 			minLength: 1,
-			maxLength: 20,
+			maxLength: 64,
 		},
 		reward: {
 			type: 'string',
