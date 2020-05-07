@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -23,11 +22,13 @@ const prepareProtobuffersNumbers = () => protobuf.loadSync('./generators/lisk_co
 const prepareProtobuffersBooleans = () => protobuf.loadSync('./generators/lisk_codec/proto_files/booleans.proto');
 const prepareProtobuffersStrings = () => protobuf.loadSync('./generators/lisk_codec/proto_files/strings.proto');
 const prepareProtobuffersBytes = () => protobuf.loadSync('./generators/lisk_codec/proto_files/bytes.proto');
+const prepareProtobuffersObjects = () => protobuf.loadSync('./generators/lisk_codec/proto_files/object.proto');
 
 const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
 const { Boolean } = prepareProtobuffersBooleans();
 const { String } = prepareProtobuffersStrings();
 const { Bytes } = prepareProtobuffersBytes();
+const { Objects } = prepareProtobuffersObjects();
 
 
 const generateValidNumberEncodings = () => {
@@ -196,7 +197,7 @@ const generateValidStringEncodings = () => {
 					},
 				},
 			},
-		}
+		},
 	};
 
 	const stringEncoded = String.encode(input.string.object).finish();
@@ -248,7 +249,7 @@ const generateValidBytesEncodings = () => {
 					},
 				},
 			},
-		}
+		},
 	};
 
 	const bytesEncoded = Bytes.encode(input.bytes.object).finish();
@@ -266,6 +267,68 @@ const generateValidBytesEncodings = () => {
 		output: {
 			bytes: bytesEncoded.toString('hex'),
 			emptyBytes: emptyBytesEncoded.toString('hex'),
+		},
+	};
+};
+
+const generateValidObjectEncodings = () => {
+	const input = {
+		object: {
+			object: {
+				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+				balance: 10000000,
+				isDelegate: true,
+				name: 'delegate',
+				asset: {
+					data: 'Check out the Lisk SDK now in binary!',
+				},
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					balance: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					isDelegate: {
+						dataType: 'boolean',
+						fieldNumber: 3,
+					},
+					name: {
+						dataType: 'string',
+						fieldNumber: 4,
+					},
+					asset: {
+						type: 'object',
+						fieldNumber: 5,
+						properties: {
+							data: {
+								dataType: 'string',
+								fieldNumber: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	const objectEncoded = Objects.encode(input.object.object).finish();
+
+	return {
+		description: 'Encoding of object types',
+		config: {
+			network: 'devnet',
+		},
+		input: {
+			object: input.object,
+		},
+		output: {
+			object: objectEncoded.toString('hex'),
 		},
 	};
 };
@@ -315,6 +378,17 @@ const validBytesEncodingsSuite = () => ({
 	testCases: [generateValidBytesEncodings()],
 });
 
+const validObjectEncodingsSuite = () => ({
+	title: 'Valid object encodings',
+	summary: 'Examples of encoding objects as required by lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'validObjectEncodings',
+	testCases: [generateValidObjectEncodings()],
+});
+
 
 module.exports = BaseGenerator.runGenerator(
 	'lisk_codec',
@@ -323,5 +397,6 @@ module.exports = BaseGenerator.runGenerator(
 		validBooleanEncodingsSuite,
 		validStringEncodingsSuite,
 		validBytesEncodingsSuite,
+		validObjectEncodingsSuite,
 	],
 );

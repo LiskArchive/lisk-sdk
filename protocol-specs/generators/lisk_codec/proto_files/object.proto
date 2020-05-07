@@ -1,0 +1,13 @@
+syntax = 'proto2';
+
+message Asset {
+	required string data = 1;
+}
+
+message Objects {
+	required bytes address = 1;
+	required uint64 balance = 2;
+	required bool isDelegate = 3;
+	required string name = 4;
+	required Asset asset = 5;
+}
