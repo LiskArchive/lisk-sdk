@@ -347,10 +347,10 @@ describe('data access - storage', () => {
 		});
 	});
 
-	describe('#resetAccountMemTables', () => {
+	describe('#resetMemTables', () => {
 		it('should call storage.Account.resetMemTables', async () => {
 			// Act
-			await storageAccess.resetAccountMemTables();
+			await storageAccess.resetMemTables();
 
 			// Assert
 			expect(storageMock.entities.Account.resetMemTables).toHaveBeenCalled();

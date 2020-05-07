@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, ChainStateEntity, StorageTransaction } from '../types';
+import { BatchChain } from '@liskhq/lisk-db';
+import { DataAccess } from '../data_access';
+import { BlockHeader } from '../types';
+import { DB_KEY_CHAIN_STATE } from '../data_access/constants';
 
 interface AdditionalInformation {
 	readonly lastBlockHeader: BlockHeader;
@@ -30,16 +33,16 @@ export class ChainStateStore {
 	private _originalData: KeyValuePair;
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
-	private readonly _chainState: ChainStateEntity;
+	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeader: BlockHeader;
 	private readonly _networkIdentifier: string;
 	private readonly _lastBlockReward: bigint;
 
 	public constructor(
-		chainStateEntity: ChainStateEntity,
+		dataAccess: DataAccess,
 		additionalInformation: AdditionalInformation,
 	) {
-		this._chainState = chainStateEntity;
+		this._dataAccess = dataAccess;
 		this._lastBlockHeader = additionalInformation.lastBlockHeader;
 		this._networkIdentifier = additionalInformation.networkIdentifier;
 		this._lastBlockReward = additionalInformation.lastBlockReward;
@@ -47,13 +50,6 @@ export class ChainStateStore {
 		this._originalData = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
-	}
-
-	public async cache(): Promise<void> {
-		const results = await this._chainState.get();
-		for (const { key, value } of results) {
-			this._data[key] = value;
-		}
 	}
 
 	public get networkIdentifier(): string {
@@ -85,7 +81,7 @@ export class ChainStateStore {
 			return value;
 		}
 
-		const dbValue = await this._chainState.getKey(key);
+		const dbValue = await this._dataAccess.getChainState(key);
 		// If it doesn't exist in the database, return undefined without caching
 		if (dbValue === undefined) {
 			return dbValue;
@@ -108,15 +104,13 @@ export class ChainStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
+	public finalize(batch: BatchChain): void {
 		if (this._updatedKeys.size === 0) {
 			return;
 		}
 
-		await Promise.all(
-			Array.from(this._updatedKeys).map(async key =>
-				this._chainState.setKey(key, this._data[key], tx),
-			),
-		);
+		for (const key of Array.from(this._updatedKeys)) {
+			batch.put(`${DB_KEY_CHAIN_STATE}${key}`, this._data[key]);
+		}
 	}
 }

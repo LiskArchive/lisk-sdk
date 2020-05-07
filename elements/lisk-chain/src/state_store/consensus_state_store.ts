@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	BlockHeader,
-	ConsensusStateEntity,
-	StorageTransaction,
-} from '../types';
+import { BatchChain } from '@liskhq/lisk-db';
+import { BlockHeader } from '../types';
+import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
+import { DataAccess } from '../data_access';
 
 interface KeyValuePair {
 	[key: string]: string;
@@ -32,14 +31,14 @@ export class ConsensusStateStore {
 	private _originalData: KeyValuePair;
 	private _updatedKeys: Set<string>;
 	private _originalUpdatedKeys: Set<string>;
+	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
-	private readonly _consensusState: ConsensusStateEntity;
 
 	public constructor(
-		consensusStateEntity: ConsensusStateEntity,
+		dataAccess: DataAccess,
 		additionalInformation: AdditionalInformation,
 	) {
-		this._consensusState = consensusStateEntity;
+		this._dataAccess = dataAccess;
 		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._data = {};
 		this._originalData = {};
@@ -49,13 +48,6 @@ export class ConsensusStateStore {
 
 	public get lastBlockHeaders(): ReadonlyArray<BlockHeader> {
 		return this._lastBlockHeaders;
-	}
-
-	public async cache(): Promise<void> {
-		const results = await this._consensusState.get();
-		for (const { key, value } of results) {
-			this._data[key] = value;
-		}
 	}
 
 	public createSnapshot(): void {
@@ -75,7 +67,7 @@ export class ConsensusStateStore {
 			return value;
 		}
 
-		const dbValue = await this._consensusState.getKey(key);
+		const dbValue = await this._dataAccess.getConsensusState(key);
 		// If it doesn't exist in the database, return undefined without caching
 		if (dbValue === undefined) {
 			return dbValue;
@@ -98,15 +90,13 @@ export class ConsensusStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
+	public finalize(batch: BatchChain): void {
 		if (this._updatedKeys.size === 0) {
 			return;
 		}
 
-		await Promise.all(
-			Array.from(this._updatedKeys).map(async key =>
-				this._consensusState.setKey(key, this._data[key], tx),
-			),
-		);
+		for (const key of Array.from(this._updatedKeys)) {
+			batch.put(`${DB_KEY_CONSENSUS_STATE}${key}`, this._data[key]);
+		}
 	}
 }

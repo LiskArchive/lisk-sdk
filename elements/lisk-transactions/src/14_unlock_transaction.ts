@@ -15,11 +15,7 @@
 import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { isNumberString, validator } from '@liskhq/lisk-validator';
 
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
+import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { Account, TransactionJSON } from './transaction_types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
@@ -133,20 +129,6 @@ export class UnlockTransaction extends BaseTransaction {
 				unvoteHeight: unlock.unvoteHeight,
 			})),
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const addressArray = this.asset.unlockingObjects.map(unlock => ({
-			address: unlock.delegateAddress,
-		}));
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...addressArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected assetToBytes(): Buffer {
