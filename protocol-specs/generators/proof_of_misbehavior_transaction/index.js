@@ -15,7 +15,6 @@
 'use strict';
 
 const {
-	BIG_ENDIAN,
 	hash,
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	signData,
@@ -47,9 +46,7 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId
-		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
-		: Buffer.alloc(SIZE_INT64);
+	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex'): Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 

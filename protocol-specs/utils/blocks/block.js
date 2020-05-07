@@ -17,7 +17,6 @@
 const {
 	hash,
 	signDataWithPrivateKey,
-	BIG_ENDIAN,
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
@@ -43,9 +42,7 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlock
-		? intToBuffer(block.previousBlock, SIZE_INT64, BIG_ENDIAN)
-		: Buffer.alloc(SIZE_INT64);
+	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex'): Buffer.alloc(32);
 
 	const numTransactionsBuffer = intToBuffer(
 		block.numberOfTransactions,
