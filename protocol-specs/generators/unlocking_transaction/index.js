@@ -18,8 +18,7 @@ const {
 	hexToBuffer,
 	intToBuffer,
 	hash,
-	getFirstEightBytesReversed,
-	bufferToIntAsString,
+	bufferToHex,
 	signData,
 } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
@@ -170,10 +169,7 @@ const getSignBytes = tx => {
 
 const getId = transactionBytes => {
 	const transactionHash = hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const transactionId = bufferToIntAsString(bufferFromFirstEntriesReversed);
+	const transactionId = bufferToHex(transactionHash);
 
 	return transactionId;
 };
