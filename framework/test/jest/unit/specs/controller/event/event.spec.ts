@@ -119,7 +119,7 @@ describe('Event Class', () => {
 				expect(event).toBeInstanceOf(Event);
 				expect(event.module).toBe(MODULE_NAME);
 				expect(event.name).toBe(EVENT_NAME);
-				expect(event.data).toBe(DATA);
+				expect(event.data).toStrictEqual(DATA);
 			});
 
 			it('should return event instance with given object config.', () => {

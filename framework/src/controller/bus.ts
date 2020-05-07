@@ -157,9 +157,7 @@ export class Bus extends EventEmitter2 {
 			rpcSocket.connect(options.rpcSocketPath);
 
 			// TODO: Fix this override
-			// eslint-disable-next-line
-			// @ts-ignore
-			channel = new RPCClient(rpcSocket);
+			channel = (new RPCClient(rpcSocket) as unknown) as BaseChannel;
 			this.rpcClients[moduleAlias] = rpcSocket;
 		}
 
@@ -234,6 +232,7 @@ export class Bus extends EventEmitter2 {
 		}
 	}
 
+	// FIXME: Function signature is different that typescript compains
 	// eslint-disable-next-line
 	// @ts-ignore
 	public once(eventName: string, cb: Listener): void {

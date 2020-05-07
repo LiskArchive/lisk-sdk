@@ -50,13 +50,13 @@ describe('Bus', () => {
 	describe('#constructor', () => {
 		it('should create the Bus instance with given arguments.', () => {
 			// Assert
-			expect(bus.actions).toEqual({});
-			expect(bus.events).toEqual({});
+			expect(bus['actions']).toEqual({});
+			expect(bus['events']).toEqual({});
 		});
 	});
 
 	describe('#setup', () => {
-		it('should resolve with true.', () => {
+		it('should resolve with true.', async () => {
 			return expect(bus.setup()).resolves.toBe(true);
 		});
 	});
@@ -71,10 +71,9 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Assert
-			expect(Object.keys(bus.events)).toHaveLength(2);
-			console.info(bus.events);
+			expect(Object.keys(bus['events'])).toHaveLength(2);
 			events.forEach(eventName => {
-				expect(bus.events[`${moduleAlias}:${eventName}`]).toBe(true);
+				expect(bus['events'][`${moduleAlias}:${eventName}`]).toBe(true);
 			});
 		});
 
@@ -101,9 +100,9 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
-			expect(Object.keys(bus.actions)).toHaveLength(2);
+			expect(Object.keys(bus['actions'])).toHaveLength(2);
 			Object.keys(actions).forEach(actionName => {
-				expect(bus.actions[`${moduleAlias}:${actionName}`]).toBe(
+				expect(bus['actions'][`${moduleAlias}:${actionName}`]).toBe(
 					actions[actionName],
 				);
 			});
@@ -224,7 +223,7 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
-			bus.publish(eventName, eventData);
+			bus.publish(eventName, eventData as any);
 
 			// Assert
 			expect(EventEmitter2.prototype.emit).toHaveBeenCalledWith(

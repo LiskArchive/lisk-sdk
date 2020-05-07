@@ -22,7 +22,7 @@ import * as fs from 'fs-extra';
 import { Controller } from '../../../../../src/controller/controller';
 import { Bus } from '../../../../../src/controller/bus';
 
-const createMockModule = (alias: string, loadStub?: any, unloadStub?: any) => {
+const createMockModule = (alias?: string, loadStub?: any, unloadStub?: any) => {
 	function Module(this: any) {
 		this.load = loadStub ?? jest.fn();
 		this.unload = unloadStub ?? jest.fn();
@@ -32,7 +32,7 @@ const createMockModule = (alias: string, loadStub?: any, unloadStub?: any) => {
 	}
 
 	Module.info = {
-		name: alias || 'dummy',
+		name: alias ?? 'dummy',
 		version: 'dummy',
 		author: 'dummy',
 	};
@@ -143,7 +143,7 @@ describe('Controller Class', () => {
 		});
 
 		describe('_setupDirectories', () => {
-			it('should ensure directory exists', async () => {
+			it('should ensure directory exists', () => {
 				// Arrange
 				jest.spyOn(fs, 'ensureDir');
 
@@ -157,13 +157,11 @@ describe('Controller Class', () => {
 		});
 
 		describe('_validatePidFile', () => {
-			it('should write process id to pid file if pid file not exits', async () => {
-				// eslint-disable-next-line
-				// @ts-ignore
-				jest.spyOn(fs, 'pathExists').mockResolvedValue(false);
+			it('should write process id to pid file if pid file not exits', () => {
+				jest.spyOn(fs, 'pathExists').mockResolvedValue(false as never);
 				jest.spyOn(fs, 'writeFile');
 
-				expect(fs.writeFile).toBeCalledWith(
+				expect(fs.writeFile).toHaveBeenCalledWith(
 					`${controller.config.dirs.pids}/controller.pid`,
 					expect.toBeNumber(),
 				);
@@ -231,7 +229,7 @@ describe('Controller Class', () => {
 			});
 		});
 
-		it('should log registered events and actions', async () => {
+		it('should log registered events and actions', () => {
 			// Assert
 			expect(logger.debug).toHaveBeenCalledWith(
 				undefined,

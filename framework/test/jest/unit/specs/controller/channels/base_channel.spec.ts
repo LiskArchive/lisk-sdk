@@ -15,15 +15,40 @@
 jest.mock('../../../../../../src/controller/action');
 
 // eslint-disable-next-line import/first
+import { EventCallback } from '../../../../../../src/controller/event';
+// eslint-disable-next-line import/first
 import { BaseChannel } from '../../../../../../src/controller/channels';
 // eslint-disable-next-line import/first
 import { INTERNAL_EVENTS } from '../../../../../../src/controller/constants';
 // eslint-disable-next-line import/first
 import { Action } from '../../../../../../src/controller/action';
 
-// eslint-disable-next-line
-// @ts-ignore
-class MyChannel extends BaseChannel {}
+class MyChannel extends BaseChannel {
+	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
+	public subscribe(_eventName: string, _cb: EventCallback): void {}
+	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
+	public publish(_eventName: string, _data: object): void {}
+	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/no-empty-function
+	public publishToNetwork(_actionName: string, _data: object): void {}
+	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/require-await
+	public async invoke<T>(_actionName: string, _params?: object): Promise<T> {
+		return {} as T;
+	}
+	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/require-await
+	public async invokeFromNetwork<T>(
+		_actionName: string,
+		_params?: object,
+	): Promise<T> {
+		return {} as T;
+	}
+	// eslint-disable-next-line class-methods-use-this,@typescript-eslint/require-await
+	public async invokePublic<T>(
+		_actionName: string,
+		_params?: object,
+	): Promise<T> {
+		return {} as T;
+	}
+}
 
 describe('Base Channel', () => {
 	// Arrange
@@ -53,8 +78,8 @@ describe('Base Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(baseChannel.moduleAlias).toBe(params.moduleAlias);
-			expect(baseChannel.options).toBe(params.options);
+			expect(baseChannel['moduleAlias']).toBe(params.moduleAlias);
+			expect(baseChannel['options']).toBe(params.options);
 
 			Object.keys(params.actions).forEach(action => {
 				expect(Action).toHaveBeenCalledWith(
@@ -71,9 +96,9 @@ describe('Base Channel', () => {
 	describe('getters', () => {
 		it('base.actions should contain list of Action Objects', () => {
 			// Assert
-			expect(Object.keys(baseChannel.actions)).toHaveLength(3);
-			Object.keys(baseChannel.actions).forEach(action => {
-				expect(baseChannel.actions[action]).toBeInstanceOf(Action);
+			expect(Object.keys(baseChannel['actions'])).toHaveLength(3);
+			Object.keys(baseChannel['actions']).forEach(action => {
+				expect(baseChannel['actions'][action]).toBeInstanceOf(Action);
 			});
 		});
 

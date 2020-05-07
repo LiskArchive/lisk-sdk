@@ -307,14 +307,12 @@ export class Controller {
 		const parameters = [modulePath];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
-		const forkedProcessOptions = {
+		const forkedProcessOptions: { execArgv: string[] | undefined } = {
 			execArgv: undefined,
 		};
 		const maxPort = 20000;
 		const minPort = 10000;
 		if (process.env.NODE_DEBUG) {
-			// eslint-disable-next-line
-			// @ts-ignore
 			forkedProcessOptions.execArgv = [
 				`--inspect=${Math.floor(
 					Math.random() * (maxPort - minPort) + minPort,

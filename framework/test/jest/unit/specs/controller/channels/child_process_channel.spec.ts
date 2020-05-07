@@ -81,7 +81,7 @@ describe('ChildProcessChannel Channel', () => {
 		};
 	});
 
-	afterEach(async () => {
+	afterEach(() => {
 		childProcessChannel.cleanup();
 	});
 
@@ -102,7 +102,7 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#registerToBus', () => {
 		beforeEach(async () => childProcessChannel.registerToBus(socketsPath));
 
-		it('should connect pubSocket', async () => {
+		it('should connect pubSocket', () => {
 			// Assert
 			expect(childProcessChannel.pubSocket?.connect).toHaveBeenCalledWith(
 				socketsPath.sub,
@@ -150,8 +150,9 @@ describe('ChildProcessChannel Channel', () => {
 			await childProcessChannel.registerToBus(socketsPath);
 		});
 
-		it('should call localBus.on when the module is the same', async () => {
+		it('should call localBus.on when the module is the same', () => {
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			childProcessChannel.subscribe(validEventName, () => {});
 			// Assert
 			expect(childProcessChannel.localBus.on).toHaveBeenCalledWith(
@@ -160,11 +161,12 @@ describe('ChildProcessChannel Channel', () => {
 			);
 		});
 
-		it('should call subSocket.on when the module is not the same', async () => {
+		it('should call subSocket.on when the module is not the same', () => {
 			// Arrange
 			const invalidEventName = 'invalidModule:anEventName';
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			childProcessChannel.subscribe(invalidEventName, () => {});
 
 			// Assert
@@ -178,10 +180,11 @@ describe('ChildProcessChannel Channel', () => {
 	describe('#once', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 
-		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
+		beforeEach(async () => childProcessChannel.registerToBus(socketsPath));
 
-		it('should call localBus.once when the module is the same', async () => {
+		it('should call localBus.once when the module is the same', () => {
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			childProcessChannel.once(validEventName, () => {});
 			// Assert
 			expect(childProcessChannel.localBus.once).toHaveBeenCalledWith(
@@ -190,11 +193,12 @@ describe('ChildProcessChannel Channel', () => {
 			);
 		});
 
-		it('should call subSocket.on when the module is not the same', async () => {
+		it('should call subSocket.on when the module is not the same', () => {
 			// Arrange
 			const invalidEventName = 'invalidModule:anEventName';
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			childProcessChannel.once(invalidEventName, () => {});
 
 			// Assert
@@ -209,20 +213,21 @@ describe('ChildProcessChannel Channel', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 		const invalidEventName = 'invalidModule:anEventName';
 
-		beforeEach(() =>
+		beforeEach(async () => {
 			// Arrange
-			childProcessChannel.registerToBus(socketsPath),
-		);
+			await childProcessChannel.registerToBus(socketsPath);
+		});
 
-		it('should throw new Error when the module is not the same', async () => {
+		it('should throw new Error when the module is not the same', () => {
 			expect(() =>
+				// eslint-disable-next-line @typescript-eslint/no-empty-function
 				childProcessChannel.publish(invalidEventName, () => {}),
 			).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.moduleAlias}" module.`,
 			);
 		});
 
-		it('should call localBus.emit with proper arguments', async () => {
+		it('should call localBus.emit with proper arguments', () => {
 			// Arrange
 			const data = { data: '#DATA' };
 			const event = new Event(validEventName, data);
@@ -237,7 +242,7 @@ describe('ChildProcessChannel Channel', () => {
 			);
 		});
 
-		it('should call pubSocket.emit with proper arguments', async () => {
+		it('should call pubSocket.emit with proper arguments', () => {
 			// Arrange
 			const data = { data: '#DATA' };
 			const event = new Event(validEventName, data);
@@ -367,11 +372,13 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#_rejectWhenAnySocketFailsToBind', () => {
-		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
+		beforeEach(async () => {
+			await childProcessChannel.registerToBus(socketsPath);
+		});
 
-		it('should reject if any of the sockets receive an "error" event', () => {
+		it('should reject if any of the sockets receive an "error" event', async () => {
 			// Assert
-			return expect(
+			await expect(
 				(childProcessChannel as any)._rejectWhenAnySocketFailsToBind(),
 			).rejects.toBe('#MOCKED_ONCE');
 		});
@@ -414,11 +421,13 @@ describe('ChildProcessChannel Channel', () => {
 	});
 
 	describe('#_rejectWhenTimeout', () => {
-		beforeEach(() => childProcessChannel.registerToBus(socketsPath));
+		beforeEach(async () => {
+			await childProcessChannel.registerToBus(socketsPath);
+		});
 
-		it('should reject with an Error object with proper message', () => {
+		it('should reject with an Error object with proper message', async () => {
 			// Assert
-			return expect(
+			await expect(
 				(childProcessChannel as any)._rejectWhenTimeout(1),
 			).rejects.toThrow('ChildProcessChannel sockets setup timeout');
 		});

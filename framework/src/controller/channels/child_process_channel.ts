@@ -159,10 +159,11 @@ export class ChildProcessChannel extends BaseChannel {
 		const action = new Action(actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {
-			// eslint-disable-next-line
-			// @ts-ignore
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return this.actions[action.name].handler(action.serialize());
+			const handler = this.actions[action.name]?.handler;
+			if (!handler) {
+				throw new Error('Handler does not exist.');
+			}
+			return handler(action.serialize()) as T;
 		}
 
 		return new Promise((resolve, reject) => {
@@ -207,11 +208,12 @@ export class ChildProcessChannel extends BaseChannel {
 					`Action ${action.name} is not allowed because it's not public.`,
 				);
 			}
+			const handler = this.actions[action.name]?.handler;
+			if (!handler) {
+				throw new Error('Handler does not exist.');
+			}
 
-			// eslint-disable-next-line
-			// @ts-ignore
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return this.actions[action.name].handler(action);
+			return handler(action.serialize()) as T;
 		}
 
 		return new Promise((resolve, reject) => {

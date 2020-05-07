@@ -54,7 +54,6 @@ export class InMemoryChannel extends BaseChannel {
 		(this.bus as Bus).publish(event.key(), event.serialize());
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await,@typescript-eslint/no-explicit-any
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
@@ -65,10 +64,12 @@ export class InMemoryChannel extends BaseChannel {
 				);
 			}
 
-			// eslint-disable-next-line
-			// @ts-ignore
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return this.actions[action.name].handler(action.serialize());
+			const handler = this.actions[action.name]?.handler;
+			if (!handler) {
+				throw new Error('Handler does not exist.');
+			}
+
+			return handler(action.serialize()) as T;
 		}
 
 		return (this.bus as Bus).invoke(action.serialize());
@@ -90,7 +91,6 @@ export class InMemoryChannel extends BaseChannel {
 		return this.invoke(`app:${actionName}`, data);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async invokePublic<T>(
 		actionName: string,
 		params?: object,
@@ -104,10 +104,12 @@ export class InMemoryChannel extends BaseChannel {
 				);
 			}
 
-			// eslint-disable-next-line
-			// @ts-ignore
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return this.actions[action.name].handler(action.serialize());
+			const handler = this.actions[action.name]?.handler;
+			if (!handler) {
+				throw new Error('Handler does not exist.');
+			}
+
+			return handler(action.serialize()) as T;
 		}
 
 		return (this.bus as Bus).invokePublic(action.serialize());
