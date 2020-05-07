@@ -6,13 +6,21 @@
 	"handler": "validNumberEncodings",
 	"testCases": {
 		"input": {
-			"message": {
+			"message32": {
 				"number": 10
+			},
+			"messageSigned32": {
+				"number": -10
+			},
+			"message64": {
+				"number": 372036854775807
 			}
 		},
 		"output": {
 			"numberEncoded32": "080a",
-			"numberEncoded64": "080a"
+			"signedNumberEncoded32": "0813",
+			"numberEncoded64": "08ffffc9a4d9cb54",
+			"signedNumberEncoded64": "08ffffdfd7e3ebc99906"
 		}
 	}
 }

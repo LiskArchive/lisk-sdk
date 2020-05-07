@@ -18,25 +18,45 @@ const BaseGenerator = require('../base_generator');
 const protobuf = require('protobufjs');
 
 
-const prepareProtobuffers = () => protobuf.loadSync('./proto_files/numbers.proto');
-const { Number32, Number64 } = prepareProtobuffers();
+const prepareProtobuffers = () => protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
+const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffers();
 
 
 const generateValidNumberEncodings = () => {
-	const message = {
+	const message32 = {
 		number: 10,
 	}
 
-	const numberEncoded32 = Number32.encode(message).finish();
-	const numberEncoded64 = Number64.encode(message).finish();
+	const messageSigned32 = {
+		number: -10,
+	}
+
+	const message64 = {
+		number: 372036854775807,
+	}
+
+	const messageSigned64 = {
+		number: -223372036854775807,
+	}
+
+
+
+	const numberEncoded32 = Number32.encode(message32).finish();
+	const signedNumberEncoded32 = SignedNumber32.encode(messageSigned32).finish();
+	const numberEncoded64 = Number64.encode(message64).finish();
+	const signedNumberEncoded64 = SignedNumber64.encode(messageSigned64).finish();
 
 	return {
 		input: {
-			message,
+			message32,
+			messageSigned32,
+			message64
 		},
 		output: {
 			numberEncoded32: numberEncoded32.toString('hex'),
+			signedNumberEncoded32: signedNumberEncoded32.toString('hex'),
 			numberEncoded64: numberEncoded64.toString('hex'),
+			signedNumberEncoded64: signedNumberEncoded64.toString('hex'),
 		}
 	}
 
