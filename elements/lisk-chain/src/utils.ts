@@ -13,17 +13,8 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 
-export const getId = (blockBytes: Buffer): string => {
-	const hashedBlock = hash(blockBytes);
-	const temp = Buffer.alloc(8);
-	for (let i = 0; i < 8; i += 1) {
-		temp[i] = hashedBlock[7 - i];
-	}
-
-	const id = temp.readBigUInt64BE().toString();
-
-	return id;
-};
+export const getBlockId = (blockBytes: Buffer): string =>
+	hash(blockBytes).toString('hex');
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const uniqBy = <T extends { readonly [key: string]: unknown }>(
