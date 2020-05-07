@@ -221,14 +221,8 @@ export const newBlock = (
 	};
 	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockInstance));
 
-	const temp = Buffer.alloc(8);
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < 8; i++) {
-		temp[i] = hashedBlockBytes[7 - i];
-	}
-
 	return {
 		...blockWithSignature,
-		id: temp.readBigUInt64BE().toString(),
+		id: hashedBlockBytes.toString('hex'),
 	} as BlockInstance;
 };
