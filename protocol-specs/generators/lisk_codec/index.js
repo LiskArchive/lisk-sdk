@@ -21,10 +21,11 @@ const BaseGenerator = require('../base_generator');
 
 const prepareProtobuffersNumbers = () => protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
 const prepareProtobuffersBooleans = () => protobuf.loadSync('./generators/lisk_codec/proto_files/booleans.proto');
+const prepareProtobuffersStrings = () => protobuf.loadSync('./generators/lisk_codec/proto_files/strings.proto');
 
 const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
-
 const { Boolean } = prepareProtobuffersBooleans();
+const { String } = prepareProtobuffersStrings();
 
 
 const generateValidNumberEncodings = () => {
@@ -164,6 +165,57 @@ const generateValidBooleanEncodings = () => {
 	};
 };
 
+const generateValidStringEncodings = () => {
+	const input = {
+		string: {
+			object: {
+				data: 'Checkout Lisk SDK!',
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+		emptyString: {
+			object: {
+				data: '',
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			},
+		}
+	};
+
+	const stringEncoded = String.encode(input.string.object).finish();
+	const emptyStringEncoded = String.encode(input.emptyString.object).finish();
+
+	return {
+		description: 'Encoding of boolean types',
+		config: {
+			network: 'devnet',
+		},
+		input: {
+			string: input.string,
+			emptyString: input.emptyString,
+		},
+		output: {
+			string: stringEncoded.toString('hex'),
+			emptyString: emptyStringEncoded.toString('hex'),
+		},
+	};
+};
+
 
 const validNumberEncodingsSuite = () => ({
 	title: 'Valid number encodings',
@@ -187,11 +239,23 @@ const validBooleanEncodingsSuite = () => ({
 	testCases: [generateValidBooleanEncodings()],
 });
 
+const validStringEncodingsSuite = () => ({
+	title: 'Valid string encodings',
+	summary: 'Examples of encoding strings as required by lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'validStringEncodings',
+	testCases: [generateValidStringEncodings()],
+});
+
 
 module.exports = BaseGenerator.runGenerator(
 	'lisk_codec',
 	[
 		validNumberEncodingsSuite,
 		validBooleanEncodingsSuite,
+		validStringEncodingsSuite,
 	],
 );
