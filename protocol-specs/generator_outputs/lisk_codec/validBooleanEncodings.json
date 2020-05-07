@@ -1,0 +1,51 @@
+{
+	"title": "Valid boolean encodings",
+	"summary": "Examples of encoding booleans as required by lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "validBooleanEncodings",
+	"testCases": [
+		{
+			"description": "Encoding of boolean types",
+			"config": {
+				"network": "devnet"
+			},
+			"input": {
+				"booleanTrue": {
+					"object": {
+						"state": true
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"state": {
+								"dataType": "boolean",
+								"fieldNumber": 1
+							}
+						}
+					}
+				},
+				"booleanFalse": {
+					"object": {
+						"state": false
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"state": {
+								"dataType": "boolean",
+								"fieldNumber": 1
+							}
+						}
+					}
+				}
+			},
+			"output": {
+				"booleanTrue": "0801",
+				"booleanFalse": "0800"
+			}
+		}
+	]
+}

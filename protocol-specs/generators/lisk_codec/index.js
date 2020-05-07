@@ -15,12 +15,16 @@
 
 'use strict';
 
-const BaseGenerator = require('../base_generator');
 const protobuf = require('protobufjs');
+const BaseGenerator = require('../base_generator');
 
 
-const prepareProtobuffers = () => protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
-const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffers();
+const prepareProtobuffersNumbers = () => protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
+const prepareProtobuffersBooleans = () => protobuf.loadSync('./generators/lisk_codec/proto_files/booleans.proto');
+
+const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
+
+const { Boolean } = prepareProtobuffersBooleans();
 
 
 const generateValidNumberEncodings = () => {
@@ -34,9 +38,9 @@ const generateValidNumberEncodings = () => {
 					properties: {
 						number: {
 							dataType: 'uint32',
-							fieldNumber: 1
-						}
-					}
+							fieldNumber: 1,
+						},
+					},
 			},
 		},
 		messageSigned32: {
@@ -48,9 +52,9 @@ const generateValidNumberEncodings = () => {
 				properties: {
 					number: {
 						dataType: 'sint32',
-						fieldNumber: 1
-					}
-				}
+						fieldNumber: 1,
+					},
+				},
 			},
 		},
 		message64: {
@@ -62,9 +66,9 @@ const generateValidNumberEncodings = () => {
 				properties: {
 					number: {
 						dataType: 'uint64',
-						fieldNumber: 1
-					}
-				}
+						fieldNumber: 1,
+					},
+				},
 			},
 		},
 		messageSigned64: {
@@ -76,13 +80,12 @@ const generateValidNumberEncodings = () => {
 				properties: {
 					number: {
 						dataType: 'sint64',
-						fieldNumber: 1
-					}
-				}
+						fieldNumber: 1,
+					},
+				},
 			},
 		},
-	}
-
+	};
 
 
 	const numberEncoded32 = Number32.encode(input.message32.object).finish();
@@ -93,7 +96,7 @@ const generateValidNumberEncodings = () => {
 	return {
 		description: 'Encoding of numeric types',
 		config: {
-			network: 'devnet'
+			network: 'devnet',
 		},
 		input: {
 			message32: input.message32,
@@ -106,22 +109,82 @@ const generateValidNumberEncodings = () => {
 			signedNumberEncoded32: signedNumberEncoded32.toString('hex'),
 			numberEncoded64: numberEncoded64.toString('hex'),
 			signedNumberEncoded64: signedNumberEncoded64.toString('hex'),
-		}
-	}
+		},
+	};
+};
 
+const generateValidBooleanEncodings = () => {
+	const input = {
+		booleanTrue: {
+			object: {
+				state: true,
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					state: {
+						dataType: 'boolean',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+		booleanFalse: {
+			object: {
+				state: false,
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					state: {
+						dataType: 'boolean',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
+	};
 
-}
+	const booleanTrueEncoded = Boolean.encode(input.booleanTrue.object).finish();
+	const booleanFalseEncoded = Boolean.encode(input.booleanFalse.object).finish();
+
+	return {
+		description: 'Encoding of boolean types',
+		config: {
+			network: 'devnet',
+		},
+		input: {
+			booleanTrue: input.booleanTrue,
+			booleanFalse: input.booleanFalse,
+		},
+		output: {
+			booleanTrue: booleanTrueEncoded.toString('hex'),
+			booleanFalse: booleanFalseEncoded.toString('hex'),
+		},
+	};
+};
 
 
 const validNumberEncodingsSuite = () => ({
 	title: 'Valid number encodings',
 	summary: 'Examples of encoding numbers as required by lisk-codec',
 	config: {
-		network: 'devnet'
+		network: 'devnet',
 	},
 	runner: 'lisk_codec',
 	handler: 'validNumberEncodings',
 	testCases: [generateValidNumberEncodings()],
+});
+
+const validBooleanEncodingsSuite = () => ({
+	title: 'Valid boolean encodings',
+	summary: 'Examples of encoding booleans as required by lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'validBooleanEncodings',
+	testCases: [generateValidBooleanEncodings()],
 });
 
 
@@ -129,5 +192,6 @@ module.exports = BaseGenerator.runGenerator(
 	'lisk_codec',
 	[
 		validNumberEncodingsSuite,
+		validBooleanEncodingsSuite,
 	],
 );
