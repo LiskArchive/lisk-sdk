@@ -170,7 +170,7 @@ export class Bus extends EventEmitter2 {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async invoke(actionData: string | ActionInfoObject): Promise<any> {
+	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
 		const action = Action.deserialize(actionData);
 		const actionModule = action.module;
 		const actionFullName = action.key();
@@ -231,7 +231,7 @@ export class Bus extends EventEmitter2 {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
-	public publish(eventName: string, eventValue: any): void | never {
+	public publish<T>(eventName: string, eventValue: T): void {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);
 		}

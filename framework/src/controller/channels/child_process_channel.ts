@@ -156,7 +156,7 @@ export class ChildProcessChannel extends BaseChannel {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async invoke(actionName: string, params?: object): Promise<any> {
+	public async invoke<T>(actionName: string, params?: object): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
 		if (action.module === this.moduleAlias) {
@@ -186,7 +186,7 @@ export class ChildProcessChannel extends BaseChannel {
 		remoteMethod: string,
 		params: object,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<any> {
+	): Promise<T> {
 		return this.invoke(`app:${remoteMethod}`, params);
 	}
 
