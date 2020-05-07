@@ -155,7 +155,6 @@ export class ChildProcessChannel extends BaseChannel {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async invoke<T>(actionName: string, params?: object): Promise<T> {
 		const action = new Action(actionName, params, this.moduleAlias);
 
@@ -185,7 +184,6 @@ export class ChildProcessChannel extends BaseChannel {
 	public async invokeFromNetwork<T>(
 		remoteMethod: string,
 		params: object,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	): Promise<T> {
 		return this.invoke(`app:${remoteMethod}`, params);
 	}
@@ -193,12 +191,10 @@ export class ChildProcessChannel extends BaseChannel {
 	public async publishToNetwork(
 		actionName: string,
 		data: object,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<any> {
+	): Promise<void> {
 		return this.invoke(`app:${actionName}`, data);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async invokePublic<T>(
 		actionName: string,
 		params?: object,
@@ -234,7 +230,6 @@ export class ChildProcessChannel extends BaseChannel {
 		});
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public cleanup(_status?: number, _message?: string): void {
 		if (this.pubSocket) {
 			this.pubSocket.close();

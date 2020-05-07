@@ -52,18 +52,18 @@ interface ChannelInfo {
 
 export class Bus extends EventEmitter2 {
 	public logger: Logger;
-	public config: BusConfiguration;
-	public actions: { [key: string]: Action };
-	public events: { [key: string]: boolean };
-	public channels: {
+
+	private readonly config: BusConfiguration;
+	private readonly actions: { [key: string]: Action };
+	private readonly events: { [key: string]: boolean };
+	private readonly channels: {
 		[key: string]: ChannelInfo;
 	};
-	public rpcClients: { [key: string]: ReqSocket };
-	public pubSocket?: PubEmitterSocket;
-	public subSocket?: SubEmitterSocket;
-	public rpcSocket?: RepSocket;
-	public rpcServer?: RPCServer;
-	public channel?: BaseChannel;
+	private readonly rpcClients: { [key: string]: ReqSocket };
+	private pubSocket?: PubEmitterSocket;
+	private subSocket?: SubEmitterSocket;
+	private rpcSocket?: RepSocket;
+	private rpcServer?: RPCServer;
 
 	public constructor(
 		options: object,
@@ -171,7 +171,6 @@ export class Bus extends EventEmitter2 {
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async invoke<T>(actionData: string | ActionInfoObject): Promise<T> {
 		const action = Action.deserialize(actionData);
 		const actionFullName = action.key();
@@ -188,7 +187,6 @@ export class Bus extends EventEmitter2 {
 
 	public async invokePublic<T>(
 		actionData: string | ActionInfoObject,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	): Promise<T> {
 		const action = Action.deserialize(actionData);
 
@@ -207,7 +205,6 @@ export class Bus extends EventEmitter2 {
 		return this.invoke(actionData);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
 	public publish(eventName: string, eventValue: object): void {
 		if (!this.getEvents().includes(eventName)) {
 			throw new Error(`Event ${eventName} is not registered to bus.`);

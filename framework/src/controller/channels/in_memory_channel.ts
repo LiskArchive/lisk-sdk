@@ -18,7 +18,7 @@ import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
 
 export class InMemoryChannel extends BaseChannel {
-	public bus: Bus | undefined;
+	private bus: Bus | undefined;
 
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;

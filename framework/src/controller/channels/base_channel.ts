@@ -21,12 +21,12 @@ export interface BaseChannelOptions {
 }
 
 export abstract class BaseChannel {
-	public readonly moduleAlias: string;
-	public readonly options: object;
-
 	public readonly eventsList: ReadonlyArray<string>;
 	public readonly actionsList: ReadonlyArray<string>;
-	public readonly actions: ActionsObject;
+
+	protected readonly actions: ActionsObject;
+	protected readonly moduleAlias: string;
+	protected readonly options: object;
 
 	public constructor(
 		moduleAlias: string,
