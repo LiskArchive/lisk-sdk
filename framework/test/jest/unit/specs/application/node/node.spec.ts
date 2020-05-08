@@ -12,44 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { when } = require('jest-when');
-const { BFT } = require('@liskhq/lisk-bft');
-
-const Node = require('../../../../../../src/application/node/node');
-const {
-	Synchronizer,
-} = require('../../../../../../src/application/node/synchronizer/synchronizer');
-const {
-	Processor,
-} = require('../../../../../../src/application/node/processor');
-const {
+import { when } from 'jest-when';
+import { BFT } from '@liskhq/lisk-bft';
+import { Node } from '../../../../../../src/application/node/node';
+import { Synchronizer } from '../../../../../../src/application/node/synchronizer/synchronizer';
+import { Processor } from '../../../../../../src/application/node/processor';
+import {
 	Forger,
 	HighFeeForgingStrategy,
-} = require('../../../../../../src/application/node/forger');
-const { cacheConfig, nodeOptions } = require('../../../../../fixtures/node');
+} from '../../../../../../src/application/node/forger';
+import { cacheConfig, nodeOptions } from '../../../../../fixtures/node';
 
-const setProperty = (object, property, value) => {
+const setProperty = (object: object, property: string, value: any) => {
 	const originalProperty = Object.getOwnPropertyDescriptor(object, property);
 	Object.defineProperty(object, property, { value });
 	return originalProperty;
 };
 
 describe('Node', () => {
-	let node;
-	let subscribedEvents;
-	const stubs = {};
+	let node: Node;
+	let subscribedEvents: any;
+	const stubs: any = {};
 	const lastBlock = { ...nodeOptions.genesisBlock };
 	const mockExit = jest.fn();
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		// Arrange
 		subscribedEvents = {};
 		setProperty(process, 'exit', mockExit);
 
-		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(null);
-		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(null);
+		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(undefined);
+		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(undefined);
 
 		/* Arranging Stubs start */
 		stubs.logger = {
@@ -101,11 +94,11 @@ describe('Node', () => {
 
 		when(stubs.channel.invoke)
 			.calledWith('app:getComponentConfig', 'cache')
-			.mockResolvedValue(cacheConfig);
+			.mockResolvedValue(cacheConfig as never);
 
 		when(stubs.storage.entities.Block.get)
 			.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-			.mockResolvedValue(lastBlock);
+			.mockResolvedValue(lastBlock as never);
 
 		// Act
 		const params = {
@@ -116,39 +109,24 @@ describe('Node', () => {
 			applicationState: stubs.applicationState,
 		};
 
-		node = new Node(params);
+		node = new Node(params as any);
 	});
 
 	describe('constructor', () => {
 		it('should accept channel as first parameter and assign to object instance', () => {
 			// Assert
-			return expect(node.channel).toEqual(stubs.channel);
+			return expect(node['_channel']).toEqual(stubs.channel);
 		});
 		it('should accept options as second parameter and assign to object instance', () => {
 			// Assert
-			return expect(node.options).toEqual(nodeOptions);
+			return expect(node['_options']).toEqual(nodeOptions);
 		});
-		it('should initialize class properties', async () => {
-			expect(node.logger).toEqual(stubs.logger);
-			expect(node.storage).toEqual(stubs.storage);
-			expect(node.channel).toEqual(stubs.channel);
-			expect(node.components).toBeNull();
-			expect(node.sequence).toBeNull();
-			expect(node.registeredTransactions).toBeNull();
-			expect(node.genesisBlock).toBeNull();
-		});
-	});
-
-	describe('actions', () => {
-		beforeEach(async () => {
-			node.modules = {
-				chain: {
-					getHighestCommonBlock: jest.fn(),
-				},
-			};
-			node.logger = {
-				debug: jest.fn(),
-			};
+		it('should initialize class properties', () => {
+			expect(node['_logger']).toEqual(stubs.logger);
+			expect(node['_storage']).toEqual(stubs.storage);
+			expect(node['_channel']).toEqual(stubs.channel);
+			expect(node['_components']).not.toBeUndefined();
+			expect(node['_sequence']).toBeUndefined();
 		});
 	});
 
@@ -179,14 +157,14 @@ describe('Node', () => {
 					},
 					logger: stubs.logger,
 					storage: stubs.storage,
-				});
+				} as any);
 
 				// Act
 				await node.bootstrap();
 			});
 
 			it('should not subscribe to event', () => {
-				return expect(node.channel.subscribe).not.toHaveBeenCalledWith(
+				return expect(node['_channel'].subscribe).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
 					expect.anything(),
 				);
@@ -199,14 +177,14 @@ describe('Node', () => {
 				channel: stubs.channel,
 				logger: stubs.logger,
 				options: { ...nodeOptions, genesisBlock: null },
-			});
+			} as any);
 
 			// Act
 			await node.bootstrap();
 
 			// Assert
-			expect(node.logger.fatal).toHaveBeenCalledTimes(1);
-			expect(node.logger.fatal).toHaveBeenCalledWith(
+			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
+			expect(node['_logger'].fatal).toHaveBeenCalledWith(
 				expect.objectContaining({ message: 'Missing genesis block' }),
 				'Failed to initialization node',
 			);
@@ -227,13 +205,13 @@ describe('Node', () => {
 				channel: stubs.channel,
 				options: invalidChainOptions,
 				logger: stubs.logger,
-			});
+			} as any);
 
 			await node.bootstrap();
 
-			expect(node.logger.fatal).toHaveBeenCalledTimes(1);
+			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
 			// Ignoring the error object as its non-deterministic
-			expect(node.logger.fatal).toHaveBeenCalledWith(
+			expect(node['_logger'].fatal).toHaveBeenCalledWith(
 				expect.objectContaining({
 					message: expect.stringContaining(
 						'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=4',
@@ -258,12 +236,12 @@ describe('Node', () => {
 				channel: stubs.channel,
 				options: invalidChainOptions,
 				logger: stubs.logger,
-			});
+			} as any);
 
 			await node.bootstrap();
 
-			expect(node.logger.fatal).toHaveBeenCalledTimes(1);
-			expect(node.logger.fatal).toHaveBeenCalledWith(
+			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
+			expect(node['_logger'].fatal).toHaveBeenCalledWith(
 				expect.objectContaining({
 					message: expect.stringContaining(
 						'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=5',
@@ -273,41 +251,33 @@ describe('Node', () => {
 			);
 		});
 
-		it('should initialize scope object with valid structure', async () => {
-			// @todo write a snapshot tests after migrated this test to jest.
-			expect(node).toHaveProperty('config');
-			expect(node).toHaveProperty('genesisBlock.block');
-			expect(node).toHaveProperty('sequence');
-			expect(node).toHaveProperty('components.logger');
-			expect(node).toHaveProperty('channel');
-			expect(node).toHaveProperty('applicationState');
+		it('should initialize scope object with valid structure', () => {
+			expect(node).toMatchSnapshot();
 		});
 
 		describe('_initModules', () => {
-			it('should initialize bft module', async () => {
-				expect(node.bft).toBeInstanceOf(BFT);
-				expect(node.modules.bft).toBeInstanceOf(BFT);
+			it('should initialize bft module', () => {
+				expect(node['_bft']).toBeInstanceOf(BFT);
 			});
 
-			it('should initialize forger module', async () => {
-				expect(node.forger).toBeInstanceOf(Forger);
-				expect(node.modules.forger).toBe(node.forger);
+			it('should initialize forger module', () => {
+				expect(node['_forger']).toBeInstanceOf(Forger);
 			});
 
-			it('should initialize forger module with high fee strategy', async () => {
-				expect(node.forger._forgingStrategy).toBeInstanceOf(
+			it('should initialize forger module with high fee strategy', () => {
+				expect(node['_forger']['_forgingStrategy']).toBeInstanceOf(
 					HighFeeForgingStrategy,
 				);
 			});
 		});
 
-		it('should invoke Processor.init', async () => {
-			expect(node.processor.init).toHaveBeenCalledTimes(1);
+		it('should invoke Processor.init', () => {
+			expect(node['_processor'].init).toHaveBeenCalledTimes(1);
 		});
 
 		it('should invoke "app:updateApplicationState" with correct params', () => {
 			// Assert
-			return expect(node.channel.invoke).toHaveBeenCalledWith(
+			return expect(node['_channel'].invoke).toHaveBeenCalledWith(
 				'app:updateApplicationState',
 				{
 					height: lastBlock.height,
@@ -319,23 +289,23 @@ describe('Node', () => {
 		});
 
 		it('should subscribe to "app:state:updated" event', () => {
-			return expect(node.channel.subscribe).toHaveBeenCalledWith(
+			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
 				'app:state:updated',
 				expect.any(Function),
 			);
 		});
 
 		it('should subscribe to "network:subscribe" event', () => {
-			return expect(node.channel.subscribe).toHaveBeenCalledWith(
+			return expect(node['_channel'].subscribe).toHaveBeenCalledWith(
 				'app:network:event',
 				expect.any(Function),
 			);
 		});
 
 		it('should start transaction pool', () => {
-			jest.spyOn(node.transactionPool, 'start');
+			jest.spyOn(node['_transactionPool'], 'start');
 			subscribedEvents['app:ready']();
-			return expect(node.transactionPool.start).toHaveBeenCalled();
+			return expect(node['_transactionPool'].start).toHaveBeenCalled();
 		});
 
 		describe('if any error thrown', () => {
@@ -349,7 +319,7 @@ describe('Node', () => {
 					},
 					logger: stubs.logger,
 					storage: stubs.storage,
-				});
+				} as any);
 
 				// Act
 				try {
@@ -359,8 +329,8 @@ describe('Node', () => {
 				}
 			});
 
-			it('should log "Failed to initialization node module"', async () => {
-				expect(node.logger.fatal).toHaveBeenCalledWith(
+			it('should log "Failed to initialization node module"', () => {
+				expect(node['_logger'].fatal).toHaveBeenCalledWith(
 					expect.any(Object),
 					'Failed to initialization node',
 				);
@@ -383,91 +353,83 @@ describe('Node', () => {
 		});
 
 		it('should call transactionPool.stop', async () => {
-			jest.spyOn(node.transactionPool, 'stop');
+			jest.spyOn(node['_transactionPool'], 'stop');
 			await node.cleanup();
 			// Assert
-			expect(node.transactionPool.stop).toHaveBeenCalled();
-		});
-
-		it('should call cleanup on all modules', async () => {
-			// replace with stub
-			node.modules = stubs.modules;
-			// Act
-			await node.cleanup();
-
-			// Assert
-			expect(stubs.modules.module1.cleanup).toHaveBeenCalled();
-			return expect(stubs.modules.module2.cleanup).toHaveBeenCalled();
+			expect(node['_transactionPool'].stop).toHaveBeenCalled();
 		});
 	});
 
 	describe('#_forgingTask', () => {
 		beforeEach(async () => {
 			await node.bootstrap();
-			jest.spyOn(node.forger, 'delegatesEnabled').mockReturnValue(true);
-			jest.spyOn(node.forger, 'forge');
-			jest.spyOn(node.sequence, 'add').mockImplementation(async fn => {
+			jest.spyOn(node['_forger'], 'delegatesEnabled').mockReturnValue(true);
+			jest.spyOn(node['_forger'], 'forge');
+			jest.spyOn(node['_sequence'], 'add').mockImplementation(async fn => {
 				await fn();
 			});
-			jest.spyOn(node.synchronizer, 'isActive', 'get').mockReturnValue(false);
+			jest
+				.spyOn(node['_synchronizer'], 'isActive', 'get')
+				.mockReturnValue(false);
 		});
 
 		it('should halt if no delegates are enabled', async () => {
 			// Arrange
-			node.forger.delegatesEnabled.mockReturnValue(false);
+			(node['_forger'].delegatesEnabled as jest.Mock).mockReturnValue(false);
 
 			// Act
-			await node._forgingTask();
+			await node['_forgingTask']();
 
 			// Assert
 			expect(stubs.logger.trace).toHaveBeenNthCalledWith(
 				1,
 				'No delegates are enabled',
 			);
-			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.forge).not.toHaveBeenCalled();
+			expect(node['_sequence'].add).toHaveBeenCalled();
+			expect(node['_forger'].forge).not.toHaveBeenCalled();
 		});
 
 		it('should halt if the client is not ready to forge (is syncing)', async () => {
 			// Arrange
-			jest.spyOn(node.synchronizer, 'isActive', 'get').mockReturnValue(true);
+			jest
+				.spyOn(node['_synchronizer'], 'isActive', 'get')
+				.mockReturnValue(true);
 
 			// Act
-			await node._forgingTask();
+			await node['_forgingTask']();
 
 			// Assert
 			expect(stubs.logger.debug).toHaveBeenNthCalledWith(
 				1,
 				'Client not ready to forge',
 			);
-			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.forge).not.toHaveBeenCalled();
+			expect(node['_sequence'].add).toHaveBeenCalled();
+			expect(node['_forger'].forge).not.toHaveBeenCalled();
 		});
 
 		it('should execute forger.forge otherwise', async () => {
-			await node._forgingTask();
+			await node['_forgingTask']();
 
-			expect(node.sequence.add).toHaveBeenCalled();
-			expect(node.forger.forge).toHaveBeenCalled();
+			expect(node['_sequence'].add).toHaveBeenCalled();
+			expect(node['_forger'].forge).toHaveBeenCalled();
 		});
 	});
 
 	describe('#_startForging', () => {
 		beforeEach(async () => {
 			await node.bootstrap();
-			jest.spyOn(node.forger, 'loadDelegates');
+			jest.spyOn(node['_forger'], 'loadDelegates');
 		});
 
 		it('should load the delegates', async () => {
-			await node._startForging();
-			expect(node.forger.loadDelegates).toHaveBeenCalled();
+			await node['_startForging']();
+			expect(node['_forger'].loadDelegates).toHaveBeenCalled();
 		});
 
 		it('should register a task in Jobs Queue named "nextForge" with a designated interval', async () => {
-			const forgeInterval = 1000;
-			await node._startForging();
+			await node['_startForging']();
 
-			expect(node.forgingJob).not.toBeUndefined();
+			expect(node['_forgingJob']).not.toBeUndefined();
 		});
 	});
 });

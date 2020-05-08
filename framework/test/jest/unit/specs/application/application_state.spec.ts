@@ -11,23 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { AssertionError } from 'assert';
+import { ApplicationState } from '../../../../../src/application/application_state';
 
 jest.mock('os', () => ({
 	platform: jest.fn(() => 'platform'),
 	release: jest.fn(() => 'release'),
 }));
 
-const { AssertionError } = require('assert');
-const ApplicationState = require('../../../../../src/application/application_state');
-
 describe('Application State', () => {
-	let applicationState;
+	let applicationState: ApplicationState;
 	const initialState = {
 		blockVersion: 0,
 		version: '1.0.0-beta.3',
-		wsPort: '3001',
-		httpPort: '3000',
-		minVersion: '1.0.0-beta.0',
+		wsPort: 3001,
+		httpPort: 3000,
 		protocolVersion: '1.0',
 		networkId: 'test networkId',
 		maxHeightPrevoted: 0,
@@ -38,9 +36,8 @@ describe('Application State', () => {
 		blockVersion: 0,
 		os: 'platformrelease',
 		version: '1.0.0-beta.3',
-		wsPort: '3001',
-		httpPort: '3000',
-		minVersion: '1.0.0-beta.0',
+		wsPort: 3001,
+		httpPort: 3000,
 		protocolVersion: '1.0',
 		networkId: 'test networkId',
 		maxHeightPrevoted: 0,
@@ -59,15 +56,15 @@ describe('Application State', () => {
 		// Act
 		applicationState = new ApplicationState({
 			initialState,
-			logger,
+			logger: logger as any,
 		});
 	});
 
 	describe('#constructor', () => {
 		it('should initiate the application state', () => {
 			// Assert
-			expect(applicationState.logger).toBe(logger);
-			expect(applicationState.stateChannel).toBeUndefined();
+			expect(applicationState['_logger']).toBe(logger);
+			expect(applicationState['_channel']).toBeUndefined();
 			expect(applicationState.state).toEqual(mockedState);
 		});
 	});
@@ -85,10 +82,10 @@ describe('Application State', () => {
 	describe('#set channel', () => {
 		it('should set the channel', () => {
 			// Act
-			applicationState.channel = channel;
+			applicationState.channel = channel as any;
 
 			// Assert
-			expect(applicationState.stateChannel).toBe(channel);
+			expect(applicationState['_channel']).toBe(channel);
 		});
 	});
 
@@ -97,40 +94,39 @@ describe('Application State', () => {
 			// Arrange
 			const newState = {
 				maxHeightPrevoted: 0,
-				height: '10',
+				height: 10,
 			};
 			const errorMessage = new Error('Publish failure');
 
 			beforeEach(() => {
 				applicationState.channel = {
-					publish: jest
-						.fn()
-						.mockImplementation(async () => Promise.reject(errorMessage)),
-				};
+					publish: jest.fn().mockImplementation(() => {
+						throw errorMessage;
+					}),
+				} as any;
 			});
 
-			it('should throw an error', async () => {
+			it('should throw an error', () => {
 				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					errorMessage,
-				);
+				expect(() => applicationState.update(newState)).toThrow(errorMessage);
 			});
 
-			it('should log the error stack', async () => {
+			it('should log the error stack', () => {
 				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
-					errorMessage,
+				expect(() => applicationState.update(newState)).toThrow(errorMessage);
+				expect(logger.error).toHaveBeenLastCalledWith(
+					{ err: errorMessage },
+					'Failed to update application state',
 				);
-				expect(logger.error).toHaveBeenLastCalledWith(errorMessage.stack);
 			});
 		});
 
 		describe('when wrong parameters are passed', () => {
-			let newState;
+			let newState: any;
 			const heightErrorMessage =
 				'height is required to update application state.';
 
-			it('should throw AssertionError if height undefined', async () => {
+			it('should throw AssertionError if height undefined', () => {
 				// Arrange
 				newState = {
 					maxHeightPrevoted: 0,
@@ -144,12 +140,12 @@ describe('Application State', () => {
 				});
 
 				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
+				expect(() => applicationState.update(newState)).toThrow(
 					heightAssertionError,
 				);
 			});
 
-			it('should throw AssertionError if height is null', async () => {
+			it('should throw AssertionError if height is null', () => {
 				// Arrange
 				newState = {
 					maxHeightPrevoted: 0,
@@ -163,41 +159,40 @@ describe('Application State', () => {
 				});
 
 				// Act && Assert
-				await expect(applicationState.update(newState)).rejects.toThrow(
+				expect(() => applicationState.update(newState)).toThrow(
 					heightAssertionError,
 				);
 			});
 		});
 
 		describe('when correct parameters are passed', () => {
-			let newState;
-			let result;
-			let updatedState;
+			let newState: { height: number; maxHeightPrevoted: number };
+			let updatedState: any;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrange
 				newState = {
 					maxHeightPrevoted: 1,
-					height: '10',
+					height: 10,
 				};
-				applicationState.channel = channel;
+				applicationState.channel = channel as any;
 
 				// Act
-				result = await applicationState.update(newState);
+				applicationState.update(newState);
 				updatedState = applicationState.state;
 			});
 
-			it('should update maxHeightPrevoted', async () => {
+			it('should update maxHeightPrevoted', () => {
 				// Assert
 				expect(updatedState.maxHeightPrevoted).toBe(newState.maxHeightPrevoted);
 			});
 
-			it('should update height', async () => {
+			it('should update height', () => {
 				// Assert
 				expect(updatedState.height).toBe(newState.height);
 			});
 
-			it('should print notification update in logs', async () => {
+			it('should print notification update in logs', () => {
 				// Assert
 				expect(logger.debug).toHaveBeenCalled();
 				expect(logger.debug).toHaveBeenLastCalledWith(
@@ -206,7 +201,7 @@ describe('Application State', () => {
 				);
 			});
 
-			it('should publish notification update on the channel', async () => {
+			it('should publish notification update on the channel', () => {
 				// Assert
 				expect(channel.publish).toHaveBeenCalled();
 				expect(channel.publish).toHaveBeenLastCalledWith(
@@ -214,30 +209,25 @@ describe('Application State', () => {
 					updatedState,
 				);
 			});
-
-			it('should return true', async () => {
-				// Assert
-				expect(result).toBe(true);
-			});
 		});
 
 		describe('when a parameter is not passed', () => {
 			let newState;
-			let updatedState;
+			let updatedState: any;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrange
 				newState = {
-					height: '10',
+					height: 10,
 				};
-				applicationState.channel = channel;
+				applicationState.channel = channel as any;
 
 				// Act
-				await applicationState.update(newState);
+				applicationState.update(newState);
 				updatedState = applicationState.state;
 			});
 
-			it('should remain with the same value', async () => {
+			it('should remain with the same value', () => {
 				// Assert
 				expect(updatedState.maxHeightPrevoted).toBe(
 					mockedState.maxHeightPrevoted,
