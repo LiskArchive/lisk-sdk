@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 // eslint-disable-next-line max-classes-per-file
 declare module 'pm2-axon' {
 	import EventEmitter = NodeJS.EventEmitter;

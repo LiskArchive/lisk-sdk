@@ -13,7 +13,8 @@
  */
 
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { Logger, Channel } from '../../../types';
+import { Logger } from '../../../types';
+import { InMemoryChannel } from '../../../controller/channels';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 
@@ -25,11 +26,11 @@ interface BroadcasterConfig {
 export interface BroadcasterConstructor extends BroadcasterConfig {
 	readonly transactionPool: TransactionPool;
 	readonly logger: Logger;
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 }
 
 export class Broadcaster {
-	private readonly _channel: Channel;
+	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
 	private readonly _transactionPool: TransactionPool;
 	private readonly _config: BroadcasterConfig;

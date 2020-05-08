@@ -45,20 +45,33 @@ import {
 import { Processor } from './processor';
 import { Rebuilder } from './rebuilder';
 import { BlockProcessorV2 } from './block_processor_v2';
-import {
-	Channel,
-	Logger,
-	ApplicationState,
-	EventPostTransactionData,
-} from '../../types';
+import { Logger, EventPostTransactionData } from '../../types';
+import { InMemoryChannel } from '../../controller/channels';
+import { EventInfoObject } from '../../controller/event';
+import { ApplicationState } from '../application_state';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
 const { EVENT_ROUND_CHANGED } = dposConstants;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
 
-interface GenesisBlockInstance extends GenesisBlockJSON {
+export interface GenesisBlockInstance extends GenesisBlockJSON {
 	readonly communityIdentifier: string;
+}
+
+export interface NodeConstants {
+	readonly maxPayloadLength: number;
+	readonly activeDelegates: number;
+	readonly standbyDelegates: number;
+	readonly delegateListRoundOffset: number;
+	readonly rewards: {
+		readonly distance: number;
+		readonly offset: number;
+		readonly milestones: string[];
+	};
+	readonly totalAmount: string;
+	readonly epochTime: string;
+	readonly blockTime: number;
 }
 
 interface Options {
@@ -68,20 +81,7 @@ interface Options {
 		readonly force?: boolean;
 		readonly defaultPassword?: string;
 	};
-	readonly constants: {
-		readonly maxPayloadLength: number;
-		readonly activeDelegates: number;
-		readonly standbyDelegates: number;
-		readonly delegateListRoundOffset: number;
-		readonly rewards: {
-			readonly distance: number;
-			readonly offset: number;
-			readonly milestones: string[];
-		};
-		readonly totalAmount: string;
-		readonly epochTime: string;
-		readonly blockTime: number;
-	};
+	readonly constants: NodeConstants;
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
@@ -90,7 +90,7 @@ interface Options {
 }
 
 interface NodeConstructor {
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly options: Options;
 	readonly logger: Logger;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -106,14 +106,8 @@ interface NodeStatus {
 	readonly chainMaxHeightFinalized: number;
 }
 
-interface P2PMessagePacket {
-	readonly peerId: string;
-	readonly data: unknown;
-	readonly event: string;
-}
-
 export class Node {
-	private readonly _channel: Channel;
+	private readonly _channel: InMemoryChannel;
 	private readonly _options: Options;
 	private readonly _logger: Logger;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -198,12 +192,9 @@ export class Node {
 				(this._options.genesisBlock as unknown) as BlockJSON,
 			);
 
-			this._channel.subscribe(
-				'app:state:updated',
-				(event: { readonly data: ApplicationState }) => {
-					Object.assign(this._applicationState, event.data);
-				},
-			);
+			this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
+				Object.assign(this._applicationState, event.data);
+			});
 
 			this._logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
@@ -235,11 +226,16 @@ export class Node {
 
 			this._subscribeToEvents();
 
-			this._channel.subscribe('app:network:ready', async () => {
-				await this._startLoader();
-			});
+			this._channel.subscribe(
+				'app:network:ready',
+				// eslint-disable-next-line @typescript-eslint/no-misused-promises
+				async (_event: EventInfoObject) => {
+					await this._startLoader();
+				},
+			);
 
-			this._channel.subscribe('app:ready', async () => {
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			this._channel.subscribe('app:ready', async (_event: EventInfoObject) => {
 				await this._transactionPool.start();
 				await this._startForging();
 			});
@@ -248,11 +244,13 @@ export class Node {
 			if (!this._options.rebuildUpToRound) {
 				this._channel.subscribe(
 					'app:network:event',
-					async ({
-						data: { event, data, peerId },
-					}: {
-						readonly data: P2PMessagePacket;
-					}) => {
+					// eslint-disable-next-line @typescript-eslint/no-misused-promises
+					async (info: EventInfoObject) => {
+						const {
+							data: { event, data, peerId },
+						} = info as {
+							data: { event: string; data: unknown; peerId: string };
+						};
 						try {
 							if (event === 'postTransactionsAnnouncement') {
 								await this._transport.handleEventPostTransactionsAnnouncement(
@@ -287,7 +285,8 @@ export class Node {
 		}
 	}
 
-	public get actions(): object {
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
+	public get actions() {
 		return {
 			calculateSupply: (action: { params: { height: number } }): bigint =>
 				this._chain.blockReward.calculateSupply(action.params.height),
@@ -658,18 +657,24 @@ export class Node {
 	private _subscribeToEvents(): void {
 		this._channel.subscribe(
 			'app:block:broadcast',
-			async ({ data: { block } }: { data: { block: BlockJSON } }) => {
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			async (info: EventInfoObject) => {
+				const {
+					data: { block },
+				} = info as { data: { block: BlockJSON } };
 				await this._transport.handleBroadcastBlock(block);
 			},
 		);
 
 		this._channel.subscribe(
 			'app:chain:sync',
-			({
-				data: { block, peerId },
-			}: {
-				data: { block: BlockJSON; peerId: string };
-			}) => {
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			(info: EventInfoObject) => {
+				const {
+					data: { block, peerId },
+				} = info as {
+					data: { block: BlockJSON; peerId: string };
+				};
 				this._synchronizer.run(block, peerId).catch(err => {
 					this._logger.error(
 						{ err: err as Error },

@@ -15,7 +15,9 @@
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import * as liskP2p from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
-import { Channel, Logger, Storage, P2PConfig } from '../../types';
+import { Logger, Storage } from '../../types';
+import { InMemoryChannel } from '../../controller/channels';
+import { EventInfoObject } from '../../controller/event';
 
 const {
 	P2P,
@@ -45,11 +47,29 @@ const NETWORK_INFO_KEY_TRIED_PEERS = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 interface NetworkConstructor {
-	readonly options: P2PConfig;
-	readonly channel: Channel;
+	readonly options: NetworkConfig;
+	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly storage: Storage;
-	secret: string;
+}
+
+export interface NetworkConfig {
+	wsPort: number;
+	seedPeers: { ip: string; wsPort: number }[];
+	hostIp?: string;
+	blacklistedIPs?: string[];
+	fixedPeers?: { ip: string; wsPort: number }[];
+	whitelistedPeers?: { ip: string; wsPort: number }[];
+	peerBanTime?: number;
+	connectTimeout?: number;
+	ackTimeout?: number;
+	maxOutboundConnections?: number;
+	maxInboundConnections?: number;
+	sendPeerLimit?: number;
+	maxPeerDiscoveryResponseLength?: number;
+	maxPeerInfoSize?: number;
+	wsMaxPayload?: number;
+	advertiseAddress?: boolean;
 }
 
 interface P2PRequestPacket extends liskP2p.p2pTypes.P2PRequestPacket {
@@ -70,8 +90,8 @@ interface P2PRequest {
 }
 
 export class Network {
-	private readonly options: P2PConfig;
-	private readonly channel: Channel;
+	private readonly options: NetworkConfig;
+	private readonly channel: InMemoryChannel;
 	private readonly logger: Logger;
 	private readonly storage: Storage;
 	private secret: number | null;
@@ -124,7 +144,7 @@ export class Network {
 			nodeInfo: liskP2p.p2pTypes.P2PNodeInfo,
 		): liskP2p.p2pTypes.P2PNodeInfo => ({
 			...nodeInfo,
-			advertiseAddress: this.options.advertiseAddress,
+			advertiseAddress: this.options.advertiseAddress ?? true,
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
@@ -137,7 +157,7 @@ export class Network {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const fixedPeers = this.options.fixedPeers
 			? this.options.fixedPeers.map(peer => ({
-					ipAddress: peer.ip as string,
+					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
 			: [];
@@ -145,7 +165,7 @@ export class Network {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const whitelistedPeers = this.options.whitelistedPeers
 			? this.options.whitelistedPeers.map(peer => ({
-					ipAddress: peer.ip as string,
+					ipAddress: peer.ip,
 					wsPort: peer.wsPort,
 			  }))
 			: [];
@@ -157,7 +177,7 @@ export class Network {
 			fixedPeers,
 			whitelistedPeers,
 			seedPeers: seedPeers.map(peer => ({
-				ipAddress: peer.ip as string,
+				ipAddress: peer.ip,
 				wsPort: peer.wsPort,
 			})),
 			previousPeers,
@@ -174,20 +194,19 @@ export class Network {
 
 		this.p2p = new P2P(p2pConfig);
 
-		this.channel.subscribe(
-			'app:state:updated',
-			(event: { readonly data: liskP2p.p2pTypes.P2PNodeInfo }) => {
-				const newNodeInfo = sanitizeNodeInfo(event.data);
-				try {
-					this.p2p.applyNodeInfo(newNodeInfo);
-				} catch (error) {
-					this.logger.error(
-						{ err: error as Error },
-						'Applying NodeInfo failed because of error',
-					);
-				}
-			},
-		);
+		this.channel.subscribe('app:sta:e:updated', (event: EventInfoObject) => {
+			const newNodeInfo = sanitizeNodeInfo(
+				event.data as liskP2p.p2pTypes.P2PNodeInfo,
+			);
+			try {
+				this.p2p.applyNodeInfo(newNodeInfo);
+			} catch (error) {
+				this.logger.error(
+					{ err: error as Error },
+					'Applying NodeInfo failed because of error',
+				);
+			}
+		});
 
 		// ---- START: Bind event handlers ----
 		this.p2p.on(EVENT_NETWORK_READY, () => {

@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-module.exports = '0.1.0';
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
+export const systemDirs = (appLabel: string, tempPath: string) => ({
+	temp: `${tempPath}/${appLabel}/`,
+	sockets: `${tempPath}/${appLabel}/sockets`,
+	pids: `${tempPath}/${appLabel}/pids`,
+});

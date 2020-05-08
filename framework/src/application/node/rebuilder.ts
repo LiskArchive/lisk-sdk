@@ -15,11 +15,12 @@
 import { BlockInstance, Chain } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BFT } from '@liskhq/lisk-bft';
-import { Channel, Logger } from '../../types';
+import { Logger } from '../../types';
 import { Processor } from './processor';
+import { InMemoryChannel } from '../../controller/channels';
 
 interface RebuilderConstructor {
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly genesisBlock: BlockInstance;
 	readonly processorModule: Processor;
@@ -33,7 +34,7 @@ interface RebuilderConstructor {
  */
 export class Rebuilder {
 	private _isCleaning: boolean;
-	private readonly _channel: Channel;
+	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
 	private readonly _genesisBlock: BlockInstance;
 	private readonly _processorModule: Processor;

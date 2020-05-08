@@ -94,7 +94,7 @@ export type P2PConfig = Modify<
 >;
 
 export interface SeedPeerInfo {
-	readonly ip: string | unknown;
+	readonly ip: string;
 	readonly wsPort: number;
 }
 

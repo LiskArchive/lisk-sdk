@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const assert = require('assert');
-const {
+import * as assert from 'assert';
+import {
 	TransferTransaction,
 	DelegateTransaction,
 	VoteTransaction,
@@ -23,21 +21,26 @@ const {
 	MultisignatureTransaction,
 	ProofOfMisbehaviorTransaction,
 	transactionInterface,
-} = require('@liskhq/lisk-transactions');
-const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
-const { validator: liskValidator } = require('@liskhq/lisk-validator');
-const _ = require('lodash');
-const { Controller } = require('../controller/controller');
-const version = require('../version');
-const validator = require('./validator');
-const configurator = require('./default_configurator');
-const { genesisBlockSchema, constantsSchema } = require('./schema');
+	BaseTransaction,
+} from '@liskhq/lisk-transactions';
+import { Contexter } from '@liskhq/lisk-chain';
+import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { validator as liskValidator } from '@liskhq/lisk-validator';
+import * as _ from 'lodash';
+import { Controller, ModulesOptions } from '../controller/controller';
+import { version } from '../version';
+import * as validator from './validator';
+import * as configurator from './default_configurator';
+import { genesisBlockSchema, constantsSchema } from './schema';
+import { ApplicationState } from './application_state';
+import { Network } from './network';
+import { Node } from './node';
+import { InMemoryChannel } from '../controller/channels';
 
-const ApplicationState = require('./application_state');
-
-const { createLoggerComponent } = require('../components/logger');
-const { createStorageComponent } = require('../components/storage');
-const {
+import { createLoggerComponent } from '../components/logger';
+import { createStorageComponent } from '../components/storage';
+import { BaseModule, InstantiableModule } from '../modules/base_module';
+import {
 	MigrationEntity,
 	NetworkInfoEntity,
 	AccountEntity,
@@ -47,20 +50,17 @@ const {
 	ForgerInfoEntity,
 	TempBlockEntity,
 	TransactionEntity,
-} = require('../application/storage/entities');
-const {
-	networkMigrations,
-	nodeMigrations,
-} = require('../application/storage/migrations');
+} from './storage/entities';
+import { networkMigrations, nodeMigrations } from './storage/migrations';
+import { ActionInfoObject } from '../controller/action';
+import { Logger } from '../types';
+import { NodeConstants, GenesisBlockInstance } from './node/node';
+import { DelegateConfig } from './node/forger';
+import { NetworkConfig } from './network/network';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import HttpAPIModule = require('../modules/http_api');
 
-const { Network } = require('./network');
-const { Node } = require('./node');
-
-const { InMemoryChannel } = require('../controller/channels');
-
-const HttpAPIModule = require('../modules/http_api');
-
-const registerProcessHooks = app => {
+const registerProcessHooks = (app: Application): void => {
 	process.title = `${app.config.label}(${app.config.version})`;
 
 	process.on('uncaughtException', err => {
@@ -71,6 +71,7 @@ const registerProcessHooks = app => {
 			},
 			'System error: uncaughtException',
 		);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		app.shutdown(1, err.message);
 	});
 
@@ -82,29 +83,85 @@ const registerProcessHooks = app => {
 			},
 			'System error: unhandledRejection',
 		);
-		app.shutdown(1, err.message);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		app.shutdown(1, (err as Error).message);
 	});
 
-	process.once('SIGTERM', () => app.shutdown(1));
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	process.once('SIGTERM', async () => app.shutdown(1));
 
-	process.once('SIGINT', () => app.shutdown(1));
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
+	process.once('SIGINT', async () => app.shutdown(1));
 
-	process.once('exit', (error, code) => app.shutdown(code, error));
+	// eslint-disable-next-line
+	process.once('exit' as any, (code: number) => app.shutdown(code));
 };
 
-class Application {
-	constructor(genesisBlock, config = {}) {
+interface ApplicationConfig {
+	label: string;
+	version: string;
+	protocolVersion: string;
+	networkId: string;
+	lastCommitId: string;
+	buildVersion: string;
+	ipc: {
+		enabled: boolean;
+	};
+	tempPath: string;
+	readonly forging: {
+		readonly waitThreshold: number;
+		readonly delegates: DelegateConfig[];
+		readonly force?: boolean;
+		readonly defaultPassword?: string;
+	};
+	readonly rebuildUpToRound: string;
+	readonly network: NetworkConfig;
+	constants: {
+		[key: string]: {} | string | number | undefined;
+	};
+	genesisConfig: {};
+	components: {
+		[key: string]: {} | undefined;
+		logger: {
+			logFileName: string;
+		};
+	};
+	modules: ModulesOptions;
+}
+
+export class Application {
+	public logger: Logger;
+	public config: ApplicationConfig;
+	public constants: NodeConstants;
+
+	private _node!: Node;
+	private _network!: Network;
+	private _controller!: Controller;
+	private _applicationState!: ApplicationState;
+	private _transactions: { [key: number]: typeof BaseTransaction };
+	private _modules: { [key: string]: InstantiableModule<BaseModule> };
+	private _channel!: InMemoryChannel;
+
+	private readonly _genesisBlock: GenesisBlockInstance;
+	private _migrations: { [key: string]: object };
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private readonly storage: any;
+
+	public constructor(
+		genesisBlock: object,
+		config: Partial<ApplicationConfig> = {},
+	) {
 		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
 		if (errors.length) {
 			throw errors;
 		}
+		this._genesisBlock = genesisBlock as GenesisBlockInstance;
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);
 
-		if (!_.has(appConfig, 'label')) {
-			_.set(appConfig, 'label', `lisk-${genesisBlock.payloadHash.slice(0, 7)}`);
-		}
+		appConfig.label =
+			appConfig.label ?? `lisk-${this._genesisBlock.payloadHash.slice(0, 7)}`;
 
 		if (!_.has(appConfig, 'components.logger.logFileName')) {
 			_.set(
@@ -116,29 +173,26 @@ class Application {
 
 		appConfig = configurator.getConfig(appConfig, {
 			failOnInvalidArg: process.env.NODE_ENV !== 'test',
-		});
+		}) as ApplicationConfig;
 
 		// These constants are readonly we are loading up their default values
 		// In additional validating those values so any wrongly changed value
 		// by us can be catch on application startup
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const constants = validator.parseEnvArgAndValidate(constantsSchema, {});
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
-		this.constants = { ...constants, ...appConfig.genesisConfig };
-		this.genesisBlock = genesisBlock;
-		this.config = appConfig;
-		this.channel = null;
-		this.initialState = null;
-		this.applicationState = null;
+		this.constants = {
+			...constants,
+			...appConfig.genesisConfig,
+		} as NodeConstants;
+		this.config = appConfig as ApplicationConfig;
 
 		// Private members
 		this._modules = {};
 		this._transactions = {};
 		this._migrations = {};
-		this._node = null;
-		this._network = null;
-		this._controller = null;
 
 		this.logger = this._initLogger();
 		this.storage = this._initStorage();
@@ -150,27 +204,34 @@ class Application {
 		this.registerTransaction(UnlockTransaction);
 		this.registerTransaction(ProofOfMisbehaviorTransaction);
 
-		this.registerModule(HttpAPIModule);
+		this.registerModule(
+			(HttpAPIModule as unknown) as InstantiableModule<BaseModule>,
+		);
 		this.overrideModuleOptions(HttpAPIModule.alias, {
 			loadAsChildProcess: true,
 		});
 	}
 
-	registerModule(moduleKlass, options = {}, alias = undefined) {
+	public registerModule(
+		moduleKlass: InstantiableModule<BaseModule>,
+		options = {},
+		alias?: string,
+	): void {
 		assert(moduleKlass, 'ModuleSpec is required');
 		assert(
 			typeof options === 'object',
 			'Module options must be provided or set to empty object.',
 		);
-		assert(alias || moduleKlass.alias, 'Module alias must be provided.');
-		const moduleAlias = alias || moduleKlass.alias;
+		assert(alias ?? moduleKlass.alias, 'Module alias must be provided.');
+		const moduleAlias = alias ?? moduleKlass.alias;
 		assert(
 			!Object.keys(this.getModules()).includes(moduleAlias),
 			`A module with alias "${moduleAlias}" already registered.`,
 		);
 
 		this.config.modules[moduleAlias] = Object.assign(
-			this.config.modules[moduleAlias] || {},
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			this.config.modules[moduleAlias] ?? {},
 			options,
 		);
 		this._modules[moduleAlias] = moduleKlass;
@@ -179,7 +240,7 @@ class Application {
 		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
 	}
 
-	overrideModuleOptions(alias, options) {
+	public overrideModuleOptions(alias: string, options?: object): void {
 		const modules = this.getModules();
 		assert(
 			Object.keys(modules).includes(alias),
@@ -191,7 +252,10 @@ class Application {
 		};
 	}
 
-	registerTransaction(Transaction, { matcher } = {}) {
+	public registerTransaction(
+		Transaction: typeof BaseTransaction,
+		{ matcher }: { matcher?: (context: Contexter) => boolean } = {},
+	): void {
 		assert(Transaction, 'Transaction implementation is required');
 
 		assert(
@@ -217,7 +281,8 @@ class Application {
 		this._transactions[Transaction.TYPE] = Object.freeze(Transaction);
 	}
 
-	registerMigrations(namespace, migrations) {
+	// eslint-disable-next-line
+	public registerMigrations(namespace: string, migrations: any): void {
 		assert(namespace, 'Namespace is required');
 		assert(Array.isArray(migrations), 'Migrations list should be an array');
 		assert(
@@ -225,30 +290,31 @@ class Application {
 			`Migrations for "${namespace}" was already registered.`,
 		);
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._migrations[namespace] = Object.freeze(migrations);
 	}
 
-	getTransactions() {
+	public getTransactions(): { [key: number]: typeof BaseTransaction } {
 		return this._transactions;
 	}
 
-	getTransaction(transactionType) {
+	public getTransaction(transactionType: number): typeof BaseTransaction {
 		return this._transactions[transactionType];
 	}
 
-	getModule(alias) {
-		return this._modules.get[alias];
+	public getModule(alias: string): InstantiableModule<BaseModule> {
+		return this._modules[alias];
 	}
 
-	getModules() {
+	public getModules(): { [key: string]: InstantiableModule<BaseModule> } {
 		return this._modules;
 	}
 
-	getMigrations() {
+	public getMigrations(): { [key: string]: object } {
 		return this._migrations;
 	}
 
-	async run() {
+	public async run(): Promise<void> {
 		this.logger.info(
 			'If you experience any type of error, please open an issue on Lisk GitHub: https://github.com/LiskHQ/lisk-sdk/issues',
 		);
@@ -260,7 +326,7 @@ class Application {
 		// Freeze every module and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
 
-		Object.freeze(this.genesisBlock);
+		Object.freeze(this._genesisBlock);
 		Object.freeze(this.constants);
 		Object.freeze(this.config);
 
@@ -269,19 +335,22 @@ class Application {
 		registerProcessHooks(this);
 
 		// Initialize all objects
-		this.applicationState = this._initApplicationState();
-		this.channel = this._initChannel();
-		this.applicationState.channel = this.channel;
+		this._applicationState = this._initApplicationState();
+		this._channel = this._initChannel();
+		this._applicationState.channel = this._channel;
 
 		this._controller = this._initController();
 		this._network = this._initNetwork();
 		this._node = this._initNode();
 
 		// Load system components
+		// eslint-disable-next-line
 		await this.storage.bootstrap();
+		// eslint-disable-next-line
 		await this.storage.entities.Migration.defineSchema();
 
 		// Have to keep it consistent until update migration namespace in database
+		// eslint-disable-next-line
 		await this.storage.entities.Migration.applyAll({
 			node: nodeMigrations(),
 			network: networkMigrations(),
@@ -290,16 +359,18 @@ class Application {
 		await this._controller.load(
 			this.getModules(),
 			this.config.modules,
-			this.getMigrations(),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			this.getMigrations() as any,
 		);
 
 		await this._network.bootstrap();
 		await this._node.bootstrap();
 
-		this.channel.publish('app:ready');
+		this._channel.publish('app:ready');
 	}
 
-	async shutdown(errorCode = 0, message = '') {
+	public async shutdown(errorCode = 0, message = ''): Promise<void> {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this._controller) {
 			await this._controller.cleanup(errorCode, message);
 		}
@@ -309,6 +380,7 @@ class Application {
 		// TODO: Fix the cause of circular exception
 		// await this._network.stop();
 		// await this._node.cleanup();
+		// eslint-disable-next-line
 		this.storage.cleanup();
 
 		process.exit(errorCode);
@@ -317,18 +389,18 @@ class Application {
 	// --------------------------------------
 	// Private
 	// --------------------------------------
-	_compileAndValidateConfigurations() {
+	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			this.genesisBlock.payloadHash,
-			this.genesisBlock.communityIdentifier,
+			this._genesisBlock.payloadHash,
+			this._genesisBlock.communityIdentifier,
 		);
 
 		const appConfigToShareWithModules = {
 			version: this.config.version,
 			protocolVersion: this.config.protocolVersion,
 			networkId: this.config.networkId,
-			genesisBlock: this.genesisBlock,
+			genesisBlock: this._genesisBlock,
 			constants: this.constants,
 			lastCommitId: this.config.lastCommitId,
 			buildVersion: this.config.buildVersion,
@@ -346,27 +418,20 @@ class Application {
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
 
-		this.initialState = {
-			version: this.config.version,
-			minVersion: this.config.minVersion,
-			protocolVersion: this.config.protocolVersion,
-			networkId: this.config.networkId,
-			wsPort: this.config.network.wsPort,
-			httpPort: this.config.modules.http_api.httpPort,
-		};
-
 		this.logger.trace(this.config, 'Compiled configurations');
 	}
 
-	_initLogger() {
+	private _initLogger(): Logger {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return createLoggerComponent({
 			...this.config.components.logger,
 			module: 'lisk:app',
 		});
 	}
 
-	_initStorage() {
-		const storageConfig = this.config.components.storage;
+	private _initStorage(): object {
+		/* eslint-disable */
+		const storageConfig = this.config.components.storage as any;
 		const loggerConfig = this.config.components.logger;
 		const dbLogger =
 			storageConfig.logFileName &&
@@ -381,7 +446,7 @@ class Application {
 		const storage = createStorageComponent(
 			this.config.components.storage,
 			dbLogger,
-		);
+		) as any;
 
 		storage.registerEntity('Migration', MigrationEntity);
 		storage.registerEntity('NetworkInfo', NetworkInfoEntity);
@@ -400,16 +465,26 @@ class Application {
 		});
 
 		return storage;
+		/* eslint-enable */
 	}
 
-	_initApplicationState() {
+	private _initApplicationState(): ApplicationState {
 		return new ApplicationState({
-			initialState: this.initialState,
+			initialState: {
+				version: this.config.version,
+				protocolVersion: this.config.protocolVersion,
+				networkId: this.config.networkId,
+				wsPort: this.config.network.wsPort,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				httpPort: this.config.modules.http_api?.httpPort,
+			},
 			logger: this.logger,
 		});
 	}
 
-	_initChannel() {
+	private _initChannel(): InMemoryChannel {
+		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+		/* eslint-disable @typescript-eslint/explicit-function-return-type */
 		return new InMemoryChannel(
 			'app',
 			[
@@ -428,163 +503,189 @@ class Application {
 			],
 			{
 				getComponentConfig: {
-					handler: action => this.config.components[action.params],
+					handler: (action: ActionInfoObject) =>
+						this.config.components[action.params as string],
 				},
 				getApplicationState: {
-					handler: () => this.applicationState.state,
+					handler: (_action: ActionInfoObject) => this._applicationState.state,
 				},
 				updateApplicationState: {
-					handler: async action => this.applicationState.update(action.params),
+					handler: (action: ActionInfoObject) =>
+						this._applicationState.update(action.params),
 				},
 				sendToNetwork: {
-					handler: action => this._network.send(action.params),
+					handler: (action: ActionInfoObject) =>
+						this._network.send(action.params),
 				},
 				broadcastToNetwork: {
-					handler: action => this._network.broadcast(action.params),
+					handler: (action: ActionInfoObject) =>
+						this._network.broadcast(action.params),
 				},
 				requestFromNetwork: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async action => this._network.request(action.params),
+					handler: async (action: ActionInfoObject) =>
+						this._network.request(action.params),
 				},
 				requestFromPeer: {
-					// eslint-disable-next-line @typescript-eslint/require-await
-					handler: async action => this._network.requestFromPeer(action.params),
+					handler: async (action: ActionInfoObject) =>
+						this._network.requestFromPeer(action.params),
 				},
 				getConnectedPeers: {
-					handler: action => this._network.getConnectedPeers(action.params),
+					handler: (_action: ActionInfoObject) =>
+						this._network.getConnectedPeers(),
 				},
 				getDisconnectedPeers: {
-					handler: action => this._network.getDisconnectedPeers(action.params),
+					handler: (_action: ActionInfoObject) =>
+						this._network.getDisconnectedPeers(),
 				},
 				applyPenaltyOnPeer: {
-					handler: action => this._network.applyPenalty(action.params),
+					handler: (action: ActionInfoObject) =>
+						this._network.applyPenalty(action.params),
 				},
 				calculateSupply: {
-					handler: action => this._node.actions.calculateSupply(action),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.calculateSupply(action),
 				},
 				calculateMilestone: {
-					handler: action => this._node.actions.calculateMilestone(action),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.calculateMilestone(action),
 				},
 				calculateReward: {
-					handler: action => this._node.actions.calculateReward(action),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.calculateReward(action),
 				},
 				getForgerAddressesForRound: {
-					handler: async action =>
+					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getForgerAddressesForRound(action),
 				},
 				updateForgingStatus: {
-					handler: async action =>
+					handler: async (action: ActionInfoObject) =>
 						this._node.actions.updateForgingStatus(action),
 				},
 				getForgingStatusOfAllDelegates: {
-					handler: () => this._node.actions.getForgingStatusOfAllDelegates(),
+					handler: (_action: ActionInfoObject) =>
+						this._node.actions.getForgingStatusOfAllDelegates(),
 				},
 				getTransactionsFromPool: {
-					handler: action => this._node.actions.getTransactionsFromPool(action),
+					handler: (_action: ActionInfoObject) =>
+						this._node.actions.getTransactionsFromPool(),
 				},
 				getTransactions: {
-					handler: async action => this._node.actions.getTransactions(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getTransactions(action),
 					isPublic: true,
 				},
 				postTransaction: {
-					handler: async action => this._node.actions.postTransaction(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.postTransaction(action),
 				},
 				getSlotNumber: {
-					handler: action => this._node.actions.getSlotNumber(action),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.getSlotNumber(action),
 				},
 				calcSlotRound: {
-					handler: action => this._node.actions.calcSlotRound(action),
+					handler: (action: ActionInfoObject) =>
+						this._node.actions.calcSlotRound(action),
 				},
 				getNodeStatus: {
-					handler: () => this._node.actions.getNodeStatus(),
+					handler: (_action: ActionInfoObject) =>
+						this._node.actions.getNodeStatus(),
 				},
 				getLastBlock: {
-					handler: async () => this._node.actions.getLastBlock(),
+					handler: async (_action: ActionInfoObject) =>
+						this._node.actions.getLastBlock(),
 					isPublic: true,
 				},
 				getBlocksFromId: {
-					handler: async action => this._node.actions.getBlocksFromId(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getBlocksFromId(action),
 					isPublic: true,
 				},
 				getHighestCommonBlock: {
-					handler: async action =>
+					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getHighestCommonBlock(action),
 					isPublic: true,
 				},
 				getAccount: {
-					handler: async action => this._node.actions.getAccount(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getAccount(action),
 				},
 				getAccounts: {
-					handler: async action => this._node.actions.getAccounts(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getAccounts(action),
 				},
 				getBlockByID: {
-					handler: async action => this._node.actions.getBlockByID(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getBlockByID(action),
 				},
 				getBlocksByIDs: {
-					handler: async action => this._node.actions.getBlocksByIDs(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getBlocksByIDs(action),
 				},
 				getBlockByHeight: {
-					handler: async action => this._node.actions.getBlockByHeight(action),
+					handler: async (action: ActionInfoObject) =>
+						this._node.actions.getBlockByHeight(action),
 				},
 				getBlocksByHeightBetween: {
-					handler: async action =>
+					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getBlocksByHeightBetween(action),
 				},
 				getTransactionByID: {
-					handler: async action =>
+					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getTransactionByID(action),
 				},
 				getTransactionsByIDs: {
-					handler: async action =>
+					handler: async (action: ActionInfoObject) =>
 						this._node.actions.getTransactionsByIDs(action),
 				},
 			},
 			{ skipInternalEvents: true },
 		);
+		/* eslint-enable @typescript-eslint/explicit-module-boundary-types */
+		/* eslint-enable @typescript-eslint/explicit-function-return-type */
 	}
 
-	_initController() {
+	private _initController(): Controller {
 		return new Controller({
 			appLabel: this.config.label,
 			config: {
-				components: this.config.components,
 				ipc: this.config.ipc,
 				tempPath: this.config.tempPath,
 			},
 			logger: this.logger,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this.storage,
-			channel: this.channel,
+			channel: this._channel,
 		});
 	}
 
-	_initNetwork() {
+	private _initNetwork(): Network {
 		const network = new Network({
 			options: this.config.network,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this.storage,
 			logger: this.logger,
-			channel: this.channel,
+			channel: this._channel,
 		});
 		return network;
 	}
 
-	_initNode() {
+	private _initNode(): Node {
 		const { components, modules, ...rootConfigs } = this.config;
 		const { network, ...nodeConfigs } = rootConfigs;
 		const node = new Node({
-			channel: this.channel,
+			channel: this._channel,
 			options: {
 				...nodeConfigs,
-				genesisBlock: this.genesisBlock,
+				genesisBlock: this._genesisBlock,
 				constants: this.constants,
 				registeredTransactions: this.getTransactions(),
 			},
 			logger: this.logger,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this.storage,
-			applicationState: this.applicationState,
+			applicationState: this._applicationState,
 		});
 
 		return node;
 	}
 }
-
-module.exports = Application;

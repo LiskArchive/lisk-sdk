@@ -13,13 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BlockInstance } from '@liskhq/lisk-chain';
-import { Logger, Channel } from '../../../types';
+import { Logger } from '../../../types';
+import { InMemoryChannel } from '../../../controller/channels';
 
 export abstract class BaseSynchronizer {
 	protected logger: Logger;
-	protected channel: Channel;
+	protected channel: InMemoryChannel;
 
-	public constructor(logger: Logger, channel: Channel) {
+	public constructor(logger: Logger, channel: InMemoryChannel) {
 		this.logger = logger;
 		this.channel = channel;
 	}

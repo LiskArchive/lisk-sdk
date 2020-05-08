@@ -31,7 +31,8 @@ import {
 	BlockProcessingError,
 } from './errors';
 import { Processor } from '../processor';
-import { Logger, Channel } from '../../../types';
+import { Logger } from '../../../types';
+import { InMemoryChannel } from '../../../controller/channels';
 
 interface Peer {
 	readonly peerId: string;
@@ -43,7 +44,7 @@ interface Peer {
 
 interface BlockSynchronizationMechanismInput {
 	readonly logger: Logger;
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly bft: BFT;
 	readonly dpos: Dpos;
 	readonly chain: Chain;

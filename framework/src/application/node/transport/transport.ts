@@ -23,7 +23,6 @@ import { schemas } from './schemas';
 import { Synchronizer } from '../synchronizer';
 import { Processor } from '../processor';
 import {
-	Channel,
 	Logger,
 	RPCBlocksByIdData,
 	RPCHighestCommonBlockData,
@@ -33,6 +32,7 @@ import {
 	EventPostTransactionsAnnouncementData,
 } from '../../../types';
 import { Broadcaster } from './broadcaster';
+import { InMemoryChannel } from '../../../controller/channels';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -44,7 +44,7 @@ interface TransactionPoolTransaction extends BaseTransaction {
 }
 
 export interface TransportConstructor {
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly synchronizer: Synchronizer;
 	readonly transactionPoolModule: TransactionPool;
@@ -71,7 +71,7 @@ interface RateTracker {
 
 export class Transport {
 	private _rateTracker: RateTracker;
-	private readonly _channel: Channel;
+	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
 	private readonly _synchronizerModule: Synchronizer;
 	private readonly _transactionPoolModule: TransactionPool;
@@ -118,6 +118,7 @@ export class Transport {
 		this._channel.publish('app:transaction:new', transaction.toJSON());
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async handleBroadcastBlock(blockJSON: BlockJSON): Promise<unknown> {
 		if (this._synchronizerModule.isActive) {
 			this._logger.debug(
@@ -125,6 +126,7 @@ export class Transport {
 			);
 			return null;
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return this._channel.publishToNetwork('sendToNetwork', {
 			event: 'postBlock',
 			data: {

@@ -19,7 +19,8 @@ export interface ActionInfoObject {
 	readonly module: string;
 	readonly name: string;
 	readonly source?: string;
-	readonly params?: object;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	readonly params: any;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,7 +56,7 @@ export class Action {
 			`Action name "${name}" must be a valid name with module name.`,
 		);
 		[this.module, this.name] = name.split(':');
-		this.params = params;
+		this.params = params ?? {};
 
 		if (source) {
 			assert(
