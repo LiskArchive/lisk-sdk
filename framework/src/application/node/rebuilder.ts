@@ -12,20 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockInstance, Chain } from "@liskhq/lisk-chain";
-import { Dpos } from "@liskhq/lisk-dpos";
-import { BFT } from "@liskhq/lisk-bft";
-import { Channel, Logger } from "../../types";
-import { Processor } from "./processor";
+import { BlockInstance, Chain } from '@liskhq/lisk-chain';
+import { Dpos } from '@liskhq/lisk-dpos';
+import { BFT } from '@liskhq/lisk-bft';
+import { Channel, Logger } from '../../types';
+import { Processor } from './processor';
 
 interface RebuilderConstructor {
 	readonly channel: Channel;
 	readonly logger: Logger;
-	readonly genesisBlock: BlockInstance
-	readonly processorModule: Processor
-	readonly chainModule: Chain,
-	readonly dposModule: Dpos,
-	readonly bftModule: BFT,
+	readonly genesisBlock: BlockInstance;
+	readonly processorModule: Processor;
+	readonly chainModule: Chain;
+	readonly dposModule: Dpos;
+	readonly bftModule: BFT;
 }
 /**
  * Rebuild a blockchain
@@ -69,7 +69,10 @@ export class Rebuilder {
 		this._isCleaning = true;
 	}
 
-	public async rebuild(rebuildUpToRound: string, loadPerIteration = 1000): Promise<BlockInstance> {
+	public async rebuild(
+		rebuildUpToRound: string,
+		loadPerIteration = 1000,
+	): Promise<BlockInstance> {
 		const blocksCount = await this._chainModule.dataAccess.getBlocksCount();
 		this._logger.info(
 			{ rebuildUpToRound, blocksCount },

@@ -27,17 +27,17 @@ export interface BlockHeader {
 export type BlockHeaderWithID = BlockHeader & { readonly id: string };
 
 export interface DPoS {
-	readonly getMinActiveHeight: (
+	getMinActiveHeight(
 		height: number,
 		address: string,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
-	) => Promise<number>;
-	readonly isStandbyDelegate: (
+	): Promise<number>;
+	isStandbyDelegate(
 		address: string,
 		height: number,
 		stateStore: StateStore,
-	) => Promise<boolean>;
+	): Promise<boolean>;
 }
 
 export interface Chain {

@@ -187,6 +187,7 @@ const debug = Debug('lisk:chain');
 
 export class Chain {
 	public readonly dataAccess: DataAccess;
+	public readonly events: EventEmitter;
 	public readonly slots: Slots;
 	public readonly blockReward: {
 		readonly calculateMilestone: (height: number) => number;
@@ -206,7 +207,6 @@ export class Chain {
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
 	};
-	private readonly events: EventEmitter;
 
 	public constructor({
 		// Components
@@ -572,7 +572,7 @@ export class Chain {
 
 	public async applyTransactions(
 		transactions: BaseTransaction[],
-	): Promise<ReadonlyArray<TransactionResponse>> {
+	): Promise<TransactionResponse[]> {
 		const stateStore = await this.newStateStore();
 
 		return composeTransactionSteps(
