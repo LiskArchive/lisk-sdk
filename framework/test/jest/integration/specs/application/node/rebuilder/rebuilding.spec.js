@@ -42,7 +42,7 @@ describe('Rebuilding blocks', () => {
 		);
 		await storage.bootstrap();
 		node = await nodeUtils.createAndLoadNode(storage);
-		await node.forger.loadDelegates();
+		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
@@ -58,50 +58,50 @@ describe('Rebuilding blocks', () => {
 			for (let i = 0; i < 205; i += 1) {
 				const account = nodeUtils.createAccount();
 				addresses.push(account.address);
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const transaction = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: account.address,
 					amount: convertLSKToBeddows('1000'),
 					passphrase: genesis.passphrase,
 				});
 				const newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(transaction),
+					node._chain.deserializeTransaction(transaction),
 				]);
-				await node.processor.process(newBlock);
+				await node._processor.process(newBlock);
 			}
 			// Freeze address
-			accounts = await node.chain.dataAccess.getAccountsByAddress(addresses);
+			accounts = await node._chain.dataAccess.getAccountsByAddress(addresses);
 			for (let i = 0; i < 103; i += 1) {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const transaction = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: addresses[i],
 					amount: convertLSKToBeddows('1000'),
 					passphrase: genesis.passphrase,
 				});
 				const newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(transaction),
+					node._chain.deserializeTransaction(transaction),
 				]);
-				await node.processor.process(newBlock);
+				await node._processor.process(newBlock);
 			}
 		});
 
 		describe('when rebuilding up to 2nd rounds', () => {
 			beforeAll(async () => {
-				await node.rebuilder.rebuild(2);
+				await node._rebuilder.rebuild(2);
 			});
 
 			it('should build the same account state as original', async () => {
-				const rebuiltAccounts = await node.chain.dataAccess.getAccountsByAddress(
+				const rebuiltAccounts = await node._chain.dataAccess.getAccountsByAddress(
 					addresses,
 				);
 				expect.assertions(accounts.length);
@@ -116,7 +116,7 @@ describe('Rebuilding blocks', () => {
 			});
 
 			it('should remove blocks after 3 rounds', async () => {
-				const blocks = await node.chain.dataAccess.getBlockHeadersByHeightBetween(
+				const blocks = await node._chain.dataAccess.getBlockHeadersByHeightBetween(
 					207,
 					309,
 				);

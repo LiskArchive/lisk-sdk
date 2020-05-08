@@ -252,7 +252,11 @@ describe('Node', () => {
 		});
 
 		it('should initialize scope object with valid structure', () => {
-			expect(node).toMatchSnapshot();
+			expect(node).toHaveProperty('_options');
+			expect(node).toHaveProperty('_sequence');
+			expect(node).toHaveProperty('_channel');
+			expect(node).toHaveProperty('_applicationState');
+			expect(node).toHaveProperty('_networkIdentifier');
 		});
 
 		describe('_initModules', () => {

@@ -42,7 +42,7 @@ describe('Transaction order', () => {
 		);
 		await storage.bootstrap();
 		node = await nodeUtils.createAndLoadNode(storage);
-		await node.forger.loadDelegates();
+		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
@@ -55,13 +55,13 @@ describe('Transaction order', () => {
 			let newBlock;
 
 			beforeAll(async () => {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: accountWithoutBalance.address,
 					amount: convertLSKToBeddows('100'),
@@ -69,21 +69,21 @@ describe('Transaction order', () => {
 				});
 				const returningTx = transfer({
 					nonce: '0',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: genesis.address,
 					amount: convertLSKToBeddows('99'),
 					passphrase: accountWithoutBalance.passphrase,
 				});
 				newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(fundingTx),
-					node.chain.deserializeTransaction(returningTx),
+					node._chain.deserializeTransaction(fundingTx),
+					node._chain.deserializeTransaction(returningTx),
 				]);
-				await node.processor.process(newBlock);
+				await node._processor.process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node.chain.dataAccess.getBlockByID(
+				const createdBlock = await node._chain.dataAccess.getBlockByID(
 					newBlock.id,
 				);
 				expect(createdBlock).not.toBeUndefined();
@@ -94,13 +94,13 @@ describe('Transaction order', () => {
 			let newBlock;
 
 			beforeAll(async () => {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const newAccount = nodeUtils.createAccount();
 				const fundingTx = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: newAccount.address,
 					amount: convertLSKToBeddows('100'),
@@ -108,14 +108,14 @@ describe('Transaction order', () => {
 				});
 				const registerDelegateTx = registerDelegate({
 					nonce: '0',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('11'),
 					username: 'newdelegate',
 					passphrase: newAccount.passphrase,
 				});
 				const selfVoteTx = castVotes({
 					nonce: '1',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('1'),
 					votes: [
 						{
@@ -126,15 +126,15 @@ describe('Transaction order', () => {
 					passphrase: newAccount.passphrase,
 				});
 				newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(fundingTx),
-					node.chain.deserializeTransaction(registerDelegateTx),
-					node.chain.deserializeTransaction(selfVoteTx),
+					node._chain.deserializeTransaction(fundingTx),
+					node._chain.deserializeTransaction(registerDelegateTx),
+					node._chain.deserializeTransaction(selfVoteTx),
 				]);
-				await node.processor.process(newBlock);
+				await node._processor.process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node.chain.dataAccess.getBlockByID(
+				const createdBlock = await node._chain.dataAccess.getBlockByID(
 					newBlock.id,
 				);
 				expect(createdBlock).not.toBeUndefined();
@@ -145,14 +145,14 @@ describe('Transaction order', () => {
 			let newBlock;
 
 			beforeAll(async () => {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: newAccount.address,
 					amount: convertLSKToBeddows('100'),
@@ -160,7 +160,7 @@ describe('Transaction order', () => {
 				});
 				const registerMultisigTx = registerMultisignature({
 					nonce: '0',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('11'),
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
@@ -174,16 +174,16 @@ describe('Transaction order', () => {
 				const transferTx = transfer({
 					nonce: '1',
 					senderPublicKey: newAccount.publicKey,
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.003'),
 					recipientId: newAccount.address,
 					amount: convertLSKToBeddows('80'),
 				});
-				const deserializedTransferTx = node.chain.deserializeTransaction(
+				const deserializedTransferTx = node._chain.deserializeTransaction(
 					transferTx,
 				);
 				deserializedTransferTx.sign(
-					node.networkIdentifier,
+					node._networkIdentifier,
 					undefined,
 					[newAccount.passphrase, multiSignatureMembers[0].passphrase],
 					{
@@ -192,15 +192,15 @@ describe('Transaction order', () => {
 					},
 				);
 				newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(fundingTx),
-					node.chain.deserializeTransaction(registerMultisigTx),
+					node._chain.deserializeTransaction(fundingTx),
+					node._chain.deserializeTransaction(registerMultisigTx),
 					deserializedTransferTx,
 				]);
-				await node.processor.process(newBlock);
+				await node._processor.process(newBlock);
 			});
 
 			it('should accept the block', async () => {
-				const createdBlock = await node.chain.dataAccess.getBlockByID(
+				const createdBlock = await node._chain.dataAccess.getBlockByID(
 					newBlock.id,
 				);
 				expect(createdBlock).not.toBeUndefined();
@@ -211,14 +211,14 @@ describe('Transaction order', () => {
 			let newBlock;
 
 			beforeAll(async () => {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
 				const fundingTx = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: newAccount.address,
 					amount: convertLSKToBeddows('100'),
@@ -226,7 +226,7 @@ describe('Transaction order', () => {
 				});
 				const registerMultisigTx = registerMultisignature({
 					nonce: '0',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('11'),
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
@@ -239,23 +239,23 @@ describe('Transaction order', () => {
 				});
 				const transferTx = transfer({
 					nonce: '1',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.003'),
 					recipientId: newAccount.address,
 					amount: convertLSKToBeddows('80'),
 					passphrase: newAccount.passphrase,
 				});
 				newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(fundingTx),
-					node.chain.deserializeTransaction(registerMultisigTx),
-					node.chain.deserializeTransaction(transferTx),
+					node._chain.deserializeTransaction(fundingTx),
+					node._chain.deserializeTransaction(registerMultisigTx),
+					node._chain.deserializeTransaction(transferTx),
 				]);
 			});
 
 			it('should not accept the block', async () => {
 				expect.assertions(2);
 				try {
-					await node.processor.process(newBlock);
+					await node._processor.process(newBlock);
 				} catch (errors) {
 					// eslint-disable-next-line jest/no-try-expect
 					expect(errors).toHaveLength(1);
@@ -271,13 +271,13 @@ describe('Transaction order', () => {
 			let newBlock;
 
 			beforeAll(async () => {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = transfer({
 					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: accountWithoutBalance.address,
 					amount: convertLSKToBeddows('100'),
@@ -285,7 +285,7 @@ describe('Transaction order', () => {
 				});
 				const spendingTx = transfer({
 					nonce: '0',
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: genesis.address,
 					amount: convertLSKToBeddows('140'),
@@ -293,23 +293,23 @@ describe('Transaction order', () => {
 				});
 				const refundingTx = transfer({
 					nonce: (genesisAccount.nonce + BigInt(1)).toString(),
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					fee: convertLSKToBeddows('0.002'),
 					recipientId: accountWithoutBalance.address,
 					amount: convertLSKToBeddows('50'),
 					passphrase: genesis.passphrase,
 				});
 				newBlock = await nodeUtils.createBlock(node, [
-					node.chain.deserializeTransaction(fundingTx),
-					node.chain.deserializeTransaction(spendingTx),
-					node.chain.deserializeTransaction(refundingTx),
+					node._chain.deserializeTransaction(fundingTx),
+					node._chain.deserializeTransaction(spendingTx),
+					node._chain.deserializeTransaction(refundingTx),
 				]);
 			});
 
 			it('should not accept the block', async () => {
 				expect.assertions(2);
 				try {
-					await node.processor.process(newBlock);
+					await node._processor.process(newBlock);
 				} catch (errors) {
 					// eslint-disable-next-line jest/no-try-expect
 					expect(errors).toHaveLength(1);

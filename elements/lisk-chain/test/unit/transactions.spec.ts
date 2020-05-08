@@ -572,7 +572,7 @@ describe('blocks/transactions', () => {
 					validTx,
 					validTx2,
 				]);
-				responses = transactionsResponses as TransactionResponse[];
+				responses = transactionsResponses;
 			});
 
 			it('should return transaction with all status 1', () => {

@@ -18,15 +18,15 @@
 const createBlock = async (node, transactions = [], options = {}) => {
 	const lastBlock = options.lastBlock
 		? options.lastBlock
-		: node.chain.lastBlock;
-	const currentSlot = node.chain.slots.getSlotNumber(lastBlock.timestamp) + 1;
-	const timestamp = node.chain.slots.getSlotTime(currentSlot);
-	const round = node.dpos.rounds.calcRound(lastBlock.height + 1);
-	const currentKeypair = await node.forger._getDelegateKeypairForCurrentSlot(
+		: node._chain.lastBlock;
+	const currentSlot = node._chain.slots.getSlotNumber(lastBlock.timestamp) + 1;
+	const timestamp = node._chain.slots.getSlotTime(currentSlot);
+	const round = node._dpos.rounds.calcRound(lastBlock.height + 1);
+	const currentKeypair = await node._forger._getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		round,
 	);
-	return node.processor.create({
+	return node._processor.create({
 		keypair: options.keypair ? options.keypair : currentKeypair,
 		timestamp,
 		seedReveal: '00000000000000000000000000000000',

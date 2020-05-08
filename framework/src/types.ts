@@ -19,27 +19,6 @@ export interface StringKeyVal {
 	[key: string]: string;
 }
 
-export interface Channel {
-	readonly publish: (procedure: string, params?: object) => void;
-	readonly subscribe: (procedure: string, callback: Function) => void;
-	readonly invoke: <T = unknown>(
-		eventName: string,
-		params?: object,
-	) => Promise<T>;
-	readonly invokePublic: <T = unknown>(
-		procedure: string,
-		params?: object,
-	) => Promise<T>;
-	readonly invokeFromNetwork: <T = unknown>(
-		procedure: string,
-		params?: object,
-	) => Promise<T>;
-	readonly publishToNetwork: <T = unknown>(
-		eventName: string,
-		data?: object,
-	) => Promise<T>;
-}
-
 export interface Logger {
 	readonly trace: (data?: object | unknown, message?: string) => void;
 	readonly debug: (data?: object | unknown, message?: string) => void;
