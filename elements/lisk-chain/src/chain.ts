@@ -281,9 +281,10 @@ export class Chain {
 
 	public async init(): Promise<void> {
 		// Check mem tables
-		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
-
-		if (!genesisBlock) {
+		let genesisBlock: BlockHeader;
+		try {
+			genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
+		} catch (error) {
 			throw new Error('Failed to load genesis block');
 		}
 
@@ -293,8 +294,10 @@ export class Chain {
 			throw new Error('Genesis block does not match');
 		}
 
-		const storageLastBlock = await this.dataAccess.getLastBlock();
-		if (!storageLastBlock) {
+		let storageLastBlock: BlockInstance;
+		try {
+			storageLastBlock = await this.dataAccess.getLastBlock();
+		} catch (error) {
 			throw new Error('Failed to load last block');
 		}
 
@@ -450,12 +453,15 @@ export class Chain {
 		if (block.height === 1) {
 			throw new Error('Cannot delete genesis block');
 		}
-		const secondLastBlock = await this.dataAccess.getBlockByID(
-			block.previousBlockId as string,
-		);
-		if (!secondLastBlock) {
+		let secondLastBlock: BlockInstance;
+		try {
+			secondLastBlock = await this.dataAccess.getBlockByID(
+				block.previousBlockId as string,
+			);
+		} catch (error) {
 			throw new Error('PreviousBlock is null');
 		}
+
 		await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);
 		await this.dataAccess.removeBlockHeader(block.id);
 		this._lastBlock = secondLastBlock;

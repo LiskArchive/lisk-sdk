@@ -101,6 +101,7 @@ export class AccountStore {
 		}
 
 		const defaultElement: Account = Account.getDefaultAccount(primaryValue);
+		this._data.push(defaultElement);
 
 		return new Account(defaultElement.toJSON());
 	}

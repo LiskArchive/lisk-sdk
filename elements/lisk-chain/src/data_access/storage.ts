@@ -324,7 +324,7 @@ export class Storage {
 
 			return value;
 		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
+			if (error instanceof NotFoundError) {
 				return undefined;
 			}
 			throw error;
@@ -342,7 +342,7 @@ export class Storage {
 
 			return value;
 		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
+			if (error instanceof NotFoundError) {
 				return undefined;
 			}
 			throw error;

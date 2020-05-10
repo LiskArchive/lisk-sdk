@@ -121,18 +121,15 @@ export class DataAccess {
 		return blocks.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getBlockHeaderByHeight(
-		height: number,
-	): Promise<BlockHeader | undefined> {
+	public async getBlockHeaderByHeight(height: number): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.getByHeight(height);
 
 		if (cachedBlock) {
 			return cachedBlock;
 		}
-		const block = await this._storage.getBlockByHeight(height);
+		const header = await this._storage.getBlockHeaderByHeight(height);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return block ? this.deserializeBlockHeader(block) : undefined;
+		return this.deserializeBlockHeader(header);
 	}
 
 	public async getBlockHeadersByHeightBetween(
@@ -210,11 +207,10 @@ export class DataAccess {
 		return blocksCount;
 	}
 
-	public async getBlockByID(id: string): Promise<BlockInstance | undefined> {
+	public async getBlockByID(id: string): Promise<BlockInstance> {
 		const blockJSON = await this._storage.getBlockByID(id);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return blockJSON ? this.deserialize(blockJSON) : undefined;
+		return this.deserialize(blockJSON);
 	}
 
 	public async getBlocksByIDs(
@@ -265,11 +261,10 @@ export class DataAccess {
 		return sortedBlocks;
 	}
 
-	public async getLastBlock(): Promise<BlockInstance | undefined> {
+	public async getLastBlock(): Promise<BlockInstance> {
 		const block = await this._storage.getLastBlock();
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return block && this.deserialize(block);
+		return this.deserialize(block);
 	}
 
 	public async deleteBlocksWithHeightGreaterThan(
