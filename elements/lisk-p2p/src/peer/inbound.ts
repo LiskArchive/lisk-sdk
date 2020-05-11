@@ -36,7 +36,7 @@ import {
 	socketErrorStatusCodes,
 } from './base';
 
-const getRandomPingDelay = () =>
+const getRandomPingDelay = (): number =>
 	Math.random() * (DEFAULT_PING_INTERVAL_MAX - DEFAULT_PING_INTERVAL_MIN) +
 	DEFAULT_PING_INTERVAL_MIN;
 
@@ -56,10 +56,10 @@ export class InboundPeer extends Peer {
 	) {
 		super(peerInfo, peerConfig);
 		this._peerInfo.internalState.connectionKind = ConnectionKind.INBOUND;
-		this._handleInboundSocketError = (error: Error) => {
+		this._handleInboundSocketError = (error: Error): void => {
 			this.emit(EVENT_INBOUND_SOCKET_ERROR, error);
 		};
-		this._handleInboundSocketClose = (code, reasonMessage) => {
+		this._handleInboundSocketClose = (code, reasonMessage): void => {
 			const reason =
 				reasonMessage !== undefined && reasonMessage !== ''
 					? reasonMessage

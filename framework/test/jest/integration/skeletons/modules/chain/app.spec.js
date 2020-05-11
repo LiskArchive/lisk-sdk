@@ -111,7 +111,7 @@ describe('app', () => {
 		});
 	});
 
-	describe('cleanup', () => {
+	describe('beforeExit', () => {
 		it.todo('should cleanup sandboxed application successfully');
 	});
 });

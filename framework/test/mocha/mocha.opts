@@ -2,4 +2,5 @@
 --exit
 --colors
 --require test/mocha/setup.js
+--require ts-node/register
 --recursive

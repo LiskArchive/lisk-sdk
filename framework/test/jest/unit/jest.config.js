@@ -12,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
-	testMatch: ['<rootDir>/test/jest/unit/specs/**/*.(spec|test).js'],
+	testMatch: ['<rootDir>/test/jest/unit/specs/**/*.(spec|test).(js|ts)'],
 
 	coverageDirectory: '.coverage/unit',
 	collectCoverageFrom: ['src/controller/**', 'src/application/**'],

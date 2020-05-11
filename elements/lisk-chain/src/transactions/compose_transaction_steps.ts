@@ -36,7 +36,7 @@ export const composeTransactionSteps = (
 ) => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore?: StateStore,
-): Promise<ReadonlyArray<TransactionResponse>> => {
+): Promise<TransactionResponse[]> => {
 	const successfulResponses: TransactionResponse[] = [];
 	const failedResponses: TransactionResponse[] = [];
 

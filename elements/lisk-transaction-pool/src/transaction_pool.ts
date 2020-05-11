@@ -42,7 +42,9 @@ export interface TransactionPoolConfig {
 	readonly minEntranceFeePriority?: bigint;
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
-	readonly applyTransactions: ApplyFunction;
+	applyTransactions(
+		transactions: ReadonlyArray<Transaction>,
+	): Promise<ReadonlyArray<TransactionResponse>>;
 }
 
 interface AddTransactionResponse {
@@ -61,7 +63,6 @@ export const events = {
 	EVENT_TRANSACTION_REMOVED: 'EVENT_TRANSACTION_REMOVED',
 };
 
-// FIXME: Remove this once implemented
 export class TransactionPool {
 	public events: EventEmitter;
 
@@ -83,6 +84,7 @@ export class TransactionPool {
 		this._feePriorityQueue = new MinHeap<string, bigint>();
 		this._allTransactions = {};
 		this._transactionList = {};
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this._applyFunction = config.applyTransactions;
 		this._maxTransactions = config.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS;
 		this._maxTransactionsPerAccount =
@@ -289,10 +291,10 @@ export class TransactionPool {
 	}
 
 	public getProcessableTransactions(): {
-		readonly [address: string]: ReadonlyArray<Transaction>;
+		[address: string]: Transaction[];
 	} {
 		const processableTransactions: {
-			[address: string]: ReadonlyArray<Transaction>;
+			[address: string]: Transaction[];
 		} = {};
 		for (const address of Object.keys(this._transactionList)) {
 			const transactions = this._transactionList[address].getProcessable();

@@ -39,7 +39,7 @@ describe('Delete block', () => {
 		);
 		await storage.bootstrap();
 		node = await nodeUtils.createAndLoadNode(storage);
-		await node.forger.loadDelegates();
+		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
@@ -50,7 +50,7 @@ describe('Delete block', () => {
 	describe('given there is only a genesis block', () => {
 		describe('when deleteLastBlock is called', () => {
 			it('should fail to delete genesis block', async () => {
-				await expect(node.processor.deleteLastBlock()).rejects.toEqual(
+				await expect(node._processor.deleteLastBlock()).rejects.toEqual(
 					expect.objectContaining({
 						message: expect.stringContaining(
 							'Can not delete block below or same as finalized height',
@@ -69,44 +69,44 @@ describe('Delete block', () => {
 		let genesisAccount;
 
 		beforeAll(async () => {
-			genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+			genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 				genesis.address,
 			);
 			transaction = transfer({
 				nonce: genesisAccount.nonce.toString(),
-				networkIdentifier: node.networkIdentifier,
+				networkIdentifier: node._networkIdentifier,
 				fee: convertLSKToBeddows('0.002'),
 				recipientId: account.address,
 				amount: convertLSKToBeddows('1000'),
 				passphrase: genesis.passphrase,
 			});
 			newBlock = await nodeUtils.createBlock(node, [
-				node.chain.deserializeTransaction(transaction),
+				node._chain.deserializeTransaction(transaction),
 			]);
-			await node.processor.process(newBlock);
+			await node._processor.process(newBlock);
 		});
 
 		describe('when deleteLastBlock is called', () => {
 			beforeAll(async () => {
-				await node.processor.deleteLastBlock();
+				await node._processor.deleteLastBlock();
 			});
 
 			it('should delete the block from the database', async () => {
-				const processedBlock = await node.chain.dataAccess.getBlockByID(
+				const processedBlock = await node._chain.dataAccess.getBlockByID(
 					newBlock.id,
 				);
 				expect(processedBlock).toBeUndefined();
 			});
 
 			it('should delete the transactions from the database', async () => {
-				const processedTxs = await node.chain.dataAccess.getTransactionsByIDs([
+				const processedTxs = await node._chain.dataAccess.getTransactionsByIDs([
 					transaction.id,
 				]);
 				expect(processedTxs).toHaveLength(0);
 			});
 
 			it('should match the sender account to the original state', async () => {
-				const genesisAfter = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAfter = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				expect(genesisAfter.balance.toString()).toEqual(
@@ -115,7 +115,7 @@ describe('Delete block', () => {
 			});
 
 			it('should match the recipient account to the original state', async () => {
-				const accountAfter = await node.chain.dataAccess.getAccountByAddress(
+				const accountAfter = await node._chain.dataAccess.getAccountByAddress(
 					account.address,
 				);
 				expect(accountAfter.balance.toString()).toEqual('0');

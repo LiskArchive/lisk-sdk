@@ -58,6 +58,8 @@ import {
 	MatcherTransaction,
 	Storage,
 	StorageTransaction,
+	GenesisBlock,
+	GenesisBlockJSON,
 } from './types';
 import * as blocksUtils from './utils';
 import {
@@ -77,8 +79,7 @@ interface ChainConstructor {
 	// Components
 	readonly storage: Storage;
 	// Unique requirements
-	readonly genesisBlock: BlockJSON;
-	readonly slots: Slots;
+	readonly genesisBlock: GenesisBlockJSON;
 	// Modules
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
@@ -186,6 +187,7 @@ const debug = Debug('lisk:chain');
 
 export class Chain {
 	public readonly dataAccess: DataAccess;
+	public readonly events: EventEmitter;
 	public readonly slots: Slots;
 	public readonly blockReward: {
 		readonly calculateMilestone: (height: number) => number;
@@ -198,14 +200,13 @@ export class Chain {
 	private readonly storage: Storage;
 	private readonly _networkIdentifier: string;
 	private readonly blockRewardArgs: BlockRewardOptions;
-	private readonly genesisBlock: BlockInstance;
+	private readonly genesisBlock: GenesisBlock;
 	private readonly constants: {
 		readonly stateBlockSize: number;
 		readonly epochTime: string;
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
 	};
-	private readonly events: EventEmitter;
 
 	public constructor({
 		// Components
@@ -237,7 +238,9 @@ export class Chain {
 			maxBlockHeaderCache,
 		});
 
-		const genesisInstance = this.dataAccess.deserialize(genesisBlock);
+		const genesisInstance = this.dataAccess.deserialize(
+			genesisBlock as BlockJSON,
+		);
 		this._lastBlock = genesisInstance;
 		this._networkIdentifier = networkIdentifier;
 		this.genesisBlock = genesisInstance;
@@ -569,7 +572,7 @@ export class Chain {
 
 	public async applyTransactions(
 		transactions: BaseTransaction[],
-	): Promise<ReadonlyArray<TransactionResponse>> {
+	): Promise<TransactionResponse[]> {
 		const stateStore = await this.newStateStore();
 
 		return composeTransactionSteps(
@@ -645,9 +648,7 @@ export class Chain {
 		if (lastBlock.height === 1) {
 			throw new Error('Cannot delete genesis block');
 		}
-		const block = await this.dataAccess.getBlockByID(
-			lastBlock.previousBlockId as string,
-		);
+		const block = await this.dataAccess.getBlockByID(lastBlock.previousBlockId);
 
 		if (!block) {
 			throw new Error('PreviousBlock is null');
