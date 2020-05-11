@@ -32,7 +32,7 @@ export const schemas = {
 				type: 'array',
 				items: {
 					type: 'string',
-					format: 'id',
+					format: 'hex',
 				},
 				minItems: 1,
 			},
@@ -144,7 +144,7 @@ export const schemas = {
 				type: 'array',
 				items: {
 					type: 'string',
-					format: 'id',
+					format: 'hex',
 				},
 				minItems: 1,
 				maxItems: 100,
