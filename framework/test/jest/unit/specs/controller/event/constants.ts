@@ -12,14 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const BaseChannel = require('./base_channel.js');
-const InMemoryChannel = require('./in_memory_channel.js');
-const ChildProcessChannel = require('./child_process_channel.js');
-
-module.exports = {
-	BaseChannel,
-	InMemoryChannel,
-	ChildProcessChannel,
-};
+export const MODULE_NAME = 'module';
+export const EVENT_NAME = 'event';
+export const VALID_EVENT_NAME_ARG = `${MODULE_NAME}:${EVENT_NAME}`;
+export const INVALID_EVENT_NAME_ARG = `${MODULE_NAME}`;
+export const DATA = { data: '#data' };

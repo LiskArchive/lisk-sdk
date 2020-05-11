@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 jest.mock('../../../../../../src/controller/bus');
 
-const InMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
-const BaseChannel = require('../../../../../../src/controller/channels/base_channel');
-const Bus = require('../../../../../../src/controller/bus');
-const Event = require('../../../../../../src/controller/event');
+/* eslint-disable import/first  */
+
+import {
+	InMemoryChannel,
+	BaseChannel,
+} from '../../../../../../src/controller/channels';
+import { Bus } from '../../../../../../src/controller/bus';
+import { Event } from '../../../../../../src/controller/event';
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange
@@ -42,8 +44,10 @@ describe('InMemoryChannel Channel', () => {
 		},
 		options: {},
 	};
-	let inMemoryChannel = null;
-	const bus = new Bus();
+	const logger: any = {};
+	const config: any = {};
+	let inMemoryChannel: InMemoryChannel;
+	const bus: Bus = new Bus({}, logger, config);
 
 	beforeEach(() => {
 		// Act
@@ -59,42 +63,6 @@ describe('InMemoryChannel Channel', () => {
 		it('should be extended from BaseChannel class', () => {
 			// Assert
 			expect(InMemoryChannel.prototype).toBeInstanceOf(BaseChannel);
-		});
-
-		it('should call BaseChannel class constructor with arguments', () => {
-			// Arrange
-			let IsolatedInMemoryChannel;
-			let IsolatedBaseChannel;
-
-			/**
-			 * Since `event_emitter` and `BaseChannel` was required on top of the test file,
-			 * we have to isolate the modules to using the same module state from previous
-			 * require calls.
-			 */
-			jest.isolateModules(() => {
-				// no need to restore mock since, `restoreMocks` option was set to true in unit test config file.
-				jest.doMock('../../../../../../src/controller/channels/base_channel');
-				// eslint-disable-next-line global-require
-				IsolatedInMemoryChannel = require('../../../../../../src/controller/channels/in_memory_channel');
-				// eslint-disable-next-line global-require
-				IsolatedBaseChannel = require('../../../../../../src/controller/channels/base_channel');
-			});
-
-			// Act
-			inMemoryChannel = new IsolatedInMemoryChannel(
-				params.moduleAlias,
-				params.events,
-				params.actions,
-				params.options,
-			);
-
-			// Assert
-			expect(IsolatedBaseChannel).toHaveBeenCalledWith(
-				params.moduleAlias,
-				params.events,
-				params.actions,
-				params.options,
-			);
 		});
 	});
 
@@ -112,11 +80,13 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.registerToBus(bus);
 
 			// Assert
-			expect(inMemoryChannel.bus).toBe(bus);
-			expect(inMemoryChannel.bus.registerChannel).toHaveBeenCalledWith(
-				inMemoryChannel.moduleAlias,
-				inMemoryChannel.eventsList.map(event => event.name),
-				inMemoryChannel.actions,
+			expect(inMemoryChannel['bus']).toBe(bus);
+			expect(
+				inMemoryChannel['bus']?.registerChannel,
+			).toHaveBeenCalledWith(
+				inMemoryChannel['moduleAlias'],
+				inMemoryChannel.eventsList,
+				inMemoryChannel['actions'],
 				{ type: 'inMemory', channel: inMemoryChannel },
 			);
 		});
@@ -134,10 +104,11 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.registerToBus(bus);
 
 			// Act
-			await inMemoryChannel.once(eventName);
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
+			inMemoryChannel.once(eventName, () => {});
 
 			// Assert
-			expect(inMemoryChannel.bus.once).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus']?.once).toHaveBeenCalledWith(
 				event.key(),
 				expect.any(Function),
 			);
@@ -157,10 +128,11 @@ describe('InMemoryChannel Channel', () => {
 
 			// Act
 			await inMemoryChannel.registerToBus(bus);
-			await inMemoryChannel.once(eventName);
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
+			inMemoryChannel.once(eventName, () => {});
 
 			// Assert
-			expect(inMemoryChannel.bus.once).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus']?.once).toHaveBeenCalledWith(
 				event.key(),
 				expect.any(Function),
 			);
@@ -182,13 +154,13 @@ describe('InMemoryChannel Channel', () => {
 			expect(() => {
 				inMemoryChannel.publish(eventName);
 			}).toThrow(
-				`Event "${eventName}" not registered in "${inMemoryChannel.moduleAlias}" module.`,
+				`Event "${eventName}" not registered in "${inMemoryChannel['moduleAlias']}" module.`,
 			);
 		});
 
 		it('should call bus.publish if the event module is equal to moduleAlias', async () => {
 			// Arrange
-			const eventFullName = `${inMemoryChannel.moduleAlias}:eventName`;
+			const eventFullName = `${inMemoryChannel['moduleAlias']}:eventName`;
 			const event = new Event(eventFullName);
 
 			// Act
@@ -196,7 +168,7 @@ describe('InMemoryChannel Channel', () => {
 			inMemoryChannel.publish(eventFullName);
 
 			// Assert
-			expect(inMemoryChannel.bus.publish).toHaveBeenCalledWith(
+			expect(inMemoryChannel['bus']?.publish).toHaveBeenCalledWith(
 				event.key(),
 				event.serialize(),
 			);
@@ -208,13 +180,9 @@ describe('InMemoryChannel Channel', () => {
 	describe('#invoke', () => {
 		const actionName = 'action1';
 
-		it('should throw TypeError when action name was not provided', () => {
-			return expect(inMemoryChannel.invoke()).rejects.toBeInstanceOf(TypeError);
-		});
-
 		it('should execute the action straight away if the action module is equal to moduleAlias', async () => {
 			// Arrange
-			const actionFullName = `${inMemoryChannel.moduleAlias}:${actionName}`;
+			const actionFullName = `${inMemoryChannel['moduleAlias']}:${actionName}`;
 
 			// Act
 			await inMemoryChannel.invoke(actionFullName);
@@ -232,7 +200,7 @@ describe('InMemoryChannel Channel', () => {
 			await inMemoryChannel.invoke(actionFullName);
 
 			// Assert
-			expect(inMemoryChannel.bus.invoke).toHaveBeenCalled();
+			expect(inMemoryChannel['bus']?.invoke).toHaveBeenCalled();
 		});
 	});
 });

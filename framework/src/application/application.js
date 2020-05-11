@@ -27,7 +27,7 @@ const {
 const { getNetworkIdentifier } = require('@liskhq/lisk-cryptography');
 const { validator: liskValidator } = require('@liskhq/lisk-validator');
 const _ = require('lodash');
-const Controller = require('../controller/controller');
+const { Controller } = require('../controller/controller');
 const version = require('../version');
 const validator = require('./validator');
 const configurator = require('./default_configurator');
@@ -443,9 +443,11 @@ class Application {
 					handler: action => this._network.broadcast(action.params),
 				},
 				requestFromNetwork: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action => this._network.request(action.params),
 				},
 				requestFromPeer: {
+					// eslint-disable-next-line @typescript-eslint/require-await
 					handler: async action => this._network.requestFromPeer(action.params),
 				},
 				getConnectedPeers: {

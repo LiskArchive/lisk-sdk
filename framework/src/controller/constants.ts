@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+export const INTERNAL_EVENTS = Object.freeze([
+	'registeredToBus',
+	'loading:started',
+	'loading:finished',
+]);
 
-const setupProcessHandlers = channel => {
-	process.once('SIGTERM', () => channel.cleanup(1));
-	process.once('SIGINT', () => channel.cleanup(1));
-	process.once('exit', (error, code) => channel.cleanup(code, error));
-};
-
-module.exports = {
-	setupProcessHandlers,
-};
+export const eventWithModuleNameReg = /^([^\d][\w]+)((?::[^\d][\w]+)+)$/;
+export const moduleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+export const actionWithModuleNameReg = /^[a-zA-Z][a-zA-Z0-9_]*:[a-zA-Z][a-zA-Z0-9]*$/;
+export const CONTROLLER_IDENTIFIER = 'app';
+export const SOCKET_TIMEOUT_TIME = 2000;

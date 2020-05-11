@@ -91,6 +91,7 @@ describe('transport', () => {
 			trace: jest.fn(),
 			warn: jest.fn(),
 			fatal: jest.fn(),
+			level: jest.fn(),
 		};
 
 		channelStub = {

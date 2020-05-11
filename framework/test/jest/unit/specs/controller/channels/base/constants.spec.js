@@ -16,7 +16,7 @@
 
 const {
 	INTERNAL_EVENTS,
-} = require('../../../../../../../src/controller/channels/base/constants');
+} = require('../../../../../../../src/controller/constants');
 
 describe('base/constants.js', () => {
 	it('INTERNAL_EVENTS must match to the snapshot.', () => {
