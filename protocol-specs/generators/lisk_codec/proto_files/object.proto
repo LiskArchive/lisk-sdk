@@ -11,3 +11,9 @@ message Objects {
 	required string name = 4;
 	required Asset asset = 5;
 }
+
+message ObjectOptionalProp {
+	required bool isActive = 1;
+	optional bytes data = 2;
+	required uint64 value = 3;
+}

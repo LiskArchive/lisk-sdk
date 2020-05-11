@@ -78,10 +78,34 @@
 							}
 						}
 					}
+				},
+				"objectWithOptionalProp": {
+					"object": {
+						"isActive": true,
+						"value": 1
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"isActive": {
+								"dataType": "boolean",
+								"fieldNumber": 1
+							},
+							"balance": {
+								"data": "bytes",
+								"fieldNumber": 2
+							},
+							"value": {
+								"dataType": "uint64",
+								"fieldNumber": 3
+							}
+						}
+					}
 				}
 			},
 			"output": {
-				"object": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a270a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921"
+				"object": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a270a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921",
+				"objectWithOptionalProp": "08011801"
 			}
 		}
 	]

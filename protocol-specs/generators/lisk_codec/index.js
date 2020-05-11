@@ -29,7 +29,7 @@ const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffe
 const { Boolean } = prepareProtobuffersBooleans();
 const { String } = prepareProtobuffersStrings();
 const { Bytes } = prepareProtobuffersBytes();
-const { Objects } = prepareProtobuffersObjects();
+const { Objects, ObjectOptionalProp } = prepareProtobuffersObjects();
 const { ArrayInts, ArrayBools, ArrayObjects } = prepareProtobuffersArrays();
 
 
@@ -317,9 +317,33 @@ const generateValidObjectEncodings = () => {
 				},
 			},
 		},
+		objectOptionalProp: {
+			object: {
+				isActive: true,
+				value: 1,
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					isActive: {
+						dataType: 'boolean',
+						fieldNumber: 1,
+					},
+					balance: {
+						data: 'bytes',
+						fieldNumber: 2,
+					},
+					value: {
+						dataType: 'uint64',
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
 	};
 
 	const objectEncoded = Objects.encode(input.object.object).finish();
+	const objectOptionalPropEncoded = ObjectOptionalProp.encode(input.objectOptionalProp.object).finish();
 
 	return {
 		description: 'Encoding of object types',
@@ -328,9 +352,11 @@ const generateValidObjectEncodings = () => {
 		},
 		input: {
 			object: input.object,
+			objectWithOptionalProp: input.objectOptionalProp,
 		},
 		output: {
 			object: objectEncoded.toString('hex'),
+			objectWithOptionalProp: objectOptionalPropEncoded.toString('hex'),
 		},
 	};
 };
