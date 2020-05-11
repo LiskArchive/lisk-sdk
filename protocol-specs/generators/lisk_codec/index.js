@@ -79,7 +79,7 @@ const generateValidNumberEncodings = () => {
 		},
 		messageSigned64: {
 			object: {
-				number: -223372036854775807,
+				number: -9007199254740991,
 			},
 			schema: {
 				type: 'object',

@@ -57,7 +57,7 @@
 				},
 				"messageSigned64": {
 					"object": {
-						"number": -223372036854775800
+						"number": -9007199254740991
 					},
 					"schema": {
 						"type": "object",
@@ -74,7 +74,7 @@
 				"numberEncoded32": "080a",
 				"signedNumberEncoded32": "0813",
 				"numberEncoded64": "08ffffc9a4d9cb54",
-				"signedNumberEncoded64": "08ffffdfd7e3ebc99906"
+				"signedNumberEncoded64": "08fdffffffffffff1f"
 			}
 		}
 	]
