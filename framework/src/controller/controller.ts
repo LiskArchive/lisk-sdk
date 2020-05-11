@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as childProcess from 'child_process';
 import * as psList from 'ps-list';
 import { ChildProcess } from 'child_process';
-import * as systemDirs from '../application/system_dirs';
+import { systemDirs } from '../application/system_dirs';
 import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
 import { DuplicateAppInstanceError } from '../errors';
@@ -65,8 +65,8 @@ interface ModuleOptions {
 	readonly loadAsChildProcess: boolean;
 }
 
-interface ModulesOptions {
-	readonly [key: string]: ModuleOptions;
+export interface ModulesOptions {
+	[key: string]: ModuleOptions;
 }
 
 interface Migrations {

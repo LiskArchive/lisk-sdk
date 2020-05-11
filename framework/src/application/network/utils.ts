@@ -42,7 +42,7 @@ export const lookupPeersIPs = async (
 	// In case domain names are used, resolve those to IP addresses.
 	return Promise.all(
 		peersList.map(async (peer: SeedPeerInfo) => {
-			const ip = peer.ip as string;
+			const { ip } = peer;
 			if (isIPv4(ip)) {
 				return peer;
 			}
@@ -51,7 +51,7 @@ export const lookupPeersIPs = async (
 				const address = await lookupPromise(ip, { family: 4 });
 				return {
 					...peer,
-					ip: address,
+					ip: address as string,
 				};
 			} catch (err) {
 				console.error(

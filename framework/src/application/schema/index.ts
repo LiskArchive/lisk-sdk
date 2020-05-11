@@ -13,12 +13,6 @@
  *
  */
 
-import { applicationConfigSchema } from './application_config_schema';
-import { constantsSchema } from './constants_schema';
-import { genesisBlockSchema } from './genesis_block_schema';
-
-module.exports = {
-	applicationConfigSchema,
-	constantsSchema,
-	genesisBlockSchema,
-};
+export { applicationConfigSchema } from './application_config_schema';
+export { constantsSchema } from './constants_schema';
+export { genesisBlockSchema } from './genesis_block_schema';

@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const systemDirs = require('../../../../../src/application/system_dirs');
+import { systemDirs } from '../../../../../src/application/system_dirs';
 
 describe('systemDirs', () => {
 	it('Should return directories configuration with given app label.', () => {

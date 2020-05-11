@@ -39,7 +39,7 @@ interface UsedHashOnion {
 	readonly height: number;
 }
 
-interface DelegateConfig {
+export interface DelegateConfig {
 	readonly publicKey: string;
 	readonly encryptedPassphrase: string;
 	readonly hashOnion: HashOnionConfig;
@@ -51,7 +51,7 @@ interface HashOnionConfig {
 	readonly hashes: string[];
 }
 
-interface ForgingStatus {
+export interface ForgingStatus {
 	readonly publicKey: string;
 	readonly forging: boolean;
 }

@@ -12,18 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const Application = require('./application/application');
-const version = require('./version');
-const defaultConfigurator = require('./application/default_configurator');
-const systemDirs = require('./application/system_dirs');
-const BaseModule = require('./modules/base_module');
-
-module.exports = {
-	Application,
-	version,
-	systemDirs,
-	configurator: defaultConfigurator,
-	BaseModule,
-};
+export const version = '0.1.0';

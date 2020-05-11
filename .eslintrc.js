@@ -24,6 +24,7 @@ module.exports = {
 		'lines-between-class-members': 'off', // Off because typescript has members and methods
 		'@typescript-eslint/typedef': 'off',
 		'@typescript-eslint/prefer-readonly-parameter-types': 'off',
+		'@typescript-eslint/method-signature-style': 'off',
 		'@typescript-eslint/no-type-alias': 'off',
 		'@typescript-eslint/no-magic-numbers': 'off',
 		'@typescript-eslint/no-throw-literal': 'off',

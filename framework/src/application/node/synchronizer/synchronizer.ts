@@ -24,13 +24,14 @@ import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import * as definitions from './schema';
 import * as utils from './utils';
-import { Logger, Channel } from '../../../types';
+import { Logger } from '../../../types';
 import { Processor } from '../processor';
 import { BaseSynchronizer } from './base_synchronizer';
+import { InMemoryChannel } from '../../../controller/channels';
 
 interface SynchronizerInput {
 	readonly logger: Logger;
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly chainModule: Chain;
 	readonly processorModule: Processor;
 	readonly transactionPoolModule: TransactionPool;
@@ -44,7 +45,7 @@ interface TransactionPoolTransaction extends BaseTransaction {
 export class Synchronizer {
 	public active: boolean;
 	protected logger: Logger;
-	protected channel: Channel;
+	protected channel: InMemoryChannel;
 	private readonly chainModule: Chain;
 	private readonly processorModule: Processor;
 	private readonly transactionPoolModule: TransactionPool;

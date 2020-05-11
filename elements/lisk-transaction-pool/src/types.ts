@@ -31,6 +31,7 @@ export interface TransactionObject {
 
 export interface TransactionFunctions {
 	getBytes: () => Buffer;
+	toJSON(): unknown;
 }
 
 export enum Status {

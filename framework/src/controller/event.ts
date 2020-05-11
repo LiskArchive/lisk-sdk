@@ -19,7 +19,7 @@ import { eventWithModuleNameReg } from './constants';
 export interface EventInfoObject {
 	readonly module: string;
 	readonly name: string;
-	readonly data?: object;
+	readonly data: object;
 }
 
 export type EventCallback = (action: EventInfoObject) => void;
@@ -29,7 +29,7 @@ export type EventsArray = ReadonlyArray<string>;
 export class Event {
 	public module: string;
 	public name: string;
-	public data?: object;
+	public data: object;
 
 	public constructor(name: string, data?: object) {
 		assert(
@@ -40,7 +40,7 @@ export class Event {
 		const [moduleName, ...eventName] = name.split(':');
 		this.module = moduleName;
 		this.name = eventName.join(':');
-		this.data = data;
+		this.data = data ?? {};
 	}
 
 	public static deserialize(data: EventInfoObject | string): Event {

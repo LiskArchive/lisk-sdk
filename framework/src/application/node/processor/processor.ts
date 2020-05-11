@@ -17,8 +17,9 @@ import { ForkStatus } from '@liskhq/lisk-bft';
 import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { Sequence } from '../utils/sequence';
-import { Channel, Logger } from '../../../types';
+import { Logger } from '../../../types';
 import { BaseBlockProcessor } from './base_block_processor';
+import { InMemoryChannel } from '../../../controller/channels';
 
 const forkStatusList = [
 	ForkStatus.IDENTICAL_BLOCK,
@@ -30,7 +31,7 @@ const forkStatusList = [
 ];
 
 interface ProcessorInput {
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly chainModule: Chain;
 }
@@ -46,7 +47,7 @@ interface CreateInput {
 type Matcher = (block: BlockInstance | BlockJSON) => boolean;
 
 export class Processor {
-	private readonly channel: Channel;
+	private readonly channel: InMemoryChannel;
 	private readonly logger: Logger;
 	private readonly chainModule: Chain;
 	private readonly sequence: Sequence;

@@ -19,27 +19,6 @@ export interface StringKeyVal {
 	[key: string]: string;
 }
 
-export interface Channel {
-	readonly publish: (procedure: string, params?: object) => void;
-	readonly subscribe: (procedure: string, callback: Function) => void;
-	readonly invoke: <T = unknown>(
-		eventName: string,
-		params?: object,
-	) => Promise<T>;
-	readonly invokePublic: <T = unknown>(
-		procedure: string,
-		params?: object,
-	) => Promise<T>;
-	readonly invokeFromNetwork: <T = unknown>(
-		procedure: string,
-		params?: object,
-	) => Promise<T>;
-	readonly publishToNetwork: <T = unknown>(
-		eventName: string,
-		data?: object,
-	) => Promise<T>;
-}
-
 export interface Logger {
 	readonly trace: (data?: object | unknown, message?: string) => void;
 	readonly debug: (data?: object | unknown, message?: string) => void;
@@ -94,7 +73,7 @@ export type P2PConfig = Modify<
 >;
 
 export interface SeedPeerInfo {
-	readonly ip: string | unknown;
+	readonly ip: string;
 	readonly wsPort: number;
 }
 
@@ -122,21 +101,3 @@ export interface RPCHighestCommonBlockData {
 	readonly ids: string[];
 }
 /* End P2P */
-
-export interface AppStateProperties {
-	readonly os: string;
-	readonly version: string;
-	readonly wsPort: number;
-	readonly httpPort: number;
-	readonly protocolVersion: string;
-	readonly height: number;
-	readonly blockVersion: number;
-	readonly maxHeightPrevoted: number;
-	readonly networkId: string;
-}
-
-export interface ApplicationState {
-	readonly logger: Logger;
-	readonly set: (logger: Logger) => void;
-	readonly update: (appState: AppStateProperties) => boolean;
-}

@@ -88,7 +88,7 @@ export abstract class BaseChannel {
 	// Publish the event on the channel
 	// Specified as moduleName:eventName
 	// If its related to your own moduleAlias specify as :eventName
-	abstract publish(eventName: string, data: object): void;
+	abstract publish(eventName: string, data?: object): void;
 
 	// Publish to the network by invoking send/broadcast actions in the network
 	// Specified as actionName for send or broadcast available on the network
@@ -113,4 +113,8 @@ export abstract class BaseChannel {
 		actionName: string,
 		params?: object,
 	): Promise<T>;
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	abstract async registerToBus(arg: any): Promise<void>;
+	abstract once(eventName: string, cb: EventCallback): void;
 }

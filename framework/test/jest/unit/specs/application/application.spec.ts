@@ -12,8 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable max-classes-per-file */
-
-'use strict';
+import {
+	BaseTransaction as Base,
+	TransferTransaction,
+	TransactionError,
+} from '@liskhq/lisk-transactions';
+import * as _ from 'lodash';
+import { validator as liskValidator } from '@liskhq/lisk-validator';
+import { Application } from '../../../../../src/application/application';
+import * as validator from '../../../../../src/application/validator';
+import {
+	genesisBlockSchema,
+	constantsSchema,
+} from '../../../../../src/application/schema';
+import { SchemaValidationError } from '../../../../../src/errors';
+import * as loggerComponent from '../../../../../src/components/logger';
+import * as storageComponent from '../../../../../src/components/storage';
+import * as networkConfig from '../../../../fixtures/config/devnet/config.json';
+import * as genesisBlock from '../../../../fixtures/config/devnet/genesis_block.json';
 
 jest.mock('../../../../../src/components/logger');
 jest.mock('../../../../../src/components/storage');
@@ -25,26 +41,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 	},
 }));
 
-const {
-	BaseTransaction: Base,
-	TransferTransaction,
-} = require('@liskhq/lisk-transactions');
-
-const _ = require('lodash');
-const { validator: liskValidator } = require('@liskhq/lisk-validator');
-const Application = require('../../../../../src/application/application');
-const validator = require('../../../../../src/application/validator');
-const {
-	SchemaValidationError,
-	genesisBlockSchema,
-	constantsSchema,
-} = require('../../../../../src/application/schema');
-const loggerComponent = require('../../../../../src/components/logger');
-const storageComponent = require('../../../../../src/components/storage');
-const networkConfig = require('../../../../fixtures/config/devnet/config.json');
-const genesisBlock = require('../../../../fixtures/config/devnet/genesis_block.json');
-
-const config = {
+const config: any = {
 	...networkConfig,
 };
 
@@ -75,8 +72,12 @@ describe('Application', () => {
 		registerEntity: jest.fn(),
 		bootstrap: jest.fn(),
 	};
-	loggerComponent.createLoggerComponent.mockReturnValue(loggerMock);
-	storageComponent.createStorageComponent.mockReturnValue(storageMock);
+	(loggerComponent.createLoggerComponent as jest.Mock).mockReturnValue(
+		loggerMock,
+	);
+	(storageComponent.createStorageComponent as jest.Mock).mockReturnValue(
+		storageMock,
+	);
 
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
@@ -150,6 +151,7 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config.components.logger.logFileName).toBe(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`${process.cwd()}/logs/${config.label}/lisk.log`,
 			);
 		});
@@ -200,17 +202,16 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			// Assert
-			expect(app.genesisBlock).toBe(genesisBlock);
+			expect(app['_genesisBlock']).toBe(genesisBlock);
 			expect(app.config).toMatchSnapshot();
-			expect(app._controller).toBeNull();
-			expect(app._node).toBeNull();
-			expect(app._network).toBeNull();
-			expect(app.channel).toBeNull();
-			expect(app.initialState).toBeNull();
-			expect(app.applicationState).toBeNull();
-			expect(app._migrations).toBeInstanceOf(Object);
-			expect(app._modules).toBeInstanceOf(Object);
-			expect(app._transactions).toBeInstanceOf(Object);
+			expect(app['_controller']).toBeUndefined();
+			expect(app['_node']).toBeUndefined();
+			expect(app['_network']).toBeUndefined();
+			expect(app['_channel']).toBeUndefined();
+			expect(app['_applicationState']).toBeUndefined();
+			expect(app['_migrations']).toBeInstanceOf(Object);
+			expect(app['_modules']).toBeInstanceOf(Object);
+			expect(app['_transactions']).toBeInstanceOf(Object);
 		});
 
 		it('should register http_api module', () => {
@@ -218,7 +219,7 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			// Assert
-			expect(Object.keys(app._modules)).toEqual(['http_api']);
+			expect(Object.keys(app['_modules'])).toEqual(['http_api']);
 		});
 
 		it('should initialize logger', () => {
@@ -234,7 +235,7 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			// Assert
-			expect(app.storage).toBe(storageMock);
+			expect(app['storage']).toBe(storageMock);
 		});
 
 		it('should contain all framework related transactions.', () => {
@@ -267,7 +268,7 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			// Act && Assert
-			expect(() => app.registerTransaction()).toThrow(
+			expect(() => (app as any).registerTransaction()).toThrow(
 				'Transaction implementation is required',
 			);
 		});
@@ -280,18 +281,32 @@ describe('Application', () => {
 				prototype: {},
 				...TransferTransaction,
 			};
+			TransactionWithoutBase.TYPE = 99;
 
 			// Act && Assert
-			expect(() => app.registerTransaction(TransactionWithoutBase)).toThrow(
-				SchemaValidationError,
-			);
+			expect(() =>
+				app.registerTransaction(TransactionWithoutBase as any),
+			).toThrow(SchemaValidationError);
 		});
 
 		it('should throw error when transaction type is missing.', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
-			class Sample extends Base {}
 
+			class Sample extends Base {
+				// eslint-disable-next-line
+				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public validateAsset(): ReadonlyArray<TransactionError> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+			}
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
 				'Transaction type is required as an integer',
@@ -302,8 +317,21 @@ describe('Application', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
 
-			class Sample extends Base {}
-			Sample.TYPE = 'abc';
+			class Sample extends Base {
+				// eslint-disable-next-line
+				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public validateAsset(): ReadonlyArray<TransactionError> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+			}
+			Sample.TYPE = 'abc' as any;
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
@@ -314,10 +342,23 @@ describe('Application', () => {
 		it('should throw error when transaction interface does not match.', () => {
 			// Arrange
 			const app = new Application(genesisBlock, config);
+			class Sample extends Base {
+				// eslint-disable-next-line
+				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public validateAsset(): ReadonlyArray<TransactionError> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+			}
 
-			class Sample extends Base {}
 			Sample.TYPE = 10;
-			Sample.prototype.apply = 'not a function';
+			Sample.prototype.apply = 'not a function' as any;
 
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow();
@@ -328,7 +369,20 @@ describe('Application', () => {
 			const app = new Application(genesisBlock, config);
 
 			// Act
-			class Sample extends Base {}
+			class Sample extends Base {
+				// eslint-disable-next-line
+				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public validateAsset(): ReadonlyArray<TransactionError> {
+					return [];
+				}
+				// eslint-disable-next-line
+				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
+					return [];
+				}
+			}
 			Sample.TYPE = 99;
 			app.registerTransaction(Sample);
 
@@ -339,13 +393,13 @@ describe('Application', () => {
 
 	describe('#_initChannel', () => {
 		let app;
-		let actionsList;
+		let actionsList: any;
 
 		beforeEach(() => {
 			// Arrange
 			app = new Application(genesisBlock, config);
-			app.channel = app._initChannel();
-			actionsList = app.channel.actionsList;
+			app['_channel'] = app['_initChannel']();
+			actionsList = app['_channel'].actionsList;
 		});
 
 		it('should create getAccount action', () => {

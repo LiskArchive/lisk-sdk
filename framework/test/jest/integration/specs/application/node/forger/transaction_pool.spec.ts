@@ -42,35 +42,35 @@ describe('Transaction pool', () => {
 		let transaction: any;
 
 		beforeAll(async () => {
-			const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 				genesis.address,
 			);
 			const account = nodeUtils.createAccount();
 			transaction = transfer({
 				nonce: genesisAccount.nonce.toString(),
-				networkIdentifier: node.networkIdentifier,
+				networkIdentifier: node._networkIdentifier,
 				fee: convertLSKToBeddows('0.002'),
 				recipientId: account.address,
 				amount: convertLSKToBeddows('1000'),
 				passphrase: genesis.passphrase,
 			});
-			await node.transport.handleEventPostTransaction({ transaction });
+			await node._transport.handleEventPostTransaction({ transaction });
 		});
 
 		describe('when transaction is pass to the transaction pool', () => {
 			it('should be added to the transaction pool', () => {
-				expect(node.transactionPool.contains(transaction.id)).toBeTrue();
+				expect(node._transactionPool.contains(transaction.id)).toBeTrue();
 			});
 
 			// TODO: Fix this test after implementing expireTransactions
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should expire after X sec', async () => {
-				const tx = node.transactionPool.get(transaction.id);
+				const tx = node._transactionPool.get(transaction.id);
 				// Mutate received at to be expired (3 hours + 1s)
 				tx.receivedAt = new Date(Date.now() - 10801000);
 				// Forcefully call expire
-				await node.transactionPool.pool.expireTransactions();
-				expect(node.transactionPool.contains(transaction.id)).toBeFalse();
+				await node._transactionPool.pool.expireTransactions();
+				expect(node._transactionPool.contains(transaction.id)).toBeFalse();
 			});
 		});
 	});

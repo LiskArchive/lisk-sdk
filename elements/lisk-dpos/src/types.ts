@@ -70,17 +70,17 @@ export interface DPoSProcessingOptions {
 
 export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
-	readonly getTotalEarningAndBurnt: (
-		block: BlockHeader,
-	) => { readonly totalEarning: bigint; readonly totalBurnt: bigint };
 	readonly dataAccess: {
-		readonly getDelegates: () => Promise<Account[]>;
-		readonly getConsensusState: (key: string) => Promise<string | undefined>;
-		readonly getBlockHeadersByHeightBetween: (
+		getDelegates(): Promise<Account[]>;
+		getConsensusState(key: string): Promise<string | undefined>;
+		getBlockHeadersByHeightBetween(
 			fromHeight: number,
 			toHeight: number,
-		) => Promise<BlockHeader[]>;
+		): Promise<BlockHeader[]>;
 	};
+	getTotalEarningAndBurnt(
+		block: BlockHeader,
+	): { readonly totalEarning: bigint; readonly totalBurnt: bigint };
 }
 
 export interface DelegateWeight {

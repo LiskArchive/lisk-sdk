@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as configurator from './application/default_configurator';
 
-const systemDirs = (appLabel, tempPath) => ({
-	temp: `${tempPath}/${appLabel}/`,
-	sockets: `${tempPath}/${appLabel}/sockets`,
-	pids: `${tempPath}/${appLabel}/pids`,
-});
-
-module.exports = systemDirs;
+export { Application } from './application/application';
+export { version } from './version';
+export { systemDirs } from './application/system_dirs';
+export { BaseModule } from './modules/base_module';
+export { configurator };

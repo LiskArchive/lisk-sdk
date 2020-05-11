@@ -29,11 +29,12 @@ import {
 	RestartError,
 } from './errors';
 import { Processor } from '../processor';
-import { Logger, Channel } from '../../../types';
+import { Logger } from '../../../types';
+import { InMemoryChannel } from '../../../controller/channels';
 
 interface FastChainSwitchingMechanismInput {
 	readonly logger: Logger;
-	readonly channel: Channel;
+	readonly channel: InMemoryChannel;
 	readonly bft: BFT;
 	readonly dpos: Dpos;
 	readonly chain: Chain;

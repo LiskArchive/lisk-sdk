@@ -114,7 +114,7 @@ describe('Matcher', () => {
 		);
 		await storage.bootstrap();
 		node = await nodeUtils.createAndLoadNode(storage);
-		await node.forger.loadDelegates();
+		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
@@ -128,12 +128,12 @@ describe('Matcher', () => {
 				const account = nodeUtils.createAccount();
 				const tx = createRawCustomTransaction({
 					passphrase: account.passphrase,
-					networkIdentifier: node.networkIdentifier,
+					networkIdentifier: node._networkIdentifier,
 					senderPublicKey: account.publicKey,
 					nonce: '0',
 				});
 				await expect(
-					node.transport.handleEventPostTransaction({ transaction: tx }),
+					node._transport.handleEventPostTransaction({ transaction: tx }),
 				).resolves.toEqual(
 					expect.objectContaining({
 						message: expect.stringContaining('Transaction was rejected'),
@@ -147,7 +147,7 @@ describe('Matcher', () => {
 		describe('when the block is processed', () => {
 			let newBlock;
 			beforeAll(async () => {
-				const genesisAccount = await node.chain.dataAccess.getAccountByAddress(
+				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
 					genesis.address,
 				);
 				const aCustomTransation = new CustomTransationClass({
@@ -159,12 +159,12 @@ describe('Matcher', () => {
 					},
 					fee: (10000000).toString(),
 				});
-				aCustomTransation.sign(node.networkIdentifier, genesis.passphrase);
+				aCustomTransation.sign(node._networkIdentifier, genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [aCustomTransation]);
 			});
 
 			it('should be rejected', async () => {
-				await expect(node.processor.process(newBlock)).rejects.toMatchObject([
+				await expect(node._processor.process(newBlock)).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining('is currently not allowed'),
 					}),

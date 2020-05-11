@@ -13,40 +13,36 @@
  */
 /* eslint-disable max-classes-per-file */
 
-'use strict';
-
-class FrameworkError extends Error {
-	constructor(...args) {
+export class FrameworkError extends Error {
+	public name: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	public constructor(...args: any[]) {
 		super(...args);
 		this.name = this.constructor.name;
 		Error.captureStackTrace(this, FrameworkError);
 	}
 }
 
-class SchemaValidationError extends FrameworkError {
-	constructor(errors) {
+export class SchemaValidationError extends FrameworkError {
+	public errors: Error[];
+	public constructor(errors: Error[]) {
 		super(JSON.stringify(errors, null, 2));
 		this.errors = errors;
 	}
 }
 
-class DuplicateAppInstanceError extends FrameworkError {
-	constructor(appLabel, pidPath) {
+export class DuplicateAppInstanceError extends FrameworkError {
+	public appLabel: string;
+	public pidPath: string;
+	public constructor(appLabel: string, pidPath: string) {
 		super(`Duplicate app instance for "${appLabel}"`);
 		this.appLabel = appLabel;
 		this.pidPath = pidPath;
 	}
 }
 
-class ImplementationMissingError extends FrameworkError {
-	constructor() {
+export class ImplementationMissingError extends FrameworkError {
+	public constructor() {
 		super('Implementation missing error');
 	}
 }
-
-module.exports = {
-	FrameworkError,
-	SchemaValidationError,
-	DuplicateAppInstanceError,
-	ImplementationMissingError,
-};
