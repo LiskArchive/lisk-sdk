@@ -140,7 +140,17 @@ export class Storage {
 	public async getLastCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<string>,
 	): Promise<BlockHeaderJSON> {
-		const blocks = await this.getBlockHeadersByIDs(arrayOfBlockIds);
+		const blocks = [];
+		for (const id of arrayOfBlockIds) {
+			try {
+				const block = await this.getBlockHeaderByID(id);
+				blocks.push(block);
+			} catch (error) {
+				if (!(error instanceof NotFoundError)) {
+					throw error;
+				}
+			}
+		}
 		blocks.sort((a, b) => b.height - a.height);
 
 		return blocks[0];

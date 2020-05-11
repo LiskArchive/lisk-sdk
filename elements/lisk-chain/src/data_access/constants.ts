@@ -14,7 +14,7 @@
 
 export const DB_KEY_BLOCKS_ID = 'blocks:id:';
 export const DB_KEY_BLOCKS_HEIGHT = 'blocks:height:';
-export const DB_KEY_TRANSACTIONS_BLOCK_ID = 'transactions:BlockID:';
+export const DB_KEY_TRANSACTIONS_BLOCK_ID = 'transactions:blockID:';
 export const DB_KEY_TRANSACTIONS_ID = 'transactions:id:';
 export const DB_KEY_TEMPBLOCKS_HEIGHT = 'tempBlocks:height:';
 export const DB_KEY_ACCOUNTS_ADDRESS = 'accounts:address:';

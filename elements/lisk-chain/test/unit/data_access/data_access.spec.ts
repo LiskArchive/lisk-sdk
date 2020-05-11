@@ -11,47 +11,35 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Readable } from 'stream';
+import { when } from 'jest-when';
+import {
+	KVStore,
+	formatInt,
+	NotFoundError,
+	getFirstPrefix,
+	getLastPrefix,
+} from '@liskhq/lisk-db';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { DataAccess } from '../../../src/data_access';
 import { BlockHeader as BlockHeaderInstance } from '../../fixtures/block';
 import { BlockInstance, BlockJSON } from '../../../src/types';
 
-describe('data_access.storage', () => {
+jest.mock('@liskhq/lisk-db');
+
+describe('data_access', () => {
 	let dataAccess: DataAccess;
-	let storageMock: any;
+	let db: any;
 	let block: BlockInstance;
 
 	beforeEach(() => {
-		storageMock = {
-			entities: {
-				Block: {
-					get: jest.fn().mockResolvedValue([{ height: 1 }]),
-					getOne: jest.fn().mockResolvedValue([{ height: 1 }]),
-					count: jest.fn(),
-					isPersisted: jest.fn(),
-					delete: jest.fn(),
-				},
-				TempBlock: {
-					get: jest.fn(),
-					isEmpty: jest.fn(),
-					truncate: jest.fn(),
-				},
-				Account: {
-					get: jest.fn().mockResolvedValue([{ balance: '0', address: '123L' }]),
-					getOne: jest.fn(),
-					resetMemTables: jest.fn(),
-				},
-				Transaction: {
-					get: jest
-						.fn()
-						.mockResolvedValue([{ nonce: '2', type: 8, fee: '100' }]),
-					isPersisted: jest.fn(),
-				},
-			},
-		};
-
+		db = new KVStore('temp');
+		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
+		(formatInt as jest.Mock).mockImplementation(num => num);
+		(getFirstPrefix as jest.Mock).mockImplementation(str => str);
+		(getLastPrefix as jest.Mock).mockImplementation(str => str);
 		dataAccess = new DataAccess({
-			dbStorage: storageMock,
+			db,
 			registeredTransactions: { 8: TransferTransaction },
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
@@ -86,7 +74,7 @@ describe('data_access.storage', () => {
 	});
 
 	describe('#getBlockHeadersByIDs', () => {
-		it('should not call storage if cache exists', async () => {
+		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader(block);
 
@@ -94,7 +82,7 @@ describe('data_access.storage', () => {
 			await dataAccess.getBlockHeadersByIDs([block.id]);
 
 			// Assert
-			expect(storageMock.entities.Block.get).not.toHaveBeenCalled();
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
@@ -102,12 +90,12 @@ describe('data_access.storage', () => {
 			await dataAccess.getBlockHeadersByIDs([block.id]);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalled();
 		});
 	});
 
 	describe('#getBlockHeaderByHeight', () => {
-		it('should not call storage if cache exists', async () => {
+		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader(block);
 
@@ -115,20 +103,35 @@ describe('data_access.storage', () => {
 			await dataAccess.getBlockHeaderByHeight(1);
 
 			// Assert
-			expect(storageMock.entities.Block.get).not.toHaveBeenCalled();
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should return persisted block header if cache does not exist', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
+			when(db.get)
+				.calledWith(`blocks:height:${formatInt(block.height)}`)
+				.mockResolvedValue(block.id as never);
 			// Act
 			await dataAccess.getBlockHeaderByHeight(1);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledTimes(2);
+			expect(db.get).toHaveBeenCalledWith(
+				`blocks:height:${formatInt(block.height)}`,
+			);
+			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 	});
 
 	describe('#getBlockHeadersByHeightBetween', () => {
-		it('should not call storage if cache exists', async () => {
+		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader({ ...block, height: 0 });
 			dataAccess.addBlockHeader(block);
@@ -137,23 +140,31 @@ describe('data_access.storage', () => {
 			await dataAccess.getBlockHeadersByHeightBetween(0, 1);
 
 			// Assert
-			expect(storageMock.entities.Block.get).not.toHaveBeenCalled();
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
 			(dataAccess as any)._blocksCache.items.shift();
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
 
 			// Act
 			await dataAccess.getBlockHeadersByHeightBetween(0, 1);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(db.get).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#getBlockHeadersWithHeights', () => {
-		it('should not call storage if cache exists', async () => {
+		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader(block);
 
@@ -161,20 +172,28 @@ describe('data_access.storage', () => {
 			await dataAccess.getBlockHeadersWithHeights([1]);
 
 			// Assert
-			expect(storageMock.entities.Block.get).not.toHaveBeenCalled();
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
+			// Arrange
+			when(db.get)
+				.calledWith(`blocks:height:${formatInt(block.height)}`)
+				.mockResolvedValue(block.id as never);
 			// Act
 			await dataAccess.getBlockHeadersWithHeights([1]);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledTimes(2);
+			expect(db.get).toHaveBeenCalledWith(
+				`blocks:height:${formatInt(block.height)}`,
+			);
+			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 	});
 
 	describe('#getLastBlockHeader', () => {
-		it('should not call storage if cache exists', async () => {
+		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader(block);
 
@@ -182,197 +201,373 @@ describe('data_access.storage', () => {
 			await dataAccess.getLastBlockHeader();
 
 			// Assert
-			expect(storageMock.entities.Block.get).not.toHaveBeenCalled();
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
 			// Act
 			await dataAccess.getLastBlockHeader();
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledTimes(1);
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 	});
 
 	describe('#getLastCommonBlockHeader', () => {
-		it('should not call storage if cache exists', async () => {
+		it('should not call db if cache exists', async () => {
 			// Arrange
 			dataAccess.addBlockHeader(block);
 
 			// Act
-			await dataAccess.getLastBlockHeader();
+			await dataAccess.getLastCommonBlockHeader([block.id]);
 
 			// Assert
-			expect(storageMock.entities.Block.get).not.toHaveBeenCalled();
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Act
-			await dataAccess.getLastBlockHeader();
+			await dataAccess.getLastCommonBlockHeader([block.id, 'random-id']);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledTimes(2);
 		});
 	});
 
 	describe('#getBlockCount', () => {
-		it('should call storage.getBlocksCount', async () => {
+		it('should get the height from stream', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
+			when(db.get)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(block as never);
 			// Act
 			await dataAccess.getBlocksCount();
 
 			// Assert
-			expect(storageMock.entities.Block.count).toHaveBeenCalled();
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(db.get).toHaveBeenCalledTimes(1);
+			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 	});
 
 	describe('#getBlocksByIDs', () => {
-		it('should return persisted blocks if cache does not exist', async () => {
+		it('should return persisted blocks by ids', async () => {
+			// Arrange
+			when(db.get)
+				.mockRejectedValue(new NotFoundError('Data not found') as never)
+				.calledWith('blocks:id:1')
+				.mockResolvedValue(block as never);
 			// Act
 			await dataAccess.getBlocksByIDs(['1']);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledWith('blocks:id:1');
 		});
 	});
 
 	describe('#getBlocksByHeightBetween', () => {
-		it('should return persisted blocks if cache does not exist', async () => {
+		it('should return persisted blocks within the height range', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
+			when(db.get)
+				.mockRejectedValue(new NotFoundError('Data not found') as never)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(block as never);
 			// Act
 			await dataAccess.getBlocksByHeightBetween(1, 2);
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(db.get).toHaveBeenCalledTimes(2);
 		});
 	});
 
 	describe('#getLastBlock', () => {
-		it('should call storage.getLastBlock', async () => {
+		it('should get the highest height block', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
+			when(db.get)
+				.mockRejectedValue(new NotFoundError('Data not found') as never)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(block as never);
 			// Act
 			await dataAccess.getLastBlock();
 
 			// Assert
-			expect(storageMock.entities.Block.get).toHaveBeenCalled();
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(db.get).toHaveBeenCalledTimes(2);
 		});
 	});
 
 	describe('#deleteBlocksWithHeightGreaterThan', () => {
-		it('should call storage.Block.delete and return block', async () => {
+		it('should delete all block related keys using batch', async () => {
+			// Arrange
+			const batchMock = { del: jest.fn(), write: jest.fn() };
+			(db.batch as jest.Mock).mockReturnValue(batchMock as never);
+			(db.createReadStream as jest.Mock).mockImplementation(() =>
+				Readable.from([
+					{
+						value: block.id,
+					},
+				]),
+			);
+			when(db.get)
+				.mockRejectedValue(new NotFoundError('Data not found') as never)
+				.calledWith(`blocks:height:${formatInt(block.height)}`)
+				.mockResolvedValue(block.id as never)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(block as never);
 			// Act
-			await dataAccess.deleteBlocksWithHeightGreaterThan(1);
+			await dataAccess.deleteBlocksWithHeightGreaterThan(0);
 
 			// Assert
-			expect(storageMock.entities.Block.delete).toHaveBeenCalled();
+			expect(batchMock.del).toHaveBeenCalledWith(`blocks:id:${block.id}`);
+			expect(batchMock.del).toHaveBeenCalledWith(
+				`blocks:height:${formatInt(block.height)}`,
+			);
+			expect(batchMock.del).toHaveBeenCalledWith(
+				`transactions:blockID:${block.id}`,
+			);
+			expect(batchMock.write).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#isBlockPersisted', () => {
-		it('should call storage.isBlockPersisted', async () => {
+		it('should call check if the id exists in the database', async () => {
 			// Act
 			await dataAccess.isBlockPersisted(block.id);
 
 			// Assert
-			expect(storageMock.entities.Block.isPersisted).toHaveBeenCalled();
+			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 	});
 
 	describe('#getTempBlocks', () => {
-		it('should call storage.getTempBlocks', async () => {
+		it('should call get temp blocks using stream', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockImplementation(() =>
+				Readable.from([
+					{
+						value: block,
+					},
+				]),
+			);
 			// Act
 			await dataAccess.getTempBlocks();
 
 			// Assert
-			expect(storageMock.entities.TempBlock.get).toHaveBeenCalled();
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('#isTempBlockEmpty', () => {
-		it('should call storage.isTempBlockEmpty', async () => {
+		it('should return false when temp block exist', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockImplementation(() =>
+				Readable.from([
+					{
+						value: block,
+					},
+				]),
+			);
 			// Act
-			await dataAccess.isTempBlockEmpty();
+			const result = await dataAccess.isTempBlockEmpty();
 
 			// Assert
-			expect(storageMock.entities.TempBlock.isEmpty).toHaveBeenCalled();
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(result).toBeFalse();
+		});
+
+		it('should return true when temp block exist', async () => {
+			// Arrange
+			(db.createReadStream as jest.Mock).mockImplementation(() =>
+				Readable.from([]),
+			);
+			// Act
+			const result = await dataAccess.isTempBlockEmpty();
+
+			// Assert
+			expect(db.createReadStream).toHaveBeenCalledTimes(1);
+			expect(result).toBeTrue();
 		});
 	});
 
 	describe('#clearTempBlocks', () => {
-		it('should call storage.clearTempBlocks', async () => {
+		it('should call db clear function', async () => {
 			// Act
 			await dataAccess.clearTempBlocks();
 
 			// Assert
-			expect(storageMock.entities.TempBlock.truncate).toHaveBeenCalled();
+			expect(db.clear).toHaveBeenCalledTimes(1);
+			expect(db.clear).toHaveBeenCalledWith({
+				gte: expect.stringContaining('tempBlocks:height:'),
+				lte: expect.stringContaining('tempBlocks:height:'),
+			});
 		});
 	});
 
 	describe('#getAccountsByPublicKey', () => {
-		it('should call storage.getAccountsByPublicKey', async () => {
+		it('should convert public key to address and get by address', async () => {
+			// Arrange
+			const account = {
+				publicKey:
+					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
+				address: '7546125166665832140L',
+				nonce: '0',
+			};
+			when(db.get)
+				.calledWith(`accounts:address:${account.address}`)
+				.mockResolvedValue(account as never);
 			// Act
-			const [result] = await dataAccess.getAccountsByPublicKey(['1L']);
+			const [result] = await dataAccess.getAccountsByPublicKey([
+				account.publicKey,
+			]);
 
 			// Assert
-			expect(storageMock.entities.Account.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledWith(
+				`accounts:address:${account.address}`,
+			);
 			expect(typeof result.nonce).toBe('bigint');
 		});
 	});
 
 	describe('#getAccountByAddress', () => {
-		it('should call storage.getAccountsByAddress', async () => {
+		it('should get account by address and decode them', async () => {
+			// Arrange
+			const account = {
+				publicKey:
+					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
+				address: '7546125166665832140L',
+				nonce: '0',
+				balance: '100',
+			};
+			when(db.get)
+				.calledWith(`accounts:address:${account.address}`)
+				.mockResolvedValue(account as never);
 			// Act
-			storageMock.entities.Account.getOne.mockResolvedValue({
-				address: '1L',
-				balance: '0',
-			});
-			const account = await dataAccess.getAccountByAddress('1L');
+			const result = await dataAccess.getAccountByAddress(account.address);
 
 			// Assert
-			expect(storageMock.entities.Account.getOne).toHaveBeenCalled();
-			expect(typeof account.balance).toEqual('bigint');
+			expect(db.get).toHaveBeenCalledWith(
+				`accounts:address:${account.address}`,
+			);
+			expect(typeof result.balance).toEqual('bigint');
 		});
 	});
 
 	describe('#getAccountsByAddress', () => {
-		it('should call storage.getAccountsByAddress', async () => {
+		it('should get accounts by each address and decode them', async () => {
+			// Arrange
+			const accounts = [
+				{
+					publicKey:
+						'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
+					address: '7546125166665832140L',
+					nonce: '0',
+					balance: '100',
+				},
+				{
+					publicKey:
+						'd468707933e4f24888dc1f00c8f84b2642c0edf3d694e2bb5daa7a0d87d18708',
+					address: '10676488814586252632L',
+					nonce: '0',
+					balance: '300',
+				},
+			];
+			when(db.get)
+				.calledWith(`accounts:address:${accounts[0].address}`)
+				.mockResolvedValue(accounts[0] as never)
+				.calledWith(`accounts:address:${accounts[1].address}`)
+				.mockResolvedValue(accounts[1] as never);
 			// Act
-			storageMock.entities.Account.get.mockResolvedValue([
-				{ address: '1L', balance: '0' },
-			]);
-			const accounts = await dataAccess.getAccountsByAddress(['1L']);
+			const result = await dataAccess.getAccountsByAddress(
+				accounts.map(acc => acc.address),
+			);
 
 			// Assert
-			expect(storageMock.entities.Account.get).toHaveBeenCalled();
-			expect(typeof accounts[0].balance).toEqual('bigint');
+			expect(db.get).toHaveBeenCalledTimes(2);
+			expect(typeof result[0].balance).toEqual('bigint');
 		});
 	});
 
 	describe('#getTransactionsByIDs', () => {
-		it('should call storage.getTransactionsByIDs', async () => {
+		it('should get transaction by id', async () => {
+			// Arrange
+			when(db.get)
+				.calledWith('transactions:id:1')
+				.mockResolvedValue({
+					id: '1',
+					fee: '100',
+					nonce: '0',
+					type: 8,
+				} as never);
 			// Act
 			const [result] = await dataAccess.getTransactionsByIDs(['1']);
 
 			// Assert
-			expect(storageMock.entities.Transaction.get).toHaveBeenCalled();
+			expect(db.get).toHaveBeenCalledWith('transactions:id:1');
 			expect(typeof result.fee).toBe('bigint');
 		});
 	});
 
 	describe('#isTransactionPersisted', () => {
-		it('should call storage.isTransactionPersisted', async () => {
+		it('should call exists with the id', async () => {
 			// Act
 			await dataAccess.isTransactionPersisted('1');
 
 			// Assert
-			expect(storageMock.entities.Transaction.isPersisted).toHaveBeenCalled();
+			expect(db.exists).toHaveBeenCalledWith('transactions:id:1');
 		});
 	});
 
 	describe('#resetMemTables', () => {
-		it('should call storage.resetMemTables', async () => {
+		it('should clear all calculated states', async () => {
 			// Act
 			await dataAccess.resetMemTables();
 
 			// Assert
-			expect(storageMock.entities.Account.resetMemTables).toHaveBeenCalled();
+			expect(db.clear).toHaveBeenCalledTimes(3);
+			expect(db.clear).toHaveBeenCalledWith({
+				gte: expect.stringContaining('accounts:address:'),
+				lte: expect.stringContaining('accounts:address:'),
+			});
+			expect(db.clear).toHaveBeenCalledWith({
+				gte: expect.stringContaining('chain:'),
+				lte: expect.stringContaining('chain:'),
+			});
+			expect(db.clear).toHaveBeenCalledWith({
+				gte: expect.stringContaining('consensus:'),
+				lte: expect.stringContaining('consensus:'),
+			});
 		});
 	});
 
@@ -446,11 +641,7 @@ describe('data_access.storage', () => {
 			// Arrange
 			jest.spyOn(dataAccess, 'getBlocksByHeightBetween');
 
-			storageMock.entities.Block.get.mockResolvedValue([
-				{ height: 9 },
-				{ height: 8 },
-				{ height: 7 },
-			]);
+			db.get.mockResolvedValue([{ height: 9 }, { height: 8 }, { height: 7 }]);
 
 			const blocks = [];
 			for (let i = 0; i < 5; i += 1) {
