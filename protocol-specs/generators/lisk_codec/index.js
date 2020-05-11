@@ -346,7 +346,10 @@ const generateValidArrayEncodings = () => {
 				type: 'object',
 				properties: {
 					list: {
-						dataType: 'array',
+						type: 'array',
+						items: {
+							dataType: 'uint32',
+						},
 						fieldNumber: 1,
 					},
 				},
@@ -360,7 +363,10 @@ const generateValidArrayEncodings = () => {
 				type: 'object',
 				properties: {
 					list: {
-						dataType: 'array',
+						type: 'array',
+						items: {
+							dataType: 'bool',
+						},
 						fieldNumber: 1,
 					},
 				},
@@ -378,7 +384,7 @@ const generateValidArrayEncodings = () => {
 					type: 'object',
 					properties: {
 						list: {
-							dataType: 'array',
+							type: 'array',
 							fieldNumber: 1,
 							items: {
 								type: 'object',
@@ -406,7 +412,10 @@ const generateValidArrayEncodings = () => {
 				type: 'object',
 				properties: {
 					list: {
-						dataType: 'array',
+						type: 'array',
+						items: {
+							dataType: 'uint32',
+						},
 						fieldNumber: 1,
 					},
 				},
