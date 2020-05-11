@@ -29,13 +29,13 @@
 				},
 				"messageSigned32": {
 					"object": {
-						"number": 10
+						"number": -10
 					},
 					"schema": {
 						"type": "object",
 						"properties": {
 							"number": {
-								"dataType": "uint32",
+								"dataType": "sint32",
 								"fieldNumber": 1
 							}
 						}

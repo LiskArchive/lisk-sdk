@@ -106,7 +106,7 @@ const generateValidNumberEncodings = () => {
 		},
 		input: {
 			message32: input.message32,
-			messageSigned32: input.message32,
+			messageSigned32: input.messageSigned32,
 			message64: input.message64,
 			messageSigned64: input.messageSigned64,
 		},
