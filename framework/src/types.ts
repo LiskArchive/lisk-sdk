@@ -101,21 +101,3 @@ export interface RPCHighestCommonBlockData {
 	readonly ids: string[];
 }
 /* End P2P */
-
-export interface AppStateProperties {
-	readonly os: string;
-	readonly version: string;
-	readonly wsPort: number;
-	readonly httpPort: number;
-	readonly protocolVersion: string;
-	readonly height: number;
-	readonly blockVersion: number;
-	readonly maxHeightPrevoted: number;
-	readonly networkId: string;
-}
-
-export interface ApplicationState {
-	readonly logger: Logger;
-	readonly set: (logger: Logger) => void;
-	readonly update: (appState: AppStateProperties) => boolean;
-}

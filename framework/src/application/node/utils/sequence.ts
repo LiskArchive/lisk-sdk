@@ -36,7 +36,7 @@ interface Task<T = unknown> {
 	done: WorkerResult<T>;
 }
 
-interface SequeceConfig {
+interface SequenceConfig {
 	readonly warningLimit?: number;
 	readonly onWarning?: (length: number, limit: number) => void;
 }
@@ -45,7 +45,7 @@ export class Sequence {
 	private readonly _config: Config;
 	private readonly _queue: Task[] = [];
 
-	public constructor(config?: SequeceConfig) {
+	public constructor(config?: SequenceConfig) {
 		this._queue = [];
 		this._config = {
 			// eslint-disable-next-line @typescript-eslint/unbound-method

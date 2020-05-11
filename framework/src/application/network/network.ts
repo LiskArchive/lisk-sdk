@@ -194,7 +194,7 @@ export class Network {
 
 		this.p2p = new P2P(p2pConfig);
 
-		this.channel.subscribe('app:sta:e:updated', (event: EventInfoObject) => {
+		this.channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 			const newNodeInfo = sanitizeNodeInfo(
 				event.data as liskP2p.p2pTypes.P2PNodeInfo,
 			);
