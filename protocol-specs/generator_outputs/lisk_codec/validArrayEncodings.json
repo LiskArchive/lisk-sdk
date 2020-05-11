@@ -8,7 +8,7 @@
 	"handler": "validArrayEncodings",
 	"testCases": [
 		{
-			"description": "Encoding of boolean types",
+			"description": "Encoding of array types",
 			"config": {
 				"network": "devnet"
 			},

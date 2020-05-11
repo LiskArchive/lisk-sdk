@@ -8,7 +8,7 @@
 	"handler": "validStringEncodings",
 	"testCases": [
 		{
-			"description": "Encoding of boolean types",
+			"description": "Encoding of string types",
 			"config": {
 				"network": "devnet"
 			},

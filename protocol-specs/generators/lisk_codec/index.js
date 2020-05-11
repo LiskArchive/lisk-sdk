@@ -206,7 +206,7 @@ const generateValidStringEncodings = () => {
 	const emptyStringEncoded = String.encode(input.emptyString.object).finish();
 
 	return {
-		description: 'Encoding of boolean types',
+		description: 'Encoding of string types',
 		config: {
 			network: 'devnet',
 		},
@@ -455,7 +455,7 @@ const generateValidArrayEncodings = () => {
 	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
 
 	return {
-		description: 'Encoding of boolean types',
+		description: 'Encoding of array types',
 		config: {
 			network: 'devnet',
 		},
