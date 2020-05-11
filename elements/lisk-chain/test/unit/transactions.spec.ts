@@ -23,7 +23,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Chain, GenesisBlockJSON } from '../../src';
+import { Chain } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';

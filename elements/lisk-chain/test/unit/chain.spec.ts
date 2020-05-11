@@ -23,7 +23,6 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
-import { Slots } from '../../src/slots';
 import { BlockInstance, BlockJSON } from '../../src/types';
 import { Account } from '../../src/account';
 
@@ -54,7 +53,6 @@ describe('chain', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	let chainInstance: Chain;
-	let slots: Slots;
 	let db: any;
 
 	beforeEach(() => {
@@ -62,17 +60,11 @@ describe('chain', () => {
 		db = new KVStore('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 
-		slots = new Slots({
-			epochTime: constants.epochTime,
-			interval: constants.blockTime,
-		});
-
 		chainInstance = new Chain({
 			db,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
-			slots,
 			...constants,
 		});
 	});
@@ -88,7 +80,6 @@ describe('chain', () => {
 				expect((constants as any)[constantName]).toEqual(constantValue),
 			);
 			// Assert miscellaneous
-			expect(slots).toEqual((chainInstance as any).slots);
 			expect(chainInstance.blockReward).toBeDefined();
 			expect((chainInstance as any).blocksVerify).toBeDefined();
 			expect(chainInstance['_db']).toBe(db);

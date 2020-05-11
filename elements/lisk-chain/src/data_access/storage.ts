@@ -81,8 +81,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<BlockHeaderJSON[]> {
 		const stream = this._db.createReadStream({
-			gte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(fromHeight)}`,
-			lte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(toHeight)}`,
+			gte: `${DB_KEY_BLOCKS_HEIGHT}${formatInt(fromHeight)}`,
+			lte: `${DB_KEY_BLOCKS_HEIGHT}${formatInt(toHeight)}`,
 			reverse: true,
 		});
 		const blockIDs = await new Promise<string[]>((resolve, reject) => {
