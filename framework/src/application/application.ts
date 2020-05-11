@@ -116,10 +116,23 @@ interface ApplicationConfig {
 	};
 	readonly rebuildUpToRound: string;
 	readonly network: NetworkConfig;
+	genesisConfig: {
+		readonly epochTime: string;
+		readonly blockTime: number;
+		readonly maxPayloadLength: number;
+		readonly reward: {
+			readonly milestones: string[];
+			readonly offset: number;
+			readonly distance: number;
+		};
+	};
 	constants: {
 		[key: string]: {} | string | number | undefined;
+		readonly activeDelegates: number;
+		readonly standbyDelegates: number;
+		readonly totalAmount: string;
+		readonly delegateListRoundOffset: number;
 	};
-	genesisConfig: {};
 	components: {
 		[key: string]: {} | undefined;
 		logger: {
@@ -148,14 +161,14 @@ export class Application {
 	private readonly storage: any;
 
 	public constructor(
-		genesisBlock: object,
+		genesisBlock: GenesisBlockInstance,
 		config: Partial<ApplicationConfig> = {},
 	) {
 		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
 		if (errors.length) {
 			throw errors;
 		}
-		this._genesisBlock = genesisBlock as GenesisBlockInstance;
+		this._genesisBlock = genesisBlock;
 
 		// Don't change the object parameters provided
 		let appConfig = _.cloneDeep(config);
