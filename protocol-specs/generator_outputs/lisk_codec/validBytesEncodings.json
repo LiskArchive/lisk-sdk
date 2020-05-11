@@ -15,31 +15,7 @@
 			"input": {
 				"bytes": {
 					"object": {
-						"address": {
-							"type": "Buffer",
-							"data": [
-								225,
-								26,
-								17,
-								54,
-								71,
-								56,
-								34,
-								88,
-								19,
-								248,
-								110,
-								168,
-								82,
-								20,
-								64,
-								14,
-								93,
-								176,
-								141,
-								110
-							]
-						}
+						"address": "á\u001a\u00116G8\"X\u0013øn¨R\u0014@\u000e]°n"
 					},
 					"schema": {
 						"type": "object",
@@ -53,10 +29,7 @@
 				},
 				"emptyBytes": {
 					"object": {
-						"address": {
-							"type": "Buffer",
-							"data": []
-						}
+						"address": ""
 					},
 					"schema": {
 						"type": "object",
@@ -70,7 +43,7 @@
 				}
 			},
 			"output": {
-				"bytes": "0a14e11a11364738225813f86ea85214400e5db08d6e",
+				"bytes": "0a05e86f179d19",
 				"emptyBytes": "0a00"
 			}
 		}
