@@ -14,14 +14,14 @@
 
 'use strict';
 
+jest.mock('../../../../../../../src/application/validator/keywords/formatters');
+
 const Ajv = require('ajv');
 const {
 	env,
 } = require('../../../../../../../src/application/validator/keywords');
 
 const formatters = require('../../../../../../../src/application/validator/keywords/formatters');
-
-jest.mock('../../../../../../../src/application/validator/keywords/formatters');
 
 let validator;
 

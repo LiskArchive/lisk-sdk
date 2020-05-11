@@ -15,7 +15,6 @@
 
 export interface BlockHeader {
 	readonly height: number;
-	readonly id: string;
 	readonly generatorPublicKey: string;
 	readonly previousBlockId: string;
 	readonly timestamp: number;
@@ -25,18 +24,20 @@ export interface BlockHeader {
 	readonly version: number;
 }
 
+export type BlockHeaderWithID = BlockHeader & { readonly id: string };
+
 export interface DPoS {
-	readonly getMinActiveHeight: (
+	getMinActiveHeight(
 		height: number,
 		address: string,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
-	) => Promise<number>;
-	readonly isStandbyDelegate: (
+	): Promise<number>;
+	isStandbyDelegate(
 		address: string,
 		height: number,
 		stateStore: StateStore,
-	) => Promise<boolean>;
+	): Promise<boolean>;
 }
 
 export interface Chain {

@@ -105,7 +105,7 @@ describe('dpos.verifyBlockForger()', () => {
 		// Act && Assert
 		const error = new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`Failed to verify slot: ${expectedSlot}. Block ID: ${block.id}. Block Height: ${block.height}`,
+			`Failed to verify slot: ${expectedSlot}. Block Height: ${block.height}`,
 		);
 		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
 	});
@@ -120,7 +120,7 @@ describe('dpos.verifyBlockForger()', () => {
 			reward: BigInt('500000000'),
 			totalFee: BigInt('10000000'),
 			generatorPublicKey: 'xxx',
-		} as BlockHeader;
+		};
 
 		const expectedRound = dpos.rounds.calcRound(block.height);
 
@@ -129,6 +129,6 @@ describe('dpos.verifyBlockForger()', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			`No delegate list found for round: ${expectedRound}`,
 		);
-		await expect(dpos.verifyBlockForger(block)).rejects.toEqual(error);
+		await expect(dpos.verifyBlockForger(block as any)).rejects.toEqual(error);
 	});
 });

@@ -589,7 +589,7 @@ describe('chain', () => {
 			// Act & Assert
 			await expect(
 				chainInstance.remove(
-					chainInstance.deserialize(genesisBlock),
+					chainInstance.deserialize(genesisBlock as any),
 					stateStoreStub,
 				),
 			).rejects.toThrow('Cannot delete genesis block');

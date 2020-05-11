@@ -21,12 +21,12 @@ import {
 	isTieBreak,
 	isValidBlock,
 } from '../../src/fork_choice_rule';
-import { BlockHeader } from '../../src/types';
+import { BlockHeaderWithID } from '../../src/types';
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
 
-const createBlock = (data: object): BlockHeader =>
+const createBlock = (data: object): BlockHeaderWithID =>
 	({
 		...{
 			height: 0,
@@ -38,7 +38,7 @@ const createBlock = (data: object): BlockHeader =>
 			version: 2,
 		},
 		...data,
-	} as BlockHeader);
+	} as BlockHeaderWithID);
 
 describe('Fork Choice Rule', () => {
 	let slots: Slots;
