@@ -35,7 +35,6 @@ const writeVarIntNumber = (value: number, _schema: SchemaProperty): Buffer => {
 	}
 
 	result[index] = value;
-	index += 1;
 
 	return Buffer.from(result);
 };
@@ -50,7 +49,6 @@ const writeVarIntBigInt = (value: bigint, _schema: SchemaProperty): Buffer => {
 	}
 
 	result[Number(index)] = Number(value);
-	index += 1;
 
 	return Buffer.from(result);
 };
