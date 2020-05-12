@@ -29,9 +29,8 @@ const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffe
 const { Boolean } = prepareProtobuffersBooleans();
 const { String } = prepareProtobuffersStrings();
 const { Bytes } = prepareProtobuffersBytes();
-const { Objects, ObjectOptionalProp } = prepareProtobuffersObjects();
-const { ArrayInts, ArrayBools, ArrayObjects } = prepareProtobuffersArrays();
-
+const { Objects, ObjectWithOptionalProp } = prepareProtobuffersObjects();
+const { ArrayOfIntegers, ArrayBools, ArrayObjects } = prepareProtobuffersArrays();
 
 const generateValidNumberEncodings = () => {
 	const input = {
@@ -356,7 +355,7 @@ const generateValidObjectEncodings = () => {
 	};
 
 	const objectEncoded = Objects.encode(input.object.object).finish();
-	const objectOptionalPropEncoded = ObjectOptionalProp.encode(input.objectOptionalProp.object).finish();
+	const objectOptionalPropEncoded = ObjectWithOptionalProp.encode(input.objectOptionalProp.object).finish();
 
 	return {
 		description: 'Encoding of object types',
@@ -377,7 +376,7 @@ const generateValidObjectEncodings = () => {
 
 const generateValidArrayEncodings = () => {
 	const input = {
-		arrayInts: {
+		ArrayOfIntegers: {
 			object: {
 				list: [3, 1, 4, 1, 5, 9, 2, 6, 5],
 			},
@@ -462,7 +461,7 @@ const generateValidArrayEncodings = () => {
 		},
 	};
 
-	const arrayIntsEncoded = ArrayInts.encode(input.arrayInts.object).finish();
+	const ArrayOfIntegersEncoded = ArrayOfIntegers.encode(input.ArrayOfIntegers.object).finish();
 	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
 	const arrayOfObjectsEncoded = ArrayObjects.encode(input.arrayObjects.object).finish();
 	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
@@ -473,13 +472,13 @@ const generateValidArrayEncodings = () => {
 			network: 'devnet',
 		},
 		input: {
-			arrayInts: input.arrayInts,
+			ArrayOfIntegers: input.ArrayOfIntegers,
 			arrayBools: input.arrayBools,
 			arrayOfObjects: input.arrayObjects,
 			emptyArray: input.emptyArray,
 		},
 		output: {
-			arrayIntsEncoded: arrayIntsEncoded.toString('hex'),
+			arrayOfIntegersEncoded: ArrayOfIntegersEncoded.toString('hex'),
 			arrayBoolsEncoded: arrayBoolsEncoded.toString('hex'),
 			arrayOfObjectsEncoded: arrayOfObjectsEncoded.toString('hex'),
 			emptyArrayEncoded: emptyArrayEncoded.toString('hex'),

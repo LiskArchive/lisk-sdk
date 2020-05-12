@@ -1,6 +1,6 @@
 syntax = 'proto2';
 
-message ArrayInts {
+message ArrayOfIntegers {
 	repeated int32 list = 1 [packed=true];
 }
 

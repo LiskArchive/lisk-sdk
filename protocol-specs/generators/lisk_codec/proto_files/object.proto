@@ -12,7 +12,7 @@ message Objects {
 	required Asset asset = 5;
 }
 
-message ObjectOptionalProp {
+message ObjectWithOptionalProp {
 	required bool isActive = 1;
 	optional bytes data = 2;
 	required uint64 value = 3;

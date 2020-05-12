@@ -13,7 +13,7 @@
 				"network": "devnet"
 			},
 			"input": {
-				"arrayInts": {
+				"ArrayOfIntegers": {
 					"object": {
 						"list": [
 							3,
@@ -121,7 +121,7 @@
 				}
 			},
 			"output": {
-				"arrayIntsEncoded": "0a09030104010509020605",
+				"arrayOfIntegersEncoded": "0a09030104010509020605",
 				"arrayBoolsEncoded": "0a06010100010000",
 				"arrayOfObjectsEncoded": "0a2e0a286531316131313336343733383232353831336638366561383532313434303065356462303864366510a08d060a2e0a286161326131313336343733383232353831336638366561383532313434303065356462303866666610e0a712",
 				"emptyArrayEncoded": ""
