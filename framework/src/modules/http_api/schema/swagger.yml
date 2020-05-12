@@ -962,7 +962,7 @@ parameters:
     description: Block ID to query.
     type: string
     format: hex
-    minLength: 1
+    minLength: 64
     maxLength: 64
   transactionId:
     name: id
@@ -1441,7 +1441,7 @@ definitions:
       blockId:
         type: string
         format: id
-        minLength: 1
+        minLength: 64
         maxLength: 64
         example: '6258354802676165798'
         description: |
@@ -1504,8 +1504,8 @@ definitions:
     properties:
       id:
         type: string
-        format: id
-        minLength: 1
+        format: hex
+        minLength: 64
         maxLength: 64
         example: '6258354802676165798'
         description: |

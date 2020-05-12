@@ -50,7 +50,7 @@ export const schemas = {
 					id: {
 						type: 'string',
 						format: 'hex',
-						minLength: 1,
+						minLength: 64,
 						maxLength: 64,
 						example:
 							'9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
