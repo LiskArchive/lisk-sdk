@@ -108,7 +108,7 @@ describe('forger', () => {
 			forgingStrategy: mockStrategy,
 			maxPayloadLength: 15 * 1024,
 			logger: loggerStub,
-			storage: storageStub,
+			db: storageStub,
 			forgingDelegates: genesisDelegates.delegates,
 			forgingForce: false,
 			forgingDefaultPassword: testDelegate.password,
