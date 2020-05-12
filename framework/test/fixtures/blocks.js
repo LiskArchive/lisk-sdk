@@ -50,7 +50,7 @@ const Block = stampit({
 		// Must to provide
 		this.previousBlockId = previousBlockId;
 
-		this.id = id || randomstring.generate({ charset: 'numeric', length: 20 });
+		this.id = id || randomstring.generate({ charset: 'numeric', length: 64 });
 		this.generatorPublicKey =
 			generatorPublicKey ||
 			randomstring
@@ -107,7 +107,7 @@ const BlockHeader = stampit({
 		maxHeightPrevoted,
 	}) {
 		this.blockId =
-			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
+			blockId || randomstring.generate({ charset: 'numeric', length: 64 });
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
 		this.delegatePublicKey =
 			delegatePublicKey ||

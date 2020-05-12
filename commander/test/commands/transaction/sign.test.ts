@@ -45,15 +45,15 @@ describe('transaction:sign', () => {
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
+		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
 		senderId: '2129300327344985743L',
 		signatures: [
 			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
 		],
-		id: '10364209962572784824',
 	};
 
 	const signedTransaction = {
-		id: '17223119605214098703',
+		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
 		type: 8,
 		senderPublicKey:
 			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
@@ -70,22 +70,21 @@ describe('transaction:sign', () => {
 	};
 
 	const expectedMultiSignedTransaction = {
-		id: '13203830993805353722',
-		type: 8,
-		senderPublicKey:
-			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
-		senderId: '5553317242494141914L',
-		nonce: '1',
-		fee: '100000000',
-		signatures: [
-			'a3cc97079e17bdd15852695faf8af7bbcb167f5ddd9f96c129f60afa252911a30c8db42d5d2a60648947082097c79cb966c7f0b267842b27397b59a92af11c05',
-			'984c703b9766c9c72a4d68a54d24c14e75b682dc0a8f31fc0b7aa49a876a91abd265d46d7e8dc25219f3dc9e7c3c0cc015639067093b5a2db48f311cb1e0bf06',
-		],
+		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
 		asset: {
-			data: '{"lisk":"zug"}',
-			amount: '100000000000',
-			recipientId: '5553317242494141914L',
+			amount: '1234567890',
+			data: 'random data',
+			recipientId: '18141291412139607230L',
 		},
+		fee: '10000000',
+		nonce: '0',
+		senderId: '2129300327344985743L',
+		senderPublicKey:
+			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
+		signatures: [
+			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+		],
+		type: 8,
 	};
 
 	const mandatoryKey =
@@ -146,9 +145,7 @@ describe('transaction:sign', () => {
 				}),
 			])
 			.catch(error => {
-				return expect(error.message).to.contain(
-					'Transaction: 2690216869766549278 failed at .asset.amount',
-				);
+				return expect(error.message).to.contain('failed at .asset.amount');
 			})
 			.it('should throw an error when transaction is invalid');
 

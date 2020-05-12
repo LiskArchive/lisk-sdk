@@ -115,7 +115,8 @@ describe('block processor v2', () => {
 			const block = {
 				version: 2,
 				timestamp: 0,
-				previousBlockId: '1349213843333333333',
+				previousBlockId:
+					'9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 				height: 1,
 				seedReveal: 'no-hex-value-000000FFFFFFFF',
 				maxHeightPreviouslyForged: 0,
@@ -132,7 +133,7 @@ describe('block processor v2', () => {
 				numberOfTransactions: 310,
 				blockSignature:
 					'9eb81604dec27d2386b7b7cdaf91c00eada99d6d3fac76ea25ef68a9eaca6f6877ed84c3b0864cec1cd1700e1f3bbffcf32dde9e26e174c75347ccf4da6eeb09',
-				id: '1349213844499460766',
+				id: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 				transactions: [],
 			};
 			// Assert
@@ -390,7 +391,7 @@ describe('block processor v2', () => {
 		it('should include seedReveal after previousBlockId', () => {
 			const bytes = getBytes(block as any);
 			// version(4), timestamp(4), previousBlockID(8)
-			const seedRevealBytes = bytes.slice(16, 16 + 16);
+			const seedRevealBytes = bytes.slice(40, 40 + 16);
 			expect(seedRevealBytes.toString('hex')).toEqual(defaultSeedReveal);
 		});
 	});

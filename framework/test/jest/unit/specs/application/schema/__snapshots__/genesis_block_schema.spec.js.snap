@@ -22,9 +22,9 @@ Object {
         "type": "integer",
       },
       "id": Object {
-        "format": "id",
-        "maxLength": 20,
-        "minLength": 1,
+        "format": "hex",
+        "maxLength": 64,
+        "minLength": 64,
         "type": "string",
       },
       "maxHeightPreviouslyForged": Object {
@@ -48,9 +48,9 @@ Object {
         "type": "integer",
       },
       "previousBlockId": Object {
-        "format": "id",
-        "maxLength": 20,
-        "minLength": 1,
+        "format": "hex",
+        "maxLength": 64,
+        "minLength": 64,
         "type": Array [
           "null",
           "string",

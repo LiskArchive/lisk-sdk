@@ -27,7 +27,7 @@
 		"sodium-native": "2.4.6"
 	},
 	"devDependencies": {
-		"eslint": "6.2.0",
+		"eslint": "6.8.0",
 		"eslint-config-airbnb-base": "14.0.0",
 		"eslint-config-lisk-base": "1.2.2",
 		"eslint-plugin-chai-expect": "2.0.1",

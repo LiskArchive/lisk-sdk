@@ -620,12 +620,14 @@ describe('transport', () => {
 
 					describe('when query is specified', () => {
 						describe('when it throws', () => {
-							const blockValidationError = 'should match format "id"';
+							const blockValidationError = 'should match format "hex"';
 
 							it('should throw an error', async () => {
 								await expect(
 									transportModule.handleEventPostBlock(
-										{ block: { ...postBlockQuery.block, id: 'dummy' } },
+										{
+											block: { ...postBlockQuery.block, id: 'test'.repeat(16) },
+										},
 										defaultPeerId,
 									),
 								).rejects.toEqual([
