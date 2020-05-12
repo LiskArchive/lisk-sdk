@@ -29,7 +29,10 @@
 				},
 				"emptyBytes": {
 					"object": {
-						"address": ""
+						"address": {
+							"type": "Buffer",
+							"data": []
+						}
 					},
 					"schema": {
 						"type": "object",
@@ -43,7 +46,7 @@
 				}
 			},
 			"output": {
-				"bytes": "0a1e7b5d5ad75dfae3bdfcdb6e7cd777fce9e6bce76d78e34d1ee5d6f4f1de9e",
+				"bytes": "0a14e11a11364738225813f86ea85214400e5db08d6e",
 				"emptyBytes": "0a00"
 			}
 		}

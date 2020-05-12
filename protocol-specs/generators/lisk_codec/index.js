@@ -223,11 +223,16 @@ const generateValidStringEncodings = () => {
 
 
 const generateValidBytesEncodings = () => {
+	const object = {
+		address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+	};
+
+	const objForOutput = { ...object };
+	objForOutput.address = objForOutput.address.toString('hex');
+
 	const input = {
 		bytes: {
-			object: {
-				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex').toString('hex'),
-			},
+			object,
 			schema: {
 				type: 'object',
 				properties: {
@@ -240,7 +245,7 @@ const generateValidBytesEncodings = () => {
 		},
 		emptyBytes: {
 			object: {
-				address: Buffer.from('').toString('hex'),
+				address: Buffer.from(''),
 			},
 			schema: {
 				type: 'object',
@@ -263,7 +268,7 @@ const generateValidBytesEncodings = () => {
 			network: 'devnet',
 		},
 		input: {
-			bytes: input.bytes,
+			bytes: { object: objForOutput, schema: input.bytes.schema },
 			emptyBytes: input.emptyBytes,
 		},
 		output: {
@@ -274,17 +279,25 @@ const generateValidBytesEncodings = () => {
 };
 
 const generateValidObjectEncodings = () => {
+	const object = {
+		address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+		balance: 10000000,
+		isDelegate: true,
+		name: 'delegate',
+		asset: {
+			data: 'Check out the Lisk SDK now in binary!',
+		},
+	};
+
+	const objectForOutput = {
+		...object,
+		asset: { ...object.asset },
+	};
+	objectForOutput.address = objectForOutput.address.toString('hex');
+
 	const input = {
 		object: {
-			object: {
-				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex').toString('hex'),
-				balance: 10000000,
-				isDelegate: true,
-				name: 'delegate',
-				asset: {
-					data: 'Check out the Lisk SDK now in binary!',
-				},
-			},
+			object,
 			schema: {
 				type: 'object',
 				properties: {
@@ -351,7 +364,7 @@ const generateValidObjectEncodings = () => {
 			network: 'devnet',
 		},
 		input: {
-			object: input.object,
+			object: { object: objectForOutput, schema: input.object.schema },
 			objectWithOptionalProp: input.objectOptionalProp,
 		},
 		output: {
