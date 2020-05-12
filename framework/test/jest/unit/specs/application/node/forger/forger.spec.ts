@@ -37,7 +37,7 @@ describe('forger', () => {
 	let loggerStub: any;
 	let mockStrategy: any;
 	let defaultPassword: string;
-	let storageStub: any;
+	let dbStub: any;
 	let bftModuleStub: any;
 	let chainModuleStub: any;
 	let dposModuleStub: any;
@@ -56,13 +56,9 @@ describe('forger', () => {
 		mockStrategy = {
 			getTransactionsForBlock: jest.fn().mockResolvedValue([]),
 		};
-		storageStub = {
-			entities: {
-				ForgerInfo: {
-					getKey: jest.fn(),
-					setKey: jest.fn(),
-				},
-			},
+		dbStub = {
+			get: jest.fn(),
+			put: jest.fn(),
 		};
 		bftModuleStub = {
 			finalizedHeight: 1,
@@ -108,7 +104,7 @@ describe('forger', () => {
 			forgingStrategy: mockStrategy,
 			maxPayloadLength: 15 * 1024,
 			logger: loggerStub,
-			db: storageStub,
+			db: dbStub,
 			forgingDelegates: genesisDelegates.delegates,
 			forgingForce: false,
 			forgingDefaultPassword: testDelegate.password,
@@ -801,7 +797,7 @@ describe('forger', () => {
 				// Arrange
 				const newSeed = '00000000000000000000000000000001';
 				(forgeModule as any)._config.forging.delegates = delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS)
 					.mockResolvedValue(
 						JSON.stringify({
@@ -823,7 +819,7 @@ describe('forger', () => {
 				expect(loggerStub.warn).toHaveBeenCalledWith(
 					expect.stringContaining('Overwriting with new hash onion'),
 				);
-				expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				expect(dbStub.put).toHaveBeenCalledWith(
 					FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 					JSON.stringify(originalKey),
 				);
@@ -831,7 +827,7 @@ describe('forger', () => {
 
 			it('should warn if hash onion used is at the last checkpoint', async () => {
 				(forgeModule as any)._config.forging.delegates = delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -856,7 +852,7 @@ describe('forger', () => {
 
 			it('should throw an error if all hash onion are used already', async () => {
 				(forgeModule as any)._config.forging.delegates = delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1058,7 +1054,7 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1100,7 +1096,7 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1120,7 +1116,7 @@ describe('forger', () => {
 				// Act
 				await forgeModule.forge();
 				// Assert
-				expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				expect(dbStub.put).toHaveBeenCalledWith(
 					FORGER_INFO_KEY_USED_HASH_ONION,
 					JSON.stringify([
 						{
@@ -1149,7 +1145,7 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1174,7 +1170,7 @@ describe('forger', () => {
 				// Act
 				await forgeModule.forge();
 				// Assert
-				expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				expect(dbStub.put).toHaveBeenCalledWith(
 					FORGER_INFO_KEY_USED_HASH_ONION,
 					JSON.stringify([
 						{
@@ -1204,7 +1200,7 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1225,7 +1221,7 @@ describe('forger', () => {
 				// Act
 				await forgeModule.forge();
 				// Assert
-				expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				expect(dbStub.put).toHaveBeenCalledWith(
 					FORGER_INFO_KEY_USED_HASH_ONION,
 					JSON.stringify([
 						{
@@ -1253,7 +1249,7 @@ describe('forger', () => {
 					(d: { publicKey: string }) =>
 						d.publicKey === targetDelegate.publicKey,
 				).hashOnion.count;
-				when(storageStub.entities.ForgerInfo.getKey)
+				when(dbStub.get)
 					.calledWith(FORGER_INFO_KEY_USED_HASH_ONION)
 					.mockResolvedValue(
 						JSON.stringify([
@@ -1271,7 +1267,7 @@ describe('forger', () => {
 				expect(loggerStub.warn).toHaveBeenCalledWith(
 					'All of the hash onion has been used already. Please update to the new hash onion.',
 				);
-				expect(storageStub.entities.ForgerInfo.setKey).toHaveBeenCalledWith(
+				expect(dbStub.put).toHaveBeenCalledWith(
 					FORGER_INFO_KEY_USED_HASH_ONION,
 					JSON.stringify([
 						{

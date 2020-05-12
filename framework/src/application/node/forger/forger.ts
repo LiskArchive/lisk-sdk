@@ -580,13 +580,14 @@ export class Forger {
 	}
 
 	private async _getRegisteredHashOnionSeeds(): Promise<StringKeyVal> {
-		const registeredHashOnionSeedsStr = await this._db.get<string>(
-			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
-		);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return registeredHashOnionSeedsStr
-			? JSON.parse(registeredHashOnionSeedsStr)
-			: {};
+		try {
+			const registeredHashOnionSeedsStr = await this._db.get<string>(
+				FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+			);
+			return JSON.parse(registeredHashOnionSeedsStr) as StringKeyVal;
+		} catch (error) {
+			return {};
+		}
 	}
 
 	private async _setRegisteredHashOnionSeeds(
@@ -602,11 +603,15 @@ export class Forger {
 	}
 
 	private async _getUsedHashOnions(): Promise<UsedHashOnion[]> {
-		const usedHashOnionsStr = await this._db.get<string>(
-			FORGER_INFO_KEY_USED_HASH_ONION,
-		);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return usedHashOnionsStr ? JSON.parse(usedHashOnionsStr) : [];
+		try {
+			const usedHashOnionsStr = await this._db.get<string>(
+				FORGER_INFO_KEY_USED_HASH_ONION,
+			);
+
+			return JSON.parse(usedHashOnionsStr) as UsedHashOnion[];
+		} catch (error) {
+			return [];
+		}
 	}
 
 	// eslint-disable-next-line class-methods-use-this

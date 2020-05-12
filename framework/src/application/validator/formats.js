@@ -172,7 +172,7 @@ const validationFormats = {
 	},
 
 	path(str) {
-		const pathRegExp = new RegExp('^(/[^/]+)+$');
+		const pathRegExp = new RegExp('^(.?)(/[^/]+)+$');
 		return pathRegExp.test(str);
 	},
 

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as fs from 'fs';
 import {
 	Chain,
 	events as chainEvents,
@@ -705,6 +706,9 @@ export class Node {
 
 	private _getDBInstance(options: Options, dbName: string): KVStore {
 		const dbPath = `${options.rootPath}/${options.label}/data/${dbName}`;
+		if (!fs.existsSync(dbPath)) {
+			fs.mkdirSync(dbPath, { recursive: true });
+		}
 		this._logger.debug({ dbName, dbPath }, 'Create database instance.');
 		return new KVStore(dbPath);
 	}

@@ -453,12 +453,14 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	}
 
 	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
-		const previouslyForgedStr = await this.db.get<string>(
-			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
-		);
-		return previouslyForgedStr
-			? (JSON.parse(previouslyForgedStr) as ForgedMap)
-			: {};
+		try {
+			const previouslyForgedStr = await this.db.get<string>(
+				FORGER_INFO_KEY_PREVIOUSLY_FORGED,
+			);
+			return JSON.parse(previouslyForgedStr) as ForgedMap;
+		} catch (error) {
+			return {};
+		}
 	}
 
 	/**

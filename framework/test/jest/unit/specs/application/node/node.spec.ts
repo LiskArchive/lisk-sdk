@@ -35,6 +35,8 @@ describe('Node', () => {
 	const stubs: any = {};
 	const lastBlock = { ...nodeOptions.genesisBlock };
 	const mockExit = jest.fn();
+	jest.mock('fs');
+	jest.mock('@liskhq/lisk-db');
 
 	beforeEach(() => {
 		// Arrange

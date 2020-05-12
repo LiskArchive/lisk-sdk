@@ -13,6 +13,7 @@
  */
 
 import * as assert from 'assert';
+import * as os from 'os';
 import {
 	TransferTransaction,
 	DelegateTransaction,
@@ -171,6 +172,8 @@ export class Application {
 		this._genesisBlock = genesisBlock;
 
 		// Don't change the object parameters provided
+		// eslint-disable-next-line no-param-reassign
+		config.rootPath = config.rootPath?.replace('~', os.homedir);
 		let appConfig = _.cloneDeep(config);
 
 		appConfig.label =
