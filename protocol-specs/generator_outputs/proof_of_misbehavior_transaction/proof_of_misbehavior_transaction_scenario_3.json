@@ -34,7 +34,7 @@
 				"header1": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 900000,
 					"maxHeightPreviouslyForged": 850000,
@@ -46,12 +46,12 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "941a519ea7509454c7f8950fd07a5cffc81937c7994a089f70cdac5f74cb1dfa3f4f51ab75da1d7fdbafe43ccbb5cac19f01b842c00cbd2a44ac015fb0fd530d"
+					"blockSignature": "25ac0df461e887b2613590257c6c84d34fbe375d8ebfdc08242a09b90d4ad626e7869bc22888ee976bffbe2ce0e66ee2110d6c30ad49085203401c7c16172407"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 900000,
 					"maxHeightPreviouslyForged": 900000,
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "76d22cbb87e3d9ffae13f44bb5163da5f402705e595926a2ec93689f66f313822729e7cacf86ebc6c8af3a824a90d0369d6cb37d3cdcfe30f81d8fc38dc05607"
+					"blockSignature": "94fad002bcd5d5a4f84bd6286d0c67f6e1d9995f065e3603fabdf4d028b79e2668a56682f910c8bb4972639bb0e6ab97a9b2e0aac0565a2ea12ef5947984e30b"
 				}
 			},
 			"signatures": [
-				"3b91a84f6d009c0a9f28d32507536378aea2a78aa74f47ff962543ed06232b03c14ff3060bbe83ac9296f68688addcb7bd44c6e8918acb94f78cb586ea763308"
+				"70ccb8ef6e3e5f4025c94209869e3d2e269912a235c90c125b70dd8b971e2e448920bc6e6727d1f8ff7847717cfacb7050aec780bb2e2a7bd628ef2f5526f40b"
 			],
-			"id": "4b294bc604c73f2d84bd3162826c4ee3c2cc57105502ff1de4ef853ab4d457e0"
+			"id": "b16943771c7628660e655127e15f71557840116619ef3fdf86818ee6d950dcb1"
 		}
 	}
 }

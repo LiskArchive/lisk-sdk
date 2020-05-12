@@ -19,9 +19,9 @@ export const CommonBlock = {
 	properties: {
 		id: {
 			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
+			format: 'hex',
+			minLength: 64,
+			maxLength: 64,
 			example: '6258354802676165798',
 		},
 		height: {
@@ -31,7 +31,7 @@ export const CommonBlock = {
 		},
 		previousBlockId: {
 			type: 'string',
-			format: 'id',
+			format: 'hex',
 			example: '15918760246746894806',
 		},
 	},

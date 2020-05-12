@@ -34,7 +34,7 @@
 				"header1": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 800000,
 					"maxHeightPreviouslyForged": 700000,
@@ -46,12 +46,12 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "26f1b581b43a185cd83ad28688a6f6208f28d95286f1d9eea03f2f8db3f91d7e6f763e803d7811d6579f25067d2ba041f67b562531c81fc834e8f6b89653bd0f"
+					"blockSignature": "a28c34edb0d4a0e23d45e3510a59d7ac6240fd6dbf766adffc9cf4b44c72e8c77a9de15f7b28d1e0b1222a31a7238ad92933af4b3dd4f370f7a4678b4cb19f00"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 800000,
 					"maxHeightPreviouslyForged": 700000,
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "5038cbcfcd0d8fd6c1921f0462e19efdb78bd047de4e5a435bd59edf391736825ece84f91908d500d9ccd867c2dff0bbe6417a9d4324d42baf6019d51a9b030c"
+					"blockSignature": "b48cbeb3057ac796845cad349285f13bccab966b3e88a506a05477d9196e06423ac1b2e127cf30c851bf21061a755e16eee9658814bc4d4df21f56b68b276300"
 				}
 			},
 			"signatures": [
-				"e1c5302f96dd0eef70c71f99fb7b063484c524e09384e0e796a5c3ceddd05decf91aa1f1808286f617c99af1a0f1a4c48dd46c60ad2cb8a085d7de937ad3450c"
+				"2de094945ccf1a1a92038bf3346f9f4838fa1dceab10a433caa853db918578d2e322da5e6a7ca43a80250e838271a35af226e19576865dfa0c92f082ce19c309"
 			],
-			"id": "f199254d35eea6cf71bcda4549a0d64a5c6d03e621cdf8799f6eaccbe910b234"
+			"id": "5330cfcb15b27bff6170fd61b4284e3d5368666e561c112b7970c2009753e877"
 		}
 	}
 }

@@ -55,7 +55,7 @@ export const baseTransaction = {
 	properties: {
 		blockId: {
 			type: 'string',
-			format: 'id',
+			format: 'hex',
 		},
 		height: {
 			type: 'integer',

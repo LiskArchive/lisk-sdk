@@ -374,7 +374,7 @@ export class Chain {
 
 		// Update id
 		// eslint-disable-next-line no-param-reassign
-		block.id = blocksUtils.getId(blockBytes);
+		block.id = blocksUtils.getBlockId(blockBytes);
 	}
 
 	public async resetState(): Promise<void> {
