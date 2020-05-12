@@ -25,7 +25,7 @@ interface SchemaProperty {
 	readonly dataType: string;
 }
 
-const writeVarIntNumber = (value: number, _schema: SchemaProperty): Buffer => {
+const writeVarIntNumber = (value: number): Buffer => {
 	const result: number[] = [];
 	let index = 0;
 	while (value > rest) {
@@ -39,7 +39,7 @@ const writeVarIntNumber = (value: number, _schema: SchemaProperty): Buffer => {
 	return Buffer.from(result);
 };
 
-const writeVarIntBigInt = (value: bigint, _schema: SchemaProperty): Buffer => {
+const writeVarIntBigInt = (value: bigint): Buffer => {
 	const result: number[] = [];
 	let index = 0;
 	while (value > BigInt(rest)) {
@@ -53,10 +53,8 @@ const writeVarIntBigInt = (value: bigint, _schema: SchemaProperty): Buffer => {
 	return Buffer.from(result);
 };
 
-export const writeVarInt = (value: int, schema: SchemaProperty): Buffer =>
-	isNumber(value)
-		? writeVarIntNumber(value, schema)
-		: writeVarIntBigInt(value, schema);
+export const writeVarInt = (value: int): Buffer =>
+	isNumber(value) ? writeVarIntNumber(value) : writeVarIntBigInt(value);
 
 export const writeSignedVarInt = (
 	value: int,
@@ -64,13 +62,13 @@ export const writeSignedVarInt = (
 ): Buffer => {
 	if (schema.dataType === 'sint32') {
 		const number = Number(value);
-		return writeVarIntNumber(((number << 1) ^ (number >> 31)) >>> 0, schema);
+		return writeVarIntNumber(((number << 1) ^ (number >> 31)) >>> 0);
 	}
 	const number = BigInt(value);
-	return writeVarInt((number << BigInt(1)) ^ (number >> BigInt(63)), schema);
+	return writeVarInt((number << BigInt(1)) ^ (number >> BigInt(63)));
 };
 
-const readVarIntNumber = (buffer: Buffer, _schema: SchemaProperty): number => {
+const readVarIntNumber = (buffer: Buffer): number => {
 	let result = 0;
 	let index = 0;
 	for (let shift = 0; shift < 32; shift += 7) {
@@ -87,7 +85,7 @@ const readVarIntNumber = (buffer: Buffer, _schema: SchemaProperty): number => {
 	throw new Error('Out of range');
 };
 
-const readVarIntBigInt = (buffer: Buffer, _schema: SchemaProperty): bigint => {
+const readVarIntBigInt = (buffer: Buffer): bigint => {
 	let result = BigInt(0);
 	let index = 0;
 	for (let shift = BigInt(0); shift < BigInt(64); shift += BigInt(7)) {
@@ -106,25 +104,19 @@ const readVarIntBigInt = (buffer: Buffer, _schema: SchemaProperty): bigint => {
 
 export const readVarInt = (buffer: Buffer, schema: SchemaProperty): int =>
 	schema.dataType === 'uint32' || schema.dataType === 'sint32'
-		? readVarIntNumber(buffer, schema)
-		: readVarIntBigInt(buffer, schema);
+		? readVarIntNumber(buffer)
+		: readVarIntBigInt(buffer);
 
-const readSignedVarIntNumber = (
-	buffer: Buffer,
-	schema: SchemaProperty,
-): number => {
-	const varInt = readVarIntNumber(buffer, schema);
+const readSignedVarIntNumber = (buffer: Buffer): number => {
+	const varInt = readVarIntNumber(buffer);
 	if (varInt % 2 === 0) {
 		return varInt / 2;
 	}
 	return -(varInt + 1) / 2;
 };
 
-const readSignedVarIntBigInt = (
-	buffer: Buffer,
-	schema: SchemaProperty,
-): bigint => {
-	const varInt = readVarIntBigInt(buffer, schema);
+const readSignedVarIntBigInt = (buffer: Buffer): bigint => {
+	const varInt = readVarIntBigInt(buffer);
 	if (varInt % BigInt(2) === BigInt(0)) {
 		return varInt / BigInt(2);
 	}
@@ -133,5 +125,5 @@ const readSignedVarIntBigInt = (
 
 export const readSignedVarInt = (buffer: Buffer, schema: SchemaProperty): int =>
 	schema.dataType === 'sint32'
-		? readSignedVarIntNumber(buffer, schema)
-		: readSignedVarIntBigInt(buffer, schema);
+		? readSignedVarIntNumber(buffer)
+		: readSignedVarIntBigInt(buffer);
