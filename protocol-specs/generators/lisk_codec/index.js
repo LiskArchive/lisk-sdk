@@ -277,7 +277,7 @@ const generateValidObjectEncodings = () => {
 	const input = {
 		object: {
 			object: {
-				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex').toString('hex'),
 				balance: 10000000,
 				isDelegate: true,
 				name: 'delegate',
