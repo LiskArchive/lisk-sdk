@@ -32,7 +32,7 @@ const isPidRunning = async (pid: number): Promise<boolean> =>
 export interface ControllerOptions {
 	readonly appLabel: string;
 	readonly config: {
-		readonly tempPath: string;
+		readonly rootPath: string;
 		readonly ipc: {
 			readonly enabled: boolean;
 		};
@@ -43,7 +43,7 @@ export interface ControllerOptions {
 }
 
 interface ControllerConfig {
-	readonly tempPath: string;
+	readonly rootPath: string;
 	readonly socketsPath: SocketPaths;
 	readonly dirs: {
 		readonly temp: string;
@@ -92,9 +92,9 @@ export class Controller {
 		this.channel = options.channel;
 		this.logger.info('Initializing controller');
 
-		const dirs = systemDirs(this.appLabel, options.config.tempPath);
+		const dirs = systemDirs(this.appLabel, options.config.rootPath);
 		this.config = {
-			tempPath: dirs.temp,
+			rootPath: dirs.temp,
 			ipc: {
 				enabled: options.config.ipc.enabled,
 			},

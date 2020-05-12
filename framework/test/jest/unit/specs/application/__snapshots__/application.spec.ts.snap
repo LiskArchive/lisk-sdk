@@ -2288,7 +2288,7 @@ Object {
   },
   "protocolVersion": "1.1",
   "rebuildUpToRound": null,
-  "tempPath": "/tmp/lisk",
+  "rootPath": "~/.lisk",
   "version": "2.1.0",
 }
 `;

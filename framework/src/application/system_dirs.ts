@@ -13,8 +13,8 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
-export const systemDirs = (appLabel: string, tempPath: string) => ({
-	temp: `${tempPath}/${appLabel}/`,
-	sockets: `${tempPath}/${appLabel}/sockets`,
-	pids: `${tempPath}/${appLabel}/pids`,
+export const systemDirs = (appLabel: string, rootPath: string) => ({
+	temp: `${rootPath}/${appLabel}/`,
+	sockets: `${rootPath}/${appLabel}/sockets`,
+	pids: `${rootPath}/${appLabel}/pids`,
 });

@@ -63,18 +63,18 @@ describe('Controller Class', () => {
 		registerToBus: jest.fn(),
 	};
 	const config = {
-		tempPath: '/tmp/lisk',
+		rootPath: '~/.lisk',
 		ipc: {
 			enabled: false,
 		},
 	};
 	const systemDirs = {
-		temp: `${config.tempPath}/${appLabel}/`,
-		sockets: `${config.tempPath}/${appLabel}/sockets`,
-		pids: `${config.tempPath}/${appLabel}/pids`,
+		temp: `${config.rootPath}/${appLabel}/`,
+		sockets: `${config.rootPath}/${appLabel}/sockets`,
+		pids: `${config.rootPath}/${appLabel}/pids`,
 	};
 	const configController = {
-		tempPath: '/tmp/lisk/#LABEL/',
+		rootPath: '~/.lisk/#LABEL/',
 		ipc: {
 			enabled: false,
 		},

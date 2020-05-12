@@ -115,30 +115,30 @@ describe('Application', () => {
 			expect(app.config.label).toBe(config.label);
 		});
 
-		it('should set default tempPath if not provided', () => {
+		it('should set default rootPath if not provided', () => {
 			// Arrange
-			const tempPath = '/tmp/lisk';
-			const configWithoutTempPath = _.cloneDeep(config);
-			delete configWithoutTempPath.tempPath;
+			const rootPath = '~/.lisk';
+			const configWithoutrootPath = _.cloneDeep(config);
+			delete configWithoutrootPath.rootPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithoutTempPath);
+			const app = new Application(genesisBlock, configWithoutrootPath);
 
 			// Assert
-			expect(app.config.tempPath).toBe(tempPath);
+			expect(app.config.rootPath).toBe(rootPath);
 		});
 
-		it('should set tempPath if provided', () => {
+		it('should set rootPath if provided', () => {
 			// Arragne
-			const customTempPath = '/my-lisk-folder';
-			const configWithCustomTempPath = _.cloneDeep(config);
-			configWithCustomTempPath.tempPath = customTempPath;
+			const customrootPath = '/my-lisk-folder';
+			const configWithCustomrootPath = _.cloneDeep(config);
+			configWithCustomrootPath.rootPath = customrootPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithCustomTempPath);
+			const app = new Application(genesisBlock, configWithCustomrootPath);
 
 			// Assert
-			expect(app.config.tempPath).toBe(customTempPath);
+			expect(app.config.rootPath).toBe(customrootPath);
 		});
 
 		it('should set filename for logger if logger component was not provided', () => {

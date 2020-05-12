@@ -107,7 +107,7 @@ interface ApplicationConfig {
 	ipc: {
 		enabled: boolean;
 	};
-	tempPath: string;
+	rootPath: string;
 	readonly forging: {
 		readonly waitThreshold: number;
 		readonly delegates: DelegateConfig[];
@@ -662,7 +662,7 @@ export class Application {
 			appLabel: this.config.label,
 			config: {
 				ipc: this.config.ipc,
-				tempPath: this.config.tempPath,
+				rootPath: this.config.rootPath,
 			},
 			logger: this.logger,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -694,6 +694,7 @@ export class Application {
 				registeredTransactions: this.getTransactions(),
 			},
 			logger: this.logger,
+			// TODO: Remove the storage with PR 5257
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this.storage,
 			applicationState: this._applicationState,
