@@ -226,7 +226,7 @@ const generateValidBytesEncodings = () => {
 	const input = {
 		bytes: {
 			object: {
-				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex').toString('binary'),
+				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex').toString('hex'),
 			},
 			schema: {
 				type: 'object',
@@ -240,7 +240,7 @@ const generateValidBytesEncodings = () => {
 		},
 		emptyBytes: {
 			object: {
-				address: Buffer.from('').toString('binary'),
+				address: Buffer.from('').toString('hex'),
 			},
 			schema: {
 				type: 'object',

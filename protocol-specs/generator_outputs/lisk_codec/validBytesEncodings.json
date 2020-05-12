@@ -15,7 +15,7 @@
 			"input": {
 				"bytes": {
 					"object": {
-						"address": "á\u001a\u00116G8\"X\u0013øn¨R\u0014@\u000e]°n"
+						"address": "e11a11364738225813f86ea85214400e5db08d6e"
 					},
 					"schema": {
 						"type": "object",
@@ -43,7 +43,7 @@
 				}
 			},
 			"output": {
-				"bytes": "0a05e86f179d19",
+				"bytes": "0a1e7b5d5ad75dfae3bdfcdb6e7cd777fce9e6bce76d78e34d1ee5d6f4f1de9e",
 				"emptyBytes": "0a00"
 			}
 		}
