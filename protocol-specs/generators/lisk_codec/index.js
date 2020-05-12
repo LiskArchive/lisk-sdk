@@ -222,16 +222,11 @@ const generateValidStringEncodings = () => {
 
 
 const generateValidBytesEncodings = () => {
-	const object = {
-		address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
-	};
-
-	const objForOutput = { ...object };
-	objForOutput.address = objForOutput.address.toString('hex');
-
 	const input = {
 		bytes: {
-			object,
+			object: {
+				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
+			},
 			schema: {
 				type: 'object',
 				properties: {
@@ -267,7 +262,7 @@ const generateValidBytesEncodings = () => {
 			network: 'devnet',
 		},
 		input: {
-			bytes: { object: objForOutput, schema: input.bytes.schema },
+			bytes: input.bytes,
 			emptyBytes: input.emptyBytes,
 		},
 		output: {
@@ -287,12 +282,6 @@ const generateValidObjectEncodings = () => {
 			data: 'Check out the Lisk SDK now in binary!',
 		},
 	};
-
-	const objectForOutput = {
-		...object,
-		asset: { ...object.asset },
-	};
-	objectForOutput.address = objectForOutput.address.toString('hex');
 
 	const input = {
 		object: {
@@ -363,7 +352,7 @@ const generateValidObjectEncodings = () => {
 			network: 'devnet',
 		},
 		input: {
-			object: { object: objectForOutput, schema: input.object.schema },
+			object: input.object,
 			objectWithOptionalProp: input.objectOptionalProp,
 		},
 		output: {
