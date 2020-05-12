@@ -1,0 +1,21 @@
+syntax = 'proto2';
+
+message ArrayOfIntegers {
+	repeated int32 list = 1 [packed=true];
+}
+
+message ArrayBools {
+	repeated bool list = 1 [packed=true];
+}
+
+
+message Object {
+	required string address = 1;
+	required uint64 amount = 2;
+}
+
+message ArrayObjects {
+	repeated Object myArray = 1;
+}
+
+

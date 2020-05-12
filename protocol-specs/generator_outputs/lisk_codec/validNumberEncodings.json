@@ -1,0 +1,81 @@
+{
+	"title": "Valid number encodings",
+	"summary": "Examples of encoding numbers as required by lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "validNumberEncodings",
+	"testCases": [
+		{
+			"description": "Encoding of numeric types",
+			"config": {
+				"network": "devnet"
+			},
+			"input": {
+				"message32": {
+					"object": {
+						"number": 10
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"number": {
+								"dataType": "uint32",
+								"fieldNumber": 1
+							}
+						}
+					}
+				},
+				"messageSigned32": {
+					"object": {
+						"number": -10
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"number": {
+								"dataType": "sint32",
+								"fieldNumber": 1
+							}
+						}
+					}
+				},
+				"message64": {
+					"object": {
+						"number": 372036854775807
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"number": {
+								"dataType": "uint64",
+								"fieldNumber": 1
+							}
+						}
+					}
+				},
+				"messageSigned64": {
+					"object": {
+						"number": -9007199254740991
+					},
+					"schema": {
+						"type": "object",
+						"properties": {
+							"number": {
+								"dataType": "sint64",
+								"fieldNumber": 1
+							}
+						}
+					}
+				}
+			},
+			"output": {
+				"numberEncoded32": "080a",
+				"signedNumberEncoded32": "0813",
+				"numberEncoded64": "08ffffc9a4d9cb54",
+				"signedNumberEncoded64": "08fdffffffffffff1f"
+			}
+		}
+	]
+}
