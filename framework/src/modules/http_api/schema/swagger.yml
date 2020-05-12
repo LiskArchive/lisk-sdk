@@ -1417,9 +1417,9 @@ definitions:
       id:
         type: string
         format: id
-        example: '222675625422353767'
+        example: 'c0824976121440d0f8289bac57933bf1d7095b8fdb92b32c5bd28669facd361'
         minLength: 1
-        maxLength: 20
+        maxLength: 64
         description: |
           Unique identifier of the transaction.
           Derived from the transaction signature.

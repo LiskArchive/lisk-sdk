@@ -23,8 +23,7 @@ const {
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
-	getFirstEightBytesReversed,
-	bufferToIntAsString,
+	bufferToHex,
 } = require('@liskhq/lisk-cryptography');
 
 const BaseGenerator = require('../base_generator');
@@ -135,10 +134,7 @@ const sign = (block, privateKey) =>
 
 const getId = transactionBytes => {
 	const transactionHash = hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const transactionId = bufferToIntAsString(bufferFromFirstEntriesReversed);
+	const transactionId = bufferToHex(transactionHash);
 
 	return transactionId;
 };

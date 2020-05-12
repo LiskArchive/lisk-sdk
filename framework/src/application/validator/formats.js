@@ -53,7 +53,7 @@ const ADDITIONAL_DATA = {
 
 const validationFormats = {
 	id(str) {
-		return str === '' || /^[0-9]+$/g.test(str);
+		return str === '' || /^[a-f0-9]+$/i.test(str);
 	},
 
 	additionalData(str) {

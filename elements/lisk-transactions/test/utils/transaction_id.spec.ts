@@ -50,19 +50,12 @@ describe('#getId', () => {
 		expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
 	});
 
-	it('should call cryptography getFirstEightBytesReversed', () => {
-		const cryptographygetFirstEightBytesReversedStub = jest
-			.spyOn(cryptography, 'getFirstEightBytesReversed')
-			.mockReturnValue(Buffer.from('db9620af8de763da', 'hex'));
-
-		getId(Buffer.from(defaultTransactionBytes, 'hex'));
-		expect(cryptographygetFirstEightBytesReversedStub).toHaveBeenCalledTimes(1);
-	});
-
-	it('should call cryptography bufferToIntAsString', () => {
+	it('should call cryptography bufferToHex', () => {
 		const cryptographybufferToIntAsStringStub = jest
-			.spyOn(cryptography, 'bufferToIntAsString')
-			.mockReturnValue('15822870279184933850');
+			.spyOn(cryptography, 'bufferToHex')
+			.mockReturnValue(
+				'cb3ad8a0859fa1c6b6d6244b5dc3747a1a502baf58c77b3c8711d200553307ed',
+			);
 
 		getId(Buffer.from(defaultTransactionBytes, 'hex'));
 		expect(cryptographybufferToIntAsStringStub).toHaveBeenCalledTimes(1);
