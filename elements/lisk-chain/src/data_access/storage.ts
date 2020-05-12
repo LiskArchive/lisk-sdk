@@ -48,7 +48,7 @@ export class Storage {
 	*/
 	public async getBlockHeaderByID(id: string): Promise<BlockHeaderJSON> {
 		const block = await this._db.get<BlockHeaderJSON>(
-			`${DB_KEY_BLOCKS_ID}${id}`,
+			`${DB_KEY_BLOCKS_ID}:${id}`,
 		);
 		return block;
 	}
@@ -59,7 +59,7 @@ export class Storage {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
 			const block = await this._db.get<BlockHeaderJSON>(
-				`${DB_KEY_BLOCKS_ID}${id}`,
+				`${DB_KEY_BLOCKS_ID}:${id}`,
 			);
 			blocks.push(block);
 		}
@@ -71,7 +71,7 @@ export class Storage {
 	): Promise<BlockHeaderJSON> {
 		const stringHeight = formatInt(height);
 		const id = await this._db.get<string>(
-			`${DB_KEY_BLOCKS_HEIGHT}${stringHeight}`,
+			`${DB_KEY_BLOCKS_HEIGHT}:${stringHeight}`,
 		);
 		return this.getBlockHeaderByID(id);
 	}
@@ -81,8 +81,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<BlockHeaderJSON[]> {
 		const stream = this._db.createReadStream({
-			gte: `${DB_KEY_BLOCKS_HEIGHT}${formatInt(fromHeight)}`,
-			lte: `${DB_KEY_BLOCKS_HEIGHT}${formatInt(toHeight)}`,
+			gte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(fromHeight)}`,
+			lte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(toHeight)}`,
 			reverse: true,
 		});
 		const blockIDs = await new Promise<string[]>((resolve, reject) => {
@@ -299,7 +299,7 @@ export class Storage {
 			for (const blockID of blockIDs) {
 				try {
 					const ids = await this._db.get<string[]>(
-						`${DB_KEY_TRANSACTIONS_BLOCK_ID}${blockID}`,
+						`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`,
 					);
 					transactionIDs.push(...ids);
 				} catch (error) {
@@ -307,22 +307,22 @@ export class Storage {
 						throw error;
 					}
 				}
-				batch.del(`${DB_KEY_BLOCKS_ID}${blockID}`);
-				batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}${blockID}`);
+				batch.del(`${DB_KEY_BLOCKS_ID}:${blockID}`);
+				batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`);
 			}
 			// tslint:disable-next-line no-let
 			for (let j = startHeight; j <= endHeight; j += 1) {
-				batch.del(`${DB_KEY_BLOCKS_HEIGHT}${formatInt(j)}`);
+				batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(j)}`);
 			}
 			for (const txID of transactionIDs) {
-				batch.del(`${DB_KEY_TRANSACTIONS_ID}${txID}`);
+				batch.del(`${DB_KEY_TRANSACTIONS_ID}:${txID}`);
 			}
 			await batch.write();
 		}
 	}
 
 	public async isBlockPersisted(blockID: string): Promise<boolean> {
-		return this._db.exists(`${DB_KEY_BLOCKS_ID}${blockID}`);
+		return this._db.exists(`${DB_KEY_BLOCKS_ID}:${blockID}`);
 	}
 
 	/*
@@ -330,7 +330,7 @@ export class Storage {
 	*/
 	public async getChainState(key: string): Promise<string | undefined> {
 		try {
-			const value = await this._db.get<string>(`${DB_KEY_CHAIN_STATE}${key}`);
+			const value = await this._db.get<string>(`${DB_KEY_CHAIN_STATE}:${key}`);
 
 			return value;
 		} catch (error) {
@@ -347,7 +347,7 @@ export class Storage {
 	public async getConsensusState(key: string): Promise<string | undefined> {
 		try {
 			const value = await this._db.get<string>(
-				`${DB_KEY_CONSENSUS_STATE}${key}`,
+				`${DB_KEY_CONSENSUS_STATE}:${key}`,
 			);
 
 			return value;
@@ -364,7 +364,7 @@ export class Storage {
 	*/
 	public async getAccountByAddress(address: string): Promise<AccountJSON> {
 		const account = await this._db.get<AccountJSON>(
-			`${DB_KEY_ACCOUNTS_ADDRESS}${address}`,
+			`${DB_KEY_ACCOUNTS_ADDRESS}:${address}`,
 		);
 
 		return account;
@@ -446,7 +446,7 @@ export class Storage {
 	*/
 	public async getTransactionByID(id: string): Promise<TransactionJSON> {
 		const transaction = this._db.get<TransactionJSON>(
-			`${DB_KEY_TRANSACTIONS_ID}${id}`,
+			`${DB_KEY_TRANSACTIONS_ID}:${id}`,
 		);
 
 		return transaction;
@@ -465,7 +465,7 @@ export class Storage {
 	}
 
 	public async isTransactionPersisted(transactionId: string): Promise<boolean> {
-		return this._db.exists(`${DB_KEY_TRANSACTIONS_ID}${transactionId}`);
+		return this._db.exists(`${DB_KEY_TRANSACTIONS_ID}:${transactionId}`);
 	}
 
 	/*
@@ -478,18 +478,18 @@ export class Storage {
 	): Promise<void> {
 		const batch = this._db.batch();
 		const { transactions, ...header } = blockJSON;
-		batch.put(`${DB_KEY_BLOCKS_ID}${header.id}`, header);
-		batch.put(`${DB_KEY_BLOCKS_HEIGHT}${formatInt(header.height)}`, header.id);
+		batch.put(`${DB_KEY_BLOCKS_ID}:${header.id}`, header);
+		batch.put(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(header.height)}`, header.id);
 		if (transactions.length > 0) {
 			const ids = [];
 			for (const tx of transactions) {
 				ids.push(tx.id);
-				batch.put(`${DB_KEY_TRANSACTIONS_ID}${tx.id as string}`, tx);
+				batch.put(`${DB_KEY_TRANSACTIONS_ID}:${tx.id as string}`, tx);
 			}
-			batch.put(`${DB_KEY_TRANSACTIONS_BLOCK_ID}${header.id}`, ids);
+			batch.put(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${header.id}`, ids);
 		}
 		if (removeFromTemp) {
-			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}${formatInt(blockJSON.height)}`);
+			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(blockJSON.height)}`);
 		}
 		stateStore.finalize(batch);
 		await batch.write();
@@ -502,17 +502,17 @@ export class Storage {
 	): Promise<void> {
 		const batch = this._db.batch();
 		const { transactions, ...header } = blockJSON;
-		batch.del(`${DB_KEY_BLOCKS_ID}${header.id}`);
-		batch.del(`${DB_KEY_BLOCKS_HEIGHT}${formatInt(header.height)}`);
+		batch.del(`${DB_KEY_BLOCKS_ID}:${header.id}`);
+		batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(header.height)}`);
 		if (transactions.length > 0) {
 			for (const tx of transactions) {
-				batch.del(`${DB_KEY_TRANSACTIONS_ID}${tx.id as string}`);
+				batch.del(`${DB_KEY_TRANSACTIONS_ID}:${tx.id as string}`);
 			}
-			batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}${header.id}`);
+			batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${header.id}`);
 		}
 		if (saveToTemp) {
 			batch.put(
-				`${DB_KEY_TEMPBLOCKS_HEIGHT}${formatInt(blockJSON.height)}`,
+				`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(blockJSON.height)}`,
 				blockJSON,
 			);
 		}
@@ -524,7 +524,7 @@ export class Storage {
 		const txIDs = [];
 		try {
 			const ids = await this._db.get<string[]>(
-				`${DB_KEY_TRANSACTIONS_BLOCK_ID}${blockID}`,
+				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`,
 			);
 			txIDs.push(...ids);
 		} catch (error) {
@@ -538,7 +538,7 @@ export class Storage {
 		const transactions = [];
 		for (const txID of txIDs) {
 			const tx = await this._db.get<TransactionJSON>(
-				`${DB_KEY_TRANSACTIONS_ID}${txID}`,
+				`${DB_KEY_TRANSACTIONS_ID}:${txID}`,
 			);
 			transactions.push(tx);
 		}

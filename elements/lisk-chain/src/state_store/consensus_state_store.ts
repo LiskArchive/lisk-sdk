@@ -96,7 +96,7 @@ export class ConsensusStateStore {
 		}
 
 		for (const key of Array.from(this._updatedKeys)) {
-			batch.put(`${DB_KEY_CONSENSUS_STATE}${key}`, this._data[key]);
+			batch.put(`${DB_KEY_CONSENSUS_STATE}:${key}`, this._data[key]);
 		}
 	}
 }

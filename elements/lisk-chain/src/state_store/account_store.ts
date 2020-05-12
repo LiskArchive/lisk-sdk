@@ -140,7 +140,7 @@ export class AccountStore {
 		for (const account of this._data) {
 			if (this._updatedKeys.has(account.address)) {
 				batch.put(
-					`${DB_KEY_ACCOUNTS_ADDRESS}${account.address}`,
+					`${DB_KEY_ACCOUNTS_ADDRESS}:${account.address}`,
 					account.toJSON(),
 				);
 			}

@@ -110,7 +110,7 @@ export class ChainStateStore {
 		}
 
 		for (const key of Array.from(this._updatedKeys)) {
-			batch.put(`${DB_KEY_CHAIN_STATE}${key}`, this._data[key]);
+			batch.put(`${DB_KEY_CHAIN_STATE}:${key}`, this._data[key]);
 		}
 	}
 }

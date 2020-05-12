@@ -429,8 +429,8 @@ describe('data_access', () => {
 			// Assert
 			expect(db.clear).toHaveBeenCalledTimes(1);
 			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('tempBlocks:height:'),
-				lte: expect.stringContaining('tempBlocks:height:'),
+				gte: expect.stringContaining('tempBlocks:height'),
+				lte: expect.stringContaining('tempBlocks:height'),
 			});
 		});
 	});
@@ -557,16 +557,16 @@ describe('data_access', () => {
 			// Assert
 			expect(db.clear).toHaveBeenCalledTimes(3);
 			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('accounts:address:'),
-				lte: expect.stringContaining('accounts:address:'),
+				gte: expect.stringContaining('accounts:address'),
+				lte: expect.stringContaining('accounts:address'),
 			});
 			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('chain:'),
-				lte: expect.stringContaining('chain:'),
+				gte: expect.stringContaining('chain'),
+				lte: expect.stringContaining('chain'),
 			});
 			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('consensus:'),
-				lte: expect.stringContaining('consensus:'),
+				gte: expect.stringContaining('consensus'),
+				lte: expect.stringContaining('consensus'),
 			});
 		});
 	});
