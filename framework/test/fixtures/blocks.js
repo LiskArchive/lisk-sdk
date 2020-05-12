@@ -50,7 +50,7 @@ const Block = stampit({
 		// Must to provide
 		this.previousBlockId = previousBlockId;
 
-		this.id = id || randomstring.generate({ charset: 'numeric', length: 20 });
+		this.id = id || randomstring.generate({ charset: 'numeric', length: 64 });
 		this.generatorPublicKey =
 			generatorPublicKey ||
 			randomstring
@@ -79,7 +79,7 @@ const GenesisBlock = stampit(Block, {
 			generatorPublicKey || genesisBlock.generatorPublicKey;
 		this.blockSignature = genesisBlock.blockSignature;
 		this.payloadHash = genesisBlock.payloadHash;
-		this.previousBlockId = null;
+		this.previousBlockId = genesisBlock.id;
 		this.height = 1;
 		this.numberOfTransactions = 0;
 		this.reward = '111';
@@ -107,7 +107,7 @@ const BlockHeader = stampit({
 		maxHeightPrevoted,
 	}) {
 		this.blockId =
-			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
+			blockId || randomstring.generate({ charset: 'numeric', length: 64 });
 		this.height = height || Math.floor(Math.random() * Math.floor(5000));
 		this.delegatePublicKey =
 			delegatePublicKey ||

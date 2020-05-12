@@ -625,7 +625,9 @@ describe('transport', () => {
 							it('should throw an error', async () => {
 								await expect(
 									transportModule.handleEventPostBlock(
-										{ block: { ...postBlockQuery.block, id: 'dummy' } },
+										{
+											block: { ...postBlockQuery.block, id: 'test'.repeat(16) },
+										},
 										defaultPeerId,
 									),
 								).rejects.toEqual([
