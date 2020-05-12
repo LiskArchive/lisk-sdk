@@ -79,7 +79,7 @@ const GenesisBlock = stampit(Block, {
 			generatorPublicKey || genesisBlock.generatorPublicKey;
 		this.blockSignature = genesisBlock.blockSignature;
 		this.payloadHash = genesisBlock.payloadHash;
-		this.previousBlockId = genesisBlock.id;
+		this.previousBlockId = null;
 		this.height = 1;
 		this.numberOfTransactions = 0;
 		this.reward = '111';
