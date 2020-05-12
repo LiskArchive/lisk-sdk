@@ -34,7 +34,7 @@
 				"header1": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 900000,
 					"maxHeightPreviouslyForged": 690000,
@@ -46,12 +46,12 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "3cd3d79862ca871ddadb3395b8f4710c7d6d672b6b65b2165d990266c7682a79f66376ad7b96ce848e52b199fdd0046830a65d9d7f6d4fb3a96696a350addd09"
+					"blockSignature": "fb9470ff8735209366badb592f14b34c398e2b4f88a80ded7455f852dc23e62faad4e47afdcdaf3874bf9e4c2e7d4f1c523a0523373f8e328c94eac283c80802"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 3000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 800000,
 					"maxHeightPreviouslyForged": 700000,
@@ -63,11 +63,11 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "103f8e57b1140e67f5e71c35f57337cd8e8201f00f56308394f725227cd910e9134062216859dacbf0da562619a581535d833e3355aed795d45c95717d35260a"
+					"blockSignature": "eb43bd5ee76da954c772e9bd9ac6dc73ba8bb10a6b5bfa789fae168378ef3ffd88ca61bcf673099b1e5dcfd830fb6a9d221645f947836fb515b1779e4f694707"
 				}
 			},
 			"signatures": [
-				"4b5824fae6320ac5f0a1d360143eda0efc74a3b188294c29bb82af680e5a3ad5fa86c81b2a09e09d1d94a7255e517403c8801972e1a1d367be9f3f4da57c2a09"
+				"8194d3f9a78b0121f357cef24d5f6258c79d51323321e2f40fca5a1a0df0f9ce48c9c8fec0231f468e53df99ed7829f6ceaa1345a5f543f63a96b7d22e2ec807"
 			],
 			"id": "204bf7836f60bc25abd272366bf9a0c0754fe22396020ff150cf24fdc072fd1b"
 		}

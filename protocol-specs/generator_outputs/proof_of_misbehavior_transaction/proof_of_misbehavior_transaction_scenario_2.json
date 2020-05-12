@@ -34,7 +34,7 @@
 				"header1": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 800000,
 					"maxHeightPreviouslyForged": 700000,
@@ -46,12 +46,12 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "6d8d4a92db94627556ad0dfb439c9b90e2cb20cb96aeca62df5793ea8e8a3984d5f27fa5768b3bcb4d073e834001e7b19376dc758b3309b18f0fc3370a60150a"
+					"blockSignature": "a28c34edb0d4a0e23d45e3510a59d7ac6240fd6dbf766adffc9cf4b44c72e8c77a9de15f7b28d1e0b1222a31a7238ad92933af4b3dd4f370f7a4678b4cb19f00"
 				},
 				"header2": {
 					"version": 2,
 					"timestamp": 2000000,
-					"previousBlockId": "10620616195853047363",
+					"previousBlockId": "9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b",
 					"seedReveal": "c8c557b5dba8527c0e760124128fd15c",
 					"height": 800000,
 					"maxHeightPreviouslyForged": 700000,
@@ -63,11 +63,11 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "882d34d51eca037c496e886200718497f13b15335665b15758e6f502feaa2d67d05b63b258b63cea2ddde88b637a21e5ea056c6b4f5459fd094e1a064517e40d"
+					"blockSignature": "b48cbeb3057ac796845cad349285f13bccab966b3e88a506a05477d9196e06423ac1b2e127cf30c851bf21061a755e16eee9658814bc4d4df21f56b68b276300"
 				}
 			},
 			"signatures": [
-				"86093e748b68cf0fb5aeffb50088895b3707b98523098a18ce19bad7875e439f32b05d38d7ef097309326467290664308a83f0de743ebfc91b9563bb9e253106"
+				"2de094945ccf1a1a92038bf3346f9f4838fa1dceab10a433caa853db918578d2e322da5e6a7ca43a80250e838271a35af226e19576865dfa0c92f082ce19c309"
 			],
 			"id": "f199254d35eea6cf71bcda4549a0d64a5c6d03e621cdf8799f6eaccbe910b234"
 		}
