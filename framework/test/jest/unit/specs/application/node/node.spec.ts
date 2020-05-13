@@ -35,8 +35,6 @@ describe('Node', () => {
 	const stubs: any = {};
 	const lastBlock = { ...nodeOptions.genesisBlock };
 	const mockExit = jest.fn();
-	jest.mock('fs');
-	jest.mock('@liskhq/lisk-db');
 
 	beforeEach(() => {
 		// Arrange
@@ -68,6 +66,11 @@ describe('Node', () => {
 				},
 				ChainMeta: { getKey: jest.fn() },
 			},
+		};
+		stubs.forgerDB = {
+			get: jest.fn(),
+			put: jest.fn(),
+			close: jest.fn(),
 		};
 		stubs.modules = {
 			module1: {
@@ -106,6 +109,7 @@ describe('Node', () => {
 		const params = {
 			channel: stubs.channel,
 			storage: stubs.storage,
+			forgerDB: stubs.forgerDB,
 			logger: stubs.logger,
 			options: nodeOptions,
 			applicationState: stubs.applicationState,
@@ -363,6 +367,13 @@ describe('Node', () => {
 			await node.cleanup();
 			// Assert
 			expect(node['_transactionPool'].stop).toHaveBeenCalled();
+		});
+
+		it('should call forgerDB.stop', async () => {
+			jest.spyOn(node['_forgerDB'], 'close');
+			await node.cleanup();
+			// Assert
+			expect(node['_forgerDB'].close).toHaveBeenCalled();
 		});
 	});
 
