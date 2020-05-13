@@ -458,6 +458,10 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			);
 			return JSON.parse(previouslyForgedStr) as ForgedMap;
 		} catch (error) {
+			this.logger.info(
+				{ err: (error as Error).message },
+				'Failed to parse forged data',
+			);
 			return {};
 		}
 	}
