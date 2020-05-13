@@ -62,7 +62,7 @@ const createChecksum = uint5Array => {
 	return result;
 };
 
-const covertUIntArray = (uintArray, fromBits, toBits) => {
+const convertUIntArray = (uintArray, fromBits, toBits) => {
 	const maxValue = (1 << toBits) - 1;
 	let accumulator = 0;
 	let bits = 0;
@@ -83,7 +83,7 @@ const convertUInt5ToBase32 = uint5Array =>
 
 const getBase32Address = publicKey => {
 	const binaryAddress = getBinaryAddress(publicKey);
-	const uint5Address = covertUIntArray(Uint8Array.from(binaryAddress), 8, 5);
+	const uint5Address = convertUIntArray(Uint8Array.from(binaryAddress), 8, 5);
 	const uint5Checksum = createChecksum(uint5Address);
 	return `${PREFIX_LISK}${convertUInt5ToBase32(
 		uint5Address.concat(uint5Checksum),
