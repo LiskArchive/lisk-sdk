@@ -13,9 +13,10 @@
  */
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { KVStore } from '@liskhq/lisk-db';
 import * as liskP2p from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
-import { Logger, Storage } from '../../types';
+import { Logger } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 
@@ -50,7 +51,7 @@ interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
-	readonly storage: Storage;
+	readonly networkDB: KVStore;
 }
 
 export interface NetworkConfig {
@@ -93,7 +94,7 @@ export class Network {
 	private readonly options: NetworkConfig;
 	private readonly channel: InMemoryChannel;
 	private readonly logger: Logger;
-	private readonly storage: Storage;
+	private readonly networkDB: KVStore;
 	private secret: number | null;
 	private p2p!: liskP2p.P2P;
 
@@ -101,18 +102,18 @@ export class Network {
 		options,
 		channel,
 		logger,
-		storage,
+		networkDB,
 	}: NetworkConstructor) {
 		this.options = options;
 		this.channel = channel;
 		this.logger = logger;
-		this.storage = storage;
+		this.networkDB = networkDB;
 		this.secret = null;
 	}
 
 	public async bootstrap(): Promise<void> {
 		// Load peers from the database that were tried or connected the last time node was running
-		const previousPeersStr = await this.storage.entities.NetworkInfo.getKey(
+		const previousPeersStr = await this.networkDB.get<string>(
 			NETWORK_INFO_KEY_TRIED_PEERS,
 		);
 		let previousPeers: ReadonlyArray<liskP2p.p2pTypes.ProtocolPeerInfo> = [];
@@ -127,12 +128,10 @@ export class Network {
 		}
 
 		// Get previous secret if exists
-		const secret = await this.storage.entities.NetworkInfo.getKey(
-			NETWORK_INFO_KEY_NODE_SECRET,
-		);
+		const secret = await this.networkDB.get(NETWORK_INFO_KEY_NODE_SECRET);
 		if (!secret) {
 			this.secret = getRandomBytes(4).readUInt32BE(0);
-			await this.storage.entities.NetworkInfo.setKey(
+			await this.networkDB.put(
 				NETWORK_INFO_KEY_NODE_SECRET,
 				this.secret.toString(),
 			);
@@ -376,7 +375,7 @@ export class Network {
 		setInterval(async () => {
 			const triedPeers = this.p2p.getTriedPeers();
 			if (triedPeers.length) {
-				await this.storage.entities.NetworkInfo.setKey(
+				await this.networkDB.put(
 					NETWORK_INFO_KEY_TRIED_PEERS,
 					JSON.stringify(triedPeers),
 				);
