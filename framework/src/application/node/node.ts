@@ -192,8 +192,7 @@ export class Node {
 				dposModule: this._dpos,
 				logger: this._logger,
 				constants: this._options.constants,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				storage: this._storage,
+				forgerDB: this._forgerDB,
 			};
 
 			this._processor.register(new BlockProcessorV2(processorDependencies));
