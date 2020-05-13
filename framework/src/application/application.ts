@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as fs from 'fs';
 import * as assert from 'assert';
 import * as os from 'os';
 import {
@@ -25,6 +26,7 @@ import {
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
 import { Contexter } from '@liskhq/lisk-chain';
+import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { validator as liskValidator } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
@@ -393,11 +395,11 @@ export class Application {
 
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 
+		await this._node.cleanup();
 		// TODO: Fix the cause of circular exception
 		// await this._network.stop();
-		// await this._node.cleanup();
 		// eslint-disable-next-line
-		this.storage.cleanup();
+		// this.storage.cleanup();
 
 		process.exit(errorCode);
 	}
@@ -700,9 +702,23 @@ export class Application {
 			// TODO: Remove the storage with PR 5257
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this.storage,
+			forgerDB: this._getDBInstance(nodeConfigs, 'forger.db'),
 			applicationState: this._applicationState,
 		});
 
 		return node;
+	}
+
+	private _getDBInstance(
+		options: Partial<ApplicationConfig>,
+		dbName: string,
+	): KVStore {
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		const dbPath = `${options.rootPath}/${options.label}/data/${dbName}`;
+		if (!fs.existsSync(dbPath)) {
+			fs.mkdirSync(dbPath, { recursive: true });
+		}
+		this.logger.debug({ dbName, dbPath }, 'Create database instance.');
+		return new KVStore(dbPath);
 	}
 }

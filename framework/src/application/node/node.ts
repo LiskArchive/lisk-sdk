@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as fs from 'fs';
 import {
 	Chain,
 	events as chainEvents,
@@ -100,6 +99,7 @@ interface NodeConstructor {
 	// TODO: Remove storage with PR 5257
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly storage: any;
+	readonly forgerDB: KVStore;
 	readonly applicationState: ApplicationState;
 }
 
@@ -118,7 +118,6 @@ export class Node {
 	// TODO: Replace storage with _blockchainDB in PR 5257
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly _storage: any;
-	// private readonly _blockchainDB: KVStore;
 	private readonly _forgerDB: KVStore;
 	private readonly _applicationState: ApplicationState;
 	private readonly _components: { readonly logger: Logger };
@@ -140,6 +139,7 @@ export class Node {
 		options,
 		logger,
 		storage,
+		forgerDB,
 		applicationState,
 	}: NodeConstructor) {
 		this._channel = channel;
@@ -150,8 +150,8 @@ export class Node {
 		// TODO: Replace storage with _blockchainDB in PR 5257
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._storage = storage;
-		// this._blockchainDB = this._getDBInstance(this._options, 'blockchain.db');
-		this._forgerDB = this._getDBInstance(this._options, 'forger.db');
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		this._forgerDB = forgerDB;
 	}
 
 	public async bootstrap(): Promise<void> {
@@ -192,7 +192,8 @@ export class Node {
 				dposModule: this._dpos,
 				logger: this._logger,
 				constants: this._options.constants,
-				db: this._forgerDB,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				storage: this._storage,
 			};
 
 			this._processor.register(new BlockProcessorV2(processorDependencies));
@@ -447,10 +448,10 @@ export class Node {
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
 		this._transactionPool.stop();
 		this._unsubscribeToEvents();
+		await this._forgerDB.close();
 		this._logger.info('Cleaned up successfully');
 	}
 
@@ -702,14 +703,5 @@ export class Node {
 
 	private _unsubscribeToEvents(): void {
 		this._bft.removeAllListeners(EVENT_BFT_BLOCK_FINALIZED);
-	}
-
-	private _getDBInstance(options: Options, dbName: string): KVStore {
-		const dbPath = `${options.rootPath}/${options.label}/data/${dbName}`;
-		if (!fs.existsSync(dbPath)) {
-			fs.mkdirSync(dbPath, { recursive: true });
-		}
-		this._logger.debug({ dbName, dbPath }, 'Create database instance.');
-		return new KVStore(dbPath);
 	}
 }

@@ -31,7 +31,6 @@ import {
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
-import { KVStore } from '@liskhq/lisk-db';
 import { BaseBlockProcessor } from './processor';
 import { Logger } from '../../types';
 
@@ -40,7 +39,8 @@ interface BlockProcessorInput {
 	readonly chainModule: Chain;
 	readonly bftModule: BFT;
 	readonly dposModule: Dpos;
-	readonly db: KVStore;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	readonly storage: any;
 	readonly logger: Logger;
 	readonly constants: {
 		readonly maxPayloadLength: number;
@@ -225,7 +225,8 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	private readonly chainModule: Chain;
 	private readonly bftModule: BFT;
 	private readonly dposModule: Dpos;
-	private readonly db: KVStore;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private readonly storage: any;
 	private readonly logger: Logger;
 	private readonly constants: {
 		readonly maxPayloadLength: number;
@@ -236,7 +237,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		chainModule,
 		bftModule,
 		dposModule,
-		db,
+		storage,
 		logger,
 		constants,
 	}: BlockProcessorInput) {
@@ -246,7 +247,8 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
 		this.logger = logger;
-		this.db = db;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		this.storage = storage;
 		this.constants = constants;
 
 		/* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -453,14 +455,13 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	}
 
 	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
-		try {
-			const previouslyForgedStr = await this.db.get<string>(
-				FORGER_INFO_KEY_PREVIOUSLY_FORGED,
-			);
-			return JSON.parse(previouslyForgedStr) as ForgedMap;
-		} catch (error) {
-			return {};
-		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+		const previouslyForgedStr = (await this.storage.entities.ForgerInfo.getKey(
+			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
+		)) as string | undefined;
+		return previouslyForgedStr
+			? (JSON.parse(previouslyForgedStr) as ForgedMap)
+			: {};
 	}
 
 	/**
@@ -494,7 +495,11 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
-		await this.db.put(FORGER_INFO_KEY_PREVIOUSLY_FORGED, previouslyForgedStr);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
+		await this.storage.entities.ForgerInfo.setKey(
+			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
+			previouslyForgedStr,
+		);
 	}
 
 	private async _punishDPoSViolation(

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as fs from 'fs';
+import * as path from 'path';
 import { debug } from 'debug';
 import encodingDown from 'encoding-down';
 import levelup, { LevelUp } from 'levelup';
@@ -50,8 +51,9 @@ export class KVStore {
 
 	public constructor(filePath: string) {
 		logger('opening file', { filePath });
-		if (!fs.existsSync(filePath)) {
-			throw new Error(`${filePath} does not exist`);
+		const parentDir = path.resolve(path.join(filePath, '../'));
+		if (!fs.existsSync(parentDir)) {
+			throw new Error(`${parentDir} does not exist`);
 		}
 		this._db = (levelup(
 			// TODO: When converting to Buffer, this should be removed

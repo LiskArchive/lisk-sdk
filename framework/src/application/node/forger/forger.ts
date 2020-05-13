@@ -108,7 +108,7 @@ export class Forger {
 		forgingStrategy,
 		// components
 		logger,
-		db: storage,
+		db,
 		// Modules
 		processorModule,
 		dposModule,
@@ -124,7 +124,7 @@ export class Forger {
 	}: ForgerConstructor) {
 		this._keypairs = {};
 		this._logger = logger;
-		this._db = storage;
+		this._db = db;
 		this._config = {
 			forging: {
 				delegates: forgingDelegates,
