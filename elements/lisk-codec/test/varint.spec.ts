@@ -121,7 +121,7 @@ describe('varint', () => {
 
 		it('should fail to decode uint32 when input is out of range', () => {
 			expect(() =>
-				readVarInt(Buffer.from('ffffffff7f', 'hex'), { dataType: 'uint32' }),
+				readVarInt(Buffer.from('8080808010', 'hex'), { dataType: 'uint32' }),
 			).toThrow('Value out of range of uint32');
 		});
 
@@ -150,10 +150,10 @@ describe('varint', () => {
 
 		it('should fail to decode uint64 when input is out of range', () => {
 			expect(() =>
-				readVarInt(Buffer.from('ffffffffffffffffff02', 'hex'), {
-					dataType: 'uint32',
+				readVarInt(Buffer.from('80808080808080808002', 'hex'), {
+					dataType: 'uint64',
 				}),
-			).toThrow('Value out of range of uint32');
+			).toThrow('Value out of range of uint64');
 		});
 
 		it('should decode sint32', () => {
