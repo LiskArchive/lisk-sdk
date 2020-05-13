@@ -456,7 +456,7 @@ export class Chain {
 		let secondLastBlock: BlockInstance;
 		try {
 			secondLastBlock = await this.dataAccess.getBlockByID(
-				block.previousBlockId as string,
+				block.previousBlockId,
 			);
 		} catch (error) {
 			throw new Error('PreviousBlock is null');

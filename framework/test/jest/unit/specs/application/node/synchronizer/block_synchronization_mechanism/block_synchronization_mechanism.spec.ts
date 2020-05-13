@@ -56,7 +56,6 @@ describe('block_synchronization_mechanism', () => {
 	let blockIdsList: string[];
 	let blockList: BlockInstance[];
 	let dataAccessMock;
-	const forgerDBMock = new KVStore('/tmp/bsm.db');
 
 	beforeEach(() => {
 		loggerMock = {
@@ -126,7 +125,7 @@ describe('block_synchronization_mechanism', () => {
 
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: '',
-			forgerDB: forgerDBMock,
+			forgerDB,
 			chainModule,
 			bftModule,
 			dposModule,

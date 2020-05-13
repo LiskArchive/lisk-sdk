@@ -51,7 +51,6 @@ describe('Synchronizer', () => {
 	let loggerMock: any;
 	let syncParameters;
 	let dataAccessMock;
-	const forgerDBMock = new KVStore('/tmp/synchronizer.db');
 
 	beforeEach(() => {
 		jest.spyOn(synchronizerUtils, 'restoreBlocksUponStartup');
@@ -118,7 +117,7 @@ describe('Synchronizer', () => {
 
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: '',
-			forgerDB: forgerDBMock,
+			forgerDB,
 			chainModule,
 			bftModule,
 			dposModule: dposModuleMock,
