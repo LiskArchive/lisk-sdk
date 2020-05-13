@@ -169,6 +169,7 @@ export class Application {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly storage: any;
 	private _forgerDB!: KVStore;
+	private _blockchainDB!: KVStore;
 
 	public constructor(
 		genesisBlock: GenesisBlockInstance,
@@ -365,6 +366,7 @@ export class Application {
 
 		// Initialize database instances
 		this._forgerDB = this._getDBInstance(this.config, 'forger.db');
+		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 
 		// Initialize all objects
 		this._applicationState = this._initApplicationState();
@@ -713,10 +715,8 @@ export class Application {
 				registeredTransactions: this.getTransactions(),
 			},
 			logger: this.logger,
-			// TODO: Remove the storage with PR 5257
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			storage: this.storage,
 			forgerDB: this._forgerDB,
+			blockchainDB: this._blockchainDB,
 			applicationState: this._applicationState,
 		});
 

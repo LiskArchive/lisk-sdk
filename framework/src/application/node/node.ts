@@ -96,10 +96,8 @@ interface NodeConstructor {
 	readonly channel: InMemoryChannel;
 	readonly options: Options;
 	readonly logger: Logger;
-	// TODO: Remove storage with PR 5257
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly storage: any;
 	readonly forgerDB: KVStore;
+	readonly blockchainDB: KVStore;
 	readonly applicationState: ApplicationState;
 }
 
@@ -115,10 +113,8 @@ export class Node {
 	private readonly _channel: InMemoryChannel;
 	private readonly _options: Options;
 	private readonly _logger: Logger;
-	// TODO: Replace storage with _blockchainDB in PR 5257
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private readonly _storage: any;
 	private readonly _forgerDB: KVStore;
+	private readonly _blockchainDB: KVStore;
 	private readonly _applicationState: ApplicationState;
 	private readonly _components: { readonly logger: Logger };
 	private _sequence!: Sequence;
@@ -138,7 +134,7 @@ export class Node {
 		channel,
 		options,
 		logger,
-		storage,
+		blockchainDB,
 		forgerDB,
 		applicationState,
 	}: NodeConstructor) {
@@ -147,10 +143,7 @@ export class Node {
 		this._logger = logger;
 		this._applicationState = applicationState;
 		this._components = { logger: this._logger };
-		// TODO: Replace storage with _blockchainDB in PR 5257
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		this._storage = storage;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
 	}
 
@@ -456,9 +449,7 @@ export class Node {
 
 	private _initModules(): void {
 		this._chain = new Chain({
-			// TODO: Replace the storage with _blockchainDB in PR 5257
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			storage: this._storage,
+			db: this._blockchainDB,
 			genesisBlock: this._options.genesisBlock as GenesisBlockJSON,
 			registeredTransactions: this._options.registeredTransactions,
 			networkIdentifier: this._networkIdentifier,
