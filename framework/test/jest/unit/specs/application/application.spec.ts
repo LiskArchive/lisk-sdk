@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable max-classes-per-file */
+
+import * as fs from 'fs-extra';
 import {
 	BaseTransaction as Base,
 	TransferTransaction,
@@ -30,7 +32,9 @@ import * as loggerComponent from '../../../../../src/components/logger';
 import * as storageComponent from '../../../../../src/components/storage';
 import * as networkConfig from '../../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../../fixtures/config/devnet/genesis_block.json';
+import { systemDirs } from '../../../../../src/application/system_dirs';
 
+jest.mock('fs-extra');
 jest.mock('../../../../../src/components/logger');
 jest.mock('../../../../../src/components/storage');
 jest.mock('@liskhq/lisk-validator', () => ({
@@ -440,6 +444,38 @@ describe('Application', () => {
 		it('should create getTransactionsByIDs action', () => {
 			// Assert
 			expect(actionsList).toContain('getTransactionsByIDs');
+		});
+	});
+
+	describe('#_setupDirectories', () => {
+		let app: any;
+		let dirs: any;
+		beforeEach(() => {
+			app = new Application(genesisBlock, config);
+			app.run();
+			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+		it('should ensure directory exists', () => {
+			// Arrange
+			jest.spyOn(fs, 'ensureDir');
+
+			// Assert
+
+			Array.from(Object.values(dirs)).map(dirPath =>
+				expect(fs.ensureDir).toHaveBeenCalledWith(dirPath),
+			);
+		});
+
+		it('should write process id to pid file if pid file not exits', () => {
+			jest.spyOn(fs, 'pathExists').mockResolvedValue(false as never);
+			jest.spyOn(fs, 'writeFile');
+
+			expect(fs.writeFile).toHaveBeenCalledWith(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				`${dirs.pids}/controller.pid`,
+				expect.toBeNumber(),
+			);
 		});
 	});
 });

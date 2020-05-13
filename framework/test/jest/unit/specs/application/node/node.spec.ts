@@ -368,13 +368,6 @@ describe('Node', () => {
 			// Assert
 			expect(node['_transactionPool'].stop).toHaveBeenCalled();
 		});
-
-		it('should call forgerDB.stop', async () => {
-			jest.spyOn(node['_forgerDB'], 'close');
-			await node.cleanup();
-			// Assert
-			expect(node['_forgerDB'].close).toHaveBeenCalled();
-		});
 	});
 
 	describe('#_forgingTask', () => {

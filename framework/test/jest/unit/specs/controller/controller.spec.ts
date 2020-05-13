@@ -12,13 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-jest.mock('fs-extra');
 jest.mock('../../../../../src/controller/bus');
 jest.mock('../../../../../src/controller/channels/in_memory_channel');
 
 /* eslint-disable import/first  */
 
-import * as fs from 'fs-extra';
 import { Controller } from '../../../../../src/controller/controller';
 import { Bus } from '../../../../../src/controller/bus';
 
@@ -69,12 +67,15 @@ describe('Controller Class', () => {
 		},
 	};
 	const systemDirs = {
-		temp: `${config.rootPath}/${appLabel}/`,
-		sockets: `${config.rootPath}/${appLabel}/sockets`,
-		pids: `${config.rootPath}/${appLabel}/pids`,
+		root: `${config.rootPath}/${appLabel}`,
+		data: `${config.rootPath}/${appLabel}/data`,
+		tmp: `${config.rootPath}/${appLabel}/tmp`,
+		logs: `${config.rootPath}/${appLabel}/logs`,
+		sockets: `${config.rootPath}/${appLabel}/tmp/sockets`,
+		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
 	};
 	const configController = {
-		rootPath: '~/.lisk/#LABEL/',
+		rootPath: '~/.lisk/#LABEL/tmp',
 		ipc: {
 			enabled: false,
 		},
@@ -98,8 +99,6 @@ describe('Controller Class', () => {
 	let controller: Controller;
 
 	beforeEach(() => {
-		// Arrange
-		jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 		// Act
 		controller = new Controller(params);
 	});
@@ -140,35 +139,6 @@ describe('Controller Class', () => {
 			};
 
 			await controller.load(modules, moduleOptions, {});
-		});
-
-		describe('_setupDirectories', () => {
-			it('should ensure directory exists', () => {
-				// Arrange
-				jest.spyOn(fs, 'ensureDir');
-
-				// Assert
-				expect(fs.ensureDir).toHaveBeenCalledWith(controller.config.dirs.temp);
-				expect(fs.ensureDir).toHaveBeenCalledWith(
-					controller.config.dirs.sockets,
-				);
-				expect(fs.ensureDir).toHaveBeenCalledWith(controller.config.dirs.pids);
-			});
-		});
-
-		describe('_validatePidFile', () => {
-			it('should write process id to pid file if pid file not exits', () => {
-				jest.spyOn(fs, 'pathExists').mockResolvedValue(false as never);
-				jest.spyOn(fs, 'writeFile');
-
-				expect(fs.writeFile).toHaveBeenCalledWith(
-					`${controller.config.dirs.pids}/controller.pid`,
-					expect.toBeNumber(),
-				);
-			});
-
-			it.todo('should check if process is running if pid file exists');
-			it.todo('should throw error if process for same app is running already');
 		});
 
 		describe('_setupBus', () => {

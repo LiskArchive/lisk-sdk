@@ -25,9 +25,12 @@ describe('systemDirs', () => {
 
 		// Assert
 		expect(dirsObj).toEqual({
-			temp: `${rootPath}/${appLabel}/`,
-			sockets: `${rootPath}/${appLabel}/sockets`,
-			pids: `${rootPath}/${appLabel}/pids`,
+			root: `${rootPath}/${appLabel}`,
+			data: `${rootPath}/${appLabel}/data`,
+			tmp: `${rootPath}/${appLabel}/tmp`,
+			logs: `${rootPath}/${appLabel}/logs`,
+			sockets: `${rootPath}/${appLabel}/tmp/sockets`,
+			pids: `${rootPath}/${appLabel}/tmp/pids`,
 		});
 	});
 });
