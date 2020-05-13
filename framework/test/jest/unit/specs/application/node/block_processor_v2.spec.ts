@@ -78,7 +78,9 @@ describe('block processor v2', () => {
 			get: jest.fn(),
 			put: jest.fn(),
 		};
-		loggerStub = {};
+		loggerStub = {
+			error: jest.fn(),
+		};
 
 		const defaultConstants = {
 			maxPayloadLength: 15000,

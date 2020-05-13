@@ -29,7 +29,7 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
-import { KVStore } from '@liskhq/lisk-db';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { BaseBlockProcessor } from './processor';
 import { Logger } from '../../types';
@@ -458,10 +458,12 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			);
 			return JSON.parse(previouslyForgedStr) as ForgedMap;
 		} catch (error) {
-			this.logger.info(
-				{ err: (error as Error).message },
-				'Failed to parse forged data',
-			);
+			if (!(error instanceof NotFoundError)) {
+				this.logger.error(
+					{ err: error as Error },
+					'Error while querying forgerDB',
+				);
+			}
 			return {};
 		}
 	}
