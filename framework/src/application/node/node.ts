@@ -448,10 +448,10 @@ export class Node {
 		};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
 		this._transactionPool.stop();
 		this._unsubscribeToEvents();
-		await this._forgerDB.close();
 		this._logger.info('Cleaned up successfully');
 	}
 
