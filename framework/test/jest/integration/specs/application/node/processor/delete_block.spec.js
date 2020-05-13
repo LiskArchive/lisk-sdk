@@ -18,6 +18,7 @@ const {
 	transfer,
 	utils: { convertLSKToBeddows },
 } = require('@liskhq/lisk-transactions');
+const { KVStore } = require('@liskhq/lisk-db');
 const {
 	nodeUtils,
 	storageUtils,
@@ -38,7 +39,8 @@ describe('Delete block', () => {
 			dbName,
 		);
 		await storage.bootstrap();
-		node = await nodeUtils.createAndLoadNode(storage);
+		const forgerDB = new KVStore(`/tmp/${dbName}.db`);
+		node = await nodeUtils.createAndLoadNode(storage, forgerDB);
 		await node._forger.loadDelegates();
 	});
 

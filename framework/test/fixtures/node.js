@@ -27,6 +27,8 @@ const buildVersion = '#buildVersion';
 const peerList = ['peerList'];
 
 const nodeOptions = {
+	rootPath: '~/.lisk',
+	label: 'default',
 	genesisBlock: {
 		transactions: [],
 		id: 1,

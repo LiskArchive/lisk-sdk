@@ -24,10 +24,10 @@ const { Node } = require('../../../src/application/node');
 const genesisBlock = require('../../fixtures/config/devnet/genesis_block.json');
 const config = require('../../fixtures/config/devnet/config.json');
 
-const { conpoments, modules, ...rootConfigs } = config;
+const { components, modules, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
 
-const createNode = ({ storage, logger, channel, options = {} }) => {
+const createNode = ({ storage, forgerDB, logger, channel, options = {} }) => {
 	const nodeOptions = {
 		...nodeConfig(),
 		...nodeConfigs,
@@ -41,6 +41,7 @@ const createNode = ({ storage, logger, channel, options = {} }) => {
 		options: nodeOptions,
 		logger,
 		storage,
+		forgerDB,
 		applicationState: null,
 	});
 };
@@ -58,11 +59,18 @@ const fakeLogger = {
 
 const createAndLoadNode = async (
 	storage,
+	forgerDB,
 	logger = fakeLogger,
 	channel = undefined,
 	options = {},
 ) => {
-	const chainModule = createNode({ storage, logger, channel, options });
+	const chainModule = createNode({
+		storage,
+		forgerDB,
+		logger,
+		channel,
+		options,
+	});
 	await chainModule.bootstrap();
 	return chainModule;
 };
