@@ -287,7 +287,7 @@ const generateValidUpvoteTransaction = () => {
 	};
 	const signBytes = getSignBytes(unsignedTransaction);
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), signBytes])),
+		Buffer.concat([hexToBuffer(networkIdentifier), signBytes]),
 		senderAccount.passphrase,
 	);
 	const id = getId(
