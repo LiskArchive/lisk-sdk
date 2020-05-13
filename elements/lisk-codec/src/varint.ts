@@ -53,7 +53,7 @@ const writeVarIntBigInt = (value: bigint): Buffer => {
 	return Buffer.from(result);
 };
 
-export const writeVarInt = (value: int): Buffer =>
+export const writeVarInt = (value: int, _schema: SchemaProperty): Buffer =>
 	isNumber(value) ? writeVarIntNumber(value) : writeVarIntBigInt(value);
 
 export const writeSignedVarInt = (
@@ -65,7 +65,7 @@ export const writeSignedVarInt = (
 		return writeVarIntNumber(((number << 1) ^ (number >> 31)) >>> 0);
 	}
 	const number = BigInt(value);
-	return writeVarInt((number << BigInt(1)) ^ (number >> BigInt(63)));
+	return writeVarInt((number << BigInt(1)) ^ (number >> BigInt(63)), schema);
 };
 
 const readVarIntNumber = (buffer: Buffer): number => {
@@ -82,7 +82,7 @@ const readVarIntNumber = (buffer: Buffer): number => {
 			return result;
 		}
 	}
-	throw new Error('Out of range');
+	throw new Error('Value out of range for uint32');
 };
 
 const readVarIntBigInt = (buffer: Buffer): bigint => {
@@ -99,7 +99,7 @@ const readVarIntBigInt = (buffer: Buffer): bigint => {
 			return result;
 		}
 	}
-	throw new Error('Out of range');
+	throw new Error('Value out of range for uint64');
 };
 
 export const readVarInt = (buffer: Buffer, schema: SchemaProperty): int =>

@@ -21,27 +21,39 @@ import {
 describe('varint', () => {
 	describe('writer', () => {
 		it('should encode uint32', () => {
-			expect(writeVarInt(0)).toEqual(Buffer.from('00', 'hex'));
-			expect(writeVarInt(300)).toEqual(Buffer.from('ac02', 'hex'));
-			expect(writeVarInt(2147483647)).toEqual(Buffer.from('ffffffff07', 'hex'));
-			expect(writeVarInt(4294967295)).toEqual(Buffer.from('ffffffff0f', 'hex'));
+			expect(writeVarInt(0, { dataType: 'uint32' })).toEqual(
+				Buffer.from('00', 'hex'),
+			);
+			expect(writeVarInt(300, { dataType: 'uint32' })).toEqual(
+				Buffer.from('ac02', 'hex'),
+			);
+			expect(writeVarInt(2147483647, { dataType: 'uint32' })).toEqual(
+				Buffer.from('ffffffff07', 'hex'),
+			);
+			expect(writeVarInt(4294967295, { dataType: 'uint32' })).toEqual(
+				Buffer.from('ffffffff0f', 'hex'),
+			);
 		});
 
 		it('should encode uint64', () => {
-			expect(writeVarInt(BigInt(0))).toEqual(Buffer.from('00', 'hex'));
-			expect(writeVarInt(BigInt(300))).toEqual(Buffer.from('ac02', 'hex'));
-			expect(writeVarInt(BigInt(2147483647))).toEqual(
+			expect(writeVarInt(BigInt(0), { dataType: 'uint64' })).toEqual(
+				Buffer.from('00', 'hex'),
+			);
+			expect(writeVarInt(BigInt(300), { dataType: 'uint64' })).toEqual(
+				Buffer.from('ac02', 'hex'),
+			);
+			expect(writeVarInt(BigInt(2147483647), { dataType: 'uint64' })).toEqual(
 				Buffer.from('ffffffff07', 'hex'),
 			);
-			expect(writeVarInt(BigInt(4294967295))).toEqual(
+			expect(writeVarInt(BigInt(4294967295), { dataType: 'uint64' })).toEqual(
 				Buffer.from('ffffffff0f', 'hex'),
 			);
-			expect(writeVarInt(BigInt('8294967295'))).toEqual(
+			expect(writeVarInt(BigInt('8294967295'), { dataType: 'uint64' })).toEqual(
 				Buffer.from('ffcfacf31e', 'hex'),
 			);
-			expect(writeVarInt(BigInt('18446744073709551615'))).toEqual(
-				Buffer.from('ffffffffffffffffff01', 'hex'),
-			);
+			expect(
+				writeVarInt(BigInt('18446744073709551615'), { dataType: 'uint64' }),
+			).toEqual(Buffer.from('ffffffffffffffffff01', 'hex'));
 		});
 
 		it('should encode sint32', () => {
