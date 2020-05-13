@@ -14,7 +14,7 @@
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
-import * as liskP2p from '@liskhq/lisk-p2p';
+import * as liskP2P from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
@@ -39,7 +39,7 @@ const {
 		EVENT_MESSAGE_RECEIVED,
 		EVENT_BAN_PEER,
 	},
-} = liskP2p;
+} = liskP2P;
 
 const hasNamespaceReg = /:/;
 
@@ -73,11 +73,11 @@ export interface NetworkConfig {
 	advertiseAddress?: boolean;
 }
 
-interface P2PRequestPacket extends liskP2p.p2pTypes.P2PRequestPacket {
+interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacket {
 	readonly peerId: string;
 }
 
-interface P2PMessagePacket extends liskP2p.p2pTypes.P2PMessagePacket {
+interface P2PMessagePacket extends liskP2P.p2pTypes.P2PMessagePacket {
 	readonly peerId: string;
 }
 
@@ -96,7 +96,7 @@ export class Network {
 	private readonly logger: Logger;
 	private readonly networkDB: KVStore;
 	private secret: number | null;
-	private p2p!: liskP2p.P2P;
+	private p2p!: liskP2P.P2P;
 
 	public constructor({
 		options,
@@ -116,7 +116,7 @@ export class Network {
 		const previousPeersStr = await this.networkDB.get<string>(
 			NETWORK_INFO_KEY_TRIED_PEERS,
 		);
-		let previousPeers: ReadonlyArray<liskP2p.p2pTypes.ProtocolPeerInfo> = [];
+		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
@@ -140,8 +140,8 @@ export class Network {
 		}
 
 		const sanitizeNodeInfo = (
-			nodeInfo: liskP2p.p2pTypes.P2PNodeInfo,
-		): liskP2p.p2pTypes.P2PNodeInfo => ({
+			nodeInfo: liskP2P.p2pTypes.P2PNodeInfo,
+		): liskP2P.p2pTypes.P2PNodeInfo => ({
 			...nodeInfo,
 			advertiseAddress: this.options.advertiseAddress ?? true,
 		});
@@ -195,7 +195,7 @@ export class Network {
 
 		this.channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 			const newNodeInfo = sanitizeNodeInfo(
-				event.data as liskP2p.p2pTypes.P2PNodeInfo,
+				event.data as liskP2P.p2pTypes.P2PNodeInfo,
 			);
 			try {
 				this.p2p.applyNodeInfo(newNodeInfo);
@@ -215,7 +215,7 @@ export class Network {
 
 		this.p2p.on(
 			EVENT_CLOSE_OUTBOUND,
-			({ peerInfo, code, reason }: liskP2p.p2pTypes.P2PClosePacket) => {
+			({ peerInfo, code, reason }: liskP2P.p2pTypes.P2PClosePacket) => {
 				this.logger.debug(
 					{
 						...peerInfo,
@@ -229,7 +229,7 @@ export class Network {
 
 		this.p2p.on(
 			EVENT_CLOSE_INBOUND,
-			({ peerInfo, code, reason }: liskP2p.p2pTypes.P2PClosePacket) => {
+			({ peerInfo, code, reason }: liskP2P.p2pTypes.P2PClosePacket) => {
 				this.logger.debug(
 					{
 						...peerInfo,
@@ -331,7 +331,7 @@ export class Network {
 				: `app:${request.procedure}`;
 			try {
 				const result = await this.channel.invokePublic<
-					liskP2p.p2pTypes.P2PNodeInfo
+					liskP2P.p2pTypes.P2PNodeInfo
 				>(sanitizedProcedure, {
 					data: request.data,
 					peerId: request.peerId,
@@ -399,15 +399,15 @@ export class Network {
 	}
 
 	public async request(
-		requestPacket: liskP2p.p2pTypes.P2PRequestPacket,
-	): Promise<liskP2p.p2pTypes.P2PResponsePacket> {
+		requestPacket: liskP2P.p2pTypes.P2PRequestPacket,
+	): Promise<liskP2P.p2pTypes.P2PResponsePacket> {
 		return this.p2p.request({
 			procedure: requestPacket.procedure,
 			data: requestPacket.data,
 		});
 	}
 
-	public send(sendPacket: liskP2p.p2pTypes.P2PMessagePacket): void {
+	public send(sendPacket: liskP2P.p2pTypes.P2PMessagePacket): void {
 		return this.p2p.send({
 			event: sendPacket.event,
 			data: sendPacket.data,
@@ -416,7 +416,7 @@ export class Network {
 
 	public async requestFromPeer(
 		requestPacket: P2PRequestPacket,
-	): Promise<liskP2p.p2pTypes.P2PResponsePacket> {
+	): Promise<liskP2P.p2pTypes.P2PResponsePacket> {
 		return this.p2p.requestFromPeer(
 			{
 				procedure: requestPacket.procedure,
@@ -436,24 +436,24 @@ export class Network {
 		);
 	}
 
-	public broadcast(broadcastPacket: liskP2p.p2pTypes.P2PMessagePacket): void {
+	public broadcast(broadcastPacket: liskP2P.p2pTypes.P2PMessagePacket): void {
 		return this.p2p.broadcast({
 			event: broadcastPacket.event,
 			data: broadcastPacket.data,
 		});
 	}
 
-	public getConnectedPeers(): ReadonlyArray<liskP2p.p2pTypes.ProtocolPeerInfo> {
+	public getConnectedPeers(): ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> {
 		return this.p2p.getConnectedPeers();
 	}
 
 	public getDisconnectedPeers(): ReadonlyArray<
-		liskP2p.p2pTypes.ProtocolPeerInfo
+		liskP2P.p2pTypes.ProtocolPeerInfo
 	> {
 		return this.p2p.getDisconnectedPeers();
 	}
 
-	public applyPenalty(penaltyPacket: liskP2p.p2pTypes.P2PPenalty): void {
+	public applyPenalty(penaltyPacket: liskP2P.p2pTypes.P2PPenalty): void {
 		return this.p2p.applyPenalty({
 			peerId: penaltyPacket.peerId,
 			penalty: penaltyPacket.penalty,
