@@ -107,6 +107,7 @@ describe('Matcher', () => {
 	const dbName = 'transaction_matcher';
 	let storage;
 	let node;
+	let forgerDB;
 
 	beforeAll(async () => {
 		storage = new storageUtils.StorageSandbox(
@@ -114,12 +115,13 @@ describe('Matcher', () => {
 			dbName,
 		);
 		await storage.bootstrap();
-		const forgerDB = new KVStore(`/tmp/${dbName}.db`);
+		forgerDB = new KVStore(`/tmp/${dbName}.db`);
 		node = await nodeUtils.createAndLoadNode(storage, forgerDB);
 		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
+		await forgerDB.clear();
 		await node.cleanup();
 		await storage.cleanup();
 	});

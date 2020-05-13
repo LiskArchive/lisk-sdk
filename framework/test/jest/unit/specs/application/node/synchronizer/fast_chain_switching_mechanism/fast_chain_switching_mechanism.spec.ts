@@ -48,7 +48,7 @@ describe('fast_chain_switching_mechanism', () => {
 	const forgerDBMock = new KVStore('/tmp/fsc.db');
 
 	afterAll(async () => {
-		await forgerDBMock.close();
+		await forgerDBMock.clear();
 	});
 
 	beforeEach(() => {
