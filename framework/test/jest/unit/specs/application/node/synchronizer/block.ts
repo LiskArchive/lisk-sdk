@@ -16,7 +16,6 @@ import {
 	hash,
 	signDataWithPrivateKey,
 	getPrivateAndPublicKeyBytesFromPassphrase,
-	BIG_ENDIAN,
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
@@ -42,9 +41,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId
-		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
-		: Buffer.alloc(SIZE_INT64);
+	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 
@@ -221,14 +218,8 @@ export const newBlock = (
 	};
 	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockInstance));
 
-	const temp = Buffer.alloc(8);
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < 8; i++) {
-		temp[i] = hashedBlockBytes[7 - i];
-	}
-
 	return {
 		...blockWithSignature,
-		id: temp.readBigUInt64BE().toString(),
+		id: hashedBlockBytes.toString('hex'),
 	} as BlockInstance;
 };

@@ -23,10 +23,11 @@
 		"@liskhq/lisk-transactions": "2.3.1",
 		"@liskhq/lisk-validator": "0.2.1",
 		"lodash": "4.17.15",
+		"protobufjs": "6.9.0",
 		"sodium-native": "2.4.6"
 	},
 	"devDependencies": {
-		"eslint": "6.2.0",
+		"eslint": "6.8.0",
 		"eslint-config-airbnb-base": "14.0.0",
 		"eslint-config-lisk-base": "1.2.2",
 		"eslint-plugin-chai-expect": "2.0.1",

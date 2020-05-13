@@ -15,7 +15,6 @@
 'use strict';
 
 const {
-	BIG_ENDIAN,
 	hash,
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	signData,
@@ -23,8 +22,7 @@ const {
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
-	getFirstEightBytesReversed,
-	bufferToIntAsString,
+	bufferToHex,
 } = require('@liskhq/lisk-cryptography');
 
 const BaseGenerator = require('../base_generator');
@@ -48,9 +46,7 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId
-		? intToBuffer(block.previousBlockId, SIZE_INT64, BIG_ENDIAN)
-		: Buffer.alloc(SIZE_INT64);
+	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 
@@ -135,10 +131,7 @@ const sign = (block, privateKey) =>
 
 const getId = transactionBytes => {
 	const transactionHash = hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const transactionId = bufferToIntAsString(bufferFromFirstEntriesReversed);
+	const transactionId = bufferToHex(transactionHash);
 
 	return transactionId;
 };
@@ -208,7 +201,7 @@ const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(
 const scenario1Header1 = {
 	version: 2,
 	timestamp: 2000000,
-	previousBlockId: '10620616195853047363',
+	previousBlockId: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 900000,
 	maxHeightPreviouslyForged: 690000,
@@ -231,7 +224,7 @@ scenario1Header1.blockSignature = sign(
 const scenario1Header2 = {
 	version: 2,
 	timestamp: 3000000,
-	previousBlockId: '10620616195853047363',
+	previousBlockId: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 800000,
 	maxHeightPreviouslyForged: 700000,
@@ -305,7 +298,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 const scenario2Header1 = {
 	version: 2,
 	timestamp: 2000000,
-	previousBlockId: '10620616195853047363',
+	previousBlockId: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 800000,
 	maxHeightPreviouslyForged: 700000,
@@ -328,7 +321,7 @@ scenario2Header1.blockSignature = sign(
 const scenario2Header2 = {
 	version: 2,
 	timestamp: 2000000,
-	previousBlockId: '10620616195853047363',
+	previousBlockId: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 800000,
 	maxHeightPreviouslyForged: 700000,
@@ -402,7 +395,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 const scenario3Header1 = {
 	version: 2,
 	timestamp: 2000000,
-	previousBlockId: '10620616195853047363',
+	previousBlockId: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 900000,
 	maxHeightPreviouslyForged: 850000,
@@ -425,7 +418,7 @@ scenario3Header1.blockSignature = sign(
 const scenario3Header2 = {
 	version: 2,
 	timestamp: 2000000,
-	previousBlockId: '10620616195853047363',
+	previousBlockId: '9696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b',
 	seedReveal: 'c8c557b5dba8527c0e760124128fd15c',
 	height: 900000,
 	maxHeightPreviouslyForged: 900000,

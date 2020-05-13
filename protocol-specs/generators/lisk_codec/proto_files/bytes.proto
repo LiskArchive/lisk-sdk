@@ -1,0 +1,5 @@
+syntax = 'proto2';
+
+message Bytes {
+	required bytes address = 1;
+}

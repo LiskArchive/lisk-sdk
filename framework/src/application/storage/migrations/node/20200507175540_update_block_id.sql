@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,14 +10,10 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
 
-export const getId = (transactionBytes: Buffer): string => {
-	const transactionHash = cryptography.hash(transactionBytes);
+ALTER TABLE blocks ALTER COLUMN id TYPE varchar(64);
 
-	const transactionId = cryptography.bufferToHex(transactionHash);
+ALTER TABLE blocks ALTER COLUMN "previousBlockId" TYPE varchar(64);
 
-	return transactionId;
-};
+ALTER TABLE trs ALTER COLUMN "blockId" TYPE varchar(64);
