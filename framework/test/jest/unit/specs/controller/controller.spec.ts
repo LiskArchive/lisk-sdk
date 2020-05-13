@@ -67,6 +67,7 @@ describe('Controller Class', () => {
 		},
 	};
 	const systemDirs = {
+		root: `${config.rootPath}/${appLabel}/`,
 		data: `${config.rootPath}/${appLabel}/data`,
 		tmp: `${config.rootPath}/${appLabel}/tmp`,
 		logs: `${config.rootPath}/${appLabel}/logs`,
@@ -74,7 +75,7 @@ describe('Controller Class', () => {
 		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
 	};
 	const configController = {
-		rootPath: '~/.lisk/#LABEL/tmp',
+		rootPath: '~/.lisk/#LABEL/',
 		ipc: {
 			enabled: false,
 		},

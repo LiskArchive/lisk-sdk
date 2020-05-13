@@ -747,7 +747,7 @@ export class Application {
 			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
 					{ appLabel: this.config.label },
-					'An instance of application is already running, please change application name to run another instance',
+					'An instance of application is already running, please change the application label to run another instance',
 				);
 				throw new DuplicateAppInstanceError(this.config.label, pidPath);
 			}

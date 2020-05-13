@@ -91,7 +91,7 @@ export class Controller {
 
 		const dirs = systemDirs(this.appLabel, options.config.rootPath);
 		this.config = {
-			rootPath: dirs.tmp,
+			rootPath: dirs.root,
 			ipc: {
 				enabled: options.config.ipc.enabled,
 			},
