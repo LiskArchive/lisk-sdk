@@ -148,6 +148,14 @@ describe('varint', () => {
 			).toEqual(BigInt('18446744073709551615'));
 		});
 
+		it('should fail to decode uint64 when input is out of range', () => {
+			expect(() =>
+				readVarInt(Buffer.from('ffffffffffffffffff02', 'hex'), {
+					dataType: 'uint32',
+				}),
+			).toThrow('Value out of range of uint32');
+		});
+
 		it('should decode sint32', () => {
 			expect(
 				readSignedVarInt(Buffer.from('00', 'hex'), { dataType: 'sint32' }),

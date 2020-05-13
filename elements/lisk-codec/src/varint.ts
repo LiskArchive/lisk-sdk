@@ -103,6 +103,9 @@ const readVarIntBigInt = (buffer: Buffer): bigint => {
 		}
 		const bit = BigInt(buffer[index]);
 		index += 1;
+		if (index === 10 && bit > 0x01) {
+			throw new Error('Value out of range of uint64');
+		}
 		result |= (bit & BigInt(rest)) << shift;
 		if ((bit & BigInt(msg)) === BigInt(0)) {
 			return result;
