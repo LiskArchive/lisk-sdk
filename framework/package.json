@@ -54,6 +54,7 @@
 		"@liskhq/lisk-transaction-pool": "0.3.0-alpha.0",
 		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
 		"@liskhq/lisk-validator": "0.4.0-alpha.0",
+		"@liskhq/lisk-db": "0.1.0",
 		"ajv": "6.12.0",
 		"ajv-keywords": "3.4.1",
 		"body-parser": "1.19.0",

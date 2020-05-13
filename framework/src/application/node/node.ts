@@ -30,6 +30,7 @@ import {
 	events as txPoolEvents,
 } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
+import { KVStore } from '@liskhq/lisk-db';
 import { Sequence } from './utils/sequence';
 import { DelegateConfig, Forger, ForgingStatus } from './forger';
 import {
@@ -75,6 +76,8 @@ export interface NodeConstants {
 }
 
 interface Options {
+	readonly label: string;
+	readonly rootPath: string;
 	readonly forging: {
 		readonly waitThreshold: number;
 		readonly delegates: DelegateConfig[];
@@ -93,8 +96,10 @@ interface NodeConstructor {
 	readonly channel: InMemoryChannel;
 	readonly options: Options;
 	readonly logger: Logger;
+	// TODO: Remove storage with PR 5257
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly storage: any;
+	readonly forgerDB: KVStore;
 	readonly applicationState: ApplicationState;
 }
 
@@ -110,8 +115,10 @@ export class Node {
 	private readonly _channel: InMemoryChannel;
 	private readonly _options: Options;
 	private readonly _logger: Logger;
+	// TODO: Replace storage with _blockchainDB in PR 5257
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly _storage: any;
+	private readonly _forgerDB: KVStore;
 	private readonly _applicationState: ApplicationState;
 	private readonly _components: { readonly logger: Logger };
 	private _sequence!: Sequence;
@@ -132,15 +139,19 @@ export class Node {
 		options,
 		logger,
 		storage,
+		forgerDB,
 		applicationState,
 	}: NodeConstructor) {
 		this._channel = channel;
 		this._options = options;
 		this._logger = logger;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		this._storage = storage;
 		this._applicationState = applicationState;
 		this._components = { logger: this._logger };
+		// TODO: Replace storage with _blockchainDB in PR 5257
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		this._storage = storage;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		this._forgerDB = forgerDB;
 	}
 
 	public async bootstrap(): Promise<void> {
@@ -181,8 +192,7 @@ export class Node {
 				dposModule: this._dpos,
 				logger: this._logger,
 				constants: this._options.constants,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				storage: this._storage,
+				forgerDB: this._forgerDB,
 			};
 
 			this._processor.register(new BlockProcessorV2(processorDependencies));
@@ -446,6 +456,7 @@ export class Node {
 
 	private _initModules(): void {
 		this._chain = new Chain({
+			// TODO: Replace the storage with _blockchainDB in PR 5257
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this._storage,
 			genesisBlock: this._options.genesisBlock as GenesisBlockJSON,
@@ -596,7 +607,7 @@ export class Node {
 		this._forger = new Forger({
 			logger: this._logger,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			storage: this._storage,
+			db: this._forgerDB,
 			dposModule: this._dpos,
 			bftModule: this._bft,
 			transactionPoolModule: this._transactionPool,

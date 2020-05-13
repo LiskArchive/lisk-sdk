@@ -44,7 +44,7 @@ Object {
       },
       "protocolVersion": "1.1",
       "rebuildUpToRound": null,
-      "tempPath": "/tmp/lisk",
+      "rootPath": "~/.lisk",
       "version": "0.0.0",
     },
     "id": "#/config",
@@ -368,9 +368,9 @@ Object {
           "null",
         ],
       },
-      "tempPath": Object {
-        "description": "The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.",
-        "example": "/tmp/lisk",
+      "rootPath": Object {
+        "description": "The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.",
+        "example": "~/.lisk",
         "format": "path",
         "maxLength": 50,
         "minLength": 1,

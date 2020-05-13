@@ -18,6 +18,8 @@ import { when } from 'jest-when';
 import { BlockInstance, BlockJSON, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
+import { KVStore } from '@liskhq/lisk-db';
+
 import { BlockProcessorV2 } from '../../../../../../../../src/application/node/block_processor_v2';
 import { BlockSynchronizationMechanism } from '../../../../../../../../src/application/node/synchronizer';
 import { computeBlockHeightsList } from '../../../../../../../../src/application/node/synchronizer/utils';
@@ -52,6 +54,11 @@ describe('block_synchronization_mechanism', () => {
 	let blockIdsList: string[];
 	let blockList: BlockInstance[];
 	let dataAccessMock;
+	const forgerDBMock = new KVStore('/tmp/bsm.db');
+
+	afterAll(async () => {
+		await forgerDBMock.clear();
+	});
 
 	beforeEach(() => {
 		loggerMock = {
@@ -119,7 +126,7 @@ describe('block_synchronization_mechanism', () => {
 
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: '',
-			storage: storageMock,
+			forgerDB: forgerDBMock,
 			chainModule,
 			bftModule,
 			dposModule,

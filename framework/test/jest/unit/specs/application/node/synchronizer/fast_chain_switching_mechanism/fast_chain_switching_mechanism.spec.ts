@@ -16,6 +16,7 @@ import { when } from 'jest-when';
 import { BlockInstance, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
+import { KVStore } from '@liskhq/lisk-db';
 
 import { BlockProcessorV2 } from '../../../../../../../../src/application/node/block_processor_v2';
 import {
@@ -44,6 +45,11 @@ describe('fast_chain_switching_mechanism', () => {
 	let channelMock: any;
 	let loggerMock: any;
 	let dataAccessMock;
+	const forgerDBMock = new KVStore('/tmp/fsc.db');
+
+	afterAll(async () => {
+		await forgerDBMock.clear();
+	});
 
 	beforeEach(() => {
 		loggerMock = {
@@ -103,7 +109,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: '',
-			storage: storageMock,
+			forgerDB: forgerDBMock,
 			chainModule,
 			bftModule,
 			dposModule,

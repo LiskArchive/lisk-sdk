@@ -461,7 +461,7 @@ export class Network {
 		});
 	}
 
-	public async stop(): Promise<void> {
+	public async cleanup(): Promise<void> {
 		// TODO: Unsubscribe 'app:state:updated' from channel.
 		this.logger.info({}, 'Cleaning network...');
 

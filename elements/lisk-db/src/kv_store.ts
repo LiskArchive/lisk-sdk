@@ -11,8 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
 import { debug } from 'debug';
 import encodingDown from 'encoding-down';
 import levelup, { LevelUp } from 'levelup';
@@ -49,15 +49,15 @@ export class KVStore {
 	// TODO: Update to LevelUp<rocksDB> when changing interface to Buffer
 	private readonly _db: LevelUp<string, Promise<unknown>>;
 
-	public constructor(file: string) {
-		logger('opening file', { file });
-		const parentDir = path.resolve(path.join(file, '../'));
+	public constructor(filePath: string) {
+		logger('opening file', { filePath });
+		const parentDir = path.resolve(path.join(filePath, '../'));
 		if (!fs.existsSync(parentDir)) {
 			throw new Error(`${parentDir} does not exist`);
 		}
 		this._db = (levelup(
 			// TODO: When converting to Buffer, this should be removed
-			encodingDown(rocksDB(file), { valueEncoding: 'json' }),
+			encodingDown(rocksDB(filePath), { valueEncoding: 'json' }),
 		) as unknown) as LevelUp<string, Promise<unknown>>;
 	}
 
