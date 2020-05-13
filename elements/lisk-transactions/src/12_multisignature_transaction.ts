@@ -16,7 +16,6 @@
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	hash,
 	hexToBuffer,
 	intToBuffer,
 	signData,
@@ -219,7 +218,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		]);
 
 		this.signatures.push(
-			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
+			signData(transactionWithNetworkIdentifierBytes, senderPassphrase),
 		);
 
 		// Sign with members
@@ -234,7 +233,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
-						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+						signData(transactionWithNetworkIdentifierBytes, passphrase),
 					);
 				} else {
 					// Push an empty signature if a passphrase is missing

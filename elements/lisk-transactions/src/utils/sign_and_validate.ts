@@ -26,9 +26,7 @@ export const validateSignature = (
 	bytes: Buffer,
 	id?: string,
 ): IsValidResponseWithError => {
-	const hashedBytes = cryptography.hash(bytes);
-
-	const valid = cryptography.verifyData(hashedBytes, signature, publicKey);
+	const valid = cryptography.verifyData(bytes, signature, publicKey);
 
 	return {
 		valid,
