@@ -12,6 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '../src/codec';
+
+const complex = {
+	$id: 'testSchema',
+	type: 'object',
+	properties: {
+		b: { fieldNumber: 2, dataType: 'string' },
+		a: { fieldNumber: 1, dataType: 'string' },
+		d: { fieldNumber: 4, dataType: 'bytes' },
+		c: {
+			dataType: 'object',
+			fieldNumber: 3,
+			properties: {
+				cc: { fieldNumber: 3, dataType: 'string' },
+				ca: { fieldNumber: 1, dataType: 'string' },
+				cb: {
+					dataType: 'object',
+					fieldNumber: 2,
+					properties: {
+						cbb: { fieldNumber: 2, dataType: 'string' },
+						cba: { fieldNumber: 1, dataType: 'string' },
+						cbc: {
+							dataType: 'object',
+							fieldNumber: 3,
+							properties: {
+								cbcb: { fieldNumber: 3, dataType: 'string' },
+								cbca: { fieldNumber: 2, dataType: 'string' },
+							},
+						},
+						cbd: { fieldNumber: 4, dataType: 'string' },
+					},
+				},
+			},
+		},
+	},
+};
+
+
 describe('addSchema', () => {
-	it.todo('it should add schema and and cache them');
+	it('it should add schema and generate encoder', () => {
+		codec.addSchema(complex);
+		expect(codec['_compileSchemas'].testSchema).toHaveLength(10)
+	});
 });
