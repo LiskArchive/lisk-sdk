@@ -43,25 +43,6 @@ describe('signAndVerify module', () => {
 			(validTestTransaction as any).getBasicBytes(),
 		]);
 
-		it('should call cryptography hash', () => {
-			const cryptographyHashStub = jest
-				.spyOn(cryptography, 'hash')
-				.mockReturnValue(
-					Buffer.from(
-						'62b13b81836f3f1e371eba2f7f8306ff23d00a87d9473793eda7f742f4cfc21c',
-						'hex',
-					),
-				);
-
-			validateSignature(
-				defaultTransferTransaction.senderPublicKey,
-				defaultTransferTransaction.signatures[0],
-				defaultTransferTransactionBytes,
-			);
-
-			expect(cryptographyHashStub).toHaveBeenCalledTimes(1);
-		});
-
 		it('should call cryptography verifyData', () => {
 			const cryptographyVerifyDataStub = jest
 				.spyOn(cryptography, 'verifyData')
