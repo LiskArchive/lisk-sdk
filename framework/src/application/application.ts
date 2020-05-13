@@ -395,11 +395,10 @@ export class Application {
 
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 
-		await this._node.cleanup();
-		// TODO: Fix the cause of circular exception
-		// await this._network.stop();
+		await this._network.cleanup();
 		// eslint-disable-next-line
-		// this.storage.cleanup();
+		this.storage.cleanup();
+		await this._node.cleanup();
 
 		process.exit(errorCode);
 	}
