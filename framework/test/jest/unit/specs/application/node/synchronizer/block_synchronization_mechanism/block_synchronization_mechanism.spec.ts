@@ -13,12 +13,12 @@
  */
 
 import { cloneDeep } from 'lodash';
+import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { BlockInstance, BlockJSON, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
-import { KVStore } from '@liskhq/lisk-db';
 
 import { BlockProcessorV2 } from '../../../../../../../../src/application/node/block_processor_v2';
 import { BlockSynchronizationMechanism } from '../../../../../../../../src/application/node/synchronizer';
@@ -36,6 +36,8 @@ import { peersList } from './peers';
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../../src/controller/channels/in_memory_channel',
 );
+
+jest.mock('@liskhq/lisk-db');
 
 describe('block_synchronization_mechanism', () => {
 	let bftModule: any;
@@ -56,10 +58,6 @@ describe('block_synchronization_mechanism', () => {
 	let dataAccessMock;
 	const forgerDBMock = new KVStore('/tmp/bsm.db');
 
-	afterAll(async () => {
-		await forgerDBMock.clear();
-	});
-
 	beforeEach(() => {
 		loggerMock = {
 			info: jest.fn(),
@@ -67,7 +65,6 @@ describe('block_synchronization_mechanism', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		const storageMock: any = {};
 
 		channelMock = new ChannelMock();
 		const networkIdentifier = getNetworkIdentifier(
@@ -75,9 +72,12 @@ describe('block_synchronization_mechanism', () => {
 			genesisBlockDevnet.communityIdentifier,
 		);
 
+		const blockchainDB = new KVStore('blockchain.db');
+		const forgerDB = new KVStore('forger.db');
+
 		chainModule = new Chain({
 			networkIdentifier,
-			storage: storageMock,
+			db: blockchainDB,
 			genesisBlock: genesisBlockDevnet as any,
 			registeredTransactions,
 			maxPayloadLength: constants.maxPayloadLength,
@@ -910,17 +910,17 @@ describe('block_synchronization_mechanism', () => {
 					];
 
 					const tempTableBlocks = [
-						{
-							fullBlock: newBlock({ height: highestCommonBlock.height + 1 }),
-						},
+						previousTip,
 						...new Array(previousTip.height - highestCommonBlock.height - 1)
 							.fill(0)
-							.map((_, index) => ({
-								fullBlock: newBlock({
-									height: index + 2 + highestCommonBlock.height,
+							.map((_, index) =>
+								newBlock({
+									height: previousTip.height - index - 1,
 								}),
-							})),
-						{ fullBlock: previousTip },
+							),
+						{
+							...newBlock({ height: highestCommonBlock.height + 1 }),
+						},
 					];
 
 					for (const expectedPeer of peersList.expectedSelection) {
@@ -937,13 +937,7 @@ describe('block_synchronization_mechanism', () => {
 					}
 
 					chainModule.dataAccess.getTempBlocks
-						.mockResolvedValueOnce([
-							{
-								fullBlock: previousTip,
-								height: previousTip.height,
-								version: previousTip.version,
-							},
-						])
+						.mockResolvedValueOnce([previousTip])
 						.mockResolvedValueOnce(tempTableBlocks);
 
 					when(processorModule.deleteLastBlock)
@@ -1001,7 +995,7 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const tempTableBlock of tempTableBlocks) {
 						expect(processorModule.processValidated).toHaveBeenCalledWith(
-							await processorModule.deserialize(tempTableBlock.fullBlock),
+							await processorModule.deserialize(tempTableBlock),
 							{
 								removeFromTempTable: true,
 							},
@@ -1054,13 +1048,7 @@ describe('block_synchronization_mechanism', () => {
 							} as never);
 					}
 
-					chainModule.dataAccess.getTempBlocks.mockResolvedValue([
-						{
-							fullBlock: previousTip,
-							height: previousTip.height,
-							version: previousTip.version,
-						},
-					]);
+					chainModule.dataAccess.getTempBlocks.mockResolvedValue([previousTip]);
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.processValidated.mockRejectedValueOnce(

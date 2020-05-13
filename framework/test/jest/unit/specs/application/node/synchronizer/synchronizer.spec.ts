@@ -29,6 +29,8 @@ import { registeredTransactions } from '../../../../../../utils/registered_trans
 
 import * as genesisBlockDevnet from '../../../../../../fixtures/config/devnet/genesis_block.json';
 
+jest.mock('@liskhq/lisk-db');
+
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
 );
@@ -51,10 +53,6 @@ describe('Synchronizer', () => {
 	let dataAccessMock;
 	const forgerDBMock = new KVStore('/tmp/synchronizer.db');
 
-	afterAll(async () => {
-		await forgerDBMock.clear();
-	});
-
 	beforeEach(() => {
 		jest.spyOn(synchronizerUtils, 'restoreBlocksUponStartup');
 		loggerMock = {
@@ -63,7 +61,6 @@ describe('Synchronizer', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		const storageMock: any = {};
 
 		transactionPoolModuleStub = {
 			add: jest.fn(),
@@ -77,9 +74,12 @@ describe('Synchronizer', () => {
 			genesisBlockDevnet.communityIdentifier,
 		);
 
+		const blockchainDB = new KVStore('blockchain.db');
+		const forgerDB = new KVStore('forger.db');
+
 		chainModule = new Chain({
 			networkIdentifier,
-			storage: storageMock,
+			db: blockchainDB,
 			genesisBlock: genesisBlockDevnet as any,
 			registeredTransactions,
 			maxPayloadLength: constants.maxPayloadLength,
@@ -185,9 +185,7 @@ describe('Synchronizer', () => {
 				const blocksTempTableEntries = new Array(10)
 					.fill(0)
 					.map((_, index) => ({
-						height: index,
-						id: `${index}`,
-						fullBlock: newBlock({
+						...newBlock({
 							height: index,
 							id: index.toString(),
 							version: 2,
@@ -208,7 +206,7 @@ describe('Synchronizer', () => {
 
 				when(chainModule.dataAccess.getTempBlocks)
 					.calledWith()
-					.mockResolvedValue(blocksTempTableEntries as never);
+					.mockResolvedValue(blocksTempTableEntries.reverse() as never);
 
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
@@ -243,7 +241,7 @@ describe('Synchronizer', () => {
 				// Assert whether temp blocks are being restored to main table
 				expect.assertions(blocksTempTableEntries.length + 4);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
-					const tempBlock = blocksTempTableEntries[i].fullBlock;
+					const tempBlock = blocksTempTableEntries[i];
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
 						await processorModule.deserialize(tempBlock as any),
@@ -266,12 +264,8 @@ describe('Synchronizer', () => {
 					{
 						height: genesisBlockDevnet.height + 2,
 						id: '3',
-						fullBlock: {
-							height: genesisBlockDevnet.height + 2,
-							id: '3',
-							version: 2,
-							previousBlockId: initialLastBlock.id,
-						},
+						version: 2,
+						previousBlockId: initialLastBlock.id,
 					},
 				];
 				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
@@ -304,7 +298,7 @@ describe('Synchronizer', () => {
 				// Assert whether temp blocks are being restored to main table
 				expect.assertions(blocksTempTableEntries.length + 3);
 				for (let i = 0; i < blocksTempTableEntries.length; i += 1) {
-					const tempBlock = blocksTempTableEntries[i].fullBlock;
+					const tempBlock = blocksTempTableEntries[i];
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
 						await processorModule.deserialize(tempBlock as any),
@@ -323,12 +317,7 @@ describe('Synchronizer', () => {
 					previousBlockId: genesisBlockDevnet.id,
 					version: 2,
 				};
-				const blocksTempTableEntries = [
-					{
-						...initialLastBlock,
-						fullBlock: initialLastBlock,
-					},
-				];
+				const blocksTempTableEntries = [initialLastBlock];
 				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 					blocksTempTableEntries,
 				);
@@ -364,9 +353,7 @@ describe('Synchronizer', () => {
 			const blocksTempTableEntries = new Array(10)
 				.fill(0)
 				.map((_, index) => ({
-					height: index,
-					id: `${index}`,
-					fullBlock: newBlock({
+					...newBlock({
 						height: index,
 						id: index.toString(),
 						version: 2,
@@ -380,7 +367,7 @@ describe('Synchronizer', () => {
 				version: 1,
 			};
 			chainModule.dataAccess.getTempBlocks.mockResolvedValue(
-				blocksTempTableEntries,
+				blocksTempTableEntries.reverse(),
 			);
 			// To load storage tip block into lastBlock in memory variable
 			when(chainModule.dataAccess.getLastBlock)

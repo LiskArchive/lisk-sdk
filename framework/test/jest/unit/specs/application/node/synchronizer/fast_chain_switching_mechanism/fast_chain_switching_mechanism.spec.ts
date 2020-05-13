@@ -13,10 +13,10 @@
  */
 
 import { when } from 'jest-when';
+import { KVStore } from '@liskhq/lisk-db';
 import { BlockInstance, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
-import { KVStore } from '@liskhq/lisk-db';
 
 import { BlockProcessorV2 } from '../../../../../../../../src/application/node/block_processor_v2';
 import {
@@ -34,6 +34,8 @@ const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../../src/controller/channels/in_memory_channel',
 );
 
+jest.mock('@liskhq/lisk-db');
+
 describe('fast_chain_switching_mechanism', () => {
 	let bftModule: any;
 	let blockProcessorV2;
@@ -45,11 +47,6 @@ describe('fast_chain_switching_mechanism', () => {
 	let channelMock: any;
 	let loggerMock: any;
 	let dataAccessMock;
-	const forgerDBMock = new KVStore('/tmp/fsc.db');
-
-	afterAll(async () => {
-		await forgerDBMock.clear();
-	});
 
 	beforeEach(() => {
 		loggerMock = {
@@ -58,13 +55,15 @@ describe('fast_chain_switching_mechanism', () => {
 			error: jest.fn(),
 			trace: jest.fn(),
 		};
-		const storageMock: any = {};
 
 		channelMock = new ChannelMock();
 
+		const blockchainDB = new KVStore('blockchain.db');
+		const forgerDB = new KVStore('forger.db');
+
 		chainModule = new Chain({
 			networkIdentifier: '',
-			storage: storageMock,
+			db: blockchainDB,
 			genesisBlock: genesisBlockDevnet as any,
 			registeredTransactions,
 			maxPayloadLength: constants.maxPayloadLength,
@@ -109,7 +108,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: '',
-			forgerDB: forgerDBMock,
+			forgerDB,
 			chainModule,
 			bftModule,
 			dposModule,
@@ -774,13 +773,7 @@ describe('fast_chain_switching_mechanism', () => {
 					})
 					.mockResolvedValueOnce(genesisBlockDevnet as never);
 
-				const blocksInTempTable = [
-					{
-						fullBlock: chainModule.lastBlock,
-						height: chainModule.lastBlock.height,
-						id: chainModule.lastBlock.id,
-					},
-				];
+				const blocksInTempTable = [chainModule.lastBlock];
 
 				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 					blocksInTempTable,
@@ -823,7 +816,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				// Restore blocks from temp table:
 				expect(processorModule.processValidated).toHaveBeenCalledWith(
-					await processorModule.deserialize(blocksInTempTable[0].fullBlock),
+					await processorModule.deserialize(blocksInTempTable[0]),
 					{
 						removeFromTempTable: true,
 					},
