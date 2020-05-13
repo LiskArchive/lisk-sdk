@@ -119,6 +119,12 @@ describe('varint', () => {
 			).toEqual(4294967295);
 		});
 
+		it('should fail to decode uint32 when input is out of range', () => {
+			expect(() =>
+				readVarInt(Buffer.from('ffffffff7f', 'hex'), { dataType: 'uint32' }),
+			).toThrow('Value out of range of uint32');
+		});
+
 		it('should decode uint64', () => {
 			expect(
 				readVarInt(Buffer.from('00', 'hex'), { dataType: 'uint64' }),

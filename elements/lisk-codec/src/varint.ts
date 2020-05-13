@@ -62,10 +62,16 @@ export const writeSignedVarInt = (
 ): Buffer => {
 	if (schema.dataType === 'sint32') {
 		const number = Number(value);
-		return writeVarIntNumber(((number << 1) ^ (number >> 31)) >>> 0);
+		if (number >= 0) {
+			return writeVarIntNumber(2 * number);
+		}
+		return writeVarIntNumber(-2 * number - 1);
 	}
 	const number = BigInt(value);
-	return writeVarInt((number << BigInt(1)) ^ (number >> BigInt(63)), schema);
+	if (number >= BigInt(0)) {
+		return writeVarInt(BigInt(2) * number, schema);
+	}
+	return writeVarInt(BigInt(-2) * number - BigInt(1), schema);
 };
 
 const readVarIntNumber = (buffer: Buffer): number => {
@@ -77,12 +83,15 @@ const readVarIntNumber = (buffer: Buffer): number => {
 		}
 		const bit = buffer[index];
 		index += 1;
+		if (index === 5 && bit > 0x0f) {
+			throw new Error('Value out of range of uint32');
+		}
 		result = (result | ((bit & rest) << shift)) >>> 0;
 		if ((bit & msg) === 0) {
 			return result;
 		}
 	}
-	throw new Error('Value out of range for uint32');
+	throw new Error('Terminating bit not found');
 };
 
 const readVarIntBigInt = (buffer: Buffer): bigint => {
@@ -99,7 +108,7 @@ const readVarIntBigInt = (buffer: Buffer): bigint => {
 			return result;
 		}
 	}
-	throw new Error('Value out of range for uint64');
+	throw new Error('Terminating bit not found');
 };
 
 export const readVarInt = (buffer: Buffer, schema: SchemaProperty): int =>
