@@ -56,14 +56,14 @@ export const applicationConfigSchema = {
 			example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
 			description: 'The version of Lisk Core that the peer node runs on.',
 		},
-		tempPath: {
+		rootPath: {
 			type: 'string',
 			format: 'path',
 			minLength: 1,
 			maxLength: 50,
-			example: '/tmp/lisk',
+			example: '~/.lisk',
 			description:
-				'The root path for storing temporary pid and socket file. Restricted length due to unix domain socket path length limitations.',
+				'The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.',
 		},
 		ipc: {
 			type: 'object',
@@ -342,7 +342,7 @@ export const applicationConfigSchema = {
 		label: 'alpha-sdk-app',
 		version: '0.0.0',
 		protocolVersion: '1.1',
-		tempPath: '/tmp/lisk',
+		rootPath: '~/.lisk',
 		ipc: {
 			enabled: false,
 		},

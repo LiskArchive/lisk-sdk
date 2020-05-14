@@ -17,6 +17,8 @@ import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { BlockJSON, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Rounds } from '@liskhq/lisk-dpos';
+import { KVStore } from '@liskhq/lisk-db';
+
 import { BlockProcessorV2 } from '../../../../../../../src/application/node/block_processor_v2';
 import { Synchronizer } from '../../../../../../../src/application/node/synchronizer/synchronizer';
 import { Processor } from '../../../../../../../src/application/node/processor';
@@ -47,6 +49,11 @@ describe('Synchronizer', () => {
 	let loggerMock: any;
 	let syncParameters;
 	let dataAccessMock;
+	const forgerDBMock = new KVStore('/tmp/synchronizer.db');
+
+	afterAll(async () => {
+		await forgerDBMock.clear();
+	});
 
 	beforeEach(() => {
 		jest.spyOn(synchronizerUtils, 'restoreBlocksUponStartup');
@@ -111,7 +118,7 @@ describe('Synchronizer', () => {
 
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: '',
-			storage: storageMock,
+			forgerDB: forgerDBMock,
 			chainModule,
 			bftModule,
 			dposModule: dposModuleMock,

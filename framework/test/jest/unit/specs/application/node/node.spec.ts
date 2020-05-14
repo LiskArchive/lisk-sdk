@@ -67,6 +67,11 @@ describe('Node', () => {
 				ChainMeta: { getKey: jest.fn() },
 			},
 		};
+		stubs.forgerDB = {
+			get: jest.fn(),
+			put: jest.fn(),
+			close: jest.fn(),
+		};
 		stubs.modules = {
 			module1: {
 				cleanup: jest.fn().mockResolvedValue('module1cleanup'),
@@ -104,6 +109,7 @@ describe('Node', () => {
 		const params = {
 			channel: stubs.channel,
 			storage: stubs.storage,
+			forgerDB: stubs.forgerDB,
 			logger: stubs.logger,
 			options: nodeOptions,
 			applicationState: stubs.applicationState,

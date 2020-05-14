@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable max-classes-per-file */
+
+import * as fs from 'fs-extra';
 import {
 	BaseTransaction as Base,
 	TransferTransaction,
@@ -30,7 +32,9 @@ import * as loggerComponent from '../../../../../src/components/logger';
 import * as storageComponent from '../../../../../src/components/storage';
 import * as networkConfig from '../../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../../fixtures/config/devnet/genesis_block.json';
+import { systemDirs } from '../../../../../src/application/system_dirs';
 
+jest.mock('fs-extra');
 jest.mock('../../../../../src/components/logger');
 jest.mock('../../../../../src/components/storage');
 jest.mock('@liskhq/lisk-validator', () => ({
@@ -115,30 +119,30 @@ describe('Application', () => {
 			expect(app.config.label).toBe(config.label);
 		});
 
-		it('should set default tempPath if not provided', () => {
+		it('should set default rootPath if not provided', () => {
 			// Arrange
-			const tempPath = '/tmp/lisk';
-			const configWithoutTempPath = _.cloneDeep(config);
-			delete configWithoutTempPath.tempPath;
+			const rootPath = '~/.lisk';
+			const configWithoutrootPath = _.cloneDeep(config);
+			delete configWithoutrootPath.rootPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithoutTempPath);
+			const app = new Application(genesisBlock, configWithoutrootPath);
 
 			// Assert
-			expect(app.config.tempPath).toBe(tempPath);
+			expect(app.config.rootPath).toBe(rootPath);
 		});
 
-		it('should set tempPath if provided', () => {
+		it('should set rootPath if provided', () => {
 			// Arragne
-			const customTempPath = '/my-lisk-folder';
-			const configWithCustomTempPath = _.cloneDeep(config);
-			configWithCustomTempPath.tempPath = customTempPath;
+			const customrootPath = '/my-lisk-folder';
+			const configWithCustomrootPath = _.cloneDeep(config);
+			configWithCustomrootPath.rootPath = customrootPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithCustomTempPath);
+			const app = new Application(genesisBlock, configWithCustomrootPath);
 
 			// Assert
-			expect(app.config.tempPath).toBe(customTempPath);
+			expect(app.config.rootPath).toBe(customrootPath);
 		});
 
 		it('should set filename for logger if logger component was not provided', () => {
@@ -440,6 +444,38 @@ describe('Application', () => {
 		it('should create getTransactionsByIDs action', () => {
 			// Assert
 			expect(actionsList).toContain('getTransactionsByIDs');
+		});
+	});
+
+	describe('#_setupDirectories', () => {
+		let app: any;
+		let dirs: any;
+		beforeEach(() => {
+			app = new Application(genesisBlock, config);
+			app.run();
+			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+		it('should ensure directory exists', () => {
+			// Arrange
+			jest.spyOn(fs, 'ensureDir');
+
+			// Assert
+
+			Array.from(Object.values(dirs)).map(dirPath =>
+				expect(fs.ensureDir).toHaveBeenCalledWith(dirPath),
+			);
+		});
+
+		it('should write process id to pid file if pid file not exits', () => {
+			jest.spyOn(fs, 'pathExists').mockResolvedValue(false as never);
+			jest.spyOn(fs, 'writeFile');
+
+			expect(fs.writeFile).toHaveBeenCalledWith(
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				`${dirs.pids}/controller.pid`,
+				expect.toBeNumber(),
+			);
 		});
 	});
 });

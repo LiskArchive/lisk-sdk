@@ -21,6 +21,7 @@ const {
 	registerMultisignature,
 	utils: { convertLSKToBeddows },
 } = require('@liskhq/lisk-transactions');
+const { KVStore } = require('@liskhq/lisk-db');
 const {
 	nodeUtils,
 	storageUtils,
@@ -34,18 +35,21 @@ describe('Transaction order', () => {
 	const dbName = 'transaction_order';
 	let storage;
 	let node;
+	let forgerDB;
 
 	beforeAll(async () => {
 		storage = new storageUtils.StorageSandbox(
 			configUtils.storageConfig({ database: dbName }),
 			dbName,
 		);
+		forgerDB = new KVStore(`/tmp/${dbName}.db`);
 		await storage.bootstrap();
-		node = await nodeUtils.createAndLoadNode(storage);
+		node = await nodeUtils.createAndLoadNode(storage, forgerDB);
 		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
+		await forgerDB.clear();
 		await node.cleanup();
 		await storage.cleanup();
 	});

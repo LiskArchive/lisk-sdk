@@ -12,27 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as childProcess from 'child_process';
-import * as psList from 'ps-list';
 import { ChildProcess } from 'child_process';
 import { systemDirs } from '../application/system_dirs';
 import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
-import { DuplicateAppInstanceError } from '../errors';
 import { validateModuleSpec } from '../application/validator';
 import { Logger, Storage } from '../types';
 import { SocketPaths } from './types';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 
-const isPidRunning = async (pid: number): Promise<boolean> =>
-	psList().then(list => list.some(x => x.pid === pid));
-
 export interface ControllerOptions {
 	readonly appLabel: string;
 	readonly config: {
-		readonly tempPath: string;
+		readonly rootPath: string;
 		readonly ipc: {
 			readonly enabled: boolean;
 		};
@@ -43,10 +37,13 @@ export interface ControllerOptions {
 }
 
 interface ControllerConfig {
-	readonly tempPath: string;
+	readonly rootPath: string;
 	readonly socketsPath: SocketPaths;
 	readonly dirs: {
-		readonly temp: string;
+		readonly root: string;
+		readonly data: string;
+		readonly tmp: string;
+		readonly logs: string;
 		readonly sockets: string;
 		readonly pids: string;
 	};
@@ -92,16 +89,14 @@ export class Controller {
 		this.channel = options.channel;
 		this.logger.info('Initializing controller');
 
-		const dirs = systemDirs(this.appLabel, options.config.tempPath);
+		const dirs = systemDirs(this.appLabel, options.config.rootPath);
 		this.config = {
-			tempPath: dirs.temp,
+			rootPath: dirs.root,
 			ipc: {
 				enabled: options.config.ipc.enabled,
 			},
 			dirs: {
-				temp: dirs.temp,
-				sockets: dirs.sockets,
-				pids: dirs.pids,
+				...dirs,
 			},
 			socketsPath: {
 				root: `unix://${dirs.sockets}`,
@@ -121,8 +116,6 @@ export class Controller {
 		migrations: Migrations = {},
 	): Promise<void> {
 		this.logger.info('Loading controller');
-		await this._setupDirectories();
-		await this._validatePidFile();
 		await this._setupBus();
 		await this._loadMigrations({ ...migrations });
 		await this._loadModules(modules, moduleOptions);
@@ -158,35 +151,6 @@ export class Controller {
 		} catch (err) {
 			this.logger.error(err, 'Caused error during modules cleanup');
 		}
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	private async _setupDirectories(): Promise<void> {
-		// Make sure all directories exists
-		await fs.ensureDir(this.config.dirs.temp);
-		await fs.ensureDir(this.config.dirs.sockets);
-		await fs.ensureDir(this.config.dirs.pids);
-	}
-
-	private async _validatePidFile(): Promise<void> {
-		const pidPath = `${this.config.dirs.pids}/controller.pid`;
-		const pidExists = await fs.pathExists(pidPath);
-		if (pidExists) {
-			const pid = parseInt((await fs.readFile(pidPath)).toString(), 10);
-			const pidRunning = await isPidRunning(pid);
-
-			this.logger.info({ pid }, 'Previous Lisk PID');
-			this.logger.info({ pid: process.pid }, 'Current Lisk PID');
-
-			if (pidRunning && pid !== process.pid) {
-				this.logger.error(
-					{ appLabel: this.appLabel },
-					'An instance of application is already running, please change application name to run another instance',
-				);
-				throw new DuplicateAppInstanceError(this.appLabel, pidPath);
-			}
-		}
-		await fs.writeFile(pidPath, process.pid);
 	}
 
 	private async _setupBus(): Promise<void> {

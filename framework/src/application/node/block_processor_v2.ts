@@ -29,6 +29,7 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { BaseBlockProcessor } from './processor';
 import { Logger } from '../../types';
@@ -38,7 +39,7 @@ interface BlockProcessorInput {
 	readonly chainModule: Chain;
 	readonly bftModule: BFT;
 	readonly dposModule: Dpos;
-	readonly storage: Storage;
+	readonly forgerDB: KVStore;
 	readonly logger: Logger;
 	readonly constants: {
 		readonly maxPayloadLength: number;
@@ -131,7 +132,9 @@ export const getBytes = (
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
+	const previousBlockBuffer = block.previousBlockId
+		? Buffer.from(block.previousBlockId, 'hex')
+		: Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 
@@ -221,7 +224,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	private readonly chainModule: Chain;
 	private readonly bftModule: BFT;
 	private readonly dposModule: Dpos;
-	private readonly storage: Storage;
+	private readonly forgerDB: KVStore;
 	private readonly logger: Logger;
 	private readonly constants: {
 		readonly maxPayloadLength: number;
@@ -232,7 +235,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		chainModule,
 		bftModule,
 		dposModule,
-		storage,
+		forgerDB,
 		logger,
 		constants,
 	}: BlockProcessorInput) {
@@ -242,7 +245,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		this.bftModule = bftModule;
 		this.dposModule = dposModule;
 		this.logger = logger;
-		this.storage = storage;
+		this.forgerDB = forgerDB;
 		this.constants = constants;
 
 		/* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -449,13 +452,20 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	}
 
 	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-		const previouslyForgedStr = (await this.storage.entities.ForgerInfo.getKey(
-			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
-		)) as string | undefined;
-		return previouslyForgedStr
-			? (JSON.parse(previouslyForgedStr) as ForgedMap)
-			: {};
+		try {
+			const previouslyForgedStr = await this.forgerDB.get<string>(
+				FORGER_INFO_KEY_PREVIOUSLY_FORGED,
+			);
+			return JSON.parse(previouslyForgedStr) as ForgedMap;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				this.logger.error(
+					{ err: error as Error },
+					'Error while querying forgerDB',
+				);
+			}
+			return {};
+		}
 	}
 
 	/**
@@ -489,8 +499,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-		await this.storage.entities.ForgerInfo.setKey(
+		await this.forgerDB.put(
 			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
 			previouslyForgedStr,
 		);

@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as fs from 'fs-extra';
+import * as psList from 'ps-list';
 import * as assert from 'assert';
+import * as os from 'os';
 import {
 	TransferTransaction,
 	DelegateTransaction,
@@ -24,9 +27,11 @@ import {
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
 import { Contexter } from '@liskhq/lisk-chain';
+import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { validator as liskValidator } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
+import { systemDirs } from './system_dirs';
 import { Controller, ModulesOptions } from '../controller/controller';
 import { version } from '../version';
 import * as validator from './validator';
@@ -37,6 +42,7 @@ import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
 
+import { DuplicateAppInstanceError } from '../errors';
 import { createLoggerComponent } from '../components/logger';
 import { createStorageComponent } from '../components/storage';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
@@ -59,6 +65,9 @@ import { DelegateConfig } from './node/forger';
 import { NetworkConfig } from './network/network';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import HttpAPIModule = require('../modules/http_api');
+
+const isPidRunning = async (pid: number): Promise<boolean> =>
+	psList().then(list => list.some(x => x.pid === pid));
 
 const registerProcessHooks = (app: Application): void => {
 	process.title = `${app.config.label}(${app.config.version})`;
@@ -107,7 +116,7 @@ interface ApplicationConfig {
 	ipc: {
 		enabled: boolean;
 	};
-	tempPath: string;
+	rootPath: string;
 	readonly forging: {
 		readonly waitThreshold: number;
 		readonly delegates: DelegateConfig[];
@@ -159,6 +168,7 @@ export class Application {
 	private _migrations: { [key: string]: object };
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly storage: any;
+	private _forgerDB!: KVStore;
 
 	public constructor(
 		genesisBlock: GenesisBlockInstance,
@@ -171,6 +181,8 @@ export class Application {
 		this._genesisBlock = genesisBlock;
 
 		// Don't change the object parameters provided
+		// eslint-disable-next-line no-param-reassign
+		config.rootPath = config.rootPath?.replace('~', os.homedir);
 		let appConfig = _.cloneDeep(config);
 
 		appConfig.label =
@@ -347,6 +359,13 @@ export class Application {
 
 		registerProcessHooks(this);
 
+		// Initialize directories
+		await this._setupDirectories();
+		await this._validatePidFile();
+
+		// Initialize database instances
+		this._forgerDB = this._getDBInstance(this.config, 'forger.db');
+
 		// Initialize all objects
 		this._applicationState = this._initApplicationState();
 		this._channel = this._initChannel();
@@ -390,11 +409,11 @@ export class Application {
 
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 
-		// TODO: Fix the cause of circular exception
-		// await this._network.stop();
-		// await this._node.cleanup();
+		await this._network.cleanup();
 		// eslint-disable-next-line
 		this.storage.cleanup();
+		await this._node.cleanup();
+		await this._forgerDB.close();
 
 		process.exit(errorCode);
 	}
@@ -662,7 +681,7 @@ export class Application {
 			appLabel: this.config.label,
 			config: {
 				ipc: this.config.ipc,
-				tempPath: this.config.tempPath,
+				rootPath: this.config.rootPath,
 			},
 			logger: this.logger,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -694,11 +713,52 @@ export class Application {
 				registeredTransactions: this.getTransactions(),
 			},
 			logger: this.logger,
+			// TODO: Remove the storage with PR 5257
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			storage: this.storage,
+			forgerDB: this._forgerDB,
 			applicationState: this._applicationState,
 		});
 
 		return node;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private async _setupDirectories(): Promise<void> {
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		await Promise.all(
+			Array.from(Object.values(dirs)).map(async dirPath =>
+				fs.ensureDir(dirPath),
+			),
+		);
+	}
+
+	private async _validatePidFile(): Promise<void> {
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const pidPath = `${dirs.pids}/controller.pid`;
+		const pidExists = await fs.pathExists(pidPath);
+		if (pidExists) {
+			const pid = parseInt((await fs.readFile(pidPath)).toString(), 10);
+			const pidRunning = await isPidRunning(pid);
+
+			this.logger.info({ pid }, 'Previous Lisk PID');
+			this.logger.info({ pid: process.pid }, 'Current Lisk PID');
+
+			if (pidRunning && pid !== process.pid) {
+				this.logger.error(
+					{ appLabel: this.config.label },
+					'An instance of application is already running, please change the application label to run another instance',
+				);
+				throw new DuplicateAppInstanceError(this.config.label, pidPath);
+			}
+		}
+		await fs.writeFile(pidPath, process.pid);
+	}
+
+	private _getDBInstance(options: ApplicationConfig, dbName: string): KVStore {
+		const dirs = systemDirs(options.label, options.rootPath);
+		const dbPath = `${dirs.data}/${dbName}`;
+		this.logger.debug({ dbName, dbPath }, 'Create database instance.');
+		return new KVStore(dbPath);
 	}
 }

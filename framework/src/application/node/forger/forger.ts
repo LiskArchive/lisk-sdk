@@ -25,13 +25,14 @@ import { Dpos } from '@liskhq/lisk-dpos';
 import { BFT } from '@liskhq/lisk-bft';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { KVStore } from '@liskhq/lisk-db';
 import {
 	FORGER_INFO_KEY_USED_HASH_ONION,
 	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 } from './constant';
 import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
-import { Logger, Storage, StringKeyVal } from '../../../types';
+import { Logger, StringKeyVal } from '../../../types';
 
 interface UsedHashOnion {
 	readonly count: number;
@@ -68,7 +69,7 @@ interface KeyPairs {
 interface ForgerConstructor {
 	readonly forgingStrategy?: HighFeeForgingStrategy;
 	readonly logger: Logger;
-	readonly storage: Storage;
+	readonly db: KVStore;
 	readonly processorModule: Processor;
 	readonly dposModule: Dpos;
 	readonly bftModule: BFT;
@@ -83,7 +84,7 @@ interface ForgerConstructor {
 
 export class Forger {
 	private readonly _logger: Logger;
-	private readonly _storage: Storage;
+	private readonly _db: KVStore;
 	private readonly _processorModule: Processor;
 	private readonly _dposModule: Dpos;
 	private readonly _bftModule: BFT;
@@ -107,7 +108,7 @@ export class Forger {
 		forgingStrategy,
 		// components
 		logger,
-		storage,
+		db,
 		// Modules
 		processorModule,
 		dposModule,
@@ -123,7 +124,7 @@ export class Forger {
 	}: ForgerConstructor) {
 		this._keypairs = {};
 		this._logger = logger;
-		this._storage = storage;
+		this._db = db;
 		this._config = {
 			forging: {
 				delegates: forgingDelegates,
@@ -579,13 +580,14 @@ export class Forger {
 	}
 
 	private async _getRegisteredHashOnionSeeds(): Promise<StringKeyVal> {
-		const registeredHashOnionSeedsStr = await this._storage.entities.ForgerInfo.getKey(
-			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
-		);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return registeredHashOnionSeedsStr
-			? JSON.parse(registeredHashOnionSeedsStr)
-			: {};
+		try {
+			const registeredHashOnionSeedsStr = await this._db.get<string>(
+				FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+			);
+			return JSON.parse(registeredHashOnionSeedsStr) as StringKeyVal;
+		} catch (error) {
+			return {};
+		}
 	}
 
 	private async _setRegisteredHashOnionSeeds(
@@ -594,18 +596,22 @@ export class Forger {
 		const registeredHashOnionSeedsStr = JSON.stringify(
 			registeredHashOnionSeeds,
 		);
-		await this._storage.entities.ForgerInfo.setKey(
+		await this._db.put(
 			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 			registeredHashOnionSeedsStr,
 		);
 	}
 
 	private async _getUsedHashOnions(): Promise<UsedHashOnion[]> {
-		const usedHashOnionsStr = await this._storage.entities.ForgerInfo.getKey(
-			FORGER_INFO_KEY_USED_HASH_ONION,
-		);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return usedHashOnionsStr ? JSON.parse(usedHashOnionsStr) : [];
+		try {
+			const usedHashOnionsStr = await this._db.get<string>(
+				FORGER_INFO_KEY_USED_HASH_ONION,
+			);
+
+			return JSON.parse(usedHashOnionsStr) as UsedHashOnion[];
+		} catch (error) {
+			return [];
+		}
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -646,10 +652,7 @@ export class Forger {
 		usedHashOnions: UsedHashOnion[],
 	): Promise<void> {
 		const usedHashOnionsStr = JSON.stringify(usedHashOnions);
-		await this._storage.entities.ForgerInfo.setKey(
-			FORGER_INFO_KEY_USED_HASH_ONION,
-			usedHashOnionsStr,
-		);
+		await this._db.put(FORGER_INFO_KEY_USED_HASH_ONION, usedHashOnionsStr);
 	}
 
 	private async _getDelegateKeypairForCurrentSlot(
