@@ -19,7 +19,6 @@ export const transactionInterface = {
 		'validate',
 		'apply',
 		'undo',
-		'prepare',
 		'verifySignatures',
 	],
 	properties: {
@@ -36,9 +35,6 @@ export const transactionInterface = {
 			typeof: 'function',
 		},
 		undo: {
-			typeof: 'function',
-		},
-		prepare: {
 			typeof: 'function',
 		},
 		verifySignatures: {

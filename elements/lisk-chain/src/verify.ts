@@ -25,16 +25,13 @@ import {
 	Context,
 	GenesisBlock,
 	MatcherTransaction,
-	Storage,
 } from './types';
 
 export const verifyBlockNotExists = async (
-	storage: Storage,
+	dataAccess: DataAccess,
 	block: BlockInstance,
 ): Promise<void> => {
-	const isPersisted = await storage.entities.Block.isPersisted({
-		id: block.id,
-	});
+	const isPersisted = await dataAccess.isBlockPersisted(block.id);
 	if (isPersisted) {
 		throw new Error(`Block ${block.id} already exists`);
 	}

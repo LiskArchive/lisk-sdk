@@ -2287,7 +2287,6 @@ Object {
     "wsPort": 5000,
   },
   "protocolVersion": "1.1",
-  "rebuildUpToRound": null,
   "rootPath": "~/.lisk",
   "version": "2.1.0",
 }

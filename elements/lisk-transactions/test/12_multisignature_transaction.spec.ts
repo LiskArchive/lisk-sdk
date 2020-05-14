@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
 import { Account } from '../src/transaction_types';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
@@ -49,7 +48,6 @@ describe('Multisignature transaction class', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	let validTestTransaction: MultisignatureTransaction;
 	let multisignatureSender: Partial<Account>;
-	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountSetStub: jest.SpyInstance;
 	let store: StateStoreMock;
@@ -77,7 +75,6 @@ describe('Multisignature transaction class', () => {
 			.mockResolvedValue(targetMultisigAccount);
 
 		storeAccountSetStub = jest.spyOn(store.account, 'set');
-		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 	});
 
 	describe('#constructor', () => {
@@ -113,25 +110,6 @@ describe('Multisignature transaction class', () => {
 			expect(validTestTransaction.assetToJSON()).toEqual(
 				validMultisignatureRegistrationTransaction.asset,
 			);
-		});
-	});
-
-	describe('#prepare', () => {
-		it('should call state store with correct params', async () => {
-			await validTestTransaction.prepare(store);
-			// Derive addresses from public keys
-			const mandatoryKeysAddressess = validTestTransaction.asset.mandatoryKeys.map(
-				aKey => ({ address: getAddressFromPublicKey(aKey) }),
-			);
-			const optionalKeysAddressess = validTestTransaction.asset.optionalKeys.map(
-				aKey => ({ address: getAddressFromPublicKey(aKey) }),
-			);
-
-			expect(storeAccountCacheStub).toHaveBeenCalledWith([
-				{ address: validTestTransaction.senderId },
-				...mandatoryKeysAddressess,
-				...optionalKeysAddressess,
-			]);
 		});
 	});
 

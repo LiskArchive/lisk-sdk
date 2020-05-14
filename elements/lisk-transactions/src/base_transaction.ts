@@ -52,18 +52,7 @@ export interface TransactionResponse {
 
 // Disabling method-signature-style otherwise type is not compatible with lisk-chain
 /* eslint-disable @typescript-eslint/method-signature-style */
-export interface StateStorePrepare {
-	readonly account: {
-		cache(
-			filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-		): Promise<ReadonlyArray<Account>>;
-	};
-}
-
 export interface AccountState {
-	cache(
-		filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-	): Promise<ReadonlyArray<Account>>;
 	get(key: string): Promise<Account>;
 	getOrDefault(key: string): Promise<Account>;
 	find(func: (item: Account) => boolean): Account | undefined;
@@ -302,14 +291,6 @@ export abstract class BaseTransaction {
 		errors.push(...assetErrors);
 
 		return createResponse(this.id, errors);
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-		]);
 	}
 
 	public async verifySignatures(

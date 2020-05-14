@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { KVStore } from '@liskhq/lisk-db';
 import { transfer, utils } from '@liskhq/lisk-transactions';
-import { nodeUtils, storageUtils, configUtils } from '../../../../../../utils';
+import { nodeUtils } from '../../../../../../utils';
+import { createDB, removeDB } from '../../../../../../utils/kv_store';
 import { accounts } from '../../../../../../fixtures';
 
 const { convertLSKToBeddows } = utils;
@@ -21,21 +23,20 @@ const { genesis } = accounts;
 
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';
-	let storage: any;
 	let node: any;
+	let blockchainDB: KVStore;
+	let forgerDB: KVStore;
 
 	beforeAll(async () => {
-		storage = new storageUtils.StorageSandbox(
-			configUtils.storageConfig({ database: dbName }),
-			dbName,
-		);
-		await storage.bootstrap();
-		node = await nodeUtils.createAndLoadNode(storage);
+		({ blockchainDB, forgerDB } = createDB(dbName));
+		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 	});
 
 	afterAll(async () => {
 		await node.cleanup();
-		await storage.cleanup();
+		await blockchainDB.close();
+		await forgerDB.close();
+		removeDB(dbName);
 	});
 
 	describe('given a valid transaction while forging is disabled', () => {

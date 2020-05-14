@@ -12,46 +12,46 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const {
-	nodeUtils,
-	storageUtils,
-	configUtils,
-} = require('../../../../../utils');
-const genesisBlock = require('../../../../../fixtures/config/devnet/genesis_block.json');
+import { KVStore } from '@liskhq/lisk-db';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { nodeUtils } from '../../../../../utils';
+import { createDB, removeDB } from '../../../../../utils/kv_store';
+import * as genesisBlock from '../../../../../fixtures/config/devnet/genesis_block.json';
+import { Node } from '../../../../../../src/application/node';
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
 	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 10;
-	let storage;
-	let node;
+	let node: Node;
+	let blockchainDB: KVStore;
+	let forgerDB: KVStore;
 
 	beforeAll(async () => {
-		storage = new storageUtils.StorageSandbox(
-			configUtils.storageConfig({ database: dbName }),
-			dbName,
-		);
-		await storage.bootstrap();
-		node = await nodeUtils.createAndLoadNode(storage, console);
+		({ blockchainDB, forgerDB } = createDB(dbName));
+		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 	});
 
 	afterAll(async () => {
 		await node.cleanup();
-		await storage.cleanup();
+		await blockchainDB.close();
+		await forgerDB.close();
+		removeDB(dbName);
 	});
 
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
 			it('should save genesis block to the database', async () => {
-				const block = await storageUtils.getBlock(storage, genesisBlock.id);
+				const block = await node['_chain'].dataAccess.getBlockByID(
+					genesisBlock.id,
+				);
 				expect(block.id).toEqual(genesisBlock.id);
 				expect(block.height).toEqual(1);
 			});
 
 			it('should have genesis transactions in database', async () => {
-				const block = await storageUtils.getBlock(storage, genesisBlock.id);
+				const block = await node['_chain'].dataAccess.getBlockByID(
+					genesisBlock.id,
+				);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
 					block.transactions.map(tx => tx.id).includes(id),
@@ -72,7 +72,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						storageUtils.getAccount(storage, address),
+						node['_chain'].dataAccess.getAccountByAddress(address),
 					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
@@ -97,7 +97,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						storageUtils.getAccount(storage, address),
+						node['_chain'].dataAccess.getAccountByAddress(address),
 					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
@@ -106,7 +106,7 @@ describe('genesis block', () => {
 							account =>
 								address === account.address &&
 								account.totalVotesReceived ===
-									totalVotesReceivedOfDevnetDelegates,
+									BigInt(totalVotesReceivedOfDevnetDelegates),
 						),
 				);
 
@@ -123,7 +123,9 @@ describe('genesis block', () => {
 	describe('given the application has been initialized previously', () => {
 		describe('when chain module is bootstrapped', () => {
 			it('should have genesis transactions in database', async () => {
-				const block = await storageUtils.getBlock(storage, genesisBlock.id);
+				const block = await node['_chain'].dataAccess.getBlockByID(
+					genesisBlock.id,
+				);
 				const ids = genesisBlock.transactions.map(t => t.id);
 				const allExist = ids.every(id =>
 					block.transactions.map(tx => tx.id).includes(id),
@@ -144,7 +146,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						storageUtils.getAccount(storage, address),
+						node['_chain'].dataAccess.getAccountByAddress(address),
 					),
 				);
 				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
@@ -169,7 +171,7 @@ describe('genesis block', () => {
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
 					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						storageUtils.getAccount(storage, address),
+						node['_chain'].dataAccess.getAccountByAddress(address),
 					),
 				);
 				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
@@ -178,7 +180,7 @@ describe('genesis block', () => {
 							account =>
 								address === account.address &&
 								account.totalVotesReceived ===
-									totalVotesReceivedOfDevnetDelegates,
+									BigInt(totalVotesReceivedOfDevnetDelegates),
 						),
 				);
 

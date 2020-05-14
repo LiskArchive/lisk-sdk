@@ -12,75 +12,67 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { BaseTransaction, TransactionError } from '@liskhq/lisk-transactions';
+import { KVStore } from '@liskhq/lisk-db';
+import { BlockInstance } from '@liskhq/lisk-chain';
+import { nodeUtils } from '../../../../../utils';
+import { accounts } from '../../../../../fixtures';
+import { createDB, removeDB } from '../../../../../utils/kv_store';
+import { Node } from '../../../../../../src/application/node';
 
-const {
-	BaseTransaction,
-	TransferTransaction,
-} = require('@liskhq/lisk-transactions');
-const { KVStore } = require('@liskhq/lisk-db');
-const {
-	nodeUtils,
-	storageUtils,
-	configUtils,
-} = require('../../../../../utils');
-const {
-	accounts: { genesis },
-} = require('../../../../../fixtures');
+const { genesis } = accounts;
 
 /**
  * Implementation of the Custom Transaction enclosed in a class
  */
 class CustomTransationClass extends BaseTransaction {
-	constructor(input) {
+	public asset: any;
+
+	public constructor(input: any) {
 		super(input);
 		this.asset = input.asset;
 	}
 
-	static get TYPE() {
+	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
+	public static get TYPE(): number {
 		return 7;
 	}
 
-	static get FEE() {
-		return TransferTransaction.FEE;
-	}
-
-	assetToJSON() {
+	public assetToJSON() {
 		return this.asset;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	assetToBytes() {
+	public assetToBytes() {
 		return Buffer.alloc(0);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	applyAsset() {
+	// eslint-disable-next-line
+	public async applyAsset(): Promise<TransactionError[]> {
+		return [];
+	}
+
+	// eslint-disable-next-line
+	public async undoAsset(): Promise<TransactionError[]> {
 		return [];
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	undoAsset() {
-		return [];
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	matcher() {
+	public matcher() {
 		return false;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	validateAsset() {
+	public validateAsset() {
 		return [];
 	}
+}
 
-	async prepare(store) {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-		]);
-	}
+interface CreateRawTransactionInput {
+	passphrase: string;
+	nonce: string;
+	networkIdentifier: string;
+	senderPublicKey: string;
 }
 
 const createRawCustomTransaction = ({
@@ -88,7 +80,7 @@ const createRawCustomTransaction = ({
 	nonce,
 	networkIdentifier,
 	senderPublicKey,
-}) => {
+}: CreateRawTransactionInput) => {
 	const aCustomTransation = new CustomTransationClass({
 		type: 7,
 		nonce,
@@ -105,25 +97,22 @@ const createRawCustomTransaction = ({
 
 describe('Matcher', () => {
 	const dbName = 'transaction_matcher';
-	let storage;
-	let node;
-	let forgerDB;
+	let node: Node;
+	let blockchainDB: KVStore;
+	let forgerDB: KVStore;
 
 	beforeAll(async () => {
-		storage = new storageUtils.StorageSandbox(
-			configUtils.storageConfig({ database: dbName }),
-			dbName,
-		);
-		await storage.bootstrap();
-		forgerDB = new KVStore(`/tmp/${dbName}.db`);
-		node = await nodeUtils.createAndLoadNode(storage, forgerDB);
-		await node._forger.loadDelegates();
+		({ blockchainDB, forgerDB } = createDB(dbName));
+		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
+		await node['_forger'].loadDelegates();
 	});
 
 	afterAll(async () => {
 		await forgerDB.clear();
 		await node.cleanup();
-		await storage.cleanup();
+		await blockchainDB.close();
+		await forgerDB.close();
+		removeDB(dbName);
 	});
 
 	describe('given a disallowed transaction', () => {
@@ -132,12 +121,12 @@ describe('Matcher', () => {
 				const account = nodeUtils.createAccount();
 				const tx = createRawCustomTransaction({
 					passphrase: account.passphrase,
-					networkIdentifier: node._networkIdentifier,
+					networkIdentifier: node['_networkIdentifier'],
 					senderPublicKey: account.publicKey,
 					nonce: '0',
 				});
 				await expect(
-					node._transport.handleEventPostTransaction({ transaction: tx }),
+					node['_transport'].handleEventPostTransaction({ transaction: tx }),
 				).resolves.toEqual(
 					expect.objectContaining({
 						message: expect.stringContaining('Transaction was rejected'),
@@ -149,11 +138,11 @@ describe('Matcher', () => {
 
 	describe('given a block containing disallowed transaction', () => {
 		describe('when the block is processed', () => {
-			let newBlock;
+			let newBlock: BlockInstance;
 			beforeAll(async () => {
-				const genesisAccount = await node._chain.dataAccess.getAccountByAddress(
-					genesis.address,
-				);
+				const genesisAccount = await node[
+					'_chain'
+				].dataAccess.getAccountByAddress(genesis.address);
 				const aCustomTransation = new CustomTransationClass({
 					senderPublicKey: genesis.publicKey,
 					nonce: genesisAccount.nonce.toString(),
@@ -163,12 +152,14 @@ describe('Matcher', () => {
 					},
 					fee: (10000000).toString(),
 				});
-				aCustomTransation.sign(node._networkIdentifier, genesis.passphrase);
+				aCustomTransation.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [aCustomTransation]);
 			});
 
 			it('should be rejected', async () => {
-				await expect(node._processor.process(newBlock)).rejects.toMatchObject([
+				await expect(
+					node['_processor'].process(newBlock),
+				).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining('is currently not allowed'),
 					}),
