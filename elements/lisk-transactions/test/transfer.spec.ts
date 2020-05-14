@@ -24,7 +24,7 @@ describe('#transfer transaction', () => {
 	const transactionType = 8;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const recipientId = '18160565574430594874L';
+	const recipientId = '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f';
 	const recipientPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientPublicKeyThatDoesNotMatchRecipientId =
@@ -101,7 +101,7 @@ describe('#transfer transaction', () => {
 			it('should have signatures hex string', () => {
 				expect(transferTransaction.signatures).toBeArray();
 				expect((transferTransaction as any).signatures[0]).toBe(
-					'058616beb4ae07ced1ef97fedf439c4bb8f19ae3c76764c658d9a01c70903b5dd42780979d8639ba4c8de470b774d8b1ea57cc0e84fe823140f0513de71e9d0e',
+					'7c217c9161f1ee7c90daf58f192f2bdf080d7081acfe5e999d468df329ea0e35b19b70f8e66a4739a14c19c350e0c2f8fc918104234bd940db2bb949b970dc02',
 				);
 			});
 
@@ -190,9 +190,9 @@ describe('#transfer transaction', () => {
 
 			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
 			const validSignatureMemberOne =
-				'd2ab4810c0d2f06046c175b82d31c04b018bd937222701e481285f0e8e0b931fa16a38155d5132001a2d040f7e014226eced4ba0aea751f9dce05c381f91410d';
+				'7963fa1e7037da91295c08ec4a659615ff1ee8374825f1c676f18df129a62357161e6ea055bf5dfb9b6cf9f44fc338691cda6c4aaa9f84a488a5bc5241665d01';
 			const validSignatureMemberTwo =
-				'998250c229cac44b82ddf7f193821ffaccd28cce98a7033bb4c39a13dc778bd58aad1f083248f2f374e45a290971fff19c9d951b142d7a3082fddb6b1118dc07';
+				'fc1ce1184184f49dcf7e5f76b008881a1bf6a1c018d529d1ad18e21a5a945186ca4c138a3f9bd981e1474782f2650eb8dab4aa81a41787d7b18d533e8a380f0c';
 
 			expect(transferTransaction.signatures?.length).toBe(2);
 			expect((transferTransaction as any).signatures[0]).toBe(
@@ -226,7 +226,7 @@ describe('#transfer transaction', () => {
 
 			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
 			const validSignatureMemberOne =
-				'd2ab4810c0d2f06046c175b82d31c04b018bd937222701e481285f0e8e0b931fa16a38155d5132001a2d040f7e014226eced4ba0aea751f9dce05c381f91410d';
+				'7963fa1e7037da91295c08ec4a659615ff1ee8374825f1c676f18df129a62357161e6ea055bf5dfb9b6cf9f44fc338691cda6c4aaa9f84a488a5bc5241665d01';
 
 			expect(transferTransaction.signatures?.length).toBe(2);
 			expect((transferTransaction as any).signatures[0]).toBe(
@@ -258,7 +258,7 @@ describe('#transfer transaction', () => {
 
 			// These signatures were calculated by signing the bytes of the transaction and are valid for the serialized bytes
 			const validSignatureMemberTwo =
-				'998250c229cac44b82ddf7f193821ffaccd28cce98a7033bb4c39a13dc778bd58aad1f083248f2f374e45a290971fff19c9d951b142d7a3082fddb6b1118dc07';
+				'fc1ce1184184f49dcf7e5f76b008881a1bf6a1c018d529d1ad18e21a5a945186ca4c138a3f9bd981e1474782f2650eb8dab4aa81a41787d7b18d533e8a380f0c';
 			expect(transferTransaction.signatures?.length).toBe(2);
 			expect((transferTransaction as any).signatures[0]).toBe('');
 			expect((transferTransaction as any).signatures[1]).toBe(

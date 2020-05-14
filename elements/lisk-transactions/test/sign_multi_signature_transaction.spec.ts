@@ -159,7 +159,7 @@ describe('#sign multi signature transaction', () => {
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				asset: {
 					amount: '500000000',
-					recipientId: '13360160607553818129L',
+					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 				},
 			});
 
@@ -186,7 +186,7 @@ describe('#sign multi signature transaction', () => {
 			expect(txSignedByMember.signatures).toStrictEqual([
 				'',
 				'',
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
+				'd2ffc20a79de3c44e26f8b28a986e098841d9fe4212237820992645d48faa2dff3bfcc8089cdf3afc819ba3fdbf3234e5b419ff47d303daa44ba7338dfe4fc06',
 				'',
 			]);
 		});
@@ -198,7 +198,7 @@ describe('#sign multi signature transaction', () => {
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				asset: {
 					amount: '500000000',
-					recipientId: '13360160607553818129L',
+					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 				},
 			});
 
@@ -230,7 +230,7 @@ describe('#sign multi signature transaction', () => {
 				'',
 				'',
 				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
-				'5fbfd1e0f35a230356f3544856b5b9ed288d40c9a7096af7f72e624562f3528ff4381956f7ed6ffe88b60df8d2b6baedfe176beae786a3889f98d4af2190c80b',
+				'8383b16e7edb0459ab74850532275cdb942beba448392cd2e504e043b12eef58a9ff0e627537a04557689c0c241d1a4c112b19a9675b704859717f1b491bb401',
 			]);
 		});
 
@@ -240,7 +240,7 @@ describe('#sign multi signature transaction', () => {
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				asset: {
 					amount: '500000000',
-					recipientId: '13360160607553818129L',
+					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 				},
 			});
 
@@ -271,7 +271,7 @@ describe('#sign multi signature transaction', () => {
 			expect(txSignedByMember.signatures).toStrictEqual([
 				'',
 				'',
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
+				'd2ffc20a79de3c44e26f8b28a986e098841d9fe4212237820992645d48faa2dff3bfcc8089cdf3afc819ba3fdbf3234e5b419ff47d303daa44ba7338dfe4fc06',
 				'',
 			]);
 		});
@@ -282,7 +282,7 @@ describe('#sign multi signature transaction', () => {
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				asset: {
 					amount: '500000000',
-					recipientId: '13360160607553818129L',
+					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 				},
 			});
 
@@ -308,7 +308,7 @@ describe('#sign multi signature transaction', () => {
 			});
 
 			expect(txSignedByMember.signatures[2]).toBe(
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
+				'd2ffc20a79de3c44e26f8b28a986e098841d9fe4212237820992645d48faa2dff3bfcc8089cdf3afc819ba3fdbf3234e5b419ff47d303daa44ba7338dfe4fc06',
 			);
 		});
 	});
