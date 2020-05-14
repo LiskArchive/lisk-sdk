@@ -1,5 +1,5 @@
 export interface GenericObject {
-	[key: string]: GenericObject | string | number;
+	[key: string]: GenericObject | string | number | Buffer;
 }
 export interface SchemaPair {
 	readonly [key: string]: SchemaProps;

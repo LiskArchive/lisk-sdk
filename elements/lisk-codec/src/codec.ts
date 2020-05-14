@@ -21,10 +21,25 @@ import {
 	SchemaPair,
 } from './types';
 
+import { writeVarInt, writeSignedVarInt } from './varint';
+import { writeString } from './string';
+import { writeBytes } from './bytes';
+import { writeBoolean } from './boolean';
+
+
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
-	// private readonly _writers: DataTypeWriters = {
-	// };
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer }= {
+		int32: writeVarInt,
+		sint32: writeSignedVarInt,
+		int64: writeVarInt,
+		sint64: writeSignedVarInt,
+		string: writeString,
+		bytes: writeBytes,
+		boolean: writeBoolean,
+	};
 
 	public addSchema(schema: Schema): void {
 		const schemaName = schema.$id;
@@ -35,26 +50,36 @@ export class Codec {
 		);
 	}
 
-	public encode(schema: Schema, message: GenericObject): string {
+	public encode(schema: Schema, message: GenericObject): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
 
-		const encoder = this._compileSchemas[schema.$id];
+		const compiledSchema = this._compileSchemas[schema.$id];
 
-		let binaryMessage = '';
+		let binaryMessage = Buffer.alloc(0);
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
-		for (let i = 0; i < encoder.length; i += 1) {
+		for (let i = 0; i < compiledSchema.length; i += 1) {
+			const { binaryKey, dataPath, schemaProp, propertyName } = compiledSchema[i];
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const pathToValue = findObjectByPath(message, encoder[i].dataPath);
+			const pathToValue = findObjectByPath(message, dataPath);
 			if (pathToValue === undefined) {
 				throw new Error(
-					'Compiled schema contains an invalid path to a property this should never happen',
+					'Compiled schema contains an invalid path to a property. Some problem occured when caching the schema.',
 				);
 			}
-			const value = pathToValue[encoder[i].propertyName];
-			const { dataPath } = encoder[i];
-			binaryMessage += `key|${JSON.stringify(value)},${dataPath.join('.')}`;
+
+			const value = pathToValue[propertyName];
+
+			const dataType = schemaProp.dataType ?? schemaProp.type;
+
+			if (dataType === undefined) {
+				throw new Error('Schema is corrutped as neither "type" nor "dataType" are defined in it.');
+			}
+
+			const binaryValue = this._writers[dataType](value, schemaProp);
+
+			binaryMessage = Buffer.concat([binaryMessage, Buffer.from([binaryKey]), binaryValue]);
 		}
 
 		return binaryMessage;
