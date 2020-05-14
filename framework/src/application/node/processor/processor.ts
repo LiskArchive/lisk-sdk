@@ -83,9 +83,7 @@ export class Processor {
 		);
 		// do init check for block state. We need to load the blockchain
 		const blockProcessor = this._getBlockProcessor(genesisBlock);
-		await this._processGenesis(genesisBlock, blockProcessor, {
-			saveOnlyState: false,
-		});
+		await this._processGenesis(genesisBlock, blockProcessor);
 		await this.chainModule.init();
 		const stateStore = await this.chainModule.newStateStore();
 		for (const processor of Object.values(this.processors)) {
@@ -298,7 +296,6 @@ export class Processor {
 			const { lastBlock } = this.chainModule;
 			const blockProcessor = this._getBlockProcessor(block);
 			return this._processValidated(block, lastBlock, blockProcessor, {
-				saveOnlyState: true,
 				skipBroadcast: true,
 			});
 		});
@@ -319,22 +316,14 @@ export class Processor {
 		});
 	}
 
-	public async applyGenesisBlock(block: BlockInstance): Promise<BlockInstance> {
-		this.logger.info({ id: block.id }, 'Applying genesis block');
-		const blockProcessor = this._getBlockProcessor(block);
-		return this._processGenesis(block, blockProcessor, { saveOnlyState: true });
-	}
-
 	private async _processValidated(
 		block: BlockInstance,
 		lastBlock: BlockInstance,
 		processor: BaseBlockProcessor,
 		{
-			saveOnlyState,
 			skipBroadcast,
 			removeFromTempTable = false,
 		}: {
-			saveOnlyState?: boolean;
 			skipBroadcast?: boolean;
 			removeFromTempTable?: boolean;
 		} = {},
@@ -343,7 +332,6 @@ export class Processor {
 		await processor.verify.run({
 			block,
 			lastBlock,
-			skipExistingCheck: saveOnlyState,
 			stateStore,
 		});
 
@@ -359,12 +347,10 @@ export class Processor {
 		await processor.apply.run({
 			block,
 			lastBlock,
-			skipExistingCheck: saveOnlyState,
 			stateStore,
 		});
 
 		await this.chainModule.save(block, stateStore, {
-			saveOnlyState: !!saveOnlyState,
 			removeFromTempTable,
 		});
 
@@ -374,15 +360,10 @@ export class Processor {
 	private async _processGenesis(
 		block: BlockInstance,
 		processor: BaseBlockProcessor,
-		{ saveOnlyState } = { saveOnlyState: false },
 	): Promise<BlockInstance> {
 		const stateStore = await this.chainModule.newStateStore();
 		const isPersisted = await this.chainModule.exists(block);
-		if (saveOnlyState && !isPersisted) {
-			throw new Error('Genesis block is not persisted but skipping to save');
-		}
-		// If block is persisted and we don't want to save, it means that we are rebuilding. Therefore, don't return without applying block.
-		if (isPersisted && !saveOnlyState) {
+		if (isPersisted) {
 			return block;
 		}
 		await processor.applyGenesis.run({
@@ -390,7 +371,6 @@ export class Processor {
 			stateStore,
 		});
 		await this.chainModule.save(block, stateStore, {
-			saveOnlyState,
 			removeFromTempTable: false,
 		});
 

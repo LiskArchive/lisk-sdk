@@ -123,7 +123,6 @@ interface ApplicationConfig {
 		readonly force?: boolean;
 		readonly defaultPassword?: string;
 	};
-	readonly rebuildUpToRound: string;
 	readonly network: NetworkConfig;
 	genesisConfig: {
 		readonly epochTime: string;
@@ -530,7 +529,6 @@ export class Application {
 				'round:change',
 				'chain:sync',
 				'chain:fork',
-				'chain:rebuild',
 				'block:new',
 				'block:broadcast',
 				'block:delete',

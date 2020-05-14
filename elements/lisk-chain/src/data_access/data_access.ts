@@ -201,12 +201,6 @@ export class DataAccess {
 
 	/** Begin: Blocks */
 
-	public async getBlocksCount(): Promise<number> {
-		const blocksCount = await this._storage.getBlocksCount();
-
-		return blocksCount;
-	}
-
 	public async getBlockByID(id: string): Promise<BlockInstance> {
 		const blockJSON = await this._storage.getBlockByID(id);
 
@@ -242,35 +236,10 @@ export class DataAccess {
 		return blocks.map(block => this.deserialize(block));
 	}
 
-	public async getBlocksWithLimitAndOffset(
-		limit: number,
-		offset = 0,
-	): Promise<BlockInstance[]> {
-		// Calculate toHeight
-		const toHeight = offset + limit;
-		// To Preserve LessThan logic we are subtracting by 1
-		const toHeightLT = toHeight - 1;
-
-		// Loads extended blocks from storage
-		const blocks = await this.getBlocksByHeightBetween(offset, toHeightLT);
-		// Return blocks in ascending order
-		const sortedBlocks = [...blocks].sort(
-			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
-		);
-
-		return sortedBlocks;
-	}
-
 	public async getLastBlock(): Promise<BlockInstance> {
 		const block = await this._storage.getLastBlock();
 
 		return this.deserialize(block);
-	}
-
-	public async deleteBlocksWithHeightGreaterThan(
-		height: number,
-	): Promise<void> {
-		await this._storage.deleteBlocksWithHeightGreaterThan(height);
 	}
 
 	public async isBlockPersisted(blockId: string): Promise<boolean> {
@@ -339,9 +308,6 @@ export class DataAccess {
 		return accounts.map(account => new Account(account));
 	}
 
-	public async resetMemTables(): Promise<void> {
-		await this._storage.resetMemTables();
-	}
 	/** End: Accounts */
 
 	/** Begin: Transactions */

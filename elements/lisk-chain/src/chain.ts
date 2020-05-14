@@ -175,7 +175,6 @@ export class Chain {
 
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
-	private readonly _db: KVStore;
 	private readonly _networkIdentifier: string;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly genesisBlock: GenesisBlock;
@@ -208,7 +207,6 @@ export class Chain {
 	}: ChainConstructor) {
 		this.events = new EventEmitter();
 
-		this._db = db;
 		this.dataAccess = new DataAccess({
 			db,
 			registeredTransactions,
@@ -358,11 +356,6 @@ export class Chain {
 		block.id = blocksUtils.getBlockId(blockBytes);
 	}
 
-	public async resetState(): Promise<void> {
-		await this.dataAccess.resetMemTables();
-		this.dataAccess.resetBlockHeaderCache();
-	}
-
 	public async verify(
 		blockInstance: BlockInstance,
 		_: StateStore,
@@ -407,8 +400,7 @@ export class Chain {
 	public async save(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
-		{ saveOnlyState, removeFromTempTable } = {
-			saveOnlyState: false,
+		{ removeFromTempTable } = {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
@@ -416,17 +408,11 @@ export class Chain {
 			.getUpdated()
 			.map(anAccount => anAccount.toJSON());
 
-		if (saveOnlyState) {
-			const batch = this._db.batch();
-			stateStore.finalize(batch);
-			await batch.write();
-		} else {
-			await this.dataAccess.saveBlock(
-				blockInstance,
-				stateStore,
-				removeFromTempTable,
-			);
-		}
+		await this.dataAccess.saveBlock(
+			blockInstance,
+			stateStore,
+			removeFromTempTable,
+		);
 		this.dataAccess.addBlockHeader(blockInstance);
 		this._lastBlock = blockInstance;
 
