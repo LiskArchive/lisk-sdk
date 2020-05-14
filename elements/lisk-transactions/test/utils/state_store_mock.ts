@@ -71,12 +71,6 @@ export class StateStoreMock {
 		this.transactionData = [];
 
 		this.account = {
-			cache: async (
-				_filterArray: ReadonlyArray<{ readonly [key: string]: string }>,
-				// eslint-disable-next-line @typescript-eslint/require-await
-			): Promise<ReadonlyArray<Account>> => {
-				return [];
-			},
 			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: string): Promise<Account> => {
 				const account = this.accountData.find(acc => acc.address === address);

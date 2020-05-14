@@ -13,6 +13,7 @@
  */
 
 import { when } from 'jest-when';
+import { KVStore } from '@liskhq/lisk-db';
 import { BFT } from '@liskhq/lisk-bft';
 import { Node } from '../../../../../../src/application/node/node';
 import { Synchronizer } from '../../../../../../src/application/node/synchronizer/synchronizer';
@@ -29,6 +30,8 @@ const setProperty = (object: object, property: string, value: any) => {
 	return originalProperty;
 };
 
+jest.mock('@liskhq/lisk-db');
+
 describe('Node', () => {
 	let node: Node;
 	let subscribedEvents: any;
@@ -44,6 +47,9 @@ describe('Node', () => {
 		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(undefined);
 		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(undefined);
 
+		const blockchainDB = new KVStore('blockchain.db');
+		const forgerDB = new KVStore('forger.db');
+
 		/* Arranging Stubs start */
 		stubs.logger = {
 			trace: jest.fn(),
@@ -56,16 +62,6 @@ describe('Node', () => {
 
 		stubs.cache = {
 			cleanup: jest.fn(),
-		};
-		stubs.storage = {
-			cleanup: jest.fn(),
-			entities: {
-				Block: {
-					get: jest.fn().mockResolvedValue([]),
-					count: jest.fn().mockResolvedValue(0),
-				},
-				ChainMeta: { getKey: jest.fn() },
-			},
 		};
 		stubs.forgerDB = {
 			get: jest.fn(),
@@ -101,15 +97,11 @@ describe('Node', () => {
 			.calledWith('app:getComponentConfig', 'cache')
 			.mockResolvedValue(cacheConfig as never);
 
-		when(stubs.storage.entities.Block.get)
-			.calledWith({}, { sort: 'height:desc', limit: 1, extended: true })
-			.mockResolvedValue(lastBlock as never);
-
 		// Act
 		const params = {
 			channel: stubs.channel,
-			storage: stubs.storage,
-			forgerDB: stubs.forgerDB,
+			blockchainDB,
+			forgerDB,
 			logger: stubs.logger,
 			options: nodeOptions,
 			applicationState: stubs.applicationState,
@@ -129,7 +121,6 @@ describe('Node', () => {
 		});
 		it('should initialize class properties', () => {
 			expect(node['_logger']).toEqual(stubs.logger);
-			expect(node['_storage']).toEqual(stubs.storage);
 			expect(node['_channel']).toEqual(stubs.channel);
 			expect(node['_components']).not.toBeUndefined();
 			expect(node['_sequence']).toBeUndefined();
@@ -144,37 +135,6 @@ describe('Node', () => {
 
 		it('should be an async function', () => {
 			return expect(node.bootstrap.constructor.name).toEqual('AsyncFunction');
-		});
-
-		describe('when options.rebuildUpToRound is set to an integer value', () => {
-			beforeEach(async () => {
-				// Arrange
-				node = new Node({
-					channel: {
-						invoke: jest.fn(),
-						subscribe: jest.fn((event, cb) => {
-							subscribedEvents[event] = cb;
-						}),
-						once: jest.fn(),
-					},
-					options: {
-						...nodeOptions,
-						rebuildUpToRound: 0,
-					},
-					logger: stubs.logger,
-					storage: stubs.storage,
-				} as any);
-
-				// Act
-				await node.bootstrap();
-			});
-
-			it('should not subscribe to event', () => {
-				return expect(node['_channel'].subscribe).not.toHaveBeenCalledWith(
-					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
 		});
 
 		it('should throw error when genesisBlock option is not provided', async () => {
@@ -328,7 +288,6 @@ describe('Node', () => {
 						genesisBlock: null,
 					},
 					logger: stubs.logger,
-					storage: stubs.storage,
 				} as any);
 
 				// Act

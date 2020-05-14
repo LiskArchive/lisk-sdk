@@ -35,6 +35,7 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
+		"@liskhq/lisk-db": "0.1.0",
 		"@liskhq/lisk-transactions": "4.0.0-alpha.0",
 		"@types/node": "12.12.11",
 		"debug": "4.1.1",
@@ -58,6 +59,7 @@
 		"eslint-plugin-import": "2.20.1",
 		"eslint-plugin-jest": "23.8.2",
 		"faker": "4.1.0",
+		"fs-extra": "9.0.0",
 		"jest": "25.1.0",
 		"jest-extended": "0.11.5",
 		"jest-when": "2.7.0",

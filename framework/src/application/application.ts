@@ -123,7 +123,6 @@ interface ApplicationConfig {
 		readonly force?: boolean;
 		readonly defaultPassword?: string;
 	};
-	readonly rebuildUpToRound: string;
 	readonly network: NetworkConfig;
 	genesisConfig: {
 		readonly epochTime: string;
@@ -169,6 +168,8 @@ export class Application {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly storage: any;
 	private _forgerDB!: KVStore;
+	private _blockchainDB!: KVStore;
+	private _networkDB!: KVStore;
 
 	public constructor(
 		genesisBlock: GenesisBlockInstance,
@@ -365,6 +366,8 @@ export class Application {
 
 		// Initialize database instances
 		this._forgerDB = this._getDBInstance(this.config, 'forger.db');
+		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
+		this._networkDB = this._getDBInstance(this.config, 'network.db');
 
 		// Initialize all objects
 		this._applicationState = this._initApplicationState();
@@ -414,6 +417,7 @@ export class Application {
 		this.storage.cleanup();
 		await this._node.cleanup();
 		await this._forgerDB.close();
+		await this._networkDB.close();
 
 		process.exit(errorCode);
 	}
@@ -528,7 +532,6 @@ export class Application {
 				'round:change',
 				'chain:sync',
 				'chain:fork',
-				'chain:rebuild',
 				'block:new',
 				'block:broadcast',
 				'block:delete',
@@ -693,11 +696,11 @@ export class Application {
 	private _initNetwork(): Network {
 		const network = new Network({
 			options: this.config.network,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			storage: this.storage,
 			logger: this.logger,
 			channel: this._channel,
+			networkDB: this._networkDB,
 		});
+
 		return network;
 	}
 
@@ -713,10 +716,8 @@ export class Application {
 				registeredTransactions: this.getTransactions(),
 			},
 			logger: this.logger,
-			// TODO: Remove the storage with PR 5257
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			storage: this.storage,
 			forgerDB: this._forgerDB,
+			blockchainDB: this._blockchainDB,
 			applicationState: this._applicationState,
 		});
 

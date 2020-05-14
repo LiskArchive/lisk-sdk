@@ -15,11 +15,7 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { isNumberString, validator } from '@liskhq/lisk-validator';
 
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
+import { BaseTransaction, StateStore } from './base_transaction';
 import {
 	MAX_POM_HEIGHTS,
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
@@ -155,23 +151,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			header2: this.asset.header2,
 			reward: this.asset.reward.toString(),
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const delegateAddress = getAddressFromPublicKey(
-			this.asset.header1.generatorPublicKey,
-		);
-
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			{
-				address: delegateAddress,
-			},
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected assetToBytes(): Buffer {

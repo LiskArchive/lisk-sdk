@@ -43,7 +43,6 @@ Object {
         "wsPort": 5000,
       },
       "protocolVersion": "1.1",
-      "rebuildUpToRound": null,
       "rootPath": "~/.lisk",
       "version": "0.0.0",
     },
@@ -360,13 +359,6 @@ Object {
       "protocolVersion": Object {
         "format": "protocolVersion",
         "type": "string",
-      },
-      "rebuildUpToRound": Object {
-        "arg": "--rebuild,-b",
-        "type": Array [
-          "integer",
-          "null",
-        ],
       },
       "rootPath": Object {
         "description": "The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.",

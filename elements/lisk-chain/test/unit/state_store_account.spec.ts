@@ -11,10 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { KVStore, BatchChain, NotFoundError } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { StateStore } from '../../src';
-import { StorageTransaction } from '../../src/types';
+import { DataAccess } from '../../src/data_access';
 import { Account, accountDefaultValues } from '../../src/account';
+
+jest.mock('@liskhq/lisk-db');
 
 describe('state store / account', () => {
 	const defaultAccounts = [
@@ -27,6 +30,11 @@ describe('state store / account', () => {
 			...accountDefaultValues,
 			address: '5059876081639179984L',
 			balance: '555',
+		},
+		{
+			...accountDefaultValues,
+			address: '1059876081639179984L',
+			balance: '444',
 		},
 	];
 
@@ -44,110 +52,64 @@ describe('state store / account', () => {
 	];
 
 	let stateStore: StateStore;
-	let storageStub: any;
+	let db: any;
 
 	beforeEach(() => {
-		storageStub = {
-			entities: {
-				Account: {
-					get: jest.fn(),
-					upsert: jest.fn(),
-				},
-			},
-		};
-		stateStore = new StateStore(storageStub, {
+		db = new KVStore('temp');
+		const dataAccess = new DataAccess({
+			db,
+			maxBlockHeaderCache: 505,
+			minBlockHeaderCache: 309,
+			registeredTransactions: {},
+		});
+		stateStore = new StateStore(dataAccess, {
 			lastBlockHeaders: [],
 			networkIdentifier: 'network-identifier',
 			lastBlockReward: BigInt(500000000),
 		});
-	});
-
-	describe('cache', () => {
-		beforeEach(() => {
-			// Arrange
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
-		});
-
-		it('should call storage get and store in cache', async () => {
-			// Act
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			const results = await stateStore.account.cache(filter);
-			// Assert
-			expect(results).toHaveLength(2);
-			expect(results.map(account => account.address)).toStrictEqual([
-				defaultAccounts[0].address,
-				defaultAccounts[1].address,
-			]);
-		});
-
-		it('should cache to the state store', async () => {
-			// Act
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			await stateStore.account.cache(filter);
-			// Assert
-			expect((stateStore.account as any)._data).toStrictEqual(
-				stateStoreAccounts,
-			);
-		});
+		// Setting this as default behavior throws UnhandledPromiseRejection, so it is specifiying the non-existing account
+		const dbGetMock = when(db.get)
+			.calledWith('accounts:address:123L')
+			.mockRejectedValue(new NotFoundError('Data not found') as never);
+		for (const account of defaultAccounts) {
+			dbGetMock
+				.calledWith(`accounts:address:${account.address}`)
+				.mockResolvedValue(account as never);
+		}
+		stateStore.account['_data'] = [...stateStoreAccounts];
 	});
 
 	describe('get', () => {
-		beforeEach(async () => {
-			// Arrange
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
-
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			await stateStore.account.cache(filter);
-		});
-
 		it('should get the account', async () => {
 			// Act
 			const account = await stateStore.account.get(defaultAccounts[0].address);
 			// Assert
 			expect(account).toStrictEqual(stateStoreAccounts[0]);
+			expect(db.get).not.toHaveBeenCalled();
 		});
 
 		it('should try to get account from db if not found in memory', async () => {
 			// Act
-			await stateStore.account.get('321L');
+			await stateStore.account.get(defaultAccounts[2].address);
 			// Assert
-			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
-				{ address: '321L' },
-				{ limit: null },
-			]);
+			expect(db.get).toHaveBeenCalledWith(
+				`accounts:address:${defaultAccounts[2].address}`,
+			);
 		});
 
 		it('should throw an error if not exist', async () => {
-			when(storageStub.entities.Account.get)
-				.calledWith({ address: '123L' })
-				.mockResolvedValue([] as never);
 			// Act && Assert
-			await expect(stateStore.account.get('123L')).rejects.toThrow(
-				'does not exist',
-			);
+			expect.assertions(1);
+			try {
+				await stateStore.account.get('123L');
+			} catch (error) {
+				// eslint-disable-next-line jest/no-try-expect
+				expect(error).toBeInstanceOf(NotFoundError);
+			}
 		});
 	});
 
 	describe('getOrDefault', () => {
-		beforeEach(async () => {
-			// Arrange
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			await stateStore.account.cache(filter);
-		});
-
 		it('should get the account', async () => {
 			// Act
 			const account = await stateStore.account.getOrDefault(
@@ -159,17 +121,15 @@ describe('state store / account', () => {
 
 		it('should try to get account from db if not found in memory', async () => {
 			// Act
-			await stateStore.account.getOrDefault('321L');
+			await stateStore.account.get(defaultAccounts[2].address);
 			// Assert
-			expect(storageStub.entities.Account.get.mock.calls[1]).toEqual([
-				{ address: '321L' },
-				{ limit: null },
-			]);
+			expect(db.get).toHaveBeenCalledWith(
+				`accounts:address:${defaultAccounts[2].address}`,
+			);
 		});
 
 		it('should get the default account', async () => {
 			// Arrange
-			storageStub.entities.Account.get.mockResolvedValueOnce([]);
 			// Act
 			const account = await stateStore.account.getOrDefault('123L');
 			// Assert
@@ -184,16 +144,10 @@ describe('state store / account', () => {
 		let missedBlocks: number;
 		let producedBlocks: number;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			// Arrange
 			missedBlocks = 1;
 			producedBlocks = 1;
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			await stateStore.account.cache(filter);
 		});
 
 		it('should set the updated values for the account', async () => {
@@ -214,7 +168,6 @@ describe('state store / account', () => {
 		});
 
 		it('should update the updateKeys property', async () => {
-			const updatedKeys = ['producedBlocks', 'missedBlocks'];
 			const existingAccount = await stateStore.account.get(
 				defaultAccounts[0].address,
 			);
@@ -226,36 +179,24 @@ describe('state store / account', () => {
 
 			stateStore.account.set(defaultAccounts[0].address, updatedAccount);
 
-			expect((stateStore.account as any)._updatedKeys[0]).toStrictEqual(
-				updatedKeys,
-			);
+			expect(
+				stateStore.account['_updatedKeys'].has(defaultAccounts[0].address),
+			).toBeTrue();
 		});
 	});
 
 	describe('finalize', () => {
-		const txStub = {} as StorageTransaction;
 		let existingAccount;
-		let updatedAccount;
+		let updatedAccount: Account;
 		let missedBlocks: number;
 		let producedBlocks: number;
-		let accountUpsertObj: object;
+		let batchStub: BatchChain;
 
 		beforeEach(async () => {
 			missedBlocks = 1;
 			producedBlocks = 1;
 
-			accountUpsertObj = {
-				missedBlocks,
-				producedBlocks,
-			};
-
-			storageStub.entities.Account.get.mockResolvedValue(defaultAccounts);
-
-			const filter = [
-				{ address: defaultAccounts[0].address },
-				{ address: defaultAccounts[1].address },
-			];
-			await stateStore.account.cache(filter);
+			batchStub = { put: jest.fn() } as any;
 
 			existingAccount = await stateStore.account.get(
 				defaultAccounts[0].address,
@@ -269,14 +210,12 @@ describe('state store / account', () => {
 			stateStore.account.set(updatedAccount.address, updatedAccount);
 		});
 
-		it('should save the account state in the database', async () => {
-			await stateStore.account.finalize(txStub);
+		it('should save the account state in the database', () => {
+			stateStore.account.finalize(batchStub);
 
-			expect(storageStub.entities.Account.upsert).toHaveBeenCalledWith(
-				{ address: defaultAccounts[0].address },
-				accountUpsertObj,
-				null,
-				txStub,
+			expect(batchStub.put).toHaveBeenCalledWith(
+				`accounts:address:${updatedAccount.address}`,
+				updatedAccount.toJSON(),
 			);
 		});
 	});
