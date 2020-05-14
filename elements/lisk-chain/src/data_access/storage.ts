@@ -156,11 +156,6 @@ export class Storage {
 		return blocks[0];
 	}
 
-	public async getBlocksCount(): Promise<number> {
-		const lastBlock = await this.getLastBlockHeader();
-		return lastBlock.height;
-	}
-
 	/*
 		Extended blocks with transaction payload
 	*/
@@ -277,50 +272,6 @@ export class Storage {
 		});
 	}
 
-	public async deleteBlocksWithHeightGreaterThan(
-		height: number,
-	): Promise<void> {
-		const lastBlockHeader = await this.getLastBlockHeader();
-		const batchSize = 5000;
-		const loops = Math.ceil((lastBlockHeader.height - height + 1) / batchSize);
-		const start = height + 1;
-		// tslint:disable-next-line no-let
-		for (let i = 0; i < loops; i += 1) {
-			// Get all the required info
-			const startHeight = i * batchSize + start + i;
-			const endHeight = startHeight + batchSize - 1;
-			const headers = await this.getBlockHeadersByHeightBetween(
-				startHeight,
-				endHeight,
-			);
-			const blockIDs = headers.map(header => header.id);
-			const transactionIDs = [];
-			const batch = this._db.batch();
-			for (const blockID of blockIDs) {
-				try {
-					const ids = await this._db.get<string[]>(
-						`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`,
-					);
-					transactionIDs.push(...ids);
-				} catch (error) {
-					if (!(error instanceof NotFoundError)) {
-						throw error;
-					}
-				}
-				batch.del(`${DB_KEY_BLOCKS_ID}:${blockID}`);
-				batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`);
-			}
-			// tslint:disable-next-line no-let
-			for (let j = startHeight; j <= endHeight; j += 1) {
-				batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(j)}`);
-			}
-			for (const txID of transactionIDs) {
-				batch.del(`${DB_KEY_TRANSACTIONS_ID}:${txID}`);
-			}
-			await batch.write();
-		}
-	}
-
 	public async isBlockPersisted(blockID: string): Promise<boolean> {
 		return this._db.exists(`${DB_KEY_BLOCKS_ID}:${blockID}`);
 	}
@@ -424,21 +375,6 @@ export class Storage {
 		});
 
 		return accounts;
-	}
-
-	public async resetMemTables(): Promise<void> {
-		await this._db.clear({
-			gte: getFirstPrefix(DB_KEY_ACCOUNTS_ADDRESS),
-			lte: getLastPrefix(DB_KEY_ACCOUNTS_ADDRESS),
-		});
-		await this._db.clear({
-			gte: getFirstPrefix(DB_KEY_CHAIN_STATE),
-			lte: getLastPrefix(DB_KEY_CHAIN_STATE),
-		});
-		await this._db.clear({
-			gte: getFirstPrefix(DB_KEY_CONSENSUS_STATE),
-			lte: getLastPrefix(DB_KEY_CONSENSUS_STATE),
-		});
 	}
 
 	/*

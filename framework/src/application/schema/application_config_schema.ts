@@ -189,10 +189,6 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
-		rebuildUpToRound: {
-			type: ['integer', 'null'],
-			arg: '--rebuild,-b',
-		},
 		network: {
 			type: 'object',
 			properties: {
@@ -364,7 +360,6 @@ export const applicationConfigSchema = {
 				distance: 3000000, // Distance between each milestone
 			},
 		},
-		rebuildUpToRound: null,
 		forging: {
 			force: false,
 			waitThreshold: 2,

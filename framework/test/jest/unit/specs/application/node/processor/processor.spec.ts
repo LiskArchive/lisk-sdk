@@ -183,7 +183,7 @@ describe('processor', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					genesisBlock,
 					stateStoreStub,
-					{ saveOnlyState: false, removeFromTempTable: false },
+					{ removeFromTempTable: false },
 				);
 			});
 		});
@@ -467,7 +467,7 @@ describe('processor', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
-					{ removeFromTempTable: false, saveOnlyState: false },
+					{ removeFromTempTable: false },
 				);
 			});
 
@@ -986,7 +986,7 @@ describe('processor', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
-					{ removeFromTempTable: true, saveOnlyState: false },
+					{ removeFromTempTable: true },
 				);
 			});
 		});
@@ -1026,264 +1026,13 @@ describe('processor', () => {
 				expect(chainModuleStub.save).toHaveBeenCalledWith(
 					blockV0,
 					stateStoreStub,
-					{ removeFromTempTable: false, saveOnlyState: false },
+					{ removeFromTempTable: false },
 				);
 			});
 
 			it('should not broadcast the block', () => {
 				expect(channelStub.publish).not.toHaveBeenCalledWith(
 					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
-		});
-	});
-
-	describe('apply', () => {
-		const blockV0 = {
-			id: 'fakelock1',
-			version: 0,
-			height: 99,
-		} as BlockInstance;
-		const blockV1 = {
-			id: 'fakelock2',
-			version: 1,
-			height: 100,
-		} as BlockInstance;
-
-		let verifySteps: jest.Mock[];
-		let applySteps: jest.Mock[];
-
-		beforeEach(() => {
-			verifySteps = [jest.fn(), jest.fn()];
-			applySteps = [jest.fn(), jest.fn()];
-			blockProcessorV0.verify.pipe(verifySteps);
-			blockProcessorV0.apply.pipe(applySteps);
-			processor.register(blockProcessorV0, {
-				matcher: ({ height }) => height < 100,
-			});
-		});
-
-		describe('when only 1 processor is registered', () => {
-			it('should throw an error if the matching block version does not exist', async () => {
-				await expect(processor.apply(blockV1)).rejects.toThrow(
-					'Block processing version is not registered',
-				);
-			});
-
-			it('should call apply pipelines with matching processor', async () => {
-				await processor.apply(blockV0);
-				verifySteps.forEach(step => {
-					expect(step).toHaveBeenCalledTimes(1);
-				});
-			});
-		});
-
-		describe('when more than 2 processor is registered', () => {
-			let blockProcessorV1;
-			let verifySteps2: jest.Mock[];
-
-			beforeEach(() => {
-				blockProcessorV1 = new FakeBlockProcessorV1();
-				verifySteps2 = [jest.fn(), jest.fn()];
-				blockProcessorV1.verify.pipe(verifySteps2);
-				blockProcessorV1.apply.pipe([jest.fn()]);
-				processor.register(blockProcessorV1);
-			});
-
-			it('should call verify pipelines with matching processor', async () => {
-				await processor.apply(blockV1);
-				verifySteps2.forEach(step => {
-					expect(step).toHaveBeenCalledTimes(1);
-				});
-			});
-		});
-
-		describe('when block is not verifiable', () => {
-			beforeEach(async () => {
-				verifySteps[0].mockRejectedValue(new Error('Invalid block'));
-				try {
-					await processor.apply(blockV0);
-				} catch (error) {
-					// expected error
-				}
-			});
-
-			it('should not apply the block', () => {
-				applySteps.forEach(step => {
-					expect(step).not.toHaveBeenCalled();
-				});
-			});
-
-			it('should not save the block', () => {
-				expect(chainModuleStub.save).not.toHaveBeenCalled();
-			});
-
-			it('should not broadcast the block', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
-
-			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
-					expect.anything(),
-				);
-			});
-		});
-
-		describe('when block is not applicable', () => {
-			beforeEach(async () => {
-				applySteps[0].mockRejectedValue(new Error('Invalid block'));
-				try {
-					await processor.apply(blockV0);
-				} catch (err) {
-					// expected error
-				}
-			});
-
-			it('should verify the block', () => {
-				verifySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							skipExistingCheck: true,
-							lastBlock: defaultLastBlock,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
-			});
-
-			it.todo(
-				'should not save the block (figure out how to test if database tx was rolled back)',
-			);
-
-			it('should not broadcast the block', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
-
-			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
-					expect.anything(),
-				);
-			});
-		});
-
-		describe('when block cannot be saved', () => {
-			beforeEach(async () => {
-				chainModuleStub.save.mockRejectedValue(new Error('Invalid block'));
-				try {
-					await processor.apply(blockV0);
-				} catch (error) {
-					// expected error
-				}
-			});
-
-			it('should verify the block', () => {
-				verifySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							lastBlock: defaultLastBlock,
-							skipExistingCheck: true,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
-			});
-
-			it('should apply the block', () => {
-				applySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							lastBlock: defaultLastBlock,
-							skipExistingCheck: true,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
-			});
-
-			it('should not broadcast the block', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
-
-			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
-					expect.anything(),
-				);
-			});
-		});
-
-		describe('when block successfully processed', () => {
-			beforeEach(async () => {
-				await processor.apply(blockV0);
-			});
-
-			it('should verify the block', () => {
-				verifySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							lastBlock: defaultLastBlock,
-							stateStore: stateStoreStub,
-							skipExistingCheck: true,
-						},
-						undefined,
-					);
-				});
-			});
-
-			it('should apply the block', () => {
-				applySteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: blockV0,
-							lastBlock: defaultLastBlock,
-							skipExistingCheck: true,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
-			});
-
-			it('should not save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(
-					blockV0,
-					stateStoreStub,
-					{
-						saveOnlyState: true,
-						removeFromTempTable: false,
-					},
-				);
-			});
-
-			it('should not broadcast the block', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
-
-			it('should not emit newBlock event', () => {
-				expect(channelStub.publish).not.toHaveBeenCalledWith(
-					'app:block:new',
 					expect.anything(),
 				);
 			});
@@ -1362,95 +1111,6 @@ describe('processor', () => {
 					stateStoreStub,
 					{ saveTempBlock: false },
 				);
-			});
-		});
-	});
-
-	describe('applyGenesisBlock', () => {
-		const genesisBlock = {
-			version: 0,
-			height: 1,
-			id: 'genesis',
-		} as BlockInstance;
-
-		let applyGenesisSteps: jest.Mock[];
-
-		beforeEach(() => {
-			applyGenesisSteps = [jest.fn(), jest.fn()];
-			blockProcessorV0.applyGenesis.pipe(applyGenesisSteps);
-			processor.register(blockProcessorV0, {
-				matcher: ({ height }) => height < 100,
-			});
-		});
-
-		describe('when genesis block is not stored yet', () => {
-			beforeEach(() => {
-				chainModuleStub.exists.mockResolvedValue(false);
-			});
-
-			it('should call exists on chainModule', async () => {
-				try {
-					await processor.applyGenesisBlock(genesisBlock);
-				} catch (err) {
-					// expected error
-				}
-
-				// Assert && Act
-				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
-			});
-
-			it('should throw an error', async () => {
-				await expect(
-					processor.applyGenesisBlock(genesisBlock),
-				).rejects.toThrow();
-			});
-		});
-
-		describe('when genesis block is stored already (rebuilding)', () => {
-			beforeEach(async () => {
-				chainModuleStub.exists.mockResolvedValue(true);
-				await processor.applyGenesisBlock(genesisBlock);
-			});
-
-			it('should call exists on chainModule', () => {
-				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
-			});
-
-			it('should apply genesis block', () => {
-				applyGenesisSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{ block: genesisBlock, stateStore: stateStoreStub },
-						undefined,
-					);
-				});
-			});
-
-			it('should not save the block', () => {
-				expect(chainModuleStub.save).toHaveBeenCalledWith(
-					genesisBlock,
-					stateStoreStub,
-					{ removeFromTempTable: false, saveOnlyState: true },
-				);
-			});
-		});
-
-		describe('when apply fails when skip is false and genesis block is not stored', () => {
-			beforeEach(async () => {
-				chainModuleStub.exists.mockResolvedValue(false);
-				applyGenesisSteps[0].mockRejectedValue(new Error('apply error'));
-				try {
-					await processor.applyGenesisBlock(genesisBlock);
-				} catch (err) {
-					// expected error
-				}
-			});
-
-			it('should call exists on chainModule', () => {
-				expect(chainModuleStub.exists).toHaveBeenCalledTimes(1);
-			});
-
-			it('should not save genesis block with saveOnlyState', () => {
-				expect(chainModuleStub.save).not.toHaveBeenCalled();
 			});
 		});
 	});
