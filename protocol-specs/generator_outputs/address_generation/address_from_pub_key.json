@@ -1,6 +1,6 @@
 {
-	"title": "Address generation",
-	"summary": "Address generation from a public key",
+	"title": "Binary and Base32 address generation",
+	"summary": "Binary and Base32 address generation from a public key",
 	"config": {
 		"network": "mainnet"
 	},
@@ -10,10 +10,81 @@
 		{
 			"description": "Generate valid address from a valid public key",
 			"input": {
-				"publicKey": "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
+				"publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
 			},
 			"output": {
-				"address": "12668885769632475474L"
+				"binaryAddress": "66687aadf862bd776c8fc18b8e9f8e2008971485",
+				"base32Address": "lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+			},
+			"output": {
+				"binaryAddress": "af9613760f72635fbdb44a5a0a63c39f12af30f9",
+				"base32Address": "lskqf5xbhu874yqg89k449zk2fctj46fona9bafgr"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+			},
+			"output": {
+				"binaryAddress": "c946da78163c094fd8310efc9a81be13cac6a518",
+				"base32Address": "lskamc9kfzenupkgexyxsf4qz9fv8mo9432of9p5j"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00"
+			},
+			"output": {
+				"binaryAddress": "506c2d6c08d12bed8710517e8e05a0a3c35d3002",
+				"base32Address": "lsk6xevdsz3dpqfsx2u6mg3jx9zk8xqdozvn7x5ur"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "749b88baa787e83b5a06bbfee95002ac5a9925dcaeea28262e683498147b8fce"
+			},
+			"output": {
+				"binaryAddress": "0dce64c0d36a3e04b6e8679eb5c62d800f3d6a27",
+				"base32Address": "lskxwnb4ubt93gz49w3of855yy9uzntddyndahm6s"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "e877c250d725ac7ca6c5d9d83b39645de7eebe6c4ae6e076da7163434d297c7d"
+			},
+			"output": {
+				"binaryAddress": "053d7733df22210dd0e6b4ec595a29cdb33ffb07",
+				"base32Address": "lskzkfw7ofgp3uusknbetemrey4aeatgf2ntbhcds"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "54e336e62950e33f5dad88917dc2b4d7f41acc2e65536b8e73027d37fbdc78d2"
+			},
+			"output": {
+				"binaryAddress": "8bfd5127e9b8c9921a4dae4d881851cbefd48ad7",
+				"base32Address": "lsky8fqv4g4wcpapbr9qab2ubvya8wh4vewvgap3u"
+			}
+		},
+		{
+			"description": "Generate valid address from a valid public key",
+			"input": {
+				"publicKey": "225b8a862942c7c65010fc031f2de01802b93bb094fd2d2cc546166b0dafcedf"
+			},
+			"output": {
+				"binaryAddress": "d2388404826acf02bbf8304157a79c59e835ec4c",
+				"base32Address": "lskd3j33xpv95num7g2bxzq84jj5nkc5svoc8qunj"
 			}
 		}
 	]
