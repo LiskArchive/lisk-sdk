@@ -1,1 +1,0 @@
-ALTER TABLE trs ALTER COLUMN "id" TYPE varchar(64);

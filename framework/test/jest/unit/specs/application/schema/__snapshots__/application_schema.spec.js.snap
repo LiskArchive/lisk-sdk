@@ -6,9 +6,7 @@ Object {
     "additionalProperties": false,
     "default": Object {
       "components": Object {
-        "cache": Object {},
         "logger": Object {},
-        "storage": Object {},
       },
       "forging": Object {
         "delegates": Array [],
@@ -35,9 +33,7 @@ Object {
         "enabled": false,
       },
       "label": "alpha-sdk-app",
-      "modules": Object {
-        "http_api": Object {},
-      },
+      "modules": Object {},
       "network": Object {
         "seedPeers": Array [],
         "wsPort": 5000,
@@ -55,20 +51,12 @@ Object {
       },
       "components": Object {
         "properties": Object {
-          "cache": Object {
-            "type": "object",
-          },
           "logger": Object {
-            "type": "object",
-          },
-          "storage": Object {
             "type": "object",
           },
         },
         "required": Array [
           "logger",
-          "cache",
-          "storage",
         ],
         "type": "object",
       },
@@ -223,14 +211,6 @@ Object {
         "type": "string",
       },
       "modules": Object {
-        "properties": Object {
-          "http_api": Object {
-            "type": "object",
-          },
-        },
-        "required": Array [
-          "http_api",
-        ],
         "type": "object",
       },
       "network": Object {

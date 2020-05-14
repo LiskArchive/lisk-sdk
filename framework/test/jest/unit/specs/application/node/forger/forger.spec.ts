@@ -24,8 +24,8 @@ import {
 	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
 	FORGER_INFO_KEY_USED_HASH_ONION,
 } from '../../../../../../../src/application/node/forger/constant';
-import * as genesisDelegates from '../../../../../../mocha/data/genesis_delegates.json';
-import * as delegatesRoundsList from '../../../../../../mocha/data/delegates_rounds_list.json';
+import * as genesisDelegates from './genesis_delegates.json';
+import * as delegatesRoundsList from './delegates_rounds_list.json';
 import * as accountFixtures from '../../../../../../fixtures/accounts';
 
 describe('forger', () => {

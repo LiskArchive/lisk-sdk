@@ -18,14 +18,12 @@ const { constants } = require('./constants');
 
 const randomInt = (low, high) => Math.round(Math.random() * (high - low) + low);
 
-const storageUtils = require('./storage');
 const configUtils = require('./configs');
 const nodeUtils = require('./node');
 
 module.exports = {
 	constants,
 	randomInt,
-	storageUtils,
 	configUtils,
 	nodeUtils,
 };

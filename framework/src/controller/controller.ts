@@ -19,7 +19,7 @@ import { systemDirs } from '../application/system_dirs';
 import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
 import { validateModuleSpec } from '../application/validator';
-import { Logger, Storage } from '../types';
+import { Logger } from '../types';
 import { SocketPaths } from './types';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 
@@ -32,7 +32,6 @@ export interface ControllerOptions {
 		};
 	};
 	readonly logger: Logger;
-	readonly storage: Storage;
 	readonly channel: InMemoryChannel;
 }
 
@@ -66,13 +65,8 @@ export interface ModulesOptions {
 	[key: string]: ModuleOptions;
 }
 
-interface Migrations {
-	readonly [key: string]: ReadonlyArray<string>;
-}
-
 export class Controller {
 	public readonly logger: Logger;
-	public readonly storage: Storage;
 	public readonly appLabel: string;
 	public readonly channel: InMemoryChannel;
 	public readonly config: ControllerConfig;
@@ -84,7 +78,6 @@ export class Controller {
 
 	public constructor(options: ControllerOptions) {
 		this.logger = options.logger;
-		this.storage = options.storage;
 		this.appLabel = options.appLabel;
 		this.channel = options.channel;
 		this.logger.info('Initializing controller');
@@ -113,11 +106,9 @@ export class Controller {
 	public async load(
 		modules: ModulesObject,
 		moduleOptions: ModulesOptions,
-		migrations: Migrations = {},
 	): Promise<void> {
 		this.logger.info('Loading controller');
 		await this._setupBus();
-		await this._loadMigrations({ ...migrations });
 		await this._loadModules(modules, moduleOptions);
 
 		this.logger.debug(this.bus?.getEvents(), 'Bus listening to events');
@@ -177,11 +168,6 @@ export class Controller {
 				);
 			});
 		}
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	private async _loadMigrations(migrationsObj: Migrations): Promise<void> {
-		return this.storage.entities.Migration.applyAll(migrationsObj);
 	}
 
 	private async _loadModules(

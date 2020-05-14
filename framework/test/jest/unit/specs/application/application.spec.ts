@@ -29,14 +29,12 @@ import {
 } from '../../../../../src/application/schema';
 import { SchemaValidationError } from '../../../../../src/errors';
 import * as loggerComponent from '../../../../../src/components/logger';
-import * as storageComponent from '../../../../../src/components/storage';
 import * as networkConfig from '../../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../../src/application/system_dirs';
 
 jest.mock('fs-extra');
 jest.mock('../../../../../src/components/logger');
-jest.mock('../../../../../src/components/storage');
 jest.mock('@liskhq/lisk-validator', () => ({
 	validator: {
 		validate: jest.fn().mockImplementation(() => {
@@ -59,28 +57,8 @@ describe('Application', () => {
 		debug: jest.fn(),
 		trace: jest.fn(),
 	};
-	const storageMock = {
-		entities: {
-			Migration: {
-				defineSchema: jest.fn(),
-				applyAll: jest.fn(),
-			},
-			Account: {
-				extendDefaultOptions: jest.fn(),
-			},
-			NetworkInfo: {
-				getKey: jest.fn(),
-				setKey: jest.fn(),
-			},
-		},
-		registerEntity: jest.fn(),
-		bootstrap: jest.fn(),
-	};
 	(loggerComponent.createLoggerComponent as jest.Mock).mockReturnValue(
 		loggerMock,
-	);
-	(storageComponent.createStorageComponent as jest.Mock).mockReturnValue(
-		storageMock,
 	);
 
 	afterEach(() => {
@@ -218,28 +196,12 @@ describe('Application', () => {
 			expect(app['_transactions']).toBeInstanceOf(Object);
 		});
 
-		it('should register http_api module', () => {
-			// Act
-			const app = new Application(genesisBlock, config);
-
-			// Assert
-			expect(Object.keys(app['_modules'])).toEqual(['http_api']);
-		});
-
 		it('should initialize logger', () => {
 			// Act
 			const app = new Application(genesisBlock, config);
 
 			// Assert
 			expect(app.logger).toBe(loggerMock);
-		});
-
-		it('should initialize storage', () => {
-			// Act
-			const app = new Application(genesisBlock, config);
-
-			// Assert
-			expect(app['storage']).toBe(storageMock);
 		});
 
 		it('should contain all framework related transactions.', () => {

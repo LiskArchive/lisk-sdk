@@ -50,13 +50,6 @@ describe('Controller Class', () => {
 		warn: jest.fn(),
 		level: jest.fn(),
 	};
-	const storage: any = {
-		entities: {
-			Migration: {
-				applyAll: jest.fn(),
-			},
-		},
-	};
 	const channel: any = {
 		registerToBus: jest.fn(),
 	};
@@ -92,7 +85,6 @@ describe('Controller Class', () => {
 		appLabel,
 		config,
 		logger,
-		storage,
 		channel,
 	};
 
@@ -116,7 +108,6 @@ describe('Controller Class', () => {
 			expect(controller.config).toEqual(configController);
 			expect(controller.modules).toEqual({});
 			expect(controller.channel).toBe(channel);
-			expect(controller.storage).toBe(storage);
 			expect(controller.bus).toBeUndefined();
 		});
 	});
@@ -138,7 +129,7 @@ describe('Controller Class', () => {
 				dummyModule3: '#OPTIONS3',
 			};
 
-			await controller.load(modules, moduleOptions, {});
+			await controller.load(modules, moduleOptions);
 		});
 
 		describe('_setupBus', () => {

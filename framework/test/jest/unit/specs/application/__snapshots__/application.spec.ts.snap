@@ -4,11 +4,7 @@ exports[`Application #constructor should set internal variables 1`] = `
 Object {
   "components": Object {
     "cache": Object {
-      "db": 0,
       "enabled": true,
-      "host": "127.0.0.1",
-      "password": null,
-      "port": 6380,
     },
     "logger": Object {
       "consoleLogLevel": "info",
@@ -17,18 +13,9 @@ Object {
     },
     "storage": Object {
       "database": "lisk_dev",
-      "host": "localhost",
-      "logEvents": Array [
-        "error",
-      ],
       "logFileName": "logs/devnet/lisk_db.log",
       "max": 10,
       "min": 1,
-      "password": "password",
-      "poolIdleTimeout": 30000,
-      "port": 5432,
-      "reapIntervalMillis": 1000,
-      "user": "lisk",
     },
   },
   "forging": Object {
@@ -2225,56 +2212,7 @@ Object {
     "http_api": Object {
       "access": Object {
         "public": true,
-        "whiteList": Array [
-          "127.0.0.1",
-        ],
       },
-      "address": "0.0.0.0",
-      "apm": Object {
-        "enabled": false,
-        "options": Object {
-          "name": "Lisk-APM",
-          "uriPath": "/http-stats",
-        },
-      },
-      "enabled": true,
-      "forging": Object {
-        "access": Object {
-          "whiteList": Array [
-            "127.0.0.1",
-          ],
-        },
-      },
-      "httpPort": 4000,
-      "loadAsChildProcess": true,
-      "options": Object {
-        "cors": Object {
-          "methods": Array [
-            "GET",
-            "POST",
-            "PUT",
-          ],
-          "origin": "*",
-        },
-        "limits": Object {
-          "delayAfter": 0,
-          "delayMs": 0,
-          "headersTimeout": 5000,
-          "max": 0,
-          "serverSetTimeout": 20000,
-          "windowMs": 60000,
-        },
-      },
-      "ssl": Object {
-        "enabled": false,
-        "options": Object {
-          "address": "0.0.0.0",
-          "cert": "./ssl/lisk.crt",
-          "key": "./ssl/lisk.key",
-          "port": 443,
-        },
-      },
-      "trustProxy": false,
     },
   },
   "network": Object {

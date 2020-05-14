@@ -13,7 +13,7 @@
  */
 
 import { lookupPeersIPs } from '../../../../../../src/application/network/utils';
-import { peers } from '../../../../../mocha/data/app_config.json';
+import { peers } from './peers.json';
 
 const ipv4Regex = new RegExp(
 	/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/,
