@@ -137,36 +137,6 @@ describe('Node', () => {
 			return expect(node.bootstrap.constructor.name).toEqual('AsyncFunction');
 		});
 
-		describe('when options.rebuildUpToRound is set to an integer value', () => {
-			beforeEach(async () => {
-				// Arrange
-				node = new Node({
-					channel: {
-						invoke: jest.fn(),
-						subscribe: jest.fn((event, cb) => {
-							subscribedEvents[event] = cb;
-						}),
-						once: jest.fn(),
-					},
-					options: {
-						...nodeOptions,
-						rebuildUpToRound: 0,
-					},
-					logger: stubs.logger,
-				} as any);
-
-				// Act
-				await node.bootstrap();
-			});
-
-			it('should not subscribe to event', () => {
-				return expect(node['_channel'].subscribe).not.toHaveBeenCalledWith(
-					'app:block:broadcast',
-					expect.anything(),
-				);
-			});
-		});
-
 		it('should throw error when genesisBlock option is not provided', async () => {
 			// Arrange
 			node = new Node({

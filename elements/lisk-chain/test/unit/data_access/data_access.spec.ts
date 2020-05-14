@@ -244,29 +244,6 @@ describe('data_access', () => {
 		});
 	});
 
-	describe('#getBlockCount', () => {
-		it('should get the height from stream', async () => {
-			// Arrange
-			(db.createReadStream as jest.Mock).mockReturnValue(
-				Readable.from([
-					{
-						value: block.id,
-					},
-				]),
-			);
-			when(db.get)
-				.calledWith(`blocks:id:${block.id}`)
-				.mockResolvedValue(block as never);
-			// Act
-			await dataAccess.getBlocksCount();
-
-			// Assert
-			expect(db.createReadStream).toHaveBeenCalledTimes(1);
-			expect(db.get).toHaveBeenCalledTimes(1);
-			expect(db.get).toHaveBeenCalledWith(`blocks:id:${block.id}`);
-		});
-	});
-
 	describe('#getBlocksByIDs', () => {
 		it('should return persisted blocks by ids', async () => {
 			// Arrange
@@ -325,39 +302,6 @@ describe('data_access', () => {
 			// Assert
 			expect(db.createReadStream).toHaveBeenCalledTimes(1);
 			expect(db.get).toHaveBeenCalledTimes(2);
-		});
-	});
-
-	describe('#deleteBlocksWithHeightGreaterThan', () => {
-		it('should delete all block related keys using batch', async () => {
-			// Arrange
-			const batchMock = { del: jest.fn(), write: jest.fn() };
-			(db.batch as jest.Mock).mockReturnValue(batchMock as never);
-			(db.createReadStream as jest.Mock).mockImplementation(() =>
-				Readable.from([
-					{
-						value: block.id,
-					},
-				]),
-			);
-			when(db.get)
-				.mockRejectedValue(new NotFoundError('Data not found') as never)
-				.calledWith(`blocks:height:${formatInt(block.height)}`)
-				.mockResolvedValue(block.id as never)
-				.calledWith(`blocks:id:${block.id}`)
-				.mockResolvedValue(block as never);
-			// Act
-			await dataAccess.deleteBlocksWithHeightGreaterThan(0);
-
-			// Assert
-			expect(batchMock.del).toHaveBeenCalledWith(`blocks:id:${block.id}`);
-			expect(batchMock.del).toHaveBeenCalledWith(
-				`blocks:height:${formatInt(block.height)}`,
-			);
-			expect(batchMock.del).toHaveBeenCalledWith(
-				`transactions:blockID:${block.id}`,
-			);
-			expect(batchMock.write).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -546,28 +490,6 @@ describe('data_access', () => {
 
 			// Assert
 			expect(db.exists).toHaveBeenCalledWith('transactions:id:1');
-		});
-	});
-
-	describe('#resetMemTables', () => {
-		it('should clear all calculated states', async () => {
-			// Act
-			await dataAccess.resetMemTables();
-
-			// Assert
-			expect(db.clear).toHaveBeenCalledTimes(3);
-			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('accounts:address'),
-				lte: expect.stringContaining('accounts:address'),
-			});
-			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('chain'),
-				lte: expect.stringContaining('chain'),
-			});
-			expect(db.clear).toHaveBeenCalledWith({
-				gte: expect.stringContaining('consensus'),
-				lte: expect.stringContaining('consensus'),
-			});
 		});
 	});
 

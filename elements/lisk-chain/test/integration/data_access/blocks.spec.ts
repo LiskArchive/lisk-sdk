@@ -13,7 +13,7 @@
  */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
 import { Storage } from '../../../src/data_access/storage';
 import { newBlock } from '../../utils/block';
@@ -23,11 +23,9 @@ describe('dataAccess.blocks', () => {
 	let storage: Storage;
 	let blocks: any;
 
-	beforeAll(async () => {
-		const parentPath = path.join(__dirname, '../../tmp');
-		if (!fs.existsSync(parentPath)) {
-			await fs.promises.mkdir(parentPath);
-		}
+	beforeAll(() => {
+		const parentPath = path.join(__dirname, '../../tmp/blocks');
+		fs.ensureDirSync(parentPath);
 		db = new KVStore(path.join(parentPath, '/test-blocks.db'));
 		storage = new Storage(db);
 	});
@@ -235,13 +233,6 @@ describe('dataAccess.blocks', () => {
 		});
 	});
 
-	describe('getBlocksCount', () => {
-		it('should return highest height as blocks count', async () => {
-			const count = await storage.getBlocksCount();
-			expect(count).toEqual(blocks[3].height);
-		});
-	});
-
 	describe('getBlockByID', () => {
 		it('should throw not found error if non existent ID is specified', async () => {
 			expect.assertions(1);
@@ -302,22 +293,8 @@ describe('dataAccess.blocks', () => {
 			await storage.clearTempBlocks();
 
 			expect(await storage.isTempBlockEmpty()).toBeTrue();
-			expect(await storage.getBlocksCount()).toEqual(blocks[3].height);
-		});
-	});
-
-	describe('deleteBlocksWithHeightGreaterThan', () => {
-		it('should delete blocks with height > specified height', async () => {
-			await storage.deleteBlocksWithHeightGreaterThan(blocks[0].height);
-
-			await expect(db.exists(`blocks:id:${blocks[0].id}`)).resolves.toBeTrue();
-			await expect(db.exists(`blocks:id:${blocks[1].id}`)).resolves.toBeFalse();
-			await expect(
-				db.exists(`transactions:blockID:${blocks[2].id}`),
-			).resolves.toBeFalse();
-			await expect(
-				db.exists(`transactions:id:${blocks[2].transactions[0].id}`),
-			).resolves.toBeFalse();
+			const lastBlock = await storage.getLastBlock();
+			expect(lastBlock.height).toEqual(blocks[3].height);
 		});
 	});
 

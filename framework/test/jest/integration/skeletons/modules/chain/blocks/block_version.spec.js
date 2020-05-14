@@ -32,12 +32,4 @@ describe('block_version', () => {
 
 		it.todo('should have blocks with version = 2 on round 3');
 	});
-
-	describe('when when there are no exceptions for blocks versions', () => {
-		it.todo('should fail when rebuilding');
-	});
-
-	describe('when there are proper exceptions for blocks versions', () => {
-		it.todo('should rebuild successfully');
-	});
 });

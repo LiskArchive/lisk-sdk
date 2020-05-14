@@ -82,7 +82,6 @@ describe('chain', () => {
 			// Assert miscellaneous
 			expect(chainInstance.blockReward).toBeDefined();
 			expect((chainInstance as any).blocksVerify).toBeDefined();
-			expect(chainInstance['_db']).toBe(db);
 		});
 	});
 
@@ -372,21 +371,8 @@ describe('chain', () => {
 			} as any;
 		});
 
-		it('should not save block when saveOnlyState is true', async () => {
-			await chainInstance.save(savingBlock, stateStoreStub, {
-				saveOnlyState: true,
-				removeFromTempTable: false,
-			});
-			expect(batchMock.put).not.toHaveBeenCalledWith(
-				`blocks:id:${savingBlock.id}`,
-				expect.anything(),
-			);
-			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
-		});
-
 		it('should remove tempBlock by height when removeFromTempTable is true', async () => {
 			await chainInstance.save(savingBlock, stateStoreStub, {
-				saveOnlyState: false,
 				removeFromTempTable: true,
 			});
 			expect(batchMock.del).toHaveBeenCalledWith(
@@ -395,7 +381,7 @@ describe('chain', () => {
 			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 		});
 
-		it('should save block when saveOnlyState is false', async () => {
+		it('should save block', async () => {
 			await chainInstance.save(savingBlock, stateStoreStub);
 			expect(batchMock.put).toHaveBeenCalledWith(
 				`blocks:id:${savingBlock.id}`,

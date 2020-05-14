@@ -44,7 +44,6 @@ import {
 	FastChainSwitchingMechanism,
 } from './synchronizer';
 import { Processor } from './processor';
-import { Rebuilder } from './rebuilder';
 import { BlockProcessorV2 } from './block_processor_v2';
 import { Logger, EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
@@ -89,7 +88,6 @@ interface Options {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	genesisBlock: GenesisBlockInstance | BlockInstance;
-	readonly rebuildUpToRound: string;
 }
 
 interface NodeConstructor {
@@ -124,7 +122,6 @@ export class Node {
 	private _dpos!: Dpos;
 	private _processor!: Processor;
 	private _synchronizer!: Synchronizer;
-	private _rebuilder!: Rebuilder;
 	private _transactionPool!: TransactionPool;
 	private _transport!: Transport;
 	private _forger!: Forger;
@@ -214,19 +211,6 @@ export class Node {
 				blockVersion: this._chain.lastBlock.version,
 			});
 
-			// Deactivate broadcast and syncing during snapshotting process
-			if (!Number.isNaN(parseInt(this._options.rebuildUpToRound, 10))) {
-				await this._rebuilder.rebuild(this._options.rebuildUpToRound);
-				this._logger.info(
-					{
-						rebuildUpToRound: this._options.rebuildUpToRound,
-					},
-					'Successfully rebuild the blockchain',
-				);
-				process.exit(0);
-				return;
-			}
-
 			this._subscribeToEvents();
 
 			this._channel.subscribe(
@@ -244,38 +228,36 @@ export class Node {
 			});
 
 			// Avoid receiving blocks/transactions from the network during snapshotting process
-			if (!this._options.rebuildUpToRound) {
-				this._channel.subscribe(
-					'app:network:event',
-					// eslint-disable-next-line @typescript-eslint/no-misused-promises
-					async (info: EventInfoObject) => {
-						const {
-							data: { event, data, peerId },
-						} = info as {
-							data: { event: string; data: unknown; peerId: string };
-						};
-						try {
-							if (event === 'postTransactionsAnnouncement') {
-								await this._transport.handleEventPostTransactionsAnnouncement(
-									data,
-									peerId,
-								);
-								return;
-							}
-							if (event === 'postBlock') {
-								await this._transport.handleEventPostBlock(data, peerId);
-								return;
-							}
-						} catch (err) {
-							this._logger.warn(
-								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-								{ err, event },
-								'Received invalid event message',
+			this._channel.subscribe(
+				'app:network:event',
+				// eslint-disable-next-line @typescript-eslint/no-misused-promises
+				async (info: EventInfoObject) => {
+					const {
+						data: { event, data, peerId },
+					} = info as {
+						data: { event: string; data: unknown; peerId: string };
+					};
+					try {
+						if (event === 'postTransactionsAnnouncement') {
+							await this._transport.handleEventPostTransactionsAnnouncement(
+								data,
+								peerId,
 							);
+							return;
 						}
-					},
-				);
-			}
+						if (event === 'postBlock') {
+							await this._transport.handleEventPostBlock(data, peerId);
+							return;
+						}
+					} catch (err) {
+						this._logger.warn(
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+							{ err, event },
+							'Received invalid event message',
+						);
+					}
+				},
+			);
 		} catch (error) {
 			this._logger.fatal(
 				{
@@ -583,16 +565,6 @@ export class Node {
 			processorModule: this._processor,
 			transactionPoolModule: this._transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
-		});
-
-		this._rebuilder = new Rebuilder({
-			channel: this._channel,
-			logger: this._logger,
-			genesisBlock: this._options.genesisBlock as BlockInstance,
-			chainModule: this._chain,
-			processorModule: this._processor,
-			bftModule: this._bft,
-			dposModule: this._dpos,
 		});
 
 		this._forger = new Forger({
