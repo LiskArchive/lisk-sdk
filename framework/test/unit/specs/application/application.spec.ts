@@ -191,7 +191,6 @@ describe('Application', () => {
 			expect(app['_network']).toBeUndefined();
 			expect(app['_channel']).toBeUndefined();
 			expect(app['_applicationState']).toBeUndefined();
-			expect(app['_migrations']).toBeInstanceOf(Object);
 			expect(app['_modules']).toBeInstanceOf(Object);
 			expect(app['_transactions']).toBeInstanceOf(Object);
 		});

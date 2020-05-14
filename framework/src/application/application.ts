@@ -149,7 +149,6 @@ export class Application {
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: GenesisBlockInstance;
-	private _migrations: { [key: string]: object };
 	private _forgerDB!: KVStore;
 	private _blockchainDB!: KVStore;
 	private _networkDB!: KVStore;
@@ -201,7 +200,6 @@ export class Application {
 		// Private members
 		this._modules = {};
 		this._transactions = {};
-		this._migrations = {};
 
 		this.logger = this._initLogger();
 
@@ -236,9 +234,6 @@ export class Application {
 			options,
 		);
 		this._modules[moduleAlias] = moduleKlass;
-
-		// Register migrations defined by the module
-		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
 	}
 
 	public overrideModuleOptions(alias: string, options?: object): void {
@@ -282,19 +277,6 @@ export class Application {
 		this._transactions[Transaction.TYPE] = Object.freeze(Transaction);
 	}
 
-	// eslint-disable-next-line
-	public registerMigrations(namespace: string, migrations: any): void {
-		assert(namespace, 'Namespace is required');
-		assert(Array.isArray(migrations), 'Migrations list should be an array');
-		assert(
-			!Object.keys(this._migrations).includes(namespace),
-			`Migrations for "${namespace}" was already registered.`,
-		);
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		this._migrations[namespace] = Object.freeze(migrations);
-	}
-
 	public getTransactions(): { [key: number]: typeof BaseTransaction } {
 		return this._transactions;
 	}
@@ -309,10 +291,6 @@ export class Application {
 
 	public getModules(): { [key: string]: InstantiableModule<BaseModule> } {
 		return this._modules;
-	}
-
-	public getMigrations(): { [key: string]: object } {
-		return this._migrations;
 	}
 
 	public async run(): Promise<void> {

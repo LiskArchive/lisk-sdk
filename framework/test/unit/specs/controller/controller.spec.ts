@@ -160,10 +160,6 @@ describe('Controller Class', () => {
 			it.todo('should log events if level is greater than info.');
 		});
 
-		describe('_loadMigrations', () => {
-			it.todo('should load migrations.');
-		});
-
 		describe('_loadModules', () => {
 			it.todo('should load modules in sequence');
 			it.todo('should call validateModuleSpec function.');
