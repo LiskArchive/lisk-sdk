@@ -1,8 +1,13 @@
 {
-	"extends": ["../.eslintrc.json"],
+	"extends": ["lisk-base/base"],
+	"root": true,
 	"rules": {
+		"implicit-arrow-linebreak": "off",
 		"strict": "off",
 		"max-len": "off",
 		"no-underscore-dangle": "off"
+	},
+	"globals": {
+		"BigInt": true
 	}
 }
