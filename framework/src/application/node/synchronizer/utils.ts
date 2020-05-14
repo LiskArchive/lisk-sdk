@@ -29,9 +29,7 @@ export const restoreBlocks = async (
 	}
 
 	for (const tempBlockEntry of tempBlocks) {
-		const tempBlockInstance = await processorModule.deserialize(
-			tempBlockEntry.fullBlock,
-		);
+		const tempBlockInstance = await processorModule.deserialize(tempBlockEntry);
 		await processorModule.processValidated(tempBlockInstance, {
 			removeFromTempTable: true,
 		});
@@ -85,14 +83,12 @@ export const restoreBlocksUponStartup = async (
 	chainModule: Chain,
 	processorModule: Processor,
 ): Promise<void> => {
-	// Get all blocks and find lowest height (next one to be applied)
+	// Get all blocks and find lowest height (next one to be applied), as it should return in height desc
 	const tempBlocks = await chainModule.dataAccess.getTempBlocks();
-	const blockLowestHeight = tempBlocks[0];
-	const blockHighestHeight = tempBlocks[tempBlocks.length - 1];
+	const blockLowestHeight = tempBlocks[tempBlocks.length - 1];
+	const blockHighestHeight = tempBlocks[0];
 
-	const nextTempBlock = await processorModule.deserialize(
-		blockHighestHeight.fullBlock,
-	);
+	const nextTempBlock = await processorModule.deserialize(blockHighestHeight);
 	const forkStatus = await processorModule.forkStatus(nextTempBlock);
 	const blockHasPriority =
 		forkStatus === ForkStatus.DIFFERENT_CHAIN ||

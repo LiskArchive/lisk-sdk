@@ -62,7 +62,6 @@ describe('Delegate registration transaction class', () => {
 		jest.spyOn(store.account, 'get');
 		jest.spyOn(store.account, 'find');
 		jest.spyOn(store.account, 'set');
-		jest.spyOn(store.account, 'cache');
 	});
 
 	describe('#constructor', () => {
@@ -118,16 +117,6 @@ describe('Delegate registration transaction class', () => {
 	describe('#assetToJSON', () => {
 		it('should return an object of type transfer asset', () => {
 			expect(validTestTransaction.assetToJSON()).toHaveProperty('username');
-		});
-	});
-
-	describe('#prepare', () => {
-		it('should call state store', async () => {
-			await validTestTransaction.prepare(store);
-			expect(store.account.cache).toHaveBeenCalledWith([
-				{ address: validTestTransaction.senderId },
-				{ username: validTestTransaction.asset.username },
-			]);
 		});
 	});
 

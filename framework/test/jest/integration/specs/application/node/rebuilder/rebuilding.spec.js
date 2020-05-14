@@ -19,39 +19,33 @@ const {
 	utils: { convertLSKToBeddows },
 } = require('@liskhq/lisk-transactions');
 const { KVStore } = require('@liskhq/lisk-db');
-const {
-	nodeUtils,
-	storageUtils,
-	configUtils,
-} = require('../../../../../../utils');
+const { nodeUtils, configUtils } = require('../../../../../../utils');
 const {
 	accounts: { genesis },
 } = require('../../../../../../fixtures');
+const { createDB, removeDB } = require('../../../../../../utils/kv_store');
 
 describe('Rebuilding blocks', () => {
 	// This test takes long
 	jest.setTimeout(100000);
 
 	const dbName = 'rebuild_block';
-	let storage;
 	let node;
+	let blockchainDB;
 	let forgerDB;
 
 	beforeAll(async () => {
-		storage = new storageUtils.StorageSandbox(
-			configUtils.storageConfig({ database: dbName }),
-			dbName,
-		);
-		await storage.bootstrap();
-		forgerDB = new KVStore(`/tmp/${dbName}.db`);
-		node = await nodeUtils.createAndLoadNode(storage, forgerDB);
+		({ blockchainDB, forgerDB } = createDB(dbName));
+		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node._forger.loadDelegates();
 	});
 
 	afterAll(async () => {
 		await forgerDB.clear();
 		await node.cleanup();
-		await storage.cleanup();
+		await blockchainDB.close();
+		await forgerDB.close();
+		removeDB(dbName);
 	});
 
 	describe('given a valid blockchain for 3 rounds', () => {

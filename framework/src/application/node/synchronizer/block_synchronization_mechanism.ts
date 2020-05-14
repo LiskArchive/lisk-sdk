@@ -218,7 +218,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		}
 
 		const tipBeforeApplyingInstance = await this.processorModule.deserialize(
-			tipBeforeApplying.fullBlock,
+			tipBeforeApplying,
 		);
 		// Check if the new tip has priority over the last tip we had before applying
 		const forkStatus = await this.processorModule.forkStatus(

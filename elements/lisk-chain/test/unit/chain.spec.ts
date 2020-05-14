@@ -12,18 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Readable } from 'stream';
+import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Chain, StateStore } from '../../src';
+import { KVStore, NotFoundError, formatInt } from '@liskhq/lisk-db';
+import { Chain } from '../../src/chain';
+import { StateStore } from '../../src/state_store';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { newBlock } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import * as randomUtils from '../utils/random';
-import { Slots } from '../../src/slots';
-import { BlockJSON } from '../../src/types';
+import { BlockInstance, BlockJSON } from '../../src/types';
 import { Account } from '../../src/account';
 
 jest.mock('events');
+jest.mock('@liskhq/lisk-db');
 
 const networkIdentifier = getNetworkIdentifier(
 	genesisBlock.payloadHash,
@@ -31,7 +35,6 @@ const networkIdentifier = getNetworkIdentifier(
 );
 
 describe('chain', () => {
-	const stubs = {} as any;
 	const constants = {
 		stateBlockSize: 309,
 		maxPayloadLength: 15 * 1024,
@@ -50,53 +53,18 @@ describe('chain', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	let chainInstance: Chain;
-	let slots: Slots;
+	let db: any;
 
 	beforeEach(() => {
 		// Arrange
-		stubs.dependencies = {
-			storage: {
-				entities: {
-					Account: {
-						get: jest.fn(),
-						update: jest.fn(),
-					},
-					Block: {
-						begin: jest.fn(),
-						create: jest.fn(),
-						count: jest.fn(),
-						getOne: jest.fn(),
-						delete: jest.fn(),
-						get: jest.fn(),
-						isPersisted: jest.fn(),
-					},
-					Transaction: {
-						create: jest.fn(),
-					},
-					TempBlock: {
-						create: jest.fn(),
-						delete: jest.fn(),
-						get: jest.fn(),
-					},
-				},
-			},
-		};
-
-		slots = new Slots({
-			epochTime: constants.epochTime,
-			interval: constants.blockTime,
-		});
-
-		stubs.tx = {
-			batch: jest.fn(),
-		};
+		db = new KVStore('temp');
+		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 
 		chainInstance = new Chain({
-			...stubs.dependencies,
+			db,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
-			slots,
 			...constants,
 		});
 	});
@@ -104,9 +72,7 @@ describe('chain', () => {
 	describe('constructor', () => {
 		it('should initialize private variables correctly', () => {
 			// Assert stubbed values are assigned
-			Object.entries(stubs.dependencies).forEach(([stubName, stubValue]) => {
-				expect((chainInstance as any)[stubName]).toEqual(stubValue);
-			});
+
 			// Assert constants
 			Object.entries(
 				(chainInstance as any).constants,
@@ -114,9 +80,9 @@ describe('chain', () => {
 				expect((constants as any)[constantName]).toEqual(constantValue),
 			);
 			// Assert miscellaneous
-			expect(slots).toEqual((chainInstance as any).slots);
 			expect(chainInstance.blockReward).toBeDefined();
 			expect((chainInstance as any).blocksVerify).toBeDefined();
+			expect(chainInstance['_db']).toBe(db);
 		});
 	});
 
@@ -137,34 +103,21 @@ describe('chain', () => {
 
 	describe('init', () => {
 		beforeEach(() => {
-			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
-			);
-			stubs.dependencies.storage.entities.Block.count.mockResolvedValue(5);
-			stubs.dependencies.storage.entities.Block.getOne.mockResolvedValue(
-				genesisBlock,
-			);
-			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-				genesisBlock,
-			]);
-			stubs.tx.batch.mockImplementation(async (promises: any) =>
-				Promise.all(promises),
-			);
-			const random101DelegateAccounts = new Array(101)
-				.fill('')
-				.map(() => randomUtils.account());
-			stubs.dependencies.storage.entities.Account.get.mockResolvedValue(
-				random101DelegateAccounts,
+			(db.createReadStream as jest.Mock).mockReturnValue(
+				Readable.from([{ value: genesisBlock.id }]),
 			);
 		});
 
 		describe('matchGenesisBlock', () => {
 			it('should throw an error when failed to load genesis block', async () => {
 				// Arrange
-				const error = new Error('Failed to load genesis block');
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
+				(db.get as jest.Mock).mockRejectedValue(
+					new NotFoundError('Data not found') as never,
+				);
 				// Act & Assert
-				await expect(chainInstance.init()).rejects.toEqual(error);
+				await expect(chainInstance.init()).rejects.toThrow(
+					'Failed to load genesis block',
+				);
 			});
 
 			it('should throw an error if the genesis block id is different', async () => {
@@ -174,9 +127,11 @@ describe('chain', () => {
 					...genesisBlock,
 					id: genesisBlock.id.replace('0', '1'),
 				};
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-					mutatedGenesisBlock,
-				]);
+				when(db.get)
+					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(mutatedGenesisBlock.id as never)
+					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
+					.mockResolvedValue(mutatedGenesisBlock as never);
 
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
@@ -189,9 +144,11 @@ describe('chain', () => {
 					...genesisBlock,
 					payloadHash: genesisBlock.payloadHash.replace('0', '1'),
 				};
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-					mutatedGenesisBlock,
-				]);
+				when(db.get)
+					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(mutatedGenesisBlock.id as never)
+					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
+					.mockResolvedValue(mutatedGenesisBlock as never);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
@@ -203,61 +160,67 @@ describe('chain', () => {
 					...genesisBlock,
 					blockSignature: genesisBlock.blockSignature.replace('0', '1'),
 				};
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-					mutatedGenesisBlock,
-				]);
+				when(db.get)
+					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(mutatedGenesisBlock.id as never)
+					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
+					.mockResolvedValue(mutatedGenesisBlock as never);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
 			it('should not throw when genesis block matches', async () => {
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('Data not found') as never)
+					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(genesisBlock.id as never)
+					.calledWith(`blocks:id:${genesisBlock.id}`)
+					.mockResolvedValue(genesisBlock as never);
 				// Act & Assert
 				await expect(chainInstance.init()).resolves.toBeUndefined();
 			});
 		});
 
 		describe('loadLastBlock', () => {
+			let lastBlock: BlockInstance;
+			beforeEach(() => {
+				// Arrange
+				lastBlock = newBlock({ height: 103 });
+				(db.createReadStream as jest.Mock).mockReturnValue(
+					Readable.from([{ value: lastBlock.id }]),
+				);
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('Data not found') as never)
+					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(genesisBlock.id as never)
+					.calledWith(`blocks:id:${genesisBlock.id}`)
+					.mockResolvedValue(genesisBlock as never)
+					.calledWith(`blocks:id:${lastBlock.id}`)
+					.mockResolvedValue(lastBlock as never);
+				jest
+					.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
+					.mockResolvedValue([]);
+			});
 			it('should throw an error when Block.get throws error', async () => {
-				// Arrange
-				const error = 'get error';
-				stubs.dependencies.storage.entities.Block.get.mockRejectedValue(error);
-
 				// Act & Assert
-				await expect(chainInstance.init()).rejects.toEqual(error);
+				(db.createReadStream as jest.Mock).mockReturnValue(
+					Readable.from([{ value: 'randomID' }]),
+				);
+				await expect(chainInstance.init()).rejects.toThrow(
+					'Failed to load last block',
+				);
 			});
 
-			it('should throw an error when Block.get returns empty array', async () => {
-				// Arrange
-				const errorMessage = 'Failed to load last block';
-				stubs.dependencies.storage.entities.Block.get
-					.mockReturnValueOnce([genesisBlock])
-					.mockReturnValueOnce([]);
+			it('should return the the stored last block', async () => {
+				// Act
+				await chainInstance.init();
 
-				// Act && Assert
-				await expect(chainInstance.init()).rejects.toThrow(errorMessage);
+				// Assert
+				expect(chainInstance.lastBlock.id).toEqual(lastBlock.id);
+				expect(
+					chainInstance.dataAccess.getBlockHeadersByHeightBetween,
+				).toHaveBeenCalledWith(1, 103);
 			});
-			// TODO: The tests are minimal due to the changes we expect as part of https://github.com/LiskHQ/lisk-sdk/issues/4131
-			describe('when Block.get returns rows', () => {
-				it('should return the first record from storage entity', async () => {
-					// Arrange
-					stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-						genesisBlock,
-						newBlock(),
-					]);
-					// Act
-					await chainInstance.init();
-
-					// Assert
-					expect(chainInstance.lastBlock.id).toEqual(genesisBlock.id);
-				});
-			});
-		});
-
-		it('should initialize the processor', async () => {
-			// Act
-			await chainInstance.init();
-			// Assert
-			expect(chainInstance.lastBlock.id).toEqual(genesisBlock.id);
 		});
 	});
 
@@ -265,41 +228,26 @@ describe('chain', () => {
 		beforeEach(() => {
 			// eslint-disable-next-line dot-notation
 			chainInstance['_lastBlock'] = newBlock({ height: 532 });
-			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-				newBlock(),
-				genesisBlock,
-			]);
+			jest
+				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
+				.mockResolvedValue([newBlock(), genesisBlock] as never);
 		});
 
 		it('should populate the chain state with genesis block', async () => {
-			// eslint-disable-next-line dot-notation
 			chainInstance['_lastBlock'] = newBlock({ height: 1 });
 			await chainInstance.newStateStore();
 			expect(
-				stubs.dependencies.storage.entities.Block.get,
-			).toHaveBeenCalledWith(
-				{
-					// eslint-disable-next-line camelcase
-					height_gte: 1,
-					// eslint-disable-next-line camelcase
-					height_lte: 1,
-				},
-				{ limit: null, sort: 'height:desc' },
-			);
+				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
+			).toHaveBeenCalledWith(1, 1);
 		});
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
 			await chainInstance.newStateStore();
 			expect(
-				stubs.dependencies.storage.entities.Block.get,
+				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
 			).toHaveBeenCalledWith(
-				{
-					// eslint-disable-next-line camelcase
-					height_gte: chainInstance.lastBlock.height - 309,
-					// eslint-disable-next-line camelcase
-					height_lte: chainInstance.lastBlock.height,
-				},
-				{ limit: null, sort: 'height:desc' },
+				chainInstance.lastBlock.height - 309,
+				chainInstance.lastBlock.height,
 			);
 		});
 
@@ -314,15 +262,10 @@ describe('chain', () => {
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
 			await chainInstance.newStateStore(1);
 			expect(
-				stubs.dependencies.storage.entities.Block.get,
+				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
 			).toHaveBeenCalledWith(
-				{
-					// eslint-disable-next-line camelcase
-					height_gte: chainInstance.lastBlock.height - 310,
-					// eslint-disable-next-line camelcase
-					height_lte: chainInstance.lastBlock.height - 1,
-				},
-				{ limit: null, sort: 'height:desc' },
+				chainInstance.lastBlock.height - 310,
+				chainInstance.lastBlock.height - 1,
 			);
 		});
 	});
@@ -405,6 +348,8 @@ describe('chain', () => {
 
 	describe('save', () => {
 		let stateStoreStub: StateStore;
+		let batchMock: any;
+		let savingBlock: BlockInstance;
 
 		const fakeAccounts = [
 			Account.getDefaultAccount('1234L'),
@@ -412,12 +357,13 @@ describe('chain', () => {
 		];
 
 		beforeEach(() => {
-			stubs.tx.batch.mockImplementation(async (promises: any) =>
-				Promise.all(promises),
-			);
-			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
-			);
+			savingBlock = newBlock({ height: 300 });
+			batchMock = {
+				put: jest.fn(),
+				del: jest.fn(),
+				write: jest.fn(),
+			};
+			(db.batch as jest.Mock).mockReturnValue(batchMock);
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
@@ -426,118 +372,40 @@ describe('chain', () => {
 			} as any;
 		});
 
-		it('should throw error when block create fails', async () => {
-			// Arrange
-			const block = newBlock();
-			const blockCreateError = 'block create error';
-			stubs.tx.batch.mockRejectedValue(blockCreateError);
-
-			// Act & Assert
-			await expect(chainInstance.save(block, stateStoreStub)).rejects.toEqual(
-				blockCreateError,
-			);
-		});
-
-		it('should throw error when transaction create fails', async () => {
-			// Arrange
-			const transaction = new TransferTransaction(randomUtils.transaction());
-			const block = newBlock({ transactions: [transaction] });
-			const transactionCreateError = 'transaction create error';
-			stubs.dependencies.storage.entities.Transaction.create.mockRejectedValue(
-				transactionCreateError,
-			);
-			expect.assertions(1);
-
-			// Act & Assert
-			await expect(chainInstance.save(block, stateStoreStub)).rejects.toEqual(
-				transactionCreateError,
-			);
-		});
-
-		it('should call Block.create with correct parameters', async () => {
-			// Arrange
-			const block = newBlock({
-				reward: '0',
-				totalAmount: '0',
-				totalFee: '0',
+		it('should not save block when saveOnlyState is true', async () => {
+			await chainInstance.save(savingBlock, stateStoreStub, {
+				saveOnlyState: true,
+				removeFromTempTable: false,
 			});
-			const blockJSON = chainInstance.serialize(block);
-			expect.assertions(1);
-
-			// Act
-			await chainInstance.save(block, stateStoreStub);
-
-			// Assert
-			expect(
-				stubs.dependencies.storage.entities.Block.create,
-			).toHaveBeenCalledWith(blockJSON, {}, expect.any(Object));
-		});
-
-		it('should not call Transaction.create with if block has no transactions', async () => {
-			// Arrange
-			const block = newBlock();
-
-			// Act
-			await chainInstance.save(block, stateStoreStub);
-
-			// Assert
-			expect(
-				stubs.dependencies.storage.entities.Transaction.create,
-			).not.toHaveBeenCalled();
-		});
-
-		it('should call Transaction.create with correct parameters', async () => {
-			// Arrange
-			const transaction = new TransferTransaction(randomUtils.transaction());
-			const block = newBlock({ transactions: [transaction] });
-			(transaction as any).blockId = block.id;
-			const transactionJSON = transaction.toJSON();
-
-			// Act
-			await chainInstance.save(block, stateStoreStub);
-
-			// Assert
-			expect(
-				stubs.dependencies.storage.entities.Transaction.create,
-			).toHaveBeenCalledWith([transactionJSON], {}, stubs.tx);
-		});
-
-		it('should call state store finalize', async () => {
-			// Arrange
-			const block = newBlock();
-
-			// Act & Assert
-			await chainInstance.save(block, stateStoreStub);
+			expect(batchMock.put).not.toHaveBeenCalledWith(
+				`blocks:id:${savingBlock.id}`,
+				expect.anything(),
+			);
 			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
-			expect(stateStoreStub.finalize).toHaveBeenCalledWith(stubs.tx);
 		});
 
-		it('should resolve when blocks module successfully performs save', async () => {
-			// Arrange
-			const block = newBlock();
-
-			// Act & Assert
-			expect.assertions(1);
-
-			await expect(
-				chainInstance.save(block, stateStoreStub),
-			).resolves.toBeUndefined();
+		it('should remove tempBlock by height when removeFromTempTable is true', async () => {
+			await chainInstance.save(savingBlock, stateStoreStub, {
+				saveOnlyState: false,
+				removeFromTempTable: true,
+			});
+			expect(batchMock.del).toHaveBeenCalledWith(
+				`tempBlocks:height:${formatInt(savingBlock.height)}`,
+			);
+			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 		});
 
-		it('should throw error when storage create fails', async () => {
-			// Arrange
-			const block = newBlock();
-			const blockCreateError = 'block create error';
-			stubs.dependencies.storage.entities.Block.create.mockRejectedValue(
-				blockCreateError,
+		it('should save block when saveOnlyState is false', async () => {
+			await chainInstance.save(savingBlock, stateStoreStub);
+			expect(batchMock.put).toHaveBeenCalledWith(
+				`blocks:id:${savingBlock.id}`,
+				expect.anything(),
 			);
-
-			expect.assertions(1);
-
-			// Act & Assert
-			await expect(chainInstance.save(block, stateStoreStub)).rejects.toBe(
-				blockCreateError,
+			expect(batchMock.put).toHaveBeenCalledWith(
+				`blocks:height:${formatInt(savingBlock.height)}`,
+				expect.anything(),
 			);
+			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 		});
 
 		it('should emit block and accounts', async () => {
@@ -560,29 +428,27 @@ describe('chain', () => {
 	});
 
 	describe('remove', () => {
-		let stateStoreStub: StateStore;
 		const fakeAccounts = [
 			Account.getDefaultAccount('1234L'),
 			Account.getDefaultAccount('5678L'),
 		];
 
+		let stateStoreStub: StateStore;
+		let batchMock: any;
+
 		beforeEach(() => {
+			batchMock = {
+				put: jest.fn(),
+				del: jest.fn(),
+				write: jest.fn(),
+			};
+			(db.batch as jest.Mock).mockReturnValue(batchMock);
 			stateStoreStub = {
 				finalize: jest.fn(),
 				account: {
 					getUpdated: jest.fn().mockReturnValue(fakeAccounts),
 				},
 			} as any;
-			stubs.tx.batch.mockImplementation(async (promises: any) =>
-				Promise.all(promises),
-			);
-			stubs.dependencies.storage.entities.Block.begin.mockImplementation(
-				(_: any, callback: any) => callback.call(chainInstance, stubs.tx),
-			);
-			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-				genesisBlock,
-			]);
-			stubs.dependencies.storage.entities.Block.delete.mockResolvedValue();
 		});
 
 		it('should throw an error when removing genesis block', async () => {
@@ -597,7 +463,9 @@ describe('chain', () => {
 
 		it('should throw an error when previous block does not exist in the database', async () => {
 			// Arrange
-			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([]);
+			(db.get as jest.Mock).mockRejectedValue(
+				new NotFoundError('Data not found') as never,
+			);
 			const block = newBlock();
 			// Act & Assert
 			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toThrow(
@@ -607,13 +475,11 @@ describe('chain', () => {
 
 		it('should throw an error when deleting block fails', async () => {
 			// Arrange
+			jest
+				.spyOn(chainInstance.dataAccess, 'getBlockByID')
+				.mockResolvedValue(genesisBlock as never);
 			const deleteBlockError = new Error('Delete block failed');
-			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([
-				genesisBlock,
-			]);
-			stubs.dependencies.storage.entities.Block.delete.mockRejectedValue(
-				deleteBlockError,
-			);
+			batchMock.write.mockRejectedValue(deleteBlockError);
 			const block = newBlock();
 			// Act & Assert
 			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toEqual(
@@ -623,61 +489,37 @@ describe('chain', () => {
 
 		it('should not create entry in temp block table when saveToTemp flag is false', async () => {
 			// Arrange
+			jest
+				.spyOn(chainInstance.dataAccess, 'getBlockByID')
+				.mockResolvedValue(genesisBlock as never);
 			const block = newBlock();
 			// Act
 			await chainInstance.remove(block, stateStoreStub);
 			// Assert
-			expect(chainInstance.lastBlock.id).toEqual(genesisBlock.id);
-			expect(
-				stubs.dependencies.storage.entities.TempBlock.create,
-			).not.toHaveBeenCalled();
+			expect(batchMock.put).not.toHaveBeenCalledWith(
+				`tempBlocks:height:${block.height}`,
+				block,
+			);
 		});
 
-		describe('when saveToTemp parameter is set to true', () => {
-			beforeEach(() => {
-				stubs.dependencies.storage.entities.TempBlock.create.mockResolvedValue();
+		it('should create entry in temp block with full block when saveTempBlock is true', async () => {
+			// Arrange
+			jest
+				.spyOn(chainInstance.dataAccess, 'getBlockByID')
+				.mockResolvedValue(genesisBlock as never);
+			const transaction = new TransferTransaction(randomUtils.transaction());
+			const block = newBlock({ transactions: [transaction] });
+			(transaction as any).blockId = block.id;
+			const blockJSON = chainInstance.serialize(block);
+			// Act
+			await chainInstance.remove(block, stateStoreStub, {
+				saveTempBlock: true,
 			});
-
-			it('should throw an error when temp block create function fails', async () => {
-				// Arrange
-				const tempBlockCreateError = new Error(
-					'temp block entry creation failed',
-				);
-				const block = newBlock();
-				stubs.dependencies.storage.entities.TempBlock.create.mockRejectedValue(
-					tempBlockCreateError,
-				);
-				// Act & Assert
-				await expect(
-					chainInstance.remove(block, stateStoreStub, {
-						saveTempBlock: true,
-					}),
-				).rejects.toEqual(tempBlockCreateError);
-			});
-
-			it('should create entry in temp block with correct id, height and block property and tx', async () => {
-				// Arrange
-				const transaction = new TransferTransaction(randomUtils.transaction());
-				const block = newBlock({ transactions: [transaction] });
-				(transaction as any).blockId = block.id;
-				const blockJSON = chainInstance.serialize(block);
-				// Act
-				await chainInstance.remove(block, stateStoreStub, {
-					saveTempBlock: true,
-				});
-				// Assert
-				expect(
-					stubs.dependencies.storage.entities.TempBlock.create,
-				).toHaveBeenCalledWith(
-					{
-						id: blockJSON.id,
-						height: blockJSON.height,
-						fullBlock: blockJSON,
-					},
-					{},
-					stubs.tx,
-				);
-			});
+			// Assert
+			expect(batchMock.put).not.toHaveBeenCalledWith(
+				`tempBlocks:height:${block.height}`,
+				blockJSON,
+			);
 		});
 
 		it('should emit block and accounts', async () => {
@@ -699,121 +541,27 @@ describe('chain', () => {
 		});
 	});
 
-	describe('removeBlockFromTempTable()', () => {
-		it('should remove block from table for block ID', async () => {
-			// Arrange
-			const block = newBlock();
-
-			// Act
-			await chainInstance.removeBlockFromTempTable(block.id, stubs.tx);
-
-			// Assert
-			expect(
-				stubs.dependencies.storage.entities.TempBlock.delete,
-			).toHaveBeenCalledWith({ id: block.id }, {}, stubs.tx);
-		});
-	});
-
 	describe('exists()', () => {
-		beforeEach(() => {
-			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
-				true,
-			);
-		});
-
 		it('should return true if the block does not exist', async () => {
 			// Arrange
 			const block = newBlock();
-			expect.assertions(2);
+			when(db.exists)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(true as never);
 			// Act & Assert
 			expect(await chainInstance.exists(block)).toEqual(true);
-			expect(
-				stubs.dependencies.storage.entities.Block.isPersisted,
-			).toHaveBeenCalledWith({
-				id: block.id,
-			});
+			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 
 		it('should return false if the block does exist', async () => {
 			// Arrange
-			stubs.dependencies.storage.entities.Block.isPersisted.mockResolvedValue(
-				false,
-			);
 			const block = newBlock();
-			expect.assertions(2);
+			when(db.exists)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(false as never);
 			// Act & Assert
 			expect(await chainInstance.exists(block)).toEqual(false);
-			expect(
-				stubs.dependencies.storage.entities.Block.isPersisted,
-			).toHaveBeenCalledWith({
-				id: block.id,
-			});
-		});
-	});
-
-	describe('getBlocksWithLimitAndOffset', () => {
-		describe('when called without offset', () => {
-			const validBlocks = [
-				{
-					height: 100,
-					id: 'block-id',
-				},
-			];
-
-			beforeEach(() => {
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
-					validBlocks,
-				);
-			});
-
-			it('should use limit 1 as default', async () => {
-				await chainInstance.dataAccess.getBlocksWithLimitAndOffset(1);
-
-				expect(
-					stubs.dependencies.storage.entities.Block.get,
-				).toHaveBeenCalledWith(
-					// eslint-disable-next-line camelcase
-					{ height_gte: 0, height_lte: 0 },
-					{ extended: true, limit: null, sort: 'height:desc' },
-				);
-			});
-		});
-
-		describe('when blocks received in desending order', () => {
-			const validBlocks = [
-				{
-					height: 101,
-					id: 'block-id1',
-				},
-				{
-					height: 100,
-					id: 'block-id2',
-				},
-			];
-
-			beforeEach(() => {
-				stubs.dependencies.storage.entities.Block.get.mockResolvedValue(
-					validBlocks,
-				);
-			});
-
-			it('should be sorted ascending by height', async () => {
-				const blocks = await chainInstance.dataAccess.getBlocksWithLimitAndOffset(
-					2,
-					100,
-				);
-
-				expect(
-					stubs.dependencies.storage.entities.Block.get,
-				).toHaveBeenCalledWith(
-					// eslint-disable-next-line camelcase
-					{ height_gte: 100, height_lte: 101 },
-					{ extended: true, limit: null, sort: 'height:desc' },
-				);
-				expect(blocks.map(b => b.height)).toEqual(
-					validBlocks.map(b => b.height).sort((a, b) => a - b),
-				);
-			});
+			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.id}`);
 		});
 	});
 
@@ -822,25 +570,36 @@ describe('chain', () => {
 			// Arrange
 			const ids = ['1', '2'];
 			const block = newBlock();
-			stubs.dependencies.storage.entities.Block.get.mockResolvedValue([block]);
+			jest
+				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByIDs')
+				.mockResolvedValue([block] as never);
 
 			// Act
 			const result = await chainInstance.getHighestCommonBlock(ids);
 
 			// Assert
+			expect(
+				chainInstance.dataAccess.getBlockHeadersByIDs,
+			).toHaveBeenCalledWith(ids);
 			expect(result).toEqual(block);
 		});
 		it('should throw error if unable to get blocks from the storage', async () => {
 			// Arrange
 			const ids = ['1', '2'];
-			stubs.dependencies.storage.entities.Block.get.mockRejectedValue(
-				new Error('Failed to fetch the highest common block'),
-			);
-
+			jest
+				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByIDs')
+				.mockRejectedValue(new NotFoundError('data not found') as never);
 			// Act && Assert
-			await expect(chainInstance.getHighestCommonBlock(ids)).rejects.toThrow(
-				'Failed to fetch the highest common block',
-			);
+			expect.assertions(2);
+			try {
+				await chainInstance.getHighestCommonBlock(ids);
+			} catch (error) {
+				// eslint-disable-next-line jest/no-try-expect
+				expect(error).toBeInstanceOf(NotFoundError);
+			}
+			expect(
+				chainInstance.dataAccess.getBlockHeadersByIDs,
+			).toHaveBeenCalledWith(ids);
 		});
 	});
 });

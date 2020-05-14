@@ -13,6 +13,7 @@
  */
 
 import { when } from 'jest-when';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import {
 	transfer,
 	castVotes,
@@ -24,7 +25,9 @@ import {
 	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
 import { newBlock, getBytes, defaultNetworkIdentifier } from '../utils/block';
-import { Chain, StateStore } from '../../src';
+import { Chain } from '../../src/chain';
+import { StateStore } from '../../src/state_store';
+import { DataAccess } from '../../src/data_access';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
@@ -32,6 +35,7 @@ import { BlockInstance } from '../../src/types';
 import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
 
 jest.mock('events');
+jest.mock('@liskhq/lisk-db');
 
 describe('blocks/header', () => {
 	const constants = {
@@ -56,46 +60,14 @@ describe('blocks/header', () => {
 	);
 
 	let chainInstance: Chain;
-	let storageStub: any;
 	let block: BlockInstance;
 	let blockBytes: Buffer;
+	let db: any;
 
 	beforeEach(() => {
-		storageStub = {
-			entities: {
-				Account: {
-					get: jest.fn(),
-					upsert: jest.fn(),
-					getOne: jest.fn(),
-				},
-				Block: {
-					begin: jest.fn(),
-					create: jest.fn(),
-					count: jest.fn(),
-					getOne: jest.fn(),
-					delete: jest.fn(),
-					get: jest.fn(),
-					isPersisted: jest.fn(),
-				},
-				Transaction: {
-					get: jest.fn(),
-					create: jest.fn(),
-				},
-				ChainState: {
-					get: jest.fn(),
-					getKey: jest.fn(),
-					setKey: jest.fn(),
-				},
-				TempBlock: {
-					create: jest.fn(),
-					delete: jest.fn(),
-					get: jest.fn(),
-				},
-			},
-		};
-
+		db = new KVStore('temp');
 		chainInstance = new Chain({
-			storage: storageStub,
+			db,
 			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
@@ -248,7 +220,13 @@ describe('blocks/header', () => {
 
 		beforeEach(() => {
 			// Arrange
-			stateStore = new StateStore(storageStub, {
+			const dataAccess = new DataAccess({
+				db,
+				maxBlockHeaderCache: 505,
+				minBlockHeaderCache: 309,
+				registeredTransactions: {},
+			});
+			stateStore = new StateStore(dataAccess, {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
 				lastBlockReward: BigInt(500000000),
@@ -368,7 +346,13 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -393,9 +377,13 @@ describe('blocks/header', () => {
 
 			beforeEach(() => {
 				// Arrage
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000000000' },
-				]);
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '100000000000000',
+					} as never);
+
 				invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -411,7 +399,13 @@ describe('blocks/header', () => {
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -432,10 +426,6 @@ describe('blocks/header', () => {
 		describe('when skip existing check is false and block exists in database', () => {
 			beforeEach(() => {
 				// Arrage
-				storageStub.entities.Block.isPersisted.mockResolvedValue(true);
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000000000' },
-				]);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -447,11 +437,24 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [validTx] });
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '100000000000000',
+					} as never);
+				(db.exists as jest.Mock).mockResolvedValue(true as never);
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -468,10 +471,6 @@ describe('blocks/header', () => {
 
 		describe('when skip existing check is false and block does not exist in database but transaction does', () => {
 			beforeEach(() => {
-				// Arrage
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000000000' },
-				]);
 				const validTxJSON = transfer({
 					fee: '10000000',
 					nonce: '0',
@@ -483,13 +482,22 @@ describe('blocks/header', () => {
 				const validTx = chainInstance.deserializeTransaction(
 					validTxJSON as TransactionJSON,
 				);
-				storageStub.entities.Transaction.get.mockResolvedValue([validTxJSON]);
 				block = newBlock({ transactions: [validTx] });
+				when(db.exists)
+					.mockResolvedValue(false as never)
+					.calledWith(`transactions:id:${validTx.id}`)
+					.mockResolvedValue(true as never);
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Arrange
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
@@ -517,26 +525,36 @@ describe('blocks/header', () => {
 
 			beforeEach(async () => {
 				block = newBlock({ reward: BigInt(500000000) });
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '0' },
-					{
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: '0',
-					},
-				]);
-				storageStub.entities.ChainState.getKey.mockResolvedValue('100');
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
 				});
-				await stateStore.account.cache({
-					// eslint-disable-next-line camelcase
-					address_in: [
-						genesisAccount.address,
-						getAddressFromPublicKey(block.generatorPublicKey),
-					],
-				});
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '0',
+					} as never)
+					.calledWith(
+						`accounts:address:${getAddressFromPublicKey(
+							block.generatorPublicKey,
+						)}`,
+					)
+					.mockResolvedValue({
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: '0',
+					} as never)
+					.calledWith(`chain:burntFee`)
+					.mockResolvedValue('100' as never);
+				jest.spyOn(stateStore.chain, 'set');
+
 				// Arrage
 				await chainInstance.apply(block, stateStore);
 			});
@@ -549,7 +567,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not have updated burnt fee', () => {
-				expect(storageStub.entities.ChainState.getKey).not.toHaveBeenCalled();
+				expect(stateStore.chain.set).not.toHaveBeenCalled();
 			});
 		});
 
@@ -557,7 +575,7 @@ describe('blocks/header', () => {
 			let validTx;
 			let stateStore: StateStore;
 
-			beforeEach(async () => {
+			beforeEach(() => {
 				// Arrage
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
@@ -570,23 +588,35 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [validTx] });
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: '0',
-					},
-					{ address: genesisAccount.address, balance: '0' },
-				]);
 				// Act
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
 				});
-				await stateStore.account.cache({
-					// eslint-disable-next-line camelcase
-					address_in: [genesisAccount.address],
-				});
+				when(db.get)
+					.calledWith(`accounts:address:123L`)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '0',
+					} as never)
+					.calledWith(
+						`accounts:address:${getAddressFromPublicKey(
+							block.generatorPublicKey,
+						)}`,
+					)
+					.mockResolvedValue({
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: '0',
+					} as never);
 			});
 
 			it('should throw error', async () => {
@@ -675,43 +705,50 @@ describe('blocks/header', () => {
 					reward: BigInt(500000000),
 					transactions: [validTx, validTx2],
 				});
-				when(storageStub.entities.Account.get)
-					.mockResolvedValue([
-						{
-							address: getAddressFromPublicKey(block.generatorPublicKey),
-							balance: '0',
-							producedBlocks: 0,
-							nonce: '0',
-						},
-						{
-							address: genesisAccount.address,
-							balance: '1000000000000',
-							nonce: '0',
-						},
-						delegate1,
-						delegate2,
-					] as never)
-					.calledWith({ address: '124L' })
-					.mockResolvedValue([] as never);
-				storageStub.entities.ChainState.getKey.mockResolvedValue(
-					defaultBurntFee,
-				);
 				// Act
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
 				});
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('Data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '1000000000000',
+					} as never)
+					.calledWith(
+						`accounts:address:${getAddressFromPublicKey(
+							block.generatorPublicKey,
+						)}`,
+					)
+					.mockResolvedValue({
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: '0',
+						producedBlocks: 0,
+						nonce: '0',
+					} as never)
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					.calledWith(`accounts:address:${delegate1.address}`)
+					.mockResolvedValue(delegate1 as never)
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					.calledWith(`accounts:address:${delegate2.address}`)
+					.mockResolvedValue(delegate2 as never)
+					.calledWith(`chain:burntFee`)
+					.mockResolvedValue(defaultBurntFee as never);
 				await chainInstance.apply(block, stateStore);
 			});
 
 			it('should call apply for the transaction', () => {
 				expect(validTxApplySpy).toHaveBeenCalledTimes(1);
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
-			});
-
-			it('should not call account update', () => {
-				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
 			it('should add produced block for generator', async () => {
@@ -751,12 +788,20 @@ describe('blocks/header', () => {
 
 		beforeEach(async () => {
 			// Arrage
-			storageStub.entities.Account.get.mockResolvedValue([]);
+			(db.get as jest.Mock).mockRejectedValue(
+				new NotFoundError('no data found'),
+			);
 			// Act
 			genesisInstance = chainInstance.deserialize(genesisBlock as any);
 			genesisInstance.transactions.forEach(tx => tx.validate());
 			// Act
-			stateStore = new StateStore(storageStub, {
+			const dataAccess = new DataAccess({
+				db,
+				maxBlockHeaderCache: 505,
+				minBlockHeaderCache: 309,
+				registeredTransactions: {},
+			});
+			stateStore = new StateStore(dataAccess, {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
 				lastBlockReward: BigInt(500000000),
@@ -775,10 +820,6 @@ describe('blocks/header', () => {
 				);
 			});
 
-			it('should not call account update', () => {
-				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
-			});
-
 			it('should not update burnt fee on chain state', async () => {
 				const genesisAccountFromStore = await stateStore.chain.get(
 					CHAIN_STATE_BURNT_FEE,
@@ -795,25 +836,35 @@ describe('blocks/header', () => {
 			let stateStore: StateStore;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(storageStub, {
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
 				});
 				// Arrage
 				block = newBlock({ reward });
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '0',
+					} as never)
+					.calledWith(
+						`accounts:address:${getAddressFromPublicKey(
+							block.generatorPublicKey,
+						)}`,
+					)
+					.mockResolvedValue({
 						address: getAddressFromPublicKey(block.generatorPublicKey),
 						balance: reward.toString(),
-					},
-					{ address: genesisAccount.address, balance: '0' },
-				]);
+					} as never);
 				await chainInstance.undo(block, stateStore);
-			});
-
-			it('should not call account update', () => {
-				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
 			it('should update generator balance to debit rewards and fees - minFee', async () => {
@@ -824,7 +875,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not deduct burntFee from chain state', () => {
-				expect(storageStub.entities.ChainState.getKey).not.toHaveBeenCalled();
+				expect(db.get).not.toHaveBeenCalledWith('chain:burntFee');
 			});
 		});
 
@@ -902,13 +953,22 @@ describe('blocks/header', () => {
 					reward: BigInt(defaultReward),
 					transactions: [validTx, validTx2],
 				});
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: defaultGeneratorBalance.toString(),
-						producedBlocks: 1,
-					},
-					{
+
+				// Act
+				const dataAccess = new DataAccess({
+					db,
+					maxBlockHeaderCache: 505,
+					minBlockHeaderCache: 309,
+					registeredTransactions: {},
+				});
+				stateStore = new StateStore(dataAccess, {
+					lastBlockHeaders: [],
+					networkIdentifier: defaultNetworkIdentifier,
+					lastBlockReward: BigInt(500000000),
+				});
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
 						address: genesisAccount.address,
 						balance: '9889999900',
 						votes: [
@@ -921,31 +981,33 @@ describe('blocks/header', () => {
 								amount: '10000000000',
 							},
 						],
-					},
-					delegate1,
-					delegate2,
-					recipient,
-				]);
-				storageStub.entities.ChainState.getKey.mockResolvedValue(
-					defaultBurntFee.toString(),
-				);
-
-				// Act
-				stateStore = new StateStore(storageStub, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-				});
+					} as never)
+					.calledWith(
+						`accounts:address:${getAddressFromPublicKey(
+							block.generatorPublicKey,
+						)}`,
+					)
+					.mockResolvedValue({
+						address: getAddressFromPublicKey(block.generatorPublicKey),
+						balance: defaultGeneratorBalance.toString(),
+						producedBlocks: 1,
+					} as never)
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					.calledWith(`accounts:address:${delegate1.address}`)
+					.mockResolvedValue(delegate1 as never)
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+					.calledWith(`accounts:address:${delegate2.address}`)
+					.mockResolvedValue(delegate2 as never)
+					.calledWith(`accounts:address:${recipient.address}`)
+					.mockResolvedValue(recipient as never)
+					.calledWith(`chain:burntFee`)
+					.mockResolvedValue(defaultBurntFee.toString() as never);
 				await chainInstance.undo(block, stateStore);
 			});
 
 			it('should call undo for the transaction', () => {
 				expect(validTxUndoSpy).toHaveBeenCalledTimes(1);
 				expect(validTx2UndoSpy).toHaveBeenCalledTimes(1);
-			});
-
-			it('should not call account update', () => {
-				expect(storageStub.entities.Account.upsert).not.toHaveBeenCalled();
 			});
 
 			it('should reduce produced block for generator', async () => {

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { when } from 'jest-when';
 import {
 	Status as TransactionStatus,
 	TransactionResponse,
@@ -38,10 +39,6 @@ describe('transactions', () => {
 		trs1.matcher = (): boolean => true;
 		trs2.matcher = (): boolean => true;
 
-		// Add prepare steps to transactions
-		trs1.prepare = jest.fn();
-		trs2.prepare = jest.fn();
-
 		// Add apply steps to transactions
 		trs1.apply = jest.fn();
 		trs2.apply = jest.fn();
@@ -65,7 +62,7 @@ describe('transactions', () => {
 		};
 
 		dataAccessMock = {
-			getTransactionsByIDs: jest.fn().mockReturnValue([]),
+			isTransactionPersisted: jest.fn().mockResolvedValue(false),
 		};
 	});
 
@@ -215,23 +212,28 @@ describe('transactions', () => {
 		});
 
 		it('should invoke entities.Transaction to check persistence of transactions', async () => {
-			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1, trs2]);
-
 			await transactionHandlers.checkPersistedTransactions(dataAccessMock)([
 				trs1,
 				trs2,
 			]);
 
-			expect(dataAccessMock.getTransactionsByIDs).toHaveBeenCalledTimes(1);
-			expect(dataAccessMock.getTransactionsByIDs).toHaveBeenCalledWith([
+			expect(dataAccessMock.isTransactionPersisted).toHaveBeenCalledTimes(2);
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			expect(dataAccessMock.isTransactionPersisted).toHaveBeenCalledWith(
 				trs1.id,
+			);
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			expect(dataAccessMock.isTransactionPersisted).toHaveBeenCalledWith(
 				trs2.id,
-			]);
+			);
 		});
 
 		it('should return TransactionStatus.OK for non-persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1]);
+			when(dataAccessMock.isTransactionPersisted)
+				.mockResolvedValue(false as never)
+				.calledWith(trs1.id)
+				.mockResolvedValue(true as never);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
 				dataAccessMock,
@@ -239,13 +241,16 @@ describe('transactions', () => {
 
 			const transactionResponse = result.find(({ id }) => id === trs2.id);
 
-			expect((transactionResponse as any).status).toEqual(TransactionStatus.OK);
-			expect((transactionResponse as any).errors).toEqual([]);
+			expect(transactionResponse?.status).toEqual(TransactionStatus.OK);
+			expect(transactionResponse?.errors).toEqual([]);
 		});
 
 		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
 			// Treat trs1 as persisted transaction
-			dataAccessMock.getTransactionsByIDs.mockResolvedValue([trs1]);
+			when(dataAccessMock.isTransactionPersisted)
+				.mockResolvedValue(false as never)
+				.calledWith(trs1.id)
+				.mockResolvedValue(true as never);
 
 			const result = await transactionHandlers.checkPersistedTransactions(
 				dataAccessMock,
@@ -253,11 +258,9 @@ describe('transactions', () => {
 
 			const transactionResponse = result.find(({ id }) => id === trs1.id);
 
-			expect((transactionResponse as any).status).toEqual(
-				TransactionStatus.FAIL,
-			);
-			expect((transactionResponse as any).errors).toHaveLength(1);
-			expect((transactionResponse as any).errors[0].message).toEqual(
+			expect(transactionResponse?.status).toEqual(TransactionStatus.FAIL);
+			expect(transactionResponse?.errors).toHaveLength(1);
+			expect(transactionResponse?.errors[0].message).toEqual(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`Transaction is already confirmed: ${trs1.id}`,
 			);
@@ -277,16 +280,6 @@ describe('transactions', () => {
 		beforeEach(() => {
 			trs1.apply.mockReturnValue(trs1Response);
 			trs2.apply.mockReturnValue(trs2Response);
-		});
-
-		it('should prepare all transactions', async () => {
-			await transactionHandlers.applyGenesisTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(trs1.prepare).toHaveBeenCalledTimes(1);
-			expect(trs2.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should apply all transactions', async () => {
@@ -344,14 +337,14 @@ describe('transactions', () => {
 			trs2.apply.mockReturnValue(trs2Response);
 		});
 
-		it('should prepare all transactions', async () => {
+		it('should apply all transactions', async () => {
 			await transactionHandlers.applyTransactions()(
 				[trs1, trs2],
 				stateStoreMock,
 			);
 
-			expect(trs1.prepare).toHaveBeenCalledTimes(1);
-			expect(trs2.prepare).toHaveBeenCalledTimes(1);
+			expect(trs1.apply).toHaveBeenCalledTimes(1);
+			expect(trs2.apply).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -373,16 +366,6 @@ describe('transactions', () => {
 
 			trs1.undo.mockReturnValue(trs1Response);
 			trs2.undo.mockReturnValue(trs2Response);
-		});
-
-		it('should prepare all transactions', async () => {
-			await transactionHandlers.undoTransactions()(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(trs1.prepare).toHaveBeenCalledTimes(1);
-			expect(trs2.prepare).toHaveBeenCalledTimes(1);
 		});
 
 		it('should undo for every transaction', async () => {
