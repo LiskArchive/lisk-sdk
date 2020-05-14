@@ -13,7 +13,7 @@
  */
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as liskP2P from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../types';
@@ -112,23 +112,40 @@ export class Network {
 	}
 
 	public async bootstrap(): Promise<void> {
-		// Load peers from the database that were tried or connected the last time node was running
-		const previousPeersStr = await this._networkDB.get<string>(
-			NETWORK_INFO_KEY_TRIED_PEERS,
-		);
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
+			// Load peers from the database that were tried or connected the last time node was running
+			const previousPeersStr = await this._networkDB.get<string>(
+				NETWORK_INFO_KEY_TRIED_PEERS,
+			);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
-		} catch (err) {
-			this._logger.error(
-				{ err: err as Error },
-				'Failed to parse JSON of previous peers.',
-			);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				this._logger.error(
+					{ err: error as Error },
+					'Error while querying networkDB',
+				);
+			} else {
+				this._logger.error(
+					{ err: error as Error },
+					'Failed to parse JSON of previous peers.',
+				);
+			}
 		}
 
 		// Get previous secret if exists
-		const secret = await this._networkDB.get(NETWORK_INFO_KEY_NODE_SECRET);
+		let secret;
+		try {
+			secret = await this._networkDB.get(NETWORK_INFO_KEY_NODE_SECRET);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				this._logger.error(
+					{ err: error as Error },
+					'Error while querying networkDB',
+				);
+			}
+		}
 		if (!secret) {
 			this._secret = getRandomBytes(4).readUInt32BE(0);
 			await this._networkDB.put(
