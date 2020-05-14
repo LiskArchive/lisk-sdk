@@ -22,7 +22,7 @@ def run_jest(test_name) {
 		timestamps {
 			nvm(getNodejsVersion()) {
 				dir('framework') {
-					sh 'npm run jest:' + "${test_name}" + ' ${JEST_OPTIONS}'
+					sh 'npm run test:' + "${test_name}" + ' ${JEST_OPTIONS}'
 				}
 			}
 		}
@@ -38,7 +38,7 @@ def teardown_jest(test_name) {
 			"""
 		}
 	} catch(err) {
-		println "Could gather coverage statistics from jest:\n${err}"
+		println "Could gather coverage statistics from test:\n${err}"
 	}
 	stash name: "coverage_jest_${test_name}", includes: "coverage_jest_${test_name}/*", allowEmpty: true
 	timeout(1) {

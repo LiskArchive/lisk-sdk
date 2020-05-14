@@ -18,6 +18,7 @@ const path = require('path');
 const assert = require('assert');
 const {
 	entities: { Block: BlockEntity },
+	// eslint-disable-next-line
 } = require('../../../../../components/storage');
 
 const sqlFiles = {

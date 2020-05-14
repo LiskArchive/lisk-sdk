@@ -33,9 +33,9 @@
 		"test": "npm run jest:unit",
 		"copy-static-files": "copyfiles -u 1 src/**/*.{yml,sql} ./dist-node",
 		"build": "tsc && npm run copy-static-files",
-		"jest:unit": "jest --config=./test/jest/unit/jest.config.js",
-		"jest:integration": "jest --config=./test/jest/integration/jest.config.js",
-		"jest:functional": "jest --config=./test/jest/functional/jest.config.js --passWithNoTests"
+		"test:unit": "jest --config=./test/unit/jest.config.js",
+		"test:integration": "jest --config=./test/integration/jest.config.js",
+		"test:functional": "jest --config=./test/functional/jest.config.js --passWithNoTests"
 	},
 	"dependencies": {
 		"@liskhq/lisk-bft": "0.1.0-alpha.0",
