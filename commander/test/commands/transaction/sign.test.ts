@@ -27,7 +27,7 @@ describe('transaction:sign', () => {
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		asset: {
-			recipientId: '18141291412139607230L',
+			recipientId: '3c80e7d9964a1c83a6dd5dc64e105e0e634bd58a',
 			amount: '1234567890',
 			data: 'random data',
 		},
@@ -45,15 +45,15 @@ describe('transaction:sign', () => {
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
-		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
-		senderId: '2129300327344985743L',
+		id: '7f31cc66b1105c523f3eacfb4344e8c9d2c40d481bfa95fb69de944f66e38ce6',
+		senderId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		signatures: [
-			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+			'8b9c2fec616b2e4b0b6e5fadf6939685dedb767fd2bd7b9bf65066cbc2f6124c77d9edcbabd360bae17356f0ae73f44e2a98a9b9fa957f457912b8b2c389400f',
 		],
 	};
 
 	const signedTransaction = {
-		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
+		id: '7f31cc66b1105c523f3eacfb4344e8c9d2c40d481bfa95fb69de944f66e38ce6',
 		type: 8,
 		senderPublicKey:
 			'eb06e0a8cbb848f81f126b538794eb122ae8035917ded1da3e5c85618602f3ba',
@@ -65,24 +65,24 @@ describe('transaction:sign', () => {
 		asset: {
 			data: '{"lisk":"zug"}',
 			amount: '100000000000',
-			recipientId: '5553317242494141914L',
+			recipientId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		},
 	};
 
 	const expectedMultiSignedTransaction = {
-		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
+		id: '7f31cc66b1105c523f3eacfb4344e8c9d2c40d481bfa95fb69de944f66e38ce6',
 		asset: {
 			amount: '1234567890',
 			data: 'random data',
-			recipientId: '18141291412139607230L',
+			recipientId: '3c80e7d9964a1c83a6dd5dc64e105e0e634bd58a',
 		},
 		fee: '10000000',
 		nonce: '0',
-		senderId: '2129300327344985743L',
+		senderId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		signatures: [
-			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+			'8b9c2fec616b2e4b0b6e5fadf6939685dedb767fd2bd7b9bf65066cbc2f6124c77d9edcbabd360bae17356f0ae73f44e2a98a9b9fa957f457912b8b2c389400f',
 		],
 		type: 8,
 	};

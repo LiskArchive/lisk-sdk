@@ -28,7 +28,7 @@ describe('transaction:create:unlock', () => {
 	const defaultPassphrase = '123';
 	const defaultNonce = 1;
 	const defaultFee = 1;
-	const defaultDelegateAddress = '123L';
+	const defaultDelegateAddress = 'e2817646f906eb0d7e2f2a9ccf5c6bf633a4c210';
 
 	const defaultUnlockTransaction = {
 		nonce: defaultNonce,
@@ -91,7 +91,7 @@ describe('transaction:create:unlock', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Address format does not match requirements. Expected "L" at the end.',
+					'Address length does not match requirements. Expected 20 bytes.',
 				);
 			})
 			.it('should throw an error for invalid address format in unlock object');
@@ -134,7 +134,7 @@ describe('transaction:create:unlock', () => {
 				'1',
 				'1',
 				`--unlock=${defaultDelegateAddress},1000000000,500`,
-				'--unlock=456L,1000000000,500',
+				'--unlock=a9c66694dd65b2fdf40cdf45a0c308cbd38004fc,1000000000,500',
 			])
 			.it(
 				'should create a unlock transaction with multiple unlock objects',
@@ -156,7 +156,7 @@ describe('transaction:create:unlock', () => {
 								unvoteHeight: 500,
 							},
 							{
-								delegateAddress: '456L',
+								delegateAddress: 'a9c66694dd65b2fdf40cdf45a0c308cbd38004fc',
 								amount: '100000000000000000',
 								unvoteHeight: 500,
 							},
