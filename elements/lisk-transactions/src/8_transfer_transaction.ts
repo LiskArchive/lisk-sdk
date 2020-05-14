@@ -12,13 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { intToBuffer, stringToBuffer } from '@liskhq/lisk-cryptography';
+import {
+	intToBuffer,
+	stringToBuffer,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	isPositiveNumberString,
 	isValidTransferAmount,
 	validator,
 } from '@liskhq/lisk-validator';
-
 import {
 	BaseTransaction,
 	StateStore,
@@ -114,10 +117,7 @@ export class TransferTransaction extends BaseTransaction {
 			'big',
 		);
 		const transactionRecipientID = this.asset.recipientId
-			? intToBuffer(
-					this.asset.recipientId.slice(0, -1),
-					BYTESIZES.RECIPIENT_ID,
-			  ).slice(0, BYTESIZES.RECIPIENT_ID)
+			? hexToBuffer(this.asset.recipientId)
 			: Buffer.alloc(0);
 
 		const dataBuffer = this.asset.data
