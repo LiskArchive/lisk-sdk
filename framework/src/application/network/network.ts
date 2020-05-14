@@ -126,11 +126,6 @@ export class Network {
 					{ err: error as Error },
 					'Error while querying networkDB',
 				);
-			} else {
-				this._logger.error(
-					{ err: error as Error },
-					'Failed to parse JSON of previous peers.',
-				);
 			}
 		}
 
