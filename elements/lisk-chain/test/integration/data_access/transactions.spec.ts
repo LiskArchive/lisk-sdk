@@ -13,7 +13,7 @@
  */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Storage } from '../../../src/data_access/storage';
 
@@ -22,11 +22,9 @@ describe('dataAccess.transactions', () => {
 	let storage: Storage;
 	let transactions: any;
 
-	beforeAll(async () => {
-		const parentPath = path.join(__dirname, '../../tmp');
-		if (!fs.existsSync(parentPath)) {
-			await fs.promises.mkdir(parentPath);
-		}
+	beforeAll(() => {
+		const parentPath = path.join(__dirname, '../../tmp/transactions');
+		fs.ensureDirSync(parentPath);
 		db = new KVStore(path.join(parentPath, '/test-transactions.db'));
 		storage = new Storage(db);
 	});
