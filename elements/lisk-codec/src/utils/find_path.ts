@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-interface GenericObject {
-	[key: string]: GenericObject | string | number;
-}
+import { GenericObject } from '../types';
 
 export const findObjectByPath = (
 	message: GenericObject,

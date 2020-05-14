@@ -13,11 +13,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-interface SchemaProps {
-	readonly fieldNumber: number;
-	readonly type?: string;
-	readonly dataType?: string;
-}
+import { SchemaProps } from '../types';
 
 export const generateKey = (schemaProp: SchemaProps): number =>
 	(schemaProp.fieldNumber << 3) | 1; // schemaProp.wireType;
