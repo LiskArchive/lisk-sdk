@@ -41,7 +41,9 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
+	const previousBlockBuffer = block.previousBlockId
+		? Buffer.from(block.previousBlockId, 'hex')
+		: Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 
@@ -207,12 +209,10 @@ export const newBlock = (
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(
-				Buffer.concat([
-					Buffer.from(networkIdentifier, 'hex'),
-					getBytes(blockWithCalculatedProperties as BlockInstance),
-				]),
-			),
+			Buffer.concat([
+				Buffer.from(networkIdentifier, 'hex'),
+				getBytes(blockWithCalculatedProperties as BlockInstance),
+			]),
 			keypair.privateKey,
 		),
 	};
