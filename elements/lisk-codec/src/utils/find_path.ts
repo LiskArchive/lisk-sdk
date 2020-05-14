@@ -13,7 +13,7 @@
  */
 
 interface GenericObject {
-	[key: string]: object
+	[key: string]: object | string | number
 }
 
 export const findObjectByPath = (object: GenericObject, pathArr: string[]): GenericObject | undefined => {

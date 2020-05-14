@@ -45,7 +45,7 @@ interface CompiledSchemas {
 }
 
 interface GenericObject {
-	[key: string]: object
+	[key: string]: object | string | number
 }
 
 // interface DataTypeWriters {
