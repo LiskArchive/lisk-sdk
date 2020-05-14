@@ -30,7 +30,7 @@ export const getFirstNBytes = (
 	// Union type arguments on overloaded functions do not work in typescript.
 	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
 	if (typeof input === 'string') {
-		return reverse(Buffer.from(input).slice(0, size));
+		return Buffer.from(input, 'hex').slice(0, size);
 	}
 
 	return Buffer.from(input).slice(0, size);
