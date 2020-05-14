@@ -15,7 +15,7 @@
 import {
 	getAddressFromPublicKey,
 	hash,
-	intToBuffer,
+	hexToBuffer,
 } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
@@ -38,7 +38,6 @@ import {
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_list');
-const SIZE_UINT64 = 8;
 
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
@@ -145,10 +144,7 @@ export const shuffleDelegateList = (
 	})) as DelegateListWithRoundHash[];
 
 	for (const delegate of delegateList) {
-		const addressBuffer = intToBuffer(
-			delegate.address.slice(0, -1),
-			SIZE_UINT64,
-		);
+		const addressBuffer = hexToBuffer(delegate.address);
 		const seedSource = Buffer.concat([previousRoundSeed1, addressBuffer]);
 		delegate.roundHash = hash(seedSource);
 	}
