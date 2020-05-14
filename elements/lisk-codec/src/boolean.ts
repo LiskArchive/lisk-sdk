@@ -22,4 +22,4 @@ export const writeBoolean = (value: boolean, _schema: SchemaProperty): Buffer =>
 	value ? Buffer.from('01', 'hex') : Buffer.from('00', 'hex');
 
 export const readBoolean = (buffer: Buffer, _schema: SchemaProperty): boolean =>
-	!(buffer[0] === 0x00);
+	buffer[0] !== 0x00;
