@@ -22,6 +22,8 @@ import {
 import {
 	getNetworkIdentifier,
 	getAddressFromPublicKey,
+	getRandomBytes,
+	bufferToHex,
 } from '@liskhq/lisk-cryptography';
 import { newBlock, getBytes, defaultNetworkIdentifier } from '../utils/block';
 import { Chain, StateStore } from '../../src';
@@ -152,7 +154,7 @@ describe('blocks/header', () => {
 				const invalidTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 						fee: '10000000',
 						nonce: '0',
 						amount: '100',
@@ -173,13 +175,15 @@ describe('blocks/header', () => {
 			it('should throw error', () => {
 				// Arrange
 				(chainInstance as any).constants.maxPayloadLength = 100;
-				const txs = new Array(200).fill(0).map((_, v) =>
+				const txs = new Array(200).fill(0).map(() =>
 					chainInstance.deserializeTransaction(
 						transfer({
 							passphrase: genesisAccount.passphrase,
 							fee: '10000000',
 							nonce: '0',
-							recipientId: `${(v + 1).toString()}L`,
+							recipientId: getAddressFromPublicKey(
+								bufferToHex(getRandomBytes(20)),
+							),
 							amount: '100',
 							networkIdentifier,
 						}) as TransactionJSON,
@@ -197,13 +201,15 @@ describe('blocks/header', () => {
 		describe('when payload hash is incorrect', () => {
 			it('should throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map((_, v) =>
+				const txs = new Array(20).fill(0).map(() =>
 					chainInstance.deserializeTransaction(
 						transfer({
 							fee: '10000000',
 							nonce: '0',
 							passphrase: genesisAccount.passphrase,
-							recipientId: `${(v + 1).toString()}L`,
+							recipientId: getAddressFromPublicKey(
+								bufferToHex(getRandomBytes(20)),
+							),
 							amount: '100',
 							networkIdentifier,
 						}) as TransactionJSON,
@@ -221,13 +227,15 @@ describe('blocks/header', () => {
 		describe('when all the value is valid', () => {
 			it('should not throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map((_, v) =>
+				const txs = new Array(20).fill(0).map(() =>
 					chainInstance.deserializeTransaction(
 						transfer({
 							fee: '10000000',
 							nonce: '0',
 							passphrase: genesisAccount.passphrase,
-							recipientId: `${(v + 1).toString()}L`,
+							recipientId: getAddressFromPublicKey(
+								bufferToHex(getRandomBytes(20)),
+							),
 							amount: '100',
 							networkIdentifier,
 						}) as TransactionJSON,
@@ -338,7 +346,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
@@ -401,7 +409,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
@@ -441,7 +449,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
@@ -476,7 +484,7 @@ describe('blocks/header', () => {
 					fee: '10000000',
 					nonce: '0',
 					passphrase: genesisAccount.passphrase,
-					recipientId: '123L',
+					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 					amount: '100',
 					networkIdentifier,
 				});
@@ -564,7 +572,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
@@ -618,7 +626,7 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				// Arrage
 				delegate1 = {
-					address: '8411848252534809650L',
+					address: '32e4d3f46ae3bc74e7771780eee290ae5826006d',
 					passphrase:
 						'weapon visual tag seed deal solar country toy boring concert decline require',
 					publicKey:
@@ -627,7 +635,7 @@ describe('blocks/header', () => {
 					balance: '10000000000',
 				};
 				delegate2 = {
-					address: '13608682259919656227L',
+					address: '23d5abdb69c0dbbc21c7c732965589792cc5922a',
 					passphrase:
 						'shoot long boost electric upon mule enough swing ritual example custom party',
 					publicKey:
@@ -662,7 +670,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '1',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b87e0f',
 						amount: '10000000',
 						networkIdentifier,
 					}) as TransactionJSON,
@@ -691,7 +699,7 @@ describe('blocks/header', () => {
 						delegate1,
 						delegate2,
 					] as never)
-					.calledWith({ address: '124L' })
+					.calledWith({ address: '3a971fd02b4a07fc20aad1936d3cb1d263b87e0f' })
 					.mockResolvedValue([] as never);
 				storageStub.entities.ChainState.getKey.mockResolvedValue(
 					defaultBurntFee,
@@ -842,7 +850,7 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				// Arrage
 				delegate1 = {
-					address: '8411848252534809650L',
+					address: '32e4d3f46ae3bc74e7771780eee290ae5826006d',
 					passphrase:
 						'weapon visual tag seed deal solar country toy boring concert decline require',
 					publicKey:
@@ -851,7 +859,7 @@ describe('blocks/header', () => {
 					balance: '10000000000',
 				};
 				delegate2 = {
-					address: '13608682259919656227L',
+					address: '23d5abdb69c0dbbc21c7c732965589792cc5922a',
 					passphrase:
 						'shoot long boost electric upon mule enough swing ritual example custom party',
 					publicKey:
@@ -860,7 +868,7 @@ describe('blocks/header', () => {
 					balance: '10000000000',
 				};
 				const recipient = {
-					address: '124L',
+					address: '3a971fd02b4a07fc20aad1936d3cb1d263b87e0f',
 					balance: '100',
 				};
 
@@ -889,7 +897,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
+						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b87e0f',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,
