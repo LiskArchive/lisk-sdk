@@ -20,20 +20,21 @@ const testSchema = {
 		b: { fieldNumber: 2, dataType: 'string' },
 		a: { fieldNumber: 1, dataType: 'string' },
 		d: { fieldNumber: 4, dataType: 'bytes' },
+		e: { fieldNumber: 5, dataType: 'int32' },
 		c: {
-			dataType: 'object',
+			type: 'object',
 			fieldNumber: 3,
 			properties: {
 				cc: { fieldNumber: 3, dataType: 'string' },
 				ca: { fieldNumber: 1, dataType: 'string' },
 				cb: {
-					dataType: 'object',
+					type: 'object',
 					fieldNumber: 2,
 					properties: {
 						cbb: { fieldNumber: 2, dataType: 'string' },
 						cba: { fieldNumber: 1, dataType: 'string' },
 						cbc: {
-							dataType: 'object',
+							type: 'object',
 							fieldNumber: 3,
 							properties: {
 								cbcb: { fieldNumber: 3, dataType: 'string' },
@@ -54,6 +55,7 @@ describe('encode', () => {
 			b: 'prop b',
 			a: 'prop a',
 			d: Buffer.from('prop d'),
+			e: 10,
 			c: {
 				cc: 'prop cc',
 				ca: 'prop ca',
@@ -70,6 +72,7 @@ describe('encode', () => {
 		};
 
 		const liskBinaryMessage = codec.encode(testSchema, obj);
-		expect(liskBinaryMessage.toString('hex')).toBe('0970726f7020611170726f7020620970726f702063610970726f70206362611170726f70206362621170726f7020636263611970726f7020636263622170726f70206362641970726f702063632170726f702064');
+
+		expect(liskBinaryMessage.toString('hex')).toBe('0a70726f7020611270726f7020620a70726f702063610a70726f70206362611270726f70206362621270726f7020636263611a70726f7020636263622270726f70206362641a70726f702063632270726f702064280a');
 	});
 });

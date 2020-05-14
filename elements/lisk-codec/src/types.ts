@@ -23,7 +23,7 @@ export interface SchemaScalarType {
 export interface CompiledSchema {
 	schemaProp: SchemaProps;
 	propertyName: string;
-	binaryKey: number;
+	binaryKey: Buffer;
 	dataPath: string[];
 }
 

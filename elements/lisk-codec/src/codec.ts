@@ -79,7 +79,7 @@ export class Codec {
 
 			const binaryValue = this._writers[dataType](value, schemaProp);
 
-			binaryMessage = Buffer.concat([binaryMessage, Buffer.from([binaryKey]), binaryValue]);
+			binaryMessage = Buffer.concat([binaryMessage, binaryKey, binaryValue]);
 		}
 
 		return binaryMessage;
@@ -100,7 +100,7 @@ export class Codec {
 		);
 
 		for (const [propertyName, schemaProp] of currentDepthSchema) {
-			if (schemaProp.dataType === 'object') {
+			if (schemaProp.dataType === 'object' || schemaProp.type === 'object') {
 				dataPath.push(propertyName);
 				if (!schemaProp.properties) {
 					throw new Error('Sub schema is missing its properties.');

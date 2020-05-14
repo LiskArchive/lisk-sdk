@@ -14,6 +14,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { SchemaProps } from '../types';
+import { writeVarInt } from '../varint';
 
-export const generateKey = (schemaProp: SchemaProps): number =>
-	(schemaProp.fieldNumber << 3) | 1; // schemaProp.wireType;
+interface SchemaProperty {
+	readonly dataType: string;
+}
+
+export const generateKey = (schemaProp: SchemaProps): Buffer => {
+	let wireType;
+	const dataType = schemaProp.dataType ?? schemaProp.type;
+
+	switch (dataType) {
+		case 'bytes':
+	  case 'string':
+	  case 'object':
+		case 'array':
+			wireType = 2;
+			break;
+		default:
+			wireType = 0;
+			break;
+	}
+
+	const keyAsVarInt = writeVarInt((schemaProp.fieldNumber << 3) | wireType, schemaProp as SchemaProperty);
+
+	return keyAsVarInt;
+};
