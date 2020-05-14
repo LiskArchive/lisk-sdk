@@ -13,18 +13,21 @@
  */
 
 interface GenericObject {
-	[key: string]: object | string | number
+	[key: string]: GenericObject | string | number;
 }
 
-export const findObjectByPath = (object: GenericObject, pathArr: string[]): GenericObject | undefined => {
-	let result = object;
-	  // eslint-disable-next-line @typescript-eslint/prefer-for-of
-	  for (let i = 0; i < pathArr.length; i += 1) {
-		  if (result[pathArr[i]] === undefined) {
-			  return undefined;
-		  }
-		  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		  result = result[pathArr[i]] as GenericObject;
-	  }
-	  return result;
-}
+export const findObjectByPath = (
+	message: GenericObject,
+	pathArr: string[],
+): GenericObject | undefined => {
+	let result = message;
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let i = 0; i < pathArr.length; i += 1) {
+		if (result[pathArr[i]] === undefined) {
+			return undefined;
+		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		result = result[pathArr[i]] as GenericObject;
+	}
+	return result;
+};

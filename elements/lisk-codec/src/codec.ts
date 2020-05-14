@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
- import { findObjectByPath, generateKey } from './utils';
+import { findObjectByPath, generateKey } from './utils';
 
 interface SchemaPair {
 	readonly [key: string]: SchemaProps;
@@ -34,18 +34,18 @@ interface SchemaScalarType {
 }
 
 interface CompiledSchema {
-	schemaProp: SchemaProps,
-	propertyName: string,
-	binaryKey: number,
-	dataPath: string[],
+	schemaProp: SchemaProps;
+	propertyName: string;
+	binaryKey: number;
+	dataPath: string[];
 }
 
 interface CompiledSchemas {
-	[key: string]: CompiledSchema[]
+	[key: string]: CompiledSchema[];
 }
 
 interface GenericObject {
-	[key: string]: object | string | number
+	[key: string]: GenericObject | string | number;
 }
 
 // interface DataTypeWriters {
@@ -61,12 +61,16 @@ export class Codec {
 
 	public addSchema(schema: Schema): void {
 		const schemaName = schema.$id;
-		this._compileSchemas[schemaName] = this.compileSchema(schema.properties, [], []);
+		this._compileSchemas[schemaName] = this.compileSchema(
+			schema.properties,
+			[],
+			[],
+		);
 	}
 
 	public encode(schema: Schema, message: GenericObject): string {
 		if (this._compileSchemas[schema.$id] === undefined) {
-			this.addSchema(schema)
+			this.addSchema(schema);
 		}
 
 		const encoder = this._compileSchemas[schema.$id];
@@ -77,7 +81,9 @@ export class Codec {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const pathToValue = findObjectByPath(message, encoder[i].dataPath);
 			if (pathToValue === undefined) {
-				throw new Error('Compiled schema contains an invalid path to a property this should never happen');
+				throw new Error(
+					'Compiled schema contains an invalid path to a property this should never happen',
+				);
 			}
 			const value = pathToValue[encoder[i].propertyName];
 			const { dataPath } = encoder[i];
@@ -92,17 +98,30 @@ export class Codec {
 		return {} as T;
 	}
 
-	private compileSchema(schema: SchemaPair, compiledSchema: CompiledSchema[], dataPath: string[]):CompiledSchema[] {
-		const currentDepthSchema = Object.entries(schema).sort((a,b) => a[1].fieldNumber - b[1].fieldNumber);
+	private compileSchema(
+		schema: SchemaPair,
+		compiledSchema: CompiledSchema[],
+		dataPath: string[],
+	): CompiledSchema[] {
+		const currentDepthSchema = Object.entries(schema).sort(
+			(a, b) => a[1].fieldNumber - b[1].fieldNumber,
+		);
 
 		for (const [propertyName, schemaProp] of currentDepthSchema) {
 			if (schemaProp.dataType === 'object') {
 				dataPath.push(propertyName);
-				if (!schemaProp.properties) throw new Error('Sub schema is missing its properties.');
+				if (!schemaProp.properties) {
+					throw new Error('Sub schema is missing its properties.');
+				}
 				this.compileSchema(schemaProp.properties, compiledSchema, dataPath);
 				dataPath.pop();
 			} else {
-				compiledSchema.push({ schemaProp, propertyName, binaryKey: generateKey(schemaProp), dataPath: [...dataPath] });
+				compiledSchema.push({
+					schemaProp,
+					propertyName,
+					binaryKey: generateKey(schemaProp),
+					dataPath: [...dataPath],
+				});
 			}
 		}
 

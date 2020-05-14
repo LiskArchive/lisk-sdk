@@ -19,4 +19,5 @@ interface SchemaProps {
 	readonly dataType?: string;
 }
 
-export const generateKey = (schemaProp: SchemaProps): number => schemaProp.fieldNumber << 3 | 1; // schemaProp.wireType;
+export const generateKey = (schemaProp: SchemaProps): number =>
+	(schemaProp.fieldNumber << 3) | 1; // schemaProp.wireType;

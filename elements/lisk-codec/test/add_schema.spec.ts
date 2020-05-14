@@ -49,11 +49,10 @@ const testSchema = {
 	},
 };
 
-
 describe('addSchema', () => {
 	it('it should add schema and generate encoder', () => {
 		codec.addSchema(testSchema);
 
-		expect(codec['_compileSchemas'].testSchema).toHaveLength(10)
+		expect(codec['_compileSchemas'].testSchema).toHaveLength(10);
 	});
 });
