@@ -14,7 +14,7 @@
 
 import { codec } from '../src/codec';
 
-const complex = {
+const testSchema = {
 	$id: 'testSchema',
 	type: 'object',
 	properties: {
@@ -52,7 +52,8 @@ const complex = {
 
 describe('addSchema', () => {
 	it('it should add schema and generate encoder', () => {
-		codec.addSchema(complex);
+		codec.addSchema(testSchema);
+
 		expect(codec['_compileSchemas'].testSchema).toHaveLength(10)
 	});
 });

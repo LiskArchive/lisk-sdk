@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
- import { generateKey } from './utils';
+ import { findObjectByPath, generateKey } from './utils';
 
 interface SchemaPair {
 	readonly [key: string]: SchemaProps;
@@ -44,12 +44,52 @@ interface CompiledSchemas {
 	[key: string]: CompiledSchema[]
 }
 
+interface GenericObject {
+	[key: string]: object
+}
+
+// interface DataTypeWriters {
+// 	varInt: (value: number, schema: SchemaProps) => Buffer,
+// 	bytes: (value: Buffer, schema: SchemaProps) => Buffer,
+// 	string: (value: string, schema: SchemaProps) => Buffer,
+// }
+
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
+	// private readonly _writers: DataTypeWriters = {
+	// };
 
 	public addSchema(schema: Schema): void {
 		const schemaName = schema.$id;
 		this._compileSchemas[schemaName] = this.compileSchema(schema.properties, [], []);
+	}
+
+	public encode(schema: Schema, message: GenericObject): string {
+		if (this._compileSchemas[schema.$id] === undefined) {
+			this.addSchema(schema)
+		}
+
+		const encoder = this._compileSchemas[schema.$id];
+
+		let binaryMessage = '';
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < encoder.length; i += 1) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const pathToValue = findObjectByPath(message, encoder[i].dataPath);
+			if (pathToValue === undefined) {
+				throw new Error('Compiled schema contains an invalid path to a property this should never happen');
+			}
+			const value = pathToValue[encoder[i].propertyName];
+			const { dataPath } = encoder[i];
+			binaryMessage += `key|${JSON.stringify(value)},${dataPath.join('.')}`;
+		}
+
+		return binaryMessage;
+	}
+
+	// eslint-disable-next-line
+	public decode<T>(_schema: object, _message: Buffer): T {
+		return {} as T;
 	}
 
 	private compileSchema(schema: SchemaPair, compiledSchema: CompiledSchema[], dataPath: string[]):CompiledSchema[] {
@@ -67,14 +107,6 @@ export class Codec {
 		}
 
 		return compiledSchema;
-	}
-	// eslint-disable-next-line
-	public encode(_schema: object, _message: any): Buffer {
-		return Buffer.alloc(0);
-	}
-	// eslint-disable-next-line
-	public decode<T>(_schema: object, _message: Buffer): T {
-		return {} as T;
 	}
 }
 
