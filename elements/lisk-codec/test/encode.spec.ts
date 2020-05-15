@@ -75,4 +75,29 @@ describe('encode', () => {
 
 		expect(liskBinaryMessage.toString('hex')).toBe('0a70726f7020611270726f7020620a70726f702063610a70726f70206362611270726f70206362621270726f7020636263611a70726f7020636263622270726f70206362641a70726f702063632270726f702064280a');
 	});
+
+	it('it should not encode missing propertiees of an object to Buffer', () => {
+		const obj = {
+			b: 'prop b',
+			a: 'prop a',
+			e: 10,
+			c: {
+				cc: 'prop cc',
+				ca: 'prop ca',
+				cb: {
+					cbb: 'prop cbb',
+					cba: 'prop cba',
+					cbc: {
+						cbcb: 'prop cbcb',
+						cbca: 'prop cbca',
+					},
+					cbd: 'prop cbd',
+				},
+			},
+		};
+
+		const liskBinaryMessage = codec.encode(testSchema, obj);
+
+		expect(liskBinaryMessage.toString('hex')).toBe('0a70726f7020611270726f7020620a70726f702063610a70726f70206362611270726f70206362621270726f7020636263611a70726f7020636263622270726f70206362641a70726f70206363280a');
+	});
 });

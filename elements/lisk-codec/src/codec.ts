@@ -31,7 +31,7 @@ export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer }= {
+	private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer } = {
 		int32: writeVarInt,
 		sint32: writeSignedVarInt,
 		int64: writeVarInt,
@@ -71,6 +71,12 @@ export class Codec {
 
 			const value = pathToValue[propertyName];
 
+			// Missing properties are not encoded as per LIP-0027
+			if (value === undefined) {
+				// eslint-disable-next-line no-continue
+				continue;
+			}
+
 			const dataType = schemaProp.dataType ?? schemaProp.type;
 
 			if (dataType === undefined) {
@@ -78,7 +84,7 @@ export class Codec {
 			}
 
 			const binaryValue = this._writers[dataType](value, schemaProp);
-
+			// @TODO: optimize this by pushing partial key/value pair to an array and concat outside the loop!!!!!
 			binaryMessage = Buffer.concat([binaryMessage, binaryKey, binaryValue]);
 		}
 
@@ -116,7 +122,6 @@ export class Codec {
 				});
 			}
 		}
-
 		return compiledSchema;
 	}
 }
