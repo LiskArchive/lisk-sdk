@@ -17,11 +17,14 @@ interface SchemaProperty {
 	readonly dataType: string;
 }
 
-export const writeString = (value: string, _schema: SchemaProperty): Buffer =>
-	Buffer.concat([
-		writeVarInt(Buffer.from(value, 'utf8').length, { dataType: 'uint32' }),
-		Buffer.from(value, 'utf8'),
+export const writeString = (value: string, _schema: SchemaProperty): Buffer => {
+	const stringBuffer = Buffer.from(value, 'utf8');
+
+	return Buffer.concat([
+		writeVarInt(stringBuffer.length, { dataType: 'uint32' }),
+		stringBuffer,
 	]);
+};
 
 export const readString = (buffer: Buffer, _schema: SchemaProperty): string =>
 	buffer.toString('utf8', 1, buffer.length);
