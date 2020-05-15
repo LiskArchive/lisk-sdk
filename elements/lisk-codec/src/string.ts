@@ -19,10 +19,9 @@ interface SchemaProperty {
 
 export const writeString = (value: string, _schema: SchemaProperty): Buffer =>
 	Buffer.concat([
-		Buffer.from('0a', 'hex'),
-		writeVarInt(value.length, { dataType: 'uint32' }),
+		writeVarInt(Buffer.from(value, 'utf8').length, { dataType: 'uint32' }),
 		Buffer.from(value, 'utf8'),
 	]);
 
 export const readString = (buffer: Buffer, _schema: SchemaProperty): string =>
-	buffer.toString('utf8', 2, buffer.length);
+	buffer.toString('utf8', 1, buffer.length);

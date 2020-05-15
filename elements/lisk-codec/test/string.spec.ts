@@ -25,7 +25,7 @@ describe('string', () => {
 					testCaseOneInput.object.data,
 					testCaseOneInput.schema.properties.data,
 				).toString('hex'),
-			).toEqual(testCaseOneOutput);
+			).toEqual(testCaseOneOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
 
 			const testCaseSecondInput = testCases[0].input.string;
 			const testCaseSecondOutput = testCases[0].output.string;
@@ -34,7 +34,7 @@ describe('string', () => {
 					testCaseSecondInput.object.data,
 					testCaseSecondInput.schema.properties.data,
 				).toString('hex'),
-			).toEqual(testCaseSecondOutput);
+			).toEqual(testCaseSecondOutput.slice(2, testCaseSecondOutput.length)); // Ignoring the key part
 		});
 	});
 
