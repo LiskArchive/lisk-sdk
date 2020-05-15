@@ -186,7 +186,7 @@ describe('#sign multi signature transaction', () => {
 			expect(txSignedByMember.signatures).toStrictEqual([
 				'',
 				'',
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
+				'80f4a6c6f41c2568424ed6c0156cdb0eb4bb88fa24f5d5abab3b0421ec7b6d3431166e3f235bf7ff4e969496f4514795eba3aeac54105f01b25e91d086f7d008',
 				'',
 			]);
 		});
@@ -230,7 +230,7 @@ describe('#sign multi signature transaction', () => {
 				'',
 				'',
 				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
-				'8383b16e7edb0459ab74850532275cdb942beba448392cd2e504e043b12eef58a9ff0e627537a04557689c0c241d1a4c112b19a9675b704859717f1b491bb401',
+				'b54fc817ab9fe7ffd589c02e6b609254c83a7b323e2b8b41cc854c5c7957ec3ad9f6e91720cc68727a44d2277aa19db3b083c5dab80fcbad9065c487c1406307',
 			]);
 		});
 
@@ -271,7 +271,7 @@ describe('#sign multi signature transaction', () => {
 			expect(txSignedByMember.signatures).toStrictEqual([
 				'',
 				'',
-				'd2ffc20a79de3c44e26f8b28a986e098841d9fe4212237820992645d48faa2dff3bfcc8089cdf3afc819ba3fdbf3234e5b419ff47d303daa44ba7338dfe4fc06',
+				'80f4a6c6f41c2568424ed6c0156cdb0eb4bb88fa24f5d5abab3b0421ec7b6d3431166e3f235bf7ff4e969496f4514795eba3aeac54105f01b25e91d086f7d008',
 				'',
 			]);
 		});
@@ -308,7 +308,7 @@ describe('#sign multi signature transaction', () => {
 			});
 
 			expect(txSignedByMember.signatures[2]).toBe(
-				'd2ffc20a79de3c44e26f8b28a986e098841d9fe4212237820992645d48faa2dff3bfcc8089cdf3afc819ba3fdbf3234e5b419ff47d303daa44ba7338dfe4fc06',
+				'80f4a6c6f41c2568424ed6c0156cdb0eb4bb88fa24f5d5abab3b0421ec7b6d3431166e3f235bf7ff4e969496f4514795eba3aeac54105f01b25e91d086f7d008',
 			);
 		});
 	});

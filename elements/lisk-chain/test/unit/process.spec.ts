@@ -596,6 +596,7 @@ describe('blocks/header', () => {
 					}) as TransactionJSON,
 				);
 				block = newBlock({ transactions: [validTx] });
+
 				// Act
 				const dataAccess = new DataAccess({
 					db,
@@ -608,21 +609,24 @@ describe('blocks/header', () => {
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
 				});
+
+				const generatorAddress = getAddressFromPublicKey(
+					block.generatorPublicKey,
+				);
+
 				when(db.get)
-					.calledWith(`accounts:address:123L`)
+					.calledWith(
+						`accounts:address:3a971fd02b4a07fc20aad1936d3cb1d263b96e0f`,
+					)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
 					.mockResolvedValue({
 						address: genesisAccount.address,
 						balance: '0',
 					} as never)
-					.calledWith(
-						`accounts:address:${getAddressFromPublicKey(
-							block.generatorPublicKey,
-						)}`,
-					)
+					.calledWith(`accounts:address:${generatorAddress}`)
 					.mockResolvedValue({
-						address: getAddressFromPublicKey(block.generatorPublicKey),
+						address: generatorAddress,
 						balance: '0',
 					} as never);
 			});
@@ -901,7 +905,7 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				// Arrage
 				delegate1 = {
-					address: '8411848252534809650L',
+					address: '32e4d3f46ae3bc74e7771780eee290ae5826006d',
 					passphrase:
 						'weapon visual tag seed deal solar country toy boring concert decline require',
 					publicKey:
@@ -910,7 +914,7 @@ describe('blocks/header', () => {
 					balance: '10000000000',
 				};
 				delegate2 = {
-					address: '13608682259919656227L',
+					address: '23d5abdb69c0dbbc21c7c732965589792cc5922a',
 					passphrase:
 						'shoot long boost electric upon mule enough swing ritual example custom party',
 					publicKey:
@@ -919,7 +923,7 @@ describe('blocks/header', () => {
 					balance: '10000000000',
 				};
 				const recipient = {
-					address: '124L',
+					address: 'acfbdbaeb93d587170c7cd9c0b5ffdeb7ff9daec',
 					balance: '100',
 				};
 
@@ -948,7 +952,7 @@ describe('blocks/header', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '124L',
+						recipientId: 'acfbdbaeb93d587170c7cd9c0b5ffdeb7ff9daec',
 						amount: '100',
 						networkIdentifier,
 					}) as TransactionJSON,

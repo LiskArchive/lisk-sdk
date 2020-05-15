@@ -88,7 +88,7 @@ describe('blocks/transactions', () => {
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: '123L',
+						recipientId: 'a6f6a0543ae470c6b056021cb2ac153368eafeec',
 						amount: '10000000000',
 						networkIdentifier,
 					}) as TransactionJSON,

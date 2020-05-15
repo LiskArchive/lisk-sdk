@@ -32,7 +32,7 @@ describe('dataAccess.transactions', () => {
 	beforeEach(async () => {
 		accounts = [
 			{
-				address: '7546125166665832140L',
+				address: 'cc96c0a5db38b968f563e7af6fb435585c889111',
 				publicKey:
 					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
 				balance: '99',
@@ -43,7 +43,7 @@ describe('dataAccess.transactions', () => {
 				},
 			},
 			{
-				address: '10676488814586252632L',
+				address: '584dd8a902822a9469fb2911fcc14ed5fd98220d',
 				publicKey:
 					'd468707933e4f24888dc1f00c8f84b2642c0edf3d694e2bb5daa7a0d87d18708',
 				balance: '10000',

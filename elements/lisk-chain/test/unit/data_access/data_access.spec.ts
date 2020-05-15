@@ -385,7 +385,7 @@ describe('data_access', () => {
 			const account = {
 				publicKey:
 					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-				address: '7546125166665832140L',
+				address: 'cc96c0a5db38b968f563e7af6fb435585c889111',
 				nonce: '0',
 			};
 			when(db.get)
