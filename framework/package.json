@@ -30,7 +30,7 @@
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"format": "prettier --write '**/*'",
-		"test": "npm run jest:unit",
+		"test": "npm run test:unit",
 		"copy-static-files": "copyfiles -u 1 src/**/*.{yml,sql} ./dist-node",
 		"build": "tsc && npm run copy-static-files",
 		"test:unit": "jest --config=./test/unit/jest.config.js",
