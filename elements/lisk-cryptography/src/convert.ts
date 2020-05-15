@@ -24,6 +24,8 @@ import { hash } from './hash';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import reverse = require('buffer-reverse');
 
+const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+
 export const getBinaryAddressFromPublicKey = (publicKey: string): Buffer => {
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
 	return hash(publicKeyBuffer).slice(0, 20);
@@ -39,6 +41,33 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 
 	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 };
+
+const convertUIntArray = (
+	uintArray: Uint8Array,
+	fromBits: number,
+	toBits: number,
+): number[] => {
+	// eslint-disable-next-line no-bitwise
+	const maxValue = (1 << toBits) - 1;
+	let accumulator = 0;
+	let bits = 0;
+	const result = [];
+	for (const byte of uintArray) {
+		// eslint-disable-next-line no-bitwise
+		accumulator = (accumulator << fromBits) | byte;
+		bits += fromBits;
+		while (bits >= toBits) {
+			bits -= toBits;
+			// eslint-disable-next-line no-bitwise
+			result.push((accumulator >> bits) & maxValue);
+		}
+	}
+
+	return result;
+};
+
+const convertUInt5ToBase32 = (uint5Array: number[]): string =>
+	uint5Array.map((val: number) => CHARSET[val]).join('');
 
 export const toAddress = (buffer: Buffer): string => {
 	const BUFFER_SIZE = 8;
