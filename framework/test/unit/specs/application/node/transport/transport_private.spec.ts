@@ -25,7 +25,10 @@ import { Transport } from '../../../../../../src/application/node/transport';
 
 import { genesis } from '../../../../../fixtures/accounts';
 import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
-import { Block, GenesisBlock } from '../../../../../fixtures/blocks';
+import {
+	blockFixture,
+	genesisBlockFixture,
+} from '../../../../../fixtures/blocks';
 import { InvalidTransactionError } from '../../../../../../src/application/node/transport/errors';
 import { InMemoryChannel } from '../../../../../../src/controller/channels';
 
@@ -74,7 +77,7 @@ describe('transport', () => {
 			passphrase: genesis.passphrase,
 		});
 
-		blockMock = new Block();
+		blockMock = blockFixture();
 
 		transactionsList = [transactionOne, transactionTwo];
 
@@ -431,7 +434,7 @@ describe('transport', () => {
 			beforeEach(() => {
 				blocksList = [];
 				for (let j = 0; j < 10; j += 1) {
-					const auxBlock = new Block();
+					const auxBlock = blockFixture();
 					blocksList.push(auxBlock);
 				}
 			});
@@ -649,7 +652,7 @@ describe('transport', () => {
 						});
 
 						describe('when it does not throw', () => {
-							const genesisBlock = new GenesisBlock();
+							const genesisBlock = genesisBlockFixture();
 							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
 
 							describe('when query.block is defined', () => {

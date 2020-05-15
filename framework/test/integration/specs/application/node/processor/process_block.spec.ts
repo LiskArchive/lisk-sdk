@@ -199,7 +199,7 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node, [], {
-					lastBlock: { timestamp: 10000, height: 99 },
+					lastBlock: { timestamp: 10000, height: 99 } as BlockInstance,
 				});
 			});
 

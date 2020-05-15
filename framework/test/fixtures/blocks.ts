@@ -17,7 +17,7 @@ import * as stampit from 'stampit';
 import * as faker from 'faker';
 import * as genesisBlock from './config/devnet/genesis_block.json';
 
-export const Block = stampit.compose({
+export const blockFixture = stampit.compose({
 	props: {
 		id: '',
 		blockSignature:
@@ -70,7 +70,7 @@ export const Block = stampit.compose({
 	},
 });
 
-export const GenesisBlock = stampit.compose(Block, {
+export const genesisBlockFixture = stampit.compose(blockFixture, {
 	init({ generatorPublicKey }) {
 		this.id = genesisBlock.id;
 		this.generatorPublicKey =
@@ -86,7 +86,7 @@ export const GenesisBlock = stampit.compose(Block, {
 	},
 });
 
-export const BlockHeader = stampit.compose({
+export const blockHeaderFixture = stampit.compose({
 	props: {
 		blockId: '',
 		height: 0,
