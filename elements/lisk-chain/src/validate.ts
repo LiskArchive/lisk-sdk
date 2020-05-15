@@ -28,15 +28,13 @@ export const validateSignature = (
 		0,
 		blockBytes.length - signatureLength,
 	);
-	const hashedBlock = hash(
-		Buffer.concat([
-			Buffer.from(networkIdentifier, 'hex'),
-			dataWithoutSignature,
-		]),
-	);
+	const blockWithNetworkIdentifierBytes = Buffer.concat([
+		Buffer.from(networkIdentifier, 'hex'),
+		dataWithoutSignature,
+	]);
 
 	const verified = verifyData(
-		hashedBlock,
+		blockWithNetworkIdentifierBytes,
 		block.blockSignature,
 		block.generatorPublicKey,
 	);
