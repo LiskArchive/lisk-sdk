@@ -11,13 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { writeVarInt } from './varint';
 
 interface SchemaProperty {
 	readonly dataType: string;
 }
 
 export const writeString = (value: string, _schema: SchemaProperty): Buffer =>
-	Buffer.from(value, 'utf8');
+	Buffer.concat([
+		Buffer.from('0a', 'hex'),
+		writeVarInt(value.length, { dataType: 'uint32' }),
+		Buffer.from(value, 'utf8'),
+	]);
 
 export const readString = (buffer: Buffer, _schema: SchemaProperty): string =>
 	buffer.toString('utf8');
