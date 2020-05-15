@@ -37,7 +37,7 @@
 								}
 							],
 							"payloadHash": "0f2a6b6175fbd717f54ce48697155b679928a942704016ce793ffc9b01c5ca1b",
-							"blockSignature": "a541184cd1d61d2adc9ca52e8ac748c71f4ab4868c8a9a2f1b2ae24502047ee831e895ae41a2060f2b00a61d54d59cadaf350c1aaea14282c5372218c8bf3c00",
+							"blockSignature": "921030480ffb6cf9a30f8f1261cd522920a8f48622b443fa5507a7e5b8064527c785f22bf24aef579aab1e999bd11ea918200cc26968f969fa64b62d08a45808",
 							"height": 2
 						},
 						{
@@ -65,7 +65,7 @@
 								}
 							],
 							"payloadHash": "50fed4cabd9765f6b9277a543985f451f91d1a398febd511956cd60633e903fc",
-							"blockSignature": "a1c0fa183bc0de5908e49e3ae24f1b9e6716376de28fd11833cdb1e26f40b0b8074e2ba8e6988ecd419b64a42c4307e1e65e4f59052607936083322d0391ff0a",
+							"blockSignature": "2be978d08e6a626a657bc29b4b177ed5974f1a30ef49dab10d55443674f1cdc1182ab38f98e44d4cc515d697264d8fde3c2e9005f0cba55ca78caa90adb0500a",
 							"height": 3
 						}
 					]
@@ -125,7 +125,7 @@
 					}
 				],
 				"payloadHash": "ce775555de0de8cbeb774137a9f75b32c9e8c77b09a5f23dbab3511065f343d1",
-				"blockSignature": "3caef3b7ad83510a906f927b66b68064ac0b361bde300792865f4299c512a2191fc361e9d3a58caba0ac4ee2e461e0b19330b2671e6b11aa670938bdbecbdf0d",
+				"blockSignature": "87b5ba3729bcb8ee935c7d1b320c1f297ccabbcd0108a9c248870c396a930da290c5570b953f45ef8c91c76089bb85be450f65aaab8057b350998c8b4b6b5809",
 				"height": 4
 			},
 			"output": {
@@ -156,7 +156,7 @@
 							}
 						],
 						"payloadHash": "0f2a6b6175fbd717f54ce48697155b679928a942704016ce793ffc9b01c5ca1b",
-						"blockSignature": "a541184cd1d61d2adc9ca52e8ac748c71f4ab4868c8a9a2f1b2ae24502047ee831e895ae41a2060f2b00a61d54d59cadaf350c1aaea14282c5372218c8bf3c00",
+						"blockSignature": "921030480ffb6cf9a30f8f1261cd522920a8f48622b443fa5507a7e5b8064527c785f22bf24aef579aab1e999bd11ea918200cc26968f969fa64b62d08a45808",
 						"height": 2
 					},
 					{
@@ -184,7 +184,7 @@
 							}
 						],
 						"payloadHash": "50fed4cabd9765f6b9277a543985f451f91d1a398febd511956cd60633e903fc",
-						"blockSignature": "a1c0fa183bc0de5908e49e3ae24f1b9e6716376de28fd11833cdb1e26f40b0b8074e2ba8e6988ecd419b64a42c4307e1e65e4f59052607936083322d0391ff0a",
+						"blockSignature": "2be978d08e6a626a657bc29b4b177ed5974f1a30ef49dab10d55443674f1cdc1182ab38f98e44d4cc515d697264d8fde3c2e9005f0cba55ca78caa90adb0500a",
 						"height": 3
 					}
 				],

@@ -114,7 +114,7 @@ const assetToBytes = tx => {
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		account.passphrase,
 	),
 });

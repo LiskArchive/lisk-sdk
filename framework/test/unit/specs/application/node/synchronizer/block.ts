@@ -209,12 +209,10 @@ export const newBlock = (
 	const blockWithSignature = {
 		...blockWithCalculatedProperties,
 		blockSignature: signDataWithPrivateKey(
-			hash(
-				Buffer.concat([
-					Buffer.from(networkIdentifier, 'hex'),
-					getBytes(blockWithCalculatedProperties as BlockInstance),
-				]),
-			),
+			Buffer.concat([
+				Buffer.from(networkIdentifier, 'hex'),
+				getBytes(blockWithCalculatedProperties as BlockInstance),
+			]),
 			keypair.privateKey,
 		),
 	};
