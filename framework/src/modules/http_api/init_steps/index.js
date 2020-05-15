@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const bootstrapStorage = require('./bootstrap_storage');
 const setupServers = require('./setup_servers');

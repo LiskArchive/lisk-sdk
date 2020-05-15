@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const debug = require('debug')('swagger:lisk:cors');
 const CORS = require('cors');

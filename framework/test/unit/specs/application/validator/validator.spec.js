@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const formats = require('../../../../../src/application/validator/formats');
 const {

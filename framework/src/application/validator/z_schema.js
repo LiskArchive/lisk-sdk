@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const ZSchema = require('z-schema');
 const formats = require('./formats');

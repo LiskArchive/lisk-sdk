@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const applicationSchema = require('../../../../../src/application/schema/application_config_schema');
 

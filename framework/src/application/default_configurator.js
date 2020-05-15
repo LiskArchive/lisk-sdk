@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const yargs = require('yargs');
 const { config: loggerConfig } = require('../components/logger/defaults');

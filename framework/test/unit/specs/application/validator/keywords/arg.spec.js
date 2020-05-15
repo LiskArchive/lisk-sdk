@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 jest.mock('../../../../../../src/application/validator/keywords/formatters');
 

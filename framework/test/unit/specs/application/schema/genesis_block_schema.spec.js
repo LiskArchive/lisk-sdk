@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const genesisBlockSchema = require('../../../../../src/application/schema/genesis_block_schema');
 

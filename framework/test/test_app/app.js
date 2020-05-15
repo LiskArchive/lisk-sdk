@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const path = require('path');
 const {
 	Application,
@@ -42,7 +40,7 @@ if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
 	appConfig.protocolVersion = process.env.PROTOCOL_VERSION;
 }
 
-const network = process.env.LISK_NETWORK || 'devnet';
+const network = process.env.LISK_NETWORK ?? 'devnet';
 
 try {
 	// TODO: I would convert config.json to .JS
