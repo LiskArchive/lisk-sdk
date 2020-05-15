@@ -99,6 +99,47 @@ export class Codec {
 		return {} as T;
 	}
 
+	public encodeNoCache(
+		schema: SchemaPair,
+		object: GenericObject,
+		encodedChunks: Buffer[],
+		dataPath: string[],
+	): Buffer[] {
+		const currentDepthSchema = Object.entries(schema).sort(
+			(a, b) => a[1].fieldNumber - b[1].fieldNumber,
+		);
+
+		for (const [propertyName, schemaProp] of currentDepthSchema) {
+			if (schemaProp.dataType === 'object' || schemaProp.type === 'object') {
+				dataPath.push(propertyName);
+				if (!schemaProp.properties) {
+					throw new Error('Sub schema is missing its properties.');
+				}
+
+				this.encodeNoCache(schemaProp.properties, object, encodedChunks, dataPath);
+				dataPath.pop();
+			} else {
+				const valuePath = findObjectByPath(object, dataPath);
+				if (valuePath === undefined) {
+					throw new Error('something wroong with value path')
+				}
+
+				const dataType = schemaProp.dataType ?? schemaProp.type;
+
+				if (dataType === undefined) {
+					throw new Error('Schema is corrutped as neither "type" nor "dataType" are defined in it.');
+				}
+
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				const binaryValue = this._writers[dataType](valuePath[propertyName], schemaProp);
+
+				encodedChunks.push(generateKey(schemaProp));
+				encodedChunks.push(binaryValue);
+			}
+		}
+		return encodedChunks;
+	}
+
 	private compileSchema(
 		schema: SchemaPair,
 		compiledSchema: CompiledSchema[],
