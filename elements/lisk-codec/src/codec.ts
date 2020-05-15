@@ -57,7 +57,7 @@ export class Codec {
 
 		const compiledSchema = this._compileSchemas[schema.$id];
 
-		let binaryMessage = Buffer.alloc(0);
+		const chunks = [];
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < compiledSchema.length; i += 1) {
 			const { binaryKey, dataPath, schemaProp, propertyName } = compiledSchema[i];
@@ -84,9 +84,12 @@ export class Codec {
 			}
 
 			const binaryValue = this._writers[dataType](value, schemaProp);
-			// @TODO: optimize this by pushing partial key/value pair to an array and concat outside the loop!!!!!
-			binaryMessage = Buffer.concat([binaryMessage, binaryKey, binaryValue]);
+
+			chunks.push(binaryKey);
+			chunks.push(binaryValue);
 		}
+
+		const binaryMessage = Buffer.concat(chunks);
 
 		return binaryMessage;
 	}
