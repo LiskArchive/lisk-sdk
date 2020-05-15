@@ -86,7 +86,7 @@ export const genesisBlockFixture = stampit.compose(blockFixture, {
 	},
 });
 
-const BlockHeader = stampit({
+export const BlockHeader = stampit.compose({
 	props: {
 		blockId: '',
 		height: 0,
@@ -117,9 +117,3 @@ const BlockHeader = stampit({
 		this.maxHeightPrevoted = maxHeightPrevoted || 0;
 	},
 });
-
-module.exports = {
-	Block,
-	GenesisBlock,
-	BlockHeader,
-};
