@@ -10,19 +10,13 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
+import { Node } from '../../../src/application/node';
 
-const { constants } = require('./constants');
-
-const randomInt = (low, high) => Math.round(Math.random() * (high - low) + low);
-
-const configUtils = require('./configs');
-const nodeUtils = require('./node');
-
-module.exports = {
-	constants,
-	randomInt,
-	configUtils,
-	nodeUtils,
-};
+export const getDelegateList = async (
+	node: Node,
+	round: number,
+): Promise<ReadonlyArray<string>> =>
+	node['_dpos'].getForgerAddressesForRound(round);

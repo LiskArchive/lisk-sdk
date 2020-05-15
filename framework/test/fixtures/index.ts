@@ -12,19 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-const accounts = require('./accounts');
-const peers = require('./peers');
-const blocks = require('./blocks');
-const dapps = require('./dapps');
-const transactions = require('./transactions');
-const rounds = require('./rounds');
-
-module.exports = {
-	accounts,
-	peers,
-	blocks,
-	dapps,
-	transactions,
-	rounds,
-};
+export * from './accounts';
+export * from './blocks';
+export * from './node';

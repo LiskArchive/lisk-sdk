@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as randomstring from 'randomstring';
+import * as stampit from 'stampit';
+import * as faker from 'faker';
+import * as genesisBlock from './config/devnet/genesis_block.json';
 
-const randomstring = require('randomstring');
-const stampit = require('stampit');
-const faker = require('faker');
-const genesisBlock = require('./config/devnet/genesis_block.json');
-
-const Block = stampit({
+export const blockFixture = stampit.compose({
 	props: {
 		id: '',
 		blockSignature:
@@ -62,16 +61,16 @@ const Block = stampit({
 		this.totalAmount = faker.random
 			.number({ min: 1000, max: 10000 })
 			.toString();
-		this.version = version || 0;
+		this.version = version ?? 0;
 
 		if (this.version === 2) {
-			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-			this.maxHeightPrevoted = maxHeightPrevoted || 0;
+			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged ?? 0;
+			this.maxHeightPrevoted = maxHeightPrevoted ?? 0;
 		}
 	},
 });
 
-const GenesisBlock = stampit(Block, {
+export const genesisBlockFixture = stampit.compose(blockFixture, {
 	init({ generatorPublicKey }) {
 		this.id = genesisBlock.id;
 		this.generatorPublicKey =

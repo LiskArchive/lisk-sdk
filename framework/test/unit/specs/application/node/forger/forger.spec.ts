@@ -26,7 +26,7 @@ import {
 } from '../../../../../../src/application/node/forger/constant';
 import * as genesisDelegates from './genesis_delegates.json';
 import * as delegatesRoundsList from './delegates_rounds_list.json';
-import * as accountFixtures from '../../../../../fixtures/accounts';
+import { genesis } from '../../../../../fixtures/accounts';
 
 describe('forger', () => {
 	const testDelegate = genesisDelegates.delegates[0];
@@ -147,8 +147,8 @@ describe('forger', () => {
 			it('should return error with non delegate account', async () => {
 				await expect(
 					forgeModule.updateForgingStatus(
-						accountFixtures.genesis.publicKey,
-						accountFixtures.genesis.password,
+						genesis.publicKey,
+						genesis.password,
 						true,
 					),
 				).rejects.toThrow(
@@ -694,8 +694,8 @@ describe('forger', () => {
 			it('should ignore passphrases which do not belong to a delegate', async () => {
 				(forgeModule as any)._config.forging.delegates = [
 					{
-						encryptedPassphrase: accountFixtures.genesis.encryptedPassphrase,
-						publicKey: accountFixtures.genesis.publicKey,
+						encryptedPassphrase: genesis.encryptedPassphrase,
+						publicKey: genesis.publicKey,
 						hashOnion: {
 							count: 10,
 							distance: 10,
@@ -706,7 +706,7 @@ describe('forger', () => {
 				chainModuleStub.dataAccess.getAccountsByPublicKey.mockResolvedValue([
 					{
 						isDelegate: false,
-						address: accountFixtures.genesis.address,
+						address: genesis.address,
 					},
 				]);
 

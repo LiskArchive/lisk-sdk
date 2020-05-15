@@ -12,22 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-const validator = require('../../src/application/validator');
-const {
+import * as validator from '../../src/application/validator';
+import {
 	constantsSchema,
 	applicationConfigSchema,
-} = require('../../src/application/schema');
-const { deepFreeze } = require('./deep_freeze');
+} from '../../src/application/schema';
+import { deepFreeze } from './deep_freeze';
 
 const sharedConstants = validator.parseEnvArgAndValidate(constantsSchema, {});
 const appConfig = validator.parseEnvArgAndValidate(applicationConfigSchema, {});
 
-const constants = deepFreeze({
+export const constants = deepFreeze({
 	...sharedConstants,
 	...appConfig.genesisConfig,
 });
-
-module.exports = {
-	constants,
-};

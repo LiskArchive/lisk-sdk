@@ -10,18 +10,10 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-
-const {
-	default: defaultNodeConfig,
-} = require('../../../src/application/schema/application_config_schema');
-
-const nodeConfig = (overriddenConfigProperties = {}) => ({
-	...defaultNodeConfig,
-	...overriddenConfigProperties,
-});
-
-module.exports = {
-	nodeConfig,
-};
+export * from './account';
+export * from './node';
+export * from './delegate';
+export * from './block';

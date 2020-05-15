@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 const path = require('path');
 const {
 	Application,
@@ -31,6 +30,9 @@ const appConfig = {
 	protocolVersion: '2.0',
 	lastCommitId: dummyLastCommitId,
 	buildVersion: dummyBuildVersion,
+	ipc: {
+		enabled: true,
+	},
 };
 
 // Support for PROTOCOL_VERSION only for tests

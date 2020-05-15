@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { applicationConfigSchema } from '../../../src/application/schema/application_config_schema';
+import { ApplicationConfig } from '../../../src/application/application';
 
-const { constantsConfig } = require('./config_constants');
-const { nodeConfig } = require('./config_node');
-
-module.exports = {
-	constantsConfig,
-	nodeConfig,
-};
+export const nodeConfig = (
+	overriddenConfigProperties: Partial<ApplicationConfig> = {},
+): ApplicationConfig =>
+	({
+		...applicationConfigSchema.default,
+		...overriddenConfigProperties,
+	} as ApplicationConfig);

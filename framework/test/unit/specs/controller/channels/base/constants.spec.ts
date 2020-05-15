@@ -12,17 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { INTERNAL_EVENTS } from '../../../../../../src/controller/constants';
 
-const cryptography = require('@liskhq/lisk-cryptography');
+describe('base/constants.js', () => {
+	it('INTERNAL_EVENTS must match to the snapshot.', () => {
+		expect(INTERNAL_EVENTS).toMatchSnapshot();
+	});
 
-const getNetworkIdentifier = genesisBlock =>
-	cryptography.getNetworkIdentifier(
-		genesisBlock.payloadHash,
-		genesisBlock.communityIdentifier,
-	);
-
-module.exports = {
-	devnetNetworkIdentifier:
-		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
-	getNetworkIdentifier,
-};
+	it('INTERNAL_EVENTS array should be immutable', () => {
+		expect(() => (INTERNAL_EVENTS as any).push('test')).toThrow(TypeError);
+		expect(() => (INTERNAL_EVENTS as any).pop()).toThrow(TypeError);
+	});
+});

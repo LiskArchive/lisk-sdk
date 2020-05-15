@@ -12,20 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export const cacheConfig = 'aCacheConfig';
 
-const loggerConfig = {
-	logFileName: 'logs.log',
-};
-const cacheConfig = 'aCacheConfig';
-const storageConfig = {
-	logFileName: 'logs.log',
-};
-
-const gitLastCommitId = '#gitLastCommitId';
-const buildVersion = '#buildVersion';
-const peerList = ['peerList'];
-
-const nodeOptions = {
+export const nodeOptions = {
 	rootPath: '~/.lisk',
 	label: 'default',
 	genesisBlock: {
@@ -58,14 +47,4 @@ const nodeOptions = {
 		},
 		totalAmount: '10000000000000000',
 	},
-};
-
-module.exports = {
-	loggerConfig,
-	cacheConfig,
-	storageConfig,
-	nodeOptions,
-	gitLastCommitId,
-	buildVersion,
-	peerList,
 };

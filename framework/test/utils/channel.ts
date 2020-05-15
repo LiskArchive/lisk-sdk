@@ -13,29 +13,13 @@
  *
  */
 
-
-const { storageConfig, cacheConfig } = require('./configs');
-
-const createMockChannel = databaseName => {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const createMockChannel = () => {
 	const channel = {
 		publish: jest.fn(),
 		once: jest.fn(),
-		invoke: jest.fn((action, arg) => {
-			if (action === 'app:getComponentConfig') {
-				if (arg === 'storage') {
-					return storageConfig({ database: databaseName });
-				}
-				if (arg === 'cache') {
-					return cacheConfig();
-				}
-			}
-			return {};
-		}),
+		invoke: jest.fn(),
 		subscribe: jest.fn(),
 	};
 	return channel;
-};
-
-module.exports = {
-	createMockChannel,
 };

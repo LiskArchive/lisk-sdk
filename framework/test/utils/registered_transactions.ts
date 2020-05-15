@@ -11,19 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import {
+	TransferTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+	UnlockTransaction,
+} from '@liskhq/lisk-transactions';
 
-
-const {
-	INTERNAL_EVENTS,
-} = require('../../../../../../src/controller/constants');
-
-describe('base/constants.js', () => {
-	it('INTERNAL_EVENTS must match to the snapshot.', () => {
-		expect(INTERNAL_EVENTS).toMatchSnapshot();
-	});
-
-	it('INTERNAL_EVENTS array should be immutable', () => {
-		expect(() => INTERNAL_EVENTS.push('test')).toThrow(TypeError);
-		expect(() => INTERNAL_EVENTS.pop()).toThrow(TypeError);
-	});
-});
+export const registeredTransactions = {
+	8: TransferTransaction,
+	10: DelegateTransaction,
+	12: MultisignatureTransaction,
+	13: VoteTransaction,
+	14: UnlockTransaction,
+};

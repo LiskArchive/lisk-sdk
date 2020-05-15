@@ -10,20 +10,13 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
+import * as nodeUtils from './node';
+import * as configUtils from './configs';
 
-const accountUtils = require('./account');
-const nodeUtils = require('./node');
-const transactionUtils = require('./transaction');
-const delegateUtils = require('./delegate');
-const blockUtils = require('./block');
+export { constants } from './constants';
+export const randomInt = (low: number, high: number): number =>
+	Math.round(Math.random() * (high - low) + low);
 
-module.exports = {
-	...accountUtils,
-	...nodeUtils,
-	...delegateUtils,
-	...transactionUtils,
-	...blockUtils,
-};
+export { nodeUtils, configUtils };

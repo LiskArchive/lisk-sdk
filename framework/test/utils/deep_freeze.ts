@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,13 +10,24 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const deepFreeze = (o: any): any => {
+	Object.freeze(o);
+	if (o === undefined) {
+		return o;
+	}
 
-const getDelegateList = async (chainModule, round) =>
-	chainModule._dpos.getForgerAddressesForRound(round);
+	Object.getOwnPropertyNames(o).forEach(prop => {
+		if (
+			o[prop] !== null &&
+			(typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
+			!Object.isFrozen(o[prop])
+		) {
+			deepFreeze(o[prop]);
+		}
+	});
 
-module.exports = {
-	getDelegateList,
+	return o;
 };

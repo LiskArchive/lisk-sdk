@@ -12,23 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getNetworkIdentifier as getNetworkID } from '@liskhq/lisk-cryptography';
 
-const {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-	UnlockTransaction,
-} = require('@liskhq/lisk-transactions');
+interface NetworkIdentifierable {
+	readonly payloadHash: string;
+	readonly communityIdentifier: string;
+}
 
-const registeredTransactions = {
-	8: TransferTransaction,
-	10: DelegateTransaction,
-	12: MultisignatureTransaction,
-	13: VoteTransaction,
-	14: UnlockTransaction,
-};
+export const getNetworkIdentifier = (
+	genesisBlock: NetworkIdentifierable,
+): string =>
+	getNetworkID(genesisBlock.payloadHash, genesisBlock.communityIdentifier);
 
-module.exports = {
-	registeredTransactions,
-};
+export const devnetNetworkIdentifier =
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
