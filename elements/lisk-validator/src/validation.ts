@@ -190,51 +190,17 @@ export const validatePublicKeys = (
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
 
-const MIN_ADDRESS_LENGTH = 2;
-const MAX_ADDRESS_LENGTH = 22;
-const BASE_TEN = 10;
+const ADDRESS_LENGTH = 40;
+
 export const validateAddress = (address: string): boolean => {
-	if (
-		address.length < MIN_ADDRESS_LENGTH ||
-		address.length > MAX_ADDRESS_LENGTH
-	) {
+	if (address.length !== ADDRESS_LENGTH) {
 		throw new Error(
-			'Address length does not match requirements. Expected between 2 and 22 characters.',
+			'Address length does not match requirements. Expected 40 characters.',
 		);
 	}
 
-	if (!address.endsWith('L')) {
-		throw new Error(
-			'Address format does not match requirements. Expected "L" at the end.',
-		);
-	}
-
-	if (address.includes('.')) {
-		throw new Error(
-			'Address format does not match requirements. Address includes invalid character: `.`.',
-		);
-	}
-
-	const addressString = address.slice(0, -1);
-
-	if (!isNumberString(addressString)) {
-		throw new Error(
-			'Address format does not match requirements. Address includes non-numeric characters.',
-		);
-	}
-
-	const addressNumber = BigInt(addressString);
-
-	if (addressNumber > BigInt(MAX_EIGHT_BYTE_NUMBER)) {
-		throw new Error(
-			'Address format does not match requirements. Address out of maximum range.',
-		);
-	}
-
-	if (addressString !== addressNumber.toString(BASE_TEN)) {
-		throw new Error(
-			"Address string format does not match it's number representation.",
-		);
+	if (!isHexString(address)) {
+		throw new Error('Address is not a valid hex string.');
 	}
 
 	return true;
