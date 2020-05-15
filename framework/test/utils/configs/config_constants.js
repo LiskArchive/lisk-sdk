@@ -31,7 +31,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	},
 	activeDelegates: 101,
 	maxPayloadLength: 15 * 1024,
-	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: '10000000000000000',
 	...overriddenConfigProperties,
 });

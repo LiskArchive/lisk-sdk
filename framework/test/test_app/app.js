@@ -62,7 +62,7 @@ try {
 	}
 
 	// To run multiple applications for same network for integration tests
-	config.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
+	config.label = `lisk-devnet-${config.network.wsPort}`;
 
 	app = new Application(genesisBlock, config);
 } catch (e) {

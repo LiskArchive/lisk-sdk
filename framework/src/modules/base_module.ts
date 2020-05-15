@@ -26,7 +26,6 @@ export interface ModuleInfo {
 export interface InstantiableModule<T, U = object> {
 	alias: string;
 	info: ModuleInfo;
-	migrations: ReadonlyArray<string>;
 	defaults: object;
 	load: () => Promise<void>;
 	unload: () => Promise<void>;
@@ -47,11 +46,6 @@ export abstract class BaseModule {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public static get info(): ModuleInfo {
 		throw new ImplementationMissingError();
-	}
-
-	// Array of migrations to be executed before loading the module. Expected format: ['yyyyMMddHHmmss_name_of_migration.sql']
-	public static get migrations(): ReadonlyArray<string> {
-		return [];
 	}
 
 	// eslint-disable-next-line class-methods-use-this
