@@ -24,26 +24,9 @@ import { hash } from './hash';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import reverse = require('buffer-reverse');
 
-const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
-export const getBinaryAddressFromPublicKey = (publicKey: string): Buffer => {
-	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	return hash(publicKeyBuffer).slice(0, 20);
-};
-
-export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
-	const BUFFER_SIZE = 8;
-	// Union type arguments on overloaded functions do not work in typescript.
-	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
-	if (typeof input === 'string') {
-		return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
-	}
-
-	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
-};
-
-const convertUIntArray = (
+export const convertUIntArray = (
 	uintArray: Uint8Array,
 	fromBits: number,
 	toBits: number,
@@ -67,38 +50,18 @@ const convertUIntArray = (
 	return result;
 };
 
-const convertUInt5ToBase32 = (uint5Array: number[]): string =>
+export const convertUInt5ToBase32 = (uint5Array: number[]): string =>
 	uint5Array.map((val: number) => CHARSET[val]).join('');
 
-const polymod = (uint5Array: number[]): number => {
-	let chk = 1;
-	for (const value of uint5Array) {
-		// eslint-disable-next-line no-bitwise
-		const top = chk >> 25;
-		// eslint-disable-next-line no-bitwise
-		chk = ((chk & 0x1ffffff) << 5) ^ value;
-		for (let i = 0; i < 5; i += 1) {
-			// eslint-disable-next-line no-bitwise
-			if ((top >> i) & 1) {
-				// eslint-disable-next-line no-bitwise
-				chk ^= GENERATOR[i];
-			}
-		}
+export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
+	const BUFFER_SIZE = 8;
+	// Union type arguments on overloaded functions do not work in typescript.
+	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
+	if (typeof input === 'string') {
+		return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 	}
 
-	return chk;
-};
-
-export const createChecksum = (uint5Array: number[]): number[] => {
-	const values = uint5Array.concat([0, 0, 0, 0, 0, 0]);
-	// eslint-disable-next-line no-bitwise
-	const mod = polymod(values) ^ 1;
-	const result = [];
-	for (let p = 0; p < 6; p += 1) {
-		// eslint-disable-next-line no-bitwise
-		result.push((mod >> (5 * (5 - p))) & 31);
-	}
-	return result;
+	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 };
 
 export const toAddress = (buffer: Buffer): string => {
