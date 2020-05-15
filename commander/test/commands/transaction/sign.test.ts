@@ -45,10 +45,10 @@ describe('transaction:sign', () => {
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
-		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
-		senderId: '2129300327344985743L',
+		id: 'ee12bfda559ee03889cc1d352c0855741ea130c90ced1ed0bebb1b0b38c01811',
+		senderId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		signatures: [
-			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+			'fc4ab8535fde94a5709bd42ff52d7c9d0f4ef1724eb62d2095c9fe602d90cb692f94c5b36e9e3e889c04ecfa7b5529b64aeff3d30926a17ae217a978db5e6f0a',
 		],
 	};
 
@@ -70,7 +70,7 @@ describe('transaction:sign', () => {
 	};
 
 	const expectedMultiSignedTransaction = {
-		id: 'b824b78c0c12d58fdf5c34d109e0b5b1760321b75fb396bf289cc767868a14b1',
+		id: 'ee12bfda559ee03889cc1d352c0855741ea130c90ced1ed0bebb1b0b38c01811',
 		asset: {
 			amount: '1234567890',
 			data: 'random data',
@@ -82,7 +82,7 @@ describe('transaction:sign', () => {
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		signatures: [
-			'483cc0efdb019d4910ea577d44d95f7115c4bfe179a26d3f8bbbca4d9141b38143d85219a5a9cb5eff712553e0ec2e2cf3f3b570fd841030aa7289b995a1c301',
+			'fc4ab8535fde94a5709bd42ff52d7c9d0f4ef1724eb62d2095c9fe602d90cb692f94c5b36e9e3e889c04ecfa7b5529b64aeff3d30926a17ae217a978db5e6f0a',
 		],
 		type: 8,
 	};
