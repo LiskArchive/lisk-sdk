@@ -10,19 +10,13 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-'use strict';
+import { Node } from '../../../src/application/node';
 
-const {
-	default: defaultNodeConfig,
-} = require('../../../src/application/schema/application_config_schema');
-
-const nodeConfig = (overriddenConfigProperties = {}) => ({
-	...defaultNodeConfig,
-	...overriddenConfigProperties,
-});
-
-module.exports = {
-	nodeConfig,
-};
+export const getDelegateList = async (
+	node: Node,
+	round: number,
+): Promise<ReadonlyArray<string>> =>
+	node['_dpos'].getForgerAddressesForRound(round);

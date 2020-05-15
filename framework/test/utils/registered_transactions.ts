@@ -11,21 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import {
+	TransferTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
+	UnlockTransaction,
+} from '@liskhq/lisk-transactions';
 
-'use strict';
-
-const accounts = require('./accounts');
-const peers = require('./peers');
-const blocks = require('./blocks');
-const dapps = require('./dapps');
-const transactions = require('./transactions');
-const rounds = require('./rounds');
-
-module.exports = {
-	accounts,
-	peers,
-	blocks,
-	dapps,
-	transactions,
-	rounds,
+export const registeredTransactions = {
+	8: TransferTransaction,
+	10: DelegateTransaction,
+	12: MultisignatureTransaction,
+	13: VoteTransaction,
+	14: UnlockTransaction,
 };

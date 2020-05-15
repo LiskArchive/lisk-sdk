@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { NodeConstants } from '../../../src/application/node/node';
 
-const constantsConfig = (overriddenConfigProperties = {}) => ({
+export const constantsConfig = (
+	overriddenConfigProperties: Partial<NodeConstants> = {},
+): NodeConstants => ({
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	blockTime: 10,
 	delegateListRoundOffset: 2,
@@ -30,11 +32,8 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 		distance: 3000000, // Distance between each milestone
 	},
 	activeDelegates: 101,
+	standbyDelegates: 2,
 	maxPayloadLength: 15 * 1024,
 	totalAmount: '10000000000000000',
 	...overriddenConfigProperties,
 });
-
-module.exports = {
-	constantsConfig,
-};

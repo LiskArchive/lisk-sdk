@@ -10,14 +10,7 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
 
-'use strict';
-
-const getDelegateList = async (chainModule, round) =>
-	chainModule._dpos.getForgerAddressesForRound(round);
-
-module.exports = {
-	getDelegateList,
-};
+export { constantsConfig } from './config_constants';
+export { nodeConfig } from './config_node';

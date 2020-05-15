@@ -121,9 +121,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const finalizedBlock = await this.chain.dataAccess.getBlockHeaderByHeight(
 			this.bft.finalizedHeight,
 		);
-		if (!finalizedBlock) {
-			throw new Error('Finalized block should exist');
-		}
 		const finalizedBlockSlot = this.chain.slots.getSlotNumber(
 			finalizedBlock.timestamp,
 		);

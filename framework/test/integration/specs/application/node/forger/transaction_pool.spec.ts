@@ -16,10 +16,9 @@ import { KVStore } from '@liskhq/lisk-db';
 import { transfer, utils } from '@liskhq/lisk-transactions';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
-import { accounts } from '../../../../../fixtures';
+import { genesis } from '../../../../../fixtures';
 
 const { convertLSKToBeddows } = utils;
-const { genesis } = accounts;
 
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';

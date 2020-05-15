@@ -12,18 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { applicationConfigSchema } from '../../../src/application/schema/application_config_schema';
+import { ApplicationConfig } from '../../../src/application/application';
 
-const { constants } = require('./constants');
-
-const randomInt = (low, high) => Math.round(Math.random() * (high - low) + low);
-
-const configUtils = require('./configs');
-const nodeUtils = require('./node');
-
-module.exports = {
-	constants,
-	randomInt,
-	configUtils,
-	nodeUtils,
-};
+export const nodeConfig = (
+	overriddenConfigProperties: Partial<ApplicationConfig> = {},
+): ApplicationConfig =>
+	({
+		...applicationConfigSchema.default,
+		...overriddenConfigProperties,
+	} as ApplicationConfig);

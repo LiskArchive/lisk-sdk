@@ -8,3 +8,5 @@ stacktrace*
 tmp
 dist-node
 jest.config*
+src/modules/http_api/
+__mocks__
