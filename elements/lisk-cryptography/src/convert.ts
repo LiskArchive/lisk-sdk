@@ -24,6 +24,11 @@ import { hash } from './hash';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import reverse = require('buffer-reverse');
 
+export const getBinaryAddressFromPublicKey = (publicKey: string): Buffer => {
+	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+	return hash(publicKeyBuffer).slice(0, 20);
+};
+
 export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	const BUFFER_SIZE = 8;
 	// Union type arguments on overloaded functions do not work in typescript.
