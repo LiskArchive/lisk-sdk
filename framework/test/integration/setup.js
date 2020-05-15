@@ -11,12 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-'use strict';
-
 require('../config/setup');
 
-// Increase jest timeout to only for integration tests
-// Each integration test is running database migrations
-// While all tests run parallel these migrations take more than default 5000ms
 jest.setTimeout(10000);
