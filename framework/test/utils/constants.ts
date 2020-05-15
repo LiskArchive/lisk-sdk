@@ -12,24 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as validator from '../../src/application/validator';
+import {
+	constantsSchema,
+	applicationConfigSchema,
+} from '../../src/application/schema';
+import { deepFreeze } from './deep_freeze';
 
-const {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-	MultisignatureTransaction,
-	UnlockTransaction,
-} = require('@liskhq/lisk-transactions');
+const sharedConstants = validator.parseEnvArgAndValidate(constantsSchema, {});
+const appConfig = validator.parseEnvArgAndValidate(applicationConfigSchema, {});
 
-const registeredTransactions = {
-	8: TransferTransaction,
-	10: DelegateTransaction,
-	12: MultisignatureTransaction,
-	13: VoteTransaction,
-	14: UnlockTransaction,
-};
-
-module.exports = {
-	registeredTransactions,
-};
+export const constants = deepFreeze({
+	...sharedConstants,
+	...appConfig.genesisConfig,
+});

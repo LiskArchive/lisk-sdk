@@ -91,7 +91,7 @@ const registerProcessHooks = (app: Application): void => {
 	process.once('exit' as any, (code: number) => app.shutdown(code));
 };
 
-interface ApplicationConfig {
+export interface ApplicationConfig {
 	label: string;
 	version: string;
 	protocolVersion: string;

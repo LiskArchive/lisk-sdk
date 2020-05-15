@@ -32,6 +32,9 @@ const appConfig = {
 	protocolVersion: '2.0',
 	lastCommitId: dummyLastCommitId,
 	buildVersion: dummyBuildVersion,
+	ipc: {
+		enabled: true,
+	},
 };
 
 // Support for PROTOCOL_VERSION only for tests

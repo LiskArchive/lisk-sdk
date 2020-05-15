@@ -24,11 +24,10 @@ import { KVStore } from '@liskhq/lisk-db';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
-import { accounts } from '../../../../../fixtures';
+import { genesis } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
 
 const { convertLSKToBeddows } = utils;
-const { genesis } = accounts;
 
 describe('Transaction order', () => {
 	const dbName = 'transaction_order';

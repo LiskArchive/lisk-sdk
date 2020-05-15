@@ -74,7 +74,7 @@ export interface NodeConstants {
 	readonly blockTime: number;
 }
 
-interface Options {
+export interface Options {
 	readonly label: string;
 	readonly rootPath: string;
 	readonly forging: {
@@ -313,8 +313,7 @@ export class Node {
 				const block = await this._chain.dataAccess.getBlockByID(
 					action.params.id,
 				);
-
-				return block ? this._chain.dataAccess.serialize(block) : undefined;
+				return this._chain.dataAccess.serialize(block);
 			},
 			getBlocksByIDs: async (action: {
 				params: { ids: readonly string[] };

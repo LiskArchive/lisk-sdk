@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,18 +13,13 @@
  *
  */
 
-'use strict';
-
-const accountUtils = require('./account');
-const nodeUtils = require('./node');
-const transactionUtils = require('./transaction');
-const delegateUtils = require('./delegate');
-const blockUtils = require('./block');
-
-module.exports = {
-	...accountUtils,
-	...nodeUtils,
-	...delegateUtils,
-	...transactionUtils,
-	...blockUtils,
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const createMockChannel = () => {
+	const channel = {
+		publish: jest.fn(),
+		once: jest.fn(),
+		invoke: jest.fn(),
+		subscribe: jest.fn(),
+	};
+	return channel;
 };

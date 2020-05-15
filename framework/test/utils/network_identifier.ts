@@ -12,19 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import { getNetworkIdentifier as getNetworkID } from '@liskhq/lisk-cryptography';
 
-const {
-	INTERNAL_EVENTS,
-} = require('../../../../../../src/controller/constants');
+interface NetworkIdentifierable {
+	readonly payloadHash: string;
+	readonly communityIdentifier: string;
+}
 
-describe('base/constants.js', () => {
-	it('INTERNAL_EVENTS must match to the snapshot.', () => {
-		expect(INTERNAL_EVENTS).toMatchSnapshot();
-	});
+export const getNetworkIdentifier = (
+	genesisBlock: NetworkIdentifierable,
+): string =>
+	getNetworkID(genesisBlock.payloadHash, genesisBlock.communityIdentifier);
 
-	it('INTERNAL_EVENTS array should be immutable', () => {
-		expect(() => INTERNAL_EVENTS.push('test')).toThrow(TypeError);
-		expect(() => INTERNAL_EVENTS.pop()).toThrow(TypeError);
-	});
-});
+export const devnetNetworkIdentifier =
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';

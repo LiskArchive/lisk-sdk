@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,18 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as nodeUtils from './node';
+import * as configUtils from './configs';
 
-const cryptography = require('@liskhq/lisk-cryptography');
+export { constants } from './constants';
+export const randomInt = (low: number, high: number): number =>
+	Math.round(Math.random() * (high - low) + low);
 
-const getNetworkIdentifier = genesisBlock =>
-	cryptography.getNetworkIdentifier(
-		genesisBlock.payloadHash,
-		genesisBlock.communityIdentifier,
-	);
-
-module.exports = {
-	devnetNetworkIdentifier:
-		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
-	getNetworkIdentifier,
-};
+export { nodeUtils, configUtils };

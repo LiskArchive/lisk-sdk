@@ -13,15 +13,11 @@
  *
  */
 
-'use strict';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { getKeys, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-const { Mnemonic } = require('@liskhq/lisk-passphrase');
-const {
-	getKeys,
-	getAddressFromPublicKey,
-} = require('@liskhq/lisk-cryptography');
-
-const createAccount = () => {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const createAccount = () => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const { privateKey, publicKey } = getKeys(passphrase);
 	const address = getAddressFromPublicKey(publicKey);
@@ -34,12 +30,8 @@ const createAccount = () => {
 	};
 };
 
-const createAccounts = (numberOfAccounts = 1) => {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const createAccounts = (numberOfAccounts = 1) => {
 	const accounts = new Array(numberOfAccounts).fill(0).map(createAccount);
 	return accounts;
-};
-
-module.exports = {
-	createAccount,
-	createAccounts,
 };
