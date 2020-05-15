@@ -25,4 +25,4 @@ export const writeString = (value: string, _schema: SchemaProperty): Buffer =>
 	]);
 
 export const readString = (buffer: Buffer, _schema: SchemaProperty): string =>
-	buffer.toString('utf8');
+	buffer.toString('utf8', 2, buffer.length);

@@ -11,30 +11,56 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { writeString, readString } from '../src/string';
+import { testCases } from '../fixtures/validStringEncodings.json';
 
 describe('string', () => {
 	describe('writer', () => {
 		it('should encode string', () => {
-			expect(writeString('lisk', { dataType: 'string' })).toEqual(
-				Buffer.from('lisk', 'utf8'),
-			);
-			expect(writeString('>!test@123test#', { dataType: 'string' })).toEqual(
-				Buffer.from('>!test@123test#', 'utf8'),
-			);
+			const testCaseOneInput = testCases[0].input.string;
+			const testCaseOneOutput = testCases[0].output.string;
+			expect(
+				writeString(
+					testCaseOneInput.object.data,
+					testCaseOneInput.schema.properties.data,
+				).toString('hex'),
+			).toEqual(testCaseOneOutput);
+
+			const testCaseSecondInput = testCases[0].input.string;
+			const testCaseSecondOutput = testCases[0].output.string;
+			expect(
+				writeString(
+					testCaseSecondInput.object.data,
+					testCaseSecondInput.schema.properties.data,
+				).toString('hex'),
+			).toEqual(testCaseSecondOutput);
 		});
 	});
 
 	describe('reader', () => {
 		it('should decode string', () => {
+			const testCaseOneInput = testCases[0].input.string;
 			expect(
-				readString(Buffer.from('lisk', 'utf8'), { dataType: 'string' }),
-			).toEqual('lisk');
+				readString(
+					writeString(
+						testCaseOneInput.object.data,
+						testCaseOneInput.schema.properties.data,
+					),
+					testCaseOneInput.schema.properties.data,
+				),
+			).toEqual(testCaseOneInput.object.data);
+
+			const testCaseSecondInput = testCases[0].input.string;
 			expect(
-				readString(Buffer.from('>!test@123test#', 'utf8'), {
-					dataType: 'string',
-				}),
-			).toEqual('>!test@123test#');
+				readString(
+					writeString(
+						testCaseSecondInput.object.data,
+						testCaseSecondInput.schema.properties.data,
+					),
+					testCaseSecondInput.schema.properties.data,
+				),
+			).toEqual(testCaseSecondInput.object.data);
 		});
 	});
 });
