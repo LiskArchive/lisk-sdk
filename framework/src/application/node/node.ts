@@ -45,7 +45,8 @@ import {
 } from './synchronizer';
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
-import { Logger, EventPostTransactionData } from '../../types';
+import { Logger } from '../logger';
+import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';

@@ -16,7 +16,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as liskP2P from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
-import { Logger } from '../../types';
+import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 

@@ -32,7 +32,7 @@ import { Dpos } from '@liskhq/lisk-dpos';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { BaseBlockProcessor } from './processor';
-import { Logger } from '../../types';
+import { Logger } from '../logger';
 
 interface BlockProcessorInput {
 	readonly networkIdentifier: string;

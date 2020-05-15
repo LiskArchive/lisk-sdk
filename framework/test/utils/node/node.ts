@@ -20,10 +20,10 @@ import { createMockChannel } from '../channel';
 import { Node, Options } from '../../../src/application/node/node';
 import * as genesisBlock from '../../fixtures/config/devnet/genesis_block.json';
 import * as config from '../../fixtures/config/devnet/config.json';
-import { Logger } from '../../../src/types';
+import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 
-const { components, modules, ...rootConfigs } = config;
+const { modules, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
 
 interface CreateNodeInput {

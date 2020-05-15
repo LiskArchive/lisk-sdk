@@ -28,13 +28,12 @@ import {
 	constantsSchema,
 } from '../../../../src/application/schema';
 import { SchemaValidationError } from '../../../../src/errors';
-import * as loggerComponent from '../../../../src/components/logger';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
+import { createLogger } from '../../../../src/application/logger';
 
 jest.mock('fs-extra');
-jest.mock('../../../../src/components/logger');
 jest.mock('@liskhq/lisk-validator', () => ({
 	validator: {
 		validate: jest.fn().mockImplementation(() => {
@@ -42,6 +41,7 @@ jest.mock('@liskhq/lisk-validator', () => ({
 		}),
 	},
 }));
+jest.mock('../../../../src/application/logger');
 
 const config: any = {
 	...networkConfig,
@@ -57,9 +57,8 @@ describe('Application', () => {
 		debug: jest.fn(),
 		trace: jest.fn(),
 	};
-	(loggerComponent.createLoggerComponent as jest.Mock).mockReturnValue(
-		loggerMock,
-	);
+
+	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
@@ -123,19 +122,16 @@ describe('Application', () => {
 			expect(app.config.rootPath).toBe(customrootPath);
 		});
 
-		it('should set filename for logger if logger component was not provided', () => {
+		it('should set filename for logger if logger config was not provided', () => {
 			// Arrange
 			const configWithoutLogger = _.cloneDeep(config);
-			configWithoutLogger.components.logger = {};
+			configWithoutLogger.logger = {};
 
 			// Act
 			const app = new Application(genesisBlock, configWithoutLogger);
 
 			// Assert
-			expect(app.config.components.logger.logFileName).toBe(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`${process.cwd()}/logs/${config.label}/lisk.log`,
-			);
+			expect(app.config.logger.logFileName).toBe('lisk.log');
 		});
 
 		it('should validate the constants', () => {

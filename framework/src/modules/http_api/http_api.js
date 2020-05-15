@@ -13,6 +13,7 @@
  */
 
 
+// eslint-disable-next-line
 const { createLoggerComponent } = require('../../components/logger');
 const {
 	createCacheComponent,

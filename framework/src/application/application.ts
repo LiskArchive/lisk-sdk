@@ -13,6 +13,7 @@
  */
 
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
 import * as os from 'os';
@@ -41,12 +42,11 @@ import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
+import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from '../errors';
-import { createLoggerComponent } from '../components/logger';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 import { ActionInfoObject } from '../controller/action';
-import { Logger } from '../types';
 import { NodeConstants, GenesisBlockInstance } from './node/node';
 import { DelegateConfig } from './node/forger';
 import { NetworkConfig } from './network/network';
@@ -109,6 +109,11 @@ export interface ApplicationConfig {
 		readonly defaultPassword?: string;
 	};
 	readonly network: NetworkConfig;
+	readonly logger: {
+		logFileName: string;
+		fileLogLevel: string;
+		consoleLogLevel: string;
+	};
 	genesisConfig: {
 		readonly epochTime: string;
 		readonly blockTime: number;
@@ -125,12 +130,6 @@ export interface ApplicationConfig {
 		readonly standbyDelegates: number;
 		readonly totalAmount: string;
 		readonly delegateListRoundOffset: number;
-	};
-	components: {
-		[key: string]: {} | undefined;
-		logger: {
-			logFileName: string;
-		};
 	};
 	modules: ModulesOptions;
 }
@@ -170,14 +169,6 @@ export class Application {
 
 		appConfig.label =
 			appConfig.label ?? `lisk-${this._genesisBlock.payloadHash.slice(0, 7)}`;
-
-		if (!_.has(appConfig, 'components.logger.logFileName')) {
-			_.set(
-				appConfig,
-				'components.logger.logFileName',
-				`${process.cwd()}/logs/${appConfig.label}/lisk.log`,
-			);
-		}
 
 		appConfig = configurator.getConfig(appConfig, {
 			failOnInvalidArg: process.env.NODE_ENV !== 'test',
@@ -391,9 +382,10 @@ export class Application {
 	}
 
 	private _initLogger(): Logger {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return createLoggerComponent({
-			...this.config.components.logger,
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		return createLogger({
+			...this.config.logger,
+			logFilePath: path.join(dirs.logs, this.config.logger.logFileName),
 			module: 'lisk:app',
 		});
 	}
@@ -429,10 +421,6 @@ export class Application {
 				'block:delete',
 			],
 			{
-				getComponentConfig: {
-					handler: (action: ActionInfoObject) =>
-						this.config.components[action.params as string],
-				},
 				getApplicationState: {
 					handler: (_action: ActionInfoObject) => this._applicationState.state,
 				},
@@ -595,7 +583,7 @@ export class Application {
 	}
 
 	private _initNode(): Node {
-		const { components, modules, ...rootConfigs } = this.config;
+		const { modules, ...rootConfigs } = this.config;
 		const { network, ...nodeConfigs } = rootConfigs;
 		const node = new Node({
 			channel: this._channel,

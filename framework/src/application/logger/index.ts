@@ -12,9 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-const config = require('./config');
-
-module.exports = {
-	config,
-};
+export { createLogger, Logger } from './logger';

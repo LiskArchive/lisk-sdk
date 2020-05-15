@@ -20,7 +20,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
-import { Logger } from '../../../../../../src/types';
+import { Logger } from '../../../../../../src/application/logger';
 import { Transport } from '../../../../../../src/application/node/transport';
 
 import { genesis } from '../../../../../fixtures/accounts';

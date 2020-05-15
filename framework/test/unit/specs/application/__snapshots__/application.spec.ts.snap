@@ -2,22 +2,6 @@
 
 exports[`Application #constructor should set internal variables 1`] = `
 Object {
-  "components": Object {
-    "cache": Object {
-      "enabled": true,
-    },
-    "logger": Object {
-      "consoleLogLevel": "info",
-      "fileLogLevel": "debug",
-      "logFileName": "logs/devnet/lisk.log",
-    },
-    "storage": Object {
-      "database": "lisk_dev",
-      "logFileName": "logs/devnet/lisk_db.log",
-      "max": 10,
-      "min": 1,
-    },
-  },
   "forging": Object {
     "defaultPassword": "elephant tree paris dragon chair galaxy",
     "delegates": Array [
@@ -2208,13 +2192,12 @@ Object {
     "enabled": false,
   },
   "label": "devnet",
-  "modules": Object {
-    "http_api": Object {
-      "access": Object {
-        "public": true,
-      },
-    },
+  "logger": Object {
+    "consoleLogLevel": "info",
+    "fileLogLevel": "debug",
+    "logFileName": "lisk.log",
   },
+  "modules": Object {},
   "network": Object {
     "seedPeers": Array [
       Object {
