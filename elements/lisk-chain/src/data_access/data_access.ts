@@ -13,22 +13,22 @@
  */
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
 
+import { KVStore } from '@liskhq/lisk-db';
 import { Account } from '../account';
 import {
 	BlockHeader,
 	BlockHeaderJSON,
 	BlockInstance,
 	BlockJSON,
-	Storage as DBStorage,
-	TempBlock,
 } from '../types';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
 import { TransactionInterfaceAdapter } from './transaction_interface_adapter';
+import { StateStore } from '../state_store';
 
 interface DAConstructor {
-	readonly dbStorage: DBStorage;
+	readonly db: KVStore;
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
@@ -42,12 +42,12 @@ export class DataAccess {
 	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 
 	public constructor({
-		dbStorage,
+		db,
 		registeredTransactions,
 		minBlockHeaderCache,
 		maxBlockHeaderCache,
 	}: DAConstructor) {
-		this._storage = new StorageAccess(dbStorage);
+		this._storage = new StorageAccess(db);
 		this._blocksCache = new BlockCache(
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
@@ -121,18 +121,15 @@ export class DataAccess {
 		return blocks.map(block => this.deserializeBlockHeader(block));
 	}
 
-	public async getBlockHeaderByHeight(
-		height: number,
-	): Promise<BlockHeader | undefined> {
+	public async getBlockHeaderByHeight(height: number): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.getByHeight(height);
 
 		if (cachedBlock) {
 			return cachedBlock;
 		}
-		const block = await this._storage.getBlockByHeight(height);
+		const header = await this._storage.getBlockHeaderByHeight(height);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return block ? this.deserializeBlockHeader(block) : undefined;
+		return this.deserializeBlockHeader(header);
 	}
 
 	public async getBlockHeadersByHeightBetween(
@@ -204,17 +201,10 @@ export class DataAccess {
 
 	/** Begin: Blocks */
 
-	public async getBlocksCount(): Promise<number> {
-		const blocksCount = await this._storage.getBlocksCount();
-
-		return blocksCount;
-	}
-
-	public async getBlockByID(id: string): Promise<BlockInstance | undefined> {
+	public async getBlockByID(id: string): Promise<BlockInstance> {
 		const blockJSON = await this._storage.getBlockByID(id);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return blockJSON ? this.deserialize(blockJSON) : undefined;
+		return this.deserialize(blockJSON);
 	}
 
 	public async getBlocksByIDs(
@@ -246,36 +236,10 @@ export class DataAccess {
 		return blocks.map(block => this.deserialize(block));
 	}
 
-	public async getBlocksWithLimitAndOffset(
-		limit: number,
-		offset = 0,
-	): Promise<BlockInstance[]> {
-		// Calculate toHeight
-		const toHeight = offset + limit;
-		// To Preserve LessThan logic we are subtracting by 1
-		const toHeightLT = toHeight - 1;
-
-		// Loads extended blocks from storage
-		const blocks = await this.getBlocksByHeightBetween(offset, toHeightLT);
-		// Return blocks in ascending order
-		const sortedBlocks = [...blocks].sort(
-			(a: BlockInstance, b: BlockInstance) => a.height - b.height,
-		);
-
-		return sortedBlocks;
-	}
-
-	public async getLastBlock(): Promise<BlockInstance | undefined> {
+	public async getLastBlock(): Promise<BlockInstance> {
 		const block = await this._storage.getLastBlock();
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return block && this.deserialize(block);
-	}
-
-	public async deleteBlocksWithHeightGreaterThan(
-		height: number,
-	): Promise<void> {
-		await this._storage.deleteBlocksWithHeightGreaterThan(height);
+		return this.deserialize(block);
 	}
 
 	public async isBlockPersisted(blockId: string): Promise<boolean> {
@@ -284,7 +248,7 @@ export class DataAccess {
 		return isPersisted;
 	}
 
-	public async getTempBlocks(): Promise<TempBlock[]> {
+	public async getTempBlocks(): Promise<BlockJSON[]> {
 		const blocks = await this._storage.getTempBlocks();
 
 		return blocks;
@@ -344,9 +308,6 @@ export class DataAccess {
 		return accounts.map(account => new Account(account));
 	}
 
-	public async resetAccountMemTables(): Promise<void> {
-		await this._storage.resetAccountMemTables();
-	}
 	/** End: Accounts */
 
 	/** Begin: Transactions */
@@ -431,5 +392,31 @@ export class DataAccess {
 		transactionJSON: TransactionJSON,
 	): BaseTransaction {
 		return this._transactionAdapter.fromJSON(transactionJSON);
+	}
+
+	/*
+		Save Block
+	*/
+	public async saveBlock(
+		block: BlockInstance,
+		stateStore: StateStore,
+		removeFromTemp = false,
+	): Promise<void> {
+		const blockJSON = this.serialize(block);
+
+		return this._storage.saveBlock(blockJSON, stateStore, removeFromTemp);
+	}
+
+	/*
+		Delete Block
+	*/
+	public async deleteBlock(
+		block: BlockInstance,
+		stateStore: StateStore,
+		saveToTemp = false,
+	): Promise<void> {
+		const blockJSON = this.serialize(block);
+
+		return this._storage.deleteBlock(blockJSON, stateStore, saveToTemp);
 	}
 }

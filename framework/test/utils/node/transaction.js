@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const {
 	TransferTransaction,

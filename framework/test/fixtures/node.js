@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const loggerConfig = {
 	logFileName: 'logs.log',
@@ -57,7 +56,6 @@ const nodeOptions = {
 			offset: 2160, // Start rewards at first block of the second round
 			distance: 3000000, // Distance between each milestone
 		},
-		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		totalAmount: '10000000000000000',
 	},
 };

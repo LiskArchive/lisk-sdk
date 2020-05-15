@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const { constantsConfig, nodeConfig } = require('../configs');
 const {
@@ -27,7 +26,13 @@ const config = require('../../fixtures/config/devnet/config.json');
 const { components, modules, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
 
-const createNode = ({ storage, forgerDB, logger, channel, options = {} }) => {
+const createNode = ({
+	blockchainDB,
+	forgerDB,
+	logger,
+	channel,
+	options = {},
+}) => {
 	const nodeOptions = {
 		...nodeConfig(),
 		...nodeConfigs,
@@ -40,7 +45,7 @@ const createNode = ({ storage, forgerDB, logger, channel, options = {} }) => {
 		channel: channel || createMockChannel(),
 		options: nodeOptions,
 		logger,
-		storage,
+		blockchainDB,
 		forgerDB,
 		applicationState: null,
 	});
@@ -58,14 +63,14 @@ const fakeLogger = {
 /* eslint-enable @typescript-eslint/no-empty-function */
 
 const createAndLoadNode = async (
-	storage,
+	blockchainDB,
 	forgerDB,
 	logger = fakeLogger,
 	channel = undefined,
 	options = {},
 ) => {
 	const chainModule = createNode({
-		storage,
+		blockchainDB,
 		forgerDB,
 		logger,
 		channel,

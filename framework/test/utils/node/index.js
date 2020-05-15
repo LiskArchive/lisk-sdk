@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const accountUtils = require('./account');
 const nodeUtils = require('./node');

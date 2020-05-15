@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { KVStore } from '@liskhq/lisk-db';
 import {
 	BaseTransaction,
 	Status as TransactionStatus,
@@ -56,8 +57,6 @@ import {
 	BlockRewardOptions,
 	Contexter,
 	MatcherTransaction,
-	Storage,
-	StorageTransaction,
 	GenesisBlock,
 	GenesisBlockJSON,
 } from './types';
@@ -77,7 +76,7 @@ import {
 
 interface ChainConstructor {
 	// Components
-	readonly storage: Storage;
+	readonly db: KVStore;
 	// Unique requirements
 	readonly genesisBlock: GenesisBlockJSON;
 	// Modules
@@ -99,27 +98,6 @@ interface ChainConstructor {
 }
 
 const TRANSACTION_TYPES_VOTE = [3, 11];
-
-const saveBlock = async (
-	storage: Storage,
-	blockJSON: BlockJSON,
-	tx: StorageTransaction,
-): Promise<void> => {
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	if (!tx) {
-		throw new Error('Block should only be saved in a database tx');
-	}
-	// If there is already a running transaction use it
-	const promises = [storage.entities.Block.create(blockJSON, {}, tx)];
-
-	if (blockJSON.transactions.length) {
-		promises.push(
-			storage.entities.Transaction.create(blockJSON.transactions, {}, tx),
-		);
-	}
-
-	return tx.batch(promises);
-};
 
 const applyConfirmedStep = async (
 	blockInstance: BlockInstance,
@@ -197,7 +175,6 @@ export class Chain {
 
 	private _lastBlock: BlockInstance;
 	private readonly blocksVerify: BlocksVerify;
-	private readonly storage: Storage;
 	private readonly _networkIdentifier: string;
 	private readonly blockRewardArgs: BlockRewardOptions;
 	private readonly genesisBlock: GenesisBlock;
@@ -210,7 +187,7 @@ export class Chain {
 
 	public constructor({
 		// Components
-		storage,
+		db,
 		// Unique requirements
 		genesisBlock,
 		// Modules
@@ -230,9 +207,8 @@ export class Chain {
 	}: ChainConstructor) {
 		this.events = new EventEmitter();
 
-		this.storage = storage;
 		this.dataAccess = new DataAccess({
-			dbStorage: storage,
+			db,
 			registeredTransactions,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
@@ -303,9 +279,10 @@ export class Chain {
 
 	public async init(): Promise<void> {
 		// Check mem tables
-		const genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
-
-		if (!genesisBlock) {
+		let genesisBlock: BlockHeader;
+		try {
+			genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
+		} catch (error) {
 			throw new Error('Failed to load genesis block');
 		}
 
@@ -315,8 +292,10 @@ export class Chain {
 			throw new Error('Genesis block does not match');
 		}
 
-		const storageLastBlock = await this.dataAccess.getLastBlock();
-		if (!storageLastBlock) {
+		let storageLastBlock: BlockInstance;
+		try {
+			storageLastBlock = await this.dataAccess.getLastBlock();
+		} catch (error) {
 			throw new Error('Failed to load last block');
 		}
 
@@ -347,7 +326,7 @@ export class Chain {
 			lastBlockHeaders[0]?.height ?? 1,
 		);
 
-		return new StateStore(this.storage, {
+		return new StateStore(this.dataAccess, {
 			networkIdentifier: this._networkIdentifier,
 			lastBlockHeaders,
 			lastBlockReward,
@@ -377,12 +356,6 @@ export class Chain {
 		block.id = blocksUtils.getBlockId(blockBytes);
 	}
 
-	public async resetState(): Promise<void> {
-		await this.storage.entities.Account.resetMemTables();
-		await this.storage.entities.ConsensusState.delete();
-		this.dataAccess.resetBlockHeaderCache();
-	}
-
 	public async verify(
 		blockInstance: BlockInstance,
 		_: StateStore,
@@ -391,7 +364,7 @@ export class Chain {
 		verifyPreviousBlockId(blockInstance, this._lastBlock, this.genesisBlock);
 		validateBlockSlot(blockInstance, this._lastBlock, this.slots);
 		if (!skipExistingCheck) {
-			await verifyBlockNotExists(this.storage, blockInstance);
+			await verifyBlockNotExists(this.dataAccess, blockInstance);
 			const transactionsResponses = await checkPersistedTransactions(
 				this.dataAccess,
 			)(blockInstance.transactions);
@@ -427,31 +400,25 @@ export class Chain {
 	public async save(
 		blockInstance: BlockInstance,
 		stateStore: StateStore,
-		{ saveOnlyState, removeFromTempTable } = {
-			saveOnlyState: false,
+		{ removeFromTempTable } = {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		return this.storage.entities.Block.begin('saveBlock', async tx => {
-			await stateStore.finalize(tx);
-			if (!saveOnlyState) {
-				const blockJSON = this.serialize(blockInstance);
-				await saveBlock(this.storage, blockJSON, tx);
-			}
-			if (removeFromTempTable) {
-				await this.removeBlockFromTempTable(blockInstance.id, tx);
-			}
-			this.dataAccess.addBlockHeader(blockInstance);
-			this._lastBlock = blockInstance;
+		const accounts = stateStore.account
+			.getUpdated()
+			.map(anAccount => anAccount.toJSON());
 
-			const accounts = stateStore.account
-				.getUpdated()
-				.map(anAccount => anAccount.toJSON());
+		await this.dataAccess.saveBlock(
+			blockInstance,
+			stateStore,
+			removeFromTempTable,
+		);
+		this.dataAccess.addBlockHeader(blockInstance);
+		this._lastBlock = blockInstance;
 
-			this.events.emit(EVENT_NEW_BLOCK, {
-				block: this.serialize(blockInstance),
-				accounts,
-			});
+		this.events.emit(EVENT_NEW_BLOCK, {
+			block: this.serialize(blockInstance),
+			accounts,
 		});
 	}
 
@@ -469,48 +436,34 @@ export class Chain {
 		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		await this.storage.entities.Block.begin('revertBlock', async tx => {
-			const secondLastBlock = await this._deleteLastBlock(block, tx);
+		if (block.height === 1) {
+			throw new Error('Cannot delete genesis block');
+		}
+		let secondLastBlock: BlockInstance;
+		try {
+			secondLastBlock = await this.dataAccess.getBlockByID(
+				block.previousBlockId,
+			);
+		} catch (error) {
+			throw new Error('PreviousBlock is null');
+		}
 
-			if (saveTempBlock) {
-				const blockJSON = this.serialize(block);
-				const blockTempEntry = {
-					id: blockJSON.id,
-					height: blockJSON.height,
-					fullBlock: blockJSON,
-				};
-				await this.storage.entities.TempBlock.create(blockTempEntry, {}, tx);
-			}
-			await stateStore.finalize(tx);
-			await this.dataAccess.removeBlockHeader(block.id);
-			this._lastBlock = secondLastBlock;
+		await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);
+		await this.dataAccess.removeBlockHeader(block.id);
+		this._lastBlock = secondLastBlock;
 
-			const accounts = stateStore.account
-				.getUpdated()
-				.map(anAccount => anAccount.toJSON());
+		const accounts = stateStore.account
+			.getUpdated()
+			.map(anAccount => anAccount.toJSON());
 
-			this.events.emit(EVENT_DELETE_BLOCK, {
-				block: this.serialize(block),
-				accounts,
-			});
+		this.events.emit(EVENT_DELETE_BLOCK, {
+			block: this.serialize(block),
+			accounts,
 		});
 	}
 
-	public async removeBlockFromTempTable(
-		blockId: string,
-		tx: StorageTransaction,
-	): Promise<void> {
-		return this.storage.entities.TempBlock.delete({ id: blockId }, {}, tx);
-	}
-
 	public async exists(block: BlockInstance): Promise<boolean> {
-		try {
-			await verifyBlockNotExists(this.storage, block);
-
-			return false;
-		} catch (err) {
-			return true;
-		}
+		return this.dataAccess.isBlockPersisted(block.id);
 	}
 
 	public async getHighestCommonBlock(
@@ -639,23 +592,5 @@ export class Chain {
 			debug({ height: blockHeader.height }, 'Add block header to cache');
 			this.dataAccess.addBlockHeader(blockHeader);
 		}
-	}
-
-	private async _deleteLastBlock(
-		lastBlock: BlockInstance,
-		tx?: StorageTransaction,
-	): Promise<BlockInstance> {
-		if (lastBlock.height === 1) {
-			throw new Error('Cannot delete genesis block');
-		}
-		const block = await this.dataAccess.getBlockByID(lastBlock.previousBlockId);
-
-		if (!block) {
-			throw new Error('PreviousBlock is null');
-		}
-
-		await this.storage.entities.Block.delete({ id: lastBlock.id }, {}, tx);
-
-		return block;
 	}
 }

@@ -36,11 +36,6 @@ export const applyGenesisTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<TransactionResponse[]> => {
-	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
-	for (const transaction of transactions) {
-		await transaction.prepare(stateStore);
-	}
-
 	const transactionsResponses: TransactionResponse[] = [];
 	for (const transaction of transactions) {
 		const transactionResponse = await transaction.apply(stateStore);
@@ -58,11 +53,6 @@ export const applyTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<TransactionResponse>> => {
-	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
-	for (const transaction of transactions) {
-		await transaction.prepare(stateStore);
-	}
-
 	const transactionsResponses: TransactionResponse[] = [];
 	for (const transaction of transactions) {
 		stateStore.account.createSnapshot();
@@ -84,37 +74,23 @@ export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 		return [];
 	}
 
-	const confirmedTransactions = await dataAccess.getTransactionsByIDs(
-		transactions.map(transaction => transaction.id),
-	);
-
-	const persistedTransactionIds = confirmedTransactions.map(
-		(transaction: BaseTransaction) => transaction.id,
-	);
-	const persistedTransactions = transactions.filter(transaction =>
-		persistedTransactionIds.includes(transaction.id),
-	);
-	const nonPersistedTransactions = transactions.filter(
-		transaction => !persistedTransactionIds.includes(transaction.id),
-	);
-	const transactionsResponses = [
-		...nonPersistedTransactions.map(transaction => ({
-			id: transaction.id,
-			status: TransactionStatus.OK,
-			errors: [],
-		})),
-		...persistedTransactions.map(transaction => ({
-			id: transaction.id,
-			status: TransactionStatus.FAIL,
-			errors: [
-				new TransactionError(
-					`Transaction is already confirmed: ${transaction.id}`,
-					transaction.id,
-					'.id',
-				),
-			],
-		})),
-	];
+	const transactionsResponses = [];
+	for (const tx of transactions) {
+		const exist = await dataAccess.isTransactionPersisted(tx.id);
+		transactionsResponses.push({
+			id: tx.id,
+			status: !exist ? TransactionStatus.OK : TransactionStatus.FAIL,
+			errors: !exist
+				? []
+				: [
+						new TransactionError(
+							`Transaction is already confirmed: ${tx.id}`,
+							tx.id,
+							'.id',
+						),
+				  ],
+		});
+	}
 
 	return transactionsResponses;
 };
@@ -147,11 +123,6 @@ export const undoTransactions = () => async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<TransactionResponse>> => {
-	// Avoid merging both prepare statements into one for...of loop as this slows down the call dramatically
-	for (const transaction of transactions) {
-		await transaction.prepare(stateStore);
-	}
-
 	const transactionsResponses = [];
 	for (const transaction of transactions) {
 		const transactionResponse = await transaction.undo(stateStore);

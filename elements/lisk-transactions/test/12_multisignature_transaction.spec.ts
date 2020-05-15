@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
 import { Account } from '../src/transaction_types';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
@@ -49,7 +48,6 @@ describe('Multisignature transaction class', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 	let validTestTransaction: MultisignatureTransaction;
 	let multisignatureSender: Partial<Account>;
-	let storeAccountCacheStub: jest.SpyInstance;
 	let storeAccountGetStub: jest.SpyInstance;
 	let storeAccountSetStub: jest.SpyInstance;
 	let store: StateStoreMock;
@@ -77,7 +75,6 @@ describe('Multisignature transaction class', () => {
 			.mockResolvedValue(targetMultisigAccount);
 
 		storeAccountSetStub = jest.spyOn(store.account, 'set');
-		storeAccountCacheStub = jest.spyOn(store.account, 'cache');
 	});
 
 	describe('#constructor', () => {
@@ -113,25 +110,6 @@ describe('Multisignature transaction class', () => {
 			expect(validTestTransaction.assetToJSON()).toEqual(
 				validMultisignatureRegistrationTransaction.asset,
 			);
-		});
-	});
-
-	describe('#prepare', () => {
-		it('should call state store with correct params', async () => {
-			await validTestTransaction.prepare(store);
-			// Derive addresses from public keys
-			const mandatoryKeysAddressess = validTestTransaction.asset.mandatoryKeys.map(
-				aKey => ({ address: getAddressFromPublicKey(aKey) }),
-			);
-			const optionalKeysAddressess = validTestTransaction.asset.optionalKeys.map(
-				aKey => ({ address: getAddressFromPublicKey(aKey) }),
-			);
-
-			expect(storeAccountCacheStub).toHaveBeenCalledWith([
-				{ address: validTestTransaction.senderId },
-				...mandatoryKeysAddressess,
-				...optionalKeysAddressess,
-			]);
 		});
 	});
 
@@ -765,7 +743,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 6061f18476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
+				`Failed to validate signature 75d263327c9cfc4ee7aedb881cbca502c592e994d81c5fac2f8bae622e48e481ae0182afbb7678176971b961d74363852d4f3b14ab75d0d3a6065412eba77105`,
 			);
 		});
 
@@ -790,7 +768,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature b6b2f45cd76907948f237599c82eb60341ceca0ce36a0e92853156639002e2df22548ca98988c6560d7dd25de732ac48c2a5da7e35cfaa064c9759d9b0e71b01`,
+				`Failed to validate signature 9466db88667a705831330b6987efc33e84de04dab1968f3b649feb093dfa3373675603d7d2257cd92344a9a959acf2897e2216c1069942fe640b284acc98e60d`,
 			);
 		});
 

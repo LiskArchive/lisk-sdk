@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 module.exports = ({ channel }, { wsServer }) => {
 	channel.subscribe('app:round:change', event => {

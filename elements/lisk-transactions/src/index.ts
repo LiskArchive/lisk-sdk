@@ -19,11 +19,7 @@ import { VoteTransaction } from './13_vote_transaction';
 import { UnlockTransaction } from './14_unlock_transaction';
 import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
+import { BaseTransaction, StateStore } from './base_transaction';
 import { castVotes } from './cast_votes';
 import * as constants from './constants';
 import {
@@ -46,7 +42,6 @@ import {
 	getId,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	validateMultisignatures,
 	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyMinRemainingBalance,
@@ -60,7 +55,6 @@ const exposedUtils = {
 	convertLSKToBeddows,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	validateMultisignatures,
 	validateSignature,
 	verifyMinRemainingBalance,
 	validateSenderIdAndPublicKey,
@@ -72,7 +66,6 @@ export {
 	Account,
 	BaseTransaction,
 	StateStore,
-	StateStorePrepare,
 	TransferTransaction,
 	transfer,
 	DelegateTransaction,

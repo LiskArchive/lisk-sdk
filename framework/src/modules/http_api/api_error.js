@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 class ApiError extends Error {
 	constructor(message, code, errors = []) {

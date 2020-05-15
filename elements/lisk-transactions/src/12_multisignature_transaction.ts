@@ -16,18 +16,13 @@
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	hash,
 	hexToBuffer,
 	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
+import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { TransactionJSON } from './transaction_types';
@@ -101,20 +96,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
 		this.asset = (tx.asset ?? {}) as MultiSignatureAsset;
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const membersAddresses = [
-			...this.asset.mandatoryKeys,
-			...this.asset.optionalKeys,
-		].map(publicKey => ({ address: getAddressFromPublicKey(publicKey) }));
-
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			...membersAddresses,
-		]);
 	}
 
 	// Verifies multisig signatures as per LIP-0017
@@ -219,7 +200,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		]);
 
 		this.signatures.push(
-			signData(hash(transactionWithNetworkIdentifierBytes), senderPassphrase),
+			signData(transactionWithNetworkIdentifierBytes, senderPassphrase),
 		);
 
 		// Sign with members
@@ -234,7 +215,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
-						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+						signData(transactionWithNetworkIdentifierBytes, passphrase),
 					);
 				} else {
 					// Push an empty signature if a passphrase is missing

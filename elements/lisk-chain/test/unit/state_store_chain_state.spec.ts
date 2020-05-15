@@ -11,12 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { KVStore, BatchChain } from '@liskhq/lisk-db';
+import { when } from 'jest-when';
 import { StateStore } from '../../src';
-import { StorageTransaction, BlockHeader } from '../../src/types';
+import { DataAccess } from '../../src/data_access';
+import { BlockHeader } from '../../src/types';
+
+jest.mock('@liskhq/lisk-db');
 
 describe('state store / chain_state', () => {
 	let stateStore: StateStore;
-	let storageStub: any;
+	let db: any;
 
 	const lastBlockHeaders = ([
 		{ height: 30 },
@@ -24,16 +29,14 @@ describe('state store / chain_state', () => {
 	] as unknown) as ReadonlyArray<BlockHeader>;
 
 	beforeEach(() => {
-		storageStub = {
-			entities: {
-				ChainState: {
-					get: jest.fn(),
-					getKey: jest.fn(),
-					setKey: jest.fn(),
-				},
-			},
-		};
-		stateStore = new StateStore(storageStub, {
+		db = new KVStore('temp');
+		const dataAccess = new DataAccess({
+			db,
+			maxBlockHeaderCache: 505,
+			minBlockHeaderCache: 309,
+			registeredTransactions: {},
+		});
+		stateStore = new StateStore(dataAccess, {
 			lastBlockHeaders,
 			networkIdentifier: 'network-identifier-chain-1',
 			lastBlockReward: BigInt(500000000),
@@ -60,46 +63,24 @@ describe('state store / chain_state', () => {
 		});
 	});
 
-	describe('cache', () => {
-		it('should call storage get and store in cache', async () => {
-			// Arrange
-			storageStub.entities.ChainState.get.mockResolvedValue([
-				{ key: 'key1', value: 'value1' },
-				{ key: 'key2', value: 'value2' },
-			]);
-			// Act
-			await stateStore.chain.cache();
-			// Assert
-			expect(await stateStore.chain.get('key1')).toBe('value1');
-			expect(await stateStore.chain.get('key2')).toBe('value2');
-		});
-	});
-
 	describe('get', () => {
 		it('should get value from cache', async () => {
 			// Arrange
-			storageStub.entities.ChainState.get.mockResolvedValue([
-				{ key: 'key1', value: 'value1' },
-				{ key: 'key2', value: 'value2' },
-			]);
-			await stateStore.chain.cache();
+			stateStore.chain.set('key1', 'value1');
+			when(db.get)
+				.calledWith('chain:key1')
+				.mockResolvedValue('value5' as never);
 			// Act & Assert
 			expect(await stateStore.chain.get('key1')).toEqual('value1');
 		});
 
 		it('should try to get value from database if not in cache', async () => {
 			// Arrange
-			storageStub.entities.ChainState.get.mockResolvedValue([
-				{ key: 'key1', value: 'value1' },
-				{ key: 'key2', value: 'value2' },
-			]);
-			await stateStore.chain.cache();
-			// Act
-			await stateStore.chain.get('key3');
-			// Assert
-			expect(storageStub.entities.ChainState.getKey.mock.calls[0]).toEqual([
-				'key3',
-			]);
+			when(db.get)
+				.calledWith('chain:key1')
+				.mockResolvedValue('value5' as never);
+			// Act & Assert
+			expect(await stateStore.chain.get('key1')).toEqual('value5');
 		});
 	});
 
@@ -123,45 +104,28 @@ describe('state store / chain_state', () => {
 	});
 
 	describe('finalize', () => {
-		const txStub = {} as StorageTransaction;
+		let batchStub: BatchChain;
 
-		it('should not call storage if nothing is set', async () => {
-			// Act
-			await stateStore.chain.finalize(txStub);
-			// Assert
-			expect(storageStub.entities.ChainState.setKey).not.toHaveBeenCalled();
+		beforeEach(() => {
+			batchStub = { put: jest.fn() } as any;
 		});
 
-		it('should call storage for all the updated keys', async () => {
+		it('should not call storage if nothing is set', () => {
+			// Act
+			stateStore.chain.finalize(batchStub);
+			// Assert
+			expect(batchStub.put).not.toHaveBeenCalled();
+		});
+
+		it('should call storage for all the updated keys', () => {
 			// Act
 			stateStore.chain.set('key3', 'value3');
 			stateStore.chain.set('key3', 'value4');
 			stateStore.chain.set('key4', 'value5');
-			await stateStore.chain.finalize(txStub);
+			stateStore.chain.finalize(batchStub);
 			// Assert
-			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
-				'key3',
-				'value4',
-				txStub,
-			);
-			expect(storageStub.entities.ChainState.setKey).toHaveBeenCalledWith(
-				'key4',
-				'value5',
-				txStub,
-			);
-		});
-
-		it('should handle promise rejection', async () => {
-			// Prepare
-			storageStub.entities.ChainState.setKey.mockImplementation(async () =>
-				Promise.reject(new Error('Fake storage layer error')),
-			);
-			// Act
-			stateStore.chain.set('key3', 'value3');
-			// Assert
-			return expect(stateStore.chain.finalize(txStub)).rejects.toThrow(
-				'Fake storage layer error',
-			);
+			expect(batchStub.put).toHaveBeenCalledWith('chain:key3', 'value4');
+			expect(batchStub.put).toHaveBeenCalledWith('chain:key4', 'value5');
 		});
 	});
 });

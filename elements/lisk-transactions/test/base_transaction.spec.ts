@@ -747,7 +747,7 @@ describe.skip('Base transaction class', () => {
 			]);
 
 			const validSignature = cryptography.signData(
-				cryptography.hash(bytesToBeSigned),
+				bytesToBeSigned,
 				account.passphrase,
 			);
 
@@ -770,12 +770,12 @@ describe.skip('Base transaction class', () => {
 			]);
 
 			const firstSignature = cryptography.signData(
-				cryptography.hash(bytesToBeSigned),
+				bytesToBeSigned,
 				members.mandatoryOne.passphrase,
 			);
 
 			const secondSignature = cryptography.signData(
-				cryptography.hash(bytesToBeSigned),
+				bytesToBeSigned,
 				members.mandatoryTwo.passphrase,
 			);
 

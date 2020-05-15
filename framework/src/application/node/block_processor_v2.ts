@@ -440,12 +440,10 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		return {
 			...block,
 			blockSignature: signDataWithPrivateKey(
-				hash(
-					Buffer.concat([
-						Buffer.from(this.networkIdentifier, 'hex'),
-						getBytes(block),
-					]),
-				),
+				Buffer.concat([
+					Buffer.from(this.networkIdentifier, 'hex'),
+					getBytes(block),
+				]),
 				keypair.privateKey,
 			),
 		};

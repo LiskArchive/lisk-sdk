@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const faker = require('faker');
 const _ = require('lodash');

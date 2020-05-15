@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const path = require('path');
 const {
@@ -39,7 +38,7 @@ if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
 	appConfig.protocolVersion = process.env.PROTOCOL_VERSION;
 }
 
-const network = process.env.LISK_NETWORK || 'devnet';
+const network = process.env.LISK_NETWORK ?? 'devnet';
 
 try {
 	// TODO: I would convert config.json to .JS
@@ -62,7 +61,7 @@ try {
 	}
 
 	// To run multiple applications for same network for integration tests
-	config.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
+	config.label = `lisk-devnet-${config.network.wsPort}`;
 
 	app = new Application(genesisBlock, config);
 } catch (e) {

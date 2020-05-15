@@ -15,11 +15,7 @@
 import { intToBuffer, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { isNumberString, validator } from '@liskhq/lisk-validator';
 
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
+import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
@@ -109,20 +105,6 @@ export class VoteTransaction extends BaseTransaction {
 				amount: vote.amount.toString(),
 			})),
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		const addressArray = this.asset.votes.map(vote => ({
-			address: vote.delegateAddress,
-		}));
-		const filterArray = [
-			{
-				address: this.senderId,
-			},
-			...addressArray,
-		];
-
-		await store.account.cache(filterArray);
 	}
 
 	protected assetToBytes(): Buffer {

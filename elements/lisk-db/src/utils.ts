@@ -15,11 +15,17 @@
 export const formatInt = (num: number | bigint): string => {
 	let buf: Buffer;
 	if (typeof num === 'bigint') {
+		if (num < BigInt(0)) {
+			throw new Error('Negative number cannot be formatted');
+		}
 		buf = Buffer.alloc(8);
-		buf.writeBigInt64BE(num);
+		buf.writeBigUInt64BE(num);
 	} else {
+		if (num < 0) {
+			throw new Error('Negative number cannot be formatted');
+		}
 		buf = Buffer.alloc(4);
-		buf.writeInt32BE(num);
+		buf.writeUInt32BE(num);
 	}
 	return buf.toString('binary');
 };

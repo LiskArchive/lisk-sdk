@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { when } from 'jest-when';
+import { Readable } from 'stream';
 import {
 	transfer,
 	castVotes,
@@ -19,13 +21,15 @@ import {
 	registerDelegate,
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { Chain, GenesisBlockJSON } from '../../src';
+import { Chain } from '../../src';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 import { registeredTransactions } from '../utils/registered_transactions';
 
 jest.mock('events');
+jest.mock('@liskhq/lisk-db');
 
 describe('blocks/transactions', () => {
 	const constants = {
@@ -49,45 +53,15 @@ describe('blocks/transactions', () => {
 	);
 
 	let chainInstance: Chain;
-	let storageStub: any;
+	let db: any;
 
 	beforeEach(() => {
-		storageStub = {
-			entities: {
-				Account: {
-					get: jest.fn(),
-					getOne: jest.fn(),
-					update: jest.fn(),
-				},
-				Block: {
-					begin: jest.fn(),
-					create: jest.fn(),
-					count: jest.fn(),
-					getOne: jest.fn(),
-					delete: jest.fn(),
-					get: jest.fn(),
-					isPersisted: jest.fn(),
-				},
-				Transaction: {
-					get: jest.fn(),
-					create: jest.fn(),
-				},
-				TempBlock: {
-					create: jest.fn(),
-					delete: jest.fn(),
-					get: jest.fn(),
-				},
-			},
-		};
-
-		storageStub.entities.Block.get.mockResolvedValue([
-			{ height: 40 },
-			{ height: 39 },
-		]);
+		db = new KVStore('temp');
+		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 
 		chainInstance = new Chain({
-			storage: storageStub,
-			genesisBlock: genesisBlock as GenesisBlockJSON,
+			db,
+			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
 			...constants,
@@ -102,16 +76,20 @@ describe('blocks/transactions', () => {
 		describe('when transactions include not allowed transaction based on the context', () => {
 			it('should return transaction which are allowed', async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000000000' },
-				]);
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '1000000000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
-						recipientId: 'a28d5e34007fd8fe6d7903044eb23a60fdad3c00',
-						amount: '100',
+						recipientId: '123L',
+						amount: '10000000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -149,11 +127,13 @@ describe('blocks/transactions', () => {
 		describe('when transactions include not applicable transaction', () => {
 			it('should return transaction which are applicable', async () => {
 				// Arrange
-				storageStub.entities.Account.get
-					.mockResolvedValueOnce([
-						{ address: genesisAccount.address, balance: '210000000' },
-					])
-					.mockResolvedValue([]);
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '210000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -194,26 +174,30 @@ describe('blocks/transactions', () => {
 
 			beforeEach(async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000' },
-				]);
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '10000000000000',
+					} as never);
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: 'a28d5e34007fd8fe6d7903044eb23a60fdad3c00',
-						amount: '100',
+						amount: '100000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
 				validTx2 = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
-						nonce: '0',
+						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: 'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-						amount: '100',
+						amount: '100000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -245,9 +229,12 @@ describe('blocks/transactions', () => {
 		describe('when transactions include not allowed transaction based on the context', () => {
 			it('should return transaction response corresponds to the setup', async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000000000' },
-				]);
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '10000000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
@@ -301,9 +288,12 @@ describe('blocks/transactions', () => {
 		describe('when transactions include invalid transaction', () => {
 			it('should return transaction response corresponds to the setup', async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000000000' },
-				]);
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '10000000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -352,9 +342,12 @@ describe('blocks/transactions', () => {
 
 			beforeEach(async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000' },
-				]);
+				when(db.get)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '100000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -403,17 +396,20 @@ describe('blocks/transactions', () => {
 		describe('when transactions include not allowed transaction based on the context', () => {
 			it('should return transaction response corresponds to the setup', async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '10000000000' },
-				]);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '100000000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: 'a28d5e34007fd8fe6d7903044eb23a60fdad3c00',
-						amount: '100',
+						amount: '100000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -460,16 +456,20 @@ describe('blocks/transactions', () => {
 		describe('when transactions include existing transaction in database', () => {
 			it('should return status FAIL for the existing transaction', async () => {
 				// Arrange
-				storageStub.entities.Account.get.mockResolvedValue([
-					{ address: genesisAccount.address, balance: '100000000' },
-				]);
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
+						address: genesisAccount.address,
+						balance: '10000000000',
+					} as never);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: 'a28d5e34007fd8fe6d7903044eb23a60fdad3c00',
-						amount: '100',
+						amount: '100000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
@@ -479,13 +479,14 @@ describe('blocks/transactions', () => {
 						nonce: '0',
 						passphrase: genesisAccount.passphrase,
 						recipientId: 'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-						amount: '100',
+						amount: '100000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);
-				storageStub.entities.Transaction.get.mockResolvedValue([
-					validTx2.toJSON(),
-				]);
+				when(db.exists)
+					.mockResolvedValue(false as never)
+					.calledWith(`transactions:id:${validTx2.id}`)
+					.mockResolvedValue(true as never);
 				// Act
 				const transactionsResponses = await chainInstance.applyTransactions([
 					validTx,
@@ -527,15 +528,18 @@ describe('blocks/transactions', () => {
 						'2c638a3b2fccbde21b6773a595e2abf697fbda1a5b8495f040f79a118e0b291c',
 					username: 'genesis_201',
 				};
-				storageStub.entities.Account.get.mockResolvedValue([
-					{
+				when(db.get)
+					.mockRejectedValue(new NotFoundError('data not found') as never)
+					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.mockResolvedValue({
 						address: genesisAccount.address,
 						balance: '10000000000',
-					},
-					delegate1,
-					delegate2,
-				]);
-				storageStub.entities.Transaction.get.mockResolvedValue([]);
+					} as never)
+					.calledWith(`accounts:address:${delegate1.address}`)
+					.mockResolvedValue(delegate1 as never)
+					.calledWith(`accounts:address:${delegate2.address}`)
+					.mockResolvedValue(delegate2 as never);
+				(db.exists as jest.Mock).mockResolvedValue(false as never);
 				// Act
 				const validTx = chainInstance.deserializeTransaction(
 					castVotes({
@@ -561,7 +565,7 @@ describe('blocks/transactions', () => {
 						nonce: '1',
 						passphrase: genesisAccount.passphrase,
 						recipientId: 'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
-						amount: '100',
+						amount: '100000000',
 						networkIdentifier,
 					}) as TransactionJSON,
 				);

@@ -189,10 +189,6 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
-		rebuildUpToRound: {
-			type: ['integer', 'null'],
-			arg: '--rebuild,-b',
-		},
 		network: {
 			type: 'object',
 			properties: {
@@ -313,28 +309,15 @@ export const applicationConfigSchema = {
 		},
 		components: {
 			type: 'object',
-			required: ['logger', 'cache', 'storage'],
+			required: ['logger'],
 			properties: {
 				logger: {
-					type: 'object',
-				},
-				cache: {
-					type: 'object',
-				},
-				storage: {
 					type: 'object',
 				},
 			},
 		},
 		modules: {
 			type: 'object',
-			required: ['http_api'],
-			properties: {
-				// eslint-disable-next-line @typescript-eslint/camelcase
-				http_api: {
-					type: 'object',
-				},
-			},
 		},
 	},
 	additionalProperties: false,
@@ -364,7 +347,6 @@ export const applicationConfigSchema = {
 				distance: 3000000, // Distance between each milestone
 			},
 		},
-		rebuildUpToRound: null,
 		forging: {
 			force: false,
 			waitThreshold: 2,
@@ -376,12 +358,7 @@ export const applicationConfigSchema = {
 		},
 		components: {
 			logger: {},
-			cache: {},
-			storage: {},
 		},
-		modules: {
-			// eslint-disable-next-line @typescript-eslint/camelcase
-			http_api: {},
-		},
+		modules: {},
 	},
 };

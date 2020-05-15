@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Storage, StorageTransaction } from '../types';
-
+import { BatchChain } from '@liskhq/lisk-db';
+import { BlockHeader } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
 import { ConsensusStateStore } from './consensus_state_store';
+import { DataAccess } from '../data_access';
 
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
@@ -30,14 +31,14 @@ export class StateStore {
 	public readonly consensus: ConsensusStateStore;
 
 	public constructor(
-		storage: Storage,
+		dataAccess: DataAccess,
 		additionalInformation: AdditionalInformation,
 	) {
-		this.account = new AccountStore(storage.entities.Account);
-		this.consensus = new ConsensusStateStore(storage.entities.ConsensusState, {
+		this.account = new AccountStore(dataAccess);
+		this.consensus = new ConsensusStateStore(dataAccess, {
 			lastBlockHeaders: additionalInformation.lastBlockHeaders,
 		});
-		this.chain = new ChainStateStore(storage.entities.ChainState, {
+		this.chain = new ChainStateStore(dataAccess, {
 			lastBlockHeader: additionalInformation.lastBlockHeaders[0],
 			networkIdentifier: additionalInformation.networkIdentifier,
 			lastBlockReward: additionalInformation.lastBlockReward,
@@ -56,11 +57,9 @@ export class StateStore {
 		this.chain.restoreSnapshot();
 	}
 
-	public async finalize(tx: StorageTransaction): Promise<void> {
-		await Promise.all([
-			this.account.finalize(tx),
-			this.chain.finalize(tx),
-			this.consensus.finalize(tx),
-		]);
+	public finalize(batch: BatchChain): void {
+		this.account.finalize(batch);
+		this.chain.finalize(batch);
+		this.consensus.finalize(batch);
 	}
 }

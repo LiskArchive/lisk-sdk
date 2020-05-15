@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const { createLoggerComponent } = require('../../components/logger');
 const {
@@ -21,7 +20,9 @@ const {
 	CACHE_KEYS_DELEGATES,
 	CACHE_KEYS_TRANSACTIONS,
 	CACHE_KEYS_TRANSACTION_COUNT,
+	// eslint-disable-next-line
 } = require('../../components/cache');
+// eslint-disable-next-line
 const { createStorageComponent } = require('../../components/storage');
 const {
 	bootstrapStorage,
@@ -165,6 +166,7 @@ module.exports = class HttpApi {
 			this.scope.components.cache &&
 			this.scope.components.cache.isReady()
 		) {
+			// eslint-disable-next-line
 			const tasks = cacheKeysToClear.map(async key =>
 				this.scope.components.cache.removeByPattern(key),
 			);

@@ -186,7 +186,7 @@ describe('#sign multi signature transaction', () => {
 			expect(txSignedByMember.signatures).toStrictEqual([
 				'',
 				'',
-				'd2ffc20a79de3c44e26f8b28a986e098841d9fe4212237820992645d48faa2dff3bfcc8089cdf3afc819ba3fdbf3234e5b419ff47d303daa44ba7338dfe4fc06',
+				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
 				'',
 			]);
 		});

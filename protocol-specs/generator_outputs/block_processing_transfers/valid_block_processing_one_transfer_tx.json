@@ -37,7 +37,7 @@
 								}
 							],
 							"payloadHash": "123d64444b4b1bbfba75b499238cee9341f82e87047df78a2b414629a03e0e63",
-							"blockSignature": "298092da8fd4cf4c9d03a9c717bcb81274bbf34e0e6e7039cce162ca266551160d4566e509143c2f109c3bf7fd43edf4551565039e3ed73e474e511ac23ddc04",
+							"blockSignature": "d5140a97ade7cd2a6f624c40970988d4b73f7c9a21abf28e96f87fdbec43aeeecac41f83f93be3c4379160452a06d263235811503596b513faeed8b7c99f8c07",
 							"height": 2
 						}
 					],
@@ -109,7 +109,7 @@
 					}
 				],
 				"payloadHash": "702d068f79ae56bc591c5e01b090df97ee71a593bdfb78a7e203d8c582d18e3f",
-				"blockSignature": "189c7e0b4fbc73c19700a8b23e080110d280b1d2f2f1926abb98183a57939c3b292c672e169370dbbe98c4297c83a12f90c10775624626fb065d25e0b6c83f00",
+				"blockSignature": "ad8ab7ddfb2a58777f4a592d95f635b7395adf6d02afe07c45ae0cdafae0f21038caa585b0090556fadef676df702b8d23dfaded15492b30039bb40ae46dbf04",
 				"height": 3
 			},
 			"output": {
@@ -140,7 +140,7 @@
 							}
 						],
 						"payloadHash": "123d64444b4b1bbfba75b499238cee9341f82e87047df78a2b414629a03e0e63",
-						"blockSignature": "298092da8fd4cf4c9d03a9c717bcb81274bbf34e0e6e7039cce162ca266551160d4566e509143c2f109c3bf7fd43edf4551565039e3ed73e474e511ac23ddc04",
+						"blockSignature": "d5140a97ade7cd2a6f624c40970988d4b73f7c9a21abf28e96f87fdbec43aeeecac41f83f93be3c4379160452a06d263235811503596b513faeed8b7c99f8c07",
 						"height": 2
 					},
 					{
@@ -168,7 +168,7 @@
 							}
 						],
 						"payloadHash": "702d068f79ae56bc591c5e01b090df97ee71a593bdfb78a7e203d8c582d18e3f",
-						"blockSignature": "189c7e0b4fbc73c19700a8b23e080110d280b1d2f2f1926abb98183a57939c3b292c672e169370dbbe98c4297c83a12f90c10775624626fb065d25e0b6c83f00",
+						"blockSignature": "ad8ab7ddfb2a58777f4a592d95f635b7395adf6d02afe07c45ae0cdafae0f21038caa585b0090556fadef676df702b8d23dfaded15492b30039bb40ae46dbf04",
 						"height": 3
 					}
 				],

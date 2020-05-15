@@ -12,16 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-const { storageConfig } = require('./config_storage');
-const { cacheConfig } = require('./config_cache');
 const { constantsConfig } = require('./config_constants');
 const { nodeConfig } = require('./config_node');
 
 module.exports = {
-	storageConfig,
-	cacheConfig,
 	constantsConfig,
 	nodeConfig,
 };

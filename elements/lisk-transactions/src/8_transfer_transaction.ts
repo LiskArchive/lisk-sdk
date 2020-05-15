@@ -22,11 +22,8 @@ import {
 	isValidTransferAmount,
 	validator,
 } from '@liskhq/lisk-validator';
-import {
-	BaseTransaction,
-	StateStore,
-	StateStorePrepare,
-} from './base_transaction';
+
+import { BaseTransaction, StateStore } from './base_transaction';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
@@ -97,17 +94,6 @@ export class TransferTransaction extends BaseTransaction {
 			amount: this.asset.amount.toString(),
 			recipientId: this.asset.recipientId,
 		};
-	}
-
-	public async prepare(store: StateStorePrepare): Promise<void> {
-		await store.account.cache([
-			{
-				address: this.senderId,
-			},
-			{
-				address: this.asset.recipientId,
-			},
-		]);
 	}
 
 	protected assetToBytes(): Buffer {

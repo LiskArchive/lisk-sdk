@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const { storageConfig, cacheConfig } = require('./configs');
 

@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const { Mnemonic } = require('@liskhq/lisk-passphrase');
 const {

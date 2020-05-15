@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const randomstring = require('randomstring');
 const { transfer } = require('@liskhq/lisk-transactions');
@@ -34,7 +33,9 @@ const random = {};
 
 // Returns a random number between min (inclusive) and max (exclusive)
 random.number = function(min, max) {
+	// eslint-disable-next-line no-param-reassign
 	min = Math.ceil(min);
+	// eslint-disable-next-line no-param-reassign
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min)) + min;
 };
@@ -146,7 +147,9 @@ random.password = function() {
 
 const convertToBigInt = transactions =>
 	transactions.forEach(transaction => {
+		// eslint-disable-next-line no-param-reassign
 		transaction.amount = BigInt(transaction.amount);
+		// eslint-disable-next-line no-param-reassign
 		transaction.fee = BigInt(transaction.fee);
 	});
 

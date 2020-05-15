@@ -50,7 +50,6 @@ describe('Transfer transaction class', () => {
 
 		store = new StateStoreMock([sender, recipient]);
 
-		jest.spyOn(store.account, 'cache');
 		jest.spyOn(store.account, 'get');
 		jest.spyOn(store.account, 'getOrDefault');
 		jest.spyOn(store.account, 'set');
@@ -88,18 +87,7 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	describe('#prepare', () => {
-		it('should call state store', async () => {
-			await validTransferTestTransaction.prepare(store);
-			expect(store.account.cache).toHaveBeenCalledWith([
-				{ address: validTransferTestTransaction.senderId },
-				{ address: validTransferTestTransaction.asset.recipientId },
-			]);
-		});
-	});
-
-	// TODO: Update after updating protocol-specs
-	describe.skip('#validateAsset', () => {
+	describe('#validateAsset', () => {
 		it('should return no errors with a valid transfer transaction', () => {
 			const errors = (validTransferTestTransaction as any).validateAsset();
 			expect(Object.keys(errors)).toHaveLength(0);
@@ -311,8 +299,7 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	// TODO: Update after updating protocol-specs
-	describe.skip('#signAll', () => {
+	describe('#signAll', () => {
 		const { transaction, account, networkIdentifier } = validTransferInput;
 		let validTransferInstance: BaseTransaction;
 		beforeEach(() => {

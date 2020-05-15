@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const createBlock = async (node, transactions = [], options = {}) => {
 	const lastBlock = options.lastBlock

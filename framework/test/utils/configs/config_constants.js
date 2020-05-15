@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const constantsConfig = (overriddenConfigProperties = {}) => ({
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
@@ -31,7 +30,6 @@ const constantsConfig = (overriddenConfigProperties = {}) => ({
 	},
 	activeDelegates: 101,
 	maxPayloadLength: 15 * 1024,
-	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: '10000000000000000',
 	...overriddenConfigProperties,
 });

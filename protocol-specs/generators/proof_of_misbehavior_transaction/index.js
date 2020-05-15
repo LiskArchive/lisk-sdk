@@ -123,9 +123,7 @@ const getBytes = block => {
 
 const sign = (block, privateKey) =>
 	signDataWithPrivateKey(
-		hash(
-			Buffer.concat([Buffer.from(networkIdentifier, 'hex'), getBytes(block)]),
-		),
+		Buffer.concat([Buffer.from(networkIdentifier, 'hex'), getBytes(block)]),
 		Buffer.from(privateKey, 'hex'),
 	);
 
@@ -160,7 +158,7 @@ const serialize = tx => {
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		account.passphrase,
 	),
 });

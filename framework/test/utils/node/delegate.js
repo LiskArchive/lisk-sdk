@@ -13,7 +13,6 @@
  *
  */
 
-'use strict';
 
 const getDelegateList = async (chainModule, round) =>
 	chainModule._dpos.getForgerAddressesForRound(round);
