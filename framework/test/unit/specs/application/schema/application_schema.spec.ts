@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as applicationSchema from '../../../../../src/application/schema/application_config_schema';
 
-const constantsSchema = require('../../../../../src/application/schema/constants_schema');
-
-describe('schema/constants_schema.js', () => {
-	it('constants schema must match to the snapshot.', () => {
-		expect(constantsSchema).toMatchSnapshot();
+describe('schema/application_config_schema.js', () => {
+	it('application config schema must match to the snapshot.', () => {
+		expect(applicationSchema).toMatchSnapshot();
 	});
 });

@@ -112,8 +112,8 @@ export const BlockHeader = stampit.compose({
 			randomstring
 				.generate({ charset: '0123456789ABCDE', length: 64 })
 				.toLowerCase();
-		this.delegateMinHeightActive = delegateMinHeightActive || 1;
-		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged || 0;
-		this.maxHeightPrevoted = maxHeightPrevoted || 0;
+		this.delegateMinHeightActive = delegateMinHeightActive ?? 1;
+		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged ?? 0;
+		this.maxHeightPrevoted = maxHeightPrevoted ?? 0;
 	},
 });

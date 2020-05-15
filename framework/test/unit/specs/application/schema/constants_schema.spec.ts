@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as constantsSchema from '../../../../../src/application/schema/constants_schema';
 
-const genesisBlockSchema = require('../../../../../src/application/schema/genesis_block_schema');
-
-describe('schema/genesis_block_schema.js', () => {
-	it('genesis block schema must match to the snapshot.', () => {
-		expect(genesisBlockSchema).toMatchSnapshot();
+describe('schema/constants_schema.js', () => {
+	it('constants schema must match to the snapshot.', () => {
+		expect(constantsSchema).toMatchSnapshot();
 	});
 });
