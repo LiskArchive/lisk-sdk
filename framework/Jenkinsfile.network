@@ -31,7 +31,6 @@ pipeline {
 		stage('Build') {
 			steps {
 				ansiColor('xterm') {
-					sh 'sudo service postgresql restart'
 					nvm(getNodejsVersion()) {
 						sh '''
 						npm ci
