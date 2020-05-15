@@ -25,7 +25,7 @@
 			],
 			"asset": {
 				"amount": "10000000000000000",
-				"recipientId": "5059876081639179984L"
+				"recipientId": "d04699e57c4a3846c988f3c15306796f8eae5c1c"
 			}
 		},
 		{
@@ -1425,7 +1425,7 @@
 			],
 			"asset": {
 				"amount": "1000000000000",
-				"recipientId": "16936666638951007157L"
+				"recipientId": "b543e2e592200beb38235f6e48f8abe1d87ad872"
 			}
 		},
 		{
@@ -4603,7 +4603,7 @@
 			"asset": {
 				"votes": [
 					{
-						"delegateAddress": "16936666638951007157L",
+						"delegateAddress": "b543e2e592200beb38235f6e48f8abe1d87ad872",
 						"amount": "1000000000000"
 					}
 				]

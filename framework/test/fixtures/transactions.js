@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 const randomstring = require('randomstring');
 const faker = require('faker');
 const stampit = require('stampit');
@@ -27,7 +26,7 @@ const Transaction = stampit({
 		nonce: '3',
 		senderPublicKey:
 			'ac81bb5fa789776e26120202e0c996eae6c1987055a1d837db3dc0f621ceeb66',
-		senderId: '2525786814299543383L',
+		senderId: '5797b0b4b9650d232cc919651f23e592746e3914',
 		fee: '20000000',
 		signatures: [
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
@@ -49,7 +48,7 @@ const Transaction = stampit({
 			case 8:
 				this.asset.data = randomstring.generate({ length: 64 });
 				this.asset.amount = '112340000';
-				this.asset.recipientId = '5059876081639179984L';
+				this.asset.recipientId = 'd04699e57c4a3846c988f3c15306796f8eae5c1c';
 				break;
 
 			// signature
@@ -87,7 +86,7 @@ const Transaction = stampit({
 					}),
 				];
 				this.asset.amount = '112340000';
-				this.asset.recipientId = '5059876081639179984L';
+				this.asset.recipientId = 'd04699e57c4a3846c988f3c15306796f8eae5c1c';
 				break;
 
 			// multi

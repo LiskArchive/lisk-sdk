@@ -54,7 +54,7 @@ describe('transport', () => {
 			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
-			recipientId: '12668885769632475474L',
+			recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 			passphrase: genesis.passphrase,
 		});
 		const transactionOne = transfer({
@@ -62,7 +62,7 @@ describe('transport', () => {
 			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
-			recipientId: '12668885769632475474L',
+			recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 			passphrase: genesis.passphrase,
 		});
 		const transactionTwo = transfer({
@@ -70,7 +70,7 @@ describe('transport', () => {
 			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
-			recipientId: '12668885769632475474L',
+			recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 			passphrase: genesis.passphrase,
 		});
 
@@ -445,7 +445,7 @@ describe('transport', () => {
 						fee: '10',
 						senderPublicKey:
 							'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-						recipientId: '12668885769632475474L',
+						recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 						timestamp: 28227090,
 						asset: {},
 						signature:

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 const stampit = require('stampit');
 const randomstring = require('randomstring');
 
@@ -20,7 +19,7 @@ const accounts = {};
 
 // Existing delegate account
 accounts.existingDelegate = {
-	address: '16936666638951007157L',
+	address: 'b543e2e592200beb38235f6e48f8abe1d87ad872',
 	publicKey: 'c0ebb5ae59f498718ac5038b6b83fd822b4d1def918c66c05f1709a418a5cf70',
 	passphrase:
 		'slight wire team gravity finger soul reopen anchor evolve genius charge sing',
@@ -30,7 +29,7 @@ accounts.existingDelegate = {
 
 // Genesis account, initially holding 100M total supply
 accounts.genesis = {
-	address: '5059876081639179984L',
+	address: 'd04699e57c4a3846c988f3c15306796f8eae5c1c',
 	publicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 	passphrase:
 		'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready',
