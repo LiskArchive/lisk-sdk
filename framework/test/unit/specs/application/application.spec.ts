@@ -191,12 +191,12 @@ describe('Application', () => {
 			expect(app['_transactions']).toBeInstanceOf(Object);
 		});
 
-		it('should initialize logger', () => {
+		it('should not initialize logger', () => {
 			// Act
 			const app = new Application(genesisBlock, config);
 
 			// Assert
-			expect(app.logger).toBe(loggerMock);
+			expect(app.logger).toBeUndefined();
 		});
 
 		it('should contain all framework related transactions.', () => {

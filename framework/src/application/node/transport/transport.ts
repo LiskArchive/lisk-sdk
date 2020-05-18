@@ -80,7 +80,6 @@ export class Transport {
 	private readonly _broadcaster: Broadcaster;
 
 	public constructor({
-		// components
 		channel,
 		logger,
 		// Unique requirements

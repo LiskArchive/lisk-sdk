@@ -122,7 +122,6 @@ describe('Node', () => {
 		it('should initialize class properties', () => {
 			expect(node['_logger']).toEqual(stubs.logger);
 			expect(node['_channel']).toEqual(stubs.channel);
-			expect(node['_components']).not.toBeUndefined();
 			expect(node['_sequence']).toBeUndefined();
 		});
 	});

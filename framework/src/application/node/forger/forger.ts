@@ -107,7 +107,6 @@ export class Forger {
 
 	public constructor({
 		forgingStrategy,
-		// components
 		logger,
 		db,
 		// Modules

@@ -135,9 +135,9 @@ export interface ApplicationConfig {
 }
 
 export class Application {
-	public logger: Logger;
 	public config: ApplicationConfig;
 	public constants: NodeConstants;
+	public logger!: Logger;
 
 	private _node!: Node;
 	private _network!: Network;
@@ -191,8 +191,6 @@ export class Application {
 		// Private members
 		this._modules = {};
 		this._transactions = {};
-
-		this.logger = this._initLogger();
 
 		this.registerTransaction(TransferTransaction);
 		this.registerTransaction(DelegateTransaction);
@@ -285,6 +283,21 @@ export class Application {
 	}
 
 	public async run(): Promise<void> {
+		// Freeze every module and configuration so it would not interrupt the app execution
+		this._compileAndValidateConfigurations();
+
+		Object.freeze(this._genesisBlock);
+		Object.freeze(this.constants);
+		Object.freeze(this.config);
+
+		registerProcessHooks(this);
+
+		// Initialize directories
+		await this._setupDirectories();
+
+		// Initialize logger
+		this.logger = this._initLogger();
+		this.logger.info(`Starting the app - ${this.config.label}`);
 		this.logger.info(
 			'If you experience any type of error, please open an issue on Lisk GitHub: https://github.com/LiskHQ/lisk-sdk/issues',
 		);
@@ -293,19 +306,7 @@ export class Application {
 		);
 		this.logger.info(`Booting the application with Lisk Framework(${version})`);
 
-		// Freeze every module and configuration so it would not interrupt the app execution
-		this._compileAndValidateConfigurations();
-
-		Object.freeze(this._genesisBlock);
-		Object.freeze(this.constants);
-		Object.freeze(this.config);
-
-		this.logger.info(`Starting the app - ${this.config.label}`);
-
-		registerProcessHooks(this);
-
-		// Initialize directories
-		await this._setupDirectories();
+		// Validate the instance
 		await this._validatePidFile();
 
 		// Initialize database instances
@@ -338,10 +339,15 @@ export class Application {
 
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 
-		await this._network.cleanup();
-		await this._node.cleanup();
-		await this._forgerDB.close();
-		await this._networkDB.close();
+		try {
+			await this._network.cleanup();
+			await this._node.cleanup();
+			await this._blockchainDB.close();
+			await this._forgerDB.close();
+			await this._networkDB.close();
+		} catch (error) {
+			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
+		}
 
 		process.exit(errorCode);
 	}
@@ -377,8 +383,6 @@ export class Application {
 			});
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
-
-		this.logger.trace(this.config, 'Compiled configurations');
 	}
 
 	private _initLogger(): Logger {
