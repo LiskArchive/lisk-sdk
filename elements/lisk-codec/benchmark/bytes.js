@@ -38,3 +38,8 @@ suite
         console.log(String(event.target));
     })
     .run({ async: true });
+
+/**
+ * Bytes write benchmark results
+ * writeBytes x 2,234,203 ops/sec ±0.68% (89 runs sampled)
+ */
