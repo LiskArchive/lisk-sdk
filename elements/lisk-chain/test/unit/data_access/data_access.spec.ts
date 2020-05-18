@@ -24,7 +24,6 @@ import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { DataAccess } from '../../../src/data_access';
 import { BlockHeader as BlockHeaderInstance } from '../../fixtures/block';
 import { BlockInstance, BlockJSON } from '../../../src/types';
-import { DB_KEY_CHAIN_USERNAMES } from '../../../src/data_access/constants';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -461,130 +460,6 @@ describe('data_access', () => {
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
 			expect(typeof result[0].balance).toEqual('bigint');
-		});
-	});
-
-	describe('#getDelegates', () => {
-		// Arrange
-		const accounts = [
-			{
-				publicKey:
-					'987efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10f568',
-				address: '0082068df000d5b1a274c610e30ea3c2fbff6c86',
-				nonce: '0',
-				balance: '100',
-				isDelegate: false,
-			},
-		];
-		const delegates = [
-			{
-				publicKey:
-					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-				address: 'cc96c0a5db38b968f563e7af6fb435585c889111',
-				nonce: '0',
-				balance: '100',
-				totalVotesReceived: '50',
-				isDelegate: true,
-				username: 'user_50_votes',
-			},
-			{
-				publicKey:
-					'9878707933e4f24888dc1f00c8f84b2642c0edf3d694e2bb5daa7a0d87d1786',
-				address: '9786d1b866933867b01da9afbb619645f89d4f4c',
-				nonce: '0',
-				balance: '200',
-				totalVotesReceived: '600',
-				isDelegate: true,
-				username: 'user_600_votes',
-			},
-			{
-				publicKey:
-					'd468707933e4f24888dc1f00c8f84b2642c0edf3d694e2bb5daa7a0d87d18708',
-				address: '584dd8a902822a9469fb2911fcc14ed5fd98220d',
-				nonce: '0',
-				balance: '300',
-				totalVotesReceived: '200',
-				isDelegate: true,
-				username: 'user_200_votes',
-			},
-		];
-		beforeEach(() => {
-			for (const account of accounts) {
-				when(db.get)
-					.calledWith(`accounts:address:${account.address}`)
-					.mockResolvedValue(account as never);
-			}
-			for (const account of delegates) {
-				when(db.get)
-					.calledWith(`accounts:address:${account.address}`)
-					.mockResolvedValue(account as never);
-			}
-		});
-
-		it('should get all delegates', async () => {
-			// Arrange
-			const registeredDelegates = delegates.map(delegate => ({
-				username: delegate.username,
-				address: delegate.address,
-			}));
-
-			when(db.get)
-				.calledWith(DB_KEY_CHAIN_USERNAMES)
-				.mockResolvedValue({ registeredDelegates } as never);
-
-			// Act
-			const result = await dataAccess.getDelegates();
-
-			// Assert
-			// three calls for delegate accounts and 1 for chain usernames key
-			expect(db.get).toHaveBeenCalledTimes(4);
-			expect(result).toHaveLength(3);
-		});
-
-		it('should get delegates accounts which have registered usernames', async () => {
-			// Arrange
-			const delegate = delegates[1];
-
-			const registeredDelegates = [
-				{ address: delegate.address, username: delegate.username },
-			];
-			when(db.get)
-				.calledWith(DB_KEY_CHAIN_USERNAMES)
-				.mockResolvedValue({ registeredDelegates } as never);
-
-			// Act
-			const result = await dataAccess.getDelegates();
-
-			// Assert
-			// 1 call for delegate account and 1 for chain usernames key
-			expect(db.get).toHaveBeenCalledTimes(2);
-			expect(result).toHaveLength(1);
-			expect(result.map(account => account.username)).toEqual([
-				delegate.username,
-			]);
-		});
-
-		it('should get delegates sorted by totalVotesReceived', async () => {
-			// Arrange
-			const registeredDelegates = delegates.map(delegate => ({
-				username: delegate.username,
-				address: delegate.address,
-			}));
-
-			when(db.get)
-				.calledWith(DB_KEY_CHAIN_USERNAMES)
-				.mockResolvedValue({ registeredDelegates } as never);
-
-			// Act
-			const result = await dataAccess.getDelegates();
-
-			// Assert
-			expect(result).toHaveLength(3);
-			expect(result.map(account => account.username)).toEqual([
-				'user_600_votes',
-				'user_200_votes',
-				'user_50_votes',
-			]);
 		});
 	});
 

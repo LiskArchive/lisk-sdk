@@ -17,14 +17,6 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
-export interface RegisteredDelegate {
-	readonly username: string;
-	readonly address: string;
-}
-export interface ChainUsernames {
-	readonly registeredDelegates: RegisteredDelegate[];
-}
-
 export interface AccountVoteJSON {
 	readonly delegateAddress: string;
 	readonly amount: string;

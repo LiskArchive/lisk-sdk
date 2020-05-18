@@ -22,12 +22,7 @@ import {
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-import {
-	AccountJSON,
-	BlockJSON,
-	BlockHeaderJSON,
-	ChainUsernames,
-} from '../types';
+import { AccountJSON, BlockJSON, BlockHeaderJSON } from '../types';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -38,7 +33,6 @@ import {
 	DB_KEY_ACCOUNTS_ADDRESS,
 	DB_KEY_CHAIN_STATE,
 	DB_KEY_CONSENSUS_STATE,
-	DB_KEY_CHAIN_USERNAMES,
 } from './constants';
 import { StateStore } from '../state_store';
 
@@ -343,29 +337,6 @@ export class Storage {
 			const account = await this.getAccountByAddress(address);
 			accounts.push(account);
 		}
-
-		return accounts;
-	}
-
-	public async getDelegates(): Promise<AccountJSON[]> {
-		// Data format for the registered delegates
-		// chain:usernames => { registeredDelegates: { username, address }[] }
-		const { registeredDelegates }: ChainUsernames = await this._db.get(
-			DB_KEY_CHAIN_USERNAMES,
-		);
-		const accounts = await this.getAccountsByAddress(
-			registeredDelegates.map(delegate => delegate.address),
-		);
-		accounts.sort((a, b) => {
-			const diff = BigInt(b.totalVotesReceived) - BigInt(a.totalVotesReceived);
-			if (diff > BigInt(0)) {
-				return 1;
-			}
-			if (diff < BigInt(0)) {
-				return -1;
-			}
-			return a.address.localeCompare(b.address);
-		});
 
 		return accounts;
 	}
