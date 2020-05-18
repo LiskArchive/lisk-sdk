@@ -15,9 +15,17 @@
 import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { DELEGATE_NAME_FEE } from './constants';
+import { DELEGATE_NAME_FEE, DELEGATE_USERNAME_CHAIN_KEY } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
+
+interface RegisteredDelegate {
+	readonly username: string;
+	readonly address: string;
+}
+interface ChainUsernames {
+	readonly registeredDelegates: RegisteredDelegate[];
+}
 
 export interface DelegateAsset {
 	readonly username: string;
@@ -92,8 +100,31 @@ export class DelegateTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
 
-		const usernameExists = store.account.find(
-			(account: Account) => account.username === this.asset.username,
+		// Data format for the registered delegates
+		// chain:usernames => { registeredDelegates: { username, address }[] }
+		const registeredDelegatesStr = await store.chain.get(
+			DELEGATE_USERNAME_CHAIN_KEY,
+		);
+		const registeredDelegates = registeredDelegatesStr
+			? (JSON.parse(registeredDelegatesStr) as ChainUsernames)
+			: { registeredDelegates: [] };
+		const usernameExists = registeredDelegates.registeredDelegates.find(
+			delegate => delegate.username === this.asset.username,
+		);
+		const updatedRegisteredDelegates = usernameExists
+			? { ...registeredDelegates }
+			: {
+					registeredDelegates: [
+						...registeredDelegates.registeredDelegates,
+						{
+							username: this.asset.username,
+							address: this.senderId,
+						},
+					],
+			  };
+		store.chain.set(
+			DELEGATE_USERNAME_CHAIN_KEY,
+			JSON.stringify(updatedRegisteredDelegates),
 		);
 
 		if (usernameExists) {
@@ -125,10 +156,28 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
+
+		// Data format for the registered delegates
+		// chain:usernames => { registeredDelegates: { username, address }[] }
+		const registeredDelegatesStr = await store.chain.get(
+			DELEGATE_USERNAME_CHAIN_KEY,
+		);
+		const registeredDelegates = registeredDelegatesStr
+			? (JSON.parse(registeredDelegatesStr) as ChainUsernames)
+			: { registeredDelegates: [] };
+		const updatedRegisteredDelegates = {
+			registeredDelegates: registeredDelegates.registeredDelegates.filter(
+				delegate => delegate.username !== sender.username,
+			),
+		};
+		store.chain.set(
+			DELEGATE_USERNAME_CHAIN_KEY,
+			JSON.stringify(updatedRegisteredDelegates),
+		);
+
 		sender.username = null;
 		sender.isDelegate = 0;
 		store.account.set(sender.address, sender);
-
 		return [];
 	}
 }
