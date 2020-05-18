@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { hexToBuffer } from '@liskhq/lisk-cryptography';
+import { hexToBuffer, verifyChecksum } from '@liskhq/lisk-cryptography';
 import {
 	gte as isVersionGte,
 	gtr as isGreaterThanVersionInRange,
@@ -201,6 +201,40 @@ export const validateAddress = (address: string): boolean => {
 
 	if (!isHexString(address)) {
 		throw new Error('Address is not a valid hex string.');
+	}
+
+	return true;
+};
+
+const BASE32_ADDRESS_LENGTH = 41;
+const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+
+export const validateBase32Address = (address: string): boolean => {
+	if (address.length !== BASE32_ADDRESS_LENGTH) {
+		throw new Error(
+			'Address length does not match requirements. Expected 41 characters.',
+		);
+	}
+
+	const prefix = address.substring(0, 3);
+
+	if (prefix !== 'lsk') {
+		throw new Error('Invalid prefix. Expected prefix: `lsk`');
+	}
+	const addressSubstringArray = address.substring(3).split('');
+
+	if (!addressSubstringArray.every(char => BASE32_CHARSET.includes(char))) {
+		throw new Error(
+			`Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.`,
+		);
+	}
+
+	const integerSequence = addressSubstringArray.map(char =>
+		BASE32_CHARSET.indexOf(char),
+	);
+
+	if (!verifyChecksum(integerSequence)) {
+		throw new Error(`Invalid checksum for address.`);
 	}
 
 	return true;

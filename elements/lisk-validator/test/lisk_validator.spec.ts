@@ -248,7 +248,9 @@ describe('validator', () => {
 
 		it('should validate to true when valid address is provided', () => {
 			expect(
-				validator.validate(addressSchema, { target: '14815133512790761431L' }),
+				validator.validate(addressSchema, {
+					target: '66687aadf862bd776c8fc18b8e9f8e2008971485',
+				}),
 			).toEqual([]);
 		});
 

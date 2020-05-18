@@ -119,6 +119,9 @@ export const createChecksum = (uint5Array: number[]): number[] => {
 	return result;
 };
 
+export const verifyChecksum = (integerSequence: number[]): boolean =>
+	polymod(integerSequence) === 1;
+
 export const getBinaryAddressFromPublicKey = (publicKey: string): Buffer => {
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
 	return hash(publicKeyBuffer).slice(0, 20);
@@ -129,7 +132,7 @@ export const getBase32AddressFromPublicKey = (
 	prefix: string,
 ): string => {
 	const binaryAddress = getBinaryAddressFromPublicKey(publicKey);
-	const uint5Address = convertUIntArray(Uint8Array.from(binaryAddress), 8, 5);
+	const uint5Address = convertUIntArray([...binaryAddress], 8, 5);
 	const uint5Checksum = createChecksum(uint5Address);
 	return `${prefix}${convertUInt5ToBase32(uint5Address.concat(uint5Checksum))}`;
 };
