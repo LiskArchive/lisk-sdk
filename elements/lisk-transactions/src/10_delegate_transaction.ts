@@ -102,30 +102,24 @@ export class DelegateTransaction extends BaseTransaction {
 
 		// Data format for the registered delegates
 		// chain:usernames => { registeredDelegates: { username, address }[] }
-		const registeredDelegatesStr = await store.chain.get(
-			DELEGATE_USERNAME_CHAIN_KEY,
-		);
-		const registeredDelegates = registeredDelegatesStr
-			? (JSON.parse(registeredDelegatesStr) as ChainUsernames)
+		const usernamesStr = await store.chain.get(DELEGATE_USERNAME_CHAIN_KEY);
+		const usernames = usernamesStr
+			? (JSON.parse(usernamesStr) as ChainUsernames)
 			: { registeredDelegates: [] };
-		const usernameExists = registeredDelegates.registeredDelegates.find(
+		const usernameExists = usernames.registeredDelegates.find(
 			delegate => delegate.username === this.asset.username,
 		);
-		const updatedRegisteredDelegates = usernameExists
-			? { ...registeredDelegates }
-			: {
-					registeredDelegates: [
-						...registeredDelegates.registeredDelegates,
-						{
-							username: this.asset.username,
-							address: this.senderId,
-						},
-					],
-			  };
-		store.chain.set(
-			DELEGATE_USERNAME_CHAIN_KEY,
-			JSON.stringify(updatedRegisteredDelegates),
-		);
+
+		if (!usernameExists) {
+			usernames.registeredDelegates.push({
+				username: this.asset.username,
+				address: this.senderId,
+			});
+			usernames.registeredDelegates.sort((a, b) =>
+				a.address.localeCompare(b.address),
+			);
+			store.chain.set(DELEGATE_USERNAME_CHAIN_KEY, JSON.stringify(usernames));
+		}
 
 		if (usernameExists) {
 			errors.push(
@@ -159,17 +153,18 @@ export class DelegateTransaction extends BaseTransaction {
 
 		// Data format for the registered delegates
 		// chain:usernames => { registeredDelegates: { username, address }[] }
-		const registeredDelegatesStr = await store.chain.get(
-			DELEGATE_USERNAME_CHAIN_KEY,
-		);
-		const registeredDelegates = registeredDelegatesStr
-			? (JSON.parse(registeredDelegatesStr) as ChainUsernames)
+		const usernamesStr = await store.chain.get(DELEGATE_USERNAME_CHAIN_KEY);
+		const usernames = usernamesStr
+			? (JSON.parse(usernamesStr) as ChainUsernames)
 			: { registeredDelegates: [] };
 		const updatedRegisteredDelegates = {
-			registeredDelegates: registeredDelegates.registeredDelegates.filter(
+			registeredDelegates: usernames.registeredDelegates.filter(
 				delegate => delegate.username !== sender.username,
 			),
 		};
+		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
+			a.address.localeCompare(b.address),
+		);
 		store.chain.set(
 			DELEGATE_USERNAME_CHAIN_KEY,
 			JSON.stringify(updatedRegisteredDelegates),
