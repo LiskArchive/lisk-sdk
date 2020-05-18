@@ -19,10 +19,11 @@ const {
 } = require('../dist-node/string');
 
 const suite = new Suite();
+const stringBuffer = Buffer.from('>!test@123test#', 'utf8');
 
 suite
     .add('readString', () => {
-        readString(Buffer.from('>!test@123test#', 'utf8'), { dataType: 'string' });
+        readString(stringBuffer, { dataType: 'string' });
     })
     .add('writeString', () => {
         writeString('>!test@123test#', { dataType: 'utf8' });
@@ -31,3 +32,8 @@ suite
         console.log(String(event.target));
     })
     .run({ async: true });
+
+/**
+ * String write benchmark results
+ * writeString x 1,808,985 ops/sec ±1.03% (87 runs sampled)
+ */
