@@ -22,10 +22,10 @@ const suite = new Suite();
 
 suite
     .add('readBoolean', () => {
-        readBoolean(Buffer.from('01', 'hex'), { dataType: 'boolean' });
+        readBoolean(Buffer.from('01', 'hex'), 0);
     })
     .add('writeBoolean', () => {
-        writeBoolean(true, { dataType: 'boolean' });
+        writeBoolean(true);
     })
     .on('cycle', function (event) {
         console.log(String(event.target));

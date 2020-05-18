@@ -11,20 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { writeVarInt } from './varint';
+import { readBytes, writeBytes } from './bytes';
 
-interface SchemaProperty {
-	readonly dataType: string;
-}
-
-export const writeString = (value: string, _schema: SchemaProperty): Buffer => {
+export const writeString = (value: string): Buffer => {
 	const stringBuffer = Buffer.from(value, 'utf8');
 
-	return Buffer.concat([
-		writeVarInt(stringBuffer.length, { dataType: 'uint32' }),
-		stringBuffer,
-	]);
+	return writeBytes(stringBuffer);
 };
 
-export const readString = (buffer: Buffer, _schema: SchemaProperty): string =>
-	buffer.toString('utf8', 1, buffer.length);
+export const readString = (buffer: Buffer, offset: number): [string, number] => {
+	const [value, size] = readBytes(buffer, offset);
+	return [value.toString('utf8'), size];
+}

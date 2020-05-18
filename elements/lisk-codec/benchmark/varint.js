@@ -14,46 +14,42 @@
 
 const { Suite } = require('benchmark');
 const {
-    writeVarInt,
-    readVarInt,
-    writeSignedVarInt,
-    readSignedVarInt,
+    readSInt32,
+    readUInt32,
+    readSInt64,
+    readUInt64,
+    writeSInt32,
+    writeUInt32,
+    writeSInt64,
+    writeUInt64,
 } = require('../dist-node/varint');
 
 const suite = new Suite();
 
 suite
-    .add('writeVarInt#uint32', () => {
-        writeVarInt(2147483647, { dataType: 'uint32' });
+    .add('writeUInt32', () => {
+        writeUInt32(2147483647);
     })
-    .add('writeVarInt#uint64', () => {
-        writeVarInt(BigInt('8294967295'), { dataType: 'uint64' });
+    .add('writeUInt64', () => {
+        writeUInt64(BigInt('8294967295'));
     })
-    .add('writeSignedVarInt#sint32', () => {
-        writeSignedVarInt(2147483647, { dataType: 'sint32' });
+    .add('writeSInt32', () => {
+        writeSInt32(2147483647);
     })
-    .add('writeSignedVarInt#sint64', () => {
-        writeSignedVarInt(BigInt('9223372036854775807'), {
-            dataType: 'sint64',
-        });
+    .add('writeSInt64', () => {
+        writeSInt64(BigInt('9223372036854775807'));
     })
-    .add('readVarInt#uint32', () => {
-        readVarInt(Buffer.from('ffffffff0f', 'hex'), { dataType: 'uint32' });
+    .add('readUInt32', () => {
+        readUInt32(Buffer.from('11ffffffff0f', 'hex'), 1);
     })
-    .add('readVarInt#uint64', () => {
-        readVarInt(Buffer.from('ffffffffffffffffff01', 'hex'), {
-            dataType: 'uint64',
-        });
+    .add('readUInt64', () => {
+        readUInt64(Buffer.from('11ffffffffffffffffff01', 'hex'), 1);
     })
-    .add('readSignedVarInt#sint32', () => {
-        readSignedVarInt(Buffer.from('feffffff0f', 'hex'), {
-            dataType: 'sint32',
-        });
+    .add('readSInt32', () => {
+        readSInt32(Buffer.from('00feffffff0f', 'hex'), 1);
     })
-    .add('readSignedVarInt#sint64', () => {
-        readSignedVarInt(Buffer.from('ffffffffffffffffff01', 'hex'), {
-            dataType: 'sint64',
-        });
+    .add('readSInt64', () => {
+        readSInt64(Buffer.from('00ffffffffffffffffff01', 'hex'), 1);
     })
     .on('cycle', function (event) {
         console.log(String(event.target));

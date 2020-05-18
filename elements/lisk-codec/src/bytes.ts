@@ -11,14 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { writeVarInt } from './varint';
+import { writeUInt32, readUInt32 } from './varint';
 
-interface SchemaProperty {
-	readonly dataType: string;
+export const writeBytes = (bytes: Buffer): Buffer =>
+	Buffer.concat([writeUInt32(bytes.length), bytes]);
+
+export const readBytes = (buffer: Buffer, offset: number): [Buffer, number] => {
+	const [byteLength, keySize] = readUInt32(buffer, offset);
+	return [buffer.subarray(offset + keySize, offset + keySize + byteLength), byteLength + keySize];
 }
-
-export const writeBytes = (bytes: Buffer, _schema: SchemaProperty): Buffer =>
-	Buffer.concat([writeVarInt(bytes.length, { dataType: 'uint32' }), bytes]);
-
-export const readBytes = (buffer: Buffer, _schema: SchemaProperty): Buffer =>
-	buffer.slice(1, buffer.length);

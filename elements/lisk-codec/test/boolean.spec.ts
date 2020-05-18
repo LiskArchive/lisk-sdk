@@ -11,31 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	writeBoolean,
-	readBoolean,
-} from '../src/boolean';
+import { writeBoolean, readBoolean } from '../src/boolean';
 
 describe('boolean', () => {
 	describe('writer', () => {
 		it('should encode boolean', () => {
-			expect(writeBoolean(true, { dataType: 'boolean' })).toEqual(
-				Buffer.from('01', 'hex'),
-			);
-			expect(writeBoolean(false, { dataType: 'boolean' })).toEqual(
-				Buffer.from('00', 'hex'),
-			);
+			expect(writeBoolean(true)).toEqual(Buffer.from('01', 'hex'));
+			expect(writeBoolean(false)).toEqual(Buffer.from('00', 'hex'));
 		});
 	});
 
 	describe('reader', () => {
 		it('should decode boolean', () => {
-			expect(
-				readBoolean(Buffer.from('00', 'hex'), { dataType: 'boolean' }),
-			).toBeFalse();
-			expect(
-				readBoolean(Buffer.from('01', 'hex'), { dataType: 'boolean' }),
-			).toBeTrue();
+			expect(readBoolean(Buffer.from('00', 'hex'), 0)).toEqual([false, 1]);
+			expect(readBoolean(Buffer.from('01', 'hex'), 0)).toEqual([true, 1]);
 		});
 	});
 });
