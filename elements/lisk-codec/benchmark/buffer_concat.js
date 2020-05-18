@@ -11,26 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
+// Buffer.concat x 1,263,976 ops/sec ±6.44% (74 runs sampled)
 
 const { Suite } = require('benchmark');
-const {
-    readBoolean,
-    writeBoolean,
-} = require('../dist-node/boolean');
-
+const { randomBytes } = require('crypto');
 const suite = new Suite();
+const buf1 = randomBytes(1024);
+const buf2 = randomBytes(1024);
 
 suite
-    .add('readBoolean', () => {
-        readBoolean(Buffer.from('01', 'hex'), { dataType: 'boolean' });
-    })
-    .add('writeBoolean', () => {
-        writeBoolean(true, { dataType: 'boolean' });
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true });
-
-
+  .add('Buffer.concat', () => {
+    Buffer.concat([buf1, buf2]);
+  })
+  .on('cycle', function (event) {
+    console.log(String(event.target));
+  })
+  .run({ async: true });
