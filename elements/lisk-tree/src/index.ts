@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './standard_tree';
-export * from './verify_standard_tree';
+export * from './markle_tree';
+export * from './verify_markle_tree';

@@ -12,16 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-describe('', () => {
-	describe('constructor', () => {
-		it.todo('should have correct root value');
-	});
+import { Proof } from './types';
 
-	describe('append', () => {
-		it.todo('should append and update root');
-	});
+export class MarkleTree {
+	// eslint-disable-next-line
+	public constructor(_initValues: Buffer[]) {}
 
-	describe('generateProof', () => {
-		it.todo('should generate proof that is verifiable');
-	});
-});
+	// eslint-disable-next-line
+	public append(_value: Buffer): { key: Buffer; value: Buffer }[] {
+		return [];
+	}
+
+	// eslint-disable-next-line
+	public generateProof(_queryData: ReadonlyArray<Buffer>): Proof {
+		// eslint-disable-next-line
+		return {} as any;
+	}
+}

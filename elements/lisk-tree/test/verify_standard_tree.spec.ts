@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-describe('verify', () => {
+describe('verifyMarkleTree', () => {
 	describe('verify', () => {
 		it.todo('should verify if given proof is correct');
 	});
