@@ -18,10 +18,7 @@ interface SchemaProperty {
 }
 
 export const writeBytes = (bytes: Buffer, _schema: SchemaProperty): Buffer =>
-	Buffer.concat([
-		writeVarInt(Buffer.from(bytes).length, { dataType: 'uint32' }),
-		bytes,
-	]);
+	Buffer.concat([writeVarInt(bytes.length, { dataType: 'uint32' }), bytes]);
 
 export const readBytes = (buffer: Buffer, _schema: SchemaProperty): Buffer =>
 	buffer.slice(1, buffer.length);
