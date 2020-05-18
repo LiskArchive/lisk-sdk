@@ -5,9 +5,6 @@ Object {
   "applicationConfigSchema": Object {
     "additionalProperties": false,
     "default": Object {
-      "components": Object {
-        "logger": Object {},
-      },
       "forging": Object {
         "delegates": Array [],
         "force": false,
@@ -33,6 +30,11 @@ Object {
         "enabled": false,
       },
       "label": "alpha-sdk-app",
+      "logger": Object {
+        "consoleLogLevel": "none",
+        "fileLogLevel": "info",
+        "logFileName": "lisk.log",
+      },
       "modules": Object {},
       "network": Object {
         "seedPeers": Array [],
@@ -48,17 +50,6 @@ Object {
         "description": "The build number. Consists of \`v\` + the date and time of the build of the node.",
         "example": "2020-01-16T13:43:35.000Z",
         "type": "string",
-      },
-      "components": Object {
-        "properties": Object {
-          "logger": Object {
-            "type": "object",
-          },
-        },
-        "required": Array [
-          "logger",
-        ],
-        "type": "object",
       },
       "forging": Object {
         "properties": Object {
@@ -210,6 +201,46 @@ Object {
         "minLength": 40,
         "type": "string",
       },
+      "logger": Object {
+        "properties": Object {
+          "consoleLogLevel": Object {
+            "enum": Array [
+              "trace",
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "fatal",
+              "none",
+            ],
+            "env": "LISK_CONSOLE_LOG_LEVEL",
+            "type": "string",
+          },
+          "fileLogLevel": Object {
+            "arg": "--log,-l",
+            "enum": Array [
+              "trace",
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "fatal",
+              "none",
+            ],
+            "env": "LISK_FILE_LOG_LEVEL",
+            "type": "string",
+          },
+          "logFileName": Object {
+            "type": "string",
+          },
+        },
+        "required": Array [
+          "fileLogLevel",
+          "logFileName",
+          "consoleLogLevel",
+        ],
+        "type": "object",
+      },
       "modules": Object {
         "type": "object",
       },
@@ -360,7 +391,6 @@ Object {
       "genesisConfig",
       "forging",
       "network",
-      "components",
       "modules",
     ],
     "type": "object",

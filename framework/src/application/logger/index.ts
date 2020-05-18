@@ -12,21 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-const { createLogger } = require('./logger');
-const { config: defaultConfig } = require('./defaults');
-const validator = require('../../application/validator');
-
-function createLoggerComponent(options = {}) {
-	const optionsWithDefaults = validator.parseEnvArgAndValidate(
-		defaultConfig,
-		options,
-	);
-
-	return createLogger(optionsWithDefaults);
-}
-
-module.exports = {
-	defaults: defaultConfig,
-	createLoggerComponent,
-};
+export { createLogger, Logger } from './logger';

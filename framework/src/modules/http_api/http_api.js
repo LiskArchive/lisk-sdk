@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-const { createLoggerComponent } = require('../../components/logger');
 const {
 	createCacheComponent,
 	CACHE_KEYS_BLOCKS,
@@ -46,14 +44,8 @@ module.exports = class HttpApi {
 
 	async bootstrap() {
 		// Logger
-		const loggerConfig = await this.channel.invoke(
-			'app:getComponentConfig',
-			'logger',
-		);
-		this.logger = createLoggerComponent({
-			...loggerConfig,
-			module: 'http_api',
-		});
+		await this.channel.invoke('app:getComponentConfig', 'logger');
+		this.logger = {};
 
 		// Cache
 		this.logger.debug('Initiating cache...');
@@ -69,15 +61,7 @@ module.exports = class HttpApi {
 			'app:getComponentConfig',
 			'storage',
 		);
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
-				? this.logger
-				: createLoggerComponent({
-						...loggerConfig,
-						logFileName: storageConfig.logFileName,
-						module: 'http_api:database',
-				  });
+		const dbLogger = {};
 		const storage = createStorageComponent(storageConfig, dbLogger);
 
 		const applicationState = await this.channel.invoke(

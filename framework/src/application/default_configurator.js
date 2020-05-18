@@ -14,12 +14,9 @@
 
 
 const yargs = require('yargs');
-const { config: loggerConfig } = require('../components/logger/defaults');
 const Configurator = require('./configurator');
 
 const configurator = new Configurator();
-
-configurator.registerSchema(loggerConfig, 'components.logger');
 
 yargs.command(
 	'usage',

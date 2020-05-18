@@ -32,7 +32,8 @@ import {
 } from './constant';
 import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
-import { Logger, StringKeyVal } from '../../../types';
+import { Logger } from '../../logger';
+import { StringKeyVal } from '../../../types';
 
 interface UsedHashOnion {
 	readonly count: number;
@@ -106,7 +107,6 @@ export class Forger {
 
 	public constructor({
 		forgingStrategy,
-		// components
 		logger,
 		db,
 		// Modules

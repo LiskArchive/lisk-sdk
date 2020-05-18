@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as path from 'path';
+import * as fs from 'fs';
+import * as bunyan from 'bunyan';
+import * as util from 'util';
 
-const path = require('path');
-const fs = require('fs');
-const bunyan = require('bunyan');
-const util = require('util');
-
-const createDirIfNotExist = filePath => {
+export const createDirIfNotExist = (filePath: string): void => {
 	const dir = path.dirname(filePath);
 	if (fs.existsSync(dir)) {
 		return;
@@ -38,7 +37,8 @@ const colors = {
 	white: '\x1b[37m',
 };
 
-const setColor = (color, str) => `${colors[color]}${str}${colors.reset}`;
+const setColor = (color: keyof typeof colors, str: string): string =>
+	`${colors[color]}${str}${colors.reset}`;
 
 const levelToName = {
 	10: setColor('yellow', 'TRACE'),
@@ -47,11 +47,15 @@ const levelToName = {
 	40: setColor('yellow', 'WARN'),
 	50: setColor('red', 'ERROR'),
 	60: setColor('red', 'FATAL'),
-};
+} as { [key: number]: string };
+
+interface LogObject {
+	[key: string]: string | number | Error | undefined;
+}
 
 class ConsoleLog {
 	// eslint-disable-next-line
-	write(rec) {
+	write(rec: LogObject) {
 		try {
 			const {
 				time,
@@ -68,17 +72,17 @@ class ConsoleLog {
 			} = rec;
 			let log = util.format(
 				'%s %s %s: %s (module=%s)\n',
-				new Date(time).toLocaleTimeString('en-US', { hour12: false }),
-				levelToName[level],
+				new Date(time as string).toLocaleTimeString('en-US', { hour12: false }),
+				levelToName[level as number],
 				name,
 				msg,
-				module || 'unknown',
+				module ?? 'unknown',
 			);
 			if (err) {
 				log += util.format(
 					'Message: %s \n Trace: %s \n',
-					err.message,
-					err.stack,
+					(err as Error).message,
+					(err as Error).stack,
 				);
 			}
 			if (Object.keys(others).length > 0) {
@@ -91,46 +95,61 @@ class ConsoleLog {
 	}
 }
 
-const createLogger = ({
+interface LoggerInput {
+	readonly fileLogLevel: string;
+	readonly consoleLogLevel: string;
+	readonly logFilePath: string;
+	readonly module: string;
+}
+
+export interface Logger {
+	readonly trace: (data?: object | unknown, message?: string) => void;
+	readonly debug: (data?: object | unknown, message?: string) => void;
+	readonly info: (data?: object | unknown, message?: string) => void;
+	readonly warn: (data?: object | unknown, message?: string) => void;
+	readonly error: (data?: object | unknown, message?: string) => void;
+	readonly fatal: (data?: object | unknown, message?: string) => void;
+	readonly level: () => number;
+}
+
+export const createLogger = ({
 	fileLogLevel,
 	consoleLogLevel,
-	logFileName,
+	logFilePath,
 	module,
-}) => {
+}: LoggerInput): Logger => {
 	const consoleSrc = consoleLogLevel === 'debug' || consoleLogLevel === 'trace';
 	const consoleStream =
 		consoleLogLevel !== 'none'
 			? [
 					{
 						type: 'raw',
-						level: consoleLogLevel,
-						stream: new ConsoleLog(),
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+						level: consoleLogLevel as bunyan.LogLevel,
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+						stream: new ConsoleLog() as any,
 					},
 			  ]
 			: [];
-	const filePath = path.join(process.cwd(), logFileName);
-	createDirIfNotExist(filePath);
 	const fileSrc = fileLogLevel === 'debug' || fileLogLevel === 'trace';
 	const fileStream =
 		fileLogLevel !== 'none'
 			? [
 					{
-						level: fileLogLevel,
-						path: filePath,
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+						level: fileLogLevel as bunyan.LogLevel,
+						path: logFilePath,
 					},
 			  ]
 			: [];
 	const streams = [...consoleStream, ...fileStream];
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 	return bunyan.createLogger({
 		name: 'lisk-framework',
 		streams,
 		src: consoleSrc || fileSrc,
+		// eslint-disable-next-line
 		serializers: { err: bunyan.stdSerializers.err },
 		module,
-	});
-};
-
-module.exports = {
-	createDirIfNotExist,
-	createLogger,
+	}) as Logger;
 };

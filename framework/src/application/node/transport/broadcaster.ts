@@ -13,7 +13,7 @@
  */
 
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { Logger } from '../../../types';
+import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
