@@ -32,9 +32,9 @@ export class Codec {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer } = {
-		int32: writeVarInt,
+		uint32: writeVarInt,
 		sint32: writeSignedVarInt,
-		int64: writeVarInt,
+		uint64: writeVarInt,
 		sint64: writeSignedVarInt,
 		string: writeString,
 		bytes: writeBytes,
@@ -48,6 +48,15 @@ export class Codec {
 			[],
 			[],
 		);
+		console.log('*'.repeat(120));
+		console.log(
+			JSON.stringify(
+				this._compileSchemas[schemaName],
+				null,
+				2,
+			)
+			);
+		console.log('*'.repeat(120));
 	}
 
 	public encode(schema: Schema, message: GenericObject): Buffer {
@@ -142,7 +151,7 @@ export class Codec {
 
 	private compileSchema(
 		schema: SchemaPair,
-		compiledSchema: CompiledSchema[],
+		compiledSchema: CompiledSchema[] | any,
 		dataPath: string[],
 	): CompiledSchema[] {
 		const currentDepthSchema = Object.entries(schema).sort(
@@ -150,12 +159,23 @@ export class Codec {
 		);
 
 		for (const [propertyName, schemaProp] of currentDepthSchema) {
-			if (schemaProp.dataType === 'object' || schemaProp.type === 'object') {
+			if (schemaProp.type === 'object') {
 				dataPath.push(propertyName);
 				if (!schemaProp.properties) {
 					throw new Error('Sub schema is missing its properties.');
 				}
-				this.compileSchema(schemaProp.properties, compiledSchema, dataPath);
+				// Push "hinting header for type"
+				const tempSubSchema = [
+					{
+						schemaProp: { fieldNumber: schemaProp.fieldNumber, type: schemaProp.type },
+						propertyName,
+						binaryKey: generateKey(schemaProp),
+						dataPath: [...dataPath],
+					},
+				];
+
+				const res = this.compileSchema(schemaProp.properties, tempSubSchema, dataPath);
+				compiledSchema.push(res);
 				dataPath.pop();
 			} else {
 				compiledSchema.push({
