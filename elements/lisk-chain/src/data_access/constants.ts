@@ -19,4 +19,5 @@ export const DB_KEY_TRANSACTIONS_ID = 'transactions:id';
 export const DB_KEY_TEMPBLOCKS_HEIGHT = 'tempBlocks:height';
 export const DB_KEY_ACCOUNTS_ADDRESS = 'accounts:address';
 export const DB_KEY_CHAIN_STATE = 'chain';
+export const DB_KEY_CHAIN_USERNAMES = 'chain:usernames';
 export const DB_KEY_CONSENSUS_STATE = 'consensus';

@@ -22,7 +22,12 @@ import {
 import { TransactionJSON } from '@liskhq/lisk-transactions';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
-import { AccountJSON, BlockJSON, BlockHeaderJSON } from '../types';
+import {
+	AccountJSON,
+	BlockJSON,
+	BlockHeaderJSON,
+	ChainUsernames,
+} from '../types';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -33,6 +38,7 @@ import {
 	DB_KEY_ACCOUNTS_ADDRESS,
 	DB_KEY_CHAIN_STATE,
 	DB_KEY_CONSENSUS_STATE,
+	DB_KEY_CHAIN_USERNAMES,
 } from './constants';
 import { StateStore } from '../state_store';
 
@@ -341,28 +347,15 @@ export class Storage {
 		return accounts;
 	}
 
-	// TODO: Remove this with issue #5259
 	public async getDelegates(): Promise<AccountJSON[]> {
-		const stream = this._db.createReadStream({
-			gte: getFirstPrefix(DB_KEY_ACCOUNTS_ADDRESS),
-			lte: getLastPrefix(DB_KEY_ACCOUNTS_ADDRESS),
-		});
-		const accounts = await new Promise<AccountJSON[]>((resolve, reject) => {
-			const accountJSONs: AccountJSON[] = [];
-			stream
-				.on('data', ({ value }) => {
-					const { username } = value as AccountJSON;
-					if (username) {
-						accountJSONs.push(value);
-					}
-				})
-				.on('error', error => {
-					reject(error);
-				})
-				.on('end', () => {
-					resolve(accountJSONs);
-				});
-		});
+		// Data format for the registered delegates
+		// chain:usernames => { registeredDelegates: { username, address }[] }
+		const { registeredDelegates }: ChainUsernames = await this._db.get(
+			DB_KEY_CHAIN_USERNAMES,
+		);
+		const accounts = await this.getAccountsByAddress(
+			registeredDelegates.map(delegate => delegate.address),
+		);
 		accounts.sort((a, b) => {
 			const diff = BigInt(b.totalVotesReceived) - BigInt(a.totalVotesReceived);
 			if (diff > BigInt(0)) {
