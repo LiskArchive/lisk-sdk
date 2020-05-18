@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const constantsSchema = require('../../../../../src/application/schema/constants_schema');
+import * as constantsSchema from '../../../../../src/application/schema/constants_schema';
 
 describe('schema/constants_schema.js', () => {
 	it('constants schema must match to the snapshot.', () => {

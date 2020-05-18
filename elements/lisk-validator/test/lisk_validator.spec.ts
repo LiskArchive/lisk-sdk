@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { validator } from '../src/lisk_validator';
 
 describe('validator', () => {
@@ -248,7 +249,9 @@ describe('validator', () => {
 
 		it('should validate to true when valid address is provided', () => {
 			expect(
-				validator.validate(addressSchema, { target: '14815133512790761431L' }),
+				validator.validate(addressSchema, {
+					target: getRandomBytes(20).toString('hex'),
+				}),
 			).toEqual([]);
 		});
 

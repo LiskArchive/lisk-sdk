@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BlockInstance } from '@liskhq/lisk-chain';
-import { Logger } from '../../../types';
+import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
 
 export abstract class BaseSynchronizer {

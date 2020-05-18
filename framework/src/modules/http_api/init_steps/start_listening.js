@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 // There is an issue with promisify server.listen so used constructor
 const startServer = async (server, port, host) =>

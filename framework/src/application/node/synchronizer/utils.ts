@@ -16,7 +16,7 @@ import { maxBy } from 'lodash';
 import { ForkStatus } from '@liskhq/lisk-bft';
 import { Chain } from '@liskhq/lisk-chain';
 import { Processor } from '../processor';
-import { Logger } from '../../../types';
+import { Logger } from '../../logger';
 
 export const restoreBlocks = async (
 	chainModule: Chain,

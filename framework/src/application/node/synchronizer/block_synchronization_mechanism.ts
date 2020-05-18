@@ -31,7 +31,7 @@ import {
 	BlockProcessingError,
 } from './errors';
 import { Processor } from '../processor';
-import { Logger } from '../../../types';
+import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
 
 interface Peer {

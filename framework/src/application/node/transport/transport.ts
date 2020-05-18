@@ -22,8 +22,8 @@ import { InvalidTransactionError } from './errors';
 import { schemas } from './schemas';
 import { Synchronizer } from '../synchronizer';
 import { Processor } from '../processor';
+import { Logger } from '../../logger';
 import {
-	Logger,
 	RPCBlocksByIdData,
 	RPCHighestCommonBlockData,
 	EventPostBlockData,
@@ -80,7 +80,6 @@ export class Transport {
 	private readonly _broadcaster: Broadcaster;
 
 	public constructor({
-		// components
 		channel,
 		logger,
 		// Unique requirements

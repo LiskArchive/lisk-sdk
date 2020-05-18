@@ -86,7 +86,7 @@ export const genesisBlockFixture = stampit.compose(blockFixture, {
 	},
 });
 
-export const blockHeaderFixture = stampit.compose({
+export const BlockHeader = stampit.compose({
 	props: {
 		blockId: '',
 		height: 0,

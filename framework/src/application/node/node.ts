@@ -45,7 +45,8 @@ import {
 } from './synchronizer';
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
-import { Logger, EventPostTransactionData } from '../../types';
+import { Logger } from '../logger';
+import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
@@ -114,7 +115,6 @@ export class Node {
 	private readonly _forgerDB: KVStore;
 	private readonly _blockchainDB: KVStore;
 	private readonly _applicationState: ApplicationState;
-	private readonly _components: { readonly logger: Logger };
 	private _sequence!: Sequence;
 	private _networkIdentifier!: string;
 	private _chain!: Chain;
@@ -139,7 +139,6 @@ export class Node {
 		this._options = options;
 		this._logger = logger;
 		this._applicationState = applicationState;
-		this._components = { logger: this._logger };
 		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
 	}
@@ -168,7 +167,7 @@ export class Node {
 
 			this._sequence = new Sequence({
 				onWarning: (current: number): void => {
-					this._components.logger.warn({ queueLength: current }, 'Main queue');
+					this._logger.warn({ queueLength: current }, 'Main queue');
 				},
 			});
 

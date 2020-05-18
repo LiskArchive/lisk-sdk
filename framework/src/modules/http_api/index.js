@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const HttpApi = require('./http_api');
 const { BaseModule } = require('../base_module');
 const { config: defaultConfig } = require('./defaults');

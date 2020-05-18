@@ -84,7 +84,10 @@ describe('Transport', () => {
 		describe('when a transaction is given', () => {
 			it('should enqueue to the broadcaster', async () => {
 				const tx = new TransferTransaction({
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				transport['_broadcaster']._transactionIdQueue = [];
 
@@ -95,7 +98,10 @@ describe('Transport', () => {
 			it('should broadcast after 5 sec', async () => {
 				const tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				tx.sign('1234567890', 'signature');
 				await transport.handleBroadcastTransaction(tx);
@@ -115,7 +121,10 @@ describe('Transport', () => {
 		describe('when a duplicate transaction is given', () => {
 			it('should not enqueue to the broadcaster', async () => {
 				const tx = new TransferTransaction({
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				transport['_broadcaster']._transactionIdQueue = [];
 				await transport.handleBroadcastTransaction(tx);
@@ -128,7 +137,10 @@ describe('Transport', () => {
 			it('should not broadcast after 5 sec', async () => {
 				const tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				tx.sign('1234567890', 'signature');
 				await transport.handleBroadcastTransaction(tx);
@@ -152,7 +164,10 @@ describe('Transport', () => {
 				const txs = new Array(25).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
-						asset: { amount: (v + 1).toString(), recipientId: '123L' },
+						asset: {
+							amount: (v + 1).toString(),
+							recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+						},
 					});
 					tx.sign('1234567890', 'signature');
 					return tx;
@@ -168,7 +183,10 @@ describe('Transport', () => {
 				const txs = new Array(25).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
-						asset: { amount: (v + 1).toString(), recipientId: '123L' },
+						asset: {
+							amount: (v + 1).toString(),
+							recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+						},
 					});
 					tx.sign('1234567890', 'signature');
 					return tx;
@@ -195,7 +213,10 @@ describe('Transport', () => {
 				const txs = new Array(50).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
-						asset: { amount: (v + 1).toString(), recipientId: '123L' },
+						asset: {
+							amount: (v + 1).toString(),
+							recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+						},
 					});
 					tx.sign('1234567890', 'signature');
 					return tx;
@@ -210,7 +231,10 @@ describe('Transport', () => {
 				const txs = new Array(50).fill(0).map((_, v) => {
 					const tx = new TransferTransaction({
 						networkIdentifier: '1234567890',
-						asset: { amount: (v + 1).toString(), recipientId: '123L' },
+						asset: {
+							amount: (v + 1).toString(),
+							recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+						},
 					});
 					tx.sign('1234567890', 'signature');
 					return tx;
@@ -349,7 +373,10 @@ describe('Transport', () => {
 			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				const processableTransactions = {};
 				(processableTransactions as any)[tx.id] = [tx];
@@ -370,7 +397,10 @@ describe('Transport', () => {
 			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				const processableTransactions = {};
 				(processableTransactions as any)[tx.id] = [tx];
@@ -424,7 +454,10 @@ describe('Transport', () => {
 			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				tx.sign('1234567890', 'signature');
 				transactionPoolStub.get.mockReturnValue(tx);
@@ -453,12 +486,18 @@ describe('Transport', () => {
 			beforeEach(() => {
 				tx = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '123L' },
+					asset: {
+						amount: '100',
+						recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+					},
 				});
 				tx.sign('1234567890', 'signature');
 				const txDatabaseInstance = new TransferTransaction({
 					networkIdentifier: '1234567890',
-					asset: { amount: '100', recipientId: '125L' },
+					asset: {
+						amount: '100',
+						recipientId: 'bbc303f04202d23e1fea25859b140257e53bef5a',
+					},
 				});
 				txDatabaseInstance.sign('1234567890', 'signature');
 				txDatabase = txDatabaseInstance;
@@ -507,13 +546,19 @@ describe('Transport', () => {
 		beforeEach(() => {
 			const txInstance = new TransferTransaction({
 				networkIdentifier: '1234567890',
-				asset: { amount: '100', recipientId: '123L' },
+				asset: {
+					amount: '100',
+					recipientId: 'e3e6563a45aa82c58a83f2f353e0f6d9de07cf82',
+				},
 			});
 			txInstance.sign('1234567890', 'signature');
 			tx = txInstance.toJSON();
 			const tx2Instance = new TransferTransaction({
 				networkIdentifier: '1234567890',
-				asset: { amount: '100', recipientId: '125L' },
+				asset: {
+					amount: '100',
+					recipientId: 'bbc303f04202d23e1fea25859b140257e53bef5a',
+				},
 			});
 			tx2Instance.sign('1234567890', 'signature');
 			tx2 = tx2Instance.toJSON();

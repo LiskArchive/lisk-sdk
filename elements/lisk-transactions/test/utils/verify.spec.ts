@@ -150,7 +150,7 @@ describe('#verify', () => {
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				asset: {
 					amount: '500000000',
-					recipientId: '13360160607553818129L',
+					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
 				},
 			});
 

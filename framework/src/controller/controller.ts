@@ -19,7 +19,7 @@ import { systemDirs } from '../application/system_dirs';
 import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
 import { validateModuleSpec } from '../application/validator';
-import { Logger } from '../types';
+import { Logger } from '../application/logger';
 import { SocketPaths } from './types';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 

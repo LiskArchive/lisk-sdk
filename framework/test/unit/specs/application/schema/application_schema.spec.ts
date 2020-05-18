@@ -12,12 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+import * as applicationSchema from '../../../../../src/application/schema/application_config_schema';
 
-const genesisBlockSchema = require('../../../../../src/application/schema/genesis_block_schema');
-
-describe('schema/genesis_block_schema.js', () => {
-	it('genesis block schema must match to the snapshot.', () => {
-		expect(genesisBlockSchema).toMatchSnapshot();
+describe('schema/application_config_schema.js', () => {
+	it('application config schema must match to the snapshot.', () => {
+		expect(applicationSchema).toMatchSnapshot();
 	});
 });
