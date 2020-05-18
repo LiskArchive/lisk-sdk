@@ -48,15 +48,6 @@ export class Codec {
 			[],
 			[],
 		);
-		console.log('*'.repeat(120));
-		console.log(
-			JSON.stringify(
-				this._compileSchemas[schemaName],
-				null,
-				2,
-			)
-			);
-		console.log('*'.repeat(120));
 	}
 
 	public encode(schema: Schema, message: GenericObject): Buffer {
@@ -159,10 +150,10 @@ export class Codec {
 		);
 
 		for (const [propertyName, schemaProp] of currentDepthSchema) {
-			if (schemaProp.type === 'object') {
+			if (schemaProp.type === 'object' || schemaProp.type === 'array') {
 				dataPath.push(propertyName);
-				if (!schemaProp.properties) {
-					throw new Error('Sub schema is missing its properties.');
+				if (!schemaProp.properties && !schemaProp.items) {
+					throw new Error('Nested schemas need either a "properties" or "items" property.');
 				}
 				// Push "hinting header for type"
 				const tempSubSchema = [
@@ -174,7 +165,16 @@ export class Codec {
 					},
 				];
 
-				const res = this.compileSchema(schemaProp.properties, tempSubSchema, dataPath);
+				let { properties } = schemaProp;
+
+				// We need this as type=array has a different structure
+				if (schemaProp.type === 'array' && schemaProp.items?.type === 'object') {
+					properties = schemaProp.items?.properties;
+				}
+
+
+
+				const res = this.compileSchema(properties as SchemaPair, tempSubSchema, dataPath);
 				compiledSchema.push(res);
 				dataPath.pop();
 			} else {

@@ -14,10 +14,11 @@ export interface SchemaProps {
 	readonly type?: string;
 	readonly dataType?: string;
 	readonly properties?: SchemaPair;
-	readonly items?: SchemaProps | SchemaScalarType;
+	readonly items?: SchemaProps;
 }
 export interface SchemaScalarType {
-	readonly dataType: string;
+	readonly dataType?: string;
+	readonly type?: string;
 }
 
 export interface CompiledSchema {
