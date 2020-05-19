@@ -105,7 +105,7 @@ describe('encode', () => {
 		);
 	});
 
-	it('new compiled schema', () => {
+	it.only('new compiled schema', () => {
 		const testSchemaWithObjectArray = {
 			$id: 'testSchema',
 			type: 'object',
@@ -114,6 +114,14 @@ describe('encode', () => {
 				a: { fieldNumber: 1, dataType: 'string' },
 				d: { fieldNumber: 4, dataType: 'bytes' },
 				e: { fieldNumber: 5, dataType: 'uint32' },
+				f: {
+					type: 'array',
+					fieldNumber: 6,
+					items: {
+						dataType: 'sint32',
+						fieldNumber: 1,
+					},
+				},
 				c: {
 					type: 'object',
 					fieldNumber: 3,
