@@ -16,7 +16,7 @@ import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import {
-	CONSENSUS_STATE_VOTE_WEIGHTS,
+	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	DEFAULT_ACTIVE_DELEGATE,
 	DEFAULT_ROUND_OFFSET,
 	DEFAULT_STANDBY_DELEGATE,
@@ -162,7 +162,7 @@ export class Dpos {
 	): Promise<boolean> {
 		const relevantRound = this.rounds.calcRound(height);
 		const voteWeightsStr = await this.chain.dataAccess.getConsensusState(
-			CONSENSUS_STATE_VOTE_WEIGHTS,
+			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const voteWeights: VoteWeights = voteWeightsStr
