@@ -40,9 +40,7 @@
 					"amount": "1234567890",
 					"data": "random data"
 				},
-				"signatures": [
-					"e98d7ec13909c2d8d58c4bafdf723b6f88480619b237c58dc96c9ae6cad7e74f8b8cfe72f0137827b17c0ba1def07f6fa92af22872a23060bbdae6651bb98807"
-				],
+				"signature": "e98d7ec13909c2d8d58c4bafdf723b6f88480619b237c58dc96c9ae6cad7e74f8b8cfe72f0137827b17c0ba1def07f6fa92af22872a23060bbdae6651bb98807",
 				"id": "14028804809042236201"
 			}
 		}
