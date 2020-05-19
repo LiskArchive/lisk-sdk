@@ -12,95 +12,96 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { findObjectByPath, generateKey } from './utils';
+// import { findObjectByPath, generateKey } from './utils';
 import {
-	CompiledSchema,
 	CompiledSchemas,
+	CompiledSchemasArray,
 	GenericObject,
 	Schema,
-	SchemaPair,
+	SchemaProps,
 } from './types';
 
-import { writeVarInt, writeSignedVarInt } from './varint';
-import { writeString } from './string';
-import { writeBytes } from './bytes';
-import { writeBoolean } from './boolean';
+// import { writeVarInt, writeSignedVarInt } from './varint';
+// import { writeString } from './string';
+// import { writeBytes } from './bytes';
+// import { writeBoolean } from './boolean';
 
 
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer } = {
-		uint32: writeVarInt,
-		sint32: writeSignedVarInt,
-		uint64: writeVarInt,
-		sint64: writeSignedVarInt,
-		string: writeString,
-		bytes: writeBytes,
-		boolean: writeBoolean,
-	};
+	// private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer } = {
+	// 	uint32: writeVarInt,
+	// 	sint32: writeSignedVarInt,
+	// 	uint64: writeVarInt,
+	// 	sint64: writeSignedVarInt,
+	// 	string: writeString,
+	// 	bytes: writeBytes,
+	// 	boolean: writeBoolean,
+	// };
 
 	public addSchema(schema: Schema): void {
 		const schemaName = schema.$id;
 		this._compileSchemas[schemaName] = this.compileSchema(
-			schema.properties,
+			schema,
 			[],
 			[],
 		);
-
-		console.log('*'.repeat(120));
-		console.log(
-			JSON.stringify(
-				this._compileSchemas[schemaName],
-				null,
-				2,
-			),
-			);
 	}
 
-	public encode(schema: Schema, message: GenericObject): Buffer {
+	public encode(schema: Schema, _message: GenericObject): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
 
 		const compiledSchema = this._compileSchemas[schema.$id];
 
-		const chunks = [];
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
-		for (let i = 0; i < compiledSchema.length; i += 1) {
-			const { binaryKey, dataPath, schemaProp, propertyName } = compiledSchema[i];
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const pathToValue = findObjectByPath(message, dataPath);
-			if (pathToValue === undefined) {
-				throw new Error(
-					'Compiled schema contains an invalid path to a property. Some problem occured when caching the schema.',
-				);
-			}
+		console.log(
+			JSON.stringify(
+				compiledSchema,
+				null,
+				2,
+			),
+			);
 
-			const value = pathToValue[propertyName];
+		return Buffer.from('');
 
-			// Missing properties are not encoded as per LIP-0027
-			if (value === undefined) {
-				// eslint-disable-next-line no-continue
-				continue;
-			}
+		// const chunks = [];
+		// // eslint-disable-next-line @typescript-eslint/prefer-for-of
+		// for (let i = 0; i < compiledSchema.length; i += 1) {
+		// 	const { binaryKey, dataPath, schemaProp, propertyName } = compiledSchema[i];
+		// 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		// 	const pathToValue = findObjectByPath(message, dataPath);
+		// 	if (pathToValue === undefined) {
+		// 		throw new Error(
+		// 			'Compiled schema contains an invalid path to a property. Some problem occured when caching the schema.',
+		// 		);
+		// 	}
 
-			const dataType = schemaProp.dataType ?? schemaProp.type;
+		// 	const value = pathToValue[propertyName];
 
-			if (dataType === undefined) {
-				throw new Error('Schema is corrutped as neither "type" nor "dataType" are defined in it.');
-			}
+		// 	// Missing properties are not encoded as per LIP-0027
+		// 	if (value === undefined) {
+		// 		// eslint-disable-next-line no-continue
+		// 		continue;
+		// 	}
 
-			const binaryValue = this._writers[dataType](value, schemaProp);
+		// 	const dataType = schemaProp.dataType ?? schemaProp.type;
 
-			chunks.push(binaryKey);
-			chunks.push(binaryValue);
-		}
+		// 	if (dataType === undefined) {
+		// 		throw new Error('Schema is corrutped as neither "type" nor "dataType" are defined in it.');
+		// 	}
 
-		const binaryMessage = Buffer.concat(chunks);
+		// 	const binaryValue = this._writers[dataType](value, schemaProp);
 
-		return binaryMessage;
+		// 	chunks.push(binaryKey);
+		// 	chunks.push(binaryValue);
+		// }
+
+		// const binaryMessage = Buffer.concat(chunks);
+
+		// return binaryMessage;
 	}
 
 	// eslint-disable-next-line
@@ -108,112 +109,90 @@ export class Codec {
 		return {} as T;
 	}
 
-	public encodeNoCache(
-		schema: SchemaPair,
-		object: GenericObject,
-		encodedChunks: Buffer[],
-		dataPath: string[],
-	): Buffer[] {
-		const currentDepthSchema = Object.entries(schema).sort(
-			(a, b) => a[1].fieldNumber - b[1].fieldNumber,
-		);
-
-		for (const [propertyName, schemaProp] of currentDepthSchema) {
-			if (schemaProp.dataType === 'object' || schemaProp.type === 'object') {
-				dataPath.push(propertyName);
-				if (!schemaProp.properties) {
-					throw new Error('Sub schema is missing its properties.');
-				}
-
-				this.encodeNoCache(schemaProp.properties, object, encodedChunks, dataPath);
-				dataPath.pop();
-			} else {
-				const valuePath = findObjectByPath(object, dataPath);
-				if (valuePath === undefined) {
-					throw new Error('something wroong with value path')
-				}
-
-				const dataType = schemaProp.dataType ?? schemaProp.type;
-
-				if (dataType === undefined) {
-					throw new Error('Schema is corrutped as neither "type" nor "dataType" are defined in it.');
-				}
-
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const binaryValue = this._writers[dataType](valuePath[propertyName], schemaProp);
-
-				encodedChunks.push(generateKey(schemaProp));
-				encodedChunks.push(binaryValue);
-			}
-		}
-		return encodedChunks;
-	}
-
 	private compileSchema(
-		schema: SchemaPair,
-		compiledSchema: CompiledSchema[] | any,
+		schema: Schema | SchemaProps,
+		compiledSchema: CompiledSchemasArray,
 		dataPath: string[],
-	): CompiledSchema[] {
-		const currentDepthSchema = Object.entries(schema).sort(
-			(a, b) => a[1].fieldNumber - b[1].fieldNumber,
-		);
+	): CompiledSchemasArray {
+		if (schema.type === 'object') {
+			const { properties } = schema;
+			if (properties === undefined) {
+				throw new Error('Invalid schema. Missing "properties" property');
+			}
+			const currentDepthSchema = Object.entries(properties).sort(
+				(a, b) => a[1].fieldNumber - b[1].fieldNumber,
+			);
 
-		for (const [propertyName, schemaProp] of currentDepthSchema) {
-			if (schemaProp.type === 'object' || schemaProp.type === 'array') {
-				dataPath.push(propertyName);
-				if (!schemaProp.properties && !schemaProp.items) {
-					throw new Error('Nested schemas need either a "properties" or "items" property.');
-				}
-
-				if (schemaProp.type === 'object') {
-					// Push "hinting header for type"
-					const tempSubSchema = [
+			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			for (let i = 0; i < currentDepthSchema.length; i += 1) {
+				const [schemaPropertyName, schemaPropertyValue] = currentDepthSchema[i];
+				if (schemaPropertyValue.type === 'object') { // Object recursive case
+					dataPath.push(schemaPropertyName);
+					const nestedSchema = [
 						{
-							schemaProp: { fieldNumber: schemaProp.fieldNumber, type: schemaProp.type },
-							propertyName,
-							binaryKey: generateKey(schemaProp),
-							dataPath: [...dataPath],
+							propertyName: schemaPropertyName,
+							schemaProp: { type: schemaPropertyValue.type, fieldNumber: schemaPropertyValue.fieldNumber },
+              dataPath: [...dataPath],
+              binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
 						},
 					];
-					const res = this.compileSchema(schemaProp.properties as SchemaPair, tempSubSchema, dataPath);
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-					compiledSchema.push(res);
-				}
+					const res = this.compileSchema(schemaPropertyValue, nestedSchema, dataPath);
+					compiledSchema.push(res as any);
+					dataPath.pop();
+				} else if (schemaPropertyValue.type === 'array') { // Array recursive case
 
-				if (schemaProp.type === 'array') {
-					const arrayHeader = {
-						schemaProp: { fieldNumber: schemaProp.fieldNumber, type: schemaProp.type },
-						propertyName,
-						binaryKey: generateKey(schemaProp),
-						dataPath: [...dataPath],
-					};
-
-					if (schemaProp.items?.type === 'object') {
-						const res = this.compileSchema(schemaProp.items?.properties as SchemaPair, [], dataPath);
-						compiledSchema.push([
-							arrayHeader,
-							res,
-						]);
-					} else {
-						const tempSubSchema = [arrayHeader];
-						const res = this.compileSchema(schemaProp.items?.properties as SchemaPair, tempSubSchema, dataPath);
-						compiledSchema.push(
-							res,
-						);
+					if (schemaPropertyValue.items === undefined) {
+						throw new Error('Invalid schema. Missing "items" property for Array schema');
 					}
+					dataPath.push(schemaPropertyName);
+					if (schemaPropertyValue.items.type === 'object') {
+						const nestedSchema = [
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: { type: 'object', fieldNumber: schemaPropertyValue.fieldNumber },
+								dataPath: [...dataPath],
+								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+							},
+						]
+						const res = this.compileSchema(schemaPropertyValue.items, nestedSchema, dataPath);
+						compiledSchema.push([
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: { type: schemaPropertyValue.type, fieldNumber: schemaPropertyValue.fieldNumber },
+								dataPath: [...dataPath],
+								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+							},
+							res as any,
+						]);
+						dataPath.pop();
+					} else {
+						compiledSchema.push([
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: { type: schemaPropertyValue.type, fieldNumber: schemaPropertyValue.fieldNumber },
+								dataPath: [...dataPath],
+								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+							},
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: { dataType: schemaPropertyValue.items.dataType, fieldNumber: schemaPropertyValue.fieldNumber },
+								dataPath: [...dataPath],
+								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+							},
+						]);
+						dataPath.pop();
+					}
+				} else { // Base case
+					compiledSchema.push({
+						propertyName: schemaPropertyName,
+						schemaProp: schemaPropertyValue,
+						dataPath: [...dataPath],
+						binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+				 });
 				}
-
-				dataPath.pop();
-			} else {
-				compiledSchema.push({
-					schemaProp,
-					propertyName,
-					binaryKey: generateKey(schemaProp),
-					dataPath: [...dataPath],
-				});
 			}
 		}
-		return compiledSchema;
+		return compiledSchema
 	}
 }
 

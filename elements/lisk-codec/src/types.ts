@@ -28,6 +28,8 @@ export interface CompiledSchema {
 	dataPath: string[];
 }
 
+export type CompiledSchemasArray = Array<CompiledSchema | CompiledSchema[]>;
+
 export interface CompiledSchemas {
-	[key: string]: CompiledSchema[];
+	[key: string]: CompiledSchemasArray;
 }
