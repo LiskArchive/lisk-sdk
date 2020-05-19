@@ -11,26 +11,29 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
 
 const { Suite } = require('benchmark');
 const {
-    readBoolean,
-    writeBoolean,
-} = require('../dist-node/boolean');
+    readString,
+    writeString,
+} = require('../dist-node/string');
 
 const suite = new Suite();
+const stringBuffer = Buffer.from('>!test@123test#', 'utf8');
 
 suite
-    .add('readBoolean', () => {
-        readBoolean(Buffer.from('01', 'hex'), { dataType: 'boolean' });
+    .add('readString', () => {
+        readString(stringBuffer, { dataType: 'string' });
     })
-    .add('writeBoolean', () => {
-        writeBoolean(true, { dataType: 'boolean' });
+    .add('writeString', () => {
+        writeString('>!test@123test#', { dataType: 'utf8' });
     })
     .on('cycle', function (event) {
         console.log(String(event.target));
     })
     .run({ async: true });
 
-
+/**
+ * String write benchmark results
+ * writeString x 1,808,985 ops/sec ±1.03% (87 runs sampled)
+ */
