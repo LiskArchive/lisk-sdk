@@ -301,13 +301,6 @@ export class DataAccess {
 
 		return accounts.map(account => new Account(account));
 	}
-
-	public async getDelegates(): Promise<Account[]> {
-		const accounts = await this._storage.getDelegates();
-
-		return accounts.map(account => new Account(account));
-	}
-
 	/** End: Accounts */
 
 	/** Begin: Transactions */
