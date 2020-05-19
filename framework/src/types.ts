@@ -19,49 +19,6 @@ export interface StringKeyVal {
 	[key: string]: string;
 }
 
-export interface Logger {
-	readonly trace: (data?: object | unknown, message?: string) => void;
-	readonly debug: (data?: object | unknown, message?: string) => void;
-	readonly info: (data?: object | unknown, message?: string) => void;
-	readonly warn: (data?: object | unknown, message?: string) => void;
-	readonly error: (data?: object | unknown, message?: string) => void;
-	readonly fatal: (data?: object | unknown, message?: string) => void;
-	readonly level: () => number;
-}
-
-/* Start Database  */
-export interface Storage {
-	readonly entities: {
-		readonly NetworkInfo: KeyValEntity;
-		readonly ForgerInfo: KeyValEntity;
-		readonly Migration: MigrationEntity;
-	};
-}
-
-export interface KeyValEntity {
-	readonly getKey: (
-		key: string,
-		tx?: StorageTransaction,
-	) => Promise<string | undefined>;
-	readonly setKey: (
-		key: string,
-		value: string,
-		tx?: StorageTransaction,
-	) => Promise<void>;
-}
-
-export interface MigrationEntity {
-	readonly applyAll: (migrations: {
-		readonly [key: string]: ReadonlyArray<string>;
-	}) => Promise<void>;
-}
-
-export interface StorageTransaction {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly batch: <T = any>(input: any[]) => Promise<T>;
-}
-/* End Database */
-
 /* Start P2P */
 type Modify<T, R> = Omit<T, keyof R> & R;
 export type P2PConfig = Modify<

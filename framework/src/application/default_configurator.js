@@ -12,22 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const yargs = require('yargs');
-const APIModule = require('../modules/http_api');
-const { config: loggerConfig } = require('../components/logger/defaults');
-const { config: storageConfig } = require('../components/storage/defaults');
-const { config: cacheConfig } = require('../components/cache/defaults');
 const Configurator = require('./configurator');
 
 const configurator = new Configurator();
-
-configurator.registerSchema(loggerConfig, 'components.logger');
-configurator.registerSchema(storageConfig, 'components.storage');
-configurator.registerSchema(cacheConfig, 'components.cache');
-
-configurator.registerModule(APIModule);
 
 yargs.command(
 	'usage',

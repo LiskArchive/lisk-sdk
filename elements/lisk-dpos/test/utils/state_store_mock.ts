@@ -24,21 +24,28 @@ interface ConsensusStateStoreMock {
 	set: (key: string, v: string) => void;
 	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
+interface ChainStateStoreMock {
+	get: (address: string) => Promise<string | undefined>;
+	set: (key: string, v: string) => void;
+}
 
 interface ConsensusState {
 	[key: string]: string;
 }
 
 export interface AdditionalInformation {
-	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	readonly lastBlockHeaders?: ReadonlyArray<BlockHeader>;
+	readonly chainData?: { [key: string]: string };
 }
 
 export class StateStoreMock {
 	public account: AccountStoreMock;
 	public consensus: ConsensusStateStoreMock;
+	public chain: ChainStateStoreMock;
 
 	public accountData: Account[];
 	public consensusStateData: ConsensusState;
+	public chainData: { [key: string]: string };
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
 	constructor(
@@ -52,6 +59,7 @@ export class StateStoreMock {
 			: [];
 
 		this.consensusStateData = initialState ? { ...initialState } : {};
+		this.chainData = additionalInformation?.chainData ?? {};
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -84,6 +92,13 @@ export class StateStoreMock {
 				this.consensusStateData[key] = val;
 			},
 			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
+		};
+		this.chain = {
+			get: async (key: string): Promise<string | undefined> =>
+				Promise.resolve(this.chainData[key]),
+			set: (key: string, value: string): void => {
+				this.chainData[key] = value;
+			},
 		};
 	}
 }

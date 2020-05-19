@@ -75,7 +75,6 @@ import {
 } from './verify';
 
 interface ChainConstructor {
-	// Components
 	readonly db: KVStore;
 	// Unique requirements
 	readonly genesisBlock: GenesisBlockJSON;
@@ -186,7 +185,6 @@ export class Chain {
 	};
 
 	public constructor({
-		// Components
 		db,
 		// Unique requirements
 		genesisBlock,

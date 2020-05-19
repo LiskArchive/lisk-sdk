@@ -54,7 +54,6 @@ export const constantsSchema = {
 	default: {
 		activeDelegates: 101,
 		standbyDelegates: 2,
-		// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 		totalAmount: '10000000000000000',
 		delegateListRoundOffset: 2,
 	},

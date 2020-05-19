@@ -104,7 +104,7 @@ const generateValidTransferTransaction = () => {
 	]);
 
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		accounts[0].passphrase,
 	);
 
@@ -151,7 +151,7 @@ const generateValidTransferTransactionWithSecondSignature = () => {
 	]);
 
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		accounts[0].passphrase,
 	);
 
@@ -217,7 +217,7 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 	]);
 
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		accounts[0].passphrase,
 	);
 
@@ -225,11 +225,11 @@ const generateValidTransferTransactionWithMultiSignature = () => {
 
 	const signatures = [
 		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 			accounts[2].passphrase,
 		),
 		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 			accounts[3].passphrase,
 		),
 	];
@@ -273,7 +273,7 @@ const generateValidDelegateTransaction = () => {
 	]);
 
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		accounts[0].passphrase,
 	);
 
@@ -320,7 +320,7 @@ const generateValidVoteTransaction = () => {
 	]);
 
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		accounts[0].passphrase,
 	);
 
@@ -371,7 +371,7 @@ const generateValidMultisignatureTransaction = () => {
 	]);
 
 	const signature = signData(
-		hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 		accounts[0].passphrase,
 	);
 
@@ -379,15 +379,15 @@ const generateValidMultisignatureTransaction = () => {
 
 	const signatures = [
 		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 			accounts[1].passphrase,
 		),
 		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 			accounts[2].passphrase,
 		),
 		signData(
-			hash(Buffer.concat([hexToBuffer(networkIdentifier), txBuffer])),
+			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
 			accounts[3].passphrase,
 		),
 	];

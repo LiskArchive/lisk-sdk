@@ -32,7 +32,7 @@ import { Dpos } from '@liskhq/lisk-dpos';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { BaseBlockProcessor } from './processor';
-import { Logger } from '../../types';
+import { Logger } from '../logger';
 
 interface BlockProcessorInput {
 	readonly networkIdentifier: string;
@@ -440,12 +440,10 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		return {
 			...block,
 			blockSignature: signDataWithPrivateKey(
-				hash(
-					Buffer.concat([
-						Buffer.from(this.networkIdentifier, 'hex'),
-						getBytes(block),
-					]),
-				),
+				Buffer.concat([
+					Buffer.from(this.networkIdentifier, 'hex'),
+					getBytes(block),
+				]),
 				keypair.privateKey,
 			),
 		};

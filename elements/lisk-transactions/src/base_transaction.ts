@@ -15,7 +15,6 @@
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	hash,
 	hexToBuffer,
 	intToBuffer,
 	signData,
@@ -65,6 +64,8 @@ export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
 	readonly lastBlockReward: bigint;
 	readonly networkIdentifier: string;
+	get(key: string): Promise<string | undefined>;
+	set(key: string, value: string): void;
 }
 
 export interface StateStore {
@@ -371,7 +372,7 @@ export abstract class BaseTransaction {
 			]);
 
 			const signature = signData(
-				hash(transactionWithNetworkIdentifierBytes),
+				transactionWithNetworkIdentifierBytes,
 				senderPassphrase,
 			);
 			// Reset signatures when only one passphrase is provided
@@ -403,7 +404,7 @@ export abstract class BaseTransaction {
 				if (keysAndPassphrases[aKey]) {
 					const { passphrase } = keysAndPassphrases[aKey];
 					this.signatures.push(
-						signData(hash(transactionWithNetworkIdentifierBytes), passphrase),
+						signData(transactionWithNetworkIdentifierBytes, passphrase),
 					);
 				} else {
 					// Push an empty signature if a passphrase is missing

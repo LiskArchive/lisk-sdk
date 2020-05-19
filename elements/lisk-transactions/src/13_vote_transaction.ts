@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { intToBuffer, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
@@ -57,7 +57,6 @@ const voteAssetFormatSchema = {
 };
 
 const SIZE_INT64 = 8;
-const SIZE_UINT64 = SIZE_INT64;
 const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
@@ -111,10 +110,7 @@ export class VoteTransaction extends BaseTransaction {
 	protected assetToBytes(): Buffer {
 		const bufferArray = [];
 		for (const vote of this.asset.votes) {
-			const addressBuffer = intToBuffer(
-				vote.delegateAddress.slice(0, -1),
-				SIZE_UINT64,
-			);
+			const addressBuffer = hexToBuffer(vote.delegateAddress);
 			bufferArray.push(addressBuffer);
 			const amountBuffer = intToBuffer(
 				vote.amount.toString(),

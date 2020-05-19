@@ -15,11 +15,12 @@
 import {
 	getAddressFromPublicKey,
 	hash,
-	intToBuffer,
+	hexToBuffer,
 } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import {
+	CHAIN_STATE_DELEGATE_USERNAMES,
 	CONSENSUS_STATE_FORGERS_LIST_KEY,
 	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 	DEFAULT_ROUND_OFFSET,
@@ -30,6 +31,7 @@ import {
 	Account,
 	BlockHeader,
 	Chain,
+	ChainStateUsernames,
 	DelegateWeight,
 	ForgersList,
 	StateStore,
@@ -38,7 +40,6 @@ import {
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_list');
-const SIZE_UINT64 = 8;
 
 interface DelegatesListConstructor {
 	readonly rounds: Rounds;
@@ -145,10 +146,7 @@ export const shuffleDelegateList = (
 	})) as DelegateListWithRoundHash[];
 
 	for (const delegate of delegateList) {
-		const addressBuffer = intToBuffer(
-			delegate.address.slice(0, -1),
-			SIZE_UINT64,
-		);
+		const addressBuffer = hexToBuffer(delegate.address);
 		const seedSource = Buffer.concat([previousRoundSeed1, addressBuffer]);
 		delegate.roundHash = hash(seedSource);
 	}
@@ -257,26 +255,21 @@ export class DelegatesList {
 	): Promise<void> {
 		const round = this.rounds.calcRound(height) + roundOffset;
 		debug(`Creating vote weight snapshot for round: ${round.toString()}`);
-		// This list is before executing the current block in process
-		const originalDelegates = await this.chain.dataAccess.getDelegates();
 
-		// Merge updated delegate accounts
-		const updatedAccounts = stateStore.account.getUpdated();
-		const updatedAccountsMap: { [address: string]: Account } = {};
-		// Convert updated accounts to map for better search
-		for (const account of updatedAccounts) {
-			// Insert only if account is a delegate
-			if (account.username) {
-				updatedAccountsMap[account.address] = account;
-			}
-		}
-		// Inject delegate account if it doesn't exist
-		for (const delegate of originalDelegates) {
-			if (updatedAccountsMap[delegate.address] === undefined) {
-				updatedAccountsMap[delegate.address] = delegate;
-			}
-		}
-		const delegates = [...Object.values(updatedAccountsMap)];
+		// Data format for the registered delegates
+		// chain:usernames => { registeredDelegates: { username, address }[] }
+		const usernamesStr = await stateStore.chain.get(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+		const usernames = usernamesStr
+			? (JSON.parse(usernamesStr) as ChainStateUsernames)
+			: { registeredDelegates: [] };
+
+		const delegates: Account[] = await Promise.all(
+			usernames.registeredDelegates.map(async delegate =>
+				stateStore.account.get(delegate.address),
+			),
+		);
 
 		// Update totalVotesReceived to voteWeight equivalent before sorting
 		for (const account of delegates) {

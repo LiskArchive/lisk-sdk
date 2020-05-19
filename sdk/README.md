@@ -34,15 +34,11 @@ The Lisk SDK aims to provide an easy and reliable software development kit for b
 
 Before running Lisk SDK, the following dependencies need to be installed in order to run applications created with the Lisk SDK:
 
-| Dependencies     | Version |
-| ---------------- | ------- |
-| NodeJS           | 12+     |
-| PostgreSQL       | 10+     |
-| Redis (optional) | 5+      |
+| Dependencies | Version |
+| ------------ | ------- |
+| NodeJS       | 12+     |
 
 You can find further details on installing these dependencies in our [pre-installation setup guide](https://lisk.io/documentation/lisk-core/setup/source#pre-install).
-
-Mind, that you need to create a database before. The default database name is `lisk_dev`, so for the development purposes, a command `createdb lisk_dev` will set you up.
 
 ### Installation
 

@@ -15,7 +15,7 @@
 import * as os from 'os';
 import * as _ from 'lodash';
 import * as assert from 'assert';
-import { Logger } from '../types';
+import { Logger } from './logger';
 import { BaseChannel } from '../controller/channels';
 
 interface State {
@@ -26,7 +26,6 @@ interface ApplicationStateConstructor {
 	readonly initialState: {
 		readonly version: string;
 		readonly wsPort: number;
-		readonly httpPort: number;
 		readonly protocolVersion: string;
 		readonly networkId: string;
 	};
@@ -46,7 +45,7 @@ export class ApplicationState {
 	private _channel!: BaseChannel;
 
 	public constructor({
-		initialState: { version, wsPort, httpPort, protocolVersion, networkId },
+		initialState: { version, wsPort, protocolVersion, networkId },
 		logger,
 	}: ApplicationStateConstructor) {
 		this._logger = logger;
@@ -54,7 +53,6 @@ export class ApplicationState {
 			os: os.platform() + os.release(),
 			version,
 			wsPort,
-			httpPort,
 			protocolVersion,
 			height: 1,
 			blockVersion: 0,

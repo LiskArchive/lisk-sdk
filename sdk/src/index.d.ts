@@ -27,12 +27,10 @@ declare class Application {
 		matcher?: { matcher: (context: any) => boolean }
 	): void;
 	registerModule(moduleClass: any, options?: any, alias?: string): void;
-	registerMigrations(namespace: string, migrations: Array<string>): void;
 	getTransaction(transactionType: number): any;
 	getTransactions(): { [key: number]: any };
 	getModule(alias: string): any;
 	getModules(): { [key: string]: any };
-	getMigrations(): { [key: string]: any };
 	shutdown(errorCode?: number, message?: string): Promise<void>;
 }
 

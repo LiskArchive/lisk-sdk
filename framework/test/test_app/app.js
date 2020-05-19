@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const path = require('path');
 const {
 	Application,
@@ -32,6 +30,9 @@ const appConfig = {
 	protocolVersion: '2.0',
 	lastCommitId: dummyLastCommitId,
 	buildVersion: dummyBuildVersion,
+	ipc: {
+		enabled: true,
+	},
 };
 
 // Support for PROTOCOL_VERSION only for tests
@@ -62,7 +63,7 @@ try {
 	}
 
 	// To run multiple applications for same network for integration tests
-	config.label = `lisk-devnet-${config.modules.http_api.httpPort}`;
+	config.label = `lisk-devnet-${config.network.wsPort}`;
 
 	app = new Application(genesisBlock, config);
 } catch (e) {

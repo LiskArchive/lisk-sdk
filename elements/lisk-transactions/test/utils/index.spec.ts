@@ -19,7 +19,6 @@ import {
 	serializeSignatures,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	validateMultisignatures,
 	validateSignature,
 } from '../../src/utils';
 
@@ -47,10 +46,6 @@ describe('transaction utils', () => {
 
 		it('should have verifySignature', () => {
 			return expect(validateSignature).toBeFunction();
-		});
-
-		it('should have verifyMultiSignatureTransaction', () => {
-			return expect(validateMultisignatures).toBeFunction();
 		});
 
 		it('should have serializeSignatures', () => {

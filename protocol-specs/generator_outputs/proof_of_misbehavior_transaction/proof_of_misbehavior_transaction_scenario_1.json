@@ -46,7 +46,7 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "fb9470ff8735209366badb592f14b34c398e2b4f88a80ded7455f852dc23e62faad4e47afdcdaf3874bf9e4c2e7d4f1c523a0523373f8e328c94eac283c80802"
+					"blockSignature": "955d31e9c7a2827abe4cfe36316ecfc93f285c7b3864d81ff5910a1aaa21e1b0358d0fd8d3ceeb9a5fb5f208cd3c7ab553d01d344f2abba6e1b1dfb0ad91950a"
 				},
 				"header2": {
 					"version": 2,
@@ -63,13 +63,13 @@
 					"payloadLength": 0,
 					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
-					"blockSignature": "eb43bd5ee76da954c772e9bd9ac6dc73ba8bb10a6b5bfa789fae168378ef3ffd88ca61bcf673099b1e5dcfd830fb6a9d221645f947836fb515b1779e4f694707"
+					"blockSignature": "52ede022fbfb705fb82d55c53abbb2750679b4bcc1d2407d909d297f14184099d3b716ffb6e09a860f2ae35e47e769beb9212d696da9d9f7ee93ab745d8a8f00"
 				}
 			},
 			"signatures": [
-				"8194d3f9a78b0121f357cef24d5f6258c79d51323321e2f40fca5a1a0df0f9ce48c9c8fec0231f468e53df99ed7829f6ceaa1345a5f543f63a96b7d22e2ec807"
+				"a0d92edaf8e43d2c6b02be5af6495a7d8a4159c863a59529abc9e570109f6d5f43ba63aa52a386b550586bc6db4e832e01d4c5e32d640980256a8078de586807"
 			],
-			"id": "e887d615738d36887324d7f36f2d2aa5ef5d393209e4c3594ebb301df9923146"
+			"id": "d8d3be5232ad7d5a6797f7b495c7ae28e04c71048f0a92fdd491e9ce4b0b357e"
 		}
 	}
 }

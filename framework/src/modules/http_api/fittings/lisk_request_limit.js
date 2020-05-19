@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const _ = require('lodash');
 const rateLimit = require('express-rate-limit');
@@ -38,7 +37,7 @@ module.exports = function create(fittingDef) {
 		appConfigLimits = {};
 	}
 
-	if (fittingDef && fittingDef.limits) {
+	if (fittingDef?.limits) {
 		overrideLimits = fittingDef.limits;
 	} else {
 		overrideLimits = {};

@@ -98,7 +98,7 @@ const getBytes = block => {
 };
 
 const sign = (block, keypair) =>
-	signDataWithPrivateKey(hash(getBytes(block)), keypair.privateKey);
+	signDataWithPrivateKey(getBytes(block), keypair.privateKey);
 
 const sortTransactions = transactions =>
 	transactions.sort((a, b) => {

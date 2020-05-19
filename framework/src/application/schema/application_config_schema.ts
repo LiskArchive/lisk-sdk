@@ -22,7 +22,6 @@ export const applicationConfigSchema = {
 		'genesisConfig',
 		'forging',
 		'network',
-		'components',
 		'modules',
 	],
 	properties: {
@@ -70,6 +69,26 @@ export const applicationConfigSchema = {
 			properties: {
 				enabled: {
 					type: 'boolean',
+				},
+			},
+		},
+		logger: {
+			type: 'object',
+			required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
+			properties: {
+				fileLogLevel: {
+					type: 'string',
+					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
+					env: 'LISK_FILE_LOG_LEVEL',
+					arg: '--log,-l',
+				},
+				logFileName: {
+					type: 'string',
+				},
+				consoleLogLevel: {
+					type: 'string',
+					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
+					env: 'LISK_CONSOLE_LOG_LEVEL',
 				},
 			},
 		},
@@ -307,30 +326,8 @@ export const applicationConfigSchema = {
 			},
 			required: ['seedPeers'],
 		},
-		components: {
-			type: 'object',
-			required: ['logger', 'cache', 'storage'],
-			properties: {
-				logger: {
-					type: 'object',
-				},
-				cache: {
-					type: 'object',
-				},
-				storage: {
-					type: 'object',
-				},
-			},
-		},
 		modules: {
 			type: 'object',
-			required: ['http_api'],
-			properties: {
-				// eslint-disable-next-line @typescript-eslint/camelcase
-				http_api: {
-					type: 'object',
-				},
-			},
 		},
 	},
 	additionalProperties: false,
@@ -341,6 +338,11 @@ export const applicationConfigSchema = {
 		rootPath: '~/.lisk',
 		ipc: {
 			enabled: false,
+		},
+		logger: {
+			fileLogLevel: 'info',
+			consoleLogLevel: 'none',
+			logFileName: 'lisk.log',
 		},
 		genesisConfig: {
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
@@ -369,14 +371,6 @@ export const applicationConfigSchema = {
 			seedPeers: [],
 			wsPort: 5000,
 		},
-		components: {
-			logger: {},
-			cache: {},
-			storage: {},
-		},
-		modules: {
-			// eslint-disable-next-line @typescript-eslint/camelcase
-			http_api: {},
-		},
+		modules: {},
 	},
 };

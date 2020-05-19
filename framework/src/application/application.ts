@@ -13,6 +13,7 @@
  */
 
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
 import * as os from 'os';
@@ -41,30 +42,14 @@ import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
+import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from '../errors';
-import { createLoggerComponent } from '../components/logger';
-import { createStorageComponent } from '../components/storage';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
-import {
-	MigrationEntity,
-	NetworkInfoEntity,
-	AccountEntity,
-	BlockEntity,
-	ChainStateEntity,
-	ConsensusStateEntity,
-	ForgerInfoEntity,
-	TempBlockEntity,
-	TransactionEntity,
-} from './storage/entities';
-import { networkMigrations, nodeMigrations } from './storage/migrations';
 import { ActionInfoObject } from '../controller/action';
-import { Logger } from '../types';
 import { NodeConstants, GenesisBlockInstance } from './node/node';
 import { DelegateConfig } from './node/forger';
 import { NetworkConfig } from './network/network';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import HttpAPIModule = require('../modules/http_api');
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -106,7 +91,7 @@ const registerProcessHooks = (app: Application): void => {
 	process.once('exit' as any, (code: number) => app.shutdown(code));
 };
 
-interface ApplicationConfig {
+export interface ApplicationConfig {
 	label: string;
 	version: string;
 	protocolVersion: string;
@@ -124,6 +109,11 @@ interface ApplicationConfig {
 		readonly defaultPassword?: string;
 	};
 	readonly network: NetworkConfig;
+	readonly logger: {
+		logFileName: string;
+		fileLogLevel: string;
+		consoleLogLevel: string;
+	};
 	genesisConfig: {
 		readonly epochTime: string;
 		readonly blockTime: number;
@@ -141,19 +131,13 @@ interface ApplicationConfig {
 		readonly totalAmount: string;
 		readonly delegateListRoundOffset: number;
 	};
-	components: {
-		[key: string]: {} | undefined;
-		logger: {
-			logFileName: string;
-		};
-	};
 	modules: ModulesOptions;
 }
 
 export class Application {
-	public logger: Logger;
 	public config: ApplicationConfig;
 	public constants: NodeConstants;
+	public logger!: Logger;
 
 	private _node!: Node;
 	private _network!: Network;
@@ -164,9 +148,6 @@ export class Application {
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: GenesisBlockInstance;
-	private _migrations: { [key: string]: object };
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private readonly storage: any;
 	private _forgerDB!: KVStore;
 	private _blockchainDB!: KVStore;
 	private _networkDB!: KVStore;
@@ -189,14 +170,6 @@ export class Application {
 		appConfig.label =
 			appConfig.label ?? `lisk-${this._genesisBlock.payloadHash.slice(0, 7)}`;
 
-		if (!_.has(appConfig, 'components.logger.logFileName')) {
-			_.set(
-				appConfig,
-				'components.logger.logFileName',
-				`${process.cwd()}/logs/${appConfig.label}/lisk.log`,
-			);
-		}
-
 		appConfig = configurator.getConfig(appConfig, {
 			failOnInvalidArg: process.env.NODE_ENV !== 'test',
 		}) as ApplicationConfig;
@@ -218,10 +191,6 @@ export class Application {
 		// Private members
 		this._modules = {};
 		this._transactions = {};
-		this._migrations = {};
-
-		this.logger = this._initLogger();
-		this.storage = this._initStorage();
 
 		this.registerTransaction(TransferTransaction);
 		this.registerTransaction(DelegateTransaction);
@@ -229,13 +198,6 @@ export class Application {
 		this.registerTransaction(VoteTransaction);
 		this.registerTransaction(UnlockTransaction);
 		this.registerTransaction(ProofOfMisbehaviorTransaction);
-
-		this.registerModule(
-			(HttpAPIModule as unknown) as InstantiableModule<BaseModule>,
-		);
-		this.overrideModuleOptions(HttpAPIModule.alias, {
-			loadAsChildProcess: true,
-		});
 	}
 
 	public registerModule(
@@ -261,9 +223,6 @@ export class Application {
 			options,
 		);
 		this._modules[moduleAlias] = moduleKlass;
-
-		// Register migrations defined by the module
-		this.registerMigrations(moduleKlass.alias, moduleKlass.migrations);
 	}
 
 	public overrideModuleOptions(alias: string, options?: object): void {
@@ -307,19 +266,6 @@ export class Application {
 		this._transactions[Transaction.TYPE] = Object.freeze(Transaction);
 	}
 
-	// eslint-disable-next-line
-	public registerMigrations(namespace: string, migrations: any): void {
-		assert(namespace, 'Namespace is required');
-		assert(Array.isArray(migrations), 'Migrations list should be an array');
-		assert(
-			!Object.keys(this._migrations).includes(namespace),
-			`Migrations for "${namespace}" was already registered.`,
-		);
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		this._migrations[namespace] = Object.freeze(migrations);
-	}
-
 	public getTransactions(): { [key: number]: typeof BaseTransaction } {
 		return this._transactions;
 	}
@@ -336,11 +282,22 @@ export class Application {
 		return this._modules;
 	}
 
-	public getMigrations(): { [key: string]: object } {
-		return this._migrations;
-	}
-
 	public async run(): Promise<void> {
+		// Freeze every module and configuration so it would not interrupt the app execution
+		this._compileAndValidateConfigurations();
+
+		Object.freeze(this._genesisBlock);
+		Object.freeze(this.constants);
+		Object.freeze(this.config);
+
+		registerProcessHooks(this);
+
+		// Initialize directories
+		await this._setupDirectories();
+
+		// Initialize logger
+		this.logger = this._initLogger();
+		this.logger.info(`Starting the app - ${this.config.label}`);
 		this.logger.info(
 			'If you experience any type of error, please open an issue on Lisk GitHub: https://github.com/LiskHQ/lisk-sdk/issues',
 		);
@@ -349,19 +306,7 @@ export class Application {
 		);
 		this.logger.info(`Booting the application with Lisk Framework(${version})`);
 
-		// Freeze every module and configuration so it would not interrupt the app execution
-		this._compileAndValidateConfigurations();
-
-		Object.freeze(this._genesisBlock);
-		Object.freeze(this.constants);
-		Object.freeze(this.config);
-
-		this.logger.info(`Starting the app - ${this.config.label}`);
-
-		registerProcessHooks(this);
-
-		// Initialize directories
-		await this._setupDirectories();
+		// Validate the instance
 		await this._validatePidFile();
 
 		// Initialize database instances
@@ -378,25 +323,7 @@ export class Application {
 		this._network = this._initNetwork();
 		this._node = this._initNode();
 
-		// Load system components
-		// eslint-disable-next-line
-		await this.storage.bootstrap();
-		// eslint-disable-next-line
-		await this.storage.entities.Migration.defineSchema();
-
-		// Have to keep it consistent until update migration namespace in database
-		// eslint-disable-next-line
-		await this.storage.entities.Migration.applyAll({
-			node: nodeMigrations(),
-			network: networkMigrations(),
-		});
-
-		await this._controller.load(
-			this.getModules(),
-			this.config.modules,
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			this.getMigrations() as any,
-		);
+		await this._controller.load(this.getModules(), this.config.modules);
 
 		await this._network.bootstrap();
 		await this._node.bootstrap();
@@ -412,12 +339,15 @@ export class Application {
 
 		this.logger.info({ errorCode, message }, 'Shutting down application');
 
-		await this._network.cleanup();
-		// eslint-disable-next-line
-		this.storage.cleanup();
-		await this._node.cleanup();
-		await this._forgerDB.close();
-		await this._networkDB.close();
+		try {
+			await this._network.cleanup();
+			await this._node.cleanup();
+			await this._blockchainDB.close();
+			await this._forgerDB.close();
+			await this._networkDB.close();
+		} catch (error) {
+			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
+		}
 
 		process.exit(errorCode);
 	}
@@ -453,55 +383,15 @@ export class Application {
 			});
 			this.overrideModuleOptions(alias, appConfigToShareWithModules);
 		});
-
-		this.logger.trace(this.config, 'Compiled configurations');
 	}
 
 	private _initLogger(): Logger {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return createLoggerComponent({
-			...this.config.components.logger,
+		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		return createLogger({
+			...this.config.logger,
+			logFilePath: path.join(dirs.logs, this.config.logger.logFileName),
 			module: 'lisk:app',
 		});
-	}
-
-	private _initStorage(): object {
-		/* eslint-disable */
-		const storageConfig = this.config.components.storage as any;
-		const loggerConfig = this.config.components.logger;
-		const dbLogger =
-			storageConfig.logFileName &&
-			storageConfig.logFileName === loggerConfig.logFileName
-				? this.logger
-				: createLoggerComponent({
-						...loggerConfig,
-						logFileName: storageConfig.logFileName,
-						module: 'lisk:app:database',
-				  });
-
-		const storage = createStorageComponent(
-			this.config.components.storage,
-			dbLogger,
-		) as any;
-
-		storage.registerEntity('Migration', MigrationEntity);
-		storage.registerEntity('NetworkInfo', NetworkInfoEntity);
-		storage.registerEntity('Account', AccountEntity, { replaceExisting: true });
-		storage.registerEntity('Block', BlockEntity, { replaceExisting: true });
-		storage.registerEntity('Transaction', TransactionEntity, {
-			replaceExisting: true,
-		});
-		storage.registerEntity('ChainState', ChainStateEntity);
-		storage.registerEntity('ConsensusState', ConsensusStateEntity);
-		storage.registerEntity('ForgerInfo', ForgerInfoEntity);
-		storage.registerEntity('TempBlock', TempBlockEntity);
-
-		storage.entities.Account.extendDefaultOptions({
-			limit: this.constants.activeDelegates + this.constants.standbyDelegates,
-		});
-
-		return storage;
-		/* eslint-enable */
 	}
 
 	private _initApplicationState(): ApplicationState {
@@ -511,8 +401,6 @@ export class Application {
 				protocolVersion: this.config.protocolVersion,
 				networkId: this.config.networkId,
 				wsPort: this.config.network.wsPort,
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				httpPort: this.config.modules.http_api?.httpPort,
 			},
 			logger: this.logger,
 		});
@@ -537,10 +425,6 @@ export class Application {
 				'block:delete',
 			],
 			{
-				getComponentConfig: {
-					handler: (action: ActionInfoObject) =>
-						this.config.components[action.params as string],
-				},
 				getApplicationState: {
 					handler: (_action: ActionInfoObject) => this._applicationState.state,
 				},
@@ -687,8 +571,6 @@ export class Application {
 				rootPath: this.config.rootPath,
 			},
 			logger: this.logger,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			storage: this.storage,
 			channel: this._channel,
 		});
 	}
@@ -705,7 +587,7 @@ export class Application {
 	}
 
 	private _initNode(): Node {
-		const { components, modules, ...rootConfigs } = this.config;
+		const { modules, ...rootConfigs } = this.config;
 		const { network, ...nodeConfigs } = rootConfigs;
 		const node = new Node({
 			channel: this._channel,

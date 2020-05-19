@@ -93,7 +93,7 @@ export const signMultiSignatureTransaction = (options: {
 	]);
 
 	const signature = cryptography.signData(
-		cryptography.hash(transactionWithNetworkIdentifierBytes),
+		transactionWithNetworkIdentifierBytes,
 		passphrase,
 	);
 

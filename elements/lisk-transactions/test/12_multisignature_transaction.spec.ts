@@ -743,7 +743,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 6061f18476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
+				`Failed to validate signature 75d263327c9cfc4ee7aedb881cbca502c592e994d81c5fac2f8bae622e48e481ae0182afbb7678176971b961d74363852d4f3b14ab75d0d3a6065412eba77105`,
 			);
 		});
 
@@ -768,7 +768,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature b6b2f45cd76907948f237599c82eb60341ceca0ce36a0e92853156639002e2df22548ca98988c6560d7dd25de732ac48c2a5da7e35cfaa064c9759d9b0e71b01`,
+				`Failed to validate signature 9466db88667a705831330b6987efc33e84de04dab1968f3b649feb093dfa3373675603d7d2257cd92344a9a959acf2897e2216c1069942fe640b284acc98e60d`,
 			);
 		});
 
@@ -790,7 +790,8 @@ describe('Multisignature transaction class', () => {
 			expect(result.errors[0].message).toBe('There are missing signatures');
 		});
 
-		it('should fail if any of the signatures is empty string', async () => {
+		// TODO: Update after updating protocol-specs
+		it.skip('should fail if any of the signatures is empty string', async () => {
 			const invalidRegistration = cloneDeep(validTestTransaction);
 			invalidRegistration.signatures[0] = '';
 
@@ -875,7 +876,8 @@ describe('Multisignature transaction class', () => {
 		});
 	});
 
-	describe('#undoAsset', () => {
+	// TODO: Update after updating protocol-specs
+	describe.skip('#undoAsset', () => {
 		it('should call state store', async () => {
 			await (validTestTransaction as any).undoAsset(store);
 			expect(storeAccountGetStub).toHaveBeenCalledWith(
