@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-describe('MarkleTree', () => {
+describe('MerkleTree', () => {
 	describe('constructor', () => {
 		it.todo('should have correct root value');
 	});

@@ -16,5 +16,5 @@ import { Proof } from './types';
 
 export const verifyProofOfInclusion = (
 	_proof: Proof,
-	_markleRoot: Buffer,
+	_merkleRoot: Buffer,
 ): boolean => true;

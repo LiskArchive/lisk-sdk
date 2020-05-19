@@ -1,6 +1,6 @@
 # @liskhq/lisk-tree
 
-@liskhq/lisk-tree is containing Markle tree implementations for use with Lisk-related software
+@liskhq/lisk-tree is containing Merkle tree implementations for use with Lisk-related software
 
 ## Installation
 

@@ -14,7 +14,7 @@
 
 import { Proof } from './types';
 
-export class MarkleTree {
+export class MerkleTree {
 	// eslint-disable-next-line
 	private _root: Buffer;
 	// eslint-disable-next-line
@@ -24,7 +24,7 @@ export class MarkleTree {
 
 	public get root(): Buffer {
 		if (this._root.length === 0) {
-			throw new Error('Root has not been calculated');
+			throw new Error('Merkle root has not been calculated');
 		}
 		return this._root;
 	}
