@@ -48,6 +48,15 @@ export class Codec {
 			[],
 			[],
 		);
+
+		console.log('*'.repeat(120));
+		console.log(
+			JSON.stringify(
+				this._compileSchemas[schemaName],
+				null,
+				2,
+			),
+			);
 	}
 
 	public encode(schema: Schema, message: GenericObject): Buffer {
@@ -155,27 +164,45 @@ export class Codec {
 				if (!schemaProp.properties && !schemaProp.items) {
 					throw new Error('Nested schemas need either a "properties" or "items" property.');
 				}
-				// Push "hinting header for type"
-				const tempSubSchema = [
-					{
+
+				if (schemaProp.type === 'object') {
+					// Push "hinting header for type"
+					const tempSubSchema = [
+						{
+							schemaProp: { fieldNumber: schemaProp.fieldNumber, type: schemaProp.type },
+							propertyName,
+							binaryKey: generateKey(schemaProp),
+							dataPath: [...dataPath],
+						},
+					];
+					const res = this.compileSchema(schemaProp.properties as SchemaPair, tempSubSchema, dataPath);
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+					compiledSchema.push(res);
+				}
+
+				if (schemaProp.type === 'array') {
+					const arrayHeader = {
 						schemaProp: { fieldNumber: schemaProp.fieldNumber, type: schemaProp.type },
 						propertyName,
 						binaryKey: generateKey(schemaProp),
 						dataPath: [...dataPath],
-					},
-				];
+					};
 
-				let { properties } = schemaProp;
-
-				// We need this as type=array has a different structure
-				if (schemaProp.type === 'array' && schemaProp.items?.type === 'object') {
-					properties = schemaProp.items?.properties;
+					if (schemaProp.items?.type === 'object') {
+						const res = this.compileSchema(schemaProp.items?.properties as SchemaPair, [], dataPath);
+						compiledSchema.push([
+							arrayHeader,
+							res,
+						]);
+					} else {
+						const tempSubSchema = [arrayHeader];
+						const res = this.compileSchema(schemaProp.items?.properties as SchemaPair, tempSubSchema, dataPath);
+						compiledSchema.push(
+							res,
+						);
+					}
 				}
 
-
-
-				const res = this.compileSchema(properties as SchemaPair, tempSubSchema, dataPath);
-				compiledSchema.push(res);
 				dataPath.pop();
 			} else {
 				compiledSchema.push({
