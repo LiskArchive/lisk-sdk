@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const FORGER_INFO_KEY_USED_HASH_ONION = 'forger:usedHashOnion';
-export const FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS =
+export const DB_KEY_FORGER_USED_HASH_ONION = 'forger:usedHashOnion';
+export const DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS =
 	'forger:registeredHashOnion';
