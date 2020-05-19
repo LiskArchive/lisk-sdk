@@ -21,10 +21,9 @@ describe('bytes', () => {
 			const testCaseOneInput = testCases[0].input.bytes;
 			const testCaseOneOutput = testCases[0].output.bytes;
 			expect(
-				writeBytes(
-					Buffer.from(testCaseOneInput.object.address.data),
-					testCaseOneInput.schema.properties.address,
-				).toString('hex'),
+				writeBytes(Buffer.from(testCaseOneInput.object.address.data)).toString(
+					'hex',
+				),
 			).toEqual(testCaseOneOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
 
 			const testCaseSecondInput = testCases[0].input.emptyBytes;
@@ -32,7 +31,6 @@ describe('bytes', () => {
 			expect(
 				writeBytes(
 					Buffer.from(testCaseSecondInput.object.address.data),
-					testCaseSecondInput.schema.properties.data,
 				).toString('hex'),
 			).toEqual(testCaseSecondOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
 		});
@@ -41,26 +39,18 @@ describe('bytes', () => {
 	describe('reader', () => {
 		it('should decode bytes', () => {
 			const testCaseOneInput = testCases[0].input.bytes;
+			const firstResult = Buffer.from(testCaseOneInput.object.address.data);
 			expect(
-				readBytes(
-					writeBytes(
-						Buffer.from(testCaseOneInput.object.address.data),
-						testCaseOneInput.schema.properties.address,
-					),
-					testCaseOneInput.schema.properties.address,
-				),
-			).toEqual(Buffer.from(testCaseOneInput.object.address.data));
+				readBytes(writeBytes(firstResult), 0),
+				// Result length + varint length refering to the size
+			).toEqual([firstResult, firstResult.length + 1]);
 
 			const testCaseSecondInput = testCases[0].input.bytes;
+			const secondResult = Buffer.from(testCaseSecondInput.object.address.data);
 			expect(
-				readBytes(
-					writeBytes(
-						Buffer.from(testCaseSecondInput.object.address.data),
-						testCaseSecondInput.schema.properties.address,
-					),
-					testCaseSecondInput.schema.properties.address,
-				),
-			).toEqual(Buffer.from(testCaseSecondInput.object.address.data));
+				readBytes(writeBytes(secondResult), 0),
+				// Result length + varint length refering to the size
+			).toEqual([secondResult, secondResult.length + 1]);
 		});
 	});
 });
