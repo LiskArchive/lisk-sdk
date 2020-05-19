@@ -20,8 +20,8 @@ import {
 	DEFAULT_VOTE_WEIGHT_CAP_RATE,
 	DEFAULT_STANDBY_DELEGATE,
 	DEFAULT_ACTIVE_DELEGATE,
-	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
-	CONSENSUS_STATE_FORGERS_LIST_KEY,
+	CONSENSUS_STATE_VOTE_WEIGHTS,
+	CONSENSUS_STATE_FORGERS_LIST,
 } from '../../src/constants';
 import { Rounds } from '../../src';
 
@@ -90,7 +90,7 @@ describe.skip('Forger selection', () => {
 						return a.address.localeCompare(b.address, 'en');
 					});
 					stateStore = new StateStoreMock([], {
-						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: JSON.stringify([
+						[CONSENSUS_STATE_VOTE_WEIGHTS]: JSON.stringify([
 							{
 								round: defaultRound,
 								delegates,
@@ -107,7 +107,7 @@ describe.skip('Forger selection', () => {
 					);
 
 					const forgersListStr = await stateStore.consensus.get(
-						CONSENSUS_STATE_FORGERS_LIST_KEY,
+						CONSENSUS_STATE_FORGERS_LIST,
 					);
 					const forgersList = JSON.parse(forgersListStr as string);
 					expect(forgersList).toHaveLength(1);
@@ -141,7 +141,7 @@ describe.skip('Forger selection', () => {
 				return a.address.localeCompare(b.address, 'en');
 			});
 			stateStore = new StateStoreMock([], {
-				[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: JSON.stringify([
+				[CONSENSUS_STATE_VOTE_WEIGHTS]: JSON.stringify([
 					{
 						round: defaultRound,
 						delegates,
@@ -160,7 +160,7 @@ describe.skip('Forger selection', () => {
 
 		it('should have 103 delegate addresses in the forgers list', async () => {
 			const forgersListStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(forgersListStr as string);
 			expect(forgersList[0].delegates).toHaveLength(103);
@@ -168,7 +168,7 @@ describe.skip('Forger selection', () => {
 
 		it('should store selected stand by delegates in the forgers list', async () => {
 			const forgersListStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(forgersListStr as string);
 			const standByCandidates = delegates.slice(101).map(d => d.address);
