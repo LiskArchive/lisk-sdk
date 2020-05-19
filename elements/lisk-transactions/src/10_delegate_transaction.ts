@@ -15,7 +15,7 @@
 import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { DELEGATE_NAME_FEE, DELEGATE_USERNAME_CHAIN_KEY } from './constants';
+import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
 import { TransactionJSON } from './transaction_types';
 
@@ -101,8 +101,8 @@ export class DelegateTransaction extends BaseTransaction {
 		const sender = await store.account.get(this.senderId);
 
 		// Data format for the registered delegates
-		// chain:usernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await store.chain.get(DELEGATE_USERNAME_CHAIN_KEY);
+		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
+		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
 		const usernames = usernamesStr
 			? (JSON.parse(usernamesStr) as ChainUsernames)
 			: { registeredDelegates: [] };
@@ -118,7 +118,10 @@ export class DelegateTransaction extends BaseTransaction {
 			usernames.registeredDelegates.sort((a, b) =>
 				a.address.localeCompare(b.address),
 			);
-			store.chain.set(DELEGATE_USERNAME_CHAIN_KEY, JSON.stringify(usernames));
+			store.chain.set(
+				CHAIN_STATE_DELEGATE_USERNAMES,
+				JSON.stringify(usernames),
+			);
 		}
 
 		if (usernameExists) {
@@ -152,8 +155,8 @@ export class DelegateTransaction extends BaseTransaction {
 		const sender = await store.account.get(this.senderId);
 
 		// Data format for the registered delegates
-		// chain:usernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await store.chain.get(DELEGATE_USERNAME_CHAIN_KEY);
+		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
+		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
 		const usernames = usernamesStr
 			? (JSON.parse(usernamesStr) as ChainUsernames)
 			: { registeredDelegates: [] };
@@ -166,7 +169,7 @@ export class DelegateTransaction extends BaseTransaction {
 			a.address.localeCompare(b.address),
 		);
 		store.chain.set(
-			DELEGATE_USERNAME_CHAIN_KEY,
+			CHAIN_STATE_DELEGATE_USERNAMES,
 			JSON.stringify(updatedRegisteredDelegates),
 		);
 

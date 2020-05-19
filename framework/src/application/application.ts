@@ -148,9 +148,9 @@ export class Application {
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: GenesisBlockInstance;
-	private _forgerDB!: KVStore;
 	private _blockchainDB!: KVStore;
-	private _networkDB!: KVStore;
+	private _nodeDB!: KVStore;
+	private _forgerDB!: KVStore;
 
 	public constructor(
 		genesisBlock: GenesisBlockInstance,
@@ -312,7 +312,7 @@ export class Application {
 		// Initialize database instances
 		this._forgerDB = this._getDBInstance(this.config, 'forger.db');
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
-		this._networkDB = this._getDBInstance(this.config, 'network.db');
+		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
 		// Initialize all objects
 		this._applicationState = this._initApplicationState();
@@ -344,7 +344,7 @@ export class Application {
 			await this._node.cleanup();
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
-			await this._networkDB.close();
+			await this._nodeDB.close();
 		} catch (error) {
 			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
 		}
@@ -580,7 +580,7 @@ export class Application {
 			options: this.config.network,
 			logger: this.logger,
 			channel: this._channel,
-			networkDB: this._networkDB,
+			nodeDB: this._nodeDB,
 		});
 
 		return network;

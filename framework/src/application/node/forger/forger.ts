@@ -27,8 +27,8 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { KVStore } from '@liskhq/lisk-db';
 import {
-	FORGER_INFO_KEY_USED_HASH_ONION,
-	FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+	DB_KEY_FORGER_USED_HASH_ONION,
+	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 } from './constant';
 import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
@@ -582,7 +582,7 @@ export class Forger {
 	private async _getRegisteredHashOnionSeeds(): Promise<StringKeyVal> {
 		try {
 			const registeredHashOnionSeedsStr = await this._db.get<string>(
-				FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+				DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 			);
 			return JSON.parse(registeredHashOnionSeedsStr) as StringKeyVal;
 		} catch (error) {
@@ -597,7 +597,7 @@ export class Forger {
 			registeredHashOnionSeeds,
 		);
 		await this._db.put(
-			FORGER_INFO_KEY_REGISTERED_HASH_ONION_SEEDS,
+			DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 			registeredHashOnionSeedsStr,
 		);
 	}
@@ -605,7 +605,7 @@ export class Forger {
 	private async _getUsedHashOnions(): Promise<UsedHashOnion[]> {
 		try {
 			const usedHashOnionsStr = await this._db.get<string>(
-				FORGER_INFO_KEY_USED_HASH_ONION,
+				DB_KEY_FORGER_USED_HASH_ONION,
 			);
 
 			return JSON.parse(usedHashOnionsStr) as UsedHashOnion[];
@@ -652,7 +652,7 @@ export class Forger {
 		usedHashOnions: UsedHashOnion[],
 	): Promise<void> {
 		const usedHashOnionsStr = JSON.stringify(usedHashOnions);
-		await this._db.put(FORGER_INFO_KEY_USED_HASH_ONION, usedHashOnionsStr);
+		await this._db.put(DB_KEY_FORGER_USED_HASH_ONION, usedHashOnionsStr);
 	}
 
 	private async _getDelegateKeypairForCurrentSlot(
