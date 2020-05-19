@@ -23,10 +23,10 @@ const stringBuffer = Buffer.from('>!test@123test#', 'utf8');
 
 suite
     .add('readString', () => {
-        readString(stringBuffer, { dataType: 'string' });
+        readString(stringBuffer, 0);
     })
     .add('writeString', () => {
-        writeString('>!test@123test#', { dataType: 'utf8' });
+        writeString('>!test@123test#');
     })
     .on('cycle', function (event) {
         console.log(String(event.target));

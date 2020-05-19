@@ -92,9 +92,6 @@ describe('dpos.apply()', () => {
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			expect(chainStub.dataAccess.getDelegates).toHaveBeenCalledTimes(
-				1 + DELEGATE_LIST_ROUND_OFFSET,
-			);
 			const voteWeightsStr = await stateStore.consensus.get(
 				CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 			);

@@ -20,20 +20,14 @@ describe('string', () => {
 		it('should encode string', () => {
 			const testCaseOneInput = testCases[0].input.string;
 			const testCaseOneOutput = testCases[0].output.string;
-			expect(
-				writeString(
-					testCaseOneInput.object.data,
-					testCaseOneInput.schema.properties.data,
-				).toString('hex'),
-			).toEqual(testCaseOneOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
+			expect(writeString(testCaseOneInput.object.data).toString('hex')).toEqual(
+				testCaseOneOutput.slice(2, testCaseOneOutput.length),
+			); // Ignoring the key part
 
 			const testCaseSecondInput = testCases[0].input.string;
 			const testCaseSecondOutput = testCases[0].output.string;
 			expect(
-				writeString(
-					testCaseSecondInput.object.data,
-					testCaseSecondInput.schema.properties.data,
-				).toString('hex'),
+				writeString(testCaseSecondInput.object.data).toString('hex'),
 			).toEqual(testCaseSecondOutput.slice(2, testCaseSecondOutput.length)); // Ignoring the key part
 		});
 	});
@@ -42,25 +36,21 @@ describe('string', () => {
 		it('should decode string', () => {
 			const testCaseOneInput = testCases[0].input.string;
 			expect(
-				readString(
-					writeString(
-						testCaseOneInput.object.data,
-						testCaseOneInput.schema.properties.data,
-					),
-					testCaseOneInput.schema.properties.data,
-				),
-			).toEqual(testCaseOneInput.object.data);
+				readString(writeString(testCaseOneInput.object.data), 0),
+				// Result length + varint length refering to the size
+			).toEqual([
+				testCaseOneInput.object.data,
+				testCaseOneInput.object.data.length + 1,
+			]);
 
 			const testCaseSecondInput = testCases[0].input.string;
 			expect(
-				readString(
-					writeString(
-						testCaseSecondInput.object.data,
-						testCaseSecondInput.schema.properties.data,
-					),
-					testCaseSecondInput.schema.properties.data,
-				),
-			).toEqual(testCaseSecondInput.object.data);
+				readString(writeString(testCaseSecondInput.object.data), 0),
+				// Result length + varint length refering to the size
+			).toEqual([
+				testCaseSecondInput.object.data,
+				testCaseSecondInput.object.data.length + 1,
+			]);
 		});
 	});
 });

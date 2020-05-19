@@ -17,15 +17,7 @@
 const msg = 0x80;
 const rest = 0x7f;
 
-type int = bigint | number;
-
-const isNumber = (val: int): val is number => typeof val === 'number';
-
-interface SchemaProperty {
-	readonly dataType: string;
-}
-
-const writeVarIntNumber = (value: number): Buffer => {
+export const writeUInt32 = (value: number): Buffer => {
 	const result: number[] = [];
 	let index = 0;
 	while (value > rest) {
@@ -39,7 +31,14 @@ const writeVarIntNumber = (value: number): Buffer => {
 	return Buffer.from(result);
 };
 
-const writeVarIntBigInt = (value: bigint): Buffer => {
+export const writeSInt32 = (value: number): Buffer => {
+	if (value >= 0) {
+		return writeUInt32(2 * value);
+	}
+	return writeUInt32(-2 * value - 1);
+};
+
+export const writeUInt64 = (value: bigint): Buffer => {
 	const result: number[] = [];
 	let index = 0;
 	while (value > BigInt(rest)) {
@@ -53,89 +52,77 @@ const writeVarIntBigInt = (value: bigint): Buffer => {
 	return Buffer.from(result);
 };
 
-export const writeVarInt = (value: int, _schema: SchemaProperty): Buffer =>
-	isNumber(value) ? writeVarIntNumber(value) : writeVarIntBigInt(value);
-
-export const writeSignedVarInt = (
-	value: int,
-	schema: SchemaProperty,
-): Buffer => {
-	if (schema.dataType === 'sint32') {
-		const number = Number(value);
-		if (number >= 0) {
-			return writeVarIntNumber(2 * number);
-		}
-		return writeVarIntNumber(-2 * number - 1);
+export const writeSInt64 = (value: bigint): Buffer => {
+	if (value >= BigInt(0)) {
+		return writeUInt64(BigInt(2) * value);
 	}
-	const number = BigInt(value);
-	if (number >= BigInt(0)) {
-		return writeVarInt(BigInt(2) * number, schema);
-	}
-	return writeVarInt(BigInt(-2) * number - BigInt(1), schema);
+	return writeUInt64(BigInt(-2) * value - BigInt(1));
 };
 
-const readVarIntNumber = (buffer: Buffer): number => {
+export const readUInt32 = (
+	buffer: Buffer,
+	offset: number,
+): [number, number] => {
 	let result = 0;
-	let index = 0;
+	let index = offset;
 	for (let shift = 0; shift < 32; shift += 7) {
 		if (index >= buffer.length) {
 			throw new Error('Invalid buffer length');
 		}
 		const bit = buffer[index];
 		index += 1;
-		if (index === 5 && bit > 0x0f) {
+		if (index === offset + 5 && bit > 0x0f) {
 			throw new Error('Value out of range of uint32');
 		}
 		result = (result | ((bit & rest) << shift)) >>> 0;
 		if ((bit & msg) === 0) {
-			return result;
+			return [result, index - offset];
 		}
 	}
 	throw new Error('Terminating bit not found');
 };
 
-const readVarIntBigInt = (buffer: Buffer): bigint => {
+export const readUInt64 = (
+	buffer: Buffer,
+	offset: number,
+): [bigint, number] => {
 	let result = BigInt(0);
-	let index = 0;
+	let index = offset;
 	for (let shift = BigInt(0); shift < BigInt(64); shift += BigInt(7)) {
 		if (index >= buffer.length) {
 			throw new Error('Invalid buffer length');
 		}
 		const bit = BigInt(buffer[index]);
 		index += 1;
-		if (index === 10 && bit > 0x01) {
+		if (index === 10 + offset && bit > 0x01) {
 			throw new Error('Value out of range of uint64');
 		}
 		result |= (bit & BigInt(rest)) << shift;
 		if ((bit & BigInt(msg)) === BigInt(0)) {
-			return result;
+			return [result, index - offset];
 		}
 	}
 	throw new Error('Terminating bit not found');
 };
 
-export const readVarInt = (buffer: Buffer, schema: SchemaProperty): int =>
-	schema.dataType === 'uint32' || schema.dataType === 'sint32'
-		? readVarIntNumber(buffer)
-		: readVarIntBigInt(buffer);
-
-const readSignedVarIntNumber = (buffer: Buffer): number => {
-	const varInt = readVarIntNumber(buffer);
+export const readSInt32 = (
+	buffer: Buffer,
+	offset: number,
+): [number, number] => {
+	const [varInt, size] = readUInt32(buffer, offset);
 	if (varInt % 2 === 0) {
-		return varInt / 2;
+		return [varInt / 2, size];
 	}
-	return -(varInt + 1) / 2;
+	return [-(varInt + 1) / 2, size];
 };
 
-const readSignedVarIntBigInt = (buffer: Buffer): bigint => {
-	const varInt = readVarIntBigInt(buffer);
+export const readSInt64 = (
+	buffer: Buffer,
+	offset: number,
+): [bigint, number] => {
+	const [varInt, size] = readUInt64(buffer, offset);
 	if (varInt % BigInt(2) === BigInt(0)) {
-		return varInt / BigInt(2);
+		return [varInt / BigInt(2), size];
 	}
-	return -(varInt + BigInt(1)) / BigInt(2);
+	return [-(varInt + BigInt(1)) / BigInt(2), size];
 };
-
-export const readSignedVarInt = (buffer: Buffer, schema: SchemaProperty): int =>
-	schema.dataType === 'sint32'
-		? readSignedVarIntNumber(buffer)
-		: readSignedVarIntBigInt(buffer);

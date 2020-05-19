@@ -341,42 +341,6 @@ export class Storage {
 		return accounts;
 	}
 
-	// TODO: Remove this with issue #5259
-	public async getDelegates(): Promise<AccountJSON[]> {
-		const stream = this._db.createReadStream({
-			gte: getFirstPrefix(DB_KEY_ACCOUNTS_ADDRESS),
-			lte: getLastPrefix(DB_KEY_ACCOUNTS_ADDRESS),
-		});
-		const accounts = await new Promise<AccountJSON[]>((resolve, reject) => {
-			const accountJSONs: AccountJSON[] = [];
-			stream
-				.on('data', ({ value }) => {
-					const { username } = value as AccountJSON;
-					if (username) {
-						accountJSONs.push(value);
-					}
-				})
-				.on('error', error => {
-					reject(error);
-				})
-				.on('end', () => {
-					resolve(accountJSONs);
-				});
-		});
-		accounts.sort((a, b) => {
-			const diff = BigInt(b.totalVotesReceived) - BigInt(a.totalVotesReceived);
-			if (diff > BigInt(0)) {
-				return 1;
-			}
-			if (diff < BigInt(0)) {
-				return -1;
-			}
-			return a.address.localeCompare(b.address);
-		});
-
-		return accounts;
-	}
-
 	/*
 		Transactions
 	*/
