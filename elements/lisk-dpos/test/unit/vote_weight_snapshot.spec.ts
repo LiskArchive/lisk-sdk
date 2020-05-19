@@ -22,6 +22,7 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import {
 	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
 	CONSENSUS_STATE_FORGERS_LIST_KEY,
+	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { randomBigIntWithPowerof8 } from '../utils/random_int';
 
@@ -261,7 +262,6 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -293,10 +293,31 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						{
+							address: forgers[0].address,
+							username: forgers[0].username,
+						},
+					],
 				});
+
+				stateStore = new StateStoreMock(
+					[...delegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
@@ -359,10 +380,18 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([
-					...delegates,
-					...additionalDelegates,
-				]);
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						...additionalDelegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+					],
+				});
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -394,10 +423,18 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[...delegates, ...additionalDelegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
@@ -457,10 +494,18 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([
-					...delegates,
-					...additionalDelegates,
-				]);
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						...additionalDelegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+					],
+				});
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -492,10 +537,18 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[...delegates, ...additionalDelegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
@@ -562,10 +615,18 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([
-					...delegates,
-					...additionalDelegates,
-				]);
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						...additionalDelegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+					],
+				});
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -597,10 +658,18 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[...delegates, ...additionalDelegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
@@ -664,10 +733,18 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([
-					...delegates,
-					...additionalDelegates,
-				]);
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						...additionalDelegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+					],
+				});
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -699,10 +776,18 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[...delegates, ...additionalDelegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
@@ -758,7 +843,18 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						{
+							username: forgers[0].username,
+							address: forgers[0].address,
+						},
+					],
+				});
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -797,10 +893,18 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[...delegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
@@ -861,10 +965,18 @@ describe('Vote weight snapshot', () => {
 					transactions: [],
 					seedReveal: '00000000000000000000000000000000',
 				} as Block;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([
-					...delegates,
-					...additionalDelegates,
-				]);
+				const mockedDelegateUsernames = JSON.stringify({
+					registeredDelegates: [
+						...delegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+						...additionalDelegates.map(delegate => ({
+							address: delegate.address,
+							username: delegate.username,
+						})),
+					],
+				});
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -896,10 +1008,18 @@ describe('Vote weight snapshot', () => {
 					},
 				]);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[...delegates, ...additionalDelegates, forgers[0]],
+					{
+						[CONSENSUS_STATE_FORGERS_LIST_KEY]: mockedForgersList,
+						[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: mockedVoteWeights,
+					},
+					{
+						chainData: {
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+						},
+					},
+				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 				const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
