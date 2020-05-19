@@ -16,7 +16,7 @@ import { when } from 'jest-when';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Dpos } from '../../src';
 import { delegatePublicKeys } from '../utils/round_delegates';
-import { CONSENSUS_STATE_FORGERS_LIST } from '../../src/constants';
+import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 /**
  * shuffledDelegatePublicKeys is created for the round: 5
@@ -53,7 +53,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 			},
 		];
 		when(chainStub.dataAccess.getConsensusState)
-			.calledWith(CONSENSUS_STATE_FORGERS_LIST)
+			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)
 			.mockReturnValue(JSON.stringify(forgersList));
 
 		// Act
@@ -66,7 +66,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 	it('should throw error when chain state is empty', async () => {
 		// Arrange
 		when(chainStub.dataAccess.getConsensusState)
-			.calledWith(CONSENSUS_STATE_FORGERS_LIST)
+			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)
 			.mockReturnValue(undefined);
 
 		// Act && Assert
@@ -86,7 +86,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 			},
 		];
 		when(chainStub.dataAccess.getConsensusState)
-			.calledWith(CONSENSUS_STATE_FORGERS_LIST)
+			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)
 			.mockReturnValue(JSON.stringify(forgersList));
 
 		// Act && Assert

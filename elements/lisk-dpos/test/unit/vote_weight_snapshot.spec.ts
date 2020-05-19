@@ -20,8 +20,8 @@ import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
-	CONSENSUS_STATE_VOTE_WEIGHTS,
-	CONSENSUS_STATE_FORGERS_LIST,
+	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
+	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { randomBigIntWithPowerof8 } from '../utils/random_int';
@@ -80,7 +80,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(3);
@@ -212,8 +212,8 @@ describe('Vote weight snapshot', () => {
 						},
 					],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 				);
 
@@ -230,7 +230,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -309,8 +309,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -332,7 +332,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -426,8 +426,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -449,7 +449,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -540,8 +540,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -563,7 +563,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -661,8 +661,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -684,7 +684,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -779,8 +779,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -802,7 +802,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -896,8 +896,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -919,7 +919,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -1011,8 +1011,8 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
@@ -1034,7 +1034,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
@@ -1129,8 +1129,8 @@ describe('Vote weight snapshot', () => {
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_FORGERS_LIST]: mockedForgersList,
-					[CONSENSUS_STATE_VOTE_WEIGHTS]: existingVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
 				});
 			});
 
@@ -1140,7 +1140,7 @@ describe('Vote weight snapshot', () => {
 
 				// Assert
 				const voteWeightsStr = await stateStore.consensus.get(
-					CONSENSUS_STATE_VOTE_WEIGHTS,
+					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(voteWeightsStr as string);
 				expect(voteWeights).toHaveLength(2);
