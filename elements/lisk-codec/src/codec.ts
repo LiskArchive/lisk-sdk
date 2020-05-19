@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// import { findObjectByPath, generateKey } from './utils';
+import {
+//	findObjectByPath,
+	generateKey
+} from './utils';
 import {
 	CompiledSchemas,
 	CompiledSchemasArray,
@@ -133,14 +136,13 @@ export class Codec {
 							propertyName: schemaPropertyName,
 							schemaProp: { type: schemaPropertyValue.type, fieldNumber: schemaPropertyValue.fieldNumber },
               dataPath: [...dataPath],
-              binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+              binaryKey: generateKey(schemaPropertyValue),
 						},
 					];
 					const res = this.compileSchema(schemaPropertyValue, nestedSchema, dataPath);
 					compiledSchema.push(res as any);
 					dataPath.pop();
 				} else if (schemaPropertyValue.type === 'array') { // Array recursive case
-
 					if (schemaPropertyValue.items === undefined) {
 						throw new Error('Invalid schema. Missing "items" property for Array schema');
 					}
@@ -151,7 +153,7 @@ export class Codec {
 								propertyName: schemaPropertyName,
 								schemaProp: { type: 'object', fieldNumber: schemaPropertyValue.fieldNumber },
 								dataPath: [...dataPath],
-								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+								binaryKey: generateKey(schemaPropertyValue),
 							},
 						]
 						const res = this.compileSchema(schemaPropertyValue.items, nestedSchema, dataPath);
@@ -160,7 +162,7 @@ export class Codec {
 								propertyName: schemaPropertyName,
 								schemaProp: { type: schemaPropertyValue.type, fieldNumber: schemaPropertyValue.fieldNumber },
 								dataPath: [...dataPath],
-								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+								binaryKey: generateKey(schemaPropertyValue),
 							},
 							res as any,
 						]);
@@ -171,13 +173,13 @@ export class Codec {
 								propertyName: schemaPropertyName,
 								schemaProp: { type: schemaPropertyValue.type, fieldNumber: schemaPropertyValue.fieldNumber },
 								dataPath: [...dataPath],
-								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+								binaryKey: generateKey(schemaPropertyValue),
 							},
 							{
 								propertyName: schemaPropertyName,
 								schemaProp: { dataType: schemaPropertyValue.items.dataType, fieldNumber: schemaPropertyValue.fieldNumber },
 								dataPath: [...dataPath],
-								binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+								binaryKey: generateKey(schemaPropertyValue),
 							},
 						]);
 						dataPath.pop();
@@ -187,7 +189,7 @@ export class Codec {
 						propertyName: schemaPropertyName,
 						schemaProp: schemaPropertyValue,
 						dataPath: [...dataPath],
-						binaryKey: Buffer.from('1'), // FIX ME WITH REAL KEY
+						binaryKey: generateKey(schemaPropertyValue),
 				 });
 				}
 			}
