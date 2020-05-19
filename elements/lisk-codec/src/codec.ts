@@ -13,9 +13,9 @@
  */
 
 import {
-//	findObjectByPath,
-	generateKey
+	generateKey,
 } from './utils';
+
 import {
 	CompiledSchemas,
 	CompiledSchemasArray,
@@ -24,7 +24,9 @@ import {
 	SchemaProps,
 } from './types';
 
-// import { writeVarInt, writeSignedVarInt } from './varint';
+import { writeObject } from './collection';
+
+// import { writeSInt32, writeSInt64, writeUInt32, writeUInt64 } from './varint';
 // import { writeString } from './string';
 // import { writeBytes } from './bytes';
 // import { writeBoolean } from './boolean';
@@ -34,11 +36,11 @@ export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	// private readonly _writers : { readonly [key: string]: (value: any, _schema: any) => Buffer } = {
-	// 	uint32: writeVarInt,
-	// 	sint32: writeSignedVarInt,
-	// 	uint64: writeVarInt,
-	// 	sint64: writeSignedVarInt,
+	// private readonly _writers : { readonly [key: string]: (value: any) => Buffer } = {
+	// 	uint32: writeUInt32,
+	// 	sint32: writeSInt32,
+	// 	uint64: writeUInt64,
+	// 	sint64: writeSInt64,
 	// 	string: writeString,
 	// 	bytes: writeBytes,
 	// 	boolean: writeBoolean,
@@ -53,59 +55,22 @@ export class Codec {
 		);
 	}
 
-	public encode(schema: Schema, _message: GenericObject): Buffer {
+	public encode(schema: Schema, message: GenericObject): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
 
 		const compiledSchema = this._compileSchemas[schema.$id];
 
-		console.log(
-			JSON.stringify(
-				compiledSchema,
-				null,
-				2,
-			),
-			);
+		const binaryMessage = { chunks: [], writenSize: 0 };
 
-		return Buffer.from('');
+		writeObject(compiledSchema, message, binaryMessage);
 
-		// const chunks = [];
-		// // eslint-disable-next-line @typescript-eslint/prefer-for-of
-		// for (let i = 0; i < compiledSchema.length; i += 1) {
-		// 	const { binaryKey, dataPath, schemaProp, propertyName } = compiledSchema[i];
-		// 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		// 	const pathToValue = findObjectByPath(message, dataPath);
-		// 	if (pathToValue === undefined) {
-		// 		throw new Error(
-		// 			'Compiled schema contains an invalid path to a property. Some problem occured when caching the schema.',
-		// 		);
-		// 	}
-
-		// 	const value = pathToValue[propertyName];
-
-		// 	// Missing properties are not encoded as per LIP-0027
-		// 	if (value === undefined) {
-		// 		// eslint-disable-next-line no-continue
-		// 		continue;
-		// 	}
-
-		// 	const dataType = schemaProp.dataType ?? schemaProp.type;
-
-		// 	if (dataType === undefined) {
-		// 		throw new Error('Schema is corrutped as neither "type" nor "dataType" are defined in it.');
-		// 	}
-
-		// 	const binaryValue = this._writers[dataType](value, schemaProp);
-
-		// 	chunks.push(binaryKey);
-		// 	chunks.push(binaryValue);
-		// }
-
-		// const binaryMessage = Buffer.concat(chunks);
-
-		// return binaryMessage;
+		console.log(binaryMessage);
+		return Buffer.concat(binaryMessage.chunks); // HERE MAYBE RETURN BUFFER + SIZE SO WE CAN ADD TO THE KEY OF NESTED OBJECTS?
 	}
+
+
 
 	// eslint-disable-next-line
 	public decode<T>(_schema: object, _message: Buffer): T {
