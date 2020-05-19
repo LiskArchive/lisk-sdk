@@ -11,26 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
+// readKey x 167,462,050 ops/sec ±0.83% (89 runs sampled)
 
 const { Suite } = require('benchmark');
-const {
-    readBoolean,
-    writeBoolean,
-} = require('../dist-node/boolean');
-
+const { readKey } = require('../dist-node/keys');
 const suite = new Suite();
 
 suite
-    .add('readBoolean', () => {
-        readBoolean(Buffer.from('01', 'hex'), 0);
-    })
-    .add('writeBoolean', () => {
-        writeBoolean(true);
-    })
-    .on('cycle', function (event) {
-        console.log(String(event.target));
-    })
-    .run({ async: true });
-
-
+  .add('readKey', () => {
+    readKey(48);
+  })
+  .on('cycle', function (event) {
+    console.log(String(event.target));
+  })
+  .run({ async: true });

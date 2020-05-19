@@ -11,6 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// writeVarInt#uint32 x 7,546,890 ops/sec ±1.32% (79 runs sampled)
+// writeVarInt#uint64 x 614,052 ops/sec ±0.51% (90 runs sampled)
+// writeSignedVarInt#sint32 x 7,560,542 ops/sec ±1.27% (86 runs sampled)
+// writeSignedVarInt#sint64 x 285,206 ops/sec ±1.95% (81 runs sampled)
 
 const { Suite } = require('benchmark');
 const {
