@@ -18,18 +18,18 @@ const {
     readBytes,
     writeBytes,
 } = require('../dist-node/bytes');
-const { writeVarInt } = require('../dist-node/varint')
+const { writeUInt32 } = require('../dist-node/varint')
 const suite = new Suite();
 const data = bytesEncodingOutput.testCases[0].input.bytes.object.address.data;
 const dataBuffer = Buffer.from(data);
 const dataEncodedBuffer = Buffer.concat([
-    writeVarInt(dataBuffer.length, { dataType: 'uint32' }),
+    writeUInt32(dataBuffer.length),
     dataBuffer,
 ]);
 
 suite
     .add('readBytes', () => {
-        readBytes(dataEncodedBuffer, { dataType: 'bytes' });
+        readBytes(dataEncodedBuffer, 0);
     })
     .add('writeBytes', () => {
         writeBytes(dataBuffer, { dataType: 'bytes' });
