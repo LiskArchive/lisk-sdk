@@ -16,8 +16,6 @@ import {
 	getFirstEightBytesReversed,
 	toAddress,
 	getAddressFromPublicKey,
-	getBase32AddressFromPublicKey,
-	getBinaryAddressFromPublicKey,
 	convertPublicKeyEd2Curve,
 	convertPrivateKeyEd2Curve,
 	stringifyEncryptedPassphrase,
@@ -95,38 +93,6 @@ describe('convert', () => {
 		it('should generate address from publicKey', () => {
 			const address = getAddressFromPublicKey(defaultPublicKey);
 			expect(address).toBe(defaultAddress);
-		});
-	});
-
-	describe('#getBinaryAddressFromPublicKey', () => {
-		const publicKey =
-			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243';
-		const hash =
-			'c247a42e09e6aafd818821f75b2f5b0de47c8235b580881bd7750c9365993d25';
-		const expectedBinaryAddress = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
-		beforeEach(() => {
-			return jest.spyOn(hashModule, 'hash').mockReturnValue(hash);
-		});
-
-		it('should generate address from publicKey', () => {
-			const address = getBinaryAddressFromPublicKey(publicKey);
-			expect(address).toBe(expectedBinaryAddress);
-		});
-	});
-
-	describe('#getBase32AddressFromPublicKey', () => {
-		const publicKey =
-			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243';
-		const hash =
-			'c247a42e09e6aafd818821f75b2f5b0de47c8235b580881bd7750c9365993d25';
-		const expectedBase32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
-		beforeEach(() => {
-			return jest.spyOn(hashModule, 'hash').mockReturnValue(hash);
-		});
-
-		it('should generate base32 address from publicKey', () => {
-			const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
-			expect(address).toBe(expectedBase32Address);
 		});
 	});
 
