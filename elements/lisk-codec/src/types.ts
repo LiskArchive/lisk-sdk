@@ -1,5 +1,6 @@
 export interface GenericObject {
-	[key: string]: GenericObject | string | number | Buffer;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[key: string]: GenericObject | string | number | Buffer | Array<any>;
 }
 export interface SchemaPair {
 	readonly [key: string]: SchemaProps;
