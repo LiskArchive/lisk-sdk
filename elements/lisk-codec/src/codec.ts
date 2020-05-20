@@ -47,8 +47,6 @@ export class Codec {
 		return Buffer.concat(res[0]);
 	}
 
-
-
 	// eslint-disable-next-line
 	public decode<T>(_schema: object, _message: Buffer): T {
 		return {} as T;
