@@ -16,7 +16,7 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { Proof } from './types';
-import { EMPTY_HASH, LEAF_PREFIX, BRANCH_PREFIX } from './constant';
+import { EMPTY_HASH, LEAF_PREFIX, BRANCH_PREFIX } from './constants';
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -29,8 +29,8 @@ export class MerkleTree {
 			this._root = EMPTY_HASH;
 			return;
 		}
-		const leafHashes = new Array<Buffer>(initValues.length);
-		for (let i = 0; i < initValues.length; i += 1) {
+		const leafHashes = new Array<Buffer>(this._dataLength);
+		for (let i = 0; i < this._dataLength; i += 1) {
 			const value = Buffer.concat(
 				[LEAF_PREFIX, initValues[i]],
 				LEAF_PREFIX.length + initValues[i].length,

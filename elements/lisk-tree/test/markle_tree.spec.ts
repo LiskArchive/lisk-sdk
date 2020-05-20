@@ -13,7 +13,7 @@
  */
 import { hash } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '../src/merkle_tree';
-import { EMPTY_HASH, LEAF_PREFIX } from '../src/constant';
+import { EMPTY_HASH, LEAF_PREFIX } from '../src/constants';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
