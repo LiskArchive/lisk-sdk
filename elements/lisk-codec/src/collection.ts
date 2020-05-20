@@ -77,7 +77,7 @@ export const writeObject = (
 			} = property;
 			if (dataType === undefined) {
 				throw new Error(
-					'Compiled Schema is corrutped as "dataType" can not be undefined.',
+					'Compiled Schema is corrupted as "dataType" can not be undefined.',
 				);
 			}
 
