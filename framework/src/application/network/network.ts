@@ -16,7 +16,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as liskP2P from '@liskhq/lisk-p2p';
 import { lookupPeersIPs } from './utils';
-import { Logger } from '../../types';
+import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 
@@ -43,15 +43,15 @@ const {
 
 const hasNamespaceReg = /:/;
 
-const NETWORK_INFO_KEY_NODE_SECRET = 'network:nodeSecret';
-const NETWORK_INFO_KEY_TRIED_PEERS = 'network:triedPeersList';
+const DB_KEY_NETWORK_NODE_SECRET = 'network:nodeSecret';
+const DB_KEY_NETWORK_TRIED_PEERS_LIST = 'network:triedPeersList';
 const DEFAULT_PEER_SAVE_INTERVAL = 10 * 60 * 1000; // 10min in ms
 
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
-	readonly networkDB: KVStore;
+	readonly nodeDB: KVStore;
 }
 
 export interface NetworkConfig {
@@ -94,20 +94,15 @@ export class Network {
 	private readonly _options: NetworkConfig;
 	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
-	private readonly _networkDB: KVStore;
+	private readonly _nodeDB: KVStore;
 	private _secret: number | null;
 	private _p2p!: liskP2P.P2P;
 
-	public constructor({
-		options,
-		channel,
-		logger,
-		networkDB,
-	}: NetworkConstructor) {
+	public constructor({ options, channel, logger, nodeDB }: NetworkConstructor) {
 		this._options = options;
 		this._channel = channel;
 		this._logger = logger;
-		this._networkDB = networkDB;
+		this._nodeDB = nodeDB;
 		this._secret = null;
 	}
 
@@ -115,8 +110,8 @@ export class Network {
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
-			const previousPeersStr = await this._networkDB.get<string>(
-				NETWORK_INFO_KEY_TRIED_PEERS,
+			const previousPeersStr = await this._nodeDB.get<string>(
+				DB_KEY_NETWORK_TRIED_PEERS_LIST,
 			);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
@@ -124,7 +119,7 @@ export class Network {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error(
 					{ err: error as Error },
-					'Error while querying networkDB',
+					'Error while querying nodeDB',
 				);
 			}
 		}
@@ -132,19 +127,19 @@ export class Network {
 		// Get previous secret if exists
 		let secret;
 		try {
-			secret = await this._networkDB.get(NETWORK_INFO_KEY_NODE_SECRET);
+			secret = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error(
 					{ err: error as Error },
-					'Error while querying networkDB',
+					'Error while querying nodeDB',
 				);
 			}
 		}
 		if (!secret) {
 			this._secret = getRandomBytes(4).readUInt32BE(0);
-			await this._networkDB.put(
-				NETWORK_INFO_KEY_NODE_SECRET,
+			await this._nodeDB.put(
+				DB_KEY_NETWORK_NODE_SECRET,
 				this._secret.toString(),
 			);
 		} else {
@@ -387,8 +382,8 @@ export class Network {
 		setInterval(async () => {
 			const triedPeers = this._p2p.getTriedPeers();
 			if (triedPeers.length) {
-				await this._networkDB.put(
-					NETWORK_INFO_KEY_TRIED_PEERS,
+				await this._nodeDB.put(
+					DB_KEY_NETWORK_TRIED_PEERS_LIST,
 					JSON.stringify(triedPeers),
 				);
 			}

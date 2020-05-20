@@ -20,12 +20,15 @@ import {
 } from '@liskhq/lisk-transactions';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
-import { Logger } from '../../../../../../src/types';
+import { Logger } from '../../../../../../src/application/logger';
 import { Transport } from '../../../../../../src/application/node/transport';
 
 import { genesis } from '../../../../../fixtures/accounts';
 import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
-import { Block, GenesisBlock } from '../../../../../fixtures/blocks';
+import {
+	blockFixture,
+	genesisBlockFixture,
+} from '../../../../../fixtures/blocks';
 import { InvalidTransactionError } from '../../../../../../src/application/node/transport/errors';
 import { InMemoryChannel } from '../../../../../../src/controller/channels';
 
@@ -54,7 +57,7 @@ describe('transport', () => {
 			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
-			recipientId: '12668885769632475474L',
+			recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 			passphrase: genesis.passphrase,
 		});
 		const transactionOne = transfer({
@@ -62,7 +65,7 @@ describe('transport', () => {
 			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
-			recipientId: '12668885769632475474L',
+			recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 			passphrase: genesis.passphrase,
 		});
 		const transactionTwo = transfer({
@@ -70,11 +73,11 @@ describe('transport', () => {
 			fee: '100000000',
 			networkIdentifier,
 			amount: '100',
-			recipientId: '12668885769632475474L',
+			recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 			passphrase: genesis.passphrase,
 		});
 
-		blockMock = new Block();
+		blockMock = blockFixture();
 
 		transactionsList = [transactionOne, transactionTwo];
 
@@ -431,7 +434,7 @@ describe('transport', () => {
 			beforeEach(() => {
 				blocksList = [];
 				for (let j = 0; j < 10; j += 1) {
-					const auxBlock = new Block();
+					const auxBlock = blockFixture();
 					blocksList.push(auxBlock);
 				}
 			});
@@ -445,7 +448,7 @@ describe('transport', () => {
 						fee: '10',
 						senderPublicKey:
 							'2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079',
-						recipientId: '12668885769632475474L',
+						recipientId: 'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
 						timestamp: 28227090,
 						asset: {},
 						signature:
@@ -649,7 +652,7 @@ describe('transport', () => {
 						});
 
 						describe('when it does not throw', () => {
-							const genesisBlock = new GenesisBlock();
+							const genesisBlock = genesisBlockFixture();
 							genesisBlock.previousBlockId = genesisBlock.id; // So validations pass
 
 							describe('when query.block is defined', () => {

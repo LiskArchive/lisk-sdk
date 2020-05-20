@@ -17,11 +17,10 @@ import { BlockInstance } from '@liskhq/lisk-chain';
 import { transfer, TransactionJSON, utils } from '@liskhq/lisk-transactions';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { nodeUtils } from '../../../../../utils';
-import { accounts } from '../../../../../fixtures';
+import { genesis } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
 
 const { convertLSKToBeddows } = utils;
-const { genesis } = accounts;
 
 describe('Delete block', () => {
 	const dbName = 'delete_block';

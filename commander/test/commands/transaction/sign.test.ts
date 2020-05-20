@@ -27,7 +27,7 @@ describe('transaction:sign', () => {
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		asset: {
-			recipientId: '18141291412139607230L',
+			recipientId: '3c80e7d9964a1c83a6dd5dc64e105e0e634bd58a',
 			amount: '1234567890',
 			data: 'random data',
 		},
@@ -45,10 +45,10 @@ describe('transaction:sign', () => {
 
 	const defaultSignedTransaction = {
 		...defaultTransaction,
-		id: '41ab7667ab5ba4dba173873741b7c7f9ea2f9a4b4843cfa30d24acceb9538c2f',
-		senderId: '2129300327344985743L',
+		id: 'ee12bfda559ee03889cc1d352c0855741ea130c90ced1ed0bebb1b0b38c01811',
+		senderId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		signatures: [
-			'1ac554071c93b3a2123f3c968bc34df1bb3c881fe5248cedb9ba16852e20220abff20cb52ade822bcc22efb6c63bd8d9513b48a36f1135e52499af5379e4e805',
+			'fc4ab8535fde94a5709bd42ff52d7c9d0f4ef1724eb62d2095c9fe602d90cb692f94c5b36e9e3e889c04ecfa7b5529b64aeff3d30926a17ae217a978db5e6f0a',
 		],
 	};
 
@@ -65,24 +65,24 @@ describe('transaction:sign', () => {
 		asset: {
 			data: '{"lisk":"zug"}',
 			amount: '100000000000',
-			recipientId: '5553317242494141914L',
+			recipientId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		},
 	};
 
 	const expectedMultiSignedTransaction = {
-		id: '41ab7667ab5ba4dba173873741b7c7f9ea2f9a4b4843cfa30d24acceb9538c2f',
+		id: 'ee12bfda559ee03889cc1d352c0855741ea130c90ced1ed0bebb1b0b38c01811',
 		asset: {
 			amount: '1234567890',
 			data: 'random data',
-			recipientId: '18141291412139607230L',
+			recipientId: '3c80e7d9964a1c83a6dd5dc64e105e0e634bd58a',
 		},
 		fee: '10000000',
 		nonce: '0',
-		senderId: '2129300327344985743L',
+		senderId: '8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17',
 		senderPublicKey:
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 		signatures: [
-			'1ac554071c93b3a2123f3c968bc34df1bb3c881fe5248cedb9ba16852e20220abff20cb52ade822bcc22efb6c63bd8d9513b48a36f1135e52499af5379e4e805',
+			'fc4ab8535fde94a5709bd42ff52d7c9d0f4ef1724eb62d2095c9fe602d90cb692f94c5b36e9e3e889c04ecfa7b5529b64aeff3d30926a17ae217a978db5e6f0a',
 		],
 		type: 8,
 	};

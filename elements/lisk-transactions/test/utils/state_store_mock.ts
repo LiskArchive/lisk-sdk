@@ -54,6 +54,7 @@ export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
 	readonly lastBlockHeader?: BlockHeader;
 	readonly lastBlockReward?: bigint;
+	readonly chainData?: { [key: string]: string };
 }
 
 export class StateStoreMock {
@@ -62,13 +63,15 @@ export class StateStoreMock {
 
 	public accountData: Account[];
 	public transactionData: TransactionJSON[];
+	public chainData: { [key: string]: string };
 
-	constructor(initialAccount?: Account[], addtionalInfo?: AdditionalInfo) {
+	constructor(initialAccount?: Account[], additionalInfo?: AdditionalInfo) {
 		// Make sure to be deep copy
 		this.accountData = initialAccount
 			? initialAccount.map(a => ({ ...a }))
 			: [];
 		this.transactionData = [];
+		this.chainData = additionalInfo?.chainData ?? {};
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -108,9 +111,14 @@ export class StateStoreMock {
 
 		this.chain = {
 			networkIdentifier:
-				addtionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
-			lastBlockHeader: addtionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
-			lastBlockReward: addtionalInfo?.lastBlockReward ?? BigInt(0),
+				additionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
+			lastBlockHeader: additionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
+			lastBlockReward: additionalInfo?.lastBlockReward ?? BigInt(0),
+			get: async (key: string): Promise<string | undefined> =>
+				Promise.resolve(this.chainData[key]),
+			set: (key: string, value: string): void => {
+				this.chainData[key] = value;
+			},
 		};
 	}
 }

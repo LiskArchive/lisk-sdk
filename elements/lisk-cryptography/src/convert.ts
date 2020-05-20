@@ -16,7 +16,6 @@
 import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
 
-import { bufferToIntAsString } from './buffer';
 // eslint-disable-next-line import/no-cycle
 import { EncryptedPassphraseObject } from './encrypt';
 import { hash } from './hash';
@@ -26,7 +25,7 @@ import reverse = require('buffer-reverse');
 
 const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
-export const convertUIntArray = (
+export const  convertUIntArray = (
 	uintArray: number[],
 	fromBits: number,
 	toBits: number,
@@ -61,6 +60,19 @@ export const convertUIntArray = (
 export const convertUInt5ToBase32 = (uint5Array: number[]): string =>
 	uint5Array.map((val: number) => CHARSET[val]).join('');
 
+export const getFirstNBytes = (
+	input: string | Buffer,
+	size: number,
+): Buffer => {
+	// Union type arguments on overloaded functions do not work in typescript.
+	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
+	if (typeof input === 'string') {
+		return Buffer.from(input, 'hex').slice(0, size);
+	}
+
+	return Buffer.from(input).slice(0, size);
+};
+
 export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	const BUFFER_SIZE = 8;
 	// Union type arguments on overloaded functions do not work in typescript.
@@ -73,28 +85,18 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 };
 
 export const toAddress = (buffer: Buffer): string => {
-	const BUFFER_SIZE = 8;
-	if (
-		!Buffer.from(buffer)
-			.slice(0, BUFFER_SIZE)
-			.equals(buffer)
-	) {
-		throw new Error(
-			'The buffer for Lisk addresses must not have more than 8 bytes',
-		);
+	const BUFFER_SIZE = 20;
+	const truncatedBuffer = getFirstNBytes(buffer, BUFFER_SIZE);
+
+	if (truncatedBuffer.length !== BUFFER_SIZE) {
+		throw new Error('The Lisk addresses must contains exactly 20 bytes');
 	}
 
-	return `${bufferToIntAsString(buffer)}L`;
+	return truncatedBuffer.toString('hex');
 };
 
-export const getAddressFromPublicKey = (publicKey: string): string => {
-	const publicKeyHash = hash(publicKey, 'hex');
-
-	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
-	const address = toAddress(publicKeyTransform);
-
-	return address;
-};
+export const getAddressFromPublicKey = (publicKey: string): string =>
+	toAddress(hash(publicKey, 'hex'));
 
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 

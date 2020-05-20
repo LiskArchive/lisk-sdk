@@ -17,7 +17,7 @@ import { ForkStatus } from '@liskhq/lisk-bft';
 import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { Sequence } from '../utils/sequence';
-import { Logger } from '../../../types';
+import { Logger } from '../../logger';
 import { BaseBlockProcessor } from './base_block_processor';
 import { InMemoryChannel } from '../../../controller/channels';
 

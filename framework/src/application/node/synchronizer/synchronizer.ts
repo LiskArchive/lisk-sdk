@@ -24,7 +24,7 @@ import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import * as definitions from './schema';
 import * as utils from './utils';
-import { Logger } from '../../../types';
+import { Logger } from '../../logger';
 import { Processor } from '../processor';
 import { BaseSynchronizer } from './base_synchronizer';
 import { InMemoryChannel } from '../../../controller/channels';

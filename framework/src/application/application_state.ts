@@ -15,7 +15,7 @@
 import * as os from 'os';
 import * as _ from 'lodash';
 import * as assert from 'assert';
-import { Logger } from '../types';
+import { Logger } from './logger';
 import { BaseChannel } from '../controller/channels';
 
 interface State {

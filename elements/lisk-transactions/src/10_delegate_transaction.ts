@@ -15,9 +15,17 @@
 import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { DELEGATE_NAME_FEE } from './constants';
+import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
+
+interface RegisteredDelegate {
+	readonly username: string;
+	readonly address: string;
+}
+interface ChainUsernames {
+	readonly registeredDelegates: RegisteredDelegate[];
+}
 
 export interface DelegateAsset {
 	readonly username: string;
@@ -92,9 +100,29 @@ export class DelegateTransaction extends BaseTransaction {
 		const errors: TransactionError[] = [];
 		const sender = await store.account.get(this.senderId);
 
-		const usernameExists = store.account.find(
-			(account: Account) => account.username === this.asset.username,
+		// Data format for the registered delegates
+		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
+		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
+		const usernames = usernamesStr
+			? (JSON.parse(usernamesStr) as ChainUsernames)
+			: { registeredDelegates: [] };
+		const usernameExists = usernames.registeredDelegates.find(
+			delegate => delegate.username === this.asset.username,
 		);
+
+		if (!usernameExists) {
+			usernames.registeredDelegates.push({
+				username: this.asset.username,
+				address: this.senderId,
+			});
+			usernames.registeredDelegates.sort((a, b) =>
+				a.address.localeCompare(b.address),
+			);
+			store.chain.set(
+				CHAIN_STATE_DELEGATE_USERNAMES,
+				JSON.stringify(usernames),
+			);
+		}
 
 		if (usernameExists) {
 			errors.push(
@@ -125,10 +153,29 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const sender = await store.account.get(this.senderId);
+
+		// Data format for the registered delegates
+		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
+		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
+		const usernames = usernamesStr
+			? (JSON.parse(usernamesStr) as ChainUsernames)
+			: { registeredDelegates: [] };
+		const updatedRegisteredDelegates = {
+			registeredDelegates: usernames.registeredDelegates.filter(
+				delegate => delegate.username !== sender.username,
+			),
+		};
+		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
+			a.address.localeCompare(b.address),
+		);
+		store.chain.set(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+			JSON.stringify(updatedRegisteredDelegates),
+		);
+
 		sender.username = null;
 		sender.isDelegate = 0;
 		store.account.set(sender.address, sender);
-
 		return [];
 	}
 }

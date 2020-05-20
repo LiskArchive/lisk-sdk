@@ -24,6 +24,10 @@ export interface StateStore {
 		readonly set: (key: string, value: string) => void;
 		readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	};
+	readonly chain: {
+		readonly get: (key: string) => Promise<string | undefined>;
+		readonly set: (key: string, value: string) => void;
+	};
 }
 
 export interface BlockHeader {
@@ -71,7 +75,6 @@ export interface DPoSProcessingOptions {
 export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
 	readonly dataAccess: {
-		getDelegates(): Promise<Account[]>;
 		getConsensusState(key: string): Promise<string | undefined>;
 		getBlockHeadersByHeightBetween(
 			fromHeight: number,
@@ -116,3 +119,11 @@ export type FixedLengthArray<T, N extends number> = GrowToSize<T, [], N>;
 
 // Look for a way to define buffer type with fixed size
 export type RandomSeed = Buffer;
+
+export interface ChainStateRegisteredDelegate {
+	readonly username: string;
+	readonly address: string;
+}
+export interface ChainStateUsernames {
+	readonly registeredDelegates: ChainStateRegisteredDelegate[];
+}

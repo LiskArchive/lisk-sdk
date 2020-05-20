@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
 const debug = require('debug')('lisk:validator:env');
 const formatters = require('../formatters');

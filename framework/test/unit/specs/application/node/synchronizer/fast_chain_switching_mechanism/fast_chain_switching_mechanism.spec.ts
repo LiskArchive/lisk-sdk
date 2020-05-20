@@ -138,7 +138,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 	describe('isValidFor', () => {
 		const defaultGenerator = {
-			address: '11121761073292744822L',
+			address: '76986142c56e589a35ac2a78c64f6cc4d5df2d28',
 			publicKey:
 				'20d381308d9a809455567af249dddd68bd2e23753e69913961fe04ac07732594',
 		};

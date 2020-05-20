@@ -16,11 +16,9 @@ import { BaseTransaction, TransactionError } from '@liskhq/lisk-transactions';
 import { KVStore } from '@liskhq/lisk-db';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../utils';
-import { accounts } from '../../../../fixtures';
+import { genesis } from '../../../../fixtures';
 import { createDB, removeDB } from '../../../../utils/kv_store';
 import { Node } from '../../../../../src/application/node';
-
-const { genesis } = accounts;
 
 /**
  * Implementation of the Custom Transaction enclosed in a class

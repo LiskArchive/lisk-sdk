@@ -32,7 +32,7 @@ import { Dpos } from '@liskhq/lisk-dpos';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { BaseBlockProcessor } from './processor';
-import { Logger } from '../../types';
+import { Logger } from '../logger';
 
 interface BlockProcessorInput {
 	readonly networkIdentifier: string;
@@ -87,7 +87,7 @@ type BlockWithoutIDAndSign = Modify<
 	}
 >;
 
-const FORGER_INFO_KEY_PREVIOUSLY_FORGED = 'forger:previouslyForged';
+const DB_KEY_FORGER_PREVIOUSLY_FORGED = 'forger:previouslyForged';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -452,7 +452,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
 		try {
 			const previouslyForgedStr = await this.forgerDB.get<string>(
-				FORGER_INFO_KEY_PREVIOUSLY_FORGED,
+				DB_KEY_FORGER_PREVIOUSLY_FORGED,
 			);
 			return JSON.parse(previouslyForgedStr) as ForgedMap;
 		} catch (error) {
@@ -498,7 +498,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		};
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
 		await this.forgerDB.put(
-			FORGER_INFO_KEY_PREVIOUSLY_FORGED,
+			DB_KEY_FORGER_PREVIOUSLY_FORGED,
 			previouslyForgedStr,
 		);
 	}

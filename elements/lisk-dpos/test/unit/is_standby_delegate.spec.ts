@@ -27,11 +27,11 @@ import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Dpos } from '../../src';
 import { ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	return new StateStoreMock([], {
-		[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(list),
+		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify(list),
 	});
 };
 

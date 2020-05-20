@@ -22,11 +22,10 @@ import { BlockInstance, Account } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
-import { accounts } from '../../../../../fixtures';
+import { genesis } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
 
 const { convertLSKToBeddows } = utils;
-const { genesis } = accounts;
 
 describe('Process block', () => {
 	const dbName = 'process_block';
@@ -200,7 +199,7 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node, [], {
-					lastBlock: { timestamp: 10000, height: 99 },
+					lastBlock: { timestamp: 10000, height: 99 } as BlockInstance,
 				});
 			});
 

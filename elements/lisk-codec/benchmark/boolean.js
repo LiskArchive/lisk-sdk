@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
 
 const { Suite } = require('benchmark');
 const {
@@ -22,12 +23,14 @@ const suite = new Suite();
 
 suite
     .add('readBoolean', () => {
-        readBoolean(Buffer.from('01', 'hex'), { dataType: 'boolean' });
+        readBoolean(Buffer.from('01', 'hex'), 0);
     })
     .add('writeBoolean', () => {
-        writeBoolean(true, { dataType: 'boolean' });
+        writeBoolean(true);
     })
     .on('cycle', function (event) {
         console.log(String(event.target));
     })
     .run({ async: true });
+
+
