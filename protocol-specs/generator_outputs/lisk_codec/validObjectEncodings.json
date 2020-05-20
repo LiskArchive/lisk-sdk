@@ -48,6 +48,7 @@
 						}
 					},
 					"schema": {
+						"$id": "object",
 						"type": "object",
 						"properties": {
 							"address": {
@@ -85,6 +86,7 @@
 						"value": 1
 					},
 					"schema": {
+						"$id": "object",
 						"type": "object",
 						"properties": {
 							"isActive": {
