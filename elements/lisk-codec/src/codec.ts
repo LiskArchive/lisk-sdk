@@ -23,7 +23,7 @@ import {
 	SchemaProps,
 } from './types';
 
-import { writeObject } from './collection';
+import { writeObject, readObject } from './collection';
 
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
@@ -42,9 +42,14 @@ export class Codec {
 		return Buffer.concat(res[0]);
 	}
 
-	// eslint-disable-next-line
-	public decode<T>(_schema: object, _message: Buffer): T {
-		return {} as T;
+	public decode<T>(schema: Schema, message: Buffer): T {
+		if (this._compileSchemas[schema.$id] === undefined) {
+			this.addSchema(schema);
+		}
+		const compiledSchema = this._compileSchemas[schema.$id];
+		const [res] = readObject(message, 0, compiledSchema);
+
+		return res as unknown as T;
 	}
 
 	private _compileSchema(

@@ -361,8 +361,8 @@ const generateValidObjectEncodings = () => {
 						dataType: 'boolean',
 						fieldNumber: 1,
 					},
-					balance: {
-						data: 'bytes',
+					data: {
+						dataType: 'bytes',
 						fieldNumber: 2,
 					},
 					value: {
@@ -403,6 +403,7 @@ const generateValidArrayEncodings = () => {
 			},
 			schema: {
 				type: 'object',
+				$id: 'arrayUint32',
 				properties: {
 					list: {
 						type: 'array',
@@ -420,11 +421,12 @@ const generateValidArrayEncodings = () => {
 			},
 			schema: {
 				type: 'object',
+				$id: 'arrayBoolean',
 				properties: {
 					list: {
 						type: 'array',
 						items: {
-							dataType: 'bool',
+							dataType: 'boolean',
 						},
 						fieldNumber: 1,
 					},
@@ -462,23 +464,22 @@ const generateValidArrayEncodings = () => {
 				],
 			},
 			schema: {
-				schema: {
-					type: 'object',
-					properties: {
-						list: {
-							type: 'array',
-							fieldNumber: 1,
-							items: {
-								type: 'object',
-								properties: {
-									address: {
-										dataType: 'string',
-										fieldNumber: 1,
-									},
-									amount: {
-										dataType: 'uint64',
-										fieldNumber: 2,
-									},
+				$id: 'arrayObject',
+				type: 'object',
+				properties: {
+					myArray: {
+						type: 'array',
+						fieldNumber: 1,
+						items: {
+							type: 'object',
+							properties: {
+								address: {
+									dataType: 'string',
+									fieldNumber: 1,
+								},
+								amount: {
+									dataType: 'uint64',
+									fieldNumber: 2,
 								},
 							},
 						},
@@ -492,6 +493,7 @@ const generateValidArrayEncodings = () => {
 			},
 			schema: {
 				type: 'object',
+				$id: 'emptyArray',
 				properties: {
 					list: {
 						type: 'array',
@@ -505,7 +507,7 @@ const generateValidArrayEncodings = () => {
 		},
 	};
 
-	const ArrayOfIntegersEncoded = ArrayOfIntegers.encode(
+	const arrayOfIntegersEncoded = ArrayOfIntegers.encode(
 		input.ArrayOfIntegers.object,
 	).finish();
 	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
@@ -523,14 +525,14 @@ const generateValidArrayEncodings = () => {
 			network: 'devnet',
 		},
 		input: {
-			ArrayOfIntegers: input.ArrayOfIntegers,
+			arrayOfIntegers: input.ArrayOfIntegers,
 			arrayBools: input.arrayBools,
 			arrayStrings: input.arrayStrings,
 			arrayOfObjects: input.arrayObjects,
 			emptyArray: input.emptyArray,
 		},
 		output: {
-			arrayOfIntegersEncoded: ArrayOfIntegersEncoded.toString('hex'),
+			arrayOfIntegersEncoded: arrayOfIntegersEncoded.toString('hex'),
 			arrayBoolsEncoded: arrayBoolsEncoded.toString('hex'),
 			arrayStringsEncoded: arrayStringsEncoded.toString('hex'),
 			arrayOfObjectsEncoded: arrayOfObjectsEncoded.toString('hex'),
