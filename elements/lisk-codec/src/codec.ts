@@ -30,7 +30,7 @@ export class Codec {
 
 	public addSchema(schema: Schema): void {
 		const schemaName = schema.$id;
-		this._compileSchemas[schemaName] = this.compileSchema(schema, [], []);
+		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
 	}
 
 	public encode(schema: Schema, message: GenericObject): Buffer {
@@ -47,7 +47,7 @@ export class Codec {
 		return {} as T;
 	}
 
-	private compileSchema(
+	private _compileSchema(
 		schema: Schema | SchemaProps,
 		compiledSchema: CompiledSchemasArray,
 		dataPath: string[],
@@ -78,7 +78,7 @@ export class Codec {
 							binaryKey: generateKey(schemaPropertyValue),
 						},
 					];
-					const res = this.compileSchema(
+					const res = this._compileSchema(
 						schemaPropertyValue,
 						nestedSchema,
 						dataPath,
@@ -105,7 +105,7 @@ export class Codec {
 								binaryKey: generateKey(schemaPropertyValue),
 							},
 						];
-						const res = this.compileSchema(
+						const res = this._compileSchema(
 							schemaPropertyValue.items,
 							nestedSchema,
 							dataPath,

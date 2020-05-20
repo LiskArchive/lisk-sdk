@@ -39,8 +39,9 @@ describe('encode', () => {
 	it('it should not encode missing propertiees of an object to Buffer', () => {
 		const message = objectFixtureInput.objectWithOptionalProp.object;
 		const { schema } = objectFixtureInput.objectWithOptionalProp;
+		const expectedOutput = objectFixtureOutput.objectWithOptionalProp;
 
 		const liskBinaryMessage = codec.encode(schema as any, message as any);
-		expect(true).toBe(true);
+		expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 	});
 });
