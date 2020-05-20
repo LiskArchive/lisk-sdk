@@ -62,12 +62,16 @@ export class Codec {
 
 		const compiledSchema = this._compileSchemas[schema.$id];
 
-		const binaryMessage = { chunks: [], writenSize: 0 };
+		// const binaryMessage = { chunks: [], writenSize: 0 };
 
-		writeObject(compiledSchema, message, binaryMessage);
+		const res = writeObject(compiledSchema, message, []);
 
-		console.log(binaryMessage);
-		return Buffer.concat(binaryMessage.chunks); // HERE MAYBE RETURN BUFFER + SIZE SO WE CAN ADD TO THE KEY OF NESTED OBJECTS?
+		console.log('+'.repeat(120));
+		console.log(res);
+		console.log(Buffer.concat(res[0]).toString('hex'));
+		console.log('FINAL BUFFER STRING CONTENT............');
+		res[0].forEach((aBuffValue, idx) => console.log(idx, aBuffValue.toString()));
+		return Buffer.concat(res[0]); // HERE MAYBE RETURN BUFFER + SIZE SO WE CAN ADD TO THE KEY OF NESTED OBJECTS?
 	}
 
 

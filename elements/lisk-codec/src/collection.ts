@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /*
  * Copyright © 2020 Lisk Foundation
  *
@@ -13,6 +14,7 @@
  */
 import {
 	findObjectByPath,
+	generateKey,
 } from './utils';
 
 import {
@@ -36,27 +38,24 @@ const _writers : { readonly [key: string]: (value: any) => Buffer } = {
 	boolean: writeBoolean,
 };
 
-export const writeObject = (compiledSchema: CompiledSchemasArray, message: GenericObject, state: { chunks: Buffer[], writenSize: number }) : void => {
+export const writeObject = (compiledSchema: CompiledSchemasArray, message: GenericObject, chunks: Buffer[]) : [Buffer[], number] => {
+	let simpleObjectSize = 0;
 	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < compiledSchema.length; i += 1) {
 		const property = compiledSchema[i];
 		if (Array.isArray(property)) {
-			// eslint-disable-next-line no-console
 			const headerProp = property[0];
-			// console.log('RECURSIVE CASE.........................................................................');
-			// console.log(headerProp);
-			// console.log(property);
-			// console.log('^'.repeat(120));
 			const nestedObject = findObjectByPath(message, [headerProp.propertyName]);
-			// console.log('nestedObject', nestedObject);
-
-			// push key here
-			// writeObject(property, nestedObject as GenericObject, state);
-			writeObject(property, nestedObject as GenericObject, state);
-
-			// push result.size
-			// push result
+			// Write the key for container object
+			const key = generateKey(headerProp.schemaProp);
+			chunks.push(key);
+			const res = writeObject(property, nestedObject as GenericObject, []);
+			// Add nested object size to total size
+			simpleObjectSize += res[1] + key.length;
+			chunks.push(Buffer.from(simpleObjectSize.toString())); // This is size written from sub-object
+			chunks = chunks.concat(...res[0]);
 		} else {
+			// This is the header object so it does not need to be written
 			if (property.schemaProp.type === 'object') {
 				// eslint-disable-next-line no-continue
 				continue;
@@ -73,24 +72,12 @@ export const writeObject = (compiledSchema: CompiledSchemasArray, message: Gener
 				throw new Error('Compiled Schema is corrutped as "dataType" can not be undefined.');
 			}
 
-			// Values are endode as either [key][value] or [key][size][value]
 			const binaryValue = _writers[dataType](value);
 
-			state.chunks.push(binaryKey);
-
-			let bytesOrStringSize: Buffer;
-			let bytesOrStringSizeLenght = 0;
-			if (dataType === 'bytes' || dataType === 'string') { // MAYBE USE WIRE TYPE FOR THIS LIKE 2
-				bytesOrStringSize = _writers.sint32(binaryValue.length);
-				bytesOrStringSizeLenght = bytesOrStringSize.length;
-				state.chunks.push(bytesOrStringSize);
-			}
-
-			state.chunks.push(binaryValue);
-			// eslint-disable-next-line no-param-reassign
-			state.writenSize += binaryKey.length + bytesOrStringSizeLenght + binaryValue.length;
-			console.log('partialSize:', state.writenSize);
+			chunks.push(binaryKey);
+			chunks.push(binaryValue);
+			simpleObjectSize += binaryKey.length + binaryValue.length;
 		}
 	}
-	console.log(state.chunks);
+	return [chunks, simpleObjectSize]
 }
