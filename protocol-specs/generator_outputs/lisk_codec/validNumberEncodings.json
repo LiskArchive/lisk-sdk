@@ -18,7 +18,7 @@
 						"number": 10
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object1",
 						"type": "object",
 						"properties": {
 							"number": {
@@ -33,7 +33,7 @@
 						"number": -10
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object2",
 						"type": "object",
 						"properties": {
 							"number": {
@@ -48,7 +48,7 @@
 						"number": 372036854775807
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object3",
 						"type": "object",
 						"properties": {
 							"number": {
@@ -63,7 +63,7 @@
 						"number": -9007199254740991
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object4",
 						"type": "object",
 						"properties": {
 							"number": {

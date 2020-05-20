@@ -42,7 +42,7 @@
 						}
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object9",
 						"type": "object",
 						"properties": {
 							"address": {
@@ -60,7 +60,7 @@
 						}
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object10",
 						"type": "object",
 						"properties": {
 							"data": {

@@ -18,7 +18,7 @@
 						"data": "Checkout Lisk SDK!"
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object7",
 						"type": "object",
 						"properties": {
 							"data": {
@@ -33,7 +33,7 @@
 						"data": ""
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object8",
 						"type": "object",
 						"properties": {
 							"data": {

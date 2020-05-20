@@ -18,7 +18,7 @@
 						"state": true
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object5",
 						"type": "object",
 						"properties": {
 							"state": {
@@ -33,7 +33,7 @@
 						"state": false
 					},
 					"schema": {
-						"$id": "object",
+						"$id": "object6",
 						"type": "object",
 						"properties": {
 							"state": {

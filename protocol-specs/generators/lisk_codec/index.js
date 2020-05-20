@@ -53,7 +53,7 @@ const generateValidNumberEncodings = () => {
 				number: 10,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object1',
 				type: 'object',
 				properties: {
 					number: {
@@ -68,7 +68,7 @@ const generateValidNumberEncodings = () => {
 				number: -10,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object2',
 				type: 'object',
 				properties: {
 					number: {
@@ -83,7 +83,7 @@ const generateValidNumberEncodings = () => {
 				number: 372036854775807,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object3',
 				type: 'object',
 				properties: {
 					number: {
@@ -98,7 +98,7 @@ const generateValidNumberEncodings = () => {
 				number: -9007199254740991,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object4',
 				type: 'object',
 				properties: {
 					number: {
@@ -146,7 +146,7 @@ const generateValidBooleanEncodings = () => {
 				state: true,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object5',
 				type: 'object',
 				properties: {
 					state: {
@@ -161,7 +161,7 @@ const generateValidBooleanEncodings = () => {
 				state: false,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object6',
 				type: 'object',
 				properties: {
 					state: {
@@ -201,7 +201,7 @@ const generateValidStringEncodings = () => {
 				data: 'Checkout Lisk SDK!',
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object7',
 				type: 'object',
 				properties: {
 					data: {
@@ -216,7 +216,7 @@ const generateValidStringEncodings = () => {
 				data: '',
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object8',
 				type: 'object',
 				properties: {
 					data: {
@@ -254,7 +254,7 @@ const generateValidBytesEncodings = () => {
 				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object9',
 				type: 'object',
 				properties: {
 					address: {
@@ -269,7 +269,7 @@ const generateValidBytesEncodings = () => {
 				address: Buffer.from(''),
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object10',
 				type: 'object',
 				properties: {
 					data: {
@@ -315,7 +315,7 @@ const generateValidObjectEncodings = () => {
 		object: {
 			object,
 			schema: {
-				$id: 'object',
+				$id: 'object11',
 				type: 'object',
 				properties: {
 					address: {
@@ -353,7 +353,7 @@ const generateValidObjectEncodings = () => {
 				value: 1,
 			},
 			schema: {
-				$id: 'object',
+				$id: 'object12',
 				type: 'object',
 				properties: {
 					isActive: {
