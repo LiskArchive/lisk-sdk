@@ -12,15 +12,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	findObjectByPath,
-	generateKey,
-} from './utils';
+import { findObjectByPath, generateKey } from './utils';
 
-import {
-	GenericObject,
-	CompiledSchemasArray,
-} from './types';
+import { GenericObject, CompiledSchemasArray } from './types';
 
 import { writeSInt32, writeSInt64, writeUInt32, writeUInt64 } from './varint';
 import { writeString } from './string';
@@ -28,7 +22,7 @@ import { writeBytes } from './bytes';
 import { writeBoolean } from './boolean';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const _writers : { readonly [key: string]: (value: any) => Buffer } = {
+const _writers: { readonly [key: string]: (value: any) => Buffer } = {
 	uint32: writeUInt32,
 	sint32: writeSInt32,
 	uint64: writeUInt64,
@@ -38,7 +32,11 @@ const _writers : { readonly [key: string]: (value: any) => Buffer } = {
 	boolean: writeBoolean,
 };
 
-export const writeObject = (compiledSchema: CompiledSchemasArray, message: GenericObject, chunks: Buffer[]) : [Buffer[], number] => {
+export const writeObject = (
+	compiledSchema: CompiledSchemasArray,
+	message: GenericObject,
+	chunks: Buffer[],
+): [Buffer[], number] => {
 	let simpleObjectSize = 0;
 	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < compiledSchema.length; i += 1) {
@@ -49,10 +47,17 @@ export const writeObject = (compiledSchema: CompiledSchemasArray, message: Gener
 			// Write the key for container object
 			const key = generateKey(headerProp.schemaProp);
 			chunks.push(key);
-			const [encodedValues, totalWrittenSize] = writeObject(property, nestedObject as GenericObject, []);
+			const [encodedValues, totalWrittenSize] = writeObject(
+				property,
+				nestedObject as GenericObject,
+				[],
+			);
 			// Add nested object size to total size
 			chunks.push(_writers.uint32(totalWrittenSize));
-			chunks = chunks.concat(...encodedValues);
+			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			for (let e = 0; e < encodedValues.length; e += 1) {
+				chunks.push(encodedValues[e]);
+			}
 		} else {
 			// This is the header object so it does not need to be written
 			if (property.schemaProp.type === 'object') {
@@ -66,9 +71,14 @@ export const writeObject = (compiledSchema: CompiledSchemasArray, message: Gener
 				continue;
 			}
 
-			const { schemaProp: { dataType }, binaryKey } = property;
+			const {
+				schemaProp: { dataType },
+				binaryKey,
+			} = property;
 			if (dataType === undefined) {
-				throw new Error('Compiled Schema is corrutped as "dataType" can not be undefined.');
+				throw new Error(
+					'Compiled Schema is corrutped as "dataType" can not be undefined.',
+				);
 			}
 
 			const binaryValue = _writers[dataType](value);
@@ -78,5 +88,5 @@ export const writeObject = (compiledSchema: CompiledSchemasArray, message: Gener
 			simpleObjectSize += binaryKey.length + binaryValue.length;
 		}
 	}
-	return [chunks, simpleObjectSize]
-}
+	return [chunks, simpleObjectSize];
+};
