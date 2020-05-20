@@ -20,7 +20,7 @@ const testSchema = {
 		b: { fieldNumber: 2, dataType: 'string' },
 		a: { fieldNumber: 1, dataType: 'string' },
 		d: { fieldNumber: 4, dataType: 'bytes' },
-		e: { fieldNumber: 5, dataType: 'int32' },
+		e: { fieldNumber: 5, dataType: 'uint32' },
 		c: {
 			type: 'object',
 			fieldNumber: 3,
@@ -74,7 +74,7 @@ describe('encode', () => {
 		const liskBinaryMessage = codec.encode(testSchema, obj);
 
 		expect(liskBinaryMessage.toString('hex')).toBe(
-			'0a70726f7020611270726f7020620a70726f702063610a70726f70206362611270726f70206362621270726f7020636263611a70726f7020636263622270726f70206362641a70726f702063632270726f702064280a',
+			'0a0670726f702061120670726f7020621a120a0770726f70206361121e0a0870726f7020636261120870726f70206362621a16120970726f7020636263611a0970726f702063626362220870726f70206362641a0770726f70206363220670726f702064280a',
 		);
 	});
 
@@ -101,80 +101,7 @@ describe('encode', () => {
 		const liskBinaryMessage = codec.encode(testSchema, obj);
 
 		expect(liskBinaryMessage.toString('hex')).toBe(
-			'0a70726f7020611270726f7020620a70726f702063610a70726f70206362611270726f70206362621270726f7020636263611a70726f7020636263622270726f70206362641a70726f70206363280a',
+			'0a0670726f702061120670726f7020621a120a0770726f70206361121e0a0870726f7020636261120870726f70206362621a16120970726f7020636263611a0970726f702063626362220870726f70206362641a0770726f70206363280a',
 		);
-	});
-
-	it.only('new compiled schema', () => {
-		const testSchemaWithObjectArray = {
-			$id: 'testSchema',
-			type: 'object',
-			properties: {
-				b: { fieldNumber: 2, dataType: 'string' },
-				a: { fieldNumber: 1, dataType: 'string' },
-				d: { fieldNumber: 4, dataType: 'bytes' },
-				e: { fieldNumber: 5, dataType: 'uint32' },
-				f: {
-					type: 'array',
-					fieldNumber: 6,
-					items: {
-						dataType: 'sint32',
-						fieldNumber: 1,
-					},
-				},
-				c: {
-					type: 'object',
-					fieldNumber: 3,
-					properties: {
-						cc: { fieldNumber: 3, dataType: 'string' },
-						ca: { fieldNumber: 1, dataType: 'string' },
-						cb: {
-							type: 'object',
-							fieldNumber: 2,
-							properties: {
-								cbb: { fieldNumber: 2, dataType: 'string' },
-								cba: { fieldNumber: 1, dataType: 'string' },
-								cbc: {
-									type: 'array',
-									fieldNumber: 3,
-									items: {
-										fieldNumber: 1,
-										type: 'object',
-										properties: {
-											cbcb: { fieldNumber: 2, dataType: 'string' },
-											cbca: { fieldNumber: 1, dataType: 'string' },
-										},
-									},
-								},
-								cbd: { fieldNumber: 4, dataType: 'string' },
-							},
-						},
-					},
-				},
-			},
-		};
-
-		const obj = {
-			b: 'prop b',
-			a: 'prop a',
-			e: 10,
-			c: {
-				cc: 'prop cc',
-				ca: 'prop ca',
-				cb: {
-					cbb: 'prop cbb',
-					cba: 'prop cba',
-					cbc: {
-						cbcb: 'prop cbcb',
-						cbca: 'prop cbca',
-					},
-					cbd: 'prop cbd',
-				},
-			},
-		};
-
-		codec.encode(testSchemaWithObjectArray, obj);
-
-		expect(true).toBe(true);
 	});
 });
