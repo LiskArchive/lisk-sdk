@@ -25,7 +25,7 @@ import reverse = require('buffer-reverse');
 
 const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
-export const  convertUIntArray = (
+export const convertUIntArray = (
 	uintArray: number[],
 	fromBits: number,
 	toBits: number,
