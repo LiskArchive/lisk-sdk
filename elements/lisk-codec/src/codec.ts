@@ -26,25 +26,8 @@ import {
 
 import { writeObject } from './collection';
 
-// import { writeSInt32, writeSInt64, writeUInt32, writeUInt64 } from './varint';
-// import { writeString } from './string';
-// import { writeBytes } from './bytes';
-// import { writeBoolean } from './boolean';
-
-
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	// private readonly _writers : { readonly [key: string]: (value: any) => Buffer } = {
-	// 	uint32: writeUInt32,
-	// 	sint32: writeSInt32,
-	// 	uint64: writeUInt64,
-	// 	sint64: writeSInt64,
-	// 	string: writeString,
-	// 	bytes: writeBytes,
-	// 	boolean: writeBoolean,
-	// };
 
 	public addSchema(schema: Schema): void {
 		const schemaName = schema.$id;
@@ -59,19 +42,9 @@ export class Codec {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
-
 		const compiledSchema = this._compileSchemas[schema.$id];
-
-		// const binaryMessage = { chunks: [], writenSize: 0 };
-
 		const res = writeObject(compiledSchema, message, []);
-
-		console.log('+'.repeat(120));
-		console.log(res);
-		console.log(Buffer.concat(res[0]).toString('hex'));
-		console.log('FINAL BUFFER STRING CONTENT............');
-		res[0].forEach((aBuffValue, idx) => console.log(idx, aBuffValue.toString()));
-		return Buffer.concat(res[0]); // HERE MAYBE RETURN BUFFER + SIZE SO WE CAN ADD TO THE KEY OF NESTED OBJECTS?
+		return Buffer.concat(res[0]);
 	}
 
 

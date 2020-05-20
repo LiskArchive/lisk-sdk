@@ -49,11 +49,10 @@ export const writeObject = (compiledSchema: CompiledSchemasArray, message: Gener
 			// Write the key for container object
 			const key = generateKey(headerProp.schemaProp);
 			chunks.push(key);
-			const res = writeObject(property, nestedObject as GenericObject, []);
+			const [encodedValues, totalWrittenSize] = writeObject(property, nestedObject as GenericObject, []);
 			// Add nested object size to total size
-			simpleObjectSize += res[1] + key.length;
-			chunks.push(Buffer.from(simpleObjectSize.toString())); // This is size written from sub-object
-			chunks = chunks.concat(...res[0]);
+			chunks.push(_writers.uint32(totalWrittenSize));
+			chunks = chunks.concat(...encodedValues);
 		} else {
 			// This is the header object so it does not need to be written
 			if (property.schemaProp.type === 'object') {
