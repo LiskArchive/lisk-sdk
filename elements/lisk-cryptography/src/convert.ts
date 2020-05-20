@@ -36,7 +36,15 @@ export const convertUIntArray = (
 	let accumulator = 0;
 	let bits = 0;
 	const result = [];
-	for (const byte of uintArray) {
+	// eslint-disable-next-line
+	for (var p = 0; p < uintArray.length; ++p) {
+		const byte = uintArray[p];
+		// check that the entry is a value between 0 and 2^frombits-1
+		// eslint-disable-next-line no-bitwise
+		if (byte < 0 || byte >> fromBits !== 0) {
+			return [];
+		}
+
 		// eslint-disable-next-line no-bitwise
 		accumulator = (accumulator << fromBits) | byte;
 		bits += fromBits;
