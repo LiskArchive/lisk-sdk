@@ -22,9 +22,9 @@ const {
 } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 
-const getRandomTransactionIds = () => {
+const getRandomTransactionIds = count => {
 	const ids = [];
-	for (let index = 0; index < 303; index += 1) {
+	for (let index = 0; index < count; index += 1) {
 		ids.push(getRandomBytes(32));
 	}
 	return ids;
@@ -50,21 +50,22 @@ const merkleRoot = transactionIds => {
 	return branchHash(concat(merkleRoot(transactionIds), merkleRoot(newData)));
 };
 
-const generateTransactionMerkleRoot = () => {
-	const transactionIds = getRandomTransactionIds();
-	const ids = transactionIds.map(t => bufferToHex(t));
-	const transactionMerkleRoot = merkleRoot(transactionIds);
+const generateTransactionMerkleRoot = () =>
+	[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 150, 300].map(count => {
+		const transactionIds = getRandomTransactionIds(count);
+		const ids = transactionIds.map(t => bufferToHex(t));
+		const transactionMerkleRoot = merkleRoot(transactionIds);
 
-	return {
-		description: 'Given a valid block',
-		input: {
-			transactionIds: ids,
-		},
-		output: {
-			transactionMerkleRoot: transactionMerkleRoot.toString('hex'),
-		},
-	};
-};
+		return {
+			description: `Given valid transaction ids: ${count}`,
+			input: {
+				transactionIds: ids,
+			},
+			output: {
+				transactionMerkleRoot: transactionMerkleRoot.toString('hex'),
+			},
+		};
+	});
 
 const transactionMerkleRootSuite = () => ({
 	title: 'Transaction Merkle tree root',
@@ -72,7 +73,7 @@ const transactionMerkleRootSuite = () => ({
 	config: {},
 	runner: 'transaction_merkle_root',
 	handler: 'transaction_merkle_root',
-	testCases: [generateTransactionMerkleRoot()],
+	testCases: [...generateTransactionMerkleRoot()],
 });
 
 BaseGenerator.runGenerator('transaction_merkle_root', [
