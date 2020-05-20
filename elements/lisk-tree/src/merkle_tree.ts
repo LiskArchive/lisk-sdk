@@ -39,7 +39,7 @@ export class MerkleTree {
 			leafHashes[i] = key;
 			this._data[key.toString('binary')] = value;
 		}
-		const height = this._height;
+		const height = this._getHeight();
 		let layer = leafHashes;
 		for (let i = 0; i < height - 1; i += 1) {
 			const currentLayerHashes: Buffer[] = [];
@@ -88,7 +88,7 @@ export class MerkleTree {
 		this._root = EMPTY_HASH;
 	}
 
-	private get _height(): number {
+	private _getHeight(): number {
 		return Math.ceil(Math.log2(this._dataLength)) + 1;
 	}
 }
