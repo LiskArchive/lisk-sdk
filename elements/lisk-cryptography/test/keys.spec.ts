@@ -204,7 +204,7 @@ describe('keys', () => {
 			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 			it('should throw an error', () => {
 				return expect(validateBase32Address.bind(null, address)).toThrow(
-					'Invalid prefix. Expected prefix: `lsk`',
+					'Invalid prefix. Expected prefix: lsk',
 				);
 			});
 		});
