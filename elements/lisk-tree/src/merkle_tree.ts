@@ -18,14 +18,79 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { Proof } from './types';
 import { EMPTY_HASH, LEAF_PREFIX, BRANCH_PREFIX } from './constants';
 
-const leafValue = (value: Buffer): Buffer =>
-	Buffer.concat([LEAF_PREFIX, value], LEAF_PREFIX.length + value.length);
+const LAYER_INDEX_SIZE = 1;
+const NODE_INDEX_SIZE = 8;
+// const NODE_HASH_SIZE = 32;
 
-const branchValue = (left: Buffer, right: Buffer): Buffer =>
-	Buffer.concat(
-		[BRANCH_PREFIX, left, right],
-		BRANCH_PREFIX.length + left.length + right.length,
+interface NodeData {
+	readonly value: Buffer;
+	readonly hash: Buffer;
+}
+
+// interface NodeInfo {
+// 	readonly left: Buffer;
+// 	readonly right: Buffer;
+// 	readonly layerIndex: number;
+// 	readonly nodeIndex: bigint;
+// }
+
+const generateLeafData = (value: Buffer): NodeData => {
+	const leafValue = Buffer.concat(
+		[LEAF_PREFIX, value],
+		LEAF_PREFIX.length + value.length,
 	);
+
+	return {
+		value: leafValue,
+		hash: hash(leafValue),
+	};
+};
+
+const generateNodeData = (
+	left: Buffer,
+	right: Buffer,
+	layerIndex: number,
+	nodeIndex: bigint,
+): NodeData => {
+	const layerIndexBuffer = Buffer.alloc(LAYER_INDEX_SIZE);
+	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
+
+	layerIndexBuffer.writeInt8(layerIndex, 0);
+	nodeIndexBuffer.writeBigInt64BE(nodeIndex, 0);
+
+	const nodeValue = Buffer.concat(
+		[layerIndexBuffer, nodeIndexBuffer, left, right],
+		layerIndexBuffer.length +
+			nodeIndexBuffer.length +
+			left.length +
+			right.length,
+	);
+	const nodeHash = hash(
+		Buffer.concat(
+			[BRANCH_PREFIX, left, right],
+			BRANCH_PREFIX.length + left.length + right.length,
+		),
+	);
+
+	return {
+		hash: nodeHash,
+		value: nodeValue,
+	};
+};
+
+// const getNodeInfo = (value: Buffer): NodeInfo => {
+// 	const right = value.slice(-1 * NODE_HASH_SIZE);
+// 	const left = value.slice(-1 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
+// 	const layerIndex = value.readInt8(0);
+// 	const nodeIndex = value.readBigInt64BE(LAYER_INDEX_SIZE);
+//
+// 	return {
+// 		right,
+// 		left,
+// 		layerIndex,
+// 		nodeIndex,
+// 	};
+// };
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -43,10 +108,10 @@ export class MerkleTree {
 
 		const leafHashes = [];
 		for (let i = 0; i < initValues.length; i += 1) {
-			const value = leafValue(initValues[i]);
-			const key = hash(value);
-			this._data[key.toString('binary')] = value;
-			leafHashes.push(key);
+			const leaf = generateLeafData(initValues[i]);
+
+			leafHashes.push(leaf.hash);
+			this._data[leaf.hash.toString('binary')] = leaf.value;
 		}
 
 		this._root = this._build(leafHashes);
@@ -57,9 +122,18 @@ export class MerkleTree {
 	}
 
 	// eslint-disable-next-line
-	public append(_value: Buffer): { key: Buffer; value: Buffer }[] {
-		return [];
-	}
+	// public append(_value: Buffer): { key: Buffer; value: Buffer }[] {
+	// 	// const result: { key: Buffer; value: Buffer }[] = [];
+	// 	// const val = leafValue(value);
+	// 	// const leafHash = hash(val);
+	// 	//
+	// 	// this._data[leafHash.toString('binary')] = val;
+	// 	//
+	// 	// this._width += 1;
+	// 	// result.push({ key: leafHash, value: val });
+	// 	//
+	// 	// return result;
+	// }
 
 	// eslint-disable-next-line
 	public generateProof(_queryData: ReadonlyArray<Buffer>): Proof {
@@ -80,6 +154,7 @@ export class MerkleTree {
 	private _build(nodes: Buffer[]): Buffer {
 		let currentLayer = nodes;
 		let orphanNodeInPreviousLayer: Buffer | undefined;
+		let layerIndex = 0;
 
 		while (currentLayer.length > 1 || orphanNodeInPreviousLayer !== undefined) {
 			const pairs: Array<[Buffer, Buffer]> = [];
@@ -109,14 +184,14 @@ export class MerkleTree {
 			for (let i = 0; i < pairs.length; i += 1) {
 				const left = pairs[i][0];
 				const right = pairs[i][1];
-				const value = branchValue(left, right);
-				const key = hash(value);
-				this._data[key.toString('binary')] = value;
+				const node = generateNodeData(left, right, layerIndex, BigInt(i));
+				this._data[node.hash.toString('binary')] = node.value;
 
-				parentLayer.push(key);
+				parentLayer.push(node.hash);
 			}
 
 			currentLayer = parentLayer;
+			layerIndex += 1;
 		}
 
 		return currentLayer[0];
