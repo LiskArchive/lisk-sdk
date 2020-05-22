@@ -17,7 +17,6 @@ import {
 	validatePublicKey,
 	validatePublicKeys,
 	validateAddress,
-	validateBase32Address,
 	isValidNonTransferAmount,
 	isValidTransferAmount,
 	isValidFee,
@@ -197,69 +196,6 @@ describe('validation', () => {
 			it('should throw an error', () => {
 				return expect(validateAddress.bind(null, address)).toThrow(
 					'Address is not a valid hex string.',
-				);
-			});
-		});
-	});
-
-	describe('#validateBase32Address', () => {
-		describe('Given valid addresses', () => {
-			const addresses = [
-				'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu',
-				'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g',
-				'lskqf5xbhu874yqg89k449zk2fctj46fona9bafgr',
-				'lskamc9kfzenupkgexyxsf4qz9fv8mo9432of9p5j',
-				'lsk6xevdsz3dpqfsx2u6mg3jx9zk8xqdozvn7x5ur',
-			];
-
-			it('should return true', () => {
-				return addresses.forEach(address => {
-					return expect(validateBase32Address(address)).toBeTrue();
-				});
-			});
-		});
-
-		describe('Given an address that is too short', () => {
-			const address = 'lsk1';
-			it('should throw an error', () => {
-				return expect(validateBase32Address.bind(null, address)).toThrow(
-					'Address length does not match requirements. Expected 41 characters.',
-				);
-			});
-		});
-
-		describe('Given an address that is too long', () => {
-			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2ga';
-			it('should throw an error', () => {
-				return expect(validateBase32Address.bind(null, address)).toThrow(
-					'Address length does not match requirements. Expected 41 characters.',
-				);
-			});
-		});
-
-		describe('Given an address that is not prefixed with `lsk`', () => {
-			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
-			it('should throw an error', () => {
-				return expect(validateBase32Address.bind(null, address)).toThrow(
-					'Invalid prefix. Expected prefix: `lsk`',
-				);
-			});
-		});
-
-		describe('Given an address containing non-base32 characters', () => {
-			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
-			it('should throw an error', () => {
-				return expect(validateBase32Address.bind(null, address)).toThrow(
-					`Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.`,
-				);
-			});
-		});
-
-		describe('Given an address with invalid checksum', () => {
-			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
-			it('should throw an error', () => {
-				return expect(validateBase32Address.bind(null, address)).toThrow(
-					`Invalid checksum for address.`,
 				);
 			});
 		});

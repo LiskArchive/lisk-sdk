@@ -23,6 +23,7 @@ import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
 	getAddressFromPrivateKey,
+	validateBase32Address,
 } from '../src/keys';
 // Require is used for stubbing
 // eslint-disable-next-line
@@ -129,32 +130,101 @@ describe('keys', () => {
 	describe('#getBinaryAddressFromPublicKey', () => {
 		const publicKey =
 			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243';
-		const hash =
-			'c247a42e09e6aafd818821f75b2f5b0de47c8235b580881bd7750c9365993d25';
+		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		const expectedBinaryAddress = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		beforeEach(() => {
-			return jest.spyOn(hashModule, 'hash').mockReturnValue(hash);
+			return jest
+				.spyOn(hashModule, 'hash')
+				.mockReturnValue(Buffer.from(hash, 'hex'));
 		});
 
 		it('should generate address from publicKey', () => {
 			const address = getBinaryAddressFromPublicKey(publicKey);
-			expect(address).toBe(expectedBinaryAddress);
+
+			expect(address.compare(Buffer.from(expectedBinaryAddress, 'hex'))).toBe(
+				0,
+			);
 		});
 	});
 
 	describe('#getBase32AddressFromPublicKey', () => {
 		const publicKey =
 			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243';
-		const hash =
-			'c247a42e09e6aafd818821f75b2f5b0de47c8235b580881bd7750c9365993d25';
+		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		const expectedBase32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 		beforeEach(() => {
-			return jest.spyOn(hashModule, 'hash').mockReturnValue(hash);
+			return jest
+				.spyOn(hashModule, 'hash')
+				.mockReturnValue(Buffer.from(hash, 'hex'));
 		});
 
 		it('should generate base32 address from publicKey', () => {
 			const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
+
 			expect(address).toBe(expectedBase32Address);
+		});
+	});
+
+	describe('#validateBase32Address', () => {
+		describe('Given valid addresses', () => {
+			const addresses = [
+				'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu',
+				'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g',
+				'lskqf5xbhu874yqg89k449zk2fctj46fona9bafgr',
+				'lskamc9kfzenupkgexyxsf4qz9fv8mo9432of9p5j',
+				'lsk6xevdsz3dpqfsx2u6mg3jx9zk8xqdozvn7x5ur',
+			];
+
+			it('should return true', () => {
+				return addresses.forEach(address => {
+					return expect(validateBase32Address(address)).toBeTrue();
+				});
+			});
+		});
+
+		describe('Given an address that is too short', () => {
+			const address = 'lsk1';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Address length does not match requirements. Expected 41 characters.',
+				);
+			});
+		});
+
+		describe('Given an address that is too long', () => {
+			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2ga';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Address length does not match requirements. Expected 41 characters.',
+				);
+			});
+		});
+
+		describe('Given an address that is not prefixed with `lsk`', () => {
+			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					'Invalid prefix. Expected prefix: `lsk`',
+				);
+			});
+		});
+
+		describe('Given an address containing non-base32 characters', () => {
+			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					`Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.`,
+				);
+			});
+		});
+
+		describe('Given an address with invalid checksum', () => {
+			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
+			it('should throw an error', () => {
+				return expect(validateBase32Address.bind(null, address)).toThrow(
+					`Invalid checksum for address.`,
+				);
+			});
 		});
 	});
 });
