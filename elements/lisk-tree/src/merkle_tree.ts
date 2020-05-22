@@ -18,53 +18,38 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { Proof } from './types';
 import { EMPTY_HASH, LEAF_PREFIX, BRANCH_PREFIX } from './constants';
 
+const leafValue = (value: Buffer): Buffer =>
+	Buffer.concat([LEAF_PREFIX, value], LEAF_PREFIX.length + value.length);
+
+const branchValue = (left: Buffer, right: Buffer): Buffer =>
+	Buffer.concat(
+		[BRANCH_PREFIX, left, right],
+		BRANCH_PREFIX.length + left.length + right.length,
+	);
+
 export class MerkleTree {
 	private _root: Buffer;
-	private _dataLength = 0;
+	private _width = 0;
+
+	// Object holds data in format { [hash]: value }
 	private _data: { [key: string]: Buffer } = {};
 
 	public constructor(initValues: Buffer[] = []) {
-		this._dataLength = initValues.length;
-		if (this._dataLength === 0) {
+		this._width = initValues.length;
+		if (this._width === 0) {
 			this._root = EMPTY_HASH;
 			return;
 		}
-		const leafHashes = new Array<Buffer>(this._dataLength);
-		for (let i = 0; i < this._dataLength; i += 1) {
-			const value = Buffer.concat(
-				[LEAF_PREFIX, initValues[i]],
-				LEAF_PREFIX.length + initValues[i].length,
-			);
+
+		const leafHashes = [];
+		for (let i = 0; i < initValues.length; i += 1) {
+			const value = leafValue(initValues[i]);
 			const key = hash(value);
-			leafHashes[i] = key;
 			this._data[key.toString('binary')] = value;
-		}
-		const height = this._getHeight();
-		let layer = leafHashes;
-		for (let i = 0; i < height - 1; i += 1) {
-			const currentLayerHashes: Buffer[] = [];
-			const pairBranches = layer.length >>> 1;
-			const remainder = layer.length & 1;
-			for (let j = 0; j < pairBranches; j += 1) {
-				const index = j * 2;
-				const value = Buffer.concat(
-					[BRANCH_PREFIX, layer[index], layer[index + 1]],
-					BRANCH_PREFIX.length + layer[index].length + layer[index + 1].length,
-				);
-				const key = hash(value);
-				this._data[key.toString('binary')] = value;
-				currentLayerHashes[j] = key;
-			}
-			if (remainder) {
-				const tmp = layer[layer.length - 1];
-				layer = currentLayerHashes;
-				layer.push(tmp);
-			} else {
-				layer = currentLayerHashes;
-			}
+			leafHashes.push(key);
 		}
 
-		[this._root] = layer;
+		this._root = this._build(leafHashes);
 	}
 
 	public get root(): Buffer {
@@ -83,12 +68,57 @@ export class MerkleTree {
 	}
 
 	public clear(): void {
-		this._dataLength = 0;
+		this._width = 0;
 		this._data = {};
 		this._root = EMPTY_HASH;
 	}
 
-	private _getHeight(): number {
-		return Math.ceil(Math.log2(this._dataLength)) + 1;
+	// private _getHeight(): number {
+	// 	return Math.ceil(Math.log2(this._width)) + 1;
+	// }
+
+	private _build(nodes: Buffer[]): Buffer {
+		let currentLayer = nodes;
+		let orphanNodeInPreviousLayer: Buffer | undefined;
+
+		while (currentLayer.length > 1 || orphanNodeInPreviousLayer !== undefined) {
+			const pairs: Array<[Buffer, Buffer]> = [];
+
+			// Make pairs from the nodes
+			for (let i = 0; i < currentLayer.length - 1; i += 2) {
+				pairs.push([currentLayer[i], currentLayer[i + 1]]);
+			}
+
+			// If there is one node left from pairs
+			if (currentLayer.length % 2 === 1) {
+				// If no orphan node left from previous layer
+				if (orphanNodeInPreviousLayer === undefined) {
+					orphanNodeInPreviousLayer = currentLayer[currentLayer.length - 1];
+
+					// If one orphan node left from previous layer then pair
+				} else {
+					pairs.push([
+						currentLayer[currentLayer.length - 1],
+						orphanNodeInPreviousLayer,
+					]);
+					orphanNodeInPreviousLayer = undefined;
+				}
+			}
+
+			const parentLayer = [];
+			for (let i = 0; i < pairs.length; i += 1) {
+				const left = pairs[i][0];
+				const right = pairs[i][1];
+				const value = branchValue(left, right);
+				const key = hash(value);
+				this._data[key.toString('binary')] = value;
+
+				parentLayer.push(key);
+			}
+
+			currentLayer = parentLayer;
+		}
+
+		return currentLayer[0];
 	}
 }
