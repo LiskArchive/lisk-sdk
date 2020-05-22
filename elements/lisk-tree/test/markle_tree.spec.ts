@@ -99,8 +99,6 @@ describe('MerkleTree', () => {
 			];
 			const merkleTree = new MerkleTree(values);
 
-			console.info(merkleTree.toString());
-
 			merkleTree.append(Buffer.from('340222bba8ba', 'hex'));
 
 			expect(merkleTree.root).toEqual(

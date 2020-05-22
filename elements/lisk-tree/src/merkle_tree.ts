@@ -184,6 +184,9 @@ export class MerkleTree {
 	}
 
 	public toString(): string {
+		if (this._width === 0) {
+			return this.root.toString('hex');
+		}
 		return this._printNode(this.root);
 	}
 
