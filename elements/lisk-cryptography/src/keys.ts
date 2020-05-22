@@ -88,6 +88,7 @@ export const getAddressFromPrivateKey = (privateKey: string): string => {
 
 const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
+// See for details: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0018.md
 const polymod = (uint5Array: number[]): number => {
 	let chk = 1;
 	for (const value of uint5Array) {
@@ -145,18 +146,22 @@ export const getBase32AddressFromPublicKey = (
 const BASE32_ADDRESS_LENGTH = 41;
 const BASE32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
-export const validateBase32Address = (address: string): boolean => {
+export const validateBase32Address = (
+	address: string,
+	prefix = 'lsk',
+): boolean => {
 	if (address.length !== BASE32_ADDRESS_LENGTH) {
 		throw new Error(
 			'Address length does not match requirements. Expected 41 characters.',
 		);
 	}
 
-	const prefix = address.substring(0, 3);
+	const addressPrefix = address.substring(0, 3);
 
-	if (prefix !== 'lsk') {
-		throw new Error('Invalid prefix. Expected prefix: `lsk`');
+	if (addressPrefix !== prefix) {
+		throw new Error(`Invalid prefix. Expected prefix: ${prefix}`);
 	}
+
 	const addressSubstringArray = address.substring(3).split('');
 
 	if (!addressSubstringArray.every(char => BASE32_CHARSET.includes(char))) {
