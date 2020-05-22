@@ -20,19 +20,23 @@ import { EMPTY_HASH, LEAF_PREFIX, BRANCH_PREFIX } from './constants';
 
 const LAYER_INDEX_SIZE = 1;
 const NODE_INDEX_SIZE = 8;
-// const NODE_HASH_SIZE = 32;
+const NODE_HASH_SIZE = 32;
 
 interface NodeData {
 	readonly value: Buffer;
 	readonly hash: Buffer;
 }
 
-// interface NodeInfo {
-// 	readonly left: Buffer;
-// 	readonly right: Buffer;
-// 	readonly layerIndex: number;
-// 	readonly nodeIndex: bigint;
-// }
+interface NodeInfo {
+	readonly value: Buffer;
+	readonly left: Buffer;
+	readonly right: Buffer;
+	readonly layerIndex: number;
+	readonly nodeIndex: bigint;
+}
+
+const isLeaf = (value: Buffer): boolean =>
+	LEAF_PREFIX.compare(value.slice(0, 1)) === 0;
 
 const generateLeafData = (value: Buffer): NodeData => {
 	const leafValue = Buffer.concat(
@@ -59,8 +63,9 @@ const generateNodeData = (
 	nodeIndexBuffer.writeBigInt64BE(nodeIndex, 0);
 
 	const nodeValue = Buffer.concat(
-		[layerIndexBuffer, nodeIndexBuffer, left, right],
-		layerIndexBuffer.length +
+		[BRANCH_PREFIX, layerIndexBuffer, nodeIndexBuffer, left, right],
+		BRANCH_PREFIX.length +
+			layerIndexBuffer.length +
 			nodeIndexBuffer.length +
 			left.length +
 			right.length,
@@ -78,19 +83,22 @@ const generateNodeData = (
 	};
 };
 
-// const getNodeInfo = (value: Buffer): NodeInfo => {
-// 	const right = value.slice(-1 * NODE_HASH_SIZE);
-// 	const left = value.slice(-1 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
-// 	const layerIndex = value.readInt8(0);
-// 	const nodeIndex = value.readBigInt64BE(LAYER_INDEX_SIZE);
-//
-// 	return {
-// 		right,
-// 		left,
-// 		layerIndex,
-// 		nodeIndex,
-// 	};
-// };
+const getNodeInfo = (value: Buffer): NodeInfo => {
+	const right = value.slice(-1 * NODE_HASH_SIZE);
+	const left = value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
+	const layerIndex = value.readInt8(BRANCH_PREFIX.length);
+	const nodeIndex = value.readBigInt64BE(
+		BRANCH_PREFIX.length + LAYER_INDEX_SIZE,
+	);
+
+	return {
+		value,
+		right,
+		left,
+		layerIndex,
+		nodeIndex,
+	};
+};
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -121,19 +129,47 @@ export class MerkleTree {
 		return this._root;
 	}
 
-	// eslint-disable-next-line
-	// public append(_value: Buffer): { key: Buffer; value: Buffer }[] {
-	// 	// const result: { key: Buffer; value: Buffer }[] = [];
-	// 	// const val = leafValue(value);
-	// 	// const leafHash = hash(val);
-	// 	//
-	// 	// this._data[leafHash.toString('binary')] = val;
-	// 	//
-	// 	// this._width += 1;
-	// 	// result.push({ key: leafHash, value: val });
-	// 	//
-	// 	// return result;
-	// }
+	public append(value: Buffer): Buffer {
+		const leaf = generateLeafData(value);
+
+		const rootNode = getNodeInfo(this._data[this.root.toString('binary')]);
+		const stack: Buffer[] = [];
+		let activeNode = rootNode;
+
+		// If tree nodes are all in pairs
+		if (this._width % 2 === 0) {
+			stack.push(this.root);
+		} else {
+			stack.push(activeNode.left);
+			stack.push(activeNode.right);
+
+			while (!isLeaf(this._data[activeNode.right.toString('binary')])) {
+				activeNode = getNodeInfo(
+					this._data[activeNode.right.toString('binary')],
+				);
+				stack.push(activeNode.right);
+			}
+		}
+
+		stack.push(leaf.hash);
+		this._data[leaf.hash.toString('binary')] = leaf.value;
+		this._width += 1;
+
+		while (stack.length > 1) {
+			const right = stack.pop() as Buffer;
+			const left = stack.pop() as Buffer;
+			// TODO: Add correct layer and node index
+			const node = generateNodeData(left, right, 0, BigInt(0));
+			this._data[node.hash.toString('binary')] = node.value;
+
+			stack.push(node.hash);
+		}
+
+		// eslint-disable-next-line prefer-destructuring
+		this._root = stack[0];
+
+		return this.root;
+	}
 
 	// eslint-disable-next-line
 	public generateProof(_queryData: ReadonlyArray<Buffer>): Proof {
@@ -145,6 +181,10 @@ export class MerkleTree {
 		this._width = 0;
 		this._data = {};
 		this._root = EMPTY_HASH;
+	}
+
+	public toString(): string {
+		return this._printNode(this.root);
 	}
 
 	// private _getHeight(): number {
@@ -195,5 +235,21 @@ export class MerkleTree {
 		}
 
 		return currentLayer[0];
+	}
+
+	private _printNode(hashValue: Buffer, level = 1): string {
+		const nodeValue = this._data[hashValue.toString('binary')];
+
+		if (isLeaf(nodeValue)) {
+			return nodeValue.toString('hex');
+		}
+
+		const node = getNodeInfo(nodeValue);
+
+		return [
+			hashValue.toString('hex'),
+			`├${'─'.repeat(level)} ${this._printNode(node.left, level + 1)}`,
+			`├${'─'.repeat(level)} ${this._printNode(node.right, level + 1)}`,
+		].join('\n');
 	}
 }
