@@ -4,7 +4,7 @@ Protocol specifications require a transactionRoot property of blocks, which is t
 
 #### Input
 
-- message: genesis block
+- message: Array of hex strings
 
 #### Output
 
