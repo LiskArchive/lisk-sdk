@@ -13,6 +13,7 @@
  *
  */
 import { bufferToHex, hexToBuffer } from './buffer';
+import { BINARY_ADDRESS_LENGTH } from './constants';
 // eslint-disable-next-line import/no-cycle
 import {
 	getAddressFromPublicKey,
@@ -88,7 +89,7 @@ export const getAddressFromPrivateKey = (privateKey: string): string => {
 
 const GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
-// See for details: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0018.md
+// See for details: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0018.md#creating-checksum
 const polymod = (uint5Array: number[]): number => {
 	let chk = 1;
 	for (const value of uint5Array) {
@@ -110,7 +111,7 @@ const polymod = (uint5Array: number[]): number => {
 
 export const getBinaryAddressFromPublicKey = (publicKey: string): Buffer => {
 	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	return hash(publicKeyBuffer).slice(0, 20);
+	return hash(publicKeyBuffer).slice(0, BINARY_ADDRESS_LENGTH);
 };
 
 export const createChecksum = (uint5Array: number[]): number[] => {
