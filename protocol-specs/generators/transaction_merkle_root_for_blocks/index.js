@@ -41,7 +41,7 @@ const branchHash = m => hash(concat(BRANCHPREFIX, m));
 
 const merkleRoot = transactionIds => {
 	const len = transactionIds.length;
-	if (len === 0) return Buffer.from([]);
+	if (len === 0) return hash(Buffer.from([]));
 	if (len === 1) return leafHash(transactionIds[0]);
 
 	const k = 2 ** Math.floor(Math.log2(len - 1));
