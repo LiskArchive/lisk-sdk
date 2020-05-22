@@ -11,10 +11,20 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { MerkleTree } from '../src/merkle_tree';
+import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
-		it.todo('should have correct root value');
+		for (const test of fixture.testCases) {
+			describe(test.description, () => {
+				it('should result in correct merkle root', () => {
+					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
+					const merkleTree = new MerkleTree(inputs);
+					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
+				});
+			});
+		}
 	});
 
 	describe('append', () => {
