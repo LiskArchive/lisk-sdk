@@ -190,16 +190,17 @@ export const validatePublicKeys = (
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
 
-const ADDRESS_BYTE_LENGTH = 20;
+const ADDRESS_LENGTH = 40;
+
 export const validateAddress = (address: string): boolean => {
-	if (!isHexString(address)) {
-		throw new Error('Address is not in hex format');
+	if (address.length !== ADDRESS_LENGTH) {
+		throw new Error(
+			'Address length does not match requirements. Expected 40 characters.',
+		);
 	}
 
-	if (Buffer.from(address, 'hex').length !== ADDRESS_BYTE_LENGTH) {
-		throw new Error(
-			`Address length does not match requirements. Expected ${ADDRESS_BYTE_LENGTH} bytes.`,
-		);
+	if (!isHexString(address)) {
+		throw new Error('Address is not a valid hex string.');
 	}
 
 	return true;

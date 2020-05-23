@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	validatePublicKeysForDuplicates,
 	validatePublicKey,
@@ -160,7 +159,12 @@ describe('validation', () => {
 
 	describe('#validateAddress', () => {
 		describe('Given valid addresses', () => {
-			const addresses = [getRandomBytes(20).toString('hex')];
+			const addresses = [
+				'66687aadf862bd776c8fc18b8e9f8e2008971485',
+				'af9613760f72635fbdb44a5a0a63c39f12af30f9',
+				'c946da78163c094fd8310efc9a81be13cac6a518',
+				'053d7733df22210dd0e6b4ec595a29cdb33ffb07',
+			];
 
 			it('should return true', () => {
 				return addresses.forEach(address => {
@@ -169,29 +173,29 @@ describe('validation', () => {
 			});
 		});
 
-		describe('Given an address which is not hex format', () => {
-			const address = '124aefui';
+		describe('Given an address that is too short', () => {
+			const address = '1';
 			it('should throw an error', () => {
 				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address is not in hex format',
-				);
-			});
-		});
-
-		describe('Given an address which is too short', () => {
-			const address = getRandomBytes(15).toString('hex');
-			it('should throw an error', () => {
-				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address length does not match requirements. Expected 20 bytes',
+					'Address length does not match requirements. Expected 40 characters.',
 				);
 			});
 		});
 
 		describe('Given an address that is too long', () => {
-			const address = getRandomBytes(25).toString('hex');
+			const address = '66687aadf862bd776c8fc18b8e9f8e20089714851';
 			it('should throw an error', () => {
 				return expect(validateAddress.bind(null, address)).toThrow(
-					'Address length does not match requirements. Expected 20 bytes',
+					'Address length does not match requirements. Expected 40 characters.',
+				);
+			});
+		});
+
+		describe('Given an address that includes `.`', () => {
+			const address = '46.87aadf862bd776c8fc18b8e9f8e2008971486';
+			it('should throw an error', () => {
+				return expect(validateAddress.bind(null, address)).toThrow(
+					'Address is not a valid hex string.',
 				);
 			});
 		});
