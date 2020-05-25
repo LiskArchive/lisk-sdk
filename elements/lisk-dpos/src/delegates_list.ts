@@ -21,8 +21,8 @@ import * as Debug from 'debug';
 
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
-	CONSENSUS_STATE_FORGERS_LIST_KEY,
-	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
+	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	DEFAULT_ROUND_OFFSET,
 	PUNISHMENT_PERIOD,
 } from './constants';
@@ -59,7 +59,7 @@ export const getForgersList = async (
 	stateStore: StateStore,
 ): Promise<ForgersList> => {
 	const forgersListStr = await stateStore.consensus.get(
-		CONSENSUS_STATE_FORGERS_LIST_KEY,
+		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 	);
 	if (!forgersListStr) {
 		return [];
@@ -73,14 +73,17 @@ const _setForgersList = (
 	forgersList: ForgersList,
 ): void => {
 	const forgersListStr = JSON.stringify(forgersList);
-	stateStore.consensus.set(CONSENSUS_STATE_FORGERS_LIST_KEY, forgersListStr);
+	stateStore.consensus.set(
+		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
+		forgersListStr,
+	);
 };
 
 export const getVoteWeights = async (
 	stateStore: StateStore,
 ): Promise<VoteWeights> => {
 	const voteWeightsStr = await stateStore.consensus.get(
-		CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	);
 	if (!voteWeightsStr) {
 		return [];
@@ -94,7 +97,10 @@ const _setVoteWeights = (
 	voteWeights: VoteWeights,
 ): void => {
 	const voteWeightsStr = JSON.stringify(voteWeights);
-	stateStore.consensus.set(CONSENSUS_STATE_VOTE_WEIGHTS_KEY, voteWeightsStr);
+	stateStore.consensus.set(
+		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
+		voteWeightsStr,
+	);
 };
 
 export const deleteForgersListUntilRound = async (
@@ -257,7 +263,7 @@ export class DelegatesList {
 		debug(`Creating vote weight snapshot for round: ${round.toString()}`);
 
 		// Data format for the registered delegates
-		// chain:usernames => { registeredDelegates: { username, address }[] }
+		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
 		const usernamesStr = await stateStore.chain.get(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
@@ -430,7 +436,7 @@ export class DelegatesList {
 
 	public async getDelegateList(round: number): Promise<ReadonlyArray<string>> {
 		const forgersListStr = await this.chain.dataAccess.getConsensusState(
-			CONSENSUS_STATE_FORGERS_LIST_KEY,
+			CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 		);
 		const forgersList =
 			forgersListStr !== undefined
