@@ -87,13 +87,15 @@ describe('dpos.undo()', () => {
 				generatorPublicKey: generator.publicKey,
 			} as Block;
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify([
-					{
-						round: 1,
-						delegates: delegateAccounts.map(d => d.address),
-						standy: [],
-					},
-				]),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+					JSON.stringify([
+						{
+							round: 1,
+							delegates: delegateAccounts.map(d => d.address),
+							standy: [],
+						},
+					]),
+				),
 			});
 		});
 
@@ -115,7 +117,7 @@ describe('dpos.undo()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const res = JSON.parse(consensusState as string);
+			const res = JSON.parse((consensusState as Buffer).toString('utf-8'));
 
 			expect(res).toHaveLength(1);
 		});
@@ -135,53 +137,57 @@ describe('dpos.undo()', () => {
 			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
 			// Arrange
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: JSON.stringify([
-					{
-						round: 10,
-						delegates: forgedDelegates.map(d => ({
-							address: d.address,
-							voteWeight: d.totalVotesReceived.toString(),
-						})),
-					},
-				]),
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify([
-					{
-						round: 8,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-						standy: [],
-					},
-					{
-						round: 9,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-					{
-						round: 10,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-					{
-						round: 11,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-					{
-						round: 12,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-				]),
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+					JSON.stringify([
+						{
+							round: 10,
+							delegates: forgedDelegates.map(d => ({
+								address: d.address,
+								voteWeight: d.totalVotesReceived.toString(),
+							})),
+						},
+					]),
+				),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+					JSON.stringify([
+						{
+							round: 8,
+							delegates: [
+								...forgedDelegates.map(d => d.address),
+								missedDelegate.address,
+							],
+							standy: [],
+						},
+						{
+							round: 9,
+							delegates: [
+								...forgedDelegates.map(d => d.address),
+								missedDelegate.address,
+							],
+						},
+						{
+							round: 10,
+							delegates: [
+								...forgedDelegates.map(d => d.address),
+								missedDelegate.address,
+							],
+						},
+						{
+							round: 11,
+							delegates: [
+								...forgedDelegates.map(d => d.address),
+								missedDelegate.address,
+							],
+						},
+						{
+							round: 12,
+							delegates: [
+								...forgedDelegates.map(d => d.address),
+								missedDelegate.address,
+							],
+						},
+					]),
+				),
 			});
 
 			lastBlockOfTheRoundNine = {
@@ -220,11 +226,12 @@ describe('dpos.undo()', () => {
 			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
 			// Assert
-			const consensusState =
-				(await stateStore.consensus.get(
-					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-				)) ?? '[]';
-			const voteWeights = JSON.parse(consensusState) as ForgersList;
+			const consensusState = await stateStore.consensus.get(
+				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
+			);
+			const voteWeights = JSON.parse(
+				consensusState ? consensusState.toString('utf-8') : '[]',
+			) as ForgersList;
 			const filteredVoteWeights = voteWeights.filter(
 				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
 			);
@@ -239,11 +246,12 @@ describe('dpos.undo()', () => {
 			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
 			// Assert
-			const consensusState =
-				(await stateStore.consensus.get(
-					CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-				)) ?? '[]';
-			const forgersList = JSON.parse(consensusState) as ForgersList;
+			const consensusState = await stateStore.consensus.get(
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
+			);
+			const forgersList = JSON.parse(
+				consensusState ? consensusState.toString('utf-8') : '[]',
+			) as ForgersList;
 			const filteredList = forgersList.filter(fl => fl.round > roundNo);
 			expect(filteredList).toHaveLength(0);
 		});
@@ -272,38 +280,42 @@ describe('dpos.undo()', () => {
 					ACTIVE_DELEGATES + STANDBY_DELEGATES,
 				);
 				stateStore = new StateStoreMock([...forgedDelegates], {
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: JSON.stringify([
-						{
-							round: 10,
-							delegates: forgedDelegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
-							})),
-						},
-					]),
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify([
-						{
-							round: 8,
-							delegates: [...forgedDelegates.map(d => d.address)],
-							standy: [],
-						},
-						{
-							round: 9,
-							delegates: [...forgedDelegates.map(d => d.address)],
-						},
-						{
-							round: 10,
-							delegates: [...forgedDelegates.map(d => d.address)],
-						},
-						{
-							round: 11,
-							delegates: [...forgedDelegates.map(d => d.address)],
-						},
-						{
-							round: 12,
-							delegates: [...forgedDelegates.map(d => d.address)],
-						},
-					]),
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+						JSON.stringify([
+							{
+								round: 10,
+								delegates: forgedDelegates.map(d => ({
+									address: d.address,
+									voteWeight: d.totalVotesReceived.toString(),
+								})),
+							},
+						]),
+					),
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+						JSON.stringify([
+							{
+								round: 8,
+								delegates: [...forgedDelegates.map(d => d.address)],
+								standy: [],
+							},
+							{
+								round: 9,
+								delegates: [...forgedDelegates.map(d => d.address)],
+							},
+							{
+								round: 10,
+								delegates: [...forgedDelegates.map(d => d.address)],
+							},
+							{
+								round: 11,
+								delegates: [...forgedDelegates.map(d => d.address)],
+							},
+							{
+								round: 12,
+								delegates: [...forgedDelegates.map(d => d.address)],
+							},
+						]),
+					),
 				});
 				lastBlockOfTheRoundNine = {
 					height: 927,

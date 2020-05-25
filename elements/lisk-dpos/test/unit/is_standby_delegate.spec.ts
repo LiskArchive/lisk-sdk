@@ -31,7 +31,7 @@ import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	return new StateStoreMock([], {
-		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify(list),
+		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(JSON.stringify(list)),
 	});
 };
 

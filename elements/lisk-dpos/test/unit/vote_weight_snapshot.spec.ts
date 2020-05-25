@@ -79,10 +79,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(genesisBlock, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(3);
 				expect(voteWeights[0].round).toEqual(1);
 				expect(voteWeights[1].round).toEqual(2);
@@ -212,8 +214,12 @@ describe('Vote weight snapshot', () => {
 						},
 					],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 				);
 
@@ -229,10 +235,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				const updateddelegateInList = voteWeights[1].delegates.find(
@@ -309,12 +317,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -331,10 +345,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				// 50 and the forger is in the list
@@ -426,12 +442,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -448,10 +470,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(voteWeights[1].delegates).toHaveLength(103);
@@ -540,12 +564,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -562,10 +592,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(voteWeights[1].delegates).toHaveLength(
@@ -661,12 +693,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -683,10 +721,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(
@@ -779,12 +819,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -801,10 +847,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(
@@ -896,12 +944,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -918,10 +972,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				const snapshotedPunishedDelegate = voteWeights[1].delegates.find(
@@ -1011,12 +1067,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -1033,10 +1095,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(
@@ -1129,8 +1193,12 @@ describe('Vote weight snapshot', () => {
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+						mockedForgersList,
+					),
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+						existingVoteWeights,
+					),
 				});
 			});
 
@@ -1139,10 +1207,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.undo(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf-8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[0].round).toEqual(11);
 				expect(voteWeights[1].round).toEqual(12);

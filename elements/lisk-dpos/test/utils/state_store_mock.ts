@@ -20,22 +20,22 @@ interface AccountStoreMock {
 }
 
 interface ConsensusStateStoreMock {
-	get: (address: string) => Promise<string | undefined>;
-	set: (key: string, v: string) => void;
+	get: (address: string) => Promise<Buffer | undefined>;
+	set: (key: string, v: Buffer) => void;
 	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 interface ChainStateStoreMock {
-	get: (address: string) => Promise<string | undefined>;
-	set: (key: string, v: string) => void;
+	get: (address: string) => Promise<Buffer | undefined>;
+	set: (key: string, v: Buffer) => void;
 }
 
 interface ConsensusState {
-	[key: string]: string;
+	[key: string]: Buffer;
 }
 
 export interface AdditionalInformation {
 	readonly lastBlockHeaders?: ReadonlyArray<BlockHeader>;
-	readonly chainData?: { [key: string]: string };
+	readonly chainData?: { [key: string]: Buffer };
 }
 
 export class StateStoreMock {
@@ -45,7 +45,7 @@ export class StateStoreMock {
 
 	public accountData: Account[];
 	public consensusStateData: ConsensusState;
-	public chainData: { [key: string]: string };
+	public chainData: { [key: string]: Buffer };
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
 	constructor(
@@ -85,18 +85,18 @@ export class StateStoreMock {
 		};
 		this.consensus = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (key: string): Promise<string | undefined> => {
+			get: async (key: string): Promise<Buffer | undefined> => {
 				return this.consensusStateData[key];
 			},
-			set: (key: string, val: string): void => {
+			set: (key: string, val: Buffer): void => {
 				this.consensusStateData[key] = val;
 			},
 			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
 		};
 		this.chain = {
-			get: async (key: string): Promise<string | undefined> =>
+			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(this.chainData[key]),
-			set: (key: string, value: string): void => {
+			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},
 		};
