@@ -25,6 +25,7 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 	const one = (idx: number): number => idx - 1;
 	const initialBytesLength = initial.length;
 	const finalBytesLength = final.length;
+	const emptyBuffer = Buffer.from([]);
 
 	if (initialBytesLength === 0) {
 		return Array.from(final).map(b => ['+', b]);
@@ -73,13 +74,13 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 			}
 
 			if (x >= initialBytesLength && x + y === d + 2 * initialBytesLength) {
-				const fDiff = diffAlgo(Buffer.from([]), final.subarray(y));
+				const fDiff = diffAlgo(emptyBuffer, final.subarray(y));
 
 				return history.splice(1).concat(fDiff);
 			}
 
 			if (y >= finalBytesLength && x + y === d + 2 * finalBytesLength) {
-				const fDiff = diffAlgo(initial.subarray(x), Buffer.from([]));
+				const fDiff = diffAlgo(initial.subarray(x), emptyBuffer);
 
 				return history.splice(1).concat(fDiff);
 			}
@@ -114,24 +115,24 @@ export const calculateDiff = (
 	return reducedDiff as HistoryType[];
 };
 
-export const undo = (finalBuffer: Buffer, diff: HistoryType[]): Buffer => {
+export const undo = (finalBuffer: Buffer, diffArray: HistoryType[]): Buffer => {
 	let finalBytes = Buffer.from(finalBuffer);
 	let res = Buffer.from([]);
 
-	for (const d of diff.reverse()) {
-		if (d[0] === '=') {
+	for (const [op, diff] of diffArray.reverse()) {
+		if (op === '=') {
 			const unchangedBytes = finalBytes.slice(
-				finalBytes.length - d[1],
+				finalBytes.length - diff,
 				finalBytes.length,
 			);
-			finalBytes = finalBytes.slice(0, finalBytes.length - d[1]);
+			finalBytes = finalBytes.slice(0, finalBytes.length - diff);
 			res = Buffer.concat([unchangedBytes, res]);
-		} else if (d[0] === '-') {
-			res = Buffer.concat([Buffer.from([d[1]]), res]);
-		} else if (d[0] === '+') {
+		} else if (op === '-') {
+			res = Buffer.concat([Buffer.from([diff]), res]);
+		} else if (op === '+') {
 			finalBytes = finalBytes.slice(0, finalBytes.length - 1);
 		} else {
-			throw new Error('Diff contains non expected symbol');
+			throw new Error('Diff contains unexpected symbol');
 		}
 	}
 
