@@ -119,7 +119,7 @@ export class BlocksVerify {
 	public matchGenesisBlock(block: BlockHeader): boolean {
 		return (
 			block.id === this.genesisBlock.id &&
-			block.payloadHash === this.genesisBlock.payloadHash &&
+			block.transactionRoot === this.genesisBlock.transactionRoot &&
 			block.blockSignature === this.genesisBlock.blockSignature
 		);
 	}

@@ -12,8 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, verifyData } from '@liskhq/lisk-cryptography';
+import {
+	verifyData,
+	stringToBuffer,
+	bufferToHex,
+} from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { MerkleTree } from '@liskhq/lisk-tree';
 
 import { Slots } from './slots';
 import { BlockInstance, GenesisBlock } from './types';
@@ -74,7 +79,14 @@ export const validateReward = (
 	}
 };
 
-export const validatePayload = (
+export const getTransactionRoot = (ids: ReadonlyArray<string>): string => {
+	const idsAsBuffers = ids.map(id => stringToBuffer(id));
+	const tree = new MerkleTree(idsAsBuffers);
+
+	return bufferToHex(tree.root);
+};
+
+export const validateTransactionRoot = (
 	block: BlockInstance,
 	maxPayloadLength: number,
 ): void => {
@@ -84,32 +96,26 @@ export const validatePayload = (
 
 	let totalAmount = BigInt(0);
 	let totalFee = BigInt(0);
-	const transactionsBytesArray: Buffer[] = [];
+	const transactionsIds: string[] = [];
 	const appliedTransactions: { [id: string]: BaseTransaction } = {};
 
 	block.transactions.forEach(transaction => {
-		const transactionBytes = transaction.getBytes();
-
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (appliedTransactions[transaction.id]) {
 			throw new Error(`Encountered duplicate transaction: ${transaction.id}`);
 		}
 
+		transactionsIds.push(transaction.id);
 		appliedTransactions[transaction.id] = transaction;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (transactionBytes) {
-			transactionsBytesArray.push(transactionBytes);
-		}
 		// eslint-disable-next-line
 		totalAmount += BigInt((transaction.asset as any).amount || 0);
 		totalFee += BigInt(transaction.fee);
 	});
 
-	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
-	const payloadHash = hash(transactionsBuffer).toString('hex');
+	const transactionRoot = getTransactionRoot(transactionsIds);
 
-	if (payloadHash !== block.payloadHash) {
-		throw new Error('Invalid payload hash');
+	if (transactionRoot !== block.transactionRoot) {
+		throw new Error('Invalid transaction root');
 	}
 
 	if (totalAmount !== BigInt(block.totalAmount)) {

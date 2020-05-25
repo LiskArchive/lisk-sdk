@@ -63,7 +63,7 @@ import {
 import * as blocksUtils from './utils';
 import {
 	validateBlockSlot,
-	validatePayload,
+	validateTransactionRoot,
 	validatePreviousBlockProperty,
 	validateReward,
 	validateSignature,
@@ -347,7 +347,7 @@ export class Chain {
 			throw invalidTransactionResponse.errors;
 		}
 
-		validatePayload(block, this.constants.maxPayloadLength);
+		validateTransactionRoot(block, this.constants.maxPayloadLength);
 
 		// Update id
 		// eslint-disable-next-line no-param-reassign

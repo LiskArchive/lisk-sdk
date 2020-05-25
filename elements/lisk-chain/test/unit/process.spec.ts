@@ -57,7 +57,7 @@ describe('blocks/header', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	const networkIdentifier = getNetworkIdentifier(
-		genesisBlock.payloadHash,
+		genesisBlock.transactionRoot,
 		genesisBlock.communityIdentifier,
 	);
 
@@ -187,12 +187,12 @@ describe('blocks/header', () => {
 						}) as TransactionJSON,
 					),
 				);
-				block = newBlock({ transactions: txs, payloadHash: '1234567890' });
+				block = newBlock({ transactions: txs, transactionRoot: '1234567890' });
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
 					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Invalid payload hash');
+				).toThrow('Invalid transaction root');
 			});
 		});
 
