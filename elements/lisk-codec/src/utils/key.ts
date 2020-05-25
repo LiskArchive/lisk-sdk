@@ -22,8 +22,8 @@ export const generateKey = (schemaProp: SchemaProps): Buffer => {
 
 	switch (dataType) {
 		case 'bytes':
-	  case 'string':
-	  case 'object':
+		case 'string':
+		case 'object':
 		case 'array':
 			wireType = 2;
 			break;
