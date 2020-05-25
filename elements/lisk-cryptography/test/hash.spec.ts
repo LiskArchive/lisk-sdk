@@ -60,7 +60,7 @@ describe('hash', () => {
 	});
 
 	describe('#getNetworkIdentifier', () => {
-		const genesisBlockPayloadHash =
+		const genesisBlockTransactionRoot =
 			'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
 		const communityIdentifier = 'LISK';
 		const expectedHash =
@@ -68,7 +68,7 @@ describe('hash', () => {
 
 		it('should generate a sha256 hash from Genesis Block Payload Hash and community identifier', () => {
 			const networkIdentifier = getNetworkIdentifier(
-				genesisBlockPayloadHash,
+				genesisBlockTransactionRoot,
 				communityIdentifier,
 			);
 
