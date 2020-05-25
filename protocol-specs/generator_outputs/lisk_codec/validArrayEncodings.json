@@ -13,12 +13,13 @@
 				"network": "devnet"
 			},
 			"input": {
-				"ArrayOfIntegers": {
+				"arrayOfIntegers": {
 					"object": {
 						"list": [3, 1, 4, 1, 5, 9, 2, 6, 5]
 					},
 					"schema": {
 						"type": "object",
+						"$id": "arrayUint32",
 						"properties": {
 							"list": {
 								"type": "array",
@@ -36,11 +37,12 @@
 					},
 					"schema": {
 						"type": "object",
+						"$id": "arrayBoolean",
 						"properties": {
 							"list": {
 								"type": "array",
 								"items": {
-									"dataType": "bool"
+									"dataType": "boolean"
 								},
 								"fieldNumber": 1
 							}
@@ -78,23 +80,22 @@
 						]
 					},
 					"schema": {
-						"schema": {
-							"type": "object",
-							"properties": {
-								"list": {
-									"type": "array",
-									"fieldNumber": 1,
-									"items": {
-										"type": "object",
-										"properties": {
-											"address": {
-												"dataType": "string",
-												"fieldNumber": 1
-											},
-											"amount": {
-												"dataType": "uint64",
-												"fieldNumber": 2
-											}
+						"$id": "arrayObject",
+						"type": "object",
+						"properties": {
+							"myArray": {
+								"type": "array",
+								"fieldNumber": 1,
+								"items": {
+									"type": "object",
+									"properties": {
+										"address": {
+											"dataType": "string",
+											"fieldNumber": 1
+										},
+										"amount": {
+											"dataType": "uint64",
+											"fieldNumber": 2
 										}
 									}
 								}
@@ -108,6 +109,7 @@
 					},
 					"schema": {
 						"type": "object",
+						"$id": "emptyArray",
 						"properties": {
 							"list": {
 								"type": "array",

@@ -93,8 +93,8 @@
 								"dataType": "boolean",
 								"fieldNumber": 1
 							},
-							"balance": {
-								"data": "bytes",
+							"data": {
+								"dataType": "bytes",
 								"fieldNumber": 2
 							},
 							"value": {
