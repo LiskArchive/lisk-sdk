@@ -18,7 +18,7 @@ import * as validUnlockTransactionScenario from '../fixtures/unlock_transaction/
 import { UnlockTransaction } from '../src/14_unlock_transaction';
 import { Status, Account } from '../src';
 import { StateStoreMock, defaultAccount } from './utils/state_store_mock';
-import { AccountUnlocking } from '../src/transaction_types';
+import { AccountUnlocking } from '../src/types';
 import { sortUnlocking } from '../src/utils';
 
 describe('Unlock transaction', () => {

@@ -20,7 +20,7 @@ import { VoteTransaction } from './13_vote_transaction';
 import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { sortKeysAscending } from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

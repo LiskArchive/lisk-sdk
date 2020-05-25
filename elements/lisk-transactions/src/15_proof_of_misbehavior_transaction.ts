@@ -21,7 +21,7 @@ import {
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { BlockHeaderJSON, TransactionJSON } from './transaction_types';
+import { BlockHeaderJSON, TransactionJSON } from './types';
 import {
 	getBlockBytes,
 	getBlockBytesWithSignature,

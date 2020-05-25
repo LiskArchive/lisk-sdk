@@ -14,7 +14,7 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/transfer';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON } from '../src/types';
 import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 
 describe('#transfer transaction', () => {

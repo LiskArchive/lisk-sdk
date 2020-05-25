@@ -15,7 +15,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 
 import { TransactionError } from '../errors';
-import { IsValidResponseWithError } from '../transaction_types';
+import { IsValidResponseWithError } from '../types';
 
 export const validateSignature = (
 	publicKey: string,

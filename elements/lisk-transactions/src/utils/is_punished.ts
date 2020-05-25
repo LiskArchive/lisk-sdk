@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Account } from '../transaction_types';
+import { Account } from '../types';
 
 const VOTER_PUNISH_TIME = 260000;
 const SELF_VOTE_PUNISH_TIME = 780000;

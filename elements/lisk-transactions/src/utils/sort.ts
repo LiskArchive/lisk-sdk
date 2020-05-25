@@ -13,7 +13,7 @@
  *
  */
 
-import { AccountUnlocking } from '../transaction_types';
+import { AccountUnlocking } from '../types';
 
 export const sortKeysAscending = (publicKeys: string[]): string[] =>
 	publicKeys.sort((publicKeyA, publicKeyB) => {
