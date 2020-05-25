@@ -12,47 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+// import { codec } from '../src/codec';
+
+import { testCases as objectTestCases } from '../fixtures/validObjectEncodings.json';
 import { codec } from '../src/codec';
 
-const testSchema = {
-	$id: 'testSchema',
-	type: 'object',
-	properties: {
-		b: { fieldNumber: 2, dataType: 'string' },
-		a: { fieldNumber: 1, dataType: 'string' },
-		d: { fieldNumber: 4, dataType: 'bytes' },
-		c: {
-			dataType: 'object',
-			fieldNumber: 3,
-			properties: {
-				cc: { fieldNumber: 3, dataType: 'string' },
-				ca: { fieldNumber: 1, dataType: 'string' },
-				cb: {
-					dataType: 'object',
-					fieldNumber: 2,
-					properties: {
-						cbb: { fieldNumber: 2, dataType: 'string' },
-						cba: { fieldNumber: 1, dataType: 'string' },
-						cbc: {
-							dataType: 'object',
-							fieldNumber: 3,
-							properties: {
-								cbcb: { fieldNumber: 3, dataType: 'string' },
-								cbca: { fieldNumber: 2, dataType: 'string' },
-							},
-						},
-						cbd: { fieldNumber: 4, dataType: 'string' },
-					},
-				},
-			},
-		},
-	},
-};
+const objectFixtureInput = objectTestCases[0].input;
 
 describe('addSchema', () => {
-	it('it should add schema and generate encoder', () => {
-		codec.addSchema(testSchema);
+	it('it should add schema and keep it in cache', () => {
+		const message = objectFixtureInput.object.object;
+		// Replace the JSON representation of buffer with an actual buffer
+		(message as any).address = Buffer.from(message.address.data);
+		// Fix number not being bigint
+		(message as any).balance = BigInt(message.balance);
 
-		expect(codec['_compileSchemas'].testSchema).toHaveLength(10);
+		const {
+			object: { schema },
+		} = objectFixtureInput;
+
+		codec.encode(schema as any, message as any);
+
+		expect((codec as any)._compileSchemas.object11).toMatchSnapshot();
 	});
 });
