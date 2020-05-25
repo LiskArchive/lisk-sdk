@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-type HistoryType = [string?, number?];
+type HistoryType = [string, number];
 
 interface Frontier {
 	[key: string]: {
@@ -21,19 +21,17 @@ interface Frontier {
 	};
 }
 
-const _diff = (initialBuffer: Buffer, finalBuffer: Buffer): HistoryType[] => {
+const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 	const one = (idx: number): number => idx - 1;
-	const initial = Array.from(initialBuffer);
-	const final = Array.from(finalBuffer);
 	const initialBytesLength = initial.length;
 	const finalBytesLength = final.length;
 
 	if (initialBytesLength === 0) {
-		return final.map(b => ['+', b]);
+		return Array.from(final).map(b => ['+', b]);
 	}
 
 	if (finalBytesLength === 0) {
-		return initial.map(b => ['-', b]);
+		return Array.from(initial).map(b => ['-', b]);
 	}
 
 	const frontier: Frontier = { 1: { x: 0, history: [] } };
@@ -45,14 +43,14 @@ const _diff = (initialBuffer: Buffer, finalBuffer: Buffer): HistoryType[] => {
 
 			let x: number;
 			if (goDown) {
-				history = frontier[k + 1].history;
+				history = [...frontier[k + 1].history];
 				x = frontier[k + 1].x;
 			} else {
-				history = frontier[k - 1].history;
+				history = [...frontier[k - 1].history];
 				x = frontier[k - 1].x + 1;
 			}
 
-			history = [...history];
+			// history = [...history];
 			let y = x - k;
 
 			if (y >= 0 && y <= finalBytesLength && goDown) {
@@ -76,13 +74,13 @@ const _diff = (initialBuffer: Buffer, finalBuffer: Buffer): HistoryType[] => {
 			}
 
 			if (x >= initialBytesLength && x + y === d + 2 * initialBytesLength) {
-				const fDiff = _diff(Buffer.from([]), Buffer.from(final.splice(y)));
+				const fDiff = diffAlgo(Buffer.from([]), final.subarray(y));
 
 				return history.splice(1).concat(fDiff);
 			}
 
 			if (y >= finalBytesLength && x + y === d + 2 * finalBytesLength) {
-				const fDiff = _diff(Buffer.from(initial.splice(x)), Buffer.from([]));
+				const fDiff = diffAlgo(initial.subarray(x), Buffer.from([]));
 
 				return history.splice(1).concat(fDiff);
 			}
@@ -96,7 +94,7 @@ export const calculateDiff = (
 	initial: Buffer,
 	final: Buffer,
 ): HistoryType[] => {
-	const longDiff = _diff(initial, final);
+	const longDiff = diffAlgo(initial, final);
 	const reducedDiff = [];
 	let count = 0;
 
@@ -123,11 +121,11 @@ export const undo = (finalBuffer: Buffer, diff: HistoryType[]): Buffer => {
 
 	for (const d of diff.reverse()) {
 		if (d[0] === '=') {
-			for (let i = 0; i < (d[1] as number); i += 1) {
+			for (let i = 0; i < d[1]; i += 1) {
 				res.unshift(finalBytes.pop() as number);
 			}
 		} else if (d[0] === '-') {
-			res.unshift(d[1] as number);
+			res.unshift(d[1]);
 		} else if (d[0] === '+') {
 			finalBytes.pop();
 		} else {
