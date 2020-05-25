@@ -97,23 +97,41 @@ describe('dataAccess.blocks', () => {
 		const batch = db.batch();
 		for (const block of blocks) {
 			const { transactions, ...blockHeader } = block;
-			batch.put(`blocks:id:${blockHeader.id}`, blockHeader);
-			batch.put(`blocks:height:${formatInt(block.height)}`, block.id);
+			batch.put(
+				`blocks:id:${blockHeader.id}`,
+				Buffer.from(JSON.stringify(blockHeader), 'utf-8'),
+			);
+			batch.put(
+				`blocks:height:${formatInt(block.height)}`,
+				Buffer.from(JSON.stringify(block.id), 'utf-8'),
+			);
 			if (block.transactions.length) {
 				batch.put(
 					`transactions:blockID:${block.id}`,
-					block.transactions.map((tx: any) => tx.id),
+					Buffer.from(
+						JSON.stringify(block.transactions.map((tx: any) => tx.id)),
+						'utf-8',
+					),
 				);
 				for (const tx of block.transactions) {
-					batch.put(`transactions:id:${tx.id}`, tx);
+					batch.put(
+						`transactions:id:${tx.id}`,
+						Buffer.from(JSON.stringify(tx), 'utf-8'),
+					);
 				}
 			}
-			batch.put(`tempBlocks:height:${formatInt(blocks[2].height)}`, blocks[2]);
-			batch.put(`tempBlocks:height:${formatInt(blocks[3].height)}`, blocks[3]);
+			batch.put(
+				`tempBlocks:height:${formatInt(blocks[2].height)}`,
+				Buffer.from(JSON.stringify(blocks[2]), 'utf-8'),
+			);
+			batch.put(
+				`tempBlocks:height:${formatInt(blocks[3].height)}`,
+				Buffer.from(JSON.stringify(blocks[3]), 'utf-8'),
+			);
 			batch.put(
 				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 				`tempBlocks:height:${formatInt(blocks[3].height + 1)}`,
-				blocks[3],
+				Buffer.from(JSON.stringify(blocks[3]), 'utf-8'),
 			);
 		}
 		await batch.write();

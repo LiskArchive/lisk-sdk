@@ -52,7 +52,10 @@ describe('dataAccess.transactions', () => {
 		];
 		const batch = db.batch();
 		for (const tx of transactions) {
-			batch.put(`transactions:id:${tx.id}`, tx);
+			batch.put(
+				`transactions:id:${tx.id}`,
+				Buffer.from(JSON.stringify(tx), 'utf-8'),
+			);
 		}
 		await batch.write();
 	});

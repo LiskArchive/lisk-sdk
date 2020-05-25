@@ -125,8 +125,8 @@ export class Storage {
 		const [blockID] = await new Promise<string[]>((resolve, reject) => {
 			const ids: string[] = [];
 			stream
-				.on('data', ({ value }) => {
-					ids.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					ids.push(JSON.parse(value.toString('utf-8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -230,8 +230,8 @@ export class Storage {
 		const tempBlocks = await new Promise<BlockJSON[]>((resolve, reject) => {
 			const blocks: BlockJSON[] = [];
 			stream
-				.on('data', ({ value }) => {
-					blocks.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					blocks.push(JSON.parse(value.toString('utf-8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -253,8 +253,8 @@ export class Storage {
 		const tempBlocks = await new Promise<BlockJSON[]>((resolve, reject) => {
 			const blocks: BlockJSON[] = [];
 			stream
-				.on('data', ({ value }) => {
-					blocks.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					blocks.push(JSON.parse(value.toString('utf-8')));
 				})
 				.on('error', error => {
 					reject(error);

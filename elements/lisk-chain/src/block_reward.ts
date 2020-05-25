@@ -158,8 +158,10 @@ export const applyFeeAndRewards = async (
 	// This is necessary only for genesis block case, where total fee is 0, which is invalid
 	// Also, genesis block cannot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
-	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
+	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
+	let totalFeeBurnt = BigInt(
+		totalFeeBurntBuffer ? JSON.parse(totalFeeBurntBuffer.toString('utf-8')) : 0,
+	);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store
@@ -189,8 +191,10 @@ export const undoFeeAndRewards = async (
 	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
 
 	generator.balance -= totalFee - totalMinFee;
-	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
+	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
+	let totalFeeBurnt = BigInt(
+		totalFeeBurntBuffer ? JSON.parse(totalFeeBurntBuffer.toString('utf-8')) : 0,
+	);
 	totalFeeBurnt -= totalMinFee;
 
 	// Update state store

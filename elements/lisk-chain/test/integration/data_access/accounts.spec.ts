@@ -58,7 +58,10 @@ describe('dataAccess.transactions', () => {
 		];
 		const batch = db.batch();
 		for (const account of accounts) {
-			batch.put(`accounts:address:${account.address}`, account);
+			batch.put(
+				`accounts:address:${account.address}`,
+				Buffer.from(JSON.stringify(account), 'utf-8'),
+			);
 		}
 		await batch.write();
 	});
