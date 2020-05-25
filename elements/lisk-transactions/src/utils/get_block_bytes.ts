@@ -85,7 +85,7 @@ export const getBlockBytes = (block: BlockHeaderJSON): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
@@ -102,7 +102,7 @@ export const getBlockBytes = (block: BlockHeaderJSON): Buffer => {
 		totalFeeBuffer,
 		rewardBuffer,
 		payloadLengthBuffer,
-		payloadHashBuffer,
+		transactionRootBuffer,
 		generatorPublicKeyBuffer,
 	]);
 };

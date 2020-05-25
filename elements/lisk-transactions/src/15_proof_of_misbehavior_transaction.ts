@@ -38,7 +38,7 @@ const blockHeaderSchema = {
 		'maxHeightPreviouslyForged',
 		'maxHeightPrevoted',
 		'numberOfTransactions',
-		'payloadHash',
+		'transactionRoot',
 		'payloadLength',
 		'previousBlockId',
 		'reward',
@@ -73,7 +73,7 @@ const blockHeaderSchema = {
 			type: 'integer',
 			minimum: 0,
 		},
-		payloadHash: {
+		transactionRoot: {
 			type: 'string',
 			format: 'hex',
 		},
