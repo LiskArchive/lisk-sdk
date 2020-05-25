@@ -50,7 +50,6 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 				x = frontier[k - 1].x + 1;
 			}
 
-			// history = [...history];
 			let y = x - k;
 
 			if (y >= 0 && y <= finalBytesLength && goDown) {
@@ -116,22 +115,25 @@ export const calculateDiff = (
 };
 
 export const undo = (finalBuffer: Buffer, diff: HistoryType[]): Buffer => {
-	const finalBytes = [...Array.from(finalBuffer)];
-	const res = [];
+	let finalBytes = Buffer.from(finalBuffer);
+	let res = Buffer.from([]);
 
 	for (const d of diff.reverse()) {
 		if (d[0] === '=') {
-			for (let i = 0; i < d[1]; i += 1) {
-				res.unshift(finalBytes.pop() as number);
-			}
+			const unchangedBytes = finalBytes.slice(
+				finalBytes.length - d[1],
+				finalBytes.length,
+			);
+			finalBytes = finalBytes.slice(0, finalBytes.length - d[1]);
+			res = Buffer.concat([unchangedBytes, res]);
 		} else if (d[0] === '-') {
-			res.unshift(d[1]);
+			res = Buffer.concat([Buffer.from([d[1]]), res]);
 		} else if (d[0] === '+') {
-			finalBytes.pop();
+			finalBytes = finalBytes.slice(0, finalBytes.length - 1);
 		} else {
 			throw new Error('Diff contains non expected symbol');
 		}
 	}
 
-	return Buffer.from(res);
+	return res;
 };
