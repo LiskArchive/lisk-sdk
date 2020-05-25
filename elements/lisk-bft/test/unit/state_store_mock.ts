@@ -13,12 +13,12 @@
  */
 
 interface ConsensusStateStoreMock {
-	get: (address: string) => Promise<string | undefined>;
-	set: (key: string, v: string) => void;
+	get: (address: string) => Promise<Buffer | undefined>;
+	set: (key: string, v: Buffer) => void;
 }
 
 interface ConsensusState {
-	[key: string]: string;
+	[key: string]: Buffer;
 }
 
 export class StateStoreMock {
@@ -33,10 +33,10 @@ export class StateStoreMock {
 
 		this.consensus = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (key: string): Promise<string | undefined> => {
+			get: async (key: string): Promise<Buffer | undefined> => {
 				return this.consensusData[key];
 			},
-			set: (key: string, val: string): void => {
+			set: (key: string, val: Buffer): void => {
 				this.consensusData[key] = val;
 			},
 		};
