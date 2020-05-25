@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
+// decode x 211,879 ops/sec ±0.64% (88 runs sampled)
 
 const { Suite } = require('benchmark');
 const {

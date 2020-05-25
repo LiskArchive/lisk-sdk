@@ -194,8 +194,8 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 			// Since first key and length is read, we do read them directly
 			if (wireType2Size !== 0) {
 				// readObject returns Next offset, not index used
-				const [res, nextOffset] = readObject(message, index, typeSchema);
-				result.push(res);
+				const [objectResult, nextOffset] = readObject(message, index, typeSchema);
+				result.push(objectResult);
 				index = nextOffset;
 			} else {
 				result.push({});
