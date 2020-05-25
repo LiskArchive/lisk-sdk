@@ -272,8 +272,8 @@ const generateValidBytesEncodings = () => {
 				$id: 'object10',
 				type: 'object',
 				properties: {
-					data: {
-						dataType: 'string',
+					address: {
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 				},
