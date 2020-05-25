@@ -43,6 +43,7 @@ const { Objects, ObjectWithOptionalProp } = prepareProtobuffersObjects();
 const {
 	ArrayOfIntegers,
 	ArrayBools,
+	ArrayString,
 	ArrayObjects,
 } = prepareProtobuffersArrays();
 
@@ -430,6 +431,23 @@ const generateValidArrayEncodings = () => {
 				},
 			},
 		},
+		arrayStrings: {
+			object: {
+				list: ['lisk', '', 'gogogog'],
+			},
+			schema: {
+				type: 'object',
+				properties: {
+					list: {
+						type: 'array',
+						items: {
+							dataType: 'string',
+						},
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
 		arrayObjects: {
 			object: {
 				myArray: [
@@ -491,6 +509,9 @@ const generateValidArrayEncodings = () => {
 		input.ArrayOfIntegers.object,
 	).finish();
 	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
+	const arrayStringsEncoded = ArrayString.encode(
+		input.arrayStrings.object,
+	).finish();
 	const arrayOfObjectsEncoded = ArrayObjects.encode(
 		input.arrayObjects.object,
 	).finish();
@@ -504,12 +525,14 @@ const generateValidArrayEncodings = () => {
 		input: {
 			ArrayOfIntegers: input.ArrayOfIntegers,
 			arrayBools: input.arrayBools,
+			arrayStrings: input.arrayStrings,
 			arrayOfObjects: input.arrayObjects,
 			emptyArray: input.emptyArray,
 		},
 		output: {
 			arrayOfIntegersEncoded: ArrayOfIntegersEncoded.toString('hex'),
 			arrayBoolsEncoded: arrayBoolsEncoded.toString('hex'),
+			arrayStringsEncoded: arrayStringsEncoded.toString('hex'),
 			arrayOfObjectsEncoded: arrayOfObjectsEncoded.toString('hex'),
 			emptyArrayEncoded: emptyArrayEncoded.toString('hex'),
 		},

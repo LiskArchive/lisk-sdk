@@ -1,6 +1,23 @@
+/*
+ * Copyright © 2020 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+type BaseTypes = string | number | Buffer | bigint | boolean;
+
 export interface GenericObject {
-	[key: string]: GenericObject | string | number | Buffer;
+	[key: string]: GenericObject | BaseTypes | Array<BaseTypes | GenericObject>;
 }
+
 export interface SchemaPair {
 	readonly [key: string]: SchemaProps;
 }
@@ -14,11 +31,18 @@ export interface SchemaProps {
 	readonly type?: string;
 	readonly dataType?: string;
 	readonly properties?: SchemaPair;
-	readonly items?: SchemaProps;
+	readonly items?: SchemaObjectItem | SchemaScalarItem;
 }
-export interface SchemaScalarType {
-	readonly dataType?: string;
-	readonly type?: string;
+
+export interface SchemaObjectItem {
+	readonly type: 'object';
+	readonly fieldNumber: number;
+	readonly properties: SchemaPair;
+}
+
+export interface SchemaScalarItem {
+	readonly dataType: string;
+	readonly type?: undefined;
 }
 
 export interface CompiledSchema {

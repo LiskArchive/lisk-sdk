@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GenericObject, CompiledSchemasArray } from './types';
+import { GenericObject, CompiledSchemasArray, CompiledSchema } from './types';
 
 import { writeSInt32, writeSInt64, writeUInt32, writeUInt64 } from './varint';
 import { writeString } from './string';
@@ -42,6 +42,16 @@ export const writeObject = (
 		const property = compiledSchema[i];
 		if (Array.isArray(property)) {
 			const headerProp = property[0];
+			if (headerProp.schemaProp.type === 'array') {
+				// eslint-disable-next-line @typescript-eslint/no-use-before-define
+				writeArray(
+					property,
+					message[headerProp.propertyName] as Array<unknown>,
+					chunks,
+				);
+				// eslint-disable-next-line no-continue
+				continue;
+			}
 			// Write the key for container object
 			chunks.push(headerProp.binaryKey);
 			const [encodedValues, totalWrittenSize] = writeObject(
@@ -86,4 +96,66 @@ export const writeObject = (
 		}
 	}
 	return [chunks, simpleObjectSize];
+};
+
+export const writeArray = (
+	compiledSchema: CompiledSchema[],
+	message: Array<unknown>,
+	chunks: Buffer[],
+): [Buffer[], number] => {
+	let totalSize = 0;
+	const [rootSchema, typeSchema] = compiledSchema;
+	// Array of object
+	if (Array.isArray(typeSchema)) {
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < message.length; i += 1) {
+			const [res, objectSize] = writeObject(
+				typeSchema,
+				message[i] as GenericObject,
+				[],
+			);
+			chunks.push(rootSchema.binaryKey);
+			chunks.push(_writers.uint32(objectSize));
+			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			for (let j = 0; j < res.length; j += 1) {
+				chunks.push(res[j]);
+			}
+			totalSize += objectSize + rootSchema.binaryKey.length;
+		}
+		return [chunks, totalSize];
+	}
+	// Array of string or bytes
+	if (
+		typeSchema.schemaProp.dataType === 'string' ||
+		typeSchema.schemaProp.dataType === 'bytes'
+	) {
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < message.length; i += 1) {
+			const res = _writers[typeSchema.schemaProp.dataType as string](
+				message[i],
+			);
+			chunks.push(rootSchema.binaryKey);
+			chunks.push(res);
+			totalSize += res.length + rootSchema.binaryKey.length;
+		}
+		return [chunks, totalSize];
+	}
+	// Array of number or boolean
+	chunks.push(rootSchema.binaryKey);
+	// Insert size
+	const contents = [];
+	let contentSize = 0;
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let i = 0; i < message.length; i += 1) {
+		const res = _writers[typeSchema.schemaProp.dataType as string](message[i]);
+		contents.push(res);
+		contentSize += res.length;
+	}
+	chunks.push(_writers.uint32(contentSize));
+	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	for (let i = 0; i < contents.length; i += 1) {
+		chunks.push(contents[i]);
+	}
+	totalSize += rootSchema.binaryKey.length + contentSize;
+	return [chunks, totalSize];
 };
