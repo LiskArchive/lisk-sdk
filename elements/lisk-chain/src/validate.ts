@@ -86,7 +86,7 @@ export const getTransactionRoot = (ids: ReadonlyArray<string>): string => {
 	return bufferToHex(tree.root);
 };
 
-export const validateTransactionRoot = (
+export const validateBlockProperties = (
 	block: BlockInstance,
 	maxPayloadLength: number,
 ): void => {
