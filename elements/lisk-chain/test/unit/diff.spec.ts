@@ -124,30 +124,30 @@ describe('diff', () => {
 					previousSenderStateBuffer,
 					currentSenderStateBuffer,
 				);
-				const senderBuffer = Buffer.from(JSON.stringify(senderAccount));
+
 				const restoredSender = JSON.parse(
-					undo(senderBuffer, senderDiff).toString('utf8'),
+					undo(currentSenderStateBuffer, senderDiff).toString('utf8'),
 				);
 
-				expect(senderAccount).toEqual(restoredSender);
+				expect(restoredSender).toEqual(senderAccount);
 
 				// Receiver from sender and calculate account state diff of receiver
 				previousReceiverState.balance += transferTransaction.asset.amount;
-				// console.log(previousReceiverState)
+
 				const currentReceiverStateBuffer = Buffer.from(
 					JSON.stringify(previousReceiverState),
 				);
+
 				const receiverDiff = calculateDiff(
 					previousReceiverStateBuffer,
 					currentReceiverStateBuffer,
 				);
-				const receiverBuffer = Buffer.from(JSON.stringify(receiverAccount));
-				// console.log(receiverAccount, receiverDiff, receiverBuffer,undo(receiverBuffer, receiverDiff).toString('utf8'))
+
 				const restoredReceiver = JSON.parse(
-					undo(receiverBuffer, receiverDiff).toString('utf8'),
+					undo(currentReceiverStateBuffer, receiverDiff).toString('utf8'),
 				);
 
-				expect(receiverAccount).toEqual(restoredReceiver);
+				expect(restoredReceiver).toEqual(receiverAccount);
 			});
 		});
 	});
