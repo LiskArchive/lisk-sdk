@@ -12,7 +12,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { findObjectByPath, generateKey } from './utils';
 
 import { GenericObject, CompiledSchemasArray } from './types';
 
@@ -43,13 +42,11 @@ export const writeObject = (
 		const property = compiledSchema[i];
 		if (Array.isArray(property)) {
 			const headerProp = property[0];
-			const nestedObject = findObjectByPath(message, [headerProp.propertyName]);
 			// Write the key for container object
-			const key = generateKey(headerProp.schemaProp);
-			chunks.push(key);
+			chunks.push(headerProp.binaryKey);
 			const [encodedValues, totalWrittenSize] = writeObject(
 				property,
-				nestedObject as GenericObject,
+				message[headerProp.propertyName] as GenericObject,
 				[],
 			);
 			// Add nested object size to total size
