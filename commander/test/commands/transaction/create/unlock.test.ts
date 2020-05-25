@@ -91,7 +91,7 @@ describe('transaction:create:unlock', () => {
 			])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Address length does not match requirements. Expected 20 bytes.',
+					'Address length does not match requirements. Expected 40 characters.',
 				);
 			})
 			.it('should throw an error for invalid address format in unlock object');

@@ -28,8 +28,8 @@ import {
 	getDelegateAccountsWithVotesReceived,
 } from '../utils/round_delegates';
 import {
-	CONSENSUS_STATE_FORGERS_LIST_KEY,
-	CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
+	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
 
@@ -93,7 +93,7 @@ describe('dpos.apply()', () => {
 
 			// Assert
 			const voteWeightsStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_VOTE_WEIGHTS_KEY,
+				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
 			const voteWeights = JSON.parse(voteWeightsStr as string);
 			expect(voteWeights).toHaveLength(1 + DELEGATE_LIST_ROUND_OFFSET);
@@ -108,7 +108,7 @@ describe('dpos.apply()', () => {
 
 			// Assert
 			const forgersListStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(forgersListStr as string);
 			expect(forgersList).toHaveLength(1);
@@ -152,7 +152,7 @@ describe('dpos.apply()', () => {
 			const delegates = getDelegateAccountsWithVotesReceived(103);
 
 			stateStore = new StateStoreMock([generator, ...delegates], {
-				[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify(forgersList),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify(forgersList),
 			});
 		});
 
@@ -173,7 +173,7 @@ describe('dpos.apply()', () => {
 
 			// Assert
 			const consensusState = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			expect(consensusState).toEqual(JSON.stringify(forgersList));
 		});
@@ -192,7 +192,7 @@ describe('dpos.apply()', () => {
 			forgedDelegates.push({ ...forgedDelegates[10] });
 			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_VOTE_WEIGHTS_KEY]: JSON.stringify([
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: JSON.stringify([
 					{
 						round: 10,
 						delegates: forgedDelegates.map(d => ({
@@ -201,7 +201,7 @@ describe('dpos.apply()', () => {
 						})),
 					},
 				]),
-				[CONSENSUS_STATE_FORGERS_LIST_KEY]: JSON.stringify([
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify([
 					{
 						round: 7,
 						delegates: [
@@ -278,7 +278,7 @@ describe('dpos.apply()', () => {
 			expect(nextRound).toBe(currentRound + 1);
 			// we must delete the delegate list before creating the new one
 			const forgersListStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
 
@@ -300,7 +300,7 @@ describe('dpos.apply()', () => {
 
 			// Check before finalize exist for test
 			const forgersListBeforeStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersBeforeList: ForgersList = JSON.parse(
 				forgersListBeforeStr as string,
@@ -314,7 +314,7 @@ describe('dpos.apply()', () => {
 			await dpos.onBlockFinalized(stateStore, finalizedBlockHeight);
 
 			const forgersListStr = await stateStore.consensus.get(
-				CONSENSUS_STATE_FORGERS_LIST_KEY,
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
 

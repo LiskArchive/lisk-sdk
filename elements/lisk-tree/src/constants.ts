@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { hash } from '@liskhq/lisk-cryptography';
 
-export const DB_KEY_FORGER_USED_HASH_ONION = 'forger:usedHashOnion';
-export const DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS =
-	'forger:registeredHashOnion';
+export const EMPTY_HASH = hash(Buffer.alloc(0));
+export const LEAF_PREFIX = Buffer.from('00', 'hex');
+export const BRANCH_PREFIX = Buffer.from('01', 'hex');

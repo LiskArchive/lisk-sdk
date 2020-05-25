@@ -18,7 +18,7 @@ import { Dpos } from '../../src';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { BlockHeader } from '../../src/types';
-import { CONSENSUS_STATE_FORGERS_LIST_KEY } from '../../src/constants';
+import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
@@ -85,7 +85,7 @@ describe('dpos.verifyBlockForger()', () => {
 
 		// Assert
 		expect(chainStub.dataAccess.getConsensusState).toHaveBeenCalledWith(
-			CONSENSUS_STATE_FORGERS_LIST_KEY,
+			CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 		);
 	});
 
