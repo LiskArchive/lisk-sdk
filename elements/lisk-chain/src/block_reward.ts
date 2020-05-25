@@ -164,7 +164,10 @@ export const applyFeeAndRewards = async (
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, totalFeeBurnt.toString());
+	stateStore.chain.set(
+		CHAIN_STATE_BURNT_FEE,
+		Buffer.from(JSON.stringify(totalFeeBurnt.toString()), 'utf-8'),
+	);
 };
 
 export const undoFeeAndRewards = async (
@@ -192,5 +195,8 @@ export const undoFeeAndRewards = async (
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, totalFeeBurnt.toString());
+	stateStore.chain.set(
+		CHAIN_STATE_BURNT_FEE,
+		Buffer.from(JSON.stringify(totalFeeBurnt.toString()), 'utf-8'),
+	);
 };

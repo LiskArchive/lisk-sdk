@@ -65,7 +65,7 @@ export const getForgersList = async (
 		return [];
 	}
 
-	return JSON.parse(forgersListStr) as ForgersList;
+	return JSON.parse(forgersListStr.toString('utf-8')) as ForgersList;
 };
 
 const _setForgersList = (
@@ -75,7 +75,7 @@ const _setForgersList = (
 	const forgersListStr = JSON.stringify(forgersList);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-		forgersListStr,
+		Buffer.from(forgersListStr, 'utf-8'),
 	);
 };
 
@@ -89,7 +89,7 @@ export const getVoteWeights = async (
 		return [];
 	}
 
-	return JSON.parse(voteWeightsStr) as VoteWeights;
+	return JSON.parse(voteWeightsStr.toString('utf-8')) as VoteWeights;
 };
 
 const _setVoteWeights = (
@@ -99,7 +99,7 @@ const _setVoteWeights = (
 	const voteWeightsStr = JSON.stringify(voteWeights);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-		voteWeightsStr,
+		Buffer.from(voteWeightsStr, 'utf-8'),
 	);
 };
 
@@ -264,11 +264,11 @@ export class DelegatesList {
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await stateStore.chain.get(
+		const usernamesBuffer = await stateStore.chain.get(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
-		const usernames = usernamesStr
-			? (JSON.parse(usernamesStr) as ChainStateUsernames)
+		const usernames = usernamesBuffer
+			? (JSON.parse(usernamesBuffer.toString('utf-8')) as ChainStateUsernames)
 			: { registeredDelegates: [] };
 
 		const delegates: Account[] = await Promise.all(
@@ -435,12 +435,12 @@ export class DelegatesList {
 	}
 
 	public async getDelegateList(round: number): Promise<ReadonlyArray<string>> {
-		const forgersListStr = await this.chain.dataAccess.getConsensusState(
+		const forgersListBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 		);
 		const forgersList =
-			forgersListStr !== undefined
-				? (JSON.parse(forgersListStr) as ForgersList)
+			forgersListBuffer !== undefined
+				? (JSON.parse(forgersListBuffer.toString('utf-8')) as ForgersList)
 				: [];
 		const delegateAddresses = forgersList.find(fl => fl.round === round)
 			?.delegates;

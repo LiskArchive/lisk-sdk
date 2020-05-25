@@ -64,8 +64,8 @@ export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
 	readonly lastBlockReward: bigint;
 	readonly networkIdentifier: string;
-	get(key: string): Promise<string | undefined>;
-	set(key: string, value: string): void;
+	get(key: string): Promise<Buffer | undefined>;
+	set(key: string, value: Buffer): void;
 }
 
 export interface StateStore {

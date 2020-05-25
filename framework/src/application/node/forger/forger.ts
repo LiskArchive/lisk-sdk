@@ -581,10 +581,12 @@ export class Forger {
 
 	private async _getRegisteredHashOnionSeeds(): Promise<StringKeyVal> {
 		try {
-			const registeredHashOnionSeedsStr = await this._db.get<string>(
+			const registeredHashOnionSeedsBuffer = await this._db.get(
 				DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 			);
-			return JSON.parse(registeredHashOnionSeedsStr) as StringKeyVal;
+			return JSON.parse(
+				registeredHashOnionSeedsBuffer.toString('utf-8'),
+			) as StringKeyVal;
 		} catch (error) {
 			return {};
 		}
@@ -598,17 +600,19 @@ export class Forger {
 		);
 		await this._db.put(
 			DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-			registeredHashOnionSeedsStr,
+			Buffer.from(registeredHashOnionSeedsStr, 'utf-8'),
 		);
 	}
 
 	private async _getUsedHashOnions(): Promise<UsedHashOnion[]> {
 		try {
-			const usedHashOnionsStr = await this._db.get<string>(
+			const usedHashOnionsBuffer = await this._db.get(
 				DB_KEY_FORGER_USED_HASH_ONION,
 			);
 
-			return JSON.parse(usedHashOnionsStr) as UsedHashOnion[];
+			return JSON.parse(
+				usedHashOnionsBuffer.toString('utf-8'),
+			) as UsedHashOnion[];
 		} catch (error) {
 			return [];
 		}
@@ -652,7 +656,10 @@ export class Forger {
 		usedHashOnions: UsedHashOnion[],
 	): Promise<void> {
 		const usedHashOnionsStr = JSON.stringify(usedHashOnions);
-		await this._db.put(DB_KEY_FORGER_USED_HASH_ONION, usedHashOnionsStr);
+		await this._db.put(
+			DB_KEY_FORGER_USED_HASH_ONION,
+			Buffer.from(usedHashOnionsStr, 'utf-8'),
+		);
 	}
 
 	private async _getDelegateKeypairForCurrentSlot(

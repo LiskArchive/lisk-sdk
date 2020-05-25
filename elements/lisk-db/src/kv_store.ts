@@ -60,10 +60,10 @@ export class KVStore {
 	}
 
 	// TODO: Update to return Buffer
-	public async get<T>(key: string): Promise<T> {
+	public async get(key: string): Promise<Buffer> {
 		logger('get', { key });
 		try {
-			const result = ((await this._db.get(key)) as unknown) as T;
+			const result = (await this._db.get(key)) as Buffer;
 			return result;
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
