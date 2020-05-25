@@ -96,7 +96,7 @@ export const schemas = {
 						example: 117,
 						minimum: 0,
 					},
-					payloadHash: {
+					transactionRoot: {
 						type: 'string',
 						format: 'hex',
 						example:

@@ -170,7 +170,7 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when payload hash is incorrect', () => {
+		describe('when transaction root is incorrect', () => {
 			it('should throw error', () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() =>

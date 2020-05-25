@@ -96,7 +96,7 @@ export const validateTransactionRoot = (
 
 	let totalAmount = BigInt(0);
 	let totalFee = BigInt(0);
-	const transactionsIds: string[] = [];
+	const transactionIds: string[] = [];
 	const appliedTransactions: { [id: string]: BaseTransaction } = {};
 
 	block.transactions.forEach(transaction => {
@@ -105,14 +105,14 @@ export const validateTransactionRoot = (
 			throw new Error(`Encountered duplicate transaction: ${transaction.id}`);
 		}
 
-		transactionsIds.push(transaction.id);
+		transactionIds.push(transaction.id);
 		appliedTransactions[transaction.id] = transaction;
 		// eslint-disable-next-line
 		totalAmount += BigInt((transaction.asset as any).amount || 0);
 		totalFee += BigInt(transaction.fee);
 	});
 
-	const transactionRoot = getTransactionRoot(transactionsIds);
+	const transactionRoot = getTransactionRoot(transactionIds);
 
 	if (transactionRoot !== block.transactionRoot) {
 		throw new Error('Invalid transaction root');
