@@ -5,3 +5,5 @@ types/
 examples/
 **/*.d.ts
 jest.config.js
+coverage
+benchmark

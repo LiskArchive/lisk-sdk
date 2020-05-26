@@ -102,9 +102,11 @@ export class DelegateTransaction extends BaseTransaction {
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
-		const usernames = usernamesStr
-			? (JSON.parse(usernamesStr) as ChainUsernames)
+		const usernamesBuffer = await store.chain.get(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+		const usernames = usernamesBuffer
+			? (JSON.parse(usernamesBuffer.toString('utf8')) as ChainUsernames)
 			: { registeredDelegates: [] };
 		const usernameExists = usernames.registeredDelegates.find(
 			delegate => delegate.username === this.asset.username,
@@ -120,7 +122,7 @@ export class DelegateTransaction extends BaseTransaction {
 			);
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
-				JSON.stringify(usernames),
+				Buffer.from(JSON.stringify(usernames), 'utf8'),
 			);
 		}
 
@@ -156,9 +158,11 @@ export class DelegateTransaction extends BaseTransaction {
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
-		const usernames = usernamesStr
-			? (JSON.parse(usernamesStr) as ChainUsernames)
+		const usernamesBuffer = await store.chain.get(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+		const usernames = usernamesBuffer
+			? (JSON.parse(usernamesBuffer.toString('utf8')) as ChainUsernames)
 			: { registeredDelegates: [] };
 		const updatedRegisteredDelegates = {
 			registeredDelegates: usernames.registeredDelegates.filter(
@@ -170,7 +174,7 @@ export class DelegateTransaction extends BaseTransaction {
 		);
 		store.chain.set(
 			CHAIN_STATE_DELEGATE_USERNAMES,
-			JSON.stringify(updatedRegisteredDelegates),
+			Buffer.from(JSON.stringify(updatedRegisteredDelegates), 'utf8'),
 		);
 
 		sender.username = null;

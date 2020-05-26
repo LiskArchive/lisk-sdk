@@ -14,7 +14,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { debug } from 'debug';
-import encodingDown from 'encoding-down';
 import levelup, { LevelUp } from 'levelup';
 import rocksDB from 'rocksdb';
 import { NotFoundError } from './errors';
@@ -30,10 +29,8 @@ export interface Options {
 	readonly limit?: number;
 }
 
-// TODO: Update V to be Buffer
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface BatchChain<V = any> {
-	put: (key: string, value: V) => this;
+export interface BatchChain {
+	put: (key: string, value: Buffer) => this;
 	del: (key: string) => this;
 	clear: () => this;
 	write: () => Promise<this>;
@@ -43,11 +40,11 @@ export interface BatchChain<V = any> {
 export interface ReadStreamOptions extends Options {
 	readonly keys?: boolean;
 	readonly values?: boolean;
+	keyAsBuffer?: boolean;
 }
 
 export class KVStore {
-	// TODO: Update to LevelUp<rocksDB> when changing interface to Buffer
-	private readonly _db: LevelUp<string, Promise<unknown>>;
+	private readonly _db: LevelUp<rocksDB>;
 
 	public constructor(filePath: string) {
 		logger('opening file', { filePath });
@@ -55,10 +52,7 @@ export class KVStore {
 		if (!fs.existsSync(parentDir)) {
 			throw new Error(`${parentDir} does not exist`);
 		}
-		this._db = (levelup(
-			// TODO: When converting to Buffer, this should be removed
-			encodingDown(rocksDB(filePath), { valueEncoding: 'json' }),
-		) as unknown) as LevelUp<string, Promise<unknown>>;
+		this._db = levelup(rocksDB(filePath));
 	}
 
 	public async close(): Promise<void> {
@@ -66,10 +60,10 @@ export class KVStore {
 	}
 
 	// TODO: Update to return Buffer
-	public async get<T>(key: string): Promise<T> {
+	public async get(key: string): Promise<Buffer> {
 		logger('get', { key });
 		try {
-			const result = ((await this._db.get(key)) as unknown) as T;
+			const result = (await this._db.get(key)) as Buffer;
 			return result;
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -99,9 +93,7 @@ export class KVStore {
 		await this._db.clear(options);
 	}
 
-	// TODO: Update val to be Buffer
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
-	public async put(key: string, val: any): Promise<void> {
+	public async put(key: string, val: Buffer): Promise<void> {
 		logger('put', { key });
 
 		await this._db.put(key, val);
@@ -116,7 +108,12 @@ export class KVStore {
 	public createReadStream(options?: ReadStreamOptions): NodeJS.ReadableStream {
 		logger('readStream', { options });
 
-		return this._db.createReadStream(options);
+		// Treat key as string
+		const updatedOption = options
+			? { ...options, keyAsBuffer: false }
+			: { keyAsBuffer: false };
+
+		return this._db.createReadStream(updatedOption);
 	}
 
 	public batch(): BatchChain {

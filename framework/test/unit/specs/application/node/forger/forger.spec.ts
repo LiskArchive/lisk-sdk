@@ -800,9 +800,11 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS)
 					.mockResolvedValue(
-						JSON.stringify({
-							[getAddressFromPublicKey(delegates[0].publicKey)]: newSeed,
-						}) as never,
+						Buffer.from(
+							JSON.stringify({
+								[getAddressFromPublicKey(delegates[0].publicKey)]: newSeed,
+							}),
+						) as never,
 					);
 
 				// Act
@@ -821,7 +823,7 @@ describe('forger', () => {
 				);
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-					JSON.stringify(originalKey),
+					Buffer.from(JSON.stringify(originalKey)),
 				);
 			});
 
@@ -830,13 +832,15 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						JSON.stringify([
-							{
-								count: 8,
-								height: 100,
-								address: getAddressFromPublicKey(delegates[0].publicKey),
-							},
-						]) as never,
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: 8,
+									height: 100,
+									address: getAddressFromPublicKey(delegates[0].publicKey),
+								},
+							]),
+						) as never,
 					);
 
 				// Act
@@ -855,13 +859,15 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						JSON.stringify([
-							{
-								count: 10,
-								height: 100,
-								address: getAddressFromPublicKey(delegates[0].publicKey),
-							},
-						]) as never,
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: 10,
+									height: 100,
+									address: getAddressFromPublicKey(delegates[0].publicKey),
+								},
+							]),
+						) as never,
 					);
 
 				// Act
@@ -1057,18 +1063,20 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						JSON.stringify([
-							{
-								count: 5,
-								height: 9,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-							{
-								count: 6,
-								height: 12,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-						]) as never,
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: 5,
+									height: 9,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+								{
+									count: 6,
+									height: 12,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+							]),
+						) as never,
 					);
 
 				// Act
@@ -1099,18 +1107,20 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						JSON.stringify([
-							{
-								count: 5,
-								height: 9,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-							{
-								count: 6,
-								height: 12,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-						]) as never,
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: 5,
+									height: 9,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+								{
+									count: 6,
+									height: 12,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+							]),
+						) as never,
 					);
 
 				// Act
@@ -1118,36 +1128,7 @@ describe('forger', () => {
 				// Assert
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					JSON.stringify([
-						{
-							count: 5,
-							height: 9,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-						},
-						{
-							count: 6,
-							height: 12,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-						},
-						{
-							count: 7,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-							height: lastBlock.height + 1,
-						},
-					]),
-				);
-			});
-
-			it('should overwrite the used hash onion when forging the same height', async () => {
-				const targetDelegate = genesisDelegates.delegates[0];
-				jest
-					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(targetDelegate);
-				(forgeModule as any)._config.forging.delegates =
-					genesisDelegates.delegates;
-				when(dbStub.get)
-					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
+					Buffer.from(
 						JSON.stringify([
 							{
 								count: 5,
@@ -1161,10 +1142,43 @@ describe('forger', () => {
 							},
 							{
 								count: 7,
-								height: lastBlock.height + 1,
 								address: getAddressFromPublicKey(targetDelegate.publicKey),
+								height: lastBlock.height + 1,
 							},
-						]) as never,
+						]),
+					),
+				);
+			});
+
+			it('should overwrite the used hash onion when forging the same height', async () => {
+				const targetDelegate = genesisDelegates.delegates[0];
+				jest
+					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
+					.mockResolvedValue(targetDelegate);
+				(forgeModule as any)._config.forging.delegates =
+					genesisDelegates.delegates;
+				when(dbStub.get)
+					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: 5,
+									height: 9,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+								{
+									count: 6,
+									height: 12,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+								{
+									count: 7,
+									height: lastBlock.height + 1,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+							]),
+						) as never,
 					);
 
 				// Act
@@ -1172,23 +1186,25 @@ describe('forger', () => {
 				// Assert
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					JSON.stringify([
-						{
-							count: 5,
-							height: 9,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-						},
-						{
-							count: 6,
-							height: 12,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-						},
-						{
-							count: 7,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-							height: lastBlock.height + 1,
-						},
-					]),
+					Buffer.from(
+						JSON.stringify([
+							{
+								count: 5,
+								height: 9,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+							},
+							{
+								count: 6,
+								height: 12,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+							},
+							{
+								count: 7,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+								height: lastBlock.height + 1,
+							},
+						]),
+					),
 				);
 			});
 
@@ -1203,18 +1219,20 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						JSON.stringify([
-							{
-								count: 5,
-								height: 9,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-							{
-								count: 6,
-								height: 412,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-						]) as never,
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: 5,
+									height: 9,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+								{
+									count: 6,
+									height: 412,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+							]),
+						) as never,
 					);
 				(forgeModule as any)._bftModule.finalizedHeight = 318;
 
@@ -1223,18 +1241,20 @@ describe('forger', () => {
 				// Assert
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					JSON.stringify([
-						{
-							count: 6,
-							height: 412,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-						},
-						{
-							count: 7,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-							height: lastBlock.height + 1,
-						},
-					]),
+					Buffer.from(
+						JSON.stringify([
+							{
+								count: 6,
+								height: 412,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+							},
+							{
+								count: 7,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+								height: lastBlock.height + 1,
+							},
+						]),
+					),
 				);
 			});
 
@@ -1252,13 +1272,15 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						JSON.stringify([
-							{
-								count: maxCount,
-								height: 10,
-								address: getAddressFromPublicKey(targetDelegate.publicKey),
-							},
-						]) as never,
+						Buffer.from(
+							JSON.stringify([
+								{
+									count: maxCount,
+									height: 10,
+									address: getAddressFromPublicKey(targetDelegate.publicKey),
+								},
+							]),
+						) as never,
 					);
 
 				// Act
@@ -1269,18 +1291,20 @@ describe('forger', () => {
 				);
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					JSON.stringify([
-						{
-							count: maxCount,
-							height: 10,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-						},
-						{
-							count: 0,
-							address: getAddressFromPublicKey(targetDelegate.publicKey),
-							height: lastBlock.height + 1,
-						},
-					]),
+					Buffer.from(
+						JSON.stringify([
+							{
+								count: maxCount,
+								height: 10,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+							},
+							{
+								count: 0,
+								address: getAddressFromPublicKey(targetDelegate.publicKey),
+								height: lastBlock.height + 1,
+							},
+						]),
+					),
 				);
 			});
 		});

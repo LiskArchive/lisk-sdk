@@ -459,10 +459,10 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 
 	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
 		try {
-			const previouslyForgedStr = await this.forgerDB.get<string>(
+			const previouslyForgedBuffer = await this.forgerDB.get(
 				DB_KEY_FORGER_PREVIOUSLY_FORGED,
 			);
-			return JSON.parse(previouslyForgedStr) as ForgedMap;
+			return JSON.parse(previouslyForgedBuffer.toString('utf8')) as ForgedMap;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this.logger.error(
@@ -507,7 +507,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
 		await this.forgerDB.put(
 			DB_KEY_FORGER_PREVIOUSLY_FORGED,
-			previouslyForgedStr,
+			Buffer.from(previouslyForgedStr, 'utf8'),
 		);
 	}
 

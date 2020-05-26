@@ -20,13 +20,13 @@ export interface StateStore {
 		set(key: string, value: Account): void;
 	};
 	readonly consensus: {
-		readonly get: (key: string) => Promise<string | undefined>;
-		readonly set: (key: string, value: string) => void;
+		readonly get: (key: string) => Promise<Buffer | undefined>;
+		readonly set: (key: string, value: Buffer) => void;
 		readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
 	};
 	readonly chain: {
-		readonly get: (key: string) => Promise<string | undefined>;
-		readonly set: (key: string, value: string) => void;
+		readonly get: (key: string) => Promise<Buffer | undefined>;
+		readonly set: (key: string, value: Buffer) => void;
 	};
 }
 
@@ -75,7 +75,7 @@ export interface DPoSProcessingOptions {
 export interface Chain {
 	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
 	readonly dataAccess: {
-		getConsensusState(key: string): Promise<string | undefined>;
+		getConsensusState(key: string): Promise<Buffer | undefined>;
 		getBlockHeadersByHeightBetween(
 			fromHeight: number,
 			toHeight: number,

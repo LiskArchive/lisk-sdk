@@ -66,12 +66,12 @@ describe('state store / chain_state', () => {
 	describe('get', () => {
 		it('should get value from cache', async () => {
 			// Arrange
-			stateStore.chain.set('key1', 'value1');
+			stateStore.chain.set('key1', Buffer.from('value1'));
 			when(db.get)
 				.calledWith('chain:key1')
 				.mockResolvedValue('value5' as never);
 			// Act & Assert
-			expect(await stateStore.chain.get('key1')).toEqual('value1');
+			expect(await stateStore.chain.get('key1')).toEqual(Buffer.from('value1'));
 		});
 
 		it('should try to get value from database if not in cache', async () => {
@@ -87,18 +87,18 @@ describe('state store / chain_state', () => {
 	describe('set', () => {
 		it('should set value to data and set the updated keys', async () => {
 			// Act
-			stateStore.chain.set('key3', 'value3');
+			stateStore.chain.set('key3', Buffer.from('value3'));
 			// Assert
-			expect(await stateStore.chain.get('key3')).toBe('value3');
+			expect(await stateStore.chain.get('key3')).toEqual(Buffer.from('value3'));
 			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
 		});
 
 		it('should set value to data and set the updated keys only once', async () => {
 			// Act
-			stateStore.chain.set('key3', 'value3');
-			stateStore.chain.set('key3', 'value4');
+			stateStore.chain.set('key3', Buffer.from('value3'));
+			stateStore.chain.set('key3', Buffer.from('value4'));
 			// Assert
-			expect(await stateStore.chain.get('key3')).toBe('value4');
+			expect(await stateStore.chain.get('key3')).toEqual(Buffer.from('value4'));
 			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
 		});
 	});
@@ -119,13 +119,19 @@ describe('state store / chain_state', () => {
 
 		it('should call storage for all the updated keys', () => {
 			// Act
-			stateStore.chain.set('key3', 'value3');
-			stateStore.chain.set('key3', 'value4');
-			stateStore.chain.set('key4', 'value5');
+			stateStore.chain.set('key3', Buffer.from('value3'));
+			stateStore.chain.set('key3', Buffer.from('value4'));
+			stateStore.chain.set('key4', Buffer.from('value5'));
 			stateStore.chain.finalize(batchStub);
 			// Assert
-			expect(batchStub.put).toHaveBeenCalledWith('chain:key3', 'value4');
-			expect(batchStub.put).toHaveBeenCalledWith('chain:key4', 'value5');
+			expect(batchStub.put).toHaveBeenCalledWith(
+				'chain:key3',
+				Buffer.from('value4'),
+			);
+			expect(batchStub.put).toHaveBeenCalledWith(
+				'chain:key4',
+				Buffer.from('value5'),
+			);
 		});
 	});
 });

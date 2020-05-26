@@ -79,10 +79,14 @@ describe('blocks/transactions', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '1000000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '1000000000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -130,10 +134,14 @@ describe('blocks/transactions', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '210000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '210000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -177,10 +185,14 @@ describe('blocks/transactions', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '10000000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '10000000000000',
+							}),
+						) as never,
+					);
 				validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -231,10 +243,14 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '10000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '10000000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						passphrase: genesisAccount.passphrase,
@@ -290,10 +306,14 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '10000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '10000000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -344,10 +364,14 @@ describe('blocks/transactions', () => {
 				// Arrange
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '100000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '100000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -399,10 +423,14 @@ describe('blocks/transactions', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '100000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '100000000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -459,10 +487,14 @@ describe('blocks/transactions', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '10000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '10000000000',
+							}),
+						) as never,
+					);
 				const validTx = chainInstance.deserializeTransaction(
 					transfer({
 						fee: '10000000',
@@ -531,14 +563,18 @@ describe('blocks/transactions', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '10000000000',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '10000000000',
+							}),
+						) as never,
+					)
 					.calledWith(`accounts:address:${delegate1.address}`)
-					.mockResolvedValue(delegate1 as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(delegate1)) as never)
 					.calledWith(`accounts:address:${delegate2.address}`)
-					.mockResolvedValue(delegate2 as never);
+					.mockResolvedValue(Buffer.from(JSON.stringify(delegate2)) as never);
 				(db.exists as jest.Mock).mockResolvedValue(false as never);
 				// Act
 				const validTx = chainInstance.deserializeTransaction(

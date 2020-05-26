@@ -144,7 +144,9 @@ describe('bft', () => {
 			it('should set the finality height to the value from chain state', async () => {
 				const finalizedHeight = 5;
 				const stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: String(finalizedHeight),
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: Buffer.from(
+						JSON.stringify(String(finalizedHeight)),
+					),
 				});
 				const bft = new BFT(bftParams);
 
@@ -163,7 +165,9 @@ describe('bft', () => {
 
 			beforeEach(async () => {
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: lastFinalizedHeight,
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: Buffer.from(
+						JSON.stringify(lastFinalizedHeight),
+					),
 				});
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue([
 					blockFixture({ height: 1, version: 2 }),
@@ -179,7 +183,9 @@ describe('bft', () => {
 						CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 					);
 
-					expect(finalizedHeight).toEqual(lastFinalizedHeight);
+					expect(
+						JSON.parse((finalizedHeight as Buffer).toString('utf8')),
+					).toEqual(lastFinalizedHeight);
 				});
 			});
 		});
@@ -190,7 +196,9 @@ describe('bft', () => {
 
 			beforeEach(async () => {
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '1',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: Buffer.from(
+						JSON.stringify('1'),
+					),
 				});
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -214,7 +222,9 @@ describe('bft', () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '5',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: Buffer.from(
+						JSON.stringify('5'),
+					),
 				});
 
 				await bft.init(stateStore);
@@ -234,7 +244,9 @@ describe('bft', () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '5',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: Buffer.from(
+						JSON.stringify('5'),
+					),
 				});
 				await bft.init(stateStore);
 				const blocks = [
@@ -267,8 +279,7 @@ describe('bft', () => {
 			it('should reset headers and related stats to initial state except finality', async () => {
 				// Arrange
 				const stateStore = new StateStoreMock({
-					key: 'BFT.finalizedHeight',
-					value: '5',
+					'BFT.finalizedHeight': Buffer.from(JSON.stringify('5')),
 				});
 				const bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -316,7 +327,9 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '1',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: Buffer.from(
+						JSON.stringify('1'),
+					),
 				});
 				await bft.init(stateStore);
 

@@ -161,12 +161,12 @@ export class Dpos {
 		height: number,
 	): Promise<boolean> {
 		const relevantRound = this.rounds.calcRound(height);
-		const voteWeightsStr = await this.chain.dataAccess.getConsensusState(
+		const voteWeightsBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const voteWeights: VoteWeights = voteWeightsStr
-			? JSON.parse(voteWeightsStr)
+		const voteWeights: VoteWeights = voteWeightsBuffer
+			? JSON.parse(voteWeightsBuffer.toString('utf8'))
 			: [];
 
 		const voteWeight = voteWeights.find(

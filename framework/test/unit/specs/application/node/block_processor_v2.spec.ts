@@ -185,7 +185,7 @@ describe('block processor v2', () => {
 
 		it('should set maxPreviouslyForgedHeight to zero when the delegate did not forge before', async () => {
 			// Arrange
-			const maxHeightResult = JSON.stringify({});
+			const maxHeightResult = Buffer.from(JSON.stringify({}));
 			forgerDBStub.get.mockResolvedValue(maxHeightResult);
 			// Act
 			block = await blockProcessor.create.run({
@@ -209,9 +209,11 @@ describe('block processor v2', () => {
 		it('should save maxPreviouslyForgedHeight as the block height created', async () => {
 			const previouslyForgedHeight = 100;
 			// Arrange
-			const maxHeightResult = JSON.stringify({
-				[defaultAddress]: { height: 100 },
-			});
+			const maxHeightResult = Buffer.from(
+				JSON.stringify({
+					[defaultAddress]: { height: 100 },
+				}),
+			);
 			forgerDBStub.get.mockResolvedValue(maxHeightResult);
 			// Act
 			block = await blockProcessor.create.run({
@@ -240,7 +242,7 @@ describe('block processor v2', () => {
 				c: { height: 7 },
 				x: { height: 8 },
 			};
-			forgerDBStub.get.mockResolvedValue(JSON.stringify(list));
+			forgerDBStub.get.mockResolvedValue(Buffer.from(JSON.stringify(list)));
 			// Act
 			block = await blockProcessor.create.run({
 				data: {
@@ -254,14 +256,16 @@ describe('block processor v2', () => {
 				},
 				stateStore,
 			});
-			const maxHeightResult = JSON.stringify({
-				...list,
-				[defaultAddress]: {
-					height: 11,
-					maxHeightPrevoted: 0,
-					maxHeightPreviouslyForged: 5,
-				},
-			});
+			const maxHeightResult = Buffer.from(
+				JSON.stringify({
+					...list,
+					[defaultAddress]: {
+						height: 11,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 5,
+					},
+				}),
+			);
 			expect(forgerDBStub.put).toHaveBeenCalledWith(
 				'forger:previouslyForged',
 				maxHeightResult,
@@ -282,13 +286,15 @@ describe('block processor v2', () => {
 				},
 				stateStore,
 			});
-			const maxHeightResult = JSON.stringify({
-				[defaultAddress]: {
-					height: 11,
-					maxHeightPrevoted: 0,
-					maxHeightPreviouslyForged: 0,
-				},
-			});
+			const maxHeightResult = Buffer.from(
+				JSON.stringify({
+					[defaultAddress]: {
+						height: 11,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 0,
+					},
+				}),
+			);
 			expect(forgerDBStub.put).toHaveBeenCalledWith(
 				'forger:previouslyForged',
 				maxHeightResult,
@@ -298,9 +304,11 @@ describe('block processor v2', () => {
 		it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {
 			// Arrange
 			forgerDBStub.get.mockResolvedValue(
-				JSON.stringify({
-					[defaultAddress]: { height: 15 },
-				}),
+				Buffer.from(
+					JSON.stringify({
+						[defaultAddress]: { height: 15 },
+					}),
+				),
 			);
 			// Act
 			block = await blockProcessor.create.run({
