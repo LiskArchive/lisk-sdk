@@ -13,46 +13,37 @@
  */
 import { codec } from '../src/codec';
 
-import { testCases as objectTestCases } from '../fixtures/validObjectEncodings.json';
-import { testCases as bytesTestCases } from '../fixtures/validBytesEncodings.json';
-import { testCases as stringTestCases } from '../fixtures/validStringEncodings.json';
-import { testCases as booleanTestCases } from '../fixtures/validBooleanEncodings.json';
-import { testCases as numberTestCases } from '../fixtures/validNumberEncodings.json';
-
-const objectFixtureInput = objectTestCases[0].input;
-const objectFixtureOutput = objectTestCases[0].output;
-const bytesFixtureInput = bytesTestCases[0].input;
-const bytesFixtureOutput = bytesTestCases[0].output;
-const stringFixtureInput = stringTestCases[0].input;
-const stringFixtureOutput = stringTestCases[0].output;
-const booleanFixtureInput = booleanTestCases[0].input;
-const booleanFixtureOutput = booleanTestCases[0].output;
-const numberFixtureInput = numberTestCases[0].input;
-const numberFixtureOutput = numberTestCases[0].output;
+import { testCases as objectTestCases } from '../fixtures/objects_encodings.json';
+import { testCases as bytesTestCases } from '../fixtures/bytes_encodings.json';
+import { testCases as stringTestCases } from '../fixtures/string_encodings.json';
+import { testCases as booleanTestCases } from '../fixtures/boolean_encodings.json';
+import { testCases as numberTestCases } from '../fixtures/number_encodings.json';
 
 describe('encode', () => {
 	describe('objects', () => {
 		it('should encode an object with nested objects to Buffer', () => {
-			const message = objectFixtureInput.object.object;
+			const objectFixtureInput = objectTestCases[0].input;
+			const objectFixtureOutput = objectTestCases[0].output;
+			const message = objectFixtureInput.object;
 			// Replace the JSON representation of buffer with an actual buffer
-			(message as any).address = Buffer.from(message.address.data);
+			(message as any).address = Buffer.from((message as any).address.data);
 			// Fix number not being bigint
 			(message as any).balance = BigInt(message.balance);
 
-			const {
-				object: { schema },
-			} = objectFixtureInput;
+			const { schema } = objectFixtureInput;
 
-			const { object: expectedOutput } = objectFixtureOutput;
+			const { value: expectedOutput } = objectFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
 		it('should not encode missing propertiees of an object to Buffer', () => {
-			const message = objectFixtureInput.objectWithOptionalProp.object;
-			const { schema } = objectFixtureInput.objectWithOptionalProp;
-			const expectedOutput = objectFixtureOutput.objectWithOptionalProp;
+			const objectFixtureInput = objectTestCases[1].input;
+			const objectFixtureOutput = objectTestCases[1].output;
+			const message = objectFixtureInput.object;
+			const { schema } = objectFixtureInput;
+			const { value: expectedOutput } = objectFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
@@ -61,16 +52,17 @@ describe('encode', () => {
 
 	describe('bytes', () => {
 		it('should encode a chunk of bytes as bytes with no changes', () => {
-			const message = bytesFixtureInput.bytes.object;
+			const bytesFixtureInput = bytesTestCases[0].input;
+			const bytesFixtureOutput = bytesTestCases[0].output;
+			const message = bytesFixtureInput.object;
+
 			const originalMessageBytes = Buffer.from(
-				bytesFixtureInput.bytes.object.address.data,
+				bytesFixtureInput.object.address.data,
 			).toString('hex');
 			// Replace the JSON representation of buffer with an actual buffer
 			(message as any).address = Buffer.from(message.address.data);
-			const {
-				bytes: { schema },
-			} = bytesFixtureInput;
-			const expectedOutput = bytesFixtureOutput.bytes;
+			const { schema } = bytesFixtureInput;
+			const { value: expectedOutput } = bytesFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			const liskBinaryMessageAsHex = liskBinaryMessage.toString('hex');
@@ -81,26 +73,35 @@ describe('encode', () => {
 		});
 
 		it('should encode empty bytes', () => {
-			const { object: message, schema } = bytesFixtureInput.emptyBytes;
+			const bytesFixtureInput = bytesTestCases[1].input;
+			const bytesFixtureOutput = bytesTestCases[1].output;
+			const message = bytesFixtureInput.object;
+			const { schema } = bytesFixtureInput;
+
 			(message as any).address = Buffer.from(message.address.data);
-			const expectedOutput = bytesFixtureOutput.emptyBytes;
+			const { value: expectedOutput } = bytesFixtureOutput;
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
+
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 	});
 
 	describe('strings', () => {
 		it('should encode a regular strings', () => {
-			const { object: message, schema } = stringFixtureInput.string;
-			const expectedOutput = stringFixtureOutput.string;
+			const stringFixtureInput = stringTestCases[0].input;
+			const stringFixtureOutput = stringTestCases[0].output;
+			const { object: message, schema } = stringFixtureInput;
+			const { value: expectedOutput } = stringFixtureOutput;
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
 		it('should encode empty string', () => {
-			const { object: message, schema } = stringFixtureInput.emptyString;
-			const expectedOutput = stringFixtureOutput.emptyString;
+			const stringFixtureInput = stringTestCases[1].input;
+			const stringFixtureOutput = stringTestCases[1].output;
+			const { object: message, schema } = stringFixtureInput;
+			const { value: expectedOutput } = stringFixtureOutput;
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
@@ -109,16 +110,20 @@ describe('encode', () => {
 
 	describe('booleans', () => {
 		it('should encode boolean true', () => {
-			const { object: message, schema } = booleanFixtureInput.booleanTrue;
-			const expectedOutput = booleanFixtureOutput.booleanTrue;
+			const booleanFixtureInput = booleanTestCases[0].input;
+			const booleanFixtureOutput = booleanTestCases[0].output;
+			const { object: message, schema } = booleanFixtureInput;
+			const { value: expectedOutput } = booleanFixtureOutput;
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
 		it('should encode boolean false', () => {
-			const { object: message, schema } = booleanFixtureInput.booleanFalse;
-			const expectedOutput = booleanFixtureOutput.booleanFalse;
+			const booleanFixtureInput = booleanTestCases[1].input;
+			const booleanFixtureOutput = booleanTestCases[1].output;
+			const { object: message, schema } = booleanFixtureInput;
+			const { value: expectedOutput } = booleanFixtureOutput;
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
@@ -127,34 +132,42 @@ describe('encode', () => {
 
 	describe('numbers', () => {
 		it('should encode unsigned 32', () => {
-			const { object: message, schema } = numberFixtureInput.message32;
-			const expectedOutput = numberFixtureOutput.numberEncoded32;
+			const numberFixtureInput = numberTestCases[0].input;
+			const numberFixtureOutput = numberTestCases[0].output;
+			const { object: message, schema } = numberFixtureInput;
+			const { value: expectedOutput } = numberFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
 		it('should encode signed 32', () => {
-			const { object: message, schema } = numberFixtureInput.messageSigned32;
-			const expectedOutput = numberFixtureOutput.signedNumberEncoded32;
+			const numberFixtureInput = numberTestCases[1].input;
+			const numberFixtureOutput = numberTestCases[1].output;
+			const { object: message, schema } = numberFixtureInput;
+			const { value: expectedOutput } = numberFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
 		it('should encode unsigned 64', () => {
-			const { object: message, schema } = numberFixtureInput.message64;
+			const numberFixtureInput = numberTestCases[2].input;
+			const numberFixtureOutput = numberTestCases[2].output;
+			const { object: message, schema } = numberFixtureInput;
 			(message as any).number = BigInt(message.number);
-			const expectedOutput = numberFixtureOutput.numberEncoded64;
+			const { value: expectedOutput } = numberFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
 
 		it('should encode signed 64', () => {
-			const { object: message, schema } = numberFixtureInput.messageSigned64;
+			const numberFixtureInput = numberTestCases[3].input;
+			const numberFixtureOutput = numberTestCases[3].output;
+			const { object: message, schema } = numberFixtureInput;
 			(message as any).number = BigInt(message.number);
-			const expectedOutput = numberFixtureOutput.signedNumberEncoded64;
+			const { value: expectedOutput } = numberFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
