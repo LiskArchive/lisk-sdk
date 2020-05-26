@@ -17,7 +17,7 @@ import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { bufferToHex, hexToBuffer } from './buffer';
 import { SIGNED_MESSAGE_PREFIX } from './constants';
 import { hash } from './hash';
-import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+import { getPrivateAndPublicKeyFromPassphrase } from './keys';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
@@ -58,15 +58,14 @@ export const signMessageWithPassphrase = (
 	passphrase: string,
 ): SignedMessageWithOnePassphrase => {
 	const msgBytes = digestMessage(message);
-	const {
-		privateKeyBytes,
-		publicKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const signature = signDetached(msgBytes, privateKeyBytes);
+	const { privateKey, publicKey } = getPrivateAndPublicKeyFromPassphrase(
+		passphrase,
+	);
+	const signature = signDetached(msgBytes, privateKey);
 
 	return {
 		message,
-		publicKey: bufferToHex(publicKeyBytes),
+		publicKey: bufferToHex(publicKey),
 		signature: bufferToHex(signature),
 	};
 };
@@ -141,11 +140,9 @@ export const signDataWithPassphrase = (
 	data: Buffer,
 	passphrase: string,
 ): string => {
-	const { privateKeyBytes } = getPrivateAndPublicKeyBytesFromPassphrase(
-		passphrase,
-	);
+	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
-	return signDataWithPrivateKey(data, privateKeyBytes);
+	return signDataWithPrivateKey(data, privateKey);
 };
 
 export const signData = signDataWithPassphrase;

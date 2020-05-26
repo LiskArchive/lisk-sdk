@@ -84,7 +84,7 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 };
 
-export const toAddress = (buffer: Buffer): string => {
+export const toAddress = (buffer: Buffer): Buffer => {
 	const BUFFER_SIZE = 20;
 	const truncatedBuffer = getFirstNBytes(buffer, BUFFER_SIZE);
 
@@ -92,10 +92,10 @@ export const toAddress = (buffer: Buffer): string => {
 		throw new Error('The Lisk addresses must contains exactly 20 bytes');
 	}
 
-	return truncatedBuffer.toString('hex');
+	return truncatedBuffer;
 };
 
-export const getAddressFromPublicKey = (publicKey: string): string =>
+export const getAddressFromPublicKey = (publicKey: Buffer): Buffer =>
 	toAddress(hash(publicKey, 'hex'));
 
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;

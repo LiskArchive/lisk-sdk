@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { KeypairBytes } from '../../src/keys';
+import { Keypair } from '../../src/types';
 import { makeInvalid } from '../helpers';
 import { NaclInterface } from '../../src/nacl/nacl_types';
 import * as fast from '../../src/nacl/fast';
@@ -87,7 +87,7 @@ describe('nacl', () => {
 			});
 
 			describe('#getKeyPair', () => {
-				let signedKeys: KeypairBytes;
+				let signedKeys: Keypair;
 
 				beforeEach(async () => {
 					signedKeys = getKeyPair(Buffer.from(defaultHash, 'hex'));
@@ -95,27 +95,27 @@ describe('nacl', () => {
 				});
 
 				it('should create a publicKey', () => {
-					expect(
-						Buffer.from(signedKeys.publicKeyBytes).toString('hex'),
-					).toEqual(defaultPublicKey);
+					expect(Buffer.from(signedKeys.publicKey).toString('hex')).toEqual(
+						defaultPublicKey,
+					);
 				});
 
 				it('should create a publicKey of type uint8array', () => {
-					expect(
-						Object.prototype.toString.call(signedKeys.publicKeyBytes),
-					).toEqual('[object Uint8Array]');
+					expect(Object.prototype.toString.call(signedKeys.publicKey)).toEqual(
+						'[object Uint8Array]',
+					);
 				});
 
 				it('should create a privateKey', () => {
-					expect(
-						Buffer.from(signedKeys.privateKeyBytes).toString('hex'),
-					).toEqual(defaultPrivateKey);
+					expect(Buffer.from(signedKeys.privateKey).toString('hex')).toEqual(
+						defaultPrivateKey,
+					);
 				});
 
 				it('should create a privateKey of type uint8array', () => {
-					expect(
-						Object.prototype.toString.call(signedKeys.privateKeyBytes),
-					).toEqual('[object Uint8Array]');
+					expect(Object.prototype.toString.call(signedKeys.privateKey)).toEqual(
+						'[object Uint8Array]',
+					);
 				});
 			});
 

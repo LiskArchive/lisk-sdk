@@ -69,7 +69,7 @@ describe('encrypt', () => {
 			);
 
 		jest
-			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
+			.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase')
 			.mockImplementation(() => {
 				return {
 					privateKey: Buffer.from(defaultPrivateKey, 'hex'),

@@ -66,11 +66,11 @@ ${defaultSignature}
 		};
 
 		jest
-			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
+			.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase')
 			.mockImplementation(() => {
 				return {
-					privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
-					publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
+					privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+					publicKey: Buffer.from(defaultPublicKey, 'hex'),
 				};
 			});
 	});
