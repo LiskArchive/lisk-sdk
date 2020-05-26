@@ -13,18 +13,8 @@
  *
  */
 export const transactionInterface = {
-	required: [
-		'toJSON',
-		'getBytes',
-		'validate',
-		'apply',
-		'undo',
-		'verifySignatures',
-	],
+	required: ['getBytes', 'validate', 'apply', 'undo', 'verifySignatures'],
 	properties: {
-		toJSON: {
-			typeof: 'function',
-		},
 		getBytes: {
 			typeof: 'function',
 		},

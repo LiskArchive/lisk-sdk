@@ -91,5 +91,5 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 		throw new Error(errors.toString());
 	}
 
-	return voteTransaction.toJSON();
+	return voteTransaction;
 };

@@ -170,7 +170,7 @@ export const registerMultisignature = (
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!passphrases || !senderPassphrase) {
-		return multisignatureTransaction.toJSON();
+		return multisignatureTransaction;
 	}
 
 	multisignatureTransaction.sign(
@@ -184,5 +184,5 @@ export const registerMultisignature = (
 		},
 	);
 
-	return multisignatureTransaction.toJSON();
+	return multisignatureTransaction;
 };

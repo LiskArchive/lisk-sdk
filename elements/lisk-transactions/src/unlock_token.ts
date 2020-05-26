@@ -93,5 +93,5 @@ export const unlockToken = (
 		throw new Error(errors.toString());
 	}
 
-	return unlockTransaction.toJSON();
+	return unlockTransaction;
 };

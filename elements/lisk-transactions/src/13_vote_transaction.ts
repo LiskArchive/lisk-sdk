@@ -97,15 +97,6 @@ export class VoteTransaction extends BaseTransaction {
 		}
 	}
 
-	public assetToJSON(): object {
-		return {
-			votes: this.asset.votes.map(vote => ({
-				delegateAddress: vote.delegateAddress,
-				amount: vote.amount.toString(),
-			})),
-		};
-	}
-
 	protected assetToBytes(): Buffer {
 		const bufferArray = [];
 		for (const vote of this.asset.votes) {
@@ -124,8 +115,7 @@ export class VoteTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(voteAssetSchema, asset);
+		const schemaErrors = validator.validate(voteAssetSchema, this.asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,

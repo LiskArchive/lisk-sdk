@@ -98,5 +98,5 @@ export const reportMisbehavior = (
 		throw new Error(errors.toString());
 	}
 
-	return pomTransaction.toJSON();
+	return pomTransaction;
 };

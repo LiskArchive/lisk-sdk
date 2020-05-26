@@ -142,34 +142,6 @@ export abstract class BaseTransaction {
 		return getAddressFromPublicKey(this.senderPublicKey);
 	}
 
-	/**
-	 * This method is using private versions of _id, _senderPublicKey and _signature
-	 * as we should allow for it to be called at any stage of the transaction construction
-	 */
-
-	public toJSON(): TransactionJSON {
-		const transaction = {
-			id: this._id,
-			blockId: this.blockId,
-			height: this.height,
-			confirmations: this.confirmations,
-			type: this.type,
-			senderPublicKey: this.senderPublicKey,
-			senderId: this.senderPublicKey ? this.senderId : '',
-			nonce: this.nonce.toString(),
-			fee: this.fee.toString(),
-			signatures: this.signatures,
-			asset: this.assetToJSON(),
-			receivedAt: this.receivedAt ? this.receivedAt.toISOString() : undefined,
-		};
-
-		return transaction;
-	}
-
-	public stringify(): string {
-		return JSON.stringify(this.toJSON());
-	}
-
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
@@ -434,10 +406,6 @@ export abstract class BaseTransaction {
 		]);
 	}
 
-	public assetToJSON(): object {
-		return this.asset;
-	}
-
 	protected assetToBytes(): Buffer {
 		/**
 		 * FixMe: The following method is not sufficient enough for more sophisticated cases,
@@ -451,10 +419,9 @@ export abstract class BaseTransaction {
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
-		const transaction = this.toJSON();
 		const schemaErrors = validator.validate(
 			schemas.baseTransaction,
-			transaction,
+			this.transaction,
 		);
 		const errors = convertToTransactionError(
 			this.id,

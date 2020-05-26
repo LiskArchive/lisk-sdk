@@ -49,7 +49,6 @@ export interface Account {
 	votes: AccountVote[];
 	unlocking: AccountUnlocking[];
 	totalVotesReceived: bigint;
-	readonly toJSON: () => object;
 }
 export interface Delegate {
 	readonly username: string;

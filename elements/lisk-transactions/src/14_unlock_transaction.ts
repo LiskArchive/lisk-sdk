@@ -118,16 +118,6 @@ export class UnlockTransaction extends BaseTransaction {
 		}
 	}
 
-	public assetToJSON(): object {
-		return {
-			unlockingObjects: this.asset.unlockingObjects.map(unlock => ({
-				delegateAddress: unlock.delegateAddress,
-				amount: unlock.amount.toString(),
-				unvoteHeight: unlock.unvoteHeight,
-			})),
-		};
-	}
-
 	protected assetToBytes(): Buffer {
 		const bufferArray = [];
 		for (const unlock of this.asset.unlockingObjects) {
@@ -148,8 +138,7 @@ export class UnlockTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(unlockAssetSchema, asset);
+		const schemaErrors = validator.validate(unlockAssetSchema, this.asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,

@@ -66,14 +66,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				: BigInt(0);
 	}
 
-	public assetToJSON(): object {
-		return {
-			header1: this.asset.header1,
-			header2: this.asset.header2,
-			reward: this.asset.reward.toString(),
-		};
-	}
-
 	protected assetToBytes(): Buffer {
 		return Buffer.concat([
 			getBlockBytesWithSignature(this.asset.header1),
@@ -82,10 +74,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
 		const schemaErrors = validator.validate(
 			proofOfMisbehaviorAssetSchema,
-			asset,
+			this.asset,
 		);
 		const errors = convertToAssetError(
 			this.id,

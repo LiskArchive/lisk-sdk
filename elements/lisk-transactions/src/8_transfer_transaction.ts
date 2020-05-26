@@ -87,14 +87,6 @@ export class TransferTransaction extends BaseTransaction {
 		}
 	}
 
-	public assetToJSON(): object {
-		return {
-			data: this.asset.data,
-			amount: this.asset.amount.toString(),
-			recipientId: this.asset.recipientId,
-		};
-	}
-
 	protected assetToBytes(): Buffer {
 		const transactionAmount = intToBuffer(
 			this.asset.amount.toString(),
@@ -117,8 +109,7 @@ export class TransferTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(balanceTransferAsset, asset);
+		const schemaErrors = validator.validate(balanceTransferAsset, this.asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,
