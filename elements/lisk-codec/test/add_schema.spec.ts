@@ -12,6 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+// import { codec } from '../src/codec';
+
+import { testCases as objectTestCases } from '../fixtures/validObjectEncodings.json';
+import { codec } from '../src/codec';
+
+const objectFixtureInput = objectTestCases[0].input;
+
 describe('addSchema', () => {
-	it.todo('it should add schema and and cache them');
+	it('it should add schema and keep it in cache', () => {
+		const message = objectFixtureInput.object.object;
+		// Replace the JSON representation of buffer with an actual buffer
+		(message as any).address = Buffer.from(message.address.data);
+		// Fix number not being bigint
+		(message as any).balance = BigInt(message.balance);
+
+		const {
+			object: { schema },
+		} = objectFixtureInput;
+
+		codec.encode(schema as any, message as any);
+
+		expect((codec as any)._compileSchemas.object11).toMatchSnapshot();
+	});
 });
