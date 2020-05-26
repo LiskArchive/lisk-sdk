@@ -17,24 +17,77 @@
 const BaseGenerator = require('../base_generator');
 const typesGenerators = require('./types_generators');
 
-const allTestCases = [
-	...typesGenerators.generateValidNumberEncodings(),
-	...typesGenerators.generateValidBooleanEncodings(),
-	...typesGenerators.generateValidStringEncodings(),
-	...typesGenerators.generateValidBytesEncodings(),
-	...typesGenerators.generateValidObjectEncodings(),
-	...typesGenerators.generateValidArrayEncodings(),
-];
-
-const encodingsSuite = () => ({
-	title: 'Encondings for types supported by lisk-codec',
-	summary: 'Examples of encoding all the types supported by lisk-codec',
+const numberEncodingsSuite = () => ({
+	title: 'Encondings for number types supported by lisk-codec',
+	summary: 'Examples of encoding numbers with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validEncodings',
-	testCases: allTestCases,
+	handler: 'number_encodings',
+	testCases: [...typesGenerators.generateValidNumberEncodings()],
 });
 
-module.exports = BaseGenerator.runGenerator('lisk_codec', [encodingsSuite]);
+const booleanEncodingsSuite = () => ({
+	title: 'Encondings for boolean types supported by lisk-codec',
+	summary: 'Examples of encoding booleans with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'boolean_encodings',
+	testCases: [...typesGenerators.generateValidBooleanEncodings()],
+});
+
+const stringEncodingsSuite = () => ({
+	title: 'Encondings for string types supported by lisk-codec',
+	summary: 'Examples of encoding strings with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'string_encodings',
+	testCases: [...typesGenerators.generateValidStringEncodings()],
+});
+
+const bytesEncodingsSuite = () => ({
+	title: 'Encondings for bytes types supported by lisk-codec',
+	summary: 'Examples of encoding bytes with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'bytes_encodings',
+	testCases: [...typesGenerators.generateValidBytesEncodings()],
+});
+
+const objectEncodingsSuite = () => ({
+	title: 'Encondings for objects types supported by lisk-codec',
+	summary: 'Examples of encoding objects with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'objects_encodings',
+	testCases: [...typesGenerators.generateValidObjectEncodings()],
+});
+
+const arrayEncodingsSuite = () => ({
+	title: 'Encondings for arrays types supported by lisk-codec',
+	summary: 'Examples of encoding arrays with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'arrays_encodings',
+	testCases: [...typesGenerators.generateValidArrayEncodings()],
+});
+
+module.exports = BaseGenerator.runGenerator('lisk_codec', [
+	numberEncodingsSuite,
+	booleanEncodingsSuite,
+	stringEncodingsSuite,
+	bytesEncodingsSuite,
+	objectEncodingsSuite,
+	arrayEncodingsSuite,
+]);

@@ -1,0 +1,53 @@
+{
+	"title": "Encondings for string types supported by lisk-codec",
+	"summary": "Examples of encoding strings with lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "string_encodings",
+	"testCases": [
+		{
+			"description": "Encoding of string",
+			"input": {
+				"object": {
+					"data": "Checkout Lisk SDK!"
+				},
+				"schema": {
+					"$id": "object7",
+					"type": "object",
+					"properties": {
+						"data": {
+							"dataType": "string",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"value": "0a12436865636b6f7574204c69736b2053444b21"
+			}
+		},
+		{
+			"description": "Encoding of empty string",
+			"input": {
+				"object": {
+					"data": ""
+				},
+				"schema": {
+					"$id": "object8",
+					"type": "object",
+					"properties": {
+						"data": {
+							"dataType": "string",
+							"fieldNumber": 1
+						}
+					}
+				}
+			},
+			"output": {
+				"value": "0a00"
+			}
+		}
+	]
+}
