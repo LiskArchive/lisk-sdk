@@ -58,4 +58,16 @@ describe('string', () => {
 			]);
 		});
 	});
+
+	it('should decode empty string', () => {
+		const {
+			input: {
+				object: { data: message },
+			},
+		} = testCases[1];
+		expect(readString(writeString(message), 0)).toEqual([
+			message,
+			message.length + 1, // Add 1 for the size of this string
+		]);
+	});
 });
