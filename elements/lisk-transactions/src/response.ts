@@ -20,7 +20,7 @@ export enum Status {
 }
 
 export interface TransactionResponse {
-	readonly id: string;
+	readonly id: Buffer;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
 }
@@ -29,7 +29,7 @@ export const createResponse = (
 	id: Buffer,
 	errors?: ReadonlyArray<TransactionError>,
 ): TransactionResponse => ({
-	id: id.toString('hex'),
+	id,
 	status: errors && errors.length > 0 ? Status.FAIL : Status.OK,
 	errors: errors ?? [],
 });

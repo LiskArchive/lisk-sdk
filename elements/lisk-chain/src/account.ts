@@ -11,170 +11,85 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// eslint-disable-next-line import/no-cycle
-import { AccountJSON } from './types';
 
 export const accountDefaultValues = {
-	publicKey: undefined,
-	balance: '0',
-	username: null,
-	nonce: '0',
-	producedBlocks: 0,
-	fees: '0',
-	rewards: '0',
-	totalVotesReceived: '0',
-	votes: [],
-	unlocking: [],
-	delegate: {
-		lastForgedHeight: 0,
-		consecutiveMissedBlocks: 0,
-		isBanned: false,
-		pomHeights: [],
-	},
-	asset: {},
+	publicKey: Buffer.alloc(0),
+	balance: BigInt(0),
+	nonce: BigInt(0),
 	keys: {
 		mandatoryKeys: [],
 		optionalKeys: [],
 		numberOfSignatures: 0,
 	},
-	// TODO: Remove once new DPoS implementation is done
-	missedBlocks: 0,
-	isDelegate: 0,
+	asset: {},
 };
 
-interface Vote {
-	readonly delegateAddress: string;
-	amount: bigint;
-}
+type BasicTypes =
+	| number
+	| bigint
+	| boolean
+	| string
+	| Buffer
+	| Array<number | bigint | boolean | string | Buffer>;
 
-interface Unlocking {
-	readonly delegateAddress: string;
-	readonly amount: bigint;
-	readonly unvoteHeight: number;
-}
-
-export class Account {
-	public address: string;
-	public balance: bigint;
-	public nonce: bigint;
-	public fees: bigint;
-	public rewards: bigint;
-	public producedBlocks: number;
-	public publicKey: string | undefined;
-	public totalVotesReceived: bigint;
-	public username: string | null;
-	public asset: object;
-	public votes: Vote[];
-	public unlocking: Unlocking[];
-	public delegate: {
-		lastForgedHeight: number;
-		consecutiveMissedBlocks: number;
-		isBanned: boolean;
-		pomHeights: number[];
+export interface DefaultAsset {
+	[key: string]: {
+		[key: string]: BasicTypes;
 	};
+}
+
+export class Account<T = DefaultAsset> {
+	public address: Buffer;
+	public balance: bigint;
+	public publicKey: Buffer;
+	public nonce: bigint;
 	public keys: {
-		mandatoryKeys: string[];
-		optionalKeys: string[];
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
 		numberOfSignatures: number;
 	};
-	// TODO: Remove once new DPoS implementation is done
-	public missedBlocks: number;
-	public isDelegate: number;
+	public asset: T;
 
-	public constructor(accountInfo: AccountJSON) {
-		this.address = accountInfo.address;
-		this.balance = accountInfo.balance
-			? BigInt(accountInfo.balance)
-			: BigInt(0);
-		this.nonce = accountInfo.nonce ? BigInt(accountInfo.nonce) : BigInt(0);
-		this.producedBlocks = accountInfo.producedBlocks;
-		this.publicKey = accountInfo.publicKey;
-		this.username = accountInfo.username;
-		this.fees = accountInfo.fees ? BigInt(accountInfo.fees) : BigInt(0);
-		this.rewards = accountInfo.rewards
-			? BigInt(accountInfo.rewards)
-			: BigInt(0);
-		this.asset = accountInfo.asset;
-		this.votes = accountInfo.votes?.length
-			? accountInfo.votes.map(vote => ({
-					delegateAddress: vote.delegateAddress,
-					amount: BigInt(vote.amount),
-			  }))
-			: [];
-		this.unlocking = accountInfo.unlocking?.length
-			? accountInfo.unlocking.map(unlock => ({
-					delegateAddress: unlock.delegateAddress,
-					amount: BigInt(unlock.amount),
-					unvoteHeight: unlock.unvoteHeight,
-			  }))
-			: [];
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.totalVotesReceived = BigInt(accountInfo.totalVotesReceived ?? 0);
-		this.delegate = {
-			lastForgedHeight: accountInfo.delegate?.lastForgedHeight ?? 0,
-			consecutiveMissedBlocks:
-				accountInfo.delegate?.consecutiveMissedBlocks ?? 0,
-			isBanned: accountInfo.delegate?.isBanned ?? false,
-			pomHeights: accountInfo.delegate?.pomHeights
-				? [...accountInfo.delegate.pomHeights]
-				: [],
-		};
-		this.keys = {
-			mandatoryKeys: accountInfo.keys?.mandatoryKeys?.length
-				? [...accountInfo.keys.mandatoryKeys]
-				: [],
-			optionalKeys: accountInfo.keys?.optionalKeys?.length
-				? [...accountInfo.keys.optionalKeys]
-				: [],
-			numberOfSignatures: accountInfo.keys?.numberOfSignatures ?? 0,
-		};
+	private _stringAddress?: string;
 
-		// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
-		this.missedBlocks = accountInfo.missedBlocks;
-		this.isDelegate = accountInfo.isDelegate;
+	public constructor(account: Partial<Account<T>>) {
+		if (!account.address) {
+			throw new Error('Account must have address');
+		}
+		this.address = account.address;
+		this.balance = account.balance ?? BigInt(0);
+		this.publicKey = account.publicKey ?? Buffer.alloc(0);
+		this.nonce = account.nonce ?? BigInt(0);
+		this.keys = account.keys
+			? {
+					mandatoryKeys: [...account.keys.mandatoryKeys],
+					optionalKeys: [...account.keys.optionalKeys],
+					numberOfSignatures: account.keys.numberOfSignatures,
+			  }
+			: {
+					mandatoryKeys: [],
+					optionalKeys: [],
+					numberOfSignatures: 0,
+			  };
+		this.asset = account.asset ?? ({} as T);
 	}
 
-	public static getDefaultAccount = (address: string): Account =>
-		new Account({
+	public get stringAddress(): string {
+		if (this._stringAddress) {
+			return this._stringAddress;
+		}
+		this._stringAddress = this.address.toString('hex');
+		return this._stringAddress;
+	}
+
+	public static getDefaultAccount<T>(
+		address: Buffer,
+		defaultAsset: T,
+	): Account<T> {
+		return new Account<T>({
 			address,
 			...accountDefaultValues,
+			asset: defaultAsset,
 		});
-
-	public toJSON(): AccountJSON {
-		return {
-			address: this.address,
-			publicKey: this.publicKey,
-			username: this.username,
-			balance: this.balance.toString(),
-			nonce: this.nonce.toString(),
-			producedBlocks: this.producedBlocks,
-			fees: this.fees.toString(),
-			rewards: this.rewards.toString(),
-			totalVotesReceived: this.totalVotesReceived.toString(),
-			asset: this.asset,
-			votes: this.votes.map(v => ({
-				delegateAddress: v.delegateAddress,
-				amount: v.amount.toString(),
-			})),
-			unlocking: this.unlocking.map(v => ({
-				delegateAddress: v.delegateAddress,
-				amount: v.amount.toString(),
-				unvoteHeight: v.unvoteHeight,
-			})),
-			delegate: {
-				lastForgedHeight: this.delegate.lastForgedHeight,
-				consecutiveMissedBlocks: this.delegate.consecutiveMissedBlocks,
-				isBanned: this.delegate.isBanned,
-				pomHeights: this.delegate.pomHeights,
-			},
-			keys: {
-				mandatoryKeys: this.keys.mandatoryKeys,
-				optionalKeys: this.keys.optionalKeys,
-				numberOfSignatures: this.keys.numberOfSignatures,
-			},
-			// TODO: Remove with https://github.com/LiskHQ/lisk-sdk/issues/5058
-			isDelegate: this.isDelegate,
-			missedBlocks: this.missedBlocks,
-		};
 	}
 }

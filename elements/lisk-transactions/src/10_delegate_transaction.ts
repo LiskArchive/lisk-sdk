@@ -16,7 +16,7 @@
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { TransactionError } from './errors';
-import { BaseTransactionInput } from './types';
+import { BaseTransactionInput, AccountAsset } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;
@@ -60,7 +60,7 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = await store.account.get(this.senderId);
+		const sender = await store.account.get<AccountAsset>(this.senderId);
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
@@ -97,7 +97,7 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		if (sender.isDelegate || sender.username) {
+		if (sender.asset.delegate.username) {
 			errors.push(
 				new TransactionError(
 					'Account is already a delegate',
@@ -106,8 +106,7 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		sender.username = this.asset.username;
-		sender.isDelegate = 1;
+		sender.asset.delegate.username = this.asset.username;
 		store.account.set(sender.address, sender);
 
 		return errors;
@@ -116,7 +115,7 @@ export class DelegateTransaction extends BaseTransaction {
 	protected async undoAsset(
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
-		const sender = await store.account.get(this.senderId);
+		const sender = await store.account.get<AccountAsset>(this.senderId);
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
@@ -128,7 +127,7 @@ export class DelegateTransaction extends BaseTransaction {
 			: { registeredDelegates: [] };
 		const updatedRegisteredDelegates = {
 			registeredDelegates: usernames.registeredDelegates.filter(
-				delegate => delegate.username !== sender.username,
+				delegate => delegate.username !== sender.asset.delegate.username,
 			),
 		};
 		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
@@ -139,8 +138,7 @@ export class DelegateTransaction extends BaseTransaction {
 			Buffer.from(JSON.stringify(updatedRegisteredDelegates), 'utf8'),
 		);
 
-		sender.username = null;
-		sender.isDelegate = 0;
+		sender.asset.delegate.username = '';
 		store.account.set(sender.address, sender);
 		return [];
 	}

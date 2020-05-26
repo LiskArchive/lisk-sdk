@@ -29,7 +29,7 @@ import {
 	validateKeysSignatures,
 	validateSignature,
 } from './utils';
-import { BaseTransactionInput } from './types';
+import { BaseTransactionInput, AccountAsset } from './types';
 
 export const multisigRegAssetSchema = {
 	$id: 'lisk/multisignature-registration-transaction',
@@ -339,7 +339,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = await store.account.get(this.senderId);
+		const sender = await store.account.get<AccountAsset>(this.senderId);
 
 		// Check if multisignatures already exists on account
 		if (sender.keys.numberOfSignatures > 0) {
@@ -354,8 +354,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		sender.keys = {
 			numberOfSignatures: this.asset.numberOfSignatures,
-			mandatoryKeys: this.asset.mandatoryKeys,
-			optionalKeys: this.asset.optionalKeys,
+			mandatoryKeys: this.asset.mandatoryKeys as Buffer[],
+			optionalKeys: this.asset.optionalKeys as Buffer[],
 		};
 
 		store.account.set(sender.address, sender);

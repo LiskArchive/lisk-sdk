@@ -45,7 +45,6 @@ export class TransactionInterfaceAdapter {
 		return message.getBytes();
 	}
 
-	// First decode base message and then decode asset
 	public decode(binaryMessage: Buffer): BaseTransaction {
 		const baseMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

@@ -15,7 +15,7 @@
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { TransactionError } from './errors';
-import { Account, BaseTransactionInput } from './types';
+import { Account, BaseTransactionInput, AccountAsset } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
@@ -65,8 +65,8 @@ const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
 
 const getWaitingPeriod = (
-	sender: Account,
-	delegateAccount: Account,
+	sender: Account<AccountAsset>,
+	delegateAccount: Account<AccountAsset>,
 	lastBlockHeight: number,
 	unlockObject: Unlock,
 ): number => {
@@ -126,9 +126,11 @@ export class UnlockTransaction extends BaseTransaction {
 		const errors = [];
 
 		for (const unlock of this.asset.unlockObjects) {
-			const sender = await store.account.get(this.senderId);
-			const delegate = await store.account.getOrDefault(unlock.delegateAddress);
-			if (!delegate.username) {
+			const sender = await store.account.get<AccountAsset>(this.senderId);
+			const delegate = await store.account.getOrDefault<AccountAsset>(
+				unlock.delegateAddress,
+			);
+			if (!delegate.asset.delegate.username) {
 				errors.push(
 					new TransactionError(
 						'Voted account is not registered as delegate',
@@ -173,7 +175,7 @@ export class UnlockTransaction extends BaseTransaction {
 					),
 				);
 			}
-			const unlockIndex = sender.unlocking.findIndex(
+			const unlockIndex = sender.asset.unlocking.findIndex(
 				obj =>
 					obj.amount === unlock.amount &&
 					obj.delegateAddress === unlock.delegateAddress &&
@@ -190,7 +192,7 @@ export class UnlockTransaction extends BaseTransaction {
 				// eslint-disable-next-line no-continue
 				continue;
 			}
-			sender.unlocking.splice(unlockIndex, 1);
+			sender.asset.unlocking.splice(unlockIndex, 1);
 			sender.balance += unlock.amount;
 			store.account.set(sender.address, sender);
 		}
@@ -202,12 +204,12 @@ export class UnlockTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		for (const unlock of this.asset.unlockObjects) {
-			const sender = await store.account.get(this.senderId);
+			const sender = await store.account.get<AccountAsset>(this.senderId);
 
 			sender.balance -= unlock.amount;
-			sender.unlocking.push(unlock);
+			sender.asset.unlocking.push(unlock);
 			// Resort the unlocking since it's pushed to the end
-			sortUnlocking(sender.unlocking);
+			sortUnlocking(sender.asset.unlocking);
 			store.account.set(sender.address, sender);
 		}
 

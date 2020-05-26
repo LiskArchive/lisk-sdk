@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as assert from 'assert';
-
 import { BlockHeader } from '../../types';
-
 import { Base } from './base';
 
 export class BlockCache extends Base<BlockHeader> {
@@ -55,11 +53,10 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items;
 	}
 
-	public remove(id: string): BlockHeader[] {
-		if (this.items.length && this.last.id !== id) {
-			assert(
-				this.last.id === id,
-				`Failed to remove the block id: ${id} which is not the last block header cached`,
+	public remove(id: Buffer): BlockHeader[] {
+		if (this.items.length && !this.last.id.equals(id)) {
+			throw new Error(
+				`Failed to remove the block id: ${id.toString('hex')} which is not the last block header cached`,
 			);
 		}
 		this.items.pop();
@@ -71,12 +68,14 @@ export class BlockCache extends Base<BlockHeader> {
 		return this.items;
 	}
 
-	public getByID(id: string): BlockHeader | undefined {
+	public getByID(id: Buffer): BlockHeader | undefined {
 		return this.items.find(block => block.id === id);
 	}
 
-	public getByIDs(ids: ReadonlyArray<string>): BlockHeader[] {
-		const blocks = this.items.filter(block => ids.includes(block.id));
+	public getByIDs(ids: ReadonlyArray<Buffer>): BlockHeader[] {
+		const blocks = this.items.filter(block =>
+			ids.find(id => id.equals(block.id)) !== undefined,
+		);
 
 		if (blocks.length === ids.length) {
 			return blocks.reverse();
