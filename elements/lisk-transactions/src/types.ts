@@ -112,3 +112,35 @@ export interface IsVerifiedResponse {
 	readonly verified: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
 }
+
+export interface BaseTransactionSchema {
+	readonly $id: string;
+	readonly type: string;
+	readonly required: ReadonlyArray<string>;
+	readonly properties: Properties;
+}
+
+interface Properties {
+	readonly [key: string]: Property;
+}
+
+interface Property {
+	readonly type?: string;
+	readonly dataType?: string;
+	readonly fieldNumber: number;
+	readonly items?: ScalarItem | ObjectItem;
+	readonly properties?: Properties;
+}
+
+interface ScalarItem {
+	readonly dataType: string;
+	readonly required?: ReadonlyArray<string>;
+}
+
+interface ObjectItem {
+	readonly type: string;
+	readonly required?: ReadonlyArray<string>;
+	readonly properties?: Properties;
+}
+
+export type AssetSchema = ObjectItem;

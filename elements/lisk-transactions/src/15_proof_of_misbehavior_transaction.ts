@@ -21,7 +21,7 @@ import {
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { BlockHeaderJSON, TransactionJSON } from './types';
+import { BlockHeaderJSON, TransactionJSON, AssetSchema } from './types';
 import {
 	getBlockBytes,
 	getBlockBytesWithSignature,
@@ -53,7 +53,7 @@ export interface ProofOfMisbehaviorAsset {
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	public static TYPE = 15;
 	public readonly asset: ProofOfMisbehaviorAsset;
-	public readonly assetSchema: object;
+	public readonly assetSchema: AssetSchema;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

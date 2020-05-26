@@ -43,9 +43,9 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects does not include any unlockingObject', () => {
+		describe('when asset.unlockObjects does not include any unlockingObject', () => {
 			it('should return errors', () => {
-				(tx.asset as any).unlockingObjects = [];
+				(tx.asset as any).unlockObjects = [];
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
@@ -55,10 +55,10 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects includes more than 20 unlockingObjects', () => {
+		describe('when asset.unlockObjects includes more than 20 unlockObjects', () => {
 			it('should return errors', () => {
-				(tx.asset as any).unlockingObjects = [
-					...tx.asset.unlockingObjects,
+				(tx.asset as any).unlockObjects = [
+					...tx.asset.unlockObjects,
 					{
 						delegateAddress: '123L',
 						amount: BigInt(10000000000),
@@ -74,10 +74,10 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects includes negative amount', () => {
+		describe('when asset.unlockObjects includes negative amount', () => {
 			it('should return errors', () => {
-				(tx.asset as any).unlockingObjects = [
-					...tx.asset.unlockingObjects.slice(0, 19),
+				(tx.asset as any).unlockObjects = [
+					...tx.asset.unlockObjects.slice(0, 19),
 					{
 						delegateAddress: '123L',
 						amount: BigInt(-10000000000),
@@ -93,10 +93,10 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects includes zero amount', () => {
+		describe('when asset.unlockObjects includes zero amount', () => {
 			it('should return errors', () => {
-				(tx.asset as any).unlockingObjects = [
-					...tx.asset.unlockingObjects.slice(0, 19),
+				(tx.asset as any).unlockObjects = [
+					...tx.asset.unlockObjects.slice(0, 19),
 					{
 						delegateAddress: '123L',
 						amount: BigInt(0),
@@ -112,10 +112,10 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects includes amount which is not multiple of 10 * 10^8', () => {
+		describe('when asset.unlockObjects includes amount which is not multiple of 10 * 10^8', () => {
 			it('should return errors', () => {
-				(tx.asset as any).unlockingObjects = [
-					...tx.asset.unlockingObjects.slice(0, 19),
+				(tx.asset as any).unlockObjects = [
+					...tx.asset.unlockObjects.slice(0, 19),
 					{
 						delegateAddress: '123L',
 						amount: BigInt(999999999),
@@ -131,10 +131,10 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects includes negative unvoteHeight', () => {
+		describe('when asset.unlockObjects includes negative unvoteHeight', () => {
 			it('should return errors', () => {
-				(tx.asset as any).unlockingObjects = [
-					...tx.asset.unlockingObjects.slice(0, 19),
+				(tx.asset as any).unlockObjects = [
+					...tx.asset.unlockObjects.slice(0, 19),
 					{
 						delegateAddress: '123L',
 						amount: BigInt(1000000000),
@@ -167,7 +167,7 @@ describe('Unlock transaction', () => {
 				username: 'sender_delegate',
 				isDelegate: 1,
 				unlocking: [
-					...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.map(
+					...validUnlockTransactionScenario.testCases.output.asset.unlockObjects.map(
 						u => ({
 							...u,
 							amount: BigInt(u.amount),
@@ -201,29 +201,29 @@ describe('Unlock transaction', () => {
 		});
 
 		describe('given the delegate is not being punished', () => {
-			describe('when asset.unlockingObjects contain valid entries, and voter account has waited 2000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and voter account has waited 2000 blocks', () => {
 				beforeEach(() => {
 					// Mutate not to be selfvote and resign
-					const senderIndex = tx.asset.unlockingObjects.findIndex(
+					const senderIndex = tx.asset.unlockObjects.findIndex(
 						u =>
 							u.delegateAddress ===
 							validUnlockTransactionScenario.testCases.input.account.address,
 					);
-					(tx.asset.unlockingObjects[senderIndex] as any).delegateAddress =
+					(tx.asset.unlockObjects[senderIndex] as any).delegateAddress =
 						validUnlockTransactionScenario.testCases.input.delegates[0].address;
 					tx.sign(
 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
 						validUnlockTransactionScenario.testCases.input.account.passphrase,
 					);
 					maxHeight = Math.max(
-						...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 					);
 					sender = {
 						...sender,
 						username: 'sender_delegate',
 						isDelegate: 1,
 						unlocking: [
-							...tx.asset.unlockingObjects.map(u => ({
+							...tx.asset.unlockObjects.map(u => ({
 								...u,
 								amount: BigInt(u.amount),
 							})),
@@ -244,7 +244,7 @@ describe('Unlock transaction', () => {
 					await tx.apply(store);
 					const updatedSender = await store.account.get(sender.address);
 					const totalAmount =
-						validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.reduce(
+						validUnlockTransactionScenario.testCases.output.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
@@ -259,7 +259,7 @@ describe('Unlock transaction', () => {
 					expect(updatedSender.unlocking).toHaveLength(0);
 				});
 
-				describe('when asset.unlockingObjects contain valid entries, and voter account has not waited 2000 blocks', () => {
+				describe('when asset.unlockObjects contain valid entries, and voter account has not waited 2000 blocks', () => {
 					it('should return errors', async () => {
 						store = new StateStoreMock([sender, ...delegates], {
 							lastBlockHeader: { height: maxHeight + 1998 } as any,
@@ -274,7 +274,7 @@ describe('Unlock transaction', () => {
 				});
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and self-voting account has waited 260,000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited 260,000 blocks', () => {
 				beforeEach(() => {
 					store = new StateStoreMock([sender, ...delegates], {
 						lastBlockHeader: { height: maxHeight + 259999 } as any,
@@ -291,7 +291,7 @@ describe('Unlock transaction', () => {
 					await tx.apply(store);
 					const updatedSender = await store.account.get(sender.address);
 					const totalAmount =
-						validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.reduce(
+						validUnlockTransactionScenario.testCases.output.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
@@ -306,9 +306,9 @@ describe('Unlock transaction', () => {
 					expect(updatedSender.unlocking).toHaveLength(0);
 				});
 
-				describe('when asset.unlockingObjects contain valid entries, and self-voting account has not waited 260,000 blocks', () => {
+				describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 260,000 blocks', () => {
 					it('should return errors', async () => {
-						const minHeight = tx.asset.unlockingObjects.find(
+						const minHeight = tx.asset.unlockObjects.find(
 							u => u.delegateAddress === sender.address,
 						)?.unvoteHeight as number;
 						store = new StateStoreMock([sender, ...delegates], {
@@ -347,27 +347,27 @@ describe('Unlock transaction', () => {
 				);
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and voter account has waited 260,000 blocks and waited 2,000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and voter account has waited 260,000 blocks and waited 2,000 blocks', () => {
 				beforeEach(() => {
 					// Mutate not to be selfvote and resign
-					const senderIndex = tx.asset.unlockingObjects.findIndex(
+					const senderIndex = tx.asset.unlockObjects.findIndex(
 						u =>
 							u.delegateAddress ===
 							validUnlockTransactionScenario.testCases.input.account.address,
 					);
-					(tx.asset.unlockingObjects[senderIndex] as any).delegateAddress =
+					(tx.asset.unlockObjects[senderIndex] as any).delegateAddress =
 						validUnlockTransactionScenario.testCases.input.delegates[0].address;
 					tx.sign(
 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
 						validUnlockTransactionScenario.testCases.input.account.passphrase,
 					);
 					maxHeight = Math.max(
-						...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 					);
 					sender = {
 						...sender,
 						unlocking: [
-							...tx.asset.unlockingObjects.map(u => ({
+							...tx.asset.unlockObjects.map(u => ({
 								...u,
 								amount: BigInt(u.amount),
 							})),
@@ -391,7 +391,7 @@ describe('Unlock transaction', () => {
 					await tx.apply(store);
 					const updatedSender = await store.account.get(sender.address);
 					const totalAmount =
-						validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.reduce(
+						validUnlockTransactionScenario.testCases.output.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
@@ -407,7 +407,7 @@ describe('Unlock transaction', () => {
 				});
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 blocks and waited 260,000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 blocks and waited 260,000 blocks', () => {
 				beforeEach(() => {
 					sender.delegate.pomHeights = [punishHeight];
 					store = new StateStoreMock([sender, ...delegates], {
@@ -425,7 +425,7 @@ describe('Unlock transaction', () => {
 					await tx.apply(store);
 					const updatedSender = await store.account.get(sender.address);
 					const totalAmount =
-						validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.reduce(
+						validUnlockTransactionScenario.testCases.output.asset.unlockObjects.reduce(
 							(prev, current) => prev + BigInt(current.amount),
 							BigInt(0),
 						) + minBalance;
@@ -441,11 +441,11 @@ describe('Unlock transaction', () => {
 				});
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and voter account has waited pomHeight + 260,000 blocks but not waited 2000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and voter account has waited pomHeight + 260,000 blocks but not waited 2000 blocks', () => {
 				it('should return errors', async () => {
 					delegates[0].delegate.pomHeights = [punishHeight];
 					// Mutate not to be selfvote and resign
-					for (const unlock of tx.asset.unlockingObjects) {
+					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress ===
 							validUnlockTransactionScenario.testCases.input.account.address
@@ -462,12 +462,12 @@ describe('Unlock transaction', () => {
 						validUnlockTransactionScenario.testCases.input.account.passphrase,
 					);
 					maxHeight = Math.max(
-						...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 					);
 					sender = {
 						...sender,
 						unlocking: [
-							...tx.asset.unlockingObjects.map(u => ({
+							...tx.asset.unlockObjects.map(u => ({
 								...u,
 								amount: BigInt(u.amount),
 							})),
@@ -487,10 +487,10 @@ describe('Unlock transaction', () => {
 				});
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 blocks but not waited 260,000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and self-voting account has waited pomHeight + 780,000 blocks but not waited 260,000 blocks', () => {
 				it('should return errors', async () => {
 					// Mutate not to be selfvote and resign
-					for (const unlock of tx.asset.unlockingObjects) {
+					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress ===
 							validUnlockTransactionScenario.testCases.input.account.address
@@ -503,12 +503,12 @@ describe('Unlock transaction', () => {
 						validUnlockTransactionScenario.testCases.input.account.passphrase,
 					);
 					maxHeight = Math.max(
-						...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 					);
 					sender = {
 						...sender,
 						unlocking: [
-							...tx.asset.unlockingObjects.map(u => ({
+							...tx.asset.unlockObjects.map(u => ({
 								...u,
 								amount: BigInt(u.amount),
 							})),
@@ -529,11 +529,11 @@ describe('Unlock transaction', () => {
 				});
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and voter account has not waited pomHeight + 260,000 blocks but waited 2000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and voter account has not waited pomHeight + 260,000 blocks but waited 2000 blocks', () => {
 				it('should return errors', async () => {
 					delegates[0].delegate.pomHeights = [punishHeight];
 					// Mutate not to be selfvote and resign
-					for (const unlock of tx.asset.unlockingObjects) {
+					for (const unlock of tx.asset.unlockObjects) {
 						if (
 							unlock.delegateAddress ===
 							validUnlockTransactionScenario.testCases.input.account.address
@@ -547,12 +547,12 @@ describe('Unlock transaction', () => {
 						validUnlockTransactionScenario.testCases.input.account.passphrase,
 					);
 					maxHeight = Math.max(
-						...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 					);
 					sender = {
 						...sender,
 						unlocking: [
-							...tx.asset.unlockingObjects.map(u => ({
+							...tx.asset.unlockObjects.map(u => ({
 								...u,
 								amount: BigInt(u.amount),
 							})),
@@ -572,19 +572,19 @@ describe('Unlock transaction', () => {
 				});
 			});
 
-			describe('when asset.unlockingObjects contain valid entries, and self-voting account has not waited 780,000 blocks but waited 260,000 blocks', () => {
+			describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited 780,000 blocks but waited 260,000 blocks', () => {
 				it('should return errors', async () => {
 					tx.sign(
 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
 						validUnlockTransactionScenario.testCases.input.account.passphrase,
 					);
 					maxHeight = Math.max(
-						...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+						...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 					);
 					sender = {
 						...sender,
 						unlocking: [
-							...tx.asset.unlockingObjects.map(u => ({
+							...tx.asset.unlockObjects.map(u => ({
 								...u,
 								amount: BigInt(u.amount),
 							})),
@@ -606,10 +606,10 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects contain duplicate entries', () => {
+		describe('when asset.unlockObjects contain duplicate entries', () => {
 			beforeEach(() => {
 				maxHeight = Math.max(
-					...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 				);
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
@@ -626,7 +626,7 @@ describe('Unlock transaction', () => {
 				await tx.apply(store);
 				const updatedSender = await store.account.get(sender.address);
 				const totalAmount =
-					validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.reduce(
+					validUnlockTransactionScenario.testCases.output.asset.unlockObjects.reduce(
 						(prev, current) => prev + BigInt(current.amount),
 						BigInt(0),
 					) + minBalance;
@@ -642,7 +642,7 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when account contain duplicate unlocking entries but asset.unlockingObjects only contains one', () => {
+		describe('when account contain duplicate unlocking entries but asset.unlockObjects only contains one', () => {
 			beforeEach(() => {
 				sender = {
 					...sender,
@@ -655,7 +655,7 @@ describe('Unlock transaction', () => {
 					],
 				};
 				maxHeight = Math.max(
-					...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 				);
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
@@ -672,7 +672,7 @@ describe('Unlock transaction', () => {
 				await tx.apply(store);
 				const updatedSender = await store.account.get(sender.address);
 				const totalAmount =
-					validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.reduce(
+					validUnlockTransactionScenario.testCases.output.asset.unlockObjects.reduce(
 						(prev, current) => prev + BigInt(current.amount),
 						BigInt(0),
 					) + minBalance;
@@ -695,7 +695,7 @@ describe('Unlock transaction', () => {
 					unlocking: [],
 				};
 				maxHeight = Math.max(
-					...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 				);
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
@@ -710,7 +710,7 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when account.unlocking has one entry but it has multiple corresponding unlockingObjects', () => {
+		describe('when account.unlocking has one entry but it has multiple corresponding unlockObjects', () => {
 			it('should return errors', async () => {
 				// Delegate 0 has duplicate entries accroding to the protocol spec
 				const unlockObject = sender.unlocking.find(
@@ -721,7 +721,7 @@ describe('Unlock transaction', () => {
 				);
 				sender.unlocking.push(unlockObject);
 				maxHeight = Math.max(
-					...tx.asset.unlockingObjects.map(u => u.unvoteHeight),
+					...tx.asset.unlockObjects.map(u => u.unvoteHeight),
 				);
 				store = new StateStoreMock([sender, ...delegates], {
 					lastBlockHeader: { height: maxHeight + 259999 } as any,
@@ -756,7 +756,7 @@ describe('Unlock transaction', () => {
 				username: 'sender_delegate',
 				isDelegate: 1,
 				unlocking: [
-					...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.map(
+					...validUnlockTransactionScenario.testCases.output.asset.unlockObjects.map(
 						u => ({
 							...u,
 							amount: BigInt(u.amount),
@@ -797,7 +797,7 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		describe('when asset.unlockingObjects contain duplicate entries', () => {
+		describe('when asset.unlockObjects contain duplicate entries', () => {
 			it('should not return error', async () => {
 				const { errors: applyErrors, status: applyStatus } = await tx.apply(
 					store,

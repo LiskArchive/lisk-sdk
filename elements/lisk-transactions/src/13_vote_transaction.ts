@@ -18,7 +18,7 @@ import { isNumberString, validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './types';
+import { TransactionJSON, AssetSchema } from './types';
 import { sortUnlocking } from './utils';
 
 export interface Vote {
@@ -72,7 +72,7 @@ interface RawAsset {
 export class VoteTransaction extends BaseTransaction {
 	public static TYPE = 13;
 	public readonly asset: VoteAsset;
-	public readonly assetSchema: object;
+	public readonly assetSchema: AssetSchema;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

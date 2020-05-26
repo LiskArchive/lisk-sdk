@@ -25,7 +25,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
-import { TransactionJSON } from './types';
+import { TransactionJSON, AssetSchema } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,
@@ -34,9 +34,9 @@ import {
 	validateSignature,
 } from './utils';
 
-export const multisignatureRegistrationAssetSchema = {
+export const multisigRegAssetSchema = {
 	type: 'object',
-	required: ['optionalKeys', 'mandatoryKeys', 'numberOfSignatures'],
+	required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
 	properties: {
 		numberOfSignatures: {
 			dataType: 'uint32',
@@ -81,13 +81,13 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public static TYPE = 12;
 	public readonly asset: MultiSignatureAsset;
-	public readonly assetSchema: object;
+	public readonly assetSchema: AssetSchema;
 	private readonly MAX_KEYS_COUNT = 64;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
 
-		this.assetSchema = multisignatureRegistrationAssetSchema;
+		this.assetSchema = multisigRegAssetSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
@@ -259,7 +259,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const schemaErrors = validator.validate(
-			multisignatureRegistrationAssetSchema,
+			multisigRegAssetSchema,
 			this.asset,
 		);
 		const errors = convertToAssetError(

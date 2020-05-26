@@ -27,21 +27,21 @@ export interface UnlockTokenInputs {
 	readonly nonce: string;
 	readonly fee: string;
 	readonly passphrase?: string;
-	readonly unlockingObjects?: ReadonlyArray<RawAssetUnlock>;
+	readonly unlockObjects?: ReadonlyArray<RawAssetUnlock>;
 }
 
 interface GeneralInputs {
 	readonly networkIdentifier: string;
 	readonly fee: string;
 	readonly nonce: string;
-	readonly unlockingObjects?: ReadonlyArray<RawAssetUnlock>;
+	readonly unlockObjects?: ReadonlyArray<RawAssetUnlock>;
 }
 
 const validateInputs = ({
 	fee,
 	nonce,
 	networkIdentifier,
-	unlockingObjects,
+	unlockObjects,
 }: GeneralInputs): void => {
 	if (!isValidNonce(nonce)) {
 		throw new Error('Nonce must be a valid number in string format.');
@@ -53,7 +53,7 @@ const validateInputs = ({
 
 	validateNetworkIdentifier(networkIdentifier);
 
-	if (!unlockingObjects?.length) {
+	if (!unlockObjects?.length) {
 		throw new Error('Unlocking object must present to create transaction.');
 	}
 };
@@ -62,13 +62,13 @@ export const unlockToken = (
 	inputs: UnlockTokenInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { networkIdentifier, passphrase, unlockingObjects } = inputs;
+	const { networkIdentifier, passphrase, unlockObjects } = inputs;
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: UnlockTransaction.TYPE,
 		asset: {
-			unlockingObjects,
+			unlockObjects,
 		},
 	};
 

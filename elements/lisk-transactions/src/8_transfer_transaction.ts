@@ -26,7 +26,7 @@ import {
 import { BaseTransaction, StateStore } from './base_transaction';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './types';
+import { TransactionJSON, AssetSchema } from './types';
 import { verifyMinRemainingBalance } from './utils';
 
 export interface TransferAsset {
@@ -43,7 +43,7 @@ export const balanceTransferAsset = {
 			dataType: 'uint64',
 			fieldNumber: 1,
 		},
-		recipientId: {
+		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 2,
 		},
@@ -63,7 +63,7 @@ interface RawAsset {
 export class TransferTransaction extends BaseTransaction {
 	public static TYPE = 8;
 	public readonly asset: TransferAsset;
-	public readonly assetSchema: object;
+	public readonly assetSchema: AssetSchema;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

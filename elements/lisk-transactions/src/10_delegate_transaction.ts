@@ -17,7 +17,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './types';
+import { TransactionJSON, AssetSchema } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;
@@ -46,7 +46,7 @@ export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 	public readonly asset: DelegateAsset;
-	public readonly assetSchema: object;
+	public readonly assetSchema: AssetSchema;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);

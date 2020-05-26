@@ -29,7 +29,7 @@ import {
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import { baseTransactionSchema } from './schema';
-import { Account, BlockHeader, TransactionJSON } from './types';
+import { Account, BlockHeader, TransactionJSON, BaseTransactionSchema } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,
@@ -93,7 +93,7 @@ export abstract class BaseTransaction {
 	public receivedAt?: Date;
 	public senderPublicKey: string;
 	public signatures: string[];
-	public readonly schema: object;
+	public readonly schema: BaseTransactionSchema;
 
 	protected _id?: string;
 	protected _minFee?: bigint;

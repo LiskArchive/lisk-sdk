@@ -17,7 +17,7 @@ import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionJSON } from './types';
+import { Account, AssetSchema, TransactionJSON } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
@@ -27,14 +27,14 @@ export interface Unlock {
 }
 
 export interface UnlockAsset {
-	readonly unlockingObjects: ReadonlyArray<Unlock>;
+	readonly unlockObjects: ReadonlyArray<Unlock>;
 }
 
 const unlockAssetSchema = {
 	type: 'object',
-	required: ['unlockingObjects'],
+	required: ['unlockObjects'],
 	properties: {
-		unlockingObjects: {
+		unlockObjects: {
 			type: 'array',
 			items: {
 				type: 'object',
@@ -45,7 +45,7 @@ const unlockAssetSchema = {
 						fieldNumber: 1,
 					},
 					amount: {
-						dataType: 'sint64',
+						dataType: 'uint64',
 						fieldNumber: 2,
 					},
 					unvoteHeight: {
@@ -54,6 +54,7 @@ const unlockAssetSchema = {
 					},
 				},
 			},
+			fieldNumber: 1,
 		},
 	},
 };
@@ -71,7 +72,7 @@ export interface RawAssetUnlock {
 }
 
 interface RawAsset {
-	readonly unlockingObjects: ReadonlyArray<RawAssetUnlock>;
+	readonly unlockObjects: ReadonlyArray<RawAssetUnlock>;
 }
 
 const getWaitingPeriod = (
@@ -92,7 +93,7 @@ const getWaitingPeriod = (
 export class UnlockTransaction extends BaseTransaction {
 	public static TYPE = 14;
 	public readonly asset: UnlockAsset;
-	public readonly assetSchema: object;
+	public readonly assetSchema: AssetSchema;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
@@ -104,7 +105,7 @@ export class UnlockTransaction extends BaseTransaction {
 		if (tx.asset) {
 			const rawAsset = tx.asset as RawAsset;
 			this.asset = {
-				unlockingObjects: rawAsset.unlockingObjects.map(unlock => {
+				unlockObjects: rawAsset.unlockObjects.map(unlock => {
 					const amount = isNumberString(unlock.amount)
 						? BigInt(unlock.amount)
 						: BigInt(0);
@@ -117,13 +118,13 @@ export class UnlockTransaction extends BaseTransaction {
 				}),
 			};
 		} else {
-			this.asset = { unlockingObjects: [] };
+			this.asset = { unlockObjects: [] };
 		}
 	}
 
 	protected assetToBytes(): Buffer {
 		const bufferArray = [];
-		for (const unlock of this.asset.unlockingObjects) {
+		for (const unlock of this.asset.unlockObjects) {
 			const addressBuffer = hexToBuffer(unlock.delegateAddress);
 			bufferArray.push(addressBuffer);
 			const amountBuffer = intToBuffer(
@@ -147,7 +148,7 @@ export class UnlockTransaction extends BaseTransaction {
 			schemaErrors,
 		) as TransactionError[];
 
-		for (const unlock of this.asset.unlockingObjects) {
+		for (const unlock of this.asset.unlockObjects) {
 			if (unlock.amount <= BigInt(0)) {
 				errors.push(
 					new TransactionError(
@@ -179,7 +180,7 @@ export class UnlockTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
 
-		for (const unlock of this.asset.unlockingObjects) {
+		for (const unlock of this.asset.unlockObjects) {
 			const sender = await store.account.get(this.senderId);
 			const delegate = await store.account.getOrDefault(unlock.delegateAddress);
 			if (!delegate.username) {
@@ -187,7 +188,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Voted account is not registered as delegate',
 						this.id,
-						'.asset.unlockingObjects.delegateAddress',
+						'.asset.unlockObjects.delegateAddress',
 					),
 				);
 				// eslint-disable-next-line no-continue
@@ -205,7 +206,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Unlocking is not permitted as it is still within the waiting period',
 						this.id,
-						'.asset.unlockingObjects.unvoteHeight',
+						'.asset.unlockObjects.unvoteHeight',
 						waitingPeriod,
 						0,
 					),
@@ -221,7 +222,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Unlocking is not permitted as delegate is currently being punished',
 						this.id,
-						'.asset.unlockingObjects.delegateAddress',
+						'.asset.unlockObjects.delegateAddress',
 						punishmentPeriod,
 						0,
 					),
@@ -238,7 +239,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Corresponding unlocking object not found',
 						this.id,
-						'.asset.unlockingObjects',
+						'.asset.unlockObjects',
 					),
 				);
 				// eslint-disable-next-line no-continue
@@ -255,7 +256,7 @@ export class UnlockTransaction extends BaseTransaction {
 	protected async undoAsset(
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
-		for (const unlock of this.asset.unlockingObjects) {
+		for (const unlock of this.asset.unlockObjects) {
 			const sender = await store.account.get(this.senderId);
 
 			sender.balance -= unlock.amount;
