@@ -57,20 +57,18 @@ const generateValidBooleanEncodings = () => {
 		input.booleanFalse.object,
 	).finish();
 
-	return {
-		description: 'Encoding of boolean types',
-		config: {
-			network: 'devnet',
+	return [
+		{
+			description: 'Encoding of boolean with value true',
+			input: input.booleanTrue,
+			output: { value: booleanTrueEncoded.toString('hex') },
 		},
-		input: {
-			booleanTrue: input.booleanTrue,
-			booleanFalse: input.booleanFalse,
+		{
+			description: 'Encoding of boolean with value false',
+			input: input.booleanFalse,
+			output: { value: booleanFalseEncoded.toString('hex') },
 		},
-		output: {
-			booleanTrue: booleanTrueEncoded.toString('hex'),
-			booleanFalse: booleanFalseEncoded.toString('hex'),
-		},
-	};
+	];
 };
 
 module.exports = generateValidBooleanEncodings;

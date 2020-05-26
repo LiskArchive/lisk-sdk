@@ -56,20 +56,18 @@ const generateValidBytesEncodings = () => {
 	const bytesEncoded = Bytes.encode(input.bytes.object).finish();
 	const emptyBytesEncoded = Bytes.encode(input.emptyBytes.object).finish();
 
-	return {
-		description: 'Encoding of bytes types',
-		config: {
-			network: 'devnet',
+	return [
+		{
+			description: 'Encoding of chunk of bytes',
+			input: input.bytes,
+			output: { value: bytesEncoded.toString('hex') },
 		},
-		input: {
-			bytes: input.bytes,
-			emptyBytes: input.emptyBytes,
+		{
+			description: 'Encoding of empty bytes',
+			input: input.emptyBytes,
+			output: { value: emptyBytesEncoded.toString('hex') },
 		},
-		output: {
-			bytes: bytesEncoded.toString('hex'),
-			emptyBytes: emptyBytesEncoded.toString('hex'),
-		},
-	};
+	];
 };
 
 module.exports = generateValidBytesEncodings;

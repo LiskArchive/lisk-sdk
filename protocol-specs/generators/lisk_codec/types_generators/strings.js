@@ -56,20 +56,18 @@ const generateValidStringEncodings = () => {
 	const stringEncoded = String.encode(input.string.object).finish();
 	const emptyStringEncoded = String.encode(input.emptyString.object).finish();
 
-	return {
-		description: 'Encoding of string types',
-		config: {
-			network: 'devnet',
+	return [
+		{
+			description: 'Encoding of string',
+			input: input.string,
+			output: { value: stringEncoded.toString('hex') },
 		},
-		input: {
-			string: input.string,
-			emptyString: input.emptyString,
+		{
+			description: 'Encoding of empty string',
+			input: input.emptyString,
+			output: { value: emptyStringEncoded.toString('hex') },
 		},
-		output: {
-			string: stringEncoded.toString('hex'),
-			emptyString: emptyStringEncoded.toString('hex'),
-		},
-	};
+	];
 };
 
 module.exports = generateValidStringEncodings;

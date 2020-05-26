@@ -148,26 +148,33 @@ const generateValidArrayEncodings = () => {
 	).finish();
 	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
 
-	return {
-		description: 'Encoding of array types',
-		config: {
-			network: 'devnet',
+	return [
+		{
+			description: 'Encoding of integers array',
+			input: input.ArrayOfIntegers,
+			output: { value: arrayOfIntegersEncoded.toString('hex') },
 		},
-		input: {
-			arrayOfIntegers: input.ArrayOfIntegers,
-			arrayBools: input.arrayBools,
-			arrayStrings: input.arrayStrings,
-			arrayOfObjects: input.arrayObjects,
-			emptyArray: input.emptyArray,
+		{
+			description: 'Encoding of booleans array',
+			input: input.arrayBools,
+			output: { value: arrayBoolsEncoded.toString('hex') },
 		},
-		output: {
-			arrayOfIntegersEncoded: arrayOfIntegersEncoded.toString('hex'),
-			arrayBoolsEncoded: arrayBoolsEncoded.toString('hex'),
-			arrayStringsEncoded: arrayStringsEncoded.toString('hex'),
-			arrayOfObjectsEncoded: arrayOfObjectsEncoded.toString('hex'),
-			emptyArrayEncoded: emptyArrayEncoded.toString('hex'),
+		{
+			description: 'Encoding of strings array',
+			input: input.arrayStrings,
+			output: { value: arrayStringsEncoded.toString('hex') },
 		},
-	};
+		{
+			description: 'Encoding of objects array',
+			input: input.arrayObjects,
+			output: { value: arrayOfObjectsEncoded.toString('hex') },
+		},
+		{
+			description: 'Encoding of empty array',
+			input: input.emptyArray,
+			output: { value: emptyArrayEncoded.toString('hex') },
+		},
+	];
 };
 
 module.exports = generateValidArrayEncodings;

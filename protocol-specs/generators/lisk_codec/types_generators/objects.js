@@ -97,20 +97,18 @@ const generateValidObjectEncodings = () => {
 		input.objectOptionalProp.object,
 	).finish();
 
-	return {
-		description: 'Encoding of object types',
-		config: {
-			network: 'devnet',
+	return [
+		{
+			description: 'Encoding of object',
+			input: input.object,
+			output: { value: objectEncoded.toString('hex') },
 		},
-		input: {
-			object: input.object,
-			objectWithOptionalProp: input.objectOptionalProp,
+		{
+			description: 'Encoding of object with optional property',
+			input: input.objectOptionalProp,
+			output: { value: objectOptionalPropEncoded.toString('hex') },
 		},
-		output: {
-			object: objectEncoded.toString('hex'),
-			objectWithOptionalProp: objectOptionalPropEncoded.toString('hex'),
-		},
-	};
+	];
 };
 
 module.exports = generateValidObjectEncodings;

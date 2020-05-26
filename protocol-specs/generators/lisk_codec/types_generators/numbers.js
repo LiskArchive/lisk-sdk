@@ -97,24 +97,28 @@ const generateValidNumberEncodings = () => {
 		input.messageSigned64.object,
 	).finish();
 
-	return {
-		description: 'Encoding of numeric types',
-		config: {
-			network: 'devnet',
+	return [
+		{
+			description: 'Encoding 32 bit unsigned number',
+			input: input.message32,
+			output: { value: numberEncoded32.toString('hex') },
 		},
-		input: {
-			message32: input.message32,
-			messageSigned32: input.messageSigned32,
-			message64: input.message64,
-			messageSigned64: input.messageSigned64,
+		{
+			description: 'Encoding 32 bit signed number',
+			input: input.messageSigned32,
+			output: { value: signedNumberEncoded32.toString('hex') },
 		},
-		output: {
-			numberEncoded32: numberEncoded32.toString('hex'),
-			signedNumberEncoded32: signedNumberEncoded32.toString('hex'),
-			numberEncoded64: numberEncoded64.toString('hex'),
-			signedNumberEncoded64: signedNumberEncoded64.toString('hex'),
+		{
+			description: 'Encoding 64 bit unsigned number',
+			input: input.message64,
+			output: { value: numberEncoded64.toString('hex') },
 		},
-	};
+		{
+			description: 'Encoding 64 bit signed number',
+			input: input.messageSigned64,
+			output: { value: signedNumberEncoded64.toString('hex') },
+		},
+	];
 };
 
 module.exports = generateValidNumberEncodings;
