@@ -178,7 +178,7 @@ describe('nacl', () => {
 				it('should return false if the signature is invalid', () => {
 					const verification = verifyDetached(
 						Buffer.from(defaultDigest, 'hex'),
-						Buffer.from(makeInvalid(defaultSignature), 'hex'),
+						makeInvalid(Buffer.from(defaultSignature, 'hex')),
 						Buffer.from(defaultPublicKey, 'hex'),
 					);
 					expect(verification).toBe(false);
