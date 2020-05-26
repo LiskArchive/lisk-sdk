@@ -39,10 +39,6 @@ Object {
         "minimum": 0,
         "type": "integer",
       },
-      "payloadHash": Object {
-        "format": "hex",
-        "type": "string",
-      },
       "payloadLength": Object {
         "minimum": 0,
         "type": "integer",
@@ -74,6 +70,10 @@ Object {
       },
       "totalFee": Object {
         "format": "amount",
+        "type": "string",
+      },
+      "transactionRoot": Object {
+        "format": "hex",
         "type": "string",
       },
       "transactions": Object {
@@ -147,7 +147,7 @@ Object {
       "seedReveal",
       "totalFee",
       "reward",
-      "payloadHash",
+      "transactionRoot",
       "timestamp",
       "numberOfTransactions",
       "payloadLength",

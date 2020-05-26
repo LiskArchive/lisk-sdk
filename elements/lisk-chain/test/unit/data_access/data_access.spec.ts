@@ -529,7 +529,7 @@ describe('data_access', () => {
 		const blockJSON = {
 			totalFee: '10000000',
 			totalAmount: '1',
-			payloadHash:
+			transactionRoot:
 				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
 			payloadLength: 117,
 			numberOfTransactions: 1,

@@ -33,7 +33,7 @@ import { reportMisbehavior } from './report_misbehavior';
 import { createResponse, Status, TransactionResponse } from './response';
 import { transactionInterface } from './schema';
 import { signMultiSignatureTransaction } from './sign_multi_signature_transaction';
-import { Account, TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './types';
 import { transfer } from './transfer';
 import { unlockToken } from './unlock_token';
 import {

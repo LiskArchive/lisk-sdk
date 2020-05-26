@@ -16,7 +16,7 @@ import { validateNetworkIdentifier } from '@liskhq/lisk-validator';
 
 import { DelegateTransaction } from './10_delegate_transaction';
 import { USERNAME_MAX_LENGTH } from './constants';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { createBaseTransaction } from './utils';
 
 export interface RegisterDelegateInputs {

@@ -29,7 +29,7 @@ import {
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
-import { Account, BlockHeader, TransactionJSON } from './transaction_types';
+import { Account, BlockHeader, TransactionJSON } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,

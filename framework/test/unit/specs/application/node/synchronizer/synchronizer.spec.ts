@@ -69,7 +69,7 @@ describe('Synchronizer', () => {
 		rounds = new Rounds({ blocksPerRound: constants.activeDelegates });
 
 		const networkIdentifier = getNetworkIdentifier(
-			genesisBlockDevnet.payloadHash,
+			genesisBlockDevnet.transactionRoot,
 			genesisBlockDevnet.communityIdentifier,
 		);
 

@@ -126,7 +126,7 @@ describe('block processor v2', () => {
 				communityIdentifier: 'Lisk',
 				generatorPublicKey:
 					'e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8',
-				payloadHash:
+				transactionRoot:
 					'19074b69c97e6f6b86969bb62d4f15b888898b499777bda56a3a2ee642a7f20a',
 				payloadLength: 39677,
 				totalAmount: '10000000000000000',
@@ -376,7 +376,7 @@ describe('block processor v2', () => {
 			totalFee: BigInt(0),
 			seedReveal: defaultSeedReveal,
 			reward: 5,
-			payloadHash:
+			transactionRoot:
 				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 			timestamp: 10,
 			numberOfTransactions: 0,

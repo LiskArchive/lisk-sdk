@@ -20,8 +20,9 @@ import {
 } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
 import {
-	hash,
+	bufferToHex,
 	signDataWithPrivateKey,
+	stringToBuffer,
 	hexToBuffer,
 	intToBuffer,
 	LITTLE_ENDIAN,
@@ -31,6 +32,7 @@ import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { MerkleTree } from '@liskhq/lisk-tree';
 import { BaseBlockProcessor } from './processor';
 import { Logger } from '../logger';
 
@@ -182,7 +184,7 @@ export const getBytes = (
 		LITTLE_ENDIAN,
 	);
 
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
@@ -203,7 +205,7 @@ export const getBytes = (
 		totalFeeBuffer,
 		rewardBuffer,
 		payloadLengthBuffer,
-		payloadHashBuffer,
+		transactionRootBuffer,
 		generatorPublicKeyBuffer,
 		blockSignatureBuffer,
 	]);
@@ -215,6 +217,13 @@ const validateSchema = ({ block }: { block: BlockInstance }) => {
 	if (errors.length) {
 		throw errors;
 	}
+};
+
+export const getTransactionRoot = (ids: ReadonlyArray<string>): string => {
+	const idsAsBuffers = ids.map(id => stringToBuffer(id));
+	const tree = new MerkleTree(idsAsBuffers);
+
+	return bufferToHex(tree.root);
 };
 
 export class BlockProcessorV2 extends BaseBlockProcessor {
@@ -383,7 +392,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		let size = 0;
 
 		const blockTransactions = [];
-		const transactionsBytesArray = [];
+		const transactionIds = [];
 
 		// eslint-disable-next-line no-plusplus,@typescript-eslint/prefer-for-of
 		for (let i = 0; i < transactions.length; i++) {
@@ -401,11 +410,10 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			totalAmount += BigInt((transaction.asset as any).amount ?? 0);
 
 			blockTransactions.push(transaction);
-			transactionsBytesArray.push(transactionBytes);
+			transactionIds.push(transaction.id);
 		}
 
-		const transactionsBuffer = Buffer.concat(transactionsBytesArray);
-		const payloadHash = hash(transactionsBuffer).toString('hex');
+		const transactionRoot = getTransactionRoot(transactionIds);
 
 		const block: BlockWithoutIDAndSign = {
 			version: this.version,
@@ -413,7 +421,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			totalFee,
 			seedReveal,
 			reward,
-			payloadHash,
+			transactionRoot,
 			timestamp,
 			numberOfTransactions: blockTransactions.length,
 			payloadLength: size,

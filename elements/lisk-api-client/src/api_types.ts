@@ -43,7 +43,7 @@ export interface HashMap {
 export interface InitOptions {
 	readonly bannedNodes?: ReadonlyArray<string>;
 	readonly client?: object;
-	readonly genesisBlockPayloadHash?: string;
+	readonly genesisBlockTransactionRoot?: string;
 	readonly node?: string;
 	readonly randomizeNodes?: boolean;
 }

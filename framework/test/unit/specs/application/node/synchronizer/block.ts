@@ -24,6 +24,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { BlockInstance } from '@liskhq/lisk-chain';
 import * as genesisBlock from '../../../../../fixtures/config/devnet/genesis_block.json';
+import { getTransactionRoot } from '../../../../../../src/application/node/block_processor_v2';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -91,7 +92,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
@@ -112,7 +113,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		totalFeeBuffer,
 		rewardBuffer,
 		payloadLengthBuffer,
-		payloadHashBuffer,
+		transactionRootBuffer,
 		generatorPublicKeyBuffer,
 		blockSignatureBuffer,
 	]);
@@ -135,7 +136,7 @@ const getKeyPair = () => {
 
 const calculateTransactionsInfo = (block: BlockInstance) => {
 	const sortedTransactions = sortTransactions(block.transactions);
-	const transactionsBytesArray = [];
+	const transactionIds = [];
 	let totalFee = BigInt(0);
 	let totalAmount = BigInt(0);
 	let payloadLength = 0;
@@ -149,16 +150,15 @@ const calculateTransactionsInfo = (block: BlockInstance) => {
 		totalAmount += BigInt((transaction.asset as any).amount ?? '0');
 
 		payloadLength += transactionBytes.length;
-		transactionsBytesArray.push(transactionBytes);
+		transactionIds.push(transaction.id);
 	}
 
-	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
-	const payloadHash = hash(transactionsBuffer).toString('hex');
+	const transactionRoot = getTransactionRoot(transactionIds);
 
 	return {
 		totalFee,
 		totalAmount,
-		payloadHash,
+		transactionRoot,
 		payloadLength,
 		numberOfTransactions: block.transactions.length,
 	};
@@ -168,7 +168,7 @@ const defaultNetworkIdentifier =
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
- * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
+ * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const newBlock = (
 	block?: Partial<BlockInstance>,

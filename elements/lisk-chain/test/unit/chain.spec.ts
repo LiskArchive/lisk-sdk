@@ -30,7 +30,7 @@ jest.mock('events');
 jest.mock('@liskhq/lisk-db');
 
 const networkIdentifier = getNetworkIdentifier(
-	genesisBlock.payloadHash,
+	genesisBlock.transactionRoot,
 	'Lisk',
 );
 
@@ -142,12 +142,12 @@ describe('chain', () => {
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
-			it('should throw an error if the genesis block payloadHash is different', async () => {
+			it('should throw an error if the genesis block transactionRoot is different', async () => {
 				// Arrange
 				const error = new Error('Genesis block does not match');
 				const mutatedGenesisBlock = {
 					...genesisBlock,
-					payloadHash: genesisBlock.payloadHash.replace('0', '1'),
+					transactionRoot: genesisBlock.transactionRoot.replace('0', '1'),
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
@@ -319,7 +319,7 @@ describe('chain', () => {
 		const blockJSON = {
 			totalFee: '10000000',
 			totalAmount: '1',
-			payloadHash:
+			transactionRoot:
 				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
 			payloadLength: 117,
 			numberOfTransactions: 1,

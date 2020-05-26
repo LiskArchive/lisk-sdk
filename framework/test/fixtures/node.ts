@@ -23,7 +23,7 @@ export const nodeOptions = {
 		version: 2,
 		height: 1,
 		communityIdentifier: 'Lisk',
-		payloadHash: '',
+		transactionRoot: '',
 	},
 	network: {
 		enabled: false,

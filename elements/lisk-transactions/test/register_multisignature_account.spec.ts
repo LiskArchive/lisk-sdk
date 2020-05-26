@@ -18,7 +18,7 @@ import {
 	RegisterMultisignatureInputs,
 } from '../src/register_multisignature_account';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON } from '../src/types';
 
 import cloneDeep = require('lodash.clonedeep');
 

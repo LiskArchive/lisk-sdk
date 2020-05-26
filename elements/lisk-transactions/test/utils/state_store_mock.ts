@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-import {
-	Account,
-	TransactionJSON,
-	BlockHeader,
-} from '../../src/transaction_types';
+import { Account, TransactionJSON, BlockHeader } from '../../src/types';
 import { AccountState, ChainState } from '../../src/base_transaction';
 
 export const defaultAccount = {

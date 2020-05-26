@@ -1543,7 +1543,7 @@ definitions:
         example: 117
         minimum: 0
         description: Bytesize of the payload hash.
-      payloadHash:
+      transactionRoot:
         type: string
         format: hex
         example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2

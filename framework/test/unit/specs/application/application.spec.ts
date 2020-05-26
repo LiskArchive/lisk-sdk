@@ -80,8 +80,8 @@ describe('Application', () => {
 			);
 		});
 
-		it('should set app label with the genesis block payload hash prefixed with `lisk-` if label not provided', () => {
-			const label = `lisk-${genesisBlock.payloadHash.slice(0, 7)}`;
+		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
+			const label = `lisk-${genesisBlock.transactionRoot.slice(0, 7)}`;
 			const configWithoutLabel = _.cloneDeep(config);
 			delete configWithoutLabel.label;
 

@@ -27,9 +27,7 @@ const {
 
 const BaseGenerator = require('../base_generator');
 
-const networkIdentifier =
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
-
+const networkIdentifier = 'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
 
@@ -94,7 +92,7 @@ const getBytes = block => {
 		LITTLE_ENDIAN,
 	);
 
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
@@ -115,7 +113,7 @@ const getBytes = block => {
 		totalFeeBuffer,
 		rewardBuffer,
 		payloadLengthBuffer,
-		payloadHashBuffer,
+		transactionRootBuffer,
 		generatorPublicKeyBuffer,
 		blockSignatureBuffer,
 	]);
@@ -209,7 +207,7 @@ const scenario1Header1 = {
 	totalFee: '10000000000',
 	reward: '10000000000',
 	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };
@@ -232,7 +230,7 @@ const scenario1Header2 = {
 	totalFee: '10000000000',
 	reward: '10000000000',
 	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };
@@ -306,7 +304,7 @@ const scenario2Header1 = {
 	totalFee: '10000000000',
 	reward: '10000000000',
 	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };
@@ -329,7 +327,7 @@ const scenario2Header2 = {
 	totalFee: '10000000000',
 	reward: '10000000000',
 	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };
@@ -403,7 +401,7 @@ const scenario3Header1 = {
 	totalFee: '10000000000',
 	reward: '10000000000',
 	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };
@@ -426,7 +424,7 @@ const scenario3Header2 = {
 	totalFee: '10000000000',
 	reward: '10000000000',
 	payloadLength: 0,
-	payloadHash: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
 	generatorPublicKey:
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 };

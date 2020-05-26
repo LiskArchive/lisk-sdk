@@ -19,7 +19,7 @@ import {
 	LITTLE_ENDIAN,
 } from '@liskhq/lisk-cryptography';
 
-import { BlockHeaderJSON } from '../transaction_types';
+import { BlockHeaderJSON } from '../types';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -37,7 +37,9 @@ export const getBlockBytes = (block: BlockHeaderJSON): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const previousBlockBuffer = block.previousBlockId ? Buffer.from(block.previousBlockId, 'hex') : Buffer.alloc(32);
+	const previousBlockBuffer = block.previousBlockId
+		? Buffer.from(block.previousBlockId, 'hex')
+		: Buffer.alloc(32);
 
 	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
 
@@ -85,7 +87,7 @@ export const getBlockBytes = (block: BlockHeaderJSON): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
@@ -102,7 +104,7 @@ export const getBlockBytes = (block: BlockHeaderJSON): Buffer => {
 		totalFeeBuffer,
 		rewardBuffer,
 		payloadLengthBuffer,
-		payloadHashBuffer,
+		transactionRootBuffer,
 		generatorPublicKeyBuffer,
 	]);
 };
