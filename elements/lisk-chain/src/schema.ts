@@ -35,7 +35,7 @@ export const baseBlockSchema = {
 		numberOfTransactions: {
 			type: 'integer',
 		},
-		payloadHash: {
+		transactionRoot: {
 			type: 'string',
 			format: 'hex',
 		},
@@ -76,7 +76,7 @@ export const baseBlockSchema = {
 		'blockSignature',
 		'generatorPublicKey',
 		'numberOfTransactions',
-		'payloadHash',
+		'transactionRoot',
 		'payloadLength',
 		'timestamp',
 		'totalAmount',

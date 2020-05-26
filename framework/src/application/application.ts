@@ -168,7 +168,8 @@ export class Application {
 		let appConfig = _.cloneDeep(config);
 
 		appConfig.label =
-			appConfig.label ?? `lisk-${this._genesisBlock.payloadHash.slice(0, 7)}`;
+			appConfig.label ??
+			`lisk-${this._genesisBlock.transactionRoot.slice(0, 7)}`;
 
 		appConfig = configurator.getConfig(appConfig, {
 			failOnInvalidArg: process.env.NODE_ENV !== 'test',
@@ -358,7 +359,7 @@ export class Application {
 	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			this._genesisBlock.payloadHash,
+			this._genesisBlock.transactionRoot,
 			this._genesisBlock.communityIdentifier,
 		);
 

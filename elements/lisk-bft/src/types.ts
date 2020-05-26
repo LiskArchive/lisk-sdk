@@ -69,8 +69,8 @@ export enum ForkStatus {
 
 export interface StateStore {
 	readonly consensus: {
-		readonly set: (key: string, value: string) => void;
-		readonly get: (key: string) => Promise<string | undefined>;
+		readonly set: (key: string, value: Buffer) => void;
+		readonly get: (key: string) => Promise<Buffer | undefined>;
 	};
 }
 

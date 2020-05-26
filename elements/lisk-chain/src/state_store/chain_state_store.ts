@@ -24,7 +24,7 @@ interface AdditionalInformation {
 }
 
 interface KeyValuePair {
-	[key: string]: string;
+	[key: string]: Buffer | undefined;
 }
 
 export class ChainStateStore {
@@ -74,7 +74,7 @@ export class ChainStateStore {
 		this._updatedKeys = new Set(this._originalUpdatedKeys);
 	}
 
-	public async get(key: string): Promise<string | undefined> {
+	public async get(key: string): Promise<Buffer | undefined> {
 		const value = this._data[key];
 
 		if (value) {
@@ -99,7 +99,7 @@ export class ChainStateStore {
 		throw new Error(`getOrDefault cannot be called for ${this._name}`);
 	}
 
-	public set(key: string, value: string): void {
+	public set(key: string, value: Buffer): void {
 		this._data[key] = value;
 		this._updatedKeys.add(key);
 	}
@@ -110,7 +110,7 @@ export class ChainStateStore {
 		}
 
 		for (const key of Array.from(this._updatedKeys)) {
-			batch.put(`${DB_KEY_CHAIN_STATE}:${key}`, this._data[key]);
+			batch.put(`${DB_KEY_CHAIN_STATE}:${key}`, this._data[key] as Buffer);
 		}
 	}
 }

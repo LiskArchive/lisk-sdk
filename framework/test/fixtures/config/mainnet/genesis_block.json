@@ -4,7 +4,7 @@
 	"totalAmount": "10000000000000000",
 	"totalFee": "0",
 	"reward": "0",
-	"payloadHash": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
+	"transactionRoot": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511",
 	"timestamp": 0,
 	"numberOfTransactions": 8176,
 	"payloadLength": 996985,

@@ -15,14 +15,14 @@
 import { getNetworkIdentifier as getNetworkID } from '@liskhq/lisk-cryptography';
 
 interface NetworkIdentifierable {
-	readonly payloadHash: string;
+	readonly transactionRoot: string;
 	readonly communityIdentifier: string;
 }
 
 export const getNetworkIdentifier = (
 	genesisBlock: NetworkIdentifierable,
 ): string =>
-	getNetworkID(genesisBlock.payloadHash, genesisBlock.communityIdentifier);
+	getNetworkID(genesisBlock.transactionRoot, genesisBlock.communityIdentifier);
 
 export const devnetNetworkIdentifier =
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';

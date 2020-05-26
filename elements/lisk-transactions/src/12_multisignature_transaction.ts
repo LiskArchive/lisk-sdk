@@ -25,7 +25,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,

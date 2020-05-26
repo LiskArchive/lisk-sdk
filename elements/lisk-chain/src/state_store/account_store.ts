@@ -141,7 +141,7 @@ export class AccountStore {
 			if (this._updatedKeys.has(account.address)) {
 				batch.put(
 					`${DB_KEY_ACCOUNTS_ADDRESS}:${account.address}`,
-					account.toJSON(),
+					Buffer.from(JSON.stringify(account.toJSON()), 'utf8'),
 				);
 			}
 		}

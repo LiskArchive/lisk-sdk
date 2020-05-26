@@ -57,7 +57,7 @@ describe('blocks/header', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	const networkIdentifier = getNetworkIdentifier(
-		genesisBlock.payloadHash,
+		genesisBlock.transactionRoot,
 		genesisBlock.communityIdentifier,
 	);
 
@@ -170,7 +170,7 @@ describe('blocks/header', () => {
 			});
 		});
 
-		describe('when payload hash is incorrect', () => {
+		describe('when transaction root is incorrect', () => {
 			it('should throw error', () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() =>
@@ -187,12 +187,12 @@ describe('blocks/header', () => {
 						}) as TransactionJSON,
 					),
 				);
-				block = newBlock({ transactions: txs, payloadHash: '1234567890' });
+				block = newBlock({ transactions: txs, transactionRoot: '1234567890' });
 				blockBytes = getBytes(block);
 				// Act & assert
 				expect(() =>
 					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Invalid payload hash');
+				).toThrow('Invalid transaction root');
 			});
 		});
 
@@ -387,10 +387,14 @@ describe('blocks/header', () => {
 				// Arrage
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '100000000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '100000000000000',
+							}),
+						) as never,
+					);
 
 				invalidTx = chainInstance.deserializeTransaction(
 					transfer({
@@ -447,10 +451,14 @@ describe('blocks/header', () => {
 				block = newBlock({ transactions: [validTx] });
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '100000000000000',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '100000000000000',
+							}),
+						) as never,
+					);
 				(db.exists as jest.Mock).mockResolvedValue(true as never);
 			});
 
@@ -546,21 +554,29 @@ describe('blocks/header', () => {
 				});
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '0',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '0',
+							}),
+						) as never,
+					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
 							block.generatorPublicKey,
 						)}`,
 					)
-					.mockResolvedValue({
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: '0',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: getAddressFromPublicKey(block.generatorPublicKey),
+								balance: '0',
+							}),
+						) as never,
+					)
 					.calledWith(`chain:burntFee`)
-					.mockResolvedValue('100' as never);
+					.mockResolvedValue(Buffer.from(JSON.stringify('100')) as never);
 				jest.spyOn(stateStore.chain, 'set');
 
 				// Arrage
@@ -620,15 +636,23 @@ describe('blocks/header', () => {
 					)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '0',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '0',
+							}),
+						) as never,
+					)
 					.calledWith(`accounts:address:${generatorAddress}`)
-					.mockResolvedValue({
-						address: generatorAddress,
-						balance: '0',
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: generatorAddress,
+								balance: '0',
+							}),
+						) as never,
+					);
 			});
 
 			it('should throw error', async () => {
@@ -732,29 +756,39 @@ describe('blocks/header', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '1000000000000',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '1000000000000',
+							}),
+						) as never,
+					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
 							block.generatorPublicKey,
 						)}`,
 					)
-					.mockResolvedValue({
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: '0',
-						producedBlocks: 0,
-						nonce: '0',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: getAddressFromPublicKey(block.generatorPublicKey),
+								balance: '0',
+								producedBlocks: 0,
+								nonce: '0',
+							}),
+						) as never,
+					)
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					.calledWith(`accounts:address:${delegate1.address}`)
-					.mockResolvedValue(delegate1 as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(delegate1)) as never)
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					.calledWith(`accounts:address:${delegate2.address}`)
-					.mockResolvedValue(delegate2 as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(delegate2)) as never)
 					.calledWith(`chain:burntFee`)
-					.mockResolvedValue(defaultBurntFee as never);
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(defaultBurntFee)) as never,
+					);
 				await chainInstance.apply(block, stateStore);
 			});
 
@@ -787,7 +821,7 @@ describe('blocks/header', () => {
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
 				}
-				expect(burntFee).toEqual(
+				expect(JSON.parse((burntFee as Buffer).toString('utf8'))).toEqual(
 					(BigInt(defaultBurntFee) + expected).toString(),
 				);
 			});
@@ -836,7 +870,9 @@ describe('blocks/header', () => {
 				const genesisAccountFromStore = await stateStore.chain.get(
 					CHAIN_STATE_BURNT_FEE,
 				);
-				expect(genesisAccountFromStore).toBe('0');
+				expect(
+					JSON.parse((genesisAccountFromStore as Buffer).toString('utf8')),
+				).toBe('0');
 			});
 		});
 	});
@@ -863,19 +899,27 @@ describe('blocks/header', () => {
 				block = newBlock({ reward });
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '0',
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '0',
+							}),
+						) as never,
+					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
 							block.generatorPublicKey,
 						)}`,
 					)
-					.mockResolvedValue({
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: reward.toString(),
-					} as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: getAddressFromPublicKey(block.generatorPublicKey),
+								balance: reward.toString(),
+							}),
+						) as never,
+					);
 				await chainInstance.undo(block, stateStore);
 			});
 
@@ -980,40 +1024,50 @@ describe('blocks/header', () => {
 				});
 				when(db.get)
 					.calledWith(`accounts:address:${genesisAccount.address}`)
-					.mockResolvedValue({
-						address: genesisAccount.address,
-						balance: '9889999900',
-						votes: [
-							{
-								delegateAddress: delegate1.address,
-								amount: '10000000000',
-							},
-							{
-								delegateAddress: delegate2.address,
-								amount: '10000000000',
-							},
-						],
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: genesisAccount.address,
+								balance: '9889999900',
+								votes: [
+									{
+										delegateAddress: delegate1.address,
+										amount: '10000000000',
+									},
+									{
+										delegateAddress: delegate2.address,
+										amount: '10000000000',
+									},
+								],
+							}),
+						) as never,
+					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
 							block.generatorPublicKey,
 						)}`,
 					)
-					.mockResolvedValue({
-						address: getAddressFromPublicKey(block.generatorPublicKey),
-						balance: defaultGeneratorBalance.toString(),
-						producedBlocks: 1,
-					} as never)
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								address: getAddressFromPublicKey(block.generatorPublicKey),
+								balance: defaultGeneratorBalance.toString(),
+								producedBlocks: 1,
+							}),
+						) as never,
+					)
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					.calledWith(`accounts:address:${delegate1.address}`)
-					.mockResolvedValue(delegate1 as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(delegate1)) as never)
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					.calledWith(`accounts:address:${delegate2.address}`)
-					.mockResolvedValue(delegate2 as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(delegate2)) as never)
 					.calledWith(`accounts:address:${recipient.address}`)
-					.mockResolvedValue(recipient as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(recipient)) as never)
 					.calledWith(`chain:burntFee`)
-					.mockResolvedValue(defaultBurntFee.toString() as never);
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(defaultBurntFee.toString())) as never,
+					);
 				await chainInstance.undo(block, stateStore);
 			});
 
@@ -1048,7 +1102,7 @@ describe('blocks/header', () => {
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
 				}
-				expect(burntFee).toEqual(
+				expect(JSON.parse((burntFee as Buffer).toString('utf8'))).toEqual(
 					(BigInt(defaultBurntFee) - expected).toString(),
 				);
 			});

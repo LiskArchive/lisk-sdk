@@ -13,7 +13,7 @@
  *
  */
 import { MultisignatureTransaction } from '../src/12_multisignature_transaction';
-import { Account } from '../src/transaction_types';
+import { Account } from '../src/types';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import * as multisigOnlyMandatory from '../fixtures/transaction_multisignature_registration/multisignature_transaction_only_mandatory_members.json';

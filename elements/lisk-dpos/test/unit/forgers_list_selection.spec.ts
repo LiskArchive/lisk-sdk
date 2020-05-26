@@ -90,12 +90,14 @@ describe.skip('Forger selection', () => {
 						return a.address.localeCompare(b.address, 'en');
 					});
 					stateStore = new StateStoreMock([], {
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: JSON.stringify([
-							{
-								round: defaultRound,
-								delegates,
-							},
-						]),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							JSON.stringify([
+								{
+									round: defaultRound,
+									delegates,
+								},
+							]),
+						),
 					});
 					await delegateList.updateForgersList(
 						defaultRound,
@@ -106,10 +108,12 @@ describe.skip('Forger selection', () => {
 						stateStore,
 					);
 
-					const forgersListStr = await stateStore.consensus.get(
+					const forgersListBuffer = await stateStore.consensus.get(
 						CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 					);
-					const forgersList = JSON.parse(forgersListStr as string);
+					const forgersList = JSON.parse(
+						(forgersListBuffer as Buffer).toString('utf8'),
+					);
 					expect(forgersList).toHaveLength(1);
 					expect(forgersList[0].round).toEqual(defaultRound);
 					expect(forgersList[0].delegates.sort()).toEqual(
@@ -141,12 +145,14 @@ describe.skip('Forger selection', () => {
 				return a.address.localeCompare(b.address, 'en');
 			});
 			stateStore = new StateStoreMock([], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: JSON.stringify([
-					{
-						round: defaultRound,
-						delegates,
-					},
-				]),
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+					JSON.stringify([
+						{
+							round: defaultRound,
+							delegates,
+						},
+					]),
+				),
 			});
 			await delegateList.updateForgersList(
 				defaultRound,
@@ -159,18 +165,22 @@ describe.skip('Forger selection', () => {
 		});
 
 		it('should have 103 delegate addresses in the forgers list', async () => {
-			const forgersListStr = await stateStore.consensus.get(
+			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(forgersListStr as string);
+			const forgersList = JSON.parse(
+				(forgersListBuffer as Buffer).toString('utf8'),
+			);
 			expect(forgersList[0].delegates).toHaveLength(103);
 		});
 
 		it('should store selected stand by delegates in the forgers list', async () => {
-			const forgersListStr = await stateStore.consensus.get(
+			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(forgersListStr as string);
+			const forgersList = JSON.parse(
+				(forgersListBuffer as Buffer).toString('utf8'),
+			);
 			const standByCandidates = delegates.slice(101).map(d => d.address);
 			expect(forgersList[0].standby).toHaveLength(2);
 			for (const standby of forgersList[0].standby) {

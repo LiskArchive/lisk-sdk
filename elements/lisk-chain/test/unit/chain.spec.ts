@@ -30,7 +30,7 @@ jest.mock('events');
 jest.mock('@liskhq/lisk-db');
 
 const networkIdentifier = getNetworkIdentifier(
-	genesisBlock.payloadHash,
+	genesisBlock.transactionRoot,
 	'Lisk',
 );
 
@@ -103,7 +103,9 @@ describe('chain', () => {
 	describe('init', () => {
 		beforeEach(() => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
-				Readable.from([{ value: genesisBlock.id }]),
+				Readable.from([
+					{ value: Buffer.from(JSON.stringify(genesisBlock.id)) },
+				]),
 			);
 		});
 
@@ -128,26 +130,34 @@ describe('chain', () => {
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(mutatedGenesisBlock.id as never)
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(mutatedGenesisBlock.id)) as never,
+					)
 					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
-					.mockResolvedValue(mutatedGenesisBlock as never);
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(mutatedGenesisBlock)) as never,
+					);
 
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
 
-			it('should throw an error if the genesis block payloadHash is different', async () => {
+			it('should throw an error if the genesis block transactionRoot is different', async () => {
 				// Arrange
 				const error = new Error('Genesis block does not match');
 				const mutatedGenesisBlock = {
 					...genesisBlock,
-					payloadHash: genesisBlock.payloadHash.replace('0', '1'),
+					transactionRoot: genesisBlock.transactionRoot.replace('0', '1'),
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(mutatedGenesisBlock.id as never)
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(mutatedGenesisBlock.id)) as never,
+					)
 					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
-					.mockResolvedValue(mutatedGenesisBlock as never);
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(mutatedGenesisBlock)) as never,
+					);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
@@ -161,9 +171,13 @@ describe('chain', () => {
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(mutatedGenesisBlock.id as never)
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(mutatedGenesisBlock.id)) as never,
+					)
 					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
-					.mockResolvedValue(mutatedGenesisBlock as never);
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(mutatedGenesisBlock)) as never,
+					);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
 			});
@@ -172,9 +186,13 @@ describe('chain', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(genesisBlock.id as never)
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(genesisBlock.id)) as never,
+					)
 					.calledWith(`blocks:id:${genesisBlock.id}`)
-					.mockResolvedValue(genesisBlock as never);
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(genesisBlock)) as never,
+					);
 				// Act & Assert
 				await expect(chainInstance.init()).resolves.toBeUndefined();
 			});
@@ -186,16 +204,27 @@ describe('chain', () => {
 				// Arrange
 				lastBlock = newBlock({ height: 103 });
 				(db.createReadStream as jest.Mock).mockReturnValue(
-					Readable.from([{ value: lastBlock.id }]),
+					Readable.from([{ value: Buffer.from(JSON.stringify(lastBlock.id)) }]),
 				);
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(genesisBlock.id as never)
+					.mockResolvedValue(
+						Buffer.from(JSON.stringify(genesisBlock.id)) as never,
+					)
 					.calledWith(`blocks:id:${genesisBlock.id}`)
-					.mockResolvedValue(genesisBlock as never)
+					.mockResolvedValue(Buffer.from(JSON.stringify(genesisBlock)) as never)
 					.calledWith(`blocks:id:${lastBlock.id}`)
-					.mockResolvedValue(lastBlock as never);
+					.mockResolvedValue(
+						Buffer.from(
+							JSON.stringify({
+								...lastBlock,
+								reward: lastBlock.reward.toString(),
+								totalAmount: lastBlock.totalAmount.toString(),
+								totalFee: lastBlock.totalFee.toString(),
+							}),
+						) as never,
+					);
 				jest
 					.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
 					.mockResolvedValue([]);
@@ -290,7 +319,7 @@ describe('chain', () => {
 		const blockJSON = {
 			totalFee: '10000000',
 			totalAmount: '1',
-			payloadHash:
+			transactionRoot:
 				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
 			payloadLength: 117,
 			numberOfTransactions: 1,

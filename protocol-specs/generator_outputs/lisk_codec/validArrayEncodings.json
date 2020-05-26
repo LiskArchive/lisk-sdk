@@ -13,22 +13,13 @@
 				"network": "devnet"
 			},
 			"input": {
-				"ArrayOfIntegers": {
+				"arrayOfIntegers": {
 					"object": {
-						"list": [
-							3,
-							1,
-							4,
-							1,
-							5,
-							9,
-							2,
-							6,
-							5
-						]
+						"list": [3, 1, 4, 1, 5, 9, 2, 6, 5]
 					},
 					"schema": {
 						"type": "object",
+						"$id": "arrayUint32",
 						"properties": {
 							"list": {
 								"type": "array",
@@ -42,14 +33,25 @@
 				},
 				"arrayBools": {
 					"object": {
-						"list": [
-							true,
-							true,
-							false,
-							true,
-							false,
-							false
-						]
+						"list": [true, true, false, true, false, false]
+					},
+					"schema": {
+						"type": "object",
+						"$id": "arrayBoolean",
+						"properties": {
+							"list": {
+								"type": "array",
+								"items": {
+									"dataType": "boolean"
+								},
+								"fieldNumber": 1
+							}
+						}
+					}
+				},
+				"arrayStrings": {
+					"object": {
+						"list": ["lisk", "", "gogogog"]
 					},
 					"schema": {
 						"type": "object",
@@ -57,7 +59,7 @@
 							"list": {
 								"type": "array",
 								"items": {
-									"dataType": "bool"
+									"dataType": "string"
 								},
 								"fieldNumber": 1
 							}
@@ -78,23 +80,22 @@
 						]
 					},
 					"schema": {
-						"schema": {
-							"type": "object",
-							"properties": {
-								"list": {
-									"type": "array",
-									"fieldNumber": 1,
-									"items": {
-										"type": "object",
-										"properties": {
-											"address": {
-												"dataType": "string",
-												"fieldNumber": 1
-											},
-											"amount": {
-												"dataType": "uint64",
-												"fieldNumber": 2
-											}
+						"$id": "arrayObject",
+						"type": "object",
+						"properties": {
+							"myArray": {
+								"type": "array",
+								"fieldNumber": 1,
+								"items": {
+									"type": "object",
+									"properties": {
+										"address": {
+											"dataType": "string",
+											"fieldNumber": 1
+										},
+										"amount": {
+											"dataType": "uint64",
+											"fieldNumber": 2
 										}
 									}
 								}
@@ -108,6 +109,7 @@
 					},
 					"schema": {
 						"type": "object",
+						"$id": "emptyArray",
 						"properties": {
 							"list": {
 								"type": "array",
@@ -123,6 +125,7 @@
 			"output": {
 				"arrayOfIntegersEncoded": "0a09030104010509020605",
 				"arrayBoolsEncoded": "0a06010100010000",
+				"arrayStringsEncoded": "0a046c69736b0a000a07676f676f676f67",
 				"arrayOfObjectsEncoded": "0a2e0a286531316131313336343733383232353831336638366561383532313434303065356462303864366510a08d060a2e0a286161326131313336343733383232353831336638366561383532313434303065356462303866666610e0a712",
 				"emptyArrayEncoded": ""
 			}

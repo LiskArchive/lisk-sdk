@@ -36,7 +36,7 @@ interface RawHeader {
 	readonly generatorPublicKey: string;
 	readonly numberOfTransactions: number;
 	readonly payloadLength: number;
-	readonly payloadHash: string;
+	readonly transactionRoot: string;
 	readonly totalAmount: string;
 	readonly totalFee: string;
 	readonly reward: string;

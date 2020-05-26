@@ -86,6 +86,10 @@ describe('data_access', () => {
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
+			// Arrange
+			(db.get as jest.Mock).mockResolvedValue(
+				Buffer.from(JSON.stringify(block)),
+			);
 			// Act
 			await dataAccess.getBlockHeadersByIDs([block.id]);
 
@@ -111,13 +115,15 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([
 					{
-						value: block.id,
+						value: Buffer.from(JSON.stringify(block.id)),
 					},
 				]),
 			);
 			when(db.get)
 				.calledWith(`blocks:height:${formatInt(block.height)}`)
-				.mockResolvedValue(block.id as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(block.id)) as never)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(Buffer.from(JSON.stringify(block)) as never);
 			// Act
 			await dataAccess.getBlockHeaderByHeight(1);
 
@@ -149,9 +155,12 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([
 					{
-						value: block.id,
+						value: Buffer.from(JSON.stringify(block.id)),
 					},
 				]),
+			);
+			(db.get as jest.Mock).mockResolvedValue(
+				Buffer.from(JSON.stringify(block)),
 			);
 
 			// Act
@@ -179,7 +188,9 @@ describe('data_access', () => {
 			// Arrange
 			when(db.get)
 				.calledWith(`blocks:height:${formatInt(block.height)}`)
-				.mockResolvedValue(block.id as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(block.id)) as never)
+				.calledWith(`blocks:id:${block.id}`)
+				.mockResolvedValue(Buffer.from(JSON.stringify(block)) as never);
 			// Act
 			await dataAccess.getBlockHeadersWithHeights([1]);
 
@@ -206,10 +217,13 @@ describe('data_access', () => {
 
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
+			(db.get as jest.Mock).mockResolvedValue(
+				Buffer.from(JSON.stringify(block)),
+			);
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([
 					{
-						value: block.id,
+						value: Buffer.from(JSON.stringify(block.id)),
 					},
 				]),
 			);
@@ -236,6 +250,10 @@ describe('data_access', () => {
 		});
 
 		it('should return persisted blocks if cache does not exist', async () => {
+			// Arrange
+			(db.get as jest.Mock).mockResolvedValue(
+				Buffer.from(JSON.stringify(block)),
+			);
 			// Act
 			await dataAccess.getLastCommonBlockHeader([block.id, 'random-id']);
 
@@ -250,7 +268,7 @@ describe('data_access', () => {
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
 				.calledWith('blocks:id:1')
-				.mockResolvedValue(block as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(block)) as never);
 			// Act
 			await dataAccess.getBlocksByIDs(['1']);
 
@@ -265,14 +283,14 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([
 					{
-						value: block.id,
+						value: Buffer.from(JSON.stringify(block.id)),
 					},
 				]),
 			);
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
 				.calledWith(`blocks:id:${block.id}`)
-				.mockResolvedValue(block as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(block)) as never);
 			// Act
 			await dataAccess.getBlocksByHeightBetween(1, 2);
 
@@ -288,14 +306,14 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
 				Readable.from([
 					{
-						value: block.id,
+						value: Buffer.from(JSON.stringify(block.id)),
 					},
 				]),
 			);
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
 				.calledWith(`blocks:id:${block.id}`)
-				.mockResolvedValue(block as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(block)) as never);
 			// Act
 			await dataAccess.getLastBlock();
 
@@ -321,7 +339,7 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockImplementation(() =>
 				Readable.from([
 					{
-						value: block,
+						value: Buffer.from(JSON.stringify(block)),
 					},
 				]),
 			);
@@ -339,7 +357,7 @@ describe('data_access', () => {
 			(db.createReadStream as jest.Mock).mockImplementation(() =>
 				Readable.from([
 					{
-						value: block,
+						value: Buffer.from(JSON.stringify(block)),
 					},
 				]),
 			);
@@ -390,7 +408,7 @@ describe('data_access', () => {
 			};
 			when(db.get)
 				.calledWith(`accounts:address:${account.address}`)
-				.mockResolvedValue(account as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(account)) as never);
 			// Act
 			const [result] = await dataAccess.getAccountsByPublicKey([
 				account.publicKey,
@@ -416,7 +434,7 @@ describe('data_access', () => {
 			};
 			when(db.get)
 				.calledWith(`accounts:address:${account.address}`)
-				.mockResolvedValue(account as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(account)) as never);
 			// Act
 			const result = await dataAccess.getAccountByAddress(account.address);
 
@@ -449,9 +467,9 @@ describe('data_access', () => {
 			];
 			when(db.get)
 				.calledWith(`accounts:address:${accounts[0].address}`)
-				.mockResolvedValue(accounts[0] as never)
+				.mockResolvedValue(Buffer.from(JSON.stringify(accounts[0])) as never)
 				.calledWith(`accounts:address:${accounts[1].address}`)
-				.mockResolvedValue(accounts[1] as never);
+				.mockResolvedValue(Buffer.from(JSON.stringify(accounts[1])) as never);
 			// Act
 			const result = await dataAccess.getAccountsByAddress(
 				accounts.map(acc => acc.address),
@@ -468,12 +486,16 @@ describe('data_access', () => {
 			// Arrange
 			when(db.get)
 				.calledWith('transactions:id:1')
-				.mockResolvedValue({
-					id: '1',
-					fee: '100',
-					nonce: '0',
-					type: 8,
-				} as never);
+				.mockResolvedValue(
+					Buffer.from(
+						JSON.stringify({
+							id: '1',
+							fee: '100',
+							nonce: '0',
+							type: 8,
+						}),
+					) as never,
+				);
 			// Act
 			const [result] = await dataAccess.getTransactionsByIDs(['1']);
 
@@ -507,7 +529,7 @@ describe('data_access', () => {
 		const blockJSON = {
 			totalFee: '10000000',
 			totalAmount: '1',
-			payloadHash:
+			transactionRoot:
 				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
 			payloadLength: 117,
 			numberOfTransactions: 1,

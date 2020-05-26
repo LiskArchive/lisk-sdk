@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
 const _ = require('lodash');
 const { getAddressFromPublicKey } = require('@liskhq/lisk-cryptography');
 const ApiError = require('../api_error');
@@ -38,7 +37,7 @@ const _parseBlock = raw => {
 		reward: raw.reward,
 		seedReveal: raw.seedReveal,
 		payloadLength: parseInt(raw.payloadLength, 10),
-		payloadHash: raw.payloadHash,
+		transactionRoot: raw.transactionRoot,
 		generatorPublicKey: raw.generatorPublicKey,
 		generatorAddress: getAddressFromPublicKey(raw.generatorPublicKey),
 		blockSignature: raw.blockSignature,

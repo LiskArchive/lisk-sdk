@@ -19,7 +19,7 @@ import {
 } from '@liskhq/lisk-validator';
 
 import { RawAssetVote, VoteTransaction } from './13_vote_transaction';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { createBaseTransaction } from './utils';
 
 export interface CastVoteInputs {

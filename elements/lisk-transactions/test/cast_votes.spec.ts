@@ -15,7 +15,7 @@
 import * as validMixvoteTransactionScenario from '../fixtures/vote_transaction/vote_transaction_10_upvotes_and_10_downvotes.json';
 
 import { castVotes } from '../src/cast_votes';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON } from '../src/types';
 
 describe('#castVotes transaction', () => {
 	let castVotesTransaction: Partial<TransactionJSON>;
