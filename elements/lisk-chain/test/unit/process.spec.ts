@@ -821,7 +821,7 @@ describe('blocks/header', () => {
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
 				}
-				expect(JSON.parse((burntFee as Buffer).toString('utf-8'))).toEqual(
+				expect(JSON.parse((burntFee as Buffer).toString('utf8'))).toEqual(
 					(BigInt(defaultBurntFee) + expected).toString(),
 				);
 			});
@@ -871,7 +871,7 @@ describe('blocks/header', () => {
 					CHAIN_STATE_BURNT_FEE,
 				);
 				expect(
-					JSON.parse((genesisAccountFromStore as Buffer).toString('utf-8')),
+					JSON.parse((genesisAccountFromStore as Buffer).toString('utf8')),
 				).toBe('0');
 			});
 		});
@@ -1102,7 +1102,7 @@ describe('blocks/header', () => {
 				for (const tx of block.transactions) {
 					expected += tx.minFee;
 				}
-				expect(JSON.parse((burntFee as Buffer).toString('utf-8'))).toEqual(
+				expect(JSON.parse((burntFee as Buffer).toString('utf8'))).toEqual(
 					(BigInt(defaultBurntFee) - expected).toString(),
 				);
 			});

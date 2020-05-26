@@ -126,7 +126,7 @@ export class BFT extends EventEmitter {
 
 		stateStore.consensus.set(
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
-			Buffer.from(JSON.stringify(String(finalizedHeight)), 'utf-8'),
+			Buffer.from(JSON.stringify(String(finalizedHeight)), 'utf8'),
 		);
 	}
 
@@ -250,7 +250,7 @@ export class BFT extends EventEmitter {
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 		);
 		const finalizedHeightStored = storedFinalizedHeightBuffer
-			? parseInt(JSON.parse(storedFinalizedHeightBuffer.toString('utf-8')), 10)
+			? parseInt(JSON.parse(storedFinalizedHeightBuffer.toString('utf8')), 10)
 			: 1;
 
 		/* Check BFT migration height

@@ -96,7 +96,7 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
 			const voteWeights = JSON.parse(
-				(voteWeightsBuffer as Buffer).toString('utf-8'),
+				(voteWeightsBuffer as Buffer).toString('utf8'),
 			);
 			expect(voteWeights).toHaveLength(1 + DELEGATE_LIST_ROUND_OFFSET);
 			expect(voteWeights[0].round).toEqual(1);
@@ -113,7 +113,7 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf-8'),
+				(forgersListBuffer as Buffer).toString('utf8'),
 			);
 			expect(forgersList).toHaveLength(1);
 			expect(forgersList[0].round).toEqual(1);
@@ -181,7 +181,7 @@ describe('dpos.apply()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			expect((consensusState as Buffer).toString('utf-8')).toEqual(
+			expect((consensusState as Buffer).toString('utf8')).toEqual(
 				JSON.stringify(forgersList),
 			);
 		});
@@ -293,7 +293,7 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList: ForgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf-8'),
+				(forgersListBuffer as Buffer).toString('utf8'),
 			);
 
 			const forgers = forgersList.find(fl => fl.round === nextRound);
@@ -317,7 +317,7 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersBeforeList: ForgersList = JSON.parse(
-				(forgersListBeforeBuffer as Buffer).toString('utf-8'),
+				(forgersListBeforeBuffer as Buffer).toString('utf8'),
 			);
 			const filteredForgersBefore = forgersBeforeList.filter(
 				fl => fl.round < expectedRound,
@@ -331,7 +331,7 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList: ForgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf-8'),
+				(forgersListBuffer as Buffer).toString('utf8'),
 			);
 
 			const filteredForgers = forgersList.filter(

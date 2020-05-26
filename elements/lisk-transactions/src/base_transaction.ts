@@ -447,7 +447,7 @@ export abstract class BaseTransaction {
 		 * You can expect this enhanced implementation to be included in the next releases.
 		 */
 
-		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
+		return Buffer.from(JSON.stringify(this.asset), 'utf8');
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {

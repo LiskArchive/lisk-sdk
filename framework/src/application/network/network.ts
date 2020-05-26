@@ -114,7 +114,7 @@ export class Network {
 				DB_KEY_NETWORK_TRIED_PEERS_LIST,
 			);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			previousPeers = JSON.parse(previousPeersBuffer.toString('utf-8'));
+			previousPeers = JSON.parse(previousPeersBuffer.toString('utf8'));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error(
@@ -128,7 +128,7 @@ export class Network {
 		let secret: string | undefined;
 		try {
 			const secretBuffer = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
-			secret = JSON.parse(secretBuffer.toString('utf-8')) as string;
+			secret = JSON.parse(secretBuffer.toString('utf8')) as string;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error(
@@ -385,7 +385,7 @@ export class Network {
 			if (triedPeers.length) {
 				await this._nodeDB.put(
 					DB_KEY_NETWORK_TRIED_PEERS_LIST,
-					Buffer.from(JSON.stringify(triedPeers), 'utf-8'),
+					Buffer.from(JSON.stringify(triedPeers), 'utf8'),
 				);
 			}
 		}, DEFAULT_PEER_SAVE_INTERVAL);

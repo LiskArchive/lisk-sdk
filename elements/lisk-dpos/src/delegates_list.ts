@@ -65,7 +65,7 @@ export const getForgersList = async (
 		return [];
 	}
 
-	return JSON.parse(forgersListStr.toString('utf-8')) as ForgersList;
+	return JSON.parse(forgersListStr.toString('utf8')) as ForgersList;
 };
 
 const _setForgersList = (
@@ -75,7 +75,7 @@ const _setForgersList = (
 	const forgersListStr = JSON.stringify(forgersList);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-		Buffer.from(forgersListStr, 'utf-8'),
+		Buffer.from(forgersListStr, 'utf8'),
 	);
 };
 
@@ -89,7 +89,7 @@ export const getVoteWeights = async (
 		return [];
 	}
 
-	return JSON.parse(voteWeightsStr.toString('utf-8')) as VoteWeights;
+	return JSON.parse(voteWeightsStr.toString('utf8')) as VoteWeights;
 };
 
 const _setVoteWeights = (
@@ -99,7 +99,7 @@ const _setVoteWeights = (
 	const voteWeightsStr = JSON.stringify(voteWeights);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-		Buffer.from(voteWeightsStr, 'utf-8'),
+		Buffer.from(voteWeightsStr, 'utf8'),
 	);
 };
 
@@ -268,7 +268,7 @@ export class DelegatesList {
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
 		const usernames = usernamesBuffer
-			? (JSON.parse(usernamesBuffer.toString('utf-8')) as ChainStateUsernames)
+			? (JSON.parse(usernamesBuffer.toString('utf8')) as ChainStateUsernames)
 			: { registeredDelegates: [] };
 
 		const delegates: Account[] = await Promise.all(
@@ -440,7 +440,7 @@ export class DelegatesList {
 		);
 		const forgersList =
 			forgersListBuffer !== undefined
-				? (JSON.parse(forgersListBuffer.toString('utf-8')) as ForgersList)
+				? (JSON.parse(forgersListBuffer.toString('utf8')) as ForgersList)
 				: [];
 		const delegateAddresses = forgersList.find(fl => fl.round === round)
 			?.delegates;

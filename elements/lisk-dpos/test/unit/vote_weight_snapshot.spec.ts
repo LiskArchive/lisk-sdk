@@ -83,7 +83,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(3);
 				expect(voteWeights[0].round).toEqual(1);
@@ -239,7 +239,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -349,7 +349,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -474,7 +474,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -596,7 +596,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -725,7 +725,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -851,7 +851,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -976,7 +976,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -1099,7 +1099,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
@@ -1211,7 +1211,7 @@ describe('Vote weight snapshot', () => {
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
 				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf-8'),
+					(voteWeightsBuffer as Buffer).toString('utf8'),
 				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[0].round).toEqual(11);

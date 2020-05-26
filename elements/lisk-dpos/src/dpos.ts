@@ -166,7 +166,7 @@ export class Dpos {
 		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const voteWeights: VoteWeights = voteWeightsBuffer
-			? JSON.parse(voteWeightsBuffer.toString('utf-8'))
+			? JSON.parse(voteWeightsBuffer.toString('utf8'))
 			: [];
 
 		const voteWeight = voteWeights.find(

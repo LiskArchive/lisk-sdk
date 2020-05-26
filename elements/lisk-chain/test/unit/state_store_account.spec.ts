@@ -75,7 +75,7 @@ describe('state store / account', () => {
 			dbGetMock
 				.calledWith(`accounts:address:${account.address}`)
 				.mockResolvedValue(
-					Buffer.from(JSON.stringify(account), 'utf-8') as never,
+					Buffer.from(JSON.stringify(account), 'utf8') as never,
 				);
 		}
 		stateStore.account['_data'] = [...stateStoreAccounts];
@@ -217,7 +217,7 @@ describe('state store / account', () => {
 
 			expect(batchStub.put).toHaveBeenCalledWith(
 				`accounts:address:${updatedAccount.address}`,
-				Buffer.from(JSON.stringify(updatedAccount.toJSON()), 'utf-8'),
+				Buffer.from(JSON.stringify(updatedAccount.toJSON()), 'utf8'),
 			);
 		});
 	});

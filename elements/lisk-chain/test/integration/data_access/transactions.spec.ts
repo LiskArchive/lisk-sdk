@@ -54,7 +54,7 @@ describe('dataAccess.transactions', () => {
 		for (const tx of transactions) {
 			batch.put(
 				`transactions:id:${tx.id}`,
-				Buffer.from(JSON.stringify(tx), 'utf-8'),
+				Buffer.from(JSON.stringify(tx), 'utf8'),
 			);
 		}
 		await batch.write();

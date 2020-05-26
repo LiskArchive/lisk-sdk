@@ -112,7 +112,7 @@ describe.skip('Forger selection', () => {
 						CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 					);
 					const forgersList = JSON.parse(
-						(forgersListBuffer as Buffer).toString('utf-8'),
+						(forgersListBuffer as Buffer).toString('utf8'),
 					);
 					expect(forgersList).toHaveLength(1);
 					expect(forgersList[0].round).toEqual(defaultRound);
@@ -169,7 +169,7 @@ describe.skip('Forger selection', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf-8'),
+				(forgersListBuffer as Buffer).toString('utf8'),
 			);
 			expect(forgersList[0].delegates).toHaveLength(103);
 		});
@@ -179,7 +179,7 @@ describe.skip('Forger selection', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf-8'),
+				(forgersListBuffer as Buffer).toString('utf8'),
 			);
 			const standByCandidates = delegates.slice(101).map(d => d.address);
 			expect(forgersList[0].standby).toHaveLength(2);

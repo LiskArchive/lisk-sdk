@@ -126,7 +126,7 @@ export class Storage {
 			const ids: string[] = [];
 			stream
 				.on('data', ({ value }: { value: Buffer }) => {
-					ids.push(JSON.parse(value.toString('utf-8')));
+					ids.push(JSON.parse(value.toString('utf8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -231,7 +231,7 @@ export class Storage {
 			const blocks: BlockJSON[] = [];
 			stream
 				.on('data', ({ value }: { value: Buffer }) => {
-					blocks.push(JSON.parse(value.toString('utf-8')));
+					blocks.push(JSON.parse(value.toString('utf8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -254,7 +254,7 @@ export class Storage {
 			const blocks: BlockJSON[] = [];
 			stream
 				.on('data', ({ value }: { value: Buffer }) => {
-					blocks.push(JSON.parse(value.toString('utf-8')));
+					blocks.push(JSON.parse(value.toString('utf8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -376,11 +376,11 @@ export class Storage {
 		const { transactions, ...header } = blockJSON;
 		batch.put(
 			`${DB_KEY_BLOCKS_ID}:${header.id}`,
-			Buffer.from(JSON.stringify(header), 'utf-8'),
+			Buffer.from(JSON.stringify(header), 'utf8'),
 		);
 		batch.put(
 			`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(header.height)}`,
-			Buffer.from(JSON.stringify(header.id), 'utf-8'),
+			Buffer.from(JSON.stringify(header.id), 'utf8'),
 		);
 		if (transactions.length > 0) {
 			const ids = [];
@@ -388,12 +388,12 @@ export class Storage {
 				ids.push(tx.id);
 				batch.put(
 					`${DB_KEY_TRANSACTIONS_ID}:${tx.id as string}`,
-					Buffer.from(JSON.stringify(tx), 'utf-8'),
+					Buffer.from(JSON.stringify(tx), 'utf8'),
 				);
 			}
 			batch.put(
 				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${header.id}`,
-				Buffer.from(JSON.stringify(ids), 'utf-8'),
+				Buffer.from(JSON.stringify(ids), 'utf8'),
 			);
 		}
 		if (removeFromTemp) {
@@ -421,7 +421,7 @@ export class Storage {
 		if (saveToTemp) {
 			batch.put(
 				`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(blockJSON.height)}`,
-				Buffer.from(JSON.stringify(blockJSON), 'utf-8'),
+				Buffer.from(JSON.stringify(blockJSON), 'utf8'),
 			);
 		}
 		stateStore.finalize(batch);
@@ -434,7 +434,7 @@ export class Storage {
 			const ids = await this._db.get(
 				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`,
 			);
-			txIDs.push(...JSON.parse(ids.toString('utf-8')));
+			txIDs.push(...JSON.parse(ids.toString('utf8')));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -446,7 +446,7 @@ export class Storage {
 		const transactions = [];
 		for (const txID of txIDs) {
 			const tx = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${txID}`);
-			transactions.push(JSON.parse(tx.toString('utf-8')));
+			transactions.push(JSON.parse(tx.toString('utf8')));
 		}
 
 		return transactions;

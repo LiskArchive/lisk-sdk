@@ -585,7 +585,7 @@ export class Forger {
 				DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 			);
 			return JSON.parse(
-				registeredHashOnionSeedsBuffer.toString('utf-8'),
+				registeredHashOnionSeedsBuffer.toString('utf8'),
 			) as StringKeyVal;
 		} catch (error) {
 			return {};
@@ -600,7 +600,7 @@ export class Forger {
 		);
 		await this._db.put(
 			DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-			Buffer.from(registeredHashOnionSeedsStr, 'utf-8'),
+			Buffer.from(registeredHashOnionSeedsStr, 'utf8'),
 		);
 	}
 
@@ -611,7 +611,7 @@ export class Forger {
 			);
 
 			return JSON.parse(
-				usedHashOnionsBuffer.toString('utf-8'),
+				usedHashOnionsBuffer.toString('utf8'),
 			) as UsedHashOnion[];
 		} catch (error) {
 			return [];
@@ -658,7 +658,7 @@ export class Forger {
 		const usedHashOnionsStr = JSON.stringify(usedHashOnions);
 		await this._db.put(
 			DB_KEY_FORGER_USED_HASH_ONION,
-			Buffer.from(usedHashOnionsStr, 'utf-8'),
+			Buffer.from(usedHashOnionsStr, 'utf8'),
 		);
 	}
 

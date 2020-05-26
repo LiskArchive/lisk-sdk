@@ -117,7 +117,7 @@ describe('dpos.undo()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const res = JSON.parse((consensusState as Buffer).toString('utf-8'));
+			const res = JSON.parse((consensusState as Buffer).toString('utf8'));
 
 			expect(res).toHaveLength(1);
 		});
@@ -230,7 +230,7 @@ describe('dpos.undo()', () => {
 				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
 			const voteWeights = JSON.parse(
-				consensusState ? consensusState.toString('utf-8') : '[]',
+				consensusState ? consensusState.toString('utf8') : '[]',
 			) as ForgersList;
 			const filteredVoteWeights = voteWeights.filter(
 				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
@@ -250,7 +250,7 @@ describe('dpos.undo()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersList = JSON.parse(
-				consensusState ? consensusState.toString('utf-8') : '[]',
+				consensusState ? consensusState.toString('utf8') : '[]',
 			) as ForgersList;
 			const filteredList = forgersList.filter(fl => fl.round > roundNo);
 			expect(filteredList).toHaveLength(0);

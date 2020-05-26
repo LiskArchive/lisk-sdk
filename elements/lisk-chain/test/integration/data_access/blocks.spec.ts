@@ -99,39 +99,39 @@ describe('dataAccess.blocks', () => {
 			const { transactions, ...blockHeader } = block;
 			batch.put(
 				`blocks:id:${blockHeader.id}`,
-				Buffer.from(JSON.stringify(blockHeader), 'utf-8'),
+				Buffer.from(JSON.stringify(blockHeader), 'utf8'),
 			);
 			batch.put(
 				`blocks:height:${formatInt(block.height)}`,
-				Buffer.from(JSON.stringify(block.id), 'utf-8'),
+				Buffer.from(JSON.stringify(block.id), 'utf8'),
 			);
 			if (block.transactions.length) {
 				batch.put(
 					`transactions:blockID:${block.id}`,
 					Buffer.from(
 						JSON.stringify(block.transactions.map((tx: any) => tx.id)),
-						'utf-8',
+						'utf8',
 					),
 				);
 				for (const tx of block.transactions) {
 					batch.put(
 						`transactions:id:${tx.id}`,
-						Buffer.from(JSON.stringify(tx), 'utf-8'),
+						Buffer.from(JSON.stringify(tx), 'utf8'),
 					);
 				}
 			}
 			batch.put(
 				`tempBlocks:height:${formatInt(blocks[2].height)}`,
-				Buffer.from(JSON.stringify(blocks[2]), 'utf-8'),
+				Buffer.from(JSON.stringify(blocks[2]), 'utf8'),
 			);
 			batch.put(
 				`tempBlocks:height:${formatInt(blocks[3].height)}`,
-				Buffer.from(JSON.stringify(blocks[3]), 'utf-8'),
+				Buffer.from(JSON.stringify(blocks[3]), 'utf8'),
 			);
 			batch.put(
 				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 				`tempBlocks:height:${formatInt(blocks[3].height + 1)}`,
-				Buffer.from(JSON.stringify(blocks[3]), 'utf-8'),
+				Buffer.from(JSON.stringify(blocks[3]), 'utf8'),
 			);
 		}
 		await batch.write();

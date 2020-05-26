@@ -60,7 +60,7 @@ describe('dataAccess.transactions', () => {
 		for (const account of accounts) {
 			batch.put(
 				`accounts:address:${account.address}`,
-				Buffer.from(JSON.stringify(account), 'utf-8'),
+				Buffer.from(JSON.stringify(account), 'utf8'),
 			);
 		}
 		await batch.write();
