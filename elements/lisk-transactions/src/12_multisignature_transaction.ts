@@ -81,10 +81,13 @@ export interface MultiSignatureAsset {
 export class MultisignatureTransaction extends BaseTransaction {
 	public static TYPE = 12;
 	public readonly asset: MultiSignatureAsset;
+	public readonly assetSchema: object;
 	private readonly MAX_KEYS_COUNT = 64;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
+
+		this.assetSchema = multisignatureRegistrationAssetSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;

@@ -28,7 +28,7 @@ import {
 } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
-import * as schemas from './schema';
+import { baseTransactionSchema } from './schema';
 import { Account, BlockHeader, TransactionJSON } from './types';
 import {
 	buildPublicKeyPassphraseDict,
@@ -93,11 +93,13 @@ export abstract class BaseTransaction {
 	public receivedAt?: Date;
 	public senderPublicKey: string;
 	public signatures: string[];
+	public readonly schema: object;
 
 	protected _id?: string;
 	protected _minFee?: bigint;
 
 	public constructor(rawTransaction: unknown) {
+		this.schema = baseTransactionSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
@@ -419,10 +421,7 @@ export abstract class BaseTransaction {
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(
-			schemas.baseTransaction,
-			this.transaction,
-		);
+		const schemaErrors = validator.validate(this.schema, this.transaction);
 		const errors = convertToTransactionError(
 			this.id,
 			schemaErrors,

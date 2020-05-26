@@ -63,9 +63,12 @@ interface RawAsset {
 export class TransferTransaction extends BaseTransaction {
 	public static TYPE = 8;
 	public readonly asset: TransferAsset;
+	public readonly assetSchema: object;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
+
+		this.assetSchema = balanceTransferAsset;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;

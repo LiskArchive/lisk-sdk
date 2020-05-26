@@ -72,9 +72,12 @@ interface RawAsset {
 export class VoteTransaction extends BaseTransaction {
 	public static TYPE = 13;
 	public readonly asset: VoteAsset;
+	public readonly assetSchema: object;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
+
+		this.assetSchema = voteAssetSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;

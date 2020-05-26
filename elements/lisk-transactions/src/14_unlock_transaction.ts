@@ -92,9 +92,12 @@ const getWaitingPeriod = (
 export class UnlockTransaction extends BaseTransaction {
 	public static TYPE = 14;
 	public readonly asset: UnlockAsset;
+	public readonly assetSchema: object;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
+
+		this.assetSchema = unlockAssetSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;

@@ -33,7 +33,7 @@ export const transactionInterface = {
 	},
 };
 
-export const baseTransaction = {
+export const baseTransactionSchema = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
 	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],

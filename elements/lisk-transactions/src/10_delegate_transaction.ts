@@ -46,9 +46,12 @@ export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 	public readonly asset: DelegateAsset;
+	public readonly assetSchema: object;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
+
+		this.assetSchema = delegateRegistrationAssetSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;

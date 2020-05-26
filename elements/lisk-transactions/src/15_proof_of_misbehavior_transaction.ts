@@ -53,9 +53,12 @@ export interface ProofOfMisbehaviorAsset {
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	public static TYPE = 15;
 	public readonly asset: ProofOfMisbehaviorAsset;
+	public readonly assetSchema: object;
 
 	public constructor(rawTransaction: unknown) {
 		super(rawTransaction);
+
+		this.assetSchema = proofOfMisbehaviorAssetSchema;
 		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
 			? rawTransaction
 			: {}) as Partial<TransactionJSON>;
