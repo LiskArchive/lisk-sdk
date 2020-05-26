@@ -17,45 +17,56 @@ const { calculateDiff, undo } = require('../dist-node/diff');
 
 const suite = new Suite();
 
-const randomBytes = (size) => {
-	let result = '';
-	const characters = 'abcdef0123456789';
-	const charactersLength = characters.length;
-	for (let i = 0; i < 2 * size; i += 1) {
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-	}
-
-	return Buffer.from(result, 'hex');
+const senderAccount = {
+    address: '5059876081639179984L',
+    publicKey:
+        '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+    username: null,
+    isDelegate: false,
+    nonce: '103',
+    balance: 9897000000000000,
+    fees: '0',
+    rewards: '0',
 };
 
-const randomBytes1 = randomBytes(115);
-const randomBytes2 = randomBytes(815);
-const randomBytes3 = randomBytes(16);
-const randomBytes4 = randomBytes(12);
+const previousSenderStateBuffer = Buffer.from(JSON.stringify(senderAccount));
 
-const buffer1 = Buffer.concat([
-    randomBytes1,
-    randomBytes3,
-    randomBytes2,
-]);
-const buffer2 = Buffer.concat([
-    randomBytes4,
-    randomBytes1,
-    randomBytes2,
-]);
+const multiSignatureAccount = {
+    ...senderAccount,
+    keys: {
+        numberOfSignatures: 3,
+        mandatoryKeys: [
+            '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+            'ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d',
+        ],
+        optionalKeys: [
+            '57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+            'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+        ],
+    },
+};
 
-const diff = calculateDiff(buffer1, buffer2);
+const multiSignatureAccountBuffer = Buffer.from(
+    JSON.stringify(multiSignatureAccount),
+);
+const diff = calculateDiff(
+    previousSenderStateBuffer,
+    multiSignatureAccountBuffer,
+);
 
 /**
- * calculateDiff x 2,759 ops/sec ±0.74% (87 runs sampled)
- * undo x 6,376 ops/sec ±0.49% (91 runs sampled)
+ * calculateDiff x 13.38 ops/sec ±1.96% (38 runs sampled)
+ * undo x 50,023 ops/sec ±0.52% (89 runs sampled)
  */
 suite
     .add('calculateDiff', () => {
-        calculateDiff(buffer1, buffer2);
+        calculateDiff(
+            previousSenderStateBuffer,
+            multiSignatureAccountBuffer,
+        );
     })
     .add('undo', () => {
-        undo(buffer2, diff);
+        undo(multiSignatureAccountBuffer, diff);
     })
     .on('cycle', function (event) {
         console.log(String(event.target));
