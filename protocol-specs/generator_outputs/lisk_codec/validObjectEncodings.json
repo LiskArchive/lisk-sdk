@@ -48,6 +48,7 @@
 						}
 					},
 					"schema": {
+						"$id": "object11",
 						"type": "object",
 						"properties": {
 							"address": {
@@ -85,14 +86,15 @@
 						"value": 1
 					},
 					"schema": {
+						"$id": "object12",
 						"type": "object",
 						"properties": {
 							"isActive": {
 								"dataType": "boolean",
 								"fieldNumber": 1
 							},
-							"balance": {
-								"data": "bytes",
+							"data": {
+								"dataType": "bytes",
 								"fieldNumber": 2
 							},
 							"value": {
