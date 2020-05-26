@@ -13,43 +13,48 @@
  */
 
 import { writeString, readString } from '../src/string';
-import { testCases } from '../fixtures/validStringEncodings.json';
+import { testCases } from '../fixtures/string_encodings.json';
 
 describe('string', () => {
 	describe('writer', () => {
 		it('should encode string', () => {
-			const testCaseOneInput = testCases[0].input.string;
-			const testCaseOneOutput = testCases[0].output.string;
-			expect(writeString(testCaseOneInput.object.data).toString('hex')).toEqual(
-				testCaseOneOutput.slice(2, testCaseOneOutput.length),
-			); // Ignoring the key part
+			const {
+				input: {
+					object: { data: message },
+				},
+				output: { value },
+			} = testCases[0];
+			const binaryData = writeString(message);
 
-			const testCaseSecondInput = testCases[0].input.string;
-			const testCaseSecondOutput = testCases[0].output.string;
-			expect(
-				writeString(testCaseSecondInput.object.data).toString('hex'),
-			).toEqual(testCaseSecondOutput.slice(2, testCaseSecondOutput.length)); // Ignoring the key part
+			// Same encoding of string
+			expect(binaryData.toString('hex')).toEqual(value.substring(2));
+			// No change of string
+			expect(binaryData.toString().substring(1)).toEqual(message);
+		});
+
+		it('should encode empty string', () => {
+			const {
+				input: {
+					object: { data: message },
+				},
+				output: { value },
+			} = testCases[1];
+			const binaryData = writeString(message);
+
+			expect(binaryData.toString('hex')).toBe(value.substring(2));
 		});
 	});
 
 	describe('reader', () => {
 		it('should decode string', () => {
-			const testCaseOneInput = testCases[0].input.string;
-			expect(
-				readString(writeString(testCaseOneInput.object.data), 0),
-				// Result length + varint length refering to the size
-			).toEqual([
-				testCaseOneInput.object.data,
-				testCaseOneInput.object.data.length + 1,
-			]);
-
-			const testCaseSecondInput = testCases[0].input.string;
-			expect(
-				readString(writeString(testCaseSecondInput.object.data), 0),
-				// Result length + varint length refering to the size
-			).toEqual([
-				testCaseSecondInput.object.data,
-				testCaseSecondInput.object.data.length + 1,
+			const {
+				input: {
+					object: { data: message },
+				},
+			} = testCases[0];
+			expect(readString(writeString(message), 0)).toEqual([
+				message,
+				message.length + 1, // Add 1 for the size of this string
 			]);
 		});
 	});
