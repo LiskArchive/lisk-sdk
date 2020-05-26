@@ -17,7 +17,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;

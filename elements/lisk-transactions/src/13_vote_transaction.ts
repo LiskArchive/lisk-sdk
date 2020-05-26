@@ -18,7 +18,7 @@ import { isNumberString, validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { sortUnlocking } from './utils';
 
 export interface Vote {

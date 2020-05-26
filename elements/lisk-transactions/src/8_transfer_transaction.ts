@@ -26,7 +26,7 @@ import {
 import { BaseTransaction, StateStore } from './base_transaction';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { verifyMinRemainingBalance } from './utils';
 
 export interface TransferAsset {

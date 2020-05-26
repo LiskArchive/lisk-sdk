@@ -48,7 +48,7 @@ describe('blocks/transactions', () => {
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
 	const networkIdentifier = getNetworkIdentifier(
-		genesisBlock.payloadHash,
+		genesisBlock.transactionRoot,
 		genesisBlock.communityIdentifier,
 	);
 

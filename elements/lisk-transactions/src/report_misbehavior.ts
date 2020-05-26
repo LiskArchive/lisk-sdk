@@ -19,7 +19,7 @@ import {
 } from '@liskhq/lisk-validator';
 
 import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
-import { BlockHeaderJSON, TransactionJSON } from './transaction_types';
+import { BlockHeaderJSON, TransactionJSON } from './types';
 import { createBaseTransaction } from './utils';
 
 export interface ReportMisbehaviorInputs {

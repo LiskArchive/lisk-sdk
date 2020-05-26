@@ -24,6 +24,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import * as genesisBlock from '../fixtures/genesis_block.json';
 import { BlockJSON, BlockInstance } from '../../src/types';
+import { getTransactionRoot } from '../../src/validate';
 
 const SIZE_INT32 = 4;
 const SIZE_INT64 = 8;
@@ -92,7 +93,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		LITTLE_ENDIAN,
 	);
 
-	const payloadHashBuffer = hexToBuffer(block.payloadHash);
+	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
 
 	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
 
@@ -112,7 +113,7 @@ export const getBytes = (block: BlockInstance): Buffer => {
 		totalFeeBuffer,
 		rewardBuffer,
 		payloadLengthBuffer,
-		payloadHashBuffer,
+		transactionRootBuffer,
 		generatorPublicKeyBuffer,
 		blockSignatureBuffer,
 	]);
@@ -137,7 +138,7 @@ const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const calculateTransactionsInfo = (block: BlockInstance) => {
 	sortTransactions(block.transactions);
-	const transactionsBytesArray = [];
+	const transactionIds = [];
 	let totalFee = BigInt(0);
 	let totalAmount = BigInt(0);
 	let payloadLength = 0;
@@ -152,16 +153,15 @@ const calculateTransactionsInfo = (block: BlockInstance) => {
 		totalAmount += BigInt((transaction as any).asset.amount || '0');
 
 		payloadLength += transactionBytes.length;
-		transactionsBytesArray.push(transactionBytes);
+		transactionIds.push(transaction.id);
 	}
 
-	const transactionsBuffer = Buffer.concat(transactionsBytesArray);
-	const payloadHash = hash(transactionsBuffer).toString('hex');
+	const transactionRoot = getTransactionRoot(transactionIds);
 
 	return {
 		totalFee,
 		totalAmount,
-		payloadHash,
+		transactionRoot,
 		payloadLength,
 		numberOfTransactions: block.transactions.length,
 	};
@@ -169,7 +169,7 @@ const calculateTransactionsInfo = (block: BlockInstance) => {
 
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
- * Calculates the signature, payloadHash etc. internally. Facilitating the creation of block with valid signature and other properties
+ * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const newBlock = (
 	block?: Partial<BlockJSON | BlockInstance>,

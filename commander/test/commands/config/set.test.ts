@@ -197,7 +197,7 @@ describe('config:set', () => {
 				.stdout()
 				.command(['config:set', 'api.network', validNethash])
 				.it(
-					'should set api.network to the custom genesisBlockPayloadHash',
+					'should set api.network to the custom genesisBlockTransactionRoot',
 					() => {
 						const newConfig = {
 							...defaultConfig,

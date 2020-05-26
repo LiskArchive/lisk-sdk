@@ -67,7 +67,7 @@ describe('block_synchronization_mechanism', () => {
 
 		channelMock = new ChannelMock();
 		const networkIdentifier = getNetworkIdentifier(
-			genesisBlockDevnet.payloadHash,
+			genesisBlockDevnet.transactionRoot,
 			genesisBlockDevnet.communityIdentifier,
 		);
 

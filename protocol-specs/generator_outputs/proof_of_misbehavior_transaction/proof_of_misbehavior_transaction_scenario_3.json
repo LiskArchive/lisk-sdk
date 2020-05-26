@@ -44,7 +44,7 @@
 					"totalFee": "10000000000",
 					"reward": "10000000000",
 					"payloadLength": 0,
-					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"transactionRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"blockSignature": "9a0e41c2a4ee4803840e2b0879f43dbe9feeff24b02e0ddf0e683097c06ffa0ee1cacbb9530c43c1aba20dfb5de556112e07ccd39381a25e9d6012b57c31510b"
 				},
@@ -61,7 +61,7 @@
 					"totalFee": "10000000000",
 					"reward": "10000000000",
 					"payloadLength": 0,
-					"payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"transactionRoot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 					"generatorPublicKey": "addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9",
 					"blockSignature": "4bf9c5b0687d8686a67866279ab398fde1260a2faf04b2fc333fa3272ffbfe888931eea985f263f22ac2f1a6bebce13e31bf944649c2ca69f427436eb9edbb03"
 				}

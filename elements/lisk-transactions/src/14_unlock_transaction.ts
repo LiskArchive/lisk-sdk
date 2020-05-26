@@ -17,7 +17,7 @@ import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {

@@ -20,7 +20,7 @@ import {
 import { DelegateTransaction } from '../src/10_delegate_transaction';
 import { validDelegateAccount } from '../fixtures';
 import * as protocolSpecDelegateFixture from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
-import { Account } from '../src/transaction_types';
+import { Account } from '../src/types';
 
 describe('Delegate registration transaction class', () => {
 	const {

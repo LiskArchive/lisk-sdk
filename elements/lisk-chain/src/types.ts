@@ -75,7 +75,7 @@ export interface BlockHeaderJSON {
 	generatorPublicKey: string;
 	numberOfTransactions: number;
 	payloadLength: number;
-	payloadHash: string;
+	transactionRoot: string;
 	totalAmount: string;
 	totalFee: string;
 	reward: string;

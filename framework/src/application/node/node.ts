@@ -160,7 +160,7 @@ export class Node {
 			}
 
 			this._networkIdentifier = getNetworkIdentifier(
-				this._options.genesisBlock.payloadHash,
+				this._options.genesisBlock.transactionRoot,
 				(this._options.genesisBlock as GenesisBlockInstance)
 					.communityIdentifier,
 			);

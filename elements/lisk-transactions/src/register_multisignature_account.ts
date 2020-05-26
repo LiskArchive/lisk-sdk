@@ -26,7 +26,7 @@ import {
 	MIN_NUMBER_OF_KEYS,
 	MIN_NUMBER_OF_SIGNATURES,
 } from './constants';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { createBaseTransaction, findRepeatedKeys } from './utils';
 
 export interface RegisterMultisignatureInputs {
