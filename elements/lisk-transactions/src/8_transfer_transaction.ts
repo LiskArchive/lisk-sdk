@@ -30,27 +30,26 @@ import { TransactionJSON } from './types';
 import { verifyMinRemainingBalance } from './utils';
 
 export interface TransferAsset {
-	readonly data?: string;
-	readonly recipientId: string;
 	readonly amount: bigint;
+	readonly recipientId: string;
+	readonly data?: string;
 }
 
-export const transferAssetFormatSchema = {
+export const balanceTransferAsset = {
 	type: 'object',
-	required: ['recipientId', 'amount'],
+	required: ['amount', 'recipientAddress', 'data'],
 	properties: {
-		recipientId: {
-			type: 'string',
-			format: 'address',
-		},
 		amount: {
-			type: 'string',
-			format: 'amount',
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+		recipientId: {
+			dataType: 'bytes',
+			fieldNumber: 2,
 		},
 		data: {
-			type: 'string',
-			format: 'transferData',
-			maxLength: 64,
+			dataType: 'string',
+			fieldNumber: 3,
 		},
 	},
 };
@@ -119,7 +118,7 @@ export class TransferTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(transferAssetFormatSchema, asset);
+		const schemaErrors = validator.validate(balanceTransferAsset, asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,

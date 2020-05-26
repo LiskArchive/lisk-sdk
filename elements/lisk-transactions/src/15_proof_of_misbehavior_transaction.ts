@@ -29,97 +29,18 @@ import {
 	validateSignature,
 } from './utils';
 
-const blockHeaderSchema = {
-	type: 'object',
-	required: [
-		'blockSignature',
-		'generatorPublicKey',
-		'height',
-		'maxHeightPreviouslyForged',
-		'maxHeightPrevoted',
-		'numberOfTransactions',
-		'transactionRoot',
-		'payloadLength',
-		'previousBlockId',
-		'reward',
-		'seedReveal',
-		'timestamp',
-		'totalAmount',
-		'totalFee',
-		'version',
-	],
-	properties: {
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		height: {
-			type: 'integer',
-			minimum: 1,
-		},
-		maxHeightPreviouslyForged: {
-			type: 'integer',
-			minimum: 0,
-		},
-		maxHeightPrevoted: {
-			type: 'integer',
-			minimum: 0,
-		},
-		numberOfTransactions: {
-			type: 'integer',
-			minimum: 0,
-		},
-		transactionRoot: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadLength: {
-			type: 'integer',
-			minimum: 0,
-		},
-		previousBlockId: {
-			type: ['string'],
-			format: 'hex',
-			minLength: 64,
-			maxLength: 64,
-		},
-		reward: {
-			type: 'string',
-			format: 'amount',
-		},
-		seedReveal: {
-			type: 'string',
-			format: 'hex',
-		},
-		timestamp: {
-			type: 'integer',
-			minimum: 0,
-		},
-		totalAmount: {
-			type: 'string',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'string',
-			format: 'amount',
-		},
-		version: {
-			type: 'integer',
-			minimum: 0,
-		},
-	},
-};
-
-const proofOfMisbehaviorAssetFormatSchema = {
+const proofOfMisbehaviorAssetSchema = {
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {
-		header1: blockHeaderSchema,
-		header2: blockHeaderSchema,
+		header1: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		header2: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
 	},
 };
 
@@ -163,7 +84,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
 		const schemaErrors = validator.validate(
-			proofOfMisbehaviorAssetFormatSchema,
+			proofOfMisbehaviorAssetSchema,
 			asset,
 		);
 		const errors = convertToAssetError(

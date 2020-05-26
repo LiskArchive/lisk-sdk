@@ -30,28 +30,27 @@ export interface VoteAsset {
 	readonly votes: ReadonlyArray<Vote>;
 }
 
-const voteAssetFormatSchema = {
+const voteAssetSchema = {
 	type: 'object',
 	required: ['votes'],
 	properties: {
 		votes: {
 			type: 'array',
-			minItems: 1,
-			maxItems: 20,
 			items: {
 				type: 'object',
 				required: ['delegateAddress', 'amount'],
 				properties: {
 					delegateAddress: {
-						type: 'string',
-						format: 'address',
+						dataType: 'bytes',
+						fieldNumber: 1,
 					},
 					amount: {
-						type: 'string',
-						format: 'int64',
+						dataType: 'sint64',
+						fieldNumber: 2,
 					},
 				},
 			},
+			fieldNumber: 1,
 		},
 	},
 };
@@ -126,7 +125,7 @@ export class VoteTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(voteAssetFormatSchema, asset);
+		const schemaErrors = validator.validate(voteAssetSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,

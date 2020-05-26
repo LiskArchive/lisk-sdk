@@ -31,15 +31,13 @@ export interface DelegateAsset {
 	readonly username: string;
 }
 
-export const delegateAssetFormatSchema = {
+export const delegateRegistrationAssetSchema = {
 	type: 'object',
 	required: ['username'],
 	properties: {
 		username: {
-			type: 'string',
-			minLength: 1,
-			maxLength: 20,
-			format: 'username',
+			dataType: 'string',
+			fieldNumber: 1,
 		},
 	},
 };
@@ -83,7 +81,7 @@ export class DelegateTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const schemaErrors = validator.validate(
-			delegateAssetFormatSchema,
+			delegateRegistrationAssetSchema,
 			this.asset,
 		);
 		const errors = convertToAssetError(

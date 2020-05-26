@@ -34,34 +34,27 @@ import {
 	validateSignature,
 } from './utils';
 
-export const multisignatureAssetFormatSchema = {
+export const multisignatureRegistrationAssetSchema = {
 	type: 'object',
-	required: ['mandatoryKeys', 'optionalKeys', 'numberOfSignatures'],
+	required: ['optionalKeys', 'mandatoryKeys', 'numberOfSignatures'],
 	properties: {
 		numberOfSignatures: {
-			type: 'integer',
-			minimum: 1,
-			maximum: 64,
-		},
-		optionalKeys: {
-			type: 'array',
-			uniqueItems: true,
-			minItems: 0,
-			maxItems: 64,
-			items: {
-				type: 'string',
-				format: 'publicKey',
-			},
+			dataType: 'uint32',
+			fieldNumber: 1,
 		},
 		mandatoryKeys: {
 			type: 'array',
-			uniqueItems: true,
-			minItems: 0,
-			maxItems: 64,
 			items: {
-				type: 'string',
-				format: 'publicKey',
+				dataType: 'bytes',
 			},
+			fieldNumber: 2,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 3,
 		},
 	},
 };
@@ -263,7 +256,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const schemaErrors = validator.validate(
-			multisignatureAssetFormatSchema,
+			multisignatureRegistrationAssetSchema,
 			this.asset,
 		);
 		const errors = convertToAssetError(

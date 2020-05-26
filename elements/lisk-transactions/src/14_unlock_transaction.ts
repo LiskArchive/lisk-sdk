@@ -30,29 +30,27 @@ export interface UnlockAsset {
 	readonly unlockingObjects: ReadonlyArray<Unlock>;
 }
 
-const unlockAssetFormatSchema = {
+const unlockAssetSchema = {
 	type: 'object',
 	required: ['unlockingObjects'],
 	properties: {
 		unlockingObjects: {
 			type: 'array',
-			minItems: 1,
-			maxItems: 20,
 			items: {
 				type: 'object',
 				required: ['delegateAddress', 'amount', 'unvoteHeight'],
 				properties: {
 					delegateAddress: {
-						type: 'string',
-						format: 'address',
+						dataType: 'bytes',
+						fieldNumber: 1,
 					},
 					amount: {
-						type: 'string',
-						format: 'int64',
+						dataType: 'sint64',
+						fieldNumber: 2,
 					},
 					unvoteHeight: {
-						type: 'integer',
-						minimum: 0,
+						dataType: 'uint32',
+						fieldNumber: 3,
 					},
 				},
 			},
@@ -151,7 +149,7 @@ export class UnlockTransaction extends BaseTransaction {
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(unlockAssetFormatSchema, asset);
+		const schemaErrors = validator.validate(unlockAssetSchema, asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,
