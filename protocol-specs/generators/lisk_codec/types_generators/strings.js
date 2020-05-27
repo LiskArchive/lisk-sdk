@@ -51,10 +51,26 @@ const generateValidStringEncodings = () => {
 				},
 			},
 		},
+		symbols: {
+			object: {
+				data: '€.ƒ.‰.Œ.£.©.®.µ.Æ.ü.ý.ø.Ç.¥.ß',
+			},
+			schema: {
+				$id: 'object8',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			},
+		},
 	};
 
 	const stringEncoded = String.encode(input.string.object).finish();
 	const emptyStringEncoded = String.encode(input.emptyString.object).finish();
+	const symbolsStringEncoded = String.encode(input.symbols.object).finish();
 
 	return [
 		{
@@ -66,6 +82,11 @@ const generateValidStringEncodings = () => {
 			description: 'Encoding of empty string',
 			input: input.emptyString,
 			output: { value: emptyStringEncoded.toString('hex') },
+		},
+		{
+			description: 'Encoding of some utf symbols string',
+			input: input.symbols,
+			output: { value: symbolsStringEncoded.toString('hex') },
 		},
 	];
 };

@@ -125,6 +125,16 @@ describe('encode', () => {
 
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
 		});
+
+		it('should encode symbols string', () => {
+			const stringFixtureInput = stringTestCases[2].input;
+			const stringFixtureOutput = stringTestCases[2].output;
+			const { object: message, schema } = stringFixtureInput;
+			const { value: expectedOutput } = stringFixtureOutput;
+			const liskBinaryMessage = codec.encode(schema as any, message as any);
+
+			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		});
 	});
 
 	describe('booleans', () => {
