@@ -11,7 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
+import { codec } from '@liskhq/lisk-codec';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
 
 export interface RegisteredTransactions {
 	readonly [key: string]: typeof BaseTransaction;
@@ -24,25 +25,30 @@ export class TransactionInterfaceAdapter {
 	public constructor(registeredTransactions: RegisteredTransactions = {}) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._transactionClassMap = new Map();
+		codec.addSchema(BaseTransaction.BASE_SCHEMA);
 		Object.keys(registeredTransactions).forEach(transactionType => {
+			const transaction = registeredTransactions[transactionType];
 			this._transactionClassMap.set(
 				Number(transactionType),
-				registeredTransactions[transactionType],
+				transaction,
 			);
+			codec.addSchema(transaction.ASSET_SCHEMA);
 		});
 	}
 
-	public fromJSON(rawTx: TransactionJSON): BaseTransaction {
+	public decode(binaryMessage: Buffer): BaseTransaction {
+		const transactionMessage = codec.decode(BaseTransaction.BASE_SCHEMA, binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const TransactionClass = this._transactionClassMap.get(rawTx.type);
+		const TransactionClass = this._transactionClassMap.get(transactionMessage.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const assetMessage = codec.decode(TransactionClass.ASSET_SCHEMA, transactionMessage.asset);
+		transactionMessage.asset = assetMessage;
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
-		return new TransactionClass({
-			...rawTx,
-		});
+		return new TransactionClass(transactionMessage);
 	}
 }
