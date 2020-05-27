@@ -258,6 +258,9 @@ export const writeArray = (
 	message: Array<unknown>,
 	chunks: Buffer[],
 ): [Buffer[], number] => {
+	if (message.length === 0) {
+		return [chunks, 0];
+	}
 	let totalSize = 0;
 	const [rootSchema, typeSchema] = compiledSchema;
 	// Array of object
