@@ -167,7 +167,7 @@ const diffCommonPrefix = (buffer1: Buffer, buffer2: Buffer): number => {
  */
 const diffCommonSuffix = (buffer1: Buffer, buffer2: Buffer): number => {
 	// Quick check for common null cases.
-	if (!buffer1.slice(-1).equals(buffer2.slice(-1))) {
+	if (buffer1[buffer1.length - 1] !== buffer2[buffer2.length - 1]) {
 		return 0;
 	}
 	// Binary search.
