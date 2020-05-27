@@ -17,7 +17,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON, AssetSchema } from './types';
+import { TransactionMessage } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;
@@ -32,6 +32,7 @@ export interface DelegateAsset {
 }
 
 export const delegateRegistrationAssetSchema = {
+	$id: 'lisk/delegate-registration-transaction',
 	type: 'object',
 	required: ['username'],
 	properties: {
@@ -45,23 +46,13 @@ export const delegateRegistrationAssetSchema = {
 export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
+	public static ASSET_SCHEMA = delegateRegistrationAssetSchema;
 	public readonly asset: DelegateAsset;
-	public readonly assetSchema: AssetSchema;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
+	public constructor(transaction: TransactionMessage) {
+		super(transaction);
 
-		this.assetSchema = delegateRegistrationAssetSchema;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset ?? { delegate: {} }) as DelegateAsset;
-	}
-
-	protected assetToBytes(): Buffer {
-		const { username } = this.asset;
-
-		return Buffer.from(username, 'utf8');
+		this.asset = transaction.asset as unknown as DelegateAsset;
 	}
 
 	protected verifyAgainstTransactions(

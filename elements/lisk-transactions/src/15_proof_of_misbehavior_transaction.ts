@@ -21,15 +21,15 @@ import {
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { BlockHeaderJSON, TransactionJSON, AssetSchema } from './types';
+import { BlockHeaderJSON, TransactionMessage } from './types';
 import {
 	getBlockBytes,
-	getBlockBytesWithSignature,
 	getPunishmentPeriod,
 	validateSignature,
 } from './utils';
 
 const proofOfMisbehaviorAssetSchema = {
+	$id: 'lisk/proof-of-misbehavior-transaction',
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {
@@ -52,28 +52,13 @@ export interface ProofOfMisbehaviorAsset {
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	public static TYPE = 15;
+	public static ASSET_SCHEMA = proofOfMisbehaviorAssetSchema;
 	public readonly asset: ProofOfMisbehaviorAsset;
-	public readonly assetSchema: AssetSchema;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
+	public constructor(transaction: TransactionMessage) {
+		super(transaction);
 
-		this.assetSchema = proofOfMisbehaviorAssetSchema;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset ?? {}) as ProofOfMisbehaviorAsset;
-		this.asset.reward =
-			this.asset.reward && isNumberString(this.asset.reward)
-				? BigInt(this.asset.reward)
-				: BigInt(0);
-	}
-
-	protected assetToBytes(): Buffer {
-		return Buffer.concat([
-			getBlockBytesWithSignature(this.asset.header1),
-			getBlockBytesWithSignature(this.asset.header2),
-		]);
+		this.asset = transaction.asset as unknown as ProofOfMisbehaviorAsset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {

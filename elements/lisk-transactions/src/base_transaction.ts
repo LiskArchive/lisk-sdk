@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { codec } from '@liskhq/lisk-codec';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
@@ -19,7 +20,7 @@ import {
 	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import { isValidFee, isValidNonce, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	BYTESIZES,
@@ -27,14 +28,12 @@ import {
 	MIN_FEE_PER_BYTE,
 } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
-import { createResponse, Status } from './response';
+import { createResponse, TransactionResponse } from './response';
 import { baseTransactionSchema } from './schema';
-import { Account, BlockHeader, TransactionJSON, BaseTransactionSchema } from './types';
+import { Account, BlockHeader, TransactionMessage } from './types';
 import {
 	buildPublicKeyPassphraseDict,
-	getId,
 	isMultisignatureAccount,
-	serializeSignatures,
 	sortKeysAscending,
 	validateSenderIdAndPublicKey,
 	validateSignature,
@@ -43,12 +42,6 @@ import {
 	verifyMultiSignatureTransaction,
 	verifySenderPublicKey,
 } from './utils';
-
-export interface TransactionResponse {
-	readonly id: string;
-	readonly status: Status;
-	readonly errors: ReadonlyArray<TransactionError>;
-}
 
 // Disabling method-signature-style otherwise type is not compatible with lisk-chain
 /* eslint-disable @typescript-eslint/method-signature-style */
@@ -82,50 +75,29 @@ export abstract class BaseTransaction {
 	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
 	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
 	public static NAME_FEE = BigInt(0);
+	public static BASE_SCHEMA = baseTransactionSchema;
 
-	public readonly blockId?: string;
-	public readonly height?: number;
-	public readonly confirmations?: number;
+	public readonly transaction: TransactionMessage;
+	public readonly id: Buffer;
 	public readonly type: number;
 	public readonly asset: object;
 	public nonce: bigint;
 	public fee: bigint;
-	public receivedAt?: Date;
-	public senderPublicKey: string;
-	public signatures: string[];
-	public readonly schema: BaseTransactionSchema;
+	public senderPublicKey: Buffer;
+	public signatures: Buffer[];
 
-	protected _id?: string;
 	protected _minFee?: bigint;
 
-	public constructor(rawTransaction: unknown) {
-		this.schema = baseTransactionSchema;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.senderPublicKey = tx.senderPublicKey ?? '';
+	public constructor(transaction: TransactionMessage) {
+		this.transaction = transaction;
+		this.id = transaction.id;
+		this.type = transaction.type;
+		this.asset = transaction.asset;
+		this.nonce = transaction.nonce;
+		this.fee = transaction.fee;
+		this.senderPublicKey = transaction.senderPublicKey;
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.signatures = (tx.signatures as string[]) || [];
-		this.nonce =
-			tx.nonce && isValidNonce(tx.nonce) ? BigInt(tx.nonce) : BigInt(0);
-		this.fee = tx.fee && isValidFee(tx.fee) ? BigInt(tx.fee) : BigInt(0);
-		this.type =
-			typeof tx.type === 'number'
-				? tx.type
-				: (this.constructor as typeof BaseTransaction).TYPE;
-
-		this._id = tx.id;
-
-		// Additional data not related to the protocol
-		this.confirmations = tx.confirmations;
-		this.blockId = tx.blockId;
-		this.height = tx.height;
-		this.receivedAt = tx.receivedAt ? new Date(tx.receivedAt) : undefined;
-		this.asset = tx.asset ?? {};
-	}
-
-	public get id(): string {
-		return this._id ?? 'incalculable-id';
+		this.signatures = (transaction.signatures as Buffer[]) || [];
 	}
 
 	public get minFee(): bigint {
@@ -134,7 +106,7 @@ export abstract class BaseTransaction {
 			this._minFee =
 				(this.constructor as typeof BaseTransaction).NAME_FEE +
 				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
-					BigInt(this.getBytes().length);
+				BigInt(this.getBytes().length);
 		}
 
 		return this._minFee;
@@ -147,7 +119,7 @@ export abstract class BaseTransaction {
 	public getBytes(): Buffer {
 		const transactionBytes = Buffer.concat([
 			this.getBasicBytes(),
-			serializeSignatures(this.signatures),
+			this.signatures,
 		]);
 
 		return transactionBytes;
@@ -158,8 +130,6 @@ export abstract class BaseTransaction {
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
 		}
-
-		this._id = getId(this.getBytes());
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
@@ -249,14 +219,14 @@ export abstract class BaseTransaction {
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
 				: [
-						new TransactionError(
-							'Invalid balance amount',
-							this.id,
-							'.balance',
-							sender.balance.toString(),
-							updatedBalance.toString(),
-						),
-				  ];
+					new TransactionError(
+						'Invalid balance amount',
+						this.id,
+						'.balance',
+						sender.balance.toString(),
+						updatedBalance.toString(),
+					),
+				];
 
 		// Decrement account nonce
 		sender.nonce -= BigInt(1);
@@ -352,8 +322,6 @@ export abstract class BaseTransaction {
 			// Reset signatures when only one passphrase is provided
 			this.signatures = [];
 			this.signatures.push(signature);
-			this._id = getId(this.getBytes());
-
 			return;
 		}
 
@@ -382,46 +350,25 @@ export abstract class BaseTransaction {
 					);
 				} else {
 					// Push an empty signature if a passphrase is missing
-					this.signatures.push('');
+					this.signatures.push(Buffer.from(''));
 				}
 			}
-			this._id = getId(this.getBytes());
 		}
 	}
 
 	public getBasicBytes(): Buffer {
-		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
-		const transactionNonce = intToBuffer(
-			this.nonce.toString(),
-			BYTESIZES.NONCE,
-		);
+		const assetBytes = codec.encode({}, this.asset);
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+			...this.transaction,
+			asset: assetBytes,
+			signatures: this.signatures,
+		});
 
-		const transactionSenderPublicKey = hexToBuffer(this.senderPublicKey);
-		const transactionFee = intToBuffer(this.fee.toString(), BYTESIZES.FEE);
-
-		return Buffer.concat([
-			transactionType,
-			transactionNonce,
-			transactionSenderPublicKey,
-			transactionFee,
-			this.assetToBytes(),
-		]);
-	}
-
-	protected assetToBytes(): Buffer {
-		/**
-		 * FixMe: The following method is not sufficient enough for more sophisticated cases,
-		 * i.e. properties in the asset object need to be sent always in the same right order to produce a deterministic signature.
-		 *
-		 * We are currently conducting a research to specify an optimal generic way of changing asset to bytes.
-		 * You can expect this enhanced implementation to be included in the next releases.
-		 */
-
-		return Buffer.from(JSON.stringify(this.asset), 'utf8');
+		return transactionBytes;
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(this.schema, this.transaction);
+		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, this.transaction);
 		const errors = convertToTransactionError(
 			this.id,
 			schemaErrors,

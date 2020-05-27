@@ -105,21 +105,6 @@ describe('Delegate registration transaction class', () => {
 		});
 	});
 
-	describe('#assetToBytes', () => {
-		it('should return valid buffer', () => {
-			const assetBytes = (validTestTransaction as any).assetToBytes();
-			expect(assetBytes).toEqual(
-				Buffer.from(validDelegateTransaction.asset.username, 'utf8'),
-			);
-		});
-	});
-
-	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', () => {
-			expect(validTestTransaction.assetToJSON()).toHaveProperty('username');
-		});
-	});
-
 	describe('#validateAsset', () => {
 		it('should no errors', () => {
 			const errors = (validTestTransaction as any).validateAsset();

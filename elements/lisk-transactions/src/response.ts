@@ -26,10 +26,10 @@ export interface TransactionResponse {
 }
 
 export const createResponse = (
-	id: string,
+	id: Buffer,
 	errors?: ReadonlyArray<TransactionError>,
 ): TransactionResponse => ({
-	id,
+	id: id.toString('hex'),
 	status: errors && errors.length > 0 ? Status.FAIL : Status.OK,
 	errors: errors ?? [],
 });

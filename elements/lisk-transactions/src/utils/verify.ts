@@ -19,7 +19,7 @@ import { convertBeddowsToLSK } from './format';
 import { validateSignature } from './sign_and_validate';
 
 export const verifySenderPublicKey = (
-	id: string,
+	id: Buffer,
 	sender: Account,
 	publicKey: string,
 ): TransactionError | undefined =>
@@ -34,7 +34,7 @@ export const verifySenderPublicKey = (
 		: undefined;
 
 export const verifyMinRemainingBalance = (
-	id: string,
+	id: Buffer,
 	account: Account,
 	minRemainingBalance: bigint,
 ): TransactionError | undefined => {
@@ -54,7 +54,7 @@ export const verifyMinRemainingBalance = (
 };
 
 export const verifyAccountNonce = (
-	id: string,
+	id: Buffer,
 	account: Account,
 	nonce: bigint,
 ): TransactionError | undefined => {
@@ -126,7 +126,7 @@ export const validateKeysSignatures = (
 };
 
 export const verifyMultiSignatureTransaction = (
-	id: string,
+	id: Buffer,
 	sender: Account,
 	signatures: ReadonlyArray<string>,
 	transactionBytes: Buffer,

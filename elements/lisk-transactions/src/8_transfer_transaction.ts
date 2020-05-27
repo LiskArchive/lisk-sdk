@@ -13,29 +13,24 @@
  *
  */
 import {
-	intToBuffer,
-	stringToBuffer,
-	hexToBuffer,
-} from '@liskhq/lisk-cryptography';
-import {
-	isPositiveNumberString,
 	isValidTransferAmount,
 	validator,
 } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
+import { MAX_TRANSACTION_AMOUNT } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON, AssetSchema } from './types';
+import { TransactionMessage } from './types';
 import { verifyMinRemainingBalance } from './utils';
 
 export interface TransferAsset {
 	readonly amount: bigint;
-	readonly recipientId: string;
-	readonly data?: string;
+	readonly recipientAddress: string;
+	readonly data: string;
 }
 
-export const balanceTransferAsset = {
+export const transferAssetSchema = {
+	$id: 'lisk/transfer-transaction',
 	type: 'object',
 	required: ['amount', 'recipientAddress', 'data'],
 	properties: {
@@ -54,65 +49,19 @@ export const balanceTransferAsset = {
 	},
 };
 
-interface RawAsset {
-	readonly data?: string;
-	readonly recipientId: string;
-	readonly amount: number | string;
-}
-
 export class TransferTransaction extends BaseTransaction {
 	public static TYPE = 8;
+	public static ASSET_SCHEMA = transferAssetSchema;
 	public readonly asset: TransferAsset;
-	public readonly assetSchema: AssetSchema;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
+	public constructor(transaction: TransactionMessage) {
+		super(transaction);
 
-		this.assetSchema = balanceTransferAsset;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		// Initializes to empty object if it doesn't exist
-		if (tx.asset) {
-			const rawAsset = tx.asset as RawAsset;
-			this.asset = {
-				data: rawAsset.data,
-				recipientId: rawAsset.recipientId,
-				amount: BigInt(
-					isPositiveNumberString(rawAsset.amount) ? rawAsset.amount : '0',
-				),
-			};
-		} else {
-			this.asset = {
-				amount: BigInt('0'),
-				recipientId: '',
-			} as TransferAsset;
-		}
-	}
-
-	protected assetToBytes(): Buffer {
-		const transactionAmount = intToBuffer(
-			this.asset.amount.toString(),
-			BYTESIZES.AMOUNT,
-			'big',
-		);
-		const transactionRecipientID = this.asset.recipientId
-			? hexToBuffer(this.asset.recipientId)
-			: Buffer.alloc(0);
-
-		const dataBuffer = this.asset.data
-			? stringToBuffer(this.asset.data)
-			: Buffer.alloc(0);
-
-		return Buffer.concat([
-			transactionAmount,
-			transactionRecipientID,
-			dataBuffer,
-		]);
+		this.asset = transaction.asset as unknown as TransferAsset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(balanceTransferAsset, this.asset);
+		const schemaErrors = validator.validate(transferAssetSchema, this.asset);
 		const errors = convertToAssetError(
 			this.id,
 			schemaErrors,
@@ -129,12 +78,12 @@ export class TransferTransaction extends BaseTransaction {
 			);
 		}
 
-		if (!this.asset.recipientId) {
+		if (!this.asset.recipientAddress) {
 			errors.push(
 				new TransactionError(
-					'`recipientId` must be provided.',
+					'`recipientAddress` must be provided.',
 					this.id,
-					'.asset.recipientId',
+					'.asset.recipientAddress',
 				),
 			);
 		}
@@ -150,7 +99,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		sender.balance -= this.asset.amount;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(this.asset.recipientId);
+		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
 
 		recipient.balance += this.asset.amount;
 
@@ -200,7 +149,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		sender.balance = updatedSenderBalance;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(this.asset.recipientId);
+		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
 		recipient.balance -= this.asset.amount;
 
 		store.account.set(recipient.address, recipient);

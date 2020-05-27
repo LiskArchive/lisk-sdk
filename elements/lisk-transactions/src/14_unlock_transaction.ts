@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { intToBuffer, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
-import { Account, AssetSchema, TransactionJSON } from './types';
+import { Account, TransactionMessage } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
@@ -31,6 +30,7 @@ export interface UnlockAsset {
 }
 
 const unlockAssetSchema = {
+	$id: 'lisk/unlock-transaction',
 	type: 'object',
 	required: ['unlockObjects'],
 	properties: {
@@ -92,53 +92,13 @@ const getWaitingPeriod = (
 
 export class UnlockTransaction extends BaseTransaction {
 	public static TYPE = 14;
+	public static ASSET_SCHEMA = unlockAssetSchema;
 	public readonly asset: UnlockAsset;
-	public readonly assetSchema: AssetSchema;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
+	public constructor(transaction: TransactionMessage) {
+		super(transaction);
 
-		this.assetSchema = unlockAssetSchema;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		if (tx.asset) {
-			const rawAsset = tx.asset as RawAsset;
-			this.asset = {
-				unlockObjects: rawAsset.unlockObjects.map(unlock => {
-					const amount = isNumberString(unlock.amount)
-						? BigInt(unlock.amount)
-						: BigInt(0);
-
-					return {
-						delegateAddress: unlock.delegateAddress,
-						amount,
-						unvoteHeight: unlock.unvoteHeight,
-					};
-				}),
-			};
-		} else {
-			this.asset = { unlockObjects: [] };
-		}
-	}
-
-	protected assetToBytes(): Buffer {
-		const bufferArray = [];
-		for (const unlock of this.asset.unlockObjects) {
-			const addressBuffer = hexToBuffer(unlock.delegateAddress);
-			bufferArray.push(addressBuffer);
-			const amountBuffer = intToBuffer(
-				unlock.amount.toString(),
-				SIZE_INT64,
-				'big',
-				true,
-			);
-			bufferArray.push(amountBuffer);
-			const unvoteHeightBuffer = intToBuffer(unlock.unvoteHeight, SIZE_UINT32);
-			bufferArray.push(unvoteHeightBuffer);
-		}
-
-		return Buffer.concat(bufferArray);
+		this.asset = transaction.asset as unknown as UnlockAsset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {

@@ -20,16 +20,8 @@ import { TransactionError } from '../../src/errors';
 export class TestTransaction extends BaseTransaction {
 	public static TYPE = 8;
 
-	public assetToJSON(): object {
-		return this.asset;
-	}
-
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async prepare(): Promise<void> {}
-
-	public assetToBytes(): Buffer {
-		return Buffer.alloc(0);
-	}
 
 	public validateAsset(): TransactionError[] {
 		return [];

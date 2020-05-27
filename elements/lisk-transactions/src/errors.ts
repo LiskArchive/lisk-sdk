@@ -20,7 +20,7 @@ export class TransactionError extends Error {
 	public expected?: string | number;
 	public constructor(
 		message = '',
-		id = '',
+		id = Buffer.from(''),
 		dataPath = '',
 		actual?: string | number,
 		expected?: string | number,
@@ -28,7 +28,7 @@ export class TransactionError extends Error {
 		super();
 		this.message = message;
 		this.name = 'TransactionError';
-		this.id = id;
+		this.id = id.toString('hex');
 		this.dataPath = dataPath;
 		this.actual = actual;
 		this.expected = expected;
@@ -55,7 +55,7 @@ interface ErrorObject {
 }
 
 export const convertToTransactionError = (
-	id: string,
+	id: Buffer,
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -74,7 +74,7 @@ export const convertToTransactionError = (
 };
 
 export const convertToAssetError = (
-	id: string,
+	id: Buffer,
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {

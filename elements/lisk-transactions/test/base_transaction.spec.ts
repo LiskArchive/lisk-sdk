@@ -180,48 +180,6 @@ describe.skip('Base transaction class', () => {
 		});
 	});
 
-	describe('#assetToJSON', () => {
-		it('should return an object of type transaction asset', () => {
-			expect(validTestTransaction.assetToJSON()).toBeObject();
-		});
-	});
-
-	describe('#toJSON', () => {
-		it('should call assetToJSON', () => {
-			const assetToJSONStub = jest
-				.spyOn(validTestTransaction, 'assetToJSON')
-				.mockReturnValue({});
-			validTestTransaction.toJSON();
-
-			expect(assetToJSONStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return transaction json', () => {
-			const transactionJSON = validTestTransaction.toJSON();
-
-			expect(transactionJSON).toEqual({
-				...defaultTransaction,
-				senderId: '2129300327344985743L',
-			});
-		});
-	});
-
-	describe('#assetToBytes', () => {
-		it('should return a buffer', () => {
-			expect(
-				(validTestTransaction as TestTransaction).assetToBytes(),
-			).toBeInstanceOf(Buffer);
-		});
-	});
-
-	describe('#stringify', () => {
-		it('should return the transaction stringified', () => {
-			expect(typeof (validTestTransaction as TestTransaction).stringify()).toBe(
-				'string',
-			);
-		});
-	});
-
 	describe('#getBasicBytes', () => {
 		it('should call cryptography hexToBuffer', () => {
 			const cryptographyHexToBufferStub = jest

@@ -79,14 +79,6 @@ describe('Transfer transaction class', () => {
 		});
 	});
 
-	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', () => {
-			expect(
-				(validTransferTestTransaction.assetToJSON() as any).data,
-			).toBeString();
-		});
-	});
-
 	// TODO: Update after updating protocol-specs
 	describe.skip('#validateAsset', () => {
 		it('should return no errors with a valid transfer transaction', () => {

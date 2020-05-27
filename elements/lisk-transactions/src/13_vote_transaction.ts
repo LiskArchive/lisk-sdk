@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { intToBuffer, hexToBuffer } from '@liskhq/lisk-cryptography';
 import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
 import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON, AssetSchema } from './types';
+import { TransactionMessage } from './types';
 import { sortUnlocking } from './utils';
 
 export interface Vote {
@@ -31,6 +30,7 @@ export interface VoteAsset {
 }
 
 const voteAssetSchema = {
+	$id: 'lisk/vote-transaction',
 	type: 'object',
 	required: ['votes'],
 	properties: {
@@ -71,50 +71,13 @@ interface RawAsset {
 
 export class VoteTransaction extends BaseTransaction {
 	public static TYPE = 13;
+	public static ASSET_SCHEMA = voteAssetSchema;
 	public readonly asset: VoteAsset;
-	public readonly assetSchema: AssetSchema;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
+	public constructor(transaction: TransactionMessage) {
+		super(transaction);
 
-		this.assetSchema = voteAssetSchema;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		if (tx.asset) {
-			const rawAsset = tx.asset as RawAsset;
-			this.asset = {
-				votes: rawAsset.votes.map(vote => {
-					const amount = isNumberString(vote.amount)
-						? BigInt(vote.amount)
-						: BigInt(0);
-
-					return {
-						delegateAddress: vote.delegateAddress,
-						amount,
-					};
-				}),
-			};
-		} else {
-			this.asset = { votes: [] };
-		}
-	}
-
-	protected assetToBytes(): Buffer {
-		const bufferArray = [];
-		for (const vote of this.asset.votes) {
-			const addressBuffer = hexToBuffer(vote.delegateAddress);
-			bufferArray.push(addressBuffer);
-			const amountBuffer = intToBuffer(
-				vote.amount.toString(),
-				SIZE_INT64,
-				'big',
-				true,
-			);
-			bufferArray.push(amountBuffer);
-		}
-
-		return Buffer.concat(bufferArray);
+		this.asset = transaction.asset as unknown as VoteAsset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
@@ -285,9 +248,9 @@ export class VoteTransaction extends BaseTransaction {
 					originalUpvoteIndex > -1
 						? sender.votes[originalUpvoteIndex]
 						: {
-								delegateAddress: vote.delegateAddress,
-								amount: BigInt(0),
-						  };
+							delegateAddress: vote.delegateAddress,
+							amount: BigInt(0),
+						};
 				upvote.amount += vote.amount;
 				// Special case for postgres because maximum is int64 for bigint in postgres
 				if (upvote.amount > BigInt(MAX_INT64)) {
@@ -355,9 +318,9 @@ export class VoteTransaction extends BaseTransaction {
 					originalUpvoteIndex > -1
 						? sender.votes[originalUpvoteIndex]
 						: {
-								delegateAddress: vote.delegateAddress,
-								amount: BigInt(0),
-						  };
+							delegateAddress: vote.delegateAddress,
+							amount: BigInt(0),
+						};
 				// Add back the vote
 				upvote.amount += vote.amount * BigInt(-1);
 				sender.votes[index] = upvote;

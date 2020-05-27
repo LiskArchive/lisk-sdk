@@ -17,7 +17,6 @@ import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	hexToBuffer,
-	intToBuffer,
 	signData,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
@@ -25,16 +24,16 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
-import { TransactionJSON, AssetSchema } from './types';
+import { TransactionMessage } from './types';
 import {
 	buildPublicKeyPassphraseDict,
-	getId,
 	sortKeysAscending,
 	validateKeysSignatures,
 	validateSignature,
 } from './utils';
 
 export const multisigRegAssetSchema = {
+	$id: 'lisk/multisignature-registration-transaction',
 	type: 'object',
 	required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
 	properties: {
@@ -80,18 +79,14 @@ export interface MultiSignatureAsset {
 
 export class MultisignatureTransaction extends BaseTransaction {
 	public static TYPE = 12;
+	public static ASSET_SCHEMA = multisigRegAssetSchema;
 	public readonly asset: MultiSignatureAsset;
-	public readonly assetSchema: AssetSchema;
 	private readonly MAX_KEYS_COUNT = 64;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
+	public constructor(transaction: TransactionMessage) {
+		super(transaction);
 
-		this.assetSchema = multisigRegAssetSchema;
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset ?? {}) as MultiSignatureAsset;
+		this.asset = transaction.asset as unknown as MultiSignatureAsset;
 	}
 
 	// Verifies multisig signatures as per LIP-0017
@@ -219,22 +214,6 @@ export class MultisignatureTransaction extends BaseTransaction {
 				}
 			}
 		}
-		this._id = getId(this.getBytes());
-	}
-
-	protected assetToBytes(): Buffer {
-		const { mandatoryKeys, optionalKeys, numberOfSignatures } = this.asset;
-		const mandatoryKeysBuffer = Buffer.from(mandatoryKeys.join(''), 'hex');
-		const optionalKeysBuffer = Buffer.from(optionalKeys.join(''), 'hex');
-		const assetBuffer = Buffer.concat([
-			intToBuffer(mandatoryKeys.length, 1),
-			mandatoryKeysBuffer,
-			intToBuffer(optionalKeys.length, 1),
-			optionalKeysBuffer,
-			intToBuffer(numberOfSignatures, 1),
-		]);
-
-		return assetBuffer;
 	}
 
 	protected verifyAgainstTransactions(

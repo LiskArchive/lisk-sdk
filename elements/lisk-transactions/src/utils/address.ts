@@ -17,7 +17,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { TransactionError } from '../errors';
 
 export const validateSenderIdAndPublicKey = (
-	id: string,
+	id: Buffer,
 	senderId: string,
 	senderPublicKey: string,
 ): TransactionError | undefined => {

@@ -83,19 +83,14 @@ export type BlockHeaderJSON = Modify<
 	}
 >;
 
-export interface TransactionJSON {
-	readonly asset: object;
-	readonly id?: string;
-	readonly blockId?: string;
-	readonly height?: number;
-	readonly confirmations?: number;
-	readonly senderPublicKey: string;
-	readonly signatures?: ReadonlyArray<string>;
+export interface TransactionMessage {
+	readonly id: Buffer;
 	readonly type: number;
-	readonly receivedAt?: string;
-	readonly networkIdentifier?: string;
-	readonly nonce: string;
-	readonly fee: string;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly senderPublicKey: Buffer;
+	readonly asset: Buffer;
+	readonly signatures?: ReadonlyArray<Buffer>;
 }
 
 export interface IsValidResponse {
