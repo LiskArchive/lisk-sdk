@@ -40,7 +40,11 @@
 					"isDelegate": true,
 					"name": "delegate",
 					"asset": {
-						"data": "Check out the Lisk SDK now in binary!"
+						"data": "Check out the Lisk SDK now in binary!",
+						"fooBar": {
+							"foo": 9,
+							"bar": 9
+						}
 					}
 				},
 				"schema": {
@@ -70,6 +74,20 @@
 								"data": {
 									"dataType": "string",
 									"fieldNumber": 1
+								},
+								"fooBar": {
+									"type": "object",
+									"fieldNumber": 2,
+									"properties": {
+										"foo": {
+											"dataType": "uint32",
+											"fieldNumber": 1
+										},
+										"bar": {
+											"dataType": "uint32",
+											"fieldNumber": 2
+										}
+									}
 								}
 							}
 						}
@@ -77,7 +95,7 @@
 				}
 			},
 			"output": {
-				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a270a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921"
+				"value": "0a14e11a11364738225813f86ea85214400e5db08d6e1080ade2041801220864656c65676174652a2d0a25436865636b206f757420746865204c69736b2053444b206e6f7720696e2062696e61727921120408091009"
 			}
 		},
 		{

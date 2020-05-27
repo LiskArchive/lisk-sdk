@@ -32,6 +32,7 @@ describe('encode', () => {
 			const objectFixtureInput = objectTestCases[0].input;
 			const objectFixtureOutput = objectTestCases[0].output;
 			const message = objectFixtureInput.object;
+
 			// Replace the JSON representation of buffer with an actual buffer
 			(message as any).address = Buffer.from((message as any).address.data);
 			// Fix number not being bigint

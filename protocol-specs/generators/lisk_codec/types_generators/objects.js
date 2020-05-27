@@ -27,6 +27,10 @@ const generateValidObjectEncodings = () => {
 		name: 'delegate',
 		asset: {
 			data: 'Check out the Lisk SDK now in binary!',
+			fooBar: {
+				foo: 9,
+				bar: 9,
+			},
 		},
 	};
 
@@ -60,6 +64,20 @@ const generateValidObjectEncodings = () => {
 							data: {
 								dataType: 'string',
 								fieldNumber: 1,
+							},
+							fooBar: {
+								type: 'object',
+								fieldNumber: 2,
+								properties: {
+									foo: {
+										dataType: 'uint32',
+										fieldNumber: 1,
+									},
+									bar: {
+										dataType: 'uint32',
+										fieldNumber: 2,
+									},
+								},
 							},
 						},
 					},
