@@ -91,6 +91,59 @@ Array [
         "fieldNumber": 1,
       },
     },
+    Array [
+      Object {
+        "binaryKey": Object {
+          "data": Array [
+            18,
+          ],
+          "type": "Buffer",
+        },
+        "dataPath": Array [
+          "asset",
+          "fooBar",
+        ],
+        "propertyName": "fooBar",
+        "schemaProp": Object {
+          "fieldNumber": 2,
+          "type": "object",
+        },
+      },
+      Object {
+        "binaryKey": Object {
+          "data": Array [
+            8,
+          ],
+          "type": "Buffer",
+        },
+        "dataPath": Array [
+          "asset",
+          "fooBar",
+        ],
+        "propertyName": "foo",
+        "schemaProp": Object {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
+      },
+      Object {
+        "binaryKey": Object {
+          "data": Array [
+            16,
+          ],
+          "type": "Buffer",
+        },
+        "dataPath": Array [
+          "asset",
+          "fooBar",
+        ],
+        "propertyName": "bar",
+        "schemaProp": Object {
+          "dataType": "uint32",
+          "fieldNumber": 2,
+        },
+      },
+    ],
   ],
 ]
 `;
