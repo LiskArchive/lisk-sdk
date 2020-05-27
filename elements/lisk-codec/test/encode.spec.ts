@@ -18,6 +18,7 @@ import { testCases as bytesTestCases } from '../fixtures/bytes_encodings.json';
 import { testCases as stringTestCases } from '../fixtures/string_encodings.json';
 import { testCases as booleanTestCases } from '../fixtures/boolean_encodings.json';
 import { testCases as numberTestCases } from '../fixtures/number_encodings.json';
+import { testCases as CartTestCases } from '../fixtures/cart_sample_encoding.json';
 
 describe('encode', () => {
 	describe('objects', () => {
@@ -41,6 +42,17 @@ describe('encode', () => {
 		it('should not encode missing propertiees of an object to Buffer', () => {
 			const objectFixtureInput = objectTestCases[1].input;
 			const objectFixtureOutput = objectTestCases[1].output;
+			const message = objectFixtureInput.object;
+			const { schema } = objectFixtureInput;
+			const { value: expectedOutput } = objectFixtureOutput;
+
+			const liskBinaryMessage = codec.encode(schema as any, message as any);
+			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		});
+
+		it('should encode array of objects containing array of objects', () => {
+			const objectFixtureInput = CartTestCases[0].input;
+			const objectFixtureOutput = CartTestCases[0].output;
 			const message = objectFixtureInput.object;
 			const { schema } = objectFixtureInput;
 			const { value: expectedOutput } = objectFixtureOutput;
