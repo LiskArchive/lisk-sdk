@@ -77,7 +77,7 @@ export abstract class BaseTransaction {
 
 	public readonly id: Buffer;
 	public readonly type: number;
-	public readonly asset: object;
+	public asset: object;
 	public nonce: bigint;
 	public fee: bigint;
 	public senderPublicKey: Buffer;

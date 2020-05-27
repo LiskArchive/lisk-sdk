@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+
+import { codec, GenericObject } from '@liskhq/lisk-codec';
+import { getAddressFromPublicKey, bufferToHex } from '@liskhq/lisk-cryptography';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import {
@@ -21,7 +23,6 @@ import {
 } from './constants';
 import { TransactionError } from './errors';
 import {
-	getBlockBytes,
 	getPunishmentPeriod,
 	validateSignature,
 } from './utils';
@@ -39,6 +40,66 @@ const proofOfMisbehaviorAssetSchema = {
 		header2: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+		},
+	},
+};
+
+const blockHeaderSchema = {
+	$id: 'lisk/block-header',
+	type: 'object',
+	required: ['height', 'version', 'timestamp', 'previousBlockId', 'generatorPublicKey', 'numberOfTransactions', 'payloadLength', 'transactionRoot', 'maxHeightPreviouslyForged', 'maxHeightPrevoted', 'totalAmount', 'totalFee', 'reward', 'seedReveal'],
+	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		version: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		timestamp: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		previousBlockId: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		generatorPublicKey: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		numberOfTransactions: {
+			dataType: 'uint32',
+			fieldNumber: 6,
+		},
+		payloadLength: {
+			dataType: 'uint32',
+			fieldNumber: 7,
+		},
+		transactionRoot: {
+			dataType: 'bytes',
+			fieldNumber: 8,
+		},
+		maxHeightPreviouslyForged: {
+			dataType: 'uint32',
+			fieldNumber: 9,
+		},
+		totalAmount: {
+			dataType: 'uint64',
+			fieldNumber: 10,
+		},
+		totalFee: {
+			dataType: 'uint64',
+			fieldNumber: 11,
+		},
+		reward: {
+			dataType: 'uint64',
+			fieldNumber: 12,
+		},
+		seedReveal: {
+			dataType: 'bytes',
+			fieldNumber: 13,
 		},
 	},
 };
@@ -78,8 +139,8 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 		if (
 			Buffer.compare(
-				getBlockBytes(this.asset.header1),
-				getBlockBytes(this.asset.header2),
+				this._getBlockHeaderBytes(this.asset.header1),
+				this._getBlockHeaderBytes(this.asset.header2),
 			) === 0
 		) {
 			errors.push(
@@ -231,11 +292,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 		const blockHeader1Bytes = Buffer.concat([
 			networkIdentifier,
-			getBlockBytes(this.asset.header1),
+			this._getBlockHeaderBytes(this.asset.header1),
 		]);
 		const blockHeader2Bytes = Buffer.concat([
 			networkIdentifier,
-			getBlockBytes(this.asset.header2),
+			this._getBlockHeaderBytes(this.asset.header2),
 		]);
 
 		const { valid: validHeader1Signature } = validateSignature(
@@ -250,7 +311,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Invalid block signature for header 1.',
 					this.id,
 					'.asset.header1.blockSignature',
-					this.asset.header1.blockSignature.toString('hex'),
+					bufferToHex(this.asset.header1.blockSignature),
 				),
 			);
 		}
@@ -266,7 +327,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Invalid block signature for header 2.',
 					this.id,
 					'.asset.header2.blockSignature',
-					this.asset.header2.blockSignature.toString('hex'),
+					bufferToHex(this.asset.header2.blockSignature),
 				),
 			);
 		}
@@ -335,5 +396,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		store.account.set(delegateAccount.address, delegateAccount);
 
 		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBlockHeaderBytes(header: BlockHeader): Buffer {
+		const { blockSignature, ...restOfHeader } = header;
+		return codec.encode(blockHeaderSchema, restOfHeader as unknown as GenericObject);
 	}
 }

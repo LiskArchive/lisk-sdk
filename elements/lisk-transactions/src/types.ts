@@ -58,8 +58,8 @@ export interface BlockHeader {
 	readonly height: number;
 	readonly version: number;
 	readonly timestamp: number;
-	readonly previousBlockId?: Buffer | null;
 	readonly blockSignature: Buffer;
+	readonly previousBlockId?: Buffer | null;
 	readonly generatorPublicKey: Buffer;
 	readonly numberOfTransactions: number;
 	readonly payloadLength: number;

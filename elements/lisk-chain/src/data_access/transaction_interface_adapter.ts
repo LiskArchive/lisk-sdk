@@ -33,7 +33,9 @@ export class TransactionInterfaceAdapter {
 				Number(transactionType),
 				transaction,
 			);
-			codec.addSchema(transaction.ASSET_SCHEMA);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const { ASSET_SCHEMA } = this._transactionClassMap.get(Number(transactionType));
+			codec.addSchema(ASSET_SCHEMA);
 		});
 	}
 
@@ -46,7 +48,7 @@ export class TransactionInterfaceAdapter {
 			throw new Error('Transaction type not found.');
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, transactionMessage.asset);
+		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, transactionMessage.asset as Buffer);
 		transactionMessage.asset = assetMessage;
 
 		const id = hash(binaryMessage)
