@@ -11,7 +11,17 @@
 			"description": "Encoding of integers array",
 			"input": {
 				"object": {
-					"list": [3, 1, 4, 1, 5, 9, 2, 6, 5]
+					"list": [
+						3,
+						1,
+						4,
+						1,
+						5,
+						9,
+						2,
+						6,
+						5
+					]
 				},
 				"schema": {
 					"type": "object",
@@ -35,7 +45,14 @@
 			"description": "Encoding of booleans array",
 			"input": {
 				"object": {
-					"list": [true, true, false, true, false, false]
+					"list": [
+						true,
+						true,
+						false,
+						true,
+						false,
+						false
+					]
 				},
 				"schema": {
 					"type": "object",
@@ -59,7 +76,11 @@
 			"description": "Encoding of strings array",
 			"input": {
 				"object": {
-					"list": ["lisk", "", "gogogog"]
+					"list": [
+						"lisk",
+						"",
+						"gogogog"
+					]
 				},
 				"schema": {
 					"type": "object",

@@ -1,0 +1,123 @@
+{
+	"title": "Encondings for block asset types supported by lisk-codec",
+	"summary": "Examples of encoding block asset with lisk-codec",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "block_asset_encodings",
+	"testCases": [
+		{
+			"description": "Encoding of valid block asset",
+			"input": {
+				"object": {
+					"maxHeightPreviouslyForged": 1049,
+					"maxHeightPrevoted": 901049,
+					"seedReveal": {
+						"type": "Buffer",
+						"data": [
+							213,
+							147,
+							134,
+							224,
+							174,
+							67,
+							94,
+							41,
+							47,
+							190,
+							14,
+							188,
+							219,
+							149,
+							75,
+							117
+						]
+					}
+				},
+				"schema": {
+					"$id": "blockAssetSchema",
+					"type": "object",
+					"properties": {
+						"maxHeightPreviouslyForged": {
+							"dataType": "uint32",
+							"fieldNumber": 1
+						},
+						"maxHeightPrevoted": {
+							"dataType": "uint32",
+							"fieldNumber": 2
+						},
+						"seedReveal": {
+							"dataType": "bytes",
+							"fieldNumber": 3
+						}
+					},
+					"required": [
+						"maxHeightPreviouslyForged",
+						"maxHeightPrevoted",
+						"seedReveal"
+					]
+				}
+			},
+			"output": {
+				"value": "08990810b9ff361a10d59386e0ae435e292fbe0ebcdb954b75"
+			}
+		},
+		{
+			"description": "Encoding of valid block asset with zero previously forged",
+			"input": {
+				"object": {
+					"maxHeightPreviouslyForged": 0,
+					"maxHeightPrevoted": 1049,
+					"seedReveal": {
+						"type": "Buffer",
+						"data": [
+							234,
+							175,
+							157,
+							76,
+							101,
+							203,
+							80,
+							28,
+							129,
+							30,
+							248,
+							18,
+							132,
+							122,
+							85,
+							81
+						]
+					}
+				},
+				"schema": {
+					"$id": "blockAssetSchema",
+					"type": "object",
+					"properties": {
+						"maxHeightPreviouslyForged": {
+							"dataType": "uint32",
+							"fieldNumber": 1
+						},
+						"maxHeightPrevoted": {
+							"dataType": "uint32",
+							"fieldNumber": 2
+						},
+						"seedReveal": {
+							"dataType": "bytes",
+							"fieldNumber": 3
+						}
+					},
+					"required": [
+						"maxHeightPreviouslyForged",
+						"maxHeightPrevoted",
+						"seedReveal"
+					]
+				}
+			},
+			"output": {
+				"value": "08001099081a10eaaf9d4c65cb501c811ef812847a5551"
+			}
+		}
+	]
+}

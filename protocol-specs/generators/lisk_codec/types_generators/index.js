@@ -17,6 +17,11 @@ const generateValidStringEncodings = require('./strings');
 const generateValidBytesEncodings = require('./bytes');
 const generateValidObjectEncodings = require('./objects');
 const generateValidArrayEncodings = require('./arrays');
+const generateValidBlock = require('./block');
+const generateValidBlockHeader = require('./block_header');
+const generateValidBlockAsset = require('./block_asset');
+const generateValidAccount = require('./account');
+const generateValidTransaction = require('./transaction');
 
 module.exports = {
 	generateValidBooleanEncodings,
@@ -25,4 +30,9 @@ module.exports = {
 	generateValidBytesEncodings,
 	generateValidObjectEncodings,
 	generateValidArrayEncodings,
+	generateValidBlock,
+	generateValidBlockHeader,
+	generateValidBlockAsset,
+	generateValidAccount,
+	generateValidTransaction,
 };

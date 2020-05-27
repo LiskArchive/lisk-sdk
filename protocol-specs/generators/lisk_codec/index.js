@@ -83,6 +83,61 @@ const arrayEncodingsSuite = () => ({
 	testCases: [...typesGenerators.generateValidArrayEncodings()],
 });
 
+const blockEncodingsSuite = () => ({
+	title: 'Encondings for block types supported by lisk-codec',
+	summary: 'Examples of encoding block with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'block_encodings',
+	testCases: [...typesGenerators.generateValidBlock()],
+});
+
+const blockHeaderEncodingsSuite = () => ({
+	title: 'Encondings for block header types supported by lisk-codec',
+	summary: 'Examples of encoding block header with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'block_header_encodings',
+	testCases: [...typesGenerators.generateValidBlockHeader()],
+});
+
+const blockAssetEncodingsSuite = () => ({
+	title: 'Encondings for block asset types supported by lisk-codec',
+	summary: 'Examples of encoding block asset with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'block_asset_encodings',
+	testCases: [...typesGenerators.generateValidBlockAsset()],
+});
+
+const accountEncodingsSuite = () => ({
+	title: 'Encondings for account types supported by lisk-codec',
+	summary: 'Examples of encoding account with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'account_encodings',
+	testCases: [...typesGenerators.generateValidAccount()],
+});
+
+const transactionEncodingsSuite = () => ({
+	title: 'Encondings for transaction types supported by lisk-codec',
+	summary: 'Examples of encoding transaction with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'transaction_encodings',
+	testCases: [...typesGenerators.generateValidTransaction()],
+});
+
 module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	numberEncodingsSuite,
 	booleanEncodingsSuite,
@@ -90,4 +145,9 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	bytesEncodingsSuite,
 	objectEncodingsSuite,
 	arrayEncodingsSuite,
+	blockEncodingsSuite,
+	blockHeaderEncodingsSuite,
+	blockAssetEncodingsSuite,
+	accountEncodingsSuite,
+	transactionEncodingsSuite,
 ]);
