@@ -4,12 +4,11 @@ message Keys {
 	required uint32 numberOfSignatures = 1;
 	repeated bytes mandatoryKeys = 2;
 	repeated bytes optionalKeys = 3;
-
 }
 
 message Delegate {
 	required string username = 1;
-	repeated uint32 pomHeights = 2;
+	repeated uint32 pomHeights = 2 [packed=true];
 	required uint32 consecutiveMissedBlocks = 3;
 	required uint32 lastForgedHeight = 4;
 	required bool isBanned = 5;

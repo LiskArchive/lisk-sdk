@@ -82,7 +82,7 @@ const generateValidTransactionEncodings = () => {
 		},
 		validVoteAsset: {
 			object: {
-				vote: [
+				votes: [
 					{ delegateAddress: Buffer.from('cd32c73e9851c7137980063b8af64aa5a31651f8', 'hex'), amount: -12000000000 },
 					{ delegateAddress: Buffer.from('9d86ad24a3f030e5522b6598115bb4d70c1692c9', 'hex'), amount: 456000000000 },
 				],
@@ -147,7 +147,7 @@ const generateValidTransactionEncodings = () => {
 		},
 		{
 			description: 'Encoding of valid vote asset',
-			input: input.VoteTransaction,
+			input: input.validVoteAsset,
 			output: { value: validVoteTransactionEncoded.toString('hex') },
 		},
 		{

@@ -177,7 +177,13 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 		return [[], index];
 	}
 	const startingByte = message[index];
-	const [, typeSchema] = compiledSchema;
+	const [rootSchema, typeSchema] = compiledSchema;
+	// Peek the current key, and if not the same fieldnumber, skip
+	const [key] = readUInt32(message, index);
+	const [fieldNumber] = readKey(key);
+	if (fieldNumber !== (rootSchema as CompiledSchema).schemaProp.fieldNumber) {
+		return [[], index];
+	}
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const result: Array<any> = [];
 	// Case of object

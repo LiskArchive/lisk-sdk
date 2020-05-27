@@ -50,7 +50,7 @@ const generateValidBlockHeaderEncodings = () => {
 		validBlockHeader1: {
 			object: {
 				version: 1,
-				timestamp: 1590557445871,
+				timestamp: 1590557445,
 				height: 12385603,
 				previousBlockID: Buffer.from(
 					'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
@@ -79,7 +79,7 @@ const generateValidBlockHeaderEncodings = () => {
 		validBlockHeader2: {
 			object: {
 				version: 3,
-				timestamp: 1590557804467,
+				timestamp: 1590557804,
 				height: 901049,
 				previousBlockID: Buffer.from(
 					'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',

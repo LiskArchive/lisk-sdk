@@ -46,53 +46,57 @@ const accountSchema = {
 			required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 		},
 		asset: {
-			delegate: {
-				type: 'object',
-				fieldNumber: 1,
-				properties: {
-					username: { dataType: 'string', fieldNumber: 1 },
-					pomHeights: {
-						type: 'array',
-						items: { dataType: 'uint32' },
-						fieldNumber: 2,
-					},
-					consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
-					lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
-					isBanned: { dataType: 'boolean', fieldNumber: 5 },
-					totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
-				},
-				required: [
-					'username',
-					'pomHeights',
-					'consecutiveMissedBlocks',
-					'lastForgedHeight',
-					'isBanned',
-					'totalVotesReceived',
-				],
-			},
-			sentVotes: {
-				type: 'array',
-				fieldNumber: 2,
-				items: {
+			type: 'object',
+			fieldNumber: 6,
+			properties: {
+				delegate: {
 					type: 'object',
+					fieldNumber: 1,
 					properties: {
-						delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
-						amount: { dataType: 'uint64', fieldNumber: 2 },
+						username: { dataType: 'string', fieldNumber: 1 },
+						pomHeights: {
+							type: 'array',
+							items: { dataType: 'uint32' },
+							fieldNumber: 2,
+						},
+						consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
+						lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
+						isBanned: { dataType: 'boolean', fieldNumber: 5 },
+						totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
 					},
-					required: ['delegateAddress', 'amount'],
+					required: [
+						'username',
+						'pomHeights',
+						'consecutiveMissedBlocks',
+						'lastForgedHeight',
+						'isBanned',
+						'totalVotesReceived',
+					],
 				},
-			},
-			unlocking: {
-				type: 'array',
-				fieldNumber: 3,
-				items: {
-					type: 'object',
-					properties: {
-						delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
-						amount: { dataType: 'uint64', fieldNumber: 2 },
-						unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
+				sentVotes: {
+					type: 'array',
+					fieldNumber: 2,
+					items: {
+						type: 'object',
+						properties: {
+							delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+							amount: { dataType: 'uint64', fieldNumber: 2 },
+						},
+						required: ['delegateAddress', 'amount'],
 					},
-					required: ['delegateAddress', 'amount', 'unvoteHeight'],
+				},
+				unlocking: {
+					type: 'array',
+					fieldNumber: 3,
+					items: {
+						type: 'object',
+						properties: {
+							delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+							amount: { dataType: 'uint64', fieldNumber: 2 },
+							unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
+						},
+						required: ['delegateAddress', 'amount', 'unvoteHeight'],
+					},
 				},
 			},
 		},
@@ -137,14 +141,14 @@ const generateValidAccountEncodings = () => {
 					sentVotes: [
 						{
 							delegateAddress: Buffer.from(
-								'cd32c73e9851c7137980063b8af64aa5a31651f8',
+								'cd32c73e9851c7137980063b8af64aa5a31651f8dcad258b682d2ddf091029e4',
 								'hex',
 							),
 							amount: 100000000,
 						},
 						{
 							delegateAddress: Buffer.from(
-								'9d86ad24a3f030e5522b6598115bb4d70c1692c9',
+								'9d86ad24a3f030e5522b6598115bb4d70c1692c9d8995ddfccb377379a2d86c6',
 								'hex',
 							),
 							amount: 250000000,
@@ -153,7 +157,7 @@ const generateValidAccountEncodings = () => {
 					unlocking: [
 						{
 							delegateAddress: Buffer.from(
-								'655e665765e3c42712d9a425b5b720d10457a5e4',
+								'655e665765e3c42712d9a425b5b720d10457a5e45de0d4420e7c53ad73b02ef5',
 								'hex',
 							),
 							amount: 400000000,
