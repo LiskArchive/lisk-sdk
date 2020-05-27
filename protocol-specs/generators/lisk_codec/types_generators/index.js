@@ -22,6 +22,7 @@ const generateValidBlockHeader = require('./block_header');
 const generateValidBlockAsset = require('./block_asset');
 const generateValidAccount = require('./account');
 const generateValidTransaction = require('./transaction');
+const generateCartEncodings = require('./cart_sample');
 
 module.exports = {
 	generateValidBooleanEncodings,
@@ -35,4 +36,5 @@ module.exports = {
 	generateValidBlockAsset,
 	generateValidAccount,
 	generateValidTransaction,
+	generateCartEncodings,
 };

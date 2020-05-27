@@ -138,6 +138,18 @@ const transactionEncodingsSuite = () => ({
 	testCases: [...typesGenerators.generateValidTransaction()],
 });
 
+const cartSampleEncodingSuite = () => ({
+	title: 'Encondings for a complex object',
+	summary:
+		'Example of encoding a complex object that might exist in custom apps',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'cart_sample_encoding',
+	testCases: [...typesGenerators.generateCartEncodings()],
+});
+
 module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	numberEncodingsSuite,
 	booleanEncodingsSuite,
@@ -150,4 +162,5 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	blockAssetEncodingsSuite,
 	accountEncodingsSuite,
 	transactionEncodingsSuite,
+	cartSampleEncodingSuite,
 ]);
