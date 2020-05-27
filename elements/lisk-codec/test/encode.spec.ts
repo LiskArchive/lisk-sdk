@@ -19,6 +19,7 @@ import { testCases as stringTestCases } from '../fixtures/string_encodings.json'
 import { testCases as booleanTestCases } from '../fixtures/boolean_encodings.json';
 import { testCases as numberTestCases } from '../fixtures/number_encodings.json';
 import { testCases as CartTestCases } from '../fixtures/cart_sample_encoding.json';
+import { testCases as arrayTestCases } from '../fixtures/arrays_encodings.json';
 
 describe('encode', () => {
 	describe('objects', () => {
@@ -180,6 +181,53 @@ describe('encode', () => {
 			const { object: message, schema } = numberFixtureInput;
 			(message as any).number = BigInt(message.number);
 			const { value: expectedOutput } = numberFixtureOutput;
+
+			const liskBinaryMessage = codec.encode(schema as any, message as any);
+			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		});
+	});
+
+	describe('arrays', () => {
+		it('should encode array of integers', () => {
+			const arrayFixtureInput = arrayTestCases[0].input;
+			const arrayFixtureOutput = arrayTestCases[0].output;
+			const { object: message, schema } = arrayFixtureInput;
+			const { value: expectedOutput } = arrayFixtureOutput;
+
+			const liskBinaryMessage = codec.encode(schema as any, message as any);
+			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		});
+
+		it('should encode array of booleans', () => {
+			const arrayFixtureInput = arrayTestCases[1].input;
+			const arrayFixtureOutput = arrayTestCases[1].output;
+			const { object: message, schema } = arrayFixtureInput;
+			const { value: expectedOutput } = arrayFixtureOutput;
+
+			const liskBinaryMessage = codec.encode(schema as any, message as any);
+			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		});
+
+		it('should encode array of strings', () => {
+			const arrayFixtureInput = arrayTestCases[2].input;
+			const arrayFixtureOutput = arrayTestCases[2].output;
+			const { object: message, schema } = arrayFixtureInput;
+			const { value: expectedOutput } = arrayFixtureOutput;
+
+			const liskBinaryMessage = codec.encode(schema as any, message as any);
+			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
+		});
+
+		it('should encode array of objects', () => {
+			const arrayFixtureInput = arrayTestCases[3].input;
+			const arrayFixtureOutput = arrayTestCases[3].output;
+			const { object: message, schema } = arrayFixtureInput;
+			(message as any).myArray.forEach((element: { amount: any }) => {
+				// eslint-disable-next-line no-param-reassign
+				(element as any).amount = BigInt(element.amount);
+			});
+
+			const { value: expectedOutput } = arrayFixtureOutput;
 
 			const liskBinaryMessage = codec.encode(schema as any, message as any);
 			expect(liskBinaryMessage.toString('hex')).toEqual(expectedOutput);
