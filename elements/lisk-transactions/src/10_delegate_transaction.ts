@@ -12,16 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionMessage } from './types';
+import { TransactionError } from './errors';
 
 interface RegisteredDelegate {
 	readonly username: string;
-	readonly address: string;
+	readonly address: Buffer;
 }
 interface ChainUsernames {
 	readonly registeredDelegates: RegisteredDelegate[];
@@ -39,6 +37,8 @@ export const delegateRegistrationAssetSchema = {
 		username: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: 1,
+			maxLength: 20,
 		},
 	},
 };
@@ -49,41 +49,10 @@ export class DelegateTransaction extends BaseTransaction {
 	public static ASSET_SCHEMA = delegateRegistrationAssetSchema;
 	public readonly asset: DelegateAsset;
 
-	public constructor(transaction: TransactionMessage) {
+	public constructor(transaction: DelegateTransaction) {
 		super(transaction);
 
-		this.asset = transaction.asset as unknown as DelegateAsset;
-	}
-
-	protected verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return transactions
-			.filter(
-				tx =>
-					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
-			)
-			.map(
-				tx =>
-					new TransactionError(
-						'Register delegate only allowed once per account.',
-						tx.id,
-						'.asset.delegate',
-					),
-			);
-	}
-
-	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(
-			delegateRegistrationAssetSchema,
-			this.asset,
-		);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
-		return errors;
+		this.asset = transaction.asset;
 	}
 
 	protected async applyAsset(
@@ -110,7 +79,7 @@ export class DelegateTransaction extends BaseTransaction {
 				address: this.senderId,
 			});
 			usernames.registeredDelegates.sort((a, b) =>
-				a.address.localeCompare(b.address),
+				a.address.compare(b.address),
 			);
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
@@ -162,7 +131,7 @@ export class DelegateTransaction extends BaseTransaction {
 			),
 		};
 		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
-			a.address.localeCompare(b.address),
+			a.address.compare(b.address),
 		);
 		store.chain.set(
 			CHAIN_STATE_DELEGATE_USERNAMES,

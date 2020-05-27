@@ -12,17 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionMessage } from './types';
+import { TransactionError } from './errors';
 import { sortUnlocking } from './utils';
 
 export interface Vote {
-	readonly delegateAddress: string;
+	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
+}
+
+export interface RawAssetVote {
+	readonly delegateAddress: string;
+	readonly amount: string;
 }
 
 export interface VoteAsset {
@@ -43,6 +46,8 @@ const voteAssetSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					amount: {
 						dataType: 'sint64',
@@ -55,38 +60,23 @@ const voteAssetSchema = {
 	},
 };
 
-const SIZE_INT64 = 8;
 const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
-
-export interface RawAssetVote {
-	readonly delegateAddress: string;
-	readonly amount: string;
-}
-
-interface RawAsset {
-	readonly votes: ReadonlyArray<RawAssetVote>;
-}
 
 export class VoteTransaction extends BaseTransaction {
 	public static TYPE = 13;
 	public static ASSET_SCHEMA = voteAssetSchema;
 	public readonly asset: VoteAsset;
 
-	public constructor(transaction: TransactionMessage) {
+	public constructor(transaction: VoteTransaction) {
 		super(transaction);
 
-		this.asset = transaction.asset as unknown as VoteAsset;
+		this.asset = transaction.asset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(voteAssetSchema, this.asset);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
+		const errors = [];
 		let upvoteCount = 0;
 		let downvoteCount = 0;
 		const addressSet = new Set();
@@ -156,7 +146,7 @@ export class VoteTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		// Only order should be change, so no need to copy object itself
 		const assetCopy = [...this.asset.votes];
-		// Sort by acending amount
+		// Sort by ascending amount
 		assetCopy.sort((a, b) => {
 			const diff = a.amount - b.amount;
 			if (diff > BigInt(0)) {
@@ -189,7 +179,7 @@ export class VoteTransaction extends BaseTransaction {
 			}
 			if (vote.amount < BigInt(0)) {
 				const originalUpvoteIndex = sender.votes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				if (originalUpvoteIndex < 0) {
 					errors.push(
@@ -267,7 +257,7 @@ export class VoteTransaction extends BaseTransaction {
 				sender.votes[index] = upvote;
 				// Sort account.votes
 				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 				if (sender.votes.length > MAX_VOTE) {
 					errors.push(
@@ -339,9 +329,9 @@ export class VoteTransaction extends BaseTransaction {
 				}
 				sender.unlocking.splice(unlockingIndex, 1);
 
-				// Sort votes in case of readding
+				// Sort votes in case of reading
 				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 				// Sort account.unlocking
 				sortUnlocking(sender.unlocking);
@@ -359,7 +349,7 @@ export class VoteTransaction extends BaseTransaction {
 				sender.balance += vote.amount;
 				// Sort account.votes
 				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 			}
 			store.account.set(sender.address, sender);

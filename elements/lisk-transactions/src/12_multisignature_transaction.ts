@@ -16,15 +16,14 @@
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	hexToBuffer,
 	signData,
+	bufferToHex,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { convertToAssetError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
-import { TransactionMessage } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	sortKeysAscending,
@@ -47,6 +46,8 @@ export const multisigRegAssetSchema = {
 				dataType: 'bytes',
 			},
 			fieldNumber: 2,
+			minLength: 32,
+			maxLength: 32,
 		},
 		optionalKeys: {
 			type: 'array',
@@ -54,26 +55,29 @@ export const multisigRegAssetSchema = {
 				dataType: 'bytes',
 			},
 			fieldNumber: 3,
+			minLength: 32,
+			maxLength: 32,
 		},
 	},
 };
 
 const setMemberAccounts = async (
 	store: StateStore,
-	membersPublicKeys: ReadonlyArray<string>,
+	membersPublicKeys: Array<Readonly<Buffer>>,
 ): Promise<void> => {
 	for (const memberPublicKey of membersPublicKeys) {
-		const address = getAddressFromPublicKey(memberPublicKey);
+		const address = getAddressFromPublicKey(memberPublicKey as Buffer);
 		// Key might not exists in the blockchain yet so we fetch or default
 		const memberAccount = await store.account.getOrDefault(address);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		memberAccount.publicKey = memberAccount.publicKey ?? memberPublicKey;
 		store.account.set(memberAccount.address, memberAccount);
 	}
 };
 
 export interface MultiSignatureAsset {
-	mandatoryKeys: Array<Readonly<string>>;
-	optionalKeys: Array<Readonly<string>>;
+	mandatoryKeys: Array<Readonly<Buffer>>;
+	optionalKeys: Array<Readonly<Buffer>>;
 	readonly numberOfSignatures: number;
 }
 
@@ -83,10 +87,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 	public readonly asset: MultiSignatureAsset;
 	private readonly MAX_KEYS_COUNT = 64;
 
-	public constructor(transaction: TransactionMessage) {
+	public constructor(transaction: MultisignatureTransaction) {
 		super(transaction);
 
-		this.asset = transaction.asset as unknown as MultiSignatureAsset;
+		this.asset = transaction.asset;
 	}
 
 	// Verifies multisig signatures as per LIP-0017
@@ -96,9 +100,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 	): Promise<TransactionResponse> {
 		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getBasicBytes();
-		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
+			networkIdentifier,
 			transactionBytes,
 		]);
 
@@ -115,7 +118,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if empty signatures are present
-		if (this.signatures.includes('')) {
+		if (!this.signatures.length) {
 			return createResponse(this.id, [
 				new TransactionError(
 					'A signature is required for each registered key.',
@@ -126,7 +129,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		// Verify first signature is from senderPublicKey
 		const { valid, error } = validateSignature(
 			this.senderPublicKey,
-			this.signatures[0],
+			this.signatures[0] as Buffer,
 			transactionWithNetworkIdentifierBytes,
 		);
 
@@ -158,12 +161,12 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	public sign(
-		networkIdentifier: string,
+		networkIdentifier: Buffer,
 		senderPassphrase: string,
 		passphrases?: ReadonlyArray<string>,
 		keys?: {
-			readonly mandatoryKeys: Array<Readonly<string>>;
-			readonly optionalKeys: Array<Readonly<string>>;
+			readonly mandatoryKeys: Array<Readonly<Buffer>>;
+			readonly optionalKeys: Array<Readonly<Buffer>>;
 			readonly numberOfSignatures: number;
 		},
 	): void {
@@ -176,7 +179,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 			senderPassphrase,
 		);
 
-		if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
+		if (!this.senderPublicKey.equals(publicKey)) {
 			throw new Error(
 				'Transaction senderPublicKey does not match public key from passphrase',
 			);
@@ -184,9 +187,8 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		this.senderPublicKey = publicKey;
 
-		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
+			networkIdentifier,
 			this.getBasicBytes(),
 		]);
 
@@ -202,38 +204,19 @@ export class MultisignatureTransaction extends BaseTransaction {
 			sortKeysAscending(keys.optionalKeys);
 			// Sign with all keys
 			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				const senderPublicKeyStr = bufferToHex(aKey as Buffer);
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (keysAndPassphrases[aKey]) {
-					const { passphrase } = keysAndPassphrases[aKey];
+				if (keysAndPassphrases[senderPublicKeyStr]) {
+					const { passphrase } = keysAndPassphrases[senderPublicKeyStr];
 					this.signatures.push(
 						signData(transactionWithNetworkIdentifierBytes, passphrase),
 					);
 				} else {
 					// Push an empty signature if a passphrase is missing
-					this.signatures.push('');
+					this.signatures.push(Buffer.from(''));
 				}
 			}
 		}
-	}
-
-	protected verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		const errors = transactions
-			.filter(
-				tx =>
-					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
-			)
-			.map(
-				tx =>
-					new TransactionError(
-						'Register multisignature only allowed once per account.',
-						tx.id,
-						'.asset.multisignature',
-					),
-			);
-
-		return errors;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {

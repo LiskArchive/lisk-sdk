@@ -12,30 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { codec } from '@liskhq/lisk-codec';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
-	hexToBuffer,
-	intToBuffer,
 	signData,
+	bufferToHex,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
 import {
-	BYTESIZES,
 	MAX_TRANSACTION_AMOUNT,
 	MIN_FEE_PER_BYTE,
 } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { baseTransactionSchema } from './schema';
-import { Account, BlockHeader, TransactionMessage } from './types';
+import { Account, BlockHeader } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	isMultisignatureAccount,
 	sortKeysAscending,
-	validateSenderIdAndPublicKey,
 	validateSignature,
 	verifyAccountNonce,
 	verifyMinRemainingBalance,
@@ -46,19 +43,19 @@ import {
 // Disabling method-signature-style otherwise type is not compatible with lisk-chain
 /* eslint-disable @typescript-eslint/method-signature-style */
 export interface AccountState {
-	get(key: string): Promise<Account>;
-	getOrDefault(key: string): Promise<Account>;
+	get(key: Buffer): Promise<Account>;
+	getOrDefault(key: Buffer): Promise<Account>;
 	find(func: (item: Account) => boolean): Account | undefined;
-	set(key: string, value: Account): void;
+	set(key: Buffer, value: Account): void;
 }
 /* eslint-enable @typescript-eslint/method-signature-style */
 
 export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
 	readonly lastBlockReward: bigint;
-	readonly networkIdentifier: string;
-	get(key: string): Promise<Buffer | undefined>;
-	set(key: string, value: Buffer): void;
+	readonly networkIdentifier: Buffer;
+	get(key: Buffer): Promise<Buffer | undefined>;
+	set(key: Buffer, value: Buffer): void;
 }
 
 export interface StateStore {
@@ -76,30 +73,36 @@ export abstract class BaseTransaction {
 	public static MIN_FEE_PER_BYTE = MIN_FEE_PER_BYTE;
 	public static NAME_FEE = BigInt(0);
 	public static BASE_SCHEMA = baseTransactionSchema;
+	public static ASSET_SCHEMA = {};
 
-	public readonly transaction: TransactionMessage;
 	public readonly id: Buffer;
 	public readonly type: number;
 	public readonly asset: object;
 	public nonce: bigint;
 	public fee: bigint;
 	public senderPublicKey: Buffer;
-	public signatures: Buffer[];
+	public signatures: Array<Readonly<Buffer>>;
 
 	protected _minFee?: bigint;
 
-	public constructor(transaction: TransactionMessage) {
-		this.transaction = transaction;
+	private readonly _id: string;
+	private readonly _senderPublicKey: string;
+	private readonly _senderId: Buffer;
+
+	public constructor(transaction: BaseTransaction) {
 		this.id = transaction.id;
 		this.type = transaction.type;
 		this.asset = transaction.asset;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
 		this.senderPublicKey = transaction.senderPublicKey;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.signatures = (transaction.signatures as Buffer[]) || [];
+		this.signatures = transaction.signatures;
+		this._id = bufferToHex(this.id);
+		this._senderPublicKey = bufferToHex(this.senderPublicKey);
+		this._senderId = getAddressFromPublicKey(this.senderPublicKey);
 	}
 
+	/* Begin Getters */
 	public get minFee(): bigint {
 		if (!this._minFee) {
 			// Include nameFee in minFee for delegate registration transactions
@@ -112,21 +115,44 @@ export abstract class BaseTransaction {
 		return this._minFee;
 	}
 
-	public get senderId(): string {
-		return getAddressFromPublicKey(this.senderPublicKey);
+	public get idStr(): string {
+		return this._id;
+	}
+
+	public get senderId(): Buffer {
+		return this._senderId;
+	}
+
+	public get senderPublicKeyStr(): string {
+		return this._senderPublicKey;
+	}
+
+	public get senderIdStr(): string {
+		return bufferToHex(this.senderId);
+	}
+	/* End Getters */
+
+	public getBasicBytes(): Buffer {
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+			...this,
+			asset: this.getAssetBytes(),
+			signatures: [],
+		} as unknown as GenericObject);
+
+		return transactionBytes;
 	}
 
 	public getBytes(): Buffer {
-		const transactionBytes = Buffer.concat([
-			this.getBasicBytes(),
-			this.signatures,
-		]);
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+			...this,
+			asset: this.getAssetBytes(),
+		} as unknown as GenericObject);
 
 		return transactionBytes;
 	}
 
 	public validate(): TransactionResponse {
-		const errors = [...this._validateSchema(), ...this.validateAsset()];
+		const errors = [...this._validateSchema()];
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
 		}
@@ -160,10 +186,12 @@ export abstract class BaseTransaction {
 	public async apply(store: StateStore): Promise<TransactionResponse> {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = [];
+
+		// Verify sender against publicKey
 		const senderPublicKeyError = verifySenderPublicKey(
 			this.id,
 			sender,
-			this.senderPublicKey,
+			this.senderPublicKeyStr,
 		);
 		if (senderPublicKeyError) {
 			errors.push(senderPublicKeyError);
@@ -183,6 +211,7 @@ export abstract class BaseTransaction {
 
 		// Update sender balance
 		sender.balance -= this.fee;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		sender.publicKey = sender.publicKey ?? this.senderPublicKey;
 
 		// Increment sender nonce
@@ -191,6 +220,7 @@ export abstract class BaseTransaction {
 		// Update account state
 		store.account.set(sender.address, sender);
 
+		// Update account asset based on transaction type
 		const assetErrors = await this.applyAsset(store);
 		errors.push(...assetErrors);
 
@@ -214,6 +244,7 @@ export abstract class BaseTransaction {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const updatedBalance = sender.balance + this.fee;
 		sender.balance = updatedBalance;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		sender.publicKey = sender.publicKey ?? this.senderPublicKey;
 		const errors =
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
@@ -245,21 +276,20 @@ export abstract class BaseTransaction {
 		const sender = await store.account.get(this.senderId);
 		const { networkIdentifier } = store.chain;
 		const transactionBytes = this.getBasicBytes();
-		if (networkIdentifier === undefined || networkIdentifier === '') {
+		if (networkIdentifier === undefined || !networkIdentifier.length) {
 			throw new Error(
 				'Network identifier is required to validate a transaction ',
 			);
 		}
-		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
-			networkIdentifierBytes,
+			networkIdentifier,
 			transactionBytes,
 		]);
 
 		if (!isMultisignatureAccount(sender)) {
 			const { error } = validateSignature(
 				this.senderPublicKey,
-				this.signatures[0],
+				this.signatures[0] as Buffer,
 				transactionWithNetworkIdentifierBytes,
 				this.id,
 			);
@@ -282,19 +312,17 @@ export abstract class BaseTransaction {
 	}
 
 	public sign(
-		networkIdentifier: string,
+		networkIdentifier: Buffer,
 		senderPassphrase?: string,
 		passphrases?: ReadonlyArray<string>,
 		keys?: {
-			readonly mandatoryKeys: Array<Readonly<string>>;
-			readonly optionalKeys: Array<Readonly<string>>;
+			readonly mandatoryKeys: Array<Readonly<Buffer>>;
+			readonly optionalKeys: Array<Readonly<Buffer>>;
 		},
 	): void {
-		if (!networkIdentifier) {
+		if (!networkIdentifier.length) {
 			throw new Error('Network identifier is required to sign a transaction');
 		}
-
-		const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 
 		// If senderPassphrase is passed in assume only one signature required
 		if (senderPassphrase) {
@@ -302,7 +330,7 @@ export abstract class BaseTransaction {
 				senderPassphrase,
 			);
 
-			if (this.senderPublicKey !== '' && this.senderPublicKey !== publicKey) {
+			if (!this.senderPublicKey.compare(publicKey)) {
 				throw new Error(
 					'Transaction senderPublicKey does not match public key from passphrase',
 				);
@@ -311,7 +339,7 @@ export abstract class BaseTransaction {
 			this.senderPublicKey = publicKey;
 
 			const transactionWithNetworkIdentifierBytes = Buffer.concat([
-				networkIdentifierBytes,
+				networkIdentifier,
 				this.getBasicBytes(),
 			]);
 
@@ -326,14 +354,8 @@ export abstract class BaseTransaction {
 		}
 
 		if (passphrases && keys) {
-			if (!this.senderPublicKey) {
-				throw new Error(
-					'Transaction senderPublicKey needs to be set before signing',
-				);
-			}
-
 			const transactionWithNetworkIdentifierBytes = Buffer.concat([
-				networkIdentifierBytes,
+				networkIdentifier,
 				this.getBasicBytes(),
 			]);
 
@@ -342,9 +364,10 @@ export abstract class BaseTransaction {
 			sortKeysAscending(keys.optionalKeys);
 			// Sign with all keys
 			for (const aKey of [...keys.mandatoryKeys, ...keys.optionalKeys]) {
+				const publicKeyStr = bufferToHex(aKey as Buffer);
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (keysAndPassphrases[aKey]) {
-					const { passphrase } = keysAndPassphrases[aKey];
+				if (keysAndPassphrases[publicKeyStr]) {
+					const { passphrase } = keysAndPassphrases[publicKeyStr];
 					this.signatures.push(
 						signData(transactionWithNetworkIdentifierBytes, passphrase),
 					);
@@ -356,44 +379,32 @@ export abstract class BaseTransaction {
 		}
 	}
 
-	public getBasicBytes(): Buffer {
-		const assetBytes = codec.encode({}, this.asset);
-		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
-			...this.transaction,
-			asset: assetBytes,
-			signatures: this.signatures,
-		});
+	// eslint-disable-next-line class-methods-use-this
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		return [];
+	};
 
-		return transactionBytes;
+	protected getAssetBytes(): Buffer {
+		const assetSchema = (this.constructor as typeof BaseTransaction).ASSET_SCHEMA;
+		return codec.encode(assetSchema as Schema, this.asset as GenericObject);
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, this.transaction);
+		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, this);
 		const errors = convertToTransactionError(
 			this.id,
 			schemaErrors,
 		) as TransactionError[];
 
-		if (
-			!errors.find(
-				(err: TransactionError) => err.dataPath === '.senderPublicKey',
-			)
-		) {
-			// `senderPublicKey` passed format check, safely check equality to senderId
-			const senderIdError = validateSenderIdAndPublicKey(
-				this.id,
-				this.senderId,
-				this.senderPublicKey,
-			);
-			if (senderIdError) {
-				errors.push(senderIdError);
-			}
-		}
+		const assetSchemaErrors = validator.validate(BaseTransaction.ASSET_SCHEMA, this.asset);
+		const assetErrors = convertToTransactionError(
+			this.id,
+			assetSchemaErrors,
+		) as TransactionError[];
 
-		return errors;
+		return [...errors, ...assetErrors];
 	}
 
-	protected abstract validateAsset(): ReadonlyArray<TransactionError>;
 	protected abstract applyAsset(
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>>;

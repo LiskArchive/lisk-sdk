@@ -34,14 +34,6 @@ export class TestTransaction extends BaseTransaction {
 	public async undoAsset(): Promise<TransactionError[]> {
 		return [];
 	}
-
-	public verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		transactions.forEach(() => true);
-
-		return [];
-	}
 }
 
 export class TestTransactionBasicImpl extends BaseTransaction {

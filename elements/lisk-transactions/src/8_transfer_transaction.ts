@@ -12,20 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	isValidTransferAmount,
-	validator,
-} from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionMessage } from './types';
+import { TransactionError } from './errors';
 import { verifyMinRemainingBalance } from './utils';
 
 export interface TransferAsset {
 	readonly amount: bigint;
-	readonly recipientAddress: string;
+	readonly recipientAddress: Buffer;
 	readonly data: string;
 }
 
@@ -41,10 +36,14 @@ export const transferAssetSchema = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+			minLength: 20,
+			maxLength: 20,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 3,
+			minLength: 1,
+			maxLength: 64,
 		},
 	},
 };
@@ -54,41 +53,10 @@ export class TransferTransaction extends BaseTransaction {
 	public static ASSET_SCHEMA = transferAssetSchema;
 	public readonly asset: TransferAsset;
 
-	public constructor(transaction: TransactionMessage) {
+	public constructor(transaction: TransferTransaction) {
 		super(transaction);
 
-		this.asset = transaction.asset as unknown as TransferAsset;
-	}
-
-	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(transferAssetSchema, this.asset);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
-		if (!isValidTransferAmount(this.asset.amount.toString())) {
-			errors.push(
-				new TransactionError(
-					'Amount must be a valid number in string format.',
-					this.id,
-					'.asset.amount',
-					this.asset.amount.toString(),
-				),
-			);
-		}
-
-		if (!this.asset.recipientAddress) {
-			errors.push(
-				new TransactionError(
-					'`recipientAddress` must be provided.',
-					this.id,
-					'.asset.recipientAddress',
-				),
-			);
-		}
-
-		return errors;
+		this.asset = transaction.asset;
 	}
 
 	protected async applyAsset(

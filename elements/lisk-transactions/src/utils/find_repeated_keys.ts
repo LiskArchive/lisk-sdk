@@ -13,7 +13,22 @@
  *
  */
 
+import { hexToBuffer } from "@liskhq/lisk-cryptography";
+
 export const findRepeatedKeys = (
 	keysA: ReadonlyArray<string>,
 	keysB: ReadonlyArray<string>,
 ): string[] => keysA.filter(aKey => keysB.includes(aKey));
+
+export const convertKeysToBuffer = (keys?: {
+	readonly mandatoryKeys: Array<Readonly<string>>;
+	readonly optionalKeys: Array<Readonly<string>>;
+}): {
+	readonly mandatoryKeys: Array<Readonly<Buffer>>;
+	readonly optionalKeys: Array<Readonly<Buffer>>;
+} => {
+	const mandatoryKeys = keys?.mandatoryKeys.map(k => hexToBuffer(k));
+	const optionalKeys = keys?.optionalKeys.map(k => hexToBuffer(k));
+
+	return { mandatoryKeys: mandatoryKeys as Buffer[], optionalKeys: optionalKeys as Buffer[] };
+}

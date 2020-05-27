@@ -55,4 +55,4 @@ export const MAX_TRANSFER_ASSET_DATA_LENGTH = 64;
 export const NETWORK_IDENTIFIER_LENGTH = 32;
 export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const MAX_POM_HEIGHTS = 5;
-export const CHAIN_STATE_DELEGATE_USERNAMES = 'delegateUsernames';
+export const CHAIN_STATE_DELEGATE_USERNAMES = Buffer.from('delegateUsernames', 'hex');

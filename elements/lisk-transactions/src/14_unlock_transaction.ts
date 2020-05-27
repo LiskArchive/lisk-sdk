@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionMessage } from './types';
+import { TransactionError } from './errors';
+import { Account } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
-	readonly delegateAddress: string;
+	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
@@ -43,6 +42,8 @@ const unlockAssetSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					amount: {
 						dataType: 'uint64',
@@ -59,21 +60,9 @@ const unlockAssetSchema = {
 	},
 };
 
-const SIZE_UINT32 = 4;
-const SIZE_INT64 = 8;
 const AMOUNT_MULTIPLIER_FOR_VOTES = BigInt(10) * BigInt(10) ** BigInt(8);
 const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
-
-export interface RawAssetUnlock {
-	readonly delegateAddress: string;
-	readonly amount: string;
-	readonly unvoteHeight: number;
-}
-
-interface RawAsset {
-	readonly unlockObjects: ReadonlyArray<RawAssetUnlock>;
-}
 
 const getWaitingPeriod = (
 	sender: Account,
@@ -95,18 +84,14 @@ export class UnlockTransaction extends BaseTransaction {
 	public static ASSET_SCHEMA = unlockAssetSchema;
 	public readonly asset: UnlockAsset;
 
-	public constructor(transaction: TransactionMessage) {
+	public constructor(transaction: UnlockTransaction) {
 		super(transaction);
 
-		this.asset = transaction.asset as unknown as UnlockAsset;
+		this.asset = transaction.asset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(unlockAssetSchema, this.asset);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
+		const errors = [];
 
 		for (const unlock of this.asset.unlockObjects) {
 			if (unlock.amount <= BigInt(0)) {

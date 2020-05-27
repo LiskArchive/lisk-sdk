@@ -13,6 +13,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { hash } from '@liskhq/lisk-cryptography';
 
 export interface RegisteredTransactions {
 	readonly [key: string]: typeof BaseTransaction;
@@ -37,7 +38,7 @@ export class TransactionInterfaceAdapter {
 	}
 
 	public decode(binaryMessage: Buffer): BaseTransaction {
-		const transactionMessage = codec.decode(BaseTransaction.BASE_SCHEMA, binaryMessage);
+		const transactionMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const TransactionClass = this._transactionClassMap.get(transactionMessage.type);
 
@@ -45,10 +46,11 @@ export class TransactionInterfaceAdapter {
 			throw new Error('Transaction type not found.');
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const assetMessage = codec.decode(TransactionClass.ASSET_SCHEMA, transactionMessage.asset);
+		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, transactionMessage.asset);
 		transactionMessage.asset = assetMessage;
 
+		const id = hash(binaryMessage)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
-		return new TransactionClass(transactionMessage);
+		return new TransactionClass({ ...transactionMessage, id });
 	}
 }

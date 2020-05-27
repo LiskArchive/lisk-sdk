@@ -15,29 +15,29 @@
 import { TransactionError } from './errors';
 
 export interface AccountVote {
-	readonly delegateAddress: string;
+	readonly delegateAddress: Buffer;
 	amount: bigint;
 }
 export interface AccountUnlocking {
-	readonly delegateAddress: string;
+	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
 export interface Account {
-	readonly address: string;
+	readonly address: Buffer;
 	balance: bigint;
 	nonce: bigint;
 	missedBlocks: number;
 	producedBlocks: number;
-	publicKey: string | undefined;
+	publicKey: Buffer;
 	username: string | null;
 	isDelegate: number;
 	fees: bigint;
 	rewards: bigint;
 	asset: object;
 	keys: {
-		mandatoryKeys: string[];
-		optionalKeys: string[];
+		mandatoryKeys: Array<Readonly<Buffer>>;
+		optionalKeys: Array<Readonly<Buffer>>;
 		numberOfSignatures: number;
 	};
 	delegate: {
@@ -58,6 +58,24 @@ export interface BlockHeader {
 	readonly height: number;
 	readonly version: number;
 	readonly timestamp: number;
+	readonly previousBlockId?: Buffer | null;
+	readonly blockSignature: Buffer;
+	readonly generatorPublicKey: Buffer;
+	readonly numberOfTransactions: number;
+	readonly payloadLength: number;
+	readonly transactionRoot: Buffer;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+	readonly totalAmount: bigint;
+	readonly totalFee: bigint;
+	readonly reward: bigint;
+	readonly seedReveal: Buffer;
+}
+
+export interface BlockHeaderJSON {
+	readonly height: number;
+	readonly version: number;
+	readonly timestamp: number;
 	readonly previousBlockId?: string | null;
 	readonly blockSignature: string;
 	readonly generatorPublicKey: string;
@@ -72,25 +90,14 @@ export interface BlockHeader {
 	readonly seedReveal: string;
 }
 
-type Modify<T, R> = Omit<T, keyof R> & R;
-
-export type BlockHeaderJSON = Modify<
-	BlockHeader,
-	{
-		readonly totalAmount: string;
-		readonly totalFee: string;
-		readonly reward: string;
-	}
->;
-
-export interface TransactionMessage {
-	readonly id: Buffer;
+export interface TransactionJSON {
+	readonly id?: string;
 	readonly type: number;
-	readonly nonce: bigint;
-	readonly fee: bigint;
-	readonly senderPublicKey: Buffer;
-	readonly asset: Buffer;
-	readonly signatures?: ReadonlyArray<Buffer>;
+	readonly senderPublicKey: string;
+	readonly signatures?: ReadonlyArray<string>;
+	readonly asset: object;
+	readonly nonce: string;
+	readonly fee: string;
 }
 
 export interface IsValidResponse {
@@ -107,35 +114,3 @@ export interface IsVerifiedResponse {
 	readonly verified: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
 }
-
-export interface BaseTransactionSchema {
-	readonly $id: string;
-	readonly type: string;
-	readonly required: ReadonlyArray<string>;
-	readonly properties: Properties;
-}
-
-interface Properties {
-	readonly [key: string]: Property;
-}
-
-interface Property {
-	readonly type?: string;
-	readonly dataType?: string;
-	readonly fieldNumber: number;
-	readonly items?: ScalarItem | ObjectItem;
-	readonly properties?: Properties;
-}
-
-interface ScalarItem {
-	readonly dataType: string;
-	readonly required?: ReadonlyArray<string>;
-}
-
-interface ObjectItem {
-	readonly type: string;
-	readonly required?: ReadonlyArray<string>;
-	readonly properties?: Properties;
-}
-
-export type AssetSchema = ObjectItem;

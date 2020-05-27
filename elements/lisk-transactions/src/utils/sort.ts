@@ -15,22 +15,13 @@
 
 import { AccountUnlocking } from '../types';
 
-export const sortKeysAscending = (publicKeys: string[]): string[] =>
-	publicKeys.sort((publicKeyA, publicKeyB) => {
-		if (publicKeyA > publicKeyB) {
-			return 1;
-		}
-		if (publicKeyA < publicKeyB) {
-			return -1;
-		}
+export const sortKeysAscending = (publicKeys: Array<Readonly<Buffer>>): Array<Readonly<Buffer>> =>
+	publicKeys.sort((publicKeyA, publicKeyB) => (publicKeyA as Buffer).compare(publicKeyB as Buffer));
 
-		return 0;
-	});
-
-export const sortUnlocking = (unlockings: AccountUnlocking[]): void => {
-	unlockings.sort((a, b) => {
+export const sortUnlocking = (unlocks: AccountUnlocking[]): void => {
+	unlocks.sort((a, b) => {
 		if (a.delegateAddress !== b.delegateAddress) {
-			return a.delegateAddress.localeCompare(b.delegateAddress, 'en');
+			return a.delegateAddress.compare(b.delegateAddress);
 		}
 		if (a.unvoteHeight !== b.unvoteHeight) {
 			return b.unvoteHeight - a.unvoteHeight;
