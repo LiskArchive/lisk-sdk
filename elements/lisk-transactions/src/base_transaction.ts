@@ -29,7 +29,7 @@ import {
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, Status } from './response';
 import * as schemas from './schema';
-import { Account, BlockHeader, TransactionJSON } from './transaction_types';
+import { Account, BlockHeader, TransactionJSON } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	getId,
@@ -64,8 +64,8 @@ export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
 	readonly lastBlockReward: bigint;
 	readonly networkIdentifier: string;
-	get(key: string): Promise<string | undefined>;
-	set(key: string, value: string): void;
+	get(key: string): Promise<Buffer | undefined>;
+	set(key: string, value: Buffer): void;
 }
 
 export interface StateStore {
@@ -447,7 +447,7 @@ export abstract class BaseTransaction {
 		 * You can expect this enhanced implementation to be included in the next releases.
 		 */
 
-		return Buffer.from(JSON.stringify(this.asset), 'utf-8');
+		return Buffer.from(JSON.stringify(this.asset), 'utf8');
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {

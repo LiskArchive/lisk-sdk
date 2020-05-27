@@ -14,7 +14,7 @@
  */
 /* eslint-disable class-methods-use-this,max-classes-per-file,@typescript-eslint/require-await */
 import { BaseTransaction } from '../../src/base_transaction';
-import { TransactionJSON } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/types';
 import { TransactionError } from '../../src/errors';
 
 export class TestTransaction extends BaseTransaction {

@@ -78,7 +78,7 @@ export class Processor {
 	// eslint-disable-next-line no-unused-vars,class-methods-use-this
 	public async init(genesisBlock: BlockInstance): Promise<void> {
 		this.logger.debug(
-			{ id: genesisBlock.id, payloadHash: genesisBlock.payloadHash },
+			{ id: genesisBlock.id, transactionRoot: genesisBlock.transactionRoot },
 			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain

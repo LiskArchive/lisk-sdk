@@ -126,7 +126,7 @@ describe('block processor v2', () => {
 				communityIdentifier: 'Lisk',
 				generatorPublicKey:
 					'e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8',
-				payloadHash:
+				transactionRoot:
 					'19074b69c97e6f6b86969bb62d4f15b888898b499777bda56a3a2ee642a7f20a',
 				payloadLength: 39677,
 				totalAmount: '10000000000000000',
@@ -185,7 +185,7 @@ describe('block processor v2', () => {
 
 		it('should set maxPreviouslyForgedHeight to zero when the delegate did not forge before', async () => {
 			// Arrange
-			const maxHeightResult = JSON.stringify({});
+			const maxHeightResult = Buffer.from(JSON.stringify({}));
 			forgerDBStub.get.mockResolvedValue(maxHeightResult);
 			// Act
 			block = await blockProcessor.create.run({
@@ -209,9 +209,11 @@ describe('block processor v2', () => {
 		it('should save maxPreviouslyForgedHeight as the block height created', async () => {
 			const previouslyForgedHeight = 100;
 			// Arrange
-			const maxHeightResult = JSON.stringify({
-				[defaultAddress]: { height: 100 },
-			});
+			const maxHeightResult = Buffer.from(
+				JSON.stringify({
+					[defaultAddress]: { height: 100 },
+				}),
+			);
 			forgerDBStub.get.mockResolvedValue(maxHeightResult);
 			// Act
 			block = await blockProcessor.create.run({
@@ -240,7 +242,7 @@ describe('block processor v2', () => {
 				c: { height: 7 },
 				x: { height: 8 },
 			};
-			forgerDBStub.get.mockResolvedValue(JSON.stringify(list));
+			forgerDBStub.get.mockResolvedValue(Buffer.from(JSON.stringify(list)));
 			// Act
 			block = await blockProcessor.create.run({
 				data: {
@@ -254,14 +256,16 @@ describe('block processor v2', () => {
 				},
 				stateStore,
 			});
-			const maxHeightResult = JSON.stringify({
-				...list,
-				[defaultAddress]: {
-					height: 11,
-					maxHeightPrevoted: 0,
-					maxHeightPreviouslyForged: 5,
-				},
-			});
+			const maxHeightResult = Buffer.from(
+				JSON.stringify({
+					...list,
+					[defaultAddress]: {
+						height: 11,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 5,
+					},
+				}),
+			);
 			expect(forgerDBStub.put).toHaveBeenCalledWith(
 				'forger:previouslyForged',
 				maxHeightResult,
@@ -282,13 +286,15 @@ describe('block processor v2', () => {
 				},
 				stateStore,
 			});
-			const maxHeightResult = JSON.stringify({
-				[defaultAddress]: {
-					height: 11,
-					maxHeightPrevoted: 0,
-					maxHeightPreviouslyForged: 0,
-				},
-			});
+			const maxHeightResult = Buffer.from(
+				JSON.stringify({
+					[defaultAddress]: {
+						height: 11,
+						maxHeightPrevoted: 0,
+						maxHeightPreviouslyForged: 0,
+					},
+				}),
+			);
 			expect(forgerDBStub.put).toHaveBeenCalledWith(
 				'forger:previouslyForged',
 				maxHeightResult,
@@ -298,9 +304,11 @@ describe('block processor v2', () => {
 		it('should not set maxPreviouslyForgedHeight to next height if lower', async () => {
 			// Arrange
 			forgerDBStub.get.mockResolvedValue(
-				JSON.stringify({
-					[defaultAddress]: { height: 15 },
-				}),
+				Buffer.from(
+					JSON.stringify({
+						[defaultAddress]: { height: 15 },
+					}),
+				),
 			);
 			// Act
 			block = await blockProcessor.create.run({
@@ -368,7 +376,7 @@ describe('block processor v2', () => {
 			totalFee: BigInt(0),
 			seedReveal: defaultSeedReveal,
 			reward: 5,
-			payloadHash:
+			transactionRoot:
 				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 			timestamp: 10,
 			numberOfTransactions: 0,

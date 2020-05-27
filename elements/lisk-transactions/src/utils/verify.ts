@@ -13,7 +13,7 @@
  *
  */
 import { TransactionError } from '../errors';
-import { Account } from '../transaction_types';
+import { Account } from '../types';
 
 import { convertBeddowsToLSK } from './format';
 import { validateSignature } from './sign_and_validate';

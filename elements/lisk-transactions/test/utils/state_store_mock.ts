@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-import {
-	Account,
-	TransactionJSON,
-	BlockHeader,
-} from '../../src/transaction_types';
+import { Account, TransactionJSON, BlockHeader } from '../../src/types';
 import { AccountState, ChainState } from '../../src/base_transaction';
 
 export const defaultAccount = {
@@ -54,7 +50,7 @@ export interface AdditionalInfo {
 	readonly networkIdentifier?: string;
 	readonly lastBlockHeader?: BlockHeader;
 	readonly lastBlockReward?: bigint;
-	readonly chainData?: { [key: string]: string };
+	readonly chainData?: { [key: string]: Buffer };
 }
 
 export class StateStoreMock {
@@ -63,7 +59,7 @@ export class StateStoreMock {
 
 	public accountData: Account[];
 	public transactionData: TransactionJSON[];
-	public chainData: { [key: string]: string };
+	public chainData: { [key: string]: Buffer };
 
 	constructor(initialAccount?: Account[], additionalInfo?: AdditionalInfo) {
 		// Make sure to be deep copy
@@ -114,9 +110,9 @@ export class StateStoreMock {
 				additionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
 			lastBlockHeader: additionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
 			lastBlockReward: additionalInfo?.lastBlockReward ?? BigInt(0),
-			get: async (key: string): Promise<string | undefined> =>
+			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(this.chainData[key]),
-			set: (key: string, value: string): void => {
+			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},
 		};

@@ -18,7 +18,7 @@ import * as validProofOfMisbehaviorTransactionScenario3 from '../fixtures/proof_
 
 import { ProofOfMisbehaviorTransaction } from '../src/15_proof_of_misbehavior_transaction';
 import { Status } from '../src';
-import { Account } from '../src/transaction_types';
+import { Account } from '../src/types';
 import { StateStoreMock, defaultAccount } from './utils/state_store_mock';
 
 describe('Proof-of-misbehavior transaction', () => {

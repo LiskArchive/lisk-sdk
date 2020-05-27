@@ -15,7 +15,7 @@
 import * as validPoMTransactionScenario from '../fixtures/proof_of_misbehavior_transaction/proof_of_misbehavior_transaction_scenario_1.json';
 
 import { reportMisbehavior } from '../src/report_misbehavior';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON } from '../src/types';
 
 describe('#reportMisbehavior transaction', () => {
 	let reportMisbehaviorTransaction: Partial<TransactionJSON>;

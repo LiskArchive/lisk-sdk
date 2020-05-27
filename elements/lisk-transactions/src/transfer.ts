@@ -24,7 +24,7 @@ import {
 
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { createBaseTransaction } from './utils';
 
 export interface TransferInputs {

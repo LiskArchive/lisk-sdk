@@ -19,7 +19,7 @@ import {
 } from '@liskhq/lisk-validator';
 
 import { RawAssetUnlock, UnlockTransaction } from './14_unlock_transaction';
-import { TransactionJSON } from './transaction_types';
+import { TransactionJSON } from './types';
 import { createBaseTransaction } from './utils';
 
 export interface UnlockTokenInputs {

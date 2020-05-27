@@ -22,7 +22,7 @@ export const genesisBlockSchema = {
 		'seedReveal',
 		'totalFee',
 		'reward',
-		'payloadHash',
+		'transactionRoot',
 		'timestamp',
 		'numberOfTransactions',
 		'payloadLength',
@@ -54,7 +54,7 @@ export const genesisBlockSchema = {
 			type: 'string',
 			format: 'hex',
 		},
-		payloadHash: {
+		transactionRoot: {
 			type: 'string',
 			format: 'hex',
 		},

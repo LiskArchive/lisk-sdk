@@ -28,7 +28,7 @@ import * as genesisBlock from '../fixtures/genesis_block.json';
 import { genesisAccount } from '../fixtures/default_account';
 
 const networkIdentifier = getNetworkIdentifier(
-	genesisBlock.payloadHash,
+	genesisBlock.transactionRoot,
 	'Lisk',
 );
 

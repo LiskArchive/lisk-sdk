@@ -11,6 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// TODO: Remove this after using lisk-codec
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import {
 	KVStore,
@@ -47,10 +52,8 @@ export class Storage {
 		Block headers
 	*/
 	public async getBlockHeaderByID(id: string): Promise<BlockHeaderJSON> {
-		const block = await this._db.get<BlockHeaderJSON>(
-			`${DB_KEY_BLOCKS_ID}:${id}`,
-		);
-		return block;
+		const blockBuffer = await this._db.get(`${DB_KEY_BLOCKS_ID}:${id}`);
+		return JSON.parse(blockBuffer.toString('utf8')) as BlockHeaderJSON;
 	}
 
 	public async getBlockHeadersByIDs(
@@ -58,10 +61,8 @@ export class Storage {
 	): Promise<BlockHeaderJSON[]> {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
-			const block = await this._db.get<BlockHeaderJSON>(
-				`${DB_KEY_BLOCKS_ID}:${id}`,
-			);
-			blocks.push(block);
+			const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${id}`);
+			blocks.push(JSON.parse(block.toString('utf8')) as BlockHeaderJSON);
 		}
 		return blocks;
 	}
@@ -70,9 +71,10 @@ export class Storage {
 		height: number,
 	): Promise<BlockHeaderJSON> {
 		const stringHeight = formatInt(height);
-		const id = await this._db.get<string>(
+		const idBuffer = await this._db.get(
 			`${DB_KEY_BLOCKS_HEIGHT}:${stringHeight}`,
 		);
+		const id = JSON.parse(idBuffer.toString('utf8')) as string;
 		return this.getBlockHeaderByID(id);
 	}
 
@@ -88,8 +90,8 @@ export class Storage {
 		const blockIDs = await new Promise<string[]>((resolve, reject) => {
 			const ids: string[] = [];
 			stream
-				.on('data', ({ value }) => {
-					ids.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					ids.push(JSON.parse(value.toString('utf8')) as string);
 				})
 				.on('error', error => {
 					reject(error);
@@ -123,8 +125,8 @@ export class Storage {
 		const [blockID] = await new Promise<string[]>((resolve, reject) => {
 			const ids: string[] = [];
 			stream
-				.on('data', ({ value }) => {
-					ids.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					ids.push(JSON.parse(value.toString('utf8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -228,8 +230,8 @@ export class Storage {
 		const tempBlocks = await new Promise<BlockJSON[]>((resolve, reject) => {
 			const blocks: BlockJSON[] = [];
 			stream
-				.on('data', ({ value }) => {
-					blocks.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					blocks.push(JSON.parse(value.toString('utf8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -251,8 +253,8 @@ export class Storage {
 		const tempBlocks = await new Promise<BlockJSON[]>((resolve, reject) => {
 			const blocks: BlockJSON[] = [];
 			stream
-				.on('data', ({ value }) => {
-					blocks.push(value);
+				.on('data', ({ value }: { value: Buffer }) => {
+					blocks.push(JSON.parse(value.toString('utf8')));
 				})
 				.on('error', error => {
 					reject(error);
@@ -279,9 +281,9 @@ export class Storage {
 	/*
 		ChainState
 	*/
-	public async getChainState(key: string): Promise<string | undefined> {
+	public async getChainState(key: string): Promise<Buffer | undefined> {
 		try {
-			const value = await this._db.get<string>(`${DB_KEY_CHAIN_STATE}:${key}`);
+			const value = await this._db.get(`${DB_KEY_CHAIN_STATE}:${key}`);
 
 			return value;
 		} catch (error) {
@@ -295,11 +297,9 @@ export class Storage {
 	/*
 		ConsensusState
 	*/
-	public async getConsensusState(key: string): Promise<string | undefined> {
+	public async getConsensusState(key: string): Promise<Buffer | undefined> {
 		try {
-			const value = await this._db.get<string>(
-				`${DB_KEY_CONSENSUS_STATE}:${key}`,
-			);
+			const value = await this._db.get(`${DB_KEY_CONSENSUS_STATE}:${key}`);
 
 			return value;
 		} catch (error) {
@@ -314,11 +314,9 @@ export class Storage {
 		Accounts
 	*/
 	public async getAccountByAddress(address: string): Promise<AccountJSON> {
-		const account = await this._db.get<AccountJSON>(
-			`${DB_KEY_ACCOUNTS_ADDRESS}:${address}`,
-		);
+		const account = await this._db.get(`${DB_KEY_ACCOUNTS_ADDRESS}:${address}`);
 
-		return account;
+		return JSON.parse(account.toString('utf8'));
 	}
 
 	public async getAccountsByPublicKey(
@@ -345,11 +343,9 @@ export class Storage {
 		Transactions
 	*/
 	public async getTransactionByID(id: string): Promise<TransactionJSON> {
-		const transaction = this._db.get<TransactionJSON>(
-			`${DB_KEY_TRANSACTIONS_ID}:${id}`,
-		);
+		const transaction = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${id}`);
 
-		return transaction;
+		return JSON.parse(transaction.toString('utf8')) as TransactionJSON;
 	}
 
 	public async getTransactionsByIDs(
@@ -378,15 +374,27 @@ export class Storage {
 	): Promise<void> {
 		const batch = this._db.batch();
 		const { transactions, ...header } = blockJSON;
-		batch.put(`${DB_KEY_BLOCKS_ID}:${header.id}`, header);
-		batch.put(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(header.height)}`, header.id);
+		batch.put(
+			`${DB_KEY_BLOCKS_ID}:${header.id}`,
+			Buffer.from(JSON.stringify(header), 'utf8'),
+		);
+		batch.put(
+			`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(header.height)}`,
+			Buffer.from(JSON.stringify(header.id), 'utf8'),
+		);
 		if (transactions.length > 0) {
 			const ids = [];
 			for (const tx of transactions) {
 				ids.push(tx.id);
-				batch.put(`${DB_KEY_TRANSACTIONS_ID}:${tx.id as string}`, tx);
+				batch.put(
+					`${DB_KEY_TRANSACTIONS_ID}:${tx.id as string}`,
+					Buffer.from(JSON.stringify(tx), 'utf8'),
+				);
 			}
-			batch.put(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${header.id}`, ids);
+			batch.put(
+				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${header.id}`,
+				Buffer.from(JSON.stringify(ids), 'utf8'),
+			);
 		}
 		if (removeFromTemp) {
 			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(blockJSON.height)}`);
@@ -413,7 +421,7 @@ export class Storage {
 		if (saveToTemp) {
 			batch.put(
 				`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(blockJSON.height)}`,
-				blockJSON,
+				Buffer.from(JSON.stringify(blockJSON), 'utf8'),
 			);
 		}
 		stateStore.finalize(batch);
@@ -421,12 +429,12 @@ export class Storage {
 	}
 
 	private async _getTransactions(blockID: string): Promise<TransactionJSON[]> {
-		const txIDs = [];
+		const txIDs: string[] = [];
 		try {
-			const ids = await this._db.get<string[]>(
+			const ids = await this._db.get(
 				`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${blockID}`,
 			);
-			txIDs.push(...ids);
+			txIDs.push(...JSON.parse(ids.toString('utf8')));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -437,10 +445,8 @@ export class Storage {
 		}
 		const transactions = [];
 		for (const txID of txIDs) {
-			const tx = await this._db.get<TransactionJSON>(
-				`${DB_KEY_TRANSACTIONS_ID}:${txID}`,
-			);
-			transactions.push(tx);
+			const tx = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${txID}`);
+			transactions.push(JSON.parse(tx.toString('utf8')));
 		}
 
 		return transactions;

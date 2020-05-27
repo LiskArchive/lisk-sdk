@@ -69,7 +69,7 @@ export default class LogsCommand extends BaseCommand {
 
 		stdout.on('data', data => {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-			this.log(data.toString('utf-8').replace(/\n/, ''));
+			this.log(data.toString('utf8').replace(/\n/, ''));
 		});
 
 		stderr.on('data', data => {

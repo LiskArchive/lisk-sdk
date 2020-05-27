@@ -25,7 +25,7 @@ export const blockFixture = stampit.compose({
 		generatorPublicKey: '',
 		seedReveal: '00000000000000000000000000000000',
 		numberOfTransactions: 2,
-		payloadHash:
+		transactionRoot:
 			'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
 		payloadLength: 494,
 		height: 489,
@@ -76,7 +76,7 @@ export const genesisBlockFixture = stampit.compose(blockFixture, {
 		this.generatorPublicKey =
 			generatorPublicKey || genesisBlock.generatorPublicKey;
 		this.blockSignature = genesisBlock.blockSignature;
-		this.payloadHash = genesisBlock.payloadHash;
+		this.transactionRoot = genesisBlock.transactionRoot;
 		this.previousBlockId = null;
 		this.height = 1;
 		this.numberOfTransactions = 0;

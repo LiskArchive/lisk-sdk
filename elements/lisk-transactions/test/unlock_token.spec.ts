@@ -15,7 +15,7 @@
 import * as validUnlockTransactionScenario from '../fixtures/unlock_transaction/unlock_transaction.json';
 
 import { unlockToken } from '../src/unlock_token';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON } from '../src/types';
 
 describe('#unlockToken transaction', () => {
 	let unlockTokenTransaction: Partial<TransactionJSON>;
