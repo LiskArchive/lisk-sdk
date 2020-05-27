@@ -81,8 +81,11 @@ export const writeObject = (
 				[],
 			);
 			// Add nested object size to total size
-			chunks.push(_writers.uint32(totalWrittenSize));
+			const objectSize = _writers.uint32(totalWrittenSize);
+			simpleObjectSize += objectSize.length + headerProp.binaryKey.length;
+			chunks.push(objectSize);
 			for (let e = 0; e < encodedValues.length; e += 1) {
+				simpleObjectSize += encodedValues[e].length;
 				chunks.push(encodedValues[e]);
 			}
 		} else {
@@ -300,10 +303,11 @@ export const writeArray = (
 		contents.push(res);
 		contentSize += res.length;
 	}
-	chunks.push(_writers.uint32(contentSize));
+	const arrayLength = _writers.uint32(contentSize);
+	chunks.push(arrayLength);
 	for (let i = 0; i < contents.length; i += 1) {
 		chunks.push(contents[i]);
 	}
-	totalSize += rootSchema.binaryKey.length + contentSize;
+	totalSize += rootSchema.binaryKey.length + contentSize + arrayLength.length;
 	return [chunks, totalSize];
 };
