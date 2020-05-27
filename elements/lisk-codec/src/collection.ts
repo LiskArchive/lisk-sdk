@@ -60,19 +60,17 @@ export const writeObject = (
 	chunks: Buffer[],
 ): [Buffer[], number] => {
 	let simpleObjectSize = 0;
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < compiledSchema.length; i += 1) {
 		const property = compiledSchema[i];
 		if (Array.isArray(property)) {
 			const headerProp = property[0];
 			if (headerProp.schemaProp.type === 'array') {
-				// eslint-disable-next-line @typescript-eslint/no-use-before-define
-				writeArray(
+				const [, size] = writeArray(
 					property,
 					message[headerProp.propertyName] as Array<unknown>,
 					chunks,
 				);
-				// eslint-disable-next-line no-continue
+				simpleObjectSize += size;
 				continue;
 			}
 			// Write the key for container object
@@ -84,20 +82,17 @@ export const writeObject = (
 			);
 			// Add nested object size to total size
 			chunks.push(_writers.uint32(totalWrittenSize));
-			// eslint-disable-next-line @typescript-eslint/prefer-for-of
 			for (let e = 0; e < encodedValues.length; e += 1) {
 				chunks.push(encodedValues[e]);
 			}
 		} else {
 			// This is the header object so it does not need to be written
 			if (property.schemaProp.type === 'object') {
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 			const value = message[property.propertyName];
 			// Missing properties are not encoded as per LIP-0027
 			if (value === undefined) {
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -264,7 +259,6 @@ export const writeArray = (
 	const [rootSchema, typeSchema] = compiledSchema;
 	// Array of object
 	if (Array.isArray(typeSchema)) {
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < message.length; i += 1) {
 			const [res, objectSize] = writeObject(
 				typeSchema,
@@ -272,12 +266,12 @@ export const writeArray = (
 				[],
 			);
 			chunks.push(rootSchema.binaryKey);
-			chunks.push(_writers.uint32(objectSize));
-			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			const size = _writers.uint32(objectSize);
+			chunks.push(size);
 			for (let j = 0; j < res.length; j += 1) {
 				chunks.push(res[j]);
 			}
-			totalSize += objectSize + rootSchema.binaryKey.length;
+			totalSize += objectSize + size.length + rootSchema.binaryKey.length;
 		}
 		return [chunks, totalSize];
 	}
@@ -286,7 +280,6 @@ export const writeArray = (
 		typeSchema.schemaProp.dataType === 'string' ||
 		typeSchema.schemaProp.dataType === 'bytes'
 	) {
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < message.length; i += 1) {
 			const res = _writers[typeSchema.schemaProp.dataType as string](
 				message[i],
@@ -302,14 +295,12 @@ export const writeArray = (
 	// Insert size
 	const contents = [];
 	let contentSize = 0;
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < message.length; i += 1) {
 		const res = _writers[typeSchema.schemaProp.dataType as string](message[i]);
 		contents.push(res);
 		contentSize += res.length;
 	}
 	chunks.push(_writers.uint32(contentSize));
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < contents.length; i += 1) {
 		chunks.push(contents[i]);
 	}
