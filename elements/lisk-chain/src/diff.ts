@@ -52,6 +52,9 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 	 * along with the history that got it there.
 	 * */
 	const frontier: Frontier = { 1: { x: 0, history: [] } };
+	/**
+	 * d is the total number of grid points and k is the cursor that moves within the grid.
+	 */
 	for (let d = 0; d < initialBytesLength + finalBytesLength + 1; d += 1) {
 		for (let k = -d; k < d + 1; k += 2) {
 			let history: HistoryType[] = [];
