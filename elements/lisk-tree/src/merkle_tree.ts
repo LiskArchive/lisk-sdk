@@ -38,7 +38,8 @@ interface NodeInfo {
 const isLeaf = (value: Buffer): boolean =>
 	LEAF_PREFIX.compare(value.slice(0, 1)) === 0;
 
-const generateLeafData = (value: Buffer): NodeData => {
+// LEAFPREFIX = 0x00
+const generateLeaf = (value: Buffer): NodeData => {
 	const leafValue = Buffer.concat(
 		[LEAF_PREFIX, value],
 		LEAF_PREFIX.length + value.length,
@@ -50,7 +51,8 @@ const generateLeafData = (value: Buffer): NodeData => {
 	};
 };
 
-const generateNodeData = (
+// BRANCHPREFIX = 0x01
+const generateBranch = (
 	left: Buffer,
 	right: Buffer,
 	layerIndex: number,
@@ -105,7 +107,7 @@ export class MerkleTree {
 	private _width = 0;
 
 	// Object holds data in format { [hash]: value }
-	private _data: { [key: string]: Buffer } = {};
+	private _hashToBuffer: { [key: string]: Buffer } = {};
 
 	public constructor(initValues: Buffer[] = []) {
 		this._width = initValues.length;
@@ -114,15 +116,7 @@ export class MerkleTree {
 			return;
 		}
 
-		const leafHashes = [];
-		for (let i = 0; i < initValues.length; i += 1) {
-			const leaf = generateLeafData(initValues[i]);
-
-			leafHashes.push(leaf.hash);
-			this._data[leaf.hash.toString('binary')] = leaf.value;
-		}
-
-		this._root = this._build(leafHashes);
+		this._root = this._generateInitialHashToBuffer(initValues);
 	}
 
 	public get root(): Buffer {
@@ -130,9 +124,11 @@ export class MerkleTree {
 	}
 
 	public append(value: Buffer): Buffer {
-		const leaf = generateLeafData(value);
+		const leaf = generateLeaf(value);
 
-		const rootNode = getNodeInfo(this._data[this.root.toString('binary')]);
+		const rootNode = getNodeInfo(
+			this._hashToBuffer[this.root.toString('binary')],
+		);
 		const stack: Buffer[] = [];
 		let activeNode = rootNode;
 
@@ -143,24 +139,24 @@ export class MerkleTree {
 			stack.push(activeNode.left);
 			stack.push(activeNode.right);
 
-			while (!isLeaf(this._data[activeNode.right.toString('binary')])) {
+			while (!isLeaf(this._hashToBuffer[activeNode.right.toString('binary')])) {
 				activeNode = getNodeInfo(
-					this._data[activeNode.right.toString('binary')],
+					this._hashToBuffer[activeNode.right.toString('binary')],
 				);
 				stack.push(activeNode.right);
 			}
 		}
 
 		stack.push(leaf.hash);
-		this._data[leaf.hash.toString('binary')] = leaf.value;
+		this._hashToBuffer[leaf.hash.toString('binary')] = leaf.value;
 		this._width += 1;
 
 		while (stack.length > 1) {
 			const right = stack.pop() as Buffer;
 			const left = stack.pop() as Buffer;
 			// TODO: Add correct layer and node index
-			const node = generateNodeData(left, right, 0, BigInt(0));
-			this._data[node.hash.toString('binary')] = node.value;
+			const node = generateBranch(left, right, 0, BigInt(0));
+			this._hashToBuffer[node.hash.toString('binary')] = node.value;
 
 			stack.push(node.hash);
 		}
@@ -179,7 +175,7 @@ export class MerkleTree {
 
 	public clear(): void {
 		this._width = 0;
-		this._data = {};
+		this._hashToBuffer = {};
 		this._root = EMPTY_HASH;
 	}
 
@@ -194,54 +190,75 @@ export class MerkleTree {
 	// 	return Math.ceil(Math.log2(this._width)) + 1;
 	// }
 
-	private _build(nodes: Buffer[]): Buffer {
-		let currentLayer = nodes;
-		let orphanNodeInPreviousLayer: Buffer | undefined;
-		let layerIndex = 0;
+	/*  Generates node data based on initial data set
+		Stores hash and buffer in memory
+		Returns initial merkle root
+	*/
 
-		while (currentLayer.length > 1 || orphanNodeInPreviousLayer !== undefined) {
+	private _generateInitialHashToBuffer(initValues: Buffer[]): Buffer {
+		// Generate hash and buffer of leaves and store in memory
+		const leafHashes = [];
+		for (let i = 0; i < initValues.length; i += 1) {
+			const leaf = generateLeaf(initValues[i]);
+
+			leafHashes.push(leaf.hash);
+			this._hashToBuffer[leaf.hash.toString('binary')] = leaf.value;
+		}
+
+		// Start from base layer
+		let currentLayerNodes = leafHashes;
+		let orphanNodeInPreviousLayer: Buffer | undefined;
+		let currentLayer = 0;
+		// Loop through each layer as long as there are nodes or an orphan node from previous layer
+		while (
+			currentLayerNodes.length > 1 ||
+			orphanNodeInPreviousLayer !== undefined
+		) {
 			const pairs: Array<[Buffer, Buffer]> = [];
 
-			// Make pairs from the nodes
-			for (let i = 0; i < currentLayer.length - 1; i += 2) {
-				pairs.push([currentLayer[i], currentLayer[i + 1]]);
+			// Make pairs from the current layer nodes
+			for (let i = 0; i < currentLayerNodes.length - 1; i += 2) {
+				pairs.push([currentLayerNodes[i], currentLayerNodes[i + 1]]);
 			}
 
 			// If there is one node left from pairs
-			if (currentLayer.length % 2 === 1) {
-				// If no orphan node left from previous layer
+			if (currentLayerNodes.length % 2 === 1) {
+				// If no orphan node left from previous layer, set the last node to new orphan node
 				if (orphanNodeInPreviousLayer === undefined) {
-					orphanNodeInPreviousLayer = currentLayer[currentLayer.length - 1];
+					orphanNodeInPreviousLayer =
+						currentLayerNodes[currentLayerNodes.length - 1];
 
-					// If one orphan node left from previous layer then pair
+					// If one orphan node left from previous layer then pair with last node
 				} else {
 					pairs.push([
-						currentLayer[currentLayer.length - 1],
+						currentLayerNodes[currentLayerNodes.length - 1],
 						orphanNodeInPreviousLayer,
 					]);
 					orphanNodeInPreviousLayer = undefined;
 				}
 			}
 
-			const parentLayer = [];
+			// Generate hash and buffer for the parent layer and store
+			const parentLayerNodes = [];
 			for (let i = 0; i < pairs.length; i += 1) {
 				const left = pairs[i][0];
 				const right = pairs[i][1];
-				const node = generateNodeData(left, right, layerIndex, BigInt(i));
-				this._data[node.hash.toString('binary')] = node.value;
+				const node = generateBranch(left, right, currentLayer, BigInt(i));
+				this._hashToBuffer[node.hash.toString('binary')] = node.value;
 
-				parentLayer.push(node.hash);
+				parentLayerNodes.push(node.hash);
 			}
 
-			currentLayer = parentLayer;
-			layerIndex += 1;
+			// Set current layer to parent layer
+			currentLayerNodes = parentLayerNodes;
+			currentLayer += 1;
 		}
 
-		return currentLayer[0];
+		return currentLayerNodes[0];
 	}
 
 	private _printNode(hashValue: Buffer, level = 1): string {
-		const nodeValue = this._data[hashValue.toString('binary')];
+		const nodeValue = this._hashToBuffer[hashValue.toString('binary')];
 
 		if (isLeaf(nodeValue)) {
 			return nodeValue.toString('hex');
