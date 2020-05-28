@@ -21,10 +21,7 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
-import {
-	MAX_TRANSACTION_AMOUNT,
-	MIN_FEE_PER_BYTE,
-} from './constants';
+import { MAX_TRANSACTION_AMOUNT, MIN_FEE_PER_BYTE } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { baseTransactionSchema } from './schema';
@@ -54,8 +51,8 @@ export interface ChainState {
 	readonly lastBlockHeader: BlockHeader;
 	readonly lastBlockReward: bigint;
 	readonly networkIdentifier: Buffer;
-	get(key: Buffer): Promise<Buffer | undefined>;
-	set(key: Buffer, value: Buffer): void;
+	get(key: string): Promise<Buffer | undefined>;
+	set(key: string, value: Buffer): void;
 }
 
 export interface StateStore {
@@ -109,7 +106,7 @@ export abstract class BaseTransaction {
 			this._minFee =
 				(this.constructor as typeof BaseTransaction).NAME_FEE +
 				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
-				BigInt(this.getBytes().length);
+					BigInt(this.getBytes().length);
 		}
 
 		return this._minFee;
@@ -133,20 +130,20 @@ export abstract class BaseTransaction {
 	/* End Getters */
 
 	public getBasicBytes(): Buffer {
-		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
 			...this,
 			asset: this.getAssetBytes(),
 			signatures: [],
-		} as unknown as GenericObject);
+		} as unknown) as GenericObject);
 
 		return transactionBytes;
 	}
 
 	public getBytes(): Buffer {
-		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
 			...this,
 			asset: this.getAssetBytes(),
-		} as unknown as GenericObject);
+		} as unknown) as GenericObject);
 
 		return transactionBytes;
 	}
@@ -250,14 +247,14 @@ export abstract class BaseTransaction {
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
 				: [
-					new TransactionError(
-						'Invalid balance amount',
-						this.id,
-						'.balance',
-						sender.balance.toString(),
-						updatedBalance.toString(),
-					),
-				];
+						new TransactionError(
+							'Invalid balance amount',
+							this.id,
+							'.balance',
+							sender.balance.toString(),
+							updatedBalance.toString(),
+						),
+				  ];
 
 		// Decrement account nonce
 		sender.nonce -= BigInt(1);
@@ -382,10 +379,11 @@ export abstract class BaseTransaction {
 	// eslint-disable-next-line class-methods-use-this
 	protected validateAsset(): ReadonlyArray<TransactionError> {
 		return [];
-	};
+	}
 
 	protected getAssetBytes(): Buffer {
-		const assetSchema = (this.constructor as typeof BaseTransaction).ASSET_SCHEMA;
+		const assetSchema = (this.constructor as typeof BaseTransaction)
+			.ASSET_SCHEMA;
 		return codec.encode(assetSchema as Schema, this.asset as GenericObject);
 	}
 
@@ -396,7 +394,10 @@ export abstract class BaseTransaction {
 			schemaErrors,
 		) as TransactionError[];
 
-		const assetSchemaErrors = validator.validate(BaseTransaction.ASSET_SCHEMA, this.asset);
+		const assetSchemaErrors = validator.validate(
+			BaseTransaction.ASSET_SCHEMA,
+			this.asset,
+		);
 		const assetErrors = convertToTransactionError(
 			this.id,
 			assetSchemaErrors,

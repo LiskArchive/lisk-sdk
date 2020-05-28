@@ -15,12 +15,16 @@
 
 import { AccountUnlocking } from '../types';
 
-export const sortKeysAscending = (publicKeys: Array<Readonly<Buffer>>): Array<Readonly<Buffer>> =>
-	publicKeys.sort((publicKeyA, publicKeyB) => (publicKeyA as Buffer).compare(publicKeyB as Buffer));
+export const sortKeysAscending = (
+	publicKeys: Array<Readonly<Buffer>>,
+): Array<Readonly<Buffer>> =>
+	publicKeys.sort((publicKeyA, publicKeyB) =>
+		(publicKeyA as Buffer).compare(publicKeyB as Buffer),
+	);
 
 export const sortUnlocking = (unlocks: AccountUnlocking[]): void => {
 	unlocks.sort((a, b) => {
-		if (a.delegateAddress !== b.delegateAddress) {
+		if (!a.delegateAddress.equals(b.delegateAddress)) {
 			return a.delegateAddress.compare(b.delegateAddress);
 		}
 		if (a.unvoteHeight !== b.unvoteHeight) {

@@ -91,7 +91,7 @@ export interface BlockHeaderJSON {
 }
 
 export interface TransactionJSON {
-	readonly id?: string;
+	readonly id: string;
 	readonly type: number;
 	readonly senderPublicKey: string;
 	readonly signatures?: ReadonlyArray<string>;
