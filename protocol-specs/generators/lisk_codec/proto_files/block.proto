@@ -1,0 +1,48 @@
+syntax = 'proto2';
+
+message BlockAsset {
+	required uint32 maxHeightPreviouslyForged = 1;
+	required uint32 maxHeightPrevoted = 2;
+	required bytes seedReveal = 3;
+}
+
+message BlockHeader {
+	required uint32 version = 1;
+	required uint32 timestamp = 2;
+	required uint32 height = 3;
+	required bytes previousBlockID = 4;
+	required bytes transactionRoot = 5;
+	required bytes generatorPublicKey = 6;
+	required uint64 reward = 7;
+	required bytes asset = 8;
+	required bytes signature = 9;
+}
+
+message BaseTransaction {
+	required uint32 type = 1;
+	required uint64 nonce = 2;
+	required uint64 fee = 3;
+	required bytes senderPublicKey = 4;
+	required bytes asset = 5;
+	repeated bytes signatures = 6;
+}
+
+message Vote {
+		required bytes delegateAddress = 1;
+		required sint64 amount = 2;
+}
+
+message VoteTransaction {
+	repeated Vote votes = 1;
+}
+
+message MultisigTransaction {
+	required uint32 numberOfSignatures = 1;
+	repeated bytes mandatoryKeys = 2;
+	repeated bytes optionalKeys = 3;
+}
+
+message Block {
+	required bytes header = 1;
+	repeated bytes payload = 2;
+}

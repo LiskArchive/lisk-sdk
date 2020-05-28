@@ -2,6 +2,12 @@ syntax = 'proto2';
 
 message Asset {
 	required string data = 1;
+	required FooBar fooBar = 2;
+}
+
+message FooBar {
+	required uint32 foo = 1;
+	required uint32 bar = 2;
 }
 
 message Objects {

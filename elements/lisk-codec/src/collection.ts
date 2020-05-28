@@ -60,19 +60,17 @@ export const writeObject = (
 	chunks: Buffer[],
 ): [Buffer[], number] => {
 	let simpleObjectSize = 0;
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < compiledSchema.length; i += 1) {
 		const property = compiledSchema[i];
 		if (Array.isArray(property)) {
 			const headerProp = property[0];
 			if (headerProp.schemaProp.type === 'array') {
-				// eslint-disable-next-line @typescript-eslint/no-use-before-define
-				writeArray(
+				const [, size] = writeArray(
 					property,
 					message[headerProp.propertyName] as Array<unknown>,
 					chunks,
 				);
-				// eslint-disable-next-line no-continue
+				simpleObjectSize += size;
 				continue;
 			}
 			// Write the key for container object
@@ -83,21 +81,21 @@ export const writeObject = (
 				[],
 			);
 			// Add nested object size to total size
-			chunks.push(_writers.uint32(totalWrittenSize));
-			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			const objectSize = _writers.uint32(totalWrittenSize);
+			simpleObjectSize += objectSize.length + headerProp.binaryKey.length;
+			chunks.push(objectSize);
 			for (let e = 0; e < encodedValues.length; e += 1) {
+				simpleObjectSize += encodedValues[e].length;
 				chunks.push(encodedValues[e]);
 			}
 		} else {
 			// This is the header object so it does not need to be written
 			if (property.schemaProp.type === 'object') {
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 			const value = message[property.propertyName];
 			// Missing properties are not encoded as per LIP-0027
 			if (value === undefined) {
-				// eslint-disable-next-line no-continue
 				continue;
 			}
 
@@ -177,13 +175,13 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 		return [[], index];
 	}
 	const startingByte = message[index];
-	// It should be wire type 2 as it's object
-	const [, keySize] = readUInt32(message, index);
-	index += keySize;
-	// Takeout the length
-	const [arrayLength, wireType2Size] = readUInt32(message, index);
-	index += wireType2Size;
-	const [, typeSchema] = compiledSchema;
+	const [rootSchema, typeSchema] = compiledSchema;
+	// Peek the current key, and if not the same fieldnumber, skip
+	const [key] = readUInt32(message, index);
+	const [fieldNumber] = readKey(key);
+	if (fieldNumber !== (rootSchema as CompiledSchema).schemaProp.fieldNumber) {
+		return [[], index];
+	}
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const result: Array<any> = [];
 	// Case of object
@@ -191,31 +189,23 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 		// handle as object
 		const [nestedTypeSchema] = typeSchema;
 		if (nestedTypeSchema.schemaProp.type === 'object') {
-			// Since first key and length is read, we do read them directly
-			if (wireType2Size !== 0) {
-				// readObject returns Next offset, not index used
-				const [objectResult, nextOffset] = readObject(message, index, typeSchema);
-				result.push(objectResult);
-				index = nextOffset;
-			} else {
-				result.push({});
-			}
 			// If still the next bytes is the same key, it is still element of array
 			while (message[index] === startingByte) {
 				const [, wire2KeySize] = readUInt32(message, index);
 				index += wire2KeySize;
 				// Takeout the length
 				const [wireType2Length, wireType2LengthSize] = readUInt32(message, index);
+				// for object, length is not used
 				index += wireType2LengthSize;
 				if (wireType2Length === 0) {
-					result.push({});
 					// Add default value
+					result.push({});
 					continue;
 				}
 				// readObject returns Next offset, not index used
 				const [res, nextOffset] = readObject(message, index, typeSchema);
 				result.push(res);
-				index += nextOffset;
+				index = nextOffset;
 			}
 			return [result, index];
 		}
@@ -223,30 +213,19 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 	}
 	// Case for string and bytes
 	if (typeSchema.schemaProp.dataType === 'string' || typeSchema.schemaProp.dataType === 'bytes') {
-		// Since first key and length is read, we do read them directly
-		if (wireType2Size !== 0) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const [res, size] = _readers[typeSchema.schemaProp.dataType as string](message, index);
-			result.push(res);
-			index += size;
-		} else if (typeSchema.schemaProp.dataType === 'string') {
-			result.push('');
-		} else {
-			result.push(Buffer.alloc(0));
-		}
 		// If still the next bytes is the same key, it is still element of array
 		while (message[index] === startingByte) {
-			const [, wire2KeySize] = readUInt32(message, offset);
+			const [, wire2KeySize] = readUInt32(message, index);
 			index += wire2KeySize;
-			// Takeout the length
+			// wireType2LengthSize is used while decoding string or bytes, therefore it's not subtracted unless it's zero
 			const [wireType2Length, wireType2LengthSize] = readUInt32(message, index);
-			index += wireType2LengthSize;
 			if (wireType2Length === 0) {
 				if (typeSchema.schemaProp.dataType === 'string') {
 					result.push('');
 				} else {
 					result.push(Buffer.alloc(0));
 				}
+				index += wireType2LengthSize;
 				// Add default value
 				continue;
 			}
@@ -257,6 +236,11 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 		}
 		return [result, index];
 	}
+	const [, keySize] = readUInt32(message, index);
+	index += keySize;
+	// Takeout the length
+	const [arrayLength, wireType2Size] = readUInt32(message, index);
+	index += wireType2Size;
 	// Case for varint and boolean
 	const end = index + arrayLength;
 	while (index < end) {
@@ -274,11 +258,13 @@ export const writeArray = (
 	message: Array<unknown>,
 	chunks: Buffer[],
 ): [Buffer[], number] => {
+	if (message.length === 0) {
+		return [chunks, 0];
+	}
 	let totalSize = 0;
 	const [rootSchema, typeSchema] = compiledSchema;
 	// Array of object
 	if (Array.isArray(typeSchema)) {
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < message.length; i += 1) {
 			const [res, objectSize] = writeObject(
 				typeSchema,
@@ -286,12 +272,12 @@ export const writeArray = (
 				[],
 			);
 			chunks.push(rootSchema.binaryKey);
-			chunks.push(_writers.uint32(objectSize));
-			// eslint-disable-next-line @typescript-eslint/prefer-for-of
+			const size = _writers.uint32(objectSize);
+			chunks.push(size);
 			for (let j = 0; j < res.length; j += 1) {
 				chunks.push(res[j]);
 			}
-			totalSize += objectSize + rootSchema.binaryKey.length;
+			totalSize += objectSize + size.length + rootSchema.binaryKey.length;
 		}
 		return [chunks, totalSize];
 	}
@@ -300,7 +286,6 @@ export const writeArray = (
 		typeSchema.schemaProp.dataType === 'string' ||
 		typeSchema.schemaProp.dataType === 'bytes'
 	) {
-		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < message.length; i += 1) {
 			const res = _writers[typeSchema.schemaProp.dataType as string](
 				message[i],
@@ -316,17 +301,16 @@ export const writeArray = (
 	// Insert size
 	const contents = [];
 	let contentSize = 0;
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < message.length; i += 1) {
 		const res = _writers[typeSchema.schemaProp.dataType as string](message[i]);
 		contents.push(res);
 		contentSize += res.length;
 	}
-	chunks.push(_writers.uint32(contentSize));
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
+	const arrayLength = _writers.uint32(contentSize);
+	chunks.push(arrayLength);
 	for (let i = 0; i < contents.length; i += 1) {
 		chunks.push(contents[i]);
 	}
-	totalSize += rootSchema.binaryKey.length + contentSize;
+	totalSize += rootSchema.binaryKey.length + contentSize + arrayLength.length;
 	return [chunks, totalSize];
 };

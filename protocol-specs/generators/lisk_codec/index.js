@@ -14,604 +14,153 @@
 
 'use strict';
 
-const protobuf = require('protobufjs');
 const BaseGenerator = require('../base_generator');
+const typesGenerators = require('./types_generators');
 
-const prepareProtobuffersNumbers = () =>
-	protobuf.loadSync('./generators/lisk_codec/proto_files/numbers.proto');
-const prepareProtobuffersBooleans = () =>
-	protobuf.loadSync('./generators/lisk_codec/proto_files/booleans.proto');
-const prepareProtobuffersStrings = () =>
-	protobuf.loadSync('./generators/lisk_codec/proto_files/strings.proto');
-const prepareProtobuffersBytes = () =>
-	protobuf.loadSync('./generators/lisk_codec/proto_files/bytes.proto');
-const prepareProtobuffersObjects = () =>
-	protobuf.loadSync('./generators/lisk_codec/proto_files/object.proto');
-const prepareProtobuffersArrays = () =>
-	protobuf.loadSync('./generators/lisk_codec/proto_files/arrays.proto');
-
-const {
-	Number32,
-	SignedNumber32,
-	Number64,
-	SignedNumber64,
-} = prepareProtobuffersNumbers();
-const { Boolean } = prepareProtobuffersBooleans();
-const { String } = prepareProtobuffersStrings();
-const { Bytes } = prepareProtobuffersBytes();
-const { Objects, ObjectWithOptionalProp } = prepareProtobuffersObjects();
-const {
-	ArrayOfIntegers,
-	ArrayBools,
-	ArrayString,
-	ArrayObjects,
-} = prepareProtobuffersArrays();
-
-const generateValidNumberEncodings = () => {
-	const input = {
-		message32: {
-			object: {
-				number: 10,
-			},
-			schema: {
-				$id: 'object1',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'uint32',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		messageSigned32: {
-			object: {
-				number: -10,
-			},
-			schema: {
-				$id: 'object2',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'sint32',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		message64: {
-			object: {
-				number: 372036854775807,
-			},
-			schema: {
-				$id: 'object3',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'uint64',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		messageSigned64: {
-			object: {
-				number: -9007199254740991,
-			},
-			schema: {
-				$id: 'object4',
-				type: 'object',
-				properties: {
-					number: {
-						dataType: 'sint64',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
-
-	const numberEncoded32 = Number32.encode(input.message32.object).finish();
-	const signedNumberEncoded32 = SignedNumber32.encode(
-		input.messageSigned32.object,
-	).finish();
-	const numberEncoded64 = Number64.encode(input.message64.object).finish();
-	const signedNumberEncoded64 = SignedNumber64.encode(
-		input.messageSigned64.object,
-	).finish();
-
-	return {
-		description: 'Encoding of numeric types',
-		config: {
-			network: 'devnet',
-		},
-		input: {
-			message32: input.message32,
-			messageSigned32: input.messageSigned32,
-			message64: input.message64,
-			messageSigned64: input.messageSigned64,
-		},
-		output: {
-			numberEncoded32: numberEncoded32.toString('hex'),
-			signedNumberEncoded32: signedNumberEncoded32.toString('hex'),
-			numberEncoded64: numberEncoded64.toString('hex'),
-			signedNumberEncoded64: signedNumberEncoded64.toString('hex'),
-		},
-	};
-};
-
-const generateValidBooleanEncodings = () => {
-	const input = {
-		booleanTrue: {
-			object: {
-				state: true,
-			},
-			schema: {
-				$id: 'object5',
-				type: 'object',
-				properties: {
-					state: {
-						dataType: 'boolean',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		booleanFalse: {
-			object: {
-				state: false,
-			},
-			schema: {
-				$id: 'object6',
-				type: 'object',
-				properties: {
-					state: {
-						dataType: 'boolean',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
-
-	const booleanTrueEncoded = Boolean.encode(input.booleanTrue.object).finish();
-	const booleanFalseEncoded = Boolean.encode(
-		input.booleanFalse.object,
-	).finish();
-
-	return {
-		description: 'Encoding of boolean types',
-		config: {
-			network: 'devnet',
-		},
-		input: {
-			booleanTrue: input.booleanTrue,
-			booleanFalse: input.booleanFalse,
-		},
-		output: {
-			booleanTrue: booleanTrueEncoded.toString('hex'),
-			booleanFalse: booleanFalseEncoded.toString('hex'),
-		},
-	};
-};
-
-const generateValidStringEncodings = () => {
-	const input = {
-		string: {
-			object: {
-				data: 'Checkout Lisk SDK!',
-			},
-			schema: {
-				$id: 'object7',
-				type: 'object',
-				properties: {
-					data: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		emptyString: {
-			object: {
-				data: '',
-			},
-			schema: {
-				$id: 'object8',
-				type: 'object',
-				properties: {
-					data: {
-						dataType: 'string',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
-
-	const stringEncoded = String.encode(input.string.object).finish();
-	const emptyStringEncoded = String.encode(input.emptyString.object).finish();
-
-	return {
-		description: 'Encoding of string types',
-		config: {
-			network: 'devnet',
-		},
-		input: {
-			string: input.string,
-			emptyString: input.emptyString,
-		},
-		output: {
-			string: stringEncoded.toString('hex'),
-			emptyString: emptyStringEncoded.toString('hex'),
-		},
-	};
-};
-
-const generateValidBytesEncodings = () => {
-	const input = {
-		bytes: {
-			object: {
-				address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
-			},
-			schema: {
-				$id: 'object9',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		emptyBytes: {
-			object: {
-				address: Buffer.from(''),
-			},
-			schema: {
-				$id: 'object10',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
-
-	const bytesEncoded = Bytes.encode(input.bytes.object).finish();
-	const emptyBytesEncoded = Bytes.encode(input.emptyBytes.object).finish();
-
-	return {
-		description: 'Encoding of bytes types',
-		config: {
-			network: 'devnet',
-		},
-		input: {
-			bytes: input.bytes,
-			emptyBytes: input.emptyBytes,
-		},
-		output: {
-			bytes: bytesEncoded.toString('hex'),
-			emptyBytes: emptyBytesEncoded.toString('hex'),
-		},
-	};
-};
-
-const generateValidObjectEncodings = () => {
-	const object = {
-		address: Buffer.from('e11a11364738225813f86ea85214400e5db08d6e', 'hex'),
-		balance: 10000000,
-		isDelegate: true,
-		name: 'delegate',
-		asset: {
-			data: 'Check out the Lisk SDK now in binary!',
-		},
-	};
-
-	const input = {
-		object: {
-			object,
-			schema: {
-				$id: 'object11',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					balance: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
-					isDelegate: {
-						dataType: 'boolean',
-						fieldNumber: 3,
-					},
-					name: {
-						dataType: 'string',
-						fieldNumber: 4,
-					},
-					asset: {
-						type: 'object',
-						fieldNumber: 5,
-						properties: {
-							data: {
-								dataType: 'string',
-								fieldNumber: 1,
-							},
-						},
-					},
-				},
-			},
-		},
-		objectOptionalProp: {
-			object: {
-				isActive: true,
-				value: 1,
-			},
-			schema: {
-				$id: 'object12',
-				type: 'object',
-				properties: {
-					isActive: {
-						dataType: 'boolean',
-						fieldNumber: 1,
-					},
-					data: {
-						dataType: 'bytes',
-						fieldNumber: 2,
-					},
-					value: {
-						dataType: 'uint64',
-						fieldNumber: 3,
-					},
-				},
-			},
-		},
-	};
-
-	const objectEncoded = Objects.encode(input.object.object).finish();
-	const objectOptionalPropEncoded = ObjectWithOptionalProp.encode(
-		input.objectOptionalProp.object,
-	).finish();
-
-	return {
-		description: 'Encoding of object types',
-		config: {
-			network: 'devnet',
-		},
-		input: {
-			object: input.object,
-			objectWithOptionalProp: input.objectOptionalProp,
-		},
-		output: {
-			object: objectEncoded.toString('hex'),
-			objectWithOptionalProp: objectOptionalPropEncoded.toString('hex'),
-		},
-	};
-};
-
-const generateValidArrayEncodings = () => {
-	const input = {
-		ArrayOfIntegers: {
-			object: {
-				list: [3, 1, 4, 1, 5, 9, 2, 6, 5],
-			},
-			schema: {
-				type: 'object',
-				$id: 'arrayUint32',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'uint32',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		arrayBools: {
-			object: {
-				list: [true, true, false, true, false, false],
-			},
-			schema: {
-				type: 'object',
-				$id: 'arrayBoolean',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'boolean',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		arrayStrings: {
-			object: {
-				list: ['lisk', '', 'gogogog'],
-			},
-			schema: {
-				type: 'object',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'string',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-		arrayObjects: {
-			object: {
-				myArray: [
-					{
-						address: 'e11a11364738225813f86ea85214400e5db08d6e',
-						amount: 100000,
-					},
-					{
-						address: 'aa2a11364738225813f86ea85214400e5db08fff',
-						amount: 300000,
-					},
-				],
-			},
-			schema: {
-				$id: 'arrayObject',
-				type: 'object',
-				properties: {
-					myArray: {
-						type: 'array',
-						fieldNumber: 1,
-						items: {
-							type: 'object',
-							properties: {
-								address: {
-									dataType: 'string',
-									fieldNumber: 1,
-								},
-								amount: {
-									dataType: 'uint64',
-									fieldNumber: 2,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		emptyArray: {
-			object: {
-				list: [],
-			},
-			schema: {
-				type: 'object',
-				$id: 'emptyArray',
-				properties: {
-					list: {
-						type: 'array',
-						items: {
-							dataType: 'uint32',
-						},
-						fieldNumber: 1,
-					},
-				},
-			},
-		},
-	};
-
-	const arrayOfIntegersEncoded = ArrayOfIntegers.encode(
-		input.ArrayOfIntegers.object,
-	).finish();
-	const arrayBoolsEncoded = ArrayBools.encode(input.arrayBools.object).finish();
-	const arrayStringsEncoded = ArrayString.encode(
-		input.arrayStrings.object,
-	).finish();
-	const arrayOfObjectsEncoded = ArrayObjects.encode(
-		input.arrayObjects.object,
-	).finish();
-	const emptyArrayEncoded = ArrayBools.encode(input.emptyArray.object).finish();
-
-	return {
-		description: 'Encoding of array types',
-		config: {
-			network: 'devnet',
-		},
-		input: {
-			arrayOfIntegers: input.ArrayOfIntegers,
-			arrayBools: input.arrayBools,
-			arrayStrings: input.arrayStrings,
-			arrayOfObjects: input.arrayObjects,
-			emptyArray: input.emptyArray,
-		},
-		output: {
-			arrayOfIntegersEncoded: arrayOfIntegersEncoded.toString('hex'),
-			arrayBoolsEncoded: arrayBoolsEncoded.toString('hex'),
-			arrayStringsEncoded: arrayStringsEncoded.toString('hex'),
-			arrayOfObjectsEncoded: arrayOfObjectsEncoded.toString('hex'),
-			emptyArrayEncoded: emptyArrayEncoded.toString('hex'),
-		},
-	};
-};
-
-const validNumberEncodingsSuite = () => ({
-	title: 'Valid number encodings',
-	summary: 'Examples of encoding numbers as required by lisk-codec',
+const numberEncodingsSuite = () => ({
+	title: 'Encondings for number types supported by lisk-codec',
+	summary: 'Examples of encoding numbers with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validNumberEncodings',
-	testCases: [generateValidNumberEncodings()],
+	handler: 'number_encodings',
+	testCases: [...typesGenerators.generateValidNumberEncodings()],
 });
 
-const validBooleanEncodingsSuite = () => ({
-	title: 'Valid boolean encodings',
-	summary: 'Examples of encoding booleans as required by lisk-codec',
+const booleanEncodingsSuite = () => ({
+	title: 'Encondings for boolean types supported by lisk-codec',
+	summary: 'Examples of encoding booleans with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validBooleanEncodings',
-	testCases: [generateValidBooleanEncodings()],
+	handler: 'boolean_encodings',
+	testCases: [...typesGenerators.generateValidBooleanEncodings()],
 });
 
-const validStringEncodingsSuite = () => ({
-	title: 'Valid string encodings',
-	summary: 'Examples of encoding strings as required by lisk-codec',
+const stringEncodingsSuite = () => ({
+	title: 'Encondings for string types supported by lisk-codec',
+	summary: 'Examples of encoding strings with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validStringEncodings',
-	testCases: [generateValidStringEncodings()],
+	handler: 'string_encodings',
+	testCases: [...typesGenerators.generateValidStringEncodings()],
 });
 
-const validBytesEncodingsSuite = () => ({
-	title: 'Valid bytes encodings',
-	summary: 'Examples of encoding bytes as required by lisk-codec',
+const bytesEncodingsSuite = () => ({
+	title: 'Encondings for bytes types supported by lisk-codec',
+	summary: 'Examples of encoding bytes with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validBytesEncodings',
-	testCases: [generateValidBytesEncodings()],
+	handler: 'bytes_encodings',
+	testCases: [...typesGenerators.generateValidBytesEncodings()],
 });
 
-const validObjectEncodingsSuite = () => ({
-	title: 'Valid object encodings',
-	summary: 'Examples of encoding objects as required by lisk-codec',
+const objectEncodingsSuite = () => ({
+	title: 'Encondings for objects types supported by lisk-codec',
+	summary: 'Examples of encoding objects with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validObjectEncodings',
-	testCases: [generateValidObjectEncodings()],
+	handler: 'objects_encodings',
+	testCases: [...typesGenerators.generateValidObjectEncodings()],
 });
 
-const validArrayEncodingsSuite = () => ({
-	title: 'Valid array encodings',
-	summary: 'Examples of encoding arrays as required by lisk-codec',
+const arrayEncodingsSuite = () => ({
+	title: 'Encondings for arrays types supported by lisk-codec',
+	summary: 'Examples of encoding arrays with lisk-codec',
 	config: {
 		network: 'devnet',
 	},
 	runner: 'lisk_codec',
-	handler: 'validArrayEncodings',
-	testCases: [generateValidArrayEncodings()],
+	handler: 'arrays_encodings',
+	testCases: [...typesGenerators.generateValidArrayEncodings()],
+});
+
+const blockEncodingsSuite = () => ({
+	title: 'Encondings for block types supported by lisk-codec',
+	summary: 'Examples of encoding block with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'block_encodings',
+	testCases: [...typesGenerators.generateValidBlock()],
+});
+
+const blockHeaderEncodingsSuite = () => ({
+	title: 'Encondings for block header types supported by lisk-codec',
+	summary: 'Examples of encoding block header with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'block_header_encodings',
+	testCases: [...typesGenerators.generateValidBlockHeader()],
+});
+
+const blockAssetEncodingsSuite = () => ({
+	title: 'Encondings for block asset types supported by lisk-codec',
+	summary: 'Examples of encoding block asset with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'block_asset_encodings',
+	testCases: [...typesGenerators.generateValidBlockAsset()],
+});
+
+const accountEncodingsSuite = () => ({
+	title: 'Encondings for account types supported by lisk-codec',
+	summary: 'Examples of encoding account with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'account_encodings',
+	testCases: [...typesGenerators.generateValidAccount()],
+});
+
+const transactionEncodingsSuite = () => ({
+	title: 'Encondings for transaction types supported by lisk-codec',
+	summary: 'Examples of encoding transaction with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'transaction_encodings',
+	testCases: [...typesGenerators.generateValidTransaction()],
+});
+
+const cartSampleEncodingSuite = () => ({
+	title: 'Encondings for a complex object',
+	summary:
+		'Example of encoding a complex object that might exist in custom apps',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'cart_sample_encoding',
+	testCases: [...typesGenerators.generateCartEncodings()],
 });
 
 module.exports = BaseGenerator.runGenerator('lisk_codec', [
-	validNumberEncodingsSuite,
-	validBooleanEncodingsSuite,
-	validStringEncodingsSuite,
-	validBytesEncodingsSuite,
-	validObjectEncodingsSuite,
-	validArrayEncodingsSuite,
+	numberEncodingsSuite,
+	booleanEncodingsSuite,
+	stringEncodingsSuite,
+	bytesEncodingsSuite,
+	objectEncodingsSuite,
+	arrayEncodingsSuite,
+	blockEncodingsSuite,
+	blockHeaderEncodingsSuite,
+	blockAssetEncodingsSuite,
+	accountEncodingsSuite,
+	transactionEncodingsSuite,
+	cartSampleEncodingSuite,
 ]);
