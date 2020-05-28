@@ -211,11 +211,13 @@ export const calculateDiff = (
 		return [['=', initial.length]];
 	}
 	const commonPrefix = diffCommonPrefix(initial, final);
-	const commonSuffix = diffCommonSuffix(initial, final);
-
 	const strippedPrefixInitial = initial.slice(commonPrefix, initial.length);
 	const strippedPrefixFinal = final.slice(commonPrefix, final.length);
 
+	const commonSuffix = diffCommonSuffix(
+		strippedPrefixInitial,
+		strippedPrefixFinal,
+	);
 	const strippedInitial = strippedPrefixInitial.slice(
 		0,
 		strippedPrefixInitial.length - commonSuffix,
