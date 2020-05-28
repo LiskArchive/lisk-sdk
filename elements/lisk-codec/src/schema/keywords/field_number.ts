@@ -57,13 +57,13 @@ interface AjvContext {
 const compile = (
 	value: number,
 	parentSchema: object,
-	it: AjvContext,
+	it: Partial<AjvContext>,
 ): ValidateFunction => {
 	debug('compile: schema: %i', value);
 	debug('compile: parent schema: %j', parentSchema);
 
-	const rootSchema: Schema = it.root.schema;
-	const parentPath: string[] = it.schemaPath.split('.');
+	const rootSchema: Schema = (it as AjvContext).root.schema;
+	const parentPath: string[] = (it as AjvContext).schemaPath.split('.');
 	parentPath.shift();
 	parentPath.pop();
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator, ErrorObject } from '@liskhq/lisk-validator';
 import { generateKey } from './utils';
+import { liskMetaSchema } from './schema/lisk_meta_schema';
+import { fieldNumberKeyword } from './schema/keywords/field_number';
+import { dataTypeKeyword } from './schema/keywords/data_type';
+import { writeObject, readObject } from './collection';
 
 import {
 	CompiledSchema,
@@ -23,12 +28,37 @@ import {
 	SchemaProps,
 } from './types';
 
-import { writeObject, readObject } from './collection';
+const liskSchemaIdentifier = liskMetaSchema.$id;
+
+export const validateSchema = (schema: Schema): void => {
+	const schemaToValidate: Schema = {
+		...schema,
+		$schema: liskSchemaIdentifier,
+	};
+
+	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(
+		schemaToValidate,
+	);
+	if (errors.length) {
+		throw new Error(errors[0].message);
+	}
+
+	// To validate keyword schema we have to compile it
+	validator.compile(schemaToValidate);
+};
 
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
+	public constructor() {
+		validator.addMetaSchema(liskMetaSchema);
+		validator.addKeyword('fieldNumber', fieldNumberKeyword);
+		validator.addKeyword('dataType', dataTypeKeyword);
+	}
+
 	public addSchema(schema: Schema): void {
+		validateSchema(schema);
+
 		const schemaName = schema.$id;
 		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
 	}
@@ -49,7 +79,7 @@ export class Codec {
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const [res] = readObject(message, 0, compiledSchema);
 
-		return res as unknown as T;
+		return (res as unknown) as T;
 	}
 
 	private _compileSchema(
