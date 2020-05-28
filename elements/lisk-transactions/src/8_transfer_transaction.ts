@@ -49,7 +49,7 @@ export const transferAssetSchema = {
 	},
 };
 
-export class TransferTransaction extends BaseTransaction<TransferAsset> {
+export class TransferTransaction extends BaseTransaction {
 	public static TYPE = 8;
 	public static ASSET_SCHEMA = transferAssetSchema;
 	public readonly asset: TransferAsset;

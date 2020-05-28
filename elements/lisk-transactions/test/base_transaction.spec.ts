@@ -179,7 +179,7 @@ describe.skip('Base transaction class', () => {
 		});
 	});
 
-	describe('#getBasicBytes', () => {
+	describe('#getSigningBytes', () => {
 		it('should call cryptography hexToBuffer', () => {
 			const cryptographyHexToBufferStub = jest
 				.spyOn(cryptography, 'hexToBuffer')
@@ -187,7 +187,7 @@ describe.skip('Base transaction class', () => {
 					Buffer.from(validTestTransaction.senderPublicKey, 'hex'),
 				);
 
-			(validTestTransaction as any).getBasicBytes();
+			(validTestTransaction as any).getSigningBytes();
 			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				defaultTransaction.senderPublicKey,
 			);
@@ -205,7 +205,7 @@ describe.skip('Base transaction class', () => {
 				testTransactionWithAsset,
 				'assetToBytes',
 			);
-			(testTransactionWithAsset as any).getBasicBytes();
+			(testTransactionWithAsset as any).getSigningBytes();
 
 			expect(assetToBytesStub).toHaveBeenCalledTimes(1);
 		});
@@ -224,16 +224,16 @@ describe.skip('Base transaction class', () => {
 				),
 				(validTestTransaction as any).assetToBytes(),
 			]);
-			expect((validTestTransaction as any).getBasicBytes()).toEqual(
+			expect((validTestTransaction as any).getSigningBytes()).toEqual(
 				expectedBuffer,
 			);
 		});
 	});
 
 	describe('#getBytes', () => {
-		it('should call getBasicBytes', () => {
-			const getBasicBytesStub = jest
-				.spyOn(validTestTransaction as any, 'getBasicBytes')
+		it('should call getSigningBytes', () => {
+			const getSigningBytesStub = jest
+				.spyOn(validTestTransaction as any, 'getSigningBytes')
 				.mockReturnValue(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
@@ -242,7 +242,7 @@ describe.skip('Base transaction class', () => {
 				);
 			validTestTransaction.getBytes();
 
-			expect(getBasicBytesStub).toHaveBeenCalledTimes(1);
+			expect(getSigningBytesStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call cryptography hexToBuffer for transaction with signature', () => {
@@ -691,7 +691,7 @@ describe.skip('Base transaction class', () => {
 			);
 			const bytesToBeSigned = Buffer.concat([
 				networkIdentifierBytes,
-				validTransferInstance.getBasicBytes(),
+				validTransferInstance.getSigningBytes(),
 			]);
 
 			const validSignature = cryptography.signData(
@@ -714,7 +714,7 @@ describe.skip('Base transaction class', () => {
 			);
 			const bytesToBeSigned = Buffer.concat([
 				networkIdentifierBytes,
-				validTransferInstance.getBasicBytes(),
+				validTransferInstance.getSigningBytes(),
 			]);
 
 			const firstSignature = cryptography.signData(

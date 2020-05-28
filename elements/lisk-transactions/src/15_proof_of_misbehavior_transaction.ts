@@ -110,7 +110,7 @@ export interface PoMAsset {
 	reward: bigint;
 }
 
-export class ProofOfMisbehaviorTransaction extends BaseTransaction<PoMAsset> {
+export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	public static TYPE = 15;
 	public static ASSET_SCHEMA = proofOfMisbehaviorAssetSchema;
 	public readonly asset: PoMAsset;

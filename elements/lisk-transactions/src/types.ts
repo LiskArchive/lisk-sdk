@@ -100,7 +100,7 @@ export interface TransactionJSON {
 	readonly fee: string;
 }
 
-export interface BaseTransactionInput<T> {
+export interface BaseTransactionInput<T = object> {
 	readonly id: Buffer;
 	readonly type: number;
 	readonly senderPublicKey: Buffer;

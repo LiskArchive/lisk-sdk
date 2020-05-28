@@ -63,7 +63,7 @@ export interface StateStore {
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
-export abstract class BaseTransaction<T = Buffer> {
+export abstract class BaseTransaction {
 	public static TYPE: number;
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
@@ -74,7 +74,7 @@ export abstract class BaseTransaction<T = Buffer> {
 
 	public readonly id: Buffer;
 	public readonly type: number;
-	public asset: T;
+	public asset: object;
 	public nonce: bigint;
 	public fee: bigint;
 	public senderPublicKey: Buffer;
@@ -82,11 +82,11 @@ export abstract class BaseTransaction<T = Buffer> {
 
 	protected _minFee?: bigint;
 
-	private readonly _id: string;
-	private readonly _senderPublicKey: string;
-	private readonly _senderId: Buffer;
+	private _id: string;
+	private readonly _senderPublicKeyStr: string;
+	private readonly _senderIdStr: Buffer;
 
-	public constructor(transaction: BaseTransactionInput<T>) {
+	public constructor(transaction: BaseTransactionInput) {
 		this.id = transaction.id;
 		this.type = transaction.type;
 		this.asset = transaction.asset;
@@ -95,8 +95,8 @@ export abstract class BaseTransaction<T = Buffer> {
 		this.senderPublicKey = transaction.senderPublicKey;
 		this.signatures = transaction.signatures;
 		this._id = bufferToHex(this.id);
-		this._senderPublicKey = bufferToHex(this.senderPublicKey);
-		this._senderId = getAddressFromPublicKey(this.senderPublicKey);
+		this._senderPublicKeyStr = bufferToHex(this.senderPublicKey);
+		this._senderIdStr = getAddressFromPublicKey(this.senderPublicKey);
 	}
 
 	/* Begin Getters */
@@ -117,11 +117,11 @@ export abstract class BaseTransaction<T = Buffer> {
 	}
 
 	public get senderId(): Buffer {
-		return this._senderId;
+		return this._senderIdStr;
 	}
 
 	public get senderPublicKeyStr(): string {
-		return this._senderPublicKey;
+		return this._senderPublicKeyStr;
 	}
 
 	public get senderIdStr(): string {
@@ -129,7 +129,7 @@ export abstract class BaseTransaction<T = Buffer> {
 	}
 	/* End Getters */
 
-	public getBasicBytes(): Buffer {
+	public getSigningBytes(): Buffer {
 		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
 			...this,
 			asset: this.getAssetBytes(),
@@ -272,7 +272,7 @@ export abstract class BaseTransaction<T = Buffer> {
 	): Promise<TransactionResponse> {
 		const sender = await store.account.get(this.senderId);
 		const { networkIdentifier } = store.chain;
-		const transactionBytes = this.getBasicBytes();
+		const transactionBytes = this.getSigningBytes();
 		if (networkIdentifier === undefined || !networkIdentifier.length) {
 			throw new Error(
 				'Network identifier is required to validate a transaction ',
@@ -337,7 +337,7 @@ export abstract class BaseTransaction<T = Buffer> {
 
 			const transactionWithNetworkIdentifierBytes = Buffer.concat([
 				networkIdentifier,
-				this.getBasicBytes(),
+				this.getSigningBytes(),
 			]);
 
 			const signature = signData(
@@ -353,7 +353,7 @@ export abstract class BaseTransaction<T = Buffer> {
 		if (passphrases && keys) {
 			const transactionWithNetworkIdentifierBytes = Buffer.concat([
 				networkIdentifier,
-				this.getBasicBytes(),
+				this.getSigningBytes(),
 			]);
 
 			const keysAndPassphrases = buildPublicKeyPassphraseDict(passphrases);
@@ -370,9 +370,10 @@ export abstract class BaseTransaction<T = Buffer> {
 					);
 				} else {
 					// Push an empty signature if a passphrase is missing
-					this.signatures.push(Buffer.from(''));
+					this.signatures.push(Buffer.alloc(0));
 				}
 			}
+			this._id = bufferToHex(this.getBytes());
 		}
 	}
 

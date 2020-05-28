@@ -81,7 +81,7 @@ export interface MultiSignatureAsset {
 	readonly numberOfSignatures: number;
 }
 
-export class MultisignatureTransaction extends BaseTransaction<MultiSignatureAsset> {
+export class MultisignatureTransaction extends BaseTransaction {
 	public static TYPE = 12;
 	public static ASSET_SCHEMA = multisigRegAssetSchema;
 	public readonly asset: MultiSignatureAsset;
@@ -99,7 +99,7 @@ export class MultisignatureTransaction extends BaseTransaction<MultiSignatureAss
 		store: StateStore,
 	): Promise<TransactionResponse> {
 		const { networkIdentifier } = store.chain;
-		const transactionBytes = this.getBasicBytes();
+		const transactionBytes = this.getSigningBytes();
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifier,
 			transactionBytes,
@@ -118,7 +118,7 @@ export class MultisignatureTransaction extends BaseTransaction<MultiSignatureAss
 		}
 
 		// Check if empty signatures are present
-		if (!this.signatures.length) {
+		if (!this.signatures.every(signature => signature.length > 0)) {
 			return createResponse(this.id, [
 				new TransactionError(
 					'A signature is required for each registered key.',
@@ -189,7 +189,7 @@ export class MultisignatureTransaction extends BaseTransaction<MultiSignatureAss
 
 		const transactionWithNetworkIdentifierBytes = Buffer.concat([
 			networkIdentifier,
-			this.getBasicBytes(),
+			this.getSigningBytes(),
 		]);
 
 		this.signatures.push(

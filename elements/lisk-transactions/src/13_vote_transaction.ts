@@ -65,7 +65,7 @@ const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
 
-export class VoteTransaction extends BaseTransaction<VoteAsset> {
+export class VoteTransaction extends BaseTransaction {
 	public static TYPE = 13;
 	public static ASSET_SCHEMA = voteAssetSchema;
 	public readonly asset: VoteAsset;

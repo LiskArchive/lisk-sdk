@@ -44,7 +44,7 @@ export const delegateRegistrationAssetSchema = {
 	},
 };
 
-export class DelegateTransaction extends BaseTransaction<DelegateAsset> {
+export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 	public static ASSET_SCHEMA = delegateRegistrationAssetSchema;

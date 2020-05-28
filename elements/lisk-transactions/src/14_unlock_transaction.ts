@@ -79,7 +79,7 @@ const getWaitingPeriod = (
 	return waitTime - (currentHeight - unlockObject.unvoteHeight);
 };
 
-export class UnlockTransaction extends BaseTransaction<UnlockAsset> {
+export class UnlockTransaction extends BaseTransaction {
 	public static TYPE = 14;
 	public static ASSET_SCHEMA = unlockAssetSchema;
 	public readonly asset: UnlockAsset;
