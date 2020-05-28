@@ -29,7 +29,8 @@ import {
 // eslint-disable-next-line
 const keys = require('../src/keys');
 
-const changeLength = (str: string): string => `00${str}`;
+const changeLength = (buffer: Buffer): Buffer =>
+	Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
 describe('sign', () => {
 	const defaultPassphrase =
@@ -61,16 +62,16 @@ ${defaultSignature}
 	beforeEach(() => {
 		defaultSignedMessage = {
 			message: defaultMessage,
-			publicKey: defaultPublicKey,
-			signature: defaultSignature,
+			publicKey: Buffer.from(defaultPublicKey, 'hex'),
+			signature: Buffer.from(defaultSignature, 'hex'),
 		};
 
 		jest
-			.spyOn(keys, 'getPrivateAndPublicKeyBytesFromPassphrase')
+			.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase')
 			.mockImplementation(() => {
 				return {
-					privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
-					publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
+					privateKey: Buffer.from(defaultPrivateKey, 'hex'),
+					publicKey: Buffer.from(defaultPublicKey, 'hex'),
 				};
 			});
 	});
@@ -129,8 +130,8 @@ ${defaultSignature}
 			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
-					signature: defaultSignature,
-					publicKey: changeLength(defaultPublicKey),
+					signature: Buffer.from(defaultSignature, 'hex'),
+					publicKey: changeLength(Buffer.from(defaultPublicKey, 'hex')),
 				}),
 			).toThrow('Invalid publicKey, expected 32-byte publicKey');
 		});
@@ -139,8 +140,8 @@ ${defaultSignature}
 			expect(
 				verifyMessageWithPublicKey.bind(null, {
 					message: defaultMessage,
-					signature: changeLength(defaultSignature),
-					publicKey: defaultPublicKey,
+					signature: changeLength(Buffer.from(defaultSignature, 'hex')),
+					publicKey: Buffer.from(defaultPublicKey, 'hex'),
 				}),
 			).toThrow('Invalid signature length, expected 64-byte signature');
 		});
@@ -148,8 +149,8 @@ ${defaultSignature}
 		it('should return false if the signature is invalid', () => {
 			const verification = verifyMessageWithPublicKey({
 				message: defaultMessage,
-				signature: makeInvalid(defaultSignature),
-				publicKey: defaultPublicKey,
+				signature: makeInvalid(Buffer.from(defaultSignature, 'hex')),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			});
 			expect(verification).toBe(false);
 		});
@@ -164,8 +165,8 @@ ${defaultSignature}
 		it('should wrap a single signed message into a printed Lisk template', () => {
 			const printedMessage = printSignedMessage({
 				message: defaultMessage,
-				signature: defaultSignature,
-				publicKey: defaultPublicKey,
+				signature: Buffer.from(defaultSignature, 'hex'),
+				publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			});
 			expect(printedMessage).toBe(defaultPrintedMessage);
 		});
@@ -182,7 +183,7 @@ ${defaultSignature}
 	});
 
 	describe('#signData', () => {
-		let signature: string;
+		let signature: Buffer;
 
 		beforeEach(async () => {
 			signature = signData(defaultData, defaultPassphrase);
@@ -190,12 +191,12 @@ ${defaultSignature}
 		});
 
 		it('should sign a transaction', () => {
-			expect(signature).toBe(defaultDataSignature);
+			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
 
 	describe('#signDataWithPassphrase', () => {
-		let signature: string;
+		let signature: Buffer;
 
 		beforeEach(async () => {
 			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
@@ -203,12 +204,12 @@ ${defaultSignature}
 		});
 
 		it('should sign a transaction', () => {
-			expect(signature).toBe(defaultDataSignature);
+			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
 
 	describe('#signDataWithPrivateKey', () => {
-		let signature: string;
+		let signature: Buffer;
 
 		beforeEach(async () => {
 			signature = signDataWithPrivateKey(
@@ -219,7 +220,7 @@ ${defaultSignature}
 		});
 
 		it('should sign a transaction', () => {
-			expect(signature).toBe(defaultDataSignature);
+			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
 
@@ -227,8 +228,8 @@ ${defaultSignature}
 		it('should return false for an invalid signature', () => {
 			const verification = verifyData(
 				defaultData,
-				makeInvalid(defaultDataSignature),
-				defaultPublicKey,
+				makeInvalid(Buffer.from(defaultDataSignature, 'hex')),
+				Buffer.from(defaultPublicKey, 'hex'),
 			);
 			expect(verification).toBe(false);
 		});
@@ -236,8 +237,8 @@ ${defaultSignature}
 		it('should return true for a valid signature', () => {
 			const verification = verifyData(
 				defaultData,
-				defaultDataSignature,
-				defaultPublicKey,
+				Buffer.from(defaultDataSignature, 'hex'),
+				Buffer.from(defaultPublicKey, 'hex'),
 			);
 			expect(verification).toBe(true);
 		});

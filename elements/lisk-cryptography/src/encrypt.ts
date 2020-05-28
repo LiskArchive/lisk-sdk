@@ -18,7 +18,7 @@ import { bufferToHex, hexToBuffer } from './buffer';
 // eslint-disable-next-line import/no-cycle
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 // eslint-disable-next-line import/no-cycle
-import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+import { getPrivateAndPublicKeyFromPassphrase } from './keys';
 // eslint-disable-next-line import/no-cycle
 import { box, getRandomBytes, openBox } from './nacl';
 
@@ -38,8 +38,8 @@ export const encryptMessageWithPassphrase = (
 	recipientPublicKey: string,
 ): EncryptedMessageWithNonce => {
 	const {
-		privateKeyBytes: senderPrivateKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+		privateKey: senderPrivateKeyBytes,
+	} = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const convertedPrivateKey = Buffer.from(
 		convertPrivateKeyEd2Curve(senderPrivateKeyBytes),
 	);
@@ -79,8 +79,8 @@ export const decryptMessageWithPassphrase = (
 	senderPublicKey: string,
 ): string => {
 	const {
-		privateKeyBytes: recipientPrivateKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+		privateKey: recipientPrivateKeyBytes,
+	} = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const convertedPrivateKey = Buffer.from(
 		convertPrivateKeyEd2Curve(recipientPrivateKeyBytes),
 	);
