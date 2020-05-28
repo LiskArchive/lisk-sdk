@@ -63,7 +63,7 @@ export interface StateStore {
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
-export abstract class BaseTransaction<T> {
+export abstract class BaseTransaction<T = Buffer> {
 	public static TYPE: number;
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK

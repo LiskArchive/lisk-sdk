@@ -40,17 +40,16 @@ export class TransactionInterfaceAdapter {
 	}
 
 	// First encode message asset and then encode base message
-	public encode(message: BaseTransaction<{}>): Buffer {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+	public encode(message: BaseTransaction): Buffer {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const TransactionClass = this._transactionClassMap.get(message.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-		const binaryAsset = codec.encode(TransactionClass.ASSET_SCHEMA, message.asset as any);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const binaryAsset = codec.encode(TransactionClass.ASSET_SCHEMA, message.asset as unknown as GenericObject);
 		const binaryAssetWithMessage = { ...message, asset: binaryAsset };
 
 		const binaryMessage = codec.encode(BaseTransaction.BASE_SCHEMA, binaryAssetWithMessage as unknown as GenericObject);
@@ -59,18 +58,16 @@ export class TransactionInterfaceAdapter {
 	}
 
 	// First decode base message and then decode asset
-	public decode(binaryMessage: Buffer): BaseTransaction<{}> {
+	public decode(binaryMessage: Buffer): BaseTransaction {
+		const baseMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const baseMessage = codec.decode<BaseTransaction<{}>>(BaseTransaction.BASE_SCHEMA, binaryMessage);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		const TransactionClass = this._transactionClassMap.get(baseMessage.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-		const assetMessage = codec.decode<BaseTransaction<{}>>(TransactionClass.ASSET_SCHEMA, baseMessage.asset as Buffer);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, baseMessage.asset as Buffer);
 		const message = { ...baseMessage, asset: assetMessage };
 
 		const id = hash(binaryMessage)
