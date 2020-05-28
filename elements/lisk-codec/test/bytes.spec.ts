@@ -13,40 +13,38 @@
  */
 
 import { writeBytes, readBytes } from '../src/bytes';
-import { testCases } from '../fixtures/validBytesEncodings.json';
+import { testCases } from '../fixtures/bytes_encodings.json';
 
 describe('bytes', () => {
 	describe('writer', () => {
 		it('should encode bytes', () => {
-			const testCaseOneInput = testCases[0].input.bytes;
-			const testCaseOneOutput = testCases[0].output.bytes;
+			const testCaseOneInput = testCases[0].input.object;
+			const testCaseOneOutput = testCases[0].output.value;
 			expect(
-				writeBytes(Buffer.from(testCaseOneInput.object.address.data)).toString(
-					'hex',
-				),
+				writeBytes(Buffer.from(testCaseOneInput.address.data)).toString('hex'),
 			).toEqual(testCaseOneOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
 
-			const testCaseSecondInput = testCases[0].input.emptyBytes;
-			const testCaseSecondOutput = testCases[0].output.emptyBytes;
+			const testCaseSecondInput = testCases[1].input.object;
+			const testCaseSecondOutput = testCases[1].output.value;
 			expect(
-				writeBytes(
-					Buffer.from(testCaseSecondInput.object.address.data),
-				).toString('hex'),
+				writeBytes(Buffer.from(testCaseSecondInput.address.data)).toString(
+					'hex',
+				),
 			).toEqual(testCaseSecondOutput.slice(2, testCaseOneOutput.length)); // Ignoring the key part
 		});
 	});
 
 	describe('reader', () => {
 		it('should decode bytes', () => {
-			const testCaseOneInput = testCases[0].input.bytes;
-			const firstResult = Buffer.from(testCaseOneInput.object.address.data);
+			const testCaseOneInput = testCases[0].input.object;
+			const firstResult = Buffer.from(testCaseOneInput.address.data);
 			expect(
 				readBytes(writeBytes(firstResult), 0),
 				// Result length + varint length refering to the size
 			).toEqual([firstResult, firstResult.length + 1]);
 
-			const testCaseSecondInput = testCases[0].input.bytes;
-			const secondResult = Buffer.from(testCaseSecondInput.object.address.data);
+			const testCaseSecondInput = testCases[0].input.object;
+			const secondResult = Buffer.from(testCaseSecondInput.address.data);
 			expect(
 				readBytes(writeBytes(secondResult), 0),
 				// Result length + varint length refering to the size
