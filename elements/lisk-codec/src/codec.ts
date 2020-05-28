@@ -96,7 +96,6 @@ export class Codec {
 				(a, b) => a[1].fieldNumber - b[1].fieldNumber,
 			);
 
-			// eslint-disable-next-line @typescript-eslint/prefer-for-of
 			for (let i = 0; i < currentDepthSchema.length; i += 1) {
 				const [schemaPropertyName, schemaPropertyValue] = currentDepthSchema[i];
 				if (schemaPropertyValue.type === 'object') {

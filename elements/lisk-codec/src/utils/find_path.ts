@@ -19,7 +19,6 @@ export const findObjectByPath = (
 	pathArr: string[],
 ): GenericObject | undefined => {
 	let result = message;
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
 	for (let i = 0; i < pathArr.length; i += 1) {
 		if (result[pathArr[i]] === undefined) {
 			return undefined;
