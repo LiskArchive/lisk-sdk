@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { BaseBlockHeader, RawBlockHeader, BlockHeader } from '../types';
+import { hash } from '@liskhq/lisk-cryptography';
+import { RawBlockHeader, BlockHeader } from '../types';
 import { blockHeaderSchema, signingBlockHeaderSchema } from '../schema';
 
 export interface RegisteredBlockHeaders {
@@ -40,18 +41,18 @@ export class BlockHeaderInterfaceAdapter {
 			throw new Error('Block version not found.');
 		}
 		const asset = codec.decode<T>(assetSchema, blockHeader.asset);
+		const id = hash(buffer);
 
-		return { ...blockHeader, asset };
+		return { ...blockHeader, asset, id };
 	}
 
-	public encode(header: BaseBlockHeader, skipSignature = false): Buffer {
+	public encode(header: BlockHeader, skipSignature = false): Buffer {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const assetSchema = this._blockSchemaMap.get(header.version);
 		if (!assetSchema) {
 			throw new Error('Block version not found.');
 		}
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const encodedAsset = codec.encode(assetSchema, header as any);
+		const encodedAsset = codec.encode(assetSchema, header.asset);
 		const rawHeader = { ...header, asset: encodedAsset };
 
 		const schema = skipSignature ? signingBlockHeaderSchema : blockHeaderSchema;

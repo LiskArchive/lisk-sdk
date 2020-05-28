@@ -133,14 +133,6 @@ export class AccountStore {
 		primaryValue: Buffer,
 		updatedElement: Account<T>,
 	): void {
-		if (!this._data.has(primaryValue)) {
-			throw new Error(
-				`${this._name} with ${this._primaryKey} = ${primaryValue.toString(
-					'hex',
-				)} does not exist`,
-			);
-		}
-
 		this._data.set(primaryValue, (updatedElement as unknown) as Account);
 		this._updatedKeys.add(primaryValue);
 	}

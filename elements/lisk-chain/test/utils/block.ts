@@ -13,220 +13,197 @@
  */
 
 import {
+	getRandomBytes,
 	hash,
 	signDataWithPrivateKey,
-	getPrivateAndPublicKeyBytesFromPassphrase,
-	hexToBuffer,
-	intToBuffer,
-	LITTLE_ENDIAN,
+	getPrivateAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
-import * as genesisBlock from '../fixtures/genesis_block.json';
-import { BlockJSON, BlockInstance } from '../../src/types';
-import { getTransactionRoot } from '../../src/validate';
+import { codec } from '@liskhq/lisk-codec';
+import { MerkleTree } from '@liskhq/lisk-tree';
+import { BaseTransaction, TransferTransaction, DelegateTransaction, VoteTransaction } from '@liskhq/lisk-transactions';
+import * as genesisBlockJSON from '../fixtures/genesis_block.json';
+import { Block, BlockHeader } from '../../src/types';
+import {
+	signingBlockHeaderSchema,
+	blockHeaderSchema,
+	blockSchema,
+} from '../../src/schema';
 
-const SIZE_INT32 = 4;
-const SIZE_INT64 = 8;
-
-export const defaultNetworkIdentifier =
-	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
-
-export const getBytes = (block: BlockInstance): Buffer => {
-	const blockVersionBuffer = intToBuffer(
-		block.version,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const timestampBuffer = intToBuffer(
-		block.timestamp,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const previousBlockBuffer = block.previousBlockId
-		? Buffer.from(block.previousBlockId, 'hex')
-		: Buffer.alloc(32);
-
-	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
-
-	const maxHeightPreviouslyForgedBuffer = intToBuffer(
-		block.maxHeightPreviouslyForged,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const maxHeightPrevotedBuffer = intToBuffer(
-		block.maxHeightPrevoted,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const numTransactionsBuffer = intToBuffer(
-		block.numberOfTransactions,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const totalAmountBuffer = intToBuffer(
-		block.totalAmount.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const totalFeeBuffer = intToBuffer(
-		block.totalFee.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const rewardBuffer = intToBuffer(
-		block.reward.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const payloadLengthBuffer = intToBuffer(
-		block.payloadLength,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
-
-	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
-
-	const blockSignatureBuffer = block.blockSignature
-		? hexToBuffer(block.blockSignature)
-		: Buffer.alloc(0);
-
-	return Buffer.concat([
-		blockVersionBuffer,
-		timestampBuffer,
-		previousBlockBuffer,
-		heightBuffer,
-		maxHeightPreviouslyForgedBuffer,
-		maxHeightPrevotedBuffer,
-		numTransactionsBuffer,
-		totalAmountBuffer,
-		totalFeeBuffer,
-		rewardBuffer,
-		payloadLengthBuffer,
-		transactionRootBuffer,
-		generatorPublicKeyBuffer,
-		blockSignatureBuffer,
-	]);
-};
-
-const sortTransactions = (transactions: BaseTransaction[]): void => {
-	transactions.sort((a, b) => (a.type > b.type || a.id > b.id) as any);
-};
+export const defaultNetworkIdentifier = Buffer.from(
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
+);
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
-	const {
-		publicKeyBytes: publicKey,
-		privateKeyBytes: privateKey,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	return {
-		publicKey,
-		privateKey,
-	};
+	return getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const calculateTransactionsInfo = (block: BlockInstance) => {
-	sortTransactions(block.transactions);
-	const transactionIds = [];
-	let totalFee = BigInt(0);
-	let totalAmount = BigInt(0);
-	let payloadLength = 0;
+export const defaultBlockHeaderAssetSchema = {
+	$id: 'test/defaultBlockHeaderAssetSchema',
+	type: 'object',
+	properties: {
+		maxHeightPreviouslyForged: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		seedReveal: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+	},
+	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
+};
 
-	// eslint-disable-next-line @typescript-eslint/prefer-for-of
-	for (let i = 0; i < block.transactions.length; i += 1) {
-		const transaction = block.transactions[i];
-		const transactionBytes = transaction.getBytes();
+export const createFakeBlockHeader = <T = any>(
+	header?: Partial<BlockHeader<T>>,
+): BlockHeader<T> => ({
+	id: hash(getRandomBytes(8)),
+	version: 2,
+	timestamp: header?.timestamp ?? 0,
+	height: header?.height ?? 0,
+	previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
+	transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
+	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
+	reward: header?.reward ?? BigInt(500000000),
+	asset: header?.asset ?? ({} as T),
+	signature: header?.signature ?? getRandomBytes(64),
+});
 
-		totalFee += BigInt(transaction.fee);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		totalAmount += BigInt((transaction as any).asset.amount || '0');
+export const encodeDefaultBlockHeader = (header: BlockHeader): Buffer => {
+	const asset = codec.encode(defaultBlockHeaderAssetSchema, header.asset);
+	return codec.encode(blockHeaderSchema, { ...header, asset });
+};
 
-		payloadLength += transactionBytes.length;
-		transactionIds.push(transaction.id);
-	}
+export const encodedDefaultBlock = (block: Block): Buffer => {
+	const payload = block.payload.map(tx => tx.getBytes());
+	const header = encodeDefaultBlockHeader(block.header);
 
-	const transactionRoot = getTransactionRoot(transactionIds);
-
-	return {
-		totalFee,
-		totalAmount,
-		transactionRoot,
-		payloadLength,
-		numberOfTransactions: block.transactions.length,
-	};
+	return codec.encode(blockSchema, { header, payload });
 };
 
 /**
  * Utility function to create a block object with valid computed properties while any property can be overridden
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
-export const newBlock = (
-	block?: Partial<BlockJSON | BlockInstance>,
-	networkIdentifier: string = defaultNetworkIdentifier,
-): BlockInstance => {
-	const defaultBlockValues = {
-		version: 2,
-		height: 2,
+export const createValidDefaultBlock = (
+	block?: { header?: Partial<BlockHeader>; payload?: BaseTransaction[] },
+	networkIdentifier: Buffer = defaultNetworkIdentifier,
+): Block => {
+	const keypair = getKeyPair();
+	const payload = block?.payload ?? [];
+	const txTree = new MerkleTree(payload.map(tx => tx.id));
+
+	const asset = {
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
-		seedReveal: '00000000000000000000000000000000',
-		previousBlockId: genesisBlock.id,
-		keypair: getKeyPair(),
-		transactions: [],
+		seedReveal: getRandomBytes(16),
+		...block?.header?.asset,
+	};
+
+	const blockHeader = createFakeBlockHeader({
+		version: 2,
+		height: 2,
+		previousBlockID: Buffer.from(genesisBlockJSON.id, 'hex'),
 		reward: BigInt(0),
 		timestamp: 1000,
-	};
-	const blockWithDefaultValues = {
-		...defaultBlockValues,
-		...block,
-	};
+		transactionRoot: txTree.root,
+		generatorPublicKey: keypair.publicKey,
+		...block?.header,
+		asset,
+	});
 
-	const transactionsInfo = calculateTransactionsInfo(
-		blockWithDefaultValues as BlockInstance,
+	const encodedAsset = codec.encode(
+		defaultBlockHeaderAssetSchema,
+		blockHeader.asset,
 	);
-	const blockWithCalculatedProperties = {
-		...transactionsInfo,
-		...blockWithDefaultValues,
-		generatorPublicKey: blockWithDefaultValues.keypair.publicKey.toString(
-			'hex',
-		),
-	};
+	const encodedHeaderWithoutSignature = codec.encode(signingBlockHeaderSchema, {
+		...blockHeader,
+		asset: encodedAsset,
+	});
 
-	const { keypair } = blockWithCalculatedProperties;
-	delete blockWithCalculatedProperties.keypair;
-
-	// eslint-disable-next-line new-cap
-	const blockWithSignature = {
-		...blockWithCalculatedProperties,
-		blockSignature: signDataWithPrivateKey(
-			Buffer.concat([
-				Buffer.from(networkIdentifier, 'hex'),
-				getBytes(blockWithCalculatedProperties as BlockInstance),
-			]),
-			keypair.privateKey,
-		),
-	};
-	const hashedBlockBytes = hash(getBytes(blockWithSignature as BlockInstance));
-
-	const temp = Buffer.alloc(8);
-	// eslint-disable-next-line no-plusplus
-	for (let i = 0; i < 8; i++) {
-		temp[i] = hashedBlockBytes[7 - i];
-	}
+	const signature = signDataWithPrivateKey(
+		Buffer.concat([networkIdentifier, encodedHeaderWithoutSignature]),
+		keypair.privateKey,
+	);
+	const header = { ...blockHeader, asset: encodedAsset, signature };
+	const encodedHeader = codec.encode(blockHeaderSchema, header);
+	const id = hash(encodedHeader);
 
 	return {
-		...blockWithSignature,
-		id: temp.readBigUInt64BE().toString(),
-	} as BlockInstance;
+		header: {
+			...header,
+			asset,
+			id,
+		},
+		payload,
+	};
 };
+
+// FIXME: Update to new genesis block format
+export const genesisBlock = (): Block => ({
+	header: {
+		id: Buffer.from(genesisBlockJSON.id, 'hex'),
+		version: genesisBlockJSON.version,
+		height: genesisBlockJSON.height,
+		previousBlockID: Buffer.from(genesisBlockJSON.id, 'hex'),
+		reward: BigInt(genesisBlockJSON.reward),
+		timestamp: genesisBlockJSON.timestamp,
+		transactionRoot: Buffer.from(genesisBlockJSON.transactionRoot, 'hex'),
+		generatorPublicKey: Buffer.from(genesisBlockJSON.generatorPublicKey, 'hex'),
+		signature: Buffer.from(genesisBlockJSON.blockSignature, 'hex'),
+		asset: {
+			maxHeightPreviouslyForged: genesisBlockJSON.maxHeightPreviouslyForged,
+			maxHeightPrevoted: genesisBlockJSON.maxHeightPrevoted,
+			seedReveal: Buffer.from(genesisBlockJSON.seedReveal, 'hex'),
+		},
+	},
+	payload: genesisBlockJSON.transactions.map(tx => {
+		if (tx.type === 8) {
+			return new TransferTransaction({
+				...tx,
+				id: Buffer.from(tx.id, 'hex'),
+				senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+				nonce: BigInt(tx.nonce),
+				fee: BigInt(tx.fee),
+				signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+				asset: {
+					recipientAddress: Buffer.from(tx.asset.recipientId as string, 'hex'),
+					amount: BigInt(tx.asset.amount),
+					data: '',
+				},
+			});
+		}
+		if (tx.type === 10) {
+			return new DelegateTransaction({
+				...tx,
+				id: Buffer.from(tx.id, 'hex'),
+				senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+				nonce: BigInt(tx.nonce),
+				fee: BigInt(tx.fee),
+				signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+			} as any);
+		}
+		if (tx.type === 13) {
+			return new VoteTransaction({
+				...tx,
+				id: Buffer.from(tx.id, 'hex'),
+				senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+				nonce: BigInt(tx.nonce),
+				fee: BigInt(tx.fee),
+				signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+				asset: {
+					votes: tx.asset.votes?.map(v => ({
+						delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+						amount: BigInt(v.amount),
+					})) as any,
+				},
+			});
+		}
+		throw new Error('Unexpected transaction type');
+	}),
+});

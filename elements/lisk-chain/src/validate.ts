@@ -20,15 +20,11 @@ import { Block } from './types';
 import { BufferSet } from './utils';
 
 export const validateSignature = (
-	block: Block,
-	blockBytes: Buffer,
+	publicKey: Buffer,
+	dataWithoutSignature: Buffer,
+	signature: Buffer,
 	networkIdentifier: Buffer,
 ): void => {
-	const signatureLength = 64;
-	const dataWithoutSignature = blockBytes.slice(
-		0,
-		blockBytes.length - signatureLength,
-	);
 	const blockWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
 		dataWithoutSignature,
@@ -36,8 +32,8 @@ export const validateSignature = (
 
 	const verified = verifyData(
 		blockWithNetworkIdentifierBytes,
-		block.header.signature,
-		block.header.generatorPublicKey,
+		signature,
+		publicKey,
 	);
 
 	if (!verified) {

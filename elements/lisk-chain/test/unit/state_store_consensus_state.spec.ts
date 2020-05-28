@@ -12,10 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { KVStore, BatchChain } from '@liskhq/lisk-db';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { when } from 'jest-when';
 import { StateStore } from '../../src';
 import { BlockHeader } from '../../src/types';
 import { DataAccess } from '../../src/data_access';
+import { baseAccountSchema } from '../../src/schema';
+import { createFakeDefaultAccount, defaultAccountAssetSchema } from '../utils/account';
+import { defaultBlockHeaderAssetSchema, defaultNetworkIdentifier } from '../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -30,15 +34,31 @@ describe('state store / chain_state', () => {
 
 	beforeEach(() => {
 		db = new KVStore('temp');
+		const defaultAccountSchema = {
+			...baseAccountSchema,
+			properties: {
+				...baseAccountSchema.properties,
+				asset: {
+					...baseAccountSchema.properties.asset,
+					properties: defaultAccountAssetSchema,
+				},
+			},
+		};
 		const dataAccess = new DataAccess({
 			db,
+			accountSchema: defaultAccountSchema as any,
+			registeredBlockHeaders: {
+				0: defaultBlockHeaderAssetSchema,
+				2: defaultBlockHeaderAssetSchema,
+			},
+			registeredTransactions: { 8: TransferTransaction },
 			maxBlockHeaderCache: 505,
 			minBlockHeaderCache: 309,
-			registeredTransactions: {},
 		});
 		stateStore = new StateStore(dataAccess, {
 			lastBlockHeaders,
-			networkIdentifier: 'network-identifier-chain-1',
+			networkIdentifier: defaultNetworkIdentifier,
+			defaultAsset: createFakeDefaultAccount().asset,
 			lastBlockReward: BigInt(500000000),
 		});
 	});

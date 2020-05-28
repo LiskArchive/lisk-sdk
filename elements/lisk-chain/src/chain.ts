@@ -220,18 +220,20 @@ export class Chain {
 				...baseAccountSchema.properties,
 				asset: {
 					...baseAccountSchema.properties.asset,
-					...accountAsset.schema,
+					properties: accountAsset.schema,
 				},
 			},
 		};
-		codec.addSchema(accountSchema);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		codec.addSchema(accountSchema as any);
 		this._defaultAccountAsset = accountAsset.default;
 
 		this.dataAccess = new DataAccess({
 			db,
 			registeredBlockHeaders: registeredBlocks,
 			registeredTransactions,
-			accountSchema,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-explicit-any
+			accountSchema: accountSchema as any,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
 		});
@@ -268,7 +270,6 @@ export class Chain {
 	}
 
 	public get lastBlock(): Block {
-		// Remove receivedAt property..
 		const { ...block } = this._lastBlock;
 
 		return block;
@@ -338,13 +339,15 @@ export class Chain {
 
 	public validateBlockHeader(block: Block): void {
 		validatePreviousBlockProperty(block, this.genesisBlock);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		const encodedBlockHeaderWithoutSignature = this.dataAccess.encodeBlockHeader(
 			block.header,
 			true,
 		);
 		validateSignature(
-			block,
+			block.header.generatorPublicKey,
 			encodedBlockHeaderWithoutSignature,
+			block.header.signature,
 			this._networkIdentifier,
 		);
 		validateReward(

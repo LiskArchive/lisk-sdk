@@ -64,12 +64,8 @@ export class DelegateTransaction extends BaseTransaction {
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesBuffer = await store.chain.get(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-		);
-		const usernames = usernamesBuffer
-			? (JSON.parse(usernamesBuffer.toString('utf8')) as ChainUsernames)
-			: { registeredDelegates: [] };
+		// TODO: Use lisk-codec to save this data
+		const usernames = await this._getRegisteredDelegates(store);
 		const usernameExists = usernames.registeredDelegates.find(
 			delegate => delegate.username === this.asset.username,
 		);
@@ -119,12 +115,7 @@ export class DelegateTransaction extends BaseTransaction {
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesBuffer = await store.chain.get(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-		);
-		const usernames = usernamesBuffer
-			? (JSON.parse(usernamesBuffer.toString('utf8')) as ChainUsernames)
-			: { registeredDelegates: [] };
+		const usernames = await this._getRegisteredDelegates(store);
 		const updatedRegisteredDelegates = {
 			registeredDelegates: usernames.registeredDelegates.filter(
 				delegate => delegate.username !== sender.asset.delegate.username,
@@ -133,13 +124,40 @@ export class DelegateTransaction extends BaseTransaction {
 		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
 			a.address.compare(b.address),
 		);
-		store.chain.set(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-			Buffer.from(JSON.stringify(updatedRegisteredDelegates), 'utf8'),
-		);
+		this._setRegisteredDelegates(store, updatedRegisteredDelegates);
 
 		sender.asset.delegate.username = '';
 		store.account.set(sender.address, sender);
 		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private async _getRegisteredDelegates(store: StateStore): Promise<ChainUsernames> {
+		const usernamesBuffer = await store.chain.get(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+		if (!usernamesBuffer) {
+			return { registeredDelegates: [] };
+		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const parsedUsernames = JSON.parse(usernamesBuffer.toString('utf8'));
+		// eslint-disable-next-line
+		parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map((value: { address: string, username: string }) => ({
+			username: value.username,
+			address: Buffer.from(value.address, 'binary'),
+		}));
+
+		return parsedUsernames as ChainUsernames;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _setRegisteredDelegates(store: StateStore, input: ChainUsernames): void {
+		const updatingObject = Buffer.from(JSON.stringify({
+			registeredDelegates: input.registeredDelegates.map(value => ({ address: value.address.toString('binary'), username: value.username })),
+		}), 'utf8');
+		store.chain.set(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+			updatingObject,
+		);
 	}
 }

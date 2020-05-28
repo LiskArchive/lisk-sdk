@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import cloneDeep = require('lodash.clonedeep');
 
 export const accountDefaultValues = {
 	publicKey: Buffer.alloc(0),
@@ -71,7 +73,7 @@ export class Account<T = DefaultAsset> {
 					optionalKeys: [],
 					numberOfSignatures: 0,
 			  };
-		this.asset = account.asset ?? ({} as T);
+		this.asset = account.asset ? cloneDeep(account.asset) : ({} as T);
 	}
 
 	public get stringAddress(): string {
@@ -84,12 +86,12 @@ export class Account<T = DefaultAsset> {
 
 	public static getDefaultAccount<T>(
 		address: Buffer,
-		defaultAsset: T,
+		defaultAsset?: T,
 	): Account<T> {
 		return new Account<T>({
 			address,
 			...accountDefaultValues,
-			asset: defaultAsset,
+			asset: defaultAsset ?? {} as T,
 		});
 	}
 }

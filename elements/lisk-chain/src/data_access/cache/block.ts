@@ -69,7 +69,7 @@ export class BlockCache extends Base<BlockHeader> {
 	}
 
 	public getByID(id: Buffer): BlockHeader | undefined {
-		return this.items.find(block => block.id === id);
+		return this.items.find(block => block.id.equals(id));
 	}
 
 	public getByIDs(ids: ReadonlyArray<Buffer>): BlockHeader[] {
