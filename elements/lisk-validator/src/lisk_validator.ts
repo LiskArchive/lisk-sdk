@@ -14,13 +14,14 @@
  */
 
 import * as Ajv from 'ajv';
-import { FormatDefinition, FormatValidator, ValidateFunction } from 'ajv';
+import { ValidateFunction } from 'ajv';
 import * as formats from './formats';
 
 export type ErrorObject = Ajv.ErrorObject;
 
 class LiskValidator {
 	private readonly _validator: Ajv.Ajv;
+
 	public constructor() {
 		this._validator = new Ajv({
 			allErrors: true,
@@ -77,13 +78,6 @@ class LiskValidator {
 		definition: Ajv.KeywordDefinition,
 	): Ajv.Ajv {
 		return this._validator.addKeyword(keyword, definition);
-	}
-
-	public addFormat(
-		name: string,
-		format: FormatValidator | FormatDefinition,
-	): Ajv.Ajv {
-		return this._validator.addFormat(name, format);
 	}
 }
 
