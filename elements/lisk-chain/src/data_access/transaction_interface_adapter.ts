@@ -39,20 +39,40 @@ export class TransactionInterfaceAdapter {
 		});
 	}
 
-	public decode(binaryMessage: Buffer): BaseTransaction {
-		const transactionMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
+	// First encode message asset and then encode base message
+	public encode(message: BaseTransaction): Buffer {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const TransactionClass = this._transactionClassMap.get(transactionMessage.type);
+		const TransactionClass = this._transactionClassMap.get(message.type);
+
+		if (!TransactionClass) {
+			throw new Error('Transaction type not found.');
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+		const binaryAsset = codec.encode(TransactionClass.ASSET_SCHEMA, message.asset as any);
+		const binaryAssetWithMessage = { ...message, asset: binaryAsset };
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const binaryMessage = codec.encode(BaseTransaction.BASE_SCHEMA, binaryAssetWithMessage as any);
+
+		return binaryMessage;
+	}
+
+	// First decode base message and then decode asset
+	public decode(binaryMessage: Buffer): BaseTransaction {
+		const baseMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const TransactionClass = this._transactionClassMap.get(baseMessage.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, transactionMessage.asset as Buffer);
-		transactionMessage.asset = assetMessage;
+		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, baseMessage.asset as Buffer);
+		const message = { ...baseMessage, asset: assetMessage };
 
 		const id = hash(binaryMessage)
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
-		return new TransactionClass({ ...transactionMessage, id });
+		return new TransactionClass({ ...message, id });
 	}
 }

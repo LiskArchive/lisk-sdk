@@ -19,10 +19,9 @@ import {
 	signData,
 	bufferToHex,
 } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { convertToAssetError, TransactionError } from './errors';
+import { TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import {
 	buildPublicKeyPassphraseDict,
