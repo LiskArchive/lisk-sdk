@@ -105,50 +105,6 @@ describe('Delegate registration transaction class', () => {
 		});
 	});
 
-	describe('#validateAsset', () => {
-		it('should no errors', () => {
-			const errors = (validTestTransaction as any).validateAsset();
-			expect(errors).toHaveLength(0);
-		});
-
-		it('should return error when asset includes invalid characters', () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				asset: {
-					username: '%invalid%username*',
-				},
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-			expect(errors).toHaveLength(1);
-		});
-
-		it('should return error when asset includes uppercase', () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				asset: {
-					username: 'InValIdUsErNAmE',
-				},
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-			expect(errors).toHaveLength(1);
-		});
-
-		it('should error when asset is potential address', () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				asset: {
-					username: '1L',
-				},
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-
-			const errors = (transaction as any).validateAsset();
-			expect(errors).toHaveLength(1);
-		});
-	});
-
 	// TODO: Update after updating protocol-specs
 	describe.skip('#applyAsset', () => {
 		it('should call state store', async () => {

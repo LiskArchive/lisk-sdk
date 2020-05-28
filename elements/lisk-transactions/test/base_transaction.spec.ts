@@ -29,7 +29,6 @@ import {
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
-import { serializeSignatures } from '../src/utils';
 
 const getAccount = (account: object): any => {
 	const object = {
@@ -260,15 +259,6 @@ describe.skip('Base transaction class', () => {
 			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				...validTestTransaction.signatures,
 			);
-		});
-
-		it('should return a buffer with signatures bytes', () => {
-			const expectedBuffer = Buffer.concat([
-				(validTestTransaction as any).getBasicBytes(),
-				serializeSignatures((validTestTransaction as any).signatures),
-			]);
-
-			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);
 		});
 	});
 

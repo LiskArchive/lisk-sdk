@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { Account, TransactionJSON, BlockHeader } from '../../src/types';
 import { AccountState, ChainState } from '../../src/base_transaction';
 
 export const defaultAccount = {
-	publicKey: undefined,
+	publicKey: Buffer.from(''),
 	username: null,
 	isDelegate: 0,
 	balance: BigInt('0'),
@@ -71,16 +72,20 @@ export class StateStoreMock {
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (address: string): Promise<Account> => {
-				const account = this.accountData.find(acc => acc.address === address);
+			get: async (address: Buffer): Promise<Account> => {
+				const account = this.accountData.find(acc =>
+					acc.address.equals(address),
+				);
 				if (!account) {
 					throw new Error('Account not defined');
 				}
 				return { ...account };
 			},
 			// eslint-disable-next-line @typescript-eslint/require-await
-			getOrDefault: async (address: string): Promise<Account> => {
-				const account = this.accountData.find(acc => acc.address === address);
+			getOrDefault: async (address: Buffer): Promise<Account> => {
+				const account = this.accountData.find(acc =>
+					acc.address.equals(address),
+				);
 				if (!account) {
 					return { ...defaultAccount, address };
 				}
@@ -93,9 +98,9 @@ export class StateStoreMock {
 				}
 				return account;
 			},
-			set: (address: string, account: Account): void => {
-				const index = this.accountData.findIndex(
-					acc => acc.address === address,
+			set: (address: Buffer, account: Account): void => {
+				const index = this.accountData.findIndex(acc =>
+					acc.address.equals(address),
 				);
 				if (index > -1) {
 					this.accountData[index] = account;
@@ -106,8 +111,9 @@ export class StateStoreMock {
 		};
 
 		this.chain = {
-			networkIdentifier:
+			networkIdentifier: hexToBuffer(
 				additionalInfo?.networkIdentifier ?? defaultNetworkIdentifier,
+			),
 			lastBlockHeader: additionalInfo?.lastBlockHeader ?? ({} as BlockHeader),
 			lastBlockReward: additionalInfo?.lastBlockReward ?? BigInt(0),
 			get: async (key: string): Promise<Buffer | undefined> =>

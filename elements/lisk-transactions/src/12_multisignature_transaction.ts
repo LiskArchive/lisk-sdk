@@ -220,18 +220,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(
-			multisigRegAssetSchema,
-			this.asset,
-		);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
-		if (errors.length > 0) {
-			return errors;
-		}
+		const errors = [];
 
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = this.asset;
 
