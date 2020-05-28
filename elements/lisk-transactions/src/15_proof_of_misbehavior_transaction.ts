@@ -26,7 +26,7 @@ import {
 	getPunishmentPeriod,
 	validateSignature,
 } from './utils';
-import { BlockHeader } from './types';
+import { BlockHeader, BaseTransactionInput } from './types';
 
 const proofOfMisbehaviorAssetSchema = {
 	$id: 'lisk/proof-of-misbehavior-transaction',
@@ -104,18 +104,18 @@ const blockHeaderSchema = {
 	},
 };
 
-export interface ProofOfMisbehaviorAsset {
+export interface PoMAsset {
 	readonly header1: BlockHeader;
 	readonly header2: BlockHeader;
 	reward: bigint;
 }
 
-export class ProofOfMisbehaviorTransaction extends BaseTransaction {
+export class ProofOfMisbehaviorTransaction extends BaseTransaction<PoMAsset> {
 	public static TYPE = 15;
 	public static ASSET_SCHEMA = proofOfMisbehaviorAssetSchema;
-	public readonly asset: ProofOfMisbehaviorAsset;
+	public readonly asset: PoMAsset;
 
-	public constructor(transaction: ProofOfMisbehaviorTransaction) {
+	public constructor(transaction: BaseTransactionInput<PoMAsset>) {
 		super(transaction);
 
 		this.asset = transaction.asset;

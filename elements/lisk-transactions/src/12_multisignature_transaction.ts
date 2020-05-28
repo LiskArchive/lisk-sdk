@@ -29,6 +29,7 @@ import {
 	validateKeysSignatures,
 	validateSignature,
 } from './utils';
+import { BaseTransactionInput } from './types';
 
 export const multisigRegAssetSchema = {
 	$id: 'lisk/multisignature-registration-transaction',
@@ -80,13 +81,13 @@ export interface MultiSignatureAsset {
 	readonly numberOfSignatures: number;
 }
 
-export class MultisignatureTransaction extends BaseTransaction {
+export class MultisignatureTransaction extends BaseTransaction<MultiSignatureAsset> {
 	public static TYPE = 12;
 	public static ASSET_SCHEMA = multisigRegAssetSchema;
 	public readonly asset: MultiSignatureAsset;
 	private readonly MAX_KEYS_COUNT = 64;
 
-	public constructor(transaction: MultisignatureTransaction) {
+	public constructor(transaction: BaseTransactionInput<MultiSignatureAsset>) {
 		super(transaction);
 
 		this.asset = transaction.asset;

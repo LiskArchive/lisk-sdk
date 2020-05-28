@@ -17,6 +17,7 @@ import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_TRANSACTION_AMOUNT } from './constants';
 import { TransactionError } from './errors';
 import { verifyMinRemainingBalance } from './utils';
+import { BaseTransactionInput } from './types';
 
 export interface TransferAsset {
 	readonly amount: bigint;
@@ -48,12 +49,12 @@ export const transferAssetSchema = {
 	},
 };
 
-export class TransferTransaction extends BaseTransaction {
+export class TransferTransaction extends BaseTransaction<TransferAsset> {
 	public static TYPE = 8;
 	public static ASSET_SCHEMA = transferAssetSchema;
 	public readonly asset: TransferAsset;
 
-	public constructor(transaction: TransferTransaction) {
+	public constructor(transaction: BaseTransactionInput<TransferAsset>) {
 		super(transaction);
 
 		this.asset = transaction.asset;

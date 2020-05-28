@@ -15,7 +15,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 
 import { DelegateTransaction } from './10_delegate_transaction';
-import { MultisignatureTransaction } from './12_multisignature_transaction';
+import { MultisignatureTransaction, MultiSignatureAsset } from './12_multisignature_transaction';
 import { VoteTransaction } from './13_vote_transaction';
 import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
@@ -33,7 +33,7 @@ const transactionMap: { readonly [key: number]: any } = {
 };
 
 const sanitizeSignaturesArray = (
-	tx: BaseTransaction,
+	tx: BaseTransaction<MultiSignatureAsset>,
 	keys: MultisigKeys,
 ): void => {
 	let numberOfSignatures = keys.mandatoryKeys.length + keys.optionalKeys.length;
@@ -60,7 +60,7 @@ export const signMultiSignatureTransaction = (options: {
 	readonly passphrase: string;
 	readonly networkIdentifier: string;
 	readonly keys: MultisigKeys;
-}): BaseTransaction => {
+}): BaseTransaction<MultiSignatureAsset> => {
 	const { transaction, passphrase, networkIdentifier } = options;
 	if (transaction.type === undefined || transaction.type === null) {
 		throw new Error('Transaction type is required.');
@@ -81,7 +81,7 @@ export const signMultiSignatureTransaction = (options: {
 	const tx = new TransactionClass({
 		...transaction,
 		networkIdentifier,
-	}) as BaseTransaction;
+	}) as BaseTransaction<MultiSignatureAsset>;
 
 	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
 		passphrase,

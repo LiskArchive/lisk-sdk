@@ -15,7 +15,7 @@
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { TransactionError } from './errors';
-import { Account } from './types';
+import { Account, BaseTransactionInput } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
@@ -79,12 +79,12 @@ const getWaitingPeriod = (
 	return waitTime - (currentHeight - unlockObject.unvoteHeight);
 };
 
-export class UnlockTransaction extends BaseTransaction {
+export class UnlockTransaction extends BaseTransaction<UnlockAsset> {
 	public static TYPE = 14;
 	public static ASSET_SCHEMA = unlockAssetSchema;
 	public readonly asset: UnlockAsset;
 
-	public constructor(transaction: UnlockTransaction) {
+	public constructor(transaction: BaseTransactionInput<UnlockAsset>) {
 		super(transaction);
 
 		this.asset = transaction.asset;

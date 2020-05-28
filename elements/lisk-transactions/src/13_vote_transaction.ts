@@ -17,6 +17,7 @@ import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
 import { TransactionError } from './errors';
 import { sortUnlocking } from './utils';
+import { BaseTransactionInput } from './types';
 
 export interface Vote {
 	readonly delegateAddress: Buffer;
@@ -64,12 +65,12 @@ const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
 
-export class VoteTransaction extends BaseTransaction {
+export class VoteTransaction extends BaseTransaction<VoteAsset> {
 	public static TYPE = 13;
 	public static ASSET_SCHEMA = voteAssetSchema;
 	public readonly asset: VoteAsset;
 
-	public constructor(transaction: VoteTransaction) {
+	public constructor(transaction: BaseTransactionInput<VoteAsset>) {
 		super(transaction);
 
 		this.asset = transaction.asset;

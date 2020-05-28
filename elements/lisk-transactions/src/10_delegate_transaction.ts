@@ -16,6 +16,7 @@
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { TransactionError } from './errors';
+import { BaseTransactionInput } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;
@@ -43,13 +44,13 @@ export const delegateRegistrationAssetSchema = {
 	},
 };
 
-export class DelegateTransaction extends BaseTransaction {
+export class DelegateTransaction extends BaseTransaction<DelegateAsset> {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
 	public static ASSET_SCHEMA = delegateRegistrationAssetSchema;
 	public readonly asset: DelegateAsset;
 
-	public constructor(transaction: DelegateTransaction) {
+	public constructor(transaction: BaseTransactionInput<DelegateAsset>) {
 		super(transaction);
 
 		this.asset = transaction.asset;

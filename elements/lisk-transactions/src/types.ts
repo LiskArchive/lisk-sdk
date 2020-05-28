@@ -100,6 +100,16 @@ export interface TransactionJSON {
 	readonly fee: string;
 }
 
+export interface BaseTransactionInput<T> {
+	readonly id: Buffer;
+	readonly type: number;
+	readonly senderPublicKey: Buffer;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly asset: T;
+	readonly signatures: Array<Readonly<Buffer>>;
+}
+
 export interface IsValidResponse {
 	readonly valid: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;

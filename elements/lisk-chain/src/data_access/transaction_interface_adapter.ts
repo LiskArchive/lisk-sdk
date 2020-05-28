@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { codec } from '@liskhq/lisk-codec';
+import { codec, GenericObject } from '@liskhq/lisk-codec';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { hash } from '@liskhq/lisk-cryptography';
 
@@ -40,8 +40,8 @@ export class TransactionInterfaceAdapter {
 	}
 
 	// First encode message asset and then encode base message
-	public encode(message: BaseTransaction): Buffer {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	public encode(message: BaseTransaction<{}>): Buffer {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		const TransactionClass = this._transactionClassMap.get(message.type);
 
 		if (!TransactionClass) {
@@ -50,25 +50,27 @@ export class TransactionInterfaceAdapter {
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 		const binaryAsset = codec.encode(TransactionClass.ASSET_SCHEMA, message.asset as any);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const binaryAssetWithMessage = { ...message, asset: binaryAsset };
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const binaryMessage = codec.encode(BaseTransaction.BASE_SCHEMA, binaryAssetWithMessage as any);
+		const binaryMessage = codec.encode(BaseTransaction.BASE_SCHEMA, binaryAssetWithMessage as unknown as GenericObject);
 
 		return binaryMessage;
 	}
 
 	// First decode base message and then decode asset
-	public decode(binaryMessage: Buffer): BaseTransaction {
-		const baseMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
+	public decode(binaryMessage: Buffer): BaseTransaction<{}> {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const baseMessage = codec.decode<BaseTransaction<{}>>(BaseTransaction.BASE_SCHEMA, binaryMessage);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		const TransactionClass = this._transactionClassMap.get(baseMessage.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, baseMessage.asset as Buffer);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+		const assetMessage = codec.decode<BaseTransaction<{}>>(TransactionClass.ASSET_SCHEMA, baseMessage.asset as Buffer);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const message = { ...baseMessage, asset: assetMessage };
 
 		const id = hash(binaryMessage)

@@ -25,7 +25,7 @@ import { MAX_TRANSACTION_AMOUNT, MIN_FEE_PER_BYTE } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { baseTransactionSchema } from './schema';
-import { Account, BlockHeader } from './types';
+import { Account, BlockHeader, BaseTransactionInput } from './types';
 import {
 	buildPublicKeyPassphraseDict,
 	isMultisignatureAccount,
@@ -63,7 +63,7 @@ export interface StateStore {
 export const ENTITY_ACCOUNT = 'account';
 export const ENTITY_TRANSACTION = 'transaction';
 
-export abstract class BaseTransaction {
+export abstract class BaseTransaction<T> {
 	public static TYPE: number;
 	// Minimum remaining balance requirement for any account to perform a transaction
 	public static MIN_REMAINING_BALANCE = BigInt('5000000'); // 0.05 LSK
@@ -74,7 +74,7 @@ export abstract class BaseTransaction {
 
 	public readonly id: Buffer;
 	public readonly type: number;
-	public asset: object;
+	public asset: T;
 	public nonce: bigint;
 	public fee: bigint;
 	public senderPublicKey: Buffer;
@@ -86,7 +86,7 @@ export abstract class BaseTransaction {
 	private readonly _senderPublicKey: string;
 	private readonly _senderId: Buffer;
 
-	public constructor(transaction: BaseTransaction) {
+	public constructor(transaction: BaseTransactionInput<T>) {
 		this.id = transaction.id;
 		this.type = transaction.type;
 		this.asset = transaction.asset;
@@ -106,7 +106,7 @@ export abstract class BaseTransaction {
 			this._minFee =
 				(this.constructor as typeof BaseTransaction).NAME_FEE +
 				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
-					BigInt(this.getBytes().length);
+				BigInt(this.getBytes().length);
 		}
 
 		return this._minFee;
@@ -247,14 +247,14 @@ export abstract class BaseTransaction {
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
 				: [
-						new TransactionError(
-							'Invalid balance amount',
-							this.id,
-							'.balance',
-							sender.balance.toString(),
-							updatedBalance.toString(),
-						),
-				  ];
+					new TransactionError(
+						'Invalid balance amount',
+						this.id,
+						'.balance',
+						sender.balance.toString(),
+						updatedBalance.toString(),
+					),
+				];
 
 		// Decrement account nonce
 		sender.nonce -= BigInt(1);
@@ -384,7 +384,7 @@ export abstract class BaseTransaction {
 	protected getAssetBytes(): Buffer {
 		const assetSchema = (this.constructor as typeof BaseTransaction)
 			.ASSET_SCHEMA;
-		return codec.encode(assetSchema as Schema, this.asset as GenericObject);
+		return codec.encode(assetSchema as Schema, this.asset as unknown as GenericObject);
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
@@ -396,7 +396,7 @@ export abstract class BaseTransaction {
 
 		const assetSchemaErrors = validator.validate(
 			BaseTransaction.ASSET_SCHEMA,
-			this.asset,
+			this.asset as unknown as GenericObject,
 		);
 		const assetErrors = convertToTransactionError(
 			this.id,
