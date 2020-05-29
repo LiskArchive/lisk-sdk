@@ -14,20 +14,8 @@
 
 import { validateSchema } from '../../src';
 
-// DeepCopy type can be easily extended by other types,
-// like Set & Map if the implementation supports them.
-type DeepCopy<T> = T extends undefined | null | boolean | string | number
-	? T
-	: T extends Function | Set<any> | Map<any, any>
-	? unknown
-	: T extends ReadonlyArray<infer U>
-	? Array<DeepCopy<U>>
-	: { [K in keyof T]: DeepCopy<T[K]> };
-
-function deepCopy<T>(obj: T): DeepCopy<T> {
-	// implementation doesn't matter, just use the simplest
-	return JSON.parse(JSON.stringify(obj));
-}
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cloneDeep = require('lodash.clonedeep');
 
 const validSchema = {
 	$id: '/my-schema',
@@ -108,7 +96,7 @@ describe('lisk_meta_schema', () => {
 		// As the schema is always overridden
 		it('should not return error when "$schema" is not defined', () => {
 			// Arrange
-			const invalidSchema = deepCopy(validSchema);
+			const invalidSchema = cloneDeep(validSchema);
 			delete invalidSchema.$schema;
 
 			// Assert
@@ -117,7 +105,7 @@ describe('lisk_meta_schema', () => {
 
 		it('should return error when "$schema" value is defined other than lisk-schema uri', () => {
 			// Arrange
-			const invalidSchema = deepCopy(validSchema);
+			const invalidSchema = cloneDeep(validSchema);
 			invalidSchema.$schema = 'my-custom-schema';
 
 			// Act
@@ -135,7 +123,7 @@ describe('lisk_meta_schema', () => {
 
 		it('should return error when "properties" is not defined', () => {
 			// Arrange
-			const invalidSchema = deepCopy(validSchema);
+			const invalidSchema = cloneDeep(validSchema);
 			delete invalidSchema.properties;
 
 			// Act
@@ -176,7 +164,7 @@ describe('lisk_meta_schema', () => {
 
 		it('should return error when "properties" are empty object', () => {
 			// Arrange
-			const invalidSchema = deepCopy(validSchema);
+			const invalidSchema = cloneDeep(validSchema);
 			delete invalidSchema.properties.myProp;
 
 			// Act
@@ -205,7 +193,7 @@ describe('lisk_meta_schema', () => {
 				'boolean',
 			])('should be ok with "dataType=%s"', dataType => {
 				// Arrange
-				const schema = deepCopy(validSchema);
+				const schema = cloneDeep(validSchema);
 				schema.properties.myProp.dataType = dataType;
 
 				// Assert
@@ -239,7 +227,7 @@ describe('lisk_meta_schema', () => {
 		describe('fieldNumber', () => {
 			it('should only accept integer values', () => {
 				// Arrange
-				const schema = deepCopy(validSchema);
+				const schema = cloneDeep(validSchema);
 				// eslint-disable-next-line
 				// @ts-ignore
 				schema.properties.myProp.fieldNumber = '1';
@@ -256,7 +244,7 @@ describe('lisk_meta_schema', () => {
 
 			it('should not return error if fieldNumber does not start from 1', () => {
 				// Arrange
-				const schema = deepCopy(validSchema);
+				const schema = cloneDeep(validSchema);
 				schema.properties.myProp.fieldNumber = 5;
 
 				// Assert
@@ -265,7 +253,7 @@ describe('lisk_meta_schema', () => {
 
 			it('should return error when fieldNumber less than 1', () => {
 				// Arrange
-				const schema = deepCopy(validSchema);
+				const schema = cloneDeep(validSchema);
 				schema.properties.myProp.fieldNumber = 0;
 
 				// Assert
@@ -280,7 +268,7 @@ describe('lisk_meta_schema', () => {
 
 			it('should return error when fieldNumber greater than 18999', () => {
 				// Arrange
-				const schema = deepCopy(validSchema);
+				const schema = cloneDeep(validSchema);
 				schema.properties.myProp.fieldNumber = 19000;
 
 				// Assert
