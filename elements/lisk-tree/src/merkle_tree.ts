@@ -51,40 +51,6 @@ const isAppendPath = (dataLength: number, layer: number) => {
 	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
 };
 
-// BRANCHPREFIX = 0x01
-const generateBranch = (
-	left: Buffer,
-	right: Buffer,
-	layerIndex: number,
-	nodeIndex: bigint,
-): NodeData => {
-	const layerIndexBuffer = Buffer.alloc(LAYER_INDEX_SIZE);
-	const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
-
-	layerIndexBuffer.writeInt8(layerIndex, 0);
-	nodeIndexBuffer.writeBigInt64BE(nodeIndex, 0);
-
-	const nodeValue = Buffer.concat(
-		[BRANCH_PREFIX, layerIndexBuffer, nodeIndexBuffer, left, right],
-		BRANCH_PREFIX.length +
-			layerIndexBuffer.length +
-			nodeIndexBuffer.length +
-			left.length +
-			right.length,
-	);
-	const nodeHash = hash(
-		Buffer.concat(
-			[BRANCH_PREFIX, left, right],
-			BRANCH_PREFIX.length + left.length + right.length,
-		),
-	);
-
-	return {
-		hash: nodeHash,
-		value: nodeValue,
-	};
-};
-
 const getNodeInfo = (value: Buffer): NodeInfo => {
 	const right = value.slice(-1 * NODE_HASH_SIZE);
 	const left = value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
@@ -116,32 +82,15 @@ export class MerkleTree {
 			return;
 		}
 
-		this._root = this._generateInitialHashToBuffer(initValues);
+		this._root = this._build(initValues);
 	}
 
 	public get root(): Buffer {
 		return this._root;
 	}
 
-	public generateLeaf(value: Buffer): NodeData {
-		const leafValue = Buffer.concat(
-			[LEAF_PREFIX, value],
-				LEAF_PREFIX.length + 
-				value.length
-		);
-		const leafHash = hash(leafValue);
-		
-		this._hashToBuffer[leafHash.toString('binary')] = leafValue;
-		this._width += 1;
-
-		return {
-			value: leafValue,
-			hash: hash(leafValue),
-		};
-	};
-
 	public append(value: Buffer): Buffer {
-		const leaf = generateLeaf(value);
+		const leaf = this._generateLeaf(value);
 
 		const rootNode = getNodeInfo(
 			this._hashToBuffer[this.root.toString('binary')],
@@ -172,7 +121,7 @@ export class MerkleTree {
 			const right = stack.pop() as Buffer;
 			const left = stack.pop() as Buffer;
 			// TODO: Add correct layer and node index
-			const node = generateBranch(left, right, 0, BigInt(0));
+			const node = this._generateNode(left, right, 0, BigInt(0));
 			this._hashToBuffer[node.hash.toString('binary')] = node.value;
 
 			stack.push(node.hash);
@@ -203,20 +152,65 @@ export class MerkleTree {
 		return this._printNode(this.root);
 	}
 
-	// private _getHeight(): number {
-	// 	return Math.ceil(Math.log2(this._width)) + 1;
-	// }
+	private _getHeight(): number {
+		return Math.ceil(Math.log2(this._width)) + 1;
+	}
 
-	/*  Generates node data based on initial data set
-		Stores hash and buffer in memory
-		Returns initial merkle root
-	*/
+	private _generateLeaf(value: Buffer): NodeData {
+		const leafValue = Buffer.concat(
+			[LEAF_PREFIX, value],
+				LEAF_PREFIX.length + 
+				value.length
+		);
+		const leafHash = hash(leafValue);
+		
+		this._hashToBuffer[leafHash.toString('binary')] = leafValue;
+		this._width += 1;
 
-	private _generateInitialHashToBuffer(initValues: Buffer[]): Buffer {
+		return {
+			value: leafValue,
+			hash: hash(leafValue),
+		};
+	};
+
+	private _generateNode(
+		leftHashBuffer: Buffer,
+		rightHashBuffer: Buffer,
+		layerIndex: number,
+		nodeIndex: bigint,
+	): NodeData {
+		const layerIndexBuffer = Buffer.alloc(LAYER_INDEX_SIZE);
+		const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
+		layerIndexBuffer.writeInt8(layerIndex, 0);
+		nodeIndexBuffer.writeBigInt64BE(nodeIndex, 0);
+
+		const branchValue = Buffer.concat(
+			[BRANCH_PREFIX, layerIndexBuffer, nodeIndexBuffer, leftHashBuffer, rightHashBuffer],
+			     BRANCH_PREFIX.length +
+				layerIndexBuffer.length +
+				nodeIndexBuffer.length +
+				leftHashBuffer.length +
+				rightHashBuffer.length,
+		);
+		const branchHash = hash(
+			Buffer.concat(
+				[BRANCH_PREFIX, leftHashBuffer, rightHashBuffer],
+				BRANCH_PREFIX.length + leftHashBuffer.length + rightHashBuffer.length,
+			),
+		);		
+		this._hashToBuffer[branchHash.toString('binary')] = branchValue;
+
+		return {
+			hash: branchHash,
+			value: branchValue,
+		};
+	};
+
+	private _build(initValues: Buffer[]): Buffer {
 		// Generate hash and buffer of leaves and store in memory
 		const leafHashes = [];
 		for (let i = 0; i < initValues.length; i += 1) {
-			const leaf = generateLeaf(initValues[i]);
+			const leaf = this._generateLeaf(initValues[i]);
 
 			leafHashes.push(leaf.hash);
 			this._hashToBuffer[leaf.hash.toString('binary')] = leaf.value;
@@ -260,7 +254,7 @@ export class MerkleTree {
 			for (let i = 0; i < pairs.length; i += 1) {
 				const left = pairs[i][0];
 				const right = pairs[i][1];
-				const node = generateBranch(left, right, currentLayer, BigInt(i));
+				const node = this._generateNode(left, right, currentLayer, BigInt(i));
 				this._hashToBuffer[node.hash.toString('binary')] = node.value;
 
 				parentLayerNodes.push(node.hash);
