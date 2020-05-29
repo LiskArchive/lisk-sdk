@@ -156,6 +156,10 @@ export class MerkleTree {
 		this._root = EMPTY_HASH;
 	}
 
+	public printTreeData(): any {
+		return Object.keys(this._hashToBuffer).map(hash => this.getNode(Buffer.from(hash, 'binary')))
+	}
+
 	public toString(): string {
 		if (this._width === 0) {
 			return this.root.toString('hex');
