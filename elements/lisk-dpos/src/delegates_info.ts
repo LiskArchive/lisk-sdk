@@ -24,12 +24,7 @@ import {
 } from './delegates_list';
 import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
-import {
-	BlockHeader,
-	Chain,
-	DPoSProcessingOptions,
-	StateStore,
-} from './types';
+import { BlockHeader, Chain, DPoSProcessingOptions, StateStore } from './types';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_info');
@@ -213,8 +208,8 @@ export class DelegatesInfo {
 
 		const missedBlocksDelegateAddresses = expectedForgingAddresses.filter(
 			expectedAddress =>
-				!forgedPublicKeys.find(
-					publicKey => getAddressFromPublicKey(publicKey).equals(expectedAddress),
+				!forgedPublicKeys.find(publicKey =>
+					getAddressFromPublicKey(publicKey).equals(expectedAddress),
 				),
 		);
 

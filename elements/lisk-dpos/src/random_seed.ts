@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	hash,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import { Rounds } from './rounds';
@@ -68,7 +65,7 @@ const findPreviousHeaderOfDelegate = (
 	const searchTill = Math.max(searchTillHeight, 1);
 
 	for (let i = height - 1; i >= searchTill; i -= 1) {
-		if (headersMap[i].generatorPublicKey === generatorPublicKey) {
+		if (headersMap[i].generatorPublicKey.equals(generatorPublicKey)) {
 			return headersMap[i];
 		}
 	}
@@ -79,8 +76,7 @@ const findPreviousHeaderOfDelegate = (
 const isValidSeedReveal = (
 	seedReveal: Buffer,
 	previousSeedReveal: Buffer,
-): boolean =>
-	strippedHash(seedReveal).equals(previousSeedReveal);
+): boolean => strippedHash(seedReveal).equals(previousSeedReveal);
 
 const selectSeedReveals = ({
 	fromHeight,
@@ -113,7 +109,12 @@ const selectSeedReveals = ({
 
 		// To validate seed reveal of any block in the last round
 		// We have to check till second last round
-		if (!isValidSeedReveal(header.asset.seedReveal, lastForgedBlock.asset.seedReveal)) {
+		if (
+			!isValidSeedReveal(
+				header.asset.seedReveal,
+				lastForgedBlock.asset.seedReveal,
+			)
+		) {
 			// eslint-disable-next-line no-continue
 			continue;
 		}

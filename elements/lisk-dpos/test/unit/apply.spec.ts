@@ -130,7 +130,7 @@ describe('dpos.apply()', () => {
 
 	describe('Given block is NOT the last block of the round', () => {
 		let generator: Account;
-		let block: Block;
+		let block: BlockHeader;
 		let forgersList: ForgersList;
 
 		beforeEach(() => {
@@ -139,7 +139,7 @@ describe('dpos.apply()', () => {
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 
 			forgersList = [
 				{
@@ -188,7 +188,7 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: Block;
+		let lastBlockOfTheRoundNine: BlockHeader;
 		let forgedDelegates: Account[];
 		let missedDelegate: Account;
 
@@ -205,8 +205,8 @@ describe('dpos.apply()', () => {
 						{
 							round: 10,
 							delegates: forgedDelegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						},
 					]),
@@ -216,29 +216,29 @@ describe('dpos.apply()', () => {
 						{
 							round: 7,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 						{
 							round: 8,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 						{
 							round: 9,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 						{
 							round: 10,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 					]),
@@ -255,22 +255,20 @@ describe('dpos.apply()', () => {
 				height: 927,
 				generatorPublicKey:
 					forgedDelegates[forgedDelegates.length - 1].publicKey,
-			} as Block;
+			} as BlockHeader;
 
 			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
 		});
 
-		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
+		it('should increase "consecutiveMissedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
 
 			// Assert
-			const { missedBlocks } = await stateStore.account.get(
-				missedDelegate.address,
-			);
-			expect(missedBlocks).toEqual(1);
+			const account = await stateStore.account.get(missedDelegate.address);
+			expect(account.asset.delegate.consecutiveMissedBlocks).toEqual(1);
 		});
 
 		it('should save next round forgers in forgers list after applying last block of round', async () => {
@@ -390,7 +388,7 @@ describe('dpos.apply()', () => {
 				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
 				expect.assertions(forgedDelegates.length);
 				for (const delegate of forgedDelegates) {
-					expect(delegate.missedBlocks).toEqual(0);
+					expect(delegate.asset.delegate.consecutiveMissedBlocks).toEqual(0);
 				}
 			});
 		});

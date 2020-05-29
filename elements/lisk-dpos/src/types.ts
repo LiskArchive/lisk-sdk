@@ -71,10 +71,10 @@ export interface Account {
 	readonly publicKey: Buffer;
 	balance: bigint;
 	asset: {
-		delegate: DelegateAccountAsset,
-		sentVotes: VoteAccountAsset[],
-		unlocking: UnlockingAccountAsset[],
-	},
+		delegate: DelegateAccountAsset;
+		sentVotes: VoteAccountAsset[];
+		unlocking: UnlockingAccountAsset[];
+	};
 }
 
 export interface DPoSProcessingOptions {

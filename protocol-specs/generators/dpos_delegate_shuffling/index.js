@@ -21,13 +21,13 @@ const previousDelegateList = require('./delegate_address_list.json')
 
 const generateShuffledDelegateList = () => {
 	const previousRoundSeed1 = 'b9acc2f1fda3666bfb34107f1c6dccc4';
-	const delegateList = [...previousDelegateList];
+	const delegateList = [...previousDelegateList].map(delegate => ({
+		address: Buffer.from(delegate.address, 'hex'),
+	}));
 	for (const delegate of delegateList) {
-		const addressBuffer = Buffer.alloc(8);
-		addressBuffer.writeBigUInt64BE(BigInt(delegate.address.slice(0, -1)));
 		const seedSource = Buffer.concat([
 			Buffer.from(previousRoundSeed1, 'hex'),
-			addressBuffer,
+			delegate.address,
 		]);
 		delegate.roundHash = hash(seedSource);
 	}
@@ -37,7 +37,7 @@ const generateShuffledDelegateList = () => {
 		if (diff !== 0) {
 			return diff;
 		}
-		return delegate1.address.localeCompare(delegate2.address);
+		return delegate1.address.compare(delegate2.address);
 	});
 
 	return {
@@ -46,7 +46,9 @@ const generateShuffledDelegateList = () => {
 			delegateList: previousDelegateList.map(delegate => delegate.address),
 		},
 		output: {
-			delegateList: delegateList.map(delegate => delegate.address),
+			delegateList: delegateList.map(delegate =>
+				delegate.address.toString('hex'),
+			),
 		},
 	};
 };

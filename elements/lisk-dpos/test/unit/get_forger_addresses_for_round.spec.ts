@@ -48,7 +48,9 @@ describe('dpos.getForgerAddressesForRound()', () => {
 		const forgersList = [
 			{
 				round,
-				delegates: delegatePublicKeys.map(pk => getAddressFromPublicKey(pk)),
+				delegates: delegatePublicKeys.map(pk =>
+					getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+				),
 				standby: [],
 			},
 		];
@@ -81,7 +83,9 @@ describe('dpos.getForgerAddressesForRound()', () => {
 		const forgersList = [
 			{
 				round: 7,
-				delegates: delegatePublicKeys.map(pk => getAddressFromPublicKey(pk)),
+				delegates: delegatePublicKeys.map(pk =>
+					getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+				),
 				standby: [],
 			},
 		];

@@ -64,15 +64,17 @@ export class StateStoreMock {
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			get: async (address: Buffer): Promise<Account> => {
-				const account = this.accountData.find(acc => acc.address.equals(address));
+				const account = this.accountData.find(acc =>
+					acc.address.equals(address),
+				);
 				if (!account) {
 					throw new Error('Account not defined');
 				}
 				return { ...account };
 			},
 			set: (address: Buffer, account: Account): void => {
-				const index = this.accountData.findIndex(
-					acc => acc.address.equals(address),
+				const index = this.accountData.findIndex(acc =>
+					acc.address.equals(address),
 				);
 				if (index > -1) {
 					this.accountData[index] = account;

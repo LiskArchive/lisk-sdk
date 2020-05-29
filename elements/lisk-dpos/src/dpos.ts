@@ -29,6 +29,7 @@ import {
 	deleteForgersListUntilRound,
 	deleteVoteWeightsUntilRound,
 	getForgersList,
+	decodeVoteWeights,
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
@@ -163,9 +164,9 @@ export class Dpos {
 		const voteWeightsBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
 		const voteWeights: VoteWeights = voteWeightsBuffer
-			? JSON.parse(voteWeightsBuffer.toString('utf8'))
+			? decodeVoteWeights(voteWeightsBuffer)
 			: [];
 
 		const voteWeight = voteWeights.find(
@@ -204,8 +205,8 @@ export class Dpos {
 			);
 		}
 
-		const isStandby = foundForgerList.standby.find(
-			standByDelegate => standByDelegate.equals(address),
+		const isStandby = foundForgerList.standby.find(standByDelegate =>
+			standByDelegate.equals(address),
 		);
 
 		return !!isStandby;
@@ -251,7 +252,7 @@ export class Dpos {
 
 		const delegateForgedBlocks = lastBlockHeaders.filter(
 			block =>
-				block.generatorPublicKey === blockHeader.generatorPublicKey &&
+				block.generatorPublicKey.equals(blockHeader.generatorPublicKey) &&
 				block.height >= startOfLastRound,
 		);
 
@@ -265,12 +266,17 @@ export class Dpos {
 			return true;
 		}
 
-		const { asset: { seedReveal: previousBlockSeedReveal } } = delegateForgedBlocks[0];
-		const { asset: { seedReveal: newBlockSeedReveal } } = blockHeader;
+		const {
+			asset: { seedReveal: previousBlockSeedReveal },
+		} = delegateForgedBlocks[0];
+		const {
+			asset: { seedReveal: newBlockSeedReveal },
+		} = blockHeader;
 		const SEED_REVEAL_BYTE_SIZE = 16;
-		const newBlockSeedRevealBuffer = hash(
-			newBlockSeedReveal,
-		).slice(0, SEED_REVEAL_BYTE_SIZE);
+		const newBlockSeedRevealBuffer = hash(newBlockSeedReveal).slice(
+			0,
+			SEED_REVEAL_BYTE_SIZE,
+		);
 
 		// New block seed reveal should be a preimage of the last block seed reveal
 		if (previousBlockSeedReveal.equals(newBlockSeedRevealBuffer)) {

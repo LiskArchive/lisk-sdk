@@ -51,7 +51,10 @@ export const getDelegateAccounts = (num = 1): Account[] => {
 export const getDelegateAccountsWithVotesReceived = (num = 1): Account[] => {
 	const accounts = getDelegateAccounts(num);
 	for (const account of accounts) {
-		account.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 100000);
+		account.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+			1000,
+			100000,
+		);
 	}
 	return accounts;
 };
