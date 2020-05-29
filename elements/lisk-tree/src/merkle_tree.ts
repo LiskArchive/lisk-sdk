@@ -46,6 +46,11 @@ interface NodeInfo {
 const isLeaf = (value: Buffer): boolean => 
 	LEAF_PREFIX.compare(value.slice(0, 1)) === 0 && value.compare(Buffer.alloc(0)) !== 0;
 
+const isAppendPath = (dataLength: number, layer: number) => {
+	const multiplier = 2 ** (layer - 1);
+	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
+};
+
 // LEAFPREFIX = 0x00
 const generateLeaf = (value: Buffer): NodeData => {
 	const leafValue = Buffer.concat(
