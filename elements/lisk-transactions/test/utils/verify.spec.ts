@@ -47,7 +47,7 @@ describe('#verify', () => {
 
 	const defaultTransferTransactionBytes = Buffer.concat([
 		cryptography.hexToBuffer(networkIdentifier),
-		(validTestTransaction as any).getBasicBytes(),
+		(validTestTransaction as any).getSigningBytes(),
 	]);
 
 	describe('#verifySenderPublicKey', () => {
@@ -191,7 +191,7 @@ describe('#verify', () => {
 
 			const validTransferBytes = Buffer.concat([
 				cryptography.hexToBuffer(networkIdentifier),
-				(validTransfer as any).getBasicBytes(),
+				(validTransfer as any).getSigningBytes(),
 			]);
 
 			const result = verifyMultiSignatureTransaction(

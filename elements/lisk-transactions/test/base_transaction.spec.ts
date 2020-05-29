@@ -29,7 +29,6 @@ import {
 import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
-import { serializeSignatures } from '../src/utils';
 
 const getAccount = (account: object): any => {
 	const object = {
@@ -180,49 +179,7 @@ describe.skip('Base transaction class', () => {
 		});
 	});
 
-	describe('#assetToJSON', () => {
-		it('should return an object of type transaction asset', () => {
-			expect(validTestTransaction.assetToJSON()).toBeObject();
-		});
-	});
-
-	describe('#toJSON', () => {
-		it('should call assetToJSON', () => {
-			const assetToJSONStub = jest
-				.spyOn(validTestTransaction, 'assetToJSON')
-				.mockReturnValue({});
-			validTestTransaction.toJSON();
-
-			expect(assetToJSONStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return transaction json', () => {
-			const transactionJSON = validTestTransaction.toJSON();
-
-			expect(transactionJSON).toEqual({
-				...defaultTransaction,
-				senderId: '2129300327344985743L',
-			});
-		});
-	});
-
-	describe('#assetToBytes', () => {
-		it('should return a buffer', () => {
-			expect(
-				(validTestTransaction as TestTransaction).assetToBytes(),
-			).toBeInstanceOf(Buffer);
-		});
-	});
-
-	describe('#stringify', () => {
-		it('should return the transaction stringified', () => {
-			expect(typeof (validTestTransaction as TestTransaction).stringify()).toBe(
-				'string',
-			);
-		});
-	});
-
-	describe('#getBasicBytes', () => {
+	describe('#getSigningBytes', () => {
 		it('should call cryptography hexToBuffer', () => {
 			const cryptographyHexToBufferStub = jest
 				.spyOn(cryptography, 'hexToBuffer')
@@ -230,7 +187,7 @@ describe.skip('Base transaction class', () => {
 					Buffer.from(validTestTransaction.senderPublicKey, 'hex'),
 				);
 
-			(validTestTransaction as any).getBasicBytes();
+			(validTestTransaction as any).getSigningBytes();
 			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				defaultTransaction.senderPublicKey,
 			);
@@ -248,7 +205,7 @@ describe.skip('Base transaction class', () => {
 				testTransactionWithAsset,
 				'assetToBytes',
 			);
-			(testTransactionWithAsset as any).getBasicBytes();
+			(testTransactionWithAsset as any).getSigningBytes();
 
 			expect(assetToBytesStub).toHaveBeenCalledTimes(1);
 		});
@@ -267,16 +224,16 @@ describe.skip('Base transaction class', () => {
 				),
 				(validTestTransaction as any).assetToBytes(),
 			]);
-			expect((validTestTransaction as any).getBasicBytes()).toEqual(
+			expect((validTestTransaction as any).getSigningBytes()).toEqual(
 				expectedBuffer,
 			);
 		});
 	});
 
 	describe('#getBytes', () => {
-		it('should call getBasicBytes', () => {
-			const getBasicBytesStub = jest
-				.spyOn(validTestTransaction as any, 'getBasicBytes')
+		it('should call getSigningBytes', () => {
+			const getSigningBytesStub = jest
+				.spyOn(validTestTransaction as any, 'getSigningBytes')
 				.mockReturnValue(
 					Buffer.from(
 						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
@@ -285,7 +242,7 @@ describe.skip('Base transaction class', () => {
 				);
 			validTestTransaction.getBytes();
 
-			expect(getBasicBytesStub).toHaveBeenCalledTimes(1);
+			expect(getSigningBytesStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call cryptography hexToBuffer for transaction with signature', () => {
@@ -302,15 +259,6 @@ describe.skip('Base transaction class', () => {
 			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
 				...validTestTransaction.signatures,
 			);
-		});
-
-		it('should return a buffer with signatures bytes', () => {
-			const expectedBuffer = Buffer.concat([
-				(validTestTransaction as any).getBasicBytes(),
-				serializeSignatures((validTestTransaction as any).signatures),
-			]);
-
-			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);
 		});
 	});
 
@@ -743,7 +691,7 @@ describe.skip('Base transaction class', () => {
 			);
 			const bytesToBeSigned = Buffer.concat([
 				networkIdentifierBytes,
-				validTransferInstance.getBasicBytes(),
+				validTransferInstance.getSigningBytes(),
 			]);
 
 			const validSignature = cryptography.signData(
@@ -766,7 +714,7 @@ describe.skip('Base transaction class', () => {
 			);
 			const bytesToBeSigned = Buffer.concat([
 				networkIdentifierBytes,
-				validTransferInstance.getBasicBytes(),
+				validTransferInstance.getSigningBytes(),
 			]);
 
 			const firstSignature = cryptography.signData(

@@ -41,7 +41,7 @@ const createUnlockTransaction = (
 	nonce: string,
 	fee: string,
 	networkIdentifier: string,
-	unlockingObjects: ReadonlyArray<RawAssetUnlock>,
+	unlockObjects: ReadonlyArray<RawAssetUnlock>,
 	passphrase?: string,
 ) =>
 	unlockToken({
@@ -49,7 +49,7 @@ const createUnlockTransaction = (
 		fee,
 		networkIdentifier,
 		passphrase,
-		unlockingObjects,
+		unlockObjects,
 	});
 
 interface Args {
@@ -160,7 +160,7 @@ export default class UnlockCommand extends BaseCommand {
 			);
 		}
 
-		const unlockingObjects = validateUnlocks(unlocks);
+		const unlockObjects = validateUnlocks(unlocks);
 
 		const networkIdentifier = getNetworkIdentifierWithInput(
 			networkIdentifierSource,
@@ -172,7 +172,7 @@ export default class UnlockCommand extends BaseCommand {
 				nonce,
 				normalizedFee,
 				networkIdentifier,
-				unlockingObjects,
+				unlockObjects,
 			);
 			this.print(noSignatureResult);
 
@@ -186,7 +186,7 @@ export default class UnlockCommand extends BaseCommand {
 			nonce,
 			normalizedFee,
 			networkIdentifier,
-			unlockingObjects,
+			unlockObjects,
 			passphrase,
 		);
 		this.print(result);

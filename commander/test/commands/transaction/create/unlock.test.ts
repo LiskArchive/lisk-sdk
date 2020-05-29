@@ -38,7 +38,7 @@ describe('transaction:create:unlock', () => {
 		senderPublicKey: defaultSenderPublicKey,
 		type: transactions.UnlockTransaction.TYPE,
 		asset: {
-			unlockingObjects: [
+			unlockObjects: [
 				{
 					delegateAddress: defaultDelegateAddress,
 					amount: '100000000000000000',
@@ -113,7 +113,7 @@ describe('transaction:create:unlock', () => {
 					fee: '100000000',
 					networkIdentifier,
 					passphrase: defaultPassphrase,
-					unlockingObjects: [
+					unlockObjects: [
 						{
 							delegateAddress: defaultDelegateAddress,
 							amount: '100000000000000000',
@@ -149,7 +149,7 @@ describe('transaction:create:unlock', () => {
 						fee: '100000000',
 						networkIdentifier,
 						passphrase: defaultPassphrase,
-						unlockingObjects: [
+						unlockObjects: [
 							{
 								delegateAddress: defaultDelegateAddress,
 								amount: '100000000000000000',
@@ -182,7 +182,7 @@ describe('transaction:create:unlock', () => {
 					fee: '100000000',
 					networkIdentifier,
 					passphrase: undefined,
-					unlockingObjects: [
+					unlockObjects: [
 						{
 							delegateAddress: defaultDelegateAddress,
 							amount: '100000000000000000',
@@ -214,7 +214,7 @@ describe('transaction:create:unlock', () => {
 						fee: '100000000',
 						networkIdentifier,
 						passphrase: defaultPassphrase,
-						unlockingObjects: [
+						unlockObjects: [
 							{
 								delegateAddress: defaultDelegateAddress,
 								amount: '100000000000000000',

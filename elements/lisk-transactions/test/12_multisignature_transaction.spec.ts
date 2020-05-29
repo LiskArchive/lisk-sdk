@@ -92,27 +92,6 @@ describe('Multisignature transaction class', () => {
 		it.skip('should set fee to multisignature transaction fee amount', async () => {});
 	});
 
-	describe('#assetToBytes', () => {
-		it('should return valid buffer', () => {
-			const assetBytes = (validTestTransaction as any).assetToBytes();
-
-			expect(assetBytes).toEqual(
-				Buffer.from(
-					'024a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba30257df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b604',
-					'hex',
-				),
-			);
-		});
-	});
-
-	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', () => {
-			expect(validTestTransaction.assetToJSON()).toEqual(
-				validMultisignatureRegistrationTransaction.asset,
-			);
-		});
-	});
-
 	describe('#validateSchema', () => {
 		it('should return no errors', () => {
 			const errors = (validTestTransaction as any).validateAsset();

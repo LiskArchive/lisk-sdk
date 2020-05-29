@@ -12,141 +12,52 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	intToBuffer,
-	stringToBuffer,
-	hexToBuffer,
-} from '@liskhq/lisk-cryptography';
-import {
-	isPositiveNumberString,
-	isValidTransferAmount,
-	validator,
-} from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './types';
+import { MAX_TRANSACTION_AMOUNT } from './constants';
+import { TransactionError } from './errors';
 import { verifyMinRemainingBalance } from './utils';
+import { BaseTransactionInput } from './types';
 
 export interface TransferAsset {
-	readonly data?: string;
-	readonly recipientId: string;
 	readonly amount: bigint;
+	readonly recipientAddress: Buffer;
+	readonly data: string;
 }
 
-export const transferAssetFormatSchema = {
+export const transferAssetSchema = {
+	$id: 'lisk/transfer-transaction',
 	type: 'object',
-	required: ['recipientId', 'amount'],
+	required: ['amount', 'recipientAddress', 'data'],
 	properties: {
-		recipientId: {
-			type: 'string',
-			format: 'address',
-		},
 		amount: {
-			type: 'string',
-			format: 'amount',
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+		recipientAddress: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+			minLength: 20,
+			maxLength: 20,
 		},
 		data: {
-			type: 'string',
-			format: 'transferData',
+			dataType: 'string',
+			fieldNumber: 3,
+			minLength: 1,
 			maxLength: 64,
 		},
 	},
 };
 
-interface RawAsset {
-	readonly data?: string;
-	readonly recipientId: string;
-	readonly amount: number | string;
-}
-
 export class TransferTransaction extends BaseTransaction {
 	public static TYPE = 8;
+	public static ASSET_SCHEMA = transferAssetSchema;
 	public readonly asset: TransferAsset;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		// Initializes to empty object if it doesn't exist
-		if (tx.asset) {
-			const rawAsset = tx.asset as RawAsset;
-			this.asset = {
-				data: rawAsset.data,
-				recipientId: rawAsset.recipientId,
-				amount: BigInt(
-					isPositiveNumberString(rawAsset.amount) ? rawAsset.amount : '0',
-				),
-			};
-		} else {
-			this.asset = {
-				amount: BigInt('0'),
-				recipientId: '',
-			} as TransferAsset;
-		}
-	}
+	public constructor(transaction: BaseTransactionInput<TransferAsset>) {
+		super(transaction);
 
-	public assetToJSON(): object {
-		return {
-			data: this.asset.data,
-			amount: this.asset.amount.toString(),
-			recipientId: this.asset.recipientId,
-		};
-	}
-
-	protected assetToBytes(): Buffer {
-		const transactionAmount = intToBuffer(
-			this.asset.amount.toString(),
-			BYTESIZES.AMOUNT,
-			'big',
-		);
-		const transactionRecipientID = this.asset.recipientId
-			? hexToBuffer(this.asset.recipientId)
-			: Buffer.alloc(0);
-
-		const dataBuffer = this.asset.data
-			? stringToBuffer(this.asset.data)
-			: Buffer.alloc(0);
-
-		return Buffer.concat([
-			transactionAmount,
-			transactionRecipientID,
-			dataBuffer,
-		]);
-	}
-
-	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(transferAssetFormatSchema, asset);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
-		if (!isValidTransferAmount(this.asset.amount.toString())) {
-			errors.push(
-				new TransactionError(
-					'Amount must be a valid number in string format.',
-					this.id,
-					'.asset.amount',
-					this.asset.amount.toString(),
-				),
-			);
-		}
-
-		if (!this.asset.recipientId) {
-			errors.push(
-				new TransactionError(
-					'`recipientId` must be provided.',
-					this.id,
-					'.asset.recipientId',
-				),
-			);
-		}
-
-		return errors;
+		this.asset = transaction.asset;
 	}
 
 	protected async applyAsset(
@@ -157,7 +68,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		sender.balance -= this.asset.amount;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(this.asset.recipientId);
+		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
 
 		recipient.balance += this.asset.amount;
 
@@ -207,7 +118,7 @@ export class TransferTransaction extends BaseTransaction {
 
 		sender.balance = updatedSenderBalance;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(this.asset.recipientId);
+		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
 		recipient.balance -= this.asset.amount;
 
 		store.account.set(recipient.address, recipient);

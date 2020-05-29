@@ -13,12 +13,12 @@
  *
  */
 
-import { getPrivateAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { getPrivateAndPublicKeyFromPassphrase, bufferToHex } from '@liskhq/lisk-cryptography';
 
 interface PublicKeyPassphraseDict {
 	[key: string]: {
-		readonly privateKey: string;
-		readonly publicKey: string;
+		readonly privateKey: Buffer;
+		readonly publicKey: Buffer;
 		readonly passphrase: string;
 	};
 }
@@ -30,9 +30,10 @@ export const buildPublicKeyPassphraseDict = (
 
 	passphrases.forEach(aPassphrase => {
 		const keys = getPrivateAndPublicKeyFromPassphrase(aPassphrase);
+		const publicKeyStr = bufferToHex(keys.publicKey);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!publicKeyPassphrase[keys.publicKey]) {
-			publicKeyPassphrase[keys.publicKey] = {
+		if (!publicKeyPassphrase[publicKeyStr]) {
+			publicKeyPassphrase[publicKeyStr] = {
 				...keys,
 				passphrase: aPassphrase,
 			};

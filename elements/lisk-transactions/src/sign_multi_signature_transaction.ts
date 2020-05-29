@@ -21,7 +21,7 @@ import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
 import { TransactionJSON } from './types';
-import { sortKeysAscending } from './utils';
+import { sortKeysAscending, convertKeysToBuffer } from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const transactionMap: { readonly [key: number]: any } = {
@@ -45,7 +45,7 @@ const sanitizeSignaturesArray = (
 	for (let i = 0; i < numberOfSignatures; i += 1) {
 		if (tx.signatures[i] === undefined) {
 			// eslint-disable-next-line no-param-reassign
-			tx.signatures[i] = '';
+			tx.signatures[i] = Buffer.from('');
 		}
 	}
 };
@@ -61,7 +61,7 @@ export const signMultiSignatureTransaction = (options: {
 	readonly networkIdentifier: string;
 	readonly keys: MultisigKeys;
 }): BaseTransaction => {
-	const { transaction, passphrase, networkIdentifier, keys } = options;
+	const { transaction, passphrase, networkIdentifier } = options;
 	if (transaction.type === undefined || transaction.type === null) {
 		throw new Error('Transaction type is required.');
 	}
@@ -71,6 +71,7 @@ export const signMultiSignatureTransaction = (options: {
 	}
 
 	// Sort keys
+	const keys = convertKeysToBuffer(options.keys);
 	sortKeysAscending(keys.mandatoryKeys);
 	sortKeysAscending(keys.optionalKeys);
 
@@ -89,7 +90,7 @@ export const signMultiSignatureTransaction = (options: {
 	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifierBytes,
-		tx.getBasicBytes(),
+		tx.getSigningBytes(),
 	]);
 
 	const signature = cryptography.signData(
@@ -98,7 +99,7 @@ export const signMultiSignatureTransaction = (options: {
 	);
 
 	if (tx.signatures.includes(signature)) {
-		sanitizeSignaturesArray(tx, keys);
+		sanitizeSignaturesArray(tx, options.keys);
 
 		return tx;
 	}
@@ -134,7 +135,7 @@ export const signMultiSignatureTransaction = (options: {
 		] = signature;
 	}
 
-	sanitizeSignaturesArray(tx, keys);
+	sanitizeSignaturesArray(tx, options.keys);
 
 	return tx;
 };

@@ -137,7 +137,7 @@ const delegateAccounts = [
 
 const getAssetBytes = asset => {
 	const buffers = [];
-	for (const unlockingObject of asset.unlockingObjects) {
+	for (const unlockingObject of asset.unlockObjects) {
 		const addressBuffer = Buffer.alloc(8);
 		addressBuffer.writeBigUInt64BE(
 			BigInt(unlockingObject.delegateAddress.slice(0, -1)),
@@ -181,7 +181,7 @@ const generateValidUpvoteTransaction = () => {
 		nonce: '3',
 		senderPublicKey: senderAccount.publicKey,
 		asset: {
-			unlockingObjects: [
+			unlockObjects: [
 				{
 					delegateAddress: delegateAccounts[0].address,
 					amount: '1000000000',

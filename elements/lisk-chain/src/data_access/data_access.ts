@@ -343,7 +343,7 @@ export class DataAccess {
 		const transactions =
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			blockJSON.transactions?.map(transaction =>
-				this._transactionAdapter.fromJSON(transaction),
+				this._transactionAdapter.decode(transaction),
 			) ?? [];
 
 		return {
@@ -384,7 +384,7 @@ export class DataAccess {
 	public deserializeTransaction(
 		transactionJSON: TransactionJSON,
 	): BaseTransaction {
-		return this._transactionAdapter.fromJSON(transactionJSON);
+		return this._transactionAdapter.decode(transactionJSON);
 	}
 
 	/*

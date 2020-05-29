@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidNonce,
@@ -19,8 +21,8 @@ import {
 } from '@liskhq/lisk-validator';
 
 import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
-import { BlockHeaderJSON, TransactionJSON } from './types';
-import { createBaseTransaction } from './utils';
+import { BlockHeader, BlockHeaderJSON, TransactionJSON } from './types';
+import { createBaseTransaction, baseTransactionToJSON } from './utils';
 
 export interface ReportMisbehaviorInputs {
 	readonly fee: string;
@@ -60,36 +62,36 @@ const validateInputs = ({
 	}
 };
 
+const convertHeader = (header: BlockHeaderJSON): BlockHeader => ({
+	...header,
+	previousBlockId: header.previousBlockId ? hexToBuffer(header.previousBlockId) : Buffer.from(''),
+	blockSignature: hexToBuffer(header.blockSignature),
+	generatorPublicKey: hexToBuffer(header.generatorPublicKey),
+	transactionRoot: hexToBuffer(header.transactionRoot),
+	seedReveal: hexToBuffer(header.seedReveal),
+});
+
 export const reportMisbehavior = (
 	inputs: ReportMisbehaviorInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { passphrase, networkIdentifier, header1, header2 } = inputs;
+	const { passphrase, header1, header2 } = inputs;
+	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 15,
+		type: ProofOfMisbehaviorTransaction.TYPE,
 		asset: {
-			header1,
-			header2,
+			header1: convertHeader(header1),
+			header2: convertHeader(header2),
 		},
-	};
+	} as ProofOfMisbehaviorTransaction;
 
 	if (!passphrase) {
-		return transaction;
+		return baseTransactionToJSON(transaction);
 	}
 
-	const transactionWithSenderInfo = {
-		...transaction,
-		senderPublicKey: transaction.senderPublicKey as string,
-		asset: {
-			...transaction.asset,
-		},
-	};
-
-	const pomTransaction = new ProofOfMisbehaviorTransaction(
-		transactionWithSenderInfo,
-	);
+	const pomTransaction = new ProofOfMisbehaviorTransaction(transaction);
 
 	pomTransaction.sign(networkIdentifier, passphrase);
 
@@ -98,5 +100,5 @@ export const reportMisbehavior = (
 		throw new Error(errors.toString());
 	}
 
-	return pomTransaction.toJSON();
+	return baseTransactionToJSON(pomTransaction);
 };

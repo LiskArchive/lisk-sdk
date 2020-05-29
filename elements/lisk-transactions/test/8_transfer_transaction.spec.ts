@@ -15,7 +15,6 @@
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/types';
-import { TransactionError } from '../src/errors';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
@@ -76,130 +75,6 @@ describe('Transfer transaction class', () => {
 			expect(validTransferTestTransaction.asset.recipientId).toEqual(
 				validTransferTransaction.asset.recipientId,
 			);
-		});
-	});
-
-	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', () => {
-			expect(
-				(validTransferTestTransaction.assetToJSON() as any).data,
-			).toBeString();
-		});
-	});
-
-	// TODO: Update after updating protocol-specs
-	describe.skip('#validateAsset', () => {
-		it('should return no errors with a valid transfer transaction', () => {
-			const errors = (validTransferTestTransaction as any).validateAsset();
-			expect(Object.keys(errors)).toHaveLength(0);
-		});
-
-		it('should return error with invalid recipientId', () => {
-			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
-				{
-					...validTransferTransaction,
-					asset: {
-						...validTransferTransaction.asset,
-						recipientId: '123456',
-					},
-				},
-			);
-			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
-
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-			expect(errors[0].message).toContain(
-				'\'.recipientId\' should match format "address"',
-			);
-		});
-
-		it('should return error if recipientId exceed uint64 limit', () => {
-			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
-				{
-					...validTransferTransaction,
-					asset: {
-						...validTransferTransaction.asset,
-						recipientId: '19961131544040416558L',
-					},
-				},
-			);
-			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
-
-			expect(errors).toHaveLength(1);
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-		});
-
-		it('should return error if recipientId contains leading zeros', () => {
-			const transferTransactionWithInvalidRecipientId = new TransferTransaction(
-				{
-					...validTransferTransaction,
-					asset: {
-						...validTransferTransaction.asset,
-						recipientId: '000123L',
-					},
-				},
-			);
-			const errors = (transferTransactionWithInvalidRecipientId as any).validateAsset();
-
-			expect(errors).toHaveLength(1);
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-		});
-
-		it('should return error with invalid amount', () => {
-			const transferTransactionWithInvalidAmount = new TransferTransaction({
-				...validTransferTransaction,
-				asset: {
-					...validTransferTransaction.asset,
-					amount: '92233720368547758087823474829847337',
-				},
-			});
-			const errors = (transferTransactionWithInvalidAmount as any).validateAsset();
-
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-			expect(errors[0].message).toEqual(
-				'Amount must be a valid number in string format.',
-			);
-			expect(errors[0].dataPath).toEqual('.asset.amount');
-		});
-
-		it('should return error with invalid asset', () => {
-			const transferTransactionWithInvalidAsset = new TransferTransaction({
-				...validTransferTransaction,
-				asset: {
-					...validTransferTransaction.asset,
-					data:
-						'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-				},
-			});
-			const errors = (transferTransactionWithInvalidAsset as any).validateAsset();
-
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-		});
-
-		it('should return error if asset data containing null string', () => {
-			const transferTransactionWithValiddAsset = new TransferTransaction({
-				...validTransferTransaction,
-				asset: {
-					...validTransferTransaction.asset,
-					data: '\u0000hey:)',
-				},
-			});
-			const errors = (transferTransactionWithValiddAsset as any).validateAsset();
-
-			expect(errors).toHaveLength(1);
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-		});
-
-		it('should return error with asset data containing overflowed string', () => {
-			const transferTransactionWithInvalidAsset = new TransferTransaction({
-				...validTransferTransaction,
-				asset: {
-					data:
-						'o2ljg313lzzopdcilxcuy840qzdnmj21hfehd8u63k9jkifpsgxptegi56t8xos现',
-				},
-			});
-			const errors = (transferTransactionWithInvalidAsset as any).validateAsset();
-
-			expect(errors[0]).toBeInstanceOf(TransactionError);
 		});
 	});
 

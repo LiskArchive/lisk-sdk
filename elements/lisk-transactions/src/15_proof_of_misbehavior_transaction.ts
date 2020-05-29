@@ -12,164 +12,117 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { isNumberString, validator } from '@liskhq/lisk-validator';
+
+import { codec, GenericObject } from '@liskhq/lisk-codec';
+import { getAddressFromPublicKey, bufferToHex } from '@liskhq/lisk-cryptography';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import {
 	MAX_POM_HEIGHTS,
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { BlockHeaderJSON, TransactionJSON } from './types';
+import { TransactionError } from './errors';
 import {
-	getBlockBytes,
-	getBlockBytesWithSignature,
 	getPunishmentPeriod,
 	validateSignature,
 } from './utils';
+import { BlockHeader, BaseTransactionInput } from './types';
 
-const blockHeaderSchema = {
-	type: 'object',
-	required: [
-		'blockSignature',
-		'generatorPublicKey',
-		'height',
-		'maxHeightPreviouslyForged',
-		'maxHeightPrevoted',
-		'numberOfTransactions',
-		'transactionRoot',
-		'payloadLength',
-		'previousBlockId',
-		'reward',
-		'seedReveal',
-		'timestamp',
-		'totalAmount',
-		'totalFee',
-		'version',
-	],
-	properties: {
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		height: {
-			type: 'integer',
-			minimum: 1,
-		},
-		maxHeightPreviouslyForged: {
-			type: 'integer',
-			minimum: 0,
-		},
-		maxHeightPrevoted: {
-			type: 'integer',
-			minimum: 0,
-		},
-		numberOfTransactions: {
-			type: 'integer',
-			minimum: 0,
-		},
-		transactionRoot: {
-			type: 'string',
-			format: 'hex',
-		},
-		payloadLength: {
-			type: 'integer',
-			minimum: 0,
-		},
-		previousBlockId: {
-			type: ['string'],
-			format: 'hex',
-			minLength: 64,
-			maxLength: 64,
-		},
-		reward: {
-			type: 'string',
-			format: 'amount',
-		},
-		seedReveal: {
-			type: 'string',
-			format: 'hex',
-		},
-		timestamp: {
-			type: 'integer',
-			minimum: 0,
-		},
-		totalAmount: {
-			type: 'string',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'string',
-			format: 'amount',
-		},
-		version: {
-			type: 'integer',
-			minimum: 0,
-		},
-	},
-};
-
-const proofOfMisbehaviorAssetFormatSchema = {
+const proofOfMisbehaviorAssetSchema = {
+	$id: 'lisk/proof-of-misbehavior-transaction',
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {
-		header1: blockHeaderSchema,
-		header2: blockHeaderSchema,
+		header1: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		header2: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
 	},
 };
 
-export interface ProofOfMisbehaviorAsset {
-	readonly header1: BlockHeaderJSON;
-	readonly header2: BlockHeaderJSON;
+const blockHeaderSchema = {
+	$id: 'lisk/block-header',
+	type: 'object',
+	required: ['height', 'version', 'timestamp', 'previousBlockId', 'generatorPublicKey', 'numberOfTransactions', 'payloadLength', 'transactionRoot', 'maxHeightPreviouslyForged', 'maxHeightPrevoted', 'totalAmount', 'totalFee', 'reward', 'seedReveal'],
+	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		version: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		timestamp: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		previousBlockId: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		generatorPublicKey: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		numberOfTransactions: {
+			dataType: 'uint32',
+			fieldNumber: 6,
+		},
+		payloadLength: {
+			dataType: 'uint32',
+			fieldNumber: 7,
+		},
+		transactionRoot: {
+			dataType: 'bytes',
+			fieldNumber: 8,
+		},
+		maxHeightPreviouslyForged: {
+			dataType: 'uint32',
+			fieldNumber: 9,
+		},
+		totalAmount: {
+			dataType: 'uint64',
+			fieldNumber: 10,
+		},
+		totalFee: {
+			dataType: 'uint64',
+			fieldNumber: 11,
+		},
+		reward: {
+			dataType: 'uint64',
+			fieldNumber: 12,
+		},
+		seedReveal: {
+			dataType: 'bytes',
+			fieldNumber: 13,
+		},
+	},
+};
+
+export interface PoMAsset {
+	readonly header1: BlockHeader;
+	readonly header2: BlockHeader;
 	reward: bigint;
 }
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	public static TYPE = 15;
-	public readonly asset: ProofOfMisbehaviorAsset;
+	public static ASSET_SCHEMA = proofOfMisbehaviorAssetSchema;
+	public readonly asset: PoMAsset;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset ?? {}) as ProofOfMisbehaviorAsset;
-		this.asset.reward =
-			this.asset.reward && isNumberString(this.asset.reward)
-				? BigInt(this.asset.reward)
-				: BigInt(0);
-	}
+	public constructor(transaction: BaseTransactionInput<PoMAsset>) {
+		super(transaction);
 
-	public assetToJSON(): object {
-		return {
-			header1: this.asset.header1,
-			header2: this.asset.header2,
-			reward: this.asset.reward.toString(),
-		};
-	}
-
-	protected assetToBytes(): Buffer {
-		return Buffer.concat([
-			getBlockBytesWithSignature(this.asset.header1),
-			getBlockBytesWithSignature(this.asset.header2),
-		]);
+		this.asset = transaction.asset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(
-			proofOfMisbehaviorAssetFormatSchema,
-			asset,
-		);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
+		const errors = [];
 
 		if (
 			this.asset.header1.generatorPublicKey !==
@@ -177,7 +130,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		) {
 			errors.push(
 				new TransactionError(
-					'GeneratorPublickey of each blockheader should match.',
+					'GeneratorPublicKey of each BlockHeader should match.',
 					this.id,
 					'.asset.header1.generatorPublicKey',
 				),
@@ -186,13 +139,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 		if (
 			Buffer.compare(
-				getBlockBytes(this.asset.header1),
-				getBlockBytes(this.asset.header2),
+				this._getBlockHeaderBytes(this.asset.header1),
+				this._getBlockHeaderBytes(this.asset.header2),
 			) === 0
 		) {
 			errors.push(
 				new TransactionError(
-					'Blockheaders are identical. No contradiction detected.',
+					'BlockHeaders are identical. No contradiction detected.',
 					this.id,
 					'.asset.header1',
 				),
@@ -202,7 +155,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		/*
             Check for BFT violations:
                 1. Double forging
-                2. Disjointness
+                2. Disjointedness
                 3. Branch is not the one with largest maxHeighPrevoted
         */
 
@@ -231,7 +184,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		) {
 			errors.push(
 				new TransactionError(
-					'Blockheaders are not contradicting as per BFT violation rules.',
+					'BlockHeaders are not contradicting as per BFT violation rules.',
 					this.id,
 					'.asset.header1',
 				),
@@ -307,7 +260,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Cannot apply proof-of-misbehavior. Delegate is banned.',
 					this.id,
 					'.asset.header1.generatorPublicKey',
-					this.asset.header1.generatorPublicKey,
+					this.asset.header1.generatorPublicKey.toString('hex'),
 				),
 			);
 
@@ -326,7 +279,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Cannot apply proof-of-misbehavior. Delegate is already punished. ',
 					this.id,
 					'.asset.header1.generatorPublicKey',
-					this.asset.header1.generatorPublicKey,
+					this.asset.header1.generatorPublicKey.toString('hex'),
 				),
 			);
 
@@ -338,12 +291,12 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		*/
 
 		const blockHeader1Bytes = Buffer.concat([
-			Buffer.from(networkIdentifier, 'hex'),
-			getBlockBytes(this.asset.header1),
+			networkIdentifier,
+			this._getBlockHeaderBytes(this.asset.header1),
 		]);
 		const blockHeader2Bytes = Buffer.concat([
-			Buffer.from(networkIdentifier, 'hex'),
-			getBlockBytes(this.asset.header2),
+			networkIdentifier,
+			this._getBlockHeaderBytes(this.asset.header2),
 		]);
 
 		const { valid: validHeader1Signature } = validateSignature(
@@ -358,7 +311,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Invalid block signature for header 1.',
 					this.id,
 					'.asset.header1.blockSignature',
-					this.asset.header1.blockSignature,
+					bufferToHex(this.asset.header1.blockSignature),
 				),
 			);
 		}
@@ -374,7 +327,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Invalid block signature for header 2.',
 					this.id,
 					'.asset.header2.blockSignature',
-					this.asset.header2.blockSignature,
+					bufferToHex(this.asset.header2.blockSignature),
 				),
 			);
 		}
@@ -443,5 +396,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		store.account.set(delegateAccount.address, delegateAccount);
 
 		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _getBlockHeaderBytes(header: BlockHeader): Buffer {
+		const { blockSignature, ...restOfHeader } = header;
+		return codec.encode(blockHeaderSchema, restOfHeader as unknown as GenericObject);
 	}
 }

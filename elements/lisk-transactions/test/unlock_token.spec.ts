@@ -26,7 +26,7 @@ describe('#unlockToken transaction', () => {
 			unlockTokenTransaction = unlockToken({
 				passphrase:
 					validUnlockTransactionScenario.testCases.input.account.passphrase,
-				unlockingObjects: validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
+				unlockObjects: validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(),
 				networkIdentifier:
 					validUnlockTransactionScenario.testCases.input.networkIdentifier,
 				fee: validUnlockTransactionScenario.testCases.output.fee,
@@ -52,7 +52,7 @@ describe('#unlockToken transaction', () => {
 					unlockToken({
 						passphrase:
 							validUnlockTransactionScenario.testCases.input.account.passphrase,
-						unlockingObjects: undefined,
+						unlockObjects: undefined,
 						networkIdentifier:
 							validUnlockTransactionScenario.testCases.input.networkIdentifier,
 						fee: validUnlockTransactionScenario.testCases.output.fee,
@@ -68,8 +68,8 @@ describe('#unlockToken transaction', () => {
 					unlockToken({
 						passphrase:
 							validUnlockTransactionScenario.testCases.input.account.passphrase,
-						unlockingObjects: [
-							...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(
+						unlockObjects: [
+							...validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(
 								0,
 								19,
 							),
@@ -94,8 +94,8 @@ describe('#unlockToken transaction', () => {
 					unlockToken({
 						passphrase:
 							validUnlockTransactionScenario.testCases.input.account.passphrase,
-						unlockingObjects: [
-							...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
+						unlockObjects: [
+							...validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(),
 							{
 								delegateAddress: '123L',
 								amount: '1000000000',
@@ -116,7 +116,7 @@ describe('#unlockToken transaction', () => {
 		describe('when the unlock transaction is created without a passphrase', () => {
 			beforeEach(() => {
 				unlockTokenTransaction = unlockToken({
-					unlockingObjects: validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
+					unlockObjects: validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(),
 					networkIdentifier:
 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
 					fee: validUnlockTransactionScenario.testCases.output.fee,
@@ -135,9 +135,9 @@ describe('#unlockToken transaction', () => {
 				);
 			});
 
-			it('should have the asset with the unlockingObjects', () => {
+			it('should have the asset with the unlockObjects', () => {
 				return expect(unlockTokenTransaction.asset).toHaveProperty(
-					'unlockingObjects',
+					'unlockObjects',
 				);
 			});
 

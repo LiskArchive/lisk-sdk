@@ -12,37 +12,38 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidNonce,
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
 
-import { RawAssetUnlock, UnlockTransaction } from './14_unlock_transaction';
+import { UnlockTransaction, Unlock } from './14_unlock_transaction';
 import { TransactionJSON } from './types';
-import { createBaseTransaction } from './utils';
+import { createBaseTransaction, baseTransactionToJSON } from './utils';
+
+interface RawAssetUnlock {
+	readonly delegateAddress: string;
+	readonly amount: string;
+	readonly unvoteHeight: number;
+}
 
 export interface UnlockTokenInputs {
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly passphrase?: string;
-	readonly unlockingObjects?: ReadonlyArray<RawAssetUnlock>;
-}
-
-interface GeneralInputs {
-	readonly networkIdentifier: string;
-	readonly fee: string;
-	readonly nonce: string;
-	readonly unlockingObjects?: ReadonlyArray<RawAssetUnlock>;
+	readonly unlockObjects: ReadonlyArray<RawAssetUnlock>;
 }
 
 const validateInputs = ({
 	fee,
 	nonce,
 	networkIdentifier,
-	unlockingObjects,
-}: GeneralInputs): void => {
+	unlockObjects,
+}: UnlockTokenInputs): void => {
 	if (!isValidNonce(nonce)) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
@@ -53,39 +54,38 @@ const validateInputs = ({
 
 	validateNetworkIdentifier(networkIdentifier);
 
-	if (!unlockingObjects?.length) {
+	if (!unlockObjects.length) {
 		throw new Error('Unlocking object must present to create transaction.');
 	}
 };
+
+const convertUnlockObjects = (unlockObjects: ReadonlyArray<RawAssetUnlock>): ReadonlyArray<Unlock> => unlockObjects.map(unlock => ({
+	delegateAddress: hexToBuffer(unlock.delegateAddress),
+	amount: BigInt(unlock.amount),
+	unvoteHeight: unlock.unvoteHeight,
+}));
 
 export const unlockToken = (
 	inputs: UnlockTokenInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { networkIdentifier, passphrase, unlockingObjects } = inputs;
+	const { passphrase, unlockObjects } = inputs;
+	const unlockAsset = convertUnlockObjects(unlockObjects)
+	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
 		type: UnlockTransaction.TYPE,
 		asset: {
-			unlockingObjects,
+			unlockObjects: unlockAsset,
 		},
 	};
 
 	if (!passphrase) {
-		return transaction;
+		return baseTransactionToJSON(transaction as UnlockTransaction);
 	}
 
-	const transactionWithSenderInfo = {
-		...transaction,
-		// SenderId and SenderPublicKey are expected to be exist from base transaction
-		senderPublicKey: transaction.senderPublicKey as string,
-		asset: {
-			...transaction.asset,
-		},
-	};
-
-	const unlockTransaction = new UnlockTransaction(transactionWithSenderInfo);
+	const unlockTransaction = new UnlockTransaction(transaction as UnlockTransaction);
 	unlockTransaction.sign(networkIdentifier, passphrase);
 
 	const { errors } = unlockTransaction.validate();
@@ -93,5 +93,5 @@ export const unlockToken = (
 		throw new Error(errors.toString());
 	}
 
-	return unlockTransaction.toJSON();
+	return baseTransactionToJSON(transaction as UnlockTransaction);
 };

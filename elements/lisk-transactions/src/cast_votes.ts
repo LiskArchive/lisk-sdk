@@ -12,29 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidNonce,
 	validateNetworkIdentifier,
 } from '@liskhq/lisk-validator';
 
-import { RawAssetVote, VoteTransaction } from './13_vote_transaction';
+import { RawAssetVote, VoteTransaction, Vote } from './13_vote_transaction';
+import { createBaseTransaction, baseTransactionToJSON } from './utils';
 import { TransactionJSON } from './types';
-import { createBaseTransaction } from './utils';
 
 export interface CastVoteInputs {
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
 	readonly passphrase?: string;
-	readonly votes?: ReadonlyArray<RawAssetVote>;
-}
-
-interface GeneralInputs {
-	readonly networkIdentifier: string;
-	readonly fee: string;
-	readonly nonce: string;
-	readonly votes?: ReadonlyArray<RawAssetVote>;
+	readonly votes: ReadonlyArray<RawAssetVote>;
 }
 
 const validateInputs = ({
@@ -42,48 +37,45 @@ const validateInputs = ({
 	nonce,
 	networkIdentifier,
 	votes,
-}: GeneralInputs): void => {
-	if (!isValidNonce(nonce)) {
+}: CastVoteInputs): void => {
+	if (!isValidNonce(nonce.toString())) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
 
-	if (!isValidFee(fee)) {
+	if (!isValidFee(fee.toString())) {
 		throw new Error('Fee must be a valid number in string format.');
 	}
 
 	validateNetworkIdentifier(networkIdentifier);
 
-	if (!votes?.length) {
+	if (!votes.length) {
 		throw new Error('Votes must present to create transaction.');
 	}
 };
 
+const convertVotes = (votes: ReadonlyArray<RawAssetVote>): ReadonlyArray<Vote> => votes.map(vote => ({
+	delegateAddress: hexToBuffer(vote.delegateAddress),
+	amount: BigInt(vote.amount),
+}));
+
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const { networkIdentifier, passphrase, votes } = inputs;
+	const { passphrase, votes } = inputs;
+	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 13,
+		type: VoteTransaction.TYPE,
 		asset: {
-			votes,
+			votes: convertVotes(votes),
 		},
-	};
+	} as VoteTransaction;
 
 	if (!passphrase) {
-		return transaction;
+		return baseTransactionToJSON(transaction);
 	}
 
-	const transactionWithSenderInfo = {
-		...transaction,
-		// SenderId and SenderPublicKey are expected to be exist from base transaction
-		senderPublicKey: transaction.senderPublicKey as string,
-		asset: {
-			...transaction.asset,
-		},
-	};
-
-	const voteTransaction = new VoteTransaction(transactionWithSenderInfo);
+	const voteTransaction = new VoteTransaction(transaction);
 	voteTransaction.sign(networkIdentifier, passphrase);
 
 	const { errors } = voteTransaction.validate();
@@ -91,5 +83,5 @@ export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 		throw new Error(errors.toString());
 	}
 
-	return voteTransaction.toJSON();
+	return baseTransactionToJSON(voteTransaction);
 };

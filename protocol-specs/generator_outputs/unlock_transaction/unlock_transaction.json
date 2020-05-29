@@ -103,7 +103,7 @@
 			"nonce": "3",
 			"senderPublicKey": "8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66",
 			"asset": {
-				"unlockingObjects": [
+				"unlockObjects": [
 					{
 						"delegateAddress": "12957061101390022344L",
 						"amount": "1000000000",

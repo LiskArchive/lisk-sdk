@@ -88,7 +88,7 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should create instance of DelegateTransaction when rawTransaction is empty', () => {
-			const validEmptyTestTransaction = new DelegateTransaction(null);
+			const validEmptyTestTransaction = new DelegateTransaction({} as any);
 			expect(validEmptyTestTransaction).toBeInstanceOf(DelegateTransaction);
 		});
 	});
@@ -102,65 +102,6 @@ describe('Delegate registration transaction class', () => {
 			expect(validTestTransaction.minFee).toEqual(
 				BigInt(nameFee) + byteLength * BigInt(minFeePerByte),
 			);
-		});
-	});
-
-	describe('#assetToBytes', () => {
-		it('should return valid buffer', () => {
-			const assetBytes = (validTestTransaction as any).assetToBytes();
-			expect(assetBytes).toEqual(
-				Buffer.from(validDelegateTransaction.asset.username, 'utf8'),
-			);
-		});
-	});
-
-	describe('#assetToJSON', () => {
-		it('should return an object of type transfer asset', () => {
-			expect(validTestTransaction.assetToJSON()).toHaveProperty('username');
-		});
-	});
-
-	describe('#validateAsset', () => {
-		it('should no errors', () => {
-			const errors = (validTestTransaction as any).validateAsset();
-			expect(errors).toHaveLength(0);
-		});
-
-		it('should return error when asset includes invalid characters', () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				asset: {
-					username: '%invalid%username*',
-				},
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-			expect(errors).toHaveLength(1);
-		});
-
-		it('should return error when asset includes uppercase', () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				asset: {
-					username: 'InValIdUsErNAmE',
-				},
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-			const errors = (transaction as any).validateAsset();
-			expect(errors).toHaveLength(1);
-		});
-
-		it('should error when asset is potential address', () => {
-			const invalidTransaction = {
-				...validDelegateTransaction,
-				asset: {
-					username: '1L',
-				},
-			};
-			const transaction = new DelegateTransaction(invalidTransaction);
-
-			const errors = (transaction as any).validateAsset();
-			expect(errors).toHaveLength(1);
 		});
 	});
 

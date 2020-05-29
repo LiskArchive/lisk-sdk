@@ -12,16 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './types';
+import { TransactionError } from './errors';
+import { BaseTransactionInput } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;
-	readonly address: string;
+	readonly address: Buffer;
 }
 interface ChainUsernames {
 	readonly registeredDelegates: RegisteredDelegate[];
@@ -31,15 +30,16 @@ export interface DelegateAsset {
 	readonly username: string;
 }
 
-export const delegateAssetFormatSchema = {
+export const delegateRegistrationAssetSchema = {
+	$id: 'lisk/delegate-registration-transaction',
 	type: 'object',
 	required: ['username'],
 	properties: {
 		username: {
-			type: 'string',
+			dataType: 'string',
+			fieldNumber: 1,
 			minLength: 1,
 			maxLength: 20,
-			format: 'username',
 		},
 	},
 };
@@ -47,51 +47,13 @@ export const delegateAssetFormatSchema = {
 export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
+	public static ASSET_SCHEMA = delegateRegistrationAssetSchema;
 	public readonly asset: DelegateAsset;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset ?? { delegate: {} }) as DelegateAsset;
-	}
+	public constructor(transaction: BaseTransactionInput<DelegateAsset>) {
+		super(transaction);
 
-	protected assetToBytes(): Buffer {
-		const { username } = this.asset;
-
-		return Buffer.from(username, 'utf8');
-	}
-
-	protected verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return transactions
-			.filter(
-				tx =>
-					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
-			)
-			.map(
-				tx =>
-					new TransactionError(
-						'Register delegate only allowed once per account.',
-						tx.id,
-						'.asset.delegate',
-					),
-			);
-	}
-
-	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(
-			delegateAssetFormatSchema,
-			this.asset,
-		);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
-		return errors;
+		this.asset = transaction.asset;
 	}
 
 	protected async applyAsset(
@@ -118,7 +80,7 @@ export class DelegateTransaction extends BaseTransaction {
 				address: this.senderId,
 			});
 			usernames.registeredDelegates.sort((a, b) =>
-				a.address.localeCompare(b.address),
+				a.address.compare(b.address),
 			);
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
@@ -170,7 +132,7 @@ export class DelegateTransaction extends BaseTransaction {
 			),
 		};
 		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
-			a.address.localeCompare(b.address),
+			a.address.compare(b.address),
 		);
 		store.chain.set(
 			CHAIN_STATE_DELEGATE_USERNAMES,
