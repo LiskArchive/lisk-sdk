@@ -43,8 +43,8 @@ interface NodeInfo {
 	readonly nodeIndex: bigint;
 }
 
-const isLeaf = (value: Buffer): boolean =>
-	LEAF_PREFIX.compare(value.slice(0, 1)) === 0;
+const isLeaf = (value: Buffer): boolean => 
+	LEAF_PREFIX.compare(value.slice(0, 1)) === 0 && value.compare(Buffer.alloc(0)) !== 0;
 
 // LEAFPREFIX = 0x00
 const generateLeaf = (value: Buffer): NodeData => {
