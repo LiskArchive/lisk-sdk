@@ -40,21 +40,9 @@ export class TransactionInterfaceAdapter {
 	}
 
 	// First encode message asset and then encode base message
+	// eslint-disable-next-line class-methods-use-this
 	public encode(message: BaseTransaction): Buffer {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const TransactionClass = this._transactionClassMap.get(message.type);
-
-		if (!TransactionClass) {
-			throw new Error('Transaction type not found.');
-		}
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const binaryAsset = codec.encode(TransactionClass.ASSET_SCHEMA, message.asset as unknown as GenericObject);
-		const binaryAssetWithMessage = { ...message, asset: binaryAsset };
-
-		const binaryMessage = codec.encode(BaseTransaction.BASE_SCHEMA, binaryAssetWithMessage as unknown as GenericObject);
-
-		return binaryMessage;
+		return message.getBytes();
 	}
 
 	// First decode base message and then decode asset

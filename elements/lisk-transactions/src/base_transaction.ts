@@ -327,7 +327,7 @@ export abstract class BaseTransaction {
 				senderPassphrase,
 			);
 
-			if (!this.senderPublicKey.compare(publicKey)) {
+			if (!this.senderPublicKey.equals(publicKey)) {
 				throw new Error(
 					'Transaction senderPublicKey does not match public key from passphrase',
 				);
