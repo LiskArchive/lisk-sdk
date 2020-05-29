@@ -13,14 +13,17 @@
  */
 
 import * as Debug from 'debug';
+import { SchemaError } from '../error';
 import { Schema } from '../../types';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('codec:keyword:fieldNumber');
 
 export const metaSchema = {
-	title: 'Lisk Code Field Number',
+	title: 'Lisk Codec Field Number',
 	type: 'number',
+	minimum: 1,
+	maximum: 18999,
 };
 
 type ValidateFunction = (
@@ -71,26 +74,19 @@ const compile = (
 		[key: string]: { fieldNumber: number };
 	} = deepValue(rootSchema, parentPath.join('.'));
 
-	let fieldNumbers: number[] = Object.keys(parentSchemaObject).map(
+	const fieldNumbers: number[] = Object.keys(parentSchemaObject).map(
 		(key: string) => parentSchemaObject[key].fieldNumber,
 	);
-	fieldNumbers.sort((a: number, b: number): number => a - b);
-	fieldNumbers = [...new Set(fieldNumbers)];
+	const uniqueFieldNumbers = [...new Set(fieldNumbers)];
 
-	if (fieldNumbers[0] !== 1) {
-		throw new Error(
-			`filedNumber should be start from 1 for object with $id "${
-				rootSchema.$id
-			}" at path "${parentPath.join('.')}"`,
-		);
-	}
-
-	if (fieldNumbers[fieldNumbers.length - 1] !== fieldNumbers.length) {
-		throw new Error(
-			`filedNumber should consecutive integers for object with $id "${
-				rootSchema.$id
-			}" at path "${parentPath.join('.')}"`,
-		);
+	if (fieldNumbers.length !== uniqueFieldNumbers.length) {
+		throw new SchemaError({
+			keyword: 'fieldNumber',
+			message: 'Value must be unique across all properties on same level',
+			params: { fieldNumbers },
+			dataPath: '',
+			schemaPath: it.schemaPath ?? '',
+		});
 	}
 
 	return (

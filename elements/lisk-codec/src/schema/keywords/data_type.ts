@@ -13,12 +13,14 @@
  */
 
 import * as Debug from 'debug';
+import { SchemaError } from '../error';
+import { Schema } from '../../types';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('codec:keyword:dataType');
 
 export const metaSchema = {
-	title: 'Lisk Data Type',
+	title: 'Lisk Codec Data Type',
 	type: 'string',
 	enum: ['bytes', 'uint32', 'sint32', 'uint64', 'sint64', 'string', 'boolean'],
 };
@@ -31,14 +33,29 @@ type ValidateFunction = (
 	rootData?: object,
 ) => boolean;
 
-const compile = (value: string, parentSchema: object): ValidateFunction => {
+interface AjvContext {
+	root: {
+		schema: Schema;
+	};
+	schemaPath: string;
+}
+const compile = (
+	value: string,
+	parentSchema: object,
+	it: Partial<AjvContext>,
+): ValidateFunction => {
 	debug('compile: value: %s', value);
 	debug('compile: parent schema: %j', parentSchema);
-
 	const typePropertyPresent = Object.keys(parentSchema).includes('type');
 
 	if (typePropertyPresent) {
-		throw new Error('Only "dataType" or "type" can be presented in schema');
+		throw new SchemaError({
+			keyword: 'dataType',
+			message: 'Either "dataType" or "type" can be presented in schema',
+			params: { dataType: value },
+			dataPath: '',
+			schemaPath: it.schemaPath ?? '',
+		});
 	}
 
 	return (
@@ -48,7 +65,7 @@ const compile = (value: string, parentSchema: object): ValidateFunction => {
 		_parentDataProperty?: string | number,
 		_rootData?: object,
 	): boolean =>
-		// Only "dataType" or "type" can be presented in schema
+		// Either "dataType" or "type" can be presented in schema
 		!typePropertyPresent;
 };
 
