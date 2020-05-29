@@ -14,18 +14,18 @@
 import { Account, BlockHeader } from '../../src/types';
 
 interface AccountStoreMock {
-	get: (address: string) => Promise<Account>;
+	get: (address: Buffer) => Promise<Account>;
 	getUpdated: () => Account[];
-	set: (address: string, account: Account) => void;
+	set: (address: Buffer, account: Account) => void;
 }
 
 interface ConsensusStateStoreMock {
-	get: (address: string) => Promise<Buffer | undefined>;
+	get: (key: string) => Promise<Buffer | undefined>;
 	set: (key: string, v: Buffer) => void;
 	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 interface ChainStateStoreMock {
-	get: (address: string) => Promise<Buffer | undefined>;
+	get: (key: string) => Promise<Buffer | undefined>;
 	set: (key: string, v: Buffer) => void;
 }
 
@@ -63,16 +63,16 @@ export class StateStoreMock {
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (address: string): Promise<Account> => {
-				const account = this.accountData.find(acc => acc.address === address);
+			get: async (address: Buffer): Promise<Account> => {
+				const account = this.accountData.find(acc => acc.address.equals(address));
 				if (!account) {
 					throw new Error('Account not defined');
 				}
 				return { ...account };
 			},
-			set: (address: string, account: Account): void => {
+			set: (address: Buffer, account: Account): void => {
 				const index = this.accountData.findIndex(
-					acc => acc.address === address,
+					acc => acc.address.equals(address),
 				);
 				if (index > -1) {
 					this.accountData[index] = account;

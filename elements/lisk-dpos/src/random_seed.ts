@@ -13,9 +13,7 @@
  */
 
 import {
-	bufferToHex,
 	hash,
-	hexToBuffer,
 	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
@@ -79,10 +77,10 @@ const findPreviousHeaderOfDelegate = (
 };
 
 const isValidSeedReveal = (
-	seedReveal: string,
-	previousSeedReveal: string,
+	seedReveal: Buffer,
+	previousSeedReveal: Buffer,
 ): boolean =>
-	bufferToHex(strippedHash(hexToBuffer(seedReveal))) === previousSeedReveal;
+	strippedHash(seedReveal).equals(previousSeedReveal);
 
 const selectSeedReveals = ({
 	fromHeight,
@@ -115,12 +113,12 @@ const selectSeedReveals = ({
 
 		// To validate seed reveal of any block in the last round
 		// We have to check till second last round
-		if (!isValidSeedReveal(header.seedReveal, lastForgedBlock.seedReveal)) {
+		if (!isValidSeedReveal(header.asset.seedReveal, lastForgedBlock.asset.seedReveal)) {
 			// eslint-disable-next-line no-continue
 			continue;
 		}
 
-		selected.push(hexToBuffer(header.seedReveal));
+		selected.push(header.asset.seedReveal);
 	}
 
 	return selected;

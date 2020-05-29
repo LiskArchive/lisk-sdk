@@ -29,18 +29,19 @@ export const getDelegateAccounts = (num = 1): Account[] => {
 		accounts.push({
 			address,
 			publicKey,
-			producedBlocks: 0,
-			missedBlocks: 0,
 			balance: BigInt(balance),
-			fees: BigInt('0'),
-			rewards: BigInt('0'),
-			totalVotesReceived: BigInt('0'),
-			username: `genesis_${(index + randomInt(0, 999999)).toString()}`,
-			delegate: {
-				isBanned: false,
-				pomHeights: [],
+			asset: {
+				delegate: {
+					totalVotesReceived: BigInt('0'),
+					username: `genesis_${(index + randomInt(0, 999999)).toString()}`,
+					isBanned: false,
+					consecutiveMissedBlocks: 0,
+					lastForgedHeight: 0,
+					pomHeights: [],
+				},
+				sentVotes: [],
+				unlocking: [],
 			},
-			votes: [],
 		});
 	}
 
@@ -50,7 +51,7 @@ export const getDelegateAccounts = (num = 1): Account[] => {
 export const getDelegateAccountsWithVotesReceived = (num = 1): Account[] => {
 	const accounts = getDelegateAccounts(num);
 	for (const account of accounts) {
-		account.totalVotesReceived = randomBigIntWithPowerof8(1000, 100000);
+		account.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 100000);
 	}
 	return accounts;
 };

@@ -15,7 +15,7 @@
 import { Slots } from '@liskhq/lisk-chain';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
-import { Account, ForgersList, Block } from '../../src/types';
+import { Account, ForgersList, BlockHeader } from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -67,22 +67,22 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 		let generator: Account;
 
 		beforeEach(() => {
 			generator = { ...delegateAccounts[0] };
 			// Arrange
 			genesisBlock = {
-				id: 'genesis-block',
+				id: Buffer.from('genesis-block'),
 				timestamp: 10,
 				height: 1,
 				generatorPublicKey: generator.publicKey,
 				reward: BigInt(500000000),
-				totalFee: BigInt(100000000),
-				transactions: [],
-				seedReveal: '00000000000000000000000000000000',
-			} as Block;
+				asset: {
+					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+				},
+			} as BlockHeader;
 
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {});
 		});
