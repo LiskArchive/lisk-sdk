@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { codec, GenericObject } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { hash } from '@liskhq/lisk-cryptography';
 

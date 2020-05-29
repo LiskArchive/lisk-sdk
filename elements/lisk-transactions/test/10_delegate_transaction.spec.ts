@@ -88,7 +88,7 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should create instance of DelegateTransaction when rawTransaction is empty', () => {
-			const validEmptyTestTransaction = new DelegateTransaction(null);
+			const validEmptyTestTransaction = new DelegateTransaction({} as any);
 			expect(validEmptyTestTransaction).toBeInstanceOf(DelegateTransaction);
 		});
 	});

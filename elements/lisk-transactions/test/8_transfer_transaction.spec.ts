@@ -15,7 +15,6 @@
 import { MAX_TRANSACTION_AMOUNT } from '../src/constants';
 import { TransferTransaction } from '../src/8_transfer_transaction';
 import { Account } from '../src/types';
-import { TransactionError } from '../src/errors';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
