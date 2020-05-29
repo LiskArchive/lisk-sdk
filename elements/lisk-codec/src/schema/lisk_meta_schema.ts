@@ -56,6 +56,7 @@ export const liskMetaSchema = {
 					},
 				],
 			},
+			minProperties: 1,
 		},
 		required: {
 			type: 'array',
@@ -65,7 +66,7 @@ export const liskMetaSchema = {
 			uniqueItems: true,
 		},
 	},
-	required: ['$id', '$schema', 'title', 'type', 'properties', 'required'],
+	required: ['$id', '$schema', 'type', 'properties'],
 	additionalProperties: false,
 	definitions: {
 		schema: {
