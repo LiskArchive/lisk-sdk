@@ -1,0 +1,21 @@
+syntax = 'proto2';
+
+message Cart {
+	required uint32 orderId = 1;
+	required uint32 createdAt = 2;
+	required uint32 customerId = 3;
+	repeated LineItem lineItems = 4;
+}
+
+message LineItem {
+	required uint32 productId = 1;
+	required uint32 price = 2;
+	required uint32 quantity = 3;
+	repeated TaxItem taxLines = 4;
+}
+
+message TaxItem {
+	required uint32 price = 1;
+	required uint32 rate = 2;
+	required string title = 3;
+}
