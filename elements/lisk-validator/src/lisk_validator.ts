@@ -69,6 +69,12 @@ class LiskValidator {
 		return this._validator.compile(schema);
 	}
 
+	public removeSchema(
+		schemaKeyRef?: object | string | RegExp | boolean,
+	): Ajv.Ajv {
+		return this._validator.removeSchema(schemaKeyRef);
+	}
+
 	public addMetaSchema(schema: object, key?: string): Ajv.Ajv {
 		return this._validator.addMetaSchema(schema, key);
 	}
