@@ -81,7 +81,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			tx = {
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -94,11 +94,11 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should return transaction if exist', () => {
-			expect(transactionPool.get('1')).toEqual(tx);
+			expect(transactionPool.get(Buffer.from('1'))).toEqual(tx);
 		});
 
 		it('should return undefined if it does not exist', () => {
-			expect(transactionPool.get('2')).toBeUndefined();
+			expect(transactionPool.get(Buffer.from('2'))).toBeUndefined();
 		});
 	});
 
@@ -108,7 +108,7 @@ describe('TransactionPool class', () => {
 
 		beforeEach(async () => {
 			tx = {
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -121,49 +121,49 @@ describe('TransactionPool class', () => {
 		});
 
 		it('should return transaction if exist', () => {
-			expect(transactionPool.contains('1')).toBe(true);
+			expect(transactionPool.contains(Buffer.from('1'))).toBe(true);
 		});
 
 		it('should return undefined if it does not exist', () => {
-			expect(transactionPool.contains('2')).toBe(false);
+			expect(transactionPool.contains(Buffer.from('2'))).toBe(false);
 		});
 	});
 
 	describe('getProcessableTransactions', () => {
-		let senderPublicKeys: string[];
+		let senderPublicKeys: Buffer[];
 		beforeEach(async () => {
 			senderPublicKeys = generateRandomPublicKeys(3);
 			const txs = [
 				{
-					id: '1',
+					id: Buffer.from('1'),
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
-					id: '2',
+					id: Buffer.from('2'),
 					nonce: BigInt(2),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
-					id: '9',
+					id: Buffer.from('9'),
 					nonce: BigInt(9),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
-					id: '3',
+					id: Buffer.from('3'),
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
 					senderPublicKey: senderPublicKeys[1],
 				},
 				{
-					id: '10',
+					id: Buffer.from('10'),
 					nonce: BigInt(100),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -175,53 +175,60 @@ describe('TransactionPool class', () => {
 				tx.getBytes = jest.fn().mockReturnValue(Buffer.from(new Array(10)));
 				await transactionPool.add(tx);
 			}
-			(transactionPool as any)._transactionList[
-				getAddressFromPublicKey(senderPublicKeys[0])
-			].promote([txs[0]]);
-			(transactionPool as any)._transactionList[
-				getAddressFromPublicKey(senderPublicKeys[1])
-			].promote([txs[3]]);
+			(transactionPool as any)._transactionList
+				.get(getAddressFromPublicKey(senderPublicKeys[0]))
+				.promote([txs[0]]);
+			(transactionPool as any)._transactionList
+				.get(getAddressFromPublicKey(senderPublicKeys[1]))
+				.promote([txs[3]]);
 			// Force to make it unprocessable
-			transactionPool['_transactionList'][
-				getAddressFromPublicKey(senderPublicKeys[2])
-			]['_demoteAfter'](BigInt(0));
+			(transactionPool['_transactionList'].get(
+				getAddressFromPublicKey(senderPublicKeys[2]),
+			) as TransactionList)['_demoteAfter'](BigInt(0));
 		});
 
 		it('should return copy of processable transactions list', () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
-			const transactionFromSender0 =
-				processableTransactions[getAddressFromPublicKey(senderPublicKeys[0])];
-			const transactionFromSender1 =
-				processableTransactions[getAddressFromPublicKey(senderPublicKeys[1])];
+			const transactionFromSender0 = processableTransactions.get(
+				getAddressFromPublicKey(senderPublicKeys[0]),
+			);
+			const transactionFromSender1 = processableTransactions.get(
+				getAddressFromPublicKey(senderPublicKeys[1]),
+			);
 
 			expect(transactionFromSender0).toHaveLength(1);
-			expect(transactionFromSender0[0].nonce.toString()).toEqual('1');
+			expect(
+				(transactionFromSender0 as Transaction[])[0].nonce.toString(),
+			).toEqual('1');
 			expect(transactionFromSender1).toHaveLength(1);
-			expect(transactionFromSender1[0].nonce.toString()).toEqual('1');
+			expect(
+				(transactionFromSender1 as Transaction[])[0].nonce.toString(),
+			).toEqual('1');
 			// Check if it is a copy
-			delete (processableTransactions as any)[
-				getAddressFromPublicKey(senderPublicKeys[0])
-			];
-			(processableTransactions as any)[
-				getAddressFromPublicKey(senderPublicKeys[1])
-			][0] = 'random thing';
+			processableTransactions.delete(
+				getAddressFromPublicKey(senderPublicKeys[0]),
+			);
+			(processableTransactions as any).get(
+				getAddressFromPublicKey(senderPublicKeys[1]),
+			)[0] = 'random thing';
 
 			expect(
-				(transactionPool as any)._transactionList[
-					getAddressFromPublicKey(senderPublicKeys[0])
-				],
+				(transactionPool as any)._transactionList.get(
+					getAddressFromPublicKey(senderPublicKeys[0]),
+				),
 			).not.toBeUndefined();
 			expect(
-				transactionPool.getProcessableTransactions()[
-					getAddressFromPublicKey(senderPublicKeys[1])
-				],
+				transactionPool
+					.getProcessableTransactions()
+					.get(getAddressFromPublicKey(senderPublicKeys[1])),
 			).toHaveLength(1);
 		});
 
 		it('should not include the sender key if processable transactions are empty', () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
-			const transactionFromSender2 =
-				processableTransactions[getAddressFromPublicKey(senderPublicKeys[2])];
+			const transactionFromSender2 = processableTransactions.get(
+				getAddressFromPublicKey(senderPublicKeys[2]),
+			);
 			expect(transactionFromSender2).toBeUndefined();
 		});
 	});
@@ -229,7 +236,7 @@ describe('TransactionPool class', () => {
 	describe('add', () => {
 		let txGetBytesStub: any;
 		const tx = {
-			id: '1',
+			id: Buffer.from('1'),
 			nonce: BigInt(1),
 			minFee: BigInt(10),
 			fee: BigInt(1000),
@@ -242,19 +249,20 @@ describe('TransactionPool class', () => {
 		it('should add a valid transaction and is added to the transaction list as processable', async () => {
 			const { status } = await transactionPool.add(tx);
 			expect(status).toEqual(Status.OK);
-			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
+			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(
+				true,
+			);
 
 			const originalTrxObj =
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(BigInt(1)) ?? {};
+				transactionPool['_transactionList']
+					.get(getAddressFromPublicKey(tx.senderPublicKey))
+					?.get(BigInt(1)) ?? {};
 
 			expect(originalTrxObj).toEqual(tx);
-			const trxSenderAddressList =
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				];
-			expect(trxSenderAddressList.getProcessable()).toContain(originalTrxObj);
+			const trxSenderAddressList = transactionPool['_transactionList'].get(
+				getAddressFromPublicKey(tx.senderPublicKey),
+			);
+			expect(trxSenderAddressList?.getProcessable()).toContain(originalTrxObj);
 		});
 
 		it('should add a valid transaction and is added to the transaction list as unprocessable', async () => {
@@ -273,19 +281,22 @@ describe('TransactionPool class', () => {
 			const { status } = await transactionPool.add(tx);
 
 			expect(status).toEqual(Status.OK);
-			expect(Object.keys(transactionPool['_allTransactions'])).toContain('1');
+			expect(transactionPool['_allTransactions'].has(Buffer.from('1'))).toEqual(
+				true,
+			);
 
 			const originalTrxObj =
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(BigInt(1)) ?? {};
+				transactionPool['_transactionList']
+					.get(getAddressFromPublicKey(tx.senderPublicKey))
+					?.get(BigInt(1)) ?? {};
 
 			expect(originalTrxObj).toEqual(tx);
-			const trxSenderAddressList =
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				];
-			expect(trxSenderAddressList.getUnprocessable()).toContain(originalTrxObj);
+			const trxSenderAddressList = transactionPool['_transactionList'].get(
+				getAddressFromPublicKey(tx.senderPublicKey),
+			);
+			expect(trxSenderAddressList?.getUnprocessable()).toContain(
+				originalTrxObj,
+			);
 		});
 
 		it('should reject a duplicate transaction', async () => {
@@ -315,7 +326,7 @@ describe('TransactionPool class', () => {
 				);
 				// eslint-disable-next-line jest/no-try-expect
 				expect(error.message).toContain(
-					`transaction id ${tx.id} is an invalid transaction`,
+					`transaction id ${tx.id.toString('hex')} is an invalid transaction`,
 				);
 			}
 		});
@@ -327,7 +338,7 @@ describe('TransactionPool class', () => {
 			});
 
 			const lowFeeTrx = {
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(100),
@@ -357,7 +368,7 @@ describe('TransactionPool class', () => {
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
-					id: `${i.toString()}`,
+					id: Buffer.from(`${i.toString()}`),
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -377,7 +388,7 @@ describe('TransactionPool class', () => {
 			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
 
 			const highFeePriorityTx = {
-				id: '11',
+				id: Buffer.from('11'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(5000),
@@ -411,7 +422,7 @@ describe('TransactionPool class', () => {
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS - 1; i += 1) {
 				const tempTx = {
-					id: `${i.toString()}`,
+					id: Buffer.from(`${i.toString()}`),
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -429,7 +440,7 @@ describe('TransactionPool class', () => {
 			}
 
 			const nonSequentialTx = {
-				id: '21',
+				id: Buffer.from('21'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(5000),
@@ -451,7 +462,7 @@ describe('TransactionPool class', () => {
 			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
 
 			const highFeePriorityTx = {
-				id: '11',
+				id: Buffer.from('11'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(5000),
@@ -487,7 +498,7 @@ describe('TransactionPool class', () => {
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
-					id: `${i.toString()}`,
+					id: Buffer.from(`${i.toString()}`),
 					nonce: BigInt(1),
 					minFee: BigInt(10),
 					fee: BigInt(1000),
@@ -507,7 +518,7 @@ describe('TransactionPool class', () => {
 			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
 
 			const lowFeePriorityTx = {
-				id: '11',
+				id: Buffer.from('11'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -532,14 +543,14 @@ describe('TransactionPool class', () => {
 		let txGetBytesStub: any;
 		const senderPublicKey = generateRandomPublicKeys()[0];
 		const tx = {
-			id: '1',
+			id: Buffer.from('1'),
 			nonce: BigInt(1),
 			minFee: BigInt(10),
 			fee: BigInt(1000),
 			senderPublicKey,
 		} as Transaction;
 		const additionalTx = {
-			id: '2',
+			id: Buffer.from('2'),
 			nonce: BigInt(3),
 			minFee: BigInt(10),
 			fee: BigInt(1000),
@@ -563,15 +574,15 @@ describe('TransactionPool class', () => {
 
 		it('should return false when a tx id does not exist', () => {
 			expect(
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(tx.nonce),
+				transactionPool['_transactionList']
+					.get(getAddressFromPublicKey(tx.senderPublicKey))
+					?.get(tx.nonce),
 			).toEqual(tx);
 			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
 
 			// Remove a transaction that does not exist
 			const nonExistentTrx = {
-				id: '155',
+				id: Buffer.from('155'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -583,9 +594,9 @@ describe('TransactionPool class', () => {
 
 		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', () => {
 			expect(
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(tx.nonce),
+				transactionPool['_transactionList']
+					.get(getAddressFromPublicKey(tx.senderPublicKey))
+					?.get(tx.nonce),
 			).toEqual(tx);
 			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
 
@@ -594,9 +605,9 @@ describe('TransactionPool class', () => {
 			expect(removeStatus).toEqual(true);
 			expect(transactionPool.getAll()).toHaveLength(1);
 			expect(
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				].get(tx.nonce),
+				transactionPool['_transactionList']
+					.get(getAddressFromPublicKey(tx.senderPublicKey))
+					?.get(tx.nonce),
 			).toBeUndefined();
 			expect(transactionPool['_feePriorityQueue'].values).not.toContain(tx.id);
 		});
@@ -605,9 +616,9 @@ describe('TransactionPool class', () => {
 			transactionPool.remove(tx);
 			transactionPool.remove(additionalTx);
 			expect(
-				transactionPool['_transactionList'][
-					getAddressFromPublicKey(tx.senderPublicKey)
-				],
+				transactionPool['_transactionList'].get(
+					getAddressFromPublicKey(tx.senderPublicKey),
+				),
 			).toBeUndefined();
 		});
 	});
@@ -616,14 +627,14 @@ describe('TransactionPool class', () => {
 		const senderPublicKey = generateRandomPublicKeys()[0];
 		const transactions = [
 			{
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey,
 			} as Transaction,
 			{
-				id: '3',
+				id: Buffer.from('3'),
 				nonce: BigInt(3),
 				minFee: BigInt(10),
 				fee: BigInt(3000),
@@ -674,14 +685,14 @@ describe('TransactionPool class', () => {
 		const senderPublicKey2 = generateRandomPublicKeys()[0];
 		const transactionsFromSender1 = [
 			{
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
-				id: '2',
+				id: Buffer.from('2'),
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
@@ -691,14 +702,14 @@ describe('TransactionPool class', () => {
 
 		const transactionsFromSender2 = [
 			{
-				id: '11',
+				id: Buffer.from('11'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 			{
-				id: '12',
+				id: Buffer.from('12'),
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -765,21 +776,21 @@ describe('TransactionPool class', () => {
 		const senderPublicKey2 = generateRandomPublicKeys()[0];
 		const transactionsFromSender1 = [
 			{
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
-				id: '2',
+				id: Buffer.from('2'),
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
-				id: '3',
+				id: Buffer.from('3'),
 				nonce: BigInt(3),
 				minFee: BigInt(10),
 				fee: BigInt(3000),
@@ -789,7 +800,7 @@ describe('TransactionPool class', () => {
 
 		const transactionsFromSender2 = [
 			{
-				id: '11',
+				id: Buffer.from('11'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -832,8 +843,8 @@ describe('TransactionPool class', () => {
 			await transactionPool.add(transactionsFromSender1[2]);
 			await transactionPool.add(transactionsFromSender2[0]);
 			// eslint-disable-next-line prefer-destructuring
-			address = Object.keys((transactionPool as any)._transactionList)[0];
-			txList = (transactionPool as any)._transactionList[address];
+			address = (transactionPool as any)._transactionList.values()[0].address;
+			txList = (transactionPool as any)._transactionList.get(address);
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			transactionPool.start();
 		});
@@ -872,7 +883,7 @@ describe('TransactionPool class', () => {
 		const senderPublicKey2 = generateRandomPublicKeys()[1];
 		const transactionsForSender1 = [
 			{
-				id: '1',
+				id: Buffer.from('1'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -880,7 +891,7 @@ describe('TransactionPool class', () => {
 				receivedAt: new Date(0),
 			} as Transaction,
 			{
-				id: '2',
+				id: Buffer.from('2'),
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
@@ -888,7 +899,7 @@ describe('TransactionPool class', () => {
 				receivedAt: new Date(),
 			} as Transaction,
 			{
-				id: '3',
+				id: Buffer.from('3'),
 				nonce: BigInt(3),
 				minFee: BigInt(10),
 				fee: BigInt(3000),
@@ -899,7 +910,7 @@ describe('TransactionPool class', () => {
 
 		const transactionsForSender2 = [
 			{
-				id: '11',
+				id: Buffer.from('11'),
 				nonce: BigInt(1),
 				minFee: BigInt(10),
 				fee: BigInt(1000),
@@ -907,7 +918,7 @@ describe('TransactionPool class', () => {
 				receivedAt: new Date(0),
 			} as Transaction,
 			{
-				id: '12',
+				id: Buffer.from('12'),
 				nonce: BigInt(2),
 				minFee: BigInt(10),
 				fee: BigInt(2000),
@@ -917,13 +928,26 @@ describe('TransactionPool class', () => {
 		];
 
 		beforeEach(() => {
-			(transactionPool as any)._allTransactions = {
-				1: transactionsForSender1[0],
-				2: transactionsForSender1[1],
-				3: transactionsForSender1[2],
-				11: transactionsForSender2[0],
-				12: transactionsForSender2[1],
-			};
+			transactionPool['_allTransactions'].set(
+				transactionsForSender1[0].id,
+				transactionsForSender1[0],
+			);
+			transactionPool['_allTransactions'].set(
+				transactionsForSender1[1].id,
+				transactionsForSender1[1],
+			);
+			transactionPool['_allTransactions'].set(
+				transactionsForSender1[2].id,
+				transactionsForSender1[2],
+			);
+			transactionPool['_allTransactions'].set(
+				transactionsForSender2[0].id,
+				transactionsForSender2[0],
+			);
+			transactionPool['_allTransactions'].set(
+				transactionsForSender2[1].id,
+				transactionsForSender2[1],
+			);
 		});
 
 		it('should expire old transactions', () => {
