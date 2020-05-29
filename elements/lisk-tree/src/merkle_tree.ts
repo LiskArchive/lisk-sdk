@@ -22,15 +22,23 @@ const LAYER_INDEX_SIZE = 1;
 const NODE_INDEX_SIZE = 8;
 const NODE_HASH_SIZE = 32;
 
+enum NodeType {
+	ROOT = 'root',
+	BRANCH = 'branch',
+	LEAF = 'leaf',
+}
+
 interface NodeData {
 	readonly value: Buffer;
 	readonly hash: Buffer;
 }
 
 interface NodeInfo {
+	readonly type: NodeType;
+	readonly hash: Buffer;
 	readonly value: Buffer;
-	readonly left: Buffer;
-	readonly right: Buffer;
+	readonly leftHash: Buffer;
+	readonly rightHash: Buffer;
 	readonly layerIndex: number;
 	readonly nodeIndex: bigint;
 }

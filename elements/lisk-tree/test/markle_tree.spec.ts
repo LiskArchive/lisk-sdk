@@ -15,7 +15,7 @@
 import { MerkleTree } from '../src/merkle_tree';
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
 
-describe('MerkleTree', () => {
+describe.only('MerkleTree', () => {
 	describe('constructor', () => {
 		for (const test of fixture.testCases) {
 			describe(test.description, () => {
@@ -24,6 +24,7 @@ describe('MerkleTree', () => {
 						Buffer.from(hexString, 'hex'),
 					);
 					const merkleTree = new MerkleTree(inputs);
+
 					expect(merkleTree.root).toEqual(
 						Buffer.from(test.output.transactionMerkleRoot, 'hex'),
 					);
@@ -35,16 +36,15 @@ describe('MerkleTree', () => {
 	describe('append', () => {
 		it('should append have correct root when leaf size is 3', () => {
 			const values = [
-				Buffer.from('1d8259c1', 'hex'),
-				Buffer.from('3011638b', 'hex'),
+				Buffer.from('eda3b36bf12cecc2cb1b8bd61f8fca182fffe36442bf15dfe2ae448153281904', 'hex'),
+				Buffer.from('0c239e9eac45f3def847df4fc32a455deef69463b9d2b169e093eccb5e00b948', 'hex'),
 			];
 			const merkleTree = new MerkleTree(values);
 
-			merkleTree.append(Buffer.from('eb4031', 'hex'));
-
+			merkleTree.append(Buffer.from('8232ad1608feaa637a57c0b0591b4a806f7f6c899ccee842cdc79cc3fce1902e', 'hex'));
 			expect(merkleTree.root).toEqual(
 				Buffer.from(
-					'c35ebf5a2e7556f1d79367cd0ae0d660075f50d7ed70a2ac29b318849a13b972',
+					'ca46535af3c0e96cb72d24c46552d541870a39c64b27d563b44cc4c50cb614f2',
 					'hex',
 				),
 			);
