@@ -51,19 +51,6 @@ const isAppendPath = (dataLength: number, layer: number) => {
 	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
 };
 
-// LEAFPREFIX = 0x00
-const generateLeaf = (value: Buffer): NodeData => {
-	const leafValue = Buffer.concat(
-		[LEAF_PREFIX, value],
-		LEAF_PREFIX.length + value.length,
-	);
-
-	return {
-		value: leafValue,
-		hash: hash(leafValue),
-	};
-};
-
 // BRANCHPREFIX = 0x01
 const generateBranch = (
 	left: Buffer,
@@ -135,6 +122,23 @@ export class MerkleTree {
 	public get root(): Buffer {
 		return this._root;
 	}
+
+	public generateLeaf(value: Buffer): NodeData {
+		const leafValue = Buffer.concat(
+			[LEAF_PREFIX, value],
+				LEAF_PREFIX.length + 
+				value.length
+		);
+		const leafHash = hash(leafValue);
+		
+		this._hashToBuffer[leafHash.toString('binary')] = leafValue;
+		this._width += 1;
+
+		return {
+			value: leafValue,
+			hash: hash(leafValue),
+		};
+	};
 
 	public append(value: Buffer): Buffer {
 		const leaf = generateLeaf(value);
