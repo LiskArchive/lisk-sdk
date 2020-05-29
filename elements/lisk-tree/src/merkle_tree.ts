@@ -47,6 +47,11 @@ const isLeaf = (value: Buffer): boolean =>
 	LEAF_PREFIX.compare(value.slice(0, 1)) === 0 &&
 	value.compare(Buffer.alloc(0)) !== 0;
 
+/*
+	We use the binary representation of dataLength to find the correct appendPath
+	Each digit di ∈ {0, 1} labels a layer of the tree according to the power of 2 it represents
+	The rightmost digit is the base layer
+*/
 const isAppendPath = (dataLength: number, layer: number): boolean => {
 	const multiplier = 2 ** (layer - 1);
 	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
