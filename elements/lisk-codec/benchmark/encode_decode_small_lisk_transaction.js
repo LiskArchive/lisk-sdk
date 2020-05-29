@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// writeBoolean x 3,543,238 ops/sec ±1.59% (89 runs sampled)
 
 const { Suite } = require('benchmark');
 const { codec } = require('../dist-node/codec');
