@@ -212,9 +212,9 @@ export class DataAccess {
 				}
 			}
 		}
-		blocks.sort((a, b) => b.height - a.height);
+		storageBlocks.sort((a, b) => b.height - a.height);
 
-		return blocks[0];
+		return storageBlocks[0];
 	}
 
 	/** End: BlockHeaders */
@@ -323,6 +323,11 @@ export class DataAccess {
 	/** End: Accounts */
 
 	/** Begin: Transactions */
+	public async getTransactionByID(id: Buffer): Promise<BaseTransaction> {
+		const transaction = await this._storage.getTransactionByID(id);
+		return this._transactionAdapter.decode(transaction);
+	}
+
 	public async getTransactionsByIDs(
 		arrayOfTransactionIds: ReadonlyArray<Buffer>,
 	): Promise<BaseTransaction[]> {

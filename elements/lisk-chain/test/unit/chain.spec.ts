@@ -32,7 +32,7 @@ import {
 	createFakeDefaultAccount,
 	encodeDefaultAccount,
 } from '../utils/account';
-import { transaction } from '../utils/transaction';
+import { getTransferTransaction } from '../utils/transaction';
 
 jest.mock('events');
 jest.mock('@liskhq/lisk-db');
@@ -62,7 +62,6 @@ describe('chain', () => {
 	beforeEach(() => {
 		genesisBlock = getGenesisBlock();
 		// Arrange
-		(formatInt as any) = (num: number | bigint) => num.toString();
 		db = new KVStore('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
 
@@ -451,7 +450,7 @@ describe('chain', () => {
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockByID')
 				.mockResolvedValue(genesisBlock as never);
-			const tx = transaction();
+			const tx = getTransferTransaction();
 			const block = createValidDefaultBlock({ payload: [tx] });
 			// Act
 			await chainInstance.remove(block, stateStoreStub, {

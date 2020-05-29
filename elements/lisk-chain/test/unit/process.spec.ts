@@ -41,7 +41,7 @@ import {
 } from '../utils/account';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Block } from '../../src/types';
-import { transaction } from '../utils/transaction';
+import { getTransferTransaction } from '../utils/transaction';
 import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
 
 jest.mock('events');
@@ -133,7 +133,7 @@ describe('blocks/header', () => {
 		describe('when a transaction included is invalid', () => {
 			it('should throw error', () => {
 				// Arrange
-				const invalidTx = transaction();
+				const invalidTx = getTransferTransaction();
 				(invalidTx.senderPublicKey as any) = '100';
 				block = createValidDefaultBlock({ payload: [invalidTx] });
 				// Act & assert
@@ -145,7 +145,7 @@ describe('blocks/header', () => {
 			it('should throw error', () => {
 				// Arrange
 				(chainInstance as any).constants.maxPayloadLength = 100;
-				const txs = new Array(200).fill(0).map(() => transaction());
+				const txs = new Array(200).fill(0).map(() => getTransferTransaction());
 				block = createValidDefaultBlock({ payload: txs });
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
@@ -157,7 +157,7 @@ describe('blocks/header', () => {
 		describe('when transaction root is incorrect', () => {
 			it('should throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map(() => transaction());
+				const txs = new Array(20).fill(0).map(() => getTransferTransaction());
 				block = createValidDefaultBlock({
 					payload: txs,
 					header: { transactionRoot: Buffer.from('1234567890') },
@@ -172,7 +172,7 @@ describe('blocks/header', () => {
 		describe('when all the value is valid', () => {
 			it('should not throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map(() => transaction());
+				const txs = new Array(20).fill(0).map(() => getTransferTransaction());
 				block = createValidDefaultBlock({ payload: txs });
 				// Act & assert
 				expect(() => chainInstance.validateBlockHeader(block)).not.toThrow();
@@ -293,7 +293,7 @@ describe('blocks/header', () => {
 
 			beforeEach(() => {
 				// Arrage
-				notAllowedTx = transaction();
+				notAllowedTx = getTransferTransaction();
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
@@ -369,7 +369,7 @@ describe('blocks/header', () => {
 						) as never,
 					);
 
-				invalidTx = transaction();
+				invalidTx = getTransferTransaction();
 				block = createValidDefaultBlock({ payload: [invalidTx] });
 			});
 
@@ -408,7 +408,7 @@ describe('blocks/header', () => {
 		describe('when skip existing check is false and block exists in database', () => {
 			beforeEach(() => {
 				// Arrage
-				const validTx = transaction();
+				const validTx = getTransferTransaction();
 				block = createValidDefaultBlock({ payload: [validTx] });
 				when(db.get)
 					.calledWith(
@@ -456,7 +456,7 @@ describe('blocks/header', () => {
 
 		describe('when skip existing check is false and block does not exist in database but transaction does', () => {
 			beforeEach(() => {
-				const validTx = transaction();
+				const validTx = getTransferTransaction();
 				block = createValidDefaultBlock({ payload: [validTx] });
 				when(db.exists)
 					.mockResolvedValue(false as never)
@@ -578,7 +578,7 @@ describe('blocks/header', () => {
 
 			beforeEach(() => {
 				// Arrage
-				validTx = transaction({ amount: BigInt(10000000) });
+				validTx = getTransferTransaction({ amount: BigInt(10000000) });
 				block = createValidDefaultBlock({ payload: [validTx] });
 
 				// Act
@@ -714,7 +714,7 @@ describe('blocks/header', () => {
 				validTx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
 				// Calling validate to inject id and min-fee
 				validTx.validate();
-				const validTx2 = transaction({
+				const validTx2 = getTransferTransaction({
 					nonce: BigInt(1),
 					amount: BigInt('10000000'),
 				});
@@ -1024,7 +1024,7 @@ describe('blocks/header', () => {
 				});
 				validTx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
 				// Calling validate to inject id and min-fee
-				const validTx2 = transaction({
+				const validTx2 = getTransferTransaction({
 					amount: BigInt(100),
 					recipientAddress: recipient.address,
 				});

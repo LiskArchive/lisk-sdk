@@ -18,12 +18,12 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import * as transactionHandlers from '../../src/transactions/transactions_handlers';
-import { transaction } from '../utils/transaction';
+import { getTransferTransaction } from '../utils/transaction';
 import { Context } from '../../src/types';
 
 describe('transactions', () => {
-	const trs1 = transaction() as any;
-	const trs2 = transaction() as any;
+	const trs1 = getTransferTransaction() as any;
+	const trs2 = getTransferTransaction() as any;
 
 	const dummyState: Context = {
 		blockVersion: 1,

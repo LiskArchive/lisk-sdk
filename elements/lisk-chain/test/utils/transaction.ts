@@ -15,13 +15,14 @@
 import {
 	getRandomBytes,
 	getAddressAndPublicKeyFromPassphrase,
+	hash,
 } from '@liskhq/lisk-cryptography';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { genesisAccount } from './account';
 import { defaultNetworkIdentifier } from './block';
 
-export const transaction = (input?: {
+export const getTransferTransaction = (input?: {
 	nonce?: bigint;
 	amount?: bigint;
 	recipientAddress?: Buffer;
@@ -43,5 +44,7 @@ export const transaction = (input?: {
 		signatures: [],
 	});
 	tx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
+	(tx as any).id = hash(tx.getBytes());
+	(tx as any)._id = tx.id.toString('hex');
 	return tx;
 };
