@@ -226,61 +226,58 @@ export class MerkleTree {
 		const leafHashes = [];
 		for (let i = 0; i < initValues.length; i += 1) {
 			const leaf = this._generateLeaf(initValues[i]);
-
 			leafHashes.push(leaf.hash);
-			this._hashToBuffer[leaf.hash.toString('binary')] = leaf.value;
 		}
 
 		// Start from base layer
-		let currentLayerNodes = leafHashes;
-		let orphanNodeInPreviousLayer: Buffer | undefined;
-		let currentLayer = 0;
+		let currentLayerHashes = leafHashes;
+		let orphanNodeHashInPreviousLayer: Buffer | undefined;
 		// Loop through each layer as long as there are nodes or an orphan node from previous layer
 		while (
-			currentLayerNodes.length > 1 ||
-			orphanNodeInPreviousLayer !== undefined
+			currentLayerHashes.length > 1 ||
+			orphanNodeHashInPreviousLayer !== undefined
 		) {
-			const pairs: Array<[Buffer, Buffer]> = [];
+			const pairsOfHashes: Array<[Buffer, Buffer]> = [];
 
 			// Make pairs from the current layer nodes
-			for (let i = 0; i < currentLayerNodes.length - 1; i += 2) {
-				pairs.push([currentLayerNodes[i], currentLayerNodes[i + 1]]);
+			for (let i = 0; i < currentLayerHashes.length - 1; i += 2) {
+				pairsOfHashes.push([currentLayerHashes[i], currentLayerHashes[i + 1]]);
 			}
 
 			// If there is one node left from pairs
-			if (currentLayerNodes.length % 2 === 1) {
+			if (currentLayerHashes.length % 2 === 1) {
 				// If no orphan node left from previous layer, set the last node to new orphan node
-				if (orphanNodeInPreviousLayer === undefined) {
-					orphanNodeInPreviousLayer =
-						currentLayerNodes[currentLayerNodes.length - 1];
+				if (orphanNodeHashInPreviousLayer === undefined) {
+					orphanNodeHashInPreviousLayer =
+					currentLayerHashes[currentLayerHashes.length - 1];
 
 					// If one orphan node left from previous layer then pair with last node
 				} else {
-					pairs.push([
-						currentLayerNodes[currentLayerNodes.length - 1],
-						orphanNodeInPreviousLayer,
+					pairsOfHashes.push([
+						currentLayerHashes[currentLayerHashes.length - 1],
+						orphanNodeHashInPreviousLayer,
 					]);
-					orphanNodeInPreviousLayer = undefined;
+					orphanNodeHashInPreviousLayer = undefined;
 				}
 			}
 
 			// Generate hash and buffer for the parent layer and store
-			const parentLayerNodes = [];
-			for (let i = 0; i < pairs.length; i += 1) {
-				const left = pairs[i][0];
-				const right = pairs[i][1];
-				const node = this._generateNode(left, right, currentLayer, BigInt(i));
-				this._hashToBuffer[node.hash.toString('binary')] = node.value;
+			let currentLayerIndex = 0;
+			const parentLayerHashes = [];
+			for (let i = 0; i < pairsOfHashes.length; i += 1) {
+				const leftHash = pairsOfHashes[i][0];
+				const rightHash = pairsOfHashes[i][1];
+				const node = this._generateNode(leftHash, rightHash, currentLayerIndex, BigInt(i));
 
-				parentLayerNodes.push(node.hash);
+				parentLayerHashes.push(node.hash);
 			}
 
 			// Set current layer to parent layer
-			currentLayerNodes = parentLayerNodes;
-			currentLayer += 1;
+			currentLayerHashes = parentLayerHashes;
+			currentLayerIndex += 1;
 		}
 
-		return currentLayerNodes[0];
+		return currentLayerHashes[0];
 	}
 
 	private _printNode(hashValue: Buffer, level = 1): string {
