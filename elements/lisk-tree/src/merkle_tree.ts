@@ -97,45 +97,49 @@ export class MerkleTree {
 	};
 
 	public append(value: Buffer): Buffer {
-		const leaf = this._generateLeaf(value);
-
-		const rootNode = getNodeInfo(
-			this._hashToBuffer[this.root.toString('binary')],
-		);
-		const stack: Buffer[] = [];
-		let activeNode = rootNode;
-
-		// If tree nodes are all in pairs
-		if (this._width % 2 === 0) {
-			stack.push(this.root);
-		} else {
-			stack.push(activeNode.left);
-			stack.push(activeNode.right);
-
-			while (!isLeaf(this._hashToBuffer[activeNode.right.toString('binary')])) {
-				activeNode = getNodeInfo(
-					this._hashToBuffer[activeNode.right.toString('binary')],
-				);
-				stack.push(activeNode.right);
+		const appendPath: NodeInfo[] = [];
+		const appendData = this._generateLeaf(value);
+		const appendNode = this.getNode(appendData.hash)
+		const rootNodeHash = this.root;
+		let currentNode = this.getNode(rootNodeHash);
+		const treeHeight =  this._getHeight();
+		// const binaryDataLength = .toString(2);
+		for (let i = 0; i < treeHeight; i++) {
+			if (isAppendPath(this._width - 1, treeHeight - i)) { 
+				appendPath.push(currentNode);
 			}
+
+			if (isLeaf(currentNode.hash)){ 
+				break;
+			}
+
+			if (isAppendPath(this._width -1, treeHeight - i - 1)) { 
+				appendPath.push(this.getNode(currentNode.leftHash));
+			}
+
+			if(currentNode.rightHash) {
+				break;
+			}
+
+			if(isLeaf(currentNode.rightHash) || Buffer.alloc(0).compare(currentNode.rightHash) === 0) {
+				break;
+			}
+			currentNode = this.getNode(currentNode.rightHash);
 		}
 
-		stack.push(leaf.hash);
-		this._hashToBuffer[leaf.hash.toString('binary')] = leaf.value;
-		this._width += 1;
+		appendPath.push(this.getNode(appendNode.hash));
 
-		while (stack.length > 1) {
-			const right = stack.pop() as Buffer;
-			const left = stack.pop() as Buffer;
-			// TODO: Add correct layer and node index
-			const node = this._generateNode(left, right, 0, BigInt(0));
-			this._hashToBuffer[node.hash.toString('binary')] = node.value;
-
-			stack.push(node.hash);
+		// Generate any new branch nodes and store to memory
+		while(appendPath.length > 1) {
+			const rightNodeInfo = appendPath.pop();
+			const leftNodeInfo = appendPath.pop();
+			// FIXME: Add correct nodeIndex:  get left node nodex index + 1
+			const newNode = this._generateNode((leftNodeInfo as NodeInfo).hash, (rightNodeInfo as NodeInfo).hash, (leftNodeInfo as NodeInfo).layerIndex + 1, (leftNodeInfo as NodeInfo).nodeIndex + BigInt(1));
+			this._hashToBuffer[newNode.hash.toString('binary')] = newNode.value;
+			appendPath.push(this.getNode(newNode.hash));
 		}
-
 		// eslint-disable-next-line prefer-destructuring
-		this._root = stack[0];
+		this._root = appendPath[0].hash;
 
 		return this.root;
 	}
@@ -282,7 +286,7 @@ export class MerkleTree {
 			return nodeValue.toString('hex');
 		}
 
-		const node = getNodeInfo(nodeValue);
+		const node = this.getNode(nodeValue);
 
 		return [
 			hashValue.toString('hex'),
