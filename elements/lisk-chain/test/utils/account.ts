@@ -71,10 +71,7 @@ export const defaultAccountAssetSchema = {
 					fieldNumber: 2,
 				},
 			},
-			required: [
-				'delegateAddress',
-				'amount',
-			],
+			required: ['delegateAddress', 'amount'],
 		},
 	},
 	unlocking: {
@@ -96,11 +93,7 @@ export const defaultAccountAssetSchema = {
 					fieldNumber: 3,
 				},
 			},
-			required: [
-				'delegateAddress',
-				'amount',
-				'unvoteHeight',
-			],
+			required: ['delegateAddress', 'amount', 'unvoteHeight'],
 		},
 	},
 };

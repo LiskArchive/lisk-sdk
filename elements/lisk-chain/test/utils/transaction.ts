@@ -16,14 +16,16 @@ import {
 	getRandomBytes,
 	getAddressAndPublicKeyFromPassphrase,
 } from '@liskhq/lisk-cryptography';
-import {
-	TransferTransaction,
-} from '@liskhq/lisk-transactions';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { genesisAccount } from './account';
 import { defaultNetworkIdentifier } from './block';
 
-export const transaction = (input?: { nonce?: bigint, amount?: bigint }): TransferTransaction => {
+export const transaction = (input?: {
+	nonce?: bigint;
+	amount?: bigint;
+	recipientAddress?: Buffer;
+}): TransferTransaction => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const { address } = getAddressAndPublicKeyFromPassphrase(passphrase);
 
@@ -34,7 +36,7 @@ export const transaction = (input?: { nonce?: bigint, amount?: bigint }): Transf
 		nonce: input?.nonce ?? BigInt(0),
 		senderPublicKey: genesisAccount.publicKey,
 		asset: {
-			recipientAddress: address,
+			recipientAddress: input?.recipientAddress ?? address,
 			amount: input?.amount ?? BigInt('1'),
 			data: '',
 		},

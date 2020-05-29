@@ -231,7 +231,7 @@ export class VoteTransaction extends BaseTransaction {
 			} else {
 				// Upvote amount case
 				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				const index =
 					originalUpvoteIndex > -1
@@ -304,7 +304,7 @@ export class VoteTransaction extends BaseTransaction {
 			const sender = await store.account.get<AccountAsset>(this.senderId);
 			if (vote.amount < BigInt(0)) {
 				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				const index =
 					originalUpvoteIndex > -1
@@ -325,7 +325,7 @@ export class VoteTransaction extends BaseTransaction {
 				// Remove unlocking object
 				const unlockingIndex = sender.asset.unlocking.findIndex(
 					unlock =>
-						unlock.delegateAddress === vote.delegateAddress &&
+						unlock.delegateAddress.equals(vote.delegateAddress) &&
 						unlock.amount === vote.amount * BigInt(-1) &&
 						unlock.unvoteHeight === store.chain.lastBlockHeader.height + 1,
 				);
@@ -344,7 +344,7 @@ export class VoteTransaction extends BaseTransaction {
 				sortUnlocking(sender.asset.unlocking);
 			} else {
 				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				if (originalUpvoteIndex < 0) {
 					throw new Error('Invalid data. Upvote should exist while undo');

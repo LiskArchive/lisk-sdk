@@ -16,7 +16,7 @@ import { keyString } from './buffer_string';
 export class BufferSet {
 	private _data: { [key: string]: Buffer | undefined } = {};
 
-	public constructor(data?: { [key: string ]: Buffer | undefined }) {
+	public constructor(data?: { [key: string]: Buffer | undefined }) {
 		this._data = data ?? {};
 	}
 

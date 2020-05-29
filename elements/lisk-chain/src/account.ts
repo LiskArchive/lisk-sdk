@@ -91,7 +91,7 @@ export class Account<T = DefaultAsset> {
 		return new Account<T>({
 			address,
 			...accountDefaultValues,
-			asset: defaultAsset ?? {} as T,
+			asset: defaultAsset ?? ({} as T),
 		});
 	}
 }

@@ -62,10 +62,15 @@ describe('transactions', () => {
 					type: 8,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						recipientAddress: Buffer.from('1859190791819301L'),
@@ -84,10 +89,15 @@ describe('transactions', () => {
 					type: 10,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						username: 'RLI0',
@@ -105,10 +115,15 @@ describe('transactions', () => {
 					type: 13,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						votes: [
@@ -132,15 +147,26 @@ describe('transactions', () => {
 					type: 12,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						mandatoryKeys: [
-							Buffer.from('6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf', 'hex'),
-							Buffer.from('a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed', 'hex'),
+							Buffer.from(
+								'6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf',
+								'hex',
+							),
+							Buffer.from(
+								'a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
+								'hex',
+							),
 						],
 						optionalKeys: [],
 						numberOfSignatures: 2,
@@ -159,10 +185,15 @@ describe('transactions', () => {
 					type: 8,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						recipientAddress: Buffer.from('1859190791819301L'),
@@ -170,9 +201,7 @@ describe('transactions', () => {
 						data: '',
 					},
 				});
-				expect(transactions.encode(tx)).toBeInstanceOf(
-					Buffer,
-				);
+				expect(transactions.encode(tx)).toBeInstanceOf(Buffer);
 			});
 
 			it('should encode a delegate transaction', () => {
@@ -181,19 +210,22 @@ describe('transactions', () => {
 					type: 10,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						username: 'RLI0',
 					},
 				});
 
-				expect(transactions.encode(tx)).toBeInstanceOf(
-					Buffer,
-				);
+				expect(transactions.encode(tx)).toBeInstanceOf(Buffer);
 			});
 
 			it('should encode a vote transaction', () => {
@@ -202,10 +234,15 @@ describe('transactions', () => {
 					type: 13,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						votes: [
@@ -229,23 +266,32 @@ describe('transactions', () => {
 					type: 12,
 					nonce: BigInt('0'),
 					fee: BigInt('10000000'),
-					senderPublicKey:
-						Buffer.from('0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a', 'hex'),
+					senderPublicKey: Buffer.from(
+						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+						'hex',
+					),
 					signatures: [
-						Buffer.from('1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b', 'hex'),
+						Buffer.from(
+							'1518a69983e348359f62a8e740f6f5f08c0c3cad651e5116bf991bc5a4b4cfb8bf8c033a86e30f596fac80142df5a4121400ac2e9307614a143ffd75cc07c20b',
+							'hex',
+						),
 					],
 					asset: {
 						mandatoryKeys: [
-							Buffer.from('6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf', 'hex'),
-							Buffer.from('a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed', 'hex'),
+							Buffer.from(
+								'6638548d991d49e2b41bf15b595fa19749b25c58483e7e8fc926038074571ebf',
+								'hex',
+							),
+							Buffer.from(
+								'a0ed6137800e9a65f796e423d9ebece0a7df53f0049e90eebc2e597452de69ed',
+								'hex',
+							),
 						],
 						optionalKeys: [],
 						numberOfSignatures: 2,
 					},
 				});
-				expect(transactions.encode(tx)).toBeInstanceOf(
-					Buffer,
-				);
+				expect(transactions.encode(tx)).toBeInstanceOf(Buffer);
 			});
 		});
 	});

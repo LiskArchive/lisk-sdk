@@ -158,18 +158,16 @@ export const applyFeeAndRewards = async (
 	// Also, genesis block cannot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
 	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt =
-		totalFeeBurntBuffer ? totalFeeBurntBuffer.readBigInt64BE() : BigInt(0);
+	let totalFeeBurnt = totalFeeBurntBuffer
+		? totalFeeBurntBuffer.readBigInt64BE()
+		: BigInt(0);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store
 	const updatedTotalBurntBuffer = Buffer.alloc(8);
 	updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(
-		CHAIN_STATE_BURNT_FEE,
-		updatedTotalBurntBuffer,
-	);
+	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 };
 
 export const undoFeeAndRewards = async (
@@ -191,16 +189,14 @@ export const undoFeeAndRewards = async (
 
 	generator.balance -= totalFee - totalMinFee;
 	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt =
-		totalFeeBurntBuffer ? totalFeeBurntBuffer.readBigInt64BE() : BigInt(0);
+	let totalFeeBurnt = totalFeeBurntBuffer
+		? totalFeeBurntBuffer.readBigInt64BE()
+		: BigInt(0);
 	totalFeeBurnt -= totalMinFee;
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
 	const updatedTotalBurntBuffer = Buffer.alloc(8);
 	updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
-	stateStore.chain.set(
-		CHAIN_STATE_BURNT_FEE,
-		updatedTotalBurntBuffer,
-	);
+	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 };

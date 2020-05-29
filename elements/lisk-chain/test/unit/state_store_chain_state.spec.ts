@@ -18,8 +18,14 @@ import { StateStore } from '../../src';
 import { DataAccess } from '../../src/data_access';
 import { BlockHeader } from '../../src/types';
 import { baseAccountSchema } from '../../src/schema';
-import { defaultAccountAssetSchema, createFakeDefaultAccount } from '../utils/account';
-import { defaultNetworkIdentifier, defaultBlockHeaderAssetSchema } from '../utils/block';
+import {
+	defaultAccountAssetSchema,
+	createFakeDefaultAccount,
+} from '../utils/account';
+import {
+	defaultNetworkIdentifier,
+	defaultBlockHeaderAssetSchema,
+} from '../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 

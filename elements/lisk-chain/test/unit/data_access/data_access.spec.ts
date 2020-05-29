@@ -565,7 +565,9 @@ describe('data_access', () => {
 			const [result] = await dataAccess.getTransactionsByIDs([tx.id]);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith(`transactions:id:${tx.id.toString('binary')}`);
+			expect(db.get).toHaveBeenCalledWith(
+				`transactions:id:${tx.id.toString('binary')}`,
+			);
 			expect(typeof result.fee).toBe('bigint');
 		});
 	});
@@ -649,7 +651,9 @@ describe('data_access', () => {
 			const decodedBlock = dataAccess.decode(encodedBlock);
 			expect(decodedBlock.header.id).toBeInstanceOf(Buffer);
 			expect(decodedBlock.header.height).toEqual(originalBlock.header.height);
-			expect(decodedBlock.header.signature).toEqual(originalBlock.header.signature);
+			expect(decodedBlock.header.signature).toEqual(
+				originalBlock.header.signature,
+			);
 			expect(decodedBlock.payload).toHaveLength(originalBlock.payload.length);
 		});
 
@@ -682,7 +686,10 @@ describe('data_access', () => {
 			await dataAccess.removeBlockHeader(blocks[3].header.id);
 			await dataAccess.removeBlockHeader(blocks[2].header.id);
 			// Assert
-			expect(dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(7, 9);
+			expect(dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(
+				7,
+				9,
+			);
 		});
 	});
 });

@@ -19,12 +19,7 @@ import {
 
 import { DataAccess } from './data_access';
 import * as transactionsModule from './transactions';
-import {
-	BlockHeader,
-	Block,
-	Context,
-	MatcherTransaction,
-} from './types';
+import { BlockHeader, Block, Context, MatcherTransaction } from './types';
 
 export const verifyBlockNotExists = async (
 	dataAccess: DataAccess,
@@ -72,21 +67,23 @@ export class BlocksVerify {
 	public async checkExists(block: Block): Promise<void> {
 		const isPersisted = await this.dataAccess.isBlockPersisted(block.header.id);
 		if (isPersisted) {
-			throw new Error(`Block ${block.header.id.toString('hex')} already exists`);
+			throw new Error(
+				`Block ${block.header.id.toString('hex')} already exists`,
+			);
 		}
 		if (!block.payload.length) {
 			return;
 		}
-		const transactionIDs = block.payload.map(
-			transaction => transaction.id,
-		);
+		const transactionIDs = block.payload.map(transaction => transaction.id);
 		const persistedTransactions = await this.dataAccess.getTransactionsByIDs(
 			transactionIDs,
 		);
 
 		if (persistedTransactions.length > 0) {
 			throw new Error(
-				`Transaction is already confirmed: ${persistedTransactions[0].id.toString('hex')}`,
+				`Transaction is already confirmed: ${persistedTransactions[0].id.toString(
+					'hex',
+				)}`,
 			);
 		}
 	}
@@ -117,8 +114,8 @@ export class BlocksVerify {
 
 	public matchGenesisBlock(block: BlockHeader): boolean {
 		return (
-			block.id === this.genesisBlock.header.id &&
-			block.transactionRoot === this.genesisBlock.header.transactionRoot &&
+			block.id.equals(this.genesisBlock.header.id) &&
+			block.transactionRoot.equals(this.genesisBlock.header.transactionRoot) &&
 			block.signature.equals(this.genesisBlock.header.signature)
 		);
 	}

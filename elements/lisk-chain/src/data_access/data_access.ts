@@ -15,11 +15,7 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { Account } from '../account';
-import {
-	BlockHeader,
-	Block,
-	RawBlock,
-} from '../types';
+import { BlockHeader, Block, RawBlock } from '../types';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
@@ -66,7 +62,9 @@ export class DataAccess {
 		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._accountSchema = accountSchema;
-		this._blockHeaderAdapter = new BlockHeaderInterfaceAdapter(registeredBlockHeaders);
+		this._blockHeaderAdapter = new BlockHeaderInterfaceAdapter(
+			registeredBlockHeaders,
+		);
 	}
 
 	// BlockHeaders are all the block properties included for block signature + signature of block
@@ -237,9 +235,7 @@ export class DataAccess {
 		return blocks.map(block => this._decodeRawBlock(block));
 	}
 
-	public async getBlockByHeight(
-		height: number,
-	): Promise<Block | undefined> {
+	public async getBlockByHeight(height: number): Promise<Block | undefined> {
 		const block = await this._storage.getBlockByHeight(height);
 
 		return this._decodeRawBlock(block);
@@ -320,7 +316,9 @@ export class DataAccess {
 	): Promise<Account<T>[]> {
 		const accounts = await this._storage.getAccountsByAddress(arrayOfAddresses);
 
-		return accounts.map(account => new Account<T>(this.decodeAccount<T>(account)));
+		return accounts.map(
+			account => new Account<T>(this.decodeAccount<T>(account)),
+		);
 	}
 	/** End: Accounts */
 
@@ -332,7 +330,9 @@ export class DataAccess {
 			arrayOfTransactionIds,
 		);
 
-		return transactions.map(transaction => this._transactionAdapter.decode(transaction));
+		return transactions.map(transaction =>
+			this._transactionAdapter.decode(transaction),
+		);
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
@@ -373,7 +373,10 @@ export class DataAccess {
 		return this._blockHeaderAdapter.decode(buffer);
 	}
 
-	public encodeBlockHeader<T>(blockHeader: BlockHeader<T>, skipSignature = false): Buffer {
+	public encodeBlockHeader<T>(
+		blockHeader: BlockHeader<T>,
+		skipSignature = false,
+	): Buffer {
 		return this._blockHeaderAdapter.encode(blockHeader, skipSignature);
 	}
 
@@ -386,15 +389,11 @@ export class DataAccess {
 		return codec.encode(this._accountSchema, account as any);
 	}
 
-	public decodeTransaction(
-		buffer: Buffer,
-	): BaseTransaction {
+	public decodeTransaction(buffer: Buffer): BaseTransaction {
 		return this._transactionAdapter.decode(buffer);
 	}
 
-	public encodeTransaction(
-		tx: BaseTransaction,
-	): Buffer {
+	public encodeTransaction(tx: BaseTransaction): Buffer {
 		return this._transactionAdapter.encode(tx);
 	}
 
@@ -414,7 +413,14 @@ export class DataAccess {
 			const encodedTx = this._transactionAdapter.encode(tx);
 			encodedPayload.push({ id: txID, value: encodedTx });
 		}
-		await this._storage.saveBlock(blockID, height, encodedHeader, encodedPayload, stateStore, removeFromTemp);
+		await this._storage.saveBlock(
+			blockID,
+			height,
+			encodedHeader,
+			encodedPayload,
+			stateStore,
+			removeFromTemp,
+		);
 	}
 
 	public async deleteBlock(
@@ -425,7 +431,14 @@ export class DataAccess {
 		const { id: blockID, height } = block.header;
 		const txIDs = block.payload.map(tx => tx.id);
 		const encodedBlock = this.encode(block);
-		await this._storage.deleteBlock(blockID, height, txIDs, encodedBlock, stateStore, saveToTemp);
+		await this._storage.deleteBlock(
+			blockID,
+			height,
+			txIDs,
+			encodedBlock,
+			stateStore,
+			saveToTemp,
+		);
 	}
 
 	private _decodeRawBlock<T>(block: RawBlock): Block<T> {

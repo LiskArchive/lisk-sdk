@@ -21,7 +21,12 @@ import {
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import { BaseTransaction, TransferTransaction, DelegateTransaction, VoteTransaction } from '@liskhq/lisk-transactions';
+import {
+	BaseTransaction,
+	TransferTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+} from '@liskhq/lisk-transactions';
 import * as genesisBlockJSON from '../fixtures/genesis_block.json';
 import { Block, BlockHeader } from '../../src/types';
 import {
@@ -108,7 +113,11 @@ export const createValidDefaultBlock = (
 	const blockHeader = createFakeBlockHeader({
 		version: 2,
 		height: 2,
-		previousBlockID: Buffer.from(genesisBlockJSON.id, 'hex'),
+		// FIXME: Genesis block hash calculated with the new implementation, need to update when updating genesis block
+		previousBlockID: Buffer.from(
+			'39594f0b163706bf118515c9e5a91fcfffb96f22628f1a0002deb3cee7bcf617',
+			'hex',
+		),
 		reward: BigInt(0),
 		timestamp: 1000,
 		transactionRoot: txTree.root,
@@ -145,65 +154,77 @@ export const createValidDefaultBlock = (
 };
 
 // FIXME: Update to new genesis block format
-export const genesisBlock = (): Block => ({
-	header: {
-		id: Buffer.from(genesisBlockJSON.id, 'hex'),
-		version: genesisBlockJSON.version,
-		height: genesisBlockJSON.height,
-		previousBlockID: Buffer.from(genesisBlockJSON.id, 'hex'),
-		reward: BigInt(genesisBlockJSON.reward),
-		timestamp: genesisBlockJSON.timestamp,
-		transactionRoot: Buffer.from(genesisBlockJSON.transactionRoot, 'hex'),
-		generatorPublicKey: Buffer.from(genesisBlockJSON.generatorPublicKey, 'hex'),
-		signature: Buffer.from(genesisBlockJSON.blockSignature, 'hex'),
-		asset: {
-			maxHeightPreviouslyForged: genesisBlockJSON.maxHeightPreviouslyForged,
-			maxHeightPrevoted: genesisBlockJSON.maxHeightPrevoted,
-			seedReveal: Buffer.from(genesisBlockJSON.seedReveal, 'hex'),
+export const genesisBlock = (): Block => {
+	const block = {
+		header: {
+			id: Buffer.from(genesisBlockJSON.id, 'hex'),
+			version: genesisBlockJSON.version,
+			height: genesisBlockJSON.height,
+			previousBlockID: Buffer.from(genesisBlockJSON.id, 'hex'),
+			reward: BigInt(genesisBlockJSON.reward),
+			timestamp: genesisBlockJSON.timestamp,
+			transactionRoot: Buffer.from(genesisBlockJSON.transactionRoot, 'hex'),
+			generatorPublicKey: Buffer.from(
+				genesisBlockJSON.generatorPublicKey,
+				'hex',
+			),
+			signature: Buffer.from(genesisBlockJSON.blockSignature, 'hex'),
+			asset: {
+				maxHeightPreviouslyForged: genesisBlockJSON.maxHeightPreviouslyForged,
+				maxHeightPrevoted: genesisBlockJSON.maxHeightPrevoted,
+				seedReveal: Buffer.from(genesisBlockJSON.seedReveal, 'hex'),
+			},
 		},
-	},
-	payload: genesisBlockJSON.transactions.map(tx => {
-		if (tx.type === 8) {
-			return new TransferTransaction({
-				...tx,
-				id: Buffer.from(tx.id, 'hex'),
-				senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-				nonce: BigInt(tx.nonce),
-				fee: BigInt(tx.fee),
-				signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-				asset: {
-					recipientAddress: Buffer.from(tx.asset.recipientId as string, 'hex'),
-					amount: BigInt(tx.asset.amount),
-					data: '',
-				},
-			});
-		}
-		if (tx.type === 10) {
-			return new DelegateTransaction({
-				...tx,
-				id: Buffer.from(tx.id, 'hex'),
-				senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-				nonce: BigInt(tx.nonce),
-				fee: BigInt(tx.fee),
-				signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-			} as any);
-		}
-		if (tx.type === 13) {
-			return new VoteTransaction({
-				...tx,
-				id: Buffer.from(tx.id, 'hex'),
-				senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-				nonce: BigInt(tx.nonce),
-				fee: BigInt(tx.fee),
-				signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-				asset: {
-					votes: tx.asset.votes?.map(v => ({
-						delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
-						amount: BigInt(v.amount),
-					})) as any,
-				},
-			});
-		}
-		throw new Error('Unexpected transaction type');
-	}),
-});
+		payload: genesisBlockJSON.transactions.map(tx => {
+			if (tx.type === 8) {
+				return new TransferTransaction({
+					...tx,
+					id: Buffer.from(tx.id, 'hex'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					nonce: BigInt(tx.nonce),
+					fee: BigInt(tx.fee),
+					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+					asset: {
+						recipientAddress: Buffer.from(
+							tx.asset.recipientId as string,
+							'hex',
+						),
+						amount: BigInt(tx.asset.amount),
+						data: '',
+					},
+				});
+			}
+			if (tx.type === 10) {
+				return new DelegateTransaction({
+					...tx,
+					id: Buffer.from(tx.id, 'hex'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					nonce: BigInt(tx.nonce),
+					fee: BigInt(tx.fee),
+					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+				} as any);
+			}
+			if (tx.type === 13) {
+				return new VoteTransaction({
+					...tx,
+					id: Buffer.from(tx.id, 'hex'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					nonce: BigInt(tx.nonce),
+					fee: BigInt(tx.fee),
+					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+					asset: {
+						votes: tx.asset.votes?.map(v => ({
+							delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+							amount: BigInt(v.amount),
+						})) as any,
+					},
+				});
+			}
+			throw new Error('Unexpected transaction type');
+		}),
+	};
+	const encodedHeader = encodeDefaultBlockHeader(block.header);
+	const id = hash(encodedHeader);
+	block.header.id = id;
+	return block;
+};

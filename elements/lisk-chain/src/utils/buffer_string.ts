@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const keyString = (key: Buffer): string =>
-	key.toString('binary');
+export const keyString = (key: Buffer): string => key.toString('binary');
 
-export const keyReadbleString = (key: Buffer): string =>
-	key.toString('hex');
+export const keyReadbleString = (key: Buffer): string => key.toString('hex');

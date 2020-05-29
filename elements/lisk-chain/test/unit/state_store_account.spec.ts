@@ -17,8 +17,15 @@ import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { StateStore } from '../../src';
 import { DataAccess } from '../../src/data_access';
 import { Account } from '../../src/account';
-import { createFakeDefaultAccount, encodeDefaultAccount, defaultAccountAssetSchema } from '../utils/account';
-import { defaultBlockHeaderAssetSchema, defaultNetworkIdentifier } from '../utils/block';
+import {
+	createFakeDefaultAccount,
+	encodeDefaultAccount,
+	defaultAccountAssetSchema,
+} from '../utils/account';
+import {
+	defaultBlockHeaderAssetSchema,
+	defaultNetworkIdentifier,
+} from '../utils/block';
 import { baseAccountSchema } from '../../src/schema';
 
 jest.mock('@liskhq/lisk-db');
@@ -36,7 +43,10 @@ describe('state store / account', () => {
 	const accountOnlyInDB = createFakeDefaultAccount({ balance: BigInt(333) });
 
 	const acocuntInDB = [
-		...stateStoreAccounts.map(acc => ({ key: acc.address, value: encodeDefaultAccount(acc) })),
+		...stateStoreAccounts.map(acc => ({
+			key: acc.address,
+			value: encodeDefaultAccount(acc),
+		})),
 		{
 			key: accountOnlyInDB.address,
 			value: encodeDefaultAccount(accountOnlyInDB),
@@ -82,9 +92,7 @@ describe('state store / account', () => {
 		for (const data of acocuntInDB) {
 			dbGetMock
 				.calledWith(`accounts:address:${data.key.toString('binary')}`)
-				.mockResolvedValue(
-					data.value as never,
-				);
+				.mockResolvedValue(data.value as never);
 		}
 		for (const account of stateStoreAccounts) {
 			stateStore.account.set(account.address, account);
@@ -124,9 +132,7 @@ describe('state store / account', () => {
 	describe('getOrDefault', () => {
 		it('should get the account', async () => {
 			// Act
-			const account = await stateStore.account.getOrDefault(
-				acocuntInDB[0].key,
-			);
+			const account = await stateStore.account.getOrDefault(acocuntInDB[0].key);
 			// Assert
 			expect(account).toStrictEqual(stateStoreAccounts[0]);
 		});
@@ -143,7 +149,9 @@ describe('state store / account', () => {
 		it('should get the default account', async () => {
 			// Arrange
 			// Act
-			const account = await stateStore.account.getOrDefault(Buffer.from('123L'));
+			const account = await stateStore.account.getOrDefault(
+				Buffer.from('123L'),
+			);
 			// Assert
 			expect(account).toEqual(
 				createFakeDefaultAccount({ address: Buffer.from('123L') }),
@@ -155,9 +163,7 @@ describe('state store / account', () => {
 	describe('set', () => {
 		it('should set the updated values for the account', async () => {
 			// Act
-			const updatedAccount = await stateStore.account.get(
-				acocuntInDB[0].key,
-			);
+			const updatedAccount = await stateStore.account.get(acocuntInDB[0].key);
 
 			updatedAccount.balance = BigInt(123);
 			updatedAccount.nonce = BigInt(99);
@@ -171,9 +177,7 @@ describe('state store / account', () => {
 		});
 
 		it('should update the updateKeys property', async () => {
-			const existingAccount = await stateStore.account.get(
-				acocuntInDB[0].key,
-			);
+			const existingAccount = await stateStore.account.get(acocuntInDB[0].key);
 			const updatedAccount = new Account(existingAccount);
 			updatedAccount.balance = BigInt(999);
 
@@ -193,9 +197,7 @@ describe('state store / account', () => {
 		beforeEach(async () => {
 			batchStub = { put: jest.fn() } as any;
 
-			existingAccount = await stateStore.account.get(
-				acocuntInDB[0].key,
-			);
+			existingAccount = await stateStore.account.get(acocuntInDB[0].key);
 			updatedAccount = new Account(existingAccount);
 			updatedAccount.balance = BigInt(999);
 

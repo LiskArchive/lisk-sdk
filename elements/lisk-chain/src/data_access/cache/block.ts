@@ -56,7 +56,9 @@ export class BlockCache extends Base<BlockHeader> {
 	public remove(id: Buffer): BlockHeader[] {
 		if (this.items.length && !this.last.id.equals(id)) {
 			throw new Error(
-				`Failed to remove the block id: ${id.toString('hex')} which is not the last block header cached`,
+				`Failed to remove the block id: ${id.toString(
+					'hex',
+				)} which is not the last block header cached`,
 			);
 		}
 		this.items.pop();
@@ -73,8 +75,8 @@ export class BlockCache extends Base<BlockHeader> {
 	}
 
 	public getByIDs(ids: ReadonlyArray<Buffer>): BlockHeader[] {
-		const blocks = this.items.filter(block =>
-			ids.find(id => id.equals(block.id)) !== undefined,
+		const blocks = this.items.filter(
+			block => ids.find(id => id.equals(block.id)) !== undefined,
 		);
 
 		if (blocks.length === ids.length) {

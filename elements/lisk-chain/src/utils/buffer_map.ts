@@ -18,7 +18,7 @@ import cloneDeep = require('lodash.clonedeep');
 export class BufferMap<V> {
 	private _data: { [key: string]: V | undefined } = {};
 
-	public constructor(data?: { [key: string ]: V | undefined }) {
+	public constructor(data?: { [key: string]: V | undefined }) {
 		this._data = data ?? {};
 	}
 
