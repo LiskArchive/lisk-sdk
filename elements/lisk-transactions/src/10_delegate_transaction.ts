@@ -91,7 +91,7 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		return [];
+		return errors;
 	}
 
 	protected async applyAsset(
