@@ -51,23 +51,6 @@ const isAppendPath = (dataLength: number, layer: number) => {
 	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
 };
 
-const getNodeInfo = (value: Buffer): NodeInfo => {
-	const right = value.slice(-1 * NODE_HASH_SIZE);
-	const left = value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE);
-	const layerIndex = value.readInt8(BRANCH_PREFIX.length);
-	const nodeIndex = value.readBigInt64BE(
-		BRANCH_PREFIX.length + LAYER_INDEX_SIZE,
-	);
-
-	return {
-		value,
-		right,
-		left,
-		layerIndex,
-		nodeIndex,
-	};
-};
-
 export class MerkleTree {
 	private _root: Buffer;
 	private _width = 0;
@@ -88,6 +71,30 @@ export class MerkleTree {
 	public get root(): Buffer {
 		return this._root;
 	}
+
+	public getNode(hash: Buffer): NodeInfo {
+		const value = this._hashToBuffer[hash.toString('binary')];
+		if(!value) {
+			throw new Error(`Hash does not exist in merkle tree.: ${hash}`)
+		}
+		const type = this._root.compare(hash) === 0 ? NodeType.ROOT : isLeaf(value) ? NodeType.LEAF : NodeType.BRANCH;
+		const layerIndex = type === NodeType.BRANCH ? value.readInt8(0) : 0;
+		const nodeIndex =  type === NodeType.BRANCH ? value.readBigInt64BE(
+			LAYER_INDEX_SIZE,
+		) :BigInt(0);
+		const rightHash = type !== NodeType.LEAF ? value.slice(-1 * NODE_HASH_SIZE): Buffer.alloc(0);
+		const leftHash =  type !== NodeType.LEAF ? value.slice(-2 * NODE_HASH_SIZE, -1 * NODE_HASH_SIZE): Buffer.alloc(0);
+		
+		return {
+			type,
+			hash,
+			value,
+			layerIndex,
+			nodeIndex,
+			rightHash,
+			leftHash,
+		};
+	};
 
 	public append(value: Buffer): Buffer {
 		const leaf = this._generateLeaf(value);
