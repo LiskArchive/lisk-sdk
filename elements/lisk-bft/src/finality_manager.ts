@@ -28,10 +28,11 @@ import {
 	DPoS,
 	StateStore,
 } from './types';
-import { validateBlockHeader } from './utils';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
+
+const keyToString = (key: Buffer): string => key.toString('binary');
 
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
 	'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
@@ -115,8 +116,6 @@ export class FinalityManager extends EventEmitter {
 			blockHeader.height - 1,
 		);
 
-		validateBlockHeader(blockHeader);
-
 		// Verify the integrity of the header with chain
 		this.verifyBlockHeaders(blockHeader, bftApplicableBlocks);
 
@@ -150,7 +149,7 @@ export class FinalityManager extends EventEmitter {
 		// If delegate forged a block with higher or same height previously
 		// That means he is forging on other chain and we don't count any
 		// Pre-votes and pre-commits from him
-		if (header.maxHeightPreviouslyForged >= header.height) {
+		if (header.asset.maxHeightPreviouslyForged >= header.height) {
 			return false;
 		}
 
@@ -170,7 +169,7 @@ export class FinalityManager extends EventEmitter {
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		const delegateState = this.state[delegatePublicKey] || {
+		const delegateState = this.state[keyToString(delegatePublicKey)] || {
 			maxPreVoteHeight: 0,
 			maxPreCommitHeight: 0,
 		};
@@ -217,7 +216,7 @@ export class FinalityManager extends EventEmitter {
 		// Or maximum 3 rounds backward
 		const minPreVoteHeight = Math.max(
 			delegateMinHeightActive,
-			header.maxHeightPreviouslyForged + 1,
+			header.asset.maxHeightPreviouslyForged + 1,
 			// This is not written on LIP // delegateState.maxPreVoteHeight + 1,
 			header.height - this.processingThreshold,
 		);
@@ -232,7 +231,7 @@ export class FinalityManager extends EventEmitter {
 		delegateState.maxPreVoteHeight = maxPreVoteHeight;
 
 		// Set the delegate state
-		this.state[delegatePublicKey] = delegateState;
+		this.state[keyToString(delegatePublicKey)] = delegateState;
 
 		return true;
 	}
@@ -311,16 +310,16 @@ export class FinalityManager extends EventEmitter {
 		// If maxHeightPrevoted is correct
 		if (
 			bftBlockHeaders.length >= this.processingThreshold &&
-			blockHeader.maxHeightPrevoted !== this.chainMaxHeightPrevoted
+			blockHeader.asset.maxHeightPrevoted !== this.chainMaxHeightPrevoted
 		) {
 			throw new BFTInvalidAttributeError(
-				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.maxHeightPrevoted}, : ${this.chainMaxHeightPrevoted}`,
+				`Wrong maxHeightPrevoted in blockHeader. maxHeightPrevoted: ${blockHeader.asset.maxHeightPrevoted}, : ${this.chainMaxHeightPrevoted}`,
 			);
 		}
 
 		// Find top most block forged by same delegate
-		const delegateLastBlock = bftBlockHeaders.find(
-			header => header.generatorPublicKey === blockHeader.generatorPublicKey,
+		const delegateLastBlock = bftBlockHeaders.find(header =>
+			header.generatorPublicKey.equals(blockHeader.generatorPublicKey),
 		);
 
 		if (!delegateLastBlock) {
@@ -331,15 +330,16 @@ export class FinalityManager extends EventEmitter {
 		let earlierBlock = delegateLastBlock;
 		let laterBlock = blockHeader;
 		const higherMaxHeightPreviouslyForged =
-			earlierBlock.maxHeightPreviouslyForged >
-			laterBlock.maxHeightPreviouslyForged;
+			earlierBlock.asset.maxHeightPreviouslyForged >
+			laterBlock.asset.maxHeightPreviouslyForged;
 		const sameMaxHeightPreviouslyForged =
-			earlierBlock.maxHeightPreviouslyForged ===
-			laterBlock.maxHeightPreviouslyForged;
+			earlierBlock.asset.maxHeightPreviouslyForged ===
+			laterBlock.asset.maxHeightPreviouslyForged;
 		const higherMaxHeightPrevoted =
-			earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted;
+			earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted;
 		const sameMaxHeightPrevoted =
-			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted;
+			earlierBlock.asset.maxHeightPrevoted ===
+			laterBlock.asset.maxHeightPrevoted;
 		const higherHeight = earlierBlock.height > laterBlock.height;
 		if (
 			higherMaxHeightPreviouslyForged ||
@@ -350,7 +350,8 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		if (
-			earlierBlock.maxHeightPrevoted === laterBlock.maxHeightPrevoted &&
+			earlierBlock.asset.maxHeightPrevoted ===
+				laterBlock.asset.maxHeightPrevoted &&
 			earlierBlock.height >= laterBlock.height
 		) {
 			/* Violation of the fork choice rule as delegate moved to different chain
@@ -359,11 +360,13 @@ export class FinalityManager extends EventEmitter {
 			throw new BFTForkChoiceRuleError();
 		}
 
-		if (earlierBlock.height > laterBlock.maxHeightPreviouslyForged) {
+		if (earlierBlock.height > laterBlock.asset.maxHeightPreviouslyForged) {
 			throw new BFTChainDisjointError();
 		}
 
-		if (earlierBlock.maxHeightPrevoted > laterBlock.maxHeightPrevoted) {
+		if (
+			earlierBlock.asset.maxHeightPrevoted > laterBlock.asset.maxHeightPrevoted
+		) {
 			throw new BFTLowerChainBranchError();
 		}
 
@@ -397,7 +400,7 @@ export class FinalityManager extends EventEmitter {
 		bftApplicableBlocks: ReadonlyArray<BlockHeader>,
 	): number {
 		let needleHeight = Math.max(
-			header.maxHeightPreviouslyForged,
+			header.asset.maxHeightPreviouslyForged,
 			header.height - this.processingThreshold,
 		);
 		/* We should search down to the height we have in our headers list
@@ -407,7 +410,7 @@ export class FinalityManager extends EventEmitter {
 			header.height - this.processingThreshold,
 		);
 		// Hold reference for the previously forged height
-		let previousBlockHeight = header.maxHeightPreviouslyForged;
+		let previousBlockHeight = header.asset.maxHeightPreviouslyForged;
 
 		const blocksIncludingCurrent = [header, ...bftApplicableBlocks];
 		while (needleHeight >= searchTillHeight) {
@@ -425,14 +428,16 @@ export class FinalityManager extends EventEmitter {
 					return 0;
 				}
 				if (
-					previousBlockHeader.generatorPublicKey !==
-						header.generatorPublicKey ||
-					previousBlockHeader.maxHeightPreviouslyForged >= needleHeight
+					!previousBlockHeader.generatorPublicKey.equals(
+						header.generatorPublicKey,
+					) ||
+					previousBlockHeader.asset.maxHeightPreviouslyForged >= needleHeight
 				) {
 					return needleHeight + 1;
 				}
-				previousBlockHeight = previousBlockHeader.maxHeightPreviouslyForged;
-				needleHeight = previousBlockHeader.maxHeightPreviouslyForged;
+				previousBlockHeight =
+					previousBlockHeader.asset.maxHeightPreviouslyForged;
+				needleHeight = previousBlockHeader.asset.maxHeightPreviouslyForged;
 			} else {
 				needleHeight -= 1;
 			}

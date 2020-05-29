@@ -14,27 +14,28 @@
 /* eslint-disable max-classes-per-file */
 
 export interface BlockHeader {
+	readonly id: Buffer;
 	readonly height: number;
-	readonly generatorPublicKey: string;
-	readonly previousBlockId: string;
+	readonly generatorPublicKey: Buffer;
+	readonly previousBlockID: Buffer;
 	readonly timestamp: number;
 	readonly receivedAt?: number;
-	readonly maxHeightPrevoted: number;
-	readonly maxHeightPreviouslyForged: number;
+	readonly asset: {
+		readonly maxHeightPrevoted: number;
+		readonly maxHeightPreviouslyForged: number;
+	};
 	readonly version: number;
 }
-
-export type BlockHeaderWithID = BlockHeader & { readonly id: string };
 
 export interface DPoS {
 	getMinActiveHeight(
 		height: number,
-		address: string,
+		address: Buffer,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
 	): Promise<number>;
 	isStandbyDelegate(
-		address: string,
+		address: Buffer,
 		height: number,
 		stateStore: StateStore,
 	): Promise<boolean>;

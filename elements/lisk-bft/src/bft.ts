@@ -23,13 +23,11 @@ import {
 import * as forkChoiceRule from './fork_choice_rule';
 import {
 	BlockHeader,
-	BlockHeaderWithID,
 	Chain,
 	DPoS,
 	ForkStatus,
 	StateStore,
 } from './types';
-import { validateBlockHeader } from './utils';
 
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
@@ -80,17 +78,6 @@ export class BFT extends EventEmitter {
 		await this.finalityManager.recompute(lastBlock.height, stateStore);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public serialize(blockInstance: BlockHeader): BlockHeader {
-		return {
-			...blockInstance,
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			maxHeightPrevoted: blockInstance.maxHeightPrevoted || 0,
-		};
-	}
-
 	public get finalityManager(): FinalityManager {
 		return this._finalityManager as FinalityManager;
 	}
@@ -139,8 +126,8 @@ export class BFT extends EventEmitter {
 	}
 
 	public forkChoice(
-		block: BlockHeaderWithID,
-		lastBlock: BlockHeaderWithID,
+		block: BlockHeader,
+		lastBlock: BlockHeader,
 	): ForkStatus {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
@@ -199,7 +186,7 @@ export class BFT extends EventEmitter {
 		const heightThreshold = this.constants.activeDelegates * roundsThreshold;
 
 		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
-		if (blockHeader.maxHeightPreviouslyForged === 0) {
+		if (blockHeader.asset.maxHeightPreviouslyForged === 0) {
 			return true;
 		}
 
@@ -208,13 +195,13 @@ export class BFT extends EventEmitter {
 		);
 
 		const maxHeightPreviouslyForgedBlock = bftHeaders.find(
-			bftHeader => bftHeader.height === blockHeader.maxHeightPreviouslyForged,
+			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
 		if (
 			!maxHeightPreviouslyForgedBlock ||
-			blockHeader.maxHeightPreviouslyForged >= blockHeader.height ||
-			(blockHeader.height - blockHeader.maxHeightPreviouslyForged <=
+			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
+			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <=
 				heightThreshold &&
 				blockHeader.generatorPublicKey !==
 					maxHeightPreviouslyForgedBlock.generatorPublicKey)
@@ -235,11 +222,6 @@ export class BFT extends EventEmitter {
 
 	public reset(): void {
 		this.finalityManager.reset();
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	public validateBlock(block: BlockHeader): void {
-		validateBlockHeader(block);
 	}
 
 	private async _initFinalityManager(

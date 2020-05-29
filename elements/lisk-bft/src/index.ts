@@ -14,5 +14,4 @@
 
 export * from './bft';
 export * from './fork_choice_rule';
-export * from './utils';
 export * from './types';
