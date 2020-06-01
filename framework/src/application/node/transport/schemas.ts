@@ -20,7 +20,6 @@ export const schemas = {
 		properties: {
 			blockId: {
 				type: 'string',
-				format: 'hex',
 			},
 		},
 	},

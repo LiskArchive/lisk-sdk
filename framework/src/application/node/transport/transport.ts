@@ -13,7 +13,7 @@
  */
 
 import { validator } from '@liskhq/lisk-validator';
-import { Chain, BlockJSON, BlockHeaderJSON } from '@liskhq/lisk-chain';
+import { Chain, Block } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
@@ -58,7 +58,7 @@ export interface handlePostTransactionReturn {
 	errors?: Error[] | Error;
 }
 export interface HandleRPCGetTransactionsReturn {
-	transactions: TransactionJSON[];
+	transactions: string[];
 }
 
 export interface RPCGetTransactionsReturn {
@@ -114,11 +114,13 @@ export class Transport {
 
 	public handleBroadcastTransaction(transaction: BaseTransaction): void {
 		this._broadcaster.enqueueTransactionId(transaction.id);
-		this._channel.publish('app:transaction:new', transaction.toJSON());
+		this._channel.publish('app:transaction:new', {
+			transaction: transaction.getBytes().toString('base64'),
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async handleBroadcastBlock(blockJSON: BlockJSON): Promise<unknown> {
+	public async handleBroadcastBlock(block: Block): Promise<unknown> {
 		if (this._synchronizerModule.isActive) {
 			this._logger.debug(
 				'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress',
@@ -129,7 +131,7 @@ export class Transport {
 		return this._channel.publishToNetwork('sendToNetwork', {
 			event: 'postBlock',
 			data: {
-				block: blockJSON,
+				block: this._chainModule.dataAccess.encode(block).toString('base64'),
 			},
 		});
 	}
@@ -137,7 +139,7 @@ export class Transport {
 	public async handleRPCGetBlocksFromId(
 		data: unknown,
 		peerId: string,
-	): Promise<BlockJSON[]> {
+	): Promise<string[]> {
 		const errors = validator.validate(
 			schemas.getBlocksFromIdRequest,
 			data as object,
@@ -161,16 +163,12 @@ export class Transport {
 			throw new Error(error);
 		}
 
+		const blockID = Buffer.from((data as RPCBlocksByIdData).blockId, 'base64');
+
 		// Get height of block with supplied ID
 		const lastBlock = await this._chainModule.dataAccess.getBlockHeaderByID(
-			(data as RPCBlocksByIdData).blockId,
+			blockID,
 		);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!lastBlock) {
-			throw new Error(
-				`Invalid blockId requested: ${(data as RPCBlocksByIdData).blockId}`,
-			);
-		}
 
 		const lastBlockHeight = lastBlock.height;
 
@@ -183,14 +181,15 @@ export class Transport {
 			fetchUntilHeight,
 		);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		return blocks?.map(block => this._chainModule.serialize(block));
+		return blocks.map(block =>
+			this._chainModule.dataAccess.encode(block).toString('base64'),
+		);
 	}
 
 	public async handleRPCGetGetHighestCommonBlock(
 		data: unknown,
 		peerId: string,
-	): Promise<BlockHeaderJSON | null> {
+	): Promise<string | undefined> {
 		const valid = validator.validate(
 			schemas.getHighestCommonBlockRequest,
 			data as object,
@@ -214,13 +213,19 @@ export class Transport {
 			throw new Error(error);
 		}
 
-		const commonBlock = await this._chainModule.getHighestCommonBlock(
-			(data as RPCHighestCommonBlockData).ids,
+		const blockIDs = (data as RPCHighestCommonBlockData).ids.map(id =>
+			Buffer.from(id, 'base64'),
 		);
 
-		return commonBlock
-			? this._chainModule.serializeBlockHeader(commonBlock)
-			: null;
+		const commonBlockHeader = await this._chainModule.getHighestCommonBlock(
+			blockIDs,
+		);
+
+		return commonBlockHeader
+			? this._chainModule.dataAccess
+					.encodeBlockHeader(commonBlockHeader)
+					.toString('base64')
+			: undefined;
 	}
 
 	public async handleEventPostBlock(
@@ -230,12 +235,6 @@ export class Transport {
 		// Should ignore received block if syncing
 		if (this._synchronizerModule.isActive) {
 			return this._logger.debug(
-				{
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-					blockId: (data as EventPostBlockData)?.block.id,
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-					height: (data as EventPostBlockData)?.block.height,
-				},
 				"Client is syncing. Can't process new block at the moment.",
 			);
 		}
@@ -258,9 +257,12 @@ export class Transport {
 			throw errors;
 		}
 
-		const block = await this._processorModule.deserialize(
+		const blockBytes = Buffer.from(
 			(data as EventPostBlockData).block,
+			'base64',
 		);
+
+		const block = this._chainModule.dataAccess.decode(blockBytes);
 
 		return this._processorModule.process(block, {
 			peerId,
@@ -299,11 +301,14 @@ export class Transport {
 			// Get processable transactions from pool and collect transactions across accounts
 			// Limit the transactions to send based on releaseLimit
 			const transactionsBySender = this._transactionPoolModule.getProcessableTransactions();
-			const transactions = Object.values(transactionsBySender).flat();
+			const transactions = transactionsBySender
+				.values()
+				.flat()
+				.map(tx => tx.getBytes().toString('base64'));
 			transactions.splice(DEFAULT_RATE_RESET_TIME);
 
 			return {
-				transactions: (transactions as unknown) as TransactionJSON[],
+				transactions,
 			};
 		}
 
@@ -320,15 +325,16 @@ export class Transport {
 		const transactionsFromQueues = [];
 		const idsNotInPool = [];
 
-		for (const id of transactionIds) {
+		for (const idStr of transactionIds) {
 			// Check if any transaction is in the queues.
+			const id = Buffer.from(idStr, 'base64');
 			const transaction = this._transactionPoolModule.get(
 				id,
 			) as BaseTransaction;
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (transaction) {
-				transactionsFromQueues.push(transaction.toJSON());
+				transactionsFromQueues.push(transaction.getBytes().toString('base64'));
 			} else {
 				idsNotInPool.push(id);
 			}
@@ -342,7 +348,7 @@ export class Transport {
 
 			return {
 				transactions: transactionsFromQueues.concat(
-					transactionsFromDatabase.map(t => t.toJSON()),
+					transactionsFromDatabase.map(t => t.getBytes().toString('base64')),
 				),
 			};
 		}
@@ -356,9 +362,12 @@ export class Transport {
 		data: EventPostTransactionData,
 	): Promise<handlePostTransactionReturn> {
 		try {
-			const id = await this._receiveTransaction(data.transaction);
+			const tx = this._chainModule.dataAccess.decodeTransaction(
+				Buffer.from(data.transaction, 'base64'),
+			);
+			const id = await this._receiveTransaction(tx);
 			return {
-				transactionId: id,
+				transactionId: id.toString('base64'),
 			};
 		} catch (err) {
 			return {
@@ -399,9 +408,11 @@ export class Transport {
 			throw errors;
 		}
 
-		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
-			(data as EventPostTransactionsAnnouncementData).transactionIds,
+		const ids = (data as EventPostTransactionsAnnouncementData).transactionIds.map(
+			idStr => Buffer.from(idStr, 'base64'),
 		);
+
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
 		if (unknownTransactionIDs.length > 0) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const { data: result } = await this._channel.invokeFromNetwork(
@@ -434,7 +445,7 @@ export class Transport {
 		return null;
 	}
 
-	private async _obtainUnknownTransactionIDs(ids: string[]): Promise<string[]> {
+	private async _obtainUnknownTransactionIDs(ids: Buffer[]): Promise<Buffer[]> {
 		// Check if any transaction is in the queues.
 		const unknownTransactionsIDs = ids.filter(
 			id => !this._transactionPoolModule.contains(id),
@@ -448,8 +459,8 @@ export class Transport {
 
 			return unknownTransactionsIDs.filter(
 				id =>
-					existingTransactions.find(
-						existingTransaction => existingTransaction.id === id,
+					existingTransactions.find(existingTransaction =>
+						existingTransaction.id.equals(id),
 					) === undefined,
 			);
 		}
@@ -458,12 +469,9 @@ export class Transport {
 	}
 
 	private async _receiveTransaction(
-		transactionJSON: TransactionJSON,
-	): Promise<string> {
-		let transaction;
+		transaction: BaseTransaction,
+	): Promise<Buffer> {
 		try {
-			transaction = this._chainModule.deserializeTransaction(transactionJSON);
-
 			// Composed transaction checks are all static, so it does not need state store
 			const transactionsResponses = await this._chainModule.validateTransactions(
 				[transaction],
@@ -476,7 +484,7 @@ export class Transport {
 			const errString = convertErrorsToString(errors);
 			const err = new InvalidTransactionError(
 				errString,
-				transactionJSON.id as string,
+				transaction.id,
 				errors,
 			);
 			this._logger.error(

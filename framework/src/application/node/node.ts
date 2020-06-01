@@ -15,11 +15,8 @@
 import {
 	Chain,
 	events as chainEvents,
-	BlockInstance,
-	BlockJSON,
-	BlockHeaderJSON,
-	AccountJSON,
-	GenesisBlockJSON,
+	Block,
+	Account,
 } from '@liskhq/lisk-chain';
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
@@ -29,8 +26,13 @@ import {
 	Job,
 	events as txPoolEvents,
 } from '@liskhq/lisk-transaction-pool';
-import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
-import { KVStore } from '@liskhq/lisk-db';
+import {
+	BaseTransaction,
+	TransferTransaction,
+	VoteTransaction,
+	DelegateTransaction,
+} from '@liskhq/lisk-transactions';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Sequence } from './utils/sequence';
 import { DelegateConfig, Forger, ForgingStatus } from './forger';
 import {
@@ -50,15 +52,133 @@ import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
+import { accountAssetSchema, defaultAccountAsset } from './account';
+import {
+	EVENT_PROCESSOR_BRADCASRT_BLOCK,
+	EVENT_PROCESSOR_SYNC_REQUIRED,
+} from './processor/processor';
+import { EVENT_SYNCHRONIZER_SYNC_RQUIRED } from './synchronizer/base_synchronizer';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
 const { EVENT_ROUND_CHANGED } = dposConstants;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
 
-export interface GenesisBlockInstance extends GenesisBlockJSON {
-	readonly communityIdentifier: string;
+interface Payload {
+	senderPublicKey: string;
+	nonce: string;
+	fee: string;
+	signatures: string[];
 }
+
+interface TransferPayload extends Payload {
+	type: 8;
+	asset: {
+		recipientAddress: string;
+		amount: string;
+	};
+}
+
+interface DelegatePayload extends Payload {
+	type: 10;
+	asset: {
+		username: string;
+	};
+}
+
+interface VotePayload extends Payload {
+	type: 13;
+	asset: {
+		votes: {
+			delegateAddress: string;
+			amount: string;
+		}[];
+	};
+}
+
+export interface GenesisBlockJSON {
+	readonly communityIdentifier: string;
+	readonly header: {
+		readonly id: string;
+		readonly version: number;
+		readonly timestamp: number;
+		readonly height: number;
+		readonly previousBlockID: string;
+		readonly transactionRoot: string;
+		readonly generatorPublicKey: string;
+		readonly reward: string;
+		readonly asset: {
+			seedReveal: string;
+			maxHeightPreviouslyForged: number;
+			maxHeightPrevoted: 0;
+		};
+		readonly signature: string;
+	};
+	readonly payload: Array<TransferPayload | DelegatePayload | VotePayload>;
+}
+
+const convertGenesisBlock = (genesis: GenesisBlockJSON): Block => {
+	const header = {
+		...genesis.header,
+		id: Buffer.from(genesis.header.id, 'hex'),
+		previousBlockID: Buffer.alloc(0),
+		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'hex'),
+		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'hex'),
+		reward: BigInt(genesis.header.reward),
+		signature: Buffer.from(genesis.header.signature, 'hex'),
+		asset: {
+			...genesis.header.asset,
+			seedReveal: Buffer.from(genesis.header.asset.seedReveal, 'hex'),
+		},
+	};
+	const payload = genesis.payload.map(tx => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const txHeader = {
+			id: Buffer.from(tx.senderPublicKey, 'hex'),
+			type: tx.type,
+			senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+			nonce: BigInt(tx.nonce),
+			fee: BigInt(tx.fee),
+			signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+		};
+		if (tx.type === 8) {
+			return new TransferTransaction({
+				...txHeader,
+				asset: {
+					recipientAddress: Buffer.from(tx.asset.recipientAddress, 'hex'),
+					data: '',
+					amount: BigInt(tx.asset.amount),
+				},
+			});
+		}
+		if (tx.type === 10) {
+			return new DelegateTransaction({
+				...txHeader,
+				asset: {
+					username: tx.asset.username,
+				},
+			});
+		}
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (tx.type === 13) {
+			return new VoteTransaction({
+				...txHeader,
+				asset: {
+					votes: tx.asset.votes.map(v => ({
+						delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+						amount: BigInt(v.amount),
+					})),
+				},
+			});
+		}
+		throw new Error('Unexpected payload type');
+	});
+
+	return {
+		header,
+		payload,
+	};
+};
 
 export interface NodeConstants {
 	readonly maxPayloadLength: number;
@@ -88,7 +208,7 @@ export interface Options {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	genesisBlock: GenesisBlockInstance | BlockInstance;
+	genesisBlock: GenesisBlockJSON;
 }
 
 interface NodeConstructor {
@@ -104,7 +224,7 @@ interface NodeStatus {
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
 	readonly secondsSinceEpoch: number;
-	readonly lastBlock: BlockJSON;
+	readonly lastBlock: string;
 	readonly chainMaxHeightFinalized: number;
 }
 
@@ -160,9 +280,8 @@ export class Node {
 			}
 
 			this._networkIdentifier = getNetworkIdentifier(
-				this._options.genesisBlock.transactionRoot,
-				(this._options.genesisBlock as GenesisBlockInstance)
-					.communityIdentifier,
+				this._options.genesisBlock.header.transactionRoot,
+				this._options.genesisBlock.communityIdentifier,
 			);
 
 			this._sequence = new Sequence({
@@ -186,28 +305,24 @@ export class Node {
 
 			this._processor.register(new BlockProcessorV2(processorDependencies));
 
-			// Deserialize genesis block and overwrite the options
-			this._options.genesisBlock = await this._processor.deserialize(
-				(this._options.genesisBlock as unknown) as BlockJSON,
-			);
-
 			this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 				Object.assign(this._applicationState, event.data);
 			});
 
 			this._logger.info('Modules ready and launched');
 			// After binding, it should immediately load blockchain
-			await this._processor.init(this._options.genesisBlock);
+			await this._processor.init();
 			// Check if blocks are left in temp_blocks table
 			await this._synchronizer.init();
 
 			// Update Application State after processor is initialized
 			await this._channel.invoke('app:updateApplicationState', {
-				height: this._chain.lastBlock.height,
-				lastBlockId: this._chain.lastBlock.id,
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				maxHeightPrevoted: this._chain.lastBlock.maxHeightPrevoted || 0,
-				blockVersion: this._chain.lastBlock.version,
+				height: this._chain.lastBlock.header.height,
+				lastBlockId: this._chain.lastBlock.header.id,
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+				maxHeightPrevoted:
+					this._chain.lastBlock.header.asset.maxHeightPrevoted ?? 0,
+				blockVersion: this._chain.lastBlock.header.version,
 			});
 
 			this._subscribeToEvents();
@@ -280,8 +395,12 @@ export class Node {
 				this._chain.blockReward.calculateReward(action.params.height),
 			getForgerAddressesForRound: async (action: {
 				params: { round: number };
-			}): Promise<readonly string[]> =>
-				this._dpos.getForgerAddressesForRound(action.params.round),
+			}): Promise<readonly string[]> => {
+				const forgersAddress = await this._dpos.getForgerAddressesForRound(
+					action.params.round,
+				);
+				return forgersAddress.map(a => a.toString('base64'));
+			},
 			updateForgingStatus: async (action: {
 				params: { publicKey: string; password: string; forging: boolean };
 			}): Promise<ForgingStatus> =>
@@ -292,84 +411,111 @@ export class Node {
 				),
 			getAccount: async (action: {
 				params: { address: string };
-			}): Promise<AccountJSON> => {
+			}): Promise<string> => {
 				const account = await this._chain.dataAccess.getAccountByAddress(
-					action.params.address,
+					Buffer.from(action.params.address, 'base64'),
 				);
-				return account.toJSON();
+				return this._chain.dataAccess.encodeAccount(account).toString('base64');
 			},
 			getAccounts: async (action: {
 				params: { address: readonly string[] };
-			}): Promise<readonly AccountJSON[]> => {
+			}): Promise<readonly string[]> => {
 				const accounts = await this._chain.dataAccess.getAccountsByAddress(
-					action.params.address,
+					action.params.address.map(address => Buffer.from(address, 'base64')),
 				);
-				return accounts.map(account => account.toJSON());
+				return accounts.map(account =>
+					this._chain.dataAccess.encodeAccount(account).toString('base64'),
+				);
 			},
 			getBlockByID: async (action: {
 				params: { id: string };
-			}): Promise<BlockJSON | undefined> => {
-				const block = await this._chain.dataAccess.getBlockByID(
-					action.params.id,
-				);
-				return this._chain.dataAccess.serialize(block);
+			}): Promise<string | undefined> => {
+				try {
+					const block = await this._chain.dataAccess.getBlockByID(
+						Buffer.from(action.params.id, 'base64'),
+					);
+					return this._chain.dataAccess.encode(block).toString('base64');
+				} catch (error) {
+					if (error instanceof NotFoundError) {
+						return undefined;
+					}
+					throw error;
+				}
 			},
 			getBlocksByIDs: async (action: {
 				params: { ids: readonly string[] };
-			}): Promise<readonly BlockJSON[] | undefined> => {
-				const blocks = await this._chain.dataAccess.getBlocksByIDs(
-					action.params.ids,
+			}): Promise<readonly string[]> => {
+				const blocks = [];
+				try {
+					for (const id of action.params.ids) {
+						const block = await this._chain.dataAccess.getBlockByID(
+							Buffer.from(id, 'base64'),
+						);
+						blocks.push(block);
+					}
+				} catch (error) {
+					if (!(error instanceof NotFoundError)) {
+						throw error;
+					}
+				}
+				return blocks.map(block =>
+					this._chain.dataAccess.encode(block).toString('base64'),
 				);
-
-				return blocks.length > 0
-					? blocks.map(b => this._chain.dataAccess.serialize(b))
-					: [];
 			},
 			getBlockByHeight: async (action: {
 				params: { height: number };
-			}): Promise<BlockJSON | undefined> => {
-				const block = await this._chain.dataAccess.getBlockByHeight(
-					action.params.height,
-				);
-
-				return block
-					? this._chain.dataAccess.serialize(block as BlockInstance)
-					: undefined;
+			}): Promise<string | undefined> => {
+				try {
+					const block = await this._chain.dataAccess.getBlockByHeight(
+						action.params.height,
+					);
+					return this._chain.dataAccess.encode(block).toString('base64');
+				} catch (error) {
+					if (error instanceof NotFoundError) {
+						return undefined;
+					}
+					throw error;
+				}
 			},
 			getBlocksByHeightBetween: async (action: {
 				params: { from: number; to: number };
-			}): Promise<readonly BlockJSON[] | undefined> => {
+			}): Promise<readonly string[]> => {
 				const blocks = await this._chain.dataAccess.getBlocksByHeightBetween(
 					action.params.from,
 					action.params.to,
 				);
 
-				return blocks.length > 0
-					? blocks.map(b => this._chain.dataAccess.serialize(b))
-					: [];
+				return blocks.map(b =>
+					this._chain.dataAccess.encode(b).toString('base64'),
+				);
 			},
 			getTransactionByID: async (action: {
 				params: { id: string };
-			}): Promise<TransactionJSON | undefined> => {
-				const [
-					transaction,
-				] = await this._chain.dataAccess.getTransactionsByIDs([
-					action.params.id,
-				]);
+			}): Promise<string> => {
+				const transaction = await this._chain.dataAccess.getTransactionByID(
+					Buffer.from(action.params.id, 'base64'),
+				);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				return transaction ? transaction.toJSON() : undefined;
+				return transaction.getBytes().toString('base64');
 			},
 			getTransactionsByIDs: async (action: {
 				params: { ids: readonly string[] };
-			}): Promise<TransactionJSON[]> => {
-				const transactions = await this._chain.dataAccess.getTransactionsByIDs(
-					action.params.ids,
-				);
-
-				return transactions.length > 0
-					? transactions.map(tx => tx.toJSON())
-					: [];
+			}): Promise<string[]> => {
+				const transactions = [];
+				try {
+					for (const id of action.params.ids) {
+						const transaction = await this._chain.dataAccess.getTransactionByID(
+							Buffer.from(id, 'base64'),
+						);
+						transactions.push(transaction);
+					}
+				} catch (error) {
+					if (!(error instanceof NotFoundError)) {
+						throw error;
+					}
+				}
+				return transactions.map(tx => tx.getBytes().toString('base64'));
 			},
 			getTransactions: async (action: {
 				params: { data: unknown; peerId: string };
@@ -380,11 +526,10 @@ export class Node {
 				),
 			getForgingStatusOfAllDelegates: (): ForgingStatus[] | undefined =>
 				this._forger.getForgingStatusOfAllDelegates(),
-			getTransactionsFromPool: (): TransactionJSON[] =>
+			getTransactionsFromPool: (): string[] =>
 				this._transactionPool
 					.getAll()
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-					.map(tx => tx.toJSON() as TransactionJSON),
+					.map(tx => tx.getBytes().toString('base64')),
 			postTransaction: async (action: {
 				params: EventPostTransactionData;
 			}): Promise<handlePostTransactionReturn> =>
@@ -398,21 +543,24 @@ export class Node {
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
 				secondsSinceEpoch: this._chain.slots.getEpochTime(),
-				lastBlock: this._chain.serialize(this._chain.lastBlock),
+				lastBlock: this._chain.dataAccess
+					.encode(this._chain.lastBlock)
+					.toString('base64'),
 				chainMaxHeightFinalized: this._bft.finalityManager.finalizedHeight,
 			}),
-			getLastBlock: async (): Promise<BlockJSON> =>
-				this._processor.serialize(this._chain.lastBlock),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getLastBlock: async (): Promise<string> =>
+				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
 			getBlocksFromId: async (action: {
 				params: { data: unknown; peerId: string };
-			}): Promise<BlockJSON[]> =>
+			}): Promise<string[]> =>
 				this._transport.handleRPCGetBlocksFromId(
 					action.params.data,
 					action.params.peerId,
 				),
 			getHighestCommonBlock: async (action: {
 				params: { data: unknown; peerId: string };
-			}): Promise<BlockHeaderJSON | null> =>
+			}): Promise<string | undefined> =>
 				this._transport.handleRPCGetGetHighestCommonBlock(
 					action.params.data,
 					action.params.peerId,
@@ -428,11 +576,19 @@ export class Node {
 	}
 
 	private _initModules(): void {
+		const genesisBlock = convertGenesisBlock(this._options.genesisBlock);
 		this._chain = new Chain({
 			db: this._blockchainDB,
-			genesisBlock: this._options.genesisBlock as GenesisBlockJSON,
+			genesisBlock,
 			registeredTransactions: this._options.registeredTransactions,
-			networkIdentifier: this._networkIdentifier,
+			accountAsset: {
+				schema: accountAssetSchema,
+				default: defaultAccountAsset,
+			},
+			registeredBlocks: {
+				2: BlockProcessorV2.schema,
+			},
+			networkIdentifier: Buffer.from(this._networkIdentifier, 'hex'),
 			maxPayloadLength: this._options.constants.maxPayloadLength,
 			rewardDistance: this._options.constants.rewards.distance,
 			rewardOffset: this._options.constants.rewards.offset,
@@ -446,34 +602,40 @@ export class Node {
 		this._chain.events.on(
 			EVENT_NEW_BLOCK,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (eventData: { block: BlockJSON }): Promise<void> => {
+			async (eventData: {
+				block: Block;
+				accounts: Account[];
+			}): Promise<void> => {
 				const { block } = eventData;
 				// Publish to the outside
-				this._channel.publish('app:block:new', eventData);
+				this._channel.publish('app:block:new', {
+					block: this._chain.dataAccess.encode(block).toString('hex'),
+					accounts: eventData.accounts.map(acc =>
+						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
+					),
+				});
 
 				// Remove any transactions from the pool on new block
-				if (block.transactions.length) {
-					for (const transaction of block.transactions) {
-						this._transactionPool.remove(
-							this._chain.deserializeTransaction(transaction),
-						);
+				if (block.payload.length) {
+					for (const transaction of block.payload) {
+						this._transactionPool.remove(transaction);
 					}
 				}
 
 				if (!this._synchronizer.isActive) {
 					await this._channel.invoke('app:updateApplicationState', {
-						height: block.height,
-						lastBlockId: block.id,
-						maxHeightPrevoted: block.maxHeightPrevoted,
-						blockVersion: block.version,
+						height: block.header.height,
+						lastBlockId: block.header.id.toString('hex'),
+						maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
+						blockVersion: block.header.version,
 					});
 				}
 
 				this._logger.info(
 					{
-						id: block.id,
-						height: block.height,
-						numberOfTransactions: block.transactions.length,
+						id: block.header.id.toString('hex'),
+						height: block.header.height,
+						numberOfTransactions: block.payload.length,
 					},
 					'New block added to the chain',
 				);
@@ -484,17 +646,20 @@ export class Node {
 		this._chain.events.on(
 			EVENT_DELETE_BLOCK,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (eventData: { block: BlockJSON }) => {
+			async (eventData: { block: Block; accounts: Account[] }) => {
 				const { block } = eventData;
 				// Publish to the outside
-				this._channel.publish('app:block:delete', eventData);
+				this._channel.publish('app:block:delete', {
+					block: this._chain.dataAccess.encode(block).toString('hex'),
+					accounts: eventData.accounts.map(acc =>
+						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
+					),
+				});
 
-				if (block.transactions.length) {
-					for (const transaction of block.transactions) {
+				if (block.payload.length) {
+					for (const transaction of block.payload) {
 						try {
-							await this._transactionPool.add(
-								this._chain.deserializeTransaction(transaction),
-							);
+							await this._transactionPool.add(transaction);
 						} catch (err) {
 							this._logger.error(
 								{ err: err as Error },
@@ -504,7 +669,7 @@ export class Node {
 					}
 				}
 				this._logger.info(
-					{ id: block.id, height: block.height },
+					{ id: block.header.id, height: block.header.height },
 					'Deleted a block from the chain',
 				);
 			},
@@ -565,6 +730,30 @@ export class Node {
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
+		blockSyncMechanism.events.on(
+			EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+			({ block, peerId }) => {
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error(
+						{ err: err as Error },
+						'Error occurred during synchronization.',
+					);
+				});
+			},
+		);
+
+		fastChainSwitchMechanism.events.on(
+			EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+			({ block, peerId }) => {
+				this._synchronizer.run(block, peerId).catch(err => {
+					this._logger.error(
+						{ err: err as Error },
+						'Error occurred during synchronization.',
+					);
+				});
+			},
+		);
+
 		this._forger = new Forger({
 			logger: this._logger,
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -580,6 +769,7 @@ export class Node {
 			forgingWaitThreshold: this._options.forging.waitThreshold,
 			maxPayloadLength: this._options.constants.maxPayloadLength,
 		});
+
 		this._transport = new Transport({
 			channel: this._channel,
 			logger: this._logger,
@@ -627,26 +817,18 @@ export class Node {
 	}
 
 	private _subscribeToEvents(): void {
-		this._channel.subscribe(
-			'app:block:broadcast',
+		// FIXME: this event is using instance, it should be replaced by event emitter
+		this._processor.events.on(
+			EVENT_PROCESSOR_BRADCASRT_BLOCK,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async (info: EventInfoObject) => {
-				const {
-					data: { block },
-				} = info as { data: { block: BlockJSON } };
+			async ({ block }) => {
 				await this._transport.handleBroadcastBlock(block);
 			},
 		);
 
-		this._channel.subscribe(
-			'app:chain:sync',
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			(info: EventInfoObject) => {
-				const {
-					data: { block, peerId },
-				} = info as {
-					data: { block: BlockJSON; peerId: string };
-				};
+		this._processor.events.on(
+			EVENT_PROCESSOR_SYNC_REQUIRED,
+			({ block, peerId }) => {
 				this._synchronizer.run(block, peerId).catch(err => {
 					this._logger.error(
 						{ err: err as Error },

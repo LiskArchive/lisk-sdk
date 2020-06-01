@@ -12,12 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MaxHeap, TransactionPool } from '@liskhq/lisk-transaction-pool';
+import {
+	MaxHeap,
+	TransactionPool,
+	PooledTransaction,
+} from '@liskhq/lisk-transaction-pool';
 import {
 	Status as TransactionStatus,
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
 import { Chain } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 export class HighFeeForgingStrategy {
 	private readonly _chainModule: Chain;
@@ -56,8 +61,8 @@ export class HighFeeForgingStrategy {
 		// Initialize block size with 0
 		let blockPayloadSize = 0;
 		const feePriorityHeap = new MaxHeap();
-		for (const senderId of Object.keys(transactionsBySender)) {
-			const lowestNonceTrx = transactionsBySender[senderId][0];
+		for (const transactions of transactionsBySender.values()) {
+			const lowestNonceTrx = transactions[0];
 			feePriorityHeap.push(
 				lowestNonceTrx.feePriority as bigint,
 				lowestNonceTrx,
@@ -65,10 +70,13 @@ export class HighFeeForgingStrategy {
 		}
 
 		// Loop till we have last account exhausted to pick transactions
-		while (Object.keys(transactionsBySender).length !== 0) {
+		while (transactionsBySender.size > 0) {
 			// Get the transaction with highest fee and lowest nonce
 			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()
 				?.value as BaseTransaction;
+			const senderId = getAddressFromPublicKey(
+				lowestNonceHighestFeeTrx.senderPublicKey,
+			);
 			// Try to process transaction
 			const result = await this._chainModule.applyTransactionsWithStateStore(
 				[lowestNonceHighestFeeTrx],
@@ -78,7 +86,7 @@ export class HighFeeForgingStrategy {
 			// If transaction can't be processed then discard all transactions
 			// from that account as other transactions will be higher nonce
 			if (result[0].status !== TransactionStatus.OK) {
-				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
+				transactionsBySender.delete(senderId);
 
 				// eslint-disable-next-line no-continue
 				continue;
@@ -102,28 +110,27 @@ export class HighFeeForgingStrategy {
 			// Remove the selected transaction from the list
 			// as original array is readonly in future when we convert it to
 			// typescript the `splice` will not work so why used destruction
-			const [, ...choppedArray] = transactionsBySender[
-				lowestNonceHighestFeeTrx.senderId
-			];
-			transactionsBySender[lowestNonceHighestFeeTrx.senderId] = choppedArray;
+			const [, ...choppedArray] = transactionsBySender.get(
+				senderId,
+			) as PooledTransaction[];
+			transactionsBySender.set(senderId, choppedArray);
 
 			// If there is no transaction left in heap for that account
 			// then remove that account from map
-			if (
-				transactionsBySender[lowestNonceHighestFeeTrx.senderId].length === 0
-			) {
-				delete transactionsBySender[lowestNonceHighestFeeTrx.senderId];
-
+			const reaminingTransactions = transactionsBySender.get(senderId);
+			if (!reaminingTransactions || reaminingTransactions.length === 0) {
+				transactionsBySender.delete(senderId);
 				// eslint-disable-next-line no-continue
 				continue;
 			}
 
 			// Pick next lowest transaction from same account and push to fee queue
-			const nextLowestNonceTransaction =
-				transactionsBySender[lowestNonceHighestFeeTrx.senderId][0];
+			const nextLowestNonceTransactions = transactionsBySender.get(
+				senderId,
+			) as PooledTransaction[];
 			feePriorityHeap.push(
-				nextLowestNonceTransaction.feePriority as bigint,
-				nextLowestNonceTransaction,
+				nextLowestNonceTransactions[0].feePriority as bigint,
+				nextLowestNonceTransactions[0],
 			);
 		}
 

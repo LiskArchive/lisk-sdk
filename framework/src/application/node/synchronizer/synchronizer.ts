@@ -16,11 +16,10 @@ import * as assert from 'assert';
 import { validator } from '@liskhq/lisk-validator';
 import {
 	Status as TransactionStatus,
-	TransactionJSON,
 	TransactionError,
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
-import { Chain, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
+import { Chain, Block } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import * as definitions from './schema';
 import * as utils from './utils';
@@ -94,7 +93,7 @@ export class Synchronizer {
 		}
 	}
 
-	public async run(receivedBlock: BlockJSON, peerId: string): Promise<void> {
+	public async run(receivedBlock: Block, peerId: string): Promise<void> {
 		if (this.isActive) {
 			throw new Error('Synchronizer is already running');
 		}
@@ -105,38 +104,38 @@ export class Synchronizer {
 				'A block must be provided to the Synchronizer in order to run',
 			);
 			this.logger.info(
-				{ blockId: receivedBlock.id, height: receivedBlock.height },
+				{
+					blockId: receivedBlock.header.id.toString('hex'),
+					height: receivedBlock.header.height,
+				},
 				'Starting synchronizer',
-			);
-			const receivedBlockInstance = await this.processorModule.deserialize(
-				receivedBlock,
 			);
 
 			// Moving to a Different Chain
 			// 1. Step: Validate new tip of chain
-			await this.processorModule.validate(receivedBlockInstance);
+			await this.processorModule.validate(receivedBlock);
 
 			// Choose the right mechanism to sync
 			const validMechanism = await this._determineSyncMechanism(
-				receivedBlockInstance,
+				receivedBlock,
 				peerId,
 			);
 
 			if (!validMechanism) {
 				return this.logger.info(
-					{ blockId: receivedBlockInstance.id },
+					{ blockId: receivedBlock.header.id.toString('hex') },
 					'Syncing mechanism could not be determined for the given block',
 				);
 			}
 
 			this.logger.info(`Triggering: ${validMechanism.constructor.name}`);
 
-			await validMechanism.run(receivedBlockInstance, peerId);
+			await validMechanism.run(receivedBlock, peerId);
 
 			return this.logger.info(
 				{
-					lastBlockHeight: this.chainModule.lastBlock.height,
-					lastBlockId: this.chainModule.lastBlock.id,
+					lastBlockHeight: this.chainModule.lastBlock.header.height,
+					lastBlockId: this.chainModule.lastBlock.header.id.toString('hex'),
 					mechanism: validMechanism.constructor.name,
 				},
 				'Synchronization finished',
@@ -168,7 +167,7 @@ export class Synchronizer {
 	}
 
 	private async _determineSyncMechanism(
-		receivedBlock: BlockInstance,
+		receivedBlock: Block,
 		peerId: string,
 	): Promise<BaseSynchronizer | undefined> {
 		for (const mechanism of this.mechanisms) {
@@ -190,7 +189,7 @@ export class Synchronizer {
 
 		// TODO: Add target module to procedure name. E.g. chain:getTransactions
 		const { data: result } = await this.channel.invokeFromNetwork<{
-			data: { transactions: TransactionJSON[] };
+			data: { transactions: string[] };
 		}>('requestFromNetwork', {
 			procedure: 'getTransactions',
 		});
@@ -203,8 +202,10 @@ export class Synchronizer {
 			throw validatorErrors;
 		}
 
-		const transactions = result.transactions.map(tx =>
-			this.chainModule.deserializeTransaction(tx),
+		const transactions = result.transactions.map(txStr =>
+			this.chainModule.dataAccess.decodeTransaction(
+				Buffer.from(txStr, 'base64'),
+			),
 		);
 
 		try {

@@ -13,33 +13,29 @@
  */
 
 import {
-	getPrivateAndPublicKeyBytesFromPassphrase,
+	getPrivateAndPublicKeyFromPassphrase,
 	decryptPassphraseWithPassword,
 	parseEncryptedPassphrase,
 	hashOnion,
 	generateHashOnionSeed,
 	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
-import { Chain } from '@liskhq/lisk-chain';
+import { Chain, BufferMap } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BFT } from '@liskhq/lisk-bft';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { KVStore } from '@liskhq/lisk-db';
-import {
-	DB_KEY_FORGER_USED_HASH_ONION,
-	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-} from './constant';
 import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
-import { StringKeyVal } from '../../../types';
-
-interface UsedHashOnion {
-	readonly count: number;
-	readonly address: string;
-	readonly height: number;
-}
+import {
+	setRegisteredHashOnionSeeds,
+	setUsedHashOnions,
+	getUsedHashOnions,
+	getRegisteredHashOnionSeeds,
+	UsedHashOnion,
+} from './data_access';
 
 export interface DelegateConfig {
 	readonly publicKey: string;
@@ -58,13 +54,9 @@ export interface ForgingStatus {
 	readonly forging: boolean;
 }
 
-interface KeyPair {
+interface Keypair {
 	publicKey: Buffer;
 	privateKey: Buffer;
-}
-
-interface KeyPairs {
-	[key: string]: KeyPair;
 }
 
 interface ForgerConstructor {
@@ -91,7 +83,7 @@ export class Forger {
 	private readonly _bftModule: BFT;
 	private readonly _transactionPoolModule: TransactionPool;
 	private readonly _chainModule: Chain;
-	private readonly _keypairs: KeyPairs;
+	private readonly _keypairs: BufferMap<Keypair>;
 	private readonly _config: {
 		readonly forging: {
 			readonly force?: boolean;
@@ -122,7 +114,7 @@ export class Forger {
 		forgingDefaultPassword,
 		forgingWaitThreshold,
 	}: ForgerConstructor) {
-		this._keypairs = {};
+		this._keypairs = new BufferMap<Keypair>();
 		this._logger = logger;
 		this._db = db;
 		this._config = {
@@ -167,7 +159,7 @@ export class Forger {
 			item => item.publicKey === publicKey,
 		);
 
-		let keypair: KeyPair;
+		let keypair: Keypair;
 		let passphrase: string;
 
 		if (encryptedItem) {
@@ -179,15 +171,8 @@ export class Forger {
 			} catch (e) {
 				throw new Error('Invalid password and public key combination');
 			}
-			const {
-				publicKeyBytes,
-				privateKeyBytes,
-			} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 
-			keypair = {
-				publicKey: publicKeyBytes,
-				privateKey: privateKeyBytes,
-			};
+			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 		} else {
 			throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 		}
@@ -200,21 +185,20 @@ export class Forger {
 		const [
 			account,
 		] = await this._chainModule.dataAccess.getAccountsByPublicKey([
-			keypair.publicKey.toString('hex'),
+			keypair.publicKey,
 		]);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (account?.isDelegate) {
+		if (account.asset.delegate.username !== '') {
 			if (forging) {
-				this._keypairs[
-					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
-				] = keypair;
-				this._logger.info(`Forging enabled on account: ${account.address}`);
+				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
+				this._logger.info(
+					`Forging enabled on account: ${account.address.toString('hex')}`,
+				);
 			} else {
-				delete this._keypairs[
-					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
-				];
-				this._logger.info(`Forging disabled on account: ${account.address}`);
+				this._keypairs.delete(getAddressFromPublicKey(keypair.publicKey));
+				this._logger.info(
+					`Forging disabled on account: ${account.address.toString('hex')}`,
+				);
 			}
 
 			return {
@@ -240,8 +224,10 @@ export class Forger {
 			`Loading ${encryptedList.length} delegates using encrypted passphrases from config`,
 		);
 
-		let usedHashOnions = await this._getUsedHashOnions();
-		const registeredHashOnionSeeds = await this._getRegisteredHashOnionSeeds();
+		let usedHashOnions = await getUsedHashOnions(this._db);
+		const registeredHashOnionSeeds = await getRegisteredHashOnionSeeds(
+			this._db,
+		);
 
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
@@ -258,15 +244,7 @@ export class Forger {
 				throw new Error(decryptionError);
 			}
 
-			const {
-				publicKeyBytes,
-				privateKeyBytes,
-			} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-
-			const keypair = {
-				publicKey: publicKeyBytes,
-				privateKey: privateKeyBytes,
-			};
+			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				throw new Error(
@@ -277,7 +255,7 @@ export class Forger {
 			const [
 				account,
 			] = await this._chainModule.dataAccess.getAccountsByPublicKey([
-				keypair.publicKey.toString('hex'),
+				keypair.publicKey,
 			]);
 
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -288,11 +266,11 @@ export class Forger {
 					)} not found`,
 				);
 			}
-			if (account.isDelegate) {
-				this._keypairs[
-					getAddressFromPublicKey(keypair.publicKey.toString('hex'))
-				] = keypair;
-				this._logger.info(`Forging enabled on account: ${account.address}`);
+			if (account.asset.delegate.username !== '') {
+				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
+				this._logger.info(
+					`Forging enabled on account: ${account.address.toString('hex')}`,
+				);
 			} else {
 				this._logger.warn(
 					{},
@@ -303,7 +281,9 @@ export class Forger {
 			}
 			// Prepare hash-onion
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const registeredHashOnionSeed = registeredHashOnionSeeds[account.address];
+			const registeredHashOnionSeed = registeredHashOnionSeeds.get(
+				account.address,
+			);
 			const hashOnionConfig = this._getHashOnionConfig(account.address);
 
 			// If hash onion in the config is different from what is registered, remove all the used information and register the new one
@@ -312,21 +292,26 @@ export class Forger {
 				hashOnionConfig.hashes[hashOnionConfig.hashes.length - 1];
 			if (
 				registeredHashOnionSeed &&
-				registeredHashOnionSeed !== configHashOnionSeed
+				!registeredHashOnionSeed.equals(Buffer.from(configHashOnionSeed, 'hex'))
 			) {
 				this._logger.warn(
-					`Hash onion for Account ${account.address} is not the same as previous one. Overwriting with new hash onion`,
+					`Hash onion for Account ${account.address.toString(
+						'hex',
+					)} is not the same as previous one. Overwriting with new hash onion`,
 				);
 				usedHashOnions = usedHashOnions.filter(
-					ho => ho.address !== account.address,
+					ho => !ho.address.equals(account.address),
 				);
 			}
 			// Update the registered hash onion (either same one, new one or overwritten one)
-			registeredHashOnionSeeds[account.address] = configHashOnionSeed;
+			registeredHashOnionSeeds.set(
+				account.address,
+				Buffer.from(configHashOnionSeed, 'hex'),
+			);
 			const highestUsedHashOnion = usedHashOnions.reduce<
 				UsedHashOnion | undefined
 			>((prev, current) => {
-				if (current.address !== account.address) {
+				if (!current.address.equals(account.address)) {
 					return prev;
 				}
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -354,11 +339,15 @@ export class Forger {
 			}
 			// If all hash onion is used, throw an error
 			if (highestCount >= hashOnionConfig.count) {
-				throw new Error(`All of the hash onion is used for ${account.address}`);
+				throw new Error(
+					`All of the hash onion is used for ${account.address.toString(
+						'hex',
+					)}`,
+				);
 			}
 		}
-		await this._setRegisteredHashOnionSeeds(registeredHashOnionSeeds);
-		await this._setUsedHashOnions(usedHashOnions);
+		await setRegisteredHashOnionSeeds(this._db, registeredHashOnionSeeds);
+		await setUsedHashOnions(this._db, usedHashOnions);
 	}
 
 	public async forge(): Promise<void> {
@@ -371,7 +360,7 @@ export class Forger {
 		const waitThreshold = this._config.forging.waitThreshold * 1000;
 		const { lastBlock } = this._chainModule;
 		const lastBlockSlot = this._chainModule.slots.getSlotNumber(
-			lastBlock.timestamp,
+			lastBlock.header.timestamp,
 		);
 
 		if (currentSlot === lastBlockSlot) {
@@ -384,10 +373,10 @@ export class Forger {
 
 		// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 		const round = this._dposModule.rounds.calcRound(
-			this._chainModule.lastBlock.height + 1,
+			this._chainModule.lastBlock.header.height + 1,
 		);
 
-		let delegateKeypair: KeyPair | null;
+		let delegateKeypair: Keypair | undefined;
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-use-before-define
 			delegateKeypair = await this._getDelegateKeypairForCurrentSlot(
@@ -399,7 +388,7 @@ export class Forger {
 			throw err;
 		}
 
-		if (delegateKeypair === null) {
+		if (delegateKeypair === undefined) {
 			this._logger.trace(
 				{ currentSlot: this._chainModule.slots.getSlotNumber() },
 				'Waiting for delegate slot',
@@ -429,12 +418,10 @@ export class Forger {
 		const previousBlock = this._chainModule.lastBlock;
 		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
 
-		const delegateAddress = getAddressFromPublicKey(
-			delegateKeypair.publicKey.toString('hex'),
-		);
-		const nextHeight = previousBlock.height + 1;
+		const delegateAddress = getAddressFromPublicKey(delegateKeypair.publicKey);
+		const nextHeight = previousBlock.header.height + 1;
 
-		const usedHashOnions = await this._getUsedHashOnions();
+		const usedHashOnions = await getUsedHashOnions(this._db);
 		const nextHashOnion = this._getNextHashOnion(
 			usedHashOnions,
 			delegateAddress,
@@ -469,38 +456,38 @@ export class Forger {
 			seedReveal: nextHashOnion.hash,
 		});
 
-		await this._setUsedHashOnions(updatedUsedHashOnion);
+		await setUsedHashOnions(this._db, updatedUsedHashOnion);
 
 		await this._processorModule.process(forgedBlock);
 
 		this._logger.info(
 			{
-				id: forgedBlock.id,
-				generatorAddress: delegateAddress,
-				seedReveal: nextHashOnion.hash,
-				height: forgedBlock.height,
-				round: this._dposModule.rounds.calcRound(forgedBlock.height),
-				slot: this._chainModule.slots.getSlotNumber(forgedBlock.timestamp),
-				reward: forgedBlock.reward.toString(),
+				id: forgedBlock.header.id.toString('hex'),
+				generatorAddress: delegateAddress.toString('hex'),
+				seedReveal: nextHashOnion.hash.toString('hex'),
+				height: forgedBlock.header.height,
+				round: this._dposModule.rounds.calcRound(forgedBlock.header.height),
+				slot: this._chainModule.slots.getSlotNumber(
+					forgedBlock.header.timestamp,
+				),
+				reward: forgedBlock.header.reward.toString(),
 			},
 			'Forged new block',
 		);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public getForgersKeyPairs(): KeyPairs {
+	public getForgersKeyPairs(): BufferMap<Keypair> {
 		return this._keypairs;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
-		const keyPairs = this._keypairs;
 		const forgingDelegates = this._config.forging.delegates;
 		const forgersPublicKeys: { [key: string]: boolean } = {};
 
-		Object.keys(keyPairs).forEach(key => {
-			forgersPublicKeys[keyPairs[key].publicKey.toString('hex')] = true;
-		});
+		for (const keypair of this._keypairs.values()) {
+			forgersPublicKeys[keypair.publicKey.toString('hex')] = true;
+		}
 
 		const fullList = forgingDelegates?.map(forger => ({
 			forging: !!forgersPublicKeys[forger.publicKey],
@@ -512,16 +499,16 @@ export class Forger {
 
 	private _getNextHashOnion(
 		usedHashOnions: ReadonlyArray<UsedHashOnion>,
-		address: string,
+		address: Buffer,
 		height: number,
 	): {
 		readonly count: number;
-		readonly hash: string;
+		readonly hash: Buffer;
 	} {
 		// Get highest hashonion that is used by this address below height
 		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>(
 			(prev, current) => {
-				if (current.address !== address) {
+				if (!current.address.equals(address)) {
 					return prev;
 				}
 				if (
@@ -539,7 +526,7 @@ export class Forger {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!usedHashOnion) {
 			return {
-				hash: hashOnionConfig.hashes[0],
+				hash: Buffer.from(hashOnionConfig.hashes[0], 'hex'),
 				count: 0,
 			};
 		}
@@ -550,7 +537,7 @@ export class Forger {
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
 			return {
-				hash: generateHashOnionSeed().toString('hex'),
+				hash: generateHashOnionSeed(),
 				count: 0,
 			};
 		}
@@ -562,60 +549,23 @@ export class Forger {
 		const hashes = hashOnion(nextCheckpoint, hashOnionConfig.distance, 1);
 		const checkpointIndex = nextCount % hashOnionConfig.distance;
 		return {
-			hash: hashes[checkpointIndex].toString('hex'),
+			hash: hashes[checkpointIndex],
 			count: nextCount,
 		};
 	}
 
-	private _getHashOnionConfig(address: string): HashOnionConfig {
-		const delegateConfig = this._config.forging.delegates?.find(
-			d => getAddressFromPublicKey(d.publicKey) === address,
+	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
+		const delegateConfig = this._config.forging.delegates?.find(d =>
+			getAddressFromPublicKey(Buffer.from(d.publicKey, 'hex')).equals(address),
 		);
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(
-				`Account ${address} does not have hash onion in the config`,
+				`Account ${address.toString(
+					'hex',
+				)} does not have hash onion in the config`,
 			);
 		}
 		return delegateConfig.hashOnion;
-	}
-
-	private async _getRegisteredHashOnionSeeds(): Promise<StringKeyVal> {
-		try {
-			const registeredHashOnionSeedsBuffer = await this._db.get(
-				DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-			);
-			return JSON.parse(
-				registeredHashOnionSeedsBuffer.toString('utf8'),
-			) as StringKeyVal;
-		} catch (error) {
-			return {};
-		}
-	}
-
-	private async _setRegisteredHashOnionSeeds(
-		registeredHashOnionSeeds: StringKeyVal,
-	): Promise<void> {
-		const registeredHashOnionSeedsStr = JSON.stringify(
-			registeredHashOnionSeeds,
-		);
-		await this._db.put(
-			DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-			Buffer.from(registeredHashOnionSeedsStr, 'utf8'),
-		);
-	}
-
-	private async _getUsedHashOnions(): Promise<UsedHashOnion[]> {
-		try {
-			const usedHashOnionsBuffer = await this._db.get(
-				DB_KEY_FORGER_USED_HASH_ONION,
-			);
-
-			return JSON.parse(
-				usedHashOnionsBuffer.toString('utf8'),
-			) as UsedHashOnion[];
-		} catch (error) {
-			return [];
-		}
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -626,14 +576,12 @@ export class Forger {
 		const filteredObject = usedHashOnions.reduce(
 			({ others, highest }, current) => {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const prevUsed = highest[current.address];
+				const prevUsed = highest.get(current.address);
 				if (prevUsed === undefined) {
-					// eslint-disable-next-line no-param-reassign
-					highest[current.address] = current;
+					highest.set(current.address, current);
 				} else if (prevUsed.height < current.height) {
 					others.push(prevUsed);
-					// eslint-disable-next-line no-param-reassign
-					highest[current.address] = current;
+					highest.set(current.address, current);
 				}
 				return {
 					highest,
@@ -642,30 +590,20 @@ export class Forger {
 			},
 			{
 				others: [] as UsedHashOnion[],
-				highest: {} as { [key: string]: UsedHashOnion },
+				highest: new BufferMap<UsedHashOnion>(),
 			},
 		);
 
 		const filtered = filteredObject.others.filter(
 			ho => ho.height > finalizedHeight,
 		);
-		return filtered.concat(Object.values(filteredObject.highest));
-	}
-
-	private async _setUsedHashOnions(
-		usedHashOnions: UsedHashOnion[],
-	): Promise<void> {
-		const usedHashOnionsStr = JSON.stringify(usedHashOnions);
-		await this._db.put(
-			DB_KEY_FORGER_USED_HASH_ONION,
-			Buffer.from(usedHashOnionsStr, 'utf8'),
-		);
+		return filtered.concat(filteredObject.highest.values());
 	}
 
 	private async _getDelegateKeypairForCurrentSlot(
 		currentSlot: number,
 		round: number,
-	): Promise<KeyPair | null> {
+	): Promise<Keypair | undefined> {
 		const activeDelegates = await this._dposModule.getForgerAddressesForRound(
 			round,
 		);
@@ -673,11 +611,13 @@ export class Forger {
 		const currentSlotIndex = currentSlot % activeDelegates.length;
 		const currentSlotDelegate = activeDelegates[currentSlotIndex];
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (currentSlotDelegate && this._keypairs[currentSlotDelegate]) {
-			return this._keypairs[currentSlotDelegate];
+		if (
+			currentSlotDelegate.length > 0 &&
+			this._keypairs.has(currentSlotDelegate)
+		) {
+			return this._keypairs.get(currentSlotDelegate);
 		}
 
-		return null;
+		return undefined;
 	}
 }

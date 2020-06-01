@@ -42,6 +42,13 @@ export class BufferMap<V> {
 		return new BufferMap(cloneDeep(this._data));
 	}
 
+	public entries(): [Buffer, V][] {
+		return Object.entries(this._data).map(([key, value]) => [
+			Buffer.from(key, 'binary'),
+			value,
+		]) as [Buffer, V][];
+	}
+
 	public values(): V[] {
 		return Object.values(this._data as { [key: string]: V });
 	}

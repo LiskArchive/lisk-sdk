@@ -15,80 +15,86 @@
 export const genesisBlockSchema = {
 	$id: '#genesisBlock',
 	type: 'object',
-	required: [
-		'communityIdentifier',
-		'version',
-		'totalAmount',
-		'seedReveal',
-		'totalFee',
-		'reward',
-		'transactionRoot',
-		'timestamp',
-		'numberOfTransactions',
-		'payloadLength',
-		'generatorPublicKey',
-		'transactions',
-		'blockSignature',
-	],
+	required: ['communityIdentifier', 'payload', 'header'],
 	properties: {
 		communityIdentifier: {
 			type: 'string',
 		},
-		version: {
-			type: 'integer',
-			minimum: 0,
+		header: {
+			type: 'object',
+			required: [
+				'version',
+				'reward',
+				'transactionRoot',
+				'timestamp',
+				'generatorPublicKey',
+				'signature',
+			],
+			properties: {
+				version: {
+					type: 'integer',
+					minimum: 0,
+				},
+				height: {
+					type: 'integer',
+					minimum: 1,
+				},
+				signature: {
+					type: 'string',
+					format: 'signature',
+				},
+				id: {
+					type: 'string',
+					format: 'hex',
+					minLength: 64,
+					maxLength: 64,
+				},
+				reward: {
+					type: 'string',
+					format: 'amount',
+				},
+
+				transactionRoot: {
+					type: 'string',
+					format: 'hex',
+				},
+				timestamp: {
+					type: 'integer',
+					minimum: 0,
+				},
+				previousBlockID: {
+					type: ['string'],
+					format: 'hex',
+				},
+				generatorPublicKey: {
+					type: 'string',
+					format: 'publicKey',
+				},
+				asset: {
+					type: 'object',
+					required: [
+						'seedReveal',
+						'maxHeightPrevoted',
+						'maxHeightPreviouslyForged',
+					],
+					properties: {
+						seedReveal: {
+							type: 'string',
+							format: 'hex',
+						},
+						maxHeightPrevoted: {
+							type: 'integer',
+							minimum: 0,
+						},
+						maxHeightPreviouslyForged: {
+							type: 'integer',
+							minimum: 0,
+						},
+					},
+				},
+			},
 		},
-		totalAmount: {
-			type: 'string',
-			format: 'amount',
-		},
-		totalFee: {
-			type: 'string',
-			format: 'amount',
-		},
-		reward: {
-			type: 'string',
-			format: 'amount',
-		},
-		seedReveal: {
-			type: 'string',
-			format: 'hex',
-		},
-		transactionRoot: {
-			type: 'string',
-			format: 'hex',
-		},
-		timestamp: {
-			type: 'integer',
-			minimum: 0,
-		},
-		numberOfTransactions: {
-			type: 'integer',
-			minimum: 0,
-		},
-		payloadLength: {
-			type: 'integer',
-			minimum: 0,
-		},
-		previousBlockId: {
-			type: ['null', 'string'],
-			format: 'hex',
-			minLength: 64,
-			maxLength: 64,
-		},
-		generatorPublicKey: {
-			type: 'string',
-			format: 'publicKey',
-		},
-		maxHeightPrevoted: {
-			type: 'integer',
-			minimum: 0,
-		},
-		maxHeightPreviouslyForged: {
-			type: 'integer',
-			minimum: 0,
-		},
-		transactions: {
+		payload: {
 			type: 'array',
 			items: {
 				type: 'object',
@@ -135,20 +141,6 @@ export const genesisBlockSchema = {
 				additionalProperties: false,
 			},
 			uniqueItems: true,
-		},
-		height: {
-			type: 'integer',
-			minimum: 1,
-		},
-		blockSignature: {
-			type: 'string',
-			format: 'signature',
-		},
-		id: {
-			type: 'string',
-			format: 'hex',
-			minLength: 64,
-			maxLength: 64,
 		},
 	},
 	additionalProperties: false,

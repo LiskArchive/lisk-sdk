@@ -235,7 +235,7 @@ export class DataAccess {
 		return blocks.map(block => this._decodeRawBlock(block));
 	}
 
-	public async getBlockByHeight(height: number): Promise<Block | undefined> {
+	public async getBlockByHeight(height: number): Promise<Block> {
 		const block = await this._storage.getBlockByHeight(height);
 
 		return this._decodeRawBlock(block);

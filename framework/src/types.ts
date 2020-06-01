@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
-import { BlockJSON } from '@liskhq/lisk-chain';
-import { TransactionJSON } from '@liskhq/lisk-transactions';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -39,11 +37,11 @@ export interface RPCBlocksByIdData {
 }
 
 export interface EventPostBlockData {
-	readonly block: BlockJSON;
+	readonly block: string;
 }
 
 export interface EventPostTransactionData {
-	readonly transaction: TransactionJSON;
+	readonly transaction: string;
 }
 
 export interface EventPostTransactionsAnnouncementData {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, BlockInstance, BlockJSON } from '@liskhq/lisk-chain';
+import { StateStore, Block } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { Pipeline } from './pipeline';
 
@@ -20,55 +20,45 @@ export interface InitInput {
 	readonly stateStore: StateStore;
 }
 
-export interface SerializeInput {
-	readonly block: BlockInstance;
-}
-
-export interface DeserializeInput {
-	readonly block: BlockJSON;
-}
-
 export interface CreateInput {
 	readonly data: {
 		readonly keypair: { publicKey: Buffer; privateKey: Buffer };
 		readonly timestamp: number;
 		readonly transactions: BaseTransaction[];
-		readonly previousBlock: BlockInstance;
-		readonly seedReveal: string;
+		readonly previousBlock: Block;
+		readonly seedReveal: Buffer;
 	};
 	readonly stateStore: StateStore;
 }
 
 export interface ForkStatusInput {
-	readonly block: BlockInstance;
-	readonly lastBlock: BlockInstance;
+	readonly block: Block;
+	readonly lastBlock: Block;
 }
 
 export interface ValidateInput {
-	readonly block: BlockInstance;
-	readonly lastBlock?: BlockInstance;
+	readonly block: Block;
+	readonly lastBlock?: Block;
 	readonly stateStore?: StateStore;
 }
 
 export interface ProcessGenesisInput {
-	readonly block: BlockInstance;
+	readonly block: Block;
 	readonly stateStore: StateStore;
 }
 
 export type UndoInput = ProcessGenesisInput;
 
 export interface ProcessInput {
-	readonly block: BlockInstance;
-	readonly lastBlock: BlockInstance;
+	readonly block: Block;
+	readonly lastBlock: Block;
 	readonly stateStore: StateStore;
 	readonly skipExistingCheck?: boolean;
 }
 
 export abstract class BaseBlockProcessor {
 	public init: Pipeline<InitInput>;
-	public serialize: Pipeline<SerializeInput, BlockJSON>;
-	public deserialize: Pipeline<DeserializeInput, BlockInstance>;
-	public create: Pipeline<CreateInput, BlockInstance>;
+	public create: Pipeline<CreateInput, Block>;
 	public forkStatus: Pipeline<ForkStatusInput, number>;
 	public validate: Pipeline<ValidateInput>;
 	public verify: Pipeline<ProcessInput>;
@@ -78,10 +68,6 @@ export abstract class BaseBlockProcessor {
 
 	public constructor() {
 		this.init = new Pipeline();
-
-		this.serialize = new Pipeline();
-
-		this.deserialize = new Pipeline();
 
 		this.create = new Pipeline();
 
@@ -100,8 +86,8 @@ export abstract class BaseBlockProcessor {
 
 	public abstract get version(): number;
 
-	protected _validateVersion({ block }: { block: BlockInstance }): void {
-		if (block.version !== this.version) {
+	protected _validateVersion({ block }: { block: Block }): void {
+		if (block.header.version !== this.version) {
 			throw new Error('Invalid version');
 		}
 	}
