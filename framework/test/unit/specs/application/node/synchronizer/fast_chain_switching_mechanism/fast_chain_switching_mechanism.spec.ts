@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { KVStore } from '@liskhq/lisk-db';
-import { BlockInstance, Chain } from '@liskhq/lisk-chain';
+import { Block, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 
@@ -25,10 +25,18 @@ import {
 } from '../../../../../../../src/application/node/synchronizer';
 import { Processor } from '../../../../../../../src/application/node/processor';
 import { constants } from '../../../../../../utils';
-import { newBlock } from '../block';
 import { registeredTransactions } from '../../../../../../utils/registered_transactions';
-
-import * as genesisBlockDevnet from '../../../../../../fixtures/config/devnet/genesis_block.json';
+import {
+	defaultNetworkIdentifier,
+	genesisBlock as getGenesisBlock,
+	createValidDefaultBlock,
+	createFakeBlockHeader,
+	encodeValidBlockHeader,
+} from '../../../../../../fixtures';
+import {
+	accountAssetSchema,
+	defaultAccountAsset,
+} from '../../../../../../../src/application/node/account';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -37,6 +45,7 @@ const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 jest.mock('@liskhq/lisk-db');
 
 describe('fast_chain_switching_mechanism', () => {
+	const genesisBlock = getGenesisBlock();
 	let bftModule: any;
 	let blockProcessorV2;
 	let chainModule: any;
@@ -62,10 +71,15 @@ describe('fast_chain_switching_mechanism', () => {
 		const forgerDB = new KVStore('forger.db');
 
 		chainModule = new Chain({
-			networkIdentifier: '',
+			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
-			genesisBlock: genesisBlockDevnet as any,
+			genesisBlock,
 			registeredTransactions,
+			registeredBlocks: { 2: BlockProcessorV2.schema },
+			accountAsset: {
+				schema: accountAssetSchema,
+				default: defaultAccountAsset,
+			},
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
@@ -85,7 +99,16 @@ describe('fast_chain_switching_mechanism', () => {
 			getBlockHeadersByHeightBetween: jest.fn(),
 			addBlockHeader: jest.fn(),
 			getLastBlockHeader: jest.fn(),
-			deserialize: chainModule.dataAccess.deserialize,
+			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
+			decodeBlockHeader: chainModule.dataAccess.decodeBlockHeader.bind(
+				chainModule.dataAccess,
+			),
+			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(
+				chainModule.dataAccess,
+			),
+			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(
+				chainModule.dataAccess,
+			),
 		};
 		chainModule.dataAccess = dataAccessMock;
 
@@ -138,14 +161,16 @@ describe('fast_chain_switching_mechanism', () => {
 
 	describe('isValidFor', () => {
 		const defaultGenerator = {
-			address: '76986142c56e589a35ac2a78c64f6cc4d5df2d28',
-			publicKey:
+			address: Buffer.from('76986142c56e589a35ac2a78c64f6cc4d5df2d28', 'hex'),
+			publicKey: Buffer.from(
 				'20d381308d9a809455567af249dddd68bd2e23753e69913961fe04ac07732594',
+				'hex',
+			),
 		};
 
 		beforeEach(() => {
 			jest.spyOn(dposModule, 'isActiveDelegate');
-			chainModule._lastBlock = { height: 310 };
+			chainModule._lastBlock = { header: { height: 310 } };
 		});
 
 		describe('when reveivedBlock is within the two rounds of the last block', () => {
@@ -153,9 +178,11 @@ describe('fast_chain_switching_mechanism', () => {
 				dposModule.isActiveDelegate.mockResolvedValue(true);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
-						generatorPublicKey: defaultGenerator.publicKey,
-						height: 515,
-					} as BlockInstance,
+						header: {
+							generatorPublicKey: defaultGenerator.publicKey,
+							height: 515,
+						},
+					} as Block,
 					'peer-id',
 				);
 				expect(isValid).toEqual(true);
@@ -165,9 +192,11 @@ describe('fast_chain_switching_mechanism', () => {
 				dposModule.isActiveDelegate.mockResolvedValue(false);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
-						generatorPublicKey: defaultGenerator.publicKey,
-						height: 515,
-					} as BlockInstance,
+						header: {
+							generatorPublicKey: defaultGenerator.publicKey,
+							height: 515,
+						},
+					} as Block,
 					'peer-id',
 				);
 				expect(isValid).toEqual(false);
@@ -179,9 +208,11 @@ describe('fast_chain_switching_mechanism', () => {
 				dposModule.isActiveDelegate.mockResolvedValue(true);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
-						generatorPublicKey: defaultGenerator.publicKey,
-						height: 619,
-					} as BlockInstance,
+						header: {
+							generatorPublicKey: defaultGenerator.publicKey,
+							height: 619,
+						},
+					} as Block,
 					'peer-id',
 				);
 				expect(isValid).toEqual(false);
@@ -191,7 +222,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 	describe('async run()', () => {
 		const aPeerId = '127.0.0.1:5000';
-		let aBlock: BlockInstance;
+		let aBlock: Block;
 
 		const checkApplyPenaltyAndAbortIsCalled = (peerId: string, err: any) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
@@ -219,15 +250,17 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		beforeEach(async () => {
-			aBlock = newBlock();
+			aBlock = createValidDefaultBlock();
 			// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 			// memory. The following mock fakes this to be true
 			// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 			// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
+			const lastBlock = createValidDefaultBlock({
+				header: { height: genesisBlock.header.height + 1 },
+			});
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(1)
-				.mockResolvedValue(genesisBlockDevnet as never);
+				.mockResolvedValue(genesisBlock.header as never);
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
 				.mockResolvedValue(lastBlock as never);
@@ -242,7 +275,7 @@ describe('fast_chain_switching_mechanism', () => {
 				.mockResolvedValue(lastBlock as never);
 			when(chainModule.dataAccess.getBlockHeadersWithHeights)
 				.calledWith([2, 1])
-				.mockResolvedValue([genesisBlockDevnet, lastBlock] as never);
+				.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
 
 			// Simulate finalized height stored in ConsensusState table is 0
 
@@ -265,10 +298,10 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
 				// Simulate peer not sending back a common block
@@ -277,7 +310,9 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
 					.mockResolvedValue({ data: undefined } as never);
@@ -307,14 +342,14 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
 				// height of the common block is smaller than the finalized height:
-				const highestCommonBlock = newBlock({
+				const highestCommonBlock = createFakeBlockHeader({
 					height: bftModule.finalizedHeight - 1,
 				});
 
@@ -323,10 +358,14 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never);
 
 				// Act
 				try {
@@ -352,31 +391,39 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
 				// Common block between system and peer corresponds to last block in system (To make things easier)
-				const highestCommonBlock = newBlock({
-					height: chainModule.lastBlock.height,
+				const highestCommonBlock = createFakeBlockHeader({
+					height: chainModule.lastBlock.header.height,
 				});
 				when(channelMock.invokeFromNetwork)
 					.calledWith('requestFromPeer', {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: chainModule.dataAccess
+							.encodeBlockHeader(highestCommonBlock)
+							.toString('base64'),
+					} as never);
 
 				// Act
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
-				const receivedBlock = newBlock({
-					height:
-						highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+				const receivedBlock = createValidDefaultBlock({
+					header: {
+						height:
+							highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+					},
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
 
@@ -394,17 +441,19 @@ describe('fast_chain_switching_mechanism', () => {
 
 			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2 ', async () => {
 				// Arrange
-				const highestCommonBlock = newBlock({
+				const highestCommonBlock = createFakeBlockHeader({
 					height: 2,
 				});
 				// Difference in height between the common block and the last block is > delegatesPerRound*2
-				const lastBlock = newBlock({
-					height:
-						highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+				const lastBlock = createValidDefaultBlock({
+					header: {
+						height:
+							highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+					},
 				});
 				when(chainModule.dataAccess.getBlockHeaderByHeight)
 					.calledWith(1)
-					.mockResolvedValue(genesisBlockDevnet as never);
+					.mockResolvedValue(genesisBlock.header as never);
 				when(chainModule.dataAccess.getLastBlock)
 					.calledWith()
 					.mockResolvedValue(lastBlock as never);
@@ -425,7 +474,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue(lastBlock as never);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
-					.mockResolvedValue([genesisBlockDevnet, lastBlock] as never);
+					.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
 
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 					.calledWith(1, 205)
@@ -434,14 +483,14 @@ describe('fast_chain_switching_mechanism', () => {
 				const heightList = new Array(
 					Math.min(
 						dposModule.delegatesPerRound * 2,
-						chainModule.lastBlock.height,
+						chainModule.lastBlock.header.height,
 					),
 				)
 					.fill(0)
-					.map((_, index) => chainModule.lastBlock.height - index);
+					.map((_, index) => chainModule.lastBlock.header.height - index);
 
 				const storageReturnValue = heightList.map(height =>
-					newBlock({ height }),
+					createFakeBlockHeader({ height }),
 				);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith(heightList)
@@ -452,15 +501,21 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never);
 
 				// Act
-				const receivedBlock = newBlock({
-					height:
-						highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+				const receivedBlock = createValidDefaultBlock({
+					header: {
+						height:
+							highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
+					},
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
 
@@ -482,22 +537,24 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
-				const highestCommonBlock = newBlock({
-					height: genesisBlockDevnet.height,
+				const highestCommonBlock = createFakeBlockHeader({
+					height: genesisBlock.header.height,
 				});
 
 				const requestedBlocks = [
-					newBlock({
-						height: highestCommonBlock.height + 1,
-						previousBlockId: highestCommonBlock.id,
+					createValidDefaultBlock({
+						header: {
+							height: highestCommonBlock.height + 1,
+							previousBlockID: highestCommonBlock.id,
+						},
 					}),
-					...new Array(34).fill(0).map(() => newBlock()),
+					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
 					aBlock,
 				];
 
@@ -513,19 +570,26 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never);
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValue(genesisBlockDevnet as never);
+					.mockResolvedValue(genesisBlock as never);
 
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
-					.mockResolvedValue(highestCommonBlock as never);
+					.mockResolvedValue({
+						header: highestCommonBlock,
+						payload: [],
+					} as never);
 
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
@@ -533,11 +597,9 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 
 				for (const block of requestedBlocks) {
-					const blockInstance = await processorModule.deserialize(block);
-
-					expect(processorModule.validate).toHaveBeenCalledWith(blockInstance);
+					expect(processorModule.validate).toHaveBeenCalledWith(block);
 					expect(loggerMock.trace).toHaveBeenCalledWith(
-						{ blockId: block.id, height: block.height },
+						{ blockId: block.header.id, height: block.header.height },
 						'Validating block',
 					);
 				}
@@ -554,22 +616,24 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
-				const highestCommonBlock = newBlock({
-					height: genesisBlockDevnet.height,
+				const highestCommonBlock = createFakeBlockHeader({
+					height: genesisBlock.header.height,
 				});
 
 				const requestedBlocks = [
-					newBlock({
-						height: highestCommonBlock.height + 1,
-						previousBlockId: highestCommonBlock.id,
+					createValidDefaultBlock({
+						header: {
+							height: highestCommonBlock.height + 1,
+							previousBlockID: highestCommonBlock.id,
+						},
 					}),
-					...new Array(34).fill(0).map(() => newBlock()),
+					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
 					aBlock,
 				];
 
@@ -582,10 +646,14 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never);
 				processorModule.validate.mockRejectedValue(
 					new Error('validation error'),
 				);
@@ -616,21 +684,23 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
-				const highestCommonBlock = newBlock({
-					height: genesisBlockDevnet.height,
+				const highestCommonBlock = createFakeBlockHeader({
+					height: genesisBlock.header.height,
 				});
 				const requestedBlocks = [
-					newBlock({
-						height: highestCommonBlock.height + 1,
-						previousBlockId: highestCommonBlock.id,
+					createValidDefaultBlock({
+						header: {
+							height: highestCommonBlock.height + 1,
+							previousBlockID: highestCommonBlock.id,
+						},
 					}),
-					...new Array(34).fill(0).map(() => newBlock()),
+					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
 					aBlock,
 				];
 
@@ -643,22 +713,29 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never);
 
 				when(processorModule.deleteLastBlock)
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValue(genesisBlockDevnet as never);
+					.mockResolvedValue(genesisBlock as never);
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
 					.mockResolvedValue(storageReturnValue as never);
 				when(chainModule.dataAccess.getBlockByID)
 					.calledWith(highestCommonBlock.id)
-					.mockResolvedValue(highestCommonBlock as never);
+					.mockResolvedValue({
+						header: highestCommonBlock,
+						payload: [],
+					} as never);
 
 				// Act
 				await fastChainSwitchingMechanism.run(aBlock, aPeerId);
@@ -680,8 +757,8 @@ describe('fast_chain_switching_mechanism', () => {
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					{
 						blocks: requestedBlocks.map(block => ({
-							blockId: block.id,
-							height: block.height,
+							blockId: block.header.id,
+							height: block.header.height,
 						})),
 					},
 					'Applying blocks',
@@ -690,17 +767,15 @@ describe('fast_chain_switching_mechanism', () => {
 				for (const block of requestedBlocks) {
 					expect(loggerMock.trace).toHaveBeenCalledWith(
 						{
-							blockId: block.id,
-							height: block.height,
+							blockId: block.header.id,
+							height: block.header.height,
 						},
 						'Applying blocks',
 					);
 					// expect(loggerMock.trace).toHaveBeenCalledTimes(
 					// 	requestedBlocks.length,
 					// );
-					expect(processorModule.processValidated).toHaveBeenCalledWith(
-						await processorModule.deserialize(block),
-					);
+					expect(processorModule.processValidated).toHaveBeenCalledWith(block);
 					// TODO: Figure out why call count is not resetting
 					// expect(processorModule.processValidated).toHaveBeenCalledTimes(
 					// 	requestedBlocks.length,
@@ -712,7 +787,7 @@ describe('fast_chain_switching_mechanism', () => {
 					expect(chainModule.dataAccess.clearTempBlocks).toHaveBeenCalled();
 					expect(loggerMock.info).toHaveBeenCalledWith(
 						{
-							currentHeight: chainModule.lastBlock.height,
+							currentHeight: chainModule.lastBlock.header.height,
 							highestCommonBlockHeight: highestCommonBlock.height,
 						},
 						'Successfully switched chains. Node is now up to date',
@@ -724,21 +799,23 @@ describe('fast_chain_switching_mechanism', () => {
 				// Arrange
 				const storageReturnValue = [
 					{
-						id: genesisBlockDevnet.id,
+						id: genesisBlock.header.id,
 					},
 					{
-						id: chainModule.lastBlock.id,
+						id: chainModule.lastBlock.header.id,
 					},
 				];
-				const highestCommonBlock = newBlock({
-					height: genesisBlockDevnet.height,
+				const highestCommonBlock = createFakeBlockHeader({
+					height: genesisBlock.header.height,
 				});
 				const requestedBlocks = [
-					newBlock({
-						height: highestCommonBlock.height + 1,
-						previousBlockId: highestCommonBlock.id,
+					createValidDefaultBlock({
+						header: {
+							height: highestCommonBlock.height + 1,
+							previousBlockID: highestCommonBlock.id,
+						},
 					}),
-					...new Array(34).fill(0).map(() => newBlock()),
+					...new Array(34).fill(0).map(() => createValidDefaultBlock()),
 					aBlock,
 				];
 
@@ -751,10 +828,14 @@ describe('fast_chain_switching_mechanism', () => {
 						procedure: 'getHighestCommonBlock',
 						peerId: aPeerId,
 						data: {
-							ids: storageReturnValue.map(blocks => blocks.id),
+							ids: storageReturnValue.map(blocks =>
+								blocks.id.toString('base64'),
+							),
 						},
 					})
-					.mockResolvedValue({ data: highestCommonBlock } as never);
+					.mockResolvedValue({
+						data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
+					} as never);
 
 				when(chainModule.dataAccess.getBlockHeadersWithHeights)
 					.calledWith([2, 1])
@@ -767,11 +848,11 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith({
 						saveTempBlock: true,
 					})
-					.mockResolvedValueOnce(genesisBlockDevnet as never)
+					.mockResolvedValueOnce(genesisBlock as never)
 					.calledWith({
 						saveTempBlock: false,
 					})
-					.mockResolvedValueOnce(genesisBlockDevnet as never);
+					.mockResolvedValueOnce(genesisBlock as never);
 
 				const blocksInTempTable = [chainModule.lastBlock];
 
@@ -816,7 +897,7 @@ describe('fast_chain_switching_mechanism', () => {
 				);
 				// Restore blocks from temp table:
 				expect(processorModule.processValidated).toHaveBeenCalledWith(
-					await processorModule.deserialize(blocksInTempTable[0]),
+					blocksInTempTable[0],
 					{
 						removeFromTempTable: true,
 					},

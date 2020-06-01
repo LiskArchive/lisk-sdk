@@ -110,7 +110,7 @@ export interface GenesisBlockJSON {
 		readonly asset: {
 			seedReveal: string;
 			maxHeightPreviouslyForged: number;
-			maxHeightPrevoted: 0;
+			maxHeightPrevoted: number;
 		};
 		readonly signature: string;
 	};

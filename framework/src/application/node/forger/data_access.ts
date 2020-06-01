@@ -66,7 +66,7 @@ export const setRegisteredHashOnionSeeds = async (
 	for (const [key, value] of registeredHashOnionSeeds.entries()) {
 		savingData[key.toString('binary')] = value.toString('binary');
 	}
-	const registeredHashOnionSeedsStr = JSON.stringify(registeredHashOnionSeeds);
+	const registeredHashOnionSeedsStr = JSON.stringify(savingData);
 	await db.put(
 		DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 		Buffer.from(registeredHashOnionSeedsStr, 'utf8'),
@@ -100,14 +100,15 @@ export const setUsedHashOnions = async (
 	db: KVStore,
 	usedHashOnions: UsedHashOnion[],
 ): Promise<void> => {
-	const decodedUsedHashOnion = [];
+	const encodedUsedHashOnion = [];
 	for (const ho of usedHashOnions) {
-		decodedUsedHashOnion.push({
-			...ho,
+		encodedUsedHashOnion.push({
 			address: ho.address.toString('binary'),
+			count: ho.count,
+			height: ho.height,
 		});
 	}
-	const usedHashOnionsStr = JSON.stringify(decodedUsedHashOnion);
+	const usedHashOnionsStr = JSON.stringify(encodedUsedHashOnion);
 	await db.put(
 		DB_KEY_FORGER_USED_HASH_ONION,
 		Buffer.from(usedHashOnionsStr, 'utf8'),

@@ -219,8 +219,8 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this._logger.debug(
 			{
 				peerId,
-				fromBlockId: highestCommonBlock.id.toString('hex'),
-				toBlockId: receivedBlock.header.id.toString('hex'),
+				fromBlockId: highestCommonBlock.id,
+				toBlockId: receivedBlock.header.id,
 			},
 			'Requesting blocks within ID range from peer',
 		);
@@ -235,8 +235,8 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
 				`Peer didn't return any requested block within IDs ${highestCommonBlock.id.toString(
-					'hex',
-				)} and ${receivedBlock.header.id.toString('hex')}`,
+					'base64',
+				)} and ${receivedBlock.header.id.toString('base64')}`,
 			);
 		}
 
@@ -250,7 +250,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		this._logger.debug(
 			{
 				blocks: blocks.map(block => ({
-					blockId: block.header.id.toString('hex'),
+					blockId: block.header.id,
 					height: block.header.height,
 				})),
 			},
@@ -260,7 +260,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			for (const block of blocks) {
 				this._logger.trace(
 					{
-						blockId: block.header.id.toString('hex'),
+						blockId: block.header.id,
 						height: block.header.height,
 					},
 					'Validating block',
@@ -410,7 +410,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					blockIds,
 				);
 				return commomBlock;
-			} finally {
+			} catch (error) {
 				numberOfRequests += 1;
 			}
 		}

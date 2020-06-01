@@ -14,7 +14,7 @@
 
 import { cloneDeep } from 'lodash';
 import { ForkStatus } from '@liskhq/lisk-bft';
-import { Chain, Block } from '@liskhq/lisk-chain';
+import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
 import { Sequence } from '../utils/sequence';
@@ -49,7 +49,7 @@ interface CreateInput {
 	readonly seedReveal: Buffer;
 }
 
-type Matcher = (block: Block) => boolean;
+type Matcher = (block: BlockHeader) => boolean;
 
 export class Processor {
 	public readonly events: EventEmitter;
@@ -412,7 +412,7 @@ export class Processor {
 		// eslint-disable-next-line no-restricted-syntax
 		for (const matcherVersion of matcherVersions) {
 			const matcher = this.matchers[matcherVersion];
-			if (matcher(block)) {
+			if (matcher(block.header)) {
 				return this.processors[matcherVersion];
 			}
 		}

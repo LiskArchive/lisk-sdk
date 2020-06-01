@@ -415,20 +415,25 @@ export class Transport {
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
 		if (unknownTransactionIDs.length > 0) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const { data: result } = await this._channel.invokeFromNetwork(
-				'requestFromPeer',
-				{
-					procedure: 'getTransactions',
-					data: { transactionIds: unknownTransactionIDs },
-					peerId,
+			const { data: result } = await this._channel.invokeFromNetwork<{
+				data: { transactions: string[] };
+			}>('requestFromPeer', {
+				procedure: 'getTransactions',
+				data: {
+					transactionIds: unknownTransactionIDs.map(id =>
+						id.toString('base64'),
+					),
 				},
-			);
+				peerId,
+			});
 			try {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				for (const transaction of result.transactions) {
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-					transaction.bundled = true;
-					await this._receiveTransaction(transaction);
+					const tx = this._chainModule.dataAccess.decodeTransaction(
+						Buffer.from(transaction, 'base64'),
+					);
+					await this._receiveTransaction(tx);
 				}
 			} catch (err) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

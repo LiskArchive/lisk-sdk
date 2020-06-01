@@ -32,6 +32,7 @@ import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
 import { createLogger } from '../../../../src/application/logger';
+import { GenesisBlockJSON } from '../../../../src/application/node/node';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-validator', () => ({
@@ -71,7 +72,7 @@ describe('Application', () => {
 			// Act
 
 			// eslint-disable-next-line no-new
-			new Application(genesisBlock, config);
+			new Application(genesisBlock as GenesisBlockJSON, config);
 			// Assert
 			expect(liskValidator.validate).toHaveBeenNthCalledWith(
 				1,
@@ -81,17 +82,20 @@ describe('Application', () => {
 		});
 
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
-			const label = `lisk-${genesisBlock.transactionRoot.slice(0, 7)}`;
+			const label = `lisk-${genesisBlock.header.transactionRoot.slice(0, 7)}`;
 			const configWithoutLabel = _.cloneDeep(config);
 			delete configWithoutLabel.label;
 
-			const app = new Application(genesisBlock, configWithoutLabel);
+			const app = new Application(
+				genesisBlock as GenesisBlockJSON,
+				configWithoutLabel,
+			);
 
 			expect(app.config.label).toBe(label);
 		});
 
 		it('should use the same app label if provided', () => {
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			expect(app.config.label).toBe(config.label);
 		});
@@ -103,7 +107,10 @@ describe('Application', () => {
 			delete configWithoutrootPath.rootPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithoutrootPath);
+			const app = new Application(
+				genesisBlock as GenesisBlockJSON,
+				configWithoutrootPath,
+			);
 
 			// Assert
 			expect(app.config.rootPath).toBe(rootPath);
@@ -116,7 +123,10 @@ describe('Application', () => {
 			configWithCustomrootPath.rootPath = customrootPath;
 
 			// Act
-			const app = new Application(genesisBlock, configWithCustomrootPath);
+			const app = new Application(
+				genesisBlock as GenesisBlockJSON,
+				configWithCustomrootPath,
+			);
 
 			// Assert
 			expect(app.config.rootPath).toBe(customrootPath);
@@ -128,7 +138,10 @@ describe('Application', () => {
 			configWithoutLogger.logger = {};
 
 			// Act
-			const app = new Application(genesisBlock, configWithoutLogger);
+			const app = new Application(
+				genesisBlock as GenesisBlockJSON,
+				configWithoutLogger,
+			);
 
 			// Assert
 			expect(app.config.logger.logFileName).toBe('lisk.log');
@@ -141,7 +154,7 @@ describe('Application', () => {
 			);
 
 			// eslint-disable-next-line no-new
-			new Application(genesisBlock, config);
+			new Application(genesisBlock as GenesisBlockJSON, config);
 
 			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledTimes(1);
 			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledWith(
@@ -170,14 +183,17 @@ describe('Application', () => {
 				},
 			};
 
-			const app = new Application(genesisBlock, customConfig);
+			const app = new Application(
+				genesisBlock as GenesisBlockJSON,
+				customConfig,
+			);
 
 			expect(app.constants.maxPayloadLength).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {
 			// Act
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			// Assert
 			expect(app['_genesisBlock']).toBe(genesisBlock);
@@ -193,7 +209,7 @@ describe('Application', () => {
 
 		it('should not initialize logger', () => {
 			// Act
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			// Assert
 			expect(app.logger).toBeUndefined();
@@ -201,7 +217,7 @@ describe('Application', () => {
 
 		it('should contain all framework related transactions.', () => {
 			// Act
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			// Assert
 			expect(Object.keys(app.getTransactions())).toEqual(frameworkTxTypes);
@@ -218,7 +234,7 @@ describe('Application', () => {
 
 			expect(() => {
 				// eslint-disable-next-line no-new
-				new Application(genesisBlock, customConfig);
+				new Application(genesisBlock as GenesisBlockJSON, customConfig);
 			}).toThrow('should NOT have additional properties');
 		});
 	});
@@ -226,7 +242,7 @@ describe('Application', () => {
 	describe('#registerTransaction', () => {
 		it('should throw error when transaction class is missing.', () => {
 			// Arrange
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			// Act && Assert
 			expect(() => (app as any).registerTransaction()).toThrow(
@@ -236,7 +252,7 @@ describe('Application', () => {
 
 		it('should throw error when transaction does not satisfy TransactionInterface.', () => {
 			// Arrange
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			const TransactionWithoutBase = {
 				prototype: {},
@@ -252,7 +268,7 @@ describe('Application', () => {
 
 		it('should throw error when transaction type is missing.', () => {
 			// Arrange
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			class Sample extends Base {
 				// eslint-disable-next-line
@@ -276,7 +292,7 @@ describe('Application', () => {
 
 		it('should throw error when transaction type is not integer.', () => {
 			// Arrange
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			class Sample extends Base {
 				// eslint-disable-next-line
@@ -302,7 +318,7 @@ describe('Application', () => {
 
 		it('should throw error when transaction interface does not match.', () => {
 			// Arrange
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 			class Sample extends Base {
 				// eslint-disable-next-line
 				public async applyAsset(): Promise<ReadonlyArray<TransactionError>> {
@@ -327,7 +343,7 @@ describe('Application', () => {
 
 		it('should register transaction when passing a new transaction type and a transaction implementation.', () => {
 			// Arrange
-			const app = new Application(genesisBlock, config);
+			const app = new Application(genesisBlock as GenesisBlockJSON, config);
 
 			// Act
 			class Sample extends Base {
@@ -358,7 +374,7 @@ describe('Application', () => {
 
 		beforeEach(() => {
 			// Arrange
-			app = new Application(genesisBlock, config);
+			app = new Application(genesisBlock as GenesisBlockJSON, config);
 			app['_channel'] = app['_initChannel']();
 			actionsList = app['_channel'].actionsList;
 		});
@@ -408,7 +424,7 @@ describe('Application', () => {
 		let app: any;
 		let dirs: any;
 		beforeEach(() => {
-			app = new Application(genesisBlock, config);
+			app = new Application(genesisBlock as GenesisBlockJSON, config);
 			app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			dirs = systemDirs(app.config.label, app.config.rootPath);

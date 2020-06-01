@@ -4,6 +4,7 @@
 		"version": 2,
 		"timestamp": 0,
 		"height": 1,
+		"previousBlockID": "00",
 		"transactionRoot": "19074b69c97e6f6b86969bb62d4f15b888898b499777bda56a3a2ee642a7f20a",
 		"generatorPublicKey": "e925106c5b0f276dfb0a3d60c4ed6068ec0181a70dab680199d65369fb69b9f8",
 		"reward": "0",

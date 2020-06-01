@@ -12,19 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { genesisBlock } from './blocks';
+
 export const cacheConfig = 'aCacheConfig';
 
 export const nodeOptions = {
 	rootPath: '~/.lisk',
 	label: 'default',
-	genesisBlock: {
-		transactions: [],
-		id: 1,
-		version: 2,
-		height: 1,
-		communityIdentifier: 'Lisk',
-		transactionRoot: '',
-	},
+	genesisBlock: genesisBlock(),
 	network: {
 		enabled: false,
 	},

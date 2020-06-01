@@ -21,6 +21,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	applyFeeAndRewards,
@@ -72,6 +73,7 @@ import {
 	blockSchema,
 	signingBlockHeaderSchema,
 	baseAccountSchema,
+	blockHeaderSchema,
 } from './schema';
 
 interface ChainConstructor {
@@ -345,6 +347,10 @@ export class Chain {
 
 	public validateBlockHeader(block: Block): void {
 		// Validate block header
+		const errors = validator.validate(blockHeaderSchema, block.header);
+		if (errors.length) {
+			throw new Error(errors[0].message);
+		}
 		validatePreviousBlockProperty(block, this._genesisBlock);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		const encodedBlockHeaderWithoutSignature = this.dataAccess.encodeBlockHeader(

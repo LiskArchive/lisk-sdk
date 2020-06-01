@@ -1,6 +1,7 @@
 import {
 	isGreaterThanMaxTransactionId,
 	isHexString,
+	isBase64String,
 	isInt32,
 	isInt64,
 	isNullCharacterIncluded,
@@ -65,6 +66,7 @@ export const fee = isValidFee;
 export const nonce = isValidNonce;
 
 export const hex = isHexString;
+export const base64 = isBase64String;
 
 export const id = (data: string): boolean =>
 	isNumberString(data) && !isGreaterThanMaxTransactionId(BigInt(data));

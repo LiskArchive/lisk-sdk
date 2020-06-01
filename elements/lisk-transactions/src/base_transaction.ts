@@ -18,6 +18,7 @@ import {
 	getAddressFromPublicKey,
 	signData,
 	bufferToHex,
+	hash,
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
@@ -71,7 +72,6 @@ export abstract class BaseTransaction {
 	public static BASE_SCHEMA = baseTransactionSchema;
 	public static ASSET_SCHEMA = {};
 
-	public readonly id: Buffer;
 	public readonly type: number;
 	public asset: object;
 	public nonce: bigint;
@@ -81,19 +81,21 @@ export abstract class BaseTransaction {
 
 	protected _minFee?: bigint;
 
-	private _id: string;
+	private _id: Buffer;
+	private _idStr?: string;
 	private readonly _senderPublicKeyStr: string;
 	private readonly _senderIdStr: Buffer;
 
 	public constructor(transaction: BaseTransactionInput) {
-		this.id = transaction.id;
-		this.type = transaction.type;
+		this._id = transaction.id ?? Buffer.alloc(0);
+		this.type =
+			transaction.type ?? (this.constructor as typeof BaseTransaction).TYPE;
 		this.asset = transaction.asset;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
 		this.senderPublicKey = transaction.senderPublicKey;
-		this.signatures = transaction.signatures;
-		this._id = bufferToHex(this.id);
+		this.signatures = transaction.signatures ?? [];
+		this._idStr = bufferToHex(this._id);
 		this._senderPublicKeyStr = bufferToHex(this.senderPublicKey);
 		this._senderIdStr = getAddressFromPublicKey(this.senderPublicKey);
 	}
@@ -105,14 +107,21 @@ export abstract class BaseTransaction {
 			this._minFee =
 				(this.constructor as typeof BaseTransaction).NAME_FEE +
 				BigInt((this.constructor as typeof BaseTransaction).MIN_FEE_PER_BYTE) *
-				BigInt(this.getBytes().length);
+					BigInt(this.getBytes().length);
 		}
 
 		return this._minFee;
 	}
 
-	public get idStr(): string {
+	public get id(): Buffer {
 		return this._id;
+	}
+
+	public get idStr(): string {
+		if (!this._idStr) {
+			this._idStr = this._id.toString('hex');
+		}
+		return this._idStr;
 	}
 
 	public get senderId(): Buffer {
@@ -150,14 +159,14 @@ export abstract class BaseTransaction {
 	public validate(): TransactionResponse {
 		const errors = [...this._validateSchema()];
 		if (errors.length > 0) {
-			return createResponse(this.id, errors);
+			return createResponse(this._id, errors);
 		}
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
 					`Invalid transaction type`,
-					this.id,
+					this._id,
 					'.type',
 					this.type,
 					(this.constructor as typeof BaseTransaction).TYPE,
@@ -169,14 +178,14 @@ export abstract class BaseTransaction {
 			errors.push(
 				new TransactionError(
 					`Insufficient transaction fee. Minimum required fee is: ${this.minFee.toString()}`,
-					this.id,
+					this._id,
 					'.fee',
 					this.fee.toString(),
 				),
 			);
 		}
 
-		return createResponse(this.id, errors);
+		return createResponse(this._id, errors);
 	}
 
 	public async apply(store: StateStore): Promise<TransactionResponse> {
@@ -185,7 +194,7 @@ export abstract class BaseTransaction {
 
 		// Verify sender against publicKey
 		const senderPublicKeyError = verifySenderPublicKey(
-			this.id,
+			this._id,
 			sender,
 			this.senderPublicKeyStr,
 		);
@@ -194,7 +203,7 @@ export abstract class BaseTransaction {
 		}
 
 		// Verify Account Nonce
-		const accountNonceError = verifyAccountNonce(this.id, sender, this.nonce);
+		const accountNonceError = verifyAccountNonce(this._id, sender, this.nonce);
 		if (accountNonceError) {
 			errors.push(accountNonceError);
 		}
@@ -225,7 +234,7 @@ export abstract class BaseTransaction {
 
 		// Validate minimum remaining balance
 		const minRemainingBalanceError = verifyMinRemainingBalance(
-			this.id,
+			this._id,
 			updatedSender,
 			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
 		);
@@ -233,7 +242,7 @@ export abstract class BaseTransaction {
 			errors.push(minRemainingBalanceError);
 		}
 
-		return createResponse(this.id, errors);
+		return createResponse(this._id, errors);
 	}
 
 	public async undo(store: StateStore): Promise<TransactionResponse> {
@@ -246,14 +255,14 @@ export abstract class BaseTransaction {
 			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
 				? []
 				: [
-					new TransactionError(
-						'Invalid balance amount',
-						this.id,
-						'.balance',
-						sender.balance.toString(),
-						updatedBalance.toString(),
-					),
-				];
+						new TransactionError(
+							'Invalid balance amount',
+							this._id,
+							'.balance',
+							sender.balance.toString(),
+							updatedBalance.toString(),
+						),
+				  ];
 
 		// Decrement account nonce
 		sender.nonce -= BigInt(1);
@@ -263,7 +272,7 @@ export abstract class BaseTransaction {
 		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
-		return createResponse(this.id, errors);
+		return createResponse(this._id, errors);
 	}
 
 	public async verifySignatures(
@@ -287,24 +296,24 @@ export abstract class BaseTransaction {
 				this.senderPublicKey,
 				this.signatures[0] as Buffer,
 				transactionWithNetworkIdentifierBytes,
-				this.id,
+				this._id,
 			);
 
 			if (error) {
-				return createResponse(this.id, [error]);
+				return createResponse(this._id, [error]);
 			}
 
-			return createResponse(this.id, []);
+			return createResponse(this._id, []);
 		}
 
 		const errors = verifyMultiSignatureTransaction(
-			this.id,
+			this._id,
 			sender,
 			this.signatures,
 			transactionWithNetworkIdentifierBytes,
 		);
 
-		return createResponse(this.id, errors);
+		return createResponse(this._id, errors);
 	}
 
 	public sign(
@@ -346,6 +355,7 @@ export abstract class BaseTransaction {
 			// Reset signatures when only one passphrase is provided
 			this.signatures = [];
 			this.signatures.push(signature);
+			this._id = hash(this.getBytes());
 			return;
 		}
 
@@ -372,7 +382,7 @@ export abstract class BaseTransaction {
 					this.signatures.push(Buffer.alloc(0));
 				}
 			}
-			this._id = bufferToHex(this.getBytes());
+			this._id = hash(this.getBytes());
 		}
 	}
 
@@ -384,22 +394,25 @@ export abstract class BaseTransaction {
 	protected getAssetBytes(): Buffer {
 		const assetSchema = (this.constructor as typeof BaseTransaction)
 			.ASSET_SCHEMA;
-		return codec.encode(assetSchema as Schema, this.asset as unknown as GenericObject);
+		return codec.encode(
+			assetSchema as Schema,
+			(this.asset as unknown) as GenericObject,
+		);
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
 		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, this);
 		const errors = convertToTransactionError(
-			this.id,
+			this._id,
 			schemaErrors,
 		) as TransactionError[];
 
 		const assetSchemaErrors = validator.validate(
 			BaseTransaction.ASSET_SCHEMA,
-			this.asset as unknown as GenericObject,
+			(this.asset as unknown) as GenericObject,
 		);
 		const assetErrors = convertToTransactionError(
-			this.id,
+			this._id,
 			assetSchemaErrors,
 		) as TransactionError[];
 

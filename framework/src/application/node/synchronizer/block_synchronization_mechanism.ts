@@ -166,8 +166,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 			this._logger.debug(
 				{
-					fromId: blocks[0].header.id.toString('hex'),
-					toId: blocks[blocks.length - 1].header.id.toString('hex'),
+					fromId: blocks[0].header.id,
+					toId: blocks[blocks.length - 1].header.id,
 				},
 				'Applying obtained blocks from peer',
 			);
@@ -226,8 +226,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		if (!newTipHasPreference) {
 			this._logger.debug(
 				{
-					currentTip: this._chain.lastBlock.header.id.toString('hex'),
-					previousTip: tipBeforeApplying.header.id.toString('hex'),
+					currentTip: this._chain.lastBlock.header.id,
+					previousTip: tipBeforeApplying.header.id,
 				},
 				'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
 			);
@@ -261,8 +261,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this._logger.debug(
 			{
-				currentTip: this._chain.lastBlock.header.id.toString('hex'),
-				previousTip: tipBeforeApplying.header.id.toString('hex'),
+				currentTip: this._chain.lastBlock.header.id,
+				previousTip: tipBeforeApplying.header.id,
 			},
 			'Current tip of the chain has preference over previous tip',
 		);
@@ -342,7 +342,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this._logger.debug(
 			{
-				blockId: lastCommonBlock.id.toString('hex'),
+				blockId: lastCommonBlock.id,
 				height: lastCommonBlock.height,
 			},
 			'Found common block',
@@ -357,7 +357,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		this._logger.debug(
 			{
-				blockId: lastCommonBlock.id.toString('hex'),
+				blockId: lastCommonBlock.id,
 				height: lastCommonBlock.height,
 			},
 			'Deleting blocks after common block',
@@ -372,7 +372,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 
 		this._logger.debug(
-			{ lastBlockId: this._chain.lastBlock.header.id.toString('hex') },
+			{ lastBlockId: this._chain.lastBlock.header.id },
 			'Successfully deleted blocks',
 		);
 
@@ -452,7 +452,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const networkLastBlock = await this._getLastBlockFromNetwork(peerId);
 
 		this._logger.debug(
-			{ peerId, blockId: networkLastBlock.header.id.toString('hex') },
+			{ peerId, blockId: networkLastBlock.header.id },
 			'Received tip of the chain from peer',
 		);
 
@@ -567,6 +567,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		// Pick random peer from list
 		const randomPeerIndex = Math.floor(Math.random() * selectedPeers.length);
 		const peersTip = {
+			id: Buffer.alloc(0),
 			height: selectedPeers[randomPeerIndex].height,
 			version: selectedPeers[randomPeerIndex].blockVersion,
 			asset: {
