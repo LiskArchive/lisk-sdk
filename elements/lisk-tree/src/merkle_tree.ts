@@ -79,6 +79,13 @@ export class MerkleTree {
 
 	public getNode(nodeHash: Buffer): NodeInfo {
 		const value = this._hashToBuffer[nodeHash.toString('binary')];
+		// eslint-disable-next-line
+		if (!value) {
+			throw new Error(
+				`Hash does not exist in merkle tree: ${nodeHash.toString('binary')}`,
+			);
+		}
+
 		let type: NodeType;
 		if (this._root.compare(nodeHash) === 0) {
 			type = NodeType.ROOT;
@@ -114,37 +121,38 @@ export class MerkleTree {
 
 	public append(value: Buffer): Buffer {
 		const appendPath: NodeInfo[] = [];
-		const appendData = this._generateLeaf(value);
-		const appendNode = this.getNode(appendData.hash);
-		const rootNodeHash = this.root;
-		let currentNode = this.getNode(rootNodeHash);
 		const treeHeight = this._getHeight();
-		// const binaryDataLength = .toString(2);
+		let currentNode = this.getNode(this._root);
+		// We start from the root layer and traverse each layer down the tree on the right side
 		for (let i = 0; i < treeHeight; i += 1) {
-			if (isAppendPath(this._width - 1, treeHeight - i)) {
+			// If node is in appendPath, add it
+			if (isAppendPath(this._width, treeHeight - i)) {
 				appendPath.push(currentNode);
 			}
 
-			if (isLeaf(currentNode.hash)) {
+			// If node is a leaf, break
+			if (currentNode.type === NodeType.LEAF) {
 				break;
 			}
 
-			if (isAppendPath(this._width - 1, treeHeight - i - 1)) {
+			// If left node is in appendPath, add it
+			if (isAppendPath(this._width, treeHeight - i - 1)) {
 				appendPath.push(this.getNode(currentNode.leftHash));
 			}
 
-			if (
-				isLeaf(currentNode.rightHash) ||
-				Buffer.alloc(0).compare(currentNode.rightHash) === 0
-			) {
+			// If there is no right node, break loop
+			if (Buffer.alloc(0).compare(currentNode.rightHash) === 0) {
 				break;
 			}
+			// Move to right node
 			currentNode = this.getNode(currentNode.rightHash);
 		}
 
+		const appendData = this._generateLeaf(value);
+		const appendNode = this.getNode(appendData.hash);
 		appendPath.push(this.getNode(appendNode.hash));
 
-		// Generate any new branch nodes and store to memory
+		// Starting from the base layer, generate any new branch nodes and the root node
 		while (appendPath.length > 1) {
 			const rightNodeInfo = appendPath.pop();
 			const leftNodeInfo = appendPath.pop();
@@ -155,10 +163,8 @@ export class MerkleTree {
 				(leftNodeInfo as NodeInfo).layerIndex + 1,
 				(leftNodeInfo as NodeInfo).nodeIndex + BigInt(1),
 			);
-			this._hashToBuffer[newNode.hash.toString('binary')] = newNode.value;
 			appendPath.push(this.getNode(newNode.hash));
 		}
-		// eslint-disable-next-line prefer-destructuring
 		this._root = appendPath[0].hash;
 
 		return this.root;
@@ -176,7 +182,7 @@ export class MerkleTree {
 		this._root = EMPTY_HASH;
 	}
 
-	public printTreeData(): object[] {
+	public printData(): object[] {
 		return Object.keys(this._hashToBuffer).map(key =>
 			this.getNode(Buffer.from(key, 'binary')),
 		);
