@@ -47,6 +47,9 @@ const isLeaf = (value: Buffer): boolean =>
 	LEAF_PREFIX.compare(value.slice(0, 1)) === 0 &&
 	value.compare(Buffer.alloc(0)) !== 0;
 
+const isBranch = (value: Buffer): boolean =>
+	LEAF_PREFIX.compare(value.slice(0, 1)) === 1;
+
 /*
 	We use the binary representation of dataLength to find the correct appendPath
 	Each digit di ∈ {0, 1} labels a layer of the tree according to the power of 2 it represents
@@ -89,10 +92,10 @@ export class MerkleTree {
 		let type: NodeType;
 		if (this._root.compare(nodeHash) === 0) {
 			type = NodeType.ROOT;
-		} else if (isLeaf(value)) {
-			type = NodeType.LEAF;
-		} else {
+		} else if (isBranch(value)) {
 			type = NodeType.BRANCH;
+		} else {
+			type = NodeType.LEAF;
 		}
 		const layerIndex = type === NodeType.BRANCH ? value.readInt8(0) : 0;
 		const nodeIndex =
@@ -121,8 +124,8 @@ export class MerkleTree {
 
 	public append(value: Buffer): Buffer {
 		const appendPath: NodeInfo[] = [];
-		const treeHeight = this._getHeight();
 		let currentNode = this.getNode(this._root);
+		const treeHeight = this._getHeight();
 		// Create the appendPath:
 		// We start from the root layer and traverse each layer down the tree on the right side
 		for (let i = 0; i < treeHeight; i += 1) {
@@ -261,6 +264,7 @@ export class MerkleTree {
 		}
 
 		// Start from base layer
+		let currentLayerIndex = 1;
 		let currentLayerHashes = leafHashes;
 		let orphanNodeHashInPreviousLayer: Buffer | undefined;
 		// Loop through each layer as long as there are nodes or an orphan node from previous layer
@@ -293,7 +297,6 @@ export class MerkleTree {
 			}
 
 			// Generate hash and buffer for the parent layer and store
-			let currentLayerIndex = 0;
 			const parentLayerHashes = [];
 			for (let i = 0; i < pairsOfHashes.length; i += 1) {
 				const leftHash = pairsOfHashes[i][0];
