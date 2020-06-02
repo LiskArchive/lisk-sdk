@@ -53,7 +53,7 @@ const isLeaf = (value: Buffer): boolean =>
 	The rightmost digit is the base layer
 */
 const isAppendPath = (dataLength: number, layer: number): boolean => {
-	const multiplier = 2 ** (layer - 1);
+	const multiplier = 2 ** layer;
 	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
 };
 
@@ -127,7 +127,7 @@ export class MerkleTree {
 		// We start from the root layer and traverse each layer down the tree on the right side
 		for (let i = 0; i < treeHeight; i += 1) {
 			// If node is in appendPath, add it
-			if (isAppendPath(this._width, treeHeight - i)) {
+			if (isAppendPath(this._width, treeHeight - i - 1)) {
 				appendPath.push(currentNode);
 			}
 
@@ -137,7 +137,7 @@ export class MerkleTree {
 			}
 
 			// If left node is in appendPath, add it
-			if (isAppendPath(this._width, treeHeight - i - 1)) {
+			if (isAppendPath(this._width, treeHeight - i - 2)) {
 				appendPath.push(this.getNode(currentNode.leftHash));
 			}
 
@@ -151,10 +151,11 @@ export class MerkleTree {
 
 		// Loop through appendPath from the base layer
 		// Generate new branch nodes and push to appendPath
+		// Last element remaining is new root
 		while (appendPath.length > 1) {
 			const rightNodeInfo = appendPath.pop();
 			const leftNodeInfo = appendPath.pop();
-			// FIXME: Add correct nodeIndex:  get left node nodex index + 1
+			// FIXME: Add correct nodeIndex:  get left node index + 1
 			const newBranchNode = this._generateNode(
 				(leftNodeInfo as NodeInfo).hash,
 				(rightNodeInfo as NodeInfo).hash,
@@ -180,7 +181,7 @@ export class MerkleTree {
 		this._root = EMPTY_HASH;
 	}
 
-	public printData(): object[] {
+	public getData(): object[] {
 		return Object.keys(this._hashToBuffer).map(key =>
 			this.getNode(Buffer.from(key, 'binary')),
 		);
@@ -194,7 +195,7 @@ export class MerkleTree {
 	}
 
 	private _getHeight(): number {
-		return Math.ceil(Math.log2(this._width + 1));
+		return Math.ceil(Math.log2(this._width)) + 1;
 	}
 
 	private _generateLeaf(value: Buffer): NodeData {

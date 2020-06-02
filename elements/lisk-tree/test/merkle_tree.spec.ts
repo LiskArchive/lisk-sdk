@@ -171,20 +171,43 @@ describe('MerkleTree', () => {
 
 		it('should append and have correct root when leaf size is 7', () => {
 			const values = [
-				Buffer.from('c52b7e9ff957', 'hex'),
-				Buffer.from('a6d3535449f2', 'hex'),
-				Buffer.from('66d818dc18be', 'hex'),
-				Buffer.from('a21cc76476a6', 'hex'),
-				Buffer.from('db530614b19b', 'hex'),
-				Buffer.from('10fa2f056c8b', 'hex'),
+				Buffer.from(
+					'2c270d6dd1796435282658e546cf36712fc0ffb57c508f9c3a93849de5a70841',
+					'hex',
+				),
+				Buffer.from(
+					'236fa8ecf52959fe924c340531d0c11d4fe7c09b192afc4cbd7ad51e88a43c2d',
+					'hex',
+				),
+				Buffer.from(
+					'b680832b2f794ae4f2613443fdf349e31171d53dc9858ad8e0442f0819948868',
+					'hex',
+				),
+				Buffer.from(
+					'6a143b1bb83299230e22e6ef6aa7207a66a1c7ab8d50c9fd29d6a7fd128a027a',
+					'hex',
+				),
+				Buffer.from(
+					'c110e83f2d061db53fc4c66bde839d02f8c56cb9d33e16a802413a66b430c239',
+					'hex',
+				),
+				Buffer.from(
+					'e030fabe8fd5eb3df536ed9b260c9c409629b5b3a32b4c2fb70def467c4dd630',
+					'hex',
+				),
 			];
 			const merkleTree = new MerkleTree(values);
 
-			merkleTree.append(Buffer.from('340222bba8ba', 'hex'));
+			merkleTree.append(
+				Buffer.from(
+					'8edb8039d47b19bac48dd7ccd3f673f4c2814faabb1b84c7b5b0a0ffed3552f1',
+					'hex',
+				),
+			);
 
 			expect(merkleTree.root).toEqual(
 				Buffer.from(
-					'd4aa6b41cd405f159d88afaa0a27451fe6f7990741fbb38fd438dbff13e5f581',
+					'e418447bb3766ce0f96540e4a76a3d7431a900ebb682f7c39c90888171280f10',
 					'hex',
 				),
 			);
