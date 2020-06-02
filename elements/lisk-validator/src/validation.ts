@@ -39,15 +39,6 @@ export const isNullCharacterIncluded = (input: string): boolean =>
 export const isSignature = (signature: string): boolean =>
 	/^[a-f0-9]{128}$/i.test(signature);
 
-export const isGreaterThanZero = (amount: bigint): boolean =>
-	amount > BigInt(0);
-
-export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
-	amount > MAX_INT64;
-
-export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
-	amount > MAX_UINT64;
-
 export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
 	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
 
@@ -197,19 +188,6 @@ export const validateAddress = (address: string): boolean => {
 export const isValidNonTransferAmount = (data: string): boolean =>
 	isNumberString(data) && data === '0';
 
-export const isValidTransferAmount = (data: string): boolean =>
-	isNumberString(data) &&
-	isGreaterThanZero(BigInt(data)) &&
-	!isGreaterThanMaxTransactionAmount(BigInt(data));
-
-export const isValidFee = (data: string): boolean =>
-	isNumberString(data) &&
-	isGreaterThanZero(BigInt(data)) &&
-	!isGreaterThanMaxUInt64(BigInt(data));
-
-export const isValidNonce = (data: string): boolean =>
-	isNumberString(data) && !isGreaterThanMaxUInt64(BigInt(data));
-
 export const isCsv = (data: string): boolean => {
 	if (typeof data !== 'string') {
 		return false;
@@ -268,6 +246,6 @@ export const isInt64 = (data: unknown): boolean =>
 	typeof data === 'bigint' ? data <= MAX_INT64 && data >= MIN_INT64 : false;
 
 export const isUint64 = (data: unknown): boolean =>
-	typeof data === 'bigint' ? data <= MAX_INT64 && data >= BigInt(0) : false;
+	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
 
 export const isBytes = (data: Buffer): boolean => Buffer.isBuffer(data);

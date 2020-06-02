@@ -2,8 +2,6 @@ import {
 	isGreaterThanMaxTransactionId,
 	isHexString,
 	isBase64String,
-	isInt32,
-	isInt64,
 	isNullCharacterIncluded,
 	isNumberString,
 	isSignature,
@@ -12,7 +10,6 @@ import {
 	isValidFee,
 	isValidNonce,
 	isValidNonTransferAmount,
-	isValidTransferAmount,
 	isValidTransferData,
 	validateAddress,
 	validatePublicKey,
@@ -61,10 +58,6 @@ export const emptyOrPublicKey = (data: string): boolean => {
 	}
 };
 
-export const fee = isValidFee;
-
-export const nonce = isValidNonce;
-
 export const hex = isHexString;
 export const base64 = isBase64String;
 
@@ -105,10 +98,9 @@ export const signedPublicKey = (data: string): boolean => {
 	}
 };
 
-export const transferAmount = isValidTransferAmount;
-
 export const transferData = (data: string): boolean =>
 	!isNullCharacterIncluded(data) && isValidTransferData(data);
+<<<<<<< HEAD
 
 export const int64 = (data: string): boolean =>
 	isNumberString(data) && isInt64(BigInt(data));
@@ -126,3 +118,5 @@ const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
 
 export const camelCase = (data: string): boolean =>
 	camelCaseRegex.exec(data) !== null;
+=======
+>>>>>>> Remove dataTypes and formats no longer needed
