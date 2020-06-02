@@ -93,6 +93,37 @@ describe('Delegate registration transaction class', () => {
 		});
 	});
 
+	describe('#validateAsset', () => {
+		it('should return true when valid username is provided', () => {
+			(validTestTransaction as any).asset.username = 'obelisk';
+			return expect((validTestTransaction as any).validateAsset()).toBeEmpty();
+		});
+
+		it('should return false when username includes capital letter', () => {
+			(validTestTransaction as any).asset.username = 'Obelisk';
+			const errors = (validTestTransaction as any).validateAsset();
+			return expect(errors[0].dataPath).toBe('.asset.username');
+		});
+
+		it('should return false when username is like address', () => {
+			(validTestTransaction as any).asset.username = '17670127987160191762l';
+			const errors = (validTestTransaction as any).validateAsset();
+			return expect(errors[0].dataPath).toBe('.asset.username');
+		});
+
+		it('should return false when username includes forbidden character', () => {
+			(validTestTransaction as any).asset.username = 'obe^lisk';
+			const errors = (validTestTransaction as any).validateAsset();
+			return expect(errors[0].dataPath).toBe('.asset.username');
+		});
+
+		it('should return false when username includes forbidden null character', () => {
+			(validTestTransaction as any).asset.username = 'obe\0lisk';
+			const errors = (validTestTransaction as any).validateAsset();
+			return expect(errors[0].dataPath).toBe('.asset.username');
+		});
+	});
+
 	describe('#minFee', () => {
 		it('should set the minFee to nameFee plus minFeePerByte times bytelength', () => {
 			const byteLength = BigInt(validTestTransaction.getBytes().length);

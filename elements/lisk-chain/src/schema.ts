@@ -66,7 +66,7 @@ export const blockHeaderSchema = {
 };
 
 export const baseAccountSchema = {
-	$id: 'accountSchema',
+	$id: 'baseAccountSchema',
 	type: 'object',
 	properties: {
 		address: { dataType: 'bytes', fieldNumber: 1 },
