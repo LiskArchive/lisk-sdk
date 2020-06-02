@@ -16,8 +16,12 @@
 import * as Ajv from 'ajv';
 import { ValidateFunction } from 'ajv';
 import * as formats from './formats';
+import { ErrorObject, LiskValidationError } from './errors';
+import { fieldNumberKeyword } from './keywords/field_number';
+import { dataTypeKeyword } from './keywords/data_type';
+import { liskMetaSchema } from './lisk_meta_schema';
 
-export type ErrorObject = Ajv.ErrorObject;
+export const liskSchemaIdentifier = liskMetaSchema.$id;
 
 class LiskValidator {
 	private readonly _validator: Ajv.Ajv;
@@ -47,6 +51,10 @@ class LiskValidator {
 						.map((key: string) => key.slice(1)),
 				).size === data.length,
 		});
+
+		this._validator.addMetaSchema(liskMetaSchema);
+		this._validator.addKeyword('fieldNumber', fieldNumberKeyword);
+		this._validator.addKeyword('dataType', dataTypeKeyword);
 	}
 
 	public validate(schema: object, data: object): ReadonlyArray<ErrorObject> {
@@ -66,24 +74,29 @@ class LiskValidator {
 	}
 
 	public compile(schema: object | boolean): ValidateFunction {
-		return this._validator.compile(schema);
+		try {
+			return this._validator.compile(schema);
+		} catch (error) {
+			if (error instanceof LiskValidationError) {
+				throw error;
+			}
+
+			throw new LiskValidationError([
+				{
+					message: (error as Error).message.toString(),
+					dataPath: '',
+					keyword: '',
+					schemaPath: '',
+					params: {},
+				},
+			]);
+		}
 	}
 
 	public removeSchema(
 		schemaKeyRef?: object | string | RegExp | boolean,
 	): Ajv.Ajv {
 		return this._validator.removeSchema(schemaKeyRef);
-	}
-
-	public addMetaSchema(schema: object, key?: string): Ajv.Ajv {
-		return this._validator.addMetaSchema(schema, key);
-	}
-
-	public addKeyword(
-		keyword: string,
-		definition: Ajv.KeywordDefinition,
-	): Ajv.Ajv {
-		return this._validator.addKeyword(keyword, definition);
 	}
 }
 

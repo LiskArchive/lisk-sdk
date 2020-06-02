@@ -13,8 +13,7 @@
  */
 
 import * as Debug from 'debug';
-import { SchemaError } from '../errors';
-import { Schema } from '../../types';
+import { LiskValidationError } from '../errors';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('codec:keyword:fieldNumber');
@@ -52,7 +51,7 @@ const deepValue = (obj: object, path: string): any => {
 
 interface AjvContext {
 	root: {
-		schema: Schema;
+		schema: object;
 	};
 	schemaPath: string;
 }
@@ -83,26 +82,24 @@ const compile = (
 	const uniqueFieldNumbers = [...new Set(fieldNumbers)];
 
 	if (fieldNumbers.length !== uniqueFieldNumbers.length) {
-		throw new SchemaError({
-			keyword: 'fieldNumber',
-			message: 'Value must be unique across all properties on same level',
-			params: { fieldNumbers },
-			dataPath: '',
-			schemaPath,
-		});
+		throw new LiskValidationError([
+			{
+				keyword: 'fieldNumber',
+				message: 'Value must be unique across all properties on same level',
+				params: { fieldNumbers },
+				dataPath: '',
+				schemaPath,
+			},
+		]);
 	}
 
 	return (
-		data: string,
-		dataPath?: string,
-		parentData?: object,
-		parentDataProperty?: string | number,
-		rootData?: object,
-	): boolean => {
-		console.info(data, dataPath, parentData, parentDataProperty, rootData);
-
-		return true;
-	};
+		_data: string,
+		_dataPath?: string,
+		_parentData?: object,
+		_parentDataProperty?: string | number,
+		_rootData?: object,
+	): boolean => true;
 };
 
 export const fieldNumberKeyword = {

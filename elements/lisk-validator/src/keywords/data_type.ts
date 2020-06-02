@@ -13,8 +13,7 @@
  */
 
 import * as Debug from 'debug';
-import { SchemaError } from '../errors';
-import { Schema } from '../../types';
+import { LiskValidationError } from '../errors';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('codec:keyword:dataType');
@@ -35,7 +34,7 @@ type ValidateFunction = (
 
 interface AjvContext {
 	root: {
-		schema: Schema;
+		schema: object;
 	};
 	schemaPath: string;
 }
@@ -49,13 +48,15 @@ const compile = (
 	const typePropertyPresent = Object.keys(parentSchema).includes('type');
 
 	if (typePropertyPresent) {
-		throw new SchemaError({
-			keyword: 'dataType',
-			message: 'Either "dataType" or "type" can be presented in schema',
-			params: { dataType: value },
-			dataPath: '',
-			schemaPath: it.schemaPath ?? '',
-		});
+		throw new LiskValidationError([
+			{
+				keyword: 'dataType',
+				message: 'Either "dataType" or "type" can be presented in schema',
+				params: { dataType: value },
+				dataPath: '',
+				schemaPath: it.schemaPath ?? '',
+			},
+		]);
 	}
 
 	return (

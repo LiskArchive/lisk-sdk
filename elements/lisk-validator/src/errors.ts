@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ErrorObject } from '@liskhq/lisk-validator';
+import * as Ajv from 'ajv';
 
-export class SchemaError extends Error {
-	public readonly error: ErrorObject;
+export type ErrorObject = Ajv.ErrorObject;
 
-	public constructor(error: ErrorObject) {
-		super(error.message);
-		this.error = error;
+export class LiskValidationError extends Error {
+	public readonly errors: ErrorObject[];
+
+	public constructor(errors: ErrorObject[]) {
+		super(`Lisk validator found ${errors.length} error[s]`);
+		this.errors = errors;
 	}
 }
