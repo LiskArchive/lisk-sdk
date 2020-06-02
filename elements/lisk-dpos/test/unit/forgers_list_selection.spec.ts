@@ -32,8 +32,7 @@ import * as forgerSelectionLessTHan103Scenario from '../fixtures/dpos_forger_sel
 import * as forgerSelectionMoreThan2StandByScenario from '../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
 import { StateStoreMock } from '../utils/state_store_mock';
 
-// TODO: Update after updating protocol-specs
-describe.skip('Forger selection', () => {
+describe('Forger selection', () => {
 	let delegateList: DelegatesList;
 	let chainStub: any;
 	let stateStore: StateStoreMock;
@@ -78,23 +77,23 @@ describe.skip('Forger selection', () => {
 			describe(scenario.title, () => {
 				it('should result in the expected forgers list', async () => {
 					// Forger selection relies on vote weight to be sorted
-					const delegates = [...scenario.testCases.input.voteWeights];
+					const delegates = [...scenario.testCases.input.voteWeights.map(d => ({ address: Buffer.from(d.address, 'hex'), voteWeight: BigInt(d.voteWeight) }))];
 					delegates.sort((a, b) => {
-						const diff = BigInt(b.voteWeight) - BigInt(a.voteWeight);
+						const diff = b.voteWeight - a.voteWeight;
 						if (diff > BigInt(0)) {
 							return 1;
 						}
 						if (diff < BigInt(0)) {
 							return -1;
 						}
-						return a.address.localeCompare(b.address, 'en');
+						return a.address.compare(b.address);
 					});
 					stateStore = new StateStoreMock([], {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
 							JSON.stringify([
 								{
 									round: defaultRound,
-									delegates,
+									delegates: delegates.map(d => ({ address: d.address.toString('binary'), voteWeight: d.voteWeight.toString() })),
 								},
 							]),
 						),
@@ -113,6 +112,12 @@ describe.skip('Forger selection', () => {
 					);
 					const forgersList = JSON.parse(
 						(forgersListBuffer as Buffer).toString('utf8'),
+					).map(
+						(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
+							round: fl.round,
+							delegates: fl.delegates?.map(d => Buffer.from(d, 'binary').toString('hex')) ?? [],
+							standby: fl.standby?.map(d => Buffer.from(d, 'binary').toString('hex')),
+						}),
 					);
 					expect(forgersList).toHaveLength(1);
 					expect(forgersList[0].round).toEqual(defaultRound);
@@ -128,12 +133,12 @@ describe.skip('Forger selection', () => {
 	describe('when there is enough standby delegates', () => {
 		const defaultRound = 123;
 
-		let delegates: { address: string; voteWeight: string }[];
+		let delegates: { address: Buffer; voteWeight: bigint }[];
 
 		beforeEach(async () => {
 			const scenario = forgerSelectionMoreThan2StandByScenario;
 			// Forger selection relies on vote weight to be sorted
-			delegates = [...scenario.testCases.input.voteWeights];
+			delegates = [...scenario.testCases.input.voteWeights.map(d => ({ address: Buffer.from(d.address, 'hex'), voteWeight: BigInt(d.voteWeight) }))];
 			delegates.sort((a, b) => {
 				const diff = BigInt(b.voteWeight) - BigInt(a.voteWeight);
 				if (diff > BigInt(0)) {
@@ -142,14 +147,14 @@ describe.skip('Forger selection', () => {
 				if (diff < BigInt(0)) {
 					return -1;
 				}
-				return a.address.localeCompare(b.address, 'en');
+				return a.address.compare(b.address);
 			});
 			stateStore = new StateStoreMock([], {
 				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
 					JSON.stringify([
 						{
 							round: defaultRound,
-							delegates,
+							delegates: delegates.map(d => ({ address: d.address.toString('binary'), voteWeight: d.voteWeight.toString() })),
 						},
 					]),
 				),
@@ -170,6 +175,12 @@ describe.skip('Forger selection', () => {
 			);
 			const forgersList = JSON.parse(
 				(forgersListBuffer as Buffer).toString('utf8'),
+			).map(
+				(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
+					round: fl.round,
+					delegates: fl.delegates?.map(d => Buffer.from(d, 'binary').toString('hex')) ?? [],
+					standby: fl.standby?.map(d => Buffer.from(d, 'binary').toString('hex')),
+				}),
 			);
 			expect(forgersList[0].delegates).toHaveLength(103);
 		});
@@ -180,8 +191,14 @@ describe.skip('Forger selection', () => {
 			);
 			const forgersList = JSON.parse(
 				(forgersListBuffer as Buffer).toString('utf8'),
+			).map(
+				(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
+					round: fl.round,
+					delegates: fl.delegates?.map(d => Buffer.from(d, 'binary').toString('hex')) ?? [],
+					standby: fl.standby?.map(d => Buffer.from(d, 'binary').toString('hex')),
+				}),
 			);
-			const standByCandidates = delegates.slice(101).map(d => d.address);
+			const standByCandidates = delegates.slice(101).map(d => d.address.toString('hex'));
 			expect(forgersList[0].standby).toHaveLength(2);
 			for (const standby of forgersList[0].standby) {
 				expect(forgersList[0].delegates).toContain(standby);

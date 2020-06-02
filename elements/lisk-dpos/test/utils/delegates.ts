@@ -36,7 +36,7 @@ export const delegateLists = deepFreeze([
 ]);
 
 interface ActiveDelegateList {
-	readonly address: string;
+	readonly address: Buffer;
 	readonly activeRounds: number[];
 }
 

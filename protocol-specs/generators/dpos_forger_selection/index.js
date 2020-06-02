@@ -22,16 +22,19 @@ const delegateWeightsWith0EligibleStandBy = require('./delegate_weight_0_eligibl
 const delegateWeightsLessThan103 = require('./delegate_weight_less_than_103.json');
 
 const copyAndSort = list => {
-	const copiedList = [...list.map(content => ({ ...content }))];
+	const copiedList = [...list.map(content => ({ ...content }))].map(l => ({
+		voteWeight: BigInt(l.voteWeight),
+		address: Buffer.from(l.address, 'hex'),
+	}));
 	copiedList.sort((a, b) => {
-		const diff = BigInt(b.voteWeight) - BigInt(a.voteWeight);
+		const diff = b.voteWeight - a.voteWeight;
 		if (diff > BigInt(0)) {
 			return 1;
 		}
 		if (diff < BigInt(0)) {
 			return -1;
 		}
-		return a.address.localeCompare(b.address, 'en');
+		return a.address.compare(b.address);
 	});
 	return copiedList;
 };
@@ -93,7 +96,7 @@ const generateForgerSelectionWithMoreThan2EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithMoreThan2EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: result.map(vw => vw.address),
+			selectedForgers: result.map(vw => vw.address.toString('hex')),
 		},
 	};
 };
@@ -111,7 +114,7 @@ const generateForgerSelectionWithExactly1EligibleStandBy = () => {
 			selectedForgers: copyAndSort(
 				delegateWeightsWithExactly1EligibleStandBy.list,
 			)
-				.map(dw => dw.address)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -130,7 +133,7 @@ const generateForgerSelectionWithExactly2EligibleStandBy = () => {
 			selectedForgers: copyAndSort(
 				delegateWeightsWithExactly2EligibleStandBy.list,
 			)
-				.map(dw => dw.address)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -147,7 +150,7 @@ const generateForgerSelectionWithLessThan103Delegates = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsLessThan103.list)
-				.map(dw => dw.address)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};
@@ -164,7 +167,7 @@ const generateForgerSelectionWithExactly0EligibleStandBy = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsWith0EligibleStandBy.list)
-				.map(dw => dw.address)
+				.map(dw => dw.address.toString('hex'))
 				.slice(0, 103),
 		},
 	};

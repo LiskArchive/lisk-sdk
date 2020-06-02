@@ -19,9 +19,11 @@ import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Dpos } from '../../src';
 
 describe('dpos.isActiveDelegate', () => {
-	const defaultAddress = getAddressFromPublicKey(delegatePublicKeys[0]);
+	const defaultAddress = getAddressFromPublicKey(
+		Buffer.from(delegatePublicKeys[0], 'hex'),
+	);
 	const delegatesAddresses = getDelegateAccounts(101).map(d => ({
-		address: d.address,
+		address: d.address.toString('binary'),
 		voteWeight: '100000000000',
 	}));
 
@@ -64,7 +66,7 @@ describe('dpos.isActiveDelegate', () => {
 							round: 5,
 							delegates: [
 								...delegatesAddresses,
-								{ address: defaultAddress, voteWeight: '0' },
+								{ address: defaultAddress.toString('binary'), voteWeight: '0' },
 							],
 						},
 					]),
@@ -83,7 +85,10 @@ describe('dpos.isActiveDelegate', () => {
 						{
 							round: 5,
 							delegates: [
-								{ address: defaultAddress, voteWeight: '200000000000' },
+								{
+									address: defaultAddress.toString('binary'),
+									voteWeight: '200000000000',
+								},
 								...delegatesAddresses,
 							],
 						},

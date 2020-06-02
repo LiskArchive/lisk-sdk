@@ -35,7 +35,7 @@ describe('dpos.getMinActiveHeight()', () => {
 	let dpos: Dpos;
 	let height: number;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
-	const defaultAddress = 'x';
+	const defaultAddress = Buffer.from('x');
 
 	beforeEach(() => {
 		// Arrange

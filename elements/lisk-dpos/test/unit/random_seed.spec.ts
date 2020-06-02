@@ -27,11 +27,12 @@ const generateHeadersFromTest = (blocks: any): BlockHeader[] =>
 	blocks
 		.map((block: any) => ({
 			...block,
-			...{
-				id: '',
-				reward: BigInt(0),
-				totalFee: BigInt(0),
-				timestamp: 0,
+			generatorPublicKey: Buffer.from(block.generatorPublicKey, 'hex'),
+			id: Buffer.from(''),
+			reward: BigInt(0),
+			timestamp: 0,
+			asset: {
+				seedReveal: Buffer.from(block.asset.seedReveal, 'hex'),
 			},
 		}))
 		.reverse();
