@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -38,7 +38,7 @@ export class BlockHeaderInterfaceAdapter {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const assetSchema = this._blockSchemaMap.get(blockHeader.version);
 		if (!assetSchema) {
-			throw new Error('Block version not found.');
+			throw new Error(`Asset Schema not found for block version: ${blockHeader.version}.`);
 		}
 		const asset = codec.decode<T>(assetSchema, blockHeader.asset);
 		const id = hash(buffer);
@@ -50,7 +50,7 @@ export class BlockHeaderInterfaceAdapter {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const assetSchema = this._blockSchemaMap.get(header.version);
 		if (!assetSchema) {
-			throw new Error('Block version not found.');
+			throw new Error(`Asset Schema not found for block version: ${header.version}.`);
 		}
 		const encodedAsset = codec.encode(assetSchema, header.asset);
 		const rawHeader = { ...header, asset: encodedAsset };
