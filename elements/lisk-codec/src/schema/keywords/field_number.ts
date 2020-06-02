@@ -65,8 +65,11 @@ const compile = (
 	debug('compile: schema: %i', value);
 	debug('compile: parent schema: %j', parentSchema);
 
-	const rootSchema: Schema = (it as AjvContext).root.schema;
-	const parentPath: string[] = (it as AjvContext).schemaPath.split('.');
+	const {
+		schemaPath,
+		root: { schema: rootSchema },
+	} = it as AjvContext;
+	const parentPath: string[] = schemaPath.split('.');
 	parentPath.shift();
 	parentPath.pop();
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -85,7 +88,7 @@ const compile = (
 			message: 'Value must be unique across all properties on same level',
 			params: { fieldNumbers },
 			dataPath: '',
-			schemaPath: it.schemaPath ?? '',
+			schemaPath,
 		});
 	}
 
