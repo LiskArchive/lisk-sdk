@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
@@ -22,6 +23,7 @@ import {
 } from './finality_manager';
 import * as forkChoiceRule from './fork_choice_rule';
 import {
+	BFTPersistedValues,
 	BlockHeader,
 	Chain,
 	DPoS,
@@ -31,6 +33,20 @@ import {
 
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
+
+export const BFTPersistedValuesSchema = {
+	type: 'object',
+	$id: '/BFT',
+	title: 'LiskBFT',
+	properties: {
+		finalizedHeight: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+	},
+};
+
+codec.addSchema(BFTPersistedValuesSchema);
 
 /**
  * BFT class responsible to hold integration logic for finality manager with the framework
@@ -113,7 +129,7 @@ export class BFT extends EventEmitter {
 
 		stateStore.consensus.set(
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
-			Buffer.from(JSON.stringify(String(finalizedHeight)), 'utf8'),
+			codec.encode(BFTPersistedValuesSchema, { finalizedHeight }),
 		);
 	}
 
@@ -195,7 +211,8 @@ export class BFT extends EventEmitter {
 		);
 
 		const maxHeightPreviouslyForgedBlock = bftHeaders.find(
-			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
+			bftHeader =>
+				bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
 		if (
@@ -231,9 +248,14 @@ export class BFT extends EventEmitter {
 		const storedFinalizedHeightBuffer = await stateStore.consensus.get(
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 		);
-		const finalizedHeightStored = storedFinalizedHeightBuffer
-			? parseInt(JSON.parse(storedFinalizedHeightBuffer.toString('utf8')), 10)
-			: 1;
+
+		const finalizedHeightStored =
+			storedFinalizedHeightBuffer === undefined
+				? 1
+				: codec.decode<BFTPersistedValues>(
+						BFTPersistedValuesSchema,
+						storedFinalizedHeightBuffer,
+				  ).finalizedHeight;
 
 		/* Check BFT migration height
 		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
