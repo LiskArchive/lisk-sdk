@@ -309,10 +309,10 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			]),
 			keypair.privateKey,
 		);
-		const headerBytes = this.chainModule.dataAccess.encodeBlockHeader(
-			{ ...header, signature } as BlockHeader<BlockHeaderAsset>,
-			true,
-		);
+		const headerBytes = this.chainModule.dataAccess.encodeBlockHeader({
+			...header,
+			signature,
+		} as BlockHeader<BlockHeaderAsset>);
 		const id = hash(headerBytes);
 
 		return {

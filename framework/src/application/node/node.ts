@@ -65,6 +65,7 @@ const { EVENT_ROUND_CHANGED } = dposConstants;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
 
 interface Payload {
+	id: string;
 	senderPublicKey: string;
 	nonce: string;
 	fee: string;
@@ -134,7 +135,7 @@ const convertGenesisBlock = (genesis: GenesisBlockJSON): Block => {
 	const payload = genesis.payload.map(tx => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const txHeader = {
-			id: Buffer.from(tx.senderPublicKey, 'hex'),
+			id: Buffer.from(tx.id, 'hex'),
 			type: tx.type,
 			senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
 			nonce: BigInt(tx.nonce),
@@ -321,6 +322,7 @@ export class Node {
 				lastBlockId: this._chain.lastBlock.header.id,
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				maxHeightPrevoted:
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					this._chain.lastBlock.header.asset.maxHeightPrevoted ?? 0,
 				blockVersion: this._chain.lastBlock.header.version,
 			});
@@ -626,6 +628,7 @@ export class Node {
 					await this._channel.invoke('app:updateApplicationState', {
 						height: block.header.height,
 						lastBlockId: block.header.id.toString('hex'),
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 						maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
 						blockVersion: block.header.version,
 					});

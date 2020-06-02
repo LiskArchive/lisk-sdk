@@ -13,14 +13,12 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { BlockInstance } from '@liskhq/lisk-chain';
-import { transfer, TransactionJSON, utils } from '@liskhq/lisk-transactions';
+import { Block } from '@liskhq/lisk-chain';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { nodeUtils } from '../../../../../utils';
 import { genesis } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
-
-const { convertLSKToBeddows } = utils;
 
 describe('Delete block', () => {
 	const dbName = 'delete_block';
@@ -59,44 +57,43 @@ describe('Delete block', () => {
 	describe('given there a valid block with transfer transaction is forged', () => {
 		const account = nodeUtils.createAccount();
 
-		let newBlock: BlockInstance;
-		let transaction: TransactionJSON;
+		let newBlock: Block;
+		let transaction: TransferTransaction;
 		let genesisAccount;
 
-		beforeAll(async () => {
-			genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(
-				genesis.address,
-			);
-			transaction = transfer({
-				nonce: genesisAccount.nonce.toString(),
-				networkIdentifier: node['_networkIdentifier'],
-				fee: convertLSKToBeddows('0.002'),
-				recipientId: account.address,
-				amount: convertLSKToBeddows('1000'),
-				passphrase: genesis.passphrase,
-			}) as TransactionJSON;
-			newBlock = await nodeUtils.createBlock(node, [
-				node['_chain'].deserializeTransaction(transaction),
-			]);
-			await node['_processor'].process(newBlock);
-		});
-
 		describe('when deleteLastBlock is called', () => {
-			beforeAll(async () => {
+			beforeEach(async () => {
+				genesisAccount = await node['_chain'].dataAccess.getAccountByAddress(
+					genesis.address,
+				);
+				transaction = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: account.address,
+						amount: BigInt('100000000000'),
+						data: '',
+					},
+				});
+				transaction.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				newBlock = await nodeUtils.createBlock(node, [transaction]);
+				await node['_processor'].process(newBlock);
 				await node['_processor'].deleteLastBlock();
 			});
 
 			it('should delete the block from the database', async () => {
 				await expect(
-					node['_chain'].dataAccess.isBlockPersisted(newBlock.id),
+					node['_chain'].dataAccess.isBlockPersisted(newBlock.header.id),
 				).resolves.toBeFalse();
 			});
 
 			it('should delete the transactions from the database', async () => {
 				await expect(
-					node['_chain'].dataAccess.isTransactionPersisted(
-						transaction.id as string,
-					),
+					node['_chain'].dataAccess.isTransactionPersisted(transaction.id),
 				).resolves.toBeFalse();
 			});
 

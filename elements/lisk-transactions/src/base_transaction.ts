@@ -80,8 +80,8 @@ export abstract class BaseTransaction {
 	public signatures: Array<Readonly<Buffer>>;
 
 	protected _minFee?: bigint;
+	protected _id: Buffer;
 
-	private _id: Buffer;
 	private _idStr?: string;
 	private readonly _senderPublicKeyStr: string;
 	private readonly _senderIdStr: Buffer;

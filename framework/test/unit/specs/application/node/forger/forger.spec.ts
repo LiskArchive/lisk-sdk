@@ -155,7 +155,7 @@ describe('forger', () => {
 			it('should return error with non delegate account', async () => {
 				await expect(
 					forgeModule.updateForgingStatus(
-						genesis.publicKey,
+						genesis.publicKey.toString('hex'),
 						genesis.password,
 						true,
 					),
@@ -727,7 +727,7 @@ describe('forger', () => {
 				(forgeModule as any)._config.forging.delegates = [
 					{
 						encryptedPassphrase: genesis.encryptedPassphrase,
-						publicKey: genesis.publicKey,
+						publicKey: genesis.publicKey.toString('hex'),
 						hashOnion: {
 							count: 10,
 							distance: 10,
@@ -737,7 +737,7 @@ describe('forger', () => {
 				];
 				chainModuleStub.dataAccess.getAccountsByPublicKey.mockResolvedValue([
 					{
-						address: Buffer.from(genesis.address, 'hex'),
+						address: genesis.address,
 						asset: {
 							delegate: {
 								username: '',

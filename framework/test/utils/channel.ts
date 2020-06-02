@@ -20,6 +20,7 @@ export const createMockChannel = () => {
 		once: jest.fn(),
 		invoke: jest.fn(),
 		subscribe: jest.fn(),
+		publishToNetwork: jest.fn(),
 	};
 	return channel;
 };

@@ -171,7 +171,7 @@ export const genesisBlock = (): Block => {
 		header: {
 			...genesisBlockJSON.header,
 			id: Buffer.from(genesisBlockJSON.header.id, 'hex'),
-			previousBlockID: Buffer.from(genesisBlockJSON.header.id, 'hex'),
+			previousBlockID: Buffer.alloc(0),
 			reward: BigInt(genesisBlockJSON.header.reward),
 			transactionRoot: Buffer.from(
 				genesisBlockJSON.header.transactionRoot,
