@@ -19,15 +19,17 @@ import {
 	BFTLowerChainBranchError,
 	BlockHeader,
 } from '../../src/types';
-import { Account as accountFixture } from '../fixtures/accounts';
-import { BlockHeader as blockHeaderFixture } from '../fixtures/blocks';
+import { createFakeDefaultAccount } from '../fixtures/accounts';
+import { createFakeBlockHeader } from '../fixtures/blocks';
 import { StateStoreMock } from './state_store_mock';
 
 const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
-		return blockHeaderFixture({
+		return createFakeBlockHeader({
 			height: index + 1,
-			maxHeightPreviouslyForged: index,
+			asset: {
+				maxHeightPreviouslyForged: index,
+			},
 		});
 	});
 };
@@ -116,7 +118,9 @@ describe('finality_manager', () => {
 					finalityManager.processingThreshold + 1,
 				);
 
-				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
+				const header = createFakeBlockHeader({
+					asset: { maxHeightPrevoted: 10 },
+				});
 
 				expect.assertions(1);
 				try {
@@ -134,7 +138,9 @@ describe('finality_manager', () => {
 				const bftHeaders = generateValidHeaders(
 					finalityManager.processingThreshold + 1,
 				);
-				const header = blockHeaderFixture({ maxHeightPrevoted: 10 });
+				const header = createFakeBlockHeader({
+					asset: { maxHeightPrevoted: 10 },
+				});
 				finalityManager.chainMaxHeightPrevoted = 10;
 
 				expect(() =>
@@ -143,24 +149,28 @@ describe('finality_manager', () => {
 			});
 
 			it("should return true if delegate didn't forge any block previously", () => {
-				const header = blockHeaderFixture();
+				const header = createFakeBlockHeader();
 
 				expect(finalityManager.verifyBlockHeaders(header, [])).toBeTruthy();
 			});
 
 			it('should throw error if same delegate forged block on different height', () => {
 				const maxHeightPrevoted = 10;
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
+				const delegateAccount = createFakeDefaultAccount();
+				const lastBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged: 5,
-					maxHeightPrevoted,
+					asset: {
+						maxHeightPreviouslyForged: 5,
+						maxHeightPrevoted,
+					},
 					height: 10,
 				});
-				const currentBlock = blockHeaderFixture({
+				const currentBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted,
-					maxHeightPreviouslyForged: 6,
+					asset: {
+						maxHeightPrevoted,
+						maxHeightPreviouslyForged: 6,
+					},
 					height: 9,
 				});
 
@@ -171,15 +181,19 @@ describe('finality_manager', () => {
 
 			it('should throw error if delegate forged block on same height', () => {
 				const maxHeightPreviouslyForged = 10;
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
+				const delegateAccount = createFakeDefaultAccount();
+				const lastBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					asset: {
+						maxHeightPreviouslyForged,
+					},
 					height: 10,
 				});
-				const currentBlock = blockHeaderFixture({
+				const currentBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged,
+					asset: {
+						maxHeightPreviouslyForged,
+					},
 					height: 10,
 				});
 
@@ -189,14 +203,16 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if maxHeightPreviouslyForged has wrong value', () => {
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
+				const delegateAccount = createFakeDefaultAccount();
+				const lastBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
 					height: 10,
 				});
-				const currentBlock = blockHeaderFixture({
+				const currentBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPreviouslyForged: 9,
+					asset: {
+						maxHeightPreviouslyForged: 9,
+					},
 				});
 
 				expect(() =>
@@ -205,17 +221,21 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if maxHeightPrevoted has wrong value', () => {
-				const delegateAccount = accountFixture();
-				const lastBlock = blockHeaderFixture({
+				const delegateAccount = createFakeDefaultAccount();
+				const lastBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted: 10,
 					height: 9,
+					asset: {
+						maxHeightPrevoted: 10,
+					},
 				});
-				const currentBlock = blockHeaderFixture({
+				const currentBlock = createFakeBlockHeader({
 					generatorPublicKey: delegateAccount.publicKey,
-					maxHeightPrevoted: 9,
-					maxHeightPreviouslyForged: 9,
 					height: 10,
+					asset: {
+						maxHeightPreviouslyForged: 9,
+						maxHeightPrevoted: 9,
+					},
 				});
 
 				expect(() =>
@@ -246,16 +266,12 @@ describe('finality_manager', () => {
 				);
 			});
 
-			it('should call validateBlockHeader with the provided header', async () => {
-				await expect(
-					finalityManager.addBlockHeader({} as BlockHeader, stateStore),
-				).rejects.toThrow('should have required property');
-			});
-
 			it('should call verifyBlockHeaders with the provided header', async () => {
-				const header1 = blockHeaderFixture({
+				const header1 = createFakeBlockHeader({
 					height: 2,
-					maxHeightPreviouslyForged: 0,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
 				});
 				jest.spyOn(finalityManager, 'verifyBlockHeaders');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -268,9 +284,11 @@ describe('finality_manager', () => {
 			});
 
 			it('should call updatePreVotesPreCommits with the provided header', async () => {
-				const header1 = blockHeaderFixture({
+				const header1 = createFakeBlockHeader({
 					height: 2,
-					maxHeightPreviouslyForged: 0,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
 				});
 				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
 				await finalityManager.addBlockHeader(header1, stateStore);
@@ -286,9 +304,11 @@ describe('finality_manager', () => {
 			});
 
 			it('should not update prevotes and precommits in case of a standby delegate', async () => {
-				const header1 = blockHeaderFixture({
+				const header1 = createFakeBlockHeader({
 					height: 2,
-					maxHeightPreviouslyForged: 0,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
 				});
 
 				dposStub.isStandbyDelegate.mockResolvedValue(true);
@@ -315,14 +335,18 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if blockheader has conflict (Violates disjointness condition)', async () => {
-				const header1 = blockHeaderFixture({
+				const header1 = createFakeBlockHeader({
 					height: 34624,
-					maxHeightPreviouslyForged: 34501,
+					asset: {
+						maxHeightPreviouslyForged: 34501,
+					},
 				});
-				const header2 = blockHeaderFixture({
+				const header2 = createFakeBlockHeader({
 					height: 34666,
-					maxHeightPreviouslyForged: 34501,
 					generatorPublicKey: header1.generatorPublicKey,
+					asset: {
+						maxHeightPreviouslyForged: 34501,
+					},
 				});
 				const headers = [header1];
 				for (
@@ -331,9 +355,11 @@ describe('finality_manager', () => {
 					height < header2.height;
 					height += 1
 				) {
-					const header = blockHeaderFixture({
+					const header = createFakeBlockHeader({
 						height,
-						maxHeightPreviouslyForged: height - 129,
+						asset: {
+							maxHeightPreviouslyForged: height - 129,
+						},
 					});
 					headers.push(header);
 				}

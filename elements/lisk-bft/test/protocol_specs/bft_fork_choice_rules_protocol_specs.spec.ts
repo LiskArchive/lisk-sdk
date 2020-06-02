@@ -14,6 +14,7 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { BFT } from '../../src/bft';
+import { convertHeader } from '../fixtures/blocks';
 
 import forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
@@ -99,7 +100,10 @@ describe('bft', () => {
 							output: { forkStatus: expectedForkStatus },
 						} = testCase;
 
-						const result = bftInstance.forkChoice(receivedBlock, lastBlock);
+						const result = bftInstance.forkChoice(
+							convertHeader(receivedBlock),
+							convertHeader(lastBlock),
+						);
 
 						expect(result).toEqual(expectedForkStatus);
 					});
