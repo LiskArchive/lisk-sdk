@@ -123,6 +123,7 @@ export class MerkleTree {
 		const appendPath: NodeInfo[] = [];
 		const treeHeight = this._getHeight();
 		let currentNode = this.getNode(this._root);
+		// Create the appendPath:
 		// We start from the root layer and traverse each layer down the tree on the right side
 		for (let i = 0; i < treeHeight; i += 1) {
 			// If node is in appendPath, add it
@@ -140,10 +141,6 @@ export class MerkleTree {
 				appendPath.push(this.getNode(currentNode.leftHash));
 			}
 
-			// If there is no right node, break loop
-			if (Buffer.alloc(0).compare(currentNode.rightHash) === 0) {
-				break;
-			}
 			// Move to right node
 			currentNode = this.getNode(currentNode.rightHash);
 		}
@@ -152,18 +149,19 @@ export class MerkleTree {
 		const appendNode = this.getNode(appendData.hash);
 		appendPath.push(this.getNode(appendNode.hash));
 
-		// Starting from the base layer, generate any new branch nodes and the root node
+		// Loop through appendPath from the base layer
+		// Generate new branch nodes and push to appendPath
 		while (appendPath.length > 1) {
 			const rightNodeInfo = appendPath.pop();
 			const leftNodeInfo = appendPath.pop();
 			// FIXME: Add correct nodeIndex:  get left node nodex index + 1
-			const newNode = this._generateNode(
+			const newBranchNode = this._generateNode(
 				(leftNodeInfo as NodeInfo).hash,
 				(rightNodeInfo as NodeInfo).hash,
 				(leftNodeInfo as NodeInfo).layerIndex + 1,
 				(leftNodeInfo as NodeInfo).nodeIndex + BigInt(1),
 			);
-			appendPath.push(this.getNode(newNode.hash));
+			appendPath.push(this.getNode(newBranchNode.hash));
 		}
 		this._root = appendPath[0].hash;
 
