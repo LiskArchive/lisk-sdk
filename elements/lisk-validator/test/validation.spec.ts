@@ -37,7 +37,6 @@ import {
 	isHexString,
 	isStringBufferLessThan,
 	hasNoDuplicate,
-	isUsername,
 	isCsv,
 	isSignature,
 	isValidTransferData,
@@ -317,29 +316,6 @@ describe('validation', () => {
 
 		it('should return true when negative integer was provided', () => {
 			return expect(isValidInteger(-6)).toBeTrue();
-		});
-	});
-
-	describe('#isUsername', () => {
-		it('should return true when valid username is provided', () => {
-			expect(isUsername('4miners.net')).toBeTrue();
-			expect(isUsername('hello111_lisk!')).toBeTrue();
-		});
-
-		it('should return false when username includes capirtal', () => {
-			return expect(isUsername('4miners.Net')).toBeFalse();
-		});
-
-		it('should return false when username is like address', () => {
-			return expect(isUsername('17670127987160191762l')).toBeFalse();
-		});
-
-		it('should return false when username includes forbidden character', () => {
-			return expect(isUsername('4miners^net')).toBeFalse();
-		});
-
-		it('should return false when username includes forbidden null character', () => {
-			return expect(isUsername('4miners\0net')).toBeFalse();
 		});
 	});
 

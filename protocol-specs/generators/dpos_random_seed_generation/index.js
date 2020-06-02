@@ -105,7 +105,9 @@ const generateBlocks = ({ startHeight, numberOfBlocks, delegateList }) => {
 		return {
 			generatorPublicKey: delegateList[index % numberOfDelegates].publicKey,
 			height,
-			seedReveal: seedReveal.toString('hex'),
+			asset: {
+				seedReveal: seedReveal.toString('hex'),
+			},
 		};
 	});
 };
@@ -163,11 +165,16 @@ const selectSeedReveal = ({
 
 		// to validate seed reveal of any block in the last round
 		// we have to check till second last round
-		if (!isValidSeedReveal(block.seedReveal, lastForgedBlock.seedReveal)) {
+		if (
+			!isValidSeedReveal(
+				block.asset.seedReveal,
+				lastForgedBlock.asset.seedReveal,
+			)
+		) {
 			continue;
 		}
 
-		selected.push(hexStrToBuffer(block.seedReveal));
+		selected.push(hexStrToBuffer(block.asset.seedReveal));
 	}
 
 	return selected;
@@ -386,9 +393,9 @@ const randomSeedForInvalidPreImageOfSeedReveal = () => ({
 				block.generatorPublicKey === suspiciousDelegate.publicKey &&
 				block.height <= blocksPerRound
 			) {
-				block.seedReveal = strippedHash(numberToBuffer(block.height)).toString(
-					'hex',
-				);
+				block.asset.seedReveal = strippedHash(
+					numberToBuffer(block.height),
+				).toString('hex');
 			}
 		}
 

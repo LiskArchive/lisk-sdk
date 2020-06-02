@@ -22,7 +22,7 @@ import {
 	STANDBY_DELEGATES,
 } from '../fixtures/constants';
 import { getDelegateAccountsWithVotesReceived } from '../utils/round_delegates';
-import { Block, Account, ForgersList } from '../../src/types';
+import { BlockHeader, Account, ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
 	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
@@ -55,7 +55,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 		let generator: Account;
 
 		beforeEach(() => {
@@ -63,7 +63,7 @@ describe('dpos.undo()', () => {
 			// Arrange
 			genesisBlock = {
 				height: 1,
-			} as Block;
+			} as BlockHeader;
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {});
 		});
 
@@ -77,7 +77,7 @@ describe('dpos.undo()', () => {
 
 	describe('Given block is NOT the last block of the round', () => {
 		let generator: Account;
-		let block: Block;
+		let block: BlockHeader;
 
 		beforeEach(() => {
 			// Arrange
@@ -85,7 +85,7 @@ describe('dpos.undo()', () => {
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {
 				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
 					JSON.stringify([
@@ -105,9 +105,9 @@ describe('dpos.undo()', () => {
 
 			const account = await stateStore.account.get(generator.address);
 			// Assert
-			expect(account.missedBlocks).toEqual(generator.missedBlocks);
-			expect(account.rewards).toEqual(generator.rewards);
-			expect(account.fees).toEqual(generator.fees);
+			expect(account.asset.delegate.consecutiveMissedBlocks).toEqual(
+				generator.asset.delegate.consecutiveMissedBlocks,
+			);
 		});
 
 		it('should NOT delete forgers list for rounds which are after the current round', async () => {
@@ -124,7 +124,7 @@ describe('dpos.undo()', () => {
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: Block;
+		let lastBlockOfTheRoundNine: BlockHeader;
 		let forgedDelegates: Account[];
 		let missedDelegate: Account;
 
@@ -142,8 +142,8 @@ describe('dpos.undo()', () => {
 						{
 							round: 10,
 							delegates: forgedDelegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						},
 					]),
@@ -153,37 +153,37 @@ describe('dpos.undo()', () => {
 						{
 							round: 8,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 							standy: [],
 						},
 						{
 							round: 9,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 						{
 							round: 10,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 						{
 							round: 11,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 						{
 							round: 12,
 							delegates: [
-								...forgedDelegates.map(d => d.address),
-								missedDelegate.address,
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
 							],
 						},
 					]),
@@ -194,7 +194,7 @@ describe('dpos.undo()', () => {
 				height: 927,
 				generatorPublicKey:
 					forgedDelegates[forgedDelegates.length - 1].publicKey,
-			} as Block;
+			} as BlockHeader;
 			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
 				height: 825 + i,
@@ -212,10 +212,10 @@ describe('dpos.undo()', () => {
 			await dpos.undo(lastBlockOfTheRoundNine, stateStore);
 
 			// Assert
-			const { missedBlocks } = await stateStore.account.get(
-				missedDelegate.address,
+			const account = await stateStore.account.get(missedDelegate.address);
+			expect(account.asset.delegate.consecutiveMissedBlocks).toEqual(
+				missedDelegate.asset.delegate.consecutiveMissedBlocks,
 			);
-			expect(missedBlocks).toEqual(missedDelegate.missedBlocks - 1);
 		});
 
 		it('should delete vote weights for rounds which are after the current', async () => {
@@ -285,8 +285,8 @@ describe('dpos.undo()', () => {
 							{
 								round: 10,
 								delegates: forgedDelegates.map(d => ({
-									address: d.address,
-									voteWeight: d.totalVotesReceived.toString(),
+									address: d.address.toString('binary'),
+									voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 								})),
 							},
 						]),
@@ -295,24 +295,34 @@ describe('dpos.undo()', () => {
 						JSON.stringify([
 							{
 								round: 8,
-								delegates: [...forgedDelegates.map(d => d.address)],
+								delegates: [
+									...forgedDelegates.map(d => d.address.toString('binary')),
+								],
 								standy: [],
 							},
 							{
 								round: 9,
-								delegates: [...forgedDelegates.map(d => d.address)],
+								delegates: [
+									...forgedDelegates.map(d => d.address.toString('binary')),
+								],
 							},
 							{
 								round: 10,
-								delegates: [...forgedDelegates.map(d => d.address)],
+								delegates: [
+									...forgedDelegates.map(d => d.address.toString('binary')),
+								],
 							},
 							{
 								round: 11,
-								delegates: [...forgedDelegates.map(d => d.address)],
+								delegates: [
+									...forgedDelegates.map(d => d.address.toString('binary')),
+								],
 							},
 							{
 								round: 12,
-								delegates: [...forgedDelegates.map(d => d.address)],
+								delegates: [
+									...forgedDelegates.map(d => d.address.toString('binary')),
+								],
 							},
 						]),
 					),
@@ -321,7 +331,7 @@ describe('dpos.undo()', () => {
 					height: 927,
 					generatorPublicKey:
 						forgedDelegates[forgedDelegates.length - 1].publicKey,
-				} as Block;
+				} as BlockHeader;
 				const forgedBlocks = forgedDelegates.map((delegate, i) => ({
 					generatorPublicKey: delegate.publicKey,
 					height: 825 + i,
@@ -337,7 +347,9 @@ describe('dpos.undo()', () => {
 
 				for (const delegate of forgedDelegates) {
 					const account = await stateStore.account.get(delegate.address);
-					expect(account.missedBlocks).toEqual(delegate.missedBlocks);
+					expect(account.asset.delegate.consecutiveMissedBlocks).toEqual(
+						delegate.asset.delegate.consecutiveMissedBlocks,
+					);
 				}
 			});
 		});

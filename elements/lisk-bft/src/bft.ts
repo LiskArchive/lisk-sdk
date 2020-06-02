@@ -23,13 +23,11 @@ import {
 import * as forkChoiceRule from './fork_choice_rule';
 import {
 	BlockHeader,
-	BlockHeaderWithID,
 	Chain,
 	DPoS,
 	ForkStatus,
 	StateStore,
 } from './types';
-import { validateBlockHeader } from './utils';
 
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
@@ -80,17 +78,6 @@ export class BFT extends EventEmitter {
 		await this.finalityManager.recompute(lastBlock.height, stateStore);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public serialize(blockInstance: BlockHeader): BlockHeader {
-		return {
-			...blockInstance,
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			maxHeightPreviouslyForged: blockInstance.maxHeightPreviouslyForged || 0,
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			maxHeightPrevoted: blockInstance.maxHeightPrevoted || 0,
-		};
-	}
-
 	public get finalityManager(): FinalityManager {
 		return this._finalityManager as FinalityManager;
 	}
@@ -139,12 +126,12 @@ export class BFT extends EventEmitter {
 	}
 
 	public forkChoice(
-		block: BlockHeaderWithID,
-		lastBlock: BlockHeaderWithID,
+		blockHeader: BlockHeader,
+		lastBlockHeader: BlockHeader,
 	): ForkStatus {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
-			...block,
+			...blockHeader,
 			receivedAt: this._chain.slots.getEpochTime(),
 		};
 
@@ -152,17 +139,17 @@ export class BFT extends EventEmitter {
 		 See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 			 Case 2 and 1 have flipped execution order for better readability. Behavior is still the same */
 
-		if (forkChoiceRule.isValidBlock(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isValidBlock(lastBlockHeader, receivedBlock)) {
 			// Case 2: correct block received
 			return ForkStatus.VALID_BLOCK;
 		}
 
-		if (forkChoiceRule.isIdenticalBlock(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isIdenticalBlock(lastBlockHeader, receivedBlock)) {
 			// Case 1: same block received twice
 			return ForkStatus.IDENTICAL_BLOCK;
 		}
 
-		if (forkChoiceRule.isDoubleForging(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isDoubleForging(lastBlockHeader, receivedBlock)) {
 			// Delegates are the same
 			// Case 3: double forging different blocks in the same slot.
 			// Last Block stands.
@@ -172,7 +159,7 @@ export class BFT extends EventEmitter {
 		if (
 			forkChoiceRule.isTieBreak({
 				slots: this._chain.slots,
-				lastAppliedBlock: lastBlock,
+				lastAppliedBlock: lastBlockHeader,
 				receivedBlock,
 			})
 		) {
@@ -181,7 +168,7 @@ export class BFT extends EventEmitter {
 			return ForkStatus.TIE_BREAK;
 		}
 
-		if (forkChoiceRule.isDifferentChain(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isDifferentChain(lastBlockHeader, receivedBlock)) {
 			// Case 5: received block has priority. Move to a different chain.
 			return ForkStatus.DIFFERENT_CHAIN;
 		}
@@ -199,7 +186,7 @@ export class BFT extends EventEmitter {
 		const heightThreshold = this.constants.activeDelegates * roundsThreshold;
 
 		// Special case to avoid reducing the reward of delegates forging for the first time before the `heightThreshold` height
-		if (blockHeader.maxHeightPreviouslyForged === 0) {
+		if (blockHeader.asset.maxHeightPreviouslyForged === 0) {
 			return true;
 		}
 
@@ -208,13 +195,13 @@ export class BFT extends EventEmitter {
 		);
 
 		const maxHeightPreviouslyForgedBlock = bftHeaders.find(
-			bftHeader => bftHeader.height === blockHeader.maxHeightPreviouslyForged,
+			bftHeader => bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
 
 		if (
 			!maxHeightPreviouslyForgedBlock ||
-			blockHeader.maxHeightPreviouslyForged >= blockHeader.height ||
-			(blockHeader.height - blockHeader.maxHeightPreviouslyForged <=
+			blockHeader.asset.maxHeightPreviouslyForged >= blockHeader.height ||
+			(blockHeader.height - blockHeader.asset.maxHeightPreviouslyForged <=
 				heightThreshold &&
 				blockHeader.generatorPublicKey !==
 					maxHeightPreviouslyForgedBlock.generatorPublicKey)
@@ -235,11 +222,6 @@ export class BFT extends EventEmitter {
 
 	public reset(): void {
 		this.finalityManager.reset();
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	public validateBlock(block: BlockHeader): void {
-		validateBlockHeader(block);
 	}
 
 	private async _initFinalityManager(

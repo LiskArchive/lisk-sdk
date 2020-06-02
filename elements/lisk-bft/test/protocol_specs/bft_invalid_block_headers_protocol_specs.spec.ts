@@ -69,7 +69,9 @@ describe('FinalityManager', () => {
 					when(dposStub.getMinActiveHeight)
 						.calledWith(
 							blockHeader.height,
-							getAddressFromPublicKey(blockHeader.generatorPublicKey),
+							getAddressFromPublicKey(
+								Buffer.from(blockHeader.generatorPublicKey, 'hex'),
+							),
 						)
 						.mockResolvedValue(blockHeader.delegateMinHeightActive);
 				}

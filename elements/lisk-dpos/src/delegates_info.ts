@@ -24,13 +24,7 @@ import {
 } from './delegates_list';
 import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
-import {
-	Block,
-	BlockHeader,
-	Chain,
-	DPoSProcessingOptions,
-	StateStore,
-} from './types';
+import { BlockHeader, Chain, DPoSProcessingOptions, StateStore } from './types';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_info');
@@ -44,7 +38,7 @@ interface DelegatesInfoConstructor {
 	readonly delegatesList: DelegatesList;
 }
 
-const _isGenesisBlock = (block: BlockHeader): boolean => block.height === 1;
+const _isGenesisBlock = (header: BlockHeader): boolean => header.height === 1;
 const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 
 export class DelegatesInfo {
@@ -72,32 +66,32 @@ export class DelegatesInfo {
 	}
 
 	public async apply(
-		block: Block,
+		header: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const undo = false;
 
-		return this._update(block, stateStore, { undo, delegateListRoundOffset });
+		return this._update(header, stateStore, { undo, delegateListRoundOffset });
 	}
 
 	public async undo(
-		block: Block,
+		header: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		const undo = true;
 
 		// Never undo genesis block
-		if (_isGenesisBlock(block)) {
+		if (_isGenesisBlock(header)) {
 			throw new Error('Cannot undo genesis block');
 		}
 
-		return this._update(block, stateStore, { undo, delegateListRoundOffset });
+		return this._update(header, stateStore, { undo, delegateListRoundOffset });
 	}
 
 	private async _update(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
 	): Promise<boolean> {
@@ -214,8 +208,8 @@ export class DelegatesInfo {
 
 		const missedBlocksDelegateAddresses = expectedForgingAddresses.filter(
 			expectedAddress =>
-				!forgedPublicKeys.find(
-					publicKey => getAddressFromPublicKey(publicKey) === expectedAddress,
+				!forgedPublicKeys.find(publicKey =>
+					getAddressFromPublicKey(publicKey).equals(expectedAddress),
 				),
 		);
 
@@ -225,7 +219,7 @@ export class DelegatesInfo {
 
 		for (const address of missedBlocksDelegateAddresses) {
 			const account = await stateStore.account.get(address);
-			account.missedBlocks += undo ? -1 : 1;
+			account.asset.delegate.consecutiveMissedBlocks += undo ? -1 : 1;
 			stateStore.account.set(address, account);
 		}
 	}

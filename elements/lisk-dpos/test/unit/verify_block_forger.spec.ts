@@ -34,7 +34,9 @@ describe('dpos.verifyBlockForger()', () => {
 						{
 							round: 3,
 							delegates: delegatePublicKeys.map(pk =>
-								getAddressFromPublicKey(pk),
+								getAddressFromPublicKey(Buffer.from(pk, 'hex')).toString(
+									'binary',
+								),
 							),
 						},
 					]),
@@ -52,8 +54,10 @@ describe('dpos.verifyBlockForger()', () => {
 		const block = {
 			height: 302,
 			timestamp: 23450,
-			generatorPublicKey:
+			generatorPublicKey: Buffer.from(
 				'c61d0822bbdbfe2a0b5503daff0ce8441c623115c94c0cfcf047a51f8b7160d3',
+				'hex',
+			),
 		} as BlockHeader;
 
 		// Act
@@ -69,15 +73,19 @@ describe('dpos.verifyBlockForger()', () => {
 			JSON.stringify([
 				{
 					round: 1,
-					delegates: delegatePublicKeys.map(pk => getAddressFromPublicKey(pk)),
+					delegates: delegatePublicKeys.map(pk =>
+						getAddressFromPublicKey(Buffer.from(pk, 'hex')).toString('binary'),
+					),
 				},
 			]),
 		);
 		const block = {
 			height: 99,
 			timestamp: 23450,
-			generatorPublicKey:
+			generatorPublicKey: Buffer.from(
 				'c61d0822bbdbfe2a0b5503daff0ce8441c623115c94c0cfcf047a51f8b7160d3',
+				'hex',
+			),
 		} as BlockHeader;
 
 		// Act
@@ -94,8 +102,10 @@ describe('dpos.verifyBlockForger()', () => {
 		const block = {
 			height: 302,
 			timestamp: 23450,
-			generatorPublicKey:
+			generatorPublicKey: Buffer.from(
 				'cb1c9786f1af7a11c0ef79afd9173b91b8dc2b6c3fae1bc4dbad65253af26abc',
+				'hex',
+			),
 		} as BlockHeader;
 
 		const expectedSlot = (dpos as any).chain.slots.getSlotNumber(

@@ -12,11 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	getAddressFromPublicKey,
-	hash,
-	hexToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 
 import {
@@ -51,9 +47,22 @@ interface DelegatesListConstructor {
 }
 
 interface DelegateListWithRoundHash {
-	readonly address: string;
+	readonly address: Buffer;
 	roundHash: Buffer;
 }
+
+export const decodeForgerList = (buffer: Buffer): ForgersList => {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const parsedForgersList = JSON.parse(buffer.toString('utf8'));
+	// eslint-disable-next-line
+	return parsedForgersList.map(
+		(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
+			round: fl.round,
+			delegates: fl.delegates?.map(d => Buffer.from(d, 'binary')) ?? [],
+			standby: fl.standby?.map(d => Buffer.from(d, 'binary')),
+		}),
+	) as ForgersList;
+};
 
 export const getForgersList = async (
 	stateStore: StateStore,
@@ -64,19 +73,44 @@ export const getForgersList = async (
 	if (!forgersListStr) {
 		return [];
 	}
-
-	return JSON.parse(forgersListStr.toString('utf8')) as ForgersList;
+	return decodeForgerList(forgersListStr);
 };
 
 const _setForgersList = (
 	stateStore: StateStore,
 	forgersList: ForgersList,
 ): void => {
-	const forgersListStr = JSON.stringify(forgersList);
+	const stringifyableForgersList = forgersList.map(fl => ({
+		round: fl.round,
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		delegates: fl.delegates ? fl.delegates.map(d => d.toString('binary')) : [],
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		standby: fl.standby ? fl.standby.map(d => d.toString('binary')) : [],
+	}));
+	const forgersListStr = JSON.stringify(stringifyableForgersList);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 		Buffer.from(forgersListStr, 'utf8'),
 	);
+};
+
+export const decodeVoteWeights = (buffer: Buffer): VoteWeights => {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	const parsedVoteWeights = JSON.parse(buffer.toString('utf8'));
+
+	// eslint-disable-next-line
+	return parsedVoteWeights.map(
+		(vw: {
+			round: number;
+			delegates: { address: string; voteWeight: string }[];
+		}) => ({
+			round: vw.round,
+			delegates: vw.delegates.map(d => ({
+				address: Buffer.from(d.address, 'binary'),
+				voteWeight: BigInt(d.voteWeight),
+			})),
+		}),
+	) as VoteWeights;
 };
 
 export const getVoteWeights = async (
@@ -88,15 +122,21 @@ export const getVoteWeights = async (
 	if (!voteWeightsStr) {
 		return [];
 	}
-
-	return JSON.parse(voteWeightsStr.toString('utf8')) as VoteWeights;
+	return decodeVoteWeights(voteWeightsStr);
 };
 
 const _setVoteWeights = (
 	stateStore: StateStore,
 	voteWeights: VoteWeights,
 ): void => {
-	const voteWeightsStr = JSON.stringify(voteWeights);
+	const stringifyableVoteWeights = voteWeights.map(vw => ({
+		round: vw.round,
+		delegates: vw.delegates.map(d => ({
+			address: d.address.toString('binary'),
+			voteWeight: d.voteWeight.toString(),
+		})),
+	}));
+	const voteWeightsStr = JSON.stringify(stringifyableVoteWeights);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		Buffer.from(voteWeightsStr, 'utf8'),
@@ -145,15 +185,14 @@ export const deleteVoteWeightsAfterRound = async (
 
 export const shuffleDelegateList = (
 	previousRoundSeed1: Buffer,
-	addresses: ReadonlyArray<string>,
-): ReadonlyArray<string> => {
+	addresses: ReadonlyArray<Buffer>,
+): ReadonlyArray<Buffer> => {
 	const delegateList = [...addresses].map(delegate => ({
 		address: delegate,
 	})) as DelegateListWithRoundHash[];
 
 	for (const delegate of delegateList) {
-		const addressBuffer = hexToBuffer(delegate.address);
-		const seedSource = Buffer.concat([previousRoundSeed1, addressBuffer]);
+		const seedSource = Buffer.concat([previousRoundSeed1, delegate.address]);
 		delegate.roundHash = hash(seedSource);
 	}
 
@@ -163,7 +202,7 @@ export const shuffleDelegateList = (
 			return diff;
 		}
 
-		return delegate1.address.localeCompare(delegate2.address, 'en');
+		return delegate1.address.compare(delegate2.address);
 	});
 
 	return delegateList.map(delegate => delegate.address);
@@ -176,7 +215,7 @@ export const shuffleDelegateList = (
 export const getForgerAddressesForRound = async (
 	round: number,
 	stateStore: StateStore,
-): Promise<ReadonlyArray<string>> => {
+): Promise<ReadonlyArray<Buffer>> => {
 	const forgersList = await getForgersList(stateStore);
 	const delegateAddresses = forgersList.find(fl => fl.round === round)
 		?.delegates;
@@ -267,9 +306,21 @@ export class DelegatesList {
 		const usernamesBuffer = await stateStore.chain.get(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
-		const usernames = usernamesBuffer
-			? (JSON.parse(usernamesBuffer.toString('utf8')) as ChainStateUsernames)
-			: { registeredDelegates: [] };
+
+		let usernames = { registeredDelegates: [] } as ChainStateUsernames;
+		if (usernamesBuffer) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const parsedUsername = JSON.parse(usernamesBuffer.toString('utf8'));
+			usernames = {
+				// eslint-disable-next-line
+				registeredDelegates: parsedUsername.registeredDelegates.map(
+					(names: { address: string; username: string }) => ({
+						address: Buffer.from(names.address, 'binary'),
+						username: names.username,
+					}),
+				),
+			} as ChainStateUsernames;
+		}
 
 		const delegates: Account[] = await Promise.all(
 			usernames.registeredDelegates.map(async delegate =>
@@ -280,23 +331,25 @@ export class DelegatesList {
 		// Update totalVotesReceived to voteWeight equivalent before sorting
 		for (const account of delegates) {
 			// If the account is being punished, then consider them as vote weight 0
-			if (isCurrentlyPunished(height, account.delegate.pomHeights)) {
-				account.totalVotesReceived = BigInt(0);
+			if (isCurrentlyPunished(height, account.asset.delegate.pomHeights)) {
+				account.asset.delegate.totalVotesReceived = BigInt(0);
 				// eslint-disable-next-line no-continue
 				continue;
 			}
-			const selfVote = account.votes.find(
-				vote => vote.delegateAddress === account.address,
+			const selfVote = account.asset.sentVotes.find(vote =>
+				vote.delegateAddress.equals(account.address),
 			);
 			const cappedValue =
 				(selfVote?.amount ?? BigInt(0)) * BigInt(this.voteWeightCapRate);
-			if (account.totalVotesReceived > cappedValue) {
-				account.totalVotesReceived = cappedValue;
+			if (account.asset.delegate.totalVotesReceived > cappedValue) {
+				account.asset.delegate.totalVotesReceived = cappedValue;
 			}
 		}
 
 		delegates.sort((a, b) => {
-			const diff = b.totalVotesReceived - a.totalVotesReceived;
+			const diff =
+				b.asset.delegate.totalVotesReceived -
+				a.asset.delegate.totalVotesReceived;
 			if (diff > BigInt(0)) {
 				return 1;
 			}
@@ -304,14 +357,14 @@ export class DelegatesList {
 				return -1;
 			}
 
-			return a.address.localeCompare(b.address, 'en');
+			return a.address.compare(b.address);
 		});
 
 		const activeDelegates = [];
 		const standbyDelegates = [];
 		for (const account of delegates) {
 			// If the account is banned, do not include in the list
-			if (account.delegate.isBanned) {
+			if (account.asset.delegate.isBanned) {
 				// eslint-disable-next-line no-continue
 				continue;
 			}
@@ -320,17 +373,17 @@ export class DelegatesList {
 			if (activeDelegates.length < this.activeDelegates) {
 				activeDelegates.push({
 					address: account.address,
-					voteWeight: account.totalVotesReceived.toString(),
+					voteWeight: account.asset.delegate.totalVotesReceived,
 				});
 				// eslint-disable-next-line no-continue
 				continue;
 			}
 
 			// If account has more than threshold, save it as standby
-			if (account.totalVotesReceived >= this.standbyThreshold) {
+			if (account.asset.delegate.totalVotesReceived >= this.standbyThreshold) {
 				standbyDelegates.push({
 					address: account.address,
-					voteWeight: account.totalVotesReceived.toString(),
+					voteWeight: account.asset.delegate.totalVotesReceived,
 				});
 				// eslint-disable-next-line no-continue
 				continue;
@@ -342,7 +395,7 @@ export class DelegatesList {
 				// In case there was 1 standby delegate who has more than threshold
 				standbyDelegates.push({
 					address: account.address,
-					voteWeight: account.totalVotesReceived.toString(),
+					voteWeight: account.asset.delegate.totalVotesReceived,
 				});
 				// eslint-disable-next-line no-continue
 				continue;
@@ -434,14 +487,15 @@ export class DelegatesList {
 		_setForgersList(stateStore, forgersList);
 	}
 
-	public async getDelegateList(round: number): Promise<ReadonlyArray<string>> {
+	public async getDelegateList(round: number): Promise<ReadonlyArray<Buffer>> {
 		const forgersListBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 		);
-		const forgersList =
-			forgersListBuffer !== undefined
-				? (JSON.parse(forgersListBuffer.toString('utf8')) as ForgersList)
-				: [];
+		if (!forgersListBuffer) {
+			throw new Error(`No delegate list found for round: ${round.toString()}`);
+		}
+		const forgersList = decodeForgerList(forgersListBuffer);
+
 		const delegateAddresses = forgersList.find(fl => fl.round === round)
 			?.delegates;
 
@@ -472,9 +526,9 @@ export class DelegatesList {
 
 		// Verify if forger exists and matches the generatorPublicKey on block
 		if (
-			!expectedForgerAddress ||
-			getAddressFromPublicKey(block.generatorPublicKey) !==
-				expectedForgerAddress
+			!getAddressFromPublicKey(block.generatorPublicKey).equals(
+				expectedForgerAddress,
+			)
 		) {
 			throw new Error(
 				`Failed to verify slot: ${currentSlot.toString()}. Block Height: ${block.height.toString()}`,

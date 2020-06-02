@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader as blockFixture } from '../fixtures/blocks';
+import { createFakeBlockHeader } from '../fixtures/blocks';
 import { FinalityManager } from '../../src/finality_manager';
 
 import { BFT, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../../src';
@@ -37,7 +37,7 @@ const generateBlocks = ({
 }): BlockHeader[] => {
 	return new Array(numberOfBlocks).fill(0).map((_v, index) => {
 		const height = startHeight + index;
-		return blockFixture({ height, version: 2 });
+		return createFakeBlockHeader({ height, version: 2 });
 	});
 };
 
@@ -70,7 +70,7 @@ describe('bft', () => {
 		let lastBlock: BlockHeader;
 
 		beforeEach(() => {
-			lastBlock = blockFixture({ height: 1, version: 2 });
+			lastBlock = createFakeBlockHeader({ height: 1, version: 2 });
 			chainStub = {
 				dataAccess: {
 					getBlockHeadersByHeightBetween: jest
@@ -157,7 +157,7 @@ describe('bft', () => {
 		});
 
 		describe('#addNewBlock', () => {
-			const block1 = blockFixture({ height: 2, version: 2 });
+			const block1 = createFakeBlockHeader({ height: 2, version: 2 });
 			const lastFinalizedHeight = String('5');
 
 			let bft: BFT;
@@ -170,7 +170,7 @@ describe('bft', () => {
 					),
 				});
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue([
-					blockFixture({ height: 1, version: 2 }),
+					createFakeBlockHeader({ height: 1, version: 2 }),
 				]);
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -229,9 +229,9 @@ describe('bft', () => {
 
 				await bft.init(stateStore);
 				const blocks = [
-					blockFixture({ height: 4, version: 2 }),
-					blockFixture({ height: 5, version: 2 }),
-					blockFixture({ height: 6, version: 2 }),
+					createFakeBlockHeader({ height: 4, version: 2 }),
+					createFakeBlockHeader({ height: 5, version: 2 }),
+					createFakeBlockHeader({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -250,8 +250,8 @@ describe('bft', () => {
 				});
 				await bft.init(stateStore);
 				const blocks = [
-					blockFixture({ height: 5, version: 2 }),
-					blockFixture({ height: 6, version: 2 }),
+					createFakeBlockHeader({ height: 5, version: 2 }),
+					createFakeBlockHeader({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -265,7 +265,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock();
 				await bft.init(stateStore);
-				const blocks = [blockFixture({ height: 6, version: 2 })];
+				const blocks = [createFakeBlockHeader({ height: 6, version: 2 })];
 
 				await bft.deleteBlocks(blocks, stateStore);
 
@@ -293,7 +293,10 @@ describe('bft', () => {
 					await bft.addNewBlock(
 						{
 							...block,
-							maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
+							asset: {
+								...block.asset,
+								maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
+							},
 						},
 						stateStore,
 					);
@@ -355,8 +358,10 @@ describe('bft', () => {
 				// Arrange
 				const block = {
 					height: 102,
-					generatorPublicKey: 'zxc',
-					maxHeightPreviouslyForged: 0,
+					generatorPublicKey: Buffer.from('zxc'),
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
 				};
 
 				// Act & Assert
@@ -369,7 +374,9 @@ describe('bft', () => {
 				// Arrange
 				const block = {
 					height: 203,
-					maxHeightPreviouslyForged: 203,
+					asset: {
+						maxHeightPreviouslyForged: 203,
+					},
 				};
 
 				// Act & Assert
@@ -382,7 +389,9 @@ describe('bft', () => {
 				// Arrange
 				const block = {
 					height: 203,
-					maxHeightPreviouslyForged: 204,
+					asset: {
+						maxHeightPreviouslyForged: 204,
+					},
 				};
 
 				// Act & Assert
@@ -396,8 +405,10 @@ describe('bft', () => {
 					// Arrange
 					const block = {
 						height: 403,
-						generatorPublicKey: 'zxc',
-						maxHeightPreviouslyForged: 101,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -411,7 +422,9 @@ describe('bft', () => {
 					const block = {
 						height: 403,
 						generatorPublicKey: blocks[100].generatorPublicKey,
-						maxHeightPreviouslyForged: 101,
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -426,8 +439,10 @@ describe('bft', () => {
 					// Arrange
 					const block = {
 						height: 404,
-						generatorPublicKey: 'zxc',
-						maxHeightPreviouslyForged: 101,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -441,7 +456,9 @@ describe('bft', () => {
 					const block = {
 						height: 404,
 						generatorPublicKey: blocks[100].generatorPublicKey,
-						maxHeightPreviouslyForged: 101,
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -456,8 +473,10 @@ describe('bft', () => {
 					// Arrange
 					const block = {
 						height: 405,
-						generatorPublicKey: 'zxc',
-						maxHeightPreviouslyForged: 101,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -471,7 +490,9 @@ describe('bft', () => {
 					const block = {
 						height: 405,
 						generatorPublicKey: blocks[100].generatorPublicKey,
-						maxHeightPreviouslyForged: 101,
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
