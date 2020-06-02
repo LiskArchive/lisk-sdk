@@ -27,6 +27,7 @@ import {
 	TransactionResponse,
 	TransactionStatus,
 } from './types';
+import { BufferMap } from './buffer_map';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:transaction_pool');
@@ -66,8 +67,8 @@ export const events = {
 export class TransactionPool {
 	public events: EventEmitter;
 
-	private _allTransactions: { [id: string]: Transaction };
-	private _transactionList: { [address: string]: TransactionList };
+	private readonly _allTransactions: BufferMap<Transaction>;
+	private readonly _transactionList: BufferMap<TransactionList>;
 	private readonly _applyFunction: ApplyFunction;
 	private readonly _maxTransactions: number;
 	private readonly _maxTransactionsPerAccount: number;
@@ -76,14 +77,14 @@ export class TransactionPool {
 	private readonly _transactionReorganizationInterval: number;
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _reorganizeJob: Job<void>;
-	private readonly _feePriorityQueue: MinHeap<string, bigint>;
+	private readonly _feePriorityQueue: MinHeap<Buffer, bigint>;
 	private readonly _expireJob: Job<void>;
 
 	public constructor(config: TransactionPoolConfig) {
 		this.events = new EventEmitter();
-		this._feePriorityQueue = new MinHeap<string, bigint>();
-		this._allTransactions = {};
-		this._transactionList = {};
+		this._feePriorityQueue = new MinHeap<Buffer, bigint>();
+		this._allTransactions = new BufferMap<Transaction>();
+		this._transactionList = new BufferMap<TransactionList>();
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this._applyFunction = config.applyTransactions;
 		this._maxTransactions = config.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS;
@@ -122,15 +123,15 @@ export class TransactionPool {
 	}
 
 	public getAll(): ReadonlyArray<Transaction> {
-		return Object.values(this._allTransactions);
+		return this._allTransactions.values();
 	}
 
-	public get(id: string): Transaction | undefined {
-		return this._allTransactions[id];
+	public get(id: Buffer): Transaction | undefined {
+		return this._allTransactions.get(id);
 	}
 
-	public contains(id: string): boolean {
-		return this._allTransactions[id] !== undefined;
+	public contains(id: Buffer): boolean {
+		return this._allTransactions.has(id);
 	}
 
 	/*
@@ -143,7 +144,7 @@ export class TransactionPool {
 	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
 		// Check for duplicate
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (this._allTransactions[incomingTx.id]) {
+		if (this._allTransactions.has(incomingTx.id)) {
 			debug('Received duplicate transaction', incomingTx.id);
 
 			// Since we receive too many duplicate transactions
@@ -169,7 +170,7 @@ export class TransactionPool {
 		// Check if incoming transaction fee is greater than the minimum fee priority in the TxPool if the TxPool is full
 		const lowestFeePriorityTrx = this._feePriorityQueue.peek();
 		if (
-			Object.keys(this._allTransactions).length >= this._maxTransactions &&
+			this._allTransactions.size >= this._maxTransactions &&
 			lowestFeePriorityTrx &&
 			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
@@ -203,7 +204,7 @@ export class TransactionPool {
 				2. Evict processable by fee priority and highest nonce
 		*/
 		const exceededTransactionsCount =
-			Object.keys(this._allTransactions).length - this._maxTransactions;
+			this._allTransactions.size - this._maxTransactions;
 
 		if (exceededTransactionsCount >= 0) {
 			const isEvicted = this._evictUnprocessable();
@@ -215,20 +216,23 @@ export class TransactionPool {
 
 		// Add address of incoming trx if it doesn't exist in transaction list
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (!this._transactionList[incomingTxAddress]) {
-			this._transactionList[incomingTxAddress] = new TransactionList(
+		if (!this._transactionList.has(incomingTxAddress)) {
+			this._transactionList.set(
 				incomingTxAddress,
-				{
+				new TransactionList(incomingTxAddress, {
 					maxSize: this._maxTransactionsPerAccount,
 					minReplacementFeeDifference: this._minReplacementFeeDifference,
-				},
+				}),
 			);
 		}
 
 		// Add the PROCESSABLE, UNPROCESSABLE transaction to _transactionList and set PROCESSABLE as true
-		const { added, removedID, reason } = this._transactionList[
-			incomingTxAddress
-		].add(incomingTx, txStatus === TransactionStatus.PROCESSABLE);
+		const { added, removedID, reason } = (this._transactionList.get(
+			incomingTxAddress,
+		) as TransactionList).add(
+			incomingTx,
+			txStatus === TransactionStatus.PROCESSABLE,
+		);
 
 		if (!added) {
 			return {
@@ -239,8 +243,8 @@ export class TransactionPool {
 
 		if (removedID) {
 			debug('Removing from transaction pool with id', removedID);
-			const removedTx = this._allTransactions[removedID];
-			delete this._allTransactions[removedID];
+			const removedTx = this._allTransactions.get(removedID) as Transaction;
+			this._allTransactions.delete(removedID);
 			this.events.emit(events.EVENT_TRANSACTION_REMOVED, {
 				id: removedTx.id,
 				nonce: removedTx.nonce.toString(),
@@ -252,7 +256,7 @@ export class TransactionPool {
 		// Add received time to the incoming tx object
 		// eslint-disable-next-line no-param-reassign
 		incomingTx.receivedAt = new Date();
-		this._allTransactions[incomingTx.id] = incomingTx;
+		this._allTransactions.set(incomingTx.id, incomingTx);
 
 		// Add to feePriorityQueue
 		this._feePriorityQueue.push(
@@ -264,18 +268,18 @@ export class TransactionPool {
 	}
 
 	public remove(tx: Transaction): boolean {
-		const foundTx = this._allTransactions[tx.id];
+		const foundTx = this._allTransactions.get(tx.id);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!foundTx) {
 			return false;
 		}
 
-		delete this._allTransactions[tx.id];
+		this._allTransactions.delete(tx.id);
 		debug('Removing from transaction pool with id', tx.id);
 		const senderId = getAddressFromPublicKey(foundTx.senderPublicKey);
-		this._transactionList[senderId].remove(tx.nonce);
-		if (this._transactionList[senderId].size === 0) {
-			delete this._transactionList[senderId];
+		(this._transactionList.get(senderId) as TransactionList).remove(tx.nonce);
+		if ((this._transactionList.get(senderId) as TransactionList).size === 0) {
+			this._transactionList.delete(senderId);
 		}
 
 		// Remove from feePriorityQueue
@@ -290,16 +294,12 @@ export class TransactionPool {
 		return true;
 	}
 
-	public getProcessableTransactions(): {
-		[address: string]: Transaction[];
-	} {
-		const processableTransactions: {
-			[address: string]: Transaction[];
-		} = {};
-		for (const address of Object.keys(this._transactionList)) {
-			const transactions = this._transactionList[address].getProcessable();
+	public getProcessableTransactions(): BufferMap<Transaction[]> {
+		const processableTransactions = new BufferMap<Transaction[]>();
+		for (const list of this._transactionList.values()) {
+			const transactions = list.getProcessable();
 			if (transactions.length !== 0) {
-				processableTransactions[address] = [...transactions];
+				processableTransactions.set(list.address, [...transactions]);
 			}
 		}
 
@@ -340,7 +340,7 @@ export class TransactionPool {
 	private _evictUnprocessable(): boolean {
 		const unprocessableFeePriorityHeap = new MinHeap<Transaction>();
 		// Loop through tx lists and push unprocessable tx to fee priority heap
-		for (const txList of Object.values(this._transactionList)) {
+		for (const txList of this._transactionList.values()) {
 			const unprocessableTransactions = txList.getUnprocessable();
 
 			for (const unprocessableTx of unprocessableTransactions) {
@@ -373,7 +373,7 @@ export class TransactionPool {
 	private _evictProcessable(): boolean {
 		const processableFeePriorityHeap = new MinHeap<Transaction>();
 		// Loop through tx lists and push processable tx to fee priority heap
-		for (const txList of Object.values(this._transactionList)) {
+		for (const txList of this._transactionList.values()) {
 			// Push highest nonce tx to processable fee priorty heap
 			const processableTransactions = txList.getProcessable();
 			if (processableTransactions.length) {
@@ -409,7 +409,7 @@ export class TransactionPool {
 		/*
 			Promote transactions and remove invalid and subsequent transactions by nonce
 		*/
-		for (const txList of Object.values(this._transactionList)) {
+		for (const txList of this._transactionList.values()) {
 			const promotableTransactions = txList.getPromotable();
 			// If no promotable transactions, check next list
 			if (!promotableTransactions.length) {
@@ -423,8 +423,8 @@ export class TransactionPool {
 			];
 			const applyResults = await this._applyFunction(allTransactions);
 
-			const successfulTransactionIds: string[] = [];
-			let firstInvalidTransactionId: string | undefined;
+			const successfulTransactionIds: Buffer[] = [];
+			let firstInvalidTransactionId: Buffer | undefined;
 
 			for (const result of applyResults) {
 				// If a tx is invalid, all subsequent are also invalid, so exit loop.
@@ -444,7 +444,9 @@ export class TransactionPool {
 
 			// Remove invalid transaction and all subsequent transactions
 			const invalidTransaction = firstInvalidTransactionId
-				? allTransactions.find(tx => tx.id === firstInvalidTransactionId)
+				? allTransactions.find(tx =>
+						tx.id.equals(firstInvalidTransactionId as Buffer),
+				  )
 				: undefined;
 
 			if (invalidTransaction) {
@@ -454,7 +456,9 @@ export class TransactionPool {
 							id: tx.id,
 							nonce: tx.nonce.toString(),
 							senderPublicKey: tx.senderPublicKey,
-							reason: `Invalid transaction ${invalidTransaction.id}`,
+							reason: `Invalid transaction ${invalidTransaction.id.toString(
+								'binary',
+							)}`,
 						});
 						this.remove(tx);
 					}
@@ -465,7 +469,7 @@ export class TransactionPool {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _expire(): Promise<void> {
-		for (const transaction of Object.values(this._allTransactions)) {
+		for (const transaction of this._allTransactions.values()) {
 			const timeDifference = Math.round(
 				Math.abs(
 					(transaction.receivedAt as Date).getTime() - new Date().getTime(),
