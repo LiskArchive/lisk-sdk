@@ -8,7 +8,6 @@ import {
 	isSignature,
 	isUint32,
 	isUint64,
-	isUsername,
 	isValidFee,
 	isValidNonce,
 	isValidNonTransferAmount,
@@ -105,8 +104,6 @@ export const signedPublicKey = (data: string): boolean => {
 };
 
 export const transferAmount = isValidTransferAmount;
-
-export const username = isUsername;
 
 export const transferData = (data: string): boolean =>
 	!isNullCharacterIncluded(data) && isValidTransferData(data);

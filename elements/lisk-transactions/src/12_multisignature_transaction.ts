@@ -39,6 +39,8 @@ export const multisigRegAssetSchema = {
 		numberOfSignatures: {
 			dataType: 'uint32',
 			fieldNumber: 1,
+			minimum: 1,
+			maximum: 64,
 		},
 		mandatoryKeys: {
 			type: 'array',
@@ -46,6 +48,8 @@ export const multisigRegAssetSchema = {
 				dataType: 'bytes',
 			},
 			fieldNumber: 2,
+			minItems: 0,
+			maxItems: 64,
 			minLength: 32,
 			maxLength: 32,
 		},
@@ -55,6 +59,8 @@ export const multisigRegAssetSchema = {
 				dataType: 'bytes',
 			},
 			fieldNumber: 3,
+			minItems: 0,
+			maxItems: 64,
 			minLength: 32,
 			maxLength: 32,
 		},
