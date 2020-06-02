@@ -36,6 +36,7 @@
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
 		"@liskhq/lisk-validator": "0.4.0-alpha.0",
+		"@liskhq/lisk-codec": "0.1.0",
 		"@types/node": "12.12.11",
 		"debug": "4.1.1"
 	},
