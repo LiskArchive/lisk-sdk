@@ -126,12 +126,12 @@ export class BFT extends EventEmitter {
 	}
 
 	public forkChoice(
-		block: BlockHeader,
-		lastBlock: BlockHeader,
+		blockHeader: BlockHeader,
+		lastBlockHeader: BlockHeader,
 	): ForkStatus {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
-			...block,
+			...blockHeader,
 			receivedAt: this._chain.slots.getEpochTime(),
 		};
 
@@ -139,17 +139,17 @@ export class BFT extends EventEmitter {
 		 See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 			 Case 2 and 1 have flipped execution order for better readability. Behavior is still the same */
 
-		if (forkChoiceRule.isValidBlock(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isValidBlock(lastBlockHeader, receivedBlock)) {
 			// Case 2: correct block received
 			return ForkStatus.VALID_BLOCK;
 		}
 
-		if (forkChoiceRule.isIdenticalBlock(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isIdenticalBlock(lastBlockHeader, receivedBlock)) {
 			// Case 1: same block received twice
 			return ForkStatus.IDENTICAL_BLOCK;
 		}
 
-		if (forkChoiceRule.isDoubleForging(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isDoubleForging(lastBlockHeader, receivedBlock)) {
 			// Delegates are the same
 			// Case 3: double forging different blocks in the same slot.
 			// Last Block stands.
@@ -159,7 +159,7 @@ export class BFT extends EventEmitter {
 		if (
 			forkChoiceRule.isTieBreak({
 				slots: this._chain.slots,
-				lastAppliedBlock: lastBlock,
+				lastAppliedBlock: lastBlockHeader,
 				receivedBlock,
 			})
 		) {
@@ -168,7 +168,7 @@ export class BFT extends EventEmitter {
 			return ForkStatus.TIE_BREAK;
 		}
 
-		if (forkChoiceRule.isDifferentChain(lastBlock, receivedBlock)) {
+		if (forkChoiceRule.isDifferentChain(lastBlockHeader, receivedBlock)) {
 			// Case 5: received block has priority. Move to a different chain.
 			return ForkStatus.DIFFERENT_CHAIN;
 		}
