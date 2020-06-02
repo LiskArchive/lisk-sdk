@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,14 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain } from './chain';
-import { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK } from './constants';
 
-const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
+export const keyString = (key: Buffer): string => key.toString('binary');
 
-export { Account } from './account';
-export * from './block_reward';
-export { Chain, events };
-export { StateStore } from './state_store';
-export { Slots } from './slots';
-export * from './types';
+export const keyReadbleString = (key: Buffer): string => key.toString('hex');

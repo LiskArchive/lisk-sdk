@@ -14,7 +14,10 @@
  */
 
 import { codec, GenericObject } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey, bufferToHex } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	bufferToHex,
+} from '@liskhq/lisk-cryptography';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import {
@@ -26,7 +29,63 @@ import {
 	getPunishmentPeriod,
 	validateSignature,
 } from './utils';
-import { BlockHeader, BaseTransactionInput } from './types';
+import { BlockHeader, BaseTransactionInput, AccountAsset } from './types';
+
+const signingBlockHeaderSchema = {
+	$id: 'lisk/signing-block-header',
+	type: 'object',
+	properties: {
+		version: { dataType: 'uint32', fieldNumber: 1 },
+		timestamp: { dataType: 'uint32', fieldNumber: 2 },
+		height: { dataType: 'uint32', fieldNumber: 3 },
+		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
+		transactionRoot: { dataType: 'bytes', fieldNumber: 5 },
+		generatorPublicKey: { dataType: 'bytes', fieldNumber: 6 },
+		reward: { dataType: 'uint64', fieldNumber: 7 },
+		asset: {
+			type: 'object',
+			fieldNumber: 8,
+			properties: {
+				maxHeightPreviouslyForged: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				maxHeightPrevoted: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+				seedReveal: {
+					dataType: 'bytes',
+					fieldNumber: 3,
+				},
+			},
+			required: [
+				'maxHeightPreviouslyForged',
+				'maxHeightPrevoted',
+				'seedReveal',
+			],
+		},
+	},
+	required: [
+		'version',
+		'timestamp',
+		'height',
+		'previousBlockID',
+		'transactionRoot',
+		'generatorPublicKey',
+		'reward',
+		'asset',
+	],
+};
+
+export const blockHeaderSchema = {
+	...signingBlockHeaderSchema,
+	$id: 'lisk/block-header',
+	properties: {
+		...signingBlockHeaderSchema.properties,
+		signature: { dataType: 'bytes', fieldNumber: 9 },
+	},
+};
 
 const proofOfMisbehaviorAssetSchema = {
 	$id: 'lisk/proof-of-misbehavior-transaction',
@@ -34,72 +93,12 @@ const proofOfMisbehaviorAssetSchema = {
 	required: ['header1', 'header2'],
 	properties: {
 		header1: {
-			dataType: 'bytes',
+			...blockHeaderSchema,
 			fieldNumber: 1,
 		},
 		header2: {
-			dataType: 'bytes',
+			...blockHeaderSchema,
 			fieldNumber: 2,
-		},
-	},
-};
-
-const blockHeaderSchema = {
-	$id: 'lisk/block-header',
-	type: 'object',
-	required: ['height', 'version', 'timestamp', 'previousBlockId', 'generatorPublicKey', 'numberOfTransactions', 'payloadLength', 'transactionRoot', 'maxHeightPreviouslyForged', 'maxHeightPrevoted', 'totalAmount', 'totalFee', 'reward', 'seedReveal'],
-	properties: {
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		version: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		timestamp: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-		previousBlockId: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		generatorPublicKey: {
-			dataType: 'bytes',
-			fieldNumber: 5,
-		},
-		numberOfTransactions: {
-			dataType: 'uint32',
-			fieldNumber: 6,
-		},
-		payloadLength: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
-		transactionRoot: {
-			dataType: 'bytes',
-			fieldNumber: 8,
-		},
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 9,
-		},
-		totalAmount: {
-			dataType: 'uint64',
-			fieldNumber: 10,
-		},
-		totalFee: {
-			dataType: 'uint64',
-			fieldNumber: 11,
-		},
-		reward: {
-			dataType: 'uint64',
-			fieldNumber: 12,
-		},
-		seedReveal: {
-			dataType: 'bytes',
-			fieldNumber: 13,
 		},
 	},
 };
@@ -164,11 +163,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 		// Order the two block headers such that b1 must be forged first
 		if (
-			b1.maxHeightPreviouslyForged > b2.maxHeightPreviouslyForged ||
-			(b1.maxHeightPreviouslyForged === b2.maxHeightPreviouslyForged &&
-				b1.maxHeightPrevoted > b2.maxHeightPrevoted) ||
-			(b1.maxHeightPreviouslyForged === b2.maxHeightPreviouslyForged &&
-				b1.maxHeightPrevoted === b2.maxHeightPrevoted &&
+			b1.asset.maxHeightPreviouslyForged > b2.asset.maxHeightPreviouslyForged ||
+			(b1.asset.maxHeightPreviouslyForged ===
+				b2.asset.maxHeightPreviouslyForged &&
+				b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted) ||
+			(b1.asset.maxHeightPreviouslyForged ===
+				b2.asset.maxHeightPreviouslyForged &&
+				b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted &&
 				b1.height > b2.height)
 		) {
 			b1 = this.asset.header2;
@@ -177,10 +178,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 		if (
 			!(
-				b1.maxHeightPrevoted === b2.maxHeightPrevoted && b1.height >= b2.height
+				b1.asset.maxHeightPrevoted === b2.asset.maxHeightPrevoted &&
+				b1.height >= b2.height
 			) &&
-			!(b1.height > b2.maxHeightPreviouslyForged) &&
-			!(b1.maxHeightPrevoted > b2.maxHeightPrevoted)
+			!(b1.height > b2.asset.maxHeightPreviouslyForged) &&
+			!(b1.asset.maxHeightPrevoted > b2.asset.maxHeightPrevoted)
 		) {
 			errors.push(
 				new TransactionError(
@@ -199,7 +201,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
 		const currentHeight = store.chain.lastBlockHeader.height + 1;
-		const senderAccount = await store.account.get(this.senderId);
+		const senderAccount = await store.account.get<AccountAsset>(this.senderId);
 		const { networkIdentifier } = store.chain;
 		/*
 			|header1.height - h| < 260,000.
@@ -240,9 +242,11 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		const delegateAddress = getAddressFromPublicKey(
 			this.asset.header1.generatorPublicKey,
 		);
-		const delegateAccount = await store.account.getOrDefault(delegateAddress);
+		const delegateAccount = await store.account.getOrDefault<AccountAsset>(
+			delegateAddress,
+		);
 
-		if (!delegateAccount.isDelegate || !delegateAccount.username) {
+		if (!delegateAccount.asset.delegate.username) {
 			errors.push(
 				new TransactionError(
 					'Account is not a delegate',
@@ -254,7 +258,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 			return errors;
 		}
 
-		if (delegateAccount.delegate.isBanned) {
+		if (delegateAccount.asset.delegate.isBanned) {
 			errors.push(
 				new TransactionError(
 					'Cannot apply proof-of-misbehavior. Delegate is banned.',
@@ -301,7 +305,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 		const { valid: validHeader1Signature } = validateSignature(
 			this.asset.header1.generatorPublicKey,
-			this.asset.header1.blockSignature,
+			this.asset.header1.signature,
 			blockHeader1Bytes,
 		);
 
@@ -311,13 +315,13 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Invalid block signature for header 1.',
 					this.id,
 					'.asset.header1.blockSignature',
-					bufferToHex(this.asset.header1.blockSignature),
+					bufferToHex(this.asset.header1.signature),
 				),
 			);
 		}
 		const { valid: validHeader2Signature } = validateSignature(
 			this.asset.header2.generatorPublicKey,
-			this.asset.header2.blockSignature,
+			this.asset.header2.signature,
 			blockHeader2Bytes,
 		);
 
@@ -327,7 +331,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Invalid block signature for header 2.',
 					this.id,
 					'.asset.header2.blockSignature',
-					bufferToHex(this.asset.header2.blockSignature),
+					bufferToHex(this.asset.header2.signature),
 				),
 			);
 		}
@@ -351,12 +355,16 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		*/
 
 		// Fetch delegate account again in case sender and delegate are the same account
-		const updatedDelegateAccount = await store.account.get(delegateAddress);
+		const updatedDelegateAccount = await store.account.get<AccountAsset>(
+			delegateAddress,
+		);
 
-		updatedDelegateAccount.delegate.pomHeights.push(currentHeight);
+		updatedDelegateAccount.asset.delegate.pomHeights.push(currentHeight);
 
-		if (updatedDelegateAccount.delegate.pomHeights.length >= MAX_POM_HEIGHTS) {
-			updatedDelegateAccount.delegate.isBanned = true;
+		if (
+			updatedDelegateAccount.asset.delegate.pomHeights.length >= MAX_POM_HEIGHTS
+		) {
+			updatedDelegateAccount.asset.delegate.isBanned = true;
 		}
 		updatedDelegateAccount.balance -= reward;
 		store.account.set(updatedDelegateAccount.address, updatedDelegateAccount);
@@ -383,13 +391,15 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		const delegateAddress = getAddressFromPublicKey(
 			this.asset.header1.generatorPublicKey,
 		);
-		const delegateAccount = await store.account.get(delegateAddress);
-		const pomIndex = delegateAccount.delegate.pomHeights.findIndex(
+		const delegateAccount = await store.account.get<AccountAsset>(
+			delegateAddress,
+		);
+		const pomIndex = delegateAccount.asset.delegate.pomHeights.findIndex(
 			height => height === currentHeight,
 		);
-		delegateAccount.delegate.pomHeights.splice(pomIndex, 1);
-		if (delegateAccount.delegate.pomHeights.length < 5) {
-			delegateAccount.delegate.isBanned = false;
+		delegateAccount.asset.delegate.pomHeights.splice(pomIndex, 1);
+		if (delegateAccount.asset.delegate.pomHeights.length < 5) {
+			delegateAccount.asset.delegate.isBanned = false;
 		}
 
 		delegateAccount.balance += this.asset.reward;
@@ -400,7 +410,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 	// eslint-disable-next-line class-methods-use-this
 	private _getBlockHeaderBytes(header: BlockHeader): Buffer {
-		const { blockSignature, ...restOfHeader } = header;
-		return codec.encode(blockHeaderSchema, restOfHeader as unknown as GenericObject);
+		return codec.encode(
+			signingBlockHeaderSchema,
+			(header as unknown) as GenericObject,
+		);
 	}
 }

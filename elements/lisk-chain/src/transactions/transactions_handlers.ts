@@ -84,7 +84,7 @@ export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
 				? []
 				: [
 						new TransactionError(
-							`Transaction is already confirmed: ${tx.id}`,
+							`Transaction is already confirmed: ${tx.id.toString('hex')}`,
 							tx.id,
 							'.id',
 						),

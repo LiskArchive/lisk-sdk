@@ -12,36 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	verifyData,
-	stringToBuffer,
-	bufferToHex,
-} from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { verifyData } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
 
 import { Slots } from './slots';
-import { BlockInstance, GenesisBlock } from './types';
+import { Block } from './types';
+import { BufferSet } from './utils';
 
 export const validateSignature = (
-	block: BlockInstance,
-	blockBytes: Buffer,
-	networkIdentifier: string,
+	publicKey: Buffer,
+	dataWithoutSignature: Buffer,
+	signature: Buffer,
+	networkIdentifier: Buffer,
 ): void => {
-	const signatureLength = 64;
-	const dataWithoutSignature = blockBytes.slice(
-		0,
-		blockBytes.length - signatureLength,
-	);
 	const blockWithNetworkIdentifierBytes = Buffer.concat([
-		Buffer.from(networkIdentifier, 'hex'),
+		networkIdentifier,
 		dataWithoutSignature,
 	]);
 
 	const verified = verifyData(
 		blockWithNetworkIdentifierBytes,
-		block.blockSignature,
-		block.generatorPublicKey,
+		signature,
+		publicKey,
 	);
 
 	if (!verified) {
@@ -50,91 +42,75 @@ export const validateSignature = (
 };
 
 export const validatePreviousBlockProperty = (
-	block: BlockInstance,
-	genesisBlock: GenesisBlock,
+	block: Block,
+	genesisBlock: Block,
 ): void => {
 	const isGenesisBlock =
-		block.id === genesisBlock.id &&
-		!block.previousBlockId &&
-		block.height === 1;
+		block.header.id.equals(genesisBlock.header.id) &&
+		block.header.previousBlockID.length === 0 &&
+		block.header.height === 1;
 	const propertyIsValid =
 		isGenesisBlock ||
-		(block.id !== genesisBlock.id &&
-			block.previousBlockId &&
-			block.height !== 1);
+		(!block.header.id.equals(genesisBlock.header.id) &&
+			block.header.previousBlockID.length > 0 &&
+			block.header.height !== 1);
 
 	if (!propertyIsValid) {
 		throw new Error('Invalid previous block');
 	}
 };
 
-export const validateReward = (
-	block: BlockInstance,
-	maxReward: bigint,
-): void => {
-	if (block.reward > maxReward) {
+export const validateReward = (block: Block, maxReward: bigint): void => {
+	if (block.header.reward > maxReward) {
 		throw new Error(
-			`Invalid block reward: ${block.reward.toString()} maximum allowed: ${maxReward.toString()}`,
+			`Invalid block reward: ${block.header.reward.toString()} maximum allowed: ${maxReward.toString()}`,
 		);
 	}
 };
 
-export const getTransactionRoot = (ids: ReadonlyArray<string>): string => {
-	const idsAsBuffers = ids.map(id => stringToBuffer(id));
-	const tree = new MerkleTree(idsAsBuffers);
+export const getTransactionRoot = (ids: Buffer[]): Buffer => {
+	const tree = new MerkleTree(ids);
 
-	return bufferToHex(tree.root);
+	return tree.root;
 };
 
 export const validateBlockProperties = (
-	block: BlockInstance,
+	block: Block,
+	encodedPayload: Buffer,
 	maxPayloadLength: number,
 ): void => {
-	if (block.payloadLength > maxPayloadLength) {
+	if (encodedPayload.length > maxPayloadLength) {
 		throw new Error('Payload length is too long');
 	}
 
-	let totalAmount = BigInt(0);
-	let totalFee = BigInt(0);
-	const transactionIds: string[] = [];
-	const appliedTransactions: { [id: string]: BaseTransaction } = {};
+	const transactionIds: Buffer[] = [];
+	const appliedTransactions = new BufferSet();
 
-	block.transactions.forEach(transaction => {
+	block.payload.forEach(transaction => {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (appliedTransactions[transaction.id]) {
-			throw new Error(`Encountered duplicate transaction: ${transaction.id}`);
+		if (appliedTransactions.has(transaction.id)) {
+			throw new Error(
+				`Encountered duplicate transaction: ${transaction.id.toString('hex')}`,
+			);
 		}
-
 		transactionIds.push(transaction.id);
-		appliedTransactions[transaction.id] = transaction;
-		// eslint-disable-next-line
-		totalAmount += BigInt((transaction.asset as any).amount || 0);
-		totalFee += BigInt(transaction.fee);
+		appliedTransactions.add(transaction.id);
 	});
 
 	const transactionRoot = getTransactionRoot(transactionIds);
 
-	if (transactionRoot !== block.transactionRoot) {
+	if (!transactionRoot.equals(block.header.transactionRoot)) {
 		throw new Error('Invalid transaction root');
-	}
-
-	if (totalAmount !== BigInt(block.totalAmount)) {
-		throw new Error('Invalid total amount');
-	}
-
-	if (totalFee !== block.totalFee) {
-		throw new Error('Invalid total fee');
 	}
 };
 
-// TODO: Move to DPOS validation
 export const validateBlockSlot = (
-	block: BlockInstance,
-	lastBlock: BlockInstance,
+	block: Block,
+	lastBlock: Block,
 	slots: Slots,
 ): void => {
-	const blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+	const blockSlotNumber = slots.getSlotNumber(block.header.timestamp);
+	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.header.timestamp);
 
 	if (
 		blockSlotNumber > slots.getSlotNumber() ||

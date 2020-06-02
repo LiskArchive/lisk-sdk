@@ -15,25 +15,33 @@
 import { when } from 'jest-when';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import {
-	transfer,
-	castVotes,
-	TransactionJSON,
+	getRandomBytes,
+	getAddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
+import {
+	TransferTransaction,
 	BaseTransaction,
+	VoteTransaction,
 } from '@liskhq/lisk-transactions';
 import {
-	getNetworkIdentifier,
-	getAddressFromPublicKey,
-	getRandomBytes,
-	bufferToHex,
-} from '@liskhq/lisk-cryptography';
-import { newBlock, getBytes, defaultNetworkIdentifier } from '../utils/block';
+	createValidDefaultBlock,
+	defaultNetworkIdentifier,
+	genesisBlock,
+	defaultBlockHeaderAssetSchema,
+} from '../utils/block';
 import { Chain } from '../../src/chain';
 import { StateStore } from '../../src/state_store';
 import { DataAccess } from '../../src/data_access';
-import * as genesisBlock from '../fixtures/genesis_block.json';
-import { genesisAccount } from '../fixtures/default_account';
+import {
+	defaultAccountAssetSchema,
+	createFakeDefaultAccount,
+	defaultAccountSchema,
+	genesisAccount,
+	encodeDefaultAccount,
+} from '../utils/account';
 import { registeredTransactions } from '../utils/registered_transactions';
-import { BlockInstance } from '../../src/types';
+import { Block } from '../../src/types';
+import { getTransferTransaction } from '../utils/transaction';
 import { CHAIN_STATE_BURNT_FEE } from '../../src/constants';
 
 jest.mock('events');
@@ -56,90 +64,80 @@ describe('blocks/header', () => {
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
-	const networkIdentifier = getNetworkIdentifier(
-		genesisBlock.transactionRoot,
-		genesisBlock.communityIdentifier,
-	);
 
 	let chainInstance: Chain;
 	let db: any;
-	let block: BlockInstance;
-	let blockBytes: Buffer;
+	let block: Block;
 
 	beforeEach(() => {
 		db = new KVStore('temp');
 		chainInstance = new Chain({
 			db,
-			genesisBlock,
-			networkIdentifier,
+			genesisBlock: genesisBlock(),
+			networkIdentifier: defaultNetworkIdentifier,
 			registeredTransactions,
+			accountAsset: {
+				schema: defaultAccountAssetSchema,
+				default: createFakeDefaultAccount().asset,
+			},
+			registeredBlocks: {
+				0: defaultBlockHeaderAssetSchema,
+				2: defaultBlockHeaderAssetSchema,
+			},
 			...constants,
 		});
-		(chainInstance as any)._lastBlock = {
-			...genesisBlock,
-			receivedAt: new Date(),
-		};
-		block = newBlock();
-		blockBytes = getBytes(block);
+		(chainInstance as any)._lastBlock = genesisBlock();
+
+		block = createValidDefaultBlock();
 	});
 
 	describe('#validateBlockHeader', () => {
 		describe('when previous block property is invalid', () => {
 			it('should throw error', () => {
 				// Arrange
-				block = newBlock({ previousBlockId: undefined, height: 3 });
-				blockBytes = getBytes(block);
+				block = createValidDefaultBlock({
+					header: { previousBlockID: Buffer.alloc(0), height: 3 },
+				} as any);
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Invalid previous block');
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+					'Invalid previous block',
+				);
 			});
 		});
 
 		describe('when signature is invalid', () => {
 			it('should throw error', () => {
 				// Arrange
-				block = newBlock({ blockSignature: 'aaaa' });
-				blockBytes = getBytes(block);
+				block = createValidDefaultBlock();
+				(block.header as any).signature = getRandomBytes(64);
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Invalid block signature');
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+					'Invalid block signature',
+				);
 			});
 		});
 
 		describe('when reward is invalid', () => {
 			it('should throw error', () => {
 				// Arrange
-				block = newBlock({ reward: BigInt(1000000000) });
-				blockBytes = getBytes(block);
+				block = createValidDefaultBlock({
+					header: { reward: BigInt(1000000000) },
+				});
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Invalid block reward');
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+					'Invalid block reward',
+				);
 			});
 		});
 
 		describe('when a transaction included is invalid', () => {
 			it('should throw error', () => {
 				// Arrange
-				const invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						passphrase: genesisAccount.passphrase,
-						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						fee: '10000000',
-						nonce: '0',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				(invalidTx as any).signatures = ['1234567890'];
-				block = newBlock({ transactions: [invalidTx] });
-				blockBytes = getBytes(block);
+				const invalidTx = getTransferTransaction();
+				(invalidTx.senderPublicKey as any) = '100';
+				block = createValidDefaultBlock({ payload: [invalidTx] });
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow();
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow();
 			});
 		});
 
@@ -147,78 +145,37 @@ describe('blocks/header', () => {
 			it('should throw error', () => {
 				// Arrange
 				(chainInstance as any).constants.maxPayloadLength = 100;
-				const txs = new Array(200).fill(0).map(() =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							passphrase: genesisAccount.passphrase,
-							fee: '10000000',
-							nonce: '0',
-							recipientId: getAddressFromPublicKey(
-								bufferToHex(getRandomBytes(20)),
-							),
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs });
-				blockBytes = getBytes(block);
+				const txs = new Array(200).fill(0).map(() => getTransferTransaction());
+				block = createValidDefaultBlock({ payload: txs });
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Payload length is too long');
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+					'Payload length is too long',
+				);
 			});
 		});
 
 		describe('when transaction root is incorrect', () => {
 			it('should throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map(() =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							fee: '10000000',
-							nonce: '0',
-							passphrase: genesisAccount.passphrase,
-							recipientId: getAddressFromPublicKey(
-								bufferToHex(getRandomBytes(20)),
-							),
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs, transactionRoot: '1234567890' });
-				blockBytes = getBytes(block);
+				const txs = new Array(20).fill(0).map(() => getTransferTransaction());
+				block = createValidDefaultBlock({
+					payload: txs,
+					header: { transactionRoot: Buffer.from('1234567890') },
+				});
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).toThrow('Invalid transaction root');
+				expect(() => chainInstance.validateBlockHeader(block)).toThrow(
+					'Invalid transaction root',
+				);
 			});
 		});
 
 		describe('when all the value is valid', () => {
 			it('should not throw error', () => {
 				// Arrange
-				const txs = new Array(20).fill(0).map(() =>
-					chainInstance.deserializeTransaction(
-						transfer({
-							fee: '10000000',
-							nonce: '0',
-							passphrase: genesisAccount.passphrase,
-							recipientId: getAddressFromPublicKey(
-								bufferToHex(getRandomBytes(20)),
-							),
-							amount: '100',
-							networkIdentifier,
-						}) as TransactionJSON,
-					),
-				);
-				block = newBlock({ transactions: txs });
-				blockBytes = getBytes(block);
+				const txs = new Array(20).fill(0).map(() => getTransferTransaction());
+				block = createValidDefaultBlock({ payload: txs });
 				// Act & assert
-				expect(() =>
-					chainInstance.validateBlockHeader(block, blockBytes),
-				).not.toThrow();
+				expect(() => chainInstance.validateBlockHeader(block)).not.toThrow();
 			});
 		});
 	});
@@ -230,21 +187,29 @@ describe('blocks/header', () => {
 			// Arrange
 			const dataAccess = new DataAccess({
 				db,
-				maxBlockHeaderCache: 505,
-				minBlockHeaderCache: 309,
-				registeredTransactions: {},
+				accountSchema: defaultAccountSchema as any,
+				registeredBlockHeaders: {
+					0: defaultBlockHeaderAssetSchema,
+					2: defaultBlockHeaderAssetSchema,
+				},
+				registeredTransactions: { 8: TransferTransaction },
+				minBlockHeaderCache: 505,
+				maxBlockHeaderCache: 309,
 			});
 			stateStore = new StateStore(dataAccess, {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
 				lastBlockReward: BigInt(500000000),
+				defaultAsset: createFakeDefaultAccount().asset,
 			});
 		});
 
 		describe('when previous block id is invalid', () => {
 			it('should not throw error', async () => {
 				// Arrange
-				block = newBlock({ previousBlockId: '123' });
+				block = createValidDefaultBlock({
+					header: { previousBlockID: getRandomBytes(32) },
+				});
 				// Act & assert
 				await expect(
 					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
@@ -258,7 +223,12 @@ describe('blocks/header', () => {
 				const futureTimestamp = chainInstance.slots.getSlotTime(
 					chainInstance.slots.getNextSlot(),
 				);
-				block = newBlock({ timestamp: futureTimestamp });
+				block = createValidDefaultBlock({
+					header: {
+						timestamp: futureTimestamp,
+						previousBlockID: genesisBlock().header.id,
+					},
+				});
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
@@ -268,7 +238,9 @@ describe('blocks/header', () => {
 
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
 				// Arrange
-				block = newBlock({ timestamp: 0 });
+				block = createValidDefaultBlock({
+					header: { timestamp: 0, previousBlockID: genesisBlock().header.id },
+				});
 				expect.assertions(1);
 				// Act & Assert
 				await expect(
@@ -278,15 +250,17 @@ describe('blocks/header', () => {
 
 			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
 				(chainInstance as any)._lastBlock = {
-					...genesisBlock,
+					...genesisBlock(),
 					timestamp: 200,
 					receivedAt: new Date(),
 				};
 				// Arrange
-				block = newBlock({
-					previousBlockId: chainInstance.lastBlock.id,
-					height: chainInstance.lastBlock.height + 1,
-					timestamp: chainInstance.lastBlock.timestamp - 10,
+				block = createValidDefaultBlock({
+					header: {
+						previousBlockID: chainInstance.lastBlock.header.id,
+						height: chainInstance.lastBlock.header.height + 1,
+						timestamp: chainInstance.lastBlock.header.timestamp - 10,
+					},
 				});
 				// Act & Assert
 				await expect(
@@ -298,7 +272,7 @@ describe('blocks/header', () => {
 		describe('when all values are valid', () => {
 			it('should not throw error', async () => {
 				// Arrange
-				block = newBlock();
+				block = createValidDefaultBlock();
 				// Act & assert
 				let err;
 				try {
@@ -319,16 +293,7 @@ describe('blocks/header', () => {
 
 			beforeEach(() => {
 				// Arrage
-				notAllowedTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
+				notAllowedTx = getTransferTransaction();
 				const transactionClass = (chainInstance as any).dataAccess._transactionAdapter._transactionClassMap.get(
 					notAllowedTx.type,
 				);
@@ -342,7 +307,7 @@ describe('blocks/header', () => {
 					transactionClass,
 				);
 				txApplySpy = jest.spyOn(notAllowedTx, 'apply');
-				block = newBlock({ transactions: [notAllowedTx] });
+				block = createValidDefaultBlock({ payload: [notAllowedTx] });
 			});
 
 			afterEach(() => {
@@ -356,14 +321,20 @@ describe('blocks/header', () => {
 				// Arrange
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions: { 8: TransferTransaction },
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 
 				// Act && Assert
@@ -386,41 +357,40 @@ describe('blocks/header', () => {
 			beforeEach(() => {
 				// Arrage
 				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '100000000000000',
+								balance: BigInt('1000000000000'),
 							}),
 						) as never,
 					);
 
-				invalidTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				block = newBlock({ transactions: [invalidTx] });
+				invalidTx = getTransferTransaction();
+				block = createValidDefaultBlock({ payload: [invalidTx] });
 			});
 
 			it('should not call apply for the transaction and throw error', async () => {
 				// Act
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions: { 8: TransferTransaction },
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 				expect.assertions(1);
 				let err;
@@ -438,24 +408,17 @@ describe('blocks/header', () => {
 		describe('when skip existing check is false and block exists in database', () => {
 			beforeEach(() => {
 				// Arrage
-				const validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				block = newBlock({ transactions: [validTx] });
+				const validTx = getTransferTransaction();
+				block = createValidDefaultBlock({ payload: [validTx] });
 				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '100000000000000',
+								balance: BigInt('1000000000000'),
 							}),
 						) as never,
 					);
@@ -466,14 +429,20 @@ describe('blocks/header', () => {
 				// Arrange
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions: { 8: TransferTransaction },
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 
 				// Act && Assert
@@ -487,21 +456,11 @@ describe('blocks/header', () => {
 
 		describe('when skip existing check is false and block does not exist in database but transaction does', () => {
 			beforeEach(() => {
-				const validTxJSON = transfer({
-					fee: '10000000',
-					nonce: '0',
-					passphrase: genesisAccount.passphrase,
-					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-					amount: '100',
-					networkIdentifier,
-				});
-				const validTx = chainInstance.deserializeTransaction(
-					validTxJSON as TransactionJSON,
-				);
-				block = newBlock({ transactions: [validTx] });
+				const validTx = getTransferTransaction();
+				block = createValidDefaultBlock({ payload: [validTx] });
 				when(db.exists)
 					.mockResolvedValue(false as never)
-					.calledWith(`transactions:id:${validTx.id}`)
+					.calledWith(`transactions:id:${validTx.id.toString('binary')}`)
 					.mockResolvedValue(true as never);
 			});
 
@@ -509,14 +468,20 @@ describe('blocks/header', () => {
 				// Arrange
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions: { 8: TransferTransaction },
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 
 				// Act && Assert
@@ -540,38 +505,50 @@ describe('blocks/header', () => {
 			let stateStore: StateStore;
 
 			beforeEach(async () => {
-				block = newBlock({ reward: BigInt(500000000) });
+				block = createValidDefaultBlock({
+					header: { reward: BigInt(500000000) },
+				});
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions: { 8: TransferTransaction },
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '0',
+								balance: BigInt('1000000000000'),
 							}),
 						) as never,
 					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
-							block.generatorPublicKey,
-						)}`,
+							block.header.generatorPublicKey,
+						).toString('binary')}`,
 					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
-								address: getAddressFromPublicKey(block.generatorPublicKey),
-								balance: '0',
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								address: getAddressFromPublicKey(
+									block.header.generatorPublicKey,
+								),
+								balance: BigInt('0'),
 							}),
 						) as never,
 					)
@@ -585,9 +562,9 @@ describe('blocks/header', () => {
 
 			it('should update generator balance to give rewards and fees - minFee', async () => {
 				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.generatorPublicKey),
+					getAddressFromPublicKey(block.header.generatorPublicKey),
 				);
-				expect(generator.balance).toEqual(block.reward);
+				expect(generator.balance).toEqual(block.header.reward);
 			});
 
 			it('should not have updated burnt fee', () => {
@@ -601,55 +578,56 @@ describe('blocks/header', () => {
 
 			beforeEach(() => {
 				// Arrage
-				validTx = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-						amount: '10000000',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				block = newBlock({ transactions: [validTx] });
+				validTx = getTransferTransaction({ amount: BigInt(10000000) });
+				block = createValidDefaultBlock({ payload: [validTx] });
 
 				// Act
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions: { 8: TransferTransaction },
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 
 				const generatorAddress = getAddressFromPublicKey(
-					block.generatorPublicKey,
+					block.header.generatorPublicKey,
 				);
 
 				when(db.get)
 					.calledWith(
-						`accounts:address:3a971fd02b4a07fc20aad1936d3cb1d263b96e0f`,
+						`accounts:address:${validTx.asset.recipientAddress.toString(
+							'binary',
+						)}`,
 					)
 					.mockRejectedValue(new NotFoundError('data not found') as never)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '0',
+								balance: BigInt('0'),
 							}),
 						) as never,
 					)
-					.calledWith(`accounts:address:${generatorAddress}`)
+					.calledWith(`accounts:address:${generatorAddress.toString('hex')}`)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: generatorAddress,
-								balance: '0',
+								balance: BigInt('0'),
 							}),
 						) as never,
 					);
@@ -668,7 +646,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not set the block to the last block', () => {
-				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock);
+				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock());
 			});
 		});
 
@@ -684,111 +662,145 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				// Arrage
 				delegate1 = {
-					address: '32e4d3f46ae3bc74e7771780eee290ae5826006d',
+					address: Buffer.from(
+						'32e4d3f46ae3bc74e7771780eee290ae5826006d',
+						'hex',
+					),
 					passphrase:
 						'weapon visual tag seed deal solar country toy boring concert decline require',
-					publicKey:
+					publicKey: Buffer.from(
 						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
+						'hex',
+					),
 					username: 'genesis_200',
-					balance: '10000000000',
+					balance: BigInt('10000000000'),
 				};
 				delegate2 = {
-					address: '23d5abdb69c0dbbc21c7c732965589792cc5922a',
+					address: Buffer.from(
+						'23d5abdb69c0dbbc21c7c732965589792cc5922a',
+						'hex',
+					),
 					passphrase:
 						'shoot long boost electric upon mule enough swing ritual example custom party',
-					publicKey:
+					publicKey: Buffer.from(
 						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
+						'hex',
+					),
 					username: 'genesis_201',
-					balance: '10000000000',
+					balance: BigInt('10000000000'),
 				};
 
 				// Act
-				const validTx = chainInstance.deserializeTransaction(
-					castVotes({
-						fee: '100000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						networkIdentifier,
+				const validTx = new VoteTransaction({
+					id: getRandomBytes(32),
+					type: 8,
+					fee: BigInt('10000000'),
+					nonce: BigInt('0'),
+					senderPublicKey: genesisAccount.publicKey,
+					asset: {
 						votes: [
 							{
 								delegateAddress: delegate1.address,
-								amount: '10000000000',
+								amount: BigInt('10000000000'),
 							},
 							{
 								delegateAddress: delegate2.address,
-								amount: '10000000000',
+								amount: BigInt('10000000000'),
 							},
 						],
-					}) as TransactionJSON,
-				);
+					},
+					signatures: [],
+				});
+				validTx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
 				// Calling validate to inject id and min-fee
 				validTx.validate();
-				const validTx2 = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '1',
-						passphrase: genesisAccount.passphrase,
-						recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b87e0f',
-						amount: '10000000',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
+				const validTx2 = getTransferTransaction({
+					nonce: BigInt(1),
+					amount: BigInt('10000000'),
+				});
 				// Calling validate to inject id and min-fee
 				validTx2.validate();
 				validTxApplySpy = jest.spyOn(validTx, 'apply');
 				validTx2ApplySpy = jest.spyOn(validTx2, 'apply');
-				block = newBlock({
-					reward: BigInt(500000000),
-					transactions: [validTx, validTx2],
+				block = createValidDefaultBlock({
+					header: { reward: BigInt(500000000) },
+					payload: [validTx, validTx2],
 				});
 				// Act
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions,
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
+
+				const burntFeeBuffer = Buffer.alloc(8);
+				burntFeeBuffer.writeBigInt64BE(BigInt(defaultBurntFee));
+
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '1000000000000',
+								balance: BigInt('1000000000000'),
 							}),
 						) as never,
 					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
-							block.generatorPublicKey,
-						)}`,
+							block.header.generatorPublicKey,
+						).toString('binary')}`,
 					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
-								address: getAddressFromPublicKey(block.generatorPublicKey),
-								balance: '0',
-								producedBlocks: 0,
-								nonce: '0',
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								address: genesisAccount.address,
+								balance: BigInt('0'),
+								nonce: BigInt('0'),
 							}),
 						) as never,
 					)
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					.calledWith(`accounts:address:${delegate1.address}`)
-					.mockResolvedValue(Buffer.from(JSON.stringify(delegate1)) as never)
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					.calledWith(`accounts:address:${delegate2.address}`)
-					.mockResolvedValue(Buffer.from(JSON.stringify(delegate2)) as never)
-					.calledWith(`chain:burntFee`)
+					.calledWith(
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+						`accounts:address:${delegate1.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(defaultBurntFee)) as never,
-					);
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								...delegate1,
+								asset: { delegate: { username: delegate1.username } },
+							}),
+						) as never,
+					)
+					.calledWith(
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+						`accounts:address:${delegate2.address.toString('binary')}`,
+					)
+					.mockResolvedValue(
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								...delegate2,
+								asset: { delegate: { username: delegate2.username } },
+							}),
+						) as never,
+					)
+					.calledWith(`chain:burntFee`)
+					.mockResolvedValue(burntFeeBuffer as never);
 				await chainInstance.apply(block, stateStore);
 			});
 
@@ -797,19 +809,12 @@ describe('blocks/header', () => {
 				expect(validTx2ApplySpy).toHaveBeenCalledTimes(1);
 			});
 
-			it('should add produced block for generator', async () => {
-				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.generatorPublicKey),
-				);
-				expect(generator.producedBlocks).toEqual(1);
-			});
-
 			it('should update generator balance with rewards and fees - minFee', async () => {
 				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.generatorPublicKey),
+					getAddressFromPublicKey(block.header.generatorPublicKey),
 				);
-				let expected = block.reward;
-				for (const tx of block.transactions) {
+				let expected = block.header.reward;
+				for (const tx of block.payload) {
 					expected += tx.fee - tx.minFee;
 				}
 				expect(generator.balance.toString()).toEqual(expected.toString());
@@ -818,19 +823,18 @@ describe('blocks/header', () => {
 			it('should update burntFee in the chain state', async () => {
 				const burntFee = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
 				let expected = BigInt(0);
-				for (const tx of block.transactions) {
+				for (const tx of block.payload) {
 					expected += tx.minFee;
 				}
-				expect(JSON.parse((burntFee as Buffer).toString('utf8'))).toEqual(
-					(BigInt(defaultBurntFee) + expected).toString(),
-				);
+				const expectedBuffer = Buffer.alloc(8);
+				expectedBuffer.writeBigInt64BE(BigInt(defaultBurntFee) + expected);
+				expect(burntFee).toEqual(expectedBuffer);
 			});
 		});
 	});
 
 	describe('#applyGenesis', () => {
 		let stateStore: StateStore;
-		let genesisInstance: BlockInstance;
 
 		beforeEach(async () => {
 			// Arrage
@@ -838,21 +842,27 @@ describe('blocks/header', () => {
 				new NotFoundError('no data found'),
 			);
 			// Act
-			genesisInstance = chainInstance.deserialize(genesisBlock as any);
-			genesisInstance.transactions.forEach(tx => tx.validate());
+			const genesisBlockInstance = genesisBlock();
+			genesisBlockInstance.payload.forEach(tx => tx.validate());
 			// Act
 			const dataAccess = new DataAccess({
 				db,
-				maxBlockHeaderCache: 505,
-				minBlockHeaderCache: 309,
-				registeredTransactions: {},
+				accountSchema: defaultAccountSchema as any,
+				registeredBlockHeaders: {
+					0: defaultBlockHeaderAssetSchema,
+					2: defaultBlockHeaderAssetSchema,
+				},
+				registeredTransactions,
+				minBlockHeaderCache: 505,
+				maxBlockHeaderCache: 309,
 			});
 			stateStore = new StateStore(dataAccess, {
 				lastBlockHeaders: [],
 				networkIdentifier: defaultNetworkIdentifier,
 				lastBlockReward: BigInt(500000000),
+				defaultAsset: createFakeDefaultAccount().asset,
 			});
-			await chainInstance.applyGenesis(genesisInstance, stateStore);
+			await chainInstance.applyGenesis(genesisBlockInstance, stateStore);
 		});
 
 		describe('when transactions are all valid', () => {
@@ -870,9 +880,7 @@ describe('blocks/header', () => {
 				const genesisAccountFromStore = await stateStore.chain.get(
 					CHAIN_STATE_BURNT_FEE,
 				);
-				expect(
-					JSON.parse((genesisAccountFromStore as Buffer).toString('utf8')),
-				).toBe('0');
+				expect(genesisAccountFromStore?.readBigInt64BE()).toEqual(BigInt('0'));
 			});
 		});
 	});
@@ -886,37 +894,47 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions,
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
 				// Arrage
-				block = newBlock({ reward });
+				block = createValidDefaultBlock({ header: { reward } });
 				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '0',
+								balance: BigInt('0'),
 							}),
 						) as never,
 					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
-							block.generatorPublicKey,
-						)}`,
+							block.header.generatorPublicKey,
+						).toString('binary')}`,
 					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
-								address: getAddressFromPublicKey(block.generatorPublicKey),
-								balance: reward.toString(),
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								address: getAddressFromPublicKey(
+									block.header.generatorPublicKey,
+								),
+								balance: reward,
 							}),
 						) as never,
 					);
@@ -925,7 +943,7 @@ describe('blocks/header', () => {
 
 			it('should update generator balance to debit rewards and fees - minFee', async () => {
 				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.generatorPublicKey),
+					getAddressFromPublicKey(block.header.generatorPublicKey),
 				);
 				expect(generator.balance.toString()).toEqual('0');
 			});
@@ -949,125 +967,168 @@ describe('blocks/header', () => {
 			beforeEach(async () => {
 				// Arrage
 				delegate1 = {
-					address: '32e4d3f46ae3bc74e7771780eee290ae5826006d',
+					address: Buffer.from(
+						'32e4d3f46ae3bc74e7771780eee290ae5826006d',
+						'hex',
+					),
 					passphrase:
 						'weapon visual tag seed deal solar country toy boring concert decline require',
-					publicKey:
+					publicKey: Buffer.from(
 						'8c4dddbfe40892940d3bd5446d9d2ee9cdd16ceffecebda684a0585837f60f23',
+						'hex',
+					),
 					username: 'genesis_200',
-					balance: '10000000000',
+					balance: BigInt('10000000000'),
 				};
 				delegate2 = {
-					address: '23d5abdb69c0dbbc21c7c732965589792cc5922a',
+					address: Buffer.from(
+						'23d5abdb69c0dbbc21c7c732965589792cc5922a',
+						'hex',
+					),
 					passphrase:
 						'shoot long boost electric upon mule enough swing ritual example custom party',
-					publicKey:
+					publicKey: Buffer.from(
 						'6263120d0ee380d60070e648684a7f98ece4767d140ccb277f267c3a6f36a799',
+						'hex',
+					),
 					username: 'genesis_201',
-					balance: '10000000000',
+					balance: BigInt('10000000000'),
 				};
 				const recipient = {
-					address: 'acfbdbaeb93d587170c7cd9c0b5ffdeb7ff9daec',
-					balance: '100',
+					address: Buffer.from(
+						'acfbdbaeb93d587170c7cd9c0b5ffdeb7ff9daec',
+						'hex',
+					),
+					balance: BigInt('100'),
 				};
 
-				const validTx = chainInstance.deserializeTransaction(
-					castVotes({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						networkIdentifier,
+				const validTx = new VoteTransaction({
+					id: getRandomBytes(32),
+					type: 8,
+					fee: BigInt('10000000'),
+					nonce: BigInt('0'),
+					senderPublicKey: genesisAccount.publicKey,
+					asset: {
 						votes: [
 							{
 								delegateAddress: delegate1.address,
-								amount: '10000000000',
+								amount: BigInt('10000000000'),
 							},
 							{
 								delegateAddress: delegate2.address,
-								amount: '10000000000',
+								amount: BigInt('10000000000'),
 							},
 						],
-					}) as TransactionJSON,
-				);
+					},
+					signatures: [],
+				});
+				validTx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
 				// Calling validate to inject id and min-fee
-				validTx.validate();
-				const validTx2 = chainInstance.deserializeTransaction(
-					transfer({
-						fee: '10000000',
-						nonce: '0',
-						passphrase: genesisAccount.passphrase,
-						recipientId: 'acfbdbaeb93d587170c7cd9c0b5ffdeb7ff9daec',
-						amount: '100',
-						networkIdentifier,
-					}) as TransactionJSON,
-				);
-				// Calling validate to inject id and min-fee
-				validTx2.validate();
+				const validTx2 = getTransferTransaction({
+					amount: BigInt(100),
+					recipientAddress: recipient.address,
+				});
 				validTxUndoSpy = jest.spyOn(validTx, 'undo');
 				validTx2UndoSpy = jest.spyOn(validTx2, 'undo');
-				block = newBlock({
-					reward: BigInt(defaultReward),
-					transactions: [validTx, validTx2],
+				block = createValidDefaultBlock({
+					header: {
+						reward: BigInt(defaultReward),
+					},
+					payload: [validTx, validTx2],
 				});
 
 				// Act
 				const dataAccess = new DataAccess({
 					db,
-					maxBlockHeaderCache: 505,
-					minBlockHeaderCache: 309,
-					registeredTransactions: {},
+					accountSchema: defaultAccountSchema as any,
+					registeredBlockHeaders: {
+						0: defaultBlockHeaderAssetSchema,
+						2: defaultBlockHeaderAssetSchema,
+					},
+					registeredTransactions,
+					minBlockHeaderCache: 505,
+					maxBlockHeaderCache: 309,
 				});
 				stateStore = new StateStore(dataAccess, {
 					lastBlockHeaders: [],
 					networkIdentifier: defaultNetworkIdentifier,
 					lastBlockReward: BigInt(500000000),
+					defaultAsset: createFakeDefaultAccount().asset,
 				});
+				const defaultBurntFeeBuffer = Buffer.alloc(8);
+				defaultBurntFeeBuffer.writeBigInt64BE(defaultBurntFee);
 				when(db.get)
-					.calledWith(`accounts:address:${genesisAccount.address}`)
+					.calledWith(
+						`accounts:address:${genesisAccount.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
 								address: genesisAccount.address,
-								balance: '9889999900',
-								votes: [
-									{
-										delegateAddress: delegate1.address,
-										amount: '10000000000',
-									},
-									{
-										delegateAddress: delegate2.address,
-										amount: '10000000000',
-									},
-								],
+								balance: BigInt('9889999900'),
+								asset: {
+									...createFakeDefaultAccount().asset,
+									sentVotes: [
+										{
+											delegateAddress: delegate1.address,
+											amount: BigInt('10000000000'),
+										},
+										{
+											delegateAddress: delegate2.address,
+											amount: BigInt('10000000000'),
+										},
+									],
+								},
 							}),
 						) as never,
 					)
 					.calledWith(
 						`accounts:address:${getAddressFromPublicKey(
-							block.generatorPublicKey,
-						)}`,
+							block.header.generatorPublicKey,
+						).toString('binary')}`,
 					)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
-								address: getAddressFromPublicKey(block.generatorPublicKey),
-								balance: defaultGeneratorBalance.toString(),
-								producedBlocks: 1,
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								address: getAddressFromPublicKey(
+									block.header.generatorPublicKey,
+								),
+								balance: defaultGeneratorBalance,
 							}),
 						) as never,
 					)
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					.calledWith(`accounts:address:${delegate1.address}`)
-					.mockResolvedValue(Buffer.from(JSON.stringify(delegate1)) as never)
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					.calledWith(`accounts:address:${delegate2.address}`)
-					.mockResolvedValue(Buffer.from(JSON.stringify(delegate2)) as never)
-					.calledWith(`accounts:address:${recipient.address}`)
-					.mockResolvedValue(Buffer.from(JSON.stringify(recipient)) as never)
-					.calledWith(`chain:burntFee`)
+					.calledWith(
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+						`accounts:address:${delegate1.address.toString('binary')}`,
+					)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(defaultBurntFee.toString())) as never,
-					);
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								...delegate1,
+								asset: { delegate: { username: delegate1.username } },
+							}),
+						) as never,
+					)
+					.calledWith(
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+						`accounts:address:${delegate2.address.toString('binary')}`,
+					)
+					.mockResolvedValue(
+						encodeDefaultAccount(
+							createFakeDefaultAccount({
+								...delegate2,
+								asset: { delegate: { username: delegate2.username } },
+							}),
+						) as never,
+					)
+					.calledWith(
+						`accounts:address:${recipient.address.toString('binary')}`,
+					)
+					.mockResolvedValue(
+						encodeDefaultAccount(createFakeDefaultAccount(recipient)) as never,
+					)
+					.calledWith(`chain:burntFee`)
+					.mockResolvedValue(defaultBurntFeeBuffer as never);
 				await chainInstance.undo(block, stateStore);
 			});
 
@@ -1076,19 +1137,12 @@ describe('blocks/header', () => {
 				expect(validTx2UndoSpy).toHaveBeenCalledTimes(1);
 			});
 
-			it('should reduce produced block for generator', async () => {
-				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.generatorPublicKey),
-				);
-				expect(generator.producedBlocks).toEqual(0);
-			});
-
 			it('should debit generator balance with rewards and fees - minFee', async () => {
 				const generator = await stateStore.account.get(
-					getAddressFromPublicKey(block.generatorPublicKey),
+					getAddressFromPublicKey(block.header.generatorPublicKey),
 				);
-				let expected = block.reward;
-				for (const tx of block.transactions) {
+				let expected = block.header.reward;
+				for (const tx of block.payload) {
 					expected += tx.fee - tx.minFee;
 				}
 				expect(generator.balance.toString()).toEqual(
@@ -1097,14 +1151,15 @@ describe('blocks/header', () => {
 			});
 
 			it('should debit burntFee in the chain state', async () => {
-				const burntFee = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
+				const burntFeeBuffer = await stateStore.chain.get(
+					CHAIN_STATE_BURNT_FEE,
+				);
 				let expected = BigInt(0);
-				for (const tx of block.transactions) {
+				for (const tx of block.payload) {
 					expected += tx.minFee;
 				}
-				expect(JSON.parse((burntFee as Buffer).toString('utf8'))).toEqual(
-					(BigInt(defaultBurntFee) - expected).toString(),
-				);
+				const burntFee = burntFeeBuffer?.readBigUInt64BE();
+				expect(burntFee).toEqual(BigInt(defaultBurntFee) - expected);
 			});
 		});
 	});

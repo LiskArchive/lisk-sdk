@@ -64,11 +64,18 @@ const validateInputs = ({
 
 const convertHeader = (header: BlockHeaderJSON): BlockHeader => ({
 	...header,
-	previousBlockId: header.previousBlockId ? hexToBuffer(header.previousBlockId) : Buffer.from(''),
-	blockSignature: hexToBuffer(header.blockSignature),
+	id: hexToBuffer(header.id),
+	reward: BigInt(header.reward),
+	previousBlockID: header.previousBlockID
+		? hexToBuffer(header.previousBlockID)
+		: Buffer.from(''),
+	signature: hexToBuffer(header.signature),
 	generatorPublicKey: hexToBuffer(header.generatorPublicKey),
 	transactionRoot: hexToBuffer(header.transactionRoot),
-	seedReveal: hexToBuffer(header.seedReveal),
+	asset: {
+		...header.asset,
+		seedReveal: hexToBuffer(header.asset.seedReveal),
+	},
 });
 
 export const reportMisbehavior = (

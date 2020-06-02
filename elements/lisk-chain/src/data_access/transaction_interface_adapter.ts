@@ -29,12 +29,11 @@ export class TransactionInterfaceAdapter {
 		codec.addSchema(BaseTransaction.BASE_SCHEMA);
 		Object.keys(registeredTransactions).forEach(transactionType => {
 			const transaction = registeredTransactions[transactionType];
-			this._transactionClassMap.set(
-				Number(transactionType),
-				transaction,
-			);
+			this._transactionClassMap.set(Number(transactionType), transaction);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const { ASSET_SCHEMA } = this._transactionClassMap.get(Number(transactionType));
+			const { ASSET_SCHEMA } = this._transactionClassMap.get(
+				Number(transactionType),
+			);
 			codec.addSchema(ASSET_SCHEMA);
 		});
 	}
@@ -45,20 +44,25 @@ export class TransactionInterfaceAdapter {
 		return message.getBytes();
 	}
 
-	// First decode base message and then decode asset
 	public decode(binaryMessage: Buffer): BaseTransaction {
-		const baseMessage = codec.decode<BaseTransaction>(BaseTransaction.BASE_SCHEMA, binaryMessage);
+		const baseMessage = codec.decode<BaseTransaction>(
+			BaseTransaction.BASE_SCHEMA,
+			binaryMessage,
+		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const TransactionClass = this._transactionClassMap.get(baseMessage.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const assetMessage = codec.decode<BaseTransaction>(TransactionClass.ASSET_SCHEMA, baseMessage.asset as Buffer);
+		const assetMessage = codec.decode<BaseTransaction>(
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			TransactionClass.ASSET_SCHEMA,
+			baseMessage.asset as Buffer,
+		);
 		const message = { ...baseMessage, asset: assetMessage };
 
-		const id = hash(binaryMessage)
+		const id = hash(binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
 		return new TransactionClass({ ...message, id });
 	}

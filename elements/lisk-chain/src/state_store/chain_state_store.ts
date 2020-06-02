@@ -19,7 +19,7 @@ import { DB_KEY_CHAIN_STATE } from '../data_access/constants';
 
 interface AdditionalInformation {
 	readonly lastBlockHeader: BlockHeader;
-	readonly networkIdentifier: string;
+	readonly networkIdentifier: Buffer;
 	readonly lastBlockReward: bigint;
 }
 
@@ -35,7 +35,7 @@ export class ChainStateStore {
 	private _originalUpdatedKeys: Set<string>;
 	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeader: BlockHeader;
-	private readonly _networkIdentifier: string;
+	private readonly _networkIdentifier: Buffer;
 	private readonly _lastBlockReward: bigint;
 
 	public constructor(
@@ -52,7 +52,7 @@ export class ChainStateStore {
 		this._originalUpdatedKeys = new Set();
 	}
 
-	public get networkIdentifier(): string {
+	public get networkIdentifier(): Buffer {
 		return this._networkIdentifier;
 	}
 

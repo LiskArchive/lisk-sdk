@@ -13,7 +13,7 @@
  *
  */
 
-import { AccountUnlocking } from '../types';
+import { UnlockingAccountAsset } from '../types';
 
 export const sortKeysAscending = (
 	publicKeys: Array<Readonly<Buffer>>,
@@ -22,7 +22,7 @@ export const sortKeysAscending = (
 		(publicKeyA as Buffer).compare(publicKeyB as Buffer),
 	);
 
-export const sortUnlocking = (unlocks: AccountUnlocking[]): void => {
+export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 	unlocks.sort((a, b) => {
 		if (!a.delegateAddress.equals(b.delegateAddress)) {
 			return a.delegateAddress.compare(b.delegateAddress);

@@ -14,25 +14,28 @@
 
 import { Readable } from 'stream';
 import { when } from 'jest-when';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { KVStore, NotFoundError, formatInt } from '@liskhq/lisk-db';
 import { Chain } from '../../src/chain';
 import { StateStore } from '../../src/state_store';
-import * as genesisBlock from '../fixtures/genesis_block.json';
-import { newBlock } from '../utils/block';
+import {
+	createValidDefaultBlock,
+	genesisBlock as getGenesisBlock,
+	defaultNetworkIdentifier,
+	defaultBlockHeaderAssetSchema,
+	encodedDefaultBlock,
+	encodeDefaultBlockHeader,
+} from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
-import * as randomUtils from '../utils/random';
-import { BlockInstance, BlockJSON } from '../../src/types';
-import { Account } from '../../src/account';
+import { Block } from '../../src/types';
+import {
+	defaultAccountAssetSchema,
+	createFakeDefaultAccount,
+	encodeDefaultAccount,
+} from '../utils/account';
+import { getTransferTransaction } from '../utils/transaction';
 
 jest.mock('events');
 jest.mock('@liskhq/lisk-db');
-
-const networkIdentifier = getNetworkIdentifier(
-	genesisBlock.transactionRoot,
-	'Lisk',
-);
 
 describe('chain', () => {
 	const constants = {
@@ -52,10 +55,12 @@ describe('chain', () => {
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
+	let genesisBlock: Block;
 	let chainInstance: Chain;
 	let db: any;
 
 	beforeEach(() => {
+		genesisBlock = getGenesisBlock();
 		// Arrange
 		db = new KVStore('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
@@ -63,10 +68,19 @@ describe('chain', () => {
 		chainInstance = new Chain({
 			db,
 			genesisBlock,
-			networkIdentifier,
+			networkIdentifier: defaultNetworkIdentifier,
 			registeredTransactions,
+			accountAsset: {
+				schema: defaultAccountAssetSchema,
+				default: createFakeDefaultAccount().asset,
+			},
+			registeredBlocks: {
+				0: defaultBlockHeaderAssetSchema,
+				2: defaultBlockHeaderAssetSchema,
+			},
 			...constants,
 		});
+		(chainInstance as any)._lastBlock = genesisBlock;
 	});
 
 	describe('constructor', () => {
@@ -85,27 +99,10 @@ describe('chain', () => {
 		});
 	});
 
-	describe('lastBlock', () => {
-		beforeEach(() => {
-			(chainInstance as any)._lastBlock = {
-				...genesisBlock,
-				receivedAt: new Date(),
-			};
-		});
-		it('return the _lastBlock without the receivedAt property', () => {
-			// Arrange
-			const { receivedAt, ...block } = genesisBlock as any;
-			// Assert
-			expect(chainInstance.lastBlock).toEqual(block);
-		});
-	});
-
 	describe('init', () => {
 		beforeEach(() => {
 			(db.createReadStream as jest.Mock).mockReturnValue(
-				Readable.from([
-					{ value: Buffer.from(JSON.stringify(genesisBlock.id)) },
-				]),
+				Readable.from([{ value: genesisBlock.header.id }]),
 			);
 		});
 
@@ -126,16 +123,20 @@ describe('chain', () => {
 				const error = new Error('Genesis block does not match');
 				const mutatedGenesisBlock = {
 					...genesisBlock,
-					id: genesisBlock.id.replace('0', '1'),
+					header: {
+						...genesisBlock.header,
+						signature: genesisBlock.header.signature.slice(1),
+						id: genesisBlock.header.id.slice(1),
+					},
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(
-						Buffer.from(JSON.stringify(mutatedGenesisBlock.id)) as never,
+					.mockResolvedValue(mutatedGenesisBlock.header.id as never)
+					.calledWith(
+						`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`,
 					)
-					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(mutatedGenesisBlock)) as never,
+						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
 					);
 
 				// Act & Assert
@@ -147,16 +148,19 @@ describe('chain', () => {
 				const error = new Error('Genesis block does not match');
 				const mutatedGenesisBlock = {
 					...genesisBlock,
-					transactionRoot: genesisBlock.transactionRoot.replace('0', '1'),
+					header: {
+						...genesisBlock.header,
+						transactionRoot: genesisBlock.header.transactionRoot.slice(10),
+					},
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(
-						Buffer.from(JSON.stringify(mutatedGenesisBlock.id)) as never,
+					.mockResolvedValue(mutatedGenesisBlock.header.id as never)
+					.calledWith(
+						`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`,
 					)
-					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(mutatedGenesisBlock)) as never,
+						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
 					);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
@@ -167,16 +171,19 @@ describe('chain', () => {
 				const error = new Error('Genesis block does not match');
 				const mutatedGenesisBlock = {
 					...genesisBlock,
-					blockSignature: genesisBlock.blockSignature.replace('0', '1'),
+					header: {
+						...genesisBlock.header,
+						signature: genesisBlock.header.signature.slice(61),
+					},
 				};
 				when(db.get)
 					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(
-						Buffer.from(JSON.stringify(mutatedGenesisBlock.id)) as never,
+					.mockResolvedValue(mutatedGenesisBlock.header.id as never)
+					.calledWith(
+						`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`,
 					)
-					.calledWith(`blocks:id:${mutatedGenesisBlock.id}`)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(mutatedGenesisBlock)) as never,
+						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
 					);
 				// Act & Assert
 				await expect(chainInstance.init()).rejects.toEqual(error);
@@ -186,12 +193,10 @@ describe('chain', () => {
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
 					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(genesisBlock.header.id as never)
+					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(genesisBlock.id)) as never,
-					)
-					.calledWith(`blocks:id:${genesisBlock.id}`)
-					.mockResolvedValue(
-						Buffer.from(JSON.stringify(genesisBlock)) as never,
+						encodeDefaultBlockHeader(genesisBlock.header) as never,
 					);
 				// Act & Assert
 				await expect(chainInstance.init()).resolves.toBeUndefined();
@@ -199,31 +204,24 @@ describe('chain', () => {
 		});
 
 		describe('loadLastBlock', () => {
-			let lastBlock: BlockInstance;
+			let lastBlock: Block;
 			beforeEach(() => {
 				// Arrange
-				lastBlock = newBlock({ height: 103 });
+				lastBlock = createValidDefaultBlock({ header: { height: 103 } });
 				(db.createReadStream as jest.Mock).mockReturnValue(
-					Readable.from([{ value: Buffer.from(JSON.stringify(lastBlock.id)) }]),
+					Readable.from([{ value: lastBlock.header.id }]),
 				);
 				when(db.get)
 					.mockRejectedValue(new NotFoundError('Data not found') as never)
 					.calledWith(`blocks:height:${formatInt(1)}`)
+					.mockResolvedValue(genesisBlock.header.id as never)
+					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(
-						Buffer.from(JSON.stringify(genesisBlock.id)) as never,
+						encodeDefaultBlockHeader(genesisBlock.header) as never,
 					)
-					.calledWith(`blocks:id:${genesisBlock.id}`)
-					.mockResolvedValue(Buffer.from(JSON.stringify(genesisBlock)) as never)
-					.calledWith(`blocks:id:${lastBlock.id}`)
+					.calledWith(`blocks:id:${lastBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
-								...lastBlock,
-								reward: lastBlock.reward.toString(),
-								totalAmount: lastBlock.totalAmount.toString(),
-								totalFee: lastBlock.totalFee.toString(),
-							}),
-						) as never,
+						encodeDefaultBlockHeader(lastBlock.header) as never,
 					);
 				jest
 					.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
@@ -232,7 +230,7 @@ describe('chain', () => {
 			it('should throw an error when Block.get throws error', async () => {
 				// Act & Assert
 				(db.createReadStream as jest.Mock).mockReturnValue(
-					Readable.from([{ value: 'randomID' }]),
+					Readable.from([{ value: Buffer.from('randomID') }]),
 				);
 				await expect(chainInstance.init()).rejects.toThrow(
 					'Failed to load last block',
@@ -244,7 +242,7 @@ describe('chain', () => {
 				await chainInstance.init();
 
 				// Assert
-				expect(chainInstance.lastBlock.id).toEqual(lastBlock.id);
+				expect(chainInstance.lastBlock.header.id).toEqual(lastBlock.header.id);
 				expect(
 					chainInstance.dataAccess.getBlockHeadersByHeightBetween,
 				).toHaveBeenCalledWith(1, 103);
@@ -255,14 +253,21 @@ describe('chain', () => {
 	describe('newStateStore', () => {
 		beforeEach(() => {
 			// eslint-disable-next-line dot-notation
-			chainInstance['_lastBlock'] = newBlock({ height: 532 });
+			chainInstance['_lastBlock'] = createValidDefaultBlock({
+				header: { height: 532 },
+			});
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByHeightBetween')
-				.mockResolvedValue([newBlock(), genesisBlock] as never);
+				.mockResolvedValue([
+					createValidDefaultBlock().header,
+					genesisBlock.header,
+				] as never);
 		});
 
 		it('should populate the chain state with genesis block', async () => {
-			chainInstance['_lastBlock'] = newBlock({ height: 1 });
+			chainInstance['_lastBlock'] = createValidDefaultBlock({
+				header: { height: 1 },
+			});
 			await chainInstance.newStateStore();
 			expect(
 				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
@@ -274,8 +279,8 @@ describe('chain', () => {
 			expect(
 				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
 			).toHaveBeenCalledWith(
-				chainInstance.lastBlock.height - 309,
-				chainInstance.lastBlock.height,
+				chainInstance.lastBlock.header.height - 309,
+				chainInstance.lastBlock.header.height,
 			);
 		});
 
@@ -292,100 +297,24 @@ describe('chain', () => {
 			expect(
 				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
 			).toHaveBeenCalledWith(
-				chainInstance.lastBlock.height - 310,
-				chainInstance.lastBlock.height - 1,
+				chainInstance.lastBlock.header.height - 310,
+				chainInstance.lastBlock.header.height - 1,
 			);
-		});
-	});
-
-	describe('serialize', () => {
-		const transaction = new TransferTransaction(randomUtils.transaction());
-		const block = newBlock({ transactions: [transaction] });
-
-		it('should convert all the field to be JSON format', () => {
-			const blockInstance = chainInstance.serialize(block);
-			expect(blockInstance.reward).toBe(block.reward.toString());
-			expect(blockInstance.totalFee).toBe(block.totalFee.toString());
-			expect(blockInstance.totalAmount).toBe(block.totalAmount.toString());
-		});
-
-		it('should have only previousBlockId property', () => {
-			const blockInstance = chainInstance.serialize(block);
-			expect(blockInstance.previousBlockId).toBeString();
-		});
-	});
-
-	describe('deserialize', () => {
-		const blockJSON = {
-			totalFee: '10000000',
-			totalAmount: '1',
-			transactionRoot:
-				'564352bc451aca0e2aeca2aebf7a3d7af18dbac73eaa31623971bfc63d20339c',
-			payloadLength: 117,
-			numberOfTransactions: 1,
-			version: 2,
-			height: 2,
-			transactions: [
-				{
-					id: '1065693148641117014',
-					blockId: '7360015088758644957',
-					type: 8,
-					fee: '10000000',
-					nonce: '1',
-					senderPublicKey:
-						'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-					signatures: [
-						'c49a1b9e8f5da4ddd9c8ad49b6c35af84c233701d53a876ef6e385a46888800334e28430166e2de8cac207452913f0e8b439b03ef8a795748ea23e28b8b1c00c',
-					],
-					asset: {
-						amount: '1',
-						recipientId: '10361596175468657749L',
-					},
-				},
-			],
-			reward: '0',
-			timestamp: 1000,
-			generatorPublicKey:
-				'1c51f8d57dd74b9cede1fa957f46559cd9596655c46ae9a306364dc5b39581d1',
-			blockSignature:
-				'acbe0321dfc4323dd0e6f41269d7dd875ae2bbc6adeb9a4b179cca00328c31e641599b5b0d16d9620886133ed977909d228ab777903f9c0d3842b9ea8630b909',
-			id: '7360015088758644957',
-			seedReveal: '00000000000000000000000000000000',
-			previousBlockId: '1349213844499460766',
-			maxHeightPreviouslyForged: 1,
-			maxHeightPrevoted: 0,
-		} as BlockJSON;
-
-		it('should convert big number field to be instance', () => {
-			const blockInstance = chainInstance.deserialize(blockJSON);
-			expect(typeof blockInstance.totalAmount).toBe('bigint');
-			expect(typeof blockInstance.totalFee).toBe('bigint');
-			expect(typeof blockInstance.reward).toBe('bigint');
-		});
-
-		it('should convert transaction to be a class', () => {
-			const blockInstance = chainInstance.deserialize(blockJSON);
-			expect(blockInstance.transactions[0]).toBeInstanceOf(TransferTransaction);
-		});
-
-		it('should have only previousBlockId property', () => {
-			const blockInstance = chainInstance.deserialize(blockJSON);
-			expect(blockInstance.previousBlockId).toBeString();
 		});
 	});
 
 	describe('save', () => {
 		let stateStoreStub: StateStore;
 		let batchMock: any;
-		let savingBlock: BlockInstance;
+		let savingBlock: Block;
 
 		const fakeAccounts = [
-			Account.getDefaultAccount('1234L'),
-			Account.getDefaultAccount('5678L'),
+			createFakeDefaultAccount(),
+			createFakeDefaultAccount(),
 		];
 
 		beforeEach(() => {
-			savingBlock = newBlock({ height: 300 });
+			savingBlock = createValidDefaultBlock({ header: { height: 300 } });
 			batchMock = {
 				put: jest.fn(),
 				del: jest.fn(),
@@ -405,7 +334,7 @@ describe('chain', () => {
 				removeFromTempTable: true,
 			});
 			expect(batchMock.del).toHaveBeenCalledWith(
-				`tempBlocks:height:${formatInt(savingBlock.height)}`,
+				`tempBlocks:height:${formatInt(savingBlock.header.height)}`,
 			);
 			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
 		});
@@ -413,11 +342,11 @@ describe('chain', () => {
 		it('should save block', async () => {
 			await chainInstance.save(savingBlock, stateStoreStub);
 			expect(batchMock.put).toHaveBeenCalledWith(
-				`blocks:id:${savingBlock.id}`,
+				`blocks:id:${savingBlock.header.id.toString('binary')}`,
 				expect.anything(),
 			);
 			expect(batchMock.put).toHaveBeenCalledWith(
-				`blocks:height:${formatInt(savingBlock.height)}`,
+				`blocks:height:${formatInt(savingBlock.header.height)}`,
 				expect.anything(),
 			);
 			expect(stateStoreStub.finalize).toHaveBeenCalledTimes(1);
@@ -426,7 +355,7 @@ describe('chain', () => {
 		it('should emit block and accounts', async () => {
 			// Arrange
 			jest.spyOn((chainInstance as any).events, 'emit');
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 
 			// Act
 			await chainInstance.save(block, stateStoreStub);
@@ -435,8 +364,10 @@ describe('chain', () => {
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
 				'NEW_BLOCK',
 				{
-					accounts: fakeAccounts.map(anAccount => anAccount.toJSON()),
-					block: chainInstance.serialize(block),
+					accounts: fakeAccounts.map(anAccount =>
+						encodeDefaultAccount(anAccount),
+					),
+					block: encodedDefaultBlock(block),
 				},
 			);
 		});
@@ -444,8 +375,8 @@ describe('chain', () => {
 
 	describe('remove', () => {
 		const fakeAccounts = [
-			Account.getDefaultAccount('1234L'),
-			Account.getDefaultAccount('5678L'),
+			createFakeDefaultAccount(),
+			createFakeDefaultAccount(),
 		];
 
 		let stateStoreStub: StateStore;
@@ -469,10 +400,7 @@ describe('chain', () => {
 		it('should throw an error when removing genesis block', async () => {
 			// Act & Assert
 			await expect(
-				chainInstance.remove(
-					chainInstance.deserialize(genesisBlock as any),
-					stateStoreStub,
-				),
+				chainInstance.remove(genesisBlock, stateStoreStub),
 			).rejects.toThrow('Cannot delete genesis block');
 		});
 
@@ -481,7 +409,7 @@ describe('chain', () => {
 			(db.get as jest.Mock).mockRejectedValue(
 				new NotFoundError('Data not found') as never,
 			);
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 			// Act & Assert
 			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toThrow(
 				'PreviousBlock is null',
@@ -495,7 +423,7 @@ describe('chain', () => {
 				.mockResolvedValue(genesisBlock as never);
 			const deleteBlockError = new Error('Delete block failed');
 			batchMock.write.mockRejectedValue(deleteBlockError);
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 			// Act & Assert
 			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toEqual(
 				deleteBlockError,
@@ -507,12 +435,12 @@ describe('chain', () => {
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockByID')
 				.mockResolvedValue(genesisBlock as never);
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 			// Act
 			await chainInstance.remove(block, stateStoreStub);
 			// Assert
 			expect(batchMock.put).not.toHaveBeenCalledWith(
-				`tempBlocks:height:${block.height}`,
+				`tempBlocks:height:${formatInt(block.header.height)}`,
 				block,
 			);
 		});
@@ -522,25 +450,23 @@ describe('chain', () => {
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockByID')
 				.mockResolvedValue(genesisBlock as never);
-			const transaction = new TransferTransaction(randomUtils.transaction());
-			const block = newBlock({ transactions: [transaction] });
-			(transaction as any).blockId = block.id;
-			const blockJSON = chainInstance.serialize(block);
+			const tx = getTransferTransaction();
+			const block = createValidDefaultBlock({ payload: [tx] });
 			// Act
 			await chainInstance.remove(block, stateStoreStub, {
 				saveTempBlock: true,
 			});
 			// Assert
-			expect(batchMock.put).not.toHaveBeenCalledWith(
-				`tempBlocks:height:${block.height}`,
-				blockJSON,
+			expect(batchMock.put).toHaveBeenCalledWith(
+				`tempBlocks:height:${formatInt(block.header.height)}`,
+				encodedDefaultBlock(block),
 			);
 		});
 
 		it('should emit block and accounts', async () => {
 			// Arrange
 			jest.spyOn((chainInstance as any).events, 'emit');
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 
 			// Act
 			await chainInstance.save(block, stateStoreStub);
@@ -549,8 +475,10 @@ describe('chain', () => {
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
 				'NEW_BLOCK',
 				{
-					accounts: fakeAccounts.map(anAccount => anAccount.toJSON()),
-					block: chainInstance.serialize(block),
+					accounts: fakeAccounts.map(anAccount =>
+						encodeDefaultAccount(anAccount),
+					),
+					block: encodedDefaultBlock(block),
 				},
 			);
 		});
@@ -559,32 +487,36 @@ describe('chain', () => {
 	describe('exists()', () => {
 		it('should return true if the block does not exist', async () => {
 			// Arrange
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 			when(db.exists)
-				.calledWith(`blocks:id:${block.id}`)
+				.calledWith(`blocks:id:${block.header.id.toString('binary')}`)
 				.mockResolvedValue(true as never);
 			// Act & Assert
 			expect(await chainInstance.exists(block)).toEqual(true);
-			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.id}`);
+			expect(db.exists).toHaveBeenCalledWith(
+				`blocks:id:${block.header.id.toString('binary')}`,
+			);
 		});
 
 		it('should return false if the block does exist', async () => {
 			// Arrange
-			const block = newBlock();
+			const block = createValidDefaultBlock();
 			when(db.exists)
-				.calledWith(`blocks:id:${block.id}`)
+				.calledWith(`blocks:id:${block.header.id.toString('binary')}`)
 				.mockResolvedValue(false as never);
 			// Act & Assert
 			expect(await chainInstance.exists(block)).toEqual(false);
-			expect(db.exists).toHaveBeenCalledWith(`blocks:id:${block.id}`);
+			expect(db.exists).toHaveBeenCalledWith(
+				`blocks:id:${block.header.id.toString('binary')}`,
+			);
 		});
 	});
 
 	describe('getHighestCommonBlock', () => {
 		it('should get the block with highest height from provided ids parameter', async () => {
 			// Arrange
-			const ids = ['1', '2'];
-			const block = newBlock();
+			const ids = [Buffer.from('1'), Buffer.from('2')];
+			const block = createValidDefaultBlock();
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByIDs')
 				.mockResolvedValue([block] as never);
@@ -600,7 +532,7 @@ describe('chain', () => {
 		});
 		it('should throw error if unable to get blocks from the storage', async () => {
 			// Arrange
-			const ids = ['1', '2'];
+			const ids = [Buffer.from('1'), Buffer.from('2')];
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByIDs')
 				.mockRejectedValue(new NotFoundError('data not found') as never);

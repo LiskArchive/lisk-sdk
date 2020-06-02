@@ -40,10 +40,9 @@ import {
 // Disabling method-signature-style otherwise type is not compatible with lisk-chain
 /* eslint-disable @typescript-eslint/method-signature-style */
 export interface AccountState {
-	get(key: Buffer): Promise<Account>;
-	getOrDefault(key: Buffer): Promise<Account>;
-	find(func: (item: Account) => boolean): Account | undefined;
-	set(key: Buffer, value: Account): void;
+	get<T>(key: Buffer): Promise<Account<T>>;
+	getOrDefault<T>(key: Buffer): Promise<Account<T>>;
+	set<T>(key: Buffer, value: Account<T>): void;
 }
 /* eslint-enable @typescript-eslint/method-signature-style */
 

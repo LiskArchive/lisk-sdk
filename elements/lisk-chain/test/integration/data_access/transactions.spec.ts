@@ -15,47 +15,42 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
-import { Storage } from '../../../src/data_access/storage';
+import { DataAccess } from '../../../src/data_access';
+import { defaultAccountSchema } from '../../utils/account';
+import { defaultBlockHeaderAssetSchema } from '../../utils/block';
+import { registeredTransactions } from '../../utils/registered_transactions';
+import { getTransferTransaction } from '../../utils/transaction';
 
 describe('dataAccess.transactions', () => {
 	let db: KVStore;
-	let storage: Storage;
+	let dataAccess: DataAccess;
 	let transactions: any;
 
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/transactions');
 		fs.ensureDirSync(parentPath);
 		db = new KVStore(path.join(parentPath, '/test-transactions.db'));
-		storage = new Storage(db);
+		dataAccess = new DataAccess({
+			db,
+			accountSchema: defaultAccountSchema as any,
+			registeredBlockHeaders: {
+				0: defaultBlockHeaderAssetSchema,
+				2: defaultBlockHeaderAssetSchema,
+			},
+			registeredTransactions,
+			minBlockHeaderCache: 3,
+			maxBlockHeaderCache: 5,
+		});
 	});
 
 	beforeEach(async () => {
 		transactions = [
-			{
-				id: 'transaction-id-2',
-				type: 20,
-				senderPublicKey:
-					'001efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-				nonce: '1000',
-				fee: '2001110',
-				asset: { data: 'new data' },
-			},
-			{
-				id: 'transaction-id-3',
-				type: 15,
-				senderPublicKey:
-					'002283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-				nonce: '1000',
-				fee: '2000000',
-				asset: { valid: true },
-			},
+			getTransferTransaction({ nonce: BigInt(1000) }),
+			getTransferTransaction({ nonce: BigInt(0) }),
 		];
 		const batch = db.batch();
 		for (const tx of transactions) {
-			batch.put(
-				`transactions:id:${tx.id}`,
-				Buffer.from(JSON.stringify(tx), 'utf8'),
-			);
+			batch.put(`transactions:id:${tx.id.toString('binary')}`, tx.getBytes());
 		}
 		await batch.write();
 	});
@@ -68,7 +63,7 @@ describe('dataAccess.transactions', () => {
 		it('should throw not found error if non existent ID is specified', async () => {
 			expect.assertions(1);
 			try {
-				await storage.getTransactionByID('randomId');
+				await dataAccess.getTransactionByID(Buffer.from('randomId'));
 			} catch (error) {
 				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
@@ -76,8 +71,8 @@ describe('dataAccess.transactions', () => {
 		});
 
 		it('should return transaction by ID', async () => {
-			const transaction = await storage.getTransactionByID(transactions[0].id);
-			expect(transaction).toStrictEqual(transactions[0]);
+			const tx = await dataAccess.getTransactionByID(transactions[0].id);
+			expect(tx).toStrictEqual(transactions[0]);
 		});
 	});
 
@@ -85,7 +80,10 @@ describe('dataAccess.transactions', () => {
 		it('should throw not found error if one of ID specified does not exist', async () => {
 			expect.assertions(1);
 			try {
-				await storage.getTransactionsByIDs(['randomId', transactions[0].id]);
+				await dataAccess.getTransactionsByIDs([
+					Buffer.from('randomId'),
+					transactions[0].id,
+				]);
 			} catch (error) {
 				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
@@ -93,7 +91,7 @@ describe('dataAccess.transactions', () => {
 		});
 
 		it('should return transaction by ID', async () => {
-			const result = await storage.getTransactionsByIDs([
+			const result = await dataAccess.getTransactionsByIDs([
 				transactions[1].id,
 				transactions[0].id,
 			]);
@@ -105,13 +103,13 @@ describe('dataAccess.transactions', () => {
 	describe('isTransactionPersisted', () => {
 		it('should return false if transaction does not exist', async () => {
 			await expect(
-				storage.isTransactionPersisted('random-id'),
+				dataAccess.isTransactionPersisted(Buffer.from('random-id')),
 			).resolves.toBeFalse();
 		});
 
 		it('should return true if transaction exist', async () => {
 			await expect(
-				storage.isTransactionPersisted(transactions[1].id),
+				dataAccess.isTransactionPersisted(transactions[1].id),
 			).resolves.toBeTrue();
 		});
 	});
