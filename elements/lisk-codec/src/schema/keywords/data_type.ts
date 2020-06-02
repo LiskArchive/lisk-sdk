@@ -13,7 +13,7 @@
  */
 
 import * as Debug from 'debug';
-import { SchemaError } from '../error';
+import { SchemaError } from '../errors';
 import { Schema } from '../../types';
 
 // eslint-disable-next-line new-cap

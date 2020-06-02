@@ -12,11 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ErrorObject, validator } from '@liskhq/lisk-validator';
+import { ErrorObject } from '@liskhq/lisk-validator';
 import { generateKey } from './utils';
-import { liskMetaSchema } from './schema/lisk_meta_schema';
-import { fieldNumberKeyword } from './schema/keywords/field_number';
-import { dataTypeKeyword } from './schema/keywords/data_type';
 import { readObject, writeObject } from './collection';
 
 import {
@@ -27,65 +24,11 @@ import {
 	Schema,
 	SchemaProps,
 } from './types';
-import { SchemaError } from './schema/error';
-
-const liskSchemaIdentifier = liskMetaSchema.$id;
-
-export const validateSchema = (schema: {
-	// eslint-disable-next-line
-	[key: string]: any;
-	$schema?: string;
-	$id?: string;
-}): ReadonlyArray<ErrorObject> => {
-	// We don't want to use cache that schema in validator
-	// Otherwise any frequent compilation call will fail
-	validator.removeSchema(schema.$id);
-
-	const schemaToValidate = {
-		...schema,
-		$schema: schema.$schema ?? liskSchemaIdentifier,
-	};
-
-	try {
-		const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(
-			schemaToValidate,
-		);
-
-		if (errors.length) {
-			return errors;
-		}
-
-		// To validate keyword schema we have to compile it
-		// Ajv `validateSchema` does not validate keyword meta schema
-		// https://github.com/ajv-validator/ajv/issues/1221
-		validator.compile(schemaToValidate);
-	} catch (error) {
-		if (error instanceof SchemaError) {
-			return [error.error];
-		}
-
-		return [
-			{
-				message: (error as Error).message.toString(),
-				dataPath: '',
-				keyword: '',
-				schemaPath: '',
-				params: {},
-			},
-		];
-	}
-
-	return [];
-};
+import { validateSchema } from './schema';
+import { SchemaError } from './schema/errors';
 
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
-
-	public constructor() {
-		validator.addMetaSchema(liskMetaSchema);
-		validator.addKeyword('fieldNumber', fieldNumberKeyword);
-		validator.addKeyword('dataType', dataTypeKeyword);
-	}
 
 	public addSchema(schema: Schema): ReadonlyArray<ErrorObject> {
 		const errors = validateSchema(schema);
@@ -114,7 +57,11 @@ export class Codec {
 
 	public decode<T>(schema: Schema, message: Buffer): T {
 		if (this._compileSchemas[schema.$id] === undefined) {
-			this.addSchema(schema);
+			const errors = this.addSchema(schema);
+
+			if (errors.length) {
+				throw new SchemaError(errors[0]);
+			}
 		}
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const [res] = readObject(message, 0, compiledSchema);
