@@ -44,6 +44,29 @@ export const delegateRegistrationAssetSchema = {
 	},
 };
 
+const isNullCharacterIncluded = (input: string): boolean =>
+	new RegExp(/\0|\\u0000|\\x00/).test(input);
+
+const isUsername = (username: string): boolean => {
+	if (isNullCharacterIncluded(username)) {
+		return false;
+	}
+
+	if (username !== username.trim().toLowerCase()) {
+		return false;
+	}
+
+	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
+		return false;
+	}
+
+	if (!/^[a-z0-9!@$&_.]+$/g.test(username)) {
+		return false;
+	}
+
+	return true;
+};
+
 export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
@@ -54,6 +77,21 @@ export class DelegateTransaction extends BaseTransaction {
 		super(transaction);
 
 		this.asset = transaction.asset;
+	}
+
+	protected validateAsset(): ReadonlyArray<TransactionError> {
+		const errors = [];
+		if (!isUsername(this.asset.username)) {
+			errors.push(
+				new TransactionError(
+					'The username is in unsupported format',
+					this.id,
+					'.asset.username',
+					this.asset.username,
+				),
+			);
+		}
+		return errors;
 	}
 
 	protected async applyAsset(
@@ -132,7 +170,9 @@ export class DelegateTransaction extends BaseTransaction {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _getRegisteredDelegates(store: StateStore): Promise<ChainUsernames> {
+	private async _getRegisteredDelegates(
+		store: StateStore,
+	): Promise<ChainUsernames> {
 		const usernamesBuffer = await store.chain.get(
 			CHAIN_STATE_DELEGATE_USERNAMES,
 		);
@@ -142,22 +182,30 @@ export class DelegateTransaction extends BaseTransaction {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const parsedUsernames = JSON.parse(usernamesBuffer.toString('utf8'));
 		// eslint-disable-next-line
-		parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map((value: { address: string, username: string }) => ({
-			username: value.username,
-			address: Buffer.from(value.address, 'binary'),
-		}));
+		parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
+			(value: { address: string; username: string }) => ({
+				username: value.username,
+				address: Buffer.from(value.address, 'binary'),
+			}),
+		);
 
 		return parsedUsernames as ChainUsernames;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private _setRegisteredDelegates(store: StateStore, input: ChainUsernames): void {
-		const updatingObject = Buffer.from(JSON.stringify({
-			registeredDelegates: input.registeredDelegates.map(value => ({ address: value.address.toString('binary'), username: value.username })),
-		}), 'utf8');
-		store.chain.set(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-			updatingObject,
+	private _setRegisteredDelegates(
+		store: StateStore,
+		input: ChainUsernames,
+	): void {
+		const updatingObject = Buffer.from(
+			JSON.stringify({
+				registeredDelegates: input.registeredDelegates.map(value => ({
+					address: value.address.toString('binary'),
+					username: value.username,
+				})),
+			}),
+			'utf8',
 		);
+		store.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObject);
 	}
 }
