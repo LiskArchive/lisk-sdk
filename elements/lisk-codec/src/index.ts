@@ -13,4 +13,3 @@
  */
 
 export * from './codec';
-export { validateSchema } from './schema';

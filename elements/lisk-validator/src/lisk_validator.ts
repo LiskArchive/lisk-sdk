@@ -21,7 +21,7 @@ import { fieldNumberKeyword } from './keywords/field_number';
 import { dataTypeKeyword } from './keywords/data_type';
 import { liskMetaSchema } from './lisk_meta_schema';
 
-export const liskSchemaIdentifier = liskMetaSchema.$id;
+export const liskSchemaIdentifier: string = liskMetaSchema.$id;
 
 class LiskValidator {
 	private readonly _validator: Ajv.Ajv;

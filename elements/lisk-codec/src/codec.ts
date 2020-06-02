@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ErrorObject } from '@liskhq/lisk-validator';
+import {
+	ErrorObject,
+	LiskValidationError,
+	validator,
+	liskSchemaIdentifier,
+} from '@liskhq/lisk-validator';
 import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
 
@@ -24,32 +29,56 @@ import {
 	Schema,
 	SchemaProps,
 } from './types';
-import { validateSchema } from './schema';
-import { SchemaError } from './schema/errors';
+
+export const validateSchema = (schema: {
+	// eslint-disable-next-line
+	[key: string]: any;
+	$schema?: string;
+	$id?: string;
+}): boolean => {
+	// We don't want to use cache that schema in validator
+	// Otherwise any frequent compilation call will fail
+	validator.removeSchema(schema.$id);
+
+	const schemaToValidate = {
+		...schema,
+		$schema: schema.$schema ?? liskSchemaIdentifier,
+	};
+
+	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(
+		schemaToValidate,
+	);
+
+	if (errors.length) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		throw new LiskValidationError([...errors]);
+	}
+
+	// To validate keyword schema we have to compile it
+	// Ajv `validateSchema` does not validate keyword meta schema
+	// https://github.com/ajv-validator/ajv/issues/1221
+	validator.compile(schemaToValidate);
+
+	return true;
+};
 
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
-	public addSchema(schema: Schema): ReadonlyArray<ErrorObject> {
-		const errors = validateSchema(schema);
-		if (errors.length) {
-			return errors;
-		}
+	public addSchema(schema: Schema): boolean {
+		validateSchema(schema);
 
 		const schemaName = schema.$id;
 		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
 
-		return [];
+		return true;
 	}
 
 	public encode(schema: Schema, message: GenericObject): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
-			const errors = this.addSchema(schema);
-
-			if (errors.length) {
-				throw new SchemaError(errors[0]);
-			}
+			this.addSchema(schema);
 		}
+
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const res = writeObject(compiledSchema, message, []);
 		return Buffer.concat(res[0]);
@@ -57,11 +86,7 @@ export class Codec {
 
 	public decode<T>(schema: Schema, message: Buffer): T {
 		if (this._compileSchemas[schema.$id] === undefined) {
-			const errors = this.addSchema(schema);
-
-			if (errors.length) {
-				throw new SchemaError(errors[0]);
-			}
+			this.addSchema(schema);
 		}
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const [res] = readObject(message, 0, compiledSchema);
