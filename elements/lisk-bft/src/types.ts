@@ -100,3 +100,7 @@ export class BFTForkChoiceRuleError extends BFTError {
 }
 
 export class BFTInvalidAttributeError extends BFTError {}
+
+export interface BFTPersistedValues {
+	readonly finalizedHeight: number;
+}

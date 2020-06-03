@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	ErrorObject,
+	LiskValidationError,
+	validator,
+	liskSchemaIdentifier,
+} from '@liskhq/lisk-validator';
 import { generateKey } from './utils';
+import { readObject, writeObject } from './collection';
 
 import {
 	CompiledSchema,
@@ -23,20 +30,55 @@ import {
 	SchemaProps,
 } from './types';
 
-import { writeObject, readObject } from './collection';
+export const validateSchema = (schema: {
+	// eslint-disable-next-line
+	[key: string]: any;
+	$schema?: string;
+	$id?: string;
+}): boolean => {
+	// We don't want to use cache that schema in validator
+	// Otherwise any frequent compilation call will fail
+	validator.removeSchema(schema.$id);
+
+	const schemaToValidate = {
+		...schema,
+		$schema: schema.$schema ?? liskSchemaIdentifier,
+	};
+
+	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(
+		schemaToValidate,
+	);
+
+	if (errors.length) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		throw new LiskValidationError([...errors]);
+	}
+
+	// To validate keyword schema we have to compile it
+	// Ajv `validateSchema` does not validate keyword meta schema
+	// https://github.com/ajv-validator/ajv/issues/1221
+	validator.compile(schemaToValidate);
+
+	return true;
+};
 
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
-	public addSchema(schema: Schema): void {
+	public addSchema(schema: Schema): boolean {
+		validateSchema(schema);
+
 		const schemaName = schema.$id;
 		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
+
+		return true;
 	}
 
 	public encode(schema: Schema, message: GenericObject): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
+
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const res = writeObject(compiledSchema, message, []);
 		return Buffer.concat(res[0]);
@@ -49,7 +91,7 @@ export class Codec {
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const [res] = readObject(message, 0, compiledSchema);
 
-		return res as unknown as T;
+		return (res as unknown) as T;
 	}
 
 	private _compileSchema(

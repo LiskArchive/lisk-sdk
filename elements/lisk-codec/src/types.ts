@@ -23,7 +23,9 @@ export interface SchemaPair {
 }
 export interface Schema {
 	readonly $id: string;
+	readonly $schema?: string;
 	readonly type: string;
+	readonly required?: string[];
 	properties: SchemaPair;
 }
 export interface SchemaProps {
@@ -56,4 +58,8 @@ export type CompiledSchemasArray = Array<CompiledSchema | CompiledSchema[]>;
 
 export interface CompiledSchemas {
 	[key: string]: CompiledSchemasArray;
+}
+
+export interface Validator {
+	addMetaSchema: (schema: object, key?: string) => {};
 }
