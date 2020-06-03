@@ -1,5 +1,5 @@
 export const voteWeightsSchema = {
-	$id: '/voteWeightsSchema',
+	$id: '/dpos/voteWeights',
 	type: 'object',
 	properties: {
 		voteWeights: {
@@ -34,4 +34,39 @@ export const voteWeightsSchema = {
 		},
 	},
 	required: ['voteWeights'],
+};
+
+export const forgerListSchema = {
+	$id: '/dpos/forgerList',
+	type: 'object',
+	properties: {
+		forgersList: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				properties: {
+					round: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					delegates: {
+						type: 'array',
+						fieldNumber: 2,
+						items: {
+							dataType: 'bytes',
+						},
+					},
+					standby: {
+						type: 'array',
+						fieldNumber: 3,
+						items: {
+							dataType: 'bytes',
+						},
+					},
+				},
+			},
+		},
+	},
+	required: ['forgersList'],
 };

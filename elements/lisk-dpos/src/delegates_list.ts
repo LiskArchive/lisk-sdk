@@ -16,7 +16,7 @@ import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { codec, Schema, GenericObject } from '@liskhq/lisk-codec';
 
 import * as Debug from 'debug';
-import { voteWeightsSchema } from './schemas';
+import { forgerListSchema, voteWeightsSchema } from './schemas';
 
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
@@ -83,17 +83,12 @@ const _setForgersList = (
 	stateStore: StateStore,
 	forgersList: ForgersList,
 ): void => {
-	const stringifyableForgersList = forgersList.map(fl => ({
-		round: fl.round,
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		delegates: fl.delegates ? fl.delegates.map(d => d.toString('binary')) : [],
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		standby: fl.standby ? fl.standby.map(d => d.toString('binary')) : [],
-	}));
-	const forgersListStr = JSON.stringify(stringifyableForgersList);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-		Buffer.from(forgersListStr, 'utf8'),
+		codec.encode(
+			(forgerListSchema as unknown) as Schema,
+			({ forgersList } as unknown) as GenericObject,
+		),
 	);
 };
 
