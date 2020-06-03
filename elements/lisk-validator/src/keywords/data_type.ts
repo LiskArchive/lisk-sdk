@@ -14,6 +14,15 @@
 
 import * as Debug from 'debug';
 import { LiskValidationError } from '../errors';
+import {
+	isBoolean,
+	isBytes,
+	isUint32,
+	isSInt32,
+	isString,
+	isSInt64,
+	isUint64,
+} from '../validation';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('codec:keyword:dataType');
@@ -60,19 +69,27 @@ const compile = (
 	}
 
 	return (
-		_data: string,
+		_data: Buffer | bigint | string | number,
 		_dataPath?: string,
 		_parentData?: object,
 		_parentDataProperty?: string | number,
 		_rootData?: object,
-	): boolean =>
+	): boolean => {
+		if (value === 'boolean') return isBoolean(_data);
+		if (value === 'bytes') return isBytes(_data as Buffer);
+		if (value === 'string') return isString(value);
+		if (value === 'uint32') return isUint32(_data);
+		if (value === 'sint32') return isSInt32(_data);
+		if (value === 'uint64') return isSInt64(_data);
+		if (value === 'uint64') return isUint64(_data);
+
 		// Either "dataType" or "type" can be presented in schema
-		!typePropertyPresent;
+		return !typePropertyPresent;
+	};
 };
 
 export const dataTypeKeyword = {
 	compile,
-	valid: true,
 	errors: true,
 	modifying: false,
 	metaSchema,
