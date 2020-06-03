@@ -20,13 +20,9 @@ import {
 	TransactionError,
 } from '@liskhq/lisk-transactions';
 import * as _ from 'lodash';
-import { validator as liskValidator } from '@liskhq/lisk-validator';
 import { Application } from '../../../../src/application/application';
 import * as validator from '../../../../src/application/validator';
-import {
-	genesisBlockSchema,
-	constantsSchema,
-} from '../../../../src/application/schema';
+import { constantsSchema } from '../../../../src/application/schema';
 import { SchemaValidationError } from '../../../../src/errors';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
@@ -35,13 +31,6 @@ import { createLogger } from '../../../../src/application/logger';
 import { GenesisBlockJSON } from '../../../../src/application/node/node';
 
 jest.mock('fs-extra');
-jest.mock('@liskhq/lisk-validator', () => ({
-	validator: {
-		validate: jest.fn().mockImplementation(() => {
-			return [];
-		}),
-	},
-}));
 jest.mock('../../../../src/application/logger');
 
 const config: any = {
@@ -71,14 +60,10 @@ describe('Application', () => {
 		it('should validate genesisBlock', () => {
 			// Act
 
-			// eslint-disable-next-line no-new
-			new Application(genesisBlock as GenesisBlockJSON, config);
 			// Assert
-			expect(liskValidator.validate).toHaveBeenNthCalledWith(
-				1,
-				genesisBlockSchema,
-				genesisBlock,
-			);
+			expect(
+				() => new Application({ invalid: 'genesis block' } as any, config),
+			).toThrow();
 		});
 
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {

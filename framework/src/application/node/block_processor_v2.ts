@@ -81,7 +81,7 @@ export const getTransactionRoot = (ids: Buffer[]): Buffer => {
 
 export class BlockProcessorV2 extends BaseBlockProcessor {
 	public static readonly schema = {
-		$id: 'test/defaultBlockHeaderAssetSchema',
+		$id: '/block-header/asset/v2',
 		type: 'object',
 		properties: {
 			maxHeightPreviouslyForged: {

@@ -97,9 +97,7 @@ export const isBase64String = (data: unknown): boolean => {
 		return false;
 	}
 
-	return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i.test(
-		data,
-	);
+	return /^[a-zA-Z0-9+/]+={0,3}$/i.test(data);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {

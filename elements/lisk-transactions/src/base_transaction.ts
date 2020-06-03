@@ -159,14 +159,14 @@ export abstract class BaseTransaction {
 	public validate(): TransactionResponse {
 		const errors = [...this._validateSchema()];
 		if (errors.length > 0) {
-			return createResponse(this._id, errors);
+			return createResponse(this.id, errors);
 		}
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
 					`Invalid transaction type`,
-					this._id,
+					this.id,
 					'.type',
 					this.type,
 					(this.constructor as typeof BaseTransaction).TYPE,
@@ -178,14 +178,14 @@ export abstract class BaseTransaction {
 			errors.push(
 				new TransactionError(
 					`Insufficient transaction fee. Minimum required fee is: ${this.minFee.toString()}`,
-					this._id,
+					this.id,
 					'.fee',
 					this.fee.toString(),
 				),
 			);
 		}
 
-		return createResponse(this._id, errors);
+		return createResponse(this.id, errors);
 	}
 
 	public async apply(store: StateStore): Promise<TransactionResponse> {
@@ -194,7 +194,7 @@ export abstract class BaseTransaction {
 
 		// Verify sender against publicKey
 		const senderPublicKeyError = verifySenderPublicKey(
-			this._id,
+			this.id,
 			sender,
 			this.senderPublicKeyStr,
 		);
@@ -203,7 +203,7 @@ export abstract class BaseTransaction {
 		}
 
 		// Verify Account Nonce
-		const accountNonceError = verifyAccountNonce(this._id, sender, this.nonce);
+		const accountNonceError = verifyAccountNonce(this.id, sender, this.nonce);
 		if (accountNonceError) {
 			errors.push(accountNonceError);
 		}
@@ -234,7 +234,7 @@ export abstract class BaseTransaction {
 
 		// Validate minimum remaining balance
 		const minRemainingBalanceError = verifyMinRemainingBalance(
-			this._id,
+			this.id,
 			updatedSender,
 			(this.constructor as typeof BaseTransaction).MIN_REMAINING_BALANCE,
 		);
@@ -242,7 +242,7 @@ export abstract class BaseTransaction {
 			errors.push(minRemainingBalanceError);
 		}
 
-		return createResponse(this._id, errors);
+		return createResponse(this.id, errors);
 	}
 
 	public async undo(store: StateStore): Promise<TransactionResponse> {
@@ -257,7 +257,7 @@ export abstract class BaseTransaction {
 				: [
 						new TransactionError(
 							'Invalid balance amount',
-							this._id,
+							this.id,
 							'.balance',
 							sender.balance.toString(),
 							updatedBalance.toString(),
@@ -272,7 +272,7 @@ export abstract class BaseTransaction {
 		const assetErrors = await this.undoAsset(store);
 		errors.push(...assetErrors);
 
-		return createResponse(this._id, errors);
+		return createResponse(this.id, errors);
 	}
 
 	public async verifySignatures(
@@ -296,24 +296,24 @@ export abstract class BaseTransaction {
 				this.senderPublicKey,
 				this.signatures[0] as Buffer,
 				transactionWithNetworkIdentifierBytes,
-				this._id,
+				this.id,
 			);
 
 			if (error) {
-				return createResponse(this._id, [error]);
+				return createResponse(this.id, [error]);
 			}
 
-			return createResponse(this._id, []);
+			return createResponse(this.id, []);
 		}
 
 		const errors = verifyMultiSignatureTransaction(
-			this._id,
+			this.id,
 			sender,
 			this.signatures,
 			transactionWithNetworkIdentifierBytes,
 		);
 
-		return createResponse(this._id, errors);
+		return createResponse(this.id, errors);
 	}
 
 	public sign(
@@ -403,16 +403,16 @@ export abstract class BaseTransaction {
 	private _validateSchema(): ReadonlyArray<TransactionError> {
 		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, this);
 		const errors = convertToTransactionError(
-			this._id,
+			this.id,
 			schemaErrors,
 		) as TransactionError[];
 
 		const assetSchemaErrors = validator.validate(
-			BaseTransaction.ASSET_SCHEMA,
+			(this.constructor as typeof BaseTransaction).ASSET_SCHEMA,
 			(this.asset as unknown) as GenericObject,
 		);
 		const assetErrors = convertToTransactionError(
-			this._id,
+			this.id,
 			assetSchemaErrors,
 		) as TransactionError[];
 

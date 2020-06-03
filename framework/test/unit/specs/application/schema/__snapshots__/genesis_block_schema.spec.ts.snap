@@ -49,9 +49,7 @@ Object {
           },
           "previousBlockID": Object {
             "format": "hex",
-            "type": Array [
-              "string",
-            ],
+            "type": "string",
           },
           "reward": Object {
             "format": "amount",
@@ -97,9 +95,9 @@ Object {
               "type": "string",
             },
             "id": Object {
-              "format": "id",
-              "maxLength": 20,
-              "minLength": 1,
+              "format": "hex",
+              "maxLength": 64,
+              "minLength": 64,
               "type": "string",
             },
             "nonce": Object {

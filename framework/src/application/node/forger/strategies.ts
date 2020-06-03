@@ -72,8 +72,12 @@ export class HighFeeForgingStrategy {
 		// Loop till we have last account exhausted to pick transactions
 		while (transactionsBySender.size > 0) {
 			// Get the transaction with highest fee and lowest nonce
-			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()
-				?.value as BaseTransaction;
+			const lowestNonceHighestFeeTrx = feePriorityHeap.pop()?.value as
+				| BaseTransaction
+				| undefined;
+			if (!lowestNonceHighestFeeTrx) {
+				throw new Error('lowest nonce tx must exist');
+			}
 			const senderId = getAddressFromPublicKey(
 				lowestNonceHighestFeeTrx.senderPublicKey,
 			);

@@ -122,7 +122,7 @@ export const uint32 = (data: string): boolean =>
 export const int32 = (data: string): boolean =>
 	isNumberString(data) && isInt32(BigInt(data));
 
-const camelCaseRegex = /^([a-z]+[A-Z]*)+$/;
+const camelCaseRegex = /^([a-z0-9]+[A-Z]*)+$/;
 
 export const camelCase = (data: string): boolean =>
 	camelCaseRegex.exec(data) !== null;
