@@ -23,7 +23,7 @@ import {
 	Chain,
 	DPoS,
 	BFTPersistedValues,
-	BFTPersistedValuesSchema,
+	BFTFinalizedHeightCodecSchema,
 } from '../../src';
 import { StateStoreMock } from './state_store_mock';
 
@@ -153,7 +153,7 @@ describe('bft', () => {
 				const finalizedHeight = 5;
 				const stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight },
 					),
 				});
@@ -175,7 +175,7 @@ describe('bft', () => {
 			beforeEach(async () => {
 				stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight: lastFinalizedHeight },
 					),
 				});
@@ -195,7 +195,7 @@ describe('bft', () => {
 						)) ?? Buffer.from('00');
 
 					const { finalizedHeight } = codec.decode<BFTPersistedValues>(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						finalizedHeightBuffer,
 					);
 
@@ -211,7 +211,7 @@ describe('bft', () => {
 			beforeEach(async () => {
 				stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight: 1 },
 					),
 				});
@@ -238,7 +238,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight: 5 },
 					),
 				});
@@ -261,7 +261,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight: 5 },
 					),
 				});
@@ -297,7 +297,7 @@ describe('bft', () => {
 				// Arrange
 				const stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight: 5 },
 					),
 				});
@@ -350,7 +350,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
 					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						{ finalizedHeight: 1 },
 					),
 				});

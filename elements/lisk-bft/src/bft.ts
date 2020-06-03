@@ -34,10 +34,10 @@ import {
 export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
-export const BFTPersistedValuesSchema = {
+export const BFTFinalizedHeightCodecSchema = {
 	type: 'object',
-	$id: '/BFT',
-	title: 'LiskBFT',
+	$id: '/BFT/FinalizedHeight',
+	title: 'Lisk BFT Finalized Height',
 	properties: {
 		finalizedHeight: {
 			dataType: 'uint32',
@@ -46,7 +46,7 @@ export const BFTPersistedValuesSchema = {
 	},
 };
 
-codec.addSchema(BFTPersistedValuesSchema);
+codec.addSchema(BFTFinalizedHeightCodecSchema);
 
 /**
  * BFT class responsible to hold integration logic for finality manager with the framework
@@ -129,7 +129,7 @@ export class BFT extends EventEmitter {
 
 		stateStore.consensus.set(
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
-			codec.encode(BFTPersistedValuesSchema, { finalizedHeight }),
+			codec.encode(BFTFinalizedHeightCodecSchema, { finalizedHeight }),
 		);
 	}
 
@@ -253,7 +253,7 @@ export class BFT extends EventEmitter {
 			storedFinalizedHeightBuffer === undefined
 				? 1
 				: codec.decode<BFTPersistedValues>(
-						BFTPersistedValuesSchema,
+						BFTFinalizedHeightCodecSchema,
 						storedFinalizedHeightBuffer,
 				  ).finalizedHeight;
 
