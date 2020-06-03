@@ -272,15 +272,11 @@ export class Chain {
 	}
 
 	public get lastBlock(): Block {
-		const { ...block } = this._lastBlock;
-
-		return block;
+		return this._lastBlock;
 	}
 
 	public get genesisBlock(): Block {
-		const { ...block } = this._genesisBlock;
-
-		return block;
+		return this._genesisBlock;
 	}
 
 	public async init(): Promise<void> {
