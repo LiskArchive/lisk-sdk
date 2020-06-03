@@ -44,7 +44,7 @@ export const transferAssetSchema = {
 		data: {
 			dataType: 'string',
 			fieldNumber: 3,
-			minLength: 1,
+			minLength: 0,
 			maxLength: 64,
 		},
 	},

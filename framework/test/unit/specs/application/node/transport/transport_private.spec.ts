@@ -505,11 +505,12 @@ describe('transport', () => {
 						expect(transportModule['_channel'].publish).toHaveBeenCalledTimes(
 							1,
 						);
-						expect(
-							transportModule['_channel'].publish,
-						).toHaveBeenCalledWith('app:transaction:new', {
-							transaction: transaction.getBytes().toString('base64'),
-						});
+						expect(transportModule['_channel'].publish).toHaveBeenCalledWith(
+							'app:transaction:new',
+							{
+								transaction: transaction.getBytes().toString('base64'),
+							},
+						);
 					});
 				});
 			});
@@ -633,7 +634,7 @@ describe('transport', () => {
 
 					beforeEach(() => {
 						postBlockQuery = {
-							block: '1234567890',
+							block: 'non-base64_strinng@',
 						};
 					});
 
