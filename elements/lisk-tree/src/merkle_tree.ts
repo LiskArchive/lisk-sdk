@@ -44,21 +44,7 @@ interface NodeInfo {
 }
 
 const isLeaf = (value: Buffer): boolean =>
-	LEAF_PREFIX.compare(value.slice(0, 1)) === 0 &&
-	value.compare(Buffer.alloc(0)) !== 0;
-
-const isBranch = (value: Buffer): boolean =>
-	LEAF_PREFIX.compare(value.slice(0, 1)) === 1;
-
-/*
-	We use the binary representation of dataLength to find the correct appendPath
-	Each digit di ∈ {0, 1} labels a layer of the tree according to the power of 2 it represents
-	The rightmost digit is the base layer
-*/
-const isAppendPath = (dataLength: number, layer: number): boolean => {
-	const multiplier = 2 ** layer;
-	return ((dataLength | (multiplier - 1)) & multiplier) !== 0;
-};
+	value[0] === LEAF_PREFIX[0] && value.compare(Buffer.alloc(0)) !== 0;
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -92,15 +78,15 @@ export class MerkleTree {
 		let type: NodeType;
 		if (this._root.compare(nodeHash) === 0) {
 			type = NodeType.ROOT;
-		} else if (isBranch(value)) {
-			type = NodeType.BRANCH;
-		} else {
+		} else if (isLeaf(value)) {
 			type = NodeType.LEAF;
+		} else {
+			type = NodeType.BRANCH;
 		}
-		const layerIndex = type === NodeType.BRANCH ? value.readInt8(0) : 0;
+		const layerIndex = type === NodeType.LEAF ? 0 : value.readInt8(1);
 		const nodeIndex =
 			type === NodeType.BRANCH
-				? value.readBigInt64BE(LAYER_INDEX_SIZE)
+				? value.readBigInt64BE(LAYER_INDEX_SIZE + 1)
 				: BigInt(0);
 		const rightHash =
 			type !== NodeType.LEAF
@@ -123,27 +109,43 @@ export class MerkleTree {
 	}
 
 	public append(value: Buffer): Buffer {
+		if (this._width === 0) {
+			const leaf = this._generateLeaf(value);
+			this._root = leaf.hash;
+			this._width += 1;
+
+			return leaf.hash;
+		}
 		const appendPath: NodeInfo[] = [];
 		let currentNode = this.getNode(this._root);
 		const treeHeight = this._getHeight();
 		// Create the appendPath:
 		// We start from the root layer and traverse each layer down the tree on the right side
-		for (let i = 0; i < treeHeight; i += 1) {
-			// If node is in appendPath, add it
-			if (isAppendPath(this._width, treeHeight - i - 1)) {
+		// eslint-disable-next-line
+		while (true) {
+			// If tree is balanced, add root and finish
+			if (this._width === 2 ** (treeHeight - 1)) {
 				appendPath.push(currentNode);
+				break;
 			}
 
 			// If node is a leaf, break
 			if (currentNode.type === NodeType.LEAF) {
+				// if current node is not paired, add this node to append path
+				if (this._width % 2 === 1) {
+					appendPath.push(currentNode);
+				}
 				break;
 			}
 
-			// If left node is in appendPath, add it
-			if (isAppendPath(this._width, treeHeight - i - 2)) {
-				appendPath.push(this.getNode(currentNode.leftHash));
+			// if all leaf is paired, add one layer above
+			if (currentNode.layerIndex === 1 && this._width % 2 === 0) {
+				appendPath.push(currentNode);
+				break;
 			}
-
+			// Otherwise add left and proceed to right
+			const leftNode = this.getNode(currentNode.leftHash);
+			appendPath.push(leftNode);
 			// Move to right node
 			currentNode = this.getNode(currentNode.rightHash);
 		}
@@ -264,7 +266,7 @@ export class MerkleTree {
 		}
 
 		// Start from base layer
-		let currentLayerIndex = 1;
+		let currentLayerIndex = 0;
 		let currentLayerHashes = leafHashes;
 		let orphanNodeHashInPreviousLayer: Buffer | undefined;
 		// Loop through each layer as long as there are nodes or an orphan node from previous layer
@@ -304,7 +306,7 @@ export class MerkleTree {
 				const node = this._generateNode(
 					leftHash,
 					rightHash,
-					currentLayerIndex,
+					currentLayerIndex + 1,
 					BigInt(i),
 				);
 

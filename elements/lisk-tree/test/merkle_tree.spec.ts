@@ -34,7 +34,7 @@ describe('MerkleTree', () => {
 	});
 
 	describe('append', () => {
-		for (const test of fixture.testCases) {
+		for (const test of fixture.testCases.slice(1)) {
 			describe(test.description, () => {
 				it(`should append and have correct root`, () => {
 					const inputs = test.input.transactionIds.map(hexString =>
