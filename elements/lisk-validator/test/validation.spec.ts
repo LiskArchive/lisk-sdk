@@ -36,6 +36,10 @@ import {
 	isCsv,
 	isSignature,
 	isValidTransferData,
+	isString,
+	isBoolean,
+	isSInt32,
+	isBytes,
 } from '../src/validation';
 
 describe('validation', () => {
@@ -545,6 +549,98 @@ describe('validation', () => {
 
 			expect(isValidTransferData(validDataMinimum)).toBeTrue();
 			expect(isValidTransferData(validDataMaximum)).toBeTrue();
+		});
+	});
+
+	describe('#isBytes', () => {
+		it('should return false when number was provided', () => {
+			return expect(isBytes(1234)).toBeFalse();
+		});
+
+		it('should return false when boolean was provided', () => {
+			return expect(isBytes(false)).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isBytes(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when string was provided', () => {
+			return expect(isBytes('lisk test 12345')).toBeFalse();
+		});
+
+		it('should return true when buffer was provided', () => {
+			return expect(isBytes(Buffer.from('lisk', 'utf8'))).toBeTrue();
+		});
+	});
+
+	describe('#isString', () => {
+		it('should return false when number was provided', () => {
+			return expect(isString(1234)).toBeFalse();
+		});
+
+		it('should return false when boolean was provided', () => {
+			return expect(isString(false)).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isString(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isString(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return true when string was provided', () => {
+			return expect(isString('lisk test 12345')).toBeTrue();
+		});
+	});
+
+	describe('#isBoolean', () => {
+		it('should return false when number was provided', () => {
+			return expect(isBoolean(1234)).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isBoolean(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isBoolean(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return false when string was provided', () => {
+			return expect(isBoolean('lisk test 12345')).toBeFalse();
+		});
+
+		it('should return true when boolean was provided', () => {
+			return expect(isBoolean(false)).toBeTrue();
+		});
+	});
+
+	describe('#isSInt32', () => {
+		it('should return false when string was provided', () => {
+			return expect(isSInt32('1234')).toBeFalse();
+		});
+
+		it('should return false when bigint was provided', () => {
+			return expect(isSInt32(BigInt(9))).toBeFalse();
+		});
+
+		it('should return false when buffer was provided', () => {
+			return expect(isSInt32(Buffer.from('lisk', 'utf8'))).toBeFalse();
+		});
+
+		it('should return true when a valid number was provided', () => {
+			return expect(isSInt32(2147483647)).toBeTrue();
+		});
+
+		it('should return false when the number is just over the limit of sint32', () => {
+			return expect(isSInt32(2147483648)).toBeFalse();
+		});
+
+		it('should return false when the number is just below the limit of sint32', () => {
+			return expect(isSInt32(-2147483648)).toBeFalse();
 		});
 	});
 });

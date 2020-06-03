@@ -248,4 +248,4 @@ export const isSInt64 = (data: unknown): boolean =>
 export const isUint64 = (data: unknown): boolean =>
 	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
 
-export const isBytes = (data: Buffer): boolean => Buffer.isBuffer(data);
+export const isBytes = (data: unknown): boolean => Buffer.isBuffer(data);
