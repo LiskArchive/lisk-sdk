@@ -29,10 +29,10 @@ export const validateSignature = (
 		valid,
 		error: !valid
 			? new TransactionError(
-				`Failed to validate signature ${bufferToHex(signature)}`,
-				id,
-				'.signatures',
-			)
+					`Failed to validate signature ${bufferToHex(signature)}`,
+					id,
+					'.signatures',
+			  )
 			: undefined,
 	};
 };

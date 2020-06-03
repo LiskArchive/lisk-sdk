@@ -67,8 +67,9 @@ const baseSchema = {
 };
 
 const pomAsset = {
+	$id: 'asset/pom',
 	type: 'object',
-	'properties:': {
+	properties: {
 		header1: { dataType: 'bytes', fieldNumber: 1 },
 		header2: { dataType: 'bytes', fieldNumber: 2 },
 	},
@@ -76,6 +77,7 @@ const pomAsset = {
 };
 
 const blockHeaderWithoutSignature = {
+	$id: 'asset/header/no-signature',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
@@ -102,6 +104,7 @@ const blockHeaderWithoutSignature = {
 
 const blockHeader = {
 	...blockHeaderWithoutSignature,
+	$id: 'asset/header',
 	properties: {
 		...blockHeaderWithoutSignature.properties,
 		signature: { dataType: 'bytes', fieldNumber: 9 },
@@ -110,6 +113,7 @@ const blockHeader = {
 
 const blockAsset = {
 	type: 'object',
+	$id: 'block/asset',
 	properties: {
 		maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 2 },
@@ -136,8 +140,16 @@ const sign = (header, privateKey) => {
 const getAssetBytes = asset => {
 	const { header1, header2 } = asset;
 
-	const header1Bytes = codec.encode(blockHeader, header1);
-	const header2Bytes = codec.encode(blockHeader, header2);
+	const header1Asset = codec.encode(blockAsset, header1.asset);
+	const header1Bytes = codec.encode(blockHeader, {
+		...header1,
+		asset: header1Asset,
+	});
+	const header2Asset = codec.encode(blockAsset, header2.asset);
+	const header2Bytes = codec.encode(blockHeader, {
+		...header2,
+		asset: header2Asset,
+	});
 
 	return codec.encode(pomAsset, {
 		header1: header1Bytes,
@@ -224,7 +236,7 @@ const scenario1Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -250,7 +262,7 @@ const scenario1Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -322,7 +334,7 @@ const scenario2Header1 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -348,7 +360,7 @@ const scenario2Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -420,7 +432,7 @@ const scenario3Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -446,7 +458,7 @@ const scenario3Header2 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)).toString('hex'),
+	transactionRoot: hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',

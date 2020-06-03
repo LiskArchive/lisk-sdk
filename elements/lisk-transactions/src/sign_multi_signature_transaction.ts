@@ -20,7 +20,6 @@ import { VoteTransaction } from './13_vote_transaction';
 import { UnlockTransaction } from './14_unlock_transaction';
 import { TransferTransaction } from './8_transfer_transaction';
 import { BaseTransaction } from './base_transaction';
-import { TransactionJSON } from './types';
 import { sortKeysAscending, convertKeysToBuffer } from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,7 +55,7 @@ interface MultisigKeys {
 }
 
 export const signMultiSignatureTransaction = (options: {
-	readonly transaction: TransactionJSON;
+	readonly transaction: BaseTransaction;
 	readonly passphrase: string;
 	readonly networkIdentifier: string;
 	readonly keys: MultisigKeys;
@@ -75,14 +74,6 @@ export const signMultiSignatureTransaction = (options: {
 	sortKeysAscending(keys.mandatoryKeys);
 	sortKeysAscending(keys.optionalKeys);
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const TransactionClass = transactionMap[transaction.type];
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-	const tx = new TransactionClass({
-		...transaction,
-		networkIdentifier,
-	}) as BaseTransaction;
-
 	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
 		passphrase,
 	);
@@ -90,7 +81,7 @@ export const signMultiSignatureTransaction = (options: {
 	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifierBytes,
-		tx.getSigningBytes(),
+		transaction.getSigningBytes(),
 	]);
 
 	const signature = cryptography.signData(
@@ -98,44 +89,48 @@ export const signMultiSignatureTransaction = (options: {
 		passphrase,
 	);
 
-	if (tx.signatures.includes(signature)) {
-		sanitizeSignaturesArray(tx, options.keys);
+	if (
+		transaction.signatures.find(
+			s => s instanceof Buffer && s.equals(signature),
+		) !== undefined
+	) {
+		sanitizeSignaturesArray(transaction, options.keys);
 
-		return tx;
+		return transaction;
 	}
 
 	// Locate where this public key should go in the signatures array
-	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(
-		aPublicKey => aPublicKey === publicKey,
+	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
+		aPublicKey.equals(publicKey),
 	);
-	const optionalKeyIndex = keys.optionalKeys.findIndex(
-		aPublicKey => aPublicKey === publicKey,
+	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey =>
+		aPublicKey.equals(publicKey),
 	);
 
 	// If it's a mandatory Public Key find where to add the signature
 	if (mandatoryKeyIndex !== -1) {
 		let signatureOffset = 0;
 
-		if (tx.type === MultisignatureTransaction.TYPE) {
+		if (transaction.type === MultisignatureTransaction.TYPE) {
 			// Account for sender signature
 			signatureOffset = 1;
 		}
-		tx.signatures[mandatoryKeyIndex + signatureOffset] = signature;
+		transaction.signatures[mandatoryKeyIndex + signatureOffset] = signature;
 	}
 
 	if (optionalKeyIndex !== -1) {
 		let signatureOffset = 0;
 
-		if (tx.type === MultisignatureTransaction.TYPE) {
+		if (transaction.type === MultisignatureTransaction.TYPE) {
 			// Account for sender signature
 			signatureOffset = 1;
 		}
-		tx.signatures[
+		transaction.signatures[
 			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
 		] = signature;
 	}
 
-	sanitizeSignaturesArray(tx, options.keys);
+	sanitizeSignaturesArray(transaction, options.keys);
 
-	return tx;
+	return transaction;
 };

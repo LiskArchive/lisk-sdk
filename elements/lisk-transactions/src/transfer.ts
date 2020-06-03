@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey, hexToBuffer } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidNonce,
@@ -24,7 +27,11 @@ import {
 
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
-import { createBaseTransaction, baseTransactionToJSON, convertKeysToBuffer } from './utils';
+import {
+	createBaseTransaction,
+	baseTransactionToJSON,
+	convertKeysToBuffer,
+} from './utils';
 import { TransactionJSON } from './types';
 
 export interface TransferInputs {
@@ -82,7 +89,9 @@ const validateInputs = ({
 	if (
 		recipientAddress &&
 		recipientPublicKey &&
-		hexToBuffer(recipientAddress).equals(getAddressFromPublicKey(hexToBuffer(recipientPublicKey)))
+		hexToBuffer(recipientAddress).equals(
+			getAddressFromPublicKey(hexToBuffer(recipientPublicKey)),
+		)
 	) {
 		throw new Error('recipientAddress does not match recipientPublicKey.');
 	}
@@ -116,7 +125,9 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	const recipientAddressFromPublicKey = recipientPublicKey
 		? getAddressFromPublicKey(hexToBuffer(recipientPublicKey))
 		: undefined;
-	const recipientAddress = inputs.recipientAddress ? hexToBuffer(inputs.recipientAddress) : recipientAddressFromPublicKey;
+	const recipientAddress = inputs.recipientAddress
+		? hexToBuffer(inputs.recipientAddress)
+		: recipientAddressFromPublicKey;
 	const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 
 	const transaction = {
@@ -146,7 +157,12 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 	if (passphrases && inputs.keys) {
 		const keys = convertKeysToBuffer(inputs.keys);
 
-		transferTransaction.sign(networkIdentifierBytes, undefined, passphrases, keys);
+		transferTransaction.sign(
+			networkIdentifierBytes,
+			undefined,
+			passphrases,
+			keys,
+		);
 
 		return baseTransactionToJSON(transferTransaction);
 	}

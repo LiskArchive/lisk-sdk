@@ -59,18 +59,21 @@ const validateInputs = ({
 	}
 };
 
-const convertUnlockObjects = (unlockObjects: ReadonlyArray<RawAssetUnlock>): ReadonlyArray<Unlock> => unlockObjects.map(unlock => ({
-	delegateAddress: hexToBuffer(unlock.delegateAddress),
-	amount: BigInt(unlock.amount),
-	unvoteHeight: unlock.unvoteHeight,
-}));
+const convertUnlockObjects = (
+	unlockObjects: ReadonlyArray<RawAssetUnlock>,
+): ReadonlyArray<Unlock> =>
+	unlockObjects.map(unlock => ({
+		delegateAddress: hexToBuffer(unlock.delegateAddress),
+		amount: BigInt(unlock.amount),
+		unvoteHeight: unlock.unvoteHeight,
+	}));
 
 export const unlockToken = (
 	inputs: UnlockTokenInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
 	const { passphrase, unlockObjects } = inputs;
-	const unlockAsset = convertUnlockObjects(unlockObjects)
+	const unlockAsset = convertUnlockObjects(unlockObjects);
 	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);
 
 	const transaction = {
@@ -85,7 +88,9 @@ export const unlockToken = (
 		return baseTransactionToJSON(transaction as UnlockTransaction);
 	}
 
-	const unlockTransaction = new UnlockTransaction(transaction as UnlockTransaction);
+	const unlockTransaction = new UnlockTransaction(
+		transaction as UnlockTransaction,
+	);
 	unlockTransaction.sign(networkIdentifier, passphrase);
 
 	const { errors } = unlockTransaction.validate();

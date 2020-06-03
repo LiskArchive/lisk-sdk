@@ -25,10 +25,7 @@ import {
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 } from './constants';
 import { TransactionError } from './errors';
-import {
-	getPunishmentPeriod,
-	validateSignature,
-} from './utils';
+import { getPunishmentPeriod, validateSignature } from './utils';
 import { BlockHeader, BaseTransactionInput, AccountAsset } from './types';
 
 const signingBlockHeaderSchema = {
@@ -124,8 +121,9 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		const errors = [];
 
 		if (
-			this.asset.header1.generatorPublicKey !==
-			this.asset.header2.generatorPublicKey
+			!this.asset.header1.generatorPublicKey.equals(
+				this.asset.header2.generatorPublicKey,
+			)
 		) {
 			errors.push(
 				new TransactionError(

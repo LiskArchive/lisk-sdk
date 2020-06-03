@@ -27,10 +27,9 @@ export const getPunishmentPeriod = (
 	}
 	const lastPomHeight = Math.max(...delegateAccount.asset.delegate.pomHeights);
 	const currentHeight = lastBlockHeight + 1;
-	const punishTime =
-		sender.address === delegateAccount.address
-			? SELF_VOTE_PUNISH_TIME
-			: VOTER_PUNISH_TIME;
+	const punishTime = sender.address.equals(delegateAccount.address)
+		? SELF_VOTE_PUNISH_TIME
+		: VOTER_PUNISH_TIME;
 
 	return punishTime - (currentHeight - lastPomHeight);
 };

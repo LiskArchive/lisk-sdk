@@ -32,7 +32,7 @@ const accounts = [
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
 			'hex',
 		),
-		address: Buffer.from('4621f6e5fb351eefbe82b90e29ba400fd8f71cb4', 'hex'),
+		address: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
 		nonce: BigInt(2),
 	},
 	{
@@ -46,7 +46,7 @@ const accounts = [
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
 		),
-		address: Buffer.from('0fa1c01eb5cab297b0970a51657cd7322f2c8a5c', 'hex'),
+		address: Buffer.from('be046d336cd0c2fbde62bc47e20199395d2eeadc', 'hex'),
 		nonce: BigInt(2),
 	},
 	{
@@ -60,7 +60,7 @@ const accounts = [
 			'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
 			'hex',
 		),
-		address: Buffer.from('ea8731ee308273e61c1854261be3b46da2f4f24f', 'hex'),
+		address: Buffer.from('75445cfa4b9512b72750a8ba61f0c04f0fbede0d', 'hex'),
 		nonce: BigInt(2),
 	},
 	{
@@ -74,7 +74,7 @@ const accounts = [
 			'1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
 			'hex',
 		),
-		address: Buffer.from('48e8edbf0fe066108c467c6941bad717980e4f4f', 'hex'),
+		address: Buffer.from('b17ff61bf8b6e72155c6aab99e113e2e87696d5b', 'hex'),
 		nonce: BigInt(2),
 	},
 ];
@@ -121,6 +121,7 @@ const baseSchema = {
 
 const balanceTransferAsset = {
 	type: 'object',
+	$id: 'balanceTransferAsset',
 	properties: {
 		amount: { dataType: 'uint64', fieldNumber: 1 },
 		recipientAddress: { dataType: 'bytes', fieldNumber: 2 },
@@ -130,6 +131,7 @@ const balanceTransferAsset = {
 };
 
 const delegateRegAsset = {
+	$id: 'delegateRegAsset',
 	type: 'object',
 	properties: { username: { dataType: 'string', fieldNumber: 1 } },
 	required: ['username'],

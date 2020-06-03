@@ -40,6 +40,8 @@ const voteAssetSchema = {
 	properties: {
 		votes: {
 			type: 'array',
+			minItems: 1,
+			maxItems: 20,
 			items: {
 				type: 'object',
 				required: ['delegateAddress', 'amount'],
@@ -80,9 +82,9 @@ export class VoteTransaction extends BaseTransaction {
 		const errors = [];
 		let upvoteCount = 0;
 		let downvoteCount = 0;
-		const addressSet = new Set();
+		const addressSet: { [addressStr: string]: boolean } = {};
 		for (const vote of this.asset.votes) {
-			addressSet.add(vote.delegateAddress);
+			addressSet[vote.delegateAddress.toString('base64')] = true;
 			if (vote.amount > BigInt(0)) {
 				upvoteCount += 1;
 			} else if (vote.amount < BigInt(0)) {
@@ -129,7 +131,7 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-		if (addressSet.size !== this.asset.votes.length) {
+		if (Object.keys(addressSet).length !== this.asset.votes.length) {
 			errors.push(
 				new TransactionError(
 					'Delegate address must be unique',
@@ -167,7 +169,7 @@ export class VoteTransaction extends BaseTransaction {
 				vote.delegateAddress,
 			);
 
-			if (!votedDelegate.asset.delegate.username) {
+			if (votedDelegate.asset.delegate.username === '') {
 				errors.push(
 					new TransactionError(
 						'Voted delegate is not registered',
@@ -206,7 +208,8 @@ export class VoteTransaction extends BaseTransaction {
 				// Delete entry when amount becomes 0
 				if (sender.asset.sentVotes[originalUpvoteIndex].amount === BigInt(0)) {
 					sender.asset.sentVotes = sender.asset.sentVotes.filter(
-						senderVote => senderVote.delegateAddress !== vote.delegateAddress,
+						senderVote =>
+							!senderVote.delegateAddress.equals(vote.delegateAddress),
 					);
 				}
 				// Create unlocking object

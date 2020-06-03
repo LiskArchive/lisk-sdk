@@ -13,7 +13,7 @@
  *
  */
 
-import { hexToBuffer } from "@liskhq/lisk-cryptography";
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 
 export const findRepeatedKeys = (
 	keysA: ReadonlyArray<string>,
@@ -30,5 +30,8 @@ export const convertKeysToBuffer = (keys?: {
 	const mandatoryKeys = keys?.mandatoryKeys.map(k => hexToBuffer(k));
 	const optionalKeys = keys?.optionalKeys.map(k => hexToBuffer(k));
 
-	return { mandatoryKeys: mandatoryKeys as Buffer[], optionalKeys: optionalKeys as Buffer[] };
-}
+	return {
+		mandatoryKeys: mandatoryKeys as Buffer[],
+		optionalKeys: optionalKeys as Buffer[],
+	};
+};

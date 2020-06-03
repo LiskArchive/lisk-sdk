@@ -29,7 +29,12 @@ import {
 	MIN_NUMBER_OF_SIGNATURES,
 } from './constants';
 import { TransactionJSON } from './types';
-import { createBaseTransaction, findRepeatedKeys, convertKeysToBuffer, baseTransactionToJSON } from './utils';
+import {
+	createBaseTransaction,
+	findRepeatedKeys,
+	convertKeysToBuffer,
+	baseTransactionToJSON,
+} from './utils';
 
 export interface RegisterMultisignatureInputs {
 	readonly senderPassphrase: string;
@@ -89,16 +94,16 @@ const validateInputs = ({
 	) {
 		throw new Error(
 			`Please provide a valid numberOfSignatures. numberOfSignatures (${numberOfSignatures.toString()}) is bigger than the count of optional (${
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			optionalPublicKeys.length
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+				optionalPublicKeys.length
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			}) and mandatory (${mandatoryPublicKeys.length}) keys.`,
 		);
 	}
 
 	if (
 		mandatoryPublicKeys.length + optionalPublicKeys.length >
-		MAX_NUMBER_OF_KEYS ||
+			MAX_NUMBER_OF_KEYS ||
 		mandatoryPublicKeys.length + optionalPublicKeys.length < MIN_NUMBER_OF_KEYS
 	) {
 		throw new Error(
