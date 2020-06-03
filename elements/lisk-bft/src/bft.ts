@@ -44,6 +44,7 @@ export const BFTFinalizedHeightCodecSchema = {
 			fieldNumber: 1,
 		},
 	},
+	required: ['finalizedHeight'],
 };
 
 codec.addSchema(BFTFinalizedHeightCodecSchema);
