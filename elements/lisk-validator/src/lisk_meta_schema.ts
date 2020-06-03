@@ -38,7 +38,6 @@ export const liskMetaSchema = {
 			type: 'object',
 			propertyNames: {
 				type: 'string',
-				format: 'camelCase',
 			},
 			additionalProperties: {
 				anyOf: [
