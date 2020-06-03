@@ -13,6 +13,8 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { voteWeightsSchema } from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
 import { Account, ForgersList, BlockHeader } from '../../src/types';
@@ -37,6 +39,9 @@ describe('dpos.apply()', () => {
 	const delegateAccounts = getDelegateAccountsWithVotesReceived(
 		ACTIVE_DELEGATES + STANDBY_DELEGATES,
 	);
+
+	// console.log(delegateAccounts);
+
 	let dpos: Dpos;
 	let chainStub: any;
 	let stateStore: StateStoreMock;
@@ -95,13 +100,18 @@ describe('dpos.apply()', () => {
 			const voteWeightsBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
-			const voteWeights = JSON.parse(
-				(voteWeightsBuffer as Buffer).toString('utf8'),
+
+			const voteWeightsDecoded = codec.decode(
+				(voteWeightsSchema as unknown) as Schema,
+				voteWeightsBuffer as Buffer,
 			);
+
+			const { voteWeights } = voteWeightsDecoded as GenericObject;
+
 			expect(voteWeights).toHaveLength(1 + DELEGATE_LIST_ROUND_OFFSET);
-			expect(voteWeights[0].round).toEqual(1);
-			expect(voteWeights[1].round).toEqual(2);
-			expect(voteWeights[2].round).toEqual(3);
+			expect((voteWeights as any)[0].round).toEqual(1);
+			expect((voteWeights as any)[1].round).toEqual(2);
+			expect((voteWeights as any)[2].round).toEqual(3);
 		});
 
 		it('should save round 1 forger list in the consensus state', async () => {
@@ -196,21 +206,27 @@ describe('dpos.apply()', () => {
 			forgedDelegates = getDelegateAccountsWithVotesReceived(
 				ACTIVE_DELEGATES + STANDBY_DELEGATES - 1,
 			);
+
+			const delegateVoteWeights = [
+				{
+					round: 10,
+					delegates: forgedDelegates.map(d => ({
+						address: d.address,
+						voteWeight: d.asset.delegate.totalVotesReceived,
+					})),
+				},
+			];
+
+			const encodedDelegateVoteWeights = codec.encode(
+				(voteWeightsSchema as unknown) as Schema,
+				({ voteWeights: delegateVoteWeights } as unknown) as GenericObject,
+			);
+
 			// Make 1 delegate forge twice
 			forgedDelegates.push({ ...forgedDelegates[10] });
 			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-					JSON.stringify([
-						{
-							round: 10,
-							delegates: forgedDelegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						},
-					]),
-				),
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
 				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
 					JSON.stringify([
 						{

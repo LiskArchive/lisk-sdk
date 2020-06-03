@@ -13,7 +13,10 @@
  */
 
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
+import { codec, Schema, GenericObject } from '@liskhq/lisk-codec';
+
 import * as Debug from 'debug';
+import { voteWeightsSchema } from './schemas';
 
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
@@ -116,30 +119,31 @@ export const decodeVoteWeights = (buffer: Buffer): VoteWeights => {
 export const getVoteWeights = async (
 	stateStore: StateStore,
 ): Promise<VoteWeights> => {
-	const voteWeightsStr = await stateStore.consensus.get(
+	const voteWeights = await stateStore.consensus.get(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	);
-	if (!voteWeightsStr) {
+	if (!voteWeights) {
 		return [];
 	}
-	return decodeVoteWeights(voteWeightsStr);
+
+	const voteWeightsDecoded = codec.decode(
+		(voteWeightsSchema as unknown) as Schema,
+		voteWeights,
+	);
+	return ((voteWeightsDecoded as GenericObject)
+		.voteWeights as unknown) as VoteWeights;
 };
 
 const _setVoteWeights = (
 	stateStore: StateStore,
 	voteWeights: VoteWeights,
 ): void => {
-	const stringifyableVoteWeights = voteWeights.map(vw => ({
-		round: vw.round,
-		delegates: vw.delegates.map(d => ({
-			address: d.address.toString('binary'),
-			voteWeight: d.voteWeight.toString(),
-		})),
-	}));
-	const voteWeightsStr = JSON.stringify(stringifyableVoteWeights);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-		Buffer.from(voteWeightsStr, 'utf8'),
+		codec.encode(
+			(voteWeightsSchema as unknown) as Schema,
+			({ voteWeights } as unknown) as GenericObject,
+		),
 	);
 };
 
@@ -291,6 +295,8 @@ export class DelegatesList {
 		this.voteWeightCapRate = voteWeightCapRate;
 		this.rounds = rounds;
 		this.chain = chain;
+
+		codec.addSchema((voteWeightsSchema as unknown) as Schema);
 	}
 
 	public async createVoteWeightsSnapshot(
@@ -408,14 +414,17 @@ export class DelegatesList {
 			round,
 			delegates: delegateVoteWeights,
 		};
+
 		// Save result to the chain state with round number
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeightsIndex = voteWeights.findIndex(vw => vw.round === round);
+
 		if (voteWeightsIndex > -1) {
 			voteWeights[voteWeightsIndex] = voteWeight;
 		} else {
 			voteWeights.push(voteWeight);
 		}
+
 		_setVoteWeights(stateStore, voteWeights);
 	}
 
