@@ -12,38 +12,15 @@
 			"input": {
 				"account": {
 					"passphrase": "wear protect skill sentence lift enter wild sting lottery power floor neglect",
-					"privateKey": "8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"publicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"address": "2129300327344985743L",
+					"privateKey": "j0H/HnXE8PinG65JUiZpKNDpFmD8UTVmrGlP7WEVdJfvrx2XeJfLYNfbnTDo/WaN7gcKwNsfuNGEwGFSqLdfjQ==",
+					"publicKey": "768dl3iXy2DX250w6P1mje4HCsDbH7jRhMBhUqi3X40=",
+					"address": "RiH25fs1Hu++grkOKbpAD9j3HLQ=",
 					"nonce": "2"
 				},
-				"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
-				"transaction": {
-					"type": 8,
-					"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-					"nonce": "2",
-					"fee": "100000000",
-					"asset": {
-						"recipientId": "18141291412139607230L",
-						"amount": "1234567890",
-						"data": "random data"
-					}
-				}
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU="
 			},
 			"output": {
-				"type": 8,
-				"senderPublicKey": "efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d",
-				"nonce": "2",
-				"fee": "100000000",
-				"asset": {
-					"recipientId": "18141291412139607230L",
-					"amount": "1234567890",
-					"data": "random data"
-				},
-				"signatures": [
-					"e98d7ec13909c2d8d58c4bafdf723b6f88480619b237c58dc96c9ae6cad7e74f8b8cfe72f0137827b17c0ba1def07f6fa92af22872a23060bbdae6651bb98807"
-				],
-				"id": "14028804809042236201"
+				"transaction": "CAgQAhiAwtcvIiDvrx2XeJfLYNfbnTDo/WaN7gcKwNsfuNGEwGFSqLdfjSopCNKF2MwEEhQPocAetcqyl7CXClFlfNcyLyyKXBoLcmFuZG9tIGRhdGEyQONXtG4BSskrdhFVB7hr4LHoisPEB/UAvYnjm/OJ6Hzwp3JnekbP6QLMWrGh1Q9MCROIv2JYqyB1fC5SmXzZBg4="
 			}
 		}
 	]

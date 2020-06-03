@@ -1,0 +1,83 @@
+{
+	"title": "Valid proof-of-misbehavior transaction",
+	"summary": "A proof-of-misbehavior transaction",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "proof_of_misbehavior_transaction",
+	"handler": "proof_of_misbehavior_transaction",
+	"testCases": [
+		{
+			"description": "PoM with scenario 1",
+			"input": {
+				"reportingAccount": {
+					"address": "qlQU1MkLZuIUerTfIBpziRwVEko=",
+					"publicKey": "wJTr7n7AxQ6+4ykYZV4In24aYEuDvKp2ApPGHg8Yq28=",
+					"passphrase": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
+					"balance": "10000000000000000",
+					"encryptedPassphrase": "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1",
+					"password": "elephant tree paris dragon chair galaxy"
+				},
+				"targetAccount": {
+					"address": "BOYAyhKsAZdWSD+dxPfVgHm/Ifk=",
+					"publicKey": "rdsOFaRLD9xv8pG+KNjJj1VR0M2SGNdJ4w3bh8bjHKk=",
+					"passphrase": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
+					"balance": "10000000000000000",
+					"delegateName": "genesis_100"
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU="
+			},
+			"output": {
+				"transaction": "CA8QARiA3qDLBSIgwJTr7n7AxQ6+4ykYZV4In24aYEuDvKp2ApPGHg8Yq28qADJAVQobO2F4HYgL83+APZ1VwyWJHlLBvu7eD9197ZJ9xiKU73QpSTguHiVhbVKfv67J7PFnYqxL7Odd4eISiJ+JDA=="
+			}
+		},
+		{
+			"description": "PoM with scenario 2",
+			"input": {
+				"reportingAccount": {
+					"address": "qlQU1MkLZuIUerTfIBpziRwVEko=",
+					"publicKey": "wJTr7n7AxQ6+4ykYZV4In24aYEuDvKp2ApPGHg8Yq28=",
+					"passphrase": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
+					"balance": "10000000000000000",
+					"encryptedPassphrase": "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1",
+					"password": "elephant tree paris dragon chair galaxy"
+				},
+				"targetAccount": {
+					"address": "BOYAyhKsAZdWSD+dxPfVgHm/Ifk=",
+					"publicKey": "rdsOFaRLD9xv8pG+KNjJj1VR0M2SGNdJ4w3bh8bjHKk=",
+					"passphrase": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
+					"balance": "10000000000000000",
+					"delegateName": "genesis_100"
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU="
+			},
+			"output": {
+				"transaction": "CA8QARiA3qDLBSIgwJTr7n7AxQ6+4ykYZV4In24aYEuDvKp2ApPGHg8Yq28qADJAVQobO2F4HYgL83+APZ1VwyWJHlLBvu7eD9197ZJ9xiKU73QpSTguHiVhbVKfv67J7PFnYqxL7Odd4eISiJ+JDA=="
+			}
+		},
+		{
+			"description": "PoM with scenario 3",
+			"input": {
+				"reportingAccount": {
+					"address": "qlQU1MkLZuIUerTfIBpziRwVEko=",
+					"publicKey": "wJTr7n7AxQ6+4ykYZV4In24aYEuDvKp2ApPGHg8Yq28=",
+					"passphrase": "wagon stock borrow episode laundry kitten salute link globe zero feed marble",
+					"balance": "10000000000000000",
+					"encryptedPassphrase": "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1",
+					"password": "elephant tree paris dragon chair galaxy"
+				},
+				"targetAccount": {
+					"address": "BOYAyhKsAZdWSD+dxPfVgHm/Ifk=",
+					"publicKey": "rdsOFaRLD9xv8pG+KNjJj1VR0M2SGNdJ4w3bh8bjHKk=",
+					"passphrase": "actress route auction pudding shiver crater forum liquid blouse imitate seven front",
+					"balance": "10000000000000000",
+					"delegateName": "genesis_100"
+				},
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU="
+			},
+			"output": {
+				"transaction": "CA8QARiA3qDLBSIgwJTr7n7AxQ6+4ykYZV4In24aYEuDvKp2ApPGHg8Yq28qADJAVQobO2F4HYgL83+APZ1VwyWJHlLBvu7eD9197ZJ9xiKU73QpSTguHiVhbVKfv67J7PFnYqxL7Odd4eISiJ+JDA=="
+			}
+		}
+	]
+}

@@ -14,164 +14,206 @@
 
 'use strict';
 
-const {
-	hexToBuffer,
-	intToBuffer,
-	hash,
-	bufferToHex,
-	signData,
-} = require('@liskhq/lisk-cryptography');
+const { signData } = require('@liskhq/lisk-cryptography');
+const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 
-const networkIdentifier =
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+const codec = new Codec();
+
+const networkIdentifier = Buffer.from(
+	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+	'hex',
+);
 
 const accounts = {
 	targetAccount: {
 		passphrase:
 			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-		privateKey:
+		privateKey: Buffer.from(
 			'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		address: '18141291412139607230L',
+			'hex',
+		),
+		address: Buffer.from('be046d336cd0c2fbde62bc47e20199395d2eeadc', 'hex'),
 	},
 	mandatoryOne: {
 		passphrase:
 			'trim elegant oven term access apple obtain error grain excite lawn neck',
-		privateKey:
+		privateKey: Buffer.from(
 			'8a138c0dd8efe597c8b9c519af69e9821bd1e769cf0fb3490e22209e9cabfb8df1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-		address: '10481548956627905381L',
+			'hex',
+		),
+		address: Buffer.from('652bac0f3ef175917844a85c4a0a484fbe2395e4', 'hex'),
 	},
 	mandatoryTwo: {
 		passphrase:
 			'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
-		privateKey:
+		privateKey: Buffer.from(
 			'ddc8e19d6697d6e5c1dacf6576a7169752810999918212afe14d3978b354f8aa4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-		address: '3372320078773139180L',
+			'hex',
+		),
+		address: Buffer.from('ecb6308c3ee3cc2ed1fa266b85ba127d63a4ee1c', 'hex'),
 	},
 	optionalOne: {
 		passphrase:
 			'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-		privateKey:
+		privateKey: Buffer.from(
 			'69aa94ea7ade3b7b08e277b18c1a590b2306ce5973ae8462b0b85122b180e89c57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-		address: '7745870967079479156L',
+			'hex',
+		),
+		address: Buffer.from('74a7c8ec9adc7e6ba5c1cf9410d5c6c6bf6aba7d', 'hex'),
 	},
 	optionalTwo: {
 		passphrase:
 			'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
-		privateKey:
+		privateKey: Buffer.from(
 			'ffed38380998a90a2af9501f10182bc2a07922448ab383575b1e34aeddfa5482fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-		address: '7086965981385941478L',
+			'hex',
+		),
+		address: Buffer.from('e661c9ff02f65962ac08bc79a2f5c0d44b312fbc', 'hex'),
 	},
 };
 
-const SIGNATURE_NOT_PRESENT = Buffer.from('00', 'hex');
-const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
-
-const sortKeysAscending = publicKeys =>
-	publicKeys.sort((publicKeyA, publicKeyB) => {
-		// eslint-disable-next-line no-undef, new-cap
-		if (BigInt(`0x${publicKeyA}`) > BigInt(`0x${publicKeyB}`)) {
-			return 1;
-		}
-		// eslint-disable-next-line no-undef, new-cap
-		if (BigInt(`0x${publicKeyA}`) < BigInt(`0x${publicKeyB}`)) {
-			return -1;
-		}
-		return 0;
-	});
-
-const getId = transactionBytes => {
-	const transactionHash = hash(transactionBytes);
-	const transactionId = bufferToHex(transactionHash);
-
-	return transactionId;
-};
-
-const assetToBytes = tx => {
-	const { mandatoryKeys, optionalKeys, numberOfSignatures } = tx.asset;
-	const mandatoryKeysBuffer = Buffer.from(mandatoryKeys.join(''), 'hex');
-	const optionalKeysBuffer = Buffer.from(optionalKeys.join(''), 'hex');
-
-	const assetBuffer = Buffer.concat([
-		intToBuffer(mandatoryKeys.length, 1),
-		mandatoryKeysBuffer,
-		intToBuffer(optionalKeys.length, 1),
-		optionalKeysBuffer,
-		intToBuffer(numberOfSignatures, 1),
-	]);
-	return assetBuffer;
-};
-
-const createSignatureObject = (txBuffer, account) => ({
-	signature: signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		account.passphrase,
-	),
+const outputBase64Account = account => ({
+	...account,
+	privateKey: account.privateKey.toString('base64'),
+	publicKey: account.publicKey.toString('base64'),
+	address: account.address.toString('base64'),
 });
 
-const serializeBasicProperties = tx => {
-	const transactionNonce = intToBuffer(tx.nonce.toString(), 8);
-
-	const buf = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		transactionNonce,
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee.toString(), 8),
-		assetToBytes(tx),
-	]);
-
-	return buf;
+const baseSchema = {
+	$id: 'baseSchema',
+	type: 'object',
+	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	properties: {
+		type: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		nonce: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		fee: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+		senderPublicKey: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		asset: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 6,
+		},
+	},
 };
 
-const serializeMemberSignatures = (tx, txBuffer) => {
-	let txBufferCopy = Buffer.alloc(txBuffer.length);
-	txBuffer.copy(txBufferCopy);
-
-	tx.signatures.forEach(aSignature => {
-		const signatureBuffer = Buffer.concat([hexToBuffer(aSignature)]);
-		if (signatureBuffer.lenght === 0) {
-			txBufferCopy = Buffer.concat([
-				txBufferCopy,
-				SIGNATURE_NOT_PRESENT,
-				signatureBuffer,
-			]);
-		} else {
-			txBufferCopy = Buffer.concat([
-				txBufferCopy,
-				SIGNATURE_PRESENT,
-				signatureBuffer,
-			]);
-		}
-	});
-	return txBufferCopy;
+const multisigRegAsset = {
+	type: 'object',
+	properties: {
+		numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
+		mandatoryKeys: {
+			type: 'array',
+			items: { dataType: 'bytes' },
+			fieldNumber: 2,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: { dataType: 'bytes' },
+			fieldNumber: 3,
+		},
+	},
+	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 };
+
+const getAssetBytes = asset => codec.encode(multisigRegAsset, asset);
+
+const getSignBytes = tx => {
+	const assetBytes = getAssetBytes(tx.asset);
+	const signingTx = {
+		...tx,
+		asset: assetBytes,
+		signatures: [],
+	};
+	return codec.encode(baseSchema, signingTx);
+};
+
+const encode = tx => {
+	const assetBytes = getAssetBytes(tx.asset);
+	const txWithAssetBytes = {
+		...tx,
+		asset: assetBytes,
+	};
+	return codec.encode(baseSchema, txWithAssetBytes);
+};
+
+const sortKeysAscending = publicKeys =>
+	publicKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
+
+const createSignatureObject = (txBuffer, account) => ({
+	signature: Buffer.from(
+		signData(Buffer.concat([networkIdentifier, txBuffer]), account.passphrase),
+		'hex',
+	),
+});
 
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		senderPublicKey:
+		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		nonce: '1',
-		fee: '1500000000',
+			'hex',
+		),
+		nonce: BigInt('1'),
+		fee: BigInt('1500000000'),
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+				Buffer.from(
+					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+					'hex',
+				),
+				Buffer.from(
+					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+					'hex',
+				),
 			],
 			optionalKeys: [
-				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-				'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				Buffer.from(
+					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+					'hex',
+				),
+				Buffer.from(
+					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+					'hex',
+				),
 			],
 			numberOfSignatures: 4,
 		},
@@ -186,7 +228,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	sortKeysAscending(tx.asset.mandatoryKeys);
 	sortKeysAscending(tx.asset.optionalKeys);
 
-	let txBuffer = serializeBasicProperties(tx);
+	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(
@@ -205,45 +247,61 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	tx.signatures.push(
 		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
 	);
-	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
-	const id = getId(txBuffer);
-
-	tx.id = id;
+	const encodedTx = encode(tx);
 
 	return {
+		description: 'Both mandatory and optional member group',
 		input: {
-			account: accounts.targetAccount,
-			networkIdentifier,
+			account: outputBase64Account(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('base64'),
 			members: {
-				mandatoryOne: accounts.mandatoryOne,
-				mandatoryTwo: accounts.mandatoryTwo,
-				optionalOne: accounts.optionalOne,
-				optionalTwo: accounts.optionalTwo,
+				mandatoryOne: outputBase64Account(accounts.mandatoryOne),
+				mandatoryTwo: outputBase64Account(accounts.mandatoryTwo),
+				optionalOne: outputBase64Account(accounts.optionalOne),
+				optionalTwo: outputBase64Account(accounts.optionalTwo),
 			},
-			transaction: unsignedTransaction,
 		},
-		output: tx,
+		output: {
+			transaction: encodedTx.toString('base64'),
+		},
 	};
 };
 
 const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		senderPublicKey:
+		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		nonce: '1',
-		fee: '1500000000',
+			'hex',
+		),
+		nonce: BigInt('1'),
+		fee: BigInt('1500000000'),
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+				Buffer.from(
+					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
+				Buffer.from(
+					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+					'hex',
+				),
+				Buffer.from(
+					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+					'hex',
+				),
 			],
 			optionalKeys: [
-				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-				'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				Buffer.from(
+					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+					'hex',
+				),
+				Buffer.from(
+					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+					'hex',
+				),
 			],
 			numberOfSignatures: 4,
 		},
@@ -259,7 +317,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	sortKeysAscending(tx.asset.mandatoryKeys);
 	sortKeysAscending(tx.asset.optionalKeys);
 
-	let txBuffer = serializeBasicProperties(tx);
+	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(
@@ -283,42 +341,49 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	tx.signatures.push(
 		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
 	);
-	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
-	const id = getId(txBuffer);
-
-	tx.id = id;
+	const encodedTx = encode(tx);
 
 	return {
+		description: 'Sender is a member of the group',
 		input: {
-			account: accounts.targetAccount,
-			networkIdentifier,
+			account: outputBase64Account(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('base64'),
 			members: {
-				targetAccount: accounts.targetAccount,
-				mandatoryOne: accounts.mandatoryOne,
-				mandatoryTwo: accounts.mandatoryTwo,
-				optionalOne: accounts.optionalOne,
-				optionalTwo: accounts.optionalTwo,
+				targetAccount: outputBase64Account(accounts.targetAccount),
+				mandatoryOne: outputBase64Account(accounts.mandatoryOne),
+				mandatoryTwo: outputBase64Account(accounts.mandatoryTwo),
+				optionalOne: outputBase64Account(accounts.optionalOne),
+				optionalTwo: outputBase64Account(accounts.optionalTwo),
 			},
-			transaction: unsignedTransaction,
 		},
-		output: tx,
+		output: {
+			transaction: encodedTx.toString('base64'),
+		},
 	};
 };
 
 const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		senderPublicKey:
+		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		nonce: '1',
-		fee: '1500000000',
+			'hex',
+		),
+		nonce: BigInt('1'),
+		fee: BigInt('1500000000'),
 		type: 12,
 		asset: {
 			mandatoryKeys: [],
 			optionalKeys: [
-				'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-				'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				Buffer.from(
+					'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+					'hex',
+				),
+				Buffer.from(
+					'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+					'hex',
+				),
 			],
 			numberOfSignatures: 1,
 		},
@@ -334,7 +399,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	sortKeysAscending(tx.asset.mandatoryKeys);
 	sortKeysAscending(tx.asset.optionalKeys);
 
-	let txBuffer = serializeBasicProperties(tx);
+	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(
@@ -347,38 +412,45 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	tx.signatures.push(
 		createSignatureObject(txBuffer, accounts.optionalTwo).signature,
 	);
-	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
-	const id = getId(txBuffer);
-
-	tx.id = id;
+	const encodedTx = encode(tx);
 
 	return {
+		description: 'Only optional members',
 		input: {
-			account: accounts.targetAccount,
-			networkIdentifier,
+			account: outputBase64Account(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('base64'),
 			members: {
-				optionalOne: accounts.optionalOne,
-				optionalTwo: accounts.optionalTwo,
+				optionalOne: outputBase64Account(accounts.optionalOne),
+				optionalTwo: outputBase64Account(accounts.optionalTwo),
 			},
-			transaction: unsignedTransaction,
 		},
-		output: tx,
+		output: {
+			transaction: encodedTx.toString('base64'),
+		},
 	};
 };
 
 const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		senderPublicKey:
+		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		nonce: '1',
-		fee: '1500000000',
+			'hex',
+		),
+		nonce: BigInt('1'),
+		fee: BigInt('1500000000'),
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-				'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+				Buffer.from(
+					'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+					'hex',
+				),
+				Buffer.from(
+					'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+					'hex',
+				),
 			],
 			optionalKeys: [],
 			numberOfSignatures: 2,
@@ -395,7 +467,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	sortKeysAscending(tx.asset.mandatoryKeys);
 	sortKeysAscending(tx.asset.optionalKeys);
 
-	let txBuffer = serializeBasicProperties(tx);
+	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(
@@ -408,23 +480,22 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	tx.signatures.push(
 		createSignatureObject(txBuffer, accounts.mandatoryOne).signature,
 	);
-	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
-	const id = getId(txBuffer);
-
-	tx.id = id;
+	const encodedTx = encode(tx);
 
 	return {
+		description: 'Only mandatory members',
 		input: {
-			account: accounts.targetAccount,
-			networkIdentifier,
+			account: outputBase64Account(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('base64'),
 			members: {
-				mandatoryOne: accounts.mandatoryOne,
-				mandatoryTwo: accounts.mandatoryTwo,
+				mandatoryOne: outputBase64Account(accounts.mandatoryOne),
+				mandatoryTwo: outputBase64Account(accounts.mandatoryTwo),
 			},
-			transaction: unsignedTransaction,
 		},
-		output: tx,
+		output: {
+			transaction: encodedTx.toString('base64'),
+		},
 	};
 };
 
@@ -433,23 +504,32 @@ const generateFormerSecondSignatureTransactioon = () => {
 	const secondSignature = {
 		passphrase:
 			'oyster observe cinnamon elder rose judge baby length again subway pill plate',
-		privateKey:
+		privateKey: Buffer.from(
 			'ffa879f56c04b9293bc830ef29c53c8871fb892717be9d7e75fc89b507eba279ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'ff30ef40b7de42114137be46f1009d30e5c19809a73d5a162bc99f7e7681d63d',
-		address: '1180031571206036491L',
+			'hex',
+		),
+		address: Buffer.from('0b5c7b4176506010434b80b3207ac965c2649a23', 'hex'),
 	};
 
 	// basic transaction
 	const unsignedTransaction = {
-		senderPublicKey:
+		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		nonce: '1',
-		fee: '1500000000',
+			'hex',
+		),
+		nonce: BigInt('1'),
+		fee: BigInt('1500000000'),
 		type: 12,
 		asset: {
 			mandatoryKeys: [
-				'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				Buffer.from(
+					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
 				secondSignature.publicKey,
 			],
 			optionalKeys: [],
@@ -467,7 +547,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 	sortKeysAscending(tx.asset.mandatoryKeys);
 	sortKeysAscending(tx.asset.optionalKeys);
 
-	let txBuffer = serializeBasicProperties(tx);
+	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
 	tx.signatures.push(
@@ -480,79 +560,43 @@ const generateFormerSecondSignatureTransactioon = () => {
 	tx.signatures.push(
 		createSignatureObject(txBuffer, secondSignature).signature,
 	);
-	txBuffer = serializeMemberSignatures(tx, txBuffer);
 
-	const id = getId(txBuffer);
-
-	tx.id = id;
+	const encodedTx = encode(tx);
 
 	return {
+		description: 'Second signature case',
 		input: {
-			account: accounts.targetAccount,
-			networkIdentifier,
+			account: outputBase64Account(accounts.targetAccount),
+			networkIdentifier: networkIdentifier.toString('base64'),
 			members: {
-				mandatoryOne: accounts.targetAccount,
-				mandatoryTwo: secondSignature,
+				mandatoryOne: outputBase64Account(accounts.targetAccount),
+				mandatoryTwo: outputBase64Account(secondSignature),
 			},
-			transaction: unsignedTransaction,
 		},
-		output: tx,
+		output: {
+			transaction: encodedTx.toString('base64'),
+		},
 	};
 };
 
 const validMultisignatureRegistrationSuite = () => ({
 	title: 'Valid multi-signature registration',
 	summary: 'A valid multi-signature registration',
-	config: 'devnet',
+	config: {
+		network: 'devnet',
+	},
 	runner: 'multisignature_registration_transaction',
 	handler: 'multisignature_registration_transaction',
-	testCases: generateValidMultisignatureRegistrationTransaction(),
-});
-
-const validMultisignatureRegistrationSenderIsMandatoryMemberSuite = () => ({
-	title: 'Valid multi-signature registration',
-	summary:
-		'A valid multi-signature registration sender is member of mandatory key group',
-	config: 'devnet',
-	runner: 'multisignature_registration_transaction',
-	handler: 'multisignature_transaction_sender_is_mandatory_member',
-	testCases: generateValidMultisignatureRegistrationSenderIsMemberTransaction(),
-});
-
-const validMultisignatureRegistrationOnlyOptionalMembersSuite = () => ({
-	title: 'Valid multi-signature registration',
-	summary: 'A valid multi-signature registration with only optional keys',
-	config: 'devnet',
-	runner: 'multisignature_registration_transaction',
-	handler: 'multisignature_transaction_only_optional_members',
-	testCases: generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction(),
-});
-
-const validMultisignatureRegistrationOnlyMandatoryMembersSuite = () => ({
-	title: 'Valid multi-signature registration',
-	summary: 'A valid multi-signature registration with only mandatory keys',
-	config: 'devnet',
-	runner: 'multisignature_registration_transaction',
-	handler: 'multisignature_transaction_only_mandatory_members',
-	testCases: generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction(),
-});
-
-const validMultisignatureSecondSigSuite = () => ({
-	title: 'Valid multi-signature registration',
-	summary: 'A valid multi-signature registration equivalent to 2nd signature',
-	config: 'devnet',
-	runner: 'multisignature_registration_transaction',
-	handler: 'multisignature_registration_2nd_sig_equivalent_transaction',
-	testCases: generateFormerSecondSignatureTransactioon(),
+	testCases: [
+		generateValidMultisignatureRegistrationTransaction(),
+		generateValidMultisignatureRegistrationSenderIsMemberTransaction(),
+		generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction(),
+		generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction(),
+		generateFormerSecondSignatureTransactioon(),
+	],
 });
 
 module.exports = BaseGenerator.runGenerator(
 	'multisignature_registration_transaction',
-	[
-		validMultisignatureRegistrationSuite,
-		validMultisignatureRegistrationSenderIsMandatoryMemberSuite,
-		validMultisignatureRegistrationOnlyOptionalMembersSuite,
-		validMultisignatureRegistrationOnlyMandatoryMembersSuite,
-		validMultisignatureSecondSigSuite,
-	],
+	[validMultisignatureRegistrationSuite],
 );

@@ -14,242 +14,177 @@
 
 'use strict';
 
-const {
-	hexToBuffer,
-	intToBuffer,
-	hash,
-	getFirstEightBytesReversed,
-	bufferToIntAsString,
-	signData,
-} = require('@liskhq/lisk-cryptography');
+const { signData } = require('@liskhq/lisk-cryptography');
+const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
+
+const codec = new Codec();
 
 const accounts = [
 	{
 		passphrase:
 			'wear protect skill sentence lift enter wild sting lottery power floor neglect',
-		privateKey:
+		privateKey: Buffer.from(
 			'8f41ff1e75c4f0f8a71bae4952266928d0e91660fc513566ac694fed61157497efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-		address: '2129300327344985743L',
-		nonce: '2',
+			'hex',
+		),
+		address: Buffer.from('4621f6e5fb351eefbe82b90e29ba400fd8f71cb4', 'hex'),
+		nonce: BigInt(2),
 	},
 	{
 		passphrase:
 			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-		privateKey:
+		privateKey: Buffer.from(
 			'de4a28610239ceac2ec3f592e36a2ead8ed4ac93cb16aa0d996ab6bb0249da2c0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-		address: '18141291412139607230L',
-		nonce: '2',
+			'hex',
+		),
+		address: Buffer.from('0fa1c01eb5cab297b0970a51657cd7322f2c8a5c', 'hex'),
+		nonce: BigInt(2),
 	},
 	{
 		passphrase:
 			'better across runway mansion jar route valid crack panic favorite smooth sword',
-		privateKey:
+		privateKey: Buffer.from(
 			'de1520f8589408e76a97643ba7d27f20009b06899816c8af20f9b03f4a4bd8a66766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
-		address: '13191770412077040757L',
-		nonce: '2',
+			'hex',
+		),
+		address: Buffer.from('ea8731ee308273e61c1854261be3b46da2f4f24f', 'hex'),
+		nonce: BigInt(2),
 	},
 	{
 		passphrase:
 			'mirror swap middle hunt angle furnace maid scheme amazing box bachelor debris',
-		privateKey:
+		privateKey: Buffer.from(
 			'ad7462eb8f682b0c3424213ead044381ba0007bb65ce26287fc308027c871d951387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
-		publicKey:
+			'hex',
+		),
+		publicKey: Buffer.from(
 			'1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
-		address: '2443122499609067441L',
-		nonce: '2',
+			'hex',
+		),
+		address: Buffer.from('48e8edbf0fe066108c467c6941bad717980e4f4f', 'hex'),
+		nonce: BigInt(2),
 	},
 ];
 
-const networkIdentifier =
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+const networkIdentifier = Buffer.from(
+	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+	'hex',
+);
 
-const getId = transactionBytes => {
-	const transactionHash = hash(transactionBytes);
-	const bufferFromFirstEntriesReversed = getFirstEightBytesReversed(
-		transactionHash,
-	);
-	const transactionId = bufferToIntAsString(bufferFromFirstEntriesReversed);
+const baseSchema = {
+	$id: 'baseSchema',
+	type: 'object',
+	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	properties: {
+		type: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		nonce: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		fee: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+		senderPublicKey: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		asset: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 6,
+		},
+	},
+};
 
-	return transactionId;
+const balanceTransferAsset = {
+	type: 'object',
+	properties: {
+		amount: { dataType: 'uint64', fieldNumber: 1 },
+		recipientAddress: { dataType: 'bytes', fieldNumber: 2 },
+		data: { dataType: 'string', fieldNumber: 3 },
+	},
+	required: ['amount', 'recipientAddress', 'data'],
+};
+
+const delegateRegAsset = {
+	type: 'object',
+	properties: { username: { dataType: 'string', fieldNumber: 1 } },
+	required: ['username'],
 };
 
 const generateValidTransferTransaction = () => {
 	const tx = {
 		type: 8,
 		senderPublicKey: accounts[0].publicKey,
-		nonce: '2',
-		fee: '100000000',
+		nonce: BigInt(2),
+		fee: BigInt('100000000'),
 		asset: {
-			recipientId: accounts[1].address,
-			amount: '1234567890',
+			recipientAddress: accounts[1].address,
+			amount: BigInt('1234567890'),
 			data: 'random data',
 		},
 	};
 
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		intToBuffer(tx.nonce, 8, 'big'),
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee, 8, 'big'),
-		intToBuffer(tx.asset.amount, 8, 'big'),
-		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
-		Buffer.from(tx.asset.data, 'utf8'),
-	]);
+	const assetBytes = codec.encode(balanceTransferAsset, tx.asset);
+	const signingTx = {
+		...tx,
+		asset: assetBytes,
+		signatures: [],
+	};
+	const signingBytes = codec.encode(baseSchema, signingTx);
 
-	const signature = signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		accounts[0].passphrase,
+	const signature = Buffer.from(
+		signData(
+			Buffer.concat([networkIdentifier, signingBytes]),
+			accounts[0].passphrase,
+		),
+		'hex',
 	);
 
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-
-	const signedTransaction = {
+	const encodedTx = codec.encode(baseSchema, {
 		...tx,
-		signature,
-		id,
-	};
+		asset: assetBytes,
+		signatures: [signature],
+	});
 
 	return {
 		description: 'A valid transfer transaction',
 		input: {
-			account: accounts[0],
-			networkIdentifier,
-			transaction: tx,
+			account: {
+				...accounts[0],
+				nonce: accounts[0].nonce.toString(),
+				publicKey: accounts[0].publicKey.toString('base64'),
+				privateKey: accounts[0].privateKey.toString('base64'),
+				address: accounts[0].address.toString('base64'),
+			},
+			networkIdentifier: networkIdentifier.toString('base64'),
 		},
-		output: signedTransaction,
-	};
-};
-
-const generateValidTransferTransactionWithSecondSignature = () => {
-	const tx = {
-		type: 8,
-		senderPublicKey: accounts[0].publicKey,
-		nonce: '2',
-		fee: '100000000',
-		asset: {
-			recipientId: accounts[1].address,
-			amount: '1234567890',
-			data: 'random data',
+		output: {
+			transaction: encodedTx.toString('base64'),
 		},
-	};
-
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		intToBuffer(tx.nonce, 8, 'big'),
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee, 8, 'big'),
-		intToBuffer(tx.asset.amount, 8, 'big'),
-		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
-		Buffer.from(tx.asset.data, 'utf8'),
-	]);
-
-	const signature = signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		accounts[0].passphrase,
-	);
-
-	const signSignature = signData(
-		hash(
-			Buffer.concat([
-				hexToBuffer(networkIdentifier),
-				txBuffer,
-				Buffer.from(signature, 'hex'),
-			]),
-		),
-		accounts[1].passphrase,
-	);
-
-	const id = getId(
-		Buffer.concat([
-			txBuffer,
-			Buffer.from(signature, 'hex'),
-			Buffer.from(signSignature, 'hex'),
-		]),
-	);
-
-	const signedTransaction = {
-		...tx,
-		signature,
-		signSignature,
-		id,
-	};
-
-	return {
-		description: 'A valid transfer transaction with second signature',
-		input: {
-			account: accounts[0],
-			secondPassphrase: accounts[1].passphrase,
-			networkIdentifier,
-			transaction: tx,
-		},
-		output: signedTransaction,
-	};
-};
-
-const generateValidTransferTransactionWithMultiSignature = () => {
-	const tx = {
-		type: 8,
-		senderPublicKey: accounts[0].publicKey,
-		nonce: '2',
-		fee: '100000000',
-		asset: {
-			recipientId: accounts[1].address,
-			amount: '1234567890',
-			data: 'random data',
-		},
-	};
-
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		intToBuffer(tx.nonce, 8, 'big'),
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee, 8, 'big'),
-		intToBuffer(tx.asset.amount, 8, 'big'),
-		intToBuffer(tx.asset.recipientId.slice(0, -1), 8),
-		Buffer.from(tx.asset.data, 'utf8'),
-	]);
-
-	const signature = signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		accounts[0].passphrase,
-	);
-
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-
-	const signatures = [
-		signData(
-			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-			accounts[2].passphrase,
-		),
-		signData(
-			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-			accounts[3].passphrase,
-		),
-	];
-
-	const signedTransaction = {
-		...tx,
-		signature,
-		signatures,
-		id,
-	};
-
-	return {
-		description: 'A valid transfer transaction with multi signature',
-		input: {
-			account: accounts[0],
-			coSigners: [accounts[2], accounts[3]],
-			networkIdentifier,
-			transaction: tx,
-		},
-		output: signedTransaction,
 	};
 };
 
@@ -257,157 +192,50 @@ const generateValidDelegateTransaction = () => {
 	const tx = {
 		type: 10,
 		senderPublicKey: accounts[0].publicKey,
-		nonce: '2',
-		fee: '100000000',
+		nonce: BigInt('2'),
+		fee: BigInt('100000000'),
 		asset: {
 			username: 'new_delegate',
 		},
 	};
 
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		intToBuffer(tx.nonce, 8, 'big'),
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee, 8, 'big'),
-		Buffer.from(tx.asset.username, 'utf8'),
-	]);
+	const assetBytes = codec.encode(delegateRegAsset, tx.asset);
+	const signingTx = {
+		...tx,
+		asset: assetBytes,
+		signatures: [],
+	};
+	const signingBytes = codec.encode(baseSchema, signingTx);
 
-	const signature = signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		accounts[0].passphrase,
+	const signature = Buffer.from(
+		signData(
+			Buffer.concat([networkIdentifier, signingBytes]),
+			accounts[0].passphrase,
+		),
+		'hex',
 	);
 
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-
-	const signedTransaction = {
+	const encodedTx = codec.encode(baseSchema, {
 		...tx,
-		signature,
-		id,
-	};
+		asset: assetBytes,
+		signatures: [signature],
+	});
 
 	return {
 		description: 'A valid delegate transaction',
 		input: {
-			account: accounts[0],
-			networkIdentifier,
-			transaction: tx,
+			account: {
+				...accounts[0],
+				nonce: accounts[0].nonce.toString(),
+				publicKey: accounts[0].publicKey.toString('base64'),
+				privateKey: accounts[0].privateKey.toString('base64'),
+				address: accounts[0].address.toString('base64'),
+			},
+			networkIdentifier: networkIdentifier.toString('base64'),
 		},
-		output: signedTransaction,
-	};
-};
-
-const generateValidVoteTransaction = () => {
-	const tx = {
-		type: 11,
-		senderPublicKey: accounts[0].publicKey,
-		nonce: '2',
-		fee: '100000000',
-		asset: {
-			votes: [
-				`+${accounts[1].publicKey}`,
-				`+${accounts[2].publicKey}`,
-				`-${accounts[3].publicKey}`,
-			],
+		output: {
+			transaction: encodedTx.toString('base64'),
 		},
-	};
-
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		intToBuffer(tx.nonce, 8, 'big'),
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee, 8, 'big'),
-		Buffer.from(tx.asset.votes.join(''), 'utf8'),
-	]);
-
-	const signature = signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		accounts[0].passphrase,
-	);
-
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-
-	const signedTransaction = {
-		...tx,
-		signature,
-		id,
-	};
-
-	return {
-		description: 'A valid vote transaction',
-		input: {
-			account: accounts[0],
-			networkIdentifier,
-			transaction: tx,
-		},
-		output: signedTransaction,
-	};
-};
-
-const generateValidMultisignatureTransaction = () => {
-	const tx = {
-		type: 12,
-		senderPublicKey: accounts[0].publicKey,
-		nonce: '2',
-		fee: '100000000',
-		asset: {
-			min: 2,
-			lifetime: 22,
-			keysgroup: [
-				`+${accounts[1].publicKey}`,
-				`+${accounts[2].publicKey}`,
-				`+${accounts[3].publicKey}`,
-			],
-		},
-	};
-
-	const txBuffer = Buffer.concat([
-		Buffer.alloc(1, tx.type),
-		intToBuffer(tx.nonce, 8, 'big'),
-		hexToBuffer(tx.senderPublicKey),
-		intToBuffer(tx.fee, 8, 'big'),
-		Buffer.alloc(1, tx.asset.min),
-		Buffer.alloc(1, tx.asset.lifetime),
-		Buffer.from(tx.asset.keysgroup.join(''), 'utf8'),
-	]);
-
-	const signature = signData(
-		Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-		accounts[0].passphrase,
-	);
-
-	const id = getId(Buffer.concat([txBuffer, Buffer.from(signature, 'hex')]));
-
-	const signatures = [
-		signData(
-			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-			accounts[1].passphrase,
-		),
-		signData(
-			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-			accounts[2].passphrase,
-		),
-		signData(
-			Buffer.concat([hexToBuffer(networkIdentifier), txBuffer]),
-			accounts[3].passphrase,
-		),
-	];
-
-	const signedTransaction = {
-		...tx,
-		signature,
-		signatures,
-		id,
-	};
-
-	return {
-		description: 'A valid multi signature transaction',
-		input: {
-			account: accounts[0],
-			networkIdentifier,
-			coSigners: [accounts[1], accounts[2], accounts[3]],
-			transaction: tx,
-		},
-		output: signedTransaction,
 	};
 };
 
@@ -420,24 +248,6 @@ const validTransferSuite = () => ({
 	testCases: [generateValidTransferTransaction()],
 });
 
-const validTransferWithSecondSignatureSuite = () => ({
-	title: 'Valid transfer transaction with second signature',
-	summary: 'A valid transfer transaction with second signature',
-	config: { network: 'devnet' },
-	runner: 'transaction_network_id_and_change_order',
-	handler: 'transfer_transaction_with_second_signature_validate',
-	testCases: [generateValidTransferTransactionWithSecondSignature()],
-});
-
-const validTransferWithMultisignature = () => ({
-	title: 'Valid transfer transaction with multi signature',
-	summary: 'A valid transfer transaction with multi signature',
-	config: { network: 'devnet' },
-	runner: 'transaction_network_id_and_change_order',
-	handler: 'transfer_transaction_with_multi_signature_validate',
-	testCases: [generateValidTransferTransactionWithMultiSignature()],
-});
-
 const validDelegateSuite = () => ({
 	title: 'Valid delegate transaction',
 	summary: 'A valid delegate transaction',
@@ -447,32 +257,7 @@ const validDelegateSuite = () => ({
 	testCases: [generateValidDelegateTransaction()],
 });
 
-const validVoteSuite = () => ({
-	title: 'Valid vote transaction',
-	summary: 'Test suit for valid vote transaction',
-	config: { network: 'devnet' },
-	runner: 'transaction_network_id_and_change_order',
-	handler: 'vote_transaction_validate',
-	testCases: [generateValidVoteTransaction()],
-});
-
-const validMultisignatureSuite = () => ({
-	title: 'Valid multi signature transaction',
-	summary: 'A valid multi signature transaction',
-	config: { network: 'devnet' },
-	runner: 'transaction_network_id_and_change_order',
-	handler: 'multi_signature_transaction_validate',
-	testCases: [generateValidMultisignatureTransaction()],
-});
-
 module.exports = BaseGenerator.runGenerator(
 	'transaction_network_id_and_change_order',
-	[
-		validTransferSuite,
-		validTransferWithSecondSignatureSuite,
-		validTransferWithMultisignature,
-		validDelegateSuite,
-		validVoteSuite,
-		validMultisignatureSuite,
-	],
+	[validTransferSuite, validDelegateSuite],
 );
