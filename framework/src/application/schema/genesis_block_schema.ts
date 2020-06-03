@@ -63,7 +63,7 @@ export const genesisBlockSchema = {
 					minimum: 0,
 				},
 				previousBlockID: {
-					type: ['string'],
+					type: 'string',
 					format: 'hex',
 				},
 				generatorPublicKey: {
@@ -133,9 +133,9 @@ export const genesisBlockSchema = {
 					},
 					id: {
 						type: 'string',
-						format: 'id',
-						minLength: 1,
-						maxLength: 20,
+						format: 'hex',
+						minLength: 64,
+						maxLength: 64,
 					},
 				},
 				additionalProperties: false,

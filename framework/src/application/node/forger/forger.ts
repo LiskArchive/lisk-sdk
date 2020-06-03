@@ -192,12 +192,12 @@ export class Forger {
 			if (forging) {
 				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
 				this._logger.info(
-					`Forging enabled on account: ${account.address.toString('hex')}`,
+					`Forging enabled on account: ${account.address.toString('base64')}`,
 				);
 			} else {
 				this._keypairs.delete(getAddressFromPublicKey(keypair.publicKey));
 				this._logger.info(
-					`Forging disabled on account: ${account.address.toString('hex')}`,
+					`Forging disabled on account: ${account.address.toString('base64')}`,
 				);
 			}
 
@@ -269,7 +269,7 @@ export class Forger {
 			if (account.asset.delegate.username !== '') {
 				this._keypairs.set(getAddressFromPublicKey(keypair.publicKey), keypair);
 				this._logger.info(
-					`Forging enabled on account: ${account.address.toString('hex')}`,
+					`Forging enabled on account: ${account.address.toString('base64')}`,
 				);
 			} else {
 				this._logger.warn(
@@ -462,9 +462,9 @@ export class Forger {
 
 		this._logger.info(
 			{
-				id: forgedBlock.header.id.toString('hex'),
-				generatorAddress: delegateAddress.toString('hex'),
-				seedReveal: nextHashOnion.hash.toString('hex'),
+				id: forgedBlock.header.id,
+				generatorAddress: delegateAddress,
+				seedReveal: nextHashOnion.hash,
 				height: forgedBlock.header.height,
 				round: this._dposModule.rounds.calcRound(forgedBlock.header.height),
 				slot: this._chainModule.slots.getSlotNumber(

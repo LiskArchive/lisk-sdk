@@ -105,7 +105,7 @@ export class Synchronizer {
 			);
 			this.logger.info(
 				{
-					blockId: receivedBlock.header.id.toString('hex'),
+					blockId: receivedBlock.header.id,
 					height: receivedBlock.header.height,
 				},
 				'Starting synchronizer',
@@ -123,7 +123,7 @@ export class Synchronizer {
 
 			if (!validMechanism) {
 				return this.logger.info(
-					{ blockId: receivedBlock.header.id.toString('hex') },
+					{ blockId: receivedBlock.header.id },
 					'Syncing mechanism could not be determined for the given block',
 				);
 			}
@@ -135,7 +135,7 @@ export class Synchronizer {
 			return this.logger.info(
 				{
 					lastBlockHeight: this.chainModule.lastBlock.header.height,
-					lastBlockId: this.chainModule.lastBlock.header.id.toString('hex'),
+					lastBlockId: this.chainModule.lastBlock.header.id,
 					mechanism: validMechanism.constructor.name,
 				},
 				'Synchronization finished',

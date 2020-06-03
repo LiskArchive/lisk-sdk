@@ -611,9 +611,9 @@ export class Node {
 				const { block } = eventData;
 				// Publish to the outside
 				this._channel.publish('app:block:new', {
-					block: this._chain.dataAccess.encode(block).toString('hex'),
+					block: this._chain.dataAccess.encode(block).toString('base64'),
 					accounts: eventData.accounts.map(acc =>
-						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
+						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
 					),
 				});
 
@@ -627,7 +627,7 @@ export class Node {
 				if (!this._synchronizer.isActive) {
 					await this._channel.invoke('app:updateApplicationState', {
 						height: block.header.height,
-						lastBlockId: block.header.id.toString('hex'),
+						lastBlockId: block.header.id.toString('base64'),
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 						maxHeightPrevoted: block.header.asset.maxHeightPrevoted,
 						blockVersion: block.header.version,
@@ -636,7 +636,7 @@ export class Node {
 
 				this._logger.info(
 					{
-						id: block.header.id.toString('hex'),
+						id: block.header.id,
 						height: block.header.height,
 						numberOfTransactions: block.payload.length,
 					},
@@ -653,9 +653,9 @@ export class Node {
 				const { block } = eventData;
 				// Publish to the outside
 				this._channel.publish('app:block:delete', {
-					block: this._chain.dataAccess.encode(block).toString('hex'),
+					block: this._chain.dataAccess.encode(block).toString('base64'),
 					accounts: eventData.accounts.map(acc =>
-						this._chain.dataAccess.encodeAccount(acc).toString('hex'),
+						this._chain.dataAccess.encodeAccount(acc).toString('base64'),
 					),
 				});
 

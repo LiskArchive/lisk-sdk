@@ -101,7 +101,7 @@ class ConsoleLog {
 									// eslint-disable-next-line
 									if (Buffer.isBuffer(val[k])) {
 										// eslint-disable-next-line
-										val[k] = val[k].toString('hex');
+										val[k] = val[k].toString('base64');
 									}
 								}
 							}

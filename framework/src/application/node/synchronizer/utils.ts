@@ -56,7 +56,7 @@ export const deleteBlocksAfterHeight = async (
 		logger.trace(
 			{
 				height: chainModule.lastBlock.header.height,
-				blockId: chainModule.lastBlock.header.id.toString('hex'),
+				blockId: chainModule.lastBlock.header.id,
 			},
 			'Deleting block and backing it up to temporary table',
 		);

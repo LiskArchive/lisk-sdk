@@ -553,7 +553,7 @@ describe('Synchronizer', () => {
 				3,
 				{
 					lastBlockHeight: chainModule.lastBlock.header.height,
-					lastBlockId: chainModule.lastBlock.header.id.toString('hex'),
+					lastBlockId: chainModule.lastBlock.header.id,
 					mechanism: syncMechanism1.constructor.name,
 				},
 				'Synchronization finished',
@@ -569,7 +569,7 @@ describe('Synchronizer', () => {
 			expect(loggerMock.info).toHaveBeenCalledTimes(2);
 			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				2,
-				{ blockId: aReceivedBlock.header.id.toString('hex') },
+				{ blockId: aReceivedBlock.header.id },
 				'Syncing mechanism could not be determined for the given block',
 			);
 			expect(synchronizer.active).toBeFalsy();
