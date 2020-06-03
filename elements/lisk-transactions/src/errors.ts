@@ -35,9 +35,9 @@ export class TransactionError extends Error {
 	}
 
 	public toString(): string {
-		const defaultMessage = `Transaction: ${this.id.toString('hex')} failed at ${
-			this.dataPath
-		}: ${this.message}`;
+		const defaultMessage = `Transaction: ${this.id.toString(
+			'base64',
+		)} failed at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
 			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			  `${defaultMessage}, actual: ${this.actual}`

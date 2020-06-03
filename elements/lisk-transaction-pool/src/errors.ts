@@ -36,7 +36,7 @@ export class TransactionPoolError extends Error {
 
 	public toString(): string {
 		const defaultMessage = `TransactionPool: ${this.id.toString(
-			'hex',
+			'base64',
 		)} failed to process at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
 			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
