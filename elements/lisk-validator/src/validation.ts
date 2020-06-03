@@ -226,7 +226,7 @@ export const isString = (data: unknown): boolean => typeof data === 'string';
 
 export const isBoolean = (data: unknown): boolean => typeof data === 'boolean';
 
-export const isInt32 = (data: unknown): boolean => {
+export const isSInt32 = (data: unknown): boolean => {
 	if (typeof data === 'number' && Number.isInteger(data)) {
 		return data <= MAX_INT32 && data >= MIN_INT32;
 	}
@@ -242,7 +242,7 @@ export const isUint32 = (data: unknown): boolean => {
 	return false;
 };
 
-export const isInt64 = (data: unknown): boolean =>
+export const isSInt64 = (data: unknown): boolean =>
 	typeof data === 'bigint' ? data <= MAX_INT64 && data >= MIN_INT64 : false;
 
 export const isUint64 = (data: unknown): boolean =>

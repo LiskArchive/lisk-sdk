@@ -96,23 +96,3 @@ export const signedPublicKey = (data: string): boolean => {
 
 export const transferData = (data: string): boolean =>
 	!isNullCharacterIncluded(data) && isValidTransferData(data);
-<<<<<<< HEAD
-
-export const int64 = (data: string): boolean =>
-	isNumberString(data) && isInt64(BigInt(data));
-
-export const uint64 = (data: string): boolean =>
-	isNumberString(data) && isUint64(BigInt(data));
-
-export const uint32 = (data: string): boolean =>
-	isNumberString(data) && isUint32(BigInt(data));
-
-export const int32 = (data: string): boolean =>
-	isNumberString(data) && isInt32(BigInt(data));
-
-const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
-
-export const camelCase = (data: string): boolean =>
-	camelCaseRegex.exec(data) !== null;
-=======
->>>>>>> Remove dataTypes and formats no longer needed
