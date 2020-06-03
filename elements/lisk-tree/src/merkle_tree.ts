@@ -113,47 +113,43 @@ export class MerkleTree {
 			const leaf = this._generateLeaf(value);
 			this._root = leaf.hash;
 			this._width += 1;
-
 			return leaf.hash;
 		}
+
 		const appendPath: NodeInfo[] = [];
 		let currentNode = this.getNode(this._root);
-		const treeHeight = this._getHeight();
+
 		// Create the appendPath:
 		// We start from the root layer and traverse each layer down the tree on the right side
 		// eslint-disable-next-line
 		while (true) {
-			// If tree is balanced, add root and finish
-			if (this._width === 2 ** (treeHeight - 1)) {
+			if (this._width === 2 ** (this._getHeight() - 1)) {
 				appendPath.push(currentNode);
 				break;
 			}
-
-			// If node is a leaf, break
+			// if layer has odd nodes and current node is odd (hence index is even)
+			const currentLayer = currentNode.layerIndex;
+			let d = this._width >> currentLayer;
+			if (d % 2 === 1 && currentNode.nodeIndex % BigInt(2) === BigInt(0)) {
+				appendPath.push(currentNode);
+			}
+			// if node is leaf, break
 			if (currentNode.type === NodeType.LEAF) {
-				// if current node is not paired, add this node to append path
-				if (this._width % 2 === 1) {
-					appendPath.push(currentNode);
-				}
 				break;
+			}
+			// if layer below is odd numbered, push left child
+			d = this._width >> (currentLayer - 1);
+			if (d % 2 === 1) {
+				const leftNode = this.getNode(currentNode.leftHash);
+				appendPath.push(leftNode);
 			}
 
-			// if all leaf is paired, add one layer above
-			if (currentNode.layerIndex === 1 && this._width % 2 === 0) {
-				appendPath.push(currentNode);
-				break;
-			}
-			// Otherwise add left and proceed to right
-			const leftNode = this.getNode(currentNode.leftHash);
-			appendPath.push(leftNode);
-			// Move to right node
+			// go to right child
 			currentNode = this.getNode(currentNode.rightHash);
 		}
-
 		const appendData = this._generateLeaf(value);
 		const appendNode = this.getNode(appendData.hash);
 		appendPath.push(this.getNode(appendNode.hash));
-
 		// Loop through appendPath from the base layer
 		// Generate new branch nodes and push to appendPath
 		// Last element remaining is new root
@@ -170,7 +166,6 @@ export class MerkleTree {
 			appendPath.push(this.getNode(newBranchNode.hash));
 		}
 		this._root = appendPath[0].hash;
-
 		return this.root;
 	}
 
