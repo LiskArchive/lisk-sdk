@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -10,10 +10,17 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
- *
  */
-import { validator, liskSchemaIdentifier } from './lisk_validator';
 
-export * from './validation';
-export * from './errors';
-export { validator, liskSchemaIdentifier };
+import * as Ajv from 'ajv';
+
+export type ErrorObject = Ajv.ErrorObject;
+
+export class LiskValidationError extends Error {
+	public readonly errors: ErrorObject[];
+
+	public constructor(errors: ErrorObject[]) {
+		super(`Lisk validator found ${errors.length} error[s]`);
+		this.errors = errors;
+	}
+}

@@ -68,6 +68,7 @@ const generateValidArrayEncodings = () => {
 			},
 			schema: {
 				type: 'object',
+				$id: 'arrayStrings',
 				properties: {
 					list: {
 						type: 'array',
