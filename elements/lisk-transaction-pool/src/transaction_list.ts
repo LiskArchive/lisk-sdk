@@ -25,11 +25,11 @@ const DEFAULT_MAX_SIZE = 64;
 export const DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE = BigInt(10);
 
 type AddStatus =
-	| { added: true; removedID?: string; reason?: undefined }
-	| { added: false; removedID?: undefined; reason: string };
+	| { added: true; removedID?: Buffer; reason?: undefined }
+	| { added: false; removedID?: Buffer; reason: string };
 
 export class TransactionList {
-	public readonly address: string;
+	public readonly address: Buffer;
 
 	private _processable: Array<bigint>;
 	private readonly _transactions: { [nonce: string]: Transaction };
@@ -38,7 +38,7 @@ export class TransactionList {
 	private readonly _maxSize: number;
 	private readonly _minReplacementFeeDifference: bigint;
 
-	public constructor(address: string, options?: TransactionListOptions) {
+	public constructor(address: Buffer, options?: TransactionListOptions) {
 		this.address = address;
 		this._transactions = {};
 		this._nonceHeap = new MinHeap<undefined, bigint>();
@@ -98,7 +98,7 @@ export class TransactionList {
 		return { added: true, removedID };
 	}
 
-	public remove(nonce: bigint): string | undefined {
+	public remove(nonce: bigint): Buffer | undefined {
 		const removingTx = this._transactions[nonce.toString()];
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!removingTx) {
