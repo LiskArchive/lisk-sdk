@@ -25,12 +25,12 @@ import validator from 'validator';
 import {
 	MAX_EIGHT_BYTE_NUMBER,
 	MAX_INT32,
-	MAX_INT64,
+	MAX_SINT64,
 	MAX_PUBLIC_KEY_LENGTH,
 	MAX_UINT32,
 	MAX_UINT64,
 	MIN_INT32,
-	MIN_INT64,
+	MIN_SINT64,
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
@@ -234,7 +234,7 @@ export const isSInt32 = (data: unknown): boolean => {
 	return false;
 };
 
-export const isUint32 = (data: unknown): boolean => {
+export const isUInt32 = (data: unknown): boolean => {
 	if (typeof data === 'number' && Number.isInteger(data)) {
 		return data <= MAX_UINT32 && data >= 0;
 	}
@@ -243,9 +243,9 @@ export const isUint32 = (data: unknown): boolean => {
 };
 
 export const isSInt64 = (data: unknown): boolean =>
-	typeof data === 'bigint' ? data <= MAX_INT64 && data >= MIN_INT64 : false;
+	typeof data === 'bigint' ? data <= MAX_SINT64 && data >= MIN_SINT64 : false;
 
-export const isUint64 = (data: unknown): boolean =>
+export const isUInt64 = (data: unknown): boolean =>
 	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
 
 export const isBytes = (data: unknown): boolean => Buffer.isBuffer(data);

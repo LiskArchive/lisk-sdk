@@ -17,11 +17,11 @@ import { LiskValidationError } from '../errors';
 import {
 	isBoolean,
 	isBytes,
-	isUint32,
+	isUInt32,
 	isSInt32,
 	isString,
 	isSInt64,
-	isUint64,
+	isUInt64,
 } from '../validation';
 
 // eslint-disable-next-line new-cap
@@ -78,10 +78,10 @@ const compile = (
 		if (value === 'boolean') return isBoolean(_data);
 		if (value === 'bytes') return isBytes(_data as Buffer);
 		if (value === 'string') return isString(value);
-		if (value === 'uint32') return isUint32(_data);
+		if (value === 'uint32') return isUInt32(_data);
 		if (value === 'sint32') return isSInt32(_data);
 		if (value === 'uint64') return isSInt64(_data);
-		if (value === 'uint64') return isUint64(_data);
+		if (value === 'uint64') return isUInt64(_data);
 
 		// Either "dataType" or "type" can be presented in schema
 		return !typePropertyPresent;
