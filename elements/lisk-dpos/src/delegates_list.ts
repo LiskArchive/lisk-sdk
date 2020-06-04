@@ -54,29 +54,23 @@ interface DelegateListWithRoundHash {
 	roundHash: Buffer;
 }
 
-export const decodeForgerList = (buffer: Buffer): ForgersList => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const parsedForgersList = JSON.parse(buffer.toString('utf8'));
-	// eslint-disable-next-line
-	return parsedForgersList.map(
-		(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
-			round: fl.round,
-			delegates: fl.delegates?.map(d => Buffer.from(d, 'binary')) ?? [],
-			standby: fl.standby?.map(d => Buffer.from(d, 'binary')),
-		}),
-	) as ForgersList;
-};
-
 export const getForgersList = async (
 	stateStore: StateStore,
 ): Promise<ForgersList> => {
-	const forgersListStr = await stateStore.consensus.get(
+	const forgersList = await stateStore.consensus.get(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 	);
-	if (!forgersListStr) {
+	if (!forgersList) {
 		return [];
 	}
-	return decodeForgerList(forgersListStr);
+
+	const forgerListDecoded = codec.decode(
+		(forgerListSchema as unknown) as Schema,
+		forgersList,
+	);
+
+	return ((forgerListDecoded as GenericObject)
+		.forgersList as unknown) as ForgersList;
 };
 
 const _setForgersList = (
@@ -90,25 +84,6 @@ const _setForgersList = (
 			({ forgersList } as unknown) as GenericObject,
 		),
 	);
-};
-
-export const decodeVoteWeights = (buffer: Buffer): VoteWeights => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const parsedVoteWeights = JSON.parse(buffer.toString('utf8'));
-
-	// eslint-disable-next-line
-	return parsedVoteWeights.map(
-		(vw: {
-			round: number;
-			delegates: { address: string; voteWeight: string }[];
-		}) => ({
-			round: vw.round,
-			delegates: vw.delegates.map(d => ({
-				address: Buffer.from(d.address, 'binary'),
-				voteWeight: BigInt(d.voteWeight),
-			})),
-		}),
-	) as VoteWeights;
 };
 
 export const getVoteWeights = async (
@@ -498,10 +473,17 @@ export class DelegatesList {
 		if (!forgersListBuffer) {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
 		}
-		const forgersList = decodeForgerList(forgersListBuffer);
 
-		const delegateAddresses = forgersList.find(fl => fl.round === round)
-			?.delegates;
+		const forgersListDecoded = codec.decode(
+			(forgerListSchema as unknown) as Schema,
+			forgersListBuffer,
+		);
+
+		const { forgersList } = forgersListDecoded as GenericObject;
+
+		const delegateAddresses = ((forgersList as unknown) as ForgersList).find(
+			fl => fl.round === round,
+		)?.delegates;
 
 		if (!delegateAddresses) {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
