@@ -16,17 +16,15 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { Proof } from './types';
-import { EMPTY_HASH, LEAF_PREFIX, BRANCH_PREFIX } from './constants';
-
-const LAYER_INDEX_SIZE = 1;
-const NODE_INDEX_SIZE = 8;
-const NODE_HASH_SIZE = 32;
-
-enum NodeType {
-	ROOT = 'root',
-	BRANCH = 'branch',
-	LEAF = 'leaf',
-}
+import {
+	LAYER_INDEX_SIZE,
+	NODE_INDEX_SIZE,
+	NODE_HASH_SIZE,
+	EMPTY_HASH,
+	LEAF_PREFIX,
+	BRANCH_PREFIX,
+	NodeType,
+} from './constants';
 
 interface NodeData {
 	readonly value: Buffer;
@@ -51,12 +49,12 @@ export class MerkleTree {
 	private _width = 0;
 
 	// Object holds data in format { [hash]: value }
-	private _hashToBuffer: { [key: string]: Buffer } = {};
+	private _hashToValueMap: { [key: string]: Buffer } = {};
 
 	public constructor(initValues: Buffer[] = []) {
 		if (initValues.length === 0) {
 			this._root = EMPTY_HASH;
-			this._hashToBuffer[this._root.toString('binary')] = Buffer.alloc(0);
+			this._hashToValueMap[this._root.toString('binary')] = Buffer.alloc(0);
 			return;
 		}
 
@@ -68,7 +66,7 @@ export class MerkleTree {
 	}
 
 	public getNode(nodeHash: Buffer): NodeInfo {
-		const value = this._hashToBuffer[nodeHash.toString('binary')];
+		const value = this._hashToValueMap[nodeHash.toString('binary')];
 		// eslint-disable-next-line
 		if (!value) {
 			throw new Error(
@@ -84,9 +82,12 @@ export class MerkleTree {
 		} else {
 			type = NodeType.BRANCH;
 		}
-		const layerIndex = type === NodeType.LEAF ? 0 : value.readInt8(1);
+		const layerIndex =
+			type === NodeType.LEAF ? 0 : value.readInt8(BRANCH_PREFIX.length);
 		const nodeIndex =
-			type === NodeType.BRANCH ? value.readInt32BE(LAYER_INDEX_SIZE + 1) : 0;
+			type === NodeType.BRANCH
+				? value.readInt32BE(BRANCH_PREFIX.length + LAYER_INDEX_SIZE)
+				: 0;
 		const rightHash =
 			type !== NodeType.LEAF
 				? value.slice(-1 * NODE_HASH_SIZE)
@@ -112,22 +113,24 @@ export class MerkleTree {
 			const leaf = this._generateLeaf(value);
 			this._root = leaf.hash;
 			this._width += 1;
-			return leaf.hash;
+			return this._root;
 		}
 
 		// Create the appendPath
 		const appendPath: NodeInfo[] = [];
 		let currentNode = this.getNode(this._root);
+
+		// If tree is fully balanced
 		if (this._width === 2 ** (this._getHeight() - 1)) {
 			appendPath.push(currentNode);
 		} else {
 			// We start from the root layer and traverse each layer down the tree on the right side
 			// eslint-disable-next-line
 			while (true) {
-				// if layer has odd nodes and current node is odd (hence index is even)
 				const currentLayer = currentNode.layerIndex;
-				let d = this._width >> currentLayer;
-				if (d % 2 === 1 && currentNode.nodeIndex % 2 === 0) {
+				let currentLayerSize = this._width >> currentLayer;
+				// if layer has odd nodes and current node is odd (hence index is even)
+				if (currentLayerSize % 2 === 1 && currentNode.nodeIndex % 2 === 0) {
 					appendPath.push(currentNode);
 				}
 				// if node is leaf, break
@@ -135,8 +138,8 @@ export class MerkleTree {
 					break;
 				}
 				// if layer below is odd numbered, push left child
-				d = this._width >> (currentLayer - 1);
-				if (d % 2 === 1) {
+				currentLayerSize = this._width >> (currentLayer - 1);
+				if (currentLayerSize % 2 === 1) {
 					const leftNode = this.getNode(currentNode.leftHash);
 					appendPath.push(leftNode);
 				}
@@ -176,13 +179,7 @@ export class MerkleTree {
 	public clear(): void {
 		this._width = 0;
 		this._root = EMPTY_HASH;
-		this._hashToBuffer = { [this._root.toString('2')]: Buffer.alloc(0) };
-	}
-
-	public getData(): object[] {
-		return Object.keys(this._hashToBuffer).map(key =>
-			this.getNode(Buffer.from(key, 'binary')),
-		);
+		this._hashToValueMap = { [this._root.toString('2')]: Buffer.alloc(0) };
 	}
 
 	public toString(): string {
@@ -190,6 +187,12 @@ export class MerkleTree {
 			return this.root.toString('hex');
 		}
 		return this._printNode(this.root);
+	}
+
+	public getData(): object[] {
+		return Object.keys(this._hashToValueMap).map(key =>
+			this.getNode(Buffer.from(key, 'binary')),
+		);
 	}
 
 	private _getHeight(): number {
@@ -202,7 +205,7 @@ export class MerkleTree {
 			LEAF_PREFIX.length + value.length,
 		);
 		const leafHash = hash(leafValue);
-		this._hashToBuffer[leafHash.toString('binary')] = leafValue;
+		this._hashToValueMap[leafHash.toString('binary')] = leafValue;
 		this._width += 1;
 
 		return {
@@ -242,7 +245,7 @@ export class MerkleTree {
 				BRANCH_PREFIX.length + leftHashBuffer.length + rightHashBuffer.length,
 			),
 		);
-		this._hashToBuffer[branchHash.toString('binary')] = branchValue;
+		this._hashToValueMap[branchHash.toString('binary')] = branchValue;
 
 		return {
 			hash: branchHash,
@@ -315,7 +318,7 @@ export class MerkleTree {
 	}
 
 	private _printNode(hashValue: Buffer, level = 1): string {
-		const nodeValue = this._hashToBuffer[hashValue.toString('binary')];
+		const nodeValue = this._hashToValueMap[hashValue.toString('binary')];
 
 		if (isLeaf(nodeValue)) {
 			return nodeValue.toString('hex');

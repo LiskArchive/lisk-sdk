@@ -16,3 +16,11 @@ import { hash } from '@liskhq/lisk-cryptography';
 export const EMPTY_HASH = hash(Buffer.alloc(0));
 export const LEAF_PREFIX = Buffer.from('00', 'hex');
 export const BRANCH_PREFIX = Buffer.from('01', 'hex');
+export const LAYER_INDEX_SIZE = 1;
+export const NODE_INDEX_SIZE = 8;
+export const NODE_HASH_SIZE = 32;
+export const enum NodeType {
+	ROOT = 'root',
+	BRANCH = 'branch',
+	LEAF = 'leaf',
+}
