@@ -17,7 +17,7 @@ import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
-import { Account, ForgersList, BlockHeader } from '../../src/types';
+import { Account, BlockHeader } from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -142,7 +142,7 @@ describe('dpos.apply()', () => {
 	describe('Given block is NOT the last block of the round', () => {
 		let generator: Account;
 		let block: BlockHeader;
-		let forgersList: ForgersList;
+		let forgersListBinary: Buffer;
 
 		beforeEach(() => {
 			generator = { ...delegateAccounts[1] };
@@ -152,24 +152,29 @@ describe('dpos.apply()', () => {
 				generatorPublicKey: generator.publicKey,
 			} as BlockHeader;
 
-			forgersList = [
-				{
-					round: 1,
-					delegates: delegateAccounts.map(d => d.address),
-					standby: [],
-				},
-				{
-					round: 2,
-					delegates: delegateAccounts.map(d => d.address),
-					standby: [],
-				},
-			];
+			const forgerListObject = {
+				forgersList: [
+					{
+						round: 1,
+						delegates: delegateAccounts.map(d => d.address),
+						standby: [],
+					},
+					{
+						round: 2,
+						delegates: delegateAccounts.map(d => d.address),
+						standby: [],
+					},
+				],
+			};
 			const delegates = getDelegateAccountsWithVotesReceived(103);
 
+			forgersListBinary = codec.encode(
+				(forgerListSchema as unknown) as Schema,
+				(forgerListObject as unknown) as GenericObject,
+			);
+
 			stateStore = new StateStoreMock([generator, ...delegates], {
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-					JSON.stringify(forgersList),
-				),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
 			});
 		});
 
@@ -192,8 +197,9 @@ describe('dpos.apply()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
+
 			expect((consensusState as Buffer).toString('utf8')).toEqual(
-				JSON.stringify(forgersList),
+				forgersListBinary.toString('utf8'),
 			);
 		});
 	});
