@@ -13,11 +13,12 @@
  */
 
 import { ForkStatus } from '@liskhq/lisk-bft';
-import { TempBlock } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain';
 import {
 	restoreBlocks,
 	restoreBlocksUponStartup,
 } from '../../../../../../src/application/node/synchronizer/utils';
+import { createValidDefaultBlock } from '../../../../../fixtures';
 
 describe('#synchronizer/utils', () => {
 	let chainMock: any;
@@ -26,7 +27,7 @@ describe('#synchronizer/utils', () => {
 
 	beforeEach(() => {
 		chainMock = {
-			lastBlock: jest.fn(),
+			lastBlock: createValidDefaultBlock({ header: { height: 1 } }),
 			dataAccess: {
 				getTempBlocks: jest.fn(),
 				clearTempBlocks: jest.fn(),
@@ -42,7 +43,6 @@ describe('#synchronizer/utils', () => {
 		processorMock = {
 			processValidated: jest.fn(),
 			forkStatus: jest.fn(),
-			deserialize: jest.fn(),
 			deleteLastBlock: jest.fn(),
 		};
 	});
@@ -50,7 +50,7 @@ describe('#synchronizer/utils', () => {
 	describe('restoreBlocks()', () => {
 		it('should return true on success', async () => {
 			// Arrange
-			const blocks = [{ id: 'block1' }, { id: 'block2' }];
+			const blocks = [createValidDefaultBlock(), createValidDefaultBlock()];
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
@@ -62,10 +62,7 @@ describe('#synchronizer/utils', () => {
 
 		it('should pass block to processValidated with right flags', async () => {
 			// Arrange
-			const blocks = [{ id: 'block1' }, { id: 'block2' }];
-			processorMock.deserialize
-				.mockResolvedValueOnce(blocks[0])
-				.mockResolvedValueOnce(blocks[1]);
+			const blocks = [createValidDefaultBlock(), createValidDefaultBlock()];
 			chainMock.dataAccess.getTempBlocks = jest.fn().mockReturnValue(blocks);
 
 			// Act
@@ -101,34 +98,32 @@ describe('#synchronizer/utils', () => {
 	});
 
 	describe('restoreBlocksUponStartup()', () => {
-		let tempBlocks: TempBlock[];
+		let tempBlocks: Block[];
 		beforeEach(() => {
 			tempBlocks = [
-				{
-					id: '1',
-					height: 10,
-					fullBlock: {
+				createValidDefaultBlock({
+					header: {
 						height: 10,
-						maxHeightPrevoted: 6,
+						asset: {
+							maxHeightPrevoted: 6,
+						},
 					},
-				},
-				{
-					id: '2',
-					height: 11,
-					fullBlock: {
+				}),
+				createValidDefaultBlock({
+					header: {
 						height: 11,
-						maxHeightPrevoted: 5,
+						asset: {
+							maxHeightPrevoted: 5,
+						},
 					},
-				},
-			] as TempBlock[];
+				}),
+			];
 			chainMock.dataAccess.getTempBlocks.mockResolvedValue(tempBlocks);
 		});
 
 		it('should restore blocks if fork status = ForkStatus.DIFFERENT_CHAIN', async () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
-
-			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
 			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
@@ -140,8 +135,6 @@ describe('#synchronizer/utils', () => {
 		it('should restore blocks if fork status = ForkStatus.VALID_BLOCK', async () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(ForkStatus.VALID_BLOCK);
-
-			processorMock.deserialize.mockResolvedValue(tempBlocks[1]);
 
 			// Act
 			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
@@ -156,11 +149,11 @@ describe('#synchronizer/utils', () => {
 			processorMock.deleteLastBlock.mockResolvedValue({ height: 0 });
 
 			chainMock.lastBlock = {
-				id: 999999,
-				height: 1,
+				header: {
+					id: Buffer.from('999999'),
+					height: 1,
+				},
 			};
-
-			processorMock.deserialize.mockResolvedValue(chainMock.lastBlock);
 
 			// Act
 			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
@@ -173,15 +166,11 @@ describe('#synchronizer/utils', () => {
 			// Arrange
 			processorMock.forkStatus.mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
 
-			processorMock.deserialize.mockResolvedValue(tempBlocks[0].fullBlock);
-
 			// Act
 			await restoreBlocksUponStartup(loggerMock, chainMock, processorMock);
 
 			// Assert
-			expect(processorMock.forkStatus).toHaveBeenCalledWith(
-				tempBlocks[0].fullBlock,
-			);
+			expect(processorMock.forkStatus).toHaveBeenCalledWith(tempBlocks[0]);
 		});
 	});
 });

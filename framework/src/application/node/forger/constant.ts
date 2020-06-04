@@ -15,3 +15,4 @@
 export const DB_KEY_FORGER_USED_HASH_ONION = 'forger:usedHashOnion';
 export const DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS =
 	'forger:registeredHashOnion';
+export const DB_KEY_FORGER_PREVIOUSLY_FORGED = 'forger:previouslyForged';

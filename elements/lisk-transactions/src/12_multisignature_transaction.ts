@@ -18,6 +18,7 @@ import {
 	getAddressFromPublicKey,
 	signData,
 	bufferToHex,
+	hash,
 } from '@liskhq/lisk-cryptography';
 
 import { BaseTransaction, StateStore } from './base_transaction';
@@ -223,6 +224,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 				}
 			}
 		}
+		this._id = hash(this.getBytes());
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {

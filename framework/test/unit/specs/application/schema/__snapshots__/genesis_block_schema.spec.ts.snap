@@ -6,77 +6,83 @@ Object {
     "$id": "#genesisBlock",
     "additionalProperties": false,
     "properties": Object {
-      "blockSignature": Object {
-        "format": "signature",
-        "type": "string",
-      },
       "communityIdentifier": Object {
         "type": "string",
       },
-      "generatorPublicKey": Object {
-        "format": "publicKey",
-        "type": "string",
-      },
-      "height": Object {
-        "minimum": 1,
-        "type": "integer",
-      },
-      "id": Object {
-        "format": "hex",
-        "maxLength": 64,
-        "minLength": 64,
-        "type": "string",
-      },
-      "maxHeightPreviouslyForged": Object {
-        "minimum": 0,
-        "type": "integer",
-      },
-      "maxHeightPrevoted": Object {
-        "minimum": 0,
-        "type": "integer",
-      },
-      "numberOfTransactions": Object {
-        "minimum": 0,
-        "type": "integer",
-      },
-      "payloadLength": Object {
-        "minimum": 0,
-        "type": "integer",
-      },
-      "previousBlockId": Object {
-        "format": "hex",
-        "maxLength": 64,
-        "minLength": 64,
-        "type": Array [
-          "null",
-          "string",
+      "header": Object {
+        "properties": Object {
+          "asset": Object {
+            "properties": Object {
+              "maxHeightPreviouslyForged": Object {
+                "minimum": 0,
+                "type": "integer",
+              },
+              "maxHeightPrevoted": Object {
+                "minimum": 0,
+                "type": "integer",
+              },
+              "seedReveal": Object {
+                "format": "hex",
+                "type": "string",
+              },
+            },
+            "required": Array [
+              "seedReveal",
+              "maxHeightPrevoted",
+              "maxHeightPreviouslyForged",
+            ],
+            "type": "object",
+          },
+          "generatorPublicKey": Object {
+            "format": "publicKey",
+            "type": "string",
+          },
+          "height": Object {
+            "minimum": 1,
+            "type": "integer",
+          },
+          "id": Object {
+            "format": "hex",
+            "maxLength": 64,
+            "minLength": 64,
+            "type": "string",
+          },
+          "previousBlockID": Object {
+            "format": "hex",
+            "type": "string",
+          },
+          "reward": Object {
+            "format": "amount",
+            "type": "string",
+          },
+          "signature": Object {
+            "format": "signature",
+            "type": "string",
+          },
+          "timestamp": Object {
+            "minimum": 0,
+            "type": "integer",
+          },
+          "transactionRoot": Object {
+            "format": "hex",
+            "type": "string",
+          },
+          "version": Object {
+            "minimum": 0,
+            "type": "integer",
+          },
+        },
+        "required": Array [
+          "version",
+          "reward",
+          "transactionRoot",
+          "timestamp",
+          "generatorPublicKey",
+          "signature",
         ],
+        "type": "object",
       },
-      "reward": Object {
-        "format": "amount",
-        "type": "string",
-      },
-      "seedReveal": Object {
-        "format": "hex",
-        "type": "string",
-      },
-      "timestamp": Object {
-        "minimum": 0,
-        "type": "integer",
-      },
-      "totalAmount": Object {
-        "format": "amount",
-        "type": "string",
-      },
-      "totalFee": Object {
-        "format": "amount",
-        "type": "string",
-      },
-      "transactionRoot": Object {
-        "format": "hex",
-        "type": "string",
-      },
-      "transactions": Object {
+      "payload": Object {
         "items": Object {
           "additionalProperties": false,
           "properties": Object {
@@ -89,9 +95,9 @@ Object {
               "type": "string",
             },
             "id": Object {
-              "format": "id",
-              "maxLength": 20,
-              "minLength": 1,
+              "format": "hex",
+              "maxLength": 64,
+              "minLength": 64,
               "type": "string",
             },
             "nonce": Object {
@@ -135,25 +141,11 @@ Object {
         "type": "array",
         "uniqueItems": true,
       },
-      "version": Object {
-        "minimum": 0,
-        "type": "integer",
-      },
     },
     "required": Array [
       "communityIdentifier",
-      "version",
-      "totalAmount",
-      "seedReveal",
-      "totalFee",
-      "reward",
-      "transactionRoot",
-      "timestamp",
-      "numberOfTransactions",
-      "payloadLength",
-      "generatorPublicKey",
-      "transactions",
-      "blockSignature",
+      "payload",
+      "header",
     ],
     "type": "object",
   },

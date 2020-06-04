@@ -30,7 +30,6 @@ import { Block } from '../../src/types';
 import {
 	defaultAccountAssetSchema,
 	createFakeDefaultAccount,
-	encodeDefaultAccount,
 } from '../utils/account';
 import { getTransferTransaction } from '../utils/transaction';
 
@@ -364,10 +363,8 @@ describe('chain', () => {
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
 				'NEW_BLOCK',
 				{
-					accounts: fakeAccounts.map(anAccount =>
-						encodeDefaultAccount(anAccount),
-					),
-					block: encodedDefaultBlock(block),
+					accounts: fakeAccounts,
+					block,
 				},
 			);
 		});
@@ -475,10 +472,8 @@ describe('chain', () => {
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
 				'NEW_BLOCK',
 				{
-					accounts: fakeAccounts.map(anAccount =>
-						encodeDefaultAccount(anAccount),
-					),
-					block: encodedDefaultBlock(block),
+					accounts: fakeAccounts,
+					block,
 				},
 			);
 		});

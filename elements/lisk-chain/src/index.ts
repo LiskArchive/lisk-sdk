@@ -22,3 +22,5 @@ export { Chain, events };
 export { StateStore } from './state_store';
 export { Slots } from './slots';
 export * from './types';
+export { BufferMap } from './utils/buffer_map';
+export { BufferSet } from './utils/buffer_set';

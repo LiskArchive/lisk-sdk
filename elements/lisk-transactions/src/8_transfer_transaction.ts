@@ -27,6 +27,7 @@ export interface TransferAsset {
 
 export const transferAssetSchema = {
 	$id: 'lisk/transfer-transaction',
+	title: 'Transfer transaction asset',
 	type: 'object',
 	required: ['amount', 'recipientAddress', 'data'],
 	properties: {
@@ -43,7 +44,7 @@ export const transferAssetSchema = {
 		data: {
 			dataType: 'string',
 			fieldNumber: 3,
-			minLength: 1,
+			minLength: 0,
 			maxLength: 64,
 		},
 	},
@@ -68,7 +69,9 @@ export class TransferTransaction extends BaseTransaction {
 
 		sender.balance -= this.asset.amount;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
+		const recipient = await store.account.getOrDefault(
+			this.asset.recipientAddress,
+		);
 
 		recipient.balance += this.asset.amount;
 
@@ -118,7 +121,9 @@ export class TransferTransaction extends BaseTransaction {
 
 		sender.balance = updatedSenderBalance;
 		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(this.asset.recipientAddress);
+		const recipient = await store.account.getOrDefault(
+			this.asset.recipientAddress,
+		);
 		recipient.balance -= this.asset.amount;
 
 		store.account.set(recipient.address, recipient);

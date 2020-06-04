@@ -15,6 +15,8 @@
 import { when } from 'jest-when';
 
 import { Status as TransactionStatus } from '@liskhq/lisk-transactions';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { BufferMap } from '@liskhq/lisk-transaction-pool';
 import { HighFeeForgingStrategy } from '../../../../../../src/application/node/forger/strategies';
 import {
 	allValidCase,
@@ -27,7 +29,7 @@ const getTxMock = (
 	// eslint-disable-next-line @typescript-eslint/default-param-last
 	{
 		id,
-		senderId,
+		senderPublicKey,
 		nonce,
 		fee,
 		feePriority,
@@ -38,10 +40,10 @@ const getTxMock = (
 	chainMock: any,
 ) => {
 	const tx = {
-		id,
-		senderId,
-		nonce,
-		fee,
+		id: Buffer.from(id),
+		senderPublicKey: Buffer.from(senderPublicKey, 'hex'),
+		nonce: BigInt(nonce),
+		fee: BigInt(fee),
 		feePriority,
 		getBytes: jest.fn().mockReturnValue(Array(bytes)),
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
@@ -65,18 +67,20 @@ const buildProcessableTxMock = (input: any, chainMock: jest.Mock) => {
 			return getTxMock(tx, chainMock);
 		})
 		.reduce((res: any, tx: any) => {
-			if (!res[tx.senderId]) {
-				res[tx.senderId] = [];
+			const senderId = getAddressFromPublicKey(tx.senderPublicKey);
+			let txs = res.get(senderId);
+			if (!txs) {
+				txs = [];
 			}
-
-			res[tx.senderId].push(tx);
+			txs.push(tx);
+			res.set(senderId, txs)
 
 			return res;
-		}, {});
+		}, new BufferMap());
 
-	for (const senderId of Object.keys(result)) {
+	for (const txs of result.values()) {
 		// Ascending sort by nonce
-		result[senderId] = result[senderId].sort(
+		txs.sort(
 			(a: any, b: any) => a.nonce > b.nonce,
 		);
 	}
@@ -88,7 +92,7 @@ describe('strategies', () => {
 	describe('HighFeeForgingStrategy', () => {
 		const maxPayloadLength = 1000;
 		const mockTxPool = {
-			getProcessableTransactions: jest.fn().mockReturnValue({}),
+			getProcessableTransactions: jest.fn().mockReturnValue(new BufferMap()),
 		} as any;
 		const mockChainModule = {
 			newStateStore: jest.fn(),
@@ -128,7 +132,7 @@ describe('strategies', () => {
 				const result = await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(result.map((tx: any) => tx.id)).toEqual(
+				expect(result.map((tx: any) => tx.id.toString())).toEqual(
 					allValidCase.output.map(tx => tx.id),
 				);
 			});
@@ -149,7 +153,7 @@ describe('strategies', () => {
 				const result = await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(result.map((tx: any) => tx.id)).toEqual(
+				expect(result.map((tx: any) => tx.id.toString())).toEqual(
 					maxPayloadLengthCase.output.map(tx => tx.id),
 				);
 			});
@@ -170,7 +174,7 @@ describe('strategies', () => {
 				const result = await strategy.getTransactionsForBlock();
 
 				// Assert
-				expect(result.map((tx: any) => tx.id)).toEqual(
+				expect(result.map((tx: any) => tx.id.toString())).toEqual(
 					invalidTxCase.output.map(tx => tx.id),
 				);
 			});

@@ -92,6 +92,14 @@ export const isHexString = (data: unknown): boolean => {
 	return data === '' || /^[a-f0-9]+$/i.test(data);
 };
 
+export const isBase64String = (data: unknown): boolean => {
+	if (typeof data !== 'string') {
+		return false;
+	}
+
+	return /^[a-zA-Z0-9+/]+={0,3}$/i.test(data);
+};
+
 export const isEncryptedPassphrase = (data: string): boolean => {
 	// Explanation of regex structure:
 	// - 1 or more 'key=value' pairs delimited with '&'

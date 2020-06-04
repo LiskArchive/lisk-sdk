@@ -21,6 +21,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
+import { validator } from '@liskhq/lisk-validator';
 
 import {
 	applyFeeAndRewards,
@@ -72,6 +73,7 @@ import {
 	blockSchema,
 	signingBlockHeaderSchema,
 	baseAccountSchema,
+	blockHeaderSchema,
 } from './schema';
 
 interface ChainConstructor {
@@ -173,7 +175,7 @@ export class Chain {
 	private readonly blocksVerify: BlocksVerify;
 	private readonly _networkIdentifier: Buffer;
 	private readonly blockRewardArgs: BlockRewardOptions;
-	private readonly genesisBlock: Block;
+	private readonly _genesisBlock: Block;
 	private readonly constants: {
 		readonly stateBlockSize: number;
 		readonly epochTime: string;
@@ -240,7 +242,7 @@ export class Chain {
 
 		this._lastBlock = genesisBlock;
 		this._networkIdentifier = networkIdentifier;
-		this.genesisBlock = genesisBlock;
+		this._genesisBlock = genesisBlock;
 		this.slots = new Slots({ epochTime, interval: blockTime });
 		this.blockRewardArgs = {
 			distance: rewardDistance,
@@ -265,14 +267,16 @@ export class Chain {
 
 		this.blocksVerify = new BlocksVerify({
 			dataAccess: this.dataAccess,
-			genesisBlock: this.genesisBlock,
+			genesisBlock: this._genesisBlock,
 		});
 	}
 
 	public get lastBlock(): Block {
-		const { ...block } = this._lastBlock;
+		return this._lastBlock;
+	}
 
-		return block;
+	public get genesisBlock(): Block {
+		return this._genesisBlock;
 	}
 
 	public async init(): Promise<void> {
@@ -338,7 +342,12 @@ export class Chain {
 	}
 
 	public validateBlockHeader(block: Block): void {
-		validatePreviousBlockProperty(block, this.genesisBlock);
+		// Validate block header
+		const errors = validator.validate(blockHeaderSchema, block.header);
+		if (errors.length) {
+			throw new Error(errors[0].message);
+		}
+		validatePreviousBlockProperty(block, this._genesisBlock);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		const encodedBlockHeaderWithoutSignature = this.dataAccess.encodeBlockHeader(
 			block.header,
@@ -382,7 +391,7 @@ export class Chain {
 		_: StateStore,
 		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
 	): Promise<void> {
-		verifyPreviousBlockId(block, this._lastBlock, this.genesisBlock);
+		verifyPreviousBlockId(block, this._lastBlock, this._genesisBlock);
 		validateBlockSlot(block, this._lastBlock, this.slots);
 		if (!skipExistingCheck) {
 			await verifyBlockNotExists(this.dataAccess, block);
@@ -425,17 +434,13 @@ export class Chain {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		const accounts = stateStore.account
-			.getUpdated()
-			.map(anAccount => this.dataAccess.encodeAccount(anAccount));
-
 		await this.dataAccess.saveBlock(block, stateStore, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._lastBlock = block;
 
 		this.events.emit(EVENT_NEW_BLOCK, {
-			block: this.dataAccess.encode(block),
-			accounts,
+			block,
+			accounts: stateStore.account.getUpdated(),
 		});
 	}
 
@@ -469,13 +474,9 @@ export class Chain {
 		await this.dataAccess.removeBlockHeader(block.header.id);
 		this._lastBlock = secondLastBlock;
 
-		const accounts = stateStore.account
-			.getUpdated()
-			.map(anAccount => this.dataAccess.encodeAccount(anAccount));
-
 		this.events.emit(EVENT_DELETE_BLOCK, {
-			block: this.dataAccess.encode(block),
-			accounts,
+			block,
+			accounts: stateStore.account.getUpdated(),
 		});
 	}
 

@@ -13,21 +13,17 @@
  */
 
 import {
-	transfer,
-	registerDelegate,
-	castVotes,
-	registerMultisignature,
-	utils,
-	TransactionJSON,
+	TransferTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultisignatureTransaction,
 } from '@liskhq/lisk-transactions';
 import { KVStore } from '@liskhq/lisk-db';
-import { BlockInstance } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis } from '../../../../../fixtures';
 import { Node } from '../../../../../../src/application/node';
-
-const { convertLSKToBeddows } = utils;
 
 describe('Transaction order', () => {
 	const dbName = 'transaction_order';
@@ -51,97 +47,122 @@ describe('Transaction order', () => {
 
 	describe('given transactions in specific order', () => {
 		describe('when account does not have sufficient balance at the beginning, but receives before spending', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
-				const fundingTx = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: accountWithoutBalance.address,
-					amount: convertLSKToBeddows('100'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				const returningTx = transfer({
-					nonce: '0',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: genesis.address,
-					amount: convertLSKToBeddows('99'),
-					passphrase: accountWithoutBalance.passphrase,
-				}) as TransactionJSON;
-				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(fundingTx),
-					node['_chain'].deserializeTransaction(returningTx),
-				]);
+				const fundingTx = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: accountWithoutBalance.address,
+						amount: BigInt('10000000000'),
+						data: '',
+					},
+				});
+				fundingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				const returningTx = new TransferTransaction({
+					nonce: BigInt(0),
+					fee: BigInt('200000'),
+					senderPublicKey: accountWithoutBalance.publicKey,
+					asset: {
+						recipientAddress: genesis.address,
+						amount: BigInt('9900000000'),
+						data: '',
+					},
+				});
+				returningTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					accountWithoutBalance.passphrase,
+				);
+				newBlock = await nodeUtils.createBlock(node, [fundingTx, returningTx]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should accept the block', async () => {
 				const createdBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.id,
+					newBlock.header.id,
 				);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
 
 		describe('when account register as delegate and make self vote', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
 				const newAccount = nodeUtils.createAccount();
-				const fundingTx = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('100'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				const registerDelegateTx = registerDelegate({
-					nonce: '0',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('11'),
-					username: 'newdelegate',
-					passphrase: newAccount.passphrase,
-				}) as TransactionJSON;
-				const selfVoteTx = castVotes({
-					nonce: '1',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('1'),
-					votes: [
-						{
-							delegateAddress: newAccount.address,
-							amount: convertLSKToBeddows('10'),
-						},
-					],
-					passphrase: newAccount.passphrase,
-				}) as TransactionJSON;
+				const fundingTx = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: newAccount.address,
+						amount: BigInt('10000000000'),
+						data: '',
+					},
+				});
+				fundingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				const registerDelegateTx = new DelegateTransaction({
+					nonce: BigInt(0),
+					fee: BigInt('1100000000'),
+					senderPublicKey: newAccount.publicKey,
+					asset: {
+						username: 'newdelegate',
+					},
+				});
+				registerDelegateTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					newAccount.passphrase,
+				);
+				const selfVoteTx = new VoteTransaction({
+					nonce: BigInt('1'),
+					fee: BigInt('100000000'),
+					senderPublicKey: newAccount.publicKey,
+					asset: {
+						votes: [
+							{
+								delegateAddress: newAccount.address,
+								amount: BigInt('1000000000'),
+							},
+						],
+					},
+				});
+				selfVoteTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					newAccount.passphrase,
+				);
 				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(fundingTx),
-					node['_chain'].deserializeTransaction(registerDelegateTx),
-					node['_chain'].deserializeTransaction(selfVoteTx),
+					fundingTx,
+					registerDelegateTx,
+					selfVoteTx,
 				]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should accept the block', async () => {
 				const createdBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.id,
+					newBlock.header.id,
 				);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
 
 		describe('when account register as multisignature and send from the accounts', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
@@ -149,40 +170,55 @@ describe('Transaction order', () => {
 				].dataAccess.getAccountByAddress(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
-				const fundingTx = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('100'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				const registerMultisigTx = registerMultisignature({
-					nonce: '0',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('11'),
-					mandatoryKeys: [newAccount.publicKey],
-					optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
-					numberOfSignatures: 2,
-					senderPassphrase: newAccount.passphrase,
-					passphrases: [
+				const fundingTx = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: newAccount.address,
+						amount: BigInt('10000000000'),
+						data: '',
+					},
+				});
+				fundingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				const registerMultisigTx = new MultisignatureTransaction({
+					nonce: BigInt(0),
+					fee: BigInt('1100000000'),
+					senderPublicKey: newAccount.publicKey,
+					asset: {
+						mandatoryKeys: [newAccount.publicKey],
+						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						numberOfSignatures: 2,
+					},
+				});
+				registerMultisigTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					newAccount.passphrase,
+					[
 						newAccount.passphrase,
 						...multiSignatureMembers.map(acc => acc.passphrase),
 					],
-				}) as TransactionJSON;
-				const transferTx = transfer({
-					nonce: '1',
-					senderPublicKey: newAccount.publicKey,
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.003'),
-					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('80'),
-				}) as TransactionJSON;
-				const deserializedTransferTx = node['_chain'].deserializeTransaction(
-					transferTx,
+					{
+						mandatoryKeys: [newAccount.publicKey],
+						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						numberOfSignatures: 2,
+					},
 				);
-				deserializedTransferTx.sign(
-					node['_networkIdentifier'],
+				const transferTx = new TransferTransaction({
+					nonce: BigInt('1'),
+					senderPublicKey: newAccount.publicKey,
+					fee: BigInt('300000'),
+					asset: {
+						amount: BigInt('8000000000'),
+						recipientAddress: newAccount.address,
+						data: '',
+					},
+				});
+				transferTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
 					undefined,
 					[newAccount.passphrase, multiSignatureMembers[0].passphrase],
 					{
@@ -191,23 +227,23 @@ describe('Transaction order', () => {
 					},
 				);
 				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(fundingTx),
-					node['_chain'].deserializeTransaction(registerMultisigTx),
-					deserializedTransferTx,
+					fundingTx,
+					registerMultisigTx,
+					transferTx,
 				]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should accept the block', async () => {
 				const createdBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.id,
+					newBlock.header.id,
 				);
 				expect(createdBlock).not.toBeUndefined();
 			});
 		});
 
 		describe('when account register as multisignature and send transfer with old signature', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
@@ -215,39 +251,61 @@ describe('Transaction order', () => {
 				].dataAccess.getAccountByAddress(genesis.address);
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = nodeUtils.createAccounts(2);
-				const fundingTx = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('100'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				const registerMultisigTx = registerMultisignature({
-					nonce: '0',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('11'),
-					mandatoryKeys: [newAccount.publicKey],
-					optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
-					numberOfSignatures: 2,
-					senderPassphrase: newAccount.passphrase,
-					passphrases: [
+				const fundingTx = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: newAccount.address,
+						amount: BigInt('10000000000'),
+						data: '',
+					},
+				});
+				fundingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				const registerMultisigTx = new MultisignatureTransaction({
+					nonce: BigInt(0),
+					fee: BigInt('1100000000'),
+					senderPublicKey: newAccount.publicKey,
+					asset: {
+						mandatoryKeys: [newAccount.publicKey],
+						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						numberOfSignatures: 2,
+					},
+				});
+				registerMultisigTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					newAccount.passphrase,
+					[
 						newAccount.passphrase,
 						...multiSignatureMembers.map(acc => acc.passphrase),
 					],
-				}) as TransactionJSON;
-				const transferTx = transfer({
-					nonce: '1',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.003'),
-					recipientId: newAccount.address,
-					amount: convertLSKToBeddows('80'),
-					passphrase: newAccount.passphrase,
-				}) as TransactionJSON;
+					{
+						mandatoryKeys: [newAccount.publicKey],
+						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						numberOfSignatures: 2,
+					},
+				);
+				const transferTx = new TransferTransaction({
+					nonce: BigInt('1'),
+					senderPublicKey: newAccount.publicKey,
+					fee: BigInt('300000'),
+					asset: {
+						amount: BigInt('8000000000'),
+						recipientAddress: newAccount.address,
+						data: '',
+					},
+				});
+				transferTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					newAccount.passphrase,
+				);
 				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(fundingTx),
-					node['_chain'].deserializeTransaction(registerMultisigTx),
-					node['_chain'].deserializeTransaction(transferTx),
+					fundingTx,
+					registerMultisigTx,
+					transferTx,
 				]);
 			});
 
@@ -267,41 +325,59 @@ describe('Transaction order', () => {
 		});
 
 		describe('when account does not have sufficient balance in the middle of process', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
 				const accountWithoutBalance = nodeUtils.createAccount();
-				const fundingTx = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: accountWithoutBalance.address,
-					amount: convertLSKToBeddows('100'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				const spendingTx = transfer({
-					nonce: '0',
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: genesis.address,
-					amount: convertLSKToBeddows('140'),
-					passphrase: accountWithoutBalance.passphrase,
-				}) as TransactionJSON;
-				const refundingTx = transfer({
-					nonce: (genesisAccount.nonce + BigInt(1)).toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: accountWithoutBalance.address,
-					amount: convertLSKToBeddows('50'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
+				const fundingTx = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: accountWithoutBalance.address,
+						amount: BigInt('10000000000'),
+						data: '',
+					},
+				});
+				fundingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				const spendingTx = new TransferTransaction({
+					nonce: BigInt(0),
+					senderPublicKey: accountWithoutBalance.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: genesis.address,
+						amount: BigInt('14000000000'),
+						data: '',
+					},
+				});
+				spendingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					accountWithoutBalance.passphrase,
+				);
+				const refundingTx = new TransferTransaction({
+					nonce: genesisAccount.nonce + BigInt(1),
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: accountWithoutBalance.address,
+						amount: BigInt('5000000000'),
+						data: '',
+					},
+				});
+				refundingTx.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
 				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(fundingTx),
-					node['_chain'].deserializeTransaction(spendingTx),
-					node['_chain'].deserializeTransaction(refundingTx),
+					fundingTx,
+					spendingTx,
+					refundingTx,
 				]);
 			});
 

@@ -44,7 +44,8 @@ export const getTransferTransaction = (input?: {
 		signatures: [],
 	});
 	tx.sign(defaultNetworkIdentifier, genesisAccount.passphrase);
-	(tx as any).id = hash(tx.getBytes());
-	(tx as any)._id = tx.id.toString('hex');
+	(tx as any)._id = hash(tx.getBytes());
+	(tx as any)._idStr = tx.id.toString('hex');
+
 	return tx;
 };

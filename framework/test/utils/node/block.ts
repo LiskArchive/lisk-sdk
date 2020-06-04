@@ -13,12 +13,12 @@
  *
  */
 
-import { BlockInstance } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { Node } from '../../../src/application/node';
 
 interface Option {
-	lastBlock?: BlockInstance;
+	lastBlock?: Block;
 	keypair?: { publicKey: Buffer; privateKey: Buffer };
 }
 
@@ -32,9 +32,9 @@ export const createBlock = async (
 		? options.lastBlock
 		: node['_chain'].lastBlock;
 	const currentSlot =
-		node['_chain'].slots.getSlotNumber(lastBlock.timestamp) + 1;
+		node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
 	const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
-	const round = node['_dpos'].rounds.calcRound(lastBlock.height + 1);
+	const round = node['_dpos'].rounds.calcRound(lastBlock.header.height + 1);
 	const currentKeypair = await node['_forger'][
 		'_getDelegateKeypairForCurrentSlot'
 	](currentSlot, round);
@@ -43,7 +43,7 @@ export const createBlock = async (
 			? options.keypair
 			: (currentKeypair as { publicKey: Buffer; privateKey: Buffer }),
 		timestamp,
-		seedReveal: '00000000000000000000000000000000',
+		seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 		transactions,
 		previousBlock: lastBlock,
 	});

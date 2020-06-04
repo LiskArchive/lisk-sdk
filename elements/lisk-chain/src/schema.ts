@@ -13,7 +13,7 @@
  */
 
 export const blockSchema = {
-	$id: 'blockSchema',
+	$id: '/block',
 	type: 'object',
 	properties: {
 		header: {
@@ -32,7 +32,7 @@ export const blockSchema = {
 };
 
 export const signingBlockHeaderSchema = {
-	$id: 'signingBlockHeaderSchema',
+	$id: '/block/header/signing',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
@@ -58,7 +58,7 @@ export const signingBlockHeaderSchema = {
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: 'blockHeaderSchema',
+	$id: '/block/header',
 	properties: {
 		...signingBlockHeaderSchema.properties,
 		signature: { dataType: 'bytes', fieldNumber: 9 },
@@ -66,7 +66,7 @@ export const blockHeaderSchema = {
 };
 
 export const baseAccountSchema = {
-	$id: 'baseAccountSchema',
+	$id: '/account/base',
 	type: 'object',
 	properties: {
 		address: { dataType: 'bytes', fieldNumber: 1 },

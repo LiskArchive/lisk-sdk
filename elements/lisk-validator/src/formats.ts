@@ -1,6 +1,7 @@
 import {
 	isGreaterThanMaxTransactionId,
 	isHexString,
+	isBase64String,
 	isInt32,
 	isInt64,
 	isNullCharacterIncluded,
@@ -65,6 +66,7 @@ export const fee = isValidFee;
 export const nonce = isValidNonce;
 
 export const hex = isHexString;
+export const base64 = isBase64String;
 
 export const id = (data: string): boolean =>
 	isNumberString(data) && !isGreaterThanMaxTransactionId(BigInt(data));
@@ -120,7 +122,7 @@ export const uint32 = (data: string): boolean =>
 export const int32 = (data: string): boolean =>
 	isNumberString(data) && isInt32(BigInt(data));
 
-const camelCaseRegex = /^([a-z]+[A-Z]*)+$/;
+const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
 
 export const camelCase = (data: string): boolean =>
 	camelCaseRegex.exec(data) !== null;

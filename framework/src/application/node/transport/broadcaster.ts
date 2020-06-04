@@ -34,7 +34,7 @@ export class Broadcaster {
 	private readonly _logger: Logger;
 	private readonly _transactionPool: TransactionPool;
 	private readonly _config: BroadcasterConfig;
-	private _transactionIdQueue: string[];
+	private _transactionIdQueue: Buffer[];
 
 	public constructor({
 		transactionPool,
@@ -63,9 +63,10 @@ export class Broadcaster {
 		}, this._config.interval);
 	}
 
-	public enqueueTransactionId(transactionId: string): boolean {
+	public enqueueTransactionId(transactionId: Buffer): boolean {
 		if (
-			this._transactionIdQueue.find(id => id === transactionId) !== undefined
+			this._transactionIdQueue.find(id => id.equals(transactionId)) !==
+			undefined
 		) {
 			return false;
 		}
@@ -87,7 +88,7 @@ export class Broadcaster {
 			await this._channel.publishToNetwork('broadcastToNetwork', {
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
-					transactionIds,
+					transactionIds: transactionIds.map(id => id.toString('base64')),
 				},
 			});
 

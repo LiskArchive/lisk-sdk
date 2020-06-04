@@ -14,7 +14,7 @@
  */
 export class TransactionError extends Error {
 	public message: string;
-	public id: string;
+	public id: Buffer;
 	public dataPath: string;
 	public actual?: string | number;
 	public expected?: string | number;
@@ -28,14 +28,16 @@ export class TransactionError extends Error {
 		super();
 		this.message = message;
 		this.name = 'TransactionError';
-		this.id = id.toString('hex');
+		this.id = id;
 		this.dataPath = dataPath;
 		this.actual = actual;
 		this.expected = expected;
 	}
 
 	public toString(): string {
-		const defaultMessage = `Transaction: ${this.id} failed at ${this.dataPath}: ${this.message}`;
+		const defaultMessage = `Transaction: ${this.id.toString(
+			'base64',
+		)} failed at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
 			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			  `${defaultMessage}, actual: ${this.actual}`
