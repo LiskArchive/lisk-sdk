@@ -40,7 +40,7 @@ interface NodeInfo {
 	readonly leftHash: Buffer;
 	readonly rightHash: Buffer;
 	readonly layerIndex: number;
-	readonly nodeIndex: bigint;
+	readonly nodeIndex: number;
 }
 
 const isLeaf = (value: Buffer): boolean =>
@@ -86,9 +86,7 @@ export class MerkleTree {
 		}
 		const layerIndex = type === NodeType.LEAF ? 0 : value.readInt8(1);
 		const nodeIndex =
-			type === NodeType.BRANCH
-				? value.readBigInt64BE(LAYER_INDEX_SIZE + 1)
-				: BigInt(0);
+			type === NodeType.BRANCH ? value.readInt32BE(LAYER_INDEX_SIZE + 1) : 0;
 		const rightHash =
 			type !== NodeType.LEAF
 				? value.slice(-1 * NODE_HASH_SIZE)
@@ -129,7 +127,7 @@ export class MerkleTree {
 				// if layer has odd nodes and current node is odd (hence index is even)
 				const currentLayer = currentNode.layerIndex;
 				let d = this._width >> currentLayer;
-				if (d % 2 === 1 && currentNode.nodeIndex % BigInt(2) === BigInt(0)) {
+				if (d % 2 === 1 && currentNode.nodeIndex % 2 === 0) {
 					appendPath.push(currentNode);
 				}
 				// if node is leaf, break
@@ -161,7 +159,7 @@ export class MerkleTree {
 				(leftNodeInfo as NodeInfo).hash,
 				(rightNodeInfo as NodeInfo).hash,
 				(leftNodeInfo as NodeInfo).layerIndex + 1,
-				(leftNodeInfo as NodeInfo).nodeIndex + BigInt(1),
+				(leftNodeInfo as NodeInfo).nodeIndex + 1,
 			);
 			appendPath.push(this.getNode(newBranchNode.hash));
 		}
@@ -217,12 +215,12 @@ export class MerkleTree {
 		leftHashBuffer: Buffer,
 		rightHashBuffer: Buffer,
 		layerIndex: number,
-		nodeIndex: bigint,
+		nodeIndex: number,
 	): NodeData {
 		const layerIndexBuffer = Buffer.alloc(LAYER_INDEX_SIZE);
 		const nodeIndexBuffer = Buffer.alloc(NODE_INDEX_SIZE);
 		layerIndexBuffer.writeInt8(layerIndex, 0);
-		nodeIndexBuffer.writeBigInt64BE(nodeIndex, 0);
+		nodeIndexBuffer.writeInt32BE(nodeIndex, 0);
 
 		const branchValue = Buffer.concat(
 			[
@@ -302,7 +300,7 @@ export class MerkleTree {
 					leftHash,
 					rightHash,
 					currentLayerIndex + 1,
-					BigInt(i),
+					i,
 				);
 
 				parentLayerHashes.push(node.hash);
