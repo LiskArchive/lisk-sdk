@@ -69,22 +69,22 @@ const compile = (
 	}
 
 	return (
-		_data: Buffer | bigint | string | number,
+		data: Buffer | bigint | string | number,
 		_dataPath?: string,
 		_parentData?: object,
 		_parentDataProperty?: string | number,
 		_rootData?: object,
 	): boolean => {
-		if (value === 'boolean') return isBoolean(_data);
-		if (value === 'bytes') return isBytes(_data as Buffer);
-		if (value === 'string') return isString(value);
-		if (value === 'uint32') return isUInt32(_data);
-		if (value === 'sint32') return isSInt32(_data);
-		if (value === 'uint64') return isSInt64(_data);
-		if (value === 'uint64') return isUInt64(_data);
+		if (value === 'boolean') return isBoolean(data);
+		if (value === 'bytes') return isBytes(data as Buffer);
+		if (value === 'string') return isString(data);
+		if (value === 'uint32') return isUInt32(data);
+		if (value === 'sint32') return isSInt32(data);
+		if (value === 'uint64') return isSInt64(data);
+		if (value === 'uint64') return isUInt64(data);
 
 		// Either "dataType" or "type" can be presented in schema
-		return !typePropertyPresent;
+		return true;
 	};
 };
 

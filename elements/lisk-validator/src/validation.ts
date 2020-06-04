@@ -24,12 +24,12 @@ import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
-	MAX_INT32,
+	MAX_SINT32,
 	MAX_SINT64,
 	MAX_PUBLIC_KEY_LENGTH,
 	MAX_UINT32,
 	MAX_UINT64,
-	MIN_INT32,
+	MIN_SINT32,
 	MIN_SINT64,
 } from './constants';
 
@@ -228,7 +228,7 @@ export const isBoolean = (data: unknown): boolean => typeof data === 'boolean';
 
 export const isSInt32 = (data: unknown): boolean => {
 	if (typeof data === 'number' && Number.isInteger(data)) {
-		return data <= MAX_INT32 && data >= MIN_INT32;
+		return data <= MAX_SINT32 && data >= MIN_SINT32;
 	}
 
 	return false;
