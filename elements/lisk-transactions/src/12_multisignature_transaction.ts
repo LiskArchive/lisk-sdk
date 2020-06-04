@@ -82,6 +82,17 @@ const setMemberAccounts = async (
 	}
 };
 
+const hasDuplicateKey = (keys: Buffer[]): boolean => {
+	const temp: { [key: string]: boolean | undefined } = {};
+	for (const key of keys) {
+		if (temp[key.toString('base64')]) {
+			return true;
+		}
+		temp[key.toString('base64')] = true;
+	}
+	return false;
+};
+
 export interface MultiSignatureAsset {
 	mandatoryKeys: Array<Readonly<Buffer>>;
 	optionalKeys: Array<Readonly<Buffer>>;
@@ -232,6 +243,26 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = this.asset;
 
+		if (hasDuplicateKey(mandatoryKeys as Buffer[])) {
+			errors.push(
+				new TransactionError(
+					'MandatoryKeys contains duplicate public keys',
+					this.id,
+					'.asset.mandatoryKeys',
+				),
+			);
+		}
+
+		if (hasDuplicateKey(optionalKeys as Buffer[])) {
+			errors.push(
+				new TransactionError(
+					'OptionalKeys contains duplicate public keys',
+					this.id,
+					'.asset.optionalKeys',
+				),
+			);
+		}
+
 		// Check if key count is less than number of required signatures
 		if (mandatoryKeys.length + optionalKeys.length < numberOfSignatures) {
 			errors.push(
@@ -276,8 +307,10 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check if keys are repeated between mandatory and optional key sets
-		const repeatedKeys = mandatoryKeys.filter(value =>
-			optionalKeys.includes(value),
+		const repeatedKeys = mandatoryKeys.filter(
+			value =>
+				optionalKeys.find(optional => optional.equals(value as Buffer)) !==
+				undefined,
 		);
 		if (repeatedKeys.length > 0) {
 			errors.push(

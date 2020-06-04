@@ -137,20 +137,20 @@ export abstract class BaseTransaction {
 	}
 	/* End Getters */
 
-	public getSigningBytes(): Buffer {
+	public getBytes(): Buffer {
 		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
 			...this,
-			asset: this.getAssetBytes(),
-			signatures: [],
+			asset: this._getAssetBytes(),
 		} as unknown) as GenericObject);
 
 		return transactionBytes;
 	}
 
-	public getBytes(): Buffer {
+	public getSigningBytes(): Buffer {
 		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
 			...this,
-			asset: this.getAssetBytes(),
+			asset: this._getAssetBytes(),
+			signatures: [],
 		} as unknown) as GenericObject);
 
 		return transactionBytes;
@@ -160,6 +160,11 @@ export abstract class BaseTransaction {
 		const errors = [...this._validateSchema()];
 		if (errors.length > 0) {
 			return createResponse(this.id, errors);
+		}
+
+		const assetErrors = this.validateAsset();
+		if (assetErrors.length > 0) {
+			errors.push(...assetErrors);
 		}
 
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
@@ -196,7 +201,7 @@ export abstract class BaseTransaction {
 		const senderPublicKeyError = verifySenderPublicKey(
 			this.id,
 			sender,
-			this.senderPublicKeyStr,
+			this.senderPublicKey,
 		);
 		if (senderPublicKeyError) {
 			errors.push(senderPublicKeyError);
@@ -391,7 +396,7 @@ export abstract class BaseTransaction {
 		return [];
 	}
 
-	protected getAssetBytes(): Buffer {
+	private _getAssetBytes(): Buffer {
 		const assetSchema = (this.constructor as typeof BaseTransaction)
 			.ASSET_SCHEMA;
 		return codec.encode(

@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey, bufferToHex } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	bufferToHex,
+} from '@liskhq/lisk-cryptography';
 
 import { TransactionError } from '../errors';
 
@@ -25,11 +28,11 @@ export const validateSenderIdAndPublicKey = (
 
 	return senderId.toUpperCase() !== actualAddress.toUpperCase()
 		? new TransactionError(
-			'`senderId` does not match `senderPublicKey`',
-			id,
-			'.senderId',
-			actualAddress,
-			senderId,
-		)
+				'`senderId` does not match `senderPublicKey`',
+				id,
+				'.senderId',
+				actualAddress,
+				senderId,
+		  )
 		: undefined;
 };

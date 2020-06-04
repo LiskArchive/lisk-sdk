@@ -12,37 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import { Account, TransactionJSON, BlockHeader } from '../../src/types';
+import { hexToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { Account, BlockHeader, AccountAsset } from '../../src/types';
 import { AccountState, ChainState } from '../../src/base_transaction';
 
-export const defaultAccount = {
-	publicKey: Buffer.from(''),
-	username: null,
-	isDelegate: 0,
-	balance: BigInt('0'),
-	nonce: BigInt(0),
-	missedBlocks: 0,
-	producedBlocks: 0,
-	fees: BigInt('0'),
-	rewards: BigInt('0'),
-	asset: {},
-	toJSON: (): object => ({}),
+export const defaultAccount = (
+	account?: Partial<Account>,
+): Account<AccountAsset> => ({
+	address: account?.address ?? getRandomBytes(20),
+	publicKey: account?.publicKey ?? Buffer.alloc(0),
+	balance: account?.balance ?? BigInt(0),
+	nonce: account?.nonce ?? BigInt(0),
 	keys: {
-		mandatoryKeys: [],
-		optionalKeys: [],
-		numberOfSignatures: 0,
+		mandatoryKeys: account?.keys?.mandatoryKeys ?? [],
+		optionalKeys: account?.keys?.optionalKeys ?? [],
+		numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
 	},
-	totalVotesReceived: BigInt(0),
-	votes: [],
-	unlocking: [],
-	delegate: {
-		lastForgedHeight: 0,
-		consecutiveMissedBlocks: 0,
-		isBanned: false,
-		pomHeights: [],
+	asset: {
+		delegate: {
+			username: account?.asset?.delegate?.username ?? '',
+			pomHeights: account?.asset?.delegate?.pomHeights ?? [],
+			consecutiveMissedBlocks:
+				account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
+			lastForgedHeight: account?.asset?.delegate?.lastForgedHeight ?? 0,
+			isBanned: account?.asset?.delegate?.isBanned ?? false,
+			totalVotesReceived:
+				account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
+		},
+		sentVotes: account?.asset?.sentVotes ?? [],
+		unlocking: account?.asset?.unlocking ?? [],
 	},
-};
+});
 
 export const defaultNetworkIdentifier =
 	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
@@ -59,7 +59,6 @@ export class StateStoreMock {
 	readonly chain: ChainState;
 
 	public accountData: Account[];
-	public transactionData: TransactionJSON[];
 	public chainData: { [key: string]: Buffer };
 
 	constructor(initialAccount?: Account[], additionalInfo?: AdditionalInfo) {
@@ -67,7 +66,6 @@ export class StateStoreMock {
 		this.accountData = initialAccount
 			? initialAccount.map(a => ({ ...a }))
 			: [];
-		this.transactionData = [];
 		this.chainData = additionalInfo?.chainData ?? {};
 
 		this.account = {
@@ -87,16 +85,9 @@ export class StateStoreMock {
 					acc.address.equals(address),
 				);
 				if (!account) {
-					return { ...defaultAccount, address };
+					return { ...defaultAccount(), address };
 				}
 				return { ...account };
-			},
-			find: (func: (item: Account) => boolean): Account | undefined => {
-				const account = this.accountData.find(func);
-				if (!account) {
-					return undefined;
-				}
-				return account;
 			},
 			set: (address: Buffer, account: Account): void => {
 				const index = this.accountData.findIndex(acc =>

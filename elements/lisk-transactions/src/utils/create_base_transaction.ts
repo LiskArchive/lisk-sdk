@@ -14,7 +14,8 @@
  */
 
 import {
-	getAddressAndPublicKeyFromPassphrase, bufferToHex,
+	getAddressAndPublicKeyFromPassphrase,
+	bufferToHex,
 } from '@liskhq/lisk-cryptography';
 import { TransactionJSON } from '../types';
 
@@ -52,7 +53,9 @@ export const createBaseTransaction = ({
 	};
 };
 
-export const baseTransactionToJSON = (transaction: BaseTransaction): Partial<TransactionJSON> => ({
+export const baseTransactionToJSON = (
+	transaction: BaseTransaction,
+): Partial<TransactionJSON> => ({
 	id: String(transaction.id),
 	type: transaction.type,
 	senderPublicKey: bufferToHex(transaction.senderPublicKey),

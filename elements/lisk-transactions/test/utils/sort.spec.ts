@@ -20,32 +20,32 @@ describe('sort', () => {
 			// Arrange
 			const expected = [
 				{
-					delegateAddress: '14922320760863774375L',
+					delegateAddress: Buffer.from('14922320760863774375L', 'hex'),
 					unvoteHeight: 20,
 					amount: BigInt('123000000000'),
 				},
 				{
-					delegateAddress: '14922320760863774375L',
+					delegateAddress: Buffer.from('14922320760863774375L', 'hex'),
 					unvoteHeight: 20,
 					amount: BigInt('100000000000'),
 				},
 				{
-					delegateAddress: '14922320760863774375L',
+					delegateAddress: Buffer.from('14922320760863774375L', 'hex'),
 					unvoteHeight: 15,
 					amount: BigInt('9900000000000'),
 				},
 				{
-					delegateAddress: '17900361349681048625L',
+					delegateAddress: Buffer.from('17900361349681048625L', 'hex'),
 					unvoteHeight: 20,
 					amount: BigInt('100000000000'),
 				},
 				{
-					delegateAddress: '3951342159122727489L',
+					delegateAddress: Buffer.from('3951342159122727489L', 'hex'),
 					unvoteHeight: 25,
 					amount: BigInt('100000000000'),
 				},
 				{
-					delegateAddress: '3951342159122727489L',
+					delegateAddress: Buffer.from('3951342159122727489L', 'hex'),
 					unvoteHeight: 24,
 					amount: BigInt('100000000000'),
 				},

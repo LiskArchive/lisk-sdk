@@ -26,7 +26,8 @@
 			"framework",
 			"elements/*",
 			"commander",
-			"sdk"
+			"sdk",
+			"protocol-specs"
 		],
 		"nohoist": [
 			"**@types/mocha",

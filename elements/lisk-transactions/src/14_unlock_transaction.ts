@@ -35,6 +35,8 @@ const unlockAssetSchema = {
 	properties: {
 		unlockObjects: {
 			type: 'array',
+			minItems: 1,
+			maxItems: 20,
 			items: {
 				type: 'object',
 				required: ['delegateAddress', 'amount', 'unvoteHeight'],
@@ -71,10 +73,9 @@ const getWaitingPeriod = (
 	unlockObject: Unlock,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
-	const waitTime =
-		sender.address === delegateAccount.address
-			? WAIT_TIME_SELF_VOTE
-			: WAIT_TIME_VOTE;
+	const waitTime = sender.address.equals(delegateAccount.address)
+		? WAIT_TIME_SELF_VOTE
+		: WAIT_TIME_VOTE;
 
 	return waitTime - (currentHeight - unlockObject.unvoteHeight);
 };
@@ -178,7 +179,7 @@ export class UnlockTransaction extends BaseTransaction {
 			const unlockIndex = sender.asset.unlocking.findIndex(
 				obj =>
 					obj.amount === unlock.amount &&
-					obj.delegateAddress === unlock.delegateAddress &&
+					obj.delegateAddress.equals(unlock.delegateAddress) &&
 					obj.unvoteHeight === unlock.unvoteHeight,
 			);
 			if (unlockIndex < 0) {

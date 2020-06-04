@@ -21,7 +21,7 @@ describe('errors', () => {
 		beforeEach(() => {
 			TxError = new TransactionError(
 				'error message',
-				'transaction id',
+				Buffer.from('transaction id'),
 				'.dataPath',
 			);
 		});
@@ -37,8 +37,8 @@ describe('errors', () => {
 			});
 
 			it('should have a `id` string', () => {
-				expect(TxError.id).toEqual('transaction id');
-				return expect(TxError.id).toBeString();
+				expect(TxError.id).toEqual(Buffer.from('transaction id'));
+				return expect(TxError.id).toBeInstanceOf(Buffer);
 			});
 
 			it('should have a `dataPath` string', () => {
@@ -49,7 +49,7 @@ describe('errors', () => {
 			it('should show provided actual property when present', () => {
 				TxError = new TransactionError(
 					'error message',
-					'transaction id',
+					Buffer.from('transaction id'),
 					'.dataPath',
 					'__ACTUAL_PROPERTY_1__',
 				);
@@ -61,7 +61,7 @@ describe('errors', () => {
 			it('should show provided expected property when present', () => {
 				TxError = new TransactionError(
 					'error message',
-					'transaction id',
+					Buffer.from('transaction id'),
 					'.dataPath',
 					'actual_value_provided',
 					'__EXPECTED_PROPERTY_1__',
@@ -74,8 +74,8 @@ describe('errors', () => {
 
 		describe('#toString', () => {
 			it('should return a string from a TransactionError', () => {
-				return expect(TxError.toString()).toEqual(
-					'Transaction: transaction id failed at .dataPath: error message',
+				return expect(TxError.toString()).toInclude(
+					'failed at .dataPath: error message',
 				);
 			});
 		});

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { bufferToHex } from '@liskhq/lisk-cryptography';
 import { TransactionError } from '../errors';
 import { Account } from '../types';
 
@@ -22,21 +21,17 @@ import { validateSignature } from './sign_and_validate';
 export const verifySenderPublicKey = (
 	id: Buffer,
 	sender: Account,
-	publicKey: string,
-): TransactionError | undefined => {
-	const senderPublicKeyStr = bufferToHex(sender.publicKey);
-
-	return senderPublicKeyStr && senderPublicKeyStr !== publicKey
+	publicKey: Buffer,
+): TransactionError | undefined =>
+	sender.publicKey.length !== 0 && !sender.publicKey.equals(publicKey)
 		? new TransactionError(
-			'Invalid sender publicKey',
-			id,
-			'.senderPublicKey',
-			publicKey,
-			senderPublicKeyStr,
-		)
+				'Invalid sender publicKey',
+				id,
+				'.senderPublicKey',
+				publicKey.toString('base64'),
+				sender.publicKey.toString('base64'),
+		  )
 		: undefined;
-}
-
 
 export const verifyMinRemainingBalance = (
 	id: Buffer,
@@ -45,9 +40,9 @@ export const verifyMinRemainingBalance = (
 ): TransactionError | undefined => {
 	if (account.balance < minRemainingBalance) {
 		return new TransactionError(
-			`Account does not have enough minimum remaining LSK: ${
-			bufferToHex(account.address)
-			}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
+			`Account does not have enough minimum remaining LSK: ${account.address.toString(
+				'base64',
+			)}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 			id,
 			'.balance',
 			account.balance.toString(),
@@ -65,9 +60,9 @@ export const verifyAccountNonce = (
 ): TransactionError | undefined => {
 	if (nonce < account.nonce) {
 		return new TransactionError(
-			`Incompatible transaction nonce for account: ${
-			bufferToHex(account.address)
-			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			`Incompatible transaction nonce for account: ${account.address.toString(
+				'base64',
+			)}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 			nonce.toString(),
@@ -77,9 +72,9 @@ export const verifyAccountNonce = (
 
 	if (nonce > account.nonce) {
 		return new TransactionError(
-			`Transaction nonce for account: ${
-			bufferToHex(account.address)
-			} is higher than expected, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			`Transaction nonce for account: ${account.address.toString(
+				'base64',
+			)} is higher than expected, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 			nonce.toString(),
@@ -111,7 +106,7 @@ export const validateKeysSignatures = (
 					'Invalid signatures format. signatures should not include empty string.',
 					undefined,
 					'.signatures',
-					signatures.join(','),
+					signatures.map(sign => sign.toString('base64')).join(','),
 				),
 			);
 			break;
@@ -173,7 +168,7 @@ export const verifyMultiSignatureTransaction = (
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
 			const { error } = validateSignature(
-				optionalKeys[k] as Buffer,
+				optionalKeys[k],
 				signature as Buffer,
 				transactionBytes,
 			);

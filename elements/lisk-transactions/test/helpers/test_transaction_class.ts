@@ -37,6 +37,16 @@ export class TestTransaction extends BaseTransaction {
 
 export class TestTransactionBasicImpl extends BaseTransaction {
 	public static TYPE = 1;
+	public static ASSET_SCHEMA = {
+		$id: 'basic-sample',
+		type: 'object',
+		properties: {
+			foo: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+	};
 
 	public async applyAsset(): Promise<TransactionError[]> {
 		return [];

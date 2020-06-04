@@ -17,7 +17,6 @@ export * from './create_base_transaction';
 export * from './format';
 export * from './sign_and_validate';
 export * from './verify';
-export * from './transaction_id';
 export * from './sort';
 export * from './build_key_passphrase_dict';
 export * from './find_repeated_keys';

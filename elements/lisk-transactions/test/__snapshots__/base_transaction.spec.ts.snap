@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Base transaction class #getSigningBytes should return a buffer with correct bytes 1`] = `[Function]`;

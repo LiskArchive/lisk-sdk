@@ -12,85 +12,54 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
+import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import {
-	defaultAccount,
-	StateStoreMock,
-	defaultNetworkIdentifier,
-} from './utils/state_store_mock';
-import { DelegateTransaction } from '../src/10_delegate_transaction';
+	DelegateTransaction,
+	DelegateAsset,
+} from '../src/10_delegate_transaction';
 import { validDelegateAccount } from '../fixtures';
-import * as protocolSpecDelegateFixture from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
+import * as fixtures from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
 import { Account } from '../src/types';
+import { BaseTransaction } from '../src';
 
 describe('Delegate registration transaction class', () => {
-	const {
-		networkIdentifier,
-		transaction: validDelegateTransaction,
-	} = protocolSpecDelegateFixture.testCases[0].input;
+	const testCase = fixtures.testCases[0];
 
 	let validTestTransaction: DelegateTransaction;
 	let store: StateStoreMock;
 	let sender: Account;
 
-	const validDelegateAccountObj = {
-		...defaultAccount,
-		...validDelegateAccount,
+	const validDelegateAccountObj = defaultAccount({
 		balance: BigInt(validDelegateAccount.balance),
-		address: protocolSpecDelegateFixture.testCases[0].input.account.address,
-		publicKey: protocolSpecDelegateFixture.testCases[0].input.account.publicKey,
-		keys: {
-			mandatoryKeys: [],
-			optionalKeys: [],
-			numberOfSignatures: 0,
-		},
-	};
+		address: Buffer.from(testCase.input.account.address, 'base64'),
+		publicKey: Buffer.from(testCase.input.account.publicKey, 'base64'),
+	});
 
 	beforeEach(() => {
-		validTestTransaction = new DelegateTransaction({
-			...validDelegateTransaction,
-			networkIdentifier,
-		});
-		validTestTransaction.sign(
-			defaultNetworkIdentifier,
-			protocolSpecDelegateFixture.testCases[0].input.account.passphrase,
+		const buffer = Buffer.from(testCase.output.transaction, 'base64');
+		const id = hash(buffer);
+		const decodedBaseTransaction = codec.decode<BaseTransaction>(
+			BaseTransaction.BASE_SCHEMA,
+			buffer,
 		);
+		const decodedAsset = codec.decode<DelegateAsset>(
+			DelegateTransaction.ASSET_SCHEMA,
+			decodedBaseTransaction.asset as Buffer,
+		);
+		validTestTransaction = new DelegateTransaction({
+			...decodedBaseTransaction,
+			asset: decodedAsset,
+			id,
+		});
 
 		sender = validDelegateAccountObj;
 
 		store = new StateStoreMock([sender]);
 
 		jest.spyOn(store.account, 'get');
-		jest.spyOn(store.account, 'find');
 		jest.spyOn(store.account, 'set');
-	});
-
-	describe('#constructor', () => {
-		it('should create instance of  DelegateTransaction', () => {
-			expect(validTestTransaction).toBeInstanceOf(DelegateTransaction);
-		});
-
-		it('should set the delegate asset', () => {
-			expect(validTestTransaction.asset.username).toEqual(
-				validDelegateTransaction.asset.username,
-			);
-		});
-
-		it('should not throw when asset is not valid string', () => {
-			const invalidDelegateTransactionData = {
-				...validDelegateTransaction,
-				asset: {
-					username: '123',
-				},
-			};
-			expect(
-				() => new DelegateTransaction(invalidDelegateTransactionData),
-			).not.toThrow();
-		});
-
-		it('should create instance of DelegateTransaction when rawTransaction is empty', () => {
-			const validEmptyTestTransaction = new DelegateTransaction({} as any);
-			expect(validEmptyTestTransaction).toBeInstanceOf(DelegateTransaction);
-		});
 	});
 
 	describe('#validateAsset', () => {
@@ -136,60 +105,71 @@ describe('Delegate registration transaction class', () => {
 		});
 	});
 
-	// TODO: Update after updating protocol-specs
-	describe.skip('#applyAsset', () => {
+	describe('#applyAsset', () => {
 		it('should call state store', async () => {
 			await (validTestTransaction as any).applyAsset(store);
 			expect(store.account.get).toHaveBeenCalledWith(
 				validTestTransaction.senderId,
 			);
-			expect(store.account.find).toHaveBeenCalledTimes(1);
 			expect(store.account.set).toHaveBeenCalledWith(sender.address, {
 				...sender,
-				isDelegate: 1,
-				username: validTestTransaction.asset.username,
+				asset: {
+					...sender.asset,
+					delegate: {
+						...sender.asset.delegate,
+						username: validTestTransaction.asset.username,
+					},
+				},
 			});
 		});
 
 		it('should return no errors', async () => {
-			const { isDelegate, username, ...strippedSender } = sender;
-			store.account.set(sender.address, strippedSender as any);
+			store.account.set(
+				sender.address,
+				defaultAccount({ address: sender.address }),
+			);
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(0);
 		});
 
 		it('should return error when username is taken', async () => {
-			(store.account.find as any).mockReturnValue(true);
+			store.chain.set(
+				'delegateUsernames',
+				Buffer.from(
+					JSON.stringify({
+						registeredDelegates: [
+							{
+								username: validTestTransaction.asset.username,
+								address: Buffer.from('random'),
+							},
+						],
+					}),
+				),
+			);
 			const errors = await (validTestTransaction as any).applyAsset(store);
 			expect(errors).toHaveLength(2);
 			expect(errors[0].dataPath).toBe('.asset.username');
 		});
 
 		it('should return an error when account is already delegate', async () => {
+			const defaultVal = defaultAccount();
+			store.account.set(
+				sender.address,
+				defaultAccount({
+					address: sender.address,
+					asset: {
+						...defaultVal.asset,
+						delegate: {
+							...defaultVal.asset.delegate,
+							username: 'alreadydelegate',
+						},
+					},
+				}),
+			);
 			const errors = await (validTestTransaction as any).applyAsset(store);
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.asset.username');
-		});
-	});
-
-	// TODO: Update after updating protocol-specs
-	describe.skip('#undoAsset', () => {
-		it('should call state store', async () => {
-			await (validTestTransaction as any).undoAsset(store);
-			expect(store.account.get).toHaveBeenCalledWith(
-				validTestTransaction.senderId,
-			);
-			expect(store.account.set).toHaveBeenCalledWith(sender.address, {
-				...sender,
-				isDelegate: 0,
-				username: null,
-			});
-		});
-
-		it('should return no errors', async () => {
-			const errors = await (validTestTransaction as any).undoAsset(store);
-			expect(errors).toHaveLength(0);
 		});
 	});
 });

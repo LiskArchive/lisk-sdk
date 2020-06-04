@@ -53,10 +53,13 @@ const validateInputs = ({
 	}
 };
 
-const convertVotes = (votes: ReadonlyArray<RawAssetVote>): ReadonlyArray<Vote> => votes.map(vote => ({
-	delegateAddress: hexToBuffer(vote.delegateAddress),
-	amount: BigInt(vote.amount),
-}));
+const convertVotes = (
+	votes: ReadonlyArray<RawAssetVote>,
+): ReadonlyArray<Vote> =>
+	votes.map(vote => ({
+		delegateAddress: hexToBuffer(vote.delegateAddress),
+		amount: BigInt(vote.amount),
+	}));
 
 export const castVotes = (inputs: CastVoteInputs): Partial<TransactionJSON> => {
 	validateInputs(inputs);
