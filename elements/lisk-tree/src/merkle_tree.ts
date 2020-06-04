@@ -151,7 +151,7 @@ export class MerkleTree {
 		while (appendPath.length > 1) {
 			const rightNodeInfo = appendPath.pop();
 			const leftNodeInfo = appendPath.pop();
-			const newBranchNode = this._generateNode(
+			const newBranchNode = this._generateBranch(
 				(leftNodeInfo as NodeInfo).hash,
 				(rightNodeInfo as NodeInfo).hash,
 				(leftNodeInfo as NodeInfo).layerIndex + 1,
@@ -207,7 +207,7 @@ export class MerkleTree {
 		};
 	}
 
-	private _generateNode(
+	private _generateBranch(
 		leftHashBuffer: Buffer,
 		rightHashBuffer: Buffer,
 		layerIndex: number,
@@ -292,7 +292,7 @@ export class MerkleTree {
 			for (let i = 0; i < pairsOfHashes.length; i += 1) {
 				const leftHash = pairsOfHashes[i][0];
 				const rightHash = pairsOfHashes[i][1];
-				const node = this._generateNode(
+				const node = this._generateBranch(
 					leftHash,
 					rightHash,
 					currentLayerIndex + 1,

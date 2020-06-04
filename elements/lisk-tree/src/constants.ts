@@ -20,7 +20,6 @@ export const LAYER_INDEX_SIZE = 1;
 export const NODE_INDEX_SIZE = 8;
 export const NODE_HASH_SIZE = 32;
 export const enum NodeType {
-	ROOT = 'root',
 	BRANCH = 'branch',
 	LEAF = 'leaf',
 }
