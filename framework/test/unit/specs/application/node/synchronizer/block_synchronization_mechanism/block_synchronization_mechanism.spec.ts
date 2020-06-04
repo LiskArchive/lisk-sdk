@@ -604,7 +604,7 @@ describe('block_synchronization_mechanism', () => {
 
 				expectApplyPenaltyAndRestartIsCalled(
 					aBlock,
-					"Peer didn't provide its last block",
+					"Peer did not provide its last block",
 				);
 			});
 		});

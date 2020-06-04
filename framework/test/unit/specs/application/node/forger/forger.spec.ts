@@ -695,7 +695,7 @@ describe('forger', () => {
 				await expect(forgeModule.loadDelegates()).rejects.toThrow(
 					[
 						'Account with public key:',
-						accountDetails.publicKey.toString(),
+						Buffer.from(accountDetails.publicKey, 'hex').toString('base64'),
 						'not found',
 					].join(' '),
 				);
