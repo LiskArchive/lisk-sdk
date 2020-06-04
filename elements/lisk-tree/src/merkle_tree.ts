@@ -44,7 +44,7 @@ interface NodeInfo {
 }
 
 const isLeaf = (value: Buffer): boolean =>
-	value[0] === LEAF_PREFIX[0] && value.compare(Buffer.alloc(0)) !== 0;
+	value.compare(Buffer.alloc(0)) !== 0 && value[0] === LEAF_PREFIX[0];
 
 export class MerkleTree {
 	private _root: Buffer;
@@ -56,6 +56,7 @@ export class MerkleTree {
 	public constructor(initValues: Buffer[] = []) {
 		if (initValues.length === 0) {
 			this._root = EMPTY_HASH;
+			this._hashToBuffer[this._root.toString('binary')] = Buffer.alloc(0);
 			return;
 		}
 
@@ -116,37 +117,37 @@ export class MerkleTree {
 			return leaf.hash;
 		}
 
+		// Create the appendPath
 		const appendPath: NodeInfo[] = [];
 		let currentNode = this.getNode(this._root);
+		if (this._width === 2 ** (this._getHeight() - 1)) {
+			appendPath.push(currentNode);
+		} else {
+			// We start from the root layer and traverse each layer down the tree on the right side
+			// eslint-disable-next-line
+			while (true) {
+				// if layer has odd nodes and current node is odd (hence index is even)
+				const currentLayer = currentNode.layerIndex;
+				let d = this._width >> currentLayer;
+				if (d % 2 === 1 && currentNode.nodeIndex % BigInt(2) === BigInt(0)) {
+					appendPath.push(currentNode);
+				}
+				// if node is leaf, break
+				if (currentNode.type === NodeType.LEAF) {
+					break;
+				}
+				// if layer below is odd numbered, push left child
+				d = this._width >> (currentLayer - 1);
+				if (d % 2 === 1) {
+					const leftNode = this.getNode(currentNode.leftHash);
+					appendPath.push(leftNode);
+				}
 
-		// Create the appendPath:
-		// We start from the root layer and traverse each layer down the tree on the right side
-		// eslint-disable-next-line
-		while (true) {
-			if (this._width === 2 ** (this._getHeight() - 1)) {
-				appendPath.push(currentNode);
-				break;
+				// go to right child
+				currentNode = this.getNode(currentNode.rightHash);
 			}
-			// if layer has odd nodes and current node is odd (hence index is even)
-			const currentLayer = currentNode.layerIndex;
-			let d = this._width >> currentLayer;
-			if (d % 2 === 1 && currentNode.nodeIndex % BigInt(2) === BigInt(0)) {
-				appendPath.push(currentNode);
-			}
-			// if node is leaf, break
-			if (currentNode.type === NodeType.LEAF) {
-				break;
-			}
-			// if layer below is odd numbered, push left child
-			d = this._width >> (currentLayer - 1);
-			if (d % 2 === 1) {
-				const leftNode = this.getNode(currentNode.leftHash);
-				appendPath.push(leftNode);
-			}
-
-			// go to right child
-			currentNode = this.getNode(currentNode.rightHash);
 		}
+
 		const appendData = this._generateLeaf(value);
 		const appendNode = this.getNode(appendData.hash);
 		appendPath.push(this.getNode(appendNode.hash));
@@ -156,7 +157,6 @@ export class MerkleTree {
 		while (appendPath.length > 1) {
 			const rightNodeInfo = appendPath.pop();
 			const leftNodeInfo = appendPath.pop();
-			// FIXME: Add correct nodeIndex:  get left node index + 1
 			const newBranchNode = this._generateNode(
 				(leftNodeInfo as NodeInfo).hash,
 				(rightNodeInfo as NodeInfo).hash,
@@ -177,8 +177,8 @@ export class MerkleTree {
 
 	public clear(): void {
 		this._width = 0;
-		this._hashToBuffer = {};
 		this._root = EMPTY_HASH;
+		this._hashToBuffer = { [this._root.toString('2')]: Buffer.alloc(0) };
 	}
 
 	public getData(): object[] {
