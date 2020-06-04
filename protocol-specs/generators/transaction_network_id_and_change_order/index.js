@@ -17,6 +17,7 @@
 const { signData } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
+const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
 
@@ -84,41 +85,6 @@ const networkIdentifier = Buffer.from(
 	'hex',
 );
 
-const baseSchema = {
-	$id: 'baseSchema',
-	type: 'object',
-	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
-	properties: {
-		type: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 2,
-		},
-		fee: {
-			dataType: 'uint64',
-			fieldNumber: 3,
-		},
-		senderPublicKey: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		asset: {
-			dataType: 'bytes',
-			fieldNumber: 5,
-		},
-		signatures: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-			},
-			fieldNumber: 6,
-		},
-	},
-};
-
 const balanceTransferAsset = {
 	type: 'object',
 	$id: 'balanceTransferAsset',
@@ -156,7 +122,7 @@ const generateValidTransferTransaction = () => {
 		asset: assetBytes,
 		signatures: [],
 	};
-	const signingBytes = codec.encode(baseSchema, signingTx);
+	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
 	const signature = Buffer.from(
 		signData(
@@ -166,7 +132,7 @@ const generateValidTransferTransaction = () => {
 		'hex',
 	);
 
-	const encodedTx = codec.encode(baseSchema, {
+	const encodedTx = codec.encode(baseTransactionSchema, {
 		...tx,
 		asset: assetBytes,
 		signatures: [signature],
@@ -207,7 +173,7 @@ const generateValidDelegateTransaction = () => {
 		asset: assetBytes,
 		signatures: [],
 	};
-	const signingBytes = codec.encode(baseSchema, signingTx);
+	const signingBytes = codec.encode(baseTransactionSchema, signingTx);
 
 	const signature = Buffer.from(
 		signData(
@@ -217,7 +183,7 @@ const generateValidDelegateTransaction = () => {
 		'hex',
 	);
 
-	const encodedTx = codec.encode(baseSchema, {
+	const encodedTx = codec.encode(baseTransactionSchema, {
 		...tx,
 		asset: assetBytes,
 		signatures: [signature],

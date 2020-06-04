@@ -21,6 +21,7 @@ const {
 	signDataWithPrivateKey,
 } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
+const { baseTransactionSchema } = require('../../utils/schema');
 
 const BaseGenerator = require('../base_generator');
 
@@ -30,41 +31,6 @@ const networkIdentifier = Buffer.from(
 	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 	'hex',
 );
-
-const baseSchema = {
-	$id: 'baseSchema',
-	type: 'object',
-	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
-	properties: {
-		type: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 2,
-		},
-		fee: {
-			dataType: 'uint64',
-			fieldNumber: 3,
-		},
-		senderPublicKey: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		asset: {
-			dataType: 'bytes',
-			fieldNumber: 5,
-		},
-		signatures: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-			},
-			fieldNumber: 6,
-		},
-	},
-};
 
 const pomAsset = {
 	$id: 'asset/pom',
@@ -164,7 +130,7 @@ const getSignBytes = tx => {
 		asset: assetBytes,
 		signatures: [],
 	};
-	return codec.encode(baseSchema, signingTx);
+	return codec.encode(baseTransactionSchema, signingTx);
 };
 
 const encode = tx => {
@@ -173,7 +139,7 @@ const encode = tx => {
 		...tx,
 		asset: assetBytes,
 	};
-	return codec.encode(baseSchema, txWithAssetBytes);
+	return codec.encode(baseTransactionSchema, txWithAssetBytes);
 };
 
 const createSignatureObject = (txBuffer, account) => ({

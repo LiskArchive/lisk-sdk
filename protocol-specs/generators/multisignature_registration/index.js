@@ -17,6 +17,7 @@
 const { signData } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
+const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
 
@@ -100,41 +101,6 @@ const outputBase64Account = account => ({
 	address: account.address.toString('base64'),
 });
 
-const baseSchema = {
-	$id: 'baseSchema',
-	type: 'object',
-	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
-	properties: {
-		type: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 2,
-		},
-		fee: {
-			dataType: 'uint64',
-			fieldNumber: 3,
-		},
-		senderPublicKey: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		asset: {
-			dataType: 'bytes',
-			fieldNumber: 5,
-		},
-		signatures: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-			},
-			fieldNumber: 6,
-		},
-	},
-};
-
 const multisigRegAsset = {
 	type: 'object',
 	properties: {
@@ -162,7 +128,7 @@ const getSignBytes = tx => {
 		asset: assetBytes,
 		signatures: [],
 	};
-	return codec.encode(baseSchema, signingTx);
+	return codec.encode(baseTransactionSchema, signingTx);
 };
 
 const encode = tx => {
@@ -171,7 +137,7 @@ const encode = tx => {
 		...tx,
 		asset: assetBytes,
 	};
-	return codec.encode(baseSchema, txWithAssetBytes);
+	return codec.encode(baseTransactionSchema, txWithAssetBytes);
 };
 
 const sortKeysAscending = publicKeys =>
