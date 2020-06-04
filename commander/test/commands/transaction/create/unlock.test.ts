@@ -20,7 +20,9 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
-describe('transaction:create:unlock', () => {
+// This needs to be re-implemented using codec with https://github.com/LiskHQ/lisk-core/issues/254
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('transaction:create:unlock', () => {
 	const defaultSenderPublicKey =
 		'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd';
 	const networkIdentifier =

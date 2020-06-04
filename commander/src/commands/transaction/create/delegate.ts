@@ -20,6 +20,7 @@ import {
 import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
+import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
@@ -40,6 +41,11 @@ const processInputs = (
 	passphrase?: string,
 ) =>
 	registerDelegate({
+		senderPublicKey: passphrase
+			? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey.toString(
+					'hex',
+			  )
+			: '',
 		nonce,
 		fee,
 		networkIdentifier,

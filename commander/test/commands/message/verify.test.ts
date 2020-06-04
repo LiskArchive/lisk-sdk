@@ -77,8 +77,8 @@ describe('message:verify', () => {
 
 				expect(cryptography.verifyMessageWithPublicKey).to.be.calledWithExactly(
 					{
-						publicKey: defaultPublicKey,
-						signature: defaultSignature,
+						publicKey: Buffer.from(defaultPublicKey, 'hex'),
+						signature: Buffer.from(defaultSignature, 'hex'),
 						message,
 					},
 				);
@@ -103,8 +103,8 @@ describe('message:verify', () => {
 				);
 				expect(cryptography.verifyMessageWithPublicKey).to.be.calledWithExactly(
 					{
-						publicKey: defaultPublicKey,
-						signature: defaultSignature,
+						publicKey: Buffer.from(defaultPublicKey, 'hex'),
+						signature: Buffer.from(defaultSignature, 'hex'),
 						message: defaultData,
 					},
 				);
