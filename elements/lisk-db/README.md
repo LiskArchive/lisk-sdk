@@ -10,6 +10,14 @@ $ npm install --save @liskhq/lisk-db
 
 ## Benchmarking
 
+System configuration:
+
+```sh
+Ubuntu: 18.04.3 (LTS) x64
+8 GB / 4 CPUs
+160 GB SSD disk
+```
+
 Install dependencies:
 
 ```sh
