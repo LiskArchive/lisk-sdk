@@ -36,10 +36,6 @@ export const validateSchema = (schema: {
 	$schema?: string;
 	$id?: string;
 }): boolean => {
-	// We don't want to use cache that schema in validator
-	// Otherwise any frequent compilation call will fail
-	validator.removeSchema(schema.$id);
-
 	const schemaToValidate = {
 		...schema,
 		$schema: schema.$schema ?? liskSchemaIdentifier,
@@ -54,10 +50,16 @@ export const validateSchema = (schema: {
 		throw new LiskValidationError([...errors]);
 	}
 
-	// To validate keyword schema we have to compile it
-	// Ajv `validateSchema` does not validate keyword meta schema
-	// https://github.com/ajv-validator/ajv/issues/1221
-	validator.compile(schemaToValidate);
+	try {
+		// To validate keyword schema we have to compile it
+		// Ajv `validateSchema` does not validate keyword meta schema
+		// https://github.com/ajv-validator/ajv/issues/1221
+		validator.compile(schemaToValidate);
+	} finally {
+		// We don't want to use cache that schema in validator
+		// Otherwise any frequent compilation call will fail
+		validator.removeSchema(schema.$id);
+	}
 
 	return true;
 };
