@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { hash } from '@liskhq/lisk-cryptography';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
+import { voteWeightsSchema } from './schemas';
 
 import {
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
@@ -29,7 +31,6 @@ import {
 	deleteForgersListUntilRound,
 	deleteVoteWeightsUntilRound,
 	getForgersList,
-	decodeVoteWeights,
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
@@ -38,7 +39,7 @@ import {
 	DPoSProcessingOptions,
 	ForgersList,
 	StateStore,
-	VoteWeights,
+	DecodedVoteWeights,
 } from './types';
 
 interface DposConstructor {
@@ -165,9 +166,12 @@ export class Dpos {
 			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
 
-		const voteWeights: VoteWeights = voteWeightsBuffer
-			? decodeVoteWeights(voteWeightsBuffer)
-			: [];
+		const voteWeightsDecoded = codec.decode(
+			(voteWeightsSchema as unknown) as Schema,
+			voteWeightsBuffer as Buffer,
+		);
+
+		const { voteWeights } = voteWeightsDecoded as DecodedVoteWeights;
 
 		const voteWeight = voteWeights.find(
 			roundRecord => roundRecord.round === relevantRound,
