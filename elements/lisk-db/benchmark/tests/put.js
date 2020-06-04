@@ -18,12 +18,18 @@ const putSuite = async (ldb, rdb, { key, value }) => {
 	const suite = new Suite();
 
 	suite
-		.add(`LevelUP: put(string):Buffer x ${value.length}(bytes)`, async () => {
-			await ldb.put(key, value);
-		})
-		.add(`RocksDB: put(string):Buffer x ${value.length}(bytes)`, async () => {
-			await rdb.put(key, value);
-		})
+		.add(
+			`LevelDB: put(key: string):Buffer x ${value.length}(bytes)`,
+			async () => {
+				await ldb.put(key, value);
+			},
+		)
+		.add(
+			`RocksDB: put(key: string):Buffer x ${value.length}(bytes)`,
+			async () => {
+				await rdb.put(key, value);
+			},
+		)
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})

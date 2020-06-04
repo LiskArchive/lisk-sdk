@@ -20,12 +20,18 @@ const getSuite = async (ldb, rdb, { key, value }) => {
 	await rdb.put(key, value);
 
 	suite
-		.add(`LevelUP: get(string):Buffer x ${value.length}(bytes)`, async () => {
-			await ldb.get(key);
-		})
-		.add(`RocksDB: get(string):Buffer x ${value.length}(bytes)`, async () => {
-			await rdb.get(key);
-		})
+		.add(
+			`LevelDB: get(key: string):Buffer x ${value.length}(bytes)`,
+			async () => {
+				await ldb.get(key);
+			},
+		)
+		.add(
+			`RocksDB: get(key: string):Buffer x ${value.length}(bytes)`,
+			async () => {
+				await rdb.get(key);
+			},
+		)
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})

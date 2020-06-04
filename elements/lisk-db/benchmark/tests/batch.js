@@ -20,12 +20,18 @@ const batchSuite = async (ldb, rdb, payload_size) => {
 	const data = prepare(payload_size);
 
 	suite
-		.add(`LevelUP: batch(string):Buffer x ${payload_size}(bytes)`, async () => {
-			await ldb.batch(data);
-		})
-		.add(`RocksDB: batch(string):Buffer x ${payload_size}(bytes)`, async () => {
-			await rdb.batch(data);
-		})
+		.add(
+			`LevelDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`,
+			async () => {
+				await ldb.batch(data);
+			},
+		)
+		.add(
+			`RocksDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`,
+			async () => {
+				await rdb.batch(data);
+			},
+		)
 		.on('cycle', event => {
 			console.log(String(event.target));
 		})

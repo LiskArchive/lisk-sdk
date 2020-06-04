@@ -20,10 +20,10 @@ const delSuite = async (ldb, rdb, { key, value }) => {
 	await rdb.put(key, value);
 
 	suite
-		.add(`LevelUP: del(string):Buffer x ${value.length}(bytes)`, async () => {
+		.add(`LevelDB: del(key: string) x ${value.length}(bytes)`, async () => {
 			await ldb.del(key);
 		})
-		.add(`RocksDB: del(string):Buffer x ${value.length}(bytes)`, async () => {
+		.add(`RocksDB: del(key: string) x ${value.length}(bytes)`, async () => {
 			await rdb.del(key);
 		})
 		.on('cycle', event => {

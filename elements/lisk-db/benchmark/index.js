@@ -13,13 +13,13 @@
  */
 
 const { getFakeBlock } = require('./tests/fixtures');
-const { LevelUP, RocksDB } = require('./databases');
+const { LevelDB, RocksDB } = require('./databases');
 const { getSuite } = require('./tests/get');
 const { putSuite } = require('./tests/put');
 const { delSuite } = require('./tests/del');
 const { batchSuite } = require('./tests/batch');
 
-let ldb = LevelUP.createDb('leveldb_bench');
+let ldb = LevelDB.createDb('leveldb_bench');
 let rdb = RocksDB.createDb('rocksdb_bench');
 
 // 15,000 (15Kb) payload

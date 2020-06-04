@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-module.exports.LevelUP = require('./levelup');
+module.exports.LevelDB = require('./leveldb');
 module.exports.RocksDB = require('./rocksdb');
