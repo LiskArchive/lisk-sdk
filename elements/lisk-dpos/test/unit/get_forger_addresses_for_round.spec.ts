@@ -14,6 +14,8 @@
 
 import { when } from 'jest-when';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
@@ -45,24 +47,32 @@ describe('dpos.getForgerAddressesForRound()', () => {
 
 	it('should return shuffled delegate public keys by using round_delegates table record', async () => {
 		// Arrange
-		const forgersList = [
-			{
-				round,
-				delegates: delegatePublicKeys.map(pk =>
-					getAddressFromPublicKey(Buffer.from(pk, 'hex')),
-				),
-				standby: [],
-			},
-		];
+		const forgerListObject = {
+			forgersList: [
+				{
+					round,
+					delegates: delegatePublicKeys.map(pk =>
+						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+					),
+					standby: [],
+				},
+			],
+		};
+
+		const forgersList = codec.encode(
+			(forgerListSchema as unknown) as Schema,
+			(forgerListObject as unknown) as GenericObject,
+		);
+
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)
-			.mockReturnValue(JSON.stringify(forgersList));
+			.mockReturnValue(forgersList);
 
 		// Act
 		const list = await dpos.getForgerAddressesForRound(round);
 
 		// Assert
-		expect(list).toEqual(forgersList[0].delegates);
+		expect(list).toEqual(forgerListObject.forgersList[0].delegates);
 	});
 
 	it('should throw error when chain state is empty', async () => {
@@ -80,18 +90,26 @@ describe('dpos.getForgerAddressesForRound()', () => {
 	it('should throw error when round is not in the chain state', async () => {
 		// Arrange
 
-		const forgersList = [
-			{
-				round: 7,
-				delegates: delegatePublicKeys.map(pk =>
-					getAddressFromPublicKey(Buffer.from(pk, 'hex')),
-				),
-				standby: [],
-			},
-		];
+		const forgerListObject = {
+			forgersList: [
+				{
+					round: 7,
+					delegates: delegatePublicKeys.map(pk =>
+						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+					),
+					standby: [],
+				},
+			],
+		};
+
+		const forgersList = codec.encode(
+			(forgerListSchema as unknown) as Schema,
+			(forgerListObject as unknown) as GenericObject,
+		);
+
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)
-			.mockReturnValue(JSON.stringify(forgersList));
+			.mockReturnValue(forgersList);
 
 		// Act && Assert
 		return expect(dpos.getForgerAddressesForRound(round)).rejects.toThrow(

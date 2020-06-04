@@ -284,6 +284,7 @@ export class DelegatesList {
 		);
 
 		let usernames = { registeredDelegates: [] } as ChainStateUsernames;
+
 		if (usernamesBuffer) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const parsedUsername = JSON.parse(usernamesBuffer.toString('utf8'));

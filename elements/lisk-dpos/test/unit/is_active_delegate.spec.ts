@@ -13,6 +13,8 @@
  */
 import { Slots } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { voteWeightsSchema } from '../../src/schemas';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
@@ -23,8 +25,8 @@ describe('dpos.isActiveDelegate', () => {
 		Buffer.from(delegatePublicKeys[0], 'hex'),
 	);
 	const delegatesAddresses = getDelegateAccounts(101).map(d => ({
-		address: d.address.toString('binary'),
-		voteWeight: '100000000000',
+		address: d.address,
+		voteWeight: BigInt(100000000000),
 	}));
 
 	let dpos: Dpos;
@@ -47,8 +49,17 @@ describe('dpos.isActiveDelegate', () => {
 
 	describe('When there is no forgers list corresponding to the height', () => {
 		it('should throw an error', async () => {
+			const voteWeights = {
+				voteWeights: [{ round: 5, delegates: delegatesAddresses }],
+			};
+
+			const binaryVoteWeightsList = codec.encode(
+				(voteWeightsSchema as unknown) as Schema,
+				(voteWeights as unknown) as GenericObject,
+			);
+
 			chainMock.dataAccess.getConsensusState.mockResolvedValue(
-				JSON.stringify([{ round: 5, delegates: delegatesAddresses }]),
+				binaryVoteWeightsList,
 			);
 
 			await expect(dpos.isActiveDelegate(defaultAddress, 1023)).rejects.toThrow(
@@ -60,16 +71,25 @@ describe('dpos.isActiveDelegate', () => {
 	describe('When there is forgers list corresponding to the height', () => {
 		describe('When the address is not in the first 101 elements', () => {
 			it('should return false', async () => {
-				chainMock.dataAccess.getConsensusState.mockResolvedValue(
-					JSON.stringify([
+				const voteWeights = {
+					voteWeights: [
 						{
 							round: 5,
 							delegates: [
 								...delegatesAddresses,
-								{ address: defaultAddress.toString('binary'), voteWeight: '0' },
+								{ address: defaultAddress, voteWeight: BigInt(0) },
 							],
 						},
-					]),
+					],
+				};
+
+				const binaryVoteWeightsList = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeights as unknown) as GenericObject,
+				);
+
+				chainMock.dataAccess.getConsensusState.mockResolvedValue(
+					binaryVoteWeightsList,
 				);
 
 				const isActive = await dpos.isActiveDelegate(defaultAddress, 503);
@@ -80,19 +100,25 @@ describe('dpos.isActiveDelegate', () => {
 
 		describe('When the address is in the first 101 elements', () => {
 			it('should return true', async () => {
-				chainMock.dataAccess.getConsensusState.mockResolvedValue(
-					JSON.stringify([
+				const voteWeights = {
+					voteWeights: [
 						{
 							round: 5,
 							delegates: [
-								{
-									address: defaultAddress.toString('binary'),
-									voteWeight: '200000000000',
-								},
+								{ address: defaultAddress, voteWeight: BigInt(200000000000) },
 								...delegatesAddresses,
 							],
 						},
-					]),
+					],
+				};
+
+				const binaryVoteWeightsList = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeights as unknown) as GenericObject,
+				);
+
+				chainMock.dataAccess.getConsensusState.mockResolvedValue(
+					binaryVoteWeightsList,
 				);
 
 				const isActive = await dpos.isActiveDelegate(defaultAddress, 503);
