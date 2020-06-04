@@ -24,13 +24,13 @@ import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
-	MAX_INT32,
-	MAX_INT64,
+	MAX_SINT32,
+	MAX_SINT64,
 	MAX_PUBLIC_KEY_LENGTH,
 	MAX_UINT32,
 	MAX_UINT64,
-	MIN_INT32,
-	MIN_INT64,
+	MIN_SINT32,
+	MIN_SINT64,
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
@@ -43,7 +43,7 @@ export const isGreaterThanZero = (amount: bigint): boolean =>
 	amount > BigInt(0);
 
 export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
-	amount > MAX_INT64;
+	amount > MAX_SINT64;
 
 export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
 	amount > MAX_UINT64;
@@ -244,24 +244,30 @@ export const validateNetworkIdentifier = (
 	return true;
 };
 
-export const isInt32 = (num: bigint | number): boolean => {
-	if (typeof num === 'number') {
-		return num <= MAX_INT32 && num >= MIN_INT32;
+export const isString = (data: unknown): boolean => typeof data === 'string';
+
+export const isBoolean = (data: unknown): boolean => typeof data === 'boolean';
+
+export const isSInt32 = (data: unknown): boolean => {
+	if (typeof data === 'number' && Number.isInteger(data)) {
+		return data <= MAX_SINT32 && data >= MIN_SINT32;
 	}
 
-	return num <= BigInt(MAX_INT32) && num >= BigInt(MIN_INT32);
+	return false;
 };
 
-export const isUint32 = (num: bigint | number): boolean => {
-	if (typeof num === 'number') {
-		return num <= MAX_UINT32 && num >= 0;
+export const isUInt32 = (data: unknown): boolean => {
+	if (typeof data === 'number' && Number.isInteger(data)) {
+		return data <= MAX_UINT32 && data >= 0;
 	}
 
-	return num <= BigInt(MAX_UINT32) && num >= BigInt(0);
+	return false;
 };
 
-export const isInt64 = (num: bigint): boolean =>
-	num <= MAX_INT64 && num >= MIN_INT64;
+export const isSInt64 = (data: unknown): boolean =>
+	typeof data === 'bigint' ? data <= MAX_SINT64 && data >= MIN_SINT64 : false;
 
-export const isUint64 = (num: bigint): boolean =>
-	num <= MAX_UINT64 && num >= BigInt(0);
+export const isUInt64 = (data: unknown): boolean =>
+	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
+
+export const isBytes = (data: unknown): boolean => Buffer.isBuffer(data);
