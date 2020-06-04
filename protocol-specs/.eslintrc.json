@@ -5,6 +5,7 @@
 		"implicit-arrow-linebreak": "off",
 		"strict": "off",
 		"max-len": "off",
+		"operator-linebreak": "off",
 		"no-underscore-dangle": "off"
 	},
 	"globals": {
