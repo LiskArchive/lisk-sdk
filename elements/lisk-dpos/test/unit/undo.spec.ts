@@ -13,6 +13,8 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { Dpos, constants } from '../../src';
 import {
 	EPOCH_TIME,
@@ -22,7 +24,7 @@ import {
 	STANDBY_DELEGATES,
 } from '../fixtures/constants';
 import { getDelegateAccountsWithVotesReceived } from '../utils/round_delegates';
-import { BlockHeader, Account, ForgersList } from '../../src/types';
+import { BlockHeader, Account } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
 	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
@@ -82,20 +84,29 @@ describe('dpos.undo()', () => {
 		beforeEach(() => {
 			// Arrange
 			generator = { ...delegateAccounts[0] };
+
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
 			} as BlockHeader;
+
+			const forgerListObject = {
+				forgersList: [
+					{
+						round: 1,
+						delegates: delegateAccounts.map(d => d.address),
+						standby: [],
+					},
+				],
+			};
+
+			const forgersListBinary = codec.encode(
+				(forgerListSchema as unknown) as Schema,
+				(forgerListObject as unknown) as GenericObject,
+			);
+
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-					JSON.stringify([
-						{
-							round: 1,
-							delegates: delegateAccounts.map(d => d.address),
-							standy: [],
-						},
-					]),
-				),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
 			});
 		});
 
@@ -117,9 +128,12 @@ describe('dpos.undo()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const res = JSON.parse((consensusState as Buffer).toString('utf8'));
+			const { forgersList } = codec.decode(
+				(forgerListSchema as unknown) as Schema,
+				consensusState as Buffer,
+			);
 
-			expect(res).toHaveLength(1);
+			expect(forgersList).toHaveLength(1);
 		});
 	});
 
@@ -136,58 +150,76 @@ describe('dpos.undo()', () => {
 			forgedDelegates.push({ ...forgedDelegates[10] });
 			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
 			// Arrange
+			const delegateWeightsObject = {
+				voteWeights: [
+					{
+						round: 10,
+						delegates: forgedDelegates.map(d => ({
+							address: d.address,
+							voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+						})),
+					},
+				],
+			};
+
+			const encodedDelegateVoteWeights = codec.encode(
+				(voteWeightsSchema as unknown) as Schema,
+				(delegateWeightsObject as unknown) as GenericObject,
+			);
+
+			const forgerListObject = {
+				forgersList: [
+					{
+						round: 8,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 9,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 10,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 11,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 12,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+				],
+			};
+
+			const forgersListBinary = codec.encode(
+				(forgerListSchema as unknown) as Schema,
+				(forgerListObject as unknown) as GenericObject,
+			);
+
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-					JSON.stringify([
-						{
-							round: 10,
-							delegates: forgedDelegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						},
-					]),
-				),
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-					JSON.stringify([
-						{
-							round: 8,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-							standy: [],
-						},
-						{
-							round: 9,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-						{
-							round: 10,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-						{
-							round: 11,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-						{
-							round: 12,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-					]),
-				),
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
 			});
 
 			lastBlockOfTheRoundNine = {
@@ -229,11 +261,15 @@ describe('dpos.undo()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
-			const voteWeights = JSON.parse(
-				consensusState ? consensusState.toString('utf8') : '[]',
-			) as ForgersList;
+
+			const { voteWeights } = codec.decode(
+				(voteWeightsSchema as unknown) as Schema,
+				consensusState as Buffer,
+			);
+
 			const filteredVoteWeights = voteWeights.filter(
-				fl => fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
+				(fl: { round: number }) =>
+					fl.round > roundNo + DELEGATE_LIST_ROUND_OFFSET,
 			);
 			expect(filteredVoteWeights).toHaveLength(0);
 		});
@@ -249,10 +285,16 @@ describe('dpos.undo()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(
-				consensusState ? consensusState.toString('utf8') : '[]',
-			) as ForgersList;
-			const filteredList = forgersList.filter(fl => fl.round > roundNo);
+
+			const { forgersList } = codec.decode(
+				(forgerListSchema as unknown) as Schema,
+				consensusState as Buffer,
+			);
+
+			const filteredList = forgersList.filter(
+				(fl: { round: number }) => fl.round > roundNo,
+			);
+
 			expect(filteredList).toHaveLength(0);
 		});
 
@@ -279,54 +321,64 @@ describe('dpos.undo()', () => {
 				forgedDelegates = getDelegateAccountsWithVotesReceived(
 					ACTIVE_DELEGATES + STANDBY_DELEGATES,
 				);
+
+				const delegateWeightsObject = {
+					voteWeights: [
+						{
+							round: 10,
+							delegates: forgedDelegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+							})),
+						},
+					],
+				};
+
+				const encodedDelegateVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(delegateWeightsObject as unknown) as GenericObject,
+				);
+
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 8,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standby: [],
+						},
+						{
+							round: 9,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standby: [],
+						},
+						{
+							round: 10,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standby: [],
+						},
+						{
+							round: 11,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standby: [],
+						},
+						{
+							round: 12,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standby: [],
+						},
+					],
+				};
+
+				const forgersListBinary = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
+
 				stateStore = new StateStoreMock([...forgedDelegates], {
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-						JSON.stringify([
-							{
-								round: 10,
-								delegates: forgedDelegates.map(d => ({
-									address: d.address.toString('binary'),
-									voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-								})),
-							},
-						]),
-					),
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-						JSON.stringify([
-							{
-								round: 8,
-								delegates: [
-									...forgedDelegates.map(d => d.address.toString('binary')),
-								],
-								standy: [],
-							},
-							{
-								round: 9,
-								delegates: [
-									...forgedDelegates.map(d => d.address.toString('binary')),
-								],
-							},
-							{
-								round: 10,
-								delegates: [
-									...forgedDelegates.map(d => d.address.toString('binary')),
-								],
-							},
-							{
-								round: 11,
-								delegates: [
-									...forgedDelegates.map(d => d.address.toString('binary')),
-								],
-							},
-							{
-								round: 12,
-								delegates: [
-									...forgedDelegates.map(d => d.address.toString('binary')),
-								],
-							},
-						]),
-					),
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
 				});
+
 				lastBlockOfTheRoundNine = {
 					height: 927,
 					generatorPublicKey:
