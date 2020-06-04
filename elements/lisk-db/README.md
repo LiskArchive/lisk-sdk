@@ -68,15 +68,6 @@ Benchmark results leveldb vs rocksdb (150,000 bytes):
 |    del    | x 70,292 ops/sec ±13.37% | x 38,684 ops/sec ±19.42% | Leveldb |  81.70   |
 |   batch   |  x 389 ops/sec ±10.68%   | x 81,421 ops/sec ±23.89% | Rocksdb |  20830   |
 
-Benchmark summary for 15, 50, 100 and 150 Kb
-
-| Payload(Kilobyte) | Winner  |
-| :---------------: | :-----: |
-|        15         | Rocksdb |
-|        50         | Leveldb |
-|        100        | Rocksdb |
-|        150        | Leveldb |
-
 ## License
 
 Copyright 2016-2019 Lisk Foundation
