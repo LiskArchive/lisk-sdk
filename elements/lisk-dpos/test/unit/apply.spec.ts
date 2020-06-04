@@ -14,7 +14,7 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
-import { voteWeightsSchema } from '../../src/schemas';
+import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
 import { Account, ForgersList, BlockHeader } from '../../src/types';
@@ -39,8 +39,6 @@ describe('dpos.apply()', () => {
 	const delegateAccounts = getDelegateAccountsWithVotesReceived(
 		ACTIVE_DELEGATES + STANDBY_DELEGATES,
 	);
-
-	// console.log(delegateAccounts);
 
 	let dpos: Dpos;
 	let chainStub: any;
@@ -122,9 +120,12 @@ describe('dpos.apply()', () => {
 			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf8'),
+
+			const { forgersList } = codec.decode(
+				(forgerListSchema as unknown) as Schema,
+				forgersListBuffer as Buffer,
 			);
+
 			expect(forgersList).toHaveLength(1);
 			expect(forgersList[0].round).toEqual(1);
 		});
@@ -225,39 +226,49 @@ describe('dpos.apply()', () => {
 			// Make 1 delegate forge twice
 			forgedDelegates.push({ ...forgedDelegates[10] });
 			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
+
+			const forgersList = {
+				forgersList: [
+					{
+						round: 7,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 8,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 9,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+					{
+						round: 10,
+						delegates: [
+							...forgedDelegates.map(d => d.address),
+							missedDelegate.address,
+						],
+						standby: [],
+					},
+				],
+			};
+
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
 				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-					JSON.stringify([
-						{
-							round: 7,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-						{
-							round: 8,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-						{
-							round: 9,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-						{
-							round: 10,
-							delegates: [
-								...forgedDelegates.map(d => d.address.toString('binary')),
-								missedDelegate.address.toString('binary'),
-							],
-						},
-					]),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					forgersList,
 				),
 			});
 
@@ -306,11 +317,15 @@ describe('dpos.apply()', () => {
 			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList: ForgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf8'),
+
+			const { forgersList } = codec.decode(
+				(forgerListSchema as unknown) as Schema,
+				forgersListBuffer as Buffer,
 			);
 
-			const forgers = forgersList.find(fl => fl.round === nextRound);
+			const forgers = forgersList.find(
+				(fl: { round: number }) => fl.round === nextRound,
+			);
 
 			expect(forgers?.round).toEqual(nextRound);
 		});
@@ -330,11 +345,14 @@ describe('dpos.apply()', () => {
 			const forgersListBeforeBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersBeforeList: ForgersList = JSON.parse(
-				(forgersListBeforeBuffer as Buffer).toString('utf8'),
+
+			const { forgersList: forgersBeforeList } = codec.decode(
+				(forgerListSchema as unknown) as Schema,
+				forgersListBeforeBuffer as Buffer,
 			);
+
 			const filteredForgersBefore = forgersBeforeList.filter(
-				fl => fl.round < expectedRound,
+				(fl: { round: number }) => fl.round < expectedRound,
 			);
 			expect(filteredForgersBefore).toHaveLength(1);
 
@@ -344,12 +362,14 @@ describe('dpos.apply()', () => {
 			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList: ForgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf8'),
+
+			const { forgersList } = codec.decode(
+				(forgerListSchema as unknown) as Schema,
+				forgersListBuffer as Buffer,
 			);
 
 			const filteredForgers = forgersList.filter(
-				fl => fl.round < expectedRound,
+				(fl: { round: number }) => fl.round < expectedRound,
 			);
 
 			// Assert
