@@ -32,8 +32,8 @@ const forkStatusList = [
 ];
 
 export const EVENT_PROCESSOR_SYNC_REQUIRED = 'EVENT_PROCESSOR_SYNC_REQUIRED';
-export const EVENT_PROCESSOR_BRADCASRT_BLOCK =
-	'EVENT_PROCESSOR_BRADCASRT_BLOCK';
+export const EVENT_PROCESSOR_BROADCAST_BLOCK =
+	'EVENT_PROCESSOR_BROADCAST_BLOCK';
 
 interface ProcessorInput {
 	readonly channel: InMemoryChannel;
@@ -345,7 +345,7 @@ export class Processor {
 
 		if (!skipBroadcast) {
 			// FIXME: this is using instance, use event emitter instead
-			this.events.emit(EVENT_PROCESSOR_BRADCASRT_BLOCK, {
+			this.events.emit(EVENT_PROCESSOR_BROADCAST_BLOCK, {
 				block,
 			});
 		}

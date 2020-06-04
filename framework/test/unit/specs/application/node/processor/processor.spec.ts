@@ -493,7 +493,7 @@ describe('processor', () => {
 
 			it('should emit broadcast event for the block', () => {
 				expect(processor.events.emit).toHaveBeenCalledWith(
-					'EVENT_PROCESSOR_BRADCASRT_BLOCK',
+					'EVENT_PROCESSOR_BROADCAST_BLOCK',
 					{
 						block: blockV0,
 					},
@@ -703,7 +703,7 @@ describe('processor', () => {
 
 			it('should broadcast with the block', () => {
 				expect(processor.events.emit).toHaveBeenCalledWith(
-					'EVENT_PROCESSOR_BRADCASRT_BLOCK',
+					'EVENT_PROCESSOR_BROADCAST_BLOCK',
 					{
 						block: blockV0,
 					},

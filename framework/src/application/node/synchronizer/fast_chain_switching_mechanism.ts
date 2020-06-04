@@ -18,7 +18,7 @@ import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import {
 	BaseSynchronizer,
-	EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+	EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 } from './base_synchronizer';
 import {
 	clearBlocksTempTable,
@@ -100,7 +100,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					`Restarting synchronization mechanism with reason: ${err.reason}`,
 				);
-				this.events.emit(EVENT_SYNCHRONIZER_SYNC_RQUIRED, {
+				this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
 					block: receivedBlock,
 					peerId,
 				});

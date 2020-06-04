@@ -22,8 +22,8 @@ import {
 	ApplyPenaltyAndAbortError,
 } from './errors';
 
-export const EVENT_SYNCHRONIZER_SYNC_RQUIRED =
-	'EVENT_SYNCHRONIZER_SYNC_RQUIRED';
+export const EVENT_SYNCHRONIZER_SYNC_REQUIRED =
+	'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
 
 export abstract class BaseSynchronizer {
 	public events: EventEmitter;
@@ -52,7 +52,7 @@ export abstract class BaseSynchronizer {
 			peerId,
 			penalty: 100,
 		});
-		this.events.emit(EVENT_SYNCHRONIZER_SYNC_RQUIRED, {
+		this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
 			block: receivedBlock,
 			peerId,
 		});
@@ -70,7 +70,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				"Peer didn't provide its last block",
+				"Peer did not provide its last block",
 			);
 		}
 		return this._chain.dataAccess.decode<BlockHeaderAsset>(
@@ -94,7 +94,7 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
-				"Peer didn't return a common block",
+				"Peer did not return a common block",
 			);
 		}
 		return this._chain.dataAccess.decodeBlockHeader<BlockHeaderAsset>(

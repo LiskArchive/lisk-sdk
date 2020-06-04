@@ -41,7 +41,7 @@ import {
 } from '../../../../../../../src/application/node/account';
 
 import { peersList } from './peers';
-import { EVENT_SYNCHRONIZER_SYNC_RQUIRED } from '../../../../../../../src/application/node/synchronizer/base_synchronizer';
+import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from '../../../../../../../src/application/node/synchronizer/base_synchronizer';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -325,7 +325,7 @@ describe('block_synchronization_mechanism', () => {
 				}),
 			);
 			expect(blockSynchronizationMechanism.events.emit).toHaveBeenCalledWith(
-				EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+				EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 				{
 					block: receivedBlock,
 					peerId: expect.any(String),
@@ -335,7 +335,7 @@ describe('block_synchronization_mechanism', () => {
 
 		const expectRestartIsCalled = (receivedBlock: Block) => {
 			expect(blockSynchronizationMechanism.events.emit).toHaveBeenCalledWith(
-				EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+				EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 				{
 					block: receivedBlock,
 				},

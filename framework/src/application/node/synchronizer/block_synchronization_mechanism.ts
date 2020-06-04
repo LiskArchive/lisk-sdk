@@ -18,7 +18,7 @@ import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import {
 	BaseSynchronizer,
-	EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+	EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 } from './base_synchronizer';
 import {
 	computeLargestSubsetMaxBy,
@@ -100,7 +100,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			}
 
 			if (error instanceof RestartError) {
-				this.events.emit(EVENT_SYNCHRONIZER_SYNC_RQUIRED, {
+				this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
 					block: receivedBlock,
 				});
 			}

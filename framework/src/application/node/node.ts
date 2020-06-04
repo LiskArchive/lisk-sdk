@@ -54,10 +54,10 @@ import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
 import { accountAssetSchema, defaultAccountAsset } from './account';
 import {
-	EVENT_PROCESSOR_BRADCASRT_BLOCK,
+	EVENT_PROCESSOR_BROADCAST_BLOCK,
 	EVENT_PROCESSOR_SYNC_REQUIRED,
 } from './processor/processor';
-import { EVENT_SYNCHRONIZER_SYNC_RQUIRED } from './synchronizer/base_synchronizer';
+import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
@@ -734,24 +734,24 @@ export class Node {
 		});
 
 		blockSyncMechanism.events.on(
-			EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 			({ block, peerId }) => {
 				this._synchronizer.run(block, peerId).catch(err => {
 					this._logger.error(
 						{ err: err as Error },
-						'Error occurred during synchronization.',
+						'Error occurred during block synchronization mechanism.',
 					);
 				});
 			},
 		);
 
 		fastChainSwitchMechanism.events.on(
-			EVENT_SYNCHRONIZER_SYNC_RQUIRED,
+			EVENT_SYNCHRONIZER_SYNC_REQUIRED,
 			({ block, peerId }) => {
 				this._synchronizer.run(block, peerId).catch(err => {
 					this._logger.error(
 						{ err: err as Error },
-						'Error occurred during synchronization.',
+						'Error occurred during fast chain synchronization mechanism.',
 					);
 				});
 			},
@@ -822,7 +822,7 @@ export class Node {
 	private _subscribeToEvents(): void {
 		// FIXME: this event is using instance, it should be replaced by event emitter
 		this._processor.events.on(
-			EVENT_PROCESSOR_BRADCASRT_BLOCK,
+			EVENT_PROCESSOR_BROADCAST_BLOCK,
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			async ({ block }) => {
 				await this._transport.handleBroadcastBlock(block);

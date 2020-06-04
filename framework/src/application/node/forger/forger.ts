@@ -262,7 +262,7 @@ export class Forger {
 			if (!account) {
 				throw new Error(
 					`Account with public key: ${keypair.publicKey.toString(
-						'hex',
+						'base64',
 					)} not found`,
 				);
 			}
@@ -275,7 +275,7 @@ export class Forger {
 				this._logger.warn(
 					{},
 					`Account with public key: ${keypair.publicKey.toString(
-						'hex',
+						'base64',
 					)} is not a delegate`,
 				);
 			}
@@ -341,7 +341,7 @@ export class Forger {
 			if (highestCount >= hashOnionConfig.count) {
 				throw new Error(
 					`All of the hash onion is used for ${account.address.toString(
-						'hex',
+						'base64',
 					)}`,
 				);
 			}
@@ -561,7 +561,7 @@ export class Forger {
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(
 				`Account ${address.toString(
-					'hex',
+					'base64',
 				)} does not have hash onion in the config`,
 			);
 		}

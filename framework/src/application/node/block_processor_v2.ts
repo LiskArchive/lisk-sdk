@@ -31,6 +31,8 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { BaseBlockProcessor } from './processor';
 import { Logger } from '../logger';
+import { ForgedInfo } from './forger/data_access';
+import { DB_KEY_FORGER_PREVIOUSLY_FORGED } from './forger/constant';
 
 interface BlockProcessorInput {
 	readonly networkIdentifier: string;
@@ -42,12 +44,6 @@ interface BlockProcessorInput {
 	readonly constants: {
 		readonly maxPayloadLength: number;
 	};
-}
-
-interface ForgedInfo {
-	height: number;
-	maxHeightPrevoted: number;
-	maxHeightPreviouslyForged: number;
 }
 
 interface CreateInput {
@@ -70,8 +66,6 @@ export interface BlockHeaderAsset {
 	readonly maxHeightPreviouslyForged: number;
 	readonly maxHeightPrevoted: number;
 }
-
-const DB_KEY_FORGER_PREVIOUSLY_FORGED = 'forger:previouslyForged';
 
 export const getTransactionRoot = (ids: Buffer[]): Buffer => {
 	const tree = new MerkleTree(ids);
