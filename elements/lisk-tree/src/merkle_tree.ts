@@ -74,14 +74,7 @@ export class MerkleTree {
 			);
 		}
 
-		let type: NodeType;
-		if (this._root.compare(nodeHash) === 0) {
-			type = NodeType.ROOT;
-		} else if (isLeaf(value)) {
-			type = NodeType.LEAF;
-		} else {
-			type = NodeType.BRANCH;
-		}
+		const type = isLeaf(value) ? NodeType.LEAF : NodeType.BRANCH;
 		const layerIndex =
 			type === NodeType.LEAF ? 0 : value.readInt8(BRANCH_PREFIX.length);
 		const nodeIndex =
@@ -89,7 +82,7 @@ export class MerkleTree {
 				? value.readInt32BE(BRANCH_PREFIX.length + LAYER_INDEX_SIZE)
 				: 0;
 		const rightHash =
-			type !== NodeType.LEAF
+			type === NodeType.BRANCH
 				? value.slice(-1 * NODE_HASH_SIZE)
 				: Buffer.alloc(0);
 		const leftHash =
