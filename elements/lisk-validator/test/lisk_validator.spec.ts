@@ -132,6 +132,29 @@ describe('validator', () => {
 			});
 		});
 
+		it('should return error when "properties" are not camelcase', () => {
+			// Arrange
+			const invalidSchema = {
+				...validSchema,
+				...{
+					properties: { 'my-custom-prop': { fieldNumber: 1, type: 'string' } },
+				},
+			};
+
+			// Act
+			const errors = validator.validateSchema(invalidSchema);
+
+			// Assert
+			expect(errors).toContainEqual({
+				dataPath: '.properties',
+				keyword: 'format',
+				message: 'should match format "camelCase"',
+				schemaPath: '#/properties/properties/propertyNames/format',
+				params: { format: 'camelCase' },
+				propertyName: 'my-custom-prop',
+			});
+		});
+
 		it('should return error when "properties" are empty object', () => {
 			// Arrange
 			const invalidSchema = cloneDeep(validSchema);

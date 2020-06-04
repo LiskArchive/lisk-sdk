@@ -39,6 +39,15 @@ export const isNullCharacterIncluded = (input: string): boolean =>
 export const isSignature = (signature: string): boolean =>
 	/^[a-f0-9]{128}$/i.test(signature);
 
+export const isGreaterThanZero = (amount: bigint): boolean =>
+	amount > BigInt(0);
+
+export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
+	amount > MAX_SINT64;
+
+export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
+	amount > MAX_UINT64;
+
 export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
 	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
 
@@ -187,6 +196,19 @@ export const validateAddress = (address: string): boolean => {
 
 export const isValidNonTransferAmount = (data: string): boolean =>
 	isNumberString(data) && data === '0';
+
+export const isValidTransferAmount = (data: string): boolean =>
+	isNumberString(data) &&
+	isGreaterThanZero(BigInt(data)) &&
+	!isGreaterThanMaxTransactionAmount(BigInt(data));
+
+export const isValidFee = (data: string): boolean =>
+	isNumberString(data) &&
+	isGreaterThanZero(BigInt(data)) &&
+	!isGreaterThanMaxUInt64(BigInt(data));
+
+export const isValidNonce = (data: string): boolean =>
+	isNumberString(data) && !isGreaterThanMaxUInt64(BigInt(data));
 
 export const isCsv = (data: string): boolean => {
 	if (typeof data !== 'string') {

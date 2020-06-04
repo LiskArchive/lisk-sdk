@@ -43,6 +43,10 @@ import {
 	isUInt32,
 	isSInt64,
 	isUInt64,
+	isValidTransferAmount,
+	isValidFee,
+	isGreaterThanZero,
+	isGreaterThanMaxTransactionAmount,
 } from '../src/validation';
 
 describe('validation', () => {
@@ -214,6 +218,52 @@ describe('validation', () => {
 
 		it('should return false when amount is less than 0', () => {
 			return expect(isValidNonTransferAmount('-1')).toBeFalse();
+		});
+	});
+
+	describe('#isValidTransferAmount', () => {
+		it('should return false is amount is 0', () => {
+			return expect(isValidTransferAmount('0')).toBeFalse();
+		});
+
+		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
+			return expect(isValidTransferAmount('100')).toBeTrue();
+		});
+	});
+
+	describe('#isValidFee', () => {
+		it('should return false is amount is 0', () => {
+			return expect(isValidFee('0')).toBeFalse();
+		});
+
+		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
+			return expect(isValidFee('100')).toBeTrue();
+		});
+	});
+
+	describe('#isGreaterThanZero', () => {
+		it('should return false when amount is 0', () => {
+			return expect(isGreaterThanZero(BigInt('0'))).toBeFalse();
+		});
+
+		it('should return true when amount is greater than 0', () => {
+			return expect(
+				isGreaterThanZero(BigInt('9223372036854775808987234289782357')),
+			).toBeTrue();
+		});
+	});
+
+	describe('#isGreaterThanMaxTransactionAmount', () => {
+		it('should return false when amount is less than maximum transaction amount', () => {
+			return expect(
+				isGreaterThanMaxTransactionAmount(BigInt('9223372036854775807')),
+			).toBeFalse();
+		});
+
+		it('should return true when amount is more than maximum transaction amount', () => {
+			return expect(
+				isGreaterThanMaxTransactionAmount(BigInt('9223372036854775808')),
+			).toBeTrue();
 		});
 	});
 

@@ -482,6 +482,227 @@ describe('validator formats', () => {
 		});
 	});
 
+	describe('transfer amount', () => {
+		let transferAmountSchema: object;
+		beforeEach(() => {
+			transferAmountSchema = {
+				allOf: [
+					baseSchema,
+					{
+						properties: {
+							target: {
+								type: 'string',
+								format: 'transferAmount',
+							},
+						},
+					},
+				],
+			};
+		});
+
+		it('should validate to true when valid amount is provided', () => {
+			expect(
+				validator.validate(transferAmountSchema, { target: '100' }),
+			).toEqual([]);
+		});
+
+		it('should validate to true when valid amount with leading zeros is provided', () => {
+			expect(
+				validator.validate(transferAmountSchema, { target: '000000100' }),
+			).toEqual([]);
+		});
+
+		it('should validate to false when amount is 0', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'transferAmount' },
+					message: 'should match format "transferAmount"',
+				},
+			];
+
+			expect(validator.validate(transferAmountSchema, { target: '0' })).toEqual(
+				expectedError,
+			);
+		});
+
+		it('should validate to false when number greater than maximum is provided', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'transferAmount' },
+					message: 'should match format "transferAmount"',
+				},
+			];
+
+			expect(
+				validator.validate(transferAmountSchema, {
+					target: '9223372036854775808',
+				}),
+			).toEqual(expectedError);
+		});
+
+		it('should validate to false when decimal number is provided', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'transferAmount' },
+					message: 'should match format "transferAmount"',
+				},
+			];
+
+			expect(
+				validator.validate(transferAmountSchema, { target: '190.105310' }),
+			).toEqual(expectedError);
+		});
+
+		it('should validate to false when number is provided', () => {
+			const expectedError = [
+				{
+					keyword: 'type',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/type',
+					params: { type: 'string' },
+					message: 'should be string',
+				},
+			];
+
+			expect(
+				validator.validate(transferAmountSchema, { target: 190105310 }),
+			).toEqual(expectedError);
+		});
+
+		it('should validate to false when it is empty', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'transferAmount' },
+					message: 'should match format "transferAmount"',
+				},
+			];
+
+			expect(validator.validate(transferAmountSchema, { target: '' })).toEqual(
+				expectedError,
+			);
+		});
+	});
+
+	describe('fee', () => {
+		let feeSchema: object;
+		beforeEach(() => {
+			feeSchema = {
+				allOf: [
+					baseSchema,
+					{
+						properties: {
+							target: {
+								type: 'string',
+								format: 'fee',
+							},
+						},
+					},
+				],
+			};
+		});
+
+		it('should validate to true when valid fee is provided', () => {
+			expect(validator.validate(feeSchema, { target: '100' })).toEqual([]);
+		});
+
+		it('should validate to true when valid fee with leading zeros is provided', () => {
+			expect(validator.validate(feeSchema, { target: '000000100' })).toEqual(
+				[],
+			);
+		});
+
+		it('should validate to false when amount is 0', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'fee' },
+					message: 'should match format "fee"',
+				},
+			];
+
+			expect(validator.validate(feeSchema, { target: '0' })).toEqual(
+				expectedError,
+			);
+		});
+
+		it('should validate to false when number greater than maximum is provided', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'fee' },
+					message: 'should match format "fee"',
+				},
+			];
+
+			expect(
+				validator.validate(feeSchema, { target: '18446744073709551616' }),
+			).toEqual(expectedError);
+		});
+
+		it('should validate to false when decimal number is provided', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'fee' },
+					message: 'should match format "fee"',
+				},
+			];
+
+			expect(validator.validate(feeSchema, { target: '190.105310' })).toEqual(
+				expectedError,
+			);
+		});
+
+		it('should validate to false when number is provided', () => {
+			const expectedError = [
+				{
+					keyword: 'type',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/type',
+					params: { type: 'string' },
+					message: 'should be string',
+				},
+			];
+			expect(validator.validate(feeSchema, { target: 190105310 })).toEqual(
+				expectedError,
+			);
+		});
+
+		it('should validate to false when it is empty', () => {
+			const expectedError = [
+				{
+					keyword: 'format',
+					dataPath: '.target',
+					schemaPath: '#/allOf/1/properties/target/format',
+					params: { format: 'fee' },
+					message: 'should match format "fee"',
+				},
+			];
+
+			expect(validator.validate(feeSchema, { target: '' })).toEqual(
+				expectedError,
+			);
+		});
+	});
+
 	describe('emptyOrPublicKey', () => {
 		let emptyOrPublicKeySchema: object;
 		beforeEach(() => {

@@ -9,6 +9,13 @@ import {
 	isValidTransferData,
 	validateAddress,
 	validatePublicKey,
+	isSInt64,
+	isUInt64,
+	isUInt32,
+	isSInt32,
+	isValidFee,
+	isValidNonce,
+	isValidTransferAmount,
 } from './validation';
 
 export const address = (data: string): boolean => {
@@ -54,6 +61,9 @@ export const emptyOrPublicKey = (data: string): boolean => {
 	}
 };
 
+export const fee = isValidFee;
+
+export const nonce = isValidNonce;
 export const hex = isHexString;
 export const base64 = isBase64String;
 
@@ -96,3 +106,22 @@ export const signedPublicKey = (data: string): boolean => {
 
 export const transferData = (data: string): boolean =>
 	!isNullCharacterIncluded(data) && isValidTransferData(data);
+
+export const transferAmount = isValidTransferAmount;
+
+export const int64 = (data: string): boolean =>
+	isNumberString(data) && isSInt64(BigInt(data));
+
+export const uint64 = (data: string): boolean =>
+	isNumberString(data) && isUInt64(BigInt(data));
+
+export const uint32 = (data: string): boolean =>
+	isNumberString(data) && isUInt32(BigInt(data));
+
+export const int32 = (data: string): boolean =>
+	isNumberString(data) && isSInt32(BigInt(data));
+
+const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
+
+export const camelCase = (data: string): boolean =>
+	camelCaseRegex.exec(data) !== null;
