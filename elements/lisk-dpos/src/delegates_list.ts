@@ -13,7 +13,14 @@
  */
 
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+
 import * as Debug from 'debug';
+import {
+	delegatesUserNamesSchema,
+	forgerListSchema,
+	voteWeightsSchema,
+} from './schemas';
 
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
@@ -28,6 +35,7 @@ import {
 	BlockHeader,
 	Chain,
 	ChainStateUsernames,
+	DecodedUsernames,
 	DelegateWeight,
 	ForgersList,
 	StateStore,
@@ -51,95 +59,66 @@ interface DelegateListWithRoundHash {
 	roundHash: Buffer;
 }
 
-export const decodeForgerList = (buffer: Buffer): ForgersList => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const parsedForgersList = JSON.parse(buffer.toString('utf8'));
-	// eslint-disable-next-line
-	return parsedForgersList.map(
-		(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
-			round: fl.round,
-			delegates: fl.delegates?.map(d => Buffer.from(d, 'binary')) ?? [],
-			standby: fl.standby?.map(d => Buffer.from(d, 'binary')),
-		}),
-	) as ForgersList;
-};
-
 export const getForgersList = async (
 	stateStore: StateStore,
 ): Promise<ForgersList> => {
-	const forgersListStr = await stateStore.consensus.get(
+	const forgersList = await stateStore.consensus.get(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 	);
-	if (!forgersListStr) {
+	if (!forgersList) {
 		return [];
 	}
-	return decodeForgerList(forgersListStr);
+
+	const forgerListDecoded = codec.decode(
+		(forgerListSchema as unknown) as Schema,
+		forgersList,
+	);
+
+	return ((forgerListDecoded as GenericObject)
+		.forgersList as unknown) as ForgersList;
 };
 
 const _setForgersList = (
 	stateStore: StateStore,
 	forgersList: ForgersList,
 ): void => {
-	const stringifyableForgersList = forgersList.map(fl => ({
-		round: fl.round,
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		delegates: fl.delegates ? fl.delegates.map(d => d.toString('binary')) : [],
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		standby: fl.standby ? fl.standby.map(d => d.toString('binary')) : [],
-	}));
-	const forgersListStr = JSON.stringify(stringifyableForgersList);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-		Buffer.from(forgersListStr, 'utf8'),
+		codec.encode(
+			(forgerListSchema as unknown) as Schema,
+			({ forgersList } as unknown) as GenericObject,
+		),
 	);
-};
-
-export const decodeVoteWeights = (buffer: Buffer): VoteWeights => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	const parsedVoteWeights = JSON.parse(buffer.toString('utf8'));
-
-	// eslint-disable-next-line
-	return parsedVoteWeights.map(
-		(vw: {
-			round: number;
-			delegates: { address: string; voteWeight: string }[];
-		}) => ({
-			round: vw.round,
-			delegates: vw.delegates.map(d => ({
-				address: Buffer.from(d.address, 'binary'),
-				voteWeight: BigInt(d.voteWeight),
-			})),
-		}),
-	) as VoteWeights;
 };
 
 export const getVoteWeights = async (
 	stateStore: StateStore,
 ): Promise<VoteWeights> => {
-	const voteWeightsStr = await stateStore.consensus.get(
+	const voteWeights = await stateStore.consensus.get(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	);
-	if (!voteWeightsStr) {
+	if (!voteWeights) {
 		return [];
 	}
-	return decodeVoteWeights(voteWeightsStr);
+
+	const voteWeightsDecoded = codec.decode(
+		(voteWeightsSchema as unknown) as Schema,
+		voteWeights,
+	);
+	return ((voteWeightsDecoded as GenericObject)
+		.voteWeights as unknown) as VoteWeights;
 };
 
 const _setVoteWeights = (
 	stateStore: StateStore,
 	voteWeights: VoteWeights,
 ): void => {
-	const stringifyableVoteWeights = voteWeights.map(vw => ({
-		round: vw.round,
-		delegates: vw.delegates.map(d => ({
-			address: d.address.toString('binary'),
-			voteWeight: d.voteWeight.toString(),
-		})),
-	}));
-	const voteWeightsStr = JSON.stringify(stringifyableVoteWeights);
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-		Buffer.from(voteWeightsStr, 'utf8'),
+		codec.encode(
+			(voteWeightsSchema as unknown) as Schema,
+			({ voteWeights } as unknown) as GenericObject,
+		),
 	);
 };
 
@@ -291,6 +270,8 @@ export class DelegatesList {
 		this.voteWeightCapRate = voteWeightCapRate;
 		this.rounds = rounds;
 		this.chain = chain;
+
+		codec.addSchema((voteWeightsSchema as unknown) as Schema);
 	}
 
 	public async createVoteWeightsSnapshot(
@@ -308,14 +289,17 @@ export class DelegatesList {
 		);
 
 		let usernames = { registeredDelegates: [] } as ChainStateUsernames;
+
 		if (usernamesBuffer) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const parsedUsername = JSON.parse(usernamesBuffer.toString('utf8'));
+			const parsedUsernames = codec.decode<DecodedUsernames>(
+				(delegatesUserNamesSchema as unknown) as Schema,
+				usernamesBuffer,
+			);
+
 			usernames = {
-				// eslint-disable-next-line
-				registeredDelegates: parsedUsername.registeredDelegates.map(
-					(names: { address: string; username: string }) => ({
-						address: Buffer.from(names.address, 'binary'),
+				registeredDelegates: parsedUsernames.registeredDelegates.map(
+					(names: { address: Buffer; username: string }) => ({
+						address: names.address,
 						username: names.username,
 					}),
 				),
@@ -408,14 +392,17 @@ export class DelegatesList {
 			round,
 			delegates: delegateVoteWeights,
 		};
+
 		// Save result to the chain state with round number
 		const voteWeights = await getVoteWeights(stateStore);
 		const voteWeightsIndex = voteWeights.findIndex(vw => vw.round === round);
+
 		if (voteWeightsIndex > -1) {
 			voteWeights[voteWeightsIndex] = voteWeight;
 		} else {
 			voteWeights.push(voteWeight);
 		}
+
 		_setVoteWeights(stateStore, voteWeights);
 	}
 
@@ -494,10 +481,17 @@ export class DelegatesList {
 		if (!forgersListBuffer) {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
 		}
-		const forgersList = decodeForgerList(forgersListBuffer);
 
-		const delegateAddresses = forgersList.find(fl => fl.round === round)
-			?.delegates;
+		const forgersListDecoded = codec.decode(
+			(forgerListSchema as unknown) as Schema,
+			forgersListBuffer,
+		);
+
+		const { forgersList } = forgersListDecoded as GenericObject;
+
+		const delegateAddresses = ((forgersList as unknown) as ForgersList).find(
+			fl => fl.round === round,
+		)?.delegates;
 
 		if (!delegateAddresses) {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);

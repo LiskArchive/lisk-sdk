@@ -13,6 +13,8 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { DelegatesList } from '../../src/delegates_list';
 import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
 import {
@@ -31,6 +33,7 @@ import * as forgerSelectionTwoStandbyScenario from '../fixtures/dpos_forger_sele
 import * as forgerSelectionLessTHan103Scenario from '../fixtures/dpos_forger_selection/dpos_forger_selection_less_than_103.json';
 import * as forgerSelectionMoreThan2StandByScenario from '../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
 import { StateStoreMock } from '../utils/state_store_mock';
+import { searchBufferArray } from '../utils/search_buffer_array';
 
 describe('Forger selection', () => {
 	let delegateList: DelegatesList;
@@ -77,7 +80,12 @@ describe('Forger selection', () => {
 			describe(scenario.title, () => {
 				it('should result in the expected forgers list', async () => {
 					// Forger selection relies on vote weight to be sorted
-					const delegates = [...scenario.testCases.input.voteWeights.map(d => ({ address: Buffer.from(d.address, 'hex'), voteWeight: BigInt(d.voteWeight) }))];
+					const delegates = [
+						...scenario.testCases.input.voteWeights.map(d => ({
+							address: Buffer.from(d.address, 'hex'),
+							voteWeight: BigInt(d.voteWeight),
+						})),
+					];
 					delegates.sort((a, b) => {
 						const diff = b.voteWeight - a.voteWeight;
 						if (diff > BigInt(0)) {
@@ -88,15 +96,24 @@ describe('Forger selection', () => {
 						}
 						return a.address.compare(b.address);
 					});
-					stateStore = new StateStoreMock([], {
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							JSON.stringify([
+
+					const encodedDelegateVoteWeights = codec.encode(
+						(voteWeightsSchema as unknown) as Schema,
+						({
+							voteWeights: [
 								{
 									round: defaultRound,
-									delegates: delegates.map(d => ({ address: d.address.toString('binary'), voteWeight: d.voteWeight.toString() })),
+									delegates: delegates.map(d => ({
+										address: d.address,
+										voteWeight: d.voteWeight,
+									})),
 								},
-							]),
-						),
+							],
+						} as unknown) as GenericObject,
+					);
+
+					stateStore = new StateStoreMock([], {
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
 					});
 					await delegateList.updateForgersList(
 						defaultRound,
@@ -110,27 +127,34 @@ describe('Forger selection', () => {
 					const forgersListBuffer = await stateStore.consensus.get(
 						CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 					);
-					const forgersList = JSON.parse(
-						(forgersListBuffer as Buffer).toString('utf8'),
-					).map(
-						(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
-							round: fl.round,
-							delegates: fl.delegates?.map(d => Buffer.from(d, 'binary').toString('hex')) ?? [],
-							standby: fl.standby?.map(d => Buffer.from(d, 'binary').toString('hex')),
-						}),
+
+					const { forgersList } = codec.decode(
+						forgerListSchema as any,
+						forgersListBuffer as any,
 					);
+
 					expect(forgersList).toHaveLength(1);
 					expect(forgersList[0].round).toEqual(defaultRound);
-					expect(forgersList[0].delegates.sort()).toEqual(
-						// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-						scenario.testCases.output.selectedForgers.sort(),
+
+					const sortedFixturesForgersBuffer = Buffer.concat(
+						scenario.testCases.output.selectedForgers
+							.map(aForger => Buffer.from(aForger, 'hex'))
+							.sort((a, b) => a.compare(b)),
 					);
+
+					expect(
+						Buffer.concat(
+							forgersList[0].delegates.sort((a: Buffer, b: Buffer) =>
+								a.compare(b),
+							),
+						).compare(sortedFixturesForgersBuffer),
+					).toEqual(0);
 				});
 			});
 		}
 	});
 
-	describe('when there is enough standby delegates', () => {
+	describe('when there are enough standby delegates', () => {
 		const defaultRound = 123;
 
 		let delegates: { address: Buffer; voteWeight: bigint }[];
@@ -138,7 +162,12 @@ describe('Forger selection', () => {
 		beforeEach(async () => {
 			const scenario = forgerSelectionMoreThan2StandByScenario;
 			// Forger selection relies on vote weight to be sorted
-			delegates = [...scenario.testCases.input.voteWeights.map(d => ({ address: Buffer.from(d.address, 'hex'), voteWeight: BigInt(d.voteWeight) }))];
+			delegates = [
+				...scenario.testCases.input.voteWeights.map(d => ({
+					address: Buffer.from(d.address, 'hex'),
+					voteWeight: BigInt(d.voteWeight),
+				})),
+			];
 			delegates.sort((a, b) => {
 				const diff = BigInt(b.voteWeight) - BigInt(a.voteWeight);
 				if (diff > BigInt(0)) {
@@ -149,15 +178,24 @@ describe('Forger selection', () => {
 				}
 				return a.address.compare(b.address);
 			});
-			stateStore = new StateStoreMock([], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-					JSON.stringify([
+
+			const encodedDelegateVoteWeights = codec.encode(
+				(voteWeightsSchema as unknown) as Schema,
+				({
+					voteWeights: [
 						{
 							round: defaultRound,
-							delegates: delegates.map(d => ({ address: d.address.toString('binary'), voteWeight: d.voteWeight.toString() })),
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: d.voteWeight,
+							})),
 						},
-					]),
-				),
+					],
+				} as unknown) as GenericObject,
+			);
+
+			stateStore = new StateStoreMock([], {
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
 			});
 			await delegateList.updateForgersList(
 				defaultRound,
@@ -173,14 +211,10 @@ describe('Forger selection', () => {
 			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf8'),
-			).map(
-				(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
-					round: fl.round,
-					delegates: fl.delegates?.map(d => Buffer.from(d, 'binary').toString('hex')) ?? [],
-					standby: fl.standby?.map(d => Buffer.from(d, 'binary').toString('hex')),
-				}),
+
+			const { forgersList } = codec.decode(
+				forgerListSchema as any,
+				forgersListBuffer as any,
 			);
 			expect(forgersList[0].delegates).toHaveLength(103);
 		});
@@ -189,20 +223,25 @@ describe('Forger selection', () => {
 			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(
-				(forgersListBuffer as Buffer).toString('utf8'),
-			).map(
-				(fl: { round: number; delegates?: string[]; standby?: string[] }) => ({
-					round: fl.round,
-					delegates: fl.delegates?.map(d => Buffer.from(d, 'binary').toString('hex')) ?? [],
-					standby: fl.standby?.map(d => Buffer.from(d, 'binary').toString('hex')),
-				}),
+
+			const { forgersList } = codec.decode(
+				forgerListSchema as any,
+				forgersListBuffer as any,
 			);
-			const standByCandidates = delegates.slice(101).map(d => d.address.toString('hex'));
+
+			const standByCandidates = delegates.slice(101).map(d => d.address);
 			expect(forgersList[0].standby).toHaveLength(2);
 			for (const standby of forgersList[0].standby) {
-				expect(forgersList[0].delegates).toContain(standby);
-				expect(standByCandidates).toContain(standby);
+				const standByInDelegateFound = searchBufferArray(
+					standby,
+					forgersList[0].delegates,
+				);
+				expect(standByInDelegateFound).toBe(true);
+				const standByCandidatesFound = searchBufferArray(
+					standby,
+					standByCandidates,
+				);
+				expect(standByCandidatesFound).toBe(true);
 			}
 		});
 	});

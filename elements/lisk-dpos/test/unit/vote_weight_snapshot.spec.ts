@@ -13,6 +13,12 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import {
+	delegatesUserNamesSchema,
+	forgerListSchema,
+	voteWeightsSchema,
+} from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos } from '../../src';
 import {
@@ -32,7 +38,11 @@ import {
 import { randomBigIntWithPowerof8 } from '../utils/random_int';
 
 const convertVoteWeight = (buffer: Buffer): VoteWeights => {
-	const parsedVoteWeights = JSON.parse(buffer.toString('utf8'));
+	const { voteWeights: parsedVoteWeights } = codec.decode(
+		(voteWeightsSchema as unknown) as Schema,
+		buffer,
+	);
+
 	const voteWeights = parsedVoteWeights.map((vw: any) => ({
 		round: vw.round,
 		delegates: vw.delegates.map((d: any) => ({
@@ -77,6 +87,7 @@ describe('Vote weight snapshot', () => {
 			for (const delegate of delegates) {
 				delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 			}
+
 			genesisBlock = {
 				id: Buffer.from('genesis-block'),
 				timestamp: 10,
@@ -99,9 +110,12 @@ describe('Vote weight snapshot', () => {
 				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf8'),
+
+				const { voteWeights } = codec.decode(
+					(voteWeightsSchema as unknown) as Schema,
+					voteWeightsBuffer as Buffer,
 				);
+
 				expect(voteWeights).toHaveLength(3);
 				expect(voteWeights[0].round).toEqual(1);
 				expect(voteWeights[1].round).toEqual(2);
@@ -165,13 +179,16 @@ describe('Vote weight snapshot', () => {
 						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
+
 				[updatedDelegate] = getDelegateAccounts(1);
+
 				updatedDelegate.asset.delegate.totalVotesReceived =
 					BigInt(6000) * BigInt(10) ** BigInt(9);
 				updatedDelegate.asset.sentVotes.push({
 					delegateAddress: updatedDelegate.address,
 					amount: updatedDelegate.asset.delegate.totalVotesReceived,
 				});
+
 				block = {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
@@ -182,6 +199,7 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
+
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
 					updatedDelegate,
@@ -198,24 +216,39 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
-					},
-				]);
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
+
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
+
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
 
 				const updatedVote = BigInt(100) * BigInt(10) ** BigInt(8);
 
@@ -264,9 +297,12 @@ describe('Vote weight snapshot', () => {
 				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(
-					(voteWeightsBuffer as Buffer).toString('utf8'),
+
+				const { voteWeights } = codec.decode(
+					(voteWeightsSchema as unknown) as Schema,
+					voteWeightsBuffer as Buffer,
 				);
+
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				const updateddelegateInList = voteWeights[1].delegates.find(
@@ -289,6 +325,7 @@ describe('Vote weight snapshot', () => {
 						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
+
 				block = {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
@@ -307,59 +344,72 @@ describe('Vote weight snapshot', () => {
 						height: 928 + i,
 					}))
 					.slice(0, 102);
+
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
 					forgedBlocks,
 				);
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
 
-				const mockedDelegateUsernames = JSON.stringify({
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
+
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						{
-							address: forgers[0].address.toString('binary'),
+							address: forgers[0].address,
 							username: forgers[0].asset.delegate.username,
 						},
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -434,18 +484,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -458,42 +514,49 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
+
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
+
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -562,7 +625,8 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
 							address: delegate.address,
@@ -573,7 +637,12 @@ describe('Vote weight snapshot', () => {
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -586,42 +655,49 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
+
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
+
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -698,7 +774,8 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
 							address: delegate.address,
@@ -709,7 +786,12 @@ describe('Vote weight snapshot', () => {
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -722,42 +804,49 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
+
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
+
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -830,18 +919,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -854,42 +949,49 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
+
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
+
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -951,18 +1053,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						{
 							username: forgers[0].asset.delegate.username,
-							address: forgers[0].address.toString('binary'),
+							address: forgers[0].address,
 						},
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -975,51 +1083,49 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 100),
-						],
-						standby: [
-							...forgers.map(d => d.address.toString('binary')).slice(101, 102),
-						],
-					},
-				]);
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 100)],
+							standby: [...forgers.map(d => d.address).slice(101, 102)],
+						},
+					],
+				};
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.slice(0, 100).map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-						standby: [
-							...delegates.slice(101, 102).map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
+
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.slice(0, 100).map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
+
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -1089,18 +1195,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -1113,42 +1225,49 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
 
-				const mockedVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: [
-							...delegates.map(d => ({
-								address: d.address.toString('binary'),
-								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
-							})),
-						],
-					},
-				]);
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
+
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: [
+								...delegates.map(d => ({
+									address: d.address,
+									voteWeight: BigInt(d.asset.delegate.totalVotesReceived),
+								})),
+							],
+						},
+					],
+				};
+
+				const mockedVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -1208,67 +1327,76 @@ describe('Vote weight snapshot', () => {
 					forgedBlocks,
 				);
 
-				const existingVoteWeights = JSON.stringify([
-					{
-						round: 11,
-						delegates: delegates.map(d => ({
-							address: d.address.toString('binary'),
-							voteWeight: '0',
-						})),
-					},
-					{
-						round: 12,
-						delegates: delegates.map(d => ({
-							address: d.address.toString('binary'),
-							voteWeight: '0',
-						})),
-					},
-					{
-						round: 13,
-						delegates: delegates.map(d => ({
-							address: d.address.toString('binary'),
-							voteWeight: '0',
-						})),
-					},
-					{
-						round: 14,
-						delegates: delegates.map(d => ({
-							address: d.address.toString('binary'),
-							voteWeight: '0',
-						})),
-					},
-					{
-						round: 15,
-						delegates: delegates.map(d => ({
-							address: d.address.toString('binary'),
-							voteWeight: '0',
-						})),
-					},
-					{
-						round: 16,
-						delegates: delegates.map(d => ({
-							address: d.address.toString('binary'),
-							voteWeight: '0',
-						})),
-					},
-				]);
+				const voteWeightsObject = {
+					voteWeights: [
+						{
+							round: 11,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(0),
+							})),
+						},
+						{
+							round: 12,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(0),
+							})),
+						},
+						{
+							round: 13,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(0),
+							})),
+						},
+						{
+							round: 14,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(0),
+							})),
+						},
+						{
+							round: 15,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(0),
+							})),
+						},
+						{
+							round: 16,
+							delegates: delegates.map(d => ({
+								address: d.address,
+								voteWeight: BigInt(0),
+							})),
+						},
+					],
+				};
 
-				const mockedForgersList = JSON.stringify([
-					{
-						round: 10,
-						delegates: [
-							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
-						],
-					},
-				]);
+				const existingVoteWeights = codec.encode(
+					(voteWeightsSchema as unknown) as Schema,
+					(voteWeightsObject as unknown) as GenericObject,
+				);
+
+				const forgerListObject = {
+					forgersList: [
+						{
+							round: 10,
+							delegates: [...forgers.map(d => d.address).slice(0, 102)],
+							standby: [],
+						},
+					],
+				};
+
+				const mockedForgersList = codec.encode(
+					(forgerListSchema as unknown) as Schema,
+					(forgerListObject as unknown) as GenericObject,
+				);
 
 				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-						mockedForgersList,
-					),
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-						existingVoteWeights,
-					),
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
 				});
 			});
 

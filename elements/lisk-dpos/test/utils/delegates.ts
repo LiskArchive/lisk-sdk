@@ -16,23 +16,159 @@ import { deepFreeze } from './deep_freeze';
 import { ForgerList, ForgersList } from '../../src/types';
 
 export const delegateLists = deepFreeze([
-	{ round: 17, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 16, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 15, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 14, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 13, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 12, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 11, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 10, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 9, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 8, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 7, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 6, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 5, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 4, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 3, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 2, delegates: ['a', 'b', 'c'], standby: [] },
-	{ round: 1, delegates: ['a', 'b', 'c'], standby: [] },
+	{
+		round: 17,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 16,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 15,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 14,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 13,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 12,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 11,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 10,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 9,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 8,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 7,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 6,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 5,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 4,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 3,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 2,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
+	{
+		round: 1,
+		delegates: [
+			Buffer.from('a', 'hex'),
+			Buffer.from('b', 'hex'),
+			Buffer.from('c', 'hex'),
+		],
+		standby: [],
+	},
 ]);
 
 interface ActiveDelegateList {

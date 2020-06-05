@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { codec } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import {
@@ -133,22 +133,53 @@ describe('Delegate registration transaction class', () => {
 		});
 
 		it('should return error when username is taken', async () => {
+			const delegatesUserNamesSchema = {
+				$id: '/dpos/userNames',
+				type: 'object',
+				properties: {
+					registeredDelegates: {
+						type: 'array',
+						fieldNumber: 1,
+						items: {
+							type: 'object',
+							properties: {
+								username: {
+									dataType: 'string',
+									fieldNumber: 1,
+								},
+								address: {
+									dataType: 'bytes',
+									fieldNumber: 2,
+								},
+							},
+						},
+					},
+				},
+				required: ['registeredDelegates'],
+			};
+
+			const senderClone = sender;
+			senderClone.asset.delegate.username = validTestTransaction.asset.username;
+
+			store.account.set(senderClone.address, senderClone);
+
 			store.chain.set(
 				'delegateUsernames',
-				Buffer.from(
-					JSON.stringify({
-						registeredDelegates: [
-							{
-								username: validTestTransaction.asset.username,
-								address: Buffer.from('random'),
-							},
-						],
-					}),
-				),
+				codec.encode((delegatesUserNamesSchema as unknown) as Schema, {
+					registeredDelegates: [
+						{
+							username: validTestTransaction.asset.username,
+							address: Buffer.from('random'),
+						},
+					],
+				}),
 			);
+
 			const errors = await (validTestTransaction as any).applyAsset(store);
+
 			expect(errors).toHaveLength(2);
 			expect(errors[0].dataPath).toBe('.asset.username');
+			expect(errors[1].message).toBe('Account is already a delegate');
 		});
 
 		it('should return an error when account is already delegate', async () => {

@@ -13,6 +13,8 @@
  */
 import { Slots } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { codec, Schema } from '@liskhq/lisk-codec';
+import { forgerListSchema } from '../../src/schemas';
 import {
 	generateDelegateLists,
 	generateDelegateListsWithStandby,
@@ -30,8 +32,13 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
+	const binaryForgerList = codec.encode(
+		(forgerListSchema as unknown) as Schema,
+		{ forgersList: list as any },
+	);
+
 	return new StateStoreMock([], {
-		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(JSON.stringify(list)),
+		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: binaryForgerList,
 	});
 };
 
@@ -65,7 +72,7 @@ describe('dpos.isStandbyDelegate', () => {
 		// Height in round 17
 		const height = 17 * ACTIVE_DELEGATES;
 
-		it('should return true if its a standby delegate', async () => {
+		it('should return true if it is a standby delegate', async () => {
 			const lists = generateDelegateListsWithStandby({
 				address: standByAddress,
 				activeRounds,

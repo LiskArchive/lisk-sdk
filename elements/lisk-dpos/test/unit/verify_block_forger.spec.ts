@@ -14,6 +14,8 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
@@ -26,21 +28,27 @@ describe('dpos.verifyBlockForger()', () => {
 
 	beforeEach(() => {
 		// Arrange
+		const forgerListObject = {
+			forgersList: [
+				{
+					round: 3,
+					delegates: delegatePublicKeys.map(pk =>
+						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+					),
+					standby: [],
+				},
+			],
+		};
+
+		const forgersList = codec.encode(
+			(forgerListSchema as unknown) as Schema,
+			(forgerListObject as unknown) as GenericObject,
+		);
+
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
 			dataAccess: {
-				getConsensusState: jest.fn().mockResolvedValue(
-					JSON.stringify([
-						{
-							round: 3,
-							delegates: delegatePublicKeys.map(pk =>
-								getAddressFromPublicKey(Buffer.from(pk, 'hex')).toString(
-									'binary',
-								),
-							),
-						},
-					]),
-				),
+				getConsensusState: jest.fn().mockResolvedValue(forgersList),
 			},
 		};
 
@@ -69,16 +77,24 @@ describe('dpos.verifyBlockForger()', () => {
 
 	it('should call the chain state to get the list', async () => {
 		// Arrange
-		chainStub.dataAccess.getConsensusState.mockResolvedValue(
-			JSON.stringify([
+		const forgerListObject = {
+			forgersList: [
 				{
 					round: 1,
 					delegates: delegatePublicKeys.map(pk =>
-						getAddressFromPublicKey(Buffer.from(pk, 'hex')).toString('binary'),
+						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
 					),
+					standby: [],
 				},
-			]),
+			],
+		};
+
+		const forgersList = codec.encode(
+			(forgerListSchema as unknown) as Schema,
+			(forgerListObject as unknown) as GenericObject,
 		);
+
+		chainStub.dataAccess.getConsensusState.mockResolvedValue(forgersList);
 		const block = {
 			height: 99,
 			timestamp: 23450,
