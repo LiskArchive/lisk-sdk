@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { MerkleTree } from '../src/merkle_tree';
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
 
@@ -19,16 +20,35 @@ describe('MerkleTree', () => {
 		for (const test of fixture.testCases) {
 			describe(test.description, () => {
 				it('should result in correct merkle root', () => {
-					const inputs = test.input.transactionIds.map(hexString => Buffer.from(hexString, 'hex'));
+					const inputs = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
 					const merkleTree = new MerkleTree(inputs);
-					expect(merkleTree.root).toEqual(Buffer.from(test.output.transactionMerkleRoot, 'hex'));
+
+					expect(merkleTree.root).toEqual(
+						Buffer.from(test.output.transactionMerkleRoot, 'hex'),
+					);
 				});
 			});
 		}
 	});
 
 	describe('append', () => {
-		it.todo('should append and update root');
+		for (const test of fixture.testCases.slice(1)) {
+			describe(test.description, () => {
+				it(`should append and have correct root`, () => {
+					const inputs = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
+					const toAppend = inputs.pop();
+					const merkleTree = new MerkleTree(inputs);
+					merkleTree.append(toAppend as Buffer);
+					expect(merkleTree.root).toEqual(
+						Buffer.from(test.output.transactionMerkleRoot, 'hex'),
+					);
+				});
+			});
+		}
 	});
 
 	describe('generateProof', () => {
