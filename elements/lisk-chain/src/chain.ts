@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec, MinimalSchema } from '@liskhq/lisk-codec';
 import { KVStore } from '@liskhq/lisk-db';
 import {
 	BaseTransaction,
@@ -85,7 +85,7 @@ interface ChainConstructor {
 		readonly [key: number]: typeof BaseTransaction;
 	};
 	readonly registeredBlocks: {
-		readonly [key: number]: Schema;
+		readonly [key: number]: MinimalSchema;
 	};
 	readonly accountAsset: {
 		schema: object;

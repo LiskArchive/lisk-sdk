@@ -13,14 +13,14 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { codec, Schema, GenericObject } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { BufferMap } from '@liskhq/lisk-chain';
 import {
 	DB_KEY_FORGER_USED_HASH_ONION,
 	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 } from './constant';
 
-export const registeredHashOnionsStoreSchema = ({
+export const registeredHashOnionsStoreSchema = {
 	title: 'Used hash onion',
 	$id: '/node/forger/registered_hash_onion',
 	type: 'object',
@@ -45,9 +45,9 @@ export const registeredHashOnionsStoreSchema = ({
 			},
 		},
 	},
-} as unknown) as Schema;
+};
 
-export const usedHashOnionsStoreSchema = ({
+export const usedHashOnionsStoreSchema = {
 	title: 'Used hash onion',
 	$id: '/node/forger/used_hash_onion',
 	type: 'object',
@@ -76,7 +76,7 @@ export const usedHashOnionsStoreSchema = ({
 			},
 		},
 	},
-} as unknown) as Schema;
+};
 
 codec.addSchema(registeredHashOnionsStoreSchema);
 
@@ -146,7 +146,7 @@ export const setRegisteredHashOnionSeeds = async (
 	}
 	const registeredHashOnionSeedsBuffer = codec.encode(
 		registeredHashOnionsStoreSchema,
-		(savingData as unknown) as GenericObject,
+		savingData,
 	);
 
 	await db.put(
@@ -176,9 +176,6 @@ export const setUsedHashOnions = async (
 
 	await db.put(
 		DB_KEY_FORGER_USED_HASH_ONION,
-		codec.encode(
-			usedHashOnionsStoreSchema,
-			(usedHashOnionObject as unknown) as GenericObject,
-		),
+		codec.encode(usedHashOnionsStoreSchema, usedHashOnionObject),
 	);
 };

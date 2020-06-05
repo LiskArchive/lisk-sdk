@@ -13,7 +13,7 @@
  */
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec, MinimalSchema } from '@liskhq/lisk-codec';
 import { Account } from '../account';
 import { BlockHeader, Block, RawBlock } from '../types';
 
@@ -32,7 +32,7 @@ interface DAConstructor {
 	readonly registeredBlockHeaders: {
 		readonly [key: number]: object;
 	};
-	readonly accountSchema: Schema;
+	readonly accountSchema: MinimalSchema;
 	readonly minBlockHeaderCache: number;
 	readonly maxBlockHeaderCache: number;
 }
@@ -40,7 +40,7 @@ interface DAConstructor {
 export class DataAccess {
 	private readonly _storage: StorageAccess;
 	private readonly _blocksCache: BlockCache;
-	private readonly _accountSchema: Schema;
+	private readonly _accountSchema: MinimalSchema;
 	private readonly _transactionAdapter: TransactionInterfaceAdapter;
 	private readonly _blockHeaderAdapter: BlockHeaderInterfaceAdapter;
 
@@ -107,7 +107,7 @@ export class DataAccess {
 		this._blocksCache.empty();
 	}
 
-	public getBlockHeaderAssetSchema(version: number): Schema {
+	public getBlockHeaderAssetSchema(version: number): MinimalSchema {
 		return this._blockHeaderAdapter.getSchema(version);
 	}
 

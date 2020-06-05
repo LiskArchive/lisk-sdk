@@ -14,7 +14,7 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
@@ -40,10 +40,7 @@ describe('dpos.verifyBlockForger()', () => {
 			],
 		};
 
-		const forgersList = codec.encode(
-			(forgerListSchema as unknown) as Schema,
-			(forgerListObject as unknown) as GenericObject,
-		);
+		const forgersList = codec.encode(forgerListSchema, forgerListObject);
 
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
@@ -89,10 +86,7 @@ describe('dpos.verifyBlockForger()', () => {
 			],
 		};
 
-		const forgersList = codec.encode(
-			(forgerListSchema as unknown) as Schema,
-			(forgerListObject as unknown) as GenericObject,
-		);
+		const forgersList = codec.encode(forgerListSchema, forgerListObject);
 
 		chainStub.dataAccess.getConsensusState.mockResolvedValue(forgersList);
 		const block = {

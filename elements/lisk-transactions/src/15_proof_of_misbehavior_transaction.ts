@@ -13,7 +13,7 @@
  *
  */
 
-import { codec, GenericObject } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	getAddressFromPublicKey,
 	bufferToHex,
@@ -408,9 +408,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 
 	// eslint-disable-next-line class-methods-use-this
 	private _getBlockHeaderBytes(header: BlockHeader): Buffer {
-		return codec.encode(
-			signingBlockHeaderSchema,
-			(header as unknown) as GenericObject,
-		);
+		return codec.encode(signingBlockHeaderSchema, header);
 	}
 }

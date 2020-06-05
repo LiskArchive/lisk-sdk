@@ -13,7 +13,7 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	delegatesUserNamesSchema,
 	forgerListSchema,
@@ -39,7 +39,7 @@ import { randomBigIntWithPowerof8 } from '../utils/random_int';
 
 const convertVoteWeight = (buffer: Buffer): VoteWeights => {
 	const { voteWeights: parsedVoteWeights } = codec.decode(
-		(voteWeightsSchema as unknown) as Schema,
+		voteWeightsSchema,
 		buffer,
 	);
 
@@ -112,7 +112,7 @@ describe('Vote weight snapshot', () => {
 				);
 
 				const { voteWeights } = codec.decode(
-					(voteWeightsSchema as unknown) as Schema,
+					voteWeightsSchema,
 					voteWeightsBuffer as Buffer,
 				);
 
@@ -227,8 +227,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				const voteWeightsObject = {
@@ -246,8 +246,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				const updatedVote = BigInt(100) * BigInt(10) ** BigInt(8);
@@ -299,7 +299,7 @@ describe('Vote weight snapshot', () => {
 				);
 
 				const { voteWeights } = codec.decode(
-					(voteWeightsSchema as unknown) as Schema,
+					voteWeightsSchema,
 					voteWeightsBuffer as Buffer,
 				);
 
@@ -360,8 +360,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				const voteWeightsObject = {
@@ -379,8 +379,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				const mockedDelegateUsernamesObject = {
@@ -397,7 +397,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -499,7 +499,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -525,8 +525,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				const voteWeightsObject = {
@@ -544,8 +544,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				stateStore = new StateStoreMock(
@@ -640,7 +640,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -670,8 +670,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				const forgerListObject = {
@@ -685,8 +685,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				stateStore = new StateStoreMock(
@@ -789,7 +789,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -819,8 +819,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				const forgerListObject = {
@@ -834,8 +834,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				stateStore = new StateStoreMock(
@@ -934,7 +934,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -960,8 +960,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				const voteWeightsObject = {
@@ -979,8 +979,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				stateStore = new StateStoreMock(
@@ -1068,7 +1068,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -1094,8 +1094,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				const voteWeightsObject = {
@@ -1113,8 +1113,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				stateStore = new StateStoreMock(
@@ -1210,7 +1210,7 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedDelegateUsernames = codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
+					delegatesUserNamesSchema,
 					mockedDelegateUsernamesObject,
 				);
 
@@ -1236,8 +1236,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				const voteWeightsObject = {
@@ -1255,8 +1255,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				stateStore = new StateStoreMock(
@@ -1375,8 +1375,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const existingVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeightsObject,
 				);
 
 				const forgerListObject = {
@@ -1390,8 +1390,8 @@ describe('Vote weight snapshot', () => {
 				};
 
 				const mockedForgersList = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				stateStore = new StateStoreMock([forgers[0]], {

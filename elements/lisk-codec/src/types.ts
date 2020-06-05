@@ -21,6 +21,12 @@ export interface GenericObject {
 export interface SchemaPair {
 	readonly [key: string]: SchemaProps;
 }
+
+export interface MinimalSchema {
+	readonly $id: string;
+	readonly properties: object;
+}
+
 export interface Schema {
 	readonly $id: string;
 	readonly $schema?: string;
@@ -28,6 +34,7 @@ export interface Schema {
 	readonly required?: string[];
 	properties: SchemaPair;
 }
+
 export interface SchemaProps {
 	readonly fieldNumber: number;
 	readonly type?: string;

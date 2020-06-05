@@ -22,6 +22,7 @@ import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
 
 import {
+	MinimalSchema,
 	CompiledSchema,
 	CompiledSchemas,
 	CompiledSchemasArray,
@@ -79,26 +80,30 @@ export const validateSchema = (schema: {
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
-	public addSchema(schema: Schema): boolean {
+	public addSchema(schema: MinimalSchema): boolean {
 		validateSchema(schema);
 
 		const schemaName = schema.$id;
-		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
+		this._compileSchemas[schemaName] = this._compileSchema(
+			schema as Schema,
+			[],
+			[],
+		);
 
 		return true;
 	}
 
-	public encode(schema: Schema, message: GenericObject): Buffer {
+	public encode(schema: MinimalSchema, message: object): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
 
 		const compiledSchema = this._compileSchemas[schema.$id];
-		const res = writeObject(compiledSchema, message, []);
+		const res = writeObject(compiledSchema, message as GenericObject, []);
 		return Buffer.concat(res[0]);
 	}
 
-	public decode<T>(schema: Schema, message: Buffer): T {
+	public decode<T>(schema: MinimalSchema, message: Buffer): T {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}

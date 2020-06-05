@@ -13,7 +13,7 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { DelegatesList } from '../../src/delegates_list';
 import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
@@ -97,20 +97,17 @@ describe('Forger selection', () => {
 						return a.address.compare(b.address);
 					});
 
-					const encodedDelegateVoteWeights = codec.encode(
-						(voteWeightsSchema as unknown) as Schema,
-						({
-							voteWeights: [
-								{
-									round: defaultRound,
-									delegates: delegates.map(d => ({
-										address: d.address,
-										voteWeight: d.voteWeight,
-									})),
-								},
-							],
-						} as unknown) as GenericObject,
-					);
+					const encodedDelegateVoteWeights = codec.encode(voteWeightsSchema, {
+						voteWeights: [
+							{
+								round: defaultRound,
+								delegates: delegates.map(d => ({
+									address: d.address,
+									voteWeight: d.voteWeight,
+								})),
+							},
+						],
+					});
 
 					stateStore = new StateStoreMock([], {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
@@ -129,8 +126,8 @@ describe('Forger selection', () => {
 					);
 
 					const { forgersList } = codec.decode(
-						forgerListSchema as any,
-						forgersListBuffer as any,
+						forgerListSchema,
+						forgersListBuffer as Buffer,
 					);
 
 					expect(forgersList).toHaveLength(1);
@@ -179,20 +176,17 @@ describe('Forger selection', () => {
 				return a.address.compare(b.address);
 			});
 
-			const encodedDelegateVoteWeights = codec.encode(
-				(voteWeightsSchema as unknown) as Schema,
-				({
-					voteWeights: [
-						{
-							round: defaultRound,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.voteWeight,
-							})),
-						},
-					],
-				} as unknown) as GenericObject,
-			);
+			const encodedDelegateVoteWeights = codec.encode(voteWeightsSchema, {
+				voteWeights: [
+					{
+						round: defaultRound,
+						delegates: delegates.map(d => ({
+							address: d.address,
+							voteWeight: d.voteWeight,
+						})),
+					},
+				],
+			});
 
 			stateStore = new StateStoreMock([], {
 				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
@@ -213,8 +207,8 @@ describe('Forger selection', () => {
 			);
 
 			const { forgersList } = codec.decode(
-				forgerListSchema as any,
-				forgersListBuffer as any,
+				forgerListSchema,
+				forgersListBuffer as Buffer,
 			);
 			expect(forgersList[0].delegates).toHaveLength(103);
 		});
@@ -225,8 +219,8 @@ describe('Forger selection', () => {
 			);
 
 			const { forgersList } = codec.decode(
-				forgerListSchema as any,
-				forgersListBuffer as any,
+				forgerListSchema,
+				forgersListBuffer as Buffer,
 			);
 
 			const standByCandidates = delegates.slice(101).map(d => d.address);
