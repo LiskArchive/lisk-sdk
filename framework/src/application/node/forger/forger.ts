@@ -13,14 +13,14 @@
  */
 
 import {
-	getPrivateAndPublicKeyFromPassphrase,
 	decryptPassphraseWithPassword,
-	parseEncryptedPassphrase,
-	hashOnion,
 	generateHashOnionSeed,
 	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
+	hashOnion,
+	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { Chain, BufferMap } from '@liskhq/lisk-chain';
+import { BufferMap, Chain } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BFT } from '@liskhq/lisk-bft';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
@@ -30,23 +30,27 @@ import { HighFeeForgingStrategy } from './strategies';
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
 import {
+	getRegisteredHashOnionSeeds,
+	getUsedHashOnions,
 	setRegisteredHashOnionSeeds,
 	setUsedHashOnions,
-	getUsedHashOnions,
-	getRegisteredHashOnionSeeds,
 	UsedHashOnion,
 } from './data_access';
 
 export interface DelegateConfig {
 	readonly publicKey: string;
 	readonly encryptedPassphrase: string;
-	readonly hashOnion: HashOnionConfig;
+	readonly hashOnion: {
+		readonly count: number;
+		readonly distance: number;
+		readonly hashes: string[];
+	};
 }
 
 interface HashOnionConfig {
 	readonly count: number;
 	readonly distance: number;
-	readonly hashes: string[];
+	readonly hashes: Buffer[];
 }
 
 export interface ForgingStatus {
@@ -292,7 +296,7 @@ export class Forger {
 				hashOnionConfig.hashes[hashOnionConfig.hashes.length - 1];
 			if (
 				registeredHashOnionSeed &&
-				!registeredHashOnionSeed.equals(Buffer.from(configHashOnionSeed, 'hex'))
+				!registeredHashOnionSeed.equals(configHashOnionSeed)
 			) {
 				this._logger.warn(
 					`Hash onion for Account ${account.address.toString(
@@ -304,10 +308,7 @@ export class Forger {
 				);
 			}
 			// Update the registered hash onion (either same one, new one or overwritten one)
-			registeredHashOnionSeeds.set(
-				account.address,
-				Buffer.from(configHashOnionSeed, 'hex'),
-			);
+			registeredHashOnionSeeds.set(account.address, configHashOnionSeed);
 			const highestUsedHashOnion = usedHashOnions.reduce<
 				UsedHashOnion | undefined
 			>((prev, current) => {
@@ -526,7 +527,7 @@ export class Forger {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!usedHashOnion) {
 			return {
-				hash: Buffer.from(hashOnionConfig.hashes[0], 'hex'),
+				hash: hashOnionConfig.hashes[0],
 				count: 0,
 			};
 		}
@@ -542,10 +543,7 @@ export class Forger {
 			};
 		}
 		const nextCheckpointIndex = Math.ceil(nextCount / hashOnionConfig.distance);
-		const nextCheckpoint = Buffer.from(
-			hashOnionConfig.hashes[nextCheckpointIndex],
-			'hex',
-		);
+		const nextCheckpoint = hashOnionConfig.hashes[nextCheckpointIndex];
 		const hashes = hashOnion(nextCheckpoint, hashOnionConfig.distance, 1);
 		const checkpointIndex = nextCount % hashOnionConfig.distance;
 		return {
@@ -565,7 +563,12 @@ export class Forger {
 				)} does not have hash onion in the config`,
 			);
 		}
-		return delegateConfig.hashOnion;
+
+		return {
+			count: delegateConfig.hashOnion.count,
+			distance: delegateConfig.hashOnion.distance,
+			hashes: delegateConfig.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
+		};
 	}
 
 	// eslint-disable-next-line class-methods-use-this
