@@ -14,8 +14,11 @@
 
 // Genesis account, initially holding 100M total supply
 export const genesis = {
-	address: 'd04699e57c4a3846c988f3c15306796f8eae5c1c',
-	publicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+	address: Buffer.from('d04699e57c4a3846c988f3c15306796f8eae5c1c', 'hex'),
+	publicKey: Buffer.from(
+		'0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
+		'hex',
+	),
 	passphrase:
 		'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready',
 	balance: '10000000000000000',

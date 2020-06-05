@@ -13,12 +13,10 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { transfer, utils } from '@liskhq/lisk-transactions';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { genesis } from '../../../../../fixtures';
-
-const { convertLSKToBeddows } = utils;
 
 describe('Transaction pool', () => {
 	const dbName = 'transaction_pool';
@@ -46,15 +44,23 @@ describe('Transaction pool', () => {
 				genesis.address,
 			);
 			const account = nodeUtils.createAccount();
-			transaction = transfer({
-				nonce: genesisAccount.nonce.toString(),
-				networkIdentifier: node._networkIdentifier,
-				fee: convertLSKToBeddows('0.002'),
-				recipientId: account.address,
-				amount: convertLSKToBeddows('1000'),
-				passphrase: genesis.passphrase,
+			transaction = new TransferTransaction({
+				nonce: genesisAccount.nonce,
+				senderPublicKey: genesis.publicKey,
+				fee: BigInt('200000'),
+				asset: {
+					recipientAddress: account.address,
+					amount: BigInt('100000000000'),
+					data: '',
+				},
 			});
-			await node._transport.handleEventPostTransaction({ transaction });
+			transaction.sign(
+				Buffer.from(node._networkIdentifier, 'hex'),
+				genesis.passphrase,
+			);
+			await node._transport.handleEventPostTransaction({
+				transaction: transaction.getBytes().toString('base64'),
+			});
 		});
 
 		describe('when transaction is pass to the transaction pool', () => {

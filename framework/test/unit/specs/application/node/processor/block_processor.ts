@@ -20,8 +20,6 @@ export class FakeBlockProcessorV0 extends BaseBlockProcessor {
 
 	public constructor() {
 		super();
-		this.serialize.pipe([({ block }) => block as any]);
-		this.deserialize.pipe([({ block }) => block as any]);
 	}
 }
 
@@ -30,7 +28,5 @@ export class FakeBlockProcessorV1 extends BaseBlockProcessor {
 
 	public constructor() {
 		super();
-		this.serialize.pipe([({ block }) => block as any]);
-		this.deserialize.pipe([({ block }) => block as any]);
 	}
 }

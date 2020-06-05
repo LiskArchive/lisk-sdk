@@ -12,16 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	bufferToHex,
+} from '@liskhq/lisk-cryptography';
 
 import { TransactionError } from '../errors';
 
 export const validateSenderIdAndPublicKey = (
-	id: string,
+	id: Buffer,
 	senderId: string,
-	senderPublicKey: string,
+	senderPublicKey: Buffer,
 ): TransactionError | undefined => {
-	const actualAddress = getAddressFromPublicKey(senderPublicKey);
+	const actualAddress = bufferToHex(getAddressFromPublicKey(senderPublicKey));
 
 	return senderId.toUpperCase() !== actualAddress.toUpperCase()
 		? new TransactionError(

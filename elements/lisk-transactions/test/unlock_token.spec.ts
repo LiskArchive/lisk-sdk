@@ -12,142 +12,145 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as validUnlockTransactionScenario from '../fixtures/unlock_transaction/unlock_transaction.json';
+// import * as validUnlockTransactionScenario from '../fixtures/unlock_transaction/unlock_transaction.json';
 
-import { unlockToken } from '../src/unlock_token';
-import { TransactionJSON } from '../src/types';
+// import { unlockToken } from '../src/unlock_token';
+// import { TransactionJSON } from '../src/types';
 
 describe('#unlockToken transaction', () => {
-	let unlockTokenTransaction: Partial<TransactionJSON>;
-
-	// TODO: Update after updating protocol-specs
-	describe.skip('when the transaction is created with one passphrase and the unlocking objects', () => {
-		beforeEach(() => {
-			unlockTokenTransaction = unlockToken({
-				passphrase:
-					validUnlockTransactionScenario.testCases.input.account.passphrase,
-				unlockingObjects: validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
-				networkIdentifier:
-					validUnlockTransactionScenario.testCases.input.networkIdentifier,
-				fee: validUnlockTransactionScenario.testCases.output.fee,
-				nonce: validUnlockTransactionScenario.testCases.output.nonce,
-			});
-		});
-
-		it('should create a unlock transaction', () => {
-			expect(unlockTokenTransaction.id).toEqual(
-				validUnlockTransactionScenario.testCases.output.id,
-			);
-			expect(unlockTokenTransaction.signatures).toStrictEqual(
-				validUnlockTransactionScenario.testCases.output.signatures,
-			);
-		});
+	it('should be updated or deleted once unlockToken design is decided', () => {
+		expect(true).toBeTrue();
 	});
+	// let unlockTokenTransaction: Partial<TransactionJSON>;
 
-	// TODO: Update after updating protocol-specs
-	describe.skip('when the unlock transaction is create with invalid values', () => {
-		describe('given undefined unlocking objects', () => {
-			it('should throw error when unlocking objects were not provided', () => {
-				return expect(() =>
-					unlockToken({
-						passphrase:
-							validUnlockTransactionScenario.testCases.input.account.passphrase,
-						unlockingObjects: undefined,
-						networkIdentifier:
-							validUnlockTransactionScenario.testCases.input.networkIdentifier,
-						fee: validUnlockTransactionScenario.testCases.output.fee,
-						nonce: validUnlockTransactionScenario.testCases.output.nonce,
-					}),
-				).toThrow('Unlocking object must present to create transaction.');
-			});
-		});
+	// // TODO: Update after updating protocol-specs
+	// describe.skip('when the transaction is created with one passphrase and the unlocking objects', () => {
+	// 	beforeEach(() => {
+	// 		unlockTokenTransaction = unlockToken({
+	// 			passphrase:
+	// 				validUnlockTransactionScenario.testCases.input.account.passphrase,
+	// 			unlockObjects: validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(),
+	// 			networkIdentifier:
+	// 				validUnlockTransactionScenario.testCases.input.networkIdentifier,
+	// 			fee: validUnlockTransactionScenario.testCases.output.fee,
+	// 			nonce: validUnlockTransactionScenario.testCases.output.nonce,
+	// 		});
+	// 	});
 
-		describe('given negative amount of unlocking object', () => {
-			it('should throw a validation error', () => {
-				return expect(() =>
-					unlockToken({
-						passphrase:
-							validUnlockTransactionScenario.testCases.input.account.passphrase,
-						unlockingObjects: [
-							...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(
-								0,
-								19,
-							),
-							{
-								delegateAddress: '123L',
-								amount: '-1000000000',
-								unvoteHeight: 1,
-							},
-						],
-						networkIdentifier:
-							validUnlockTransactionScenario.testCases.input.networkIdentifier,
-						fee: validUnlockTransactionScenario.testCases.output.fee,
-						nonce: validUnlockTransactionScenario.testCases.output.nonce,
-					}),
-				).toThrow('Amount cannot be less than or equal to zero');
-			});
-		});
+	// 	it('should create a unlock transaction', () => {
+	// 		expect(unlockTokenTransaction.id).toEqual(
+	// 			validUnlockTransactionScenario.testCases.output.id,
+	// 		);
+	// 		expect(unlockTokenTransaction.signatures).toStrictEqual(
+	// 			validUnlockTransactionScenario.testCases.output.signatures,
+	// 		);
+	// 	});
+	// });
 
-		describe('given more than 20 unlocking objects', () => {
-			it('should throw a validation error', () => {
-				return expect(() =>
-					unlockToken({
-						passphrase:
-							validUnlockTransactionScenario.testCases.input.account.passphrase,
-						unlockingObjects: [
-							...validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
-							{
-								delegateAddress: '123L',
-								amount: '1000000000',
-								unvoteHeight: 1,
-							},
-						],
-						networkIdentifier:
-							validUnlockTransactionScenario.testCases.input.networkIdentifier,
-						fee: validUnlockTransactionScenario.testCases.output.fee,
-						nonce: validUnlockTransactionScenario.testCases.output.nonce,
-					}),
-				).toThrow('should NOT have more than 20 item');
-			});
-		});
-	});
+	// // TODO: Update after updating protocol-specs
+	// describe.skip('when the unlock transaction is create with invalid values', () => {
+	// 	describe('given undefined unlocking objects', () => {
+	// 		it('should throw error when unlocking objects were not provided', () => {
+	// 			return expect(() =>
+	// 				unlockToken({
+	// 					passphrase:
+	// 						validUnlockTransactionScenario.testCases.input.account.passphrase,
+	// 					unlockObjects: undefined,
+	// 					networkIdentifier:
+	// 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
+	// 					fee: validUnlockTransactionScenario.testCases.output.fee,
+	// 					nonce: validUnlockTransactionScenario.testCases.output.nonce,
+	// 				}),
+	// 			).toThrow('Unlocking object must present to create transaction.');
+	// 		});
+	// 	});
 
-	describe('unsigned unlock transaction', () => {
-		describe('when the unlock transaction is created without a passphrase', () => {
-			beforeEach(() => {
-				unlockTokenTransaction = unlockToken({
-					unlockingObjects: validUnlockTransactionScenario.testCases.output.asset.unlockingObjects.slice(),
-					networkIdentifier:
-						validUnlockTransactionScenario.testCases.input.networkIdentifier,
-					fee: validUnlockTransactionScenario.testCases.output.fee,
-					nonce: validUnlockTransactionScenario.testCases.output.nonce,
-				});
-			});
+	// 	describe('given negative amount of unlocking object', () => {
+	// 		it('should throw a validation error', () => {
+	// 			return expect(() =>
+	// 				unlockToken({
+	// 					passphrase:
+	// 						validUnlockTransactionScenario.testCases.input.account.passphrase,
+	// 					unlockObjects: [
+	// 						...validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(
+	// 							0,
+	// 							19,
+	// 						),
+	// 						{
+	// 							delegateAddress: '123L',
+	// 							amount: '-1000000000',
+	// 							unvoteHeight: 1,
+	// 						},
+	// 					],
+	// 					networkIdentifier:
+	// 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
+	// 					fee: validUnlockTransactionScenario.testCases.output.fee,
+	// 					nonce: validUnlockTransactionScenario.testCases.output.nonce,
+	// 				}),
+	// 			).toThrow('Amount cannot be less than or equal to zero');
+	// 		});
+	// 	});
 
-			it('should have the type', () => {
-				return expect(unlockTokenTransaction).toHaveProperty('type', 14);
-			});
+	// 	describe('given more than 20 unlocking objects', () => {
+	// 		it('should throw a validation error', () => {
+	// 			return expect(() =>
+	// 				unlockToken({
+	// 					passphrase:
+	// 						validUnlockTransactionScenario.testCases.input.account.passphrase,
+	// 					unlockObjects: [
+	// 						...validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(),
+	// 						{
+	// 							delegateAddress: '123L',
+	// 							amount: '1000000000',
+	// 							unvoteHeight: 1,
+	// 						},
+	// 					],
+	// 					networkIdentifier:
+	// 						validUnlockTransactionScenario.testCases.input.networkIdentifier,
+	// 					fee: validUnlockTransactionScenario.testCases.output.fee,
+	// 					nonce: validUnlockTransactionScenario.testCases.output.nonce,
+	// 				}),
+	// 			).toThrow('should NOT have more than 20 item');
+	// 		});
+	// 	});
+	// });
 
-			it('should not have the sender public key', () => {
-				return expect(unlockTokenTransaction).toHaveProperty(
-					'senderPublicKey',
-					undefined,
-				);
-			});
+	// describe('unsigned unlock transaction', () => {
+	// 	describe('when the unlock transaction is created without a passphrase', () => {
+	// 		beforeEach(() => {
+	// 			unlockTokenTransaction = unlockToken({
+	// 				unlockObjects: validUnlockTransactionScenario.testCases.output.asset.unlockObjects.slice(),
+	// 				networkIdentifier:
+	// 					validUnlockTransactionScenario.testCases.input.networkIdentifier,
+	// 				fee: validUnlockTransactionScenario.testCases.output.fee,
+	// 				nonce: validUnlockTransactionScenario.testCases.output.nonce,
+	// 			});
+	// 		});
 
-			it('should have the asset with the unlockingObjects', () => {
-				return expect(unlockTokenTransaction.asset).toHaveProperty(
-					'unlockingObjects',
-				);
-			});
+	// 		it('should have the type', () => {
+	// 			return expect(unlockTokenTransaction).toHaveProperty('type', 14);
+	// 		});
 
-			it('should not have the signatures', () => {
-				return expect(unlockTokenTransaction).not.toHaveProperty('signatures');
-			});
+	// 		it('should not have the sender public key', () => {
+	// 			return expect(unlockTokenTransaction).toHaveProperty(
+	// 				'senderPublicKey',
+	// 				undefined,
+	// 			);
+	// 		});
 
-			it('should not have the id', () => {
-				return expect(unlockTokenTransaction).not.toHaveProperty('id');
-			});
-		});
-	});
+	// 		it('should have the asset with the unlockObjects', () => {
+	// 			return expect(unlockTokenTransaction.asset).toHaveProperty(
+	// 				'unlockObjects',
+	// 			);
+	// 		});
+
+	// 		it('should not have the signatures', () => {
+	// 			return expect(unlockTokenTransaction).not.toHaveProperty('signatures');
+	// 		});
+
+	// 		it('should not have the id', () => {
+	// 			return expect(unlockTokenTransaction).not.toHaveProperty('id');
+	// 		});
+	// 	});
+	// });
 });

@@ -13,20 +13,16 @@
  */
 
 import {
-	baseBlockSchema,
-	BlockInstance,
+	Block,
 	Chain,
 	StateStore,
+	BufferMap,
+	BlockHeader,
 } from '@liskhq/lisk-chain';
-import { validator } from '@liskhq/lisk-validator';
 import {
-	bufferToHex,
 	signDataWithPrivateKey,
-	stringToBuffer,
-	hexToBuffer,
-	intToBuffer,
-	LITTLE_ENDIAN,
 	getAddressFromPublicKey,
+	hash,
 } from '@liskhq/lisk-cryptography';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
@@ -35,6 +31,8 @@ import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { BaseBlockProcessor } from './processor';
 import { Logger } from '../logger';
+import { ForgedInfo } from './forger/data_access';
+import { DB_KEY_FORGER_PREVIOUSLY_FORGED } from './forger/constant';
 
 interface BlockProcessorInput {
 	readonly networkIdentifier: string;
@@ -48,185 +46,54 @@ interface BlockProcessorInput {
 	};
 }
 
-interface ForgedMap {
-	[address: string]:
-		| {
-				height: number;
-				maxHeightPrevoted: number;
-				maxHeightPreviouslyForged: number;
-		  }
-		| undefined;
-}
-
 interface CreateInput {
 	readonly transactions: ReadonlyArray<BaseTransaction>;
 	readonly height: number;
-	readonly previousBlockId: string;
+	readonly previousBlockID: Buffer;
 	readonly keypair: {
 		publicKey: Buffer;
 		privateKey: Buffer;
 	};
-	readonly seedReveal: string;
+	readonly seedReveal: Buffer;
 	readonly timestamp: number;
 	readonly maxHeightPreviouslyForged: number;
 	readonly maxHeightPrevoted: number;
 	readonly stateStore: StateStore;
 }
 
-type Modify<T, R> = Omit<T, keyof R> & R;
+export interface BlockHeaderAsset {
+	readonly seedReveal: Buffer;
+	readonly maxHeightPreviouslyForged: number;
+	readonly maxHeightPrevoted: number;
+}
 
-type BlockWithoutID = Modify<
-	BlockInstance,
-	{
-		id?: string;
-	}
->;
-type BlockWithoutIDAndSign = Modify<
-	BlockInstance,
-	{
-		id?: string;
-		blockSignature?: string;
-	}
->;
+export const getTransactionRoot = (ids: Buffer[]): Buffer => {
+	const tree = new MerkleTree(ids);
 
-const DB_KEY_FORGER_PREVIOUSLY_FORGED = 'forger:previouslyForged';
-
-const SIZE_INT32 = 4;
-const SIZE_INT64 = 8;
-
-const blockSchema = {
-	...baseBlockSchema,
-	properties: {
-		...baseBlockSchema.properties,
-		maxHeightPreviouslyForged: {
-			type: 'integer',
-		},
-		maxHeightPrevoted: {
-			type: 'integer',
-		},
-		seedReveal: {
-			type: 'string',
-			format: 'hex',
-			minLength: 32,
-			maxLength: 32,
-		},
-	},
-	required: [
-		...baseBlockSchema.required,
-		'maxHeightPreviouslyForged',
-		'maxHeightPrevoted',
-		'height',
-	],
-};
-
-export const getBytes = (
-	block: BlockWithoutIDAndSign | BlockWithoutID,
-): Buffer => {
-	const blockVersionBuffer = intToBuffer(
-		block.version,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const timestampBuffer = intToBuffer(
-		block.timestamp,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const previousBlockBuffer = block.previousBlockId
-		? Buffer.from(block.previousBlockId, 'hex')
-		: Buffer.alloc(32);
-
-	const seedRevealBuffer = Buffer.from(block.seedReveal, 'hex');
-
-	const heightBuffer = intToBuffer(block.height, SIZE_INT32, LITTLE_ENDIAN);
-
-	const maxHeightPreviouslyForgedBuffer = intToBuffer(
-		block.maxHeightPreviouslyForged,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const maxHeightPrevotedBuffer = intToBuffer(
-		block.maxHeightPrevoted,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const numTransactionsBuffer = intToBuffer(
-		block.numberOfTransactions,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const totalAmountBuffer = intToBuffer(
-		block.totalAmount.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const totalFeeBuffer = intToBuffer(
-		block.totalFee.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const rewardBuffer = intToBuffer(
-		block.reward.toString(),
-		SIZE_INT64,
-		LITTLE_ENDIAN,
-	);
-
-	const payloadLengthBuffer = intToBuffer(
-		block.payloadLength,
-		SIZE_INT32,
-		LITTLE_ENDIAN,
-	);
-
-	const transactionRootBuffer = hexToBuffer(block.transactionRoot);
-
-	const generatorPublicKeyBuffer = hexToBuffer(block.generatorPublicKey);
-
-	const blockSignatureBuffer = block.blockSignature
-		? hexToBuffer(block.blockSignature)
-		: Buffer.alloc(0);
-
-	return Buffer.concat([
-		blockVersionBuffer,
-		timestampBuffer,
-		previousBlockBuffer,
-		seedRevealBuffer,
-		heightBuffer,
-		maxHeightPreviouslyForgedBuffer,
-		maxHeightPrevotedBuffer,
-		numTransactionsBuffer,
-		totalAmountBuffer,
-		totalFeeBuffer,
-		rewardBuffer,
-		payloadLengthBuffer,
-		transactionRootBuffer,
-		generatorPublicKeyBuffer,
-		blockSignatureBuffer,
-	]);
-};
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const validateSchema = ({ block }: { block: BlockInstance }) => {
-	const errors = validator.validate(blockSchema, block);
-	if (errors.length) {
-		throw errors;
-	}
-};
-
-export const getTransactionRoot = (ids: ReadonlyArray<string>): string => {
-	const idsAsBuffers = ids.map(id => stringToBuffer(id));
-	const tree = new MerkleTree(idsAsBuffers);
-
-	return bufferToHex(tree.root);
+	return tree.root;
 };
 
 export class BlockProcessorV2 extends BaseBlockProcessor {
+	public static readonly schema = {
+		$id: '/block-header/asset/v2',
+		type: 'object',
+		properties: {
+			maxHeightPreviouslyForged: {
+				dataType: 'uint32',
+				fieldNumber: 1,
+			},
+			maxHeightPrevoted: {
+				dataType: 'uint32',
+				fieldNumber: 2,
+			},
+			seedReveal: {
+				dataType: 'bytes',
+				fieldNumber: 3,
+			},
+		},
+		required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
+	};
+
 	public readonly version = 2;
 
 	private readonly networkIdentifier: string;
@@ -260,60 +127,46 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		/* eslint-disable @typescript-eslint/explicit-function-return-type */
 		this.init.pipe([async ({ stateStore }) => this.bftModule.init(stateStore)]);
 
-		this.deserialize.pipe([
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async ({ block }) => this.chainModule.deserialize(block),
-		]);
-
-		this.serialize.pipe([
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async ({ block }) => this.chainModule.serialize(block),
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async (_, updatedBlock) => this.bftModule.serialize(updatedBlock),
-		]);
-
 		this.validate.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
 			async data => this._validateVersion(data),
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async data => validateSchema(data),
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async ({ block }) =>
-				this.chainModule.validateBlockHeader(block, getBytes(block)),
-			// eslint-disable-next-line @typescript-eslint/require-await
-			async ({ block }) => this.bftModule.validateBlock(block),
+			async ({ block }) => this.chainModule.validateBlockHeader(block),
 		]);
 
 		this.forkStatus.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
 			async ({ block, lastBlock }) =>
-				this.bftModule.forkChoice(block, lastBlock), // validate common block header
+				this.bftModule.forkChoice(block.header, lastBlock.header), // validate common block header
 		]);
 
 		this.verify.pipe([
 			async ({ block, stateStore }) => {
 				let expectedReward = this.chainModule.blockReward.calculateReward(
-					block.height,
+					block.header.height,
 				);
 				const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
-					block,
+					block.header,
 				);
 				if (!isBFTProtocolCompliant) {
 					expectedReward /= BigInt(4);
 				}
-				const reward = await this._punishDPoSViolation(block, stateStore);
+				const reward = await this._punishDPoSViolation(
+					block.header,
+					stateStore,
+				);
 				if (reward === BigInt(0)) {
 					expectedReward = reward;
 				}
-				if (block.reward !== expectedReward) {
+				if (block.header.reward !== expectedReward) {
 					throw new Error(
 						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-						`Invalid block reward: ${block.reward.toString()} expected: ${expectedReward}`,
+						`Invalid block reward: ${block.header.reward.toString()} expected: ${expectedReward}`,
 					);
 				}
 			},
-			async ({ block }) => this.dposModule.verifyBlockForger(block),
-			async ({ block }) => this.bftModule.verifyNewBlock(block),
+			async ({ block }) => this.dposModule.verifyBlockForger(block.header),
+			async ({ block }) => this.bftModule.verifyNewBlock(block.header),
 			async ({ block, stateStore, skipExistingCheck }) =>
 				this.chainModule.verify(block, stateStore, {
 					skipExistingCheck: !!skipExistingCheck,
@@ -324,8 +177,9 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			async ({ block, stateStore }) =>
 				this.chainModule.apply(block, stateStore),
 			async ({ block, stateStore }) =>
-				this.bftModule.addNewBlock(block, stateStore),
-			async ({ block, stateStore }) => this.dposModule.apply(block, stateStore),
+				this.bftModule.addNewBlock(block.header, stateStore),
+			async ({ block, stateStore }) =>
+				this.dposModule.apply(block.header, stateStore),
 			async ({ stateStore }) => {
 				await this.dposModule.onBlockFinalized(
 					stateStore,
@@ -337,38 +191,41 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		this.applyGenesis.pipe([
 			async ({ block, stateStore }) =>
 				this.chainModule.applyGenesis(block, stateStore),
-			async ({ block, stateStore }) => this.dposModule.apply(block, stateStore),
+			async ({ block, stateStore }) =>
+				this.dposModule.apply(block.header, stateStore),
 		]);
 
 		this.undo.pipe([
 			async ({ block, stateStore }) => this.chainModule.undo(block, stateStore),
 			async ({ block, stateStore }) =>
-				this.bftModule.deleteBlocks([block], stateStore),
-			async ({ block, stateStore }) => this.dposModule.undo(block, stateStore),
+				this.bftModule.deleteBlocks([block.header], stateStore),
+			async ({ block, stateStore }) =>
+				this.dposModule.undo(block.header, stateStore),
 		]);
 
 		this.create.pipe([
 			// Create a block with with basic block and bft properties
 			async ({ data, stateStore }) => {
 				const previouslyForgedMap = await this._getPreviouslyForgedMap();
-				const delegateAddress = getAddressFromPublicKey(
-					data.keypair.publicKey.toString('hex'),
-				);
+				const delegateAddress = getAddressFromPublicKey(data.keypair.publicKey);
 				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-				const height = data.previousBlock.height + 1;
-				const previousBlockId = data.previousBlock.id;
-				const forgerInfo = previouslyForgedMap[delegateAddress];
+				const height = data.previousBlock.header.height + 1;
+				const previousBlockID = data.previousBlock.header.id;
+				const forgerInfo = previouslyForgedMap.get(delegateAddress);
 				const maxHeightPreviouslyForged = forgerInfo?.height ?? 0;
 				const block = await this._create({
 					...data,
 					height,
-					previousBlockId,
+					previousBlockID,
 					maxHeightPreviouslyForged,
 					maxHeightPrevoted: this.bftModule.maxHeightPrevoted,
 					stateStore,
 				});
 
-				await this._saveMaxHeightPreviouslyForged(block, previouslyForgedMap);
+				await this._saveMaxHeightPreviouslyForged(
+					block.header,
+					previouslyForgedMap,
+				);
 				return block;
 			},
 		]);
@@ -378,25 +235,21 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	private async _create({
 		transactions,
 		height,
-		previousBlockId,
+		previousBlockID,
 		keypair,
 		seedReveal,
 		timestamp,
 		maxHeightPreviouslyForged,
 		maxHeightPrevoted,
 		stateStore,
-	}: CreateInput): Promise<BlockWithoutID> {
+	}: CreateInput): Promise<Block<BlockHeaderAsset>> {
 		const reward = this.chainModule.blockReward.calculateReward(height);
-		let totalFee = BigInt(0);
-		let totalAmount = BigInt(0);
 		let size = 0;
 
 		const blockTransactions = [];
 		const transactionIds = [];
 
-		// eslint-disable-next-line no-plusplus,@typescript-eslint/prefer-for-of
-		for (let i = 0; i < transactions.length; i++) {
-			const transaction = transactions[i];
+		for (const transaction of transactions) {
 			const transactionBytes = transaction.getBytes();
 
 			if (size + transactionBytes.length > this.constants.maxPayloadLength) {
@@ -404,73 +257,86 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			}
 
 			size += transactionBytes.length;
-
-			totalFee += BigInt(transaction.fee);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
-			totalAmount += BigInt((transaction.asset as any).amount ?? 0);
-
 			blockTransactions.push(transaction);
 			transactionIds.push(transaction.id);
 		}
 
 		const transactionRoot = getTransactionRoot(transactionIds);
 
-		const block: BlockWithoutIDAndSign = {
+		const header = {
 			version: this.version,
-			totalAmount,
-			totalFee,
-			seedReveal,
+			height,
 			reward,
 			transactionRoot,
+			previousBlockID,
 			timestamp,
-			numberOfTransactions: blockTransactions.length,
-			payloadLength: size,
-			previousBlockId,
-			generatorPublicKey: keypair.publicKey.toString('hex'),
-			transactions: blockTransactions,
-			height,
-			maxHeightPreviouslyForged,
-			maxHeightPrevoted,
-			receivedAt: undefined,
+			generatorPublicKey: keypair.publicKey,
+			asset: {
+				seedReveal,
+				maxHeightPreviouslyForged,
+				maxHeightPrevoted,
+			},
 		};
 
 		const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
-			block,
+			header as BlockHeader<BlockHeaderAsset>,
 		);
 
 		// Reduce reward based on BFT rules
 		if (!isBFTProtocolCompliant) {
-			block.reward /= BigInt(4);
+			header.reward /= BigInt(4);
 		}
 
-		block.reward = await this._punishDPoSViolation(block, stateStore);
+		header.reward = await this._punishDPoSViolation(
+			header as BlockHeader<BlockHeaderAsset>,
+			stateStore,
+		);
+
+		const headerBytesWithoutSignature = this.chainModule.dataAccess.encodeBlockHeader(
+			header as BlockHeader<BlockHeaderAsset>,
+			true,
+		);
+		const signature = signDataWithPrivateKey(
+			Buffer.concat([
+				Buffer.from(this.networkIdentifier, 'hex'),
+				headerBytesWithoutSignature,
+			]),
+			keypair.privateKey,
+		);
+		const headerBytes = this.chainModule.dataAccess.encodeBlockHeader({
+			...header,
+			signature,
+		} as BlockHeader<BlockHeaderAsset>);
+		const id = hash(headerBytes);
 
 		return {
-			...block,
-			blockSignature: signDataWithPrivateKey(
-				Buffer.concat([
-					Buffer.from(this.networkIdentifier, 'hex'),
-					getBytes(block),
-				]),
-				keypair.privateKey,
-			),
+			header: {
+				...header,
+				signature,
+				id,
+			},
+			payload: blockTransactions,
 		};
 	}
 
-	private async _getPreviouslyForgedMap(): Promise<ForgedMap> {
+	private async _getPreviouslyForgedMap(): Promise<BufferMap<ForgedInfo>> {
 		try {
 			const previouslyForgedBuffer = await this.forgerDB.get(
 				DB_KEY_FORGER_PREVIOUSLY_FORGED,
 			);
-			return JSON.parse(previouslyForgedBuffer.toString('utf8')) as ForgedMap;
+			const parsedMap = JSON.parse(previouslyForgedBuffer.toString('utf8')) as {
+				[address: string]: ForgedInfo;
+			};
+			const result = new BufferMap<ForgedInfo>();
+			for (const address of Object.keys(parsedMap)) {
+				result.set(Buffer.from(address, 'binary'), parsedMap[address]);
+			}
+			return result;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
-				this.logger.error(
-					{ err: error as Error },
-					'Error while querying forgerDB',
-				);
+				throw error;
 			}
-			return {};
+			return new BufferMap<ForgedInfo>();
 		}
 	}
 
@@ -479,32 +345,29 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	 * so it needs to be outside of the DB transaction
 	 */
 	private async _saveMaxHeightPreviouslyForged(
-		block: BlockWithoutID,
-		previouslyForgedMap: ForgedMap,
+		header: BlockHeader,
+		previouslyForgedMap: BufferMap<ForgedInfo>,
 	): Promise<void> {
-		const {
-			generatorPublicKey,
-			height,
-			maxHeightPreviouslyForged,
-			maxHeightPrevoted,
-		} = block;
-		const generatorAddress = getAddressFromPublicKey(generatorPublicKey);
+		const generatorAddress = getAddressFromPublicKey(header.generatorPublicKey);
 		// In order to compare with the minimum height in case of the first block, here it should be 0
-		const previouslyForged = previouslyForgedMap[generatorAddress];
+		const previouslyForged = previouslyForgedMap.get(generatorAddress);
 		const previouslyForgedHeightByDelegate = previouslyForged?.height ?? 0;
 		// previously forged height only saves maximum forged height
-		if (height <= previouslyForgedHeightByDelegate) {
+		if (header.height <= previouslyForgedHeightByDelegate) {
 			return;
 		}
-		const updatedPreviouslyForged = {
-			...previouslyForgedMap,
-			[generatorAddress]: {
-				height,
-				maxHeightPrevoted,
-				maxHeightPreviouslyForged,
-			},
-		};
-		const previouslyForgedStr = JSON.stringify(updatedPreviouslyForged);
+		previouslyForgedMap.set(generatorAddress, {
+			height: header.height,
+			maxHeightPrevoted: header.asset.maxHeightPrevoted as number,
+			maxHeightPreviouslyForged: header.asset.maxHeightPreviouslyForged,
+		});
+
+		const parsedPreviouslyForgedMap: { [key: string]: ForgedInfo } = {};
+		for (const [key, value] of previouslyForgedMap.entries()) {
+			parsedPreviouslyForgedMap[key.toString('binary')] = value;
+		}
+
+		const previouslyForgedStr = JSON.stringify(parsedPreviouslyForgedMap);
 		await this.forgerDB.put(
 			DB_KEY_FORGER_PREVIOUSLY_FORGED,
 			Buffer.from(previouslyForgedStr, 'utf8'),
@@ -512,23 +375,23 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 	}
 
 	private async _punishDPoSViolation(
-		block: BlockWithoutIDAndSign,
+		header: BlockHeader,
 		stateStore: StateStore,
 	): Promise<bigint> {
 		const isDPoSProtocolCompliant = await this.dposModule.isDPoSProtocolCompliant(
-			block,
+			header,
 			stateStore,
 		);
 
 		// Set reward to 0 if the block violates DPoS rules
 		if (!isDPoSProtocolCompliant) {
 			this.logger.info(
-				{ generatorPublicKey: block.generatorPublicKey },
+				{ generatorPublicKey: header.generatorPublicKey.toString('base64') },
 				'Punishing delegate for DPoS violation',
 			);
 			return BigInt(0);
 		}
 
-		return block.reward;
+		return header.reward;
 	}
 }

@@ -35,8 +35,10 @@ const createStateStore = (
 describe('dpos.isDPoSProtocolCompliant()', () => {
 	let dpos: Dpos;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
-	const generatorPublicKey =
-		'b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9';
+	const generatorPublicKey = Buffer.from(
+		'b4f98dacb1609ad11b63ea20b61a5721a9b502af948c96522260e3d89910a8d9',
+		'hex',
+	);
 
 	beforeEach(() => {
 		// Arrange
@@ -56,7 +58,9 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 		it('should return false if current block seedReveal is not a preimage of previous block', async () => {
 			// Arrange
 			const blockHeader = {
-				seedReveal: '00000000000000000000000000000000',
+				asset: {
+					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+				},
 				height: 5,
 				generatorPublicKey,
 			} as BlockHeader;
@@ -74,7 +78,9 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 			// Arrange
 			const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
 			const blockHeader = {
-				seedReveal: blockHeaders[0].seedReveal,
+				asset: {
+					seedReveal: blockHeaders[0].asset.seedReveal,
+				},
 				height: 5,
 				generatorPublicKey,
 			} as BlockHeader;
@@ -94,7 +100,9 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 			// Arrange
 			const lastBlockHeaders = [...blockHeaders.slice(1)] as BlockHeader[];
 			const blockHeader = {
-				seedReveal: blockHeaders[0].seedReveal,
+				asset: {
+					seedReveal: blockHeaders[0].asset.seedReveal,
+				},
 				height: 404,
 				generatorPublicKey,
 			} as BlockHeader;
@@ -112,7 +120,9 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 			// Arrange
 			const lastBlockHeaders = blockHeaders as BlockHeader[];
 			const blockHeader = {
-				seedReveal: '00000000000000000000000000000000',
+				asset: {
+					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+				},
 				height: 202,
 				generatorPublicKey,
 			} as BlockHeader;

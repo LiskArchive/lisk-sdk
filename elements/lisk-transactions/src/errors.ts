@@ -14,13 +14,13 @@
  */
 export class TransactionError extends Error {
 	public message: string;
-	public id: string;
+	public id: Buffer;
 	public dataPath: string;
 	public actual?: string | number;
 	public expected?: string | number;
 	public constructor(
 		message = '',
-		id = '',
+		id = Buffer.from(''),
 		dataPath = '',
 		actual?: string | number,
 		expected?: string | number,
@@ -35,7 +35,9 @@ export class TransactionError extends Error {
 	}
 
 	public toString(): string {
-		const defaultMessage = `Transaction: ${this.id} failed at ${this.dataPath}: ${this.message}`;
+		const defaultMessage = `Transaction: ${this.id.toString(
+			'base64',
+		)} failed at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
 			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			  `${defaultMessage}, actual: ${this.actual}`
@@ -55,7 +57,7 @@ interface ErrorObject {
 }
 
 export const convertToTransactionError = (
-	id: string,
+	id: Buffer,
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {
@@ -74,7 +76,7 @@ export const convertToTransactionError = (
 };
 
 export const convertToAssetError = (
-	id: string,
+	id: Buffer,
 	errors: ReadonlyArray<ErrorObject> | null | undefined,
 ): ReadonlyArray<TransactionError> => {
 	if (!errors) {

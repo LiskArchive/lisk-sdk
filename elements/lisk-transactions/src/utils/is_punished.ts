@@ -12,25 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Account } from '../types';
+import { Account, AccountAsset } from '../types';
 
 const VOTER_PUNISH_TIME = 260000;
 const SELF_VOTE_PUNISH_TIME = 780000;
 
 export const getPunishmentPeriod = (
 	sender: Account,
-	delegateAccount: Account,
+	delegateAccount: Account<AccountAsset>,
 	lastBlockHeight: number,
 ): number => {
-	if (delegateAccount.delegate.pomHeights.length === 0) {
+	if (delegateAccount.asset.delegate.pomHeights.length === 0) {
 		return 0;
 	}
-	const lastPomHeight = Math.max(...delegateAccount.delegate.pomHeights);
+	const lastPomHeight = Math.max(...delegateAccount.asset.delegate.pomHeights);
 	const currentHeight = lastBlockHeight + 1;
-	const punishTime =
-		sender.address === delegateAccount.address
-			? SELF_VOTE_PUNISH_TIME
-			: VOTER_PUNISH_TIME;
+	const punishTime = sender.address.equals(delegateAccount.address)
+		? SELF_VOTE_PUNISH_TIME
+		: VOTER_PUNISH_TIME;
 
 	return punishTime - (currentHeight - lastPomHeight);
 };

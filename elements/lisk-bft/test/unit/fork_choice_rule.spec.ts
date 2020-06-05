@@ -21,24 +21,25 @@ import {
 	isTieBreak,
 	isValidBlock,
 } from '../../src/fork_choice_rule';
-import { BlockHeaderWithID } from '../../src/types';
+import { BlockHeader } from '../../src/types';
 
 const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
 const BLOCK_TIME = 10;
 
-const createBlock = (data: object): BlockHeaderWithID =>
+const createBlock = (data?: Partial<BlockHeader>): BlockHeader =>
 	({
-		...{
-			height: 0,
-			id: '',
-			generatorPublicKey: '',
-			previousBlockId: 'null',
-			maxHeightPrevoted: 0,
-			timestamp: 0,
-			version: 2,
+		height: data?.height ?? 0,
+		timestamp: data?.timestamp ?? 0,
+		version: 2,
+		id: data?.id ?? Buffer.from('id'),
+		generatorPublicKey: Buffer.from('generator'),
+		previousBlockID: data?.previousBlockID ?? Buffer.from('previoud block'),
+		receivedAt: data?.receivedAt ?? 0,
+		asset: {
+			maxHeightPrevoted: data?.asset?.maxHeightPrevoted ?? 0,
+			maxHeightPreviouslyForged: data?.asset?.maxHeightPreviouslyForged ?? 0,
 		},
-		...data,
-	} as BlockHeaderWithID);
+	});
 
 describe('Fork Choice Rule', () => {
 	let slots: Slots;
@@ -51,14 +52,14 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isValidBlock', () => {
-		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockId', () => {
+		it('should return true if last.height + 1 === current.height && last.id === current.previousBlockID', () => {
 			const last = createBlock({
 				height: 1,
-				id: '1',
+				id: Buffer.from('1'),
 			});
 			const current = createBlock({
 				height: last.height + 1,
-				previousBlockId: last.id,
+				previousBlockID: last.id,
 			});
 
 			expect(isValidBlock(last, current)).toBeTruthy();
@@ -66,18 +67,24 @@ describe('Fork Choice Rule', () => {
 	});
 
 	describe('_isDuplicateBlock', () => {
-		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockId === current.previousBlockId', () => {
+		it('should return true if last.height === current.height && last.heightPrevoted === current.heightPrevoted && last.previousBlockID === current.previousBlockID', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				asset: {
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
 			});
 			const current = createBlock({
 				height: last.height,
-				maxHeightPrevoted: last.maxHeightPrevoted,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					maxHeightPrevoted: last.asset.maxHeightPrevoted,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 			});
 			expect(isDuplicateBlock(last, current)).toBeTruthy();
 		});
@@ -87,7 +94,7 @@ describe('Fork Choice Rule', () => {
 		it('should return true if last.id === current.id', () => {
 			const last = createBlock({
 				height: 1,
-				id: '1',
+				id: Buffer.from('1'),
 			});
 			expect(isIdenticalBlock(last, last)).toBeTruthy();
 		});
@@ -97,16 +104,22 @@ describe('Fork Choice Rule', () => {
 		it('should return true if _isDuplicateBlock(last, current) && last.generatorPublicKey === current.generatorPublicKey', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
-				generatorPublicKey: 'abc',
+				asset: {
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
+				generatorPublicKey: Buffer.from('abc'),
 			});
 			const current = createBlock({
 				height: last.height,
-				maxHeightPrevoted: last.maxHeightPrevoted,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					maxHeightPrevoted: last.asset.maxHeightPrevoted,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 				generatorPublicKey: last.generatorPublicKey,
 			});
 
@@ -139,22 +152,25 @@ describe('Fork Choice Rule', () => {
 		it('should return true if it matches the conditions described in _isTieBreak', () => {
 			const lastReceivedAndAppliedBlock = {
 				receivedTime: 100000,
-				id: '1',
+				id: Buffer.from('1'),
 			};
 
 			const lastAppliedBlock = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
+				asset: {
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
 				timestamp: lastReceivedAndAppliedBlock.receivedTime,
-				generatorPublicKey: 'abc',
+				generatorPublicKey: Buffer.from('abc'),
 				receivedAt: 300000,
 			});
 
 			const receivedBlock = createBlock({
 				...lastAppliedBlock,
-				id: '2',
+				id: Buffer.from('2'),
 				timestamp: 200000,
 				receivedAt: 200000,
 			});
@@ -173,17 +189,23 @@ describe('Fork Choice Rule', () => {
 		it('should return true if last.heightPrevoted < current.heightPrevoted', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
 				timestamp: Date.now(),
-				generatorPublicKey: 'abc',
+				asset: {
+					maxHeightPrevoted: 0,
+					maxHeightPreviouslyForged: 0,
+				},
+				generatorPublicKey: Buffer.from('abc'),
 			});
 			const current = createBlock({
 				height: last.height,
-				maxHeightPrevoted: last.maxHeightPrevoted + 1,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					maxHeightPrevoted: last.asset.maxHeightPrevoted + 1,
+					maxHeightPreviouslyForged: 0,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 				timestamp: Date.now() + 1000,
 				generatorPublicKey: last.generatorPublicKey,
 			});
@@ -194,17 +216,23 @@ describe('Fork Choice Rule', () => {
 		it('OR should return true if (last.height < current.height && last.heightPrevoted === current.heightPrevoted)', () => {
 			const last = createBlock({
 				height: 1,
-				maxHeightPrevoted: 0,
-				previousBlockId: 0,
-				id: '1',
+				previousBlockID: Buffer.from('0'),
+				id: Buffer.from('1'),
 				timestamp: Date.now(),
-				generatorPublicKey: 'abc',
+				generatorPublicKey: Buffer.from('abc'),
+				asset: {
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: 0,
+				},
 			});
 			const current = createBlock({
 				height: last.height + 1,
-				maxHeightPrevoted: last.maxHeightPrevoted,
-				previousBlockId: last.previousBlockId,
-				id: '2',
+				asset: {
+					maxHeightPreviouslyForged: 0,
+					maxHeightPrevoted: last.asset.maxHeightPrevoted,
+				},
+				previousBlockID: last.previousBlockID,
+				id: Buffer.from('2'),
 				timestamp: Date.now() + 1000,
 				generatorPublicKey: last.generatorPublicKey,
 			});

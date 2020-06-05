@@ -14,89 +14,98 @@
  */
 import { TransactionError } from './errors';
 
-export interface AccountVote {
-	readonly delegateAddress: string;
-	amount: bigint;
-}
-export interface AccountUnlocking {
-	readonly delegateAddress: string;
-	readonly amount: bigint;
-	readonly unvoteHeight: number;
-}
-export interface Account {
-	readonly address: string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface Account<T = any> {
+	readonly address: Buffer;
 	balance: bigint;
+	publicKey: Buffer;
 	nonce: bigint;
-	missedBlocks: number;
-	producedBlocks: number;
-	publicKey: string | undefined;
-	username: string | null;
-	isDelegate: number;
-	fees: bigint;
-	rewards: bigint;
-	asset: object;
 	keys: {
-		mandatoryKeys: string[];
-		optionalKeys: string[];
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
 		numberOfSignatures: number;
 	};
-	delegate: {
-		lastForgedHeight: number;
-		consecutiveMissedBlocks: number;
-		isBanned: boolean;
-		pomHeights: number[];
-	};
-	votes: AccountVote[];
-	unlocking: AccountUnlocking[];
-	totalVotesReceived: bigint;
-	readonly toJSON: () => object;
+	asset: T;
 }
-export interface Delegate {
-	readonly username: string;
+
+export interface AccountAsset {
+	delegate: DelegateAccountAsset;
+	sentVotes: VoteAccountAsset[];
+	unlocking: UnlockingAccountAsset[];
+}
+
+export interface DelegateAccountAsset {
+	username: string;
+	pomHeights: number[];
+	consecutiveMissedBlocks: number;
+	lastForgedHeight: number;
+	isBanned: boolean;
+	totalVotesReceived: bigint;
+}
+
+export interface VoteAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+}
+
+export interface UnlockingAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+	unvoteHeight: number;
 }
 
 export interface BlockHeader {
-	readonly height: number;
+	readonly id: Buffer;
 	readonly version: number;
 	readonly timestamp: number;
-	readonly previousBlockId?: string | null;
-	readonly blockSignature: string;
-	readonly generatorPublicKey: string;
-	readonly numberOfTransactions: number;
-	readonly payloadLength: number;
-	readonly transactionRoot: string;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
-	readonly totalAmount: bigint;
-	readonly totalFee: bigint;
+	readonly height: number;
+	readonly previousBlockID: Buffer;
+	readonly transactionRoot: Buffer;
+	readonly generatorPublicKey: Buffer;
 	readonly reward: bigint;
-	readonly seedReveal: string;
+	readonly signature: Buffer;
+	readonly asset: {
+		readonly seedReveal: Buffer;
+		readonly maxHeightPreviouslyForged: number;
+		readonly maxHeightPrevoted: number;
+	};
 }
 
-type Modify<T, R> = Omit<T, keyof R> & R;
-
-export type BlockHeaderJSON = Modify<
-	BlockHeader,
-	{
-		readonly totalAmount: string;
-		readonly totalFee: string;
-		readonly reward: string;
-	}
->;
+export interface BlockHeaderJSON {
+	readonly id: string;
+	readonly version: number;
+	readonly timestamp: number;
+	readonly height: number;
+	readonly previousBlockID: string;
+	readonly transactionRoot: string;
+	readonly generatorPublicKey: string;
+	readonly reward: string;
+	readonly signature: string;
+	readonly asset: {
+		readonly seedReveal: string;
+		readonly maxHeightPreviouslyForged: number;
+		readonly maxHeightPrevoted: number;
+	};
+}
 
 export interface TransactionJSON {
-	readonly asset: object;
-	readonly id?: string;
-	readonly blockId?: string;
-	readonly height?: number;
-	readonly confirmations?: number;
+	readonly id: string;
+	readonly type: number;
 	readonly senderPublicKey: string;
 	readonly signatures?: ReadonlyArray<string>;
-	readonly type: number;
-	readonly receivedAt?: string;
-	readonly networkIdentifier?: string;
+	readonly asset: object;
 	readonly nonce: string;
 	readonly fee: string;
+}
+
+export interface BaseTransactionInput<T = object> {
+	readonly id?: Buffer;
+	readonly type?: number;
+	readonly senderPublicKey: Buffer;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly asset: T;
+	readonly signatures?: Array<Readonly<Buffer>>;
 }
 
 export interface IsValidResponse {

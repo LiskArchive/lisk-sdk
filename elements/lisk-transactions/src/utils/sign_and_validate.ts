@@ -12,24 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
+import { verifyData, bufferToHex } from '@liskhq/lisk-cryptography';
 
 import { TransactionError } from '../errors';
 import { IsValidResponseWithError } from '../types';
 
 export const validateSignature = (
-	publicKey: string,
-	signature: string,
+	publicKey: Buffer,
+	signature: Buffer,
 	bytes: Buffer,
-	id?: string,
+	id?: Buffer,
 ): IsValidResponseWithError => {
-	const valid = cryptography.verifyData(bytes, signature, publicKey);
+	const valid = verifyData(bytes, signature, publicKey);
 
 	return {
 		valid,
 		error: !valid
 			? new TransactionError(
-					`Failed to validate signature ${signature}`,
+					`Failed to validate signature ${bufferToHex(signature)}`,
 					id,
 					'.signatures',
 			  )

@@ -43,7 +43,7 @@ const processInputs = (
 	return outputPublicKey
 		? {
 				encryptedPassphrase,
-				publicKey: getKeys(passphrase).publicKey,
+				publicKey: getKeys(passphrase).publicKey.toString('base64'),
 		  }
 		: { encryptedPassphrase };
 };

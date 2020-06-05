@@ -39,7 +39,6 @@ import { unlockToken } from './unlock_token';
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getId,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateSenderIdAndPublicKey,
@@ -51,7 +50,6 @@ import {
 
 const exposedUtils = {
 	convertBeddowsToLSK,
-	getId,
 	convertLSKToBeddows,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,

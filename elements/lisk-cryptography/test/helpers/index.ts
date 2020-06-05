@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const makeInvalid = (str: string): string => {
-	const char = str.startsWith('0') ? '1' : '0';
-	return `${char}${str.slice(1)}`;
+export const makeInvalid = (buffer: Buffer): Buffer => {
+	const replace = buffer[0] % 2 === 0 ? 1 : 2;
+	// eslint-disable-next-line no-param-reassign
+	buffer[0] = replace;
+	return buffer;
 };

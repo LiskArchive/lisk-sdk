@@ -13,12 +13,11 @@
  */
 
 import {
-	transfer,
-	registerDelegate,
 	utils,
-	TransactionJSON,
+	TransferTransaction,
+	DelegateTransaction,
 } from '@liskhq/lisk-transactions';
-import { BlockInstance, Account } from '@liskhq/lisk-chain';
+import { Block, Account } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { nodeUtils } from '../../../../../utils';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
@@ -50,24 +49,28 @@ describe('Process block', () => {
 
 	describe('given an account has a balance', () => {
 		describe('when processing a block with valid transactions', () => {
-			let newBlock: BlockInstance;
-			let transaction: TransactionJSON;
+			let newBlock: Block;
+			let transaction: TransferTransaction;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
-				transaction = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: account.address,
-					amount: convertLSKToBeddows('1000'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(transaction),
-				]);
+				transaction = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: account.address,
+						amount: BigInt('100000000000'),
+						data: '',
+					},
+				});
+				transaction.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				newBlock = await nodeUtils.createBlock(node, [transaction]);
 				await node['_processor'].process(newBlock);
 			});
 
@@ -82,15 +85,15 @@ describe('Process block', () => {
 
 			it('should save the block to the database', async () => {
 				const processedBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.id,
+					newBlock.header.id,
 				);
-				expect(processedBlock.id).toEqual(newBlock.id);
+				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 
 			it('should save the transactions to the database', async () => {
 				const [processedTx] = await node[
 					'_chain'
-				].dataAccess.getTransactionsByIDs([transaction.id as string]);
+				].dataAccess.getTransactionsByIDs([transaction.id]);
 				expect(processedTx.id).toEqual(transaction.id);
 			});
 		});
@@ -98,7 +101,7 @@ describe('Process block', () => {
 
 	describe('given a valid block with empty transaction', () => {
 		describe('when processing the block', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node);
@@ -107,40 +110,42 @@ describe('Process block', () => {
 
 			it('should add the block to the chain', async () => {
 				const processedBlock = await node['_chain'].dataAccess.getBlockByID(
-					newBlock.id,
+					newBlock.header.id,
 				);
-				expect(processedBlock.id).toEqual(newBlock.id);
+				expect(processedBlock.header.id).toEqual(newBlock.header.id);
 			});
 		});
 	});
 
 	describe('given a block with exsiting transactions', () => {
 		describe('when processing the block', () => {
-			let newBlock: BlockInstance;
-			let transaction: TransactionJSON;
+			let newBlock: Block;
+			let transaction: TransferTransaction;
 
 			beforeAll(async () => {
 				const genesisAccount = await node[
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
-				transaction = transfer({
-					nonce: genesisAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('0.002'),
-					recipientId: account.address,
-					amount: convertLSKToBeddows('1000'),
-					passphrase: genesis.passphrase,
-				}) as TransactionJSON;
-				newBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(transaction),
-				]);
+				transaction = new TransferTransaction({
+					nonce: genesisAccount.nonce,
+					senderPublicKey: genesis.publicKey,
+					fee: BigInt('200000'),
+					asset: {
+						recipientAddress: account.address,
+						amount: BigInt('100000000000'),
+						data: '',
+					},
+				});
+				transaction.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
+				newBlock = await nodeUtils.createBlock(node, [transaction]);
 				await node['_processor'].process(newBlock);
 			});
 
 			it('should fail to process the block', async () => {
-				const invalidBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(transaction),
-				]);
+				const invalidBlock = await nodeUtils.createBlock(node, [transaction]);
 				await expect(node['_processor'].process(invalidBlock)).rejects.toEqual([
 					expect.objectContaining({
 						message: expect.stringContaining(
@@ -154,16 +159,16 @@ describe('Process block', () => {
 
 	describe('given a block forged by invalid delegate', () => {
 		describe('when processing the block', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node, [], {
 					keypair: {
-						publicKey: Buffer.from(account.publicKey, 'hex'),
-						privateKey: Buffer.from(account.privateKey, 'hex'),
+						publicKey: account.publicKey,
+						privateKey: account.privateKey,
 					},
 				});
-				newBlock.generatorPublicKey = account.publicKey;
+				(newBlock.header as any).generatorPublicKey = account.publicKey;
 			});
 
 			it('should discard the block', async () => {
@@ -178,7 +183,7 @@ describe('Process block', () => {
 
 	describe('given a block which is already processed', () => {
 		describe('when processing the block', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node);
@@ -195,11 +200,11 @@ describe('Process block', () => {
 
 	describe('given a block which is not continuous to the current chain', () => {
 		describe('when processing the block', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node, [], {
-					lastBlock: { timestamp: 10000, height: 99 } as BlockInstance,
+					lastBlock: { header: { timestamp: 10000, height: 99 } } as Block,
 				});
 			});
 
@@ -208,52 +213,58 @@ describe('Process block', () => {
 					node['_processor'].process(newBlock),
 				).resolves.toBeUndefined();
 				await expect(
-					node['_chain'].dataAccess.isBlockPersisted(newBlock.id),
+					node['_chain'].dataAccess.isBlockPersisted(newBlock.header.id),
 				).resolves.toBeFalse();
 			});
 		});
 	});
 
 	describe('given an account is already a delegate', () => {
-		let newBlock: BlockInstance;
-		let transaction: TransactionJSON;
+		let newBlock: Block;
+		let transaction: DelegateTransaction;
 
 		beforeAll(async () => {
 			const targetAccount = await node['_chain'].dataAccess.getAccountByAddress(
 				account.address,
 			);
-			transaction = registerDelegate({
-				nonce: targetAccount.nonce.toString(),
-				networkIdentifier: node['_networkIdentifier'],
-				fee: convertLSKToBeddows('30'),
-				username: 'number1',
-				passphrase: account.passphrase,
-			}) as TransactionJSON;
-			newBlock = await nodeUtils.createBlock(node, [
-				node['_chain'].deserializeTransaction(transaction),
-			]);
+			transaction = new DelegateTransaction({
+				nonce: targetAccount.nonce,
+				fee: BigInt('3000000000'),
+				senderPublicKey: account.publicKey,
+				asset: {
+					username: 'number1',
+				},
+			});
+			transaction.sign(
+				Buffer.from(node['_networkIdentifier'], 'hex'),
+				account.passphrase,
+			);
+			newBlock = await nodeUtils.createBlock(node, [transaction]);
 			await node['_processor'].process(newBlock);
 		});
 
 		describe('when processing a block with a transaction which has delegate registration from the same account', () => {
-			let invalidBlock: BlockInstance;
-			let invalidTx: TransactionJSON;
+			let invalidBlock: Block;
+			let invalidTx: DelegateTransaction;
 			let originalAccount: Account;
 
 			beforeAll(async () => {
 				originalAccount = await node['_chain'].dataAccess.getAccountByAddress(
 					account.address,
 				);
-				invalidTx = registerDelegate({
-					nonce: originalAccount.nonce.toString(),
-					networkIdentifier: node['_networkIdentifier'],
-					fee: convertLSKToBeddows('50'),
-					username: 'number2',
-					passphrase: account.passphrase,
-				}) as TransactionJSON;
-				invalidBlock = await nodeUtils.createBlock(node, [
-					node['_chain'].deserializeTransaction(invalidTx),
-				]);
+				invalidTx = new DelegateTransaction({
+					nonce: originalAccount.nonce,
+					fee: BigInt('5000000000'),
+					senderPublicKey: account.publicKey,
+					asset: {
+						username: 'number1',
+					},
+				});
+				transaction.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					account.passphrase,
+				);
+				invalidBlock = await nodeUtils.createBlock(node, [invalidTx]);
 				try {
 					await node['_processor'].process(invalidBlock);
 				} catch (err) {
@@ -262,20 +273,18 @@ describe('Process block', () => {
 			});
 
 			it('should have the same account state as before', () => {
-				expect(originalAccount.username).toEqual('number1');
+				expect(originalAccount.asset.delegate.username).toEqual('number1');
 			});
 
 			it('should not save the block to the database', async () => {
 				await expect(
-					node['_chain'].dataAccess.isBlockPersisted(invalidBlock.id),
+					node['_chain'].dataAccess.isBlockPersisted(invalidBlock.header.id),
 				).resolves.toBeFalse();
 			});
 
 			it('should not save the transaction to the database', async () => {
 				await expect(
-					node['_chain'].dataAccess.isTransactionPersisted(
-						invalidTx.id as string,
-					),
+					node['_chain'].dataAccess.isTransactionPersisted(invalidTx.id),
 				).resolves.toBeFalse();
 			});
 		});

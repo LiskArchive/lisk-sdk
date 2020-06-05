@@ -14,9 +14,8 @@
 
 import { cloneDeep } from 'lodash';
 import { KVStore } from '@liskhq/lisk-db';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
-import { BlockInstance, BlockJSON, Chain } from '@liskhq/lisk-chain';
+import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 
@@ -27,11 +26,22 @@ import { computeBlockHeightsList } from '../../../../../../../src/application/no
 import { AbortError } from '../../../../../../../src/application/node/synchronizer/errors';
 import { Processor } from '../../../../../../../src/application/node/processor';
 import { constants } from '../../../../../../utils';
-import { newBlock } from '../block';
 import { registeredTransactions } from '../../../../../../utils/registered_transactions';
+import {
+	defaultNetworkIdentifier,
+	genesisBlock as getGenesisBlock,
+	createValidDefaultBlock,
+	encodeValidBlock,
+	encodeValidBlockHeader,
+	createFakeBlockHeader,
+} from '../../../../../../fixtures';
+import {
+	accountAssetSchema,
+	defaultAccountAsset,
+} from '../../../../../../../src/application/node/account';
 
-import * as genesisBlockDevnet from '../../../../../../fixtures/config/devnet/genesis_block.json';
 import { peersList } from './peers';
+import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from '../../../../../../../src/application/node/synchronizer/base_synchronizer';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -40,6 +50,8 @@ const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 jest.mock('@liskhq/lisk-db');
 
 describe('block_synchronization_mechanism', () => {
+	const genesisBlock = getGenesisBlock();
+
 	let bftModule: any;
 	let blockProcessorV2;
 	let chainModule: any;
@@ -50,11 +62,11 @@ describe('block_synchronization_mechanism', () => {
 	let channelMock: any;
 	let loggerMock: any;
 
-	let aBlock: BlockInstance;
-	let requestedBlocks: BlockInstance[];
-	let highestCommonBlock: BlockJSON;
-	let blockIdsList: string[];
-	let blockList: BlockInstance[];
+	let aBlock: Block;
+	let requestedBlocks: Block[];
+	let highestCommonBlock: BlockHeader;
+	let blockIdsList: Buffer[];
+	let blockList: Block[];
 	let dataAccessMock;
 
 	beforeEach(() => {
@@ -66,19 +78,20 @@ describe('block_synchronization_mechanism', () => {
 		};
 
 		channelMock = new ChannelMock();
-		const networkIdentifier = getNetworkIdentifier(
-			genesisBlockDevnet.transactionRoot,
-			genesisBlockDevnet.communityIdentifier,
-		);
 
 		const blockchainDB = new KVStore('blockchain.db');
 		const forgerDB = new KVStore('forger.db');
 
 		chainModule = new Chain({
-			networkIdentifier,
+			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
-			genesisBlock: genesisBlockDevnet as any,
+			genesisBlock,
 			registeredTransactions,
+			registeredBlocks: { 2: BlockProcessorV2.schema },
+			accountAsset: {
+				schema: accountAssetSchema,
+				default: defaultAccountAsset,
+			},
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
@@ -100,7 +113,14 @@ describe('block_synchronization_mechanism', () => {
 			getAccountsByPublicKey: jest.fn(),
 			getLastBlockHeader: jest.fn(),
 			resetBlockHeaderCache: jest.fn(),
-			deserialize: chainModule.dataAccess.deserialize.bind(
+			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
+			decodeBlockHeader: chainModule.dataAccess.decodeBlockHeader.bind(
+				chainModule.dataAccess,
+			),
+			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(
+				chainModule.dataAccess,
+			),
+			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(
 				chainModule.dataAccess,
 			),
 		};
@@ -154,24 +174,28 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	beforeEach(async () => {
-		aBlock = newBlock({ height: 10, maxHeightPrevoted: 0 });
+		aBlock = createValidDefaultBlock({
+			header: { height: 10, asset: { maxHeightPrevoted: 0 } },
+		});
 		// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 		// memory. The following mock fakes this to be true
 		when(chainModule.dataAccess.getBlockHeaderByHeight)
 			.calledWith(1)
-			.mockResolvedValue(genesisBlockDevnet as never);
+			.mockResolvedValue(genesisBlock.header as never);
 		when(chainModule.dataAccess.getAccountsByPublicKey)
 			.calledWith()
 			.mockResolvedValue([{ publicKey: 'aPublicKey' }] as never);
 		// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-		const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
+		const lastBlock = createValidDefaultBlock({
+			header: { height: genesisBlock.header.height + 1 },
+		});
 		when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
 			.calledWith(1, 2)
 			.mockResolvedValue([lastBlock] as never);
 		when(chainModule.dataAccess.getBlockHeaderByHeight)
 			.calledWith(1)
-			.mockResolvedValue(genesisBlockDevnet as never);
+			.mockResolvedValue(genesisBlock.header as never);
 		when(chainModule.dataAccess.getLastBlock)
 			.calledWith()
 			.mockResolvedValue(lastBlock as never);
@@ -181,8 +205,8 @@ describe('block_synchronization_mechanism', () => {
 			.mockResolvedValue(lastBlock as never);
 		// BFT loads blocks from storage and extracts their headers
 		when(chainModule.dataAccess.getBlockHeadersWithHeights)
-			.calledWith([genesisBlockDevnet.height, lastBlock.height])
-			.mockResolvedValue([genesisBlockDevnet, lastBlock] as never);
+			.calledWith([genesisBlock.header.height, lastBlock.header.height])
+			.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
 
 		jest.spyOn(
 			blockSynchronizationMechanism,
@@ -196,6 +220,7 @@ describe('block_synchronization_mechanism', () => {
 			blockSynchronizationMechanism,
 			'_requestAndApplyBlocksToCurrentChain' as never,
 		);
+		jest.spyOn(blockSynchronizationMechanism.events, 'emit');
 
 		when(channelMock.invoke)
 			.calledWith('app:getConnectedPeers')
@@ -208,18 +233,20 @@ describe('block_synchronization_mechanism', () => {
 			bftModule.finalizedHeight,
 			dposModule.delegatesPerRound,
 			10,
-			dposModule.rounds.calcRound(chainModule.lastBlock.height),
+			dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
 		);
 
-		blockList = [genesisBlockDevnet as any];
-		blockIdsList = [blockList[0].id];
+		blockList = [genesisBlock as any];
+		blockIdsList = [blockList[0].header.id];
 
-		highestCommonBlock = genesisBlockDevnet as any;
+		highestCommonBlock = genesisBlock.header;
 		requestedBlocks = [
 			...new Array(10)
 				.fill(0)
 				.map((_, index) =>
-					newBlock({ height: highestCommonBlock.height + 1 + index }),
+					createValidDefaultBlock({
+						header: { height: highestCommonBlock.height + 1 + index },
+					}),
 				),
 			aBlock,
 		];
@@ -231,11 +258,11 @@ describe('block_synchronization_mechanism', () => {
 					procedure: 'getHighestCommonBlock',
 					peerId,
 					data: {
-						ids: blockIdsList,
+						ids: blockIdsList.map(id => id.toString('base64')),
 					},
 				})
 				.mockResolvedValue({
-					data: highestCommonBlock,
+					data: encodeValidBlockHeader(highestCommonBlock).toString('base64'),
 				} as never);
 
 			when(channelMock.invokeFromNetwork)
@@ -244,29 +271,31 @@ describe('block_synchronization_mechanism', () => {
 					peerId,
 				})
 				.mockResolvedValue({
-					data: aBlock,
+					data: encodeValidBlock(aBlock).toString('base64'),
 				} as never);
 			when(channelMock.invokeFromNetwork)
 				.calledWith('requestFromPeer', {
 					procedure: 'getBlocksFromId',
 					peerId,
 					data: {
-						blockId: highestCommonBlock.id,
+						blockId: highestCommonBlock.id.toString('base64'),
 					},
 				})
 				.mockResolvedValue({
-					data: cloneDeep(requestedBlocks).reverse(),
+					data: cloneDeep(requestedBlocks)
+						.reverse()
+						.map(b => encodeValidBlock(b).toString('base64')),
 				} as never);
 		}
 		when(chainModule.dataAccess.getBlockHeadersWithHeights)
 			.calledWith(blockHeightsList)
-			.mockResolvedValueOnce(blockList as never);
+			.mockResolvedValueOnce(blockList.map(b => b.header) as never);
 
 		when(processorModule.deleteLastBlock)
 			.calledWith({
 				saveTempBlock: true,
 			})
-			.mockResolvedValueOnce(genesisBlockDevnet as never);
+			.mockResolvedValueOnce(genesisBlock as never);
 
 		// eslint-disable-next-line require-atomic-updates
 		chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
@@ -278,7 +307,7 @@ describe('block_synchronization_mechanism', () => {
 
 	describe('async run()', () => {
 		const expectApplyPenaltyAndRestartIsCalled = (
-			receivedBlock: BlockInstance,
+			receivedBlock: Block,
 			reason: string,
 		) => {
 			expect(loggerMock.info).toHaveBeenCalledWith(
@@ -295,15 +324,22 @@ describe('block_synchronization_mechanism', () => {
 					penalty: 100,
 				}),
 			);
-			expect(channelMock.publish).toHaveBeenCalledWith('app:chain:sync', {
-				block: receivedBlock,
-			});
+			expect(blockSynchronizationMechanism.events.emit).toHaveBeenCalledWith(
+				EVENT_SYNCHRONIZER_SYNC_REQUIRED,
+				{
+					block: receivedBlock,
+					peerId: expect.any(String),
+				},
+			);
 		};
 
-		const expectRestartIsCalled = (receivedBlock: BlockJSON) => {
-			expect(channelMock.publish).toHaveBeenCalledWith('app:chain:sync', {
-				block: receivedBlock,
-			});
+		const expectRestartIsCalled = (receivedBlock: Block) => {
+			expect(blockSynchronizationMechanism.events.emit).toHaveBeenCalledWith(
+				EVENT_SYNCHRONIZER_SYNC_REQUIRED,
+				{
+					block: receivedBlock,
+				},
+			);
 		};
 
 		afterEach(() => {
@@ -472,22 +508,26 @@ describe('block_synchronization_mechanism', () => {
 					blockSynchronizationMechanism['_requestAndApplyBlocksToCurrentChain'],
 				).toHaveBeenCalledWith(
 					requestedBlocks[requestedBlocks.length - 1],
-					chainModule.dataAccess.deserialize(highestCommonBlock),
+					highestCommonBlock,
 					expect.any(String),
 				);
 			});
 
 			it('should apply penalty and restart the mechanisms if the last block of the peer does not have preference over current tip', async () => {
-				const receivedBlock = newBlock({
-					height: 0,
-					maxHeightPrevoted: 0,
+				const receivedBlock = createValidDefaultBlock({
+					header: {
+						height: 0,
+						asset: { maxHeightPrevoted: 0 },
+					},
 				});
 
 				requestedBlocks = [
 					...new Array(10)
 						.fill(0)
 						.map((_, index) =>
-							newBlock({ height: highestCommonBlock.height + 1 + index }),
+							createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 + index },
+							}),
 						),
 					receivedBlock,
 				];
@@ -500,18 +540,20 @@ describe('block_synchronization_mechanism', () => {
 							peerId,
 						})
 						.mockResolvedValue({
-							data: receivedBlock,
+							data: encodeValidBlock(receivedBlock).toString('base64'),
 						} as never);
 					when(channelMock.invokeFromNetwork)
 						.calledWith('requestFromPeer', {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id,
+								blockId: highestCommonBlock.id.toString('base64'),
 							},
 						})
 						.mockResolvedValue({
-							data: cloneDeep(requestedBlocks).reverse(),
+							data: cloneDeep(requestedBlocks)
+								.reverse()
+								.map(b => encodeValidBlock(b).toString('base64')),
 						} as never);
 				}
 
@@ -562,7 +604,7 @@ describe('block_synchronization_mechanism', () => {
 
 				expectApplyPenaltyAndRestartIsCalled(
 					aBlock,
-					"Peer didn't provide its last block",
+					"Peer did not provide its last block",
 				);
 			});
 		});
@@ -571,22 +613,26 @@ describe('block_synchronization_mechanism', () => {
 			describe('request the highest common block', () => {
 				it('should give up requesting the last common block after 3 tries, and then ban the peer and restart the mechanism', async () => {
 					// Set last block to a high height
-					const lastBlock = newBlock({
-						height: genesisBlockDevnet.height + 2000,
+					const lastBlock = createValidDefaultBlock({
+						header: {
+							height: genesisBlock.header.height + 2000,
+						},
 					});
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
 						dposModule.delegatesPerRound,
 						10,
-						dposModule.rounds.calcRound(lastBlock.height),
+						dposModule.rounds.calcRound(lastBlock.header.height),
 					);
 
-					const receivedBlock = newBlock({
-						height: lastBlock.height + 304,
-						reward: chainModule.blockReward
-							.calculateReward(lastBlock.height + 304)
-							.toString(),
+					const receivedBlock = createValidDefaultBlock({
+						header: {
+							height: lastBlock.header.height + 304,
+							reward: chainModule.blockReward.calculateReward(
+								lastBlock.header.height + 304,
+							),
+						},
 					});
 
 					for (const expectedPeer of peersList.expectedSelection) {
@@ -596,7 +642,7 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getHighestCommonBlock',
 								peerId,
 								data: {
-									ids: blockIdsList,
+									ids: blockIdsList.map(id => id.toString('base64')),
 								},
 							})
 							.mockResolvedValue({ data: undefined } as never);
@@ -607,24 +653,26 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 							})
 							.mockResolvedValue({
-								data: receivedBlock,
+								data: encodeValidBlock(receivedBlock).toString('base64'),
 							} as never);
 						when(channelMock.invokeFromNetwork)
 							.calledWith('requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id,
+									blockId: highestCommonBlock.id.toString('base64'),
 								},
 							})
 							.mockResolvedValue({
-								data: cloneDeep(requestedBlocks).reverse(),
+								data: cloneDeep(requestedBlocks)
+									.reverse()
+									.map(b => encodeValidBlock(b).toString('base64')),
 							} as never);
 					}
 
 					when(chainModule.dataAccess.getBlockHeadersWithHeights)
 						.calledWith(blockHeightsList)
-						.mockResolvedValue(blockList as never);
+						.mockResolvedValue(blockList.map(b => b.header) as never);
 
 					when(chainModule.dataAccess.getLastBlock)
 						.calledWith()
@@ -670,20 +718,22 @@ describe('block_synchronization_mechanism', () => {
 						bftModule.finalizedHeight,
 						dposModule.delegatesPerRound,
 						10,
-						dposModule.rounds.calcRound(chainModule.lastBlock.height),
+						dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
 					);
 
-					blockList = [genesisBlockDevnet] as any;
-					blockIdsList = [blockList[0].id];
+					blockList = [genesisBlock];
+					blockIdsList = [blockList[0].header.id];
 
-					highestCommonBlock = newBlock({
+					highestCommonBlock = createFakeBlockHeader({
 						height: bftModule.finalizedHeight - 1,
 					}) as any; // height: 0
 					requestedBlocks = [
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
-								newBlock({ height: highestCommonBlock.height + 1 + index }),
+								createValidDefaultBlock({
+									header: { height: highestCommonBlock.height + 1 + index },
+								}),
 							),
 						aBlock,
 					];
@@ -695,11 +745,13 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getHighestCommonBlock',
 								peerId,
 								data: {
-									ids: blockIdsList,
+									ids: blockIdsList.map(id => id.toString('base64')),
 								},
 							})
 							.mockResolvedValue({
-								data: highestCommonBlock,
+								data: encodeValidBlockHeader(highestCommonBlock).toString(
+									'base64',
+								),
 							} as never);
 
 						when(channelMock.invokeFromNetwork)
@@ -708,22 +760,26 @@ describe('block_synchronization_mechanism', () => {
 								peerId,
 							})
 							.mockResolvedValue({
-								data: aBlock,
+								data: encodeValidBlock(aBlock).toString('base64'),
 							} as never);
 						when(channelMock.invokeFromNetwork)
 							.calledWith('requestFromPeer', {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id,
+									blockId: highestCommonBlock.id.toString('base64'),
 								},
 							})
-							.mockResolvedValue({ data: requestedBlocks } as never);
+							.mockResolvedValue({
+								data: requestedBlocks.map(b =>
+									encodeValidBlock(b).toString('base64'),
+								),
+							} as never);
 					}
 
 					when(chainModule.dataAccess.getBlockHeadersWithHeights)
 						.calledWith(blockHeightsList)
-						.mockResolvedValueOnce(blockList as never);
+						.mockResolvedValueOnce(blockList.map(b => b.header) as never);
 
 					chainModule._lastBlock = requestedBlocks[requestedBlocks.length - 1];
 
@@ -766,7 +822,7 @@ describe('block_synchronization_mechanism', () => {
 						],
 					).toHaveBeenCalledWith(
 						aBlock,
-						chainModule.dataAccess.deserialize(highestCommonBlock),
+						highestCommonBlock,
 						expect.any(String),
 					);
 				});
@@ -780,12 +836,18 @@ describe('block_synchronization_mechanism', () => {
 					...new Array(8)
 						.fill(0)
 						.map((_, index) =>
-							newBlock({ height: highestCommonBlock.height + 1 + index }),
+							createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 + index },
+							}),
 						),
 					aBlock,
 					...new Array(10) // Extra blocks. They will be truncated
 						.fill(0)
-						.map((_, index) => newBlock({ height: aBlock.height + 1 + index })),
+						.map((_, index) =>
+							createValidDefaultBlock({
+								header: { height: aBlock.header.height + 1 + index },
+							}),
+						),
 				];
 
 				for (const expectedPeer of peersList.expectedSelection) {
@@ -795,12 +857,14 @@ describe('block_synchronization_mechanism', () => {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id,
+								blockId: highestCommonBlock.id.toString('base64'),
 							},
 						})
 						// getBlocksFromId returns in height desc order
 						.mockResolvedValue({
-							data: cloneDeep(requestedBlocks).reverse(),
+							data: cloneDeep(requestedBlocks)
+								.reverse()
+								.map(b => encodeValidBlock(b).toString('base64')),
 						} as never);
 				}
 
@@ -812,22 +876,24 @@ describe('block_synchronization_mechanism', () => {
 						procedure: 'getBlocksFromId',
 						peerId: expect.any(String),
 						data: {
-							blockId: highestCommonBlock.id,
+							blockId: highestCommonBlock.id.toString('base64'),
 						},
 					},
 				);
 
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					expect.objectContaining({
-						fromId: requestedBlocks[0].id,
-						toId: aBlock.id,
+						fromId: requestedBlocks[0].header.id,
+						toId: aBlock.header.id,
 					}),
 					'Applying obtained blocks from peer',
 				);
 
 				const blocksToApply = cloneDeep(requestedBlocks);
 				const blocksToNotApply = blocksToApply.splice(
-					requestedBlocks.findIndex(block => block.id === aBlock.id) + 1,
+					requestedBlocks.findIndex(block =>
+						block.header.id.equals(aBlock.header.id),
+					) + 1,
 				);
 
 				expect(processorModule.processValidated).toHaveBeenCalledTimes(
@@ -835,13 +901,13 @@ describe('block_synchronization_mechanism', () => {
 				);
 				for (const requestedBlock of blocksToApply) {
 					expect(processorModule.processValidated).toHaveBeenCalledWith(
-						await processorModule.deserialize(requestedBlock),
+						requestedBlock,
 					);
 				}
 
 				for (const requestedBlock of blocksToNotApply) {
 					expect(processorModule.processValidated).not.toHaveBeenCalledWith(
-						await processorModule.deserialize(requestedBlock),
+						requestedBlock,
 					);
 				}
 			});
@@ -854,7 +920,7 @@ describe('block_synchronization_mechanism', () => {
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id,
+								blockId: highestCommonBlock.id.toString('base64'),
 							},
 						})
 						.mockResolvedValue({ data: undefined } as never);
@@ -871,7 +937,7 @@ describe('block_synchronization_mechanism', () => {
 						procedure: 'getBlocksFromId',
 						peerId: expect.any(String),
 						data: {
-							blockId: highestCommonBlock.id,
+							blockId: highestCommonBlock.id.toString('base64'),
 						},
 					},
 				);
@@ -889,36 +955,48 @@ describe('block_synchronization_mechanism', () => {
 
 			describe('when applying a block fails', () => {
 				it('should restore blocks from temp table, ban peer and restart mechanism if new tip of the chain has no preference over previous tip', async () => {
-					const previousTip = newBlock({
-						height: genesisBlockDevnet.height + 140, // So it has preference over new tip (height <)
-						maxHeightPrevoted: 0,
+					const previousTip = createValidDefaultBlock({
+						header: {
+							height: genesisBlock.header.height + 140, // So it has preference over new tip (height <)
+							asset: { maxHeightPrevoted: 0 },
+						},
 					});
 
 					requestedBlocks = [
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
-								newBlock({ height: highestCommonBlock.height + 1 + index }),
+								createValidDefaultBlock({
+									header: { height: highestCommonBlock.height + 1 + index },
+								}),
 							),
 						aBlock,
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
-								newBlock({ height: aBlock.height + 1 + index }),
+								createValidDefaultBlock({
+									header: { height: aBlock.header.height + 1 + index },
+								}),
 							),
 					];
 
 					const tempTableBlocks = [
 						previousTip,
-						...new Array(previousTip.height - highestCommonBlock.height - 1)
+						...new Array(
+							previousTip.header.height - highestCommonBlock.height - 1,
+						)
 							.fill(0)
 							.map((_, index) =>
-								newBlock({
-									height: previousTip.height - index - 1,
+								createValidDefaultBlock({
+									header: {
+										height: previousTip.header.height - index - 1,
+									},
 								}),
 							),
 						{
-							...newBlock({ height: highestCommonBlock.height + 1 }),
+							...createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 },
+							}),
 						},
 					];
 
@@ -929,10 +1007,14 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id,
+									blockId: highestCommonBlock.id.toString('base64'),
 								},
 							})
-							.mockResolvedValue({ data: requestedBlocks } as never);
+							.mockResolvedValue({
+								data: requestedBlocks.map(b =>
+									encodeValidBlock(b).toString('base64'),
+								),
+							} as never);
 					}
 
 					chainModule.dataAccess.getTempBlocks
@@ -943,15 +1025,33 @@ describe('block_synchronization_mechanism', () => {
 						.calledWith({
 							saveTempBlock: false,
 						})
-						.mockResolvedValueOnce(newBlock({ height: 9 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 8 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 7 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 6 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 5 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 4 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 3 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 2 }) as never)
-						.mockResolvedValueOnce(newBlock({ height: 1 }) as never);
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 9 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 8 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 7 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 6 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 5 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 4 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 3 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 2 } }) as never,
+						)
+						.mockResolvedValueOnce(
+							createValidDefaultBlock({ header: { height: 1 } }) as never,
+						);
 
 					const processingError = new Error('Error processing blocks');
 					processorModule.processValidated.mockRejectedValueOnce(
@@ -975,7 +1075,7 @@ describe('block_synchronization_mechanism', () => {
 
 					expect(loggerMock.debug).toHaveBeenCalledWith(
 						{
-							currentTip: chainModule.lastBlock.id,
+							currentTip: chainModule.lastBlock.header.id,
 							previousTip: expect.anything(),
 						},
 						'Previous tip of the chain has preference over current tip. Restoring chain from temp table',
@@ -994,7 +1094,7 @@ describe('block_synchronization_mechanism', () => {
 
 					for (const tempTableBlock of tempTableBlocks) {
 						expect(processorModule.processValidated).toHaveBeenCalledWith(
-							await processorModule.deserialize(tempTableBlock),
+							tempTableBlock,
 							{
 								removeFromTempTable: true,
 							},
@@ -1012,22 +1112,30 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				it('should clean up the temporary table and restart the mechanism if the new tip has preference over the last tip', async () => {
-					const previousTip = newBlock({
-						height: aBlock.height - 1, // So it doesn't have preference over new tip (height >)
-						maxHeightPrevoted: aBlock.maxHeightPrevoted,
+					const previousTip = createValidDefaultBlock({
+						header: {
+							height: aBlock.header.height - 1, // So it doesn't have preference over new tip (height >)
+							asset: {
+								maxHeightPrevoted: aBlock.header.asset.maxHeightPrevoted,
+							},
+						},
 					});
 
 					requestedBlocks = [
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
-								newBlock({ height: highestCommonBlock.height + 1 + index }),
+								createValidDefaultBlock({
+									header: { height: highestCommonBlock.height + 1 + index },
+								}),
 							),
 						aBlock,
 						...new Array(10)
 							.fill(0)
 							.map((_, index) =>
-								newBlock({ height: aBlock.height + 1 + index }),
+								createValidDefaultBlock({
+									header: { height: aBlock.header.height + 1 + index },
+								}),
 							),
 					];
 
@@ -1074,8 +1182,8 @@ describe('block_synchronization_mechanism', () => {
 					expect(loggerMock.debug).toHaveBeenNthCalledWith(
 						14,
 						{
-							currentTip: chainModule.lastBlock.id,
-							previousTip: previousTip.id,
+							currentTip: chainModule.lastBlock.header.id,
+							previousTip: previousTip.header.id,
 						},
 						'Current tip of the chain has preference over previous tip',
 					);
@@ -1099,7 +1207,7 @@ describe('block_synchronization_mechanism', () => {
 		it('should return true if the difference in block slots between the current block slot and the finalized block slot of the system is bigger than delegatesPerRound*3', async () => {
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(bftModule.finalizedHeight)
-				.mockResolvedValue(genesisBlockDevnet as never);
+				.mockResolvedValue(genesisBlock.header as never);
 			const isValid = await blockSynchronizationMechanism.isValidFor();
 
 			expect(isValid).toBeTruthy();
@@ -1109,7 +1217,7 @@ describe('block_synchronization_mechanism', () => {
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(bftModule.finalizedHeight)
 				.mockResolvedValue({
-					...genesisBlockDevnet,
+					...genesisBlock.header,
 					timestamp: Date.now(),
 				} as never);
 			const isValid = await blockSynchronizationMechanism.isValidFor();

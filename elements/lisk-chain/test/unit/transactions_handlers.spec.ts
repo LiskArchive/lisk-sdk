@@ -18,12 +18,12 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 import * as transactionHandlers from '../../src/transactions/transactions_handlers';
-import * as randomUtils from '../utils/random';
+import { getTransferTransaction } from '../utils/transaction';
 import { Context } from '../../src/types';
 
 describe('transactions', () => {
-	const trs1 = randomUtils.transferInstance() as any;
-	const trs2 = randomUtils.transferInstance() as any;
+	const trs1 = getTransferTransaction() as any;
+	const trs2 = getTransferTransaction() as any;
 
 	const dummyState: Context = {
 		blockVersion: 1,
@@ -262,7 +262,7 @@ describe('transactions', () => {
 			expect(transactionResponse?.errors).toHaveLength(1);
 			expect(transactionResponse?.errors[0].message).toEqual(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Transaction is already confirmed: ${trs1.id}`,
+				`Transaction is already confirmed: ${trs1.id.toString('hex')}`,
 			);
 		});
 	});

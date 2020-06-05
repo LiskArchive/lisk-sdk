@@ -21,7 +21,9 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
-describe('transaction:create:transfer', () => {
+// This needs to be re-implemented using base64 with https://github.com/LiskHQ/lisk-core/issues/254
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('transaction:create:transfer', () => {
 	const defaultAmount = '1';
 	const defaultAddress = '123L';
 	const defaultInputs = '123';

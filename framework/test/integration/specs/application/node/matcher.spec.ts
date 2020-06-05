@@ -14,7 +14,7 @@
 
 import { BaseTransaction, TransactionError } from '@liskhq/lisk-transactions';
 import { KVStore } from '@liskhq/lisk-db';
-import { BlockInstance } from '@liskhq/lisk-chain';
+import { Block } from '@liskhq/lisk-chain';
 import { nodeUtils } from '../../../../utils';
 import { genesis } from '../../../../fixtures';
 import { createDB, removeDB } from '../../../../utils/kv_store';
@@ -24,6 +24,16 @@ import { Node } from '../../../../../src/application/node';
  * Implementation of the Custom Transaction enclosed in a class
  */
 class CustomTransationClass extends BaseTransaction {
+	public static ASSET_SCHEMA = {
+		$id: 'basic-sample',
+		type: 'object',
+		properties: {
+			foo: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+	};
 	public asset: any;
 
 	public constructor(input: any) {
@@ -68,9 +78,9 @@ class CustomTransationClass extends BaseTransaction {
 
 interface CreateRawTransactionInput {
 	passphrase: string;
-	nonce: string;
-	networkIdentifier: string;
-	senderPublicKey: string;
+	nonce: bigint;
+	networkIdentifier: Buffer;
+	senderPublicKey: Buffer;
 }
 
 const createRawCustomTransaction = ({
@@ -86,11 +96,11 @@ const createRawCustomTransaction = ({
 		asset: {
 			data: 'raw data',
 		},
-		fee: (10000000).toString(),
+		fee: BigInt(10000000),
 	});
 	aCustomTransation.sign(networkIdentifier, passphrase);
 
-	return aCustomTransation.toJSON();
+	return aCustomTransation;
 };
 
 describe('Matcher', () => {
@@ -119,12 +129,14 @@ describe('Matcher', () => {
 				const account = nodeUtils.createAccount();
 				const tx = createRawCustomTransaction({
 					passphrase: account.passphrase,
-					networkIdentifier: node['_networkIdentifier'],
+					networkIdentifier: Buffer.from(node['_networkIdentifier'], 'hex'),
 					senderPublicKey: account.publicKey,
-					nonce: '0',
+					nonce: BigInt(0),
 				});
 				await expect(
-					node['_transport'].handleEventPostTransaction({ transaction: tx }),
+					node['_transport'].handleEventPostTransaction({
+						transaction: tx.getBytes().toString('base64'),
+					}),
 				).resolves.toEqual(
 					expect.objectContaining({
 						message: expect.stringContaining('Transaction was rejected'),
@@ -136,21 +148,24 @@ describe('Matcher', () => {
 
 	describe('given a block containing disallowed transaction', () => {
 		describe('when the block is processed', () => {
-			let newBlock: BlockInstance;
+			let newBlock: Block;
 			beforeAll(async () => {
 				const genesisAccount = await node[
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
 				const aCustomTransation = new CustomTransationClass({
 					senderPublicKey: genesis.publicKey,
-					nonce: genesisAccount.nonce.toString(),
+					nonce: genesisAccount.nonce,
 					type: 7,
 					asset: {
 						data: 'raw data',
 					},
-					fee: (10000000).toString(),
+					fee: BigInt(10000000),
 				});
-				aCustomTransation.sign(node['_networkIdentifier'], genesis.passphrase);
+				aCustomTransation.sign(
+					Buffer.from(node['_networkIdentifier'], 'hex'),
+					genesis.passphrase,
+				);
 				newBlock = await nodeUtils.createBlock(node, [aCustomTransation]);
 			});
 

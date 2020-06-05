@@ -23,7 +23,7 @@ const insertNTransactions = (
 	const addedTransactions = [];
 	for (let i = nonceStart; i < nonceStart + n; i += 1) {
 		const tx = {
-			id: i.toString(),
+			id: Buffer.from(i.toString()),
 			nonce: BigInt(i),
 			fee: BigInt(i * 1000),
 		} as Transaction;
@@ -34,7 +34,10 @@ const insertNTransactions = (
 };
 
 describe('TransactionList class', () => {
-	const defaultAddress = '123L';
+	const defaultAddress = Buffer.from(
+		'd04699e57c4a3846c988f3c15306796f8eae5c1c',
+		'hex',
+	);
 
 	let transactionList: TransactionList;
 
@@ -81,7 +84,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 5);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from(Buffer.from('new-id')),
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
@@ -90,7 +93,9 @@ describe('TransactionList class', () => {
 					expect(removedID).toEqual(addedTxs[0].id);
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 
 				it('should demote all subsequent transactions', () => {
@@ -99,7 +104,7 @@ describe('TransactionList class', () => {
 					transactionList.promote(addedTxs);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
@@ -110,7 +115,9 @@ describe('TransactionList class', () => {
 					expect(transactionList.size).toEqual(5);
 					expect(transactionList.getProcessable()).toHaveLength(0);
 					expect(transactionList.getUnprocessable()).toHaveLength(5);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 			});
 
@@ -120,7 +127,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 5);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(5),
 					};
 					// Act
@@ -140,7 +147,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 5);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee - BigInt(100),
 					};
 					// Act
@@ -163,7 +170,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 5);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee,
 					};
 					// Act
@@ -181,7 +188,7 @@ describe('TransactionList class', () => {
 				it('should add to the list', () => {
 					insertNTransactions(transactionList, 5);
 					const adding = {
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: BigInt(500000000),
 						nonce: BigInt(6),
 					} as Transaction;
@@ -190,7 +197,9 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(6);
-					expect(transactionList.get(BigInt(6))?.id).toEqual('new-id');
+					expect(transactionList.get(BigInt(6))?.id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 			});
 
@@ -198,7 +207,7 @@ describe('TransactionList class', () => {
 				it('should add to the list and mark as processable', () => {
 					insertNTransactions(transactionList, 5, 1);
 					const adding = {
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: BigInt(500000000),
 						nonce: BigInt(0),
 					} as Transaction;
@@ -207,8 +216,12 @@ describe('TransactionList class', () => {
 					// Assert
 					expect(added).toEqual(true);
 					expect(transactionList.size).toEqual(6);
-					expect(transactionList.get(BigInt(0))?.id).toEqual('new-id');
-					expect(transactionList.getProcessable()[0].id).toEqual('new-id');
+					expect(transactionList.get(BigInt(0))?.id).toEqual(
+						Buffer.from('new-id'),
+					);
+					expect(transactionList.getProcessable()[0].id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 			});
 		});
@@ -220,7 +233,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
@@ -229,7 +242,9 @@ describe('TransactionList class', () => {
 					expect(added).toEqual(true);
 					expect(removedID).toEqual(addedTxs[0].id);
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 
 				it('should demote all subsequent transactions', () => {
@@ -238,7 +253,7 @@ describe('TransactionList class', () => {
 					transactionList.promote(addedTxs);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(500000000),
 					};
 					// Act
@@ -249,7 +264,9 @@ describe('TransactionList class', () => {
 					expect(transactionList.size).toEqual(10);
 					expect(transactionList.getProcessable()).toHaveLength(0);
 					expect(transactionList.getUnprocessable()).toHaveLength(10);
-					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual('new-id');
+					expect(transactionList.get(addedTxs[0].nonce)?.id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 			});
 
@@ -259,7 +276,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(11),
 					};
 					// Act
@@ -279,7 +296,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(5),
 					};
 					// Act
@@ -302,7 +319,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee - BigInt(100),
 					};
 					// Act
@@ -322,7 +339,7 @@ describe('TransactionList class', () => {
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const replacing = {
 						...addedTxs[0],
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee,
 					};
 					// Act
@@ -341,7 +358,7 @@ describe('TransactionList class', () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10);
 					const adding = {
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(500000000),
 						nonce: BigInt(100),
 					} as Transaction;
@@ -361,7 +378,7 @@ describe('TransactionList class', () => {
 					// Arrange
 					const addedTxs = insertNTransactions(transactionList, 10, 1);
 					const adding = {
-						id: 'new-id',
+						id: Buffer.from('new-id'),
 						fee: addedTxs[0].fee + BigInt(500000000),
 						nonce: BigInt(0),
 					} as Transaction;
@@ -369,9 +386,11 @@ describe('TransactionList class', () => {
 					const { added, removedID } = transactionList.add(adding);
 					// Assert
 					expect(added).toEqual(true);
-					expect(removedID).toEqual('10');
+					expect(removedID).toEqual(Buffer.from('10'));
 					expect(transactionList.size).toEqual(10);
-					expect(transactionList.get(BigInt(0))?.id).toEqual('new-id');
+					expect(transactionList.get(BigInt(0))?.id).toEqual(
+						Buffer.from('new-id'),
+					);
 				});
 			});
 		});
@@ -398,7 +417,7 @@ describe('TransactionList class', () => {
 				// Act
 				const removed = transactionList.remove(BigInt(5));
 				// Assert
-				expect(removed).toEqual('5');
+				expect(removed).toEqual(Buffer.from('5'));
 				expect(transactionList.size).toEqual(9);
 				expect(transactionList.getProcessable()).toHaveLength(5);
 				expect(transactionList.getUnprocessable()).toHaveLength(4);
@@ -414,7 +433,7 @@ describe('TransactionList class', () => {
 				// Act
 				transactionList.promote([
 					{
-						id: '11',
+						id: Buffer.from('11'),
 						nonce: BigInt(11),
 						fee: BigInt(1000000),
 					} as Transaction,

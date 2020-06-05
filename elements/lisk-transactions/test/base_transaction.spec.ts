@@ -13,160 +13,100 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../src/constants';
+import { hash } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import { BaseTransaction } from '../src/base_transaction';
-import {
-	TransactionJSON,
-	Status,
-	TransactionError,
-	TransferTransaction,
-} from '../src';
-import {
-	addTransactionFields,
-	TestTransaction,
-	TestTransactionBasicImpl,
-} from './helpers';
-import * as transferFixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
-import * as secondSignatureReg from '../fixtures/transaction_multisignature_registration/multisignature_registration_2nd_sig_equivalent_transaction.json';
+import { Status, TransactionError, TransferTransaction } from '../src';
+import { TestTransaction, TestTransactionBasicImpl } from './helpers';
+import * as fixture from '../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
+import * as multiSigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
-import { serializeSignatures } from '../src/utils';
+import { BaseTransactionInput, Account } from '../src/types';
+import { TransferAsset } from '../src/8_transfer_transaction';
+import {
+	MultiSignatureAsset,
+	MultisignatureTransaction,
+} from '../src/12_multisignature_transaction';
 
-const getAccount = (account: object): any => {
-	const object = {
-		balance: 0,
-		producedBlocks: 0,
-		missedBlocks: 0,
-		...account,
-		keys: {
-			mandatoryKeys: [],
-			optionalKeys: [],
-			numberOfSignatures: 0,
-		},
-	};
+describe('Base transaction class', () => {
+	const validTransferTransactionScenario = fixture.testCases[0];
+	const validMultiSigTransactionScenario = multiSigFixture.testCases[4];
 
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	(object as any).nonce = BigInt((account as any).nonce || 0);
-
-	return object;
-};
-
-// TODO: Update after updating protocol-specs
-describe.skip('Base transaction class', () => {
-	const defaultTransaction = addTransactionFields(
-		transferFixture.testCases[0].output,
+	const networkIdentifier = Buffer.from(
+		validTransferTransactionScenario.input.networkIdentifier,
+		'base64',
 	);
 
-	const defaultSenderAccount = getAccount({
-		...transferFixture.testCases[0].input.account,
-		balance: BigInt('1000000000000'),
-	});
-
-	const networkIdentifier =
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+	let decodedTransferTransaction: BaseTransactionInput<TransferAsset>;
+	let decodedMultisigTransaction: BaseTransactionInput<MultiSignatureAsset>;
 
 	let validTestTransaction: BaseTransaction;
-	let transactionWithDefaultValues: BaseTransaction;
 	let transactionWithBasicImpl: BaseTransaction;
 	let store: StateStoreMock;
+	let defaultSenderAccount: Account;
 
 	beforeEach(() => {
-		validTestTransaction = new TransferTransaction({
-			...defaultTransaction,
+		{
+			const buffer = Buffer.from(
+				validTransferTransactionScenario.output.transaction,
+				'base64',
+			);
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<TransferAsset>(
+				TransferTransaction.ASSET_SCHEMA as any,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			decodedTransferTransaction = {
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			};
+		}
+		{
+			const buffer = Buffer.from(
+				validMultiSigTransactionScenario.output.transaction,
+				'base64',
+			);
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<MultiSignatureAsset>(
+				MultisignatureTransaction.ASSET_SCHEMA as any,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			decodedMultisigTransaction = {
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			};
+		}
+		defaultSenderAccount = defaultAccount({
+			address: Buffer.from(
+				validTransferTransactionScenario.input.account.address,
+				'base64',
+			),
+			nonce: decodedTransferTransaction.nonce,
+			balance: BigInt('1000000000000'),
 		});
-		transactionWithDefaultValues = new TransferTransaction({});
+		validTestTransaction = new TransferTransaction({
+			...decodedTransferTransaction,
+		});
 		transactionWithBasicImpl = new TestTransactionBasicImpl({
-			nonce: '1',
-			fee: '1000000',
+			nonce: BigInt('1'),
+			fee: BigInt('1000000'),
+			senderPublicKey: Buffer.from(
+				'ea1701c06e5de9eaaef52bed157e97d4f02331ab281badc1b0aaa4d50f31c574',
+				'hex',
+			),
+			asset: {},
 		});
 		store = new StateStoreMock([defaultSenderAccount]);
-	});
-
-	describe('#constructor', () => {
-		it('should create a new instance of BaseTransaction', () => {
-			expect(validTestTransaction).toBeInstanceOf(BaseTransaction);
-		});
-
-		it('should set default values', () => {
-			expect(transactionWithDefaultValues.type).toEqual(8);
-			expect(transactionWithDefaultValues.confirmations).toBeUndefined();
-			expect(transactionWithDefaultValues.blockId).toBeUndefined();
-			expect(transactionWithDefaultValues.height).toBeUndefined();
-			expect(transactionWithDefaultValues.receivedAt).toBeUndefined();
-		});
-
-		it('should have fee of type bigint', () => {
-			expect(typeof validTestTransaction.fee).toBe('bigint');
-		});
-
-		it('should have nonce of type bigint', () => {
-			expect(typeof validTestTransaction.nonce).toBe('bigint');
-		});
-
-		it('should have id string', () => {
-			expect(validTestTransaction.id).toBeString();
-		});
-
-		it('should have senderPublicKey string', () => {
-			expect(validTestTransaction.senderPublicKey).toBeString();
-		});
-
-		it('should have signature string', () => {
-			expect(validTestTransaction.senderPublicKey).toBeString();
-		});
-
-		it('should have type number', () => {
-			expect(validTestTransaction.type).toBeNumber();
-		});
-
-		it('should have receivedAt Date', () => {
-			expect(validTestTransaction.receivedAt).toBeInstanceOf(Date);
-		});
-
-		it('should not throw with undefined input', () => {
-			expect(() => new TestTransaction(undefined as any)).not.toThrow();
-		});
-
-		it('should not throw with null input', () => {
-			expect(() => new TestTransaction(null as any)).not.toThrow();
-		});
-
-		it('should not throw with string input', () => {
-			expect(() => new TestTransaction('abc' as any)).not.toThrow();
-		});
-
-		it('should not throw with number input', () => {
-			expect(() => new TestTransaction(123 as any)).not.toThrow();
-		});
-
-		it('should not throw with incorrectly typed transaction properties', () => {
-			const invalidTransaction = {
-				...defaultTransaction,
-				amount: 0,
-				fee: 10,
-			};
-			expect(
-				() =>
-					new TestTransaction(
-						(invalidTransaction as unknown) as TransactionJSON,
-					),
-			).not.toThrow();
-		});
-
-		it('should set fee to zero if not provided in raw transaction', () => {
-			const noFeeTransaction = new TestTransaction({
-				...defaultTransaction,
-				fee: 0,
-			});
-			expect(noFeeTransaction.fee).toEqual(BigInt('0'));
-		});
-
-		it('should set fee to zero if provided fee is invalid format', () => {
-			const noFeeTransaction = new TestTransaction({
-				...defaultTransaction,
-				fee: 'abc',
-			});
-			expect(noFeeTransaction.fee).toEqual(BigInt('0'));
-		});
 	});
 
 	describe('#minFee', () => {
@@ -180,159 +120,55 @@ describe.skip('Base transaction class', () => {
 		});
 	});
 
-	describe('#assetToJSON', () => {
-		it('should return an object of type transaction asset', () => {
-			expect(validTestTransaction.assetToJSON()).toBeObject();
-		});
-	});
-
-	describe('#toJSON', () => {
-		it('should call assetToJSON', () => {
-			const assetToJSONStub = jest
-				.spyOn(validTestTransaction, 'assetToJSON')
-				.mockReturnValue({});
-			validTestTransaction.toJSON();
-
-			expect(assetToJSONStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return transaction json', () => {
-			const transactionJSON = validTestTransaction.toJSON();
-
-			expect(transactionJSON).toEqual({
-				...defaultTransaction,
-				senderId: '2129300327344985743L',
+	describe('#getSigningBytes', () => {
+		it('should call codec with base transaction schema with empty signatures', () => {
+			jest.spyOn(codec, 'encode');
+			validTestTransaction['getSigningBytes']();
+			expect(codec.encode).toHaveBeenCalledWith(BaseTransaction.BASE_SCHEMA, {
+				...validTestTransaction,
+				asset: expect.anything(),
+				signatures: [],
 			});
-		});
-	});
-
-	describe('#assetToBytes', () => {
-		it('should return a buffer', () => {
-			expect(
-				(validTestTransaction as TestTransaction).assetToBytes(),
-			).toBeInstanceOf(Buffer);
-		});
-	});
-
-	describe('#stringify', () => {
-		it('should return the transaction stringified', () => {
-			expect(typeof (validTestTransaction as TestTransaction).stringify()).toBe(
-				'string',
-			);
-		});
-	});
-
-	describe('#getBasicBytes', () => {
-		it('should call cryptography hexToBuffer', () => {
-			const cryptographyHexToBufferStub = jest
-				.spyOn(cryptography, 'hexToBuffer')
-				.mockReturnValue(
-					Buffer.from(validTestTransaction.senderPublicKey, 'hex'),
-				);
-
-			(validTestTransaction as any).getBasicBytes();
-			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
-				defaultTransaction.senderPublicKey,
-			);
 		});
 
 		it('should call assetToBytes for transaction with asset', () => {
-			const transactionWithAsset = {
-				...defaultTransaction,
-				asset: { amount: '1000', data: 'data', recipientId: '1L' },
-			};
-			const testTransactionWithAsset = new TestTransaction(
-				transactionWithAsset,
+			jest.spyOn(codec, 'encode');
+			validTestTransaction['getSigningBytes']();
+			expect(codec.encode).toHaveBeenCalledWith(
+				TransferTransaction.ASSET_SCHEMA,
+				validTestTransaction.asset,
 			);
-			const assetToBytesStub = jest.spyOn(
-				testTransactionWithAsset,
-				'assetToBytes',
-			);
-			(testTransactionWithAsset as any).getBasicBytes();
-
-			expect(assetToBytesStub).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return a buffer with correct bytes', () => {
-			const expectedBuffer = Buffer.concat([
-				Buffer.alloc(BYTESIZES.TYPE, validTestTransaction.type),
-				cryptography.intToBuffer(
-					validTestTransaction.nonce.toString(),
-					BYTESIZES.NONCE,
-				),
-				cryptography.hexToBuffer(validTestTransaction.senderPublicKey),
-				cryptography.intToBuffer(
-					validTestTransaction.fee.toString(),
-					BYTESIZES.FEE,
-				),
-				(validTestTransaction as any).assetToBytes(),
-			]);
-			expect((validTestTransaction as any).getBasicBytes()).toEqual(
-				expectedBuffer,
-			);
+			expect(validTestTransaction['getSigningBytes']).toMatchSnapshot();
 		});
 	});
 
 	describe('#getBytes', () => {
-		it('should call getBasicBytes', () => {
-			const getBasicBytesStub = jest
-				.spyOn(validTestTransaction as any, 'getBasicBytes')
-				.mockReturnValue(
-					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
-						'hex',
-					),
-				);
-			validTestTransaction.getBytes();
-
-			expect(getBasicBytesStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should call cryptography hexToBuffer for transaction with signature', () => {
-			const cryptographyHexToBufferStub = jest
-				.spyOn(cryptography, 'hexToBuffer')
-				.mockReturnValue(
-					Buffer.from(
-						'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
-						'hex',
-					),
-				);
-			validTestTransaction.getBytes();
-
-			expect(cryptographyHexToBufferStub).toHaveBeenCalledWith(
-				...validTestTransaction.signatures,
+		it('should encode asset bytes', () => {
+			const buffer = Buffer.from(
+				validTransferTransactionScenario.output.transaction,
+				'base64',
 			);
-		});
-
-		it('should return a buffer with signatures bytes', () => {
-			const expectedBuffer = Buffer.concat([
-				(validTestTransaction as any).getBasicBytes(),
-				serializeSignatures((validTestTransaction as any).signatures),
-			]);
-
-			expect(validTestTransaction.getBytes()).toEqual(expectedBuffer);
+			expect(validTestTransaction.getBytes()).toEqual(buffer);
 		});
 	});
 
 	describe('_validateSchema', () => {
-		it('should call toJSON', () => {
-			const toJSONStub = jest
-				.spyOn(validTestTransaction, 'toJSON')
-				.mockReturnValue({} as any);
-			(validTestTransaction as any)._validateSchema();
+		it('should validate the asset schema', () => {
+			const tx = new TransferTransaction({
+				...decodedTransferTransaction,
+				asset: {
+					...decodedTransferTransaction.asset,
+					data:
+						'53efe2e1b66ea35a356e07f99dbfd79965e94e78b3b80087485e38f25ff80b7453efe2e1b66ea35a356e07f99dbfd79965e94e78b3b80087485e38f25ff80b74',
+				},
+			});
+			const errors = tx['_validateSchema']();
 
-			expect(toJSONStub).toHaveBeenCalledTimes(1);
-		});
-
-		it('should call cryptography getAddressFromPublicKey for transaction with valid senderPublicKey', () => {
-			jest
-				.spyOn(cryptography, 'getAddressFromPublicKey')
-				.mockReturnValue('18278674964748191682L');
-			(validTestTransaction as any)._validateSchema();
-
-			expect(cryptography.getAddressFromPublicKey).toHaveBeenCalledWith(
-				validTestTransaction.senderPublicKey,
-			);
+			expect(errors).toHaveLength(1);
+			expect(errors[0].dataPath).toEqual('.data');
 		});
 
 		it('should return a successful transaction response with a valid transaction', () => {
@@ -356,23 +192,6 @@ describe.skip('Base transaction class', () => {
 
 			expect(Object.keys(errors)).not.toHaveLength(0);
 		});
-
-		it('should throw descriptive error when networkIdentifier is missing', () => {
-			const transactionWithMissingNetworkIdentifier = {
-				...transferFixture.testCases[0].input.transaction,
-			};
-
-			const transactionWithMissingNetworkIdentifierInstance = new TestTransaction(
-				transactionWithMissingNetworkIdentifier as any,
-			);
-
-			expect(() =>
-				(transactionWithMissingNetworkIdentifierInstance as any).sign(
-					undefined,
-					transferFixture.testCases[0].input.account.passphrase,
-				),
-			).toThrow('Network identifier is required to sign a transaction');
-		});
 	});
 
 	describe('#validate', () => {
@@ -387,7 +206,10 @@ describe.skip('Base transaction class', () => {
 		});
 
 		it('should return a successful transaction response with a valid transaction with basic implementation', () => {
-			transactionWithBasicImpl.sign(networkIdentifier, 'passphrase');
+			transactionWithBasicImpl.sign(
+				networkIdentifier,
+				'double furnace timber cross west walk matter aspect promote faint invest affair',
+			);
 			const { id, status, errors } = transactionWithBasicImpl.validate();
 
 			expect(id).toEqual(transactionWithBasicImpl.id);
@@ -396,17 +218,26 @@ describe.skip('Base transaction class', () => {
 		});
 
 		it('should call getBytes', () => {
+			const buffer = Buffer.from(
+				validTransferTransactionScenario.output.transaction,
+				'base64',
+			);
 			const getBytesStub = jest
 				.spyOn(validTestTransaction as any, 'getBytes')
-				.mockReturnValue(
-					Buffer.from(
-						'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c679324300000000000000000000000000000000',
-						'hex',
-					),
-				);
+				.mockReturnValue(buffer);
 			validTestTransaction.validate();
 
-			expect(getBytesStub).toHaveBeenCalledTimes(2);
+			expect(getBytesStub).toHaveBeenCalledTimes(1);
+		});
+
+		it('should return error if fee is lower than min fee', () => {
+			const tx = new TransferTransaction({
+				...decodedTransferTransaction,
+				fee: BigInt(0),
+			});
+			const { errors } = tx.validate();
+			expect(errors).toHaveLength(1);
+			expect(errors[0].dataPath).toEqual('.fee');
 		});
 	});
 
@@ -462,7 +293,9 @@ describe.skip('Base transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 			expect(errors[0].message).toEqual(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Account does not have enough minimum remaining LSK: ${defaultSenderAccount.address}, balance: 0.0499`,
+				`Account does not have enough minimum remaining LSK: ${defaultSenderAccount.address.toString(
+					'base64',
+				)}, balance: 0.0499`,
 			);
 		});
 
@@ -522,7 +355,9 @@ describe.skip('Base transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 			expect(errors[0].message).toContain(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Incompatible transaction nonce for account: ${senderAccount.address}, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
+				`Incompatible transaction nonce for account: ${senderAccount.address.toString(
+					'base64',
+				)}, Tx Nonce: ${txNonce.toString()}, Account Nonce: ${accountNonce.toString()}`,
 			);
 			expect(errors[0].actual).toEqual(txNonce.toString());
 			expect(errors[0].expected).toEqual(accountNonce.toString());
@@ -545,7 +380,9 @@ describe.skip('Base transaction class', () => {
 			expect(errors[0]).toBeInstanceOf(TransactionError);
 			expect(errors[0].message).toContain(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Transaction nonce for account: ${senderAccount.address} is higher than expected, Tx Nonce: ${txNonce}, Account Nonce: ${accountNonce}`,
+				`Transaction nonce for account: ${senderAccount.address.toString(
+					'base64',
+				)} is higher than expected, Tx Nonce: ${txNonce.toString()}, Account Nonce: ${accountNonce.toString()}`,
 			);
 			expect(errors[0].actual).toEqual(txNonce.toString());
 			expect(errors[0].expected).toEqual(accountNonce.toString());
@@ -568,182 +405,48 @@ describe.skip('Base transaction class', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 			expect((updatedSender as any).nonce).toEqual(accountNonce + BigInt(1));
 		});
-		describe('when transactions are from collision account', () => {
-			const collisionAccounts = [
-				{
-					address: '13555181540209512417L',
-					passphrase:
-						'annual youth lift quote off olive uncle town chief poverty extend series',
-					publicKey:
-						'b26dd40ba33e4785e49ddc4f106c0493ed00695817235c778f487aea5866400a',
-				},
-				{
-					address: '13555181540209512417L',
-					passphrase:
-						'merry field slogan sibling convince gold coffee town fold glad mix page',
-					publicKey:
-						'ce33db918b059a6e99c402963b42cf51c695068007ef01d8c383bb8a41270263',
-				},
-			];
-
-			let validCollisionTransaction: TransferTransaction;
-
-			beforeEach(() => {
-				store = new StateStoreMock([
-					{
-						...defaultAccount,
-						publicKey: undefined,
-						address: collisionAccounts[0].address,
-						balance: BigInt('10000000000'),
-					},
-				]);
-				validCollisionTransaction = new TransferTransaction({
-					...transferFixture.testCases[0].input.transaction,
-					nonce: '0',
-					fee: '10000000',
-					senderPublicKey: collisionAccounts[0].publicKey,
-				});
-				validCollisionTransaction.sign(
-					networkIdentifier,
-					collisionAccounts[0].passphrase,
-				);
-			});
-
-			it('should register public key to sender account if it does not exist', async () => {
-				const { status, errors } = await validCollisionTransaction.apply(store);
-				expect(status).toEqual(Status.OK);
-				expect(Object.keys(errors)).toHaveLength(0);
-
-				const account = await store.account.get(collisionAccounts[0].address);
-				expect(account.publicKey).toEqual(collisionAccounts[0].publicKey);
-			});
-
-			it('should reject the transaction if the transaction is from collision account', async () => {
-				const invalidCollisionTransaction = new TransferTransaction({
-					...transferFixture.testCases[0].input.transaction,
-					nonce: '0',
-					fee: '10000000',
-					senderPublicKey: collisionAccounts[1].publicKey,
-				});
-				invalidCollisionTransaction.sign(
-					networkIdentifier,
-					collisionAccounts[1].passphrase,
-				);
-				// Apply first and register the public key
-				await validCollisionTransaction.apply(store);
-				const { status, errors } = await invalidCollisionTransaction.apply(
-					store,
-				);
-				expect(status).toEqual(Status.FAIL);
-				expect(errors[0].message).toContain('Invalid sender publicKey');
-			});
-		});
-	});
-
-	describe('#undo', () => {
-		it('should return a successful transaction response with an updated sender account', async () => {
-			// Arrange
-			store = new StateStoreMock([
-				{
-					...defaultAccount,
-					address: (validTestTransaction as any).asset.recipientId,
-					balance: (validTestTransaction as any).asset.amount,
-				},
-			]);
-
-			// Act
-			const { id, status, errors } = await validTestTransaction.undo(store);
-
-			// Assert
-			expect(id).toEqual(validTestTransaction.id);
-			expect(status).toEqual(Status.OK);
-			expect(errors).toEqual([]);
-		});
-
-		it('should return a failed transaction response with account balance exceeding max amount', async () => {
-			store = new StateStoreMock([
-				{
-					...defaultSenderAccount,
-					balance: BigInt(MAX_TRANSACTION_AMOUNT),
-				},
-			]);
-			const { id, status, errors } = await validTestTransaction.undo(store);
-			expect(id).toEqual(validTestTransaction.id);
-			expect(status).toEqual(Status.FAIL);
-			expect(errors[0]).toBeInstanceOf(TransactionError);
-			expect(errors[0].message).toEqual('Invalid balance amount');
-		});
-
-		it('should decrement account nonce', async () => {
-			// Arrange
-			const accountNonce = BigInt(5);
-			const senderAccount = {
-				...defaultSenderAccount,
-				nonce: accountNonce,
-			};
-			const recipientAccount = {
-				...defaultSenderAccount,
-				address: (validTestTransaction as any).asset.recipientId,
-				balance: (validTestTransaction as any).asset.amount,
-			};
-			store = new StateStoreMock([senderAccount, recipientAccount]);
-
-			// Act
-			const { id, status, errors } = await validTestTransaction.undo(store);
-
-			const updatedSender = await store.account.get(senderAccount.address);
-
-			// Assert
-			expect(id).toEqual(validTestTransaction.id);
-			expect(status).toEqual(Status.OK);
-			expect(Object.keys(errors)).toHaveLength(0);
-			expect((updatedSender as any).nonce).toEqual(accountNonce - BigInt(1));
-		});
 	});
 
 	describe('create, sign and stringify transaction', () => {
 		it('should return correct senderId/senderPublicKey when sign with passphrase', () => {
 			const newTransaction = new TransferTransaction({
-				...transferFixture.testCases[0].input.transaction,
+				...decodedTransferTransaction,
 			});
 			newTransaction.sign(
 				networkIdentifier,
-				transferFixture.testCases[0].input.account.passphrase,
+				validTransferTransactionScenario.input.account.passphrase,
 			);
 
-			const stringifiedTransaction = newTransaction.stringify();
-			const parsedResponse = JSON.parse(stringifiedTransaction);
-
-			expect(parsedResponse.senderPublicKey).toEqual(
-				transferFixture.testCases[0].output.senderPublicKey,
+			expect(newTransaction.senderPublicKey).toEqual(
+				validTestTransaction.senderPublicKey,
 			);
-			expect(parsedResponse.signatures).toEqual(
-				transferFixture.testCases[0].output.signatures,
+			expect(newTransaction.signatures).toEqual(
+				validTestTransaction.signatures,
 			);
 		});
 	});
 
 	describe('#sign', () => {
-		const validTransferInput = transferFixture.testCases[0].input;
-		const {
-			transaction,
-			account,
-			networkIdentifier: newNetworkIdentifier,
-		} = validTransferInput;
+		const account = {
+			address: Buffer.from(
+				validTransferTransactionScenario.input.account.address,
+				'base64',
+			),
+			passphrase: validTransferTransactionScenario.input.account.passphrase,
+		};
 		let validTransferInstance: BaseTransaction;
 
 		beforeEach(() => {
-			validTransferInstance = new TransferTransaction(transaction);
+			validTransferInstance = new TransferTransaction(
+				decodedTransferTransaction,
+			);
 		});
 
 		it('should return transaction with one signature when only passphrase is used', () => {
 			// Get signature without using the method
-			const networkIdentifierBytes = cryptography.hexToBuffer(
-				newNetworkIdentifier,
-			);
 			const bytesToBeSigned = Buffer.concat([
-				networkIdentifierBytes,
-				validTransferInstance.getBasicBytes(),
+				networkIdentifier,
+				validTransferInstance['getSigningBytes'](),
 			]);
 
 			const validSignature = cryptography.signData(
@@ -751,22 +454,17 @@ describe.skip('Base transaction class', () => {
 				account.passphrase,
 			);
 
-			validTransferInstance.sign(newNetworkIdentifier, account.passphrase);
+			validTransferInstance.sign(networkIdentifier, account.passphrase);
 
-			expect(validTransferInstance.signatures[0]).toBe(validSignature);
+			expect(validTransferInstance.signatures[0]).toEqual(validSignature);
 			expect(validTransferInstance.signatures).toHaveLength(1);
 		});
 
 		it('should return transaction with two valid signatures for multisig account used as 2nd passphrase account', () => {
-			const { members } = secondSignatureReg.testCases.input;
-			const { output: secondSignatureAccount } = secondSignatureReg.testCases;
-			// Get signatues without using the method
-			const networkIdentifierBytes = cryptography.hexToBuffer(
-				networkIdentifier,
-			);
+			const { members } = validMultiSigTransactionScenario.input as any;
 			const bytesToBeSigned = Buffer.concat([
-				networkIdentifierBytes,
-				validTransferInstance.getBasicBytes(),
+				networkIdentifier,
+				validTransferInstance['getSigningBytes'](),
 			]);
 
 			const firstSignature = cryptography.signData(
@@ -778,18 +476,19 @@ describe.skip('Base transaction class', () => {
 				bytesToBeSigned,
 				members.mandatoryTwo.passphrase,
 			);
+			validTransferInstance.signatures = [];
 
 			validTransferInstance.sign(
 				networkIdentifier,
 				undefined,
 				[members.mandatoryOne.passphrase, members.mandatoryTwo.passphrase],
 				{
-					...secondSignatureAccount.asset,
+					...decodedMultisigTransaction.asset,
 				},
 			);
 
-			expect(validTransferInstance.signatures[0]).toBe(firstSignature);
-			expect(validTransferInstance.signatures[1]).toBe(secondSignature);
+			expect(validTransferInstance.signatures[0]).toEqual(firstSignature);
+			expect(validTransferInstance.signatures[1]).toEqual(secondSignature);
 		});
 	});
 });

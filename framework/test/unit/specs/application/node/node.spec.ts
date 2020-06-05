@@ -138,10 +138,14 @@ describe('Node', () => {
 
 		it('should throw error when genesisBlock option is not provided', async () => {
 			// Arrange
+			const options = {
+				...nodeOptions,
+			};
+			(options as any).genesisBlock = undefined;
 			node = new Node({
 				channel: stubs.channel,
 				logger: stubs.logger,
-				options: { ...nodeOptions, genesisBlock: null },
+				options,
 			} as any);
 
 			// Act
@@ -249,10 +253,10 @@ describe('Node', () => {
 			return expect(node['_channel'].invoke).toHaveBeenCalledWith(
 				'app:updateApplicationState',
 				{
-					height: lastBlock.height,
-					blockVersion: lastBlock.version,
+					height: lastBlock.header.height,
+					blockVersion: lastBlock.header.version,
 					maxHeightPrevoted: 0,
-					lastBlockId: lastBlock.id,
+					lastBlockId: lastBlock.header.id,
 				},
 			);
 		});
