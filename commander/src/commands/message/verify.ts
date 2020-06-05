@@ -38,8 +38,8 @@ const processInputs = (
 
 	return {
 		verified: verifyMessageWithPublicKey({
-			publicKey,
-			signature,
+			publicKey: Buffer.from(publicKey, 'hex'),
+			signature: Buffer.from(signature, 'hex'),
 			message,
 		}),
 	};

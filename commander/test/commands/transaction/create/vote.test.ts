@@ -21,7 +21,9 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
-describe('transaction:create:vote', () => {
+// This needs to be re-implemented using codec with https://github.com/LiskHQ/lisk-core/issues/254
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('transaction:create:vote', () => {
 	const defaultVote = ['356975984361330918L,10', '7539210577161571444L,30'];
 	const defaultUnvote = ['356975984361330918L,-10', '7539210577161571444L,-30'];
 	const testnetNetworkIdentifier =

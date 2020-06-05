@@ -94,7 +94,9 @@ export const { getKeys } = cryptography;
 export const getAddressFromPublicKey = (
 	publicKey: string,
 ): { readonly address: string } => ({
-	address: cryptography.getAddressFromPublicKey(publicKey),
+	address: cryptography
+		.getAddressFromPublicKey(Buffer.from(publicKey, 'hex'))
+		.toString('hex'),
 });
 
 interface SignMessageInputs {
@@ -120,8 +122,8 @@ export const verifyMessage = ({
 	message,
 }: VerifyMessageInputs): { verified: boolean } => ({
 	verified: cryptography.verifyMessageWithPublicKey({
-		publicKey,
-		signature,
+		publicKey: Buffer.from(publicKey, 'hex'),
+		signature: Buffer.from(signature, 'hex'),
 		message,
 	}),
 });

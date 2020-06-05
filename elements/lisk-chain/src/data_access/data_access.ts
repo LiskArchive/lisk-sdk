@@ -107,6 +107,10 @@ export class DataAccess {
 		this._blocksCache.empty();
 	}
 
+	public getBlockHeaderAssetSchema(version: number): Schema {
+		return this._blockHeaderAdapter.getSchema(version);
+	}
+
 	public async getBlockHeaderByID(id: Buffer): Promise<BlockHeader> {
 		const cachedBlock = this._blocksCache.getByID(id);
 

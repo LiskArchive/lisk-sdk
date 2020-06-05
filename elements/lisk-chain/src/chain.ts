@@ -342,11 +342,24 @@ export class Chain {
 	}
 
 	public validateBlockHeader(block: Block): void {
+		const headerWithoutAsset = {
+			...block.header,
+			asset: Buffer.alloc(0),
+		};
 		// Validate block header
-		const errors = validator.validate(blockHeaderSchema, block.header);
+		const errors = validator.validate(blockHeaderSchema, headerWithoutAsset);
 		if (errors.length) {
 			throw new Error(errors[0].message);
 		}
+		// Validate block header asset
+		const assetSchema = this.dataAccess.getBlockHeaderAssetSchema(
+			block.header.version,
+		);
+		const assetErrors = validator.validate(assetSchema, block.header.asset);
+		if (assetErrors.length) {
+			throw new Error(assetErrors[0].message);
+		}
+
 		validatePreviousBlockProperty(block, this._genesisBlock);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call
 		const encodedBlockHeaderWithoutSignature = this.dataAccess.encodeBlockHeader(

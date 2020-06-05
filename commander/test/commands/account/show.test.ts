@@ -21,25 +21,16 @@ import * as printUtils from '../../../src/utils/print';
 import * as readerUtils from '../../../src/utils/reader';
 
 describe('account:show', () => {
-	const defaultKeys = {
-		publicKey: 'somePublicKey',
-		privateKey: 'somePrivateKey',
-	};
-	const defaultAddress = 'someAddress';
 	const passphraseInput =
 		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
+	const secondDefaultMnemonic =
+		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
-			.stub(
-				cryptography,
-				'getAddressFromPublicKey',
-				sandbox.stub().returns(defaultAddress),
-			)
 			.stub(
 				readerUtils,
 				'getPassphraseFromPrompt',
@@ -56,21 +47,45 @@ describe('account:show', () => {
 					'passphrase',
 					true,
 				);
-				return expect(printMethodStub).to.be.calledWithExactly({
-					...defaultKeys,
-					address: defaultAddress,
+				return expect(printMethodStub).to.be.calledWith({
+					privateKey: cryptography
+						.getKeys(passphraseInput)
+						.privateKey.toString('base64'),
+					publicKey: cryptography
+						.getKeys(passphraseInput)
+						.publicKey.toString('base64'),
+					address: cryptography.getBase32AddressFromPublicKey(
+						cryptography.getKeys(passphraseInput).publicKey.toString('hex'),
+						'lsk',
+					),
+					binaryAddress: cryptography
+						.getAddressFromPassphrase(passphraseInput)
+						.toString('base64'),
 				});
 			});
 
 		setupTest()
 			.stdout()
-			.command(['account:show', '--passphrase=123'])
+			.command(['account:show', `--passphrase=${secondDefaultMnemonic}`])
 			.it('should show account with pass', () => {
 				expect(printUtils.print).to.be.called;
 				expect(readerUtils.getPassphraseFromPrompt).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWith({
-					...defaultKeys,
-					address: defaultAddress,
+					privateKey: cryptography
+						.getKeys(secondDefaultMnemonic)
+						.privateKey.toString('base64'),
+					publicKey: cryptography
+						.getKeys(secondDefaultMnemonic)
+						.publicKey.toString('base64'),
+					address: cryptography.getBase32AddressFromPublicKey(
+						cryptography
+							.getKeys(secondDefaultMnemonic)
+							.publicKey.toString('hex'),
+						'lsk',
+					),
+					binaryAddress: cryptography
+						.getAddressFromPassphrase(secondDefaultMnemonic)
+						.toString('base64'),
 				});
 			});
 	});

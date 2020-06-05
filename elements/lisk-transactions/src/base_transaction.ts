@@ -406,7 +406,14 @@ export abstract class BaseTransaction {
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(BaseTransaction.BASE_SCHEMA, this);
+		const valueWithoutAsset = {
+			...this,
+			asset: Buffer.alloc(0),
+		};
+		const schemaErrors = validator.validate(
+			BaseTransaction.BASE_SCHEMA,
+			valueWithoutAsset,
+		);
 		const errors = convertToTransactionError(
 			this.id,
 			schemaErrors,
