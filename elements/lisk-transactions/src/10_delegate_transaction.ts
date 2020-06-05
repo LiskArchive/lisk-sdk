@@ -13,6 +13,7 @@
  *
  */
 
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { TransactionError } from './errors';
@@ -21,6 +22,10 @@ import { BaseTransactionInput, AccountAsset } from './types';
 interface RegisteredDelegate {
 	readonly username: string;
 	readonly address: Buffer;
+}
+
+interface RegisteredDelegates {
+	registeredDelegates: RegisteredDelegate[];
 }
 interface ChainUsernames {
 	readonly registeredDelegates: RegisteredDelegate[];
@@ -42,6 +47,31 @@ export const delegateRegistrationAssetSchema = {
 			maxLength: 20,
 		},
 	},
+};
+
+const delegatesUserNamesSchema = {
+	$id: '/dpos/userNames',
+	type: 'object',
+	properties: {
+		registeredDelegates: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				properties: {
+					username: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+	required: ['registeredDelegates'],
 };
 
 const isNullCharacterIncluded = (input: string): boolean =>
@@ -113,12 +143,17 @@ export class DelegateTransaction extends BaseTransaction {
 				username: this.asset.username,
 				address: this.senderId,
 			});
+
 			usernames.registeredDelegates.sort((a, b) =>
 				a.address.compare(b.address),
 			);
+
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
-				Buffer.from(JSON.stringify(usernames), 'utf8'),
+				codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					(usernames as unknown) as GenericObject,
+				),
 			);
 		}
 
@@ -179,13 +214,16 @@ export class DelegateTransaction extends BaseTransaction {
 		if (!usernamesBuffer) {
 			return { registeredDelegates: [] };
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const parsedUsernames = JSON.parse(usernamesBuffer.toString('utf8'));
+		const parsedUsernames: RegisteredDelegates = codec.decode(
+			(delegatesUserNamesSchema as unknown) as Schema,
+			usernamesBuffer,
+		);
+
 		// eslint-disable-next-line
 		parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
-			(value: { address: string; username: string }) => ({
+			(value: { address: Buffer; username: string }) => ({
 				username: value.username,
-				address: Buffer.from(value.address, 'binary'),
+				address: value.address,
 			}),
 		);
 
