@@ -3,7 +3,7 @@
 # Lisk SDK
 
 [![Build Status](https://jenkins.lisk.io/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.io/job/lisk-sdk/job/development/)
-![npm](https://img.shields.io/npm/v/lisk-sdk?style=plastic)
+![npm](https://img.shields.io/npm/v/lisk-sdk)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
 ![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
 [![DeepScan grade](https://deepscan.io/api/teams/6759/projects/8869/branches/113509/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=6759&pid=8869&bid=113509)

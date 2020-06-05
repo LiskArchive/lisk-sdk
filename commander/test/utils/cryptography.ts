@@ -208,7 +208,7 @@ describe('crypto utils', () => {
 			cryptography.getAddressFromPublicKey(input);
 			return expect(
 				cryptographyModule.getAddressFromPublicKey,
-			).to.be.calledWithExactly(input);
+			).to.be.calledWithExactly(Buffer.from(input, 'hex'));
 		});
 	});
 
@@ -241,8 +241,10 @@ describe('crypto utils', () => {
 	describe('#verifyMessage', () => {
 		const result = true;
 		const input = {
-			publicKey: 'publicKey',
-			signature: 'signature',
+			publicKey:
+				'90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
+			signature:
+				'90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f1390215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
 			message: 'message',
 		};
 
@@ -261,7 +263,11 @@ describe('crypto utils', () => {
 			cryptography.verifyMessage(input);
 			return expect(
 				cryptographyModule.verifyMessageWithPublicKey,
-			).to.be.calledWithExactly(input);
+			).to.be.calledWithExactly({
+				message: input.message,
+				signature: Buffer.from(input.signature, 'hex'),
+				publicKey: Buffer.from(input.publicKey, 'hex'),
+			});
 		});
 	});
 });
