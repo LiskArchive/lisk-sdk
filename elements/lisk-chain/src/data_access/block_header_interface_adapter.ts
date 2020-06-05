@@ -33,13 +33,18 @@ export class BlockHeaderInterfaceAdapter {
 		});
 	}
 
+	public getSchema(version: number): Schema {
+		const assetSchema = this._blockSchemaMap.get(version);
+		if (!assetSchema) {
+			throw new Error(`Asset Schema not found for block version: ${version}.`);
+		}
+		return assetSchema;
+	}
+
 	public decode<T>(buffer: Buffer): BlockHeader<T> {
 		const blockHeader = codec.decode<RawBlockHeader>(blockHeaderSchema, buffer);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const assetSchema = this._blockSchemaMap.get(blockHeader.version);
-		if (!assetSchema) {
-			throw new Error(`Asset Schema not found for block version: ${blockHeader.version}.`);
-		}
+		const assetSchema = this.getSchema(blockHeader.version);
 		const asset = codec.decode<T>(assetSchema, blockHeader.asset);
 		const id = hash(buffer);
 
@@ -47,11 +52,7 @@ export class BlockHeaderInterfaceAdapter {
 	}
 
 	public encode(header: BlockHeader, skipSignature = false): Buffer {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const assetSchema = this._blockSchemaMap.get(header.version);
-		if (!assetSchema) {
-			throw new Error(`Asset Schema not found for block version: ${header.version}.`);
-		}
+		const assetSchema = this.getSchema(header.version);
 		const encodedAsset = codec.encode(assetSchema, header.asset);
 		const rawHeader = { ...header, asset: encodedAsset };
 

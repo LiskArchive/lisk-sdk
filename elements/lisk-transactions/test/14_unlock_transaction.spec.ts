@@ -100,7 +100,10 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('randomaddreess'),
+						delegateAddress: Buffer.from(
+							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
+							'base64',
+						),
 						amount: BigInt(-10000000000),
 						unvoteHeight: 2,
 					},
@@ -109,7 +112,7 @@ describe('Unlock transaction', () => {
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
 				expect(errors[0].message).toInclude(
-					'Amount cannot be less than or equal to zero',
+					'should pass "dataType" keyword validation',
 				);
 			});
 		});
@@ -138,7 +141,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('random address'),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'hex'),
 						amount: BigInt(999999999),
 						unvoteHeight: 2,
 					},
@@ -152,14 +155,15 @@ describe('Unlock transaction', () => {
 			});
 		});
 
-		// TODO: Enable after https://github.com/LiskHQ/lisk-sdk/issues/5263
-		// eslint-disable-next-line jest/no-disabled-tests
-		describe.skip('when asset.unlockObjects includes negative unvoteHeight', () => {
+		describe('when asset.unlockObjects includes negative unvoteHeight', () => {
 			it('should return errors', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('random address'),
+						delegateAddress: Buffer.from(
+							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
+							'base64',
+						),
 						amount: BigInt(1000000000),
 						unvoteHeight: -4,
 					},
@@ -167,7 +171,9 @@ describe('Unlock transaction', () => {
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
 				expect(errors).toHaveLength(1);
-				expect(errors[0].message).toInclude(".unvoteHeight' should be >= 0");
+				expect(errors[0].message).toInclude(
+					'should pass "dataType" keyword validation',
+				);
 			});
 		});
 	});

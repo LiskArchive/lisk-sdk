@@ -117,6 +117,9 @@ describe('Synchronizer', () => {
 			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(
 				chainModule.dataAccess,
 			),
+			getBlockHeaderAssetSchema: chainModule.dataAccess.getBlockHeaderAssetSchema.bind(
+				chainModule.dataAccess,
+			),
 		};
 		chainModule.dataAccess = dataAccessMock;
 

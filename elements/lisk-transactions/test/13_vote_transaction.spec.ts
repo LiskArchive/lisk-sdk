@@ -146,13 +146,16 @@ describe('Vote transaction', () => {
 				(tx.asset as any).votes = [
 					...tx.asset.votes,
 					{
-						delegateAddress: '123L',
+						delegateAddress: Buffer.from(
+							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
+							'base64',
+						),
 						amount: BigInt(10000000000),
 					},
 				];
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
-				expect(errors).toHaveLength(2);
+				expect(errors).toHaveLength(1);
 				expect(errors[0].message).toInclude(
 					'should NOT have more than 20 items',
 				);
@@ -261,9 +264,7 @@ describe('Vote transaction', () => {
 			});
 		});
 
-		// TODO: Enable after https://github.com/LiskHQ/lisk-sdk/issues/5263
-		// eslint-disable-next-line jest/no-disabled-tests
-		describe.skip('when asset.votes includes amount which is greater than int64 range', () => {
+		describe('when asset.votes includes amount which is greater than int64 range', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...decodedMixedvoteTransaction,
@@ -278,13 +279,13 @@ describe('Vote transaction', () => {
 				};
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
-				expect(errors[0].message).toInclude('should match format "int64"');
+				expect(errors[0].message).toInclude(
+					'should pass "dataType" keyword validation',
+				);
 			});
 		});
 
-		// TODO: Enable after https://github.com/LiskHQ/lisk-sdk/issues/5263
-		// eslint-disable-next-line jest/no-disabled-tests
-		describe.skip('when asset.votes includes amount which is less than int64 range', () => {
+		describe('when asset.votes includes amount which is less than int64 range', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
 					...decodedMixedvoteTransaction,
@@ -299,7 +300,9 @@ describe('Vote transaction', () => {
 				};
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
-				expect(errors[0].message).toInclude('should match format "int64"');
+				expect(errors[0].message).toInclude(
+					'should pass "dataType" keyword validation',
+				);
 			});
 		});
 
