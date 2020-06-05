@@ -13,7 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	getKeys,
+	getBase32AddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -21,6 +25,7 @@ import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
 interface AccountInfo {
 	readonly address: string;
+	readonly binaryAddress: string;
 	readonly passphrase: string;
 	readonly privateKey: string;
 	readonly publicKey: string;
@@ -29,12 +34,17 @@ interface AccountInfo {
 const createAccount = (): AccountInfo => {
 	const passphrase = createMnemonicPassphrase();
 	const { privateKey, publicKey } = getKeys(passphrase);
-	const address = getAddressFromPublicKey(publicKey);
+	const binaryAddress = getAddressFromPublicKey(publicKey);
+	const address = getBase32AddressFromPublicKey(
+		publicKey.toString('hex'),
+		'lsk',
+	);
 
 	return {
 		passphrase,
-		privateKey,
-		publicKey,
+		privateKey: privateKey.toString('base64'),
+		publicKey: publicKey.toString('base64'),
+		binaryAddress: binaryAddress.toString('base64'),
 		address,
 	};
 };

@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as stampit from 'stampit';
-import * as randomstring from 'randomstring';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
 // Existing delegate account
 export const existingDelegate = {
@@ -37,114 +36,29 @@ export const genesis = {
 	password: 'elephant tree paris dragon chair galaxy',
 };
 
-// eslint-disable-next-line camelcase
-export const mem_accountsFields = [
-	'username',
-	'isDelegate',
-	'address',
-	'publicKey',
-	'balance',
-	'delegates',
-	'multisignatures',
-	'multimin',
-	'multilifetime',
-	'producedBlocks',
-	'missedBlocks',
-	'fees',
-	'rewards',
-	'asset',
-	'membersPublicKeys',
-];
-
-export const Account = stampit.compose({
-	props: {
-		username: '',
-		isDelegate: false,
-		address: '',
-		publicKey: '',
-		balance: '0',
-		multiMin: 0,
-		multiLifetime: 0,
-		producedBlocks: 9,
-		missedBlocks: 0,
-		fees: '0',
-		rewards: '0',
-		membersPublicKeys: null,
-		productivity: 0,
-		asset: {},
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const createFakeDefaultAccount = (account?: any) => ({
+	address: account?.address ?? getRandomBytes(20),
+	publicKey: account?.publicKey ?? Buffer.alloc(0),
+	balance: account?.balance ?? BigInt(0),
+	nonce: account?.nonce ?? BigInt(0),
+	keys: {
+		mandatoryKeys: account?.keys?.mandatoryKeys ?? [],
+		optionalKeys: account?.keys?.optionalKeys ?? [],
+		numberOfSignatures: account?.keys?.numberOfSignatures ?? 0,
 	},
-	init({
-		isDelegate,
-		username,
-		address,
-		publicKey,
-		producedBlocks,
-		missedBlocks,
-		balance,
-		asset,
-	}) {
-		this.isDelegate = isDelegate || this.isDelegate;
-		this.username = username || randomstring.generate(10).toLowerCase();
-		this.address =
-			address ||
-			`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
-		this.publicKey =
-			publicKey ||
-			randomstring
-				.generate({ charset: '0123456789ABCDEF', length: 64 })
-				.toLowerCase();
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.producedBlocks = producedBlocks || 0;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.missedBlocks = missedBlocks || 0;
-		this.productivity =
-			// eslint-disable-next-line
-			this.producedBlocks / (this.producedBlocks + this.missedBlocks) || 0;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.balance = balance || '0';
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.asset = asset || {};
-		this.membersPublicKeys = null;
-	},
-});
-
-export const dbAccount = stampit.compose({
-	props: {
-		address: null,
-		balance: 0,
-		delegates: null,
-		fees: '0',
-		isDelegate: 0,
-		missedBlocks: 0,
-		multiLifetime: 0,
-		multimin: 0,
-		multisignatures: null,
-		producedBlocks: 0,
-		publicKey: null,
-		rewards: '0',
-		username: null,
-		asset: {},
-		membersPublicKeys: null,
-	},
-	init({ address, balance }) {
-		this.address = address || this.address;
-		this.balance = balance || this.balance;
-	},
-});
-
-export const Delegate = stampit.compose(Account, {
-	props: {
-		isDelegate: true,
-	},
-});
-
-export const Dependent = stampit.compose({
-	init({ accountId, dependentId }) {
-		this.accountId = accountId;
-		this.dependentId =
-			dependentId ||
-			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 32 })
-				.toLowerCase();
+	asset: {
+		delegate: {
+			username: account?.asset?.delegate?.username ?? '',
+			pomHeights: account?.asset?.delegate?.pomHeights ?? [],
+			consecutiveMissedBlocks:
+				account?.asset?.delegate?.consecutiveMissedBlocks ?? 0,
+			lastForgedHeight: account?.asset?.delegate?.lastForgedHeight ?? 0,
+			isBanned: account?.asset?.delegate?.isBanned ?? false,
+			totalVotesReceived:
+				account?.asset?.delegate?.totalVotesReceived ?? BigInt(0),
+		},
+		sentVotes: account?.asset?.sentVotes ?? [],
+		unlocking: account?.asset?.unlocking ?? [],
 	},
 });

@@ -37,7 +37,7 @@ describe('signAndVerify module', () => {
 
 		const defaultTransferTransactionBytes = Buffer.concat([
 			cryptography.hexToBuffer(networkIdentifier),
-			(validTestTransaction as any).getBasicBytes(),
+			(validTestTransaction as any).getSigningBytes(),
 		]);
 
 		it('should call cryptography verifyData', () => {

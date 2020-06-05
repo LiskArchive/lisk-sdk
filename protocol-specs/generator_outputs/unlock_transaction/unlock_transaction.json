@@ -1,215 +1,107 @@
 {
 	"title": "Valid unlock transaction",
-	"summary": "Valid unlock transaction",
+	"summary": "Valid unlock transaction which includes the unlock for the same account",
 	"config": {
 		"network": "devnet"
 	},
 	"runner": "unlock_transaction",
 	"handler": "unlock_transaction",
-	"testCases": {
-		"input": {
-			"account": {
-				"passphrase": "lava toe nuclear candy erode present guilt develop include type pluck current",
-				"publicKey": "8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66",
-				"address": "841832338348093031L"
-			},
-			"networkIdentifier": "e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255",
-			"delegates": [
-				{
-					"publicKey": "5430e775505b3145c124d15dc7c84ca7c751ecb69faf653bfb1e0c91e6e22f8a",
-					"address": "12957061101390022344L"
+	"testCases": [
+		{
+			"description": "Valid unlock transaction",
+			"input": {
+				"account": {
+					"passphrase": "lava toe nuclear candy erode present guilt develop include type pluck current",
+					"publicKey": "jD2BsVVfvkaSrfoQJu4hwENjO5NpkkzyeQ4uD8a0emY=",
+					"address": "Z66sLw3Krgt3kHd6O0uilsQn2+s="
 				},
-				{
-					"publicKey": "73a56ce40aa991293250d9bd61471d19111f023cf1827c9be189deed733f9ea2",
-					"address": "356975984361330918L"
-				},
-				{
-					"publicKey": "88d1d4e94f2466fe69770a510dc8e6c638875b71e96c02b4791ccc032a2a6472",
-					"address": "7539210577161571444L"
-				},
-				{
-					"publicKey": "41583c71f266a84200f0bfdee9b3bb984f6d67f3c903ba7288c97f1259bf8ddc",
-					"address": "15094767118732616261L"
-				},
-				{
-					"publicKey": "5158379dc110c7fc011cfaf52466016668aecc65e5bfa79c2958e16da30490bd",
-					"address": "5912821973123214356L"
-				},
-				{
-					"publicKey": "7cae1f08e4a4a437cffec509951ed1f30451415fff725adaa46a6d8946e95787",
-					"address": "18070133408355683425L"
-				},
-				{
-					"publicKey": "f7b9ea443bdc180cd4116e2a86e302639b4b41659d818d5011bfff0642453c3a",
-					"address": "3640717344948993040L"
-				},
-				{
-					"publicKey": "53efe2e1b66ea35a356e07f99dbfd79965e94e78b3b80087485e38f25ff80b74",
-					"address": "8010175731603412841L"
-				},
-				{
-					"publicKey": "4338f8c8417f96f315698ec670e8e9c35caa0830181f5554f618ba8829d436f0",
-					"address": "9570841103514584989L"
-				},
-				{
-					"publicKey": "ca8125b3a12a2f8ad47a6d514b00c360766df5785d57203748fb8c63092020fa",
-					"address": "10981135108497996104L"
-				},
-				{
-					"publicKey": "27b7f01611f9588a2bf43774b9b890cedbdef695f1b844c815873f2fecf1e29e",
-					"address": "6263383429876179160L"
-				},
-				{
-					"publicKey": "6ff4c2b7df013316616b6b6b67ed102894184a4efcee365fd1b459e4d070cca0",
-					"address": "9439340122733729158L"
-				},
-				{
-					"publicKey": "e1f20a8b1c64193db5f009fd4d88fde9bd1320b8c921fafe800bacd94c347a2b",
-					"address": "15206119636421553919L"
-				},
-				{
-					"publicKey": "1eb301328a5681a4d3a002c892644efcc057436985d48d55261133dae0af5c41",
-					"address": "10189413624252937509L"
-				},
-				{
-					"publicKey": "0355085d4d6cc2565c69a248846e9d1cb7af023f8d3a2b31445a0386a45758a4",
-					"address": "15682953477545527099L"
-				},
-				{
-					"publicKey": "f740f22ff4413757457cd25b390f5312b5b10dd09f4ed901848a57cb84bc1261",
-					"address": "4458741937615618075L"
-				},
-				{
-					"publicKey": "09bf0bd593f354f7949cbbf42cedfdc9fabd2d7da5ff24e0f24c4017ebdb7450",
-					"address": "10182969975768460850L"
-				},
-				{
-					"publicKey": "2998ae5c6b28388fd654262ca19a4d669abf067aa2a28fa2ecb94079d1386ec9",
-					"address": "16218061708783968021L"
-				},
-				{
-					"publicKey": "f8b282fe76bed11e0048f668e2768f1b5346acd77b3afe2a01c9b3874612fba2",
-					"address": "12502596496028234907L"
-				},
-				{
-					"publicKey": "19528c41f749fb0acd840b5349823afea8d96d9380cf4c674a5cf522417a6946",
-					"address": "9098130216893659918L"
-				}
-			]
-		},
-		"output": {
-			"type": 14,
-			"fee": "1500000000",
-			"nonce": "3",
-			"senderPublicKey": "8c3d81b1555fbe4692adfa1026ee21c043633b9369924cf2790e2e0fc6b47a66",
-			"asset": {
-				"unlockingObjects": [
+				"networkIdentifier": "5I/riNtbXPWtcdk83NHYebbV7Rh6NrAALMNODvmIMlU=",
+				"delegates": [
 					{
-						"delegateAddress": "12957061101390022344L",
-						"amount": "1000000000",
-						"unvoteHeight": 32
+						"publicKey": "VDDndVBbMUXBJNFdx8hMp8dR7Lafr2U7+x4MkebiL4o=",
+						"address": "yEZiGWy60LPISsphto7fr5uJqcs="
 					},
 					{
-						"delegateAddress": "356975984361330918L",
-						"amount": "50000000000",
-						"unvoteHeight": 12
+						"publicKey": "c6Vs5AqpkSkyUNm9YUcdGREfAjzxgnyb4Yne7XM/nqI=",
+						"address": "5tgzNcQ79ASHjXDg4vCbXOjdOtU="
 					},
 					{
-						"delegateAddress": "7539210577161571444L",
-						"amount": "320000000000",
-						"unvoteHeight": 14
+						"publicKey": "iNHU6U8kZv5pdwpRDcjmxjiHW3HpbAK0eRzMAyoqZHI=",
+						"address": "dEyVUhOooGj9N/hxQU9ZSqjORW4="
 					},
 					{
-						"delegateAddress": "12957061101390022344L",
-						"amount": "420000000000",
-						"unvoteHeight": 19
+						"publicKey": "QVg8cfJmqEIA8L/e6bO7mE9tZ/PJA7pyiMl/Elm/jdw=",
+						"address": "ReJND7hie9FzpiN4Bfqnoak6mmg="
 					},
 					{
-						"delegateAddress": "12957061101390022344L",
-						"amount": "520000000000",
-						"unvoteHeight": 50
+						"publicKey": "UVg3ncEQx/wBHPr1JGYBZmiuzGXlv6ecKVjhbaMEkL0=",
+						"address": "FCwi0EGQDlIHaelGgKRd6Eqx7Vo="
 					},
 					{
-						"delegateAddress": "7539210577161571444L",
-						"amount": "620000000000",
-						"unvoteHeight": 14
+						"publicKey": "fK4fCOSkpDfP/sUJlR7R8wRRQV//clrapGptiUbpV4c=",
+						"address": "YYz1YJgCxvr93nbdu8al1iW4mVo="
 					},
 					{
-						"delegateAddress": "7539210577161571444L",
-						"amount": "620000000000",
-						"unvoteHeight": 14
+						"publicKey": "97nqRDvcGAzUEW4qhuMCY5tLQWWdgY1QEb//BkJFPDo=",
+						"address": "ELxJySJthjJzBu0qrAHr5QXGLKg="
 					},
 					{
-						"delegateAddress": "15094767118732616261L",
-						"amount": "920000000000",
-						"unvoteHeight": 33
+						"publicKey": "U+/i4bZuo1o1bgf5nb/XmWXpTnizuACHSF448l/4C3Q=",
+						"address": "aRetXmPcKW/tYQaRcaUUcEjIFbM="
 					},
 					{
-						"delegateAddress": "5912821973123214356L",
-						"amount": "140000000000",
-						"unvoteHeight": 19
+						"publicKey": "Qzj4yEF/lvMVaY7GcOjpw1yqCDAYH1VU9hi6iCnUNvA=",
+						"address": "ncexcEZ10oRGKd4jGOKJUPFvmdk="
 					},
 					{
-						"delegateAddress": "18070133408355683425L",
-						"amount": "130000000000",
-						"unvoteHeight": 53
+						"publicKey": "yoEls6EqL4rUem1RSwDDYHZt9XhdVyA3SPuMYwkgIPo=",
+						"address": "SPmXXDPUZJimDdlPpU/YUybL4N0="
 					},
 					{
-						"delegateAddress": "3640717344948993040L",
-						"amount": "1000000000",
-						"unvoteHeight": 32
+						"publicKey": "J7fwFhH5WIor9Dd0ubiQztve9pXxuETIFYc/L+zx4p4=",
+						"address": "2GDWbQsC7Fbtc7DSnEdAwI7QnmY="
 					},
 					{
-						"delegateAddress": "8010175731603412841L",
-						"amount": "50000000000",
-						"unvoteHeight": 18
+						"publicKey": "b/TCt98BMxZha2trZ+0QKJQYSk787jZf0bRZ5NBwzKA=",
+						"address": "htWicdRF/4L7iAY0JUTalPw7eiM="
 					},
 					{
-						"delegateAddress": "9570841103514584989L",
-						"amount": "320000000000",
-						"unvoteHeight": 29
+						"publicKey": "4fIKixxkGT218An9TYj96b0TILjJIfr+gAus2Uw0eis=",
+						"address": "/67/bD79BtNcN1eWmzQBNuWY7/8="
 					},
 					{
-						"delegateAddress": "10981135108497996104L",
-						"amount": "420000000000",
-						"unvoteHeight": 6
+						"publicKey": "HrMBMopWgaTToALIkmRO/MBXQ2mF1I1VJhEz2uCvXEE=",
+						"address": "JTUfl7QRaI05snj0ewcfcvMAxJU="
 					},
 					{
-						"delegateAddress": "841832338348093031L",
-						"amount": "520000000000",
-						"unvoteHeight": 44
+						"publicKey": "A1UIXU1swlZcaaJIhG6dHLevAj+NOisxRFoDhqRXWKQ=",
+						"address": "OwcUkhgLpdmEZGalzOK92gfiy5M="
 					},
 					{
-						"delegateAddress": "9439340122733729158L",
-						"amount": "620000000000",
-						"unvoteHeight": 41
+						"publicKey": "90DyL/RBN1dFfNJbOQ9TErWxDdCfTtkBhIpXy4S8EmE=",
+						"address": "G0C3OCui4D3ep8v7QfkwuyCgpDo="
 					},
 					{
-						"delegateAddress": "15206119636421553919L",
-						"amount": "820000000000",
-						"unvoteHeight": 13
+						"publicKey": "Cb8L1ZPzVPeUnLv0LO39yfq9LX2l/yTg8kxAF+vbdFA=",
+						"address": "Mq4lxD0tUY3MY0JAVC3nERV33ms="
 					},
 					{
-						"delegateAddress": "10189413624252937509L",
-						"amount": "920000000000",
-						"unvoteHeight": 25
+						"publicKey": "KZiuXGsoOI/WVCYsoZpNZpq/Bnqioo+i7LlAedE4bsk=",
+						"address": "Fd9ueTIhEuFu7l5k/HJWMyGSSJU="
 					},
 					{
-						"delegateAddress": "15682953477545527099L",
-						"amount": "140000000000",
-						"unvoteHeight": 31
+						"publicKey": "+LKC/na+0R4ASPZo4naPG1NGrNd7Ov4qAcmzh0YS+6I=",
+						"address": "m3TOg0Ulgq3K/ATW2+VfWQFjxgI="
 					},
 					{
-						"delegateAddress": "4458741937615618075L",
-						"amount": "130000000000",
-						"unvoteHeight": 21
+						"publicKey": "GVKMQfdJ+wrNhAtTSYI6/qjZbZOAz0xnSlz1IkF6aUY=",
+						"address": "DrsxcjoNQ37B/EwtFjHGZGhKX/E="
 					}
 				]
 			},
-			"signatures": [
-				"208aba76cddafebf3763b88ba9a4df844c994af9ea411e0c503a656fac692022bf4c27b0e08345c2c45e778d6714a7ece4fb949ffa06d5c982ddf6c0e8dec009"
-			],
-			"id": "b838fb751b96adb3866e60ba096c6f4cd6e8c89ceee98d74ede717c011c4dd88"
+			"output": {
+				"transaction": "CA4QAxiA3qDLBSIgjD2BsVVfvkaSrfoQJu4hwENjO5NpkkzyeQ4uD8a0emYqkgUKHgoUyEZiGWy60LPISsphto7fr5uJqcsQgJTr3AMYIAofChTm2DM1xDv0BIeNcODi8Jtc6N061RCA6O2hugEYDAofChR0TJVSE6igaP03+HFBT1lKqM5FbhCAgPKLqAkYDgofChTIRmIZbLrQs8hKymG2jt+vm4mpyxCA0M3PnAwYEwofChTIRmIZbLrQs8hKymG2jt+vm4mpyxCAoKmTkQ8YMgofChR0TJVSE6igaP03+HFBT1lKqM5FbhCA8ITXhRIYDgofChR0TJVSE6igaP03+HFBT1lKqM5FbhCA8ITXhRIYDgofChRF4k0PuGJ70XOmI3gF+qehqTqaaBCA4Jei4xoYIQofChQULCLQQZAOUgdp6UaApF3oSrHtWhCA8JnFiQQYEwofChRhjPVgmALG+v3edt27xqXWJbiZWhCAqOqk5AMYNQoeChQQvEnJIm2GMnMG7SqsAevlBcYsqBCAlOvcAxggCh8KFGkXrV5j3Clv7WEGkXGlFHBIyBWzEIDo7aG6ARgSCh8KFJ3HsXBGddKERineIxjiiVDxb5nZEICA8ouoCRgdCh8KFEj5l1wz1GSYpg3ZT6VP2FMmy+DdEIDQzc+cDBgGCh8KFGeurC8Nyq4Ld5B3ejtLopbEJ9vrEICgqZORDxgsCh8KFIbVonHURf+C+4gGNCVE2pT8O3ojEIDwhNeFEhgpCh8KFP+u/2w+/QbTXDdXlps0ATblmO//EICQvN7uFxgNCh8KFCU1H5e0EWiNObJ49HsHH3LzAMSVEIDgl6LjGhgZCh8KFDsHFJIYC6XZhGRmpczivdoH4suTEIDwmcWJBBgfCh8KFBtAtzgrouA93qfL+0H5MLsgoKQ6EICo6qTkAxgVMkCC+5SV1IEMIYBnVPod8KjDEFsgJ9nD20TAqtpcD/4KDzL/U+grs8rqQHKVVQmMcUhWLJH4LZZc5kGtlmk1UpwG"
+			}
 		}
-	}
+	]
 }

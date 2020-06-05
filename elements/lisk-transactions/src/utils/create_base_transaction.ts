@@ -15,14 +15,25 @@
 
 import {
 	getAddressAndPublicKeyFromPassphrase,
-	hexToBuffer,
+	bufferToHex,
 } from '@liskhq/lisk-cryptography';
+import { TransactionJSON } from '../types';
 
 export interface CreateBaseTransactionInput {
 	readonly nonce: string;
 	readonly fee: string;
 	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
+}
+
+interface BaseTransaction {
+	readonly id: Buffer;
+	readonly type: number;
+	readonly senderPublicKey: Buffer;
+	readonly signatures: Array<Readonly<Buffer>>;
+	readonly asset: object;
+	readonly nonce: bigint;
+	readonly fee: bigint;
 }
 
 // eslint-disable-next-line
@@ -36,27 +47,20 @@ export const createBaseTransaction = ({
 		: { publicKey: undefined };
 
 	return {
-		nonce,
-		fee,
+		nonce: BigInt(nonce),
+		fee: BigInt(fee),
 		senderPublicKey,
 	};
 };
 
-export const SIGNATURE_NOT_PRESENT = Buffer.from('00', 'hex');
-export const SIGNATURE_PRESENT = Buffer.from('01', 'hex');
-
-export const serializeSignatures = (
-	signatures: ReadonlyArray<string>,
-): Buffer => {
-	const signaturesBuffer = signatures.map(signature => {
-		// If signature is empty append 0x00 to byteBuffer
-		if (signature.length === 0) {
-			return SIGNATURE_NOT_PRESENT;
-		}
-
-		// If signature is not empty append 0x01 to byteBuffer
-		return Buffer.concat([SIGNATURE_PRESENT, hexToBuffer(signature)]);
-	});
-
-	return Buffer.concat(signaturesBuffer);
-};
+export const baseTransactionToJSON = (
+	transaction: BaseTransaction,
+): Partial<TransactionJSON> => ({
+	id: String(transaction.id),
+	type: transaction.type,
+	senderPublicKey: bufferToHex(transaction.senderPublicKey),
+	signatures: transaction.signatures.map(s => bufferToHex(s as Buffer)),
+	asset: transaction.asset,
+	nonce: String(transaction.nonce),
+	fee: String(transaction.fee),
+});

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { bufferToHex, hexToBuffer } from './buffer';
 import { BINARY_ADDRESS_LENGTH } from './constants';
 // eslint-disable-next-line import/no-cycle
 import {
@@ -21,50 +20,21 @@ import {
 	convertUIntArray,
 } from './convert';
 import { hash } from './hash';
-// eslint-disable-next-line import/no-cycle
 import { getKeyPair, getPublicKey } from './nacl';
-
-export interface KeypairBytes {
-	readonly privateKeyBytes: Buffer;
-	readonly publicKeyBytes: Buffer;
-}
-
-export interface Keypair {
-	readonly privateKey: string;
-	readonly publicKey: string;
-}
-
-export const getPrivateAndPublicKeyBytesFromPassphrase = (
-	passphrase: string,
-): KeypairBytes => {
-	const hashed = hash(passphrase, 'utf8');
-	const { publicKeyBytes, privateKeyBytes } = getKeyPair(hashed);
-
-	return {
-		privateKeyBytes,
-		publicKeyBytes,
-	};
-};
+import { Keypair } from './types';
 
 export const getPrivateAndPublicKeyFromPassphrase = (
 	passphrase: string,
 ): Keypair => {
-	const {
-		privateKeyBytes,
-		publicKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-
-	return {
-		privateKey: bufferToHex(privateKeyBytes),
-		publicKey: bufferToHex(publicKeyBytes),
-	};
+	const hashed = hash(passphrase, 'utf8');
+	return getKeyPair(hashed);
 };
 
 export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
 export const getAddressAndPublicKeyFromPassphrase = (
 	passphrase: string,
-): { readonly address: string; readonly publicKey: string } => {
+): { readonly address: Buffer; readonly publicKey: Buffer } => {
 	const { publicKey } = getKeys(passphrase);
 	const address = getAddressFromPublicKey(publicKey);
 
@@ -74,15 +44,14 @@ export const getAddressAndPublicKeyFromPassphrase = (
 	};
 };
 
-export const getAddressFromPassphrase = (passphrase: string): string => {
+export const getAddressFromPassphrase = (passphrase: string): Buffer => {
 	const { publicKey } = getKeys(passphrase);
 
 	return getAddressFromPublicKey(publicKey);
 };
 
-export const getAddressFromPrivateKey = (privateKey: string): string => {
-	const publicKeyBytes = getPublicKey(hexToBuffer(privateKey));
-	const publicKey = bufferToHex(publicKeyBytes);
+export const getAddressFromPrivateKey = (privateKey: Buffer): Buffer => {
+	const publicKey = getPublicKey(privateKey);
 
 	return getAddressFromPublicKey(publicKey);
 };

@@ -20,13 +20,13 @@ export enum Status {
 }
 
 export interface TransactionResponse {
-	readonly id: string;
+	readonly id: Buffer;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
 }
 
 export const createResponse = (
-	id: string,
+	id: Buffer,
 	errors?: ReadonlyArray<TransactionError>,
 ): TransactionResponse => ({
 	id,

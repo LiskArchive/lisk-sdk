@@ -13,7 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	getKeys,
+	getBase32AddressFromPublicKey,
+} from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -22,14 +26,24 @@ import { getPassphraseFromPrompt } from '../../utils/reader';
 
 const processInput = (
 	passphrase: string,
-): { privateKey: string; publicKey: string; address: string } => {
+): {
+	privateKey: string;
+	publicKey: string;
+	address: string;
+	binaryAddress: string;
+} => {
 	const { privateKey, publicKey } = getKeys(passphrase);
-	const address = getAddressFromPublicKey(publicKey);
+	const binaryAddress = getAddressFromPublicKey(publicKey);
+	const address = getBase32AddressFromPublicKey(
+		publicKey.toString('hex'),
+		'lsk',
+	);
 
 	return {
-		privateKey,
-		publicKey,
+		privateKey: privateKey.toString('base64'),
+		publicKey: publicKey.toString('base64'),
 		address,
+		binaryAddress: binaryAddress.toString('base64'),
 	};
 };
 

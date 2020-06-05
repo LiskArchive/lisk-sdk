@@ -20,7 +20,7 @@ import {
 import { composeTransactionSteps } from '../../src/transactions/compose_transaction_steps';
 
 describe('#composeTransactionSteps', () => {
-	const testTransactions = [
+	const testTransactions = ([
 		{
 			id: 'anId',
 			type: 0,
@@ -29,7 +29,7 @@ describe('#composeTransactionSteps', () => {
 			id: 'anotherId',
 			type: 1,
 		},
-	] as BaseTransaction[];
+	] as unknown) as BaseTransaction[];
 
 	const step1Response = [
 		{

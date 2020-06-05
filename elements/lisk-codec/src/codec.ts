@@ -36,8 +36,18 @@ export const validateSchema = (schema: {
 	$schema?: string;
 	$id?: string;
 }): boolean => {
-	// We don't want to use cache that schema in validator
-	// Otherwise any frequent compilation call will fail
+	// TODO: https://github.com/ajv-validator/ajv/issues/1221
+	//
+	// Ajv compiles schema and cache it when either "validate" or "compile" called
+	//
+	// Due to issue mentioned above we have to compile the schema
+	// manually our self. That requires to clear the cache manually so
+	// any subsequent request to validate or compile may not fail.
+	//
+	// We have to clear cache once on start and once at the end
+	// to cover both cases in which order "validate" or "compile"
+	// is called from main code.
+
 	validator.removeSchema(schema.$id);
 
 	const schemaToValidate = {
@@ -54,10 +64,14 @@ export const validateSchema = (schema: {
 		throw new LiskValidationError([...errors]);
 	}
 
-	// To validate keyword schema we have to compile it
-	// Ajv `validateSchema` does not validate keyword meta schema
-	// https://github.com/ajv-validator/ajv/issues/1221
-	validator.compile(schemaToValidate);
+	try {
+		// To validate keyword schema we have to compile it
+		// Ajv `validateSchema` does not validate keyword meta schema
+		// https://github.com/ajv-validator/ajv/issues/1221
+		validator.compile(schemaToValidate);
+	} finally {
+		validator.removeSchema(schema.$id);
+	}
 
 	return true;
 };

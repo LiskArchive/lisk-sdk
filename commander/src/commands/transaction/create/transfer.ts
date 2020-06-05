@@ -21,6 +21,7 @@ import {
 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
+import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
@@ -55,9 +56,14 @@ const processInputs = (
 		nonce,
 		fee,
 		networkIdentifier,
-		recipientId: address,
+		senderPublicKey: passphrase
+			? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey.toString(
+					'hex',
+			  )
+			: '',
+		recipientAddress: address,
 		amount,
-		data,
+		data: data ?? '',
 		passphrase,
 	});
 

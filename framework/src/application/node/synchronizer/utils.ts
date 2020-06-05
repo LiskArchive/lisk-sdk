@@ -28,9 +28,8 @@ export const restoreBlocks = async (
 		return false;
 	}
 
-	for (const tempBlockEntry of tempBlocks) {
-		const tempBlockInstance = await processorModule.deserialize(tempBlockEntry);
-		await processorModule.processValidated(tempBlockInstance, {
+	for (const tempBlock of tempBlocks) {
+		await processorModule.processValidated(tempBlock, {
 			removeFromTempTable: true,
 		});
 	}
@@ -48,7 +47,7 @@ export const deleteBlocksAfterHeight = async (
 	desiredHeight: number,
 	backup = false,
 ): Promise<void> => {
-	let { height: currentHeight } = chainModule.lastBlock;
+	let { height: currentHeight } = chainModule.lastBlock.header;
 	logger.debug(
 		{ desiredHeight, lastBlockHeight: currentHeight },
 		'Deleting blocks after height',
@@ -56,15 +55,15 @@ export const deleteBlocksAfterHeight = async (
 	while (desiredHeight < currentHeight) {
 		logger.trace(
 			{
-				height: chainModule.lastBlock.height,
-				blockId: chainModule.lastBlock.id,
+				height: chainModule.lastBlock.header.height,
+				blockId: chainModule.lastBlock.header.id,
 			},
 			'Deleting block and backing it up to temporary table',
 		);
 		const lastBlock = await processorModule.deleteLastBlock({
 			saveTempBlock: backup,
 		});
-		currentHeight = lastBlock.height;
+		currentHeight = lastBlock.header.height;
 	}
 };
 
@@ -88,8 +87,7 @@ export const restoreBlocksUponStartup = async (
 	const blockLowestHeight = tempBlocks[tempBlocks.length - 1];
 	const blockHighestHeight = tempBlocks[0];
 
-	const nextTempBlock = await processorModule.deserialize(blockHighestHeight);
-	const forkStatus = await processorModule.forkStatus(nextTempBlock);
+	const forkStatus = await processorModule.forkStatus(blockHighestHeight);
 	const blockHasPriority =
 		forkStatus === ForkStatus.DIFFERENT_CHAIN ||
 		forkStatus === ForkStatus.VALID_BLOCK;
@@ -101,7 +99,7 @@ export const restoreBlocksUponStartup = async (
 			processorModule,
 			chainModule,
 			logger,
-			blockLowestHeight.height - 1,
+			blockLowestHeight.header.height - 1,
 			false,
 		);
 		// In case fork status is DIFFERENT_CHAIN - try to apply blocks from temp_blocks table

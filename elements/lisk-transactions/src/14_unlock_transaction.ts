@@ -12,29 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { intToBuffer, hexToBuffer } from '@liskhq/lisk-cryptography';
-import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
-import { convertToAssetError, TransactionError } from './errors';
-import { Account, TransactionJSON } from './types';
+import { TransactionError } from './errors';
+import { Account, BaseTransactionInput, AccountAsset } from './types';
 import { getPunishmentPeriod, sortUnlocking } from './utils';
 
 export interface Unlock {
-	readonly delegateAddress: string;
+	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
 }
 
 export interface UnlockAsset {
-	readonly unlockingObjects: ReadonlyArray<Unlock>;
+	readonly unlockObjects: ReadonlyArray<Unlock>;
 }
 
-const unlockAssetFormatSchema = {
+const unlockAssetSchema = {
+	$id: 'lisk/unlock-transaction',
 	type: 'object',
-	required: ['unlockingObjects'],
+	required: ['unlockObjects'],
 	properties: {
-		unlockingObjects: {
+		unlockObjects: {
 			type: 'array',
 			minItems: 1,
 			maxItems: 20,
@@ -43,121 +42,59 @@ const unlockAssetFormatSchema = {
 				required: ['delegateAddress', 'amount', 'unvoteHeight'],
 				properties: {
 					delegateAddress: {
-						type: 'string',
-						format: 'address',
+						dataType: 'bytes',
+						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					amount: {
-						type: 'string',
-						format: 'int64',
+						dataType: 'uint64',
+						fieldNumber: 2,
 					},
 					unvoteHeight: {
-						type: 'integer',
-						minimum: 0,
+						dataType: 'uint32',
+						fieldNumber: 3,
 					},
 				},
 			},
+			fieldNumber: 1,
 		},
 	},
 };
 
-const SIZE_UINT32 = 4;
-const SIZE_INT64 = 8;
 const AMOUNT_MULTIPLIER_FOR_VOTES = BigInt(10) * BigInt(10) ** BigInt(8);
 const WAIT_TIME_VOTE = 2000;
 const WAIT_TIME_SELF_VOTE = 260000;
 
-export interface RawAssetUnlock {
-	readonly delegateAddress: string;
-	readonly amount: string;
-	readonly unvoteHeight: number;
-}
-
-interface RawAsset {
-	readonly unlockingObjects: ReadonlyArray<RawAssetUnlock>;
-}
-
 const getWaitingPeriod = (
-	sender: Account,
-	delegateAccount: Account,
+	sender: Account<AccountAsset>,
+	delegateAccount: Account<AccountAsset>,
 	lastBlockHeight: number,
 	unlockObject: Unlock,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
-	const waitTime =
-		sender.address === delegateAccount.address
-			? WAIT_TIME_SELF_VOTE
-			: WAIT_TIME_VOTE;
+	const waitTime = sender.address.equals(delegateAccount.address)
+		? WAIT_TIME_SELF_VOTE
+		: WAIT_TIME_VOTE;
 
 	return waitTime - (currentHeight - unlockObject.unvoteHeight);
 };
 
 export class UnlockTransaction extends BaseTransaction {
 	public static TYPE = 14;
+	public static ASSET_SCHEMA = unlockAssetSchema;
 	public readonly asset: UnlockAsset;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		if (tx.asset) {
-			const rawAsset = tx.asset as RawAsset;
-			this.asset = {
-				unlockingObjects: rawAsset.unlockingObjects.map(unlock => {
-					const amount = isNumberString(unlock.amount)
-						? BigInt(unlock.amount)
-						: BigInt(0);
+	public constructor(transaction: BaseTransactionInput<UnlockAsset>) {
+		super(transaction);
 
-					return {
-						delegateAddress: unlock.delegateAddress,
-						amount,
-						unvoteHeight: unlock.unvoteHeight,
-					};
-				}),
-			};
-		} else {
-			this.asset = { unlockingObjects: [] };
-		}
-	}
-
-	public assetToJSON(): object {
-		return {
-			unlockingObjects: this.asset.unlockingObjects.map(unlock => ({
-				delegateAddress: unlock.delegateAddress,
-				amount: unlock.amount.toString(),
-				unvoteHeight: unlock.unvoteHeight,
-			})),
-		};
-	}
-
-	protected assetToBytes(): Buffer {
-		const bufferArray = [];
-		for (const unlock of this.asset.unlockingObjects) {
-			const addressBuffer = hexToBuffer(unlock.delegateAddress);
-			bufferArray.push(addressBuffer);
-			const amountBuffer = intToBuffer(
-				unlock.amount.toString(),
-				SIZE_INT64,
-				'big',
-				true,
-			);
-			bufferArray.push(amountBuffer);
-			const unvoteHeightBuffer = intToBuffer(unlock.unvoteHeight, SIZE_UINT32);
-			bufferArray.push(unvoteHeightBuffer);
-		}
-
-		return Buffer.concat(bufferArray);
+		this.asset = transaction.asset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(unlockAssetFormatSchema, asset);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
+		const errors = [];
 
-		for (const unlock of this.asset.unlockingObjects) {
+		for (const unlock of this.asset.unlockObjects) {
 			if (unlock.amount <= BigInt(0)) {
 				errors.push(
 					new TransactionError(
@@ -189,15 +126,17 @@ export class UnlockTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors = [];
 
-		for (const unlock of this.asset.unlockingObjects) {
-			const sender = await store.account.get(this.senderId);
-			const delegate = await store.account.getOrDefault(unlock.delegateAddress);
-			if (!delegate.username) {
+		for (const unlock of this.asset.unlockObjects) {
+			const sender = await store.account.get<AccountAsset>(this.senderId);
+			const delegate = await store.account.getOrDefault<AccountAsset>(
+				unlock.delegateAddress,
+			);
+			if (!delegate.asset.delegate.username) {
 				errors.push(
 					new TransactionError(
 						'Voted account is not registered as delegate',
 						this.id,
-						'.asset.unlockingObjects.delegateAddress',
+						'.asset.unlockObjects.delegateAddress',
 					),
 				);
 				// eslint-disable-next-line no-continue
@@ -215,7 +154,7 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Unlocking is not permitted as it is still within the waiting period',
 						this.id,
-						'.asset.unlockingObjects.unvoteHeight',
+						'.asset.unlockObjects.unvoteHeight',
 						waitingPeriod,
 						0,
 					),
@@ -231,16 +170,16 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Unlocking is not permitted as delegate is currently being punished',
 						this.id,
-						'.asset.unlockingObjects.delegateAddress',
+						'.asset.unlockObjects.delegateAddress',
 						punishmentPeriod,
 						0,
 					),
 				);
 			}
-			const unlockIndex = sender.unlocking.findIndex(
+			const unlockIndex = sender.asset.unlocking.findIndex(
 				obj =>
 					obj.amount === unlock.amount &&
-					obj.delegateAddress === unlock.delegateAddress &&
+					obj.delegateAddress.equals(unlock.delegateAddress) &&
 					obj.unvoteHeight === unlock.unvoteHeight,
 			);
 			if (unlockIndex < 0) {
@@ -248,13 +187,13 @@ export class UnlockTransaction extends BaseTransaction {
 					new TransactionError(
 						'Corresponding unlocking object not found',
 						this.id,
-						'.asset.unlockingObjects',
+						'.asset.unlockObjects',
 					),
 				);
 				// eslint-disable-next-line no-continue
 				continue;
 			}
-			sender.unlocking.splice(unlockIndex, 1);
+			sender.asset.unlocking.splice(unlockIndex, 1);
 			sender.balance += unlock.amount;
 			store.account.set(sender.address, sender);
 		}
@@ -265,13 +204,13 @@ export class UnlockTransaction extends BaseTransaction {
 	protected async undoAsset(
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
-		for (const unlock of this.asset.unlockingObjects) {
-			const sender = await store.account.get(this.senderId);
+		for (const unlock of this.asset.unlockObjects) {
+			const sender = await store.account.get<AccountAsset>(this.senderId);
 
 			sender.balance -= unlock.amount;
-			sender.unlocking.push(unlock);
+			sender.asset.unlocking.push(unlock);
 			// Resort the unlocking since it's pushed to the end
-			sortUnlocking(sender.unlocking);
+			sortUnlocking(sender.asset.unlocking);
 			store.account.set(sender.address, sender);
 		}
 

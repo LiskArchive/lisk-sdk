@@ -15,8 +15,6 @@
 import {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getId,
-	serializeSignatures,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validateSignature,
@@ -32,10 +30,6 @@ describe('transaction utils', () => {
 			return expect(convertLSKToBeddows).toBeFunction();
 		});
 
-		it('should have getId', () => {
-			return expect(getId).toBeFunction();
-		});
-
 		it('should have prependMinusToPublicKeys', () => {
 			return expect(prependMinusToPublicKeys).toBeFunction();
 		});
@@ -46,10 +40,6 @@ describe('transaction utils', () => {
 
 		it('should have verifySignature', () => {
 			return expect(validateSignature).toBeFunction();
-		});
-
-		it('should have serializeSignatures', () => {
-			return expect(serializeSignatures).toBeFunction();
 		});
 	});
 });

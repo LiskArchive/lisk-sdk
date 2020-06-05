@@ -86,7 +86,31 @@ class ConsoleLog {
 				);
 			}
 			if (Object.keys(others).length > 0) {
-				log += util.format('%s \n', JSON.stringify(others, undefined, ' '));
+				log += util.format(
+					'%s \n',
+					JSON.stringify(
+						others,
+						(_, val) => {
+							if (typeof val === 'object') {
+								for (const k of Object.keys(val)) {
+									// eslint-disable-next-line
+									if (typeof val[k] === 'bigint') {
+										// eslint-disable-next-line
+										val[k] = val[k].toString();
+									}
+									// eslint-disable-next-line
+									if (Buffer.isBuffer(val[k])) {
+										// eslint-disable-next-line
+										val[k] = val[k].toString('base64');
+									}
+								}
+							}
+							// eslint-disable-next-line
+							return val;
+						},
+						' ',
+					),
+				);
 			}
 			process.stdout.write(log);
 		} catch (err) {

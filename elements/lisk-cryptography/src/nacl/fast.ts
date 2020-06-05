@@ -91,14 +91,14 @@ export const getRandomBytes: NaclInterface['getRandomBytes'] = length => {
 };
 
 export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
-	const publicKeyBytes = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
-	const privateKeyBytes = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
+	const publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
+	const privateKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
 
-	sodium.crypto_sign_seed_keypair(publicKeyBytes, privateKeyBytes, hashedSeed);
+	sodium.crypto_sign_seed_keypair(publicKey, privateKey, hashedSeed);
 
 	return {
-		publicKeyBytes,
-		privateKeyBytes,
+		publicKey,
+		privateKey,
 	};
 };
 

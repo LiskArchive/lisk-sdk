@@ -18,5 +18,5 @@ import { Node } from '../../../src/application/node';
 export const getDelegateList = async (
 	node: Node,
 	round: number,
-): Promise<ReadonlyArray<string>> =>
+): Promise<ReadonlyArray<Buffer>> =>
 	node['_dpos'].getForgerAddressesForRound(round);

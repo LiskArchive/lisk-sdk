@@ -12,43 +12,123 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BlockInstance } from '@liskhq/lisk-chain';
+import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
+import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
+import { BlockHeaderAsset } from '../block_processor_v2';
+import {
+	ApplyPenaltyAndRestartError,
+	ApplyPenaltyAndAbortError,
+} from './errors';
+
+export const EVENT_SYNCHRONIZER_SYNC_REQUIRED =
+	'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
 
 export abstract class BaseSynchronizer {
-	protected logger: Logger;
-	protected channel: InMemoryChannel;
+	public events: EventEmitter;
 
-	public constructor(logger: Logger, channel: InMemoryChannel) {
-		this.logger = logger;
-		this.channel = channel;
+	protected _logger: Logger;
+	protected _channel: InMemoryChannel;
+	protected _chain: Chain;
+
+	public constructor(logger: Logger, channel: InMemoryChannel, chain: Chain) {
+		this._logger = logger;
+		this._channel = channel;
+		this._chain = chain;
+		this.events = new EventEmitter();
 	}
 
 	protected async _applyPenaltyAndRestartSync(
 		peerId: string,
-		receivedBlock: BlockInstance,
+		receivedBlock: Block,
 		reason: string,
 	): Promise<void> {
-		this.logger.info(
+		this._logger.info(
 			{ peerId, reason },
 			'Applying penalty to peer and restarting synchronizer',
 		);
-		await this.channel.invoke('app:applyPenaltyOnPeer', {
+		await this._channel.invoke('app:applyPenaltyOnPeer', {
 			peerId,
 			penalty: 100,
 		});
-		this.channel.publish('app:chain:sync', {
+		this.events.emit(EVENT_SYNCHRONIZER_SYNC_REQUIRED, {
 			block: receivedBlock,
+			peerId,
 		});
 	}
 
+	protected async _getLastBlockFromNetwork(
+		peerId: string,
+	): Promise<Block<BlockHeaderAsset>> {
+		const { data } = await this._channel.invokeFromNetwork<{
+			data: string | undefined;
+		}>('requestFromPeer', {
+			procedure: 'getLastBlock',
+			peerId,
+		});
+		if (!data || !data.length) {
+			throw new ApplyPenaltyAndRestartError(
+				peerId,
+				"Peer did not provide its last block",
+			);
+		}
+		return this._chain.dataAccess.decode<BlockHeaderAsset>(
+			Buffer.from(data, 'base64'),
+		);
+	}
+
+	protected async _getHighestCommonBlockFromNetwork(
+		peerId: string,
+		ids: Buffer[],
+	): Promise<BlockHeader<BlockHeaderAsset>> {
+		const { data } = await this._channel.invokeFromNetwork<{
+			data: string | undefined;
+		}>('requestFromPeer', {
+			procedure: 'getHighestCommonBlock',
+			peerId,
+			data: {
+				ids: ids.map(id => id.toString('base64')),
+			},
+		});
+		if (!data || !data.length) {
+			throw new ApplyPenaltyAndAbortError(
+				peerId,
+				"Peer did not return a common block",
+			);
+		}
+		return this._chain.dataAccess.decodeBlockHeader<BlockHeaderAsset>(
+			Buffer.from(data, 'base64'),
+		);
+	}
+
+	protected async _getBlocksFromNetwork(
+		peerId: string,
+		fromID: Buffer,
+	): Promise<Block<BlockHeaderAsset>[]> {
+		const { data } = await this._channel.invokeFromNetwork<{
+			data: string[] | undefined;
+		}>('requestFromPeer', {
+			procedure: 'getBlocksFromId',
+			peerId,
+			data: {
+				blockId: fromID.toString('base64'),
+			},
+		}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+		if (!data || !data.length) {
+			throw new Error('Peer did not respond with block');
+		}
+		return data.map(d =>
+			this._chain.dataAccess.decode<BlockHeaderAsset>(Buffer.from(d, 'base64')),
+		);
+	}
+
 	public abstract async run(
-		receivedBlock: BlockInstance,
+		receivedBlock: Block,
 		peerId: string,
 	): Promise<void>;
 	public abstract async isValidFor(
-		receivedBlock: BlockInstance,
+		receivedBlock: Block,
 		peerId: string,
 	): Promise<boolean>;
 }

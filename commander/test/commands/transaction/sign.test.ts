@@ -19,7 +19,9 @@ import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as readerUtils from '../../../src/utils/reader';
 
-describe('transaction:sign', () => {
+// This needs to be re-implemented using base64 with https://github.com/LiskHQ/lisk-core/issues/254
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('transaction:sign', () => {
 	const defaultTransaction = {
 		type: 8,
 		nonce: '0',

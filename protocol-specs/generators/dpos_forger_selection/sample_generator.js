@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { getAddressFromPassphrase } = require('@liskhq/lisk-cryptography');
+const { hash, getKeys } = require('@liskhq/lisk-cryptography');
 const { Mnemonic } = require('@liskhq/lisk-passphrase');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -25,7 +25,10 @@ const generateDelegates = (num, fixedNum) => {
 	const delegateList = [];
 	for (let i = 0; i < num; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic();
-		const address = getAddressFromPassphrase(passphrase);
+		const { publicKey } = getKeys(passphrase);
+		const address = hash(Buffer.from(publicKey, 'hex'))
+			.slice(0, 20)
+			.toString('hex');
 		const buf = crypto.randomBytes(8);
 		const randomNumber = buf.readBigUInt64BE() / BigInt(10) ** BigInt(8);
 		const voteWeight = fixedValue

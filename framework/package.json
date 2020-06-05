@@ -39,6 +39,7 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-bft": "0.1.0-alpha.0",
+		"@liskhq/lisk-codec": "0.1.0",
 		"@liskhq/lisk-chain": "0.1.0-alpha.0",
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
 		"@liskhq/lisk-db": "0.1.0",

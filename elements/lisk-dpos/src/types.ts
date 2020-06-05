@@ -14,10 +14,10 @@
 
 export interface StateStore {
 	readonly account: {
-		readonly get: (primaryValue: string) => Promise<Account>;
+		readonly get: (primaryValue: Buffer) => Promise<Account>;
 		readonly getUpdated: () => ReadonlyArray<Account>;
 		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		set(key: string, value: Account): void;
+		set(key: Buffer, value: Account): void;
 	};
 	readonly consensus: {
 		readonly get: (key: string) => Promise<Buffer | undefined>;
@@ -32,39 +32,49 @@ export interface StateStore {
 
 export interface BlockHeader {
 	readonly height: number;
-	readonly generatorPublicKey: string;
-	readonly seedReveal: string;
+	readonly generatorPublicKey: Buffer;
 	readonly reward: bigint;
-	readonly totalFee: bigint;
 	readonly timestamp: number;
+	readonly asset: {
+		readonly seedReveal: Buffer;
+	};
 }
 
-export interface Block extends BlockHeader {
-	// Temporally required to create this type, since total reward and fee are required to calculated in the DPoS for vote weight change
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly transactions: any[];
+export interface AccountAsset {
+	delegate: DelegateAccountAsset;
+	sentVotes: VoteAccountAsset[];
+	unlocking: UnlockingAccountAsset[];
 }
 
-interface Vote {
-	readonly delegateAddress: string;
-	readonly amount: bigint;
+export interface DelegateAccountAsset {
+	username: string;
+	pomHeights: number[];
+	consecutiveMissedBlocks: number;
+	lastForgedHeight: number;
+	isBanned: boolean;
+	totalVotesReceived: bigint;
+}
+
+export interface VoteAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+}
+
+export interface UnlockingAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+	unvoteHeight: number;
 }
 
 export interface Account {
-	readonly address: string;
-	totalVotesReceived: bigint;
-	readonly delegate: {
-		readonly isBanned: boolean;
-		readonly pomHeights: number[];
-	};
-	readonly votes: Vote[];
-	readonly username: string | null;
+	readonly address: Buffer;
+	readonly publicKey: Buffer;
 	balance: bigint;
-	producedBlocks: number;
-	missedBlocks: number;
-	fees: bigint;
-	rewards: bigint;
-	readonly publicKey?: string;
+	asset: {
+		delegate: DelegateAccountAsset;
+		sentVotes: VoteAccountAsset[];
+		unlocking: UnlockingAccountAsset[];
+	};
 }
 
 export interface DPoSProcessingOptions {
@@ -81,14 +91,11 @@ export interface Chain {
 			toHeight: number,
 		): Promise<BlockHeader[]>;
 	};
-	getTotalEarningAndBurnt(
-		block: BlockHeader,
-	): { readonly totalEarning: bigint; readonly totalBurnt: bigint };
 }
 
 export interface DelegateWeight {
-	readonly address: string;
-	readonly voteWeight: string;
+	readonly address: Buffer;
+	readonly voteWeight: bigint;
 }
 
 export interface VoteWeight {
@@ -98,8 +105,8 @@ export interface VoteWeight {
 
 export interface ForgerList {
 	readonly round: number;
-	readonly delegates: ReadonlyArray<string>;
-	readonly standby: ReadonlyArray<string>;
+	readonly delegates: ReadonlyArray<Buffer>;
+	readonly standby: ReadonlyArray<Buffer>;
 }
 
 export type ForgersList = ForgerList[];
@@ -122,7 +129,7 @@ export type RandomSeed = Buffer;
 
 export interface ChainStateRegisteredDelegate {
 	readonly username: string;
-	readonly address: string;
+	readonly address: Buffer;
 }
 export interface ChainStateUsernames {
 	readonly registeredDelegates: ChainStateRegisteredDelegate[];

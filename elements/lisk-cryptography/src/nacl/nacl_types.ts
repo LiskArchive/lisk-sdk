@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line import/no-cycle
-import { KeypairBytes } from '../keys';
+import { Keypair } from '../types';
 
 export interface NaclInterface {
 	box: (
@@ -22,7 +21,7 @@ export interface NaclInterface {
 		convertedPublicKey: Buffer,
 		convertedPrivateKey: Buffer,
 	) => Buffer;
-	getKeyPair: (hashedSeed: Buffer) => KeypairBytes;
+	getKeyPair: (hashedSeed: Buffer) => Keypair;
 	getPublicKey: (privateKey: Buffer) => Buffer;
 	getRandomBytes: (length: number) => Buffer;
 	openBox: (

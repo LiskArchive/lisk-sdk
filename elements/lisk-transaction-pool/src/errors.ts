@@ -14,13 +14,13 @@
  */
 export class TransactionPoolError extends Error {
 	public message: string;
-	public id: string;
+	public id: Buffer;
 	public dataPath: string;
 	public actual?: string | number;
 	public expected?: string | number;
 	public constructor(
 		message = '',
-		id = '',
+		id = Buffer.alloc(0),
 		dataPath = '',
 		actual?: string | number,
 		expected?: string | number,
@@ -35,7 +35,9 @@ export class TransactionPoolError extends Error {
 	}
 
 	public toString(): string {
-		const defaultMessage = `TransactionPool: ${this.id} failed to process at ${this.dataPath}: ${this.message}`;
+		const defaultMessage = `TransactionPool: ${this.id.toString(
+			'base64',
+		)} failed to process at ${this.dataPath}: ${this.message}`;
 		const withActual = this.actual
 			? // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			  `${defaultMessage}, actual: ${this.actual}`
