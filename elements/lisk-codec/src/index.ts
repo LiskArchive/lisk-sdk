@@ -13,4 +13,4 @@
  */
 
 export * from './codec';
-export { MinimalSchema } from './types';
+export { Schema } from './types';

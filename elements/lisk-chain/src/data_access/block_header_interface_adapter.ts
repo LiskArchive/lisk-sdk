@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { codec, MinimalSchema } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { RawBlockHeader, BlockHeader } from '../types';
 import { blockHeaderSchema, signingBlockHeaderSchema } from '../schema';
@@ -21,19 +21,19 @@ export interface RegisteredBlockHeaders {
 }
 
 export class BlockHeaderInterfaceAdapter {
-	private readonly _blockSchemaMap: Map<number, MinimalSchema>;
+	private readonly _blockSchemaMap: Map<number, Schema>;
 
 	public constructor(registeredBlocks: RegisteredBlockHeaders = {}) {
-		this._blockSchemaMap = new Map<number, MinimalSchema>();
+		this._blockSchemaMap = new Map<number, Schema>();
 		Object.keys(registeredBlocks).forEach(version => {
 			this._blockSchemaMap.set(
 				Number(version),
-				registeredBlocks[Number(version)] as MinimalSchema,
+				registeredBlocks[Number(version)] as Schema,
 			);
 		});
 	}
 
-	public getSchema(version: number): MinimalSchema {
+	public getSchema(version: number): Schema {
 		const assetSchema = this._blockSchemaMap.get(version);
 		if (!assetSchema) {
 			throw new Error(`Asset Schema not found for block version: ${version}.`);

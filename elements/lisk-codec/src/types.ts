@@ -22,12 +22,12 @@ export interface SchemaPair {
 	readonly [key: string]: SchemaProps;
 }
 
-export interface MinimalSchema {
+export interface Schema {
 	readonly $id: string;
 	readonly properties: object;
 }
 
-export interface Schema {
+export interface ValidatedSchema {
 	readonly $id: string;
 	readonly $schema?: string;
 	readonly type: string;

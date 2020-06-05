@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { codec, MinimalSchema } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
@@ -399,7 +399,7 @@ export abstract class BaseTransaction {
 	private _getAssetBytes(): Buffer {
 		const assetSchema = (this.constructor as typeof BaseTransaction)
 			.ASSET_SCHEMA;
-		return codec.encode(assetSchema as MinimalSchema, this.asset);
+		return codec.encode(assetSchema as Schema, this.asset);
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {

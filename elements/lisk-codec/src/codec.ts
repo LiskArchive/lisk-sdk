@@ -22,12 +22,12 @@ import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
 
 import {
-	MinimalSchema,
+	Schema,
 	CompiledSchema,
 	CompiledSchemas,
 	CompiledSchemasArray,
 	GenericObject,
-	Schema,
+	ValidatedSchema,
 	SchemaProps,
 } from './types';
 
@@ -80,12 +80,12 @@ export const validateSchema = (schema: {
 export class Codec {
 	private readonly _compileSchemas: CompiledSchemas = {};
 
-	public addSchema(schema: MinimalSchema): boolean {
+	public addSchema(schema: Schema): boolean {
 		validateSchema(schema);
 
 		const schemaName = schema.$id;
 		this._compileSchemas[schemaName] = this._compileSchema(
-			schema as Schema,
+			schema as ValidatedSchema,
 			[],
 			[],
 		);
@@ -93,7 +93,7 @@ export class Codec {
 		return true;
 	}
 
-	public encode(schema: MinimalSchema, message: object): Buffer {
+	public encode(schema: Schema, message: object): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
@@ -103,7 +103,7 @@ export class Codec {
 		return Buffer.concat(res[0]);
 	}
 
-	public decode<T>(schema: MinimalSchema, message: Buffer): T {
+	public decode<T>(schema: Schema, message: Buffer): T {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
@@ -114,7 +114,7 @@ export class Codec {
 	}
 
 	private _compileSchema(
-		schema: Schema | SchemaProps,
+		schema: ValidatedSchema | SchemaProps,
 		compiledSchema: CompiledSchemasArray,
 		dataPath: string[],
 	): CompiledSchemasArray {
