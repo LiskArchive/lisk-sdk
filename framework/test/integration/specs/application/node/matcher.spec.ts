@@ -24,6 +24,16 @@ import { Node } from '../../../../../src/application/node';
  * Implementation of the Custom Transaction enclosed in a class
  */
 class CustomTransationClass extends BaseTransaction {
+	public static ASSET_SCHEMA = {
+		$id: 'basic-sample',
+		type: 'object',
+		properties: {
+			foo: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+	};
 	public asset: any;
 
 	public constructor(input: any) {
