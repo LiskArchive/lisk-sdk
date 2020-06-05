@@ -24,6 +24,7 @@ export interface SchemaPair {
 
 export interface Schema {
 	readonly $id: string;
+	readonly type: string;
 	readonly properties: object;
 }
 
