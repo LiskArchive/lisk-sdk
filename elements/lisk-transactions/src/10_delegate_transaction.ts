@@ -189,6 +189,7 @@ export class DelegateTransaction extends BaseTransaction {
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
 		const usernames = await this._getRegisteredDelegates(store);
+
 		const updatedRegisteredDelegates = {
 			registeredDelegates: usernames.registeredDelegates.filter(
 				delegate => delegate.username !== sender.asset.delegate.username,
@@ -235,15 +236,18 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 		input: ChainUsernames,
 	): void {
-		const updatingObject = Buffer.from(
-			JSON.stringify({
-				registeredDelegates: input.registeredDelegates.map(value => ({
-					address: value.address.toString('binary'),
-					username: value.username,
-				})),
-			}),
-			'utf8',
+		const updatingObject = {
+			registeredDelegates: input.registeredDelegates.map(value => ({
+				address: value.address,
+				username: value.username,
+			})),
+		};
+
+		const updatingObjectBinary = codec.encode(
+			(delegatesUserNamesSchema as unknown) as Schema,
+			(updatingObject as unknown) as GenericObject,
 		);
-		store.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObject);
+
+		store.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObjectBinary);
 	}
 }
