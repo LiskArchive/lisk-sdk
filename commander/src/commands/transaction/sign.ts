@@ -140,7 +140,8 @@ export default class SignCommand extends BaseCommand {
 			// Sign for multi signature transaction
 			passphrase.forEach(p => {
 				signMultiSignatureTransaction({
-					transaction: txInstance.toJSON(),
+					// eslint-disable-next-line
+					transaction: {} as any,
 					passphrase: p,
 					networkIdentifier,
 					keys,
@@ -148,7 +149,7 @@ export default class SignCommand extends BaseCommand {
 			});
 		} else {
 			// Sign for non-multi signature transaction
-			txInstance.sign(networkIdentifier, passphrase[0]);
+			txInstance.sign(Buffer.from(networkIdentifier, 'hex'), passphrase[0]);
 		}
 
 		const { errors } = txInstance.validate();
@@ -157,6 +158,6 @@ export default class SignCommand extends BaseCommand {
 			throw errors;
 		}
 
-		this.print(removeUndefinedValues(txInstance.toJSON() as object));
+		this.print(removeUndefinedValues({} as object));
 	}
 }

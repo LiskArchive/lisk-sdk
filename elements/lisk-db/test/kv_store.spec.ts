@@ -18,7 +18,7 @@ import { NotFoundError } from '../src/errors';
 
 interface KeyValuePair {
 	key: string;
-	value: any;
+	value: Buffer;
 }
 
 describe('KVStore', () => {
@@ -51,10 +51,13 @@ describe('KVStore', () => {
 		// TODO: Update to check for Buffer
 		it('should return JSON object if exists', async () => {
 			const defaultKey = 'random';
-			const defaultValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const defaultValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db['_db'].put(defaultKey, defaultValue);
 
 			const value = await db.get(defaultKey);
@@ -70,10 +73,13 @@ describe('KVStore', () => {
 		// TODO: Update to check for Buffer
 		it('should return true if key exists', async () => {
 			const defaultKey = 'random';
-			const defaultValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const defaultValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db['_db'].put(defaultKey, defaultValue);
 
 			await expect(db.exists(defaultKey)).resolves.toBeTrue();
@@ -81,13 +87,15 @@ describe('KVStore', () => {
 	});
 
 	describe('put', () => {
-		// TODO: Update to check for Buffer
 		it('should put the JSON object to the database', async () => {
 			const defaultKey = 'random';
-			const defaultValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const defaultValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db.put(defaultKey, defaultValue);
 
 			const value = await db['_db'].get(defaultKey);
@@ -98,10 +106,13 @@ describe('KVStore', () => {
 	describe('del', () => {
 		it('should delete the key if exists', async () => {
 			const defaultKey = 'random';
-			const defaultValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const defaultValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db['_db'].put(defaultKey, defaultValue);
 
 			await db.del(defaultKey);
@@ -121,19 +132,19 @@ describe('KVStore', () => {
 			expectedValues = [
 				{
 					key: '001',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 				{
 					key: '103',
-					value: 3,
+					value: Buffer.from(JSON.stringify(3), 'binary'),
 				},
 				{
 					key: '010',
-					value: [19, 5, 6],
+					value: Buffer.from(JSON.stringify([19, 5, 6]), 'binary'),
 				},
 				{
 					key: '321',
-					value: 'string',
+					value: Buffer.from(JSON.stringify('string'), 'binary'),
 				},
 			];
 			const batch = db.batch();
@@ -301,15 +312,15 @@ describe('KVStore', () => {
 			const expectedValues = [
 				{
 					key: '1',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 				{
 					key: '3',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 				{
 					key: '2',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 			];
 			const batch = db.batch();
@@ -327,30 +338,36 @@ describe('KVStore', () => {
 
 		it('should update and delete in the same batch', async () => {
 			const deletingKey = 'random';
-			const deletingValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const deletingValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db['_db'].put(deletingKey, deletingValue);
 			const updatingKey = '1';
-			const updatingValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const updatingValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db['_db'].put(updatingKey, updatingValue);
 
 			const expectedValues = [
 				{
 					key: '1',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 				{
 					key: '3',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 				{
 					key: '2',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 			];
 			const batch = db.batch();
@@ -372,10 +389,13 @@ describe('KVStore', () => {
 	describe('clear', () => {
 		it('should remove all data existed', async () => {
 			const defaultKey = 'random';
-			const defaultValue = {
-				key: 'something',
-				balance: 1000000,
-			};
+			const defaultValue = Buffer.from(
+				JSON.stringify({
+					key: 'something',
+					balance: 1000000,
+				}),
+				'binary',
+			);
 			await db['_db'].put(defaultKey, defaultValue);
 
 			await db.clear();
@@ -387,15 +407,15 @@ describe('KVStore', () => {
 			const expectedValues = [
 				{
 					key: '001',
-					value: [4, 5, 6],
+					value: Buffer.from(JSON.stringify([4, 5, 6]), 'binary'),
 				},
 				{
 					key: '103',
-					value: 3,
+					value: Buffer.from(JSON.stringify(3), 'binary'),
 				},
 				{
 					key: '010',
-					value: [19, 5, 6],
+					value: Buffer.from(JSON.stringify([19, 5, 6]), 'binary'),
 				},
 			];
 			const batch = db.batch();

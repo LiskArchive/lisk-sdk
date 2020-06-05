@@ -12,51 +12,65 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
-import { Account } from '../account';
+import { Account, DefaultAsset } from '../account';
 import { DataAccess } from '../data_access';
+import { BufferMap } from '../utils/buffer_map';
+import { BufferSet } from '../utils/buffer_set';
 import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
+import { keyString } from '../utils';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import cloneDeep = require('lodash.clonedeep');
 
+interface AdditionalInformation {
+	readonly defaultAsset: object;
+}
+
+// FIXME: A lot of type casting
+// It is necessary to support generic account asset for the custom transactions now, but with the better type definition, it can be avoided
 export class AccountStore {
-	private _data: Account[];
-	private _originalData: Account[];
-	private _updatedKeys: Set<string>;
-	private _originalUpdatedKeys: Set<string>;
+	private _data: BufferMap<Account>;
+	private _originalData: BufferMap<Account>;
+	private _updatedKeys: BufferSet;
+	private _originalUpdatedKeys: BufferSet;
 	private readonly _dataAccess: DataAccess;
+	private readonly _defualtAsset: object;
 	private readonly _primaryKey = 'address';
 	private readonly _name = 'Account';
 
-	public constructor(dataAccess: DataAccess) {
+	public constructor(
+		dataAccess: DataAccess,
+		additionalInformation: AdditionalInformation,
+	) {
 		this._dataAccess = dataAccess;
-		this._data = [];
-		this._updatedKeys = new Set<string>();
+		this._data = new BufferMap<Account>();
+		this._updatedKeys = new BufferSet();
 		this._primaryKey = 'address';
 		this._name = 'Account';
-		this._originalData = [];
-		this._originalUpdatedKeys = new Set<string>();
+		this._originalData = new BufferMap();
+		this._originalUpdatedKeys = new BufferSet();
+		this._defualtAsset = additionalInformation.defaultAsset;
 	}
 
 	public createSnapshot(): void {
-		this._originalData = cloneDeep(this._data);
+		this._originalData = this._data.clone();
 		this._updatedKeys = cloneDeep(this._updatedKeys);
 	}
 
 	public restoreSnapshot(): void {
 		this._data = this._originalData;
 		this._updatedKeys = this._originalUpdatedKeys;
-		this._originalData = [];
-		this._originalUpdatedKeys = new Set<string>();
+		this._originalData = new BufferMap();
+		this._originalUpdatedKeys = new BufferSet();
 	}
 
-	public async get(primaryValue: string): Promise<Account> {
+	public async get<T = DefaultAsset>(
+		primaryValue: Buffer,
+	): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.find(
-			item => item[this._primaryKey] === primaryValue,
-		);
+		const element = this._data.get(primaryValue);
 
 		if (element) {
-			return new Account(element.toJSON());
+			return (new Account(element) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db
@@ -66,24 +80,26 @@ export class AccountStore {
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (elementFromDB) {
-			this._data.push(elementFromDB);
+			this._data.set(primaryValue, elementFromDB as Account);
 
-			return new Account(elementFromDB.toJSON());
+			return (new Account(elementFromDB) as unknown) as Account<T>;
 		}
 
 		// Account does not exist we can not continue
 		throw new Error(
-			`${this._name} with ${this._primaryKey} = ${primaryValue} does not exist`,
+			`${this._name} with ${this._primaryKey} = ${primaryValue.toString(
+				'hex',
+			)} does not exist`,
 		);
 	}
 
-	public async getOrDefault(primaryValue: string): Promise<Account> {
+	public async getOrDefault<T = DefaultAsset>(
+		primaryValue: Buffer,
+	): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.find(
-			item => item[this._primaryKey] === primaryValue,
-		);
+		const element = this._data.get(primaryValue);
 		if (element) {
-			return new Account(element.toJSON());
+			return (new Account(element) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
@@ -91,57 +107,43 @@ export class AccountStore {
 			const elementFromDB = await this._dataAccess.getAccountByAddress(
 				primaryValue,
 			);
-			this._data.push(elementFromDB);
+			this._data.set(primaryValue, elementFromDB as Account);
 
-			return new Account(elementFromDB.toJSON());
+			return (new Account(elementFromDB as Account) as unknown) as Account<T>;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
 		}
 
-		const defaultElement: Account = Account.getDefaultAccount(primaryValue);
-		this._data.push(defaultElement);
-
-		return new Account(defaultElement.toJSON());
-	}
-
-	public getUpdated(): ReadonlyArray<Account> {
-		return [...this._data];
-	}
-
-	public find(
-		fn: (value: Account, index: number, obj: Account[]) => unknown,
-	): Account | undefined {
-		const foundAccount = this._data.find(fn);
-		if (!foundAccount) {
-			return undefined;
-		}
-
-		return new Account(foundAccount.toJSON());
-	}
-
-	public set(primaryValue: string, updatedElement: Account): void {
-		const elementIndex = this._data.findIndex(
-			item => item[this._primaryKey] === primaryValue,
+		const defaultElement = Account.getDefaultAccount(
+			primaryValue,
+			cloneDeep<T>((this._defualtAsset as unknown) as T),
 		);
+		this._data.set(primaryValue, (defaultElement as unknown) as Account);
 
-		if (elementIndex === -1) {
-			throw new Error(
-				`${this._name} with ${this._primaryKey} = ${primaryValue} does not exist`,
-			);
-		}
+		return (new Account(defaultElement) as unknown) as Account<T>;
+	}
 
-		this._data[elementIndex] = updatedElement;
+	public getUpdated<T = DefaultAsset>(): ReadonlyArray<Account<T>> {
+		return ([...this._data.values()] as unknown) as ReadonlyArray<Account<T>>;
+	}
+
+	public set<T = DefaultAsset>(
+		primaryValue: Buffer,
+		updatedElement: Account<T>,
+	): void {
+		this._data.set(primaryValue, (updatedElement as unknown) as Account);
 		this._updatedKeys.add(primaryValue);
 	}
 
 	public finalize(batch: BatchChain): void {
-		for (const account of this._data) {
+		for (const account of this._data.values()) {
 			if (this._updatedKeys.has(account.address)) {
+				const encodedAccount = this._dataAccess.encodeAccount(account);
 				batch.put(
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${account.address}`,
-					account.toJSON(),
+					`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(account.address)}`,
+					encodedAccount,
 				);
 			}
 		}

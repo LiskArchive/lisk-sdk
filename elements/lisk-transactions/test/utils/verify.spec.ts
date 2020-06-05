@@ -12,62 +12,88 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
-import { addTransactionFields } from '../helpers';
+import { hash } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import {
-	verifySenderPublicKey,
 	verifyMinRemainingBalance,
 	isMultisignatureAccount,
 	validateKeysSignatures,
 	verifyMultiSignatureTransaction,
 } from '../../src/utils';
 import { TransactionError } from '../../src/errors';
-import { TransferTransaction } from '../../src';
+import { TransferTransaction, BaseTransaction } from '../../src';
+import * as fixture from '../../fixtures/transaction_network_id_and_change_order/transfer_transaction_validate.json';
 import * as multisigFixture from '../../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
+import {
+	MultiSignatureAsset,
+	MultisignatureTransaction,
+} from '../../src/12_multisignature_transaction';
+import { TransferAsset } from '../../src/8_transfer_transaction';
+import { defaultAccount } from './state_store_mock';
 
-const getMemberPublicKeys = (members: any): string[] =>
-	Object.values(members).map((member: any) => member.publicKey);
+const getMemberPublicKeys = (members: any): Buffer[] =>
+	Object.values(members).map((member: any) =>
+		Buffer.from(member.publicKey, 'base64'),
+	);
 
 describe('#verify', () => {
-	const defaultId = '4838520211125422557';
+	const defualtTestCase = multisigFixture.testCases[0];
+	const defaultId = Buffer.from('5WaL4UpmLlb+1LbzPVr1uCV3+/E=', 'base64');
 
-	const networkIdentifier =
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+	const networkIdentifier = Buffer.from(
+		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+		'hex',
+	);
 
-	const multiSigTransaction = multisigFixture.testCases.output;
-	// Remove first signature to handle multi sign transaction scenario
-	multiSigTransaction.signatures.shift();
+	let defaultTransferTransactionBytes: Buffer;
+	let validTestTransaction: TransferTransaction;
+	let validMultisignatureTestTransaction: MultisignatureTransaction;
 
-	const defaultTransferTransaction = addTransactionFields(multiSigTransaction);
-
-	const validTestTransaction = new TransferTransaction({
-		...defaultTransferTransaction,
-		networkIdentifier,
-	});
-
-	const defaultTransferTransactionBytes = Buffer.concat([
-		cryptography.hexToBuffer(networkIdentifier),
-		(validTestTransaction as any).getBasicBytes(),
-	]);
-
-	describe('#verifySenderPublicKey', () => {
-		it('should return undefined when sender public key and public key is the same', () => {
-			const publicKey = 'sender-public-key';
-			expect(
-				verifySenderPublicKey(defaultId, { publicKey } as any, publicKey),
-			).toBeUndefined();
-		});
-
-		it('should return TransactionError when sender public key and account public key is not the same', () => {
-			const publicKey = 'sender-public-key';
-			const result = verifySenderPublicKey(
-				defaultId,
-				{ publicKey } as any,
-				'different public key',
+	beforeEach(() => {
+		{
+			const buffer = Buffer.from(
+				fixture.testCases[0].output.transaction,
+				'base64',
 			);
-			expect(result).toBeInstanceOf(TransactionError);
-			expect(result).toHaveProperty('dataPath', '.senderPublicKey');
-		});
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<TransferAsset>(
+				TransferTransaction.ASSET_SCHEMA,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			validTestTransaction = new TransferTransaction({
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			});
+			defaultTransferTransactionBytes = Buffer.concat([
+				networkIdentifier,
+				validTestTransaction.getSigningBytes(),
+			]);
+		}
+		{
+			const buffer = Buffer.from(defualtTestCase.output.transaction, 'base64');
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<MultiSignatureAsset>(
+				MultisignatureTransaction.ASSET_SCHEMA,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			const decodedMultiSignature = {
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			};
+			validMultisignatureTestTransaction = new MultisignatureTransaction(
+				decodedMultiSignature,
+			);
+		}
 	});
 
 	describe('#verifyMinRemainingBalance', () => {
@@ -86,7 +112,7 @@ describe('#verify', () => {
 			const minRemainingBalance = BigInt('100000000');
 			const result = verifyMinRemainingBalance(
 				defaultId,
-				{ balance: BigInt('1000') } as any,
+				{ balance: BigInt('1000'), address: Buffer.from('address') } as any,
 				minRemainingBalance,
 			);
 
@@ -105,36 +131,38 @@ describe('#verify', () => {
 		});
 
 		it('should return true for multi signature account', () => {
-			const senderAccount = {
-				...defaultTransferTransaction,
-				keys: defaultTransferTransaction.asset,
-			};
+			const senderAccount = defaultAccount({
+				keys: validMultisignatureTestTransaction.asset as any,
+			});
 			expect(isMultisignatureAccount(senderAccount)).toBeTrue();
 		});
 	});
 
 	describe('#validateKeysSignatures', () => {
 		it('should return errors when signatures has invalid signature', () => {
-			const { senderPublicKey, signatures } = defaultTransferTransaction;
-			const invalidSignature = signatures[0].replace(0, 1);
+			const {
+				senderPublicKey,
+				signatures,
+			} = validMultisignatureTestTransaction;
+			const invalidSignature = signatures[0];
+			(invalidSignature as any)[0] = 20;
 			const [result] = validateKeysSignatures(
 				[senderPublicKey],
-				[invalidSignature],
+				[invalidSignature as any],
 				defaultTransferTransactionBytes,
 			);
 
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Failed to validate signature ${invalidSignature}`,
+				expect.stringContaining('Failed to validate signature'),
 			);
 		});
 
 		it('should return empty array when signatures are valid', () => {
-			const { signatures, asset: keys } = defaultTransferTransaction;
+			const { signatures, asset: keys } = validMultisignatureTestTransaction;
 			const result = validateKeysSignatures(
-				keys,
+				keys as any,
 				signatures,
 				defaultTransferTransactionBytes,
 			);
@@ -146,16 +174,27 @@ describe('#verify', () => {
 	describe('#verifyMultiSignatureTransaction', () => {
 		it('should return empty array when signatures ok', () => {
 			const validTransfer = new TransferTransaction({
-				senderPublicKey:
+				fee: BigInt(100),
+				nonce: BigInt(0),
+				senderPublicKey: Buffer.from(
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
 				asset: {
-					amount: '500000000',
-					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+					amount: BigInt('500000000'),
+					recipientAddress: Buffer.from(
+						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+						'hex',
+					),
+					data: '',
 				},
 			});
 
 			validTransfer.sign(
-				'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+				Buffer.from(
+					'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
+					'hex',
+				),
 				undefined,
 				[
 					'trim elegant oven term access apple obtain error grain excite lawn neck',
@@ -165,33 +204,57 @@ describe('#verify', () => {
 				],
 				{
 					mandatoryKeys: [
-						'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+						Buffer.from(
+							'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+							'hex',
+						),
+						Buffer.from(
+							'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+							'hex',
+						),
 					],
 					optionalKeys: [
-						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+						Buffer.from(
+							'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+							'hex',
+						),
+						Buffer.from(
+							'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+							'hex',
+						),
 					],
 				},
 			);
 
-			const senderAccount = {
+			const senderAccount = defaultAccount({
 				keys: {
 					mandatoryKeys: [
-						'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-						'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+						Buffer.from(
+							'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+							'hex',
+						),
+						Buffer.from(
+							'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+							'hex',
+						),
 					],
 					optionalKeys: [
-						'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-						'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+						Buffer.from(
+							'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
+							'hex',
+						),
+						Buffer.from(
+							'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+							'hex',
+						),
 					],
 					numberOfSignatures: 4,
 				},
-			} as any;
+			});
 
 			const validTransferBytes = Buffer.concat([
-				cryptography.hexToBuffer(networkIdentifier),
-				(validTransfer as any).getBasicBytes(),
+				networkIdentifier,
+				(validTransfer as any).getSigningBytes(),
 			]);
 
 			const result = verifyMultiSignatureTransaction(
@@ -205,10 +268,8 @@ describe('#verify', () => {
 		});
 
 		it('should return error when signatures does not have required number of signatures', () => {
-			const { signatures } = defaultTransferTransaction;
-			const publicKeys = getMemberPublicKeys(
-				multisigFixture.testCases.input.members,
-			);
+			const { signatures } = validMultisignatureTestTransaction;
+			const publicKeys = getMemberPublicKeys(defualtTestCase.input.members);
 			const numberOfSignatures = 10;
 			const senderAccount = {
 				keys: {
@@ -219,7 +280,7 @@ describe('#verify', () => {
 			} as any;
 
 			const [result] = verifyMultiSignatureTransaction(
-				defaultTransferTransaction.id,
+				validMultisignatureTestTransaction.id,
 				senderAccount,
 				signatures,
 				defaultTransferTransactionBytes,
@@ -234,15 +295,17 @@ describe('#verify', () => {
 		});
 
 		it('should return error when signatures are missing than expected', () => {
-			const senderAccount = {
-				...defaultTransferTransaction,
-				keys: defaultTransferTransaction.asset,
-			};
+			const senderAccount = defaultAccount({
+				keys: validMultisignatureTestTransaction.asset as any,
+			});
 
 			const [result] = verifyMultiSignatureTransaction(
-				senderAccount.id,
+				validMultisignatureTestTransaction.id,
 				senderAccount,
-				[...senderAccount.signatures, ...senderAccount.signatures],
+				[
+					...validMultisignatureTestTransaction.signatures,
+					...validMultisignatureTestTransaction.signatures,
+				],
 				defaultTransferTransactionBytes,
 			);
 
@@ -250,82 +313,82 @@ describe('#verify', () => {
 			expect(result).toHaveProperty(
 				'message',
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Transaction signatures does not match required number of signatures: ${defaultTransferTransaction.asset.numberOfSignatures}`,
+				`Transaction signatures does not match required number of signatures: ${validMultisignatureTestTransaction.asset.numberOfSignatures}`,
 			);
 		});
 
 		it('should return error when mandatoryKeys signatures has invalid signature', () => {
-			const senderAccount = {
-				...defaultTransferTransaction,
-				keys: defaultTransferTransaction.asset,
-			};
-			const { signatures } = senderAccount;
-			const firstSignature = signatures.shift();
-			signatures.push(firstSignature);
+			const senderAccount = defaultAccount({
+				keys: validMultisignatureTestTransaction.asset as any,
+			});
+			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(
+				1,
+			) as Buffer[];
+			const firstSignature = invalidSignature.shift();
+			invalidSignature.push(firstSignature as Buffer);
 
 			const [result] = verifyMultiSignatureTransaction(
-				'id',
+				validMultisignatureTestTransaction.id,
 				senderAccount,
-				signatures,
+				invalidSignature,
 				defaultTransferTransactionBytes,
 			);
 
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Failed to validate signature ${senderAccount.signatures[0]}`,
+				expect.stringContaining('Failed to validate signature'),
 			);
 		});
 
 		it('should return error when optionalKeys signatures has invalid signature', () => {
-			const senderAccount = {
-				...defaultTransferTransaction,
-				keys: defaultTransferTransaction.asset,
-			};
-			const { signatures } = senderAccount;
+			const senderAccount = defaultAccount({
+				keys: validMultisignatureTestTransaction.asset as any,
+			});
+			const { signatures } = validMultisignatureTestTransaction;
 			const lastSignature = signatures.pop();
-			signatures.unshift(lastSignature);
+			signatures.unshift(lastSignature as Buffer);
+
+			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(
+				1,
+			) as Buffer[];
+			invalidSignature[0][0] = 10;
 
 			const [result] = verifyMultiSignatureTransaction(
-				'id',
+				validMultisignatureTestTransaction.id,
 				senderAccount,
-				senderAccount.signatures.map((s: any) => s.replace(0, 1)),
+				invalidSignature,
 				defaultTransferTransactionBytes,
 			);
 
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Failed to validate signature ${senderAccount.signatures[0].replace(
-					0,
-					1,
-				)}`,
+				expect.stringContaining('Failed to validate signature'),
 			);
 		});
 
 		it('should return error when mandatoryKeys and optionalKeys signatures has invalid signature', () => {
-			const senderAccount = {
-				...defaultTransferTransaction,
-				keys: defaultTransferTransaction.asset,
-			};
+			const senderAccount = defaultAccount({
+				keys: validMultisignatureTestTransaction.asset as any,
+			});
+
+			const invalidSignature = validMultisignatureTestTransaction.signatures.slice(
+				1,
+			) as Buffer[];
+			invalidSignature[0][0] = 10;
 
 			const [result] = verifyMultiSignatureTransaction(
-				'id',
+				validMultisignatureTestTransaction.id,
 				senderAccount,
-				senderAccount.signatures.map((s: any) => s.replace(0, 1)),
+				invalidSignature,
 				defaultTransferTransactionBytes,
 			);
 
 			expect(result).toBeInstanceOf(TransactionError);
 			expect(result).toHaveProperty(
 				'message',
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Failed to validate signature ${senderAccount.signatures[0].replace(
-					0,
-					1,
-				)}`,
+				expect.stringContaining('Failed to validate signature'),
 			);
 		});
 	});

@@ -24,37 +24,17 @@ import validator from 'validator';
 
 import {
 	MAX_EIGHT_BYTE_NUMBER,
-	MAX_INT32,
-	MAX_INT64,
+	MAX_SINT32,
+	MAX_SINT64,
 	MAX_PUBLIC_KEY_LENGTH,
 	MAX_UINT32,
 	MAX_UINT64,
-	MIN_INT32,
-	MIN_INT64,
+	MIN_SINT32,
+	MIN_SINT64,
 } from './constants';
 
 export const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\0|\\u0000|\\x00/).test(input);
-
-export const isUsername = (username: string): boolean => {
-	if (isNullCharacterIncluded(username)) {
-		return false;
-	}
-
-	if (username !== username.trim().toLowerCase()) {
-		return false;
-	}
-
-	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
-		return false;
-	}
-
-	if (!/^[a-z0-9!@$&_.]+$/g.test(username)) {
-		return false;
-	}
-
-	return true;
-};
 
 export const isSignature = (signature: string): boolean =>
 	/^[a-f0-9]{128}$/i.test(signature);
@@ -63,7 +43,7 @@ export const isGreaterThanZero = (amount: bigint): boolean =>
 	amount > BigInt(0);
 
 export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
-	amount > MAX_INT64;
+	amount > MAX_SINT64;
 
 export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
 	amount > MAX_UINT64;
@@ -110,6 +90,14 @@ export const isHexString = (data: unknown): boolean => {
 	}
 
 	return data === '' || /^[a-f0-9]+$/i.test(data);
+};
+
+export const isBase64String = (data: unknown): boolean => {
+	if (typeof data !== 'string') {
+		return false;
+	}
+
+	return /^[a-zA-Z0-9+/]+={0,3}$/i.test(data);
 };
 
 export const isEncryptedPassphrase = (data: string): boolean => {
@@ -190,16 +178,17 @@ export const validatePublicKeys = (
 	publicKeys.every(validatePublicKey) &&
 	validatePublicKeysForDuplicates(publicKeys);
 
-const ADDRESS_BYTE_LENGTH = 20;
+const ADDRESS_LENGTH = 40;
+
 export const validateAddress = (address: string): boolean => {
-	if (!isHexString(address)) {
-		throw new Error('Address is not in hex format');
+	if (address.length !== ADDRESS_LENGTH) {
+		throw new Error(
+			'Address length does not match requirements. Expected 40 characters.',
+		);
 	}
 
-	if (Buffer.from(address, 'hex').length !== ADDRESS_BYTE_LENGTH) {
-		throw new Error(
-			`Address length does not match requirements. Expected ${ADDRESS_BYTE_LENGTH} bytes.`,
-		);
+	if (!isHexString(address)) {
+		throw new Error('Address is not a valid hex string.');
 	}
 
 	return true;
@@ -255,24 +244,30 @@ export const validateNetworkIdentifier = (
 	return true;
 };
 
-export const isInt32 = (num: bigint | number): boolean => {
-	if (typeof num === 'number') {
-		return num <= MAX_INT32 && num >= MIN_INT32;
+export const isString = (data: unknown): boolean => typeof data === 'string';
+
+export const isBoolean = (data: unknown): boolean => typeof data === 'boolean';
+
+export const isSInt32 = (data: unknown): boolean => {
+	if (typeof data === 'number' && Number.isInteger(data)) {
+		return data <= MAX_SINT32 && data >= MIN_SINT32;
 	}
 
-	return num <= BigInt(MAX_INT32) && num >= BigInt(MIN_INT32);
+	return false;
 };
 
-export const isUint32 = (num: bigint | number): boolean => {
-	if (typeof num === 'number') {
-		return num <= MAX_UINT32 && num >= 0;
+export const isUInt32 = (data: unknown): boolean => {
+	if (typeof data === 'number' && Number.isInteger(data)) {
+		return data <= MAX_UINT32 && data >= 0;
 	}
 
-	return num <= BigInt(MAX_UINT32) && num >= BigInt(0);
+	return false;
 };
 
-export const isInt64 = (num: bigint): boolean =>
-	num <= MAX_INT64 && num >= MIN_INT64;
+export const isSInt64 = (data: unknown): boolean =>
+	typeof data === 'bigint' ? data <= MAX_SINT64 && data >= MIN_SINT64 : false;
 
-export const isUint64 = (num: bigint): boolean =>
-	num <= MAX_UINT64 && num >= BigInt(0);
+export const isUInt64 = (data: unknown): boolean =>
+	typeof data === 'bigint' ? data <= MAX_UINT64 && data >= BigInt(0) : false;
+
+export const isBytes = (data: unknown): boolean => Buffer.isBuffer(data);

@@ -23,6 +23,43 @@ import { hash } from './hash';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import reverse = require('buffer-reverse');
 
+const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+
+export const convertUIntArray = (
+	uintArray: number[],
+	fromBits: number,
+	toBits: number,
+): number[] => {
+	// eslint-disable-next-line no-bitwise
+	const maxValue = (1 << toBits) - 1;
+	let accumulator = 0;
+	let bits = 0;
+	const result = [];
+	// eslint-disable-next-line
+	for (let p = 0; p < uintArray.length; p += 1) {
+		const byte = uintArray[p];
+		// check that the entry is a value between 0 and 2^frombits-1
+		// eslint-disable-next-line no-bitwise
+		if (byte < 0 || byte >> fromBits !== 0) {
+			return [];
+		}
+
+		// eslint-disable-next-line no-bitwise
+		accumulator = (accumulator << fromBits) | byte;
+		bits += fromBits;
+		while (bits >= toBits) {
+			bits -= toBits;
+			// eslint-disable-next-line no-bitwise
+			result.push((accumulator >> bits) & maxValue);
+		}
+	}
+
+	return result;
+};
+
+export const convertUInt5ToBase32 = (uint5Array: number[]): string =>
+	uint5Array.map((val: number) => CHARSET[val]).join('');
+
 export const getFirstNBytes = (
 	input: string | Buffer,
 	size: number,
@@ -47,7 +84,7 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 };
 
-export const toAddress = (buffer: Buffer): string => {
+export const toAddress = (buffer: Buffer): Buffer => {
 	const BUFFER_SIZE = 20;
 	const truncatedBuffer = getFirstNBytes(buffer, BUFFER_SIZE);
 
@@ -55,10 +92,10 @@ export const toAddress = (buffer: Buffer): string => {
 		throw new Error('The Lisk addresses must contains exactly 20 bytes');
 	}
 
-	return truncatedBuffer.toString('hex');
+	return truncatedBuffer;
 };
 
-export const getAddressFromPublicKey = (publicKey: string): string =>
+export const getAddressFromPublicKey = (publicKey: Buffer): Buffer =>
 	toAddress(hash(publicKey, 'hex'));
 
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;

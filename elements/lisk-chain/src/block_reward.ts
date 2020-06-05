@@ -16,7 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 
 import { CHAIN_STATE_BURNT_FEE } from './constants';
 import { StateStore } from './state_store';
-import { BlockInstance, BlockRewardOptions } from './types';
+import { Block, BlockRewardOptions } from './types';
 
 const parseHeight = (height: number): number => {
 	if (
@@ -122,9 +122,9 @@ export const calculateSupply = (
 };
 
 export const getTotalFees = (
-	blockInstance: BlockInstance,
+	block: Block,
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
-	blockInstance.transactions.reduce(
+	block.payload.reduce(
 		(prev, current) => {
 			const { minFee } = current;
 
@@ -137,60 +137,66 @@ export const getTotalFees = (
 	);
 
 export const applyFeeAndRewards = async (
-	blockInstance: BlockInstance,
+	block: Block,
 	stateStore: StateStore,
 ): Promise<void> => {
 	const generatorAddress = getAddressFromPublicKey(
-		blockInstance.generatorPublicKey,
+		block.header.generatorPublicKey,
 	);
 	const generator = await stateStore.account.get(generatorAddress);
-	generator.balance += blockInstance.reward;
-	generator.producedBlocks += 1;
+	generator.balance += block.header.reward;
 	// If there is no transactions, no need to give fee
-	if (!blockInstance.transactions.length) {
+	if (!block.payload.length) {
 		stateStore.account.set(generatorAddress, generator);
 
 		return;
 	}
-	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
+	const { totalFee, totalMinFee } = getTotalFees(block);
 	// Generator only gets total fee - min fee
 	const givenFee = totalFee - totalMinFee;
 	// This is necessary only for genesis block case, where total fee is 0, which is invalid
 	// Also, genesis block cannot be reverted
 	generator.balance += givenFee > 0 ? givenFee : BigInt(0);
-	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
+	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
+	let totalFeeBurnt = totalFeeBurntBuffer
+		? totalFeeBurntBuffer.readBigInt64BE()
+		: BigInt(0);
 	totalFeeBurnt += givenFee > 0 ? totalMinFee : BigInt(0);
 
 	// Update state store
+	const updatedTotalBurntBuffer = Buffer.alloc(8);
+	updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, totalFeeBurnt.toString());
+	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 };
 
 export const undoFeeAndRewards = async (
-	blockInstance: BlockInstance,
+	block: Block,
 	stateStore: StateStore,
 ): Promise<void> => {
 	const generatorAddress = getAddressFromPublicKey(
-		blockInstance.generatorPublicKey,
+		block.header.generatorPublicKey,
 	);
 	const generator = await stateStore.account.get(generatorAddress);
-	generator.balance -= blockInstance.reward;
-	generator.producedBlocks -= 1;
+	generator.balance -= block.header.reward;
 	// If there is no transactions, no need to give fee
-	if (!blockInstance.transactions.length) {
+	if (!block.payload.length) {
 		stateStore.account.set(generatorAddress, generator);
 
 		return;
 	}
-	const { totalFee, totalMinFee } = getTotalFees(blockInstance);
+	const { totalFee, totalMinFee } = getTotalFees(block);
 
 	generator.balance -= totalFee - totalMinFee;
-	const totalFeeBurntStr = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt = BigInt(totalFeeBurntStr ?? 0);
+	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
+	let totalFeeBurnt = totalFeeBurntBuffer
+		? totalFeeBurntBuffer.readBigInt64BE()
+		: BigInt(0);
 	totalFeeBurnt -= totalMinFee;
 
 	// Update state store
 	stateStore.account.set(generatorAddress, generator);
-	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, totalFeeBurnt.toString());
+	const updatedTotalBurntBuffer = Buffer.alloc(8);
+	updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
+	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 };

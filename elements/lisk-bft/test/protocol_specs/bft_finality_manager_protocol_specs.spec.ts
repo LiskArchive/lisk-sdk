@@ -19,6 +19,7 @@ import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_parti
 import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
 import { FinalityManager } from '../../src/finality_manager';
 import { StateStoreMock } from '../unit/state_store_mock';
+import { convertHeader } from '../fixtures/blocks';
 
 const bftScenarios = [
 	scenario4DelegatesMissedSlots,
@@ -88,8 +89,8 @@ describe('FinalityManager', () => {
 						activeDelegates: scenario.config.activeDelegates,
 					});
 
-					const blockHeaders = (scenario.testCases as any).map(
-						(tc: any) => tc.input.blockHeader,
+					const blockHeaders = (scenario.testCases as any).map((tc: any) =>
+						convertHeader(tc.input.blockHeader),
 					);
 					chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
 						async (from: number, to: number) => {
@@ -101,11 +102,13 @@ describe('FinalityManager', () => {
 						},
 					);
 					dposStub.getMinActiveHeight.mockImplementation(
-						async (height: number, address: string) => {
+						async (height: number, address: Buffer) => {
 							const header = blockHeaders.find(
 								(bh: any) =>
 									bh.height === height &&
-									getAddressFromPublicKey(bh.generatorPublicKey) === address,
+									getAddressFromPublicKey(bh.generatorPublicKey).equals(
+										address,
+									),
 							);
 							return Promise.resolve(header.delegateMinHeightActive);
 						},
@@ -116,7 +119,7 @@ describe('FinalityManager', () => {
 					// eslint-disable-next-line no-loop-func
 					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
 						await finalityManager.addBlockHeader(
-							testCase.input.blockHeader as any,
+							convertHeader(testCase.input.blockHeader),
 							stateStore,
 						);
 
@@ -169,8 +172,8 @@ describe('FinalityManager', () => {
 					finalizedHeight: scenario.config.finalizedHeight,
 					activeDelegates: scenario.config.activeDelegates,
 				});
-				const blockHeaders = (scenario.testCases as any).map(
-					(tc: any) => tc.input.blockHeader,
+				const blockHeaders = (scenario.testCases as any).map((tc: any) =>
+					convertHeader(tc.input.blockHeader),
 				);
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
 					async (from: number, to: number) => {
@@ -182,11 +185,11 @@ describe('FinalityManager', () => {
 					},
 				);
 				dposStub.getMinActiveHeight.mockImplementation(
-					async (height: number, address: string) => {
+					async (height: number, address: Buffer) => {
 						const header = blockHeaders.find(
 							(bh: any) =>
 								bh.height === height &&
-								getAddressFromPublicKey(bh.generatorPublicKey) === address,
+								getAddressFromPublicKey(bh.generatorPublicKey).equals(address),
 						);
 						return Promise.resolve(header.delegateMinHeightActive);
 					},
@@ -199,7 +202,7 @@ describe('FinalityManager', () => {
 					// Let's first compute in proper way
 					for (const testCase of scenario.testCases) {
 						await finalityManager.addBlockHeader(
-							testCase.input.blockHeader as any,
+							convertHeader(testCase.input.blockHeader),
 							stateStore,
 						);
 					}
@@ -289,8 +292,8 @@ describe('FinalityManager', () => {
 					finalizedHeight: scenario.config.finalizedHeight,
 					activeDelegates: scenario.config.activeDelegates,
 				});
-				const blockHeaders = (scenario.testCases as any).map(
-					(tc: any) => tc.input.blockHeader,
+				const blockHeaders = (scenario.testCases as any).map((tc: any) =>
+					convertHeader(tc.input.blockHeader),
 				);
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockImplementation(
 					async (from: number, to: number) => {
@@ -302,11 +305,11 @@ describe('FinalityManager', () => {
 					},
 				);
 				dposStub.getMinActiveHeight.mockImplementation(
-					async (height: number, address: string) => {
+					async (height: number, address: Buffer) => {
 						const header = blockHeaders.find(
 							(bh: any) =>
 								bh.height === height &&
-								getAddressFromPublicKey(bh.generatorPublicKey) === address,
+								getAddressFromPublicKey(bh.generatorPublicKey).equals(address),
 						);
 						return Promise.resolve(header.delegateMinHeightActive);
 					},
@@ -319,7 +322,7 @@ describe('FinalityManager', () => {
 					// Arrange - Let's first compute in proper way
 					for (const testCase of scenario.testCases) {
 						await finalityManager.addBlockHeader(
-							testCase.input.blockHeader as any,
+							convertHeader(testCase.input.blockHeader),
 							stateStore,
 						);
 					}

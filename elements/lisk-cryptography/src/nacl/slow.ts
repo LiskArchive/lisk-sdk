@@ -67,8 +67,8 @@ export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
 	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(hashedSeed);
 
 	return {
-		privateKeyBytes: Buffer.from(secretKey),
-		publicKeyBytes: Buffer.from(publicKey),
+		privateKey: Buffer.from(secretKey),
+		publicKey: Buffer.from(publicKey),
 	};
 };
 

@@ -15,7 +15,12 @@
 import { Slots } from '@liskhq/lisk-chain';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos } from '../../src';
-import { Account, Block } from '../../src/types';
+import {
+	Account,
+	BlockHeader,
+	VoteWeights,
+	DelegateWeight,
+} from '../../src/types';
 import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
@@ -25,6 +30,18 @@ import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { randomBigIntWithPowerof8 } from '../utils/random_int';
+
+const convertVoteWeight = (buffer: Buffer): VoteWeights => {
+	const parsedVoteWeights = JSON.parse(buffer.toString('utf8'));
+	const voteWeights = parsedVoteWeights.map((vw: any) => ({
+		round: vw.round,
+		delegates: vw.delegates.map((d: any) => ({
+			address: Buffer.from(d.address, 'binary'),
+			voteWeight: BigInt(d.voteWeight),
+		})),
+	}));
+	return voteWeights;
+};
 
 describe('Vote weight snapshot', () => {
 	const forgers = getDelegateAccounts(103);
@@ -52,24 +69,24 @@ describe('Vote weight snapshot', () => {
 
 	describe('given genesis block', () => {
 		let delegates: Account[];
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 
 		beforeEach(() => {
 			// Arrange
 			delegates = getDelegateAccounts(103);
 			for (const delegate of delegates) {
-				delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
+				delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 			}
 			genesisBlock = {
-				id: 'genesis-block',
+				id: Buffer.from('genesis-block'),
 				timestamp: 10,
 				height: 1,
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
-				totalFee: BigInt(100000000),
-				transactions: [],
-				seedReveal: '00000000000000000000000000000000',
-			} as Block;
+				asset: {
+					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+				},
+			} as BlockHeader;
 			stateStore = new StateStoreMock([...delegates]);
 		});
 
@@ -79,10 +96,12 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(genesisBlock, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf8'),
+				);
 				expect(voteWeights).toHaveLength(3);
 				expect(voteWeights[0].round).toEqual(1);
 				expect(voteWeights[1].round).toEqual(2);
@@ -93,24 +112,24 @@ describe('Vote weight snapshot', () => {
 
 	describe('given not the last block of a round', () => {
 		let delegates: Account[];
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 
 		beforeEach(() => {
 			// Arrange
 			delegates = getDelegateAccounts(103);
 			for (const delegate of delegates) {
-				delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
+				delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 			}
 			genesisBlock = {
-				id: 'random-block',
+				id: Buffer.from('random-block'),
 				timestamp: 50,
 				height: 5,
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
-				totalFee: BigInt(100000000),
-				transactions: [],
-				seedReveal: '00000000000000000000000000000000',
-			} as Block;
+				asset: {
+					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+				},
+			} as BlockHeader;
 			stateStore = new StateStoreMock([forgers[0], ...delegates]);
 			jest.spyOn(stateStore.consensus, 'set');
 		});
@@ -129,7 +148,7 @@ describe('Vote weight snapshot', () => {
 
 	describe('given the last block of a round', () => {
 		let delegates: Account[];
-		let block: Block;
+		let block: BlockHeader;
 
 		describe('when there are changes in the last block', () => {
 			let updatedDelegate: Account;
@@ -137,29 +156,32 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(200);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(900, 5000);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						900,
+						5000,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				[updatedDelegate] = getDelegateAccounts(1);
-				updatedDelegate.totalVotesReceived =
+				updatedDelegate.asset.delegate.totalVotesReceived =
 					BigInt(6000) * BigInt(10) ** BigInt(9);
-				updatedDelegate.votes.push({
+				updatedDelegate.asset.sentVotes.push({
 					delegateAddress: updatedDelegate.address,
-					amount: updatedDelegate.totalVotesReceived,
+					amount: updatedDelegate.asset.delegate.totalVotesReceived,
 				});
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([
 					...delegates,
 					updatedDelegate,
@@ -188,8 +210,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -202,18 +224,28 @@ describe('Vote weight snapshot', () => {
 						forgers[0],
 						{
 							...updatedDelegate,
-							totalVotesReceived: updatedVote,
-							votes: [
-								{
-									delegateAddress: updatedDelegate.address,
-									amount: updatedVote,
+							asset: {
+								...updatedDelegate.asset,
+								delegate: {
+									...updatedDelegate.asset.delegate,
+									totalVotesReceived: updatedVote,
 								},
-							],
+								sentVotes: [
+									{
+										delegateAddress: updatedDelegate.address,
+										amount: updatedVote,
+									},
+								],
+							},
 						},
 					],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 				);
 
@@ -229,14 +261,16 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = JSON.parse(
+					(voteWeightsBuffer as Buffer).toString('utf8'),
+				);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				const updateddelegateInList = voteWeights[1].delegates.find(
-					(d: Account) => d.address === updatedDelegate.address,
+					(d: Account) => d.address.equals(updatedDelegate.address),
 				);
 				expect(updateddelegateInList).toBeUndefined();
 			});
@@ -246,22 +280,25 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(50);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(500, 999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						500,
+						999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -277,7 +314,9 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
@@ -286,8 +325,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -296,12 +335,12 @@ describe('Vote weight snapshot', () => {
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 						{
-							address: forgers[0].address,
-							username: forgers[0].username,
+							address: forgers[0].address.toString('binary'),
+							username: forgers[0].asset.delegate.username,
 						},
 					],
 				});
@@ -309,12 +348,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -331,17 +376,19 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				// 50 and the forger is in the list
 				expect(voteWeights[1].delegates).toHaveLength(50 + 1);
 				const originalDelegatesCounts = voteWeights[0].delegates.reduce(
-					(prev: number, current: Account) => {
-						const exist = delegates.find(d => d.address === current.address);
+					(prev: number, current: DelegateWeight) => {
+						const exist = delegates.find(d =>
+							d.address.equals(current.address),
+						);
 						return exist ? prev + 1 : prev;
 					},
 					0,
@@ -356,18 +403,24 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 1100);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						1000,
+						1100,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				additionalDelegates = getDelegateAccounts(2);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(10, 999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						10,
+						999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				block = {
@@ -377,18 +430,19 @@ describe('Vote weight snapshot', () => {
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 					],
 				});
@@ -407,7 +461,9 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
@@ -416,8 +472,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -426,12 +482,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -448,17 +510,17 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(voteWeights[1].delegates).toHaveLength(103);
 				expect(
 					additionalDelegates.every((delegate: Account) =>
-						voteWeights[1].delegates.find(
-							(d: Account) => d.address === delegate.address,
+						voteWeights[1].delegates.find((d: DelegateWeight) =>
+							d.address.equals(delegate.address),
 						),
 					),
 				).toBeTrue();
@@ -470,39 +532,45 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						3000,
+						5000,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						1000,
+						2999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
 							address: delegate.address,
-							username: delegate.username,
+							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
 							address: delegate.address,
-							username: delegate.username,
+							username: delegate.asset.delegate.username,
 						})),
 					],
 				});
@@ -523,8 +591,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -533,19 +601,27 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -562,10 +638,10 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(voteWeights[1].delegates).toHaveLength(
@@ -573,8 +649,8 @@ describe('Vote weight snapshot', () => {
 				);
 				expect(
 					additionalDelegates.every((delegate: Account) =>
-						voteWeights[1].delegates.find(
-							(d: Account) => d.address === delegate.address,
+						voteWeights[1].delegates.find((d: DelegateWeight) =>
+							d.address.equals(delegate.address),
 						),
 					),
 				).toBeTrue();
@@ -588,42 +664,49 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						3000,
+						5000,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				[nonSelfVotedDelegate] = delegates;
 				// Update not to self vote
-				(nonSelfVotedDelegate.votes[0] as any).delegateAddress = '123L';
+				(nonSelfVotedDelegate.asset
+					.sentVotes[0] as any).delegateAddress = Buffer.from('123L');
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						1000,
+						2999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
 							address: delegate.address,
-							username: delegate.username,
+							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
 							address: delegate.address,
-							username: delegate.username,
+							username: delegate.asset.delegate.username,
 						})),
 					],
 				});
@@ -644,8 +727,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -654,19 +737,27 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -683,15 +774,15 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(
-					voteWeights[1].delegates.find(
-						(d: Account) => d.address === nonSelfVotedDelegate.address,
+					voteWeights[1].delegates.find((d: DelegateWeight) =>
+						d.address.equals(nonSelfVotedDelegate.address),
 					),
 				).toBeUndefined();
 				expect(voteWeights[1].delegates).toHaveLength(
@@ -707,41 +798,47 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						3000,
+						5000,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				[bannedDelegate] = delegates;
-				(delegates[0].delegate as any).isBanned = true;
+				delegates[0].asset.delegate.isBanned = true;
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						1000,
+						2999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 					],
 				});
@@ -760,7 +857,9 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
@@ -769,8 +868,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -779,12 +878,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -801,15 +906,15 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(
-					voteWeights[1].delegates.find(
-						(d: Account) => d.address === bannedDelegate.address,
+					voteWeights[1].delegates.find((d: DelegateWeight) =>
+						d.address.equals(bannedDelegate.address),
 					),
 				).toBeUndefined();
 				expect(voteWeights[1].delegates).toHaveLength(
@@ -825,33 +930,36 @@ describe('Vote weight snapshot', () => {
 				// 102 because forger is included as zero vote weight delegate
 				delegates = getDelegateAccounts(102);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(10, 999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						10,
+						999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				[punishedDelegate] = delegates;
-				delegates[0].delegate.pomHeights.push(10);
+				delegates[0].asset.delegate.pomHeights.push(10);
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 						{
-							username: forgers[0].username,
-							address: forgers[0].address,
+							username: forgers[0].asset.delegate.username,
+							address: forgers[0].address.toString('binary'),
 						},
 					],
 				});
@@ -870,8 +978,12 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 100)],
-						standby: [...forgers.map(d => d.address).slice(101, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 100),
+						],
+						standby: [
+							...forgers.map(d => d.address.toString('binary')).slice(101, 102),
+						],
 					},
 				]);
 
@@ -880,14 +992,14 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.slice(0, 100).map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 						standby: [
 							...delegates.slice(101, 102).map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -896,12 +1008,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -918,16 +1036,16 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				const snapshotedPunishedDelegate = voteWeights[1].delegates.find(
-					(d: Account) => d.address === punishedDelegate.address,
+					(d: DelegateWeight) => d.address.equals(punishedDelegate.address),
 				);
-				expect(snapshotedPunishedDelegate.voteWeight).toEqual('0');
+				expect(snapshotedPunishedDelegate?.voteWeight).toEqual(BigInt(0));
 				expect(voteWeights[1].delegates).toHaveLength(103);
 			});
 		});
@@ -939,41 +1057,47 @@ describe('Vote weight snapshot', () => {
 			beforeEach(() => {
 				delegates = getDelegateAccounts(101);
 				for (const delegate of delegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(3000, 5000);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						3000,
+						5000,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				[punishedDelegate] = delegates;
-				delegates[0].delegate.pomHeights.push(10);
+				delegates[0].asset.delegate.pomHeights.push(10);
 				additionalDelegates = getDelegateAccounts(300);
 				for (const delegate of additionalDelegates) {
-					delegate.totalVotesReceived = randomBigIntWithPowerof8(1000, 2999);
-					delegate.votes.push({
+					delegate.asset.delegate.totalVotesReceived = randomBigIntWithPowerof8(
+						1000,
+						2999,
+					);
+					delegate.asset.sentVotes.push({
 						delegateAddress: delegate.address,
-						amount: delegate.totalVotesReceived,
+						amount: delegate.asset.delegate.totalVotesReceived,
 					});
 				}
 				block = {
-					id: 'random-block',
+					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				const mockedDelegateUsernames = JSON.stringify({
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address,
-							username: delegate.username,
+							address: delegate.address.toString('binary'),
+							username: delegate.asset.delegate.username,
 						})),
 					],
 				});
@@ -992,7 +1116,9 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
@@ -1001,8 +1127,8 @@ describe('Vote weight snapshot', () => {
 						round: 11,
 						delegates: [
 							...delegates.map(d => ({
-								address: d.address,
-								voteWeight: d.totalVotesReceived.toString(),
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
 							})),
 						],
 					},
@@ -1011,12 +1137,18 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+							mockedForgersList,
+						),
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+							mockedVoteWeights,
+						),
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
+							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
+								mockedDelegateUsernames,
+							),
 						},
 					},
 				);
@@ -1033,15 +1165,15 @@ describe('Vote weight snapshot', () => {
 				await dpos.apply(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[1].round).toEqual(13);
 				expect(
-					voteWeights[1].delegates.find(
-						(d: Account) => d.address === punishedDelegate.address,
+					voteWeights[1].delegates.find((d: DelegateWeight) =>
+						d.address.equals(punishedDelegate.address),
 					),
 				).toBeUndefined();
 				expect(voteWeights[1].delegates).toHaveLength(
@@ -1059,10 +1191,10 @@ describe('Vote weight snapshot', () => {
 					height: 1030,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
-					totalFee: BigInt(100000000),
-					transactions: [],
-					seedReveal: '00000000000000000000000000000000',
-				} as Block;
+					asset: {
+						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+					},
+				} as BlockHeader;
 				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
 
 				// Setup for missed block calculation
@@ -1080,42 +1212,42 @@ describe('Vote weight snapshot', () => {
 					{
 						round: 11,
 						delegates: delegates.map(d => ({
-							address: d.address,
+							address: d.address.toString('binary'),
 							voteWeight: '0',
 						})),
 					},
 					{
 						round: 12,
 						delegates: delegates.map(d => ({
-							address: d.address,
+							address: d.address.toString('binary'),
 							voteWeight: '0',
 						})),
 					},
 					{
 						round: 13,
 						delegates: delegates.map(d => ({
-							address: d.address,
+							address: d.address.toString('binary'),
 							voteWeight: '0',
 						})),
 					},
 					{
 						round: 14,
 						delegates: delegates.map(d => ({
-							address: d.address,
+							address: d.address.toString('binary'),
 							voteWeight: '0',
 						})),
 					},
 					{
 						round: 15,
 						delegates: delegates.map(d => ({
-							address: d.address,
+							address: d.address.toString('binary'),
 							voteWeight: '0',
 						})),
 					},
 					{
 						round: 16,
 						delegates: delegates.map(d => ({
-							address: d.address,
+							address: d.address.toString('binary'),
 							voteWeight: '0',
 						})),
 					},
@@ -1124,13 +1256,19 @@ describe('Vote weight snapshot', () => {
 				const mockedForgersList = JSON.stringify([
 					{
 						round: 10,
-						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						delegates: [
+							...forgers.map(d => d.address.toString('binary')).slice(0, 102),
+						],
 					},
 				]);
 
 				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+						mockedForgersList,
+					),
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+						existingVoteWeights,
+					),
 				});
 			});
 
@@ -1139,10 +1277,10 @@ describe('Vote weight snapshot', () => {
 				await dpos.undo(block, stateStore);
 
 				// Assert
-				const voteWeightsStr = await stateStore.consensus.get(
+				const voteWeightsBuffer = await stateStore.consensus.get(
 					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 				);
-				const voteWeights = JSON.parse(voteWeightsStr as string);
+				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
 				expect(voteWeights).toHaveLength(2);
 				expect(voteWeights[0].round).toEqual(11);
 				expect(voteWeights[1].round).toEqual(12);

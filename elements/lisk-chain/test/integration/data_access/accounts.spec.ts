@@ -15,11 +15,21 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Storage } from '../../../src/data_access/storage';
+import {
+	createFakeDefaultAccount,
+	encodeDefaultAccount,
+	defaultAccountSchema,
+} from '../../utils/account';
+import { DataAccess } from '../../../src/data_access';
+import { defaultBlockHeaderAssetSchema } from '../../utils/block';
+import { registeredTransactions } from '../../utils/registered_transactions';
 
 describe('dataAccess.transactions', () => {
 	let db: KVStore;
 	let storage: Storage;
+	let dataAccess: DataAccess;
 	let accounts: any;
 
 	beforeAll(() => {
@@ -27,38 +37,54 @@ describe('dataAccess.transactions', () => {
 		fs.ensureDirSync(parentPath);
 		db = new KVStore(path.join(parentPath, '/test-accounts.db'));
 		storage = new Storage(db);
+		dataAccess = new DataAccess({
+			db,
+			accountSchema: defaultAccountSchema as any,
+			registeredBlockHeaders: {
+				0: defaultBlockHeaderAssetSchema,
+				2: defaultBlockHeaderAssetSchema,
+			},
+			registeredTransactions,
+			minBlockHeaderCache: 3,
+			maxBlockHeaderCache: 5,
+		});
 	});
 
 	beforeEach(async () => {
 		accounts = [
-			{
-				address: 'cc96c0a5db38b968f563e7af6fb435585c889111',
-				publicKey:
+			createFakeDefaultAccount({
+				address: Buffer.from('cc96c0a5db38b968f563e7af6fb435585c889111', 'hex'),
+				publicKey: Buffer.from(
 					'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
-				balance: '99',
-				keys: {
-					mandatoryKeys: [],
-					optionalKeys: [],
-					numberOfSignatures: 0,
-				},
-			},
-			{
-				address: '584dd8a902822a9469fb2911fcc14ed5fd98220d',
-				publicKey:
+					'hex',
+				),
+				balance: BigInt(99),
+			}),
+			createFakeDefaultAccount({
+				address: Buffer.from('584dd8a902822a9469fb2911fcc14ed5fd98220d', 'hex'),
+				publicKey: Buffer.from(
 					'd468707933e4f24888dc1f00c8f84b2642c0edf3d694e2bb5daa7a0d87d18708',
-				balance: '10000',
+					'hex',
+				),
+				balance: BigInt('10000'),
 				keys: {
 					mandatoryKeys: [
-						'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
+						Buffer.from(
+							'456efe283f25ea5bb21476b6dfb77cec4dbd33a4d1b5e60e4dc28e8e8b10fc4e',
+							'hex',
+						),
 					],
 					optionalKeys: [],
 					numberOfSignatures: 3,
 				},
-			},
+			}),
 		];
 		const batch = db.batch();
 		for (const account of accounts) {
-			batch.put(`accounts:address:${account.address}`, account);
+			batch.put(
+				`accounts:address:${account.address.toString('binary')}`,
+				encodeDefaultAccount(account),
+			);
 		}
 		await batch.write();
 	});
@@ -71,7 +97,7 @@ describe('dataAccess.transactions', () => {
 		it('should throw not found error if non existent address is specified', async () => {
 			expect.assertions(1);
 			try {
-				await storage.getAccountByAddress('8973039982577606154L');
+				await dataAccess.getAccountByAddress(getRandomBytes(20));
 			} catch (error) {
 				// eslint-disable-next-line jest/no-try-expect
 				expect(error).toBeInstanceOf(NotFoundError);
@@ -80,7 +106,7 @@ describe('dataAccess.transactions', () => {
 
 		it('should return account by address', async () => {
 			const account = await storage.getAccountByAddress(accounts[1].address);
-			expect(account).toStrictEqual(accounts[1]);
+			expect(account).toEqual(encodeDefaultAccount(accounts[1]));
 		});
 	});
 
@@ -88,8 +114,8 @@ describe('dataAccess.transactions', () => {
 		it('should throw not found error if non existent public key is specified', async () => {
 			expect.assertions(1);
 			try {
-				await storage.getAccountsByPublicKey([
-					'e3ee6527848d873db7b8e7577384a3ee5f100b988b2f6c027a2851f5427e9426',
+				await dataAccess.getAccountsByPublicKey([
+					getRandomBytes(32),
 					accounts[0].publicKey,
 				]);
 			} catch (error) {
@@ -99,12 +125,12 @@ describe('dataAccess.transactions', () => {
 		});
 
 		it('should return account by public keys', async () => {
-			const result = await storage.getAccountsByPublicKey([
+			const result = await dataAccess.getAccountsByPublicKey([
 				accounts[1].publicKey,
 				accounts[0].publicKey,
 			]);
-			expect(result[0]).toStrictEqual(accounts[1]);
-			expect(result[1]).toStrictEqual(accounts[0]);
+			expect(result[0]).toEqual(accounts[1]);
+			expect(result[1]).toEqual(accounts[0]);
 		});
 	});
 
@@ -112,8 +138,8 @@ describe('dataAccess.transactions', () => {
 		it('should throw not found error if non existent address is specified', async () => {
 			expect.assertions(1);
 			try {
-				await storage.getAccountsByAddress([
-					'8973039982577606154L',
+				await dataAccess.getAccountsByAddress([
+					getRandomBytes(20),
 					accounts[0].address,
 				]);
 			} catch (error) {
@@ -123,12 +149,12 @@ describe('dataAccess.transactions', () => {
 		});
 
 		it('should return account by address', async () => {
-			const result = await storage.getAccountsByAddress([
+			const result = await dataAccess.getAccountsByAddress([
 				accounts[1].address,
 				accounts[0].address,
 			]);
-			expect(result[0]).toStrictEqual(accounts[1]);
-			expect(result[1]).toStrictEqual(accounts[0]);
+			expect(result[0]).toEqual(accounts[1]);
+			expect(result[1]).toEqual(accounts[0]);
 		});
 	});
 });

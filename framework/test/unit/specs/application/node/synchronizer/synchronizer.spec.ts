@@ -13,21 +13,28 @@
  */
 
 import { when } from 'jest-when';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { BlockJSON, Chain } from '@liskhq/lisk-chain';
+import { Block, Chain } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Rounds } from '@liskhq/lisk-dpos';
 import { KVStore } from '@liskhq/lisk-db';
-
+import { TransferTransaction } from '@liskhq/lisk-transactions';
+import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { BlockProcessorV2 } from '../../../../../../src/application/node/block_processor_v2';
 import { Synchronizer } from '../../../../../../src/application/node/synchronizer/synchronizer';
 import { Processor } from '../../../../../../src/application/node/processor';
 import { constants } from '../../../../../utils';
-import { newBlock } from './block';
+import {
+	createValidDefaultBlock,
+	defaultNetworkIdentifier,
+	genesisBlock as getGenesisBlock,
+} from '../../../../../fixtures/blocks';
 import * as synchronizerUtils from '../../../../../../src/application/node/synchronizer/utils';
+import {
+	defaultAccountAsset,
+	accountAssetSchema,
+} from '../../../../../../src/application/node/account';
 import { registeredTransactions } from '../../../../../utils/registered_transactions';
-
-import * as genesisBlockDevnet from '../../../../../fixtures/config/devnet/genesis_block.json';
+import { genesis } from '../../../../../fixtures';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -36,6 +43,7 @@ const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 );
 
 describe('Synchronizer', () => {
+	const genesisBlock = getGenesisBlock();
 	let bftModule;
 	let blockProcessorV2;
 	let chainModule: any;
@@ -68,19 +76,19 @@ describe('Synchronizer', () => {
 
 		rounds = new Rounds({ blocksPerRound: constants.activeDelegates });
 
-		const networkIdentifier = getNetworkIdentifier(
-			genesisBlockDevnet.payloadHash,
-			genesisBlockDevnet.communityIdentifier,
-		);
-
 		const blockchainDB = new KVStore('blockchain.db');
 		const forgerDB = new KVStore('forger.db');
 
 		chainModule = new Chain({
-			networkIdentifier,
+			networkIdentifier: defaultNetworkIdentifier,
 			db: blockchainDB,
-			genesisBlock: genesisBlockDevnet as any,
+			genesisBlock,
 			registeredTransactions,
+			registeredBlocks: { 2: BlockProcessorV2.schema },
+			accountAsset: {
+				schema: accountAssetSchema,
+				default: defaultAccountAsset,
+			},
 			maxPayloadLength: constants.maxPayloadLength,
 			rewardDistance: constants.rewards.distance,
 			rewardOffset: constants.rewards.offset,
@@ -102,9 +110,16 @@ describe('Synchronizer', () => {
 			isTempBlockEmpty: jest.fn(),
 			getAccountsByPublicKey: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
-			deserialize: chainModule.dataAccess.deserialize,
-			serializeBlockHeader: chainModule.dataAccess.serializeBlockHeader,
-			deserializeTransaction: chainModule.dataAccess.deserializeTransaction,
+			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
+			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(
+				chainModule.dataAccess,
+			),
+			decodeTransaction: chainModule.dataAccess.decodeTransaction.bind(
+				chainModule.dataAccess,
+			),
+			getBlockHeaderAssetSchema: chainModule.dataAccess.getBlockHeaderAssetSchema.bind(
+				chainModule.dataAccess,
+			),
 		};
 		chainModule.dataAccess = dataAccessMock;
 
@@ -158,10 +173,12 @@ describe('Synchronizer', () => {
 	describe('init()', () => {
 		beforeEach(() => {
 			// Arrange
-			const lastBlock = newBlock({ height: genesisBlockDevnet.height + 1 });
+			const lastBlock = createValidDefaultBlock({
+				header: { height: genesisBlock.header.height + 1 },
+			});
 			when(chainModule.dataAccess.getBlockHeaderByHeight)
 				.calledWith(1)
-				.mockResolvedValue(genesisBlockDevnet as never);
+				.mockResolvedValue(genesisBlock.header as never);
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
 				.mockResolvedValue(lastBlock as never);
@@ -184,19 +201,21 @@ describe('Synchronizer', () => {
 				const blocksTempTableEntries = new Array(10)
 					.fill(0)
 					.map((_, index) => ({
-						...newBlock({
-							height: index,
-							id: index.toString(),
-							version: 2,
+						...createValidDefaultBlock({
+							header: {
+								height: index,
+								version: 2,
+							},
 						}),
 					}))
-					.slice(genesisBlockDevnet.height + 2);
-				const initialLastBlock = {
-					height: genesisBlockDevnet.height + 3,
-					id: 'anId',
-					previousBlockId: genesisBlockDevnet.id,
-					version: 1,
-				};
+					.slice(genesisBlock.header.height + 2);
+				const initialLastBlock = createValidDefaultBlock({
+					header: {
+						height: genesisBlock.header.height + 3,
+						previousBlockID: genesisBlock.header.id,
+						version: 1,
+					},
+				});
 
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
@@ -215,8 +234,12 @@ describe('Synchronizer', () => {
 					.calledWith({
 						saveTempBlock: false,
 					})
-					.mockResolvedValueOnce({ height: initialLastBlock.height - 1 })
-					.mockResolvedValueOnce({ height: initialLastBlock.height - 2 });
+					.mockResolvedValueOnce({
+						header: { height: initialLastBlock.header.height - 1 },
+					})
+					.mockResolvedValueOnce({
+						header: { height: initialLastBlock.header.height - 2 },
+					});
 
 				await chainModule.init();
 
@@ -243,7 +266,7 @@ describe('Synchronizer', () => {
 					const tempBlock = blocksTempTableEntries[i];
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
-						await processorModule.deserialize(tempBlock as any),
+						tempBlock,
 						{
 							removeFromTempTable: true,
 						},
@@ -253,18 +276,20 @@ describe('Synchronizer', () => {
 
 			it('should restore blocks from blocks temporary table into blocks table if tip of temp table chain has preference over current tip (FORK_STATUS_VALID_BLOCK)', async () => {
 				// Arrange
-				const initialLastBlock = {
-					height: genesisBlockDevnet.height + 1,
-					id: 'anId',
-					previousBlockId: genesisBlockDevnet.id,
-					version: 1,
-				};
+				const initialLastBlock = createValidDefaultBlock({
+					header: {
+						height: genesisBlock.header.height + 1,
+						previousBlockID: genesisBlock.header.id,
+						version: 1,
+					},
+				});
 				const blocksTempTableEntries = [
 					{
-						height: genesisBlockDevnet.height + 2,
-						id: '3',
-						version: 2,
-						previousBlockId: initialLastBlock.id,
+						header: {
+							height: genesisBlock.header.height + 2,
+							version: 2,
+							previousBlockID: initialLastBlock.header.id,
+						},
 					},
 				];
 				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
@@ -300,7 +325,7 @@ describe('Synchronizer', () => {
 					const tempBlock = blocksTempTableEntries[i];
 					expect(processorModule.processValidated).toHaveBeenNthCalledWith(
 						i + 1,
-						await processorModule.deserialize(tempBlock as any),
+						tempBlock,
 						{
 							removeFromTempTable: true,
 						},
@@ -310,12 +335,13 @@ describe('Synchronizer', () => {
 
 			it('should clear the blocks temp table if the tip of the temp table doesnt have priority over current tip (Any other Fork Choice code', async () => {
 				// Arrange
-				const initialLastBlock = {
-					height: genesisBlockDevnet.height + 1,
-					id: 'anId',
-					previousBlockId: genesisBlockDevnet.id,
-					version: 2,
-				};
+				const initialLastBlock = createValidDefaultBlock({
+					header: {
+						height: genesisBlock.header.height + 1,
+						previousBlockID: genesisBlock.header.id,
+						version: 2,
+					},
+				});
 				const blocksTempTableEntries = [initialLastBlock];
 				chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 					blocksTempTableEntries,
@@ -352,19 +378,21 @@ describe('Synchronizer', () => {
 			const blocksTempTableEntries = new Array(10)
 				.fill(0)
 				.map((_, index) => ({
-					...newBlock({
-						height: index,
-						id: index.toString(),
-						version: 2,
+					...createValidDefaultBlock({
+						header: {
+							height: index,
+							version: 2,
+						},
 					}),
 				}))
-				.slice(genesisBlockDevnet.height + 2);
-			const initialLastBlock = {
-				height: genesisBlockDevnet.height + 1,
-				id: 'anId',
-				previousBlockId: genesisBlockDevnet.id,
-				version: 1,
-			};
+				.slice(genesisBlock.header.height + 2);
+			const initialLastBlock = createValidDefaultBlock({
+				header: {
+					height: genesisBlock.header.height + 1,
+					previousBlockID: genesisBlock.header.id,
+					version: 1,
+				},
+			});
 			chainModule.dataAccess.getTempBlocks.mockResolvedValue(
 				blocksTempTableEntries.reverse(),
 			);
@@ -466,10 +494,10 @@ describe('Synchronizer', () => {
 
 	describe('async run()', () => {
 		const aPeerId = '127.0.0.1:5000';
-		let aReceivedBlock: BlockJSON;
+		let aReceivedBlock: Block;
 
-		beforeEach(async () => {
-			aReceivedBlock = await chainModule.serializeBlockHeader(newBlock()); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
+		beforeEach(() => {
+			aReceivedBlock = createValidDefaultBlock(); // newBlock() creates a block instance, and we want to simulate a block in JSON format that comes from the network
 		});
 
 		it('should reject with error if there is already an active mechanism', async () => {
@@ -491,9 +519,7 @@ describe('Synchronizer', () => {
 
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
-			expect(processorModule.validate).toHaveBeenCalledWith(
-				await processorModule.deserialize(aReceivedBlock),
-			);
+			expect(processorModule.validate).toHaveBeenCalledWith(aReceivedBlock);
 		});
 
 		it('should reject with error if block validation failed', async () => {
@@ -501,15 +527,17 @@ describe('Synchronizer', () => {
 				synchronizer.run(
 					{
 						...aReceivedBlock,
-						blockSignature: '12312334534536645656',
+						header: {
+							...aReceivedBlock.header,
+							signature: Buffer.from(
+								'84d95f9a9c02b1b216bc89610961ca886a454c252e0782f8c4c437f5dff7f720fd63461774fbec4622c85c1c15c3f1d55baf7a4ad41e4e0e50589c5c1e4c7301',
+								'hex',
+							),
+						},
 					},
 					aPeerId,
 				),
-			).rejects.toMatchObject([
-				expect.objectContaining({
-					message: 'should match format "signature"',
-				}),
-			]);
+			).rejects.toThrow('Invalid block signature');
 
 			expect(synchronizer.active).toBeFalsy();
 		});
@@ -521,17 +549,14 @@ describe('Synchronizer', () => {
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
 			expect(syncMechanism1.isValidFor).toHaveBeenCalledTimes(1);
-			expect(syncMechanism1.run).toHaveBeenCalledWith(
-				await processorModule.deserialize(aReceivedBlock),
-				aPeerId,
-			);
+			expect(syncMechanism1.run).toHaveBeenCalledWith(aReceivedBlock, aPeerId);
 			expect(syncMechanism2.run).not.toHaveBeenCalled();
 			expect(loggerMock.info).toHaveBeenNthCalledWith(2, 'Triggering: Object');
 			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				3,
 				{
-					lastBlockHeight: chainModule.lastBlock.height,
-					lastBlockId: chainModule.lastBlock.id,
+					lastBlockHeight: chainModule.lastBlock.header.height,
+					lastBlockId: chainModule.lastBlock.header.id,
 					mechanism: syncMechanism1.constructor.name,
 				},
 				'Synchronization finished',
@@ -547,7 +572,7 @@ describe('Synchronizer', () => {
 			expect(loggerMock.info).toHaveBeenCalledTimes(2);
 			expect(loggerMock.info).toHaveBeenNthCalledWith(
 				2,
-				{ blockId: aReceivedBlock.id },
+				{ blockId: aReceivedBlock.header.id },
 				'Syncing mechanism could not be determined for the given block',
 			);
 			expect(synchronizer.active).toBeFalsy();
@@ -557,26 +582,12 @@ describe('Synchronizer', () => {
 	});
 
 	describe('#_getUnconfirmedTransactionsFromNetwork', () => {
-		let chainModuleStub;
 		beforeEach(() => {
-			chainModuleStub = {
-				lastBlock: {
-					id: 'blockID',
-				},
-				deserializeTransaction: jest.fn().mockImplementation(val => val),
-				validateTransactions: jest.fn().mockResolvedValue([
-					{
-						errors: [],
-						status: 1,
-					},
-				]),
-			};
-
 			syncParameters = {
 				channel: channelMock,
 				logger: loggerMock,
 				processorModule,
-				chainModule: chainModuleStub as any,
+				chainModule,
 				transactionPoolModule: transactionPoolModuleStub,
 				mechanisms: [syncMechanism1, syncMechanism2],
 			};
@@ -584,27 +595,24 @@ describe('Synchronizer', () => {
 		});
 
 		describe('when peer returns valid transaction response', () => {
+			const transaction = new TransferTransaction({
+				nonce: BigInt('0'),
+				fee: BigInt('100000000'),
+				senderPublicKey: getAddressAndPublicKeyFromPassphrase(
+					genesis.passphrase,
+				).publicKey,
+				asset: {
+					amount: BigInt('100'),
+					recipientAddress: Buffer.from(
+						'b63f83a1ecf93d7cc0d811e89462c4e1d66d1e56',
+						'hex',
+					),
+					data: '',
+				},
+			});
+			transaction.sign(defaultNetworkIdentifier, genesis.passphrase);
 			const validtransactions = {
-				transactions: [
-					{
-						type: 11,
-						nonce: '0',
-						fee: '1000',
-						senderPublicKey:
-							'efaf1d977897cb60d7db9d30e8fd668dee070ac0db1fb8d184c06152a8b75f8d',
-						timestamp: 54316326,
-						asset: {
-							votes: [
-								'+0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-								'+6766ce280eb99e45d2cc7d9c8c852720940dab5d69f480e80477a97b4255d5d8',
-								'-1387d8ec6306807ffd6fe27ea3443985765c1157928bb09904307956f46a9972',
-							],
-						},
-						signature:
-							'b534786e208c570022ac7ebdb19915d8772998bab2fa7bdfb5fe219c2103a0517209301974c772596c46dd95b2d32b3b1f38172295801ff8c3968654a7bde406',
-						id: '16951860278597630982',
-					},
-				],
+				transactions: [transaction.getBytes().toString('base64')],
 			};
 
 			beforeEach(() => {

@@ -37,8 +37,8 @@ describe('account:create', () => {
 		privateKey:
 			'bec5ac9d074d1684f9dd184fc44c4b37fb73ca9d013b6ddf5a92578a98f8848990215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
 	};
-	const defaultAddress = '14389576228799148035L';
-	const secondDefaultAddress = '10498496668550693658L';
+	const defaultAddress = 'lskz928ku6wx7ao89y9c4c24cqdduasdvquzvqksj';
+	const secondDefaultAddress = 'lskc3xa98z2pfa4c67anmanuporca2t3tdd6523kk';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () => {
@@ -67,12 +67,6 @@ describe('account:create', () => {
 					.onSecondCall()
 					.returns(secondDefaultMnemonic),
 			)
-			.stub(cryptography, 'getKeys', getKeysStub)
-			.stub(
-				cryptography,
-				'getAddressFromPublicKey',
-				getAddressFromPublicKeyStub,
-			)
 			.stdout();
 	};
 
@@ -81,14 +75,21 @@ describe('account:create', () => {
 			.command(['account:create'])
 			.it('should create account', () => {
 				expect(printUtils.print).to.be.called;
-				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
-				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
-					defaultKeys.publicKey,
-				);
 				return expect(printMethodStub).to.be.calledWith([
 					{
-						...defaultKeys,
-						address: defaultAddress,
+						publicKey: cryptography
+							.getKeys(defaultMnemonic)
+							.publicKey.toString('base64'),
+						privateKey: cryptography
+							.getKeys(defaultMnemonic)
+							.privateKey.toString('base64'),
+						address: cryptography.getBase32AddressFromPublicKey(
+							cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
+							'lsk',
+						),
+						binaryAddress: cryptography
+							.getAddressFromPassphrase(defaultMnemonic)
+							.toString('base64'),
 						passphrase: defaultMnemonic,
 					},
 				]);
@@ -101,19 +102,39 @@ describe('account:create', () => {
 			.command(['account:create', `--number=${defaultNumber}`])
 			.it('should create account', () => {
 				expect(printUtils.print).to.be.calledOnce;
-				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
-				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
-					defaultKeys.publicKey,
-				);
 				const result = [
 					{
-						...defaultKeys,
-						address: defaultAddress,
+						publicKey: cryptography
+							.getKeys(defaultMnemonic)
+							.publicKey.toString('base64'),
+						privateKey: cryptography
+							.getKeys(defaultMnemonic)
+							.privateKey.toString('base64'),
+						address: cryptography.getBase32AddressFromPublicKey(
+							cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
+							'lsk',
+						),
+						binaryAddress: cryptography
+							.getAddressFromPassphrase(defaultMnemonic)
+							.toString('base64'),
 						passphrase: defaultMnemonic,
 					},
 					{
-						...secondDefaultKeys,
-						address: secondDefaultAddress,
+						publicKey: cryptography
+							.getKeys(secondDefaultMnemonic)
+							.publicKey.toString('base64'),
+						privateKey: cryptography
+							.getKeys(secondDefaultMnemonic)
+							.privateKey.toString('base64'),
+						address: cryptography.getBase32AddressFromPublicKey(
+							cryptography
+								.getKeys(secondDefaultMnemonic)
+								.publicKey.toString('hex'),
+							'lsk',
+						),
+						binaryAddress: cryptography
+							.getAddressFromPassphrase(secondDefaultMnemonic)
+							.toString('base64'),
 						passphrase: secondDefaultMnemonic,
 					},
 				];

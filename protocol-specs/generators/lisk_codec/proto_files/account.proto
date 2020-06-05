@@ -1,0 +1,42 @@
+syntax = 'proto2';
+
+message Keys {
+	required uint32 numberOfSignatures = 1;
+	repeated bytes mandatoryKeys = 2;
+	repeated bytes optionalKeys = 3;
+}
+
+message Delegate {
+	required string username = 1;
+	repeated uint32 pomHeights = 2 [packed=true];
+	required uint32 consecutiveMissedBlocks = 3;
+	required uint32 lastForgedHeight = 4;
+	required bool isBanned = 5;
+	required uint64 totalVotesReceived = 6;
+}
+
+message SentVotes {
+	required bytes delegateAddress = 1;
+	required uint64 amount = 2;
+}
+
+message Unlocking {
+	required bytes delegateAddress = 1;
+	required uint64 amount = 2;
+	required uint32 unvoteHeight = 3;
+}
+
+message Asset {
+	required Delegate delegate = 1;
+	repeated SentVotes sentVotes = 2;
+	repeated Unlocking unlocking = 3;
+}
+
+message Account {
+	required bytes address = 1;
+	required uint64 balance = 2;
+	required bytes publicKey = 3;
+	required uint64 nonce = 4;
+	required Keys keys = 5;
+	required Asset asset = 6;
+}

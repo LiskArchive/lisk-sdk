@@ -8,6 +8,9 @@ message ArrayBools {
 	repeated bool list = 1 [packed=true];
 }
 
+message ArrayString {
+	repeated string list = 1;
+}
 
 message Object {
 	required string address = 1;

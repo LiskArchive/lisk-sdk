@@ -13,36 +13,36 @@
  *
  */
 import { TransactionError } from '../errors';
-import { Account } from '../transaction_types';
+import { Account } from '../types';
 
 import { convertBeddowsToLSK } from './format';
 import { validateSignature } from './sign_and_validate';
 
 export const verifySenderPublicKey = (
-	id: string,
+	id: Buffer,
 	sender: Account,
-	publicKey: string,
+	publicKey: Buffer,
 ): TransactionError | undefined =>
-	sender.publicKey && sender.publicKey !== publicKey
+	sender.publicKey.length !== 0 && !sender.publicKey.equals(publicKey)
 		? new TransactionError(
 				'Invalid sender publicKey',
 				id,
 				'.senderPublicKey',
-				publicKey,
-				sender.publicKey,
+				publicKey.toString('base64'),
+				sender.publicKey.toString('base64'),
 		  )
 		: undefined;
 
 export const verifyMinRemainingBalance = (
-	id: string,
+	id: Buffer,
 	account: Account,
 	minRemainingBalance: bigint,
 ): TransactionError | undefined => {
 	if (account.balance < minRemainingBalance) {
 		return new TransactionError(
-			`Account does not have enough minimum remaining LSK: ${
-				account.address
-			}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
+			`Account does not have enough minimum remaining LSK: ${account.address.toString(
+				'base64',
+			)}, balance: ${convertBeddowsToLSK(account.balance.toString())}`,
 			id,
 			'.balance',
 			account.balance.toString(),
@@ -54,15 +54,15 @@ export const verifyMinRemainingBalance = (
 };
 
 export const verifyAccountNonce = (
-	id: string,
+	id: Buffer,
 	account: Account,
 	nonce: bigint,
 ): TransactionError | undefined => {
 	if (nonce < account.nonce) {
 		return new TransactionError(
-			`Incompatible transaction nonce for account: ${
-				account.address
-			}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			`Incompatible transaction nonce for account: ${account.address.toString(
+				'base64',
+			)}, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 			nonce.toString(),
@@ -72,9 +72,9 @@ export const verifyAccountNonce = (
 
 	if (nonce > account.nonce) {
 		return new TransactionError(
-			`Transaction nonce for account: ${
-				account.address
-			} is higher than expected, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
+			`Transaction nonce for account: ${account.address.toString(
+				'base64',
+			)} is higher than expected, Tx Nonce: ${nonce.toString()}, Account Nonce: ${account.nonce.toString()}`,
 			id,
 			'.nonce',
 			nonce.toString(),
@@ -93,8 +93,8 @@ export const isMultisignatureAccount = (account: Account): boolean =>
 	);
 
 export const validateKeysSignatures = (
-	keys: readonly string[],
-	signatures: readonly string[],
+	keys: Array<Readonly<Buffer>>,
+	signatures: Array<Readonly<Buffer>>,
 	transactionBytes: Buffer,
 ): TransactionError[] => {
 	const errors = [];
@@ -106,14 +106,14 @@ export const validateKeysSignatures = (
 					'Invalid signatures format. signatures should not include empty string.',
 					undefined,
 					'.signatures',
-					signatures.join(','),
+					signatures.map(sign => sign.toString('base64')).join(','),
 				),
 			);
 			break;
 		}
 		const { error } = validateSignature(
-			keys[i],
-			signatures[i],
+			keys[i] as Buffer,
+			signatures[i] as Buffer,
 			transactionBytes,
 		);
 
@@ -126,9 +126,9 @@ export const validateKeysSignatures = (
 };
 
 export const verifyMultiSignatureTransaction = (
-	id: string,
+	id: Buffer,
 	sender: Account,
-	signatures: ReadonlyArray<string>,
+	signatures: Array<Readonly<Buffer>>,
 	transactionBytes: Buffer,
 ): TransactionError[] => {
 	const errors = [];
@@ -169,7 +169,7 @@ export const verifyMultiSignatureTransaction = (
 		if (signature.length !== 0) {
 			const { error } = validateSignature(
 				optionalKeys[k],
-				signature,
+				signature as Buffer,
 				transactionBytes,
 			);
 			if (error) {

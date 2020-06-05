@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidNonce,
@@ -24,18 +27,22 @@ import {
 
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
-import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction } from './utils';
+import {
+	createBaseTransaction,
+	baseTransactionToJSON,
+	convertKeysToBuffer,
+} from './utils';
+import { TransactionJSON } from './types';
 
 export interface TransferInputs {
 	readonly amount: string;
 	readonly fee: string;
 	readonly nonce: string;
 	readonly networkIdentifier: string;
-	readonly data?: string;
-	readonly recipientId?: string;
+	readonly data: string;
+	readonly recipientAddress?: string;
 	readonly recipientPublicKey?: string;
-	readonly senderPublicKey?: string;
+	readonly senderPublicKey: string;
 	readonly passphrase?: string;
 	readonly passphrases?: ReadonlyArray<string>;
 	readonly keys?: {
@@ -46,7 +53,7 @@ export interface TransferInputs {
 
 const validateInputs = ({
 	amount,
-	recipientId,
+	recipientAddress,
 	recipientPublicKey,
 	data,
 	networkIdentifier,
@@ -65,14 +72,14 @@ const validateInputs = ({
 		throw new Error('Amount must be a valid number in string format.');
 	}
 
-	if (!recipientId && !recipientPublicKey) {
+	if (!recipientAddress && !recipientPublicKey) {
 		throw new Error(
-			'Either recipientId or recipientPublicKey must be provided.',
+			'Either recipientAddress or recipientPublicKey must be provided.',
 		);
 	}
 
-	if (typeof recipientId !== 'undefined') {
-		validateAddress(recipientId);
+	if (typeof recipientAddress !== 'undefined') {
+		validateAddress(recipientAddress);
 	}
 
 	if (typeof recipientPublicKey !== 'undefined') {
@@ -80,11 +87,13 @@ const validateInputs = ({
 	}
 
 	if (
-		recipientId &&
+		recipientAddress &&
 		recipientPublicKey &&
-		recipientId !== getAddressFromPublicKey(recipientPublicKey)
+		hexToBuffer(recipientAddress).equals(
+			getAddressFromPublicKey(hexToBuffer(recipientPublicKey)),
+		)
 	) {
-		throw new Error('recipientId does not match recipientPublicKey.');
+		throw new Error('recipientAddress does not match recipientPublicKey.');
 	}
 
 	if (data && data.length > 0) {
@@ -110,57 +119,53 @@ export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {
 		passphrase,
 		networkIdentifier,
 		passphrases,
-		keys,
 		senderPublicKey,
 	} = inputs;
 
-	const recipientIdFromPublicKey = recipientPublicKey
-		? getAddressFromPublicKey(recipientPublicKey)
+	const recipientAddressFromPublicKey = recipientPublicKey
+		? getAddressFromPublicKey(hexToBuffer(recipientPublicKey))
 		: undefined;
-	const recipientId = inputs.recipientId
-		? inputs.recipientId
-		: recipientIdFromPublicKey;
+	const recipientAddress = inputs.recipientAddress
+		? hexToBuffer(inputs.recipientAddress)
+		: recipientAddressFromPublicKey;
+	const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 8,
+		type: TransferTransaction.TYPE,
 		// For txs from multisig senderPublicKey must be set before attempting signing
-		senderPublicKey,
+		senderPublicKey: hexToBuffer(senderPublicKey),
 		asset: {
-			amount,
-			recipientId: recipientId as string,
+			amount: BigInt(amount),
+			recipientAddress: recipientAddress as Buffer,
 			data,
 		},
-	};
+	} as TransferTransaction;
 
 	if (!passphrase && !passphrases?.length) {
-		return transaction;
+		return baseTransactionToJSON(transaction);
 	}
 
-	const transactionWithSenderInfo = {
-		...transaction,
-		senderPublicKey: transaction.senderPublicKey as string,
-		asset: {
-			...transaction.asset,
-			recipientId: recipientId as string,
-		},
-	};
-
-	const transferTransaction = new TransferTransaction(
-		transactionWithSenderInfo,
-	);
+	const transferTransaction = new TransferTransaction(transaction);
 
 	if (passphrase) {
-		transferTransaction.sign(networkIdentifier, passphrase);
+		transferTransaction.sign(networkIdentifierBytes, passphrase);
 
-		return transferTransaction.toJSON();
+		return baseTransactionToJSON(transferTransaction);
 	}
 
-	if (passphrases && keys) {
-		transferTransaction.sign(networkIdentifier, undefined, passphrases, keys);
+	if (passphrases && inputs.keys) {
+		const keys = convertKeysToBuffer(inputs.keys);
 
-		return transferTransaction.toJSON();
+		transferTransaction.sign(
+			networkIdentifierBytes,
+			undefined,
+			passphrases,
+			keys,
+		);
+
+		return baseTransactionToJSON(transferTransaction);
 	}
 
-	return transactionWithSenderInfo;
+	return baseTransactionToJSON(transferTransaction);
 };

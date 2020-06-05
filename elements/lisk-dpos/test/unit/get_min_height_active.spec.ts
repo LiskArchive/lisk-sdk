@@ -27,7 +27,7 @@ import { ForgersList } from '../../src/types';
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	return new StateStoreMock([], {
-		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify(list),
+		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(JSON.stringify(list)),
 	});
 };
 
@@ -35,7 +35,7 @@ describe('dpos.getMinActiveHeight()', () => {
 	let dpos: Dpos;
 	let height: number;
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
-	const defaultAddress = 'x';
+	const defaultAddress = Buffer.from('x');
 
 	beforeEach(() => {
 		// Arrange

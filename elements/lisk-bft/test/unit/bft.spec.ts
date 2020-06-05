@@ -12,11 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader as blockFixture } from '../fixtures/blocks';
+import { codec } from '@liskhq/lisk-codec';
+import { createFakeBlockHeader } from '../fixtures/blocks';
 import { FinalityManager } from '../../src/finality_manager';
 
-import { BFT, CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../../src';
-import { BlockHeader, Chain, DPoS } from '../../src/types';
+import {
+	BFT,
+	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+	BlockHeader,
+	Chain,
+	DPoS,
+	BFTPersistedValues,
+	BFTFinalizedHeightCodecSchema,
+} from '../../src';
 import { StateStoreMock } from './state_store_mock';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -37,7 +45,7 @@ const generateBlocks = ({
 }): BlockHeader[] => {
 	return new Array(numberOfBlocks).fill(0).map((_v, index) => {
 		const height = startHeight + index;
-		return blockFixture({ height, version: 2 });
+		return createFakeBlockHeader({ height, version: 2 });
 	});
 };
 
@@ -70,7 +78,7 @@ describe('bft', () => {
 		let lastBlock: BlockHeader;
 
 		beforeEach(() => {
-			lastBlock = blockFixture({ height: 1, version: 2 });
+			lastBlock = createFakeBlockHeader({ height: 1, version: 2 });
 			chainStub = {
 				dataAccess: {
 					getBlockHeadersByHeightBetween: jest
@@ -144,7 +152,10 @@ describe('bft', () => {
 			it('should set the finality height to the value from chain state', async () => {
 				const finalizedHeight = 5;
 				const stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: String(finalizedHeight),
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight },
+					),
 				});
 				const bft = new BFT(bftParams);
 
@@ -155,18 +166,21 @@ describe('bft', () => {
 		});
 
 		describe('#addNewBlock', () => {
-			const block1 = blockFixture({ height: 2, version: 2 });
-			const lastFinalizedHeight = String('5');
+			const block1 = createFakeBlockHeader({ height: 2, version: 2 });
+			const lastFinalizedHeight = 5;
 
 			let bft: BFT;
 			let stateStore: StateStoreMock;
 
 			beforeEach(async () => {
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: lastFinalizedHeight,
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight: lastFinalizedHeight },
+					),
 				});
 				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue([
-					blockFixture({ height: 1, version: 2 }),
+					createFakeBlockHeader({ height: 1, version: 2 }),
 				]);
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -175,8 +189,14 @@ describe('bft', () => {
 			describe('when valid block which does not change the finality is added', () => {
 				it('should update the latest finalized height to storage', async () => {
 					await bft.addNewBlock(block1, stateStore);
-					const finalizedHeight = await stateStore.consensus.get(
-						CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+					const finalizedHeightBuffer =
+						(await stateStore.consensus.get(
+							CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+						)) ?? Buffer.from('00');
+
+					const { finalizedHeight } = codec.decode<BFTPersistedValues>(
+						BFTFinalizedHeightCodecSchema,
+						finalizedHeightBuffer,
 					);
 
 					expect(finalizedHeight).toEqual(lastFinalizedHeight);
@@ -190,7 +210,10 @@ describe('bft', () => {
 
 			beforeEach(async () => {
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '1',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight: 1 },
+					),
 				});
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -214,14 +237,17 @@ describe('bft', () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '5',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight: 5 },
+					),
 				});
 
 				await bft.init(stateStore);
 				const blocks = [
-					blockFixture({ height: 4, version: 2 }),
-					blockFixture({ height: 5, version: 2 }),
-					blockFixture({ height: 6, version: 2 }),
+					createFakeBlockHeader({ height: 4, version: 2 }),
+					createFakeBlockHeader({ height: 5, version: 2 }),
+					createFakeBlockHeader({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -234,12 +260,15 @@ describe('bft', () => {
 				// Arrange
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '5',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight: 5 },
+					),
 				});
 				await bft.init(stateStore);
 				const blocks = [
-					blockFixture({ height: 5, version: 2 }),
-					blockFixture({ height: 6, version: 2 }),
+					createFakeBlockHeader({ height: 5, version: 2 }),
+					createFakeBlockHeader({ height: 6, version: 2 }),
 				];
 
 				// Act & Assert
@@ -253,7 +282,7 @@ describe('bft', () => {
 				bft = new BFT(bftParams);
 				stateStore = new StateStoreMock();
 				await bft.init(stateStore);
-				const blocks = [blockFixture({ height: 6, version: 2 })];
+				const blocks = [createFakeBlockHeader({ height: 6, version: 2 })];
 
 				await bft.deleteBlocks(blocks, stateStore);
 
@@ -267,8 +296,10 @@ describe('bft', () => {
 			it('should reset headers and related stats to initial state except finality', async () => {
 				// Arrange
 				const stateStore = new StateStoreMock({
-					key: 'BFT.finalizedHeight',
-					value: '5',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight: 5 },
+					),
 				});
 				const bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -282,7 +313,10 @@ describe('bft', () => {
 					await bft.addNewBlock(
 						{
 							...block,
-							maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
+							asset: {
+								...block.asset,
+								maxHeightPrevoted: bft.finalityManager.chainMaxHeightPrevoted,
+							},
 						},
 						stateStore,
 					);
@@ -297,7 +331,7 @@ describe('bft', () => {
 				expect(beforeResetInfo).not.toEqual(initialInfo);
 				// Finalized height should not change
 				expect(afterResetInfo).toEqual({
-					finalizedHeight: 1,
+					finalizedHeight: 5,
 					maxHeightPrevoted: 0,
 					preVotes: {},
 					preCommits: {},
@@ -314,9 +348,11 @@ describe('bft', () => {
 			beforeEach(async () => {
 				// Arrange
 				bft = new BFT(bftParams);
-
 				stateStore = new StateStoreMock({
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: '1',
+					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+						BFTFinalizedHeightCodecSchema,
+						{ finalizedHeight: 1 },
+					),
 				});
 				await bft.init(stateStore);
 
@@ -342,8 +378,10 @@ describe('bft', () => {
 				// Arrange
 				const block = {
 					height: 102,
-					generatorPublicKey: 'zxc',
-					maxHeightPreviouslyForged: 0,
+					generatorPublicKey: Buffer.from('zxc'),
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
 				};
 
 				// Act & Assert
@@ -356,7 +394,9 @@ describe('bft', () => {
 				// Arrange
 				const block = {
 					height: 203,
-					maxHeightPreviouslyForged: 203,
+					asset: {
+						maxHeightPreviouslyForged: 203,
+					},
 				};
 
 				// Act & Assert
@@ -369,7 +409,9 @@ describe('bft', () => {
 				// Arrange
 				const block = {
 					height: 203,
-					maxHeightPreviouslyForged: 204,
+					asset: {
+						maxHeightPreviouslyForged: 204,
+					},
 				};
 
 				// Act & Assert
@@ -383,8 +425,10 @@ describe('bft', () => {
 					// Arrange
 					const block = {
 						height: 403,
-						generatorPublicKey: 'zxc',
-						maxHeightPreviouslyForged: 101,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -398,7 +442,9 @@ describe('bft', () => {
 					const block = {
 						height: 403,
 						generatorPublicKey: blocks[100].generatorPublicKey,
-						maxHeightPreviouslyForged: 101,
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -413,8 +459,10 @@ describe('bft', () => {
 					// Arrange
 					const block = {
 						height: 404,
-						generatorPublicKey: 'zxc',
-						maxHeightPreviouslyForged: 101,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -428,7 +476,9 @@ describe('bft', () => {
 					const block = {
 						height: 404,
 						generatorPublicKey: blocks[100].generatorPublicKey,
-						maxHeightPreviouslyForged: 101,
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -443,8 +493,10 @@ describe('bft', () => {
 					// Arrange
 					const block = {
 						height: 405,
-						generatorPublicKey: 'zxc',
-						maxHeightPreviouslyForged: 101,
+						generatorPublicKey: Buffer.from('zxc'),
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert
@@ -458,7 +510,9 @@ describe('bft', () => {
 					const block = {
 						height: 405,
 						generatorPublicKey: blocks[100].generatorPublicKey,
-						maxHeightPreviouslyForged: 101,
+						asset: {
+							maxHeightPreviouslyForged: 101,
+						},
 					};
 
 					// Act & Assert

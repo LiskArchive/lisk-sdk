@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { hash, hexToBuffer } from '@liskhq/lisk-cryptography';
+import { hash } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
@@ -29,10 +29,10 @@ import {
 	deleteForgersListUntilRound,
 	deleteVoteWeightsUntilRound,
 	getForgersList,
+	decodeVoteWeights,
 } from './delegates_list';
 import { Rounds } from './rounds';
 import {
-	Block,
 	BlockHeader,
 	Chain,
 	DPoSProcessingOptions,
@@ -109,7 +109,7 @@ export class Dpos {
 
 	public async getForgerAddressesForRound(
 		round: number,
-	): Promise<ReadonlyArray<string>> {
+	): Promise<ReadonlyArray<Buffer>> {
 		return this.delegatesList.getDelegateList(round);
 	}
 
@@ -128,7 +128,7 @@ export class Dpos {
 
 	public async getMinActiveHeight(
 		height: number,
-		address: string,
+		address: Buffer,
 		stateStore: StateStore,
 		delegateActiveRoundLimit?: number,
 	): Promise<number> {
@@ -157,16 +157,16 @@ export class Dpos {
 	}
 
 	public async isActiveDelegate(
-		address: string,
+		address: Buffer,
 		height: number,
 	): Promise<boolean> {
 		const relevantRound = this.rounds.calcRound(height);
-		const voteWeightsStr = await this.chain.dataAccess.getConsensusState(
+		const voteWeightsBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const voteWeights: VoteWeights = voteWeightsStr
-			? JSON.parse(voteWeightsStr)
+
+		const voteWeights: VoteWeights = voteWeightsBuffer
+			? decodeVoteWeights(voteWeightsBuffer)
 			: [];
 
 		const voteWeight = voteWeights.find(
@@ -184,12 +184,12 @@ export class Dpos {
 		);
 
 		return (
-			activeDelegateVoteWeights.findIndex(vw => vw.address === address) > -1
+			activeDelegateVoteWeights.findIndex(vw => vw.address.equals(address)) > -1
 		);
 	}
 
 	public async isStandbyDelegate(
-		address: string,
+		address: Buffer,
 		height: number,
 		stateStore: StateStore,
 	): Promise<boolean> {
@@ -205,8 +205,8 @@ export class Dpos {
 			);
 		}
 
-		const isStandby = foundForgerList.standby.find(
-			standByDelegate => standByDelegate === address,
+		const isStandby = foundForgerList.standby.find(standByDelegate =>
+			standByDelegate.equals(address),
 		);
 
 		return !!isStandby;
@@ -217,7 +217,7 @@ export class Dpos {
 	}
 
 	public async apply(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions = {
 			delegateListRoundOffset: this.delegateListRoundOffset,
@@ -229,7 +229,7 @@ export class Dpos {
 	}
 
 	public async undo(
-		block: Block,
+		block: BlockHeader,
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions = {
 			delegateListRoundOffset: this.delegateListRoundOffset,
@@ -252,7 +252,7 @@ export class Dpos {
 
 		const delegateForgedBlocks = lastBlockHeaders.filter(
 			block =>
-				block.generatorPublicKey === blockHeader.generatorPublicKey &&
+				block.generatorPublicKey.equals(blockHeader.generatorPublicKey) &&
 				block.height >= startOfLastRound,
 		);
 
@@ -266,15 +266,20 @@ export class Dpos {
 			return true;
 		}
 
-		const { seedReveal: previousBlockSeedReveal } = delegateForgedBlocks[0];
-		const { seedReveal: newBlockSeedReveal } = blockHeader;
+		const {
+			asset: { seedReveal: previousBlockSeedReveal },
+		} = delegateForgedBlocks[0];
+		const {
+			asset: { seedReveal: newBlockSeedReveal },
+		} = blockHeader;
 		const SEED_REVEAL_BYTE_SIZE = 16;
-		const newBlockSeedRevealBuffer = hash(
-			hexToBuffer(newBlockSeedReveal),
-		).slice(0, SEED_REVEAL_BYTE_SIZE);
+		const newBlockSeedRevealBuffer = hash(newBlockSeedReveal).slice(
+			0,
+			SEED_REVEAL_BYTE_SIZE,
+		);
 
 		// New block seed reveal should be a preimage of the last block seed reveal
-		if (hexToBuffer(previousBlockSeedReveal).equals(newBlockSeedRevealBuffer)) {
+		if (previousBlockSeedReveal.equals(newBlockSeedRevealBuffer)) {
 			return true;
 		}
 
@@ -293,7 +298,7 @@ export class Dpos {
 	 * in descending order.
 	 */
 	private _findEarliestActiveListRound(
-		address: string,
+		address: Buffer,
 		previousLists: ForgersList,
 		delegateActiveRoundLimit: number = this.delegateActiveRoundLimit,
 	): number {
@@ -308,7 +313,7 @@ export class Dpos {
 		for (let i = 0; i < lists.length; i += 1) {
 			const { round, delegates } = lists[i];
 
-			if (!delegates.includes(address)) {
+			if (!delegates.find(delegateAddress => delegateAddress.equals(address))) {
 				// Since we are iterating backwards,
 				// If the delegate is not in this list
 				// That means delegate was in the next round :)

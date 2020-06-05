@@ -30,8 +30,10 @@ describe('convert', () => {
 	// keys for passphrase 'secret';
 	const defaultPrivateKey =
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const defaultPublicKey =
-		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const defaultPublicKey = Buffer.from(
+		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
 	const defaultPublicKeyHash = Buffer.from(
 		'3a971fd02b4a07fc20aad1936d3cb1d263b96e0ffd938625e5c0db1ad8ba2a29',
 		'hex',
@@ -44,7 +46,10 @@ describe('convert', () => {
 		'6f9d780305bda43dd47a291d897f2d8845a06160632d82fb1f209fdd46ed3c1e',
 		'hex',
 	);
-	const defaultAddress = '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f';
+	const defaultAddress = Buffer.from(
+		'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+		'hex',
+	);
 	const defaultStringWithMoreThanEightCharacters = '0123456789';
 	const defaultFirstEightCharactersReversed = '76543210';
 	const defaultDataForBuffer = 'Hello Lisk SDK - Bring the app to life!';
@@ -73,14 +78,14 @@ describe('convert', () => {
 			const bufferInit = Buffer.from(defaultDataForBuffer);
 			const firstTwentyBytes = getFirstNBytes(bufferInit, 20);
 			const address = toAddress(firstTwentyBytes);
-			expect(address).toEqual(firstTwentyBytes.toString('hex'));
+			expect(address).toEqual(firstTwentyBytes);
 		});
 
 		it('should create truncated address bytes from a buffer of more than 20 bytes ', () => {
 			const bufferInit = Buffer.from(defaultDataForBuffer);
 			const firstTwentyBytes = getFirstNBytes(bufferInit, 20);
 			const address = toAddress(getFirstNBytes(bufferInit, 25));
-			expect(address).toEqual(firstTwentyBytes.toString('hex'));
+			expect(address).toEqual(firstTwentyBytes);
 		});
 
 		it('should throw on less than 20 bytes as input', () => {
@@ -103,15 +108,13 @@ describe('convert', () => {
 
 		it('should generate address from publicKey', () => {
 			const address = getAddressFromPublicKey(defaultPublicKey);
-			expect(address).toBe(defaultAddress);
+			expect(address).toEqual(defaultAddress);
 		});
 	});
 
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
-			const result = convertPublicKeyEd2Curve(
-				Buffer.from(defaultPublicKey, 'hex'),
-			);
+			const result = convertPublicKeyEd2Curve(defaultPublicKey);
 			expect(result).not.toBeNull();
 			const curveRepresentation = result as Buffer;
 			expect(

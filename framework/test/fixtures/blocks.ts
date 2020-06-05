@@ -12,108 +12,240 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as randomstring from 'randomstring';
-import * as stampit from 'stampit';
-import * as faker from 'faker';
-import * as genesisBlock from './config/devnet/genesis_block.json';
+import {
+	getRandomBytes,
+	hash,
+	signDataWithPrivateKey,
+	getPrivateAndPublicKeyFromPassphrase,
+} from '@liskhq/lisk-cryptography';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { MerkleTree } from '@liskhq/lisk-tree';
+import { Block, BlockHeader, Chain } from '@liskhq/lisk-chain';
+import {
+	BaseTransaction,
+	TransferTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+} from '@liskhq/lisk-transactions';
+import * as genesisBlockJSON from './config/devnet/genesis_block.json';
+import { BlockProcessorV2 } from '../../src/application/node/block_processor_v2';
 
-export const blockFixture = stampit.compose({
-	props: {
-		id: '',
-		blockSignature:
-			'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-		generatorPublicKey: '',
-		seedReveal: '00000000000000000000000000000000',
-		numberOfTransactions: 2,
-		payloadHash:
-			'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-		payloadLength: 494,
-		height: 489,
-		previousBlockId: null,
-		reward: '0',
-		timestamp: 32578370,
-		totalAmount: '10000000000000000',
-		totalFee: '0',
-		version: 0,
+export const defaultNetworkIdentifier = Buffer.from(
+	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
+);
+
+const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
+	const passphrase = Mnemonic.generateMnemonic();
+	return getPrivateAndPublicKeyFromPassphrase(passphrase);
+};
+
+export const defaultBlockHeaderAssetSchema = {
+	$id: 'test/defaultBlockHeaderAssetSchema',
+	type: 'object',
+	properties: {
+		maxHeightPreviouslyForged: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		seedReveal: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
 	},
-	init({
+	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
+};
+
+export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
+	const chain = new Chain({
+		registeredBlocks: { 2: BlockProcessorV2.schema },
+		accountAsset: { schema: {}, default: {} },
+	} as any);
+	return chain.dataAccess.encodeBlockHeader(header);
+};
+
+export const createFakeBlockHeader = (
+	header?: Partial<BlockHeader>,
+): BlockHeader => {
+	const blockHeader = {
+		id: hash(getRandomBytes(8)),
+		version: 2,
+		timestamp: header?.timestamp ?? 0,
+		height: header?.height ?? 0,
+		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
+		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
+		generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
+		reward: header?.reward ?? BigInt(500000000),
+		asset: header?.asset ?? {
+			maxHeightPreviouslyForged: 0,
+			maxHeightPrevoted: 0,
+			seedReveal: getRandomBytes(16),
+		},
+		signature: header?.signature ?? getRandomBytes(64),
+	};
+	const id = hash(encodeValidBlockHeader(blockHeader));
+
+	return {
+		...blockHeader,
 		id,
-		previousBlockId,
-		generatorPublicKey,
-		height,
-		version,
-		maxHeightPreviouslyForged,
-		maxHeightPrevoted,
-	}) {
-		// Must to provide
-		this.previousBlockId = previousBlockId;
+	};
+};
 
-		this.id = id || randomstring.generate({ charset: 'numeric', length: 64 });
-		this.generatorPublicKey =
-			generatorPublicKey ||
-			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 64 })
-				.toLowerCase();
-		this.height = height || Math.floor(Math.random() * Math.floor(5000));
+/**
+ * Utility function to create a block object with valid computed properties while any property can be overridden
+ * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
+ */
+export const createValidDefaultBlock = (
+	block?: { header?: Partial<BlockHeader>; payload?: BaseTransaction[] },
+	networkIdentifier: Buffer = defaultNetworkIdentifier,
+): Block => {
+	const keypair = getKeyPair();
+	const payload = block?.payload ?? [];
+	const txTree = new MerkleTree(payload.map(tx => tx.id));
 
-		this.reward = faker.random.number({ min: 10, max: 100 }).toString();
-		this.totalFee = faker.random.number({ min: 100, max: 1000 }).toString();
-		this.totalAmount = faker.random
-			.number({ min: 1000, max: 10000 })
-			.toString();
-		this.version = version ?? 0;
-
-		if (this.version === 2) {
-			this.maxHeightPreviouslyForged = maxHeightPreviouslyForged ?? 0;
-			this.maxHeightPrevoted = maxHeightPrevoted ?? 0;
-		}
-	},
-});
-
-export const genesisBlockFixture = stampit.compose(blockFixture, {
-	init({ generatorPublicKey }) {
-		this.id = genesisBlock.id;
-		this.generatorPublicKey =
-			generatorPublicKey || genesisBlock.generatorPublicKey;
-		this.blockSignature = genesisBlock.blockSignature;
-		this.payloadHash = genesisBlock.payloadHash;
-		this.previousBlockId = null;
-		this.height = 1;
-		this.numberOfTransactions = 0;
-		this.reward = '111';
-		this.totalFee = '100000';
-		this.totalAmount = '10000000000000000';
-	},
-});
-
-export const BlockHeader = stampit.compose({
-	props: {
-		blockId: '',
-		height: 0,
-		seedReveal: '00000000000000000000000000000000',
+	const asset = {
 		maxHeightPreviouslyForged: 0,
 		maxHeightPrevoted: 0,
-		delegateMinHeightActive: 203,
-		delegatePublicKey: '',
-	},
-	init({
-		height,
-		blockId,
-		delegatePublicKey,
-		delegateMinHeightActive,
-		maxHeightPreviouslyForged,
-		maxHeightPrevoted,
-	}) {
-		this.blockId =
-			blockId || randomstring.generate({ charset: 'numeric', length: 64 });
-		this.height = height || Math.floor(Math.random() * Math.floor(5000));
-		this.delegatePublicKey =
-			delegatePublicKey ||
-			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 64 })
-				.toLowerCase();
-		this.delegateMinHeightActive = delegateMinHeightActive ?? 1;
-		this.maxHeightPreviouslyForged = maxHeightPreviouslyForged ?? 0;
-		this.maxHeightPrevoted = maxHeightPrevoted ?? 0;
-	},
-});
+		seedReveal: getRandomBytes(16),
+		...block?.header?.asset,
+	};
+
+	const blockHeader = createFakeBlockHeader({
+		version: 2,
+		height: 2,
+		// FIXME: Genesis block hash calculated with the new implementation, need to update when updating genesis block
+		previousBlockID: Buffer.from(
+			'39594f0b163706bf118515c9e5a91fcfffb96f22628f1a0002deb3cee7bcf617',
+			'hex',
+		),
+		reward: BigInt(0),
+		timestamp: 1000,
+		transactionRoot: txTree.root,
+		generatorPublicKey: keypair.publicKey,
+		...block?.header,
+		asset,
+	});
+
+	const chain = new Chain({
+		registeredBlocks: { 2: BlockProcessorV2.schema },
+		accountAsset: { schema: {}, default: {} },
+	} as any);
+
+	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(
+		blockHeader,
+		true,
+	);
+
+	const signature = signDataWithPrivateKey(
+		Buffer.concat([networkIdentifier, encodedHeaderWithoutSignature]),
+		keypair.privateKey,
+	);
+	const header = { ...blockHeader, signature };
+	const encodedHeader = chain.dataAccess.encodeBlockHeader(header);
+	const id = hash(encodedHeader);
+
+	return {
+		header: {
+			...header,
+			asset,
+			id,
+		},
+		payload,
+	};
+};
+
+export const encodeValidBlock = (block: Block): Buffer => {
+	const chain = new Chain({
+		registeredBlocks: { 2: BlockProcessorV2.schema },
+		accountAsset: { schema: {}, default: {} },
+	} as any);
+	return chain.dataAccess.encode(block);
+};
+
+// FIXME: Update to new genesis block format
+export const genesisBlock = (): Block => {
+	const block = {
+		header: {
+			...genesisBlockJSON.header,
+			id: Buffer.from(genesisBlockJSON.header.id, 'hex'),
+			previousBlockID: Buffer.alloc(0),
+			reward: BigInt(genesisBlockJSON.header.reward),
+			transactionRoot: Buffer.from(
+				genesisBlockJSON.header.transactionRoot,
+				'hex',
+			),
+			generatorPublicKey: Buffer.from(
+				genesisBlockJSON.header.generatorPublicKey,
+				'hex',
+			),
+			signature: Buffer.from(genesisBlockJSON.header.signature, 'hex'),
+			asset: {
+				maxHeightPreviouslyForged:
+					genesisBlockJSON.header.asset.maxHeightPreviouslyForged,
+				maxHeightPrevoted: genesisBlockJSON.header.asset.maxHeightPrevoted,
+				seedReveal: Buffer.from(
+					genesisBlockJSON.header.asset.seedReveal,
+					'hex',
+				),
+			},
+		},
+		payload: genesisBlockJSON.payload.map(tx => {
+			if (tx.type === 8) {
+				return new TransferTransaction({
+					...tx,
+					id: Buffer.from(tx.id, 'hex'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					nonce: BigInt(tx.nonce),
+					fee: BigInt(tx.fee),
+					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+					asset: {
+						recipientAddress: Buffer.from(
+							tx.asset.recipientAddress as string,
+							'hex',
+						),
+						amount: BigInt(tx.asset.amount),
+						data: '',
+					},
+				});
+			}
+			if (tx.type === 10) {
+				return new DelegateTransaction({
+					...tx,
+					id: Buffer.from(tx.id, 'hex'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					nonce: BigInt(tx.nonce),
+					fee: BigInt(tx.fee),
+					signatures: tx.signatures.map((s: string) => Buffer.from(s, 'hex')),
+				} as any);
+			}
+			if (tx.type === 13) {
+				return new VoteTransaction({
+					...tx,
+					id: Buffer.from(tx.id, 'hex'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					nonce: BigInt(tx.nonce),
+					fee: BigInt(tx.fee),
+					signatures: tx.signatures.map((s: string) => Buffer.from(s, 'hex')),
+					asset: {
+						votes: tx.asset.votes?.map((v: any) => ({
+							delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+							amount: BigInt(v.amount),
+						})),
+					},
+				} as any);
+			}
+			throw new Error('Unexpected transaction type');
+		}),
+	};
+	const chain = new Chain({
+		registeredBlocks: { 2: BlockProcessorV2.schema },
+		accountAsset: { schema: {}, default: {} },
+	} as any);
+	const encodedHeader = chain.dataAccess.encodeBlockHeader(block.header);
+	const id = hash(encodedHeader);
+	block.header.id = id;
+	return block;
+};

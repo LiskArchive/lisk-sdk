@@ -12,72 +12,42 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as randomstring from 'randomstring';
-import * as stampit from 'stampit';
-import * as faker from 'faker';
+import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { BlockHeader } from '../../src';
 
-export const BlockHeader = stampit.compose({
-	props: {
-		id: '',
-		blockSignature:
-			'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-		generatorPublicKey: '',
-		numberOfTransactions: 2,
-		payloadHash:
-			'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-		payloadLength: 494,
-		height: 489,
-		previousBlockId: null,
-		reward: '0',
-		timestamp: 32578370,
-		totalAmount: '10000000000000000',
-		totalFee: '0',
-		version: 2,
-		maxHeightPreviouslyForged: 0,
-		maxHeightPrevoted: 0,
+type DeepPartial<T> = T extends Buffer
+	? T
+	: T extends Function
+	? T
+	: T extends object
+	? { [P in keyof T]?: DeepPartial<T[P]> }
+	: T;
+
+export const createFakeBlockHeader = (
+	header?: DeepPartial<BlockHeader>,
+): BlockHeader => ({
+	id: header?.id ?? hash(getRandomBytes(8)),
+	version: 2,
+	timestamp: header?.timestamp ?? 32578370,
+	height: header?.height ?? 489,
+	previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
+	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
+	asset: {
+		maxHeightPreviouslyForged: header?.asset?.maxHeightPreviouslyForged ?? 0,
+		maxHeightPrevoted: header?.asset?.maxHeightPrevoted ?? 0,
 	},
-	init({
-		id,
-		previousBlockId,
-		generatorPublicKey,
-		height,
-		version,
-		maxHeightPreviouslyForged,
-		maxHeightPrevoted,
-	}: {
-		id: string;
-		previousBlockId: string;
-		generatorPublicKey: string;
-		height: number;
-		version: number;
-		maxHeightPreviouslyForged: number;
-		maxHeightPrevoted: number;
-	}) {
-		// Must to provide
-		this.previousBlockId = previousBlockId;
+});
 
-		this.id = id || randomstring.generate({ charset: 'numeric', length: 19 });
-		this.generatorPublicKey =
-			generatorPublicKey ||
-			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 64 })
-				.toLowerCase();
-		this.height = height || Math.floor(Math.random() * Math.floor(5000));
-
-		this.reward = faker.random.number({ min: 10, max: 100 }).toString();
-		this.totalFee = faker.random.number({ min: 100, max: 1000 }).toString();
-		this.totalAmount = faker.random
-			.number({ min: 1000, max: 10000 })
-			.toString();
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		this.version = version ?? this.version;
-
-		if (this.version === 2) {
-			this.maxHeightPreviouslyForged =
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				maxHeightPreviouslyForged ?? this.maxHeightPreviouslyForged;
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			this.maxHeightPrevoted = maxHeightPrevoted ?? this.maxHeightPrevoted;
-		}
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const convertHeader = (blockHeader: any) => ({
+	...blockHeader,
+	id: Buffer.from(blockHeader.id),
+	previousBlockID: blockHeader.previousBlockId
+		? Buffer.from(blockHeader.previousBlockId)
+		: Buffer.from(''),
+	generatorPublicKey: Buffer.from(blockHeader.generatorPublicKey, 'hex'),
+	asset: {
+		maxHeightPrevoted: blockHeader.maxHeightPrevoted,
+		maxHeightPreviouslyForged: blockHeader.maxHeightPreviouslyForged,
 	},
 });

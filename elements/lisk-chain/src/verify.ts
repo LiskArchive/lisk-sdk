@@ -19,37 +19,31 @@ import {
 
 import { DataAccess } from './data_access';
 import * as transactionsModule from './transactions';
-import {
-	BlockHeader,
-	BlockInstance,
-	Context,
-	GenesisBlock,
-	MatcherTransaction,
-} from './types';
+import { BlockHeader, Block, Context, MatcherTransaction } from './types';
 
 export const verifyBlockNotExists = async (
 	dataAccess: DataAccess,
-	block: BlockInstance,
+	block: Block,
 ): Promise<void> => {
-	const isPersisted = await dataAccess.isBlockPersisted(block.id);
+	const isPersisted = await dataAccess.isBlockPersisted(block.header.id);
 	if (isPersisted) {
-		throw new Error(`Block ${block.id} already exists`);
+		throw new Error(`Block ${block.header.id.toString('hex')} already exists`);
 	}
 };
 
 export const verifyPreviousBlockId = (
-	block: BlockInstance,
-	lastBlock: BlockInstance,
-	genesisBlock: GenesisBlock,
+	block: Block,
+	lastBlock: Block,
+	genesisBlock: Block,
 ): void => {
 	const isGenesisBlock =
-		block.id === genesisBlock.id &&
-		!block.previousBlockId &&
-		block.height === 1;
+		block.header.id.equals(genesisBlock.header.id) &&
+		block.header.previousBlockID.length === 0 &&
+		block.header.height === 1;
 
 	const isConsecutiveBlock =
-		lastBlock.height + 1 === block.height &&
-		block.previousBlockId === lastBlock.id;
+		lastBlock.header.height + 1 === block.header.height &&
+		block.header.previousBlockID.equals(lastBlock.header.id);
 
 	if (!isGenesisBlock && !isConsecutiveBlock) {
 		throw new Error('Invalid previous block');
@@ -58,44 +52,46 @@ export const verifyPreviousBlockId = (
 
 interface BlockVerifyInput {
 	readonly dataAccess: DataAccess;
-	readonly genesisBlock: GenesisBlock;
+	readonly genesisBlock: Block;
 }
 
 export class BlocksVerify {
 	private readonly dataAccess: DataAccess;
-	private readonly genesisBlock: GenesisBlock;
+	private readonly genesisBlock: Block;
 
 	public constructor({ dataAccess, genesisBlock }: BlockVerifyInput) {
 		this.dataAccess = dataAccess;
 		this.genesisBlock = genesisBlock;
 	}
 
-	public async checkExists(block: BlockInstance): Promise<void> {
-		const isPersisted = await this.dataAccess.isBlockPersisted(block.id);
+	public async checkExists(block: Block): Promise<void> {
+		const isPersisted = await this.dataAccess.isBlockPersisted(block.header.id);
 		if (isPersisted) {
-			throw new Error(`Block ${block.id} already exists`);
+			throw new Error(
+				`Block ${block.header.id.toString('hex')} already exists`,
+			);
 		}
-		if (!block.transactions.length) {
+		if (!block.payload.length) {
 			return;
 		}
-		const transactionIDs = block.transactions.map(
-			transaction => transaction.id,
-		);
+		const transactionIDs = block.payload.map(transaction => transaction.id);
 		const persistedTransactions = await this.dataAccess.getTransactionsByIDs(
 			transactionIDs,
 		);
 
 		if (persistedTransactions.length > 0) {
 			throw new Error(
-				`Transaction is already confirmed: ${persistedTransactions[0].id}`,
+				`Transaction is already confirmed: ${persistedTransactions[0].id.toString(
+					'hex',
+				)}`,
 			);
 		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
-	public async checkTransactions(blockInstance: BlockInstance): Promise<void> {
-		const { version, height, timestamp, transactions } = blockInstance;
-		if (transactions.length === 0) {
+	public async checkTransactions(block: Block): Promise<void> {
+		const { version, height, timestamp } = block.header;
+		if (block.payload.length === 0) {
 			return;
 		}
 		const context: Context = {
@@ -105,7 +101,7 @@ export class BlocksVerify {
 		};
 
 		const nonAllowedTxResponses = transactionsModule
-			.checkAllowedTransactions(context)(transactions as MatcherTransaction[])
+			.checkAllowedTransactions(context)(block.payload as MatcherTransaction[])
 			.find(
 				(transactionResponse: TransactionResponse) =>
 					transactionResponse.status !== TransactionStatus.OK,
@@ -118,9 +114,9 @@ export class BlocksVerify {
 
 	public matchGenesisBlock(block: BlockHeader): boolean {
 		return (
-			block.id === this.genesisBlock.id &&
-			block.payloadHash === this.genesisBlock.payloadHash &&
-			block.blockSignature === this.genesisBlock.blockSignature
+			block.id.equals(this.genesisBlock.header.id) &&
+			block.transactionRoot.equals(this.genesisBlock.header.transactionRoot) &&
+			block.signature.equals(this.genesisBlock.header.signature)
 		);
 	}
 }

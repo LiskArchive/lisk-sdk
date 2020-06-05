@@ -12,16 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { TransactionError } from './errors';
+import { BaseTransactionInput, AccountAsset } from './types';
 
 interface RegisteredDelegate {
 	readonly username: string;
-	readonly address: string;
+	readonly address: Buffer;
 }
 interface ChainUsernames {
 	readonly registeredDelegates: RegisteredDelegate[];
@@ -31,66 +30,67 @@ export interface DelegateAsset {
 	readonly username: string;
 }
 
-export const delegateAssetFormatSchema = {
+export const delegateRegistrationAssetSchema = {
+	$id: 'lisk/delegate-registration-transaction',
 	type: 'object',
 	required: ['username'],
 	properties: {
 		username: {
-			type: 'string',
+			dataType: 'string',
+			fieldNumber: 1,
 			minLength: 1,
 			maxLength: 20,
-			format: 'username',
 		},
 	},
+};
+
+const isNullCharacterIncluded = (input: string): boolean =>
+	new RegExp(/\0|\\u0000|\\x00/).test(input);
+
+const isUsername = (username: string): boolean => {
+	if (isNullCharacterIncluded(username)) {
+		return false;
+	}
+
+	if (username !== username.trim().toLowerCase()) {
+		return false;
+	}
+
+	if (/^[0-9]{1,21}[L|l]$/g.test(username)) {
+		return false;
+	}
+
+	if (!/^[a-z0-9!@$&_.]+$/g.test(username)) {
+		return false;
+	}
+
+	return true;
 };
 
 export class DelegateTransaction extends BaseTransaction {
 	public static TYPE = 10;
 	public static NAME_FEE = BigInt(DELEGATE_NAME_FEE);
+	public static ASSET_SCHEMA = delegateRegistrationAssetSchema;
 	public readonly asset: DelegateAsset;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		this.asset = (tx.asset ?? { delegate: {} }) as DelegateAsset;
-	}
+	public constructor(transaction: BaseTransactionInput<DelegateAsset>) {
+		super(transaction);
 
-	protected assetToBytes(): Buffer {
-		const { username } = this.asset;
-
-		return Buffer.from(username, 'utf8');
-	}
-
-	protected verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		return transactions
-			.filter(
-				tx =>
-					tx.type === this.type && tx.senderPublicKey === this.senderPublicKey,
-			)
-			.map(
-				tx =>
-					new TransactionError(
-						'Register delegate only allowed once per account.',
-						tx.id,
-						'.asset.delegate',
-					),
-			);
+		this.asset = transaction.asset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const schemaErrors = validator.validate(
-			delegateAssetFormatSchema,
-			this.asset,
-		);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
+		const errors = [];
+		if (!isUsername(this.asset.username)) {
+			errors.push(
+				new TransactionError(
+					'The username is in unsupported format',
+					this.id,
+					'.asset.username',
+					this.asset.username,
+				),
+			);
+		}
 		return errors;
 	}
 
@@ -98,14 +98,12 @@ export class DelegateTransaction extends BaseTransaction {
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
 		const errors: TransactionError[] = [];
-		const sender = await store.account.get(this.senderId);
+		const sender = await store.account.get<AccountAsset>(this.senderId);
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
-		const usernames = usernamesStr
-			? (JSON.parse(usernamesStr) as ChainUsernames)
-			: { registeredDelegates: [] };
+		// TODO: Use lisk-codec to save this data
+		const usernames = await this._getRegisteredDelegates(store);
 		const usernameExists = usernames.registeredDelegates.find(
 			delegate => delegate.username === this.asset.username,
 		);
@@ -116,11 +114,11 @@ export class DelegateTransaction extends BaseTransaction {
 				address: this.senderId,
 			});
 			usernames.registeredDelegates.sort((a, b) =>
-				a.address.localeCompare(b.address),
+				a.address.compare(b.address),
 			);
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
-				JSON.stringify(usernames),
+				Buffer.from(JSON.stringify(usernames), 'utf8'),
 			);
 		}
 
@@ -133,7 +131,7 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		if (sender.isDelegate || sender.username) {
+		if (sender.asset.delegate.username) {
 			errors.push(
 				new TransactionError(
 					'Account is already a delegate',
@@ -142,8 +140,7 @@ export class DelegateTransaction extends BaseTransaction {
 				),
 			);
 		}
-		sender.username = this.asset.username;
-		sender.isDelegate = 1;
+		sender.asset.delegate.username = this.asset.username;
 		store.account.set(sender.address, sender);
 
 		return errors;
@@ -152,30 +149,63 @@ export class DelegateTransaction extends BaseTransaction {
 	protected async undoAsset(
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>> {
-		const sender = await store.account.get(this.senderId);
+		const sender = await store.account.get<AccountAsset>(this.senderId);
 
 		// Data format for the registered delegates
 		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesStr = await store.chain.get(CHAIN_STATE_DELEGATE_USERNAMES);
-		const usernames = usernamesStr
-			? (JSON.parse(usernamesStr) as ChainUsernames)
-			: { registeredDelegates: [] };
+		const usernames = await this._getRegisteredDelegates(store);
 		const updatedRegisteredDelegates = {
 			registeredDelegates: usernames.registeredDelegates.filter(
-				delegate => delegate.username !== sender.username,
+				delegate => delegate.username !== sender.asset.delegate.username,
 			),
 		};
 		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
-			a.address.localeCompare(b.address),
+			a.address.compare(b.address),
 		);
-		store.chain.set(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-			JSON.stringify(updatedRegisteredDelegates),
-		);
+		this._setRegisteredDelegates(store, updatedRegisteredDelegates);
 
-		sender.username = null;
-		sender.isDelegate = 0;
+		sender.asset.delegate.username = '';
 		store.account.set(sender.address, sender);
 		return [];
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private async _getRegisteredDelegates(
+		store: StateStore,
+	): Promise<ChainUsernames> {
+		const usernamesBuffer = await store.chain.get(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+		if (!usernamesBuffer) {
+			return { registeredDelegates: [] };
+		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const parsedUsernames = JSON.parse(usernamesBuffer.toString('utf8'));
+		// eslint-disable-next-line
+		parsedUsernames.registeredDelegates = parsedUsernames.registeredDelegates.map(
+			(value: { address: string; username: string }) => ({
+				username: value.username,
+				address: Buffer.from(value.address, 'binary'),
+			}),
+		);
+
+		return parsedUsernames as ChainUsernames;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _setRegisteredDelegates(
+		store: StateStore,
+		input: ChainUsernames,
+	): void {
+		const updatingObject = Buffer.from(
+			JSON.stringify({
+				registeredDelegates: input.registeredDelegates.map(value => ({
+					address: value.address.toString('binary'),
+					username: value.username,
+				})),
+			}),
+			'utf8',
+		);
+		store.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObject);
 	}
 }

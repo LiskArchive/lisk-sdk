@@ -20,7 +20,9 @@ import * as config from '../../../../src/utils/config';
 import * as printUtils from '../../../../src/utils/print';
 import * as readerUtils from '../../../../src/utils/reader';
 
-describe('transaction:create:multisignature', () => {
+// This needs to be re-implemented using codec with https://github.com/LiskHQ/lisk-core/issues/254
+// eslint-disable-next-line mocha/no-skipped-tests
+describe.skip('transaction:create:multisignature', () => {
 	const nonce = '1';
 	const fee = '0.5';
 	const defaultInputs = '123';

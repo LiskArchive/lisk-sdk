@@ -12,21 +12,92 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as validUpvoteTransactionScenario from '../fixtures/vote_transaction/vote_transaction_10_upvotes.json';
-import * as validDownvoteTransactionScenario from '../fixtures/vote_transaction/vote_transaction_10_downvotes.json';
-import * as validMixvoteTransactionScenario from '../fixtures/vote_transaction/vote_transaction_10_upvotes_and_10_downvotes.json';
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
+import * as fixtures from '../fixtures/vote_transaction/vote_transaction_10_upvotes.json';
 
-import { VoteTransaction } from '../src/13_vote_transaction';
-import { Status, Account } from '../src';
+import { VoteTransaction, VoteAsset } from '../src/13_vote_transaction';
+import { Status, Account, BaseTransaction } from '../src';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
+import { BaseTransactionInput, AccountAsset } from '../src/types';
 
 describe('Vote transaction', () => {
-	// TODO: Update after updating protocol-specs
-	describe.skip('validateAsset', () => {
+	const validUpvoteTransactionScenario = fixtures.testCases[0];
+	const validDownvoteTransactionScenario = fixtures.testCases[1];
+	const validMixvoteTransactionScenario = fixtures.testCases[2];
+
+	let decodedUpvoteTransaction: BaseTransactionInput<VoteAsset>;
+	let decodedDownvoteTransaction: BaseTransactionInput<VoteAsset>;
+	let decodedMixedvoteTransaction: BaseTransactionInput<VoteAsset>;
+
+	beforeEach(() => {
+		{
+			const buffer = Buffer.from(
+				validUpvoteTransactionScenario.output.transaction,
+				'base64',
+			);
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<VoteAsset>(
+				VoteTransaction.ASSET_SCHEMA as any,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			decodedUpvoteTransaction = {
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			};
+		}
+		{
+			const buffer = Buffer.from(
+				validDownvoteTransactionScenario.output.transaction,
+				'base64',
+			);
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<VoteAsset>(
+				VoteTransaction.ASSET_SCHEMA as any,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			decodedDownvoteTransaction = {
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			};
+		}
+		{
+			const buffer = Buffer.from(
+				fixtures.testCases[2].output.transaction,
+				'base64',
+			);
+			const id = hash(buffer);
+			const decodedBaseTransaction = codec.decode<BaseTransaction>(
+				BaseTransaction.BASE_SCHEMA,
+				buffer,
+			);
+			const decodedAsset = codec.decode<VoteAsset>(
+				VoteTransaction.ASSET_SCHEMA as any,
+				decodedBaseTransaction.asset as Buffer,
+			);
+			decodedMixedvoteTransaction = {
+				...decodedBaseTransaction,
+				asset: decodedAsset,
+				id,
+			};
+		}
+	});
+
+	describe('validateAsset', () => {
 		describe('when asset.votes contains valid contents', () => {
 			it('should not return errors with valid upvote case', () => {
 				const tx = new VoteTransaction({
-					...validUpvoteTransactionScenario.testCases.output,
+					...decodedUpvoteTransaction,
 				});
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.OK);
@@ -35,7 +106,7 @@ describe('Vote transaction', () => {
 
 			it('should not return errors with valid downvote case', () => {
 				const tx = new VoteTransaction({
-					...validDownvoteTransactionScenario.testCases.output,
+					...decodedDownvoteTransaction,
 				});
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.OK);
@@ -44,7 +115,7 @@ describe('Vote transaction', () => {
 
 			it('should not return errors with valid mix votes case', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 				});
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.OK);
@@ -55,7 +126,7 @@ describe('Vote transaction', () => {
 		describe('when asset.votes does not include any vote', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validUpvoteTransactionScenario.testCases.output,
+					...decodedUpvoteTransaction,
 				});
 				(tx.asset as any).votes = [];
 				const { errors, status } = tx.validate();
@@ -70,18 +141,21 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes more than 20 elements', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 				});
 				(tx.asset as any).votes = [
 					...tx.asset.votes,
 					{
-						delegateAddress: '123L',
+						delegateAddress: Buffer.from(
+							'rMn8F+DShl+EvPoL28ti9YpdMG8=',
+							'base64',
+						),
 						amount: BigInt(10000000000),
 					},
 				];
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
-				expect(errors).toHaveLength(2);
+				expect(errors).toHaveLength(1);
 				expect(errors[0].message).toInclude(
 					'should NOT have more than 20 items',
 				);
@@ -91,12 +165,12 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes more than 10 positive votes', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validUpvoteTransactionScenario.testCases.output,
+					...decodedUpvoteTransaction,
 				});
 				(tx.asset as any).votes = [
 					...tx.asset.votes,
 					{
-						delegateAddress: '123L',
+						delegateAddress: Buffer.from('123L'),
 						amount: BigInt(10000000000),
 					},
 				];
@@ -112,12 +186,12 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes more than 10 negative votes', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validDownvoteTransactionScenario.testCases.output,
+					...decodedDownvoteTransaction,
 				});
 				(tx.asset as any).votes = [
 					...tx.asset.votes,
 					{
-						delegateAddress: '123L',
+						delegateAddress: Buffer.from('123L'),
 						amount: BigInt(-10000000000),
 					},
 				];
@@ -133,19 +207,14 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes duplicate delegates within positive amount', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validUpvoteTransactionScenario.testCases.output,
+					...decodedUpvoteTransaction,
 					asset: {
-						votes: [
-							...validUpvoteTransactionScenario.testCases.output.asset.votes.slice(
-								0,
-							),
-						],
+						votes: [...decodedUpvoteTransaction.asset.votes.slice(0)],
 					},
 				});
 				(tx.asset as any).votes[9] = {
 					delegateAddress:
-						validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress,
+						decodedUpvoteTransaction.asset.votes[0].delegateAddress,
 					amount: BigInt(230000000000),
 				};
 				const { errors, status } = tx.validate();
@@ -158,19 +227,14 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes duplicate delegates within positive and negative amount', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 					asset: {
-						votes: [
-							...validMixvoteTransactionScenario.testCases.output.asset.votes.slice(
-								0,
-							),
-						],
+						votes: [...decodedMixedvoteTransaction.asset.votes.slice(0)],
 					},
 				});
 				(tx.asset as any).votes[19] = {
 					delegateAddress:
-						validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress,
+						decodedUpvoteTransaction.asset.votes[0].delegateAddress,
 					amount: BigInt(-230000000000),
 				};
 				const { errors, status } = tx.validate();
@@ -183,19 +247,14 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes zero amount', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 					asset: {
-						votes: [
-							...validMixvoteTransactionScenario.testCases.output.asset.votes.slice(
-								0,
-							),
-						],
+						votes: [...decodedMixedvoteTransaction.asset.votes.slice(0)],
 					},
 				});
 				(tx.asset as any).votes[0] = {
 					delegateAddress:
-						validMixvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress,
+						decodedMixedvoteTransaction.asset.votes[0].delegateAddress,
 					amount: BigInt(0),
 				};
 				const { errors, status } = tx.validate();
@@ -208,67 +267,56 @@ describe('Vote transaction', () => {
 		describe('when asset.votes includes amount which is greater than int64 range', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 					asset: {
-						votes: [
-							...validMixvoteTransactionScenario.testCases.output.asset.votes.slice(
-								0,
-							),
-						],
+						votes: [...decodedMixedvoteTransaction.asset.votes.slice(0)],
 					},
 				});
 				(tx.asset as any).votes[0] = {
 					delegateAddress:
-						validMixvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress,
+						decodedMixedvoteTransaction.asset.votes[0].delegateAddress,
 					amount: BigInt(2) ** BigInt(63),
 				};
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
-				expect(errors[0].message).toInclude('should match format "int64"');
+				expect(errors[0].message).toInclude(
+					'should pass "dataType" keyword validation',
+				);
 			});
 		});
 
 		describe('when asset.votes includes amount which is less than int64 range', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 					asset: {
-						votes: [
-							...validMixvoteTransactionScenario.testCases.output.asset.votes.slice(
-								0,
-							),
-						],
+						votes: [...decodedMixedvoteTransaction.asset.votes.slice(0)],
 					},
 				});
 				(tx.asset as any).votes[0] = {
 					delegateAddress:
-						validMixvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress,
+						decodedMixedvoteTransaction.asset.votes[0].delegateAddress,
 					amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
 				};
 				const { errors, status } = tx.validate();
 				expect(status).toBe(Status.FAIL);
-				expect(errors[0].message).toInclude('should match format "int64"');
+				expect(errors[0].message).toInclude(
+					'should pass "dataType" keyword validation',
+				);
 			});
 		});
 
 		describe('when asset.votes includes amount which is not multiple of 10 * 10^8', () => {
 			it('should return errors', () => {
 				const tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
+					...decodedMixedvoteTransaction,
 					asset: {
-						votes: [
-							...validMixvoteTransactionScenario.testCases.output.asset.votes.slice(
-								0,
-							),
-						],
+						votes: [...decodedMixedvoteTransaction.asset.votes.slice(0)],
 					},
 				});
 				(tx.asset as any).votes[0] = {
 					delegateAddress:
-						validMixvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress,
+						decodedMixedvoteTransaction.asset.votes[0].delegateAddress,
 					amount: BigInt(100000000),
 				};
 				const { errors, status } = tx.validate();
@@ -281,7 +329,7 @@ describe('Vote transaction', () => {
 	});
 
 	// TODO: Update after updating protocol-specs
-	describe.skip('applyAsset', () => {
+	describe('applyAsset', () => {
 		const minBalance = BigInt('5000000');
 		let store: StateStoreMock;
 		let tx: VoteTransaction;
@@ -291,61 +339,63 @@ describe('Vote transaction', () => {
 
 			beforeEach(async () => {
 				tx = new VoteTransaction({
-					...validUpvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validUpvoteTransactionScenario.testCases.input.networkIdentifier,
+					...decodedUpvoteTransaction,
 				});
 				const totalSpending =
-					BigInt(validUpvoteTransactionScenario.testCases.output.fee) +
-					validUpvoteTransactionScenario.testCases.output.asset.votes.reduce(
-						(prev, current) => {
-							if (BigInt(current.amount) > BigInt(0)) {
-								return prev + BigInt(current.amount);
-							}
-							return prev;
-						},
-						BigInt(0),
-					) +
+					BigInt(decodedUpvoteTransaction.fee) +
+					decodedUpvoteTransaction.asset.votes.reduce((prev, current) => {
+						if (BigInt(current.amount) > BigInt(0)) {
+							return prev + BigInt(current.amount);
+						}
+						return prev;
+					}, BigInt(0)) +
 					minBalance;
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validUpvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validUpvoteTransactionScenario.testCases.input.account.address,
+				const sender = defaultAccount({
+					nonce: BigInt(decodedUpvoteTransaction.nonce),
+					address: Buffer.from(
+						validUpvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 					balance: totalSpending,
-					votes: [
-						{
-							delegateAddress:
-								validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-									.delegateAddress,
-							amount: originalVotes,
-						},
-					],
-				};
+					asset: {
+						sentVotes: [
+							{
+								delegateAddress:
+									decodedUpvoteTransaction.asset.votes[0].delegateAddress,
+								amount: originalVotes,
+							},
+						],
+					},
+				});
 				store = new StateStoreMock(
 					[
 						sender,
-						...validUpvoteTransactionScenario.testCases.input.delegates.map(
-							(delegate, i) => ({
-								...defaultAccount,
-								address: delegate.address,
-								publicKey: delegate.publicKey,
-								username: `delegate_${i.toString()}`,
-							}),
+						...validUpvoteTransactionScenario.input.delegates.map(
+							(delegate, i) =>
+								defaultAccount({
+									address: Buffer.from(delegate.address, 'base64'),
+									publicKey: Buffer.from(delegate.publicKey, 'base64'),
+									asset: {
+										delegate: {
+											username: `delegate_${i.toString()}`,
+										},
+									},
+								}),
 						),
 					],
 					{
 						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validUpvoteTransactionScenario.testCases.input.networkIdentifier,
+						networkIdentifier: Buffer.from(
+							validUpvoteTransactionScenario.input.networkIdentifier,
+							'base64',
+						).toString('hex'),
 					},
 				);
 				// Update delegate who originally have vote
-				const delegate0 = await store.account.get(
-					validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-						.delegateAddress,
+				const delegate0 = await store.account.get<any>(
+					decodedUpvoteTransaction.asset.votes[0].delegateAddress,
 				);
-				delegate0.totalVotesReceived += BigInt('1000000000');
+				delegate0.asset.delegate.totalVotesReceived += BigInt('1000000000');
 				store.account.set(delegate0.address, delegate0);
 			});
 
@@ -357,78 +407,94 @@ describe('Vote transaction', () => {
 
 			it('should make account to have correct balance', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validUpvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validUpvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
 				expect(sender.balance.toString()).toEqual(minBalance.toString());
 			});
 
 			it('should not change account.unlocking', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validUpvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validUpvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(sender.unlocking).toHaveLength(0);
+				expect(sender.asset.unlocking).toHaveLength(0);
 			});
 
 			it('should order account.votes', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validUpvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validUpvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				const senderVotesCopy = sender.votes.slice(0);
-				senderVotesCopy.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+				const senderVotesCopy = sender.asset.sentVotes.slice(0);
+				senderVotesCopy.sort((a: any, b: any) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
-				expect(sender.votes).toStrictEqual(senderVotesCopy);
+				expect(sender.asset.sentVotes).toStrictEqual(senderVotesCopy);
 			});
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
 				await tx.apply(store);
 				expect.assertions(10);
-				for (const vote of validUpvoteTransactionScenario.testCases.output.asset
-					.votes) {
-					const delegate = await store.account.get(vote.delegateAddress);
+				for (const vote of decodedUpvoteTransaction.asset.votes) {
+					const delegate = await store.account.get<AccountAsset>(
+						vote.delegateAddress,
+					);
 					if (
-						vote.delegateAddress ===
-						validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress
+						vote.delegateAddress.equals(
+							decodedUpvoteTransaction.asset.votes[0].delegateAddress,
+						)
 					) {
-						expect(delegate.totalVotesReceived.toString()).toEqual(
-							(originalVotes + BigInt(vote.amount)).toString(),
-						);
+						expect(
+							delegate.asset.delegate.totalVotesReceived.toString(),
+						).toEqual((originalVotes + BigInt(vote.amount)).toString());
 					} else {
-						expect(delegate.totalVotesReceived.toString()).toEqual(
-							BigInt(vote.amount).toString(),
-						);
+						expect(
+							delegate.asset.delegate.totalVotesReceived.toString(),
+						).toEqual(BigInt(vote.amount).toString());
 					}
 				}
 			});
 
 			it('should create vote object when it does not exist before', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validUpvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validUpvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(sender.votes).toHaveLength(10);
+				expect(sender.asset.sentVotes).toHaveLength(10);
 			});
 			it('should update vote object when it exists before and create if it does not exist', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validUpvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validUpvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
 				expect.assertions(10);
-				for (const vote of sender.votes) {
-					const relatedVote = validUpvoteTransactionScenario.testCases.output.asset.votes.find(
-						entry => entry.delegateAddress === vote.delegateAddress,
+				for (const vote of sender.asset.sentVotes) {
+					const relatedVote = decodedUpvoteTransaction.asset.votes.find(entry =>
+						entry.delegateAddress.equals(vote.delegateAddress),
 					) as {
-						delegateAddress: string;
-						amount: string;
+						delegateAddress: Buffer;
+						amount: bigint;
 					};
 					if (
-						vote.delegateAddress ===
-						validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress
+						vote.delegateAddress.equals(
+							decodedUpvoteTransaction.asset.votes[0].delegateAddress,
+						)
 					) {
 						const totalAmount = originalVotes + BigInt(relatedVote.amount);
 						expect(vote.amount.toString()).toEqual(totalAmount.toString());
@@ -446,28 +512,24 @@ describe('Vote transaction', () => {
 
 			beforeEach(async () => {
 				tx = new VoteTransaction({
-					...validDownvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validDownvoteTransactionScenario.testCases.input.networkIdentifier,
+					...decodedDownvoteTransaction,
 				});
 				const totalSpending =
-					BigInt(validDownvoteTransactionScenario.testCases.output.fee) +
-					minBalance;
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(
-						validDownvoteTransactionScenario.testCases.output.nonce,
+					BigInt(decodedDownvoteTransaction.fee) + minBalance;
+				const sender = defaultAccount({
+					nonce: BigInt(decodedDownvoteTransaction.nonce),
+					address: Buffer.from(
+						validDownvoteTransactionScenario.input.account.address,
+						'base64',
 					),
-					address:
-						validDownvoteTransactionScenario.testCases.input.account.address,
 					balance: totalSpending,
-					votes: [
-						...validDownvoteTransactionScenario.testCases.output.asset.votes.map(
-							vote => {
+					asset: {
+						sentVotes: [
+							...decodedDownvoteTransaction.asset.votes.map(vote => {
 								if (
-									vote.delegateAddress ===
-									validDownvoteTransactionScenario.testCases.output.asset
-										.votes[0].delegateAddress
+									vote.delegateAddress.equals(
+										decodedDownvoteTransaction.asset.votes[0].delegateAddress,
+									)
 								) {
 									return {
 										delegateAddress: vote.delegateAddress,
@@ -478,39 +540,42 @@ describe('Vote transaction', () => {
 									delegateAddress: vote.delegateAddress,
 									amount: BigInt(vote.amount) * BigInt(-1),
 								};
-							},
-						),
-					],
-					unlocking: [],
-				};
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+							}),
+						],
+						unlocking: [],
+					},
+				});
+				sender.asset.sentVotes.sort((a, b) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 				store = new StateStoreMock(
 					[
 						sender,
-						...validDownvoteTransactionScenario.testCases.output.asset.votes.map(
-							(delegate, i) => ({
-								...defaultAccount,
+						...decodedDownvoteTransaction.asset.votes.map((delegate, i) =>
+							defaultAccount({
 								address: delegate.delegateAddress,
-								username: `delegate_${i.toString()}`,
-								totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
+								asset: {
+									delegate: {
+										username: `delegate_${i.toString()}`,
+										totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
+									},
+								},
 							}),
 						),
 					],
 					{
 						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validDownvoteTransactionScenario.testCases.input
-								.networkIdentifier,
+						networkIdentifier: Buffer.from(
+							validDownvoteTransactionScenario.input.networkIdentifier,
+							'base64',
+						).toString('hex'),
 					},
 				);
 				// Update delegate who originally have vote
-				const delegate0 = await store.account.get(
-					validDownvoteTransactionScenario.testCases.output.asset.votes[0]
-						.delegateAddress,
+				const delegate0 = await store.account.get<AccountAsset>(
+					decodedDownvoteTransaction.asset.votes[0].delegateAddress,
 				);
-				delegate0.totalVotesReceived += originalVotes;
+				delegate0.asset.delegate.totalVotesReceived += originalVotes;
 				store.account.set(delegate0.address, delegate0);
 			});
 
@@ -522,38 +587,50 @@ describe('Vote transaction', () => {
 
 			it('should not change account balance', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validDownvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
 				expect(sender.balance.toString()).toEqual(minBalance.toString());
 			});
 
 			it('should remove vote which has zero amount', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validDownvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(sender.votes).toHaveLength(1);
+				expect(sender.asset.sentVotes).toHaveLength(1);
 			});
 
 			it('should update vote which has non-zero amount', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validDownvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(sender.votes[0].amount.toString()).toEqual(
+				expect(sender.asset.sentVotes[0].amount.toString()).toEqual(
 					originalVotes.toString(),
 				);
 			});
 
 			it('should make account to have correct unlocking', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validDownvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
 				expect.assertions(1 + 10 * 2);
-				expect(sender.unlocking).toHaveLength(10);
-				for (const unlock of sender.unlocking) {
+				expect(sender.asset.unlocking).toHaveLength(10);
+				for (const unlock of sender.asset.unlocking) {
 					expect(unlock.unvoteHeight).toEqual(
 						store.chain.lastBlockHeader.height + 1,
 					);
@@ -563,10 +640,13 @@ describe('Vote transaction', () => {
 
 			it('should order account.unlocking', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validDownvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				const expectedUnlock = validDownvoteTransactionScenario.testCases.output.asset.votes.map(
+				const expectedUnlock = decodedDownvoteTransaction.asset.votes.map(
 					vote => ({
 						delegateAddress: vote.delegateAddress,
 						amount: BigInt(-1) * BigInt(vote.amount),
@@ -574,27 +654,30 @@ describe('Vote transaction', () => {
 					}),
 				);
 				expectedUnlock.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress),
+					a.delegateAddress.compare(b.delegateAddress),
 				);
-				expect(sender.unlocking).toStrictEqual(expectedUnlock);
+				expect(sender.asset.unlocking).toStrictEqual(expectedUnlock);
 			});
 
 			it('should make downvoted delegate account to have correct totalVotesReceived', async () => {
 				await tx.apply(store);
 				expect.assertions(10);
-				for (const vote of validDownvoteTransactionScenario.testCases.output
-					.asset.votes) {
-					const delegate = await store.account.get(vote.delegateAddress);
+				for (const vote of decodedDownvoteTransaction.asset.votes) {
+					const delegate = await store.account.get<AccountAsset>(
+						vote.delegateAddress,
+					);
 					if (
-						vote.delegateAddress ===
-						validDownvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress
+						vote.delegateAddress.equals(
+							decodedDownvoteTransaction.asset.votes[0].delegateAddress,
+						)
 					) {
-						expect(delegate.totalVotesReceived.toString()).toEqual(
-							originalVotes.toString(),
-						);
+						expect(
+							delegate.asset.delegate.totalVotesReceived.toString(),
+						).toEqual(originalVotes.toString());
 					} else {
-						expect(delegate.totalVotesReceived.toString()).toEqual('0');
+						expect(
+							delegate.asset.delegate.totalVotesReceived.toString(),
+						).toEqual('0');
 					}
 				}
 			});
@@ -603,68 +686,70 @@ describe('Vote transaction', () => {
 		describe('when asset.votes contain negative and positive amount which makes account.votes to be 10 entries', () => {
 			beforeEach(() => {
 				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					...decodedMixedvoteTransaction,
 				});
 				const totalSpending =
-					BigInt(validMixvoteTransactionScenario.testCases.output.fee) +
-					validMixvoteTransactionScenario.testCases.output.asset.votes.reduce(
-						(prev, current) => {
-							if (BigInt(current.amount) > BigInt(0)) {
-								return prev + BigInt(current.amount);
-							}
-							return prev;
-						},
-						BigInt(0),
-					) +
+					BigInt(decodedMixedvoteTransaction.fee) +
+					decodedMixedvoteTransaction.asset.votes.reduce((prev, current) => {
+						if (BigInt(current.amount) > BigInt(0)) {
+							return prev + BigInt(current.amount);
+						}
+						return prev;
+					}, BigInt(0)) +
 					minBalance;
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = defaultAccount({
+					nonce: BigInt(decodedMixedvoteTransaction.nonce),
+					address: Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 					balance: totalSpending,
-					votes: [
-						...validMixvoteTransactionScenario.testCases.output.asset.votes
-							.filter(vote => BigInt(vote.amount) < BigInt(0))
-							.map(vote => ({
-								delegateAddress: vote.delegateAddress,
-								amount: BigInt(vote.amount) * BigInt(-1),
-							})),
-					],
-					unlocking: [
-						{
-							delegateAddress:
-								validMixvoteTransactionScenario.testCases.output.asset.votes[0]
-									.delegateAddress,
-							amount: BigInt('1000000000'),
-							unvoteHeight: 3,
-						},
-					],
-				};
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					asset: {
+						sentVotes: [
+							...decodedMixedvoteTransaction.asset.votes
+								.filter(vote => BigInt(vote.amount) < BigInt(0))
+								.map(vote => ({
+									delegateAddress: vote.delegateAddress,
+									amount: BigInt(vote.amount) * BigInt(-1),
+								})),
+						],
+						unlocking: [
+							{
+								delegateAddress:
+									decodedMixedvoteTransaction.asset.votes[0].delegateAddress,
+								amount: BigInt('1000000000'),
+								unvoteHeight: 3,
+							},
+						],
+					},
+				});
+				sender.asset.sentVotes.sort((a, b) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 				store = new StateStoreMock(
 					[
 						sender,
-						...validMixvoteTransactionScenario.testCases.output.asset.votes.map(
-							(delegate, i) => ({
-								...defaultAccount,
+						...decodedMixedvoteTransaction.asset.votes.map((delegate, i) =>
+							defaultAccount({
 								address: delegate.delegateAddress,
-								username: `delegate_${i.toString()}`,
-								totalVotesReceived:
-									BigInt(delegate.amount) < BigInt(0)
-										? BigInt(delegate.amount) * BigInt(-1)
-										: BigInt(0),
+								asset: {
+									delegate: {
+										username: `delegate_${i.toString()}`,
+										totalVotesReceived:
+											BigInt(delegate.amount) < BigInt(0)
+												? BigInt(delegate.amount) * BigInt(-1)
+												: BigInt(0),
+									},
+								},
 							}),
 						),
 					],
 					{
 						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+						networkIdentifier: Buffer.from(
+							validMixvoteTransactionScenario.input.networkIdentifier,
+							'base64',
+						).toString('hex'),
 					},
 				);
 			});
@@ -677,52 +762,66 @@ describe('Vote transaction', () => {
 
 			it('should make account to have correct balance', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
 				expect(sender.balance.toString()).toEqual(minBalance.toString());
 			});
 
 			it('should make account to have correct unlocking', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(sender.unlocking).toHaveLength(11);
+				expect(sender.asset.unlocking).toHaveLength(11);
 			});
 
 			it('should order account.votes', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				const senderVotesCopy = sender.votes.slice(0);
+				const senderVotesCopy = sender.asset.sentVotes.slice(0);
 				senderVotesCopy.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					a.delegateAddress.compare(b.delegateAddress),
 				);
-				expect(sender.votes).toStrictEqual(senderVotesCopy);
+				expect(sender.asset.sentVotes).toStrictEqual(senderVotesCopy);
 			});
 
 			it('should order account.unlocking', async () => {
 				await tx.apply(store);
-				const sender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				const senderUnlockingCopy = sender.unlocking.slice(0);
+				const senderUnlockingCopy = sender.asset.unlocking.slice(0);
 				senderUnlockingCopy.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					a.delegateAddress.compare(b.delegateAddress),
 				);
-				expect(sender.unlocking).toStrictEqual(senderUnlockingCopy);
+				expect(sender.asset.unlocking).toStrictEqual(senderUnlockingCopy);
 			});
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
 				await tx.apply(store);
-				const upvotes = validMixvoteTransactionScenario.testCases.output.asset.votes.filter(
+				const upvotes = decodedMixedvoteTransaction.asset.votes.filter(
 					vote => BigInt(vote.amount) > BigInt(0),
 				);
 				for (const vote of upvotes) {
-					const delegate = await store.account.get(vote.delegateAddress);
-					expect(delegate.totalVotesReceived.toString()).toEqual(
+					const delegate = await store.account.get<AccountAsset>(
+						vote.delegateAddress,
+					);
+					expect(delegate.asset.delegate.totalVotesReceived.toString()).toEqual(
 						BigInt(vote.amount).toString(),
 					);
 				}
@@ -730,100 +829,102 @@ describe('Vote transaction', () => {
 
 			it('should make downvoted delegate account to have correct totalVotesReceived', async () => {
 				await tx.apply(store);
-				const downvotes = validMixvoteTransactionScenario.testCases.output.asset.votes.filter(
+				const downvotes = decodedMixedvoteTransaction.asset.votes.filter(
 					vote => BigInt(vote.amount) < BigInt(0),
 				);
 				for (const vote of downvotes) {
-					const delegate = await store.account.get(vote.delegateAddress);
-					expect(delegate.totalVotesReceived.toString()).toEqual('0');
+					const delegate = await store.account.get<AccountAsset>(
+						vote.delegateAddress,
+					);
+					expect(delegate.asset.delegate.totalVotesReceived.toString()).toEqual(
+						'0',
+					);
 				}
-			});
-
-			it('shoud not change transaction asset', () => {
-				const txJSON = tx.toJSON();
-				expect((txJSON.asset as any).votes).toStrictEqual(
-					validMixvoteTransactionScenario.testCases.output.asset.votes,
-				);
 			});
 		});
 
 		describe('given asset.votes contain invalid data', () => {
-			let sender: Account;
+			let sender: Account<AccountAsset>;
 			let totalSpending: bigint;
 
 			beforeEach(() => {
 				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					...decodedMixedvoteTransaction,
 				});
 				totalSpending =
-					BigInt(validMixvoteTransactionScenario.testCases.output.fee) +
-					validMixvoteTransactionScenario.testCases.output.asset.votes.reduce(
-						(prev, current) => {
-							if (BigInt(current.amount) > BigInt(0)) {
-								return prev + BigInt(current.amount);
-							}
-							return prev;
-						},
-						BigInt(0),
-					) +
+					BigInt(decodedMixedvoteTransaction.fee) +
+					decodedMixedvoteTransaction.asset.votes.reduce((prev, current) => {
+						if (BigInt(current.amount) > BigInt(0)) {
+							return prev + BigInt(current.amount);
+						}
+						return prev;
+					}, BigInt(0)) +
 					minBalance;
-				sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
+				sender = defaultAccount({
+					nonce: BigInt(decodedMixedvoteTransaction.nonce),
+					address: Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 					balance: totalSpending,
-					votes: [
-						...validMixvoteTransactionScenario.testCases.output.asset.votes
-							.filter(vote => BigInt(vote.amount) < BigInt(0))
-							.map(vote => ({
-								delegateAddress: vote.delegateAddress,
-								amount: BigInt(vote.amount) * BigInt(-1),
-							})),
-					],
-					unlocking: [],
-				};
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+					asset: {
+						sentVotes: [
+							...decodedMixedvoteTransaction.asset.votes
+								.filter(vote => BigInt(vote.amount) < BigInt(0))
+								.map(vote => ({
+									delegateAddress: vote.delegateAddress,
+									amount: BigInt(vote.amount) * BigInt(-1),
+								})),
+						],
+						unlocking: [],
+					},
+				});
+				sender.asset.sentVotes.sort((a: any, b: any) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 				store = new StateStoreMock(
 					[
 						sender,
-						...validMixvoteTransactionScenario.testCases.output.asset.votes.map(
-							(delegate, i) => ({
-								...defaultAccount,
+						...decodedMixedvoteTransaction.asset.votes.map((delegate, i) =>
+							defaultAccount({
 								address: delegate.delegateAddress,
-								username: `delegate_${i.toString()}`,
-								totalVotesReceived:
-									BigInt(delegate.amount) < BigInt(0)
-										? BigInt(delegate.amount) * BigInt(-1)
-										: BigInt(0),
+								asset: {
+									delegate: {
+										username: `delegate_${i.toString()}`,
+										totalVotesReceived:
+											BigInt(delegate.amount) < BigInt(0)
+												? BigInt(delegate.amount) * BigInt(-1)
+												: BigInt(0),
+									},
+								},
 							}),
 						),
 					],
 					{
 						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+						networkIdentifier: Buffer.from(
+							validMixvoteTransactionScenario.input.networkIdentifier,
+							'base64',
+						).toString('hex'),
 					},
 				);
 			});
 
 			describe('when asset.votes contain delegate address which is not registered', () => {
 				it('should return errors', async () => {
-					const vote = validMixvoteTransactionScenario.testCases.output.asset.votes.find(
+					const vote = decodedMixedvoteTransaction.asset.votes.find(
 						v => BigInt(v.amount) > BigInt(0),
 					);
 
-					const invalidDelegate = await store.account.get(
-						vote?.delegateAddress as string,
+					const invalidDelegate = await store.account.get<AccountAsset>(
+						vote?.delegateAddress as Buffer,
 					);
-					store.account.set(invalidDelegate.address, {
-						...defaultAccount,
-						address: invalidDelegate.address,
-					});
+					store.account.set(
+						invalidDelegate.address,
+						defaultAccount({
+							address: invalidDelegate.address,
+						}),
+					);
 
 					const { errors, status } = await tx.apply(store);
 					expect(status).toBe(Status.FAIL);
@@ -836,9 +937,11 @@ describe('Vote transaction', () => {
 
 			describe('when asset.votes positive amount makese account.votes entries more than 10', () => {
 				it('should return errors', async () => {
-					const invalidSender = await store.account.get(sender.address);
-					invalidSender.votes.unshift({
-						delegateAddress: '123L',
+					const invalidSender = await store.account.get<AccountAsset>(
+						sender.address,
+					);
+					invalidSender.asset.sentVotes.unshift({
+						delegateAddress: Buffer.from('random address'),
 						amount: BigInt('1000000000'),
 					});
 					store.account.set(invalidSender.address, invalidSender);
@@ -852,7 +955,9 @@ describe('Vote transaction', () => {
 
 			describe('when the last asset.votes amount makes sender not having sufficient balance', () => {
 				it('should return errors', async () => {
-					const invalidSender = await store.account.get(sender.address);
+					const invalidSender = await store.account.get<AccountAsset>(
+						sender.address,
+					);
 					invalidSender.balance -= BigInt(1);
 					store.account.set(invalidSender.address, invalidSender);
 
@@ -867,14 +972,16 @@ describe('Vote transaction', () => {
 
 			describe('when asset.votes negative amount decrease acount.votes entries yet positive amount makes account exceeds more than 10', () => {
 				it('should return errors', async () => {
-					const firstNegative = validMixvoteTransactionScenario.testCases.output.asset.votes.find(
+					const firstNegative = decodedMixedvoteTransaction.asset.votes.find(
 						vote => BigInt(vote.amount) < BigInt(0),
 					);
-					const invalidSender = await store.account.get(sender.address);
-					const index = invalidSender.votes.findIndex(
-						v => v.delegateAddress === firstNegative?.delegateAddress,
+					const invalidSender = await store.account.get<AccountAsset>(
+						sender.address,
 					);
-					invalidSender.votes[index].amount += BigInt(1000000000);
+					const index = invalidSender.asset.sentVotes.findIndex(v =>
+						v.delegateAddress.equals(firstNegative?.delegateAddress as Buffer),
+					);
+					invalidSender.asset.sentVotes[index].amount += BigInt(1000000000);
 					store.account.set(invalidSender.address, invalidSender);
 
 					const { errors, status } = await tx.apply(store);
@@ -886,14 +993,16 @@ describe('Vote transaction', () => {
 
 			describe('when asset.votes negative amount and makes account.unlocking more than 20 entries', () => {
 				it('should return errors', async () => {
-					const invalidSender = await store.account.get(sender.address);
-					invalidSender.unlocking = [
+					const invalidSender = await store.account.get<AccountAsset>(
+						sender.address,
+					);
+					invalidSender.asset.unlocking = [
 						{
-							delegateAddress: '123L',
+							delegateAddress: Buffer.from('random address'),
 							amount: BigInt(1000000000),
 							unvoteHeight: 2,
 						},
-						...validMixvoteTransactionScenario.testCases.output.asset.votes
+						...decodedMixedvoteTransaction.asset.votes
 							.filter(vote => BigInt(vote.amount) < BigInt(0))
 							.map(vote => ({
 								delegateAddress: vote.delegateAddress,
@@ -901,9 +1010,9 @@ describe('Vote transaction', () => {
 								unvoteHeight: 2,
 							})),
 					];
-					sender.unlocking.sort((a, b) => {
+					sender.asset.unlocking.sort((a, b) => {
 						if (a.delegateAddress !== b.delegateAddress) {
-							return a.delegateAddress.localeCompare(b.delegateAddress, 'en');
+							return a.delegateAddress.compare(b.delegateAddress);
 						}
 						if (a.unvoteHeight !== b.unvoteHeight) {
 							return b.unvoteHeight - a.unvoteHeight;
@@ -931,14 +1040,16 @@ describe('Vote transaction', () => {
 
 			describe('when asset.votes negative amount exceeds the previously voted amount', () => {
 				it('should return errors', async () => {
-					const firstNegative = validMixvoteTransactionScenario.testCases.output.asset.votes.find(
+					const firstNegative = decodedMixedvoteTransaction.asset.votes.find(
 						vote => BigInt(vote.amount) < BigInt(0),
 					);
-					const invalidSender = await store.account.get(sender.address);
-					const index = invalidSender.votes.findIndex(
-						v => v.delegateAddress === firstNegative?.delegateAddress,
+					const invalidSender = await store.account.get<AccountAsset>(
+						sender.address,
 					);
-					invalidSender.votes[index].amount -= BigInt(1000000000);
+					const index = invalidSender.asset.sentVotes.findIndex(v =>
+						v.delegateAddress.equals(firstNegative?.delegateAddress as Buffer),
+					);
+					invalidSender.asset.sentVotes[index].amount -= BigInt(1000000000);
 					store.account.set(invalidSender.address, invalidSender);
 
 					const { errors, status } = await tx.apply(store);
@@ -957,38 +1068,45 @@ describe('Vote transaction', () => {
 
 			beforeEach(() => {
 				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					...decodedMixedvoteTransaction,
 					asset: {
 						votes: [
 							{
-								delegateAddress:
-									validMixvoteTransactionScenario.testCases.input.account
-										.address,
-								amount: voteAmount.toString(),
+								delegateAddress: Buffer.from(
+									validMixvoteTransactionScenario.input.account.address,
+									'base64',
+								),
+								amount: voteAmount,
 							},
 						],
 					},
 				});
 				tx.sign(
-					validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					validMixvoteTransactionScenario.testCases.input.account.passphrase,
+					Buffer.from(
+						validMixvoteTransactionScenario.input.networkIdentifier,
+						'base64',
+					),
+					validMixvoteTransactionScenario.input.account.passphrase,
 				);
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = defaultAccount({
+					nonce: BigInt(decodedMixedvoteTransaction.nonce),
+					address: Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 					balance: senderBalnce,
-					username: 'delegate_0',
-					votes: [],
-					unlocking: [],
-				};
+					asset: {
+						delegate: {
+							username: 'delegate_0',
+						},
+					},
+				});
 				store = new StateStoreMock([sender], {
 					lastBlockHeader: { height: 10 } as any,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					networkIdentifier: Buffer.from(
+						validMixvoteTransactionScenario.input.networkIdentifier,
+						'base64',
+					).toString('hex'),
 				});
 			});
 
@@ -997,13 +1115,16 @@ describe('Vote transaction', () => {
 				await tx.apply(store);
 
 				// Assert
-				const updatedSender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
+				const updatedSender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(updatedSender.totalVotesReceived.toString()).toEqual(
-					voteAmount.toString(),
-				);
-				expect(updatedSender.votes).toHaveLength(1);
+				expect(
+					updatedSender.asset.delegate.totalVotesReceived.toString(),
+				).toEqual(voteAmount.toString());
+				expect(updatedSender.asset.sentVotes).toHaveLength(1);
 				expect(updatedSender.balance.toString()).toEqual(
 					(senderBalnce - tx.fee - voteAmount).toString(),
 				);
@@ -1016,45 +1137,55 @@ describe('Vote transaction', () => {
 
 			beforeEach(() => {
 				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					...decodedMixedvoteTransaction,
 					asset: {
 						votes: [
 							{
-								delegateAddress:
-									validMixvoteTransactionScenario.testCases.input.account
-										.address,
-								amount: voteAmount.toString(),
+								delegateAddress: Buffer.from(
+									validMixvoteTransactionScenario.input.account.address,
+									'base64',
+								),
+								amount: voteAmount,
 							},
 						],
 					},
 				});
 				tx.sign(
-					validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					validMixvoteTransactionScenario.testCases.input.account.passphrase,
+					Buffer.from(
+						validMixvoteTransactionScenario.input.networkIdentifier,
+						'base64',
+					),
+					validMixvoteTransactionScenario.input.account.passphrase,
 				);
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
+				const sender = defaultAccount({
+					nonce: BigInt(decodedMixedvoteTransaction.nonce),
+					address: Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 					balance: senderBalnce,
-					totalVotesReceived: voteAmount * BigInt(-1),
-					username: 'delegate_0',
-					votes: [
-						{
-							delegateAddress:
-								validMixvoteTransactionScenario.testCases.input.account.address,
-							amount: voteAmount * BigInt(-1),
+					asset: {
+						delegate: {
+							totalVotesReceived: voteAmount * BigInt(-1),
+							username: 'delegate_0',
 						},
-					],
-					unlocking: [],
-				};
+						sentVotes: [
+							{
+								delegateAddress: Buffer.from(
+									validMixvoteTransactionScenario.input.account.address,
+									'base64',
+								),
+								amount: voteAmount * BigInt(-1),
+							},
+						],
+					},
+				});
 				store = new StateStoreMock([sender], {
 					lastBlockHeader: { height: 10 } as any,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
+					networkIdentifier: Buffer.from(
+						validMixvoteTransactionScenario.input.networkIdentifier,
+						'base64',
+					).toString('hex'),
 				});
 			});
 
@@ -1063,522 +1194,23 @@ describe('Vote transaction', () => {
 				await tx.apply(store);
 
 				// Assert
-				const updatedSender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
+				const updatedSender = await store.account.get<AccountAsset>(
+					Buffer.from(
+						validMixvoteTransactionScenario.input.account.address,
+						'base64',
+					),
 				);
-				expect(updatedSender.totalVotesReceived.toString()).toEqual('0');
-				expect(updatedSender.votes).toHaveLength(0);
-				expect(updatedSender.unlocking).toHaveLength(1);
-				expect(updatedSender.unlocking[0].unvoteHeight).toEqual(11);
-				expect(updatedSender.unlocking[0].amount.toString()).toEqual(
+				expect(
+					updatedSender.asset.delegate.totalVotesReceived.toString(),
+				).toEqual('0');
+				expect(updatedSender.asset.sentVotes).toHaveLength(0);
+				expect(updatedSender.asset.unlocking).toHaveLength(1);
+				expect(updatedSender.asset.unlocking[0].unvoteHeight).toEqual(11);
+				expect(updatedSender.asset.unlocking[0].amount.toString()).toEqual(
 					(voteAmount * BigInt(-1)).toString(),
 				);
 				expect(updatedSender.balance.toString()).toEqual(
 					(senderBalnce - tx.fee).toString(),
-				);
-			});
-		});
-	});
-
-	// TODO: Update after updating protocol-specs
-	describe.skip('undoAsset', () => {
-		const minBalance = BigInt('5000000');
-
-		let store: StateStoreMock;
-		let tx: VoteTransaction;
-		let originalAccount: Account;
-		let originalDeleates: Account[];
-
-		describe('when asset.votes contain positive amount which makes account.votes to be 10 entries', () => {
-			const originalVotes = BigInt('1000000000');
-
-			beforeEach(async () => {
-				tx = new VoteTransaction({
-					...validUpvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validUpvoteTransactionScenario.testCases.input.networkIdentifier,
-				});
-				const totalSpending =
-					BigInt(validUpvoteTransactionScenario.testCases.output.fee) +
-					validUpvoteTransactionScenario.testCases.output.asset.votes.reduce(
-						(prev, current) => {
-							if (BigInt(current.amount) > BigInt(0)) {
-								return prev + BigInt(current.amount);
-							}
-							return prev;
-						},
-						BigInt(0),
-					) +
-					minBalance;
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validUpvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validUpvoteTransactionScenario.testCases.input.account.address,
-					publicKey:
-						validUpvoteTransactionScenario.testCases.input.account.publicKey,
-					balance: totalSpending,
-					votes: [
-						{
-							delegateAddress:
-								validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-									.delegateAddress,
-							amount: originalVotes,
-						},
-					],
-				};
-				originalAccount = {
-					...sender,
-					votes: [...sender.votes],
-				};
-				originalDeleates = validUpvoteTransactionScenario.testCases.input.delegates.map(
-					(delegate, i) => ({
-						...defaultAccount,
-						address: delegate.address,
-						publicKey: delegate.publicKey,
-						username: `delegate_${i.toString()}`,
-					}),
-				);
-				store = new StateStoreMock(
-					[
-						sender,
-						...validUpvoteTransactionScenario.testCases.input.delegates.map(
-							(delegate, i) => ({
-								...defaultAccount,
-								address: delegate.address,
-								publicKey: delegate.publicKey,
-								username: `delegate_${i.toString()}`,
-							}),
-						),
-					],
-					{
-						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validUpvoteTransactionScenario.testCases.input.networkIdentifier,
-					},
-				);
-				// Update delegate who originally have vote
-				const delegate0 = await store.account.get(
-					validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-						.delegateAddress,
-				);
-				delegate0.totalVotesReceived += BigInt('1000000000');
-				store.account.set(delegate0.address, delegate0);
-			});
-
-			it('should not return error', async () => {
-				const { errors: applyErrors, status: applyStatus } = await tx.apply(
-					store,
-				);
-				expect(applyErrors).toHaveLength(0);
-				expect(applyStatus).toBe(Status.OK);
-				const { errors, status } = await tx.undo(store);
-				expect(errors).toHaveLength(0);
-				expect(status).toBe(Status.OK);
-			});
-
-			it('should make account to have original values before apply', async () => {
-				await tx.apply(store);
-				await tx.undo(store);
-				const sender = await store.account.get(
-					validUpvoteTransactionScenario.testCases.input.account.address,
-				);
-				expect(sender).toStrictEqual(originalAccount);
-			});
-
-			it('should make upvoted delegate account to have original values before apply', async () => {
-				await tx.apply(store);
-				await tx.undo(store);
-				for (const delegate of originalDeleates) {
-					if (
-						delegate.address ===
-						validUpvoteTransactionScenario.testCases.output.asset.votes[0]
-							.delegateAddress
-					) {
-						delegate.totalVotesReceived = BigInt('1000000000');
-					}
-					const updatedDelegate = await store.account.get(delegate.address);
-					expect(updatedDelegate).toStrictEqual(delegate);
-				}
-			});
-		});
-
-		describe('when asset.votes contain negative amount which makes account.votes to be 0 entries', () => {
-			const originalVotes = BigInt('3000000000');
-
-			beforeEach(async () => {
-				tx = new VoteTransaction({
-					...validDownvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validDownvoteTransactionScenario.testCases.input.networkIdentifier,
-				});
-				const totalSpending =
-					BigInt(validDownvoteTransactionScenario.testCases.output.fee) +
-					minBalance;
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(
-						validDownvoteTransactionScenario.testCases.output.nonce,
-					),
-					address:
-						validDownvoteTransactionScenario.testCases.input.account.address,
-					publicKey:
-						validDownvoteTransactionScenario.testCases.input.account.publicKey,
-					balance: totalSpending,
-					votes: [
-						...validDownvoteTransactionScenario.testCases.output.asset.votes.map(
-							vote => {
-								if (
-									vote.delegateAddress ===
-									validDownvoteTransactionScenario.testCases.output.asset
-										.votes[0].delegateAddress
-								) {
-									return {
-										delegateAddress: vote.delegateAddress,
-										amount: originalVotes + BigInt(vote.amount) * BigInt(-1),
-									};
-								}
-								return {
-									delegateAddress: vote.delegateAddress,
-									amount: BigInt(vote.amount) * BigInt(-1),
-								};
-							},
-						),
-					],
-					unlocking: [],
-				};
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-				);
-				originalAccount = {
-					...sender,
-					votes: [
-						...sender.votes.map(v => ({
-							delegateAddress: v.delegateAddress,
-							amount: v.amount,
-						})),
-					],
-				};
-				originalDeleates = validDownvoteTransactionScenario.testCases.output.asset.votes.map(
-					(delegate, i) => ({
-						...defaultAccount,
-						address: delegate.delegateAddress,
-						username: `delegate_${i.toString()}`,
-						totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
-					}),
-				);
-				store = new StateStoreMock(
-					[
-						sender,
-						...validDownvoteTransactionScenario.testCases.output.asset.votes.map(
-							(delegate, i) => ({
-								...defaultAccount,
-								address: delegate.delegateAddress,
-								username: `delegate_${i.toString()}`,
-								totalVotesReceived: BigInt(delegate.amount) * BigInt(-1),
-							}),
-						),
-					],
-					{
-						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validDownvoteTransactionScenario.testCases.input
-								.networkIdentifier,
-					},
-				);
-				// Update delegate who originally have vote
-				const delegate0 = await store.account.get(
-					validDownvoteTransactionScenario.testCases.output.asset.votes[0]
-						.delegateAddress,
-				);
-				delegate0.totalVotesReceived += originalVotes;
-				store.account.set(delegate0.address, delegate0);
-				const delegateIndex = originalDeleates.findIndex(
-					original => original.address === delegate0.address,
-				);
-				originalDeleates[delegateIndex].totalVotesReceived += originalVotes;
-			});
-
-			it('should not return error', async () => {
-				const { errors: applyErrors, status: applyStatus } = await tx.apply(
-					store,
-				);
-				expect(applyErrors).toHaveLength(0);
-				expect(applyStatus).toBe(Status.OK);
-				const { errors, status } = await tx.undo(store);
-				expect(errors).toHaveLength(0);
-				expect(status).toBe(Status.OK);
-			});
-
-			it('should make account to have original values before apply', async () => {
-				await tx.apply(store);
-				await tx.undo(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
-				);
-				expect(sender).toStrictEqual(originalAccount);
-			});
-
-			it('should make downvoted delegate account to have original values before apply', async () => {
-				await tx.apply(store);
-				await tx.undo(store);
-				for (const delegate of originalDeleates) {
-					const updatedDelegate = await store.account.get(delegate.address);
-					expect(updatedDelegate).toStrictEqual(delegate);
-				}
-			});
-		});
-
-		describe('when asset.votes contain negative and positive amount which makes account.votes to be 10 entries', () => {
-			beforeEach(() => {
-				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-				});
-				const totalSpending =
-					BigInt(validMixvoteTransactionScenario.testCases.output.fee) +
-					validMixvoteTransactionScenario.testCases.output.asset.votes.reduce(
-						(prev, current) => {
-							if (BigInt(current.amount) > BigInt(0)) {
-								return prev + BigInt(current.amount);
-							}
-							return prev;
-						},
-						BigInt(0),
-					) +
-					minBalance;
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
-					publicKey:
-						validMixvoteTransactionScenario.testCases.input.account.publicKey,
-					balance: totalSpending,
-					votes: [
-						...validMixvoteTransactionScenario.testCases.output.asset.votes
-							.filter(vote => BigInt(vote.amount) < BigInt(0))
-							.map(vote => ({
-								delegateAddress: vote.delegateAddress,
-								amount: BigInt(vote.amount) * BigInt(-1),
-							})),
-					],
-					unlocking: [
-						{
-							delegateAddress:
-								validMixvoteTransactionScenario.testCases.output.asset.votes[0]
-									.delegateAddress,
-							amount: BigInt('1000000000'),
-							unvoteHeight: 3,
-						},
-					],
-				};
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
-				);
-
-				originalAccount = {
-					...sender,
-					votes: [
-						...sender.votes.map(v => ({
-							delegateAddress: v.delegateAddress,
-							amount: v.amount,
-						})),
-					],
-				};
-				originalDeleates = validMixvoteTransactionScenario.testCases.output.asset.votes.map(
-					(delegate, i) => ({
-						...defaultAccount,
-						address: delegate.delegateAddress,
-						username: `delegate_${i.toString()}`,
-						totalVotesReceived:
-							BigInt(delegate.amount) < BigInt(0)
-								? BigInt(delegate.amount) * BigInt(-1)
-								: BigInt(0),
-					}),
-				);
-				store = new StateStoreMock(
-					[
-						sender,
-						...validMixvoteTransactionScenario.testCases.output.asset.votes.map(
-							(delegate, i) => ({
-								...defaultAccount,
-								address: delegate.delegateAddress,
-								username: `delegate_${i.toString()}`,
-								totalVotesReceived:
-									BigInt(delegate.amount) < BigInt(0)
-										? BigInt(delegate.amount) * BigInt(-1)
-										: BigInt(0),
-							}),
-						),
-					],
-					{
-						lastBlockHeader: { height: 10 } as any,
-						networkIdentifier:
-							validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					},
-				);
-			});
-
-			it('should not return error', async () => {
-				const { errors: applyErrors, status: applyStatus } = await tx.apply(
-					store,
-				);
-				expect(applyErrors).toHaveLength(0);
-				expect(applyStatus).toBe(Status.OK);
-				const { errors, status } = await tx.undo(store);
-				expect(errors).toHaveLength(0);
-				expect(status).toBe(Status.OK);
-			});
-
-			it('should make account to have original values before apply', async () => {
-				await tx.apply(store);
-				await tx.undo(store);
-				const sender = await store.account.get(
-					validDownvoteTransactionScenario.testCases.input.account.address,
-				);
-				expect(sender).toStrictEqual(originalAccount);
-			});
-
-			it('should make delegate accounts to have original values before apply', async () => {
-				await tx.apply(store);
-				await tx.undo(store);
-				for (const delegate of originalDeleates) {
-					const updatedDelegate = await store.account.get(delegate.address);
-					expect(updatedDelegate).toStrictEqual(delegate);
-				}
-			});
-		});
-
-		describe('when asset.votes contains self-vote', () => {
-			const senderBalnce = BigInt('1230000000000');
-			const voteAmount = BigInt('1000000000000');
-
-			beforeEach(() => {
-				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					asset: {
-						votes: [
-							{
-								delegateAddress:
-									validMixvoteTransactionScenario.testCases.input.account
-										.address,
-								amount: voteAmount.toString(),
-							},
-						],
-					},
-				});
-				tx.sign(
-					validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					validMixvoteTransactionScenario.testCases.input.account.passphrase,
-				);
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
-					balance: senderBalnce - tx.fee - voteAmount,
-					totalVotesReceived: voteAmount,
-					votes: [
-						{
-							delegateAddress:
-								validMixvoteTransactionScenario.testCases.input.account.address,
-							amount: voteAmount,
-						},
-					],
-					username: 'delegate_0',
-					unlocking: [],
-				};
-				store = new StateStoreMock([sender], {
-					lastBlockHeader: { height: 10 } as any,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-				});
-			});
-
-			it('should update votes and totalVotesReceived', async () => {
-				// Act
-				await tx.undo(store);
-
-				// Assert
-				const updatedSender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
-				);
-				expect(updatedSender.totalVotesReceived.toString()).toEqual('0');
-				expect(updatedSender.votes).toHaveLength(0);
-				expect(updatedSender.balance.toString()).toEqual(
-					senderBalnce.toString(),
-				);
-			});
-		});
-
-		describe('when asset.votes contains self-downvote', () => {
-			const senderBalnce = BigInt('1230000000000');
-			const voteAmount = BigInt('-1000000000000');
-
-			beforeEach(() => {
-				tx = new VoteTransaction({
-					...validMixvoteTransactionScenario.testCases.output,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					asset: {
-						votes: [
-							{
-								delegateAddress:
-									validMixvoteTransactionScenario.testCases.input.account
-										.address,
-								amount: voteAmount.toString(),
-							},
-						],
-					},
-				});
-				tx.sign(
-					validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-					validMixvoteTransactionScenario.testCases.input.account.passphrase,
-				);
-				const sender = {
-					...defaultAccount,
-					nonce: BigInt(validMixvoteTransactionScenario.testCases.output.nonce),
-					address:
-						validMixvoteTransactionScenario.testCases.input.account.address,
-					balance: senderBalnce - tx.fee,
-					totalVotesReceived: BigInt(0),
-					votes: [],
-					username: 'delegate_0',
-					unlocking: [
-						{
-							delegateAddress:
-								validMixvoteTransactionScenario.testCases.input.account.address,
-							amount: voteAmount * BigInt(-1),
-							unvoteHeight: 11,
-						},
-					],
-				};
-				store = new StateStoreMock([sender], {
-					lastBlockHeader: { height: 10 } as any,
-					networkIdentifier:
-						validMixvoteTransactionScenario.testCases.input.networkIdentifier,
-				});
-			});
-
-			it('should update votes, totalVotesReceived and unlocking', async () => {
-				// Act
-				await tx.undo(store);
-
-				// Assert
-				const updatedSender = await store.account.get(
-					validMixvoteTransactionScenario.testCases.input.account.address,
-				);
-				expect(updatedSender.totalVotesReceived.toString()).toEqual(
-					(voteAmount * BigInt(-1)).toString(),
-				);
-				expect(updatedSender.votes).toHaveLength(1);
-				expect(updatedSender.unlocking).toHaveLength(0);
-				expect(updatedSender.balance.toString()).toEqual(
-					senderBalnce.toString(),
 				);
 			});
 		});

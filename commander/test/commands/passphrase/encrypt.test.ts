@@ -24,8 +24,7 @@ describe('passphrase:encrypt', () => {
 	const encryptedPassphraseString =
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1';
 	const defaultKeys = {
-		publicKey:
-			'337600533a1f734c84b738d5f634c284a80ecc8b92bae4f30c1f22f8fd001e6a',
+		publicKey: 'M3YAUzofc0yEtzjV9jTChKgOzIuSuuTzDB8i+P0AHmo=',
 	};
 	const encryptedPassphraseObject = {
 		salt: 'salt',

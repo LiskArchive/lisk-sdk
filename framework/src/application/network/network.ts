@@ -110,11 +110,11 @@ export class Network {
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
-			const previousPeersStr = await this._nodeDB.get<string>(
+			const previousPeersBuffer = await this._nodeDB.get(
 				DB_KEY_NETWORK_TRIED_PEERS_LIST,
 			);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			previousPeers = previousPeersStr ? JSON.parse(previousPeersStr) : [];
+			previousPeers = JSON.parse(previousPeersBuffer.toString('utf8'));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error(
@@ -125,9 +125,10 @@ export class Network {
 		}
 
 		// Get previous secret if exists
-		let secret;
+		let secret: string | undefined;
 		try {
-			secret = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
+			const secretBuffer = await this._nodeDB.get(DB_KEY_NETWORK_NODE_SECRET);
+			secret = JSON.parse(secretBuffer.toString('utf8')) as string;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				this._logger.error(
@@ -140,7 +141,7 @@ export class Network {
 			this._secret = getRandomBytes(4).readUInt32BE(0);
 			await this._nodeDB.put(
 				DB_KEY_NETWORK_NODE_SECRET,
-				this._secret.toString(),
+				Buffer.from(JSON.stringify(this._secret.toString())),
 			);
 		} else {
 			this._secret = Number(secret);
@@ -384,7 +385,7 @@ export class Network {
 			if (triedPeers.length) {
 				await this._nodeDB.put(
 					DB_KEY_NETWORK_TRIED_PEERS_LIST,
-					JSON.stringify(triedPeers),
+					Buffer.from(JSON.stringify(triedPeers), 'utf8'),
 				);
 			}
 		}, DEFAULT_PEER_SAVE_INTERVAL);

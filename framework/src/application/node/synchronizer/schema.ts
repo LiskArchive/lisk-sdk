@@ -14,34 +14,16 @@
 
 export const CommonBlock = {
 	id: 'CommonBlock',
-	type: 'object',
-	required: ['id', 'height', 'previousBlockId'],
-	properties: {
-		id: {
-			type: 'string',
-			format: 'hex',
-			minLength: 64,
-			maxLength: 64,
-			example: '6258354802676165798',
-		},
-		height: {
-			type: 'integer',
-			example: 123,
-			minimum: 1,
-		},
-		previousBlockId: {
-			type: 'string',
-			format: 'hex',
-			example: '15918760246746894806',
-		},
-	},
+	type: 'string',
+	format: 'base64',
 };
 
 export const WSBlocksList = {
 	id: 'WSBlocksList',
 	type: 'array',
 	items: {
-		type: 'object',
+		type: 'string',
+		format: 'base64',
 	},
 };
 
@@ -55,7 +37,8 @@ export const WSTransactionsResponse = {
 			uniqueItems: true,
 			maxItems: 100,
 			items: {
-				type: 'object',
+				type: 'string',
+				format: 'base64',
 			},
 		},
 	},

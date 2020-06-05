@@ -14,22 +14,13 @@
  */
 /* eslint-disable class-methods-use-this,max-classes-per-file,@typescript-eslint/require-await */
 import { BaseTransaction } from '../../src/base_transaction';
-import { TransactionJSON } from '../../src/transaction_types';
 import { TransactionError } from '../../src/errors';
 
 export class TestTransaction extends BaseTransaction {
 	public static TYPE = 8;
 
-	public assetToJSON(): object {
-		return this.asset;
-	}
-
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async prepare(): Promise<void> {}
-
-	public assetToBytes(): Buffer {
-		return Buffer.alloc(0);
-	}
 
 	public validateAsset(): TransactionError[] {
 		return [];
@@ -42,22 +33,20 @@ export class TestTransaction extends BaseTransaction {
 	public async undoAsset(): Promise<TransactionError[]> {
 		return [];
 	}
-
-	public verifyAgainstTransactions(
-		transactions: ReadonlyArray<TransactionJSON>,
-	): ReadonlyArray<TransactionError> {
-		transactions.forEach(() => true);
-
-		return [];
-	}
 }
 
 export class TestTransactionBasicImpl extends BaseTransaction {
 	public static TYPE = 1;
-
-	public validateAsset(): TransactionError[] {
-		return [];
-	}
+	public static ASSET_SCHEMA = {
+		$id: 'basic-sample',
+		type: 'object',
+		properties: {
+			foo: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+	};
 
 	public async applyAsset(): Promise<TransactionError[]> {
 		return [];

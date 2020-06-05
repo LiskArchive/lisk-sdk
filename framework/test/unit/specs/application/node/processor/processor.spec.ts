@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockInstance } from '@liskhq/lisk-chain';
+import { Block, BlockHeader } from '@liskhq/lisk-chain';
 import { ForkStatus } from '@liskhq/lisk-bft';
 import { FakeBlockProcessorV0, FakeBlockProcessorV1 } from './block_processor';
 import { Processor } from '../../../../../../src/application/node/processor';
@@ -20,9 +20,12 @@ import { Sequence } from '../../../../../../src/application/node/utils/sequence'
 
 describe('processor', () => {
 	const defaultLastBlock = {
-		id: 'lastId',
-		version: 0,
-		height: 98,
+		header: {
+			id: Buffer.from('lastId'),
+			version: 0,
+			height: 98,
+		},
+		payload: [],
 	};
 
 	let processor: Processor;
@@ -50,10 +53,15 @@ describe('processor', () => {
 		};
 		chainModuleStub = {
 			init: jest.fn(),
+			genesisBlock: jest.fn(),
 			save: jest.fn(),
 			remove: jest.fn(),
 			exists: jest.fn(),
 			newStateStore: jest.fn().mockResolvedValue(stateStoreStub),
+			dataAccess: {
+				encode: jest.fn(),
+				decode: jest.fn(),
+			},
 		};
 		Object.defineProperty(chainModuleStub, 'lastBlock', {
 			get: jest.fn().mockReturnValue(defaultLastBlock),
@@ -128,10 +136,10 @@ describe('processor', () => {
 				processor.register(blockProcessorV0, {
 					matcher: ({ height }) => height === 0,
 				});
-				expect(processor['matchers'][0]({ height: 0 } as BlockInstance)).toBe(
+				expect(processor['matchers'][0]({ height: 0 } as BlockHeader)).toBe(
 					true,
 				);
-				expect(processor['matchers'][0]({ height: 10 } as BlockInstance)).toBe(
+				expect(processor['matchers'][0]({ height: 10 } as BlockHeader)).toBe(
 					false,
 				);
 			});
@@ -139,15 +147,19 @@ describe('processor', () => {
 	});
 
 	describe('init', () => {
-		const genesisBlock = {
-			id: 'fakeGenesisBlock',
-			version: 0,
-		} as BlockInstance;
+		const genesisBlock = ({
+			header: {
+				id: Buffer.from('fakeGenesisBlock'),
+				version: 0,
+			},
+			payload: [],
+		} as unknown) as Block;
 
 		let initSteps: jest.Mock[];
 		let applyGenesisSteps: jest.Mock[];
 
 		beforeEach(() => {
+			chainModuleStub.genesisBlock = genesisBlock;
 			initSteps = [jest.fn(), jest.fn()];
 			applyGenesisSteps = [jest.fn(), jest.fn()];
 			blockProcessorV0.init.pipe(initSteps);
@@ -159,7 +171,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				chainModuleStub.exists.mockResolvedValue(false);
 
-				await processor.init(genesisBlock);
+				await processor.init();
 			});
 
 			it('should call chainModule init', () => {
@@ -192,7 +204,7 @@ describe('processor', () => {
 			beforeEach(async () => {
 				chainModuleStub.exists.mockResolvedValue(true);
 
-				await processor.init(genesisBlock);
+				await processor.init();
 			});
 
 			it('should call chainModule init', () => {
@@ -226,7 +238,7 @@ describe('processor', () => {
 			});
 
 			it('should call all of the init steps', async () => {
-				await processor.init(genesisBlock);
+				await processor.init();
 				for (const step of initSteps2) {
 					expect(step).toHaveBeenCalledTimes(1);
 				}
@@ -236,7 +248,7 @@ describe('processor', () => {
 		describe('when processor fails to initialize', () => {
 			it('should throw an error', async () => {
 				initSteps[0].mockRejectedValue(new Error('failed to proceess init'));
-				await expect(processor.init(genesisBlock)).rejects.toThrow(
+				await expect(processor.init()).rejects.toThrow(
 					'failed to proceess init',
 				);
 			});
@@ -245,15 +257,21 @@ describe('processor', () => {
 
 	describe('process', () => {
 		const blockV0 = {
-			id: 'fakelock1',
-			version: 0,
-			height: 99,
-		} as BlockInstance;
+			header: {
+				id: Buffer.from('fakelock1'),
+				version: 0,
+				height: 99,
+			},
+		} as Block;
 		const blockV1 = {
-			id: 'fakelock2',
-			version: 1,
-			height: 100,
-		} as BlockInstance;
+			header: {
+				id: Buffer.from('fakelock2'),
+				version: 1,
+				height: 100,
+			},
+		} as Block;
+
+		const encodedBlock = Buffer.from('encoded block');
 
 		let forkSteps: jest.Mock[];
 		let validateSteps: jest.Mock[];
@@ -275,6 +293,7 @@ describe('processor', () => {
 			processor.register(blockProcessorV0, {
 				matcher: ({ height }) => height < 100,
 			});
+			chainModuleStub.dataAccess.encode.mockReturnValue(encodedBlock);
 		});
 
 		describe('when only 1 processor is registered', () => {
@@ -390,7 +409,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: blockV0,
+					block: encodedBlock.toString('base64'),
 				});
 			});
 		});
@@ -398,12 +417,13 @@ describe('processor', () => {
 		describe('when the fork step returns ForkStatus.TIE_BREAK and success to process', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(ForkStatus.TIE_BREAK);
+				jest.spyOn(processor.events, 'emit');
 				await processor.process(blockV0);
 			});
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: blockV0,
+					block: encodedBlock.toString('base64'),
 				});
 			});
 
@@ -472,9 +492,11 @@ describe('processor', () => {
 			});
 
 			it('should emit broadcast event for the block', () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:block:broadcast',
-					{ block: blockV0 },
+				expect(processor.events.emit).toHaveBeenCalledWith(
+					'EVENT_PROCESSOR_BROADCAST_BLOCK',
+					{
+						block: blockV0,
+					},
 				);
 			});
 		});
@@ -491,7 +513,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: blockV0,
+					block: encodedBlock.toString('base64'),
 				});
 			});
 
@@ -573,6 +595,7 @@ describe('processor', () => {
 		describe('when the fork step returns ForkStatus.DIFFERENT_CHAIN', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(ForkStatus.DIFFERENT_CHAIN);
+				jest.spyOn(processor.events, 'emit');
 				await processor.process(blockV0);
 			});
 
@@ -599,14 +622,17 @@ describe('processor', () => {
 			});
 
 			it('should publish sync', () => {
-				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:sync', {
-					block: blockV0,
-				});
+				expect(processor.events.emit).toHaveBeenCalledWith(
+					'EVENT_PROCESSOR_SYNC_REQUIRED',
+					{
+						block: blockV0,
+					},
+				);
 			});
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: blockV0,
+					block: encodedBlock.toString('base64'),
 				});
 			});
 		});
@@ -641,7 +667,7 @@ describe('processor', () => {
 
 			it('should publish fork event', () => {
 				expect(channelStub.publish).toHaveBeenCalledWith('app:chain:fork', {
-					block: blockV0,
+					block: encodedBlock.toString('base64'),
 				});
 			});
 		});
@@ -649,6 +675,7 @@ describe('processor', () => {
 		describe('when the fork step returns ForkStatus.VALID_BLOCK', () => {
 			beforeEach(async () => {
 				forkSteps[0].mockResolvedValue(ForkStatus.VALID_BLOCK);
+				jest.spyOn(processor.events, 'emit');
 				await processor.process(blockV0);
 			});
 
@@ -675,9 +702,11 @@ describe('processor', () => {
 			});
 
 			it('should broadcast with the block', () => {
-				expect(channelStub.publish).toHaveBeenCalledWith(
-					'app:block:broadcast',
-					{ block: blockV0 },
+				expect(processor.events.emit).toHaveBeenCalledWith(
+					'EVENT_PROCESSOR_BROADCAST_BLOCK',
+					{
+						block: blockV0,
+					},
 				);
 			});
 		});
@@ -745,15 +774,19 @@ describe('processor', () => {
 
 	describe('validate', () => {
 		const blockV0 = {
-			id: 'fakelock1',
-			version: 0,
-			height: 99,
-		} as BlockInstance;
+			header: {
+				id: Buffer.from('fakelock1'),
+				version: 0,
+				height: 99,
+			},
+		} as Block;
 		const blockV1 = {
-			id: 'fakelock2',
-			version: 1,
-			height: 100,
-		} as BlockInstance;
+			header: {
+				id: Buffer.from('fakelock2'),
+				version: 1,
+				height: 100,
+			},
+		} as Block;
 
 		let validateSteps: jest.Mock[];
 
@@ -796,15 +829,19 @@ describe('processor', () => {
 
 	describe('processValidated', () => {
 		const blockV0 = {
-			id: 'fakelock1',
-			version: 0,
-			height: 99,
-		} as BlockInstance;
+			header: {
+				id: Buffer.from('fakelock1'),
+				version: 0,
+				height: 99,
+			},
+		} as Block;
 		const blockV1 = {
-			id: 'fakelock2',
-			version: 1,
-			height: 100,
-		} as BlockInstance;
+			header: {
+				id: Buffer.from('fakelock2'),
+				version: 1,
+				height: 100,
+			},
+		} as Block;
 
 		let verifySteps: jest.Mock[];
 		let applySteps: jest.Mock[];

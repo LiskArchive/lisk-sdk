@@ -21,8 +21,9 @@ import { DataAccess } from '../data_access';
 
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
-	readonly networkIdentifier: string;
+	readonly networkIdentifier: Buffer;
 	readonly lastBlockReward: bigint;
+	readonly defaultAsset: object;
 }
 
 export class StateStore {
@@ -34,7 +35,9 @@ export class StateStore {
 		dataAccess: DataAccess,
 		additionalInformation: AdditionalInformation,
 	) {
-		this.account = new AccountStore(dataAccess);
+		this.account = new AccountStore(dataAccess, {
+			defaultAsset: additionalInformation.defaultAsset,
+		});
 		this.consensus = new ConsensusStateStore(dataAccess, {
 			lastBlockHeaders: additionalInformation.lastBlockHeaders,
 		});

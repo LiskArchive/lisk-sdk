@@ -31,13 +31,15 @@ import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	return new StateStoreMock([], {
-		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify(list),
+		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(JSON.stringify(list)),
 	});
 };
 
 describe('dpos.isStandbyDelegate', () => {
 	let dpos: Dpos;
-	const defaultAddress = getAddressFromPublicKey(delegatePublicKeys[0]);
+	const defaultAddress = getAddressFromPublicKey(
+		Buffer.from(delegatePublicKeys[0], 'hex'),
+	);
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 
 	beforeEach(() => {
@@ -56,7 +58,9 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When a block is the latest block', () => {
 		// Arrange
-		const standByAddress = getAddressFromPublicKey(delegatePublicKeys[1]);
+		const standByAddress = getAddressFromPublicKey(
+			Buffer.from(delegatePublicKeys[1], 'hex'),
+		);
 		const activeRounds = [17, 14, 11];
 		// Height in round 17
 		const height = 17 * ACTIVE_DELEGATES;
@@ -112,7 +116,9 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When the latest block is 3 rounds old', () => {
 		// Arrange
-		const standByAddress = getAddressFromPublicKey(delegatePublicKeys[1]);
+		const standByAddress = getAddressFromPublicKey(
+			Buffer.from(delegatePublicKeys[1], 'hex'),
+		);
 		const activeRounds = [16, 15, 14];
 		// Height in round 17
 		const height = 14 * ACTIVE_DELEGATES;

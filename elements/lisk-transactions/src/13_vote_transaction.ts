@@ -12,25 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { intToBuffer, hexToBuffer } from '@liskhq/lisk-cryptography';
-import { isNumberString, validator } from '@liskhq/lisk-validator';
 
 import { BaseTransaction, StateStore } from './base_transaction';
 import { MAX_INT64 } from './constants';
-import { convertToAssetError, TransactionError } from './errors';
-import { TransactionJSON } from './transaction_types';
+import { TransactionError } from './errors';
 import { sortUnlocking } from './utils';
+import { BaseTransactionInput, AccountAsset } from './types';
 
 export interface Vote {
-	readonly delegateAddress: string;
+	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
+}
+
+export interface RawAssetVote {
+	readonly delegateAddress: string;
+	readonly amount: string;
 }
 
 export interface VoteAsset {
 	readonly votes: ReadonlyArray<Vote>;
 }
 
-const voteAssetFormatSchema = {
+const voteAssetSchema = {
+	$id: 'lisk/vote-transaction',
 	type: 'object',
 	required: ['votes'],
 	properties: {
@@ -43,100 +47,44 @@ const voteAssetFormatSchema = {
 				required: ['delegateAddress', 'amount'],
 				properties: {
 					delegateAddress: {
-						type: 'string',
-						format: 'address',
+						dataType: 'bytes',
+						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					amount: {
-						type: 'string',
-						format: 'int64',
+						dataType: 'sint64',
+						fieldNumber: 2,
 					},
 				},
 			},
+			fieldNumber: 1,
 		},
 	},
 };
 
-const SIZE_INT64 = 8;
 const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 const MAX_VOTE = 10;
 const MAX_UNLOCKING = 20;
 
-export interface RawAssetVote {
-	readonly delegateAddress: string;
-	readonly amount: string;
-}
-
-interface RawAsset {
-	readonly votes: ReadonlyArray<RawAssetVote>;
-}
-
 export class VoteTransaction extends BaseTransaction {
 	public static TYPE = 13;
+	public static ASSET_SCHEMA = voteAssetSchema;
 	public readonly asset: VoteAsset;
 
-	public constructor(rawTransaction: unknown) {
-		super(rawTransaction);
-		const tx = (typeof rawTransaction === 'object' && rawTransaction !== null
-			? rawTransaction
-			: {}) as Partial<TransactionJSON>;
-		if (tx.asset) {
-			const rawAsset = tx.asset as RawAsset;
-			this.asset = {
-				votes: rawAsset.votes.map(vote => {
-					const amount = isNumberString(vote.amount)
-						? BigInt(vote.amount)
-						: BigInt(0);
+	public constructor(transaction: BaseTransactionInput<VoteAsset>) {
+		super(transaction);
 
-					return {
-						delegateAddress: vote.delegateAddress,
-						amount,
-					};
-				}),
-			};
-		} else {
-			this.asset = { votes: [] };
-		}
-	}
-
-	public assetToJSON(): object {
-		return {
-			votes: this.asset.votes.map(vote => ({
-				delegateAddress: vote.delegateAddress,
-				amount: vote.amount.toString(),
-			})),
-		};
-	}
-
-	protected assetToBytes(): Buffer {
-		const bufferArray = [];
-		for (const vote of this.asset.votes) {
-			const addressBuffer = hexToBuffer(vote.delegateAddress);
-			bufferArray.push(addressBuffer);
-			const amountBuffer = intToBuffer(
-				vote.amount.toString(),
-				SIZE_INT64,
-				'big',
-				true,
-			);
-			bufferArray.push(amountBuffer);
-		}
-
-		return Buffer.concat(bufferArray);
+		this.asset = transaction.asset;
 	}
 
 	protected validateAsset(): ReadonlyArray<TransactionError> {
-		const asset = this.assetToJSON();
-		const schemaErrors = validator.validate(voteAssetFormatSchema, asset);
-		const errors = convertToAssetError(
-			this.id,
-			schemaErrors,
-		) as TransactionError[];
-
+		const errors = [];
 		let upvoteCount = 0;
 		let downvoteCount = 0;
-		const addressSet = new Set();
+		const addressSet: { [addressStr: string]: boolean } = {};
 		for (const vote of this.asset.votes) {
-			addressSet.add(vote.delegateAddress);
+			addressSet[vote.delegateAddress.toString('base64')] = true;
 			if (vote.amount > BigInt(0)) {
 				upvoteCount += 1;
 			} else if (vote.amount < BigInt(0)) {
@@ -183,7 +131,7 @@ export class VoteTransaction extends BaseTransaction {
 				),
 			);
 		}
-		if (addressSet.size !== this.asset.votes.length) {
+		if (Object.keys(addressSet).length !== this.asset.votes.length) {
 			errors.push(
 				new TransactionError(
 					'Delegate address must be unique',
@@ -201,7 +149,7 @@ export class VoteTransaction extends BaseTransaction {
 	): Promise<ReadonlyArray<TransactionError>> {
 		// Only order should be change, so no need to copy object itself
 		const assetCopy = [...this.asset.votes];
-		// Sort by acending amount
+		// Sort by ascending amount
 		assetCopy.sort((a, b) => {
 			const diff = a.amount - b.amount;
 			if (diff > BigInt(0)) {
@@ -216,12 +164,12 @@ export class VoteTransaction extends BaseTransaction {
 		const errors = [];
 
 		for (const vote of assetCopy) {
-			const sender = await store.account.get(this.senderId);
-			const votedDelegate = await store.account.getOrDefault(
+			const sender = await store.account.get<AccountAsset>(this.senderId);
+			const votedDelegate = await store.account.getOrDefault<AccountAsset>(
 				vote.delegateAddress,
 			);
 
-			if (!votedDelegate.username) {
+			if (votedDelegate.asset.delegate.username === '') {
 				errors.push(
 					new TransactionError(
 						'Voted delegate is not registered',
@@ -233,8 +181,8 @@ export class VoteTransaction extends BaseTransaction {
 				continue;
 			}
 			if (vote.amount < BigInt(0)) {
-				const originalUpvoteIndex = sender.votes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				if (originalUpvoteIndex < 0) {
 					errors.push(
@@ -247,8 +195,8 @@ export class VoteTransaction extends BaseTransaction {
 					// eslint-disable-next-line no-continue
 					continue;
 				}
-				sender.votes[originalUpvoteIndex].amount += vote.amount;
-				if (sender.votes[originalUpvoteIndex].amount < BigInt(0)) {
+				sender.asset.sentVotes[originalUpvoteIndex].amount += vote.amount;
+				if (sender.asset.sentVotes[originalUpvoteIndex].amount < BigInt(0)) {
 					errors.push(
 						new TransactionError(
 							'Cannot downvote more than upvoted',
@@ -258,22 +206,23 @@ export class VoteTransaction extends BaseTransaction {
 					);
 				}
 				// Delete entry when amount becomes 0
-				if (sender.votes[originalUpvoteIndex].amount === BigInt(0)) {
-					sender.votes = sender.votes.filter(
-						senderVote => senderVote.delegateAddress !== vote.delegateAddress,
+				if (sender.asset.sentVotes[originalUpvoteIndex].amount === BigInt(0)) {
+					sender.asset.sentVotes = sender.asset.sentVotes.filter(
+						senderVote =>
+							!senderVote.delegateAddress.equals(vote.delegateAddress),
 					);
 				}
 				// Create unlocking object
-				sender.unlocking.push({
+				sender.asset.unlocking.push({
 					delegateAddress: vote.delegateAddress,
 					amount: BigInt(-1) * vote.amount,
 					unvoteHeight: store.chain.lastBlockHeader.height + 1,
 				});
 				// Sort account.unlocking
-				sortUnlocking(sender.unlocking);
+				sortUnlocking(sender.asset.unlocking);
 
 				// Unlocking object should not exceed maximum
-				if (sender.unlocking.length > MAX_UNLOCKING) {
+				if (sender.asset.unlocking.length > MAX_UNLOCKING) {
 					errors.push(
 						new TransactionError(
 							`Cannot downvote which exceeds account.unlocking to have more than ${MAX_UNLOCKING.toString()}`,
@@ -284,14 +233,16 @@ export class VoteTransaction extends BaseTransaction {
 				}
 			} else {
 				// Upvote amount case
-				const originalUpvoteIndex = sender.votes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				const index =
-					originalUpvoteIndex > -1 ? originalUpvoteIndex : sender.votes.length;
+					originalUpvoteIndex > -1
+						? originalUpvoteIndex
+						: sender.asset.sentVotes.length;
 				const upvote =
 					originalUpvoteIndex > -1
-						? sender.votes[originalUpvoteIndex]
+						? sender.asset.sentVotes[originalUpvoteIndex]
 						: {
 								delegateAddress: vote.delegateAddress,
 								amount: BigInt(0),
@@ -309,12 +260,12 @@ export class VoteTransaction extends BaseTransaction {
 				}
 				// Balance is checked in the base transaction
 				sender.balance -= vote.amount;
-				sender.votes[index] = upvote;
+				sender.asset.sentVotes[index] = upvote;
 				// Sort account.votes
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+				sender.asset.sentVotes.sort((a, b) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
-				if (sender.votes.length > MAX_VOTE) {
+				if (sender.asset.sentVotes.length > MAX_VOTE) {
 					errors.push(
 						new TransactionError(
 							`Account can only vote upto ${MAX_VOTE.toString()}`,
@@ -326,8 +277,10 @@ export class VoteTransaction extends BaseTransaction {
 			}
 			store.account.set(sender.address, sender);
 			// In case of self-vote, sender needs to be set and re-fetched to reflect both account change
-			const delegate = await store.account.get(vote.delegateAddress);
-			delegate.totalVotesReceived += vote.amount;
+			const delegate = await store.account.get<AccountAsset>(
+				vote.delegateAddress,
+			);
+			delegate.asset.delegate.totalVotesReceived += vote.amount;
 			store.account.set(delegate.address, delegate);
 		}
 
@@ -351,29 +304,31 @@ export class VoteTransaction extends BaseTransaction {
 			return 0;
 		});
 		for (const vote of assetCopy) {
-			const sender = await store.account.get(this.senderId);
+			const sender = await store.account.get<AccountAsset>(this.senderId);
 			if (vote.amount < BigInt(0)) {
-				const originalUpvoteIndex = sender.votes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				const index =
-					originalUpvoteIndex > -1 ? originalUpvoteIndex : sender.votes.length;
+					originalUpvoteIndex > -1
+						? originalUpvoteIndex
+						: sender.asset.sentVotes.length;
 				// If upvote does not exist anymore, it needs to re-adde them
 				const upvote =
 					originalUpvoteIndex > -1
-						? sender.votes[originalUpvoteIndex]
+						? sender.asset.sentVotes[originalUpvoteIndex]
 						: {
 								delegateAddress: vote.delegateAddress,
 								amount: BigInt(0),
 						  };
 				// Add back the vote
 				upvote.amount += vote.amount * BigInt(-1);
-				sender.votes[index] = upvote;
+				sender.asset.sentVotes[index] = upvote;
 
 				// Remove unlocking object
-				const unlockingIndex = sender.unlocking.findIndex(
+				const unlockingIndex = sender.asset.unlocking.findIndex(
 					unlock =>
-						unlock.delegateAddress === vote.delegateAddress &&
+						unlock.delegateAddress.equals(vote.delegateAddress) &&
 						unlock.amount === vote.amount * BigInt(-1) &&
 						unlock.unvoteHeight === store.chain.lastBlockHeader.height + 1,
 				);
@@ -382,35 +337,37 @@ export class VoteTransaction extends BaseTransaction {
 						'Invalid data. unlocking object should exist while undo',
 					);
 				}
-				sender.unlocking.splice(unlockingIndex, 1);
+				sender.asset.unlocking.splice(unlockingIndex, 1);
 
-				// Sort votes in case of readding
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+				// Sort votes in case of reading
+				sender.asset.sentVotes.sort((a, b) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 				// Sort account.unlocking
-				sortUnlocking(sender.unlocking);
+				sortUnlocking(sender.asset.unlocking);
 			} else {
-				const originalUpvoteIndex = sender.votes.findIndex(
-					senderVote => senderVote.delegateAddress === vote.delegateAddress,
+				const originalUpvoteIndex = sender.asset.sentVotes.findIndex(
+					senderVote => senderVote.delegateAddress.equals(vote.delegateAddress),
 				);
 				if (originalUpvoteIndex < 0) {
 					throw new Error('Invalid data. Upvote should exist while undo');
 				}
-				sender.votes[originalUpvoteIndex].amount -= vote.amount;
-				if (sender.votes[originalUpvoteIndex].amount === BigInt(0)) {
-					sender.votes.splice(originalUpvoteIndex, 1);
+				sender.asset.sentVotes[originalUpvoteIndex].amount -= vote.amount;
+				if (sender.asset.sentVotes[originalUpvoteIndex].amount === BigInt(0)) {
+					sender.asset.sentVotes.splice(originalUpvoteIndex, 1);
 				}
 				sender.balance += vote.amount;
 				// Sort account.votes
-				sender.votes.sort((a, b) =>
-					a.delegateAddress.localeCompare(b.delegateAddress, 'en'),
+				sender.asset.sentVotes.sort((a, b) =>
+					a.delegateAddress.compare(b.delegateAddress),
 				);
 			}
 			store.account.set(sender.address, sender);
 			// In case of self-vote, sender needs to be set and re-fetched to reflect both account change
-			const delegate = await store.account.get(vote.delegateAddress);
-			delegate.totalVotesReceived += vote.amount * BigInt(-1);
+			const delegate = await store.account.get<AccountAsset>(
+				vote.delegateAddress,
+			);
+			delegate.asset.delegate.totalVotesReceived += vote.amount * BigInt(-1);
 			store.account.set(delegate.address, delegate);
 		}
 

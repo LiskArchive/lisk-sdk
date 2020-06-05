@@ -12,12 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { validateNetworkIdentifier } from '@liskhq/lisk-validator';
 
 import { DelegateTransaction } from './10_delegate_transaction';
 import { USERNAME_MAX_LENGTH } from './constants';
-import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction } from './utils';
+import { TransactionJSON } from './types';
+import {
+	createBaseTransaction,
+	baseTransactionToJSON,
+	convertKeysToBuffer,
+} from './utils';
 
 export interface RegisterDelegateInputs {
 	readonly passphrase?: string;
@@ -26,7 +32,7 @@ export interface RegisterDelegateInputs {
 	readonly networkIdentifier: string;
 	readonly nonce: string;
 	readonly fee: string;
-	readonly senderPublicKey?: string;
+	readonly senderPublicKey: string;
 	readonly passphrases?: ReadonlyArray<string>;
 	readonly keys?: {
 		readonly mandatoryKeys: Array<Readonly<string>>;
@@ -55,25 +61,19 @@ export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
 ): Partial<TransactionJSON> => {
 	validateInputs(inputs);
-	const {
-		username,
-		passphrase,
-		networkIdentifier,
-		passphrases,
-		keys,
-		senderPublicKey,
-	} = inputs;
+	const { username, passphrase, passphrases, senderPublicKey } = inputs;
+	const networkIdentifier = hexToBuffer(inputs.networkIdentifier);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 10,
+		type: DelegateTransaction.TYPE,
 		// For txs from multisig senderPublicKey must be set before attempting signing
-		senderPublicKey,
+		senderPublicKey: hexToBuffer(senderPublicKey),
 		asset: { username },
-	};
+	} as DelegateTransaction;
 
 	if (!passphrase && !passphrases?.length) {
-		return transaction;
+		return baseTransactionToJSON(transaction);
 	}
 
 	const delegateTransaction = new DelegateTransaction(transaction);
@@ -81,14 +81,16 @@ export const registerDelegate = (
 	if (passphrase) {
 		delegateTransaction.sign(networkIdentifier, passphrase);
 
-		return delegateTransaction.toJSON();
+		return baseTransactionToJSON(delegateTransaction);
 	}
 
-	if (passphrases && keys) {
+	if (passphrases && inputs.keys) {
+		const keys = convertKeysToBuffer(inputs.keys);
+
 		delegateTransaction.sign(networkIdentifier, undefined, passphrases, keys);
 
-		return delegateTransaction.toJSON();
+		return baseTransactionToJSON(delegateTransaction);
 	}
 
-	return transaction;
+	return baseTransactionToJSON(delegateTransaction);
 };

@@ -12,18 +12,212 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export class Codec {
-	// eslint-disable-next-line
-	public addSchema(_schema: object): void {}
+import {
+	ErrorObject,
+	LiskValidationError,
+	validator,
+	liskSchemaIdentifier,
+} from '@liskhq/lisk-validator';
+import { generateKey } from './utils';
+import { readObject, writeObject } from './collection';
 
+import {
+	CompiledSchema,
+	CompiledSchemas,
+	CompiledSchemasArray,
+	GenericObject,
+	Schema,
+	SchemaProps,
+} from './types';
+
+export const validateSchema = (schema: {
 	// eslint-disable-next-line
-	public encode(_schema: object, _message: any): Buffer {
-		return Buffer.alloc(0);
+	[key: string]: any;
+	$schema?: string;
+	$id?: string;
+}): boolean => {
+	// TODO: https://github.com/ajv-validator/ajv/issues/1221
+	//
+	// Ajv compiles schema and cache it when either "validate" or "compile" called
+	//
+	// Due to issue mentioned above we have to compile the schema
+	// manually our self. That requires to clear the cache manually so
+	// any subsequent request to validate or compile may not fail.
+	//
+	// We have to clear cache once on start and once at the end
+	// to cover both cases in which order "validate" or "compile"
+	// is called from main code.
+
+	validator.removeSchema(schema.$id);
+
+	const schemaToValidate = {
+		...schema,
+		$schema: schema.$schema ?? liskSchemaIdentifier,
+	};
+
+	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(
+		schemaToValidate,
+	);
+
+	if (errors.length) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		throw new LiskValidationError([...errors]);
 	}
 
-	// eslint-disable-next-line
-	public decode<T>(_schema: object, _message: Buffer): T {
-		return {} as T;
+	try {
+		// To validate keyword schema we have to compile it
+		// Ajv `validateSchema` does not validate keyword meta schema
+		// https://github.com/ajv-validator/ajv/issues/1221
+		validator.compile(schemaToValidate);
+	} finally {
+		validator.removeSchema(schema.$id);
+	}
+
+	return true;
+};
+
+export class Codec {
+	private readonly _compileSchemas: CompiledSchemas = {};
+
+	public addSchema(schema: Schema): boolean {
+		validateSchema(schema);
+
+		const schemaName = schema.$id;
+		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
+
+		return true;
+	}
+
+	public encode(schema: Schema, message: GenericObject): Buffer {
+		if (this._compileSchemas[schema.$id] === undefined) {
+			this.addSchema(schema);
+		}
+
+		const compiledSchema = this._compileSchemas[schema.$id];
+		const res = writeObject(compiledSchema, message, []);
+		return Buffer.concat(res[0]);
+	}
+
+	public decode<T>(schema: Schema, message: Buffer): T {
+		if (this._compileSchemas[schema.$id] === undefined) {
+			this.addSchema(schema);
+		}
+		const compiledSchema = this._compileSchemas[schema.$id];
+		const [res] = readObject(message, 0, compiledSchema);
+
+		return (res as unknown) as T;
+	}
+
+	private _compileSchema(
+		schema: Schema | SchemaProps,
+		compiledSchema: CompiledSchemasArray,
+		dataPath: string[],
+	): CompiledSchemasArray {
+		if (schema.type === 'object') {
+			const { properties } = schema;
+			if (properties === undefined) {
+				throw new Error('Invalid schema. Missing "properties" property');
+			}
+			const currentDepthSchema = Object.entries(properties).sort(
+				(a, b) => a[1].fieldNumber - b[1].fieldNumber,
+			);
+
+			for (let i = 0; i < currentDepthSchema.length; i += 1) {
+				const [schemaPropertyName, schemaPropertyValue] = currentDepthSchema[i];
+				if (schemaPropertyValue.type === 'object') {
+					// Object recursive case
+					dataPath.push(schemaPropertyName);
+					const nestedSchema = [
+						{
+							propertyName: schemaPropertyName,
+							schemaProp: {
+								type: schemaPropertyValue.type,
+								fieldNumber: schemaPropertyValue.fieldNumber,
+							},
+							dataPath: [...dataPath],
+							binaryKey: generateKey(schemaPropertyValue),
+						},
+					];
+					const res = this._compileSchema(
+						schemaPropertyValue,
+						nestedSchema,
+						dataPath,
+					);
+					compiledSchema.push(res as CompiledSchema[]);
+					dataPath.pop();
+				} else if (schemaPropertyValue.type === 'array') {
+					// Array recursive case
+					if (schemaPropertyValue.items === undefined) {
+						throw new Error(
+							'Invalid schema. Missing "items" property for Array schema',
+						);
+					}
+					dataPath.push(schemaPropertyName);
+					if (schemaPropertyValue.items.type === 'object') {
+						const nestedSchema = [
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: {
+									type: 'object',
+									fieldNumber: schemaPropertyValue.fieldNumber,
+								},
+								dataPath: [...dataPath],
+								binaryKey: generateKey(schemaPropertyValue),
+							},
+						];
+						const res = this._compileSchema(
+							schemaPropertyValue.items,
+							nestedSchema,
+							dataPath,
+						);
+						compiledSchema.push([
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: {
+									type: schemaPropertyValue.type,
+									fieldNumber: schemaPropertyValue.fieldNumber,
+								},
+								dataPath: [...dataPath],
+								binaryKey: generateKey(schemaPropertyValue),
+							},
+							(res as unknown) as CompiledSchema,
+						]);
+						dataPath.pop();
+					} else {
+						compiledSchema.push([
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: {
+									type: schemaPropertyValue.type,
+									fieldNumber: schemaPropertyValue.fieldNumber,
+								},
+								dataPath: [...dataPath],
+								binaryKey: generateKey(schemaPropertyValue),
+							},
+							{
+								propertyName: schemaPropertyName,
+								schemaProp: {
+									dataType: schemaPropertyValue.items.dataType,
+									fieldNumber: schemaPropertyValue.fieldNumber,
+								},
+								dataPath: [...dataPath],
+								binaryKey: generateKey(schemaPropertyValue),
+							},
+						]);
+						dataPath.pop();
+					}
+				} else {
+					// Base case
+					compiledSchema.push({
+						propertyName: schemaPropertyName,
+						schemaProp: schemaPropertyValue,
+						dataPath: [...dataPath],
+						binaryKey: generateKey(schemaPropertyValue),
+					});
+				}
+			}
+		}
+		return compiledSchema;
 	}
 }
 

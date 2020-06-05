@@ -13,11 +13,9 @@
  *
  */
 import { encode as encodeVarInt } from 'varuint-bitcoin';
-
-import { bufferToHex, hexToBuffer } from './buffer';
 import { SIGNED_MESSAGE_PREFIX } from './constants';
 import { hash } from './hash';
-import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+import { getPrivateAndPublicKeyFromPassphrase } from './keys';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
@@ -37,8 +35,8 @@ const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
 
 export interface SignedMessageWithOnePassphrase {
 	readonly message: string;
-	readonly publicKey: string;
-	readonly signature: string;
+	readonly publicKey: Buffer;
+	readonly signature: Buffer;
 }
 export const digestMessage = (message: string): Buffer => {
 	const msgBytes = Buffer.from(message, 'utf8');
@@ -58,16 +56,15 @@ export const signMessageWithPassphrase = (
 	passphrase: string,
 ): SignedMessageWithOnePassphrase => {
 	const msgBytes = digestMessage(message);
-	const {
-		privateKeyBytes,
-		publicKeyBytes,
-	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const signature = signDetached(msgBytes, privateKeyBytes);
+	const { privateKey, publicKey } = getPrivateAndPublicKeyFromPassphrase(
+		passphrase,
+	);
+	const signature = signDetached(msgBytes, privateKey);
 
 	return {
 		message,
-		publicKey: bufferToHex(publicKeyBytes),
-		signature: bufferToHex(signature),
+		publicKey,
+		signature,
 	};
 };
 
@@ -77,28 +74,26 @@ export const verifyMessageWithPublicKey = ({
 	signature,
 }: SignedMessageWithOnePassphrase): boolean => {
 	const msgBytes = digestMessage(message);
-	const signatureBytes = hexToBuffer(signature);
-	const publicKeyBytes = hexToBuffer(publicKey);
 
-	if (publicKeyBytes.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
+	if (publicKey.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
 		throw new Error(
 			`Invalid publicKey, expected ${NACL_SIGN_PUBLICKEY_LENGTH.toString()}-byte publicKey`,
 		);
 	}
 
-	if (signatureBytes.length !== NACL_SIGN_SIGNATURE_LENGTH) {
+	if (signature.length !== NACL_SIGN_SIGNATURE_LENGTH) {
 		throw new Error(
 			`Invalid signature length, expected ${NACL_SIGN_SIGNATURE_LENGTH.toString()}-byte signature`,
 		);
 	}
 
-	return verifyDetached(msgBytes, signatureBytes, publicKeyBytes);
+	return verifyDetached(msgBytes, signature, publicKey);
 };
 
 export interface SignedMessage {
 	readonly message: string;
-	readonly publicKey: string;
-	readonly signature: string;
+	readonly publicKey: Buffer;
+	readonly signature: Buffer;
 }
 
 export const printSignedMessage = ({
@@ -111,9 +106,9 @@ export const printSignedMessage = ({
 		messageHeader,
 		message,
 		publicKeyHeader,
-		publicKey,
+		publicKey.toString('hex'),
 		signatureHeader,
-		signature,
+		signature.toString('hex'),
 		signatureFooter,
 	]
 		.filter(Boolean)
@@ -131,28 +126,21 @@ export const signAndPrintMessage = (
 export const signDataWithPrivateKey = (
 	data: Buffer,
 	privateKey: Buffer,
-): string => {
-	const signature = signDetached(data, privateKey);
-
-	return bufferToHex(signature);
-};
+): Buffer => signDetached(data, privateKey);
 
 export const signDataWithPassphrase = (
 	data: Buffer,
 	passphrase: string,
-): string => {
-	const { privateKeyBytes } = getPrivateAndPublicKeyBytesFromPassphrase(
-		passphrase,
-	);
+): Buffer => {
+	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
-	return signDataWithPrivateKey(data, privateKeyBytes);
+	return signDataWithPrivateKey(data, privateKey);
 };
 
 export const signData = signDataWithPassphrase;
 
 export const verifyData = (
 	data: Buffer,
-	signature: string,
-	publicKey: string,
-): boolean =>
-	verifyDetached(data, hexToBuffer(signature), hexToBuffer(publicKey));
+	signature: Buffer,
+	publicKey: Buffer,
+): boolean => verifyDetached(data, signature, publicKey);

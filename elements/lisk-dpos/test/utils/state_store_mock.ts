@@ -14,28 +14,28 @@
 import { Account, BlockHeader } from '../../src/types';
 
 interface AccountStoreMock {
-	get: (address: string) => Promise<Account>;
+	get: (address: Buffer) => Promise<Account>;
 	getUpdated: () => Account[];
-	set: (address: string, account: Account) => void;
+	set: (address: Buffer, account: Account) => void;
 }
 
 interface ConsensusStateStoreMock {
-	get: (address: string) => Promise<string | undefined>;
-	set: (key: string, v: string) => void;
+	get: (key: string) => Promise<Buffer | undefined>;
+	set: (key: string, v: Buffer) => void;
 	lastBlockHeaders: ReadonlyArray<BlockHeader>;
 }
 interface ChainStateStoreMock {
-	get: (address: string) => Promise<string | undefined>;
-	set: (key: string, v: string) => void;
+	get: (key: string) => Promise<Buffer | undefined>;
+	set: (key: string, v: Buffer) => void;
 }
 
 interface ConsensusState {
-	[key: string]: string;
+	[key: string]: Buffer;
 }
 
 export interface AdditionalInformation {
 	readonly lastBlockHeaders?: ReadonlyArray<BlockHeader>;
-	readonly chainData?: { [key: string]: string };
+	readonly chainData?: { [key: string]: Buffer };
 }
 
 export class StateStoreMock {
@@ -45,7 +45,7 @@ export class StateStoreMock {
 
 	public accountData: Account[];
 	public consensusStateData: ConsensusState;
-	public chainData: { [key: string]: string };
+	public chainData: { [key: string]: Buffer };
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
 	constructor(
@@ -63,16 +63,18 @@ export class StateStoreMock {
 
 		this.account = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (address: string): Promise<Account> => {
-				const account = this.accountData.find(acc => acc.address === address);
+			get: async (address: Buffer): Promise<Account> => {
+				const account = this.accountData.find(acc =>
+					acc.address.equals(address),
+				);
 				if (!account) {
 					throw new Error('Account not defined');
 				}
 				return { ...account };
 			},
-			set: (address: string, account: Account): void => {
-				const index = this.accountData.findIndex(
-					acc => acc.address === address,
+			set: (address: Buffer, account: Account): void => {
+				const index = this.accountData.findIndex(acc =>
+					acc.address.equals(address),
 				);
 				if (index > -1) {
 					this.accountData[index] = account;
@@ -85,18 +87,18 @@ export class StateStoreMock {
 		};
 		this.consensus = {
 			// eslint-disable-next-line @typescript-eslint/require-await
-			get: async (key: string): Promise<string | undefined> => {
+			get: async (key: string): Promise<Buffer | undefined> => {
 				return this.consensusStateData[key];
 			},
-			set: (key: string, val: string): void => {
+			set: (key: string, val: Buffer): void => {
 				this.consensusStateData[key] = val;
 			},
 			lastBlockHeaders: additionalInformation?.lastBlockHeaders ?? [],
 		};
 		this.chain = {
-			get: async (key: string): Promise<string | undefined> =>
+			get: async (key: string): Promise<Buffer | undefined> =>
 				Promise.resolve(this.chainData[key]),
-			set: (key: string, value: string): void => {
+			set: (key: string, value: Buffer): void => {
 				this.chainData[key] = value;
 			},
 		};

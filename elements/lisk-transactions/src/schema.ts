@@ -13,18 +13,8 @@
  *
  */
 export const transactionInterface = {
-	required: [
-		'toJSON',
-		'getBytes',
-		'validate',
-		'apply',
-		'undo',
-		'verifySignatures',
-	],
+	required: ['getBytes', 'validate', 'apply', 'undo', 'verifySignatures'],
 	properties: {
-		toJSON: {
-			typeof: 'function',
-		},
 		getBytes: {
 			typeof: 'function',
 		},
@@ -43,57 +33,37 @@ export const transactionInterface = {
 	},
 };
 
-// TODO: Add senderId and recipientId to required once deprecated functions relying on this schema are removed
-export const baseTransaction = {
+export const baseTransactionSchema = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['type', 'senderPublicKey', 'fee', 'nonce', 'asset', 'signatures'],
+	required: ['type', 'nonce', 'fee', 'senderPublicKey', 'asset'],
 	properties: {
-		blockId: {
-			type: 'string',
-			format: 'hex',
-		},
-		height: {
-			type: 'integer',
-			minimum: 0,
-		},
-		confirmations: {
-			type: 'integer',
-			minimum: 0,
-		},
 		type: {
-			type: 'integer',
-			minimum: 0,
+			dataType: 'uint32',
+			fieldNumber: 1,
 		},
 		nonce: {
-			type: 'string',
-			format: 'nonce',
+			dataType: 'uint64',
+			fieldNumber: 2,
 		},
 		fee: {
-			type: 'string',
-			format: 'fee',
+			dataType: 'uint64',
+			fieldNumber: 3,
 		},
 		senderPublicKey: {
-			type: 'string',
-			format: 'publicKey',
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		asset: {
+			dataType: 'bytes',
+			fieldNumber: 5,
 		},
 		signatures: {
 			type: 'array',
 			items: {
-				oneOf: [
-					{ type: 'string', format: 'signature' },
-					{ type: 'string', format: 'emptyString' },
-				],
+				dataType: 'bytes',
 			},
-			minItems: 1,
-			maxItems: 64,
-		},
-		asset: {
-			type: 'object',
-		},
-		receivedAt: {
-			type: 'string',
-			format: 'date-time',
+			fieldNumber: 6,
 		},
 	},
 };

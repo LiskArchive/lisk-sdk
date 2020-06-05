@@ -12,47 +12,65 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { registerMultisignature } from '../src/register_multisignature_account';
+import { hash } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import { signMultiSignatureTransaction } from '../src/sign_multi_signature_transaction';
 import * as multisigFixture from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
-import { TransactionJSON } from '../src/transaction_types';
-import { TransferTransaction } from '../src';
-
-import cloneDeep = require('lodash.clonedeep');
+import { BaseTransactionInput } from '../src/types';
+import { TransferTransaction, BaseTransaction } from '../src';
+import {
+	MultiSignatureAsset,
+	MultisignatureTransaction,
+} from '../src/12_multisignature_transaction';
 
 describe('#sign multi signature transaction', () => {
-	let registrationTx: Partial<TransactionJSON>;
-	const validMultisigRegistrationTx = multisigFixture.testCases.output;
+	let registrationTx: BaseTransactionInput<MultiSignatureAsset>;
+	let validMultisigRegistrationTx: MultisignatureTransaction;
+	const defualtTestCase = multisigFixture.testCases[0];
+
+	beforeEach(() => {
+		const buffer = Buffer.from(defualtTestCase.output.transaction, 'base64');
+		const id = hash(buffer);
+		const decodedBaseTransaction = codec.decode<BaseTransaction>(
+			BaseTransaction.BASE_SCHEMA,
+			buffer,
+		);
+		const decodedAsset = codec.decode<MultiSignatureAsset>(
+			MultisignatureTransaction.ASSET_SCHEMA,
+			decodedBaseTransaction.asset as Buffer,
+		);
+		registrationTx = {
+			...decodedBaseTransaction,
+			asset: decodedAsset,
+			id,
+		};
+		validMultisigRegistrationTx = new MultisignatureTransaction(registrationTx);
+	});
+
 	// This fixture represents the transaction generated and signed by the sender
-	const registerMultisignatureInput = {
-		senderPassphrase:
-			'inherit moon normal relief spring bargain hobby join baby flash fog blood',
-		passphrases: [],
-		mandatoryKeys: [
-			'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-			'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-		],
-		optionalKeys: [
-			'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
-			'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-		],
-		numberOfSignatures: 4,
-		networkIdentifier:
-			'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-		nonce: '1',
-		fee: '1500000000',
-	};
+	// const registerMultisignatureInput = {
+	// 	senderPassphrase:
+	// 		'inherit moon normal relief spring bargain hobby join baby flash fog blood',
+	// 	passphrases: [],
+	// 	mandatoryKeys: [
+	// 		Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
+	// 		Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
+	// 	],
+	// 	optionalKeys: [
+	// 		Buffer.from('fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6', 'hex'),
+	// 		Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
+	// 	],
+	// 	numberOfSignatures: 4,
+	// 	networkIdentifier:
+	// 		Buffer.from('e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255', 'hex'),
+	// 	nonce: '1',
+	// 	fee: '1500000000',
+	// };
 
 	describe('Members signing', () => {
-		beforeEach(() => {
-			registrationTx = registerMultisignature(registerMultisignatureInput);
-		});
-
 		it('should return a transaction signed by first mandatory key', () => {
-			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
-
 			const txSignedByMember = signMultiSignatureTransaction({
-				transaction: txMissingMemberSignatures,
+				transaction: validMultisigRegistrationTx,
 				passphrase:
 					'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
 				networkIdentifier:
@@ -75,10 +93,8 @@ describe('#sign multi signature transaction', () => {
 		});
 
 		it('should return a transaction signed by second mandatory key', () => {
-			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
-
 			const txSignedByMember = signMultiSignatureTransaction({
-				transaction: txMissingMemberSignatures,
+				transaction: validMultisigRegistrationTx,
 				passphrase:
 					'trim elegant oven term access apple obtain error grain excite lawn neck',
 				networkIdentifier:
@@ -101,10 +117,8 @@ describe('#sign multi signature transaction', () => {
 		});
 
 		it('should return a transaction signed by first optional key', () => {
-			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
-
 			const txSignedByMember = signMultiSignatureTransaction({
-				transaction: txMissingMemberSignatures,
+				transaction: validMultisigRegistrationTx,
 				passphrase:
 					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
 				networkIdentifier:
@@ -127,10 +141,8 @@ describe('#sign multi signature transaction', () => {
 		});
 
 		it('should return a transaction signed by second optional key', () => {
-			const txMissingMemberSignatures = cloneDeep(registrationTx) as any;
-
 			const txSignedByMember = signMultiSignatureTransaction({
-				transaction: txMissingMemberSignatures,
+				transaction: validMultisigRegistrationTx,
 				passphrase:
 					'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
 				networkIdentifier:
@@ -154,19 +166,24 @@ describe('#sign multi signature transaction', () => {
 
 		it('should return a transaction with third signature and empty string for the rest', () => {
 			const validTransfer = new TransferTransaction({
-				id: 123,
-				senderPublicKey:
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				senderPublicKey: Buffer.from(
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
 				asset: {
-					amount: '500000000',
-					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+					amount: BigInt('500000000'),
+					recipientAddress: Buffer.from(
+						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+						'hex',
+					),
+					data: '',
 				},
 			});
 
-			const partiallySignedTransaction: any = validTransfer.toJSON();
-
 			const txSignedByMember = signMultiSignatureTransaction({
-				transaction: partiallySignedTransaction,
+				transaction: validTransfer,
 				passphrase:
 					'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
 				networkIdentifier:
@@ -184,29 +201,38 @@ describe('#sign multi signature transaction', () => {
 			});
 
 			expect(txSignedByMember.signatures).toStrictEqual([
-				'',
-				'',
-				'80f4a6c6f41c2568424ed6c0156cdb0eb4bb88fa24f5d5abab3b0421ec7b6d3431166e3f235bf7ff4e969496f4514795eba3aeac54105f01b25e91d086f7d008',
-				'',
+				Buffer.alloc(0),
+				Buffer.alloc(0),
+				expect.any(Buffer),
+				Buffer.alloc(0),
 			]);
 		});
 
 		it('should return a transaction with third signature added and existing ones unmodified', () => {
 			const validTransfer = new TransferTransaction({
-				id: 123,
-				senderPublicKey:
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				senderPublicKey: Buffer.from(
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
 				asset: {
-					amount: '500000000',
-					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+					amount: BigInt('500000000'),
+					recipientAddress: Buffer.from(
+						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+						'hex',
+					),
+					data: '',
 				},
 			});
 
 			// Add signature from 'sugar object slender confirm clock peanut auto spice carbon knife increase estate'
-			const partiallySignedTransaction: any = validTransfer.toJSON();
+			const partiallySignedTransaction = validTransfer;
 			partiallySignedTransaction.signatures = [];
-			partiallySignedTransaction.signatures[2] =
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07';
+			partiallySignedTransaction.signatures[2] = Buffer.from(
+				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
+				'hex',
+			);
 
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: partiallySignedTransaction,
@@ -227,28 +253,38 @@ describe('#sign multi signature transaction', () => {
 			});
 
 			expect(txSignedByMember.signatures).toStrictEqual([
-				'',
-				'',
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
-				'b54fc817ab9fe7ffd589c02e6b609254c83a7b323e2b8b41cc854c5c7957ec3ad9f6e91720cc68727a44d2277aa19db3b083c5dab80fcbad9065c487c1406307',
+				Buffer.alloc(0),
+				Buffer.alloc(0),
+				expect.any(Buffer),
+				expect.any(Buffer),
 			]);
 		});
 
 		it('should return a transaction with no modifications if signature already present', () => {
 			const validTransfer = new TransferTransaction({
-				senderPublicKey:
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				senderPublicKey: Buffer.from(
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
 				asset: {
-					amount: '500000000',
-					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+					amount: BigInt('500000000'),
+					recipientAddress: Buffer.from(
+						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+						'hex',
+					),
+					data: '',
 				},
 			});
 
 			// Add signature from 'sugar object slender confirm clock peanut auto spice carbon knife increase estate'
-			const partiallySignedTransaction: any = validTransfer.toJSON();
+			const partiallySignedTransaction = validTransfer;
 			partiallySignedTransaction.signatures = [];
-			partiallySignedTransaction.signatures[2] =
-				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07';
+			partiallySignedTransaction.signatures[2] = Buffer.from(
+				'15161b9fcd6813f0ec42c8119ce63376093438b4fb9ade1e4e9873c15dbf8ec21a2cd534430d98cb24dc615e8d6e106fb80ac46251db2ec91ba75415fc4cbe07',
+				'hex',
+			);
 
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: partiallySignedTransaction,
@@ -269,25 +305,33 @@ describe('#sign multi signature transaction', () => {
 			});
 
 			expect(txSignedByMember.signatures).toStrictEqual([
-				'',
-				'',
-				'80f4a6c6f41c2568424ed6c0156cdb0eb4bb88fa24f5d5abab3b0421ec7b6d3431166e3f235bf7ff4e969496f4514795eba3aeac54105f01b25e91d086f7d008',
-				'',
+				Buffer.alloc(0),
+				Buffer.alloc(0),
+				expect.any(Buffer),
+				Buffer.alloc(0),
 			]);
 		});
 
 		it('should return signature in the correct position', () => {
 			const validTransfer = new TransferTransaction({
-				senderPublicKey:
+				nonce: BigInt(0),
+				fee: BigInt(100000000),
+				senderPublicKey: Buffer.from(
 					'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+					'hex',
+				),
 				asset: {
-					amount: '500000000',
-					recipientId: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+					amount: BigInt('500000000'),
+					recipientAddress: Buffer.from(
+						'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+						'hex',
+					),
+					data: '',
 				},
 			});
 
 			// Add signature from 'sugar object slender confirm clock peanut auto spice carbon knife increase estate'
-			const partiallySignedTransaction: any = validTransfer.toJSON();
+			const partiallySignedTransaction = validTransfer;
 
 			const txSignedByMember = signMultiSignatureTransaction({
 				transaction: partiallySignedTransaction,
@@ -307,9 +351,7 @@ describe('#sign multi signature transaction', () => {
 				},
 			});
 
-			expect(txSignedByMember.signatures[2]).toBe(
-				'80f4a6c6f41c2568424ed6c0156cdb0eb4bb88fa24f5d5abab3b0421ec7b6d3431166e3f235bf7ff4e969496f4514795eba3aeac54105f01b25e91d086f7d008',
-			);
+			expect(txSignedByMember.signatures[2]).toEqual(expect.any(Buffer));
 		});
 	});
 });

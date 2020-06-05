@@ -14,29 +14,34 @@
  */
 
 import * as Ajv from 'ajv';
-
+import { ValidateFunction } from 'ajv';
 import * as formats from './formats';
+import { ErrorObject, LiskValidationError } from './errors';
+import { fieldNumberKeyword } from './keywords/field_number';
+import { dataTypeKeyword } from './keywords/data_type';
+import { liskMetaSchema } from './lisk_meta_schema';
 
-export type ErrorObject = Ajv.ErrorObject;
+export const liskSchemaIdentifier: string = liskMetaSchema.$id;
 
 class LiskValidator {
-	private readonly validator: Ajv.Ajv;
+	private readonly _validator: Ajv.Ajv;
+
 	public constructor() {
-		this.validator = new Ajv({
+		this._validator = new Ajv({
 			allErrors: true,
 			schemaId: 'auto',
 			useDefaults: false,
 		});
 
 		for (const formatName of Object.keys(formats)) {
-			this.validator.addFormat(
+			this._validator.addFormat(
 				formatName,
 				// eslint-disable-next-line import/namespace
 				formats[formatName as keyof typeof formats],
 			);
 		}
 
-		this.validator.addKeyword('uniqueSignedPublicKeys', {
+		this._validator.addKeyword('uniqueSignedPublicKeys', {
 			type: 'array',
 			// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 			compile: () => (data: ReadonlyArray<string>) =>
@@ -46,14 +51,52 @@ class LiskValidator {
 						.map((key: string) => key.slice(1)),
 				).size === data.length,
 		});
+
+		this._validator.addMetaSchema(liskMetaSchema);
+		this._validator.addKeyword('fieldNumber', fieldNumberKeyword);
+		this._validator.addKeyword('dataType', dataTypeKeyword);
 	}
 
 	public validate(schema: object, data: object): ReadonlyArray<ErrorObject> {
-		if (!this.validator.validate(schema, data)) {
-			return this.validator.errors as ReadonlyArray<ErrorObject>;
+		if (!this._validator.validate(schema, data)) {
+			return this._validator.errors as ReadonlyArray<ErrorObject>;
 		}
 
 		return [];
+	}
+
+	public validateSchema(schema: object | boolean): ReadonlyArray<ErrorObject> {
+		if (!this._validator.validateSchema(schema)) {
+			return this._validator.errors as ReadonlyArray<ErrorObject>;
+		}
+
+		return [];
+	}
+
+	public compile(schema: object | boolean): ValidateFunction {
+		try {
+			return this._validator.compile(schema);
+		} catch (error) {
+			if (error instanceof LiskValidationError) {
+				throw error;
+			}
+
+			throw new LiskValidationError([
+				{
+					message: (error as Error).message.toString(),
+					dataPath: '',
+					keyword: '',
+					schemaPath: '',
+					params: {},
+				},
+			]);
+		}
+	}
+
+	public removeSchema(
+		schemaKeyRef?: object | string | RegExp | boolean,
+	): Ajv.Ajv {
+		return this._validator.removeSchema(schemaKeyRef);
 	}
 }
 

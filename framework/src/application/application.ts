@@ -47,7 +47,7 @@ import { Logger, createLogger } from './logger';
 import { DuplicateAppInstanceError } from '../errors';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 import { ActionInfoObject } from '../controller/action';
-import { NodeConstants, GenesisBlockInstance } from './node/node';
+import { NodeConstants, GenesisBlockJSON } from './node/node';
 import { DelegateConfig } from './node/forger';
 import { NetworkConfig } from './network/network';
 
@@ -147,13 +147,13 @@ export class Application {
 	private _modules: { [key: string]: InstantiableModule<BaseModule> };
 	private _channel!: InMemoryChannel;
 
-	private readonly _genesisBlock: GenesisBlockInstance;
+	private readonly _genesisBlock: GenesisBlockJSON;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
 	public constructor(
-		genesisBlock: GenesisBlockInstance,
+		genesisBlock: GenesisBlockJSON,
 		config: Partial<ApplicationConfig> = {},
 	) {
 		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
@@ -168,7 +168,8 @@ export class Application {
 		let appConfig = _.cloneDeep(config);
 
 		appConfig.label =
-			appConfig.label ?? `lisk-${this._genesisBlock.payloadHash.slice(0, 7)}`;
+			appConfig.label ??
+			`lisk-${this._genesisBlock.header.transactionRoot.slice(0, 7)}`;
 
 		appConfig = configurator.getConfig(appConfig, {
 			failOnInvalidArg: process.env.NODE_ENV !== 'test',
@@ -358,7 +359,7 @@ export class Application {
 	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			this._genesisBlock.payloadHash,
+			this._genesisBlock.header.transactionRoot,
 			this._genesisBlock.communityIdentifier,
 		);
 

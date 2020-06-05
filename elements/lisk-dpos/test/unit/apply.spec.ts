@@ -15,7 +15,7 @@
 import { Slots } from '@liskhq/lisk-chain';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
-import { Account, ForgersList, Block } from '../../src/types';
+import { Account, ForgersList, BlockHeader } from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -67,22 +67,22 @@ describe('dpos.apply()', () => {
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
-		let genesisBlock: Block;
+		let genesisBlock: BlockHeader;
 		let generator: Account;
 
 		beforeEach(() => {
 			generator = { ...delegateAccounts[0] };
 			// Arrange
 			genesisBlock = {
-				id: 'genesis-block',
+				id: Buffer.from('genesis-block'),
 				timestamp: 10,
 				height: 1,
 				generatorPublicKey: generator.publicKey,
 				reward: BigInt(500000000),
-				totalFee: BigInt(100000000),
-				transactions: [],
-				seedReveal: '00000000000000000000000000000000',
-			} as Block;
+				asset: {
+					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
+				},
+			} as BlockHeader;
 
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {});
 		});
@@ -92,10 +92,12 @@ describe('dpos.apply()', () => {
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			const voteWeightsStr = await stateStore.consensus.get(
+			const voteWeightsBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
-			const voteWeights = JSON.parse(voteWeightsStr as string);
+			const voteWeights = JSON.parse(
+				(voteWeightsBuffer as Buffer).toString('utf8'),
+			);
 			expect(voteWeights).toHaveLength(1 + DELEGATE_LIST_ROUND_OFFSET);
 			expect(voteWeights[0].round).toEqual(1);
 			expect(voteWeights[1].round).toEqual(2);
@@ -107,10 +109,12 @@ describe('dpos.apply()', () => {
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			const forgersListStr = await stateStore.consensus.get(
+			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList = JSON.parse(forgersListStr as string);
+			const forgersList = JSON.parse(
+				(forgersListBuffer as Buffer).toString('utf8'),
+			);
 			expect(forgersList).toHaveLength(1);
 			expect(forgersList[0].round).toEqual(1);
 		});
@@ -126,7 +130,7 @@ describe('dpos.apply()', () => {
 
 	describe('Given block is NOT the last block of the round', () => {
 		let generator: Account;
-		let block: Block;
+		let block: BlockHeader;
 		let forgersList: ForgersList;
 
 		beforeEach(() => {
@@ -135,7 +139,7 @@ describe('dpos.apply()', () => {
 			block = {
 				height: 2,
 				generatorPublicKey: generator.publicKey,
-			} as Block;
+			} as BlockHeader;
 
 			forgersList = [
 				{
@@ -152,7 +156,9 @@ describe('dpos.apply()', () => {
 			const delegates = getDelegateAccountsWithVotesReceived(103);
 
 			stateStore = new StateStoreMock([generator, ...delegates], {
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify(forgersList),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+					JSON.stringify(forgersList),
+				),
 			});
 		});
 
@@ -175,12 +181,14 @@ describe('dpos.apply()', () => {
 			const consensusState = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			expect(consensusState).toEqual(JSON.stringify(forgersList));
+			expect((consensusState as Buffer).toString('utf8')).toEqual(
+				JSON.stringify(forgersList),
+			);
 		});
 	});
 
 	describe('Given block is the last block of the round', () => {
-		let lastBlockOfTheRoundNine: Block;
+		let lastBlockOfTheRoundNine: BlockHeader;
 		let forgedDelegates: Account[];
 		let missedDelegate: Account;
 
@@ -192,45 +200,49 @@ describe('dpos.apply()', () => {
 			forgedDelegates.push({ ...forgedDelegates[10] });
 			[missedDelegate] = getDelegateAccountsWithVotesReceived(1);
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: JSON.stringify([
-					{
-						round: 10,
-						delegates: forgedDelegates.map(d => ({
-							address: d.address,
-							voteWeight: d.totalVotesReceived.toString(),
-						})),
-					},
-				]),
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: JSON.stringify([
-					{
-						round: 7,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-					{
-						round: 8,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-					{
-						round: 9,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-					{
-						round: 10,
-						delegates: [
-							...forgedDelegates.map(d => d.address),
-							missedDelegate.address,
-						],
-					},
-				]),
+				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
+					JSON.stringify([
+						{
+							round: 10,
+							delegates: forgedDelegates.map(d => ({
+								address: d.address.toString('binary'),
+								voteWeight: d.asset.delegate.totalVotesReceived.toString(),
+							})),
+						},
+					]),
+				),
+				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
+					JSON.stringify([
+						{
+							round: 7,
+							delegates: [
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
+							],
+						},
+						{
+							round: 8,
+							delegates: [
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
+							],
+						},
+						{
+							round: 9,
+							delegates: [
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
+							],
+						},
+						{
+							round: 10,
+							delegates: [
+								...forgedDelegates.map(d => d.address.toString('binary')),
+								missedDelegate.address.toString('binary'),
+							],
+						},
+					]),
+				),
 			});
 
 			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
@@ -243,22 +255,20 @@ describe('dpos.apply()', () => {
 				height: 927,
 				generatorPublicKey:
 					forgedDelegates[forgedDelegates.length - 1].publicKey,
-			} as Block;
+			} as BlockHeader;
 
 			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
 		});
 
-		it('should increase "missedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
+		it('should increase "consecutiveMissedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
 			// Act
 			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
 
 			// Assert
-			const { missedBlocks } = await stateStore.account.get(
-				missedDelegate.address,
-			);
-			expect(missedBlocks).toEqual(1);
+			const account = await stateStore.account.get(missedDelegate.address);
+			expect(account.asset.delegate.consecutiveMissedBlocks).toEqual(1);
 		});
 
 		it('should save next round forgers in forgers list after applying last block of round', async () => {
@@ -277,10 +287,12 @@ describe('dpos.apply()', () => {
 			// make sure we calculate round number correctly
 			expect(nextRound).toBe(currentRound + 1);
 			// we must delete the delegate list before creating the new one
-			const forgersListStr = await stateStore.consensus.get(
+			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
+			const forgersList: ForgersList = JSON.parse(
+				(forgersListBuffer as Buffer).toString('utf8'),
+			);
 
 			const forgers = forgersList.find(fl => fl.round === nextRound);
 
@@ -299,11 +311,11 @@ describe('dpos.apply()', () => {
 				finalizedBlockRound - bftRoundOffset - delegateActiveRoundLimit;
 
 			// Check before finalize exist for test
-			const forgersListBeforeStr = await stateStore.consensus.get(
+			const forgersListBeforeBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const forgersBeforeList: ForgersList = JSON.parse(
-				forgersListBeforeStr as string,
+				(forgersListBeforeBuffer as Buffer).toString('utf8'),
 			);
 			const filteredForgersBefore = forgersBeforeList.filter(
 				fl => fl.round < expectedRound,
@@ -313,10 +325,12 @@ describe('dpos.apply()', () => {
 			// Act
 			await dpos.onBlockFinalized(stateStore, finalizedBlockHeight);
 
-			const forgersListStr = await stateStore.consensus.get(
+			const forgersListBuffer = await stateStore.consensus.get(
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
-			const forgersList: ForgersList = JSON.parse(forgersListStr as string);
+			const forgersList: ForgersList = JSON.parse(
+				(forgersListBuffer as Buffer).toString('utf8'),
+			);
 
 			const filteredForgers = forgersList.filter(
 				fl => fl.round < expectedRound,
@@ -374,7 +388,7 @@ describe('dpos.apply()', () => {
 				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
 				expect.assertions(forgedDelegates.length);
 				for (const delegate of forgedDelegates) {
-					expect(delegate.missedBlocks).toEqual(0);
+					expect(delegate.asset.delegate.consecutiveMissedBlocks).toEqual(0);
 				}
 			});
 		});

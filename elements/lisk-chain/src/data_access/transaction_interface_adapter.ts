@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
+import { codec } from '@liskhq/lisk-codec';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
+import { hash } from '@liskhq/lisk-cryptography';
 
 export interface RegisteredTransactions {
 	readonly [key: string]: typeof BaseTransaction;
@@ -24,25 +26,44 @@ export class TransactionInterfaceAdapter {
 	public constructor(registeredTransactions: RegisteredTransactions = {}) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		this._transactionClassMap = new Map();
+		codec.addSchema(BaseTransaction.BASE_SCHEMA);
 		Object.keys(registeredTransactions).forEach(transactionType => {
-			this._transactionClassMap.set(
+			const transaction = registeredTransactions[transactionType];
+			this._transactionClassMap.set(Number(transactionType), transaction);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			const { ASSET_SCHEMA } = this._transactionClassMap.get(
 				Number(transactionType),
-				registeredTransactions[transactionType],
 			);
+			codec.addSchema(ASSET_SCHEMA);
 		});
 	}
 
-	public fromJSON(rawTx: TransactionJSON): BaseTransaction {
+	// First encode message asset and then encode base message
+	// eslint-disable-next-line class-methods-use-this
+	public encode(message: BaseTransaction): Buffer {
+		return message.getBytes();
+	}
+
+	public decode(binaryMessage: Buffer): BaseTransaction {
+		const baseMessage = codec.decode<BaseTransaction>(
+			BaseTransaction.BASE_SCHEMA,
+			binaryMessage,
+		);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const TransactionClass = this._transactionClassMap.get(rawTx.type);
+		const TransactionClass = this._transactionClassMap.get(baseMessage.type);
 
 		if (!TransactionClass) {
 			throw new Error('Transaction type not found.');
 		}
+		const assetMessage = codec.decode<BaseTransaction>(
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			TransactionClass.ASSET_SCHEMA,
+			baseMessage.asset as Buffer,
+		);
+		const message = { ...baseMessage, asset: assetMessage };
 
+		const id = hash(binaryMessage);
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
-		return new TransactionClass({
-			...rawTx,
-		});
+		return new TransactionClass({ ...message, id });
 	}
 }

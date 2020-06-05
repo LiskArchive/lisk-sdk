@@ -17,9 +17,9 @@
 // Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
 export const MAX_EIGHT_BYTE_NUMBER = '18446744073709551615';
 export const MAX_PUBLIC_KEY_LENGTH = 32;
-export const MAX_INT32 = 2147483647;
-export const MIN_INT32 = MAX_INT32 * -1;
-export const MAX_UINT32 = 4294967295;
-export const MAX_INT64 = BigInt('9223372036854775807');
-export const MIN_INT64 = MAX_INT64 * BigInt(-1) - BigInt(1);
-export const MAX_UINT64 = BigInt('18446744073709551615');
+export const MAX_SINT32 = 2147483647; // (2 ** (32 - 1)) + 1 * -1
+export const MIN_SINT32 = MAX_SINT32 * -1; // ((2 ** (32 - 1)) - 1) * -1
+export const MAX_UINT32 = 4294967295; // (2 ** 32) - 1
+export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
+export const MAX_SINT64 = BigInt('9223372036854775807'); // BigInt(2 ** (64 - 1) - 1) -1
+export const MIN_SINT64 = MAX_SINT64 * BigInt(-1) - BigInt(1); // (BigInt(2 ** (64 - 1) - 1) -1) * BigInt(-1)

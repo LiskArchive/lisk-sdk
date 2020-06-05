@@ -27,21 +27,20 @@ import { getNetworkIdentifierWithInput } from '../../../utils/network_identifier
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 
 interface RawHeader {
-	readonly height: number;
+	readonly id: string;
 	readonly version: number;
 	readonly timestamp: number;
-	readonly previousBlockId: string;
-	readonly blockSignature: string;
-	readonly seedReveal: string;
+	readonly height: number;
+	readonly previousBlockID: string;
+	readonly transactionRoot: string;
 	readonly generatorPublicKey: string;
-	readonly numberOfTransactions: number;
-	readonly payloadLength: number;
-	readonly payloadHash: string;
-	readonly totalAmount: string;
-	readonly totalFee: string;
 	readonly reward: string;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
+	readonly signature: string;
+	readonly asset: {
+		readonly seedReveal: string;
+		readonly maxHeightPreviouslyForged: number;
+		readonly maxHeightPrevoted: number;
+	};
 }
 
 const processInputs = (

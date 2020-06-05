@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	isValidFee,
 	isValidInteger,
@@ -26,8 +28,13 @@ import {
 	MIN_NUMBER_OF_KEYS,
 	MIN_NUMBER_OF_SIGNATURES,
 } from './constants';
-import { TransactionJSON } from './transaction_types';
-import { createBaseTransaction, findRepeatedKeys } from './utils';
+import { TransactionJSON } from './types';
+import {
+	createBaseTransaction,
+	findRepeatedKeys,
+	convertKeysToBuffer,
+	baseTransactionToJSON,
+} from './utils';
 
 export interface RegisterMultisignatureInputs {
 	readonly senderPassphrase: string;
@@ -155,34 +162,36 @@ export const registerMultisignature = (
 		fee,
 		nonce,
 	});
+	const keys = convertKeysToBuffer({ mandatoryKeys, optionalKeys });
+	const networkIdentifierBytes = hexToBuffer(networkIdentifier);
 
 	const transaction = {
 		...createBaseTransaction(inputs),
-		type: 12,
+		type: MultisignatureTransaction.TYPE,
 		asset: {
-			mandatoryKeys,
-			optionalKeys,
+			mandatoryKeys: keys.mandatoryKeys,
+			optionalKeys: keys.optionalKeys,
 			numberOfSignatures,
 		},
-	};
+	} as MultisignatureTransaction;
 
 	const multisignatureTransaction = new MultisignatureTransaction(transaction);
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!passphrases || !senderPassphrase) {
-		return multisignatureTransaction.toJSON();
+		return baseTransactionToJSON(multisignatureTransaction);
 	}
 
 	multisignatureTransaction.sign(
-		networkIdentifier,
+		networkIdentifierBytes,
 		senderPassphrase,
 		passphrases,
 		{
-			mandatoryKeys,
-			optionalKeys,
+			mandatoryKeys: keys.mandatoryKeys,
+			optionalKeys: keys.optionalKeys,
 			numberOfSignatures,
 		},
 	);
 
-	return multisignatureTransaction.toJSON();
+	return baseTransactionToJSON(multisignatureTransaction);
 };
