@@ -19,7 +19,13 @@ import {
 	getPrivateAndPublicKeyFromPassphrase,
 	hashOnion,
 } from '@liskhq/lisk-cryptography';
+import { codec, GenericObject } from '@liskhq/lisk-codec';
 import { Forger } from '../../../../../../src/application/node/forger';
+import {
+	registeredHashOnionsStoreSchema,
+	UsedHashOnionStoreObject,
+	usedHashOnionsStoreSchema,
+} from '../../../../../../src/application/node/forger/data_access';
 import {
 	DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
 	DB_KEY_FORGER_USED_HASH_ONION,
@@ -837,35 +843,38 @@ describe('forger', () => {
 
 			it('should update registered hash onion when seed is different', async () => {
 				// Arrange
-				const newSeed = '00000000000000000000000000000001';
+				const newSeed = Buffer.from('00000000000000000000000000000001', 'hex');
+				const publicKey = Buffer.from(delegates[0].publicKey, 'hex');
+				const address = getAddressFromPublicKey(publicKey);
+				const registeredHashOnions = {
+					registeredHashOnions: [{ address, seedHash: newSeed }],
+				};
+				const registeredHashOnionsBuffer = codec.encode(
+					// eslint-disable-next-line
+					// @ts-ignore
+					registeredHashOnionsStoreSchema,
+					registeredHashOnions,
+				);
+
 				(forgeModule as any)._config.forging.delegates = delegates;
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS)
-					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify({
-								[getAddressFromPublicKey(
-									Buffer.from(delegates[0].publicKey, 'hex'),
-								).toString('binary')]: Buffer.from(newSeed, 'hex').toString(
-									'binary',
-								),
-							}),
-						) as never,
-					);
+					.mockResolvedValue(registeredHashOnionsBuffer as never);
 
 				// Act
 				await forgeModule.loadDelegates();
 
-				const originalKey: any = {};
+				const originalKey: any = { registeredHashOnions: [] };
 				for (const delegate of delegates) {
-					originalKey[
-						getAddressFromPublicKey(
+					originalKey.registeredHashOnions.push({
+						address: getAddressFromPublicKey(
 							Buffer.from(delegate.publicKey, 'hex'),
-						).toString('binary')
-					] = Buffer.from(
-						delegate.hashOnion.hashes[delegate.hashOnion.hashes.length - 1],
-						'hex',
-					).toString('binary');
+						),
+						seedHash: Buffer.from(
+							delegate.hashOnion.hashes[delegate.hashOnion.hashes.length - 1],
+							'hex',
+						),
+					});
 				}
 
 				// Assert
@@ -875,25 +884,32 @@ describe('forger', () => {
 				);
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-					Buffer.from(JSON.stringify(originalKey)),
+
+					// eslint-disable-next-line
+					// @ts-ignore
+					codec.encode(registeredHashOnionsStoreSchema, originalKey),
 				);
 			});
 
 			it('should warn if hash onion used is at the last checkpoint', async () => {
 				(forgeModule as any)._config.forging.delegates = delegates;
+				const usedHashOnions: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							count: 8,
+							height: 100,
+							address: getAddressFromPublicKey(
+								Buffer.from(delegates[0].publicKey, 'hex'),
+							),
+						},
+					],
+				};
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									count: 8,
-									height: 100,
-									address: getAddressFromPublicKey(
-										Buffer.from(delegates[0].publicKey, 'hex'),
-									).toString('binary'),
-								},
-							]),
+						codec.encode(
+							usedHashOnionsStoreSchema,
+							(usedHashOnions as never) as GenericObject,
 						) as never,
 					);
 
@@ -910,19 +926,23 @@ describe('forger', () => {
 
 			it('should throw an error if all hash onion are used already', async () => {
 				(forgeModule as any)._config.forging.delegates = delegates;
+				const usedHashOnion: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							count: 10,
+							height: 100,
+							address: getAddressFromPublicKey(
+								Buffer.from(delegates[0].publicKey, 'hex'),
+							),
+						},
+					],
+				};
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									count: 10,
-									height: 100,
-									address: getAddressFromPublicKey(
-										Buffer.from(delegates[0].publicKey, 'hex'),
-									).toString('binary'),
-								},
-							]),
+						codec.encode(
+							usedHashOnionsStoreSchema,
+							(usedHashOnion as never) as GenericObject,
 						) as never,
 					);
 
@@ -1120,26 +1140,32 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
+
+				const usedHashOnion: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							count: 5,
+							height: 9,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+						{
+							count: 6,
+							height: 12,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+					],
+				};
+
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									count: 5,
-									height: 9,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-								{
-									count: 6,
-									height: 12,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-							]),
+						codec.encode(
+							usedHashOnionsStoreSchema,
+							(usedHashOnion as unknown) as GenericObject,
 						) as never,
 					);
 
@@ -1168,59 +1194,70 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
+
+				const usedHashOnionInput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							count: 5,
+							height: 9,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+						{
+							count: 6,
+							height: 12,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+					],
+				};
+				const usedHashOnionInputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionInput as unknown) as GenericObject,
+				);
+
+				const usedHashOnionOutput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 5,
+							height: 9,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 6,
+							height: 12,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 7,
+							height: lastBlock.header.height + 1,
+						},
+					],
+				};
+				const usedHashOnionOutputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionOutput as unknown) as GenericObject,
+				);
+
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									count: 5,
-									height: 9,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-								{
-									count: 6,
-									height: 12,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-							]),
-						) as never,
-					);
+					.mockResolvedValue(usedHashOnionInputBuffer as never);
 
 				// Act
 				await forgeModule.forge();
 				// Assert
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					Buffer.from(
-						JSON.stringify([
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 5,
-								height: 9,
-							},
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 6,
-								height: 12,
-							},
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 7,
-								height: lastBlock.header.height + 1,
-							},
-						]),
-					),
+					usedHashOnionOutputBuffer,
 				);
 			});
 
@@ -1234,66 +1271,76 @@ describe('forger', () => {
 					});
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
+
+				const usedHashOnionInput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							count: 5,
+							height: 9,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+						{
+							count: 6,
+							height: 12,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+						{
+							count: 7,
+							height: lastBlock.header.height + 1,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+					],
+				};
+				const usedHashOnionInputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionInput as unknown) as GenericObject,
+				);
+				const usedHashOnionOutput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 5,
+							height: 9,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 6,
+							height: 12,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 7,
+							height: lastBlock.header.height + 1,
+						},
+					],
+				};
+				const usedHashOnionOutputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionOutput as unknown) as GenericObject,
+				);
+
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									count: 5,
-									height: 9,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-								{
-									count: 6,
-									height: 12,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-								{
-									count: 7,
-									height: lastBlock.header.height + 1,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-							]),
-						) as never,
-					);
+					.mockResolvedValue(usedHashOnionInputBuffer as never);
 
 				// Act
 				await forgeModule.forge();
 				// Assert
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					Buffer.from(
-						JSON.stringify([
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 5,
-								height: 9,
-							},
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 6,
-								height: 12,
-							},
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 7,
-								height: lastBlock.header.height + 1,
-							},
-						]),
-					),
+					usedHashOnionOutputBuffer,
 				);
 			});
 
@@ -1305,28 +1352,56 @@ describe('forger', () => {
 					.mockResolvedValue(targetDelegate);
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
+
+				const usedHashOnionInput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 5,
+							height: 9,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 6,
+							height: 412,
+						},
+					],
+				};
+				const usedHashOnionInputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionInput as unknown) as GenericObject,
+				);
+
+				const usedHashOnionOutput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 6,
+							height: 412,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 7,
+							height: lastBlock.header.height + 1,
+						},
+					],
+				};
+				const usedHashOnionOutputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionOutput as unknown) as GenericObject,
+				);
+
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-									count: 5,
-									height: 9,
-								},
-								{
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-									count: 6,
-									height: 412,
-								},
-							]),
-						) as never,
-					);
+					.mockResolvedValue(usedHashOnionInputBuffer as never);
 				(forgeModule as any)._bftModule.finalizedHeight = 318;
 
 				// Act
@@ -1334,24 +1409,7 @@ describe('forger', () => {
 				// Assert
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					Buffer.from(
-						JSON.stringify([
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 6,
-								height: 412,
-							},
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 7,
-								height: lastBlock.header.height + 1,
-							},
-						]),
-					),
+					usedHashOnionOutputBuffer,
 				);
 			});
 
@@ -1366,21 +1424,49 @@ describe('forger', () => {
 					(d: { publicKey: string }) =>
 						d.publicKey === targetDelegate.publicKey,
 				).hashOnion.count;
+
+				const usedHashOnionInput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							count: maxCount,
+							height: 10,
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+						},
+					],
+				};
+				const usedHashOnionInputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionInput as unknown) as GenericObject,
+				);
+
+				const usedHashOnionOutput: UsedHashOnionStoreObject = {
+					usedHashOnions: [
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: maxCount,
+							height: 10,
+						},
+						{
+							address: getAddressFromPublicKey(
+								Buffer.from(targetDelegate.publicKey, 'hex'),
+							),
+							count: 0,
+							height: lastBlock.header.height + 1,
+						},
+					],
+				};
+				const usedHashOnionOutputBuffer = codec.encode(
+					usedHashOnionsStoreSchema,
+					(usedHashOnionOutput as unknown) as GenericObject,
+				);
+
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
-					.mockResolvedValue(
-						Buffer.from(
-							JSON.stringify([
-								{
-									count: maxCount,
-									height: 10,
-									address: getAddressFromPublicKey(
-										Buffer.from(targetDelegate.publicKey, 'hex'),
-									).toString('binary'),
-								},
-							]),
-						) as never,
-					);
+					.mockResolvedValue(usedHashOnionInputBuffer as never);
 
 				// Act
 				await forgeModule.forge();
@@ -1390,24 +1476,7 @@ describe('forger', () => {
 				);
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_USED_HASH_ONION,
-					Buffer.from(
-						JSON.stringify([
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: maxCount,
-								height: 10,
-							},
-							{
-								address: getAddressFromPublicKey(
-									Buffer.from(targetDelegate.publicKey, 'hex'),
-								).toString('binary'),
-								count: 0,
-								height: lastBlock.header.height + 1,
-							},
-						]),
-					),
+					usedHashOnionOutputBuffer,
 				);
 			});
 		});
