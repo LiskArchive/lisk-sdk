@@ -45,7 +45,7 @@ export const registeredHashOnionsStoreSchema = ({
 			},
 		},
 	},
-} as never) as Schema;
+} as unknown) as Schema;
 
 export const usedHashOnionsStoreSchema = ({
 	title: 'Used hash onion',
@@ -76,7 +76,7 @@ export const usedHashOnionsStoreSchema = ({
 			},
 		},
 	},
-} as never) as Schema;
+} as unknown) as Schema;
 
 codec.addSchema(registeredHashOnionsStoreSchema);
 
@@ -146,7 +146,7 @@ export const setRegisteredHashOnionSeeds = async (
 	}
 	const registeredHashOnionSeedsBuffer = codec.encode(
 		registeredHashOnionsStoreSchema,
-		(savingData as never) as GenericObject,
+		(savingData as unknown) as GenericObject,
 	);
 
 	await db.put(
@@ -178,7 +178,7 @@ export const setUsedHashOnions = async (
 		DB_KEY_FORGER_USED_HASH_ONION,
 		codec.encode(
 			usedHashOnionsStoreSchema,
-			(usedHashOnionObject as never) as GenericObject,
+			(usedHashOnionObject as unknown) as GenericObject,
 		),
 	);
 };
