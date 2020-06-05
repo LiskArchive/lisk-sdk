@@ -14,7 +14,11 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
-import { forgerListSchema, voteWeightsSchema } from '../../src/schemas';
+import {
+	delegatesUserNamesSchema,
+	forgerListSchema,
+	voteWeightsSchema,
+} from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos } from '../../src';
 import {
@@ -379,34 +383,33 @@ describe('Vote weight snapshot', () => {
 					(voteWeightsObject as unknown) as GenericObject,
 				);
 
-				const mockedDelegateUsernames = JSON.stringify({
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						{
-							address: forgers[0].address.toString('binary'),
+							address: forgers[0].address,
 							username: forgers[0].asset.delegate.username,
 						},
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				stateStore = new StateStoreMock(
 					[...delegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -481,18 +484,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -542,18 +551,12 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -622,7 +625,8 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
 							address: delegate.address,
@@ -633,7 +637,12 @@ describe('Vote weight snapshot', () => {
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -688,9 +697,7 @@ describe('Vote weight snapshot', () => {
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -767,7 +774,8 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
 							address: delegate.address,
@@ -778,7 +786,12 @@ describe('Vote weight snapshot', () => {
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -828,18 +841,12 @@ describe('Vote weight snapshot', () => {
 				stateStore = new StateStoreMock(
 					[...delegates, ...additionalDelegates, forgers[0]],
 					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: Buffer.from(
-							mockedForgersList,
-						),
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: Buffer.from(
-							mockedVoteWeights,
-						),
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -912,18 +919,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -978,9 +991,7 @@ describe('Vote weight snapshot', () => {
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -1042,18 +1053,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						{
 							username: forgers[0].asset.delegate.username,
-							address: forgers[0].address.toString('binary'),
+							address: forgers[0].address,
 						},
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -1108,9 +1125,7 @@ describe('Vote weight snapshot', () => {
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
@@ -1180,18 +1195,24 @@ describe('Vote weight snapshot', () => {
 						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 					},
 				} as BlockHeader;
-				const mockedDelegateUsernames = JSON.stringify({
+
+				const mockedDelegateUsernamesObject = {
 					registeredDelegates: [
 						...delegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 						...additionalDelegates.map(delegate => ({
-							address: delegate.address.toString('binary'),
+							address: delegate.address,
 							username: delegate.asset.delegate.username,
 						})),
 					],
-				});
+				};
+
+				const mockedDelegateUsernames = codec.encode(
+					(delegatesUserNamesSchema as unknown) as Schema,
+					mockedDelegateUsernamesObject,
+				);
 
 				// Setup for missed block calculation
 				const forgedBlocks = forgers
@@ -1246,9 +1267,7 @@ describe('Vote weight snapshot', () => {
 					},
 					{
 						chainData: {
-							[CHAIN_STATE_DELEGATE_USERNAMES]: Buffer.from(
-								mockedDelegateUsernames,
-							),
+							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
 					},
 				);
