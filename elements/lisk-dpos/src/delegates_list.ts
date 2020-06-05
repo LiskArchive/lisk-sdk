@@ -13,10 +13,14 @@
  */
 
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
-import { codec, Schema, GenericObject } from '@liskhq/lisk-codec';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
 
 import * as Debug from 'debug';
-import { forgerListSchema, voteWeightsSchema } from './schemas';
+import {
+	delegatesUserNamesSchema,
+	forgerListSchema,
+	voteWeightsSchema,
+} from './schemas';
 
 import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
@@ -31,6 +35,7 @@ import {
 	BlockHeader,
 	Chain,
 	ChainStateUsernames,
+	DecodedUsernames,
 	DelegateWeight,
 	ForgersList,
 	StateStore,
@@ -286,13 +291,15 @@ export class DelegatesList {
 		let usernames = { registeredDelegates: [] } as ChainStateUsernames;
 
 		if (usernamesBuffer) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const parsedUsername = JSON.parse(usernamesBuffer.toString('utf8'));
+			const parsedUsernames = codec.decode(
+				(delegatesUserNamesSchema as unknown) as Schema,
+				usernamesBuffer,
+			);
+
 			usernames = {
-				// eslint-disable-next-line
-				registeredDelegates: parsedUsername.registeredDelegates.map(
-					(names: { address: string; username: string }) => ({
-						address: Buffer.from(names.address, 'binary'),
+				registeredDelegates: (parsedUsernames as DecodedUsernames).registeredDelegates.map(
+					(names: { address: Buffer; username: string }) => ({
+						address: names.address,
 						username: names.username,
 					}),
 				),

@@ -138,3 +138,12 @@ export interface ChainStateUsernames {
 export interface DecodedVoteWeights {
 	voteWeights: VoteWeight[];
 }
+
+export interface DecodedUsernames {
+	registeredDelegates: [
+		{
+			username: string;
+			address: Buffer;
+		},
+	];
+}

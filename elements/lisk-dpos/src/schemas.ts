@@ -70,3 +70,28 @@ export const forgerListSchema = {
 	},
 	required: ['forgersList'],
 };
+
+export const delegatesUserNamesSchema = {
+	$id: '/dpos/userNames',
+	type: 'object',
+	properties: {
+		registeredDelegates: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				properties: {
+					username: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+	required: ['registeredDelegates'],
+};
