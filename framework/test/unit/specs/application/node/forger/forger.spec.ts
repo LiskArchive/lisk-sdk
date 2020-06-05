@@ -850,8 +850,6 @@ describe('forger', () => {
 					registeredHashOnions: [{ address, seedHash: newSeed }],
 				};
 				const registeredHashOnionsBuffer = codec.encode(
-					// eslint-disable-next-line
-					// @ts-ignore
 					registeredHashOnionsStoreSchema,
 					registeredHashOnions,
 				);
@@ -884,9 +882,6 @@ describe('forger', () => {
 				);
 				expect(dbStub.put).toHaveBeenCalledWith(
 					DB_KEY_FORGER_REGISTERED_HASH_ONION_SEEDS,
-
-					// eslint-disable-next-line
-					// @ts-ignore
 					codec.encode(registeredHashOnionsStoreSchema, originalKey),
 				);
 			});
