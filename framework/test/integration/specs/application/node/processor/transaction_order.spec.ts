@@ -184,13 +184,17 @@ describe('Transaction order', () => {
 					Buffer.from(node['_networkIdentifier'], 'hex'),
 					genesis.passphrase,
 				);
+				const optionalKeys = [
+					...multiSignatureMembers.map(acc => acc.publicKey),
+				];
+				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = new MultisignatureTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
 					senderPublicKey: newAccount.publicKey,
 					asset: {
 						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						optionalKeys,
 						numberOfSignatures: 2,
 					},
 				});
@@ -203,7 +207,7 @@ describe('Transaction order', () => {
 					],
 					{
 						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						optionalKeys,
 						numberOfSignatures: 2,
 					},
 				);
@@ -223,7 +227,7 @@ describe('Transaction order', () => {
 					[newAccount.passphrase, multiSignatureMembers[0].passphrase],
 					{
 						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						optionalKeys,
 					},
 				);
 				newBlock = await nodeUtils.createBlock(node, [
@@ -265,13 +269,17 @@ describe('Transaction order', () => {
 					Buffer.from(node['_networkIdentifier'], 'hex'),
 					genesis.passphrase,
 				);
+				const optionalKeys = [
+					...multiSignatureMembers.map(acc => acc.publicKey),
+				];
+				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = new MultisignatureTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
 					senderPublicKey: newAccount.publicKey,
 					asset: {
 						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						optionalKeys,
 						numberOfSignatures: 2,
 					},
 				});
@@ -284,7 +292,7 @@ describe('Transaction order', () => {
 					],
 					{
 						mandatoryKeys: [newAccount.publicKey],
-						optionalKeys: multiSignatureMembers.map(acc => acc.publicKey),
+						optionalKeys,
 						numberOfSignatures: 2,
 					},
 				);
