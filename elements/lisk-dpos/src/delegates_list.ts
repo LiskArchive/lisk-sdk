@@ -291,13 +291,13 @@ export class DelegatesList {
 		let usernames = { registeredDelegates: [] } as ChainStateUsernames;
 
 		if (usernamesBuffer) {
-			const parsedUsernames = codec.decode(
+			const parsedUsernames = codec.decode<DecodedUsernames>(
 				(delegatesUserNamesSchema as unknown) as Schema,
 				usernamesBuffer,
 			);
 
 			usernames = {
-				registeredDelegates: (parsedUsernames as DecodedUsernames).registeredDelegates.map(
+				registeredDelegates: parsedUsernames.registeredDelegates.map(
 					(names: { address: Buffer; username: string }) => ({
 						address: names.address,
 						username: names.username,
