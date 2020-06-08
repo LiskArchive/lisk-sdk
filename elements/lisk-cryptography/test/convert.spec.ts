@@ -14,17 +14,13 @@
  */
 import {
 	getFirstEightBytesReversed,
-	toAddress,
-	getAddressFromPublicKey,
 	convertPublicKeyEd2Curve,
 	convertPrivateKeyEd2Curve,
 	stringifyEncryptedPassphrase,
 	parseEncryptedPassphrase,
-	getFirstNBytes,
 } from '../src/convert';
 // Require is used for stubbing
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires
-const hashModule = require('../src/hash');
 
 describe('convert', () => {
 	// keys for passphrase 'secret';
@@ -32,10 +28,6 @@ describe('convert', () => {
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const defaultPublicKey = Buffer.from(
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
-		'hex',
-	);
-	const defaultPublicKeyHash = Buffer.from(
-		'3a971fd02b4a07fc20aad1936d3cb1d263b96e0ffd938625e5c0db1ad8ba2a29',
 		'hex',
 	);
 	const defaultPrivateKeyCurve = Buffer.from(
@@ -46,13 +38,8 @@ describe('convert', () => {
 		'6f9d780305bda43dd47a291d897f2d8845a06160632d82fb1f209fdd46ed3c1e',
 		'hex',
 	);
-	const defaultAddress = Buffer.from(
-		'3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
-		'hex',
-	);
 	const defaultStringWithMoreThanEightCharacters = '0123456789';
 	const defaultFirstEightCharactersReversed = '76543210';
-	const defaultDataForBuffer = 'Hello Lisk SDK - Bring the app to life!';
 
 	describe('#getFirstEightBytesReversed', () => {
 		it('should get the first eight bytes reversed from a Buffer', () => {
@@ -70,45 +57,6 @@ describe('convert', () => {
 			expect(reversedAndCut).toEqual(
 				Buffer.from(defaultFirstEightCharactersReversed),
 			);
-		});
-	});
-
-	describe('#toAddress', () => {
-		it('should create address bytes from a buffer of 20 bytes', () => {
-			const bufferInit = Buffer.from(defaultDataForBuffer);
-			const firstTwentyBytes = getFirstNBytes(bufferInit, 20);
-			const address = toAddress(firstTwentyBytes);
-			expect(address).toEqual(firstTwentyBytes);
-		});
-
-		it('should create truncated address bytes from a buffer of more than 20 bytes ', () => {
-			const bufferInit = Buffer.from(defaultDataForBuffer);
-			const firstTwentyBytes = getFirstNBytes(bufferInit, 20);
-			const address = toAddress(getFirstNBytes(bufferInit, 25));
-			expect(address).toEqual(firstTwentyBytes);
-		});
-
-		it('should throw on less than 20 bytes as input', () => {
-			const bufferExceedError =
-				'The Lisk addresses must contains exactly 20 bytes';
-			const bufferInit = Buffer.from(defaultDataForBuffer);
-			const firstNineteenBytes = getFirstNBytes(bufferInit, 19);
-			expect(toAddress.bind(null, firstNineteenBytes)).toThrow(
-				bufferExceedError,
-			);
-		});
-	});
-
-	describe('#getAddressFromPublicKey', () => {
-		beforeEach(() => {
-			return jest
-				.spyOn(hashModule, 'hash')
-				.mockReturnValue(defaultPublicKeyHash);
-		});
-
-		it('should generate address from publicKey', () => {
-			const address = getAddressFromPublicKey(defaultPublicKey);
-			expect(address).toEqual(defaultAddress);
 		});
 	});
 

@@ -13,8 +13,8 @@
  *
  */
 import {
+	getAddressFromPublicKey,
 	getBase32AddressFromPublicKey,
-	getBinaryAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
 	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
@@ -45,6 +45,7 @@ describe('keys', () => {
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd',
 		'hex',
 	);
+
 	const defaultAddressAndPublicKey = {
 		publicKey: defaultPublicKey,
 		address: defaultAddress,
@@ -114,29 +115,18 @@ describe('keys', () => {
 		});
 	});
 
-	describe('#getBinaryAddressFromPublicKey', () => {
-		const publicKey =
-			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243';
-		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
-		const expectedBinaryAddress = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
-		beforeEach(() => {
-			return jest
-				.spyOn(hashModule, 'hash')
-				.mockReturnValue(Buffer.from(hash, 'hex'));
-		});
-
+	describe('#getAddressFromPublicKey', () => {
 		it('should generate address from publicKey', () => {
-			const address = getBinaryAddressFromPublicKey(publicKey);
-
-			expect(address.compare(Buffer.from(expectedBinaryAddress, 'hex'))).toBe(
-				0,
-			);
+			const address = getAddressFromPublicKey(defaultPublicKey);
+			expect(address).toEqual(defaultAddress);
 		});
 	});
 
 	describe('#getBase32AddressFromPublicKey', () => {
-		const publicKey =
-			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243';
+		const publicKey = Buffer.from(
+			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
+			'hex',
+		);
 		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		const expectedBase32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 		beforeEach(() => {

@@ -14,11 +14,7 @@
  */
 import { BINARY_ADDRESS_LENGTH } from './constants';
 // eslint-disable-next-line import/no-cycle
-import {
-	getAddressFromPublicKey,
-	convertUInt5ToBase32,
-	convertUIntArray,
-} from './convert';
+import { convertUInt5ToBase32, convertUIntArray } from './convert';
 import { hash } from './hash';
 import { getKeyPair, getPublicKey } from './nacl';
 import { Keypair } from './types';
@@ -31,6 +27,17 @@ export const getPrivateAndPublicKeyFromPassphrase = (
 };
 
 export const getKeys = getPrivateAndPublicKeyFromPassphrase;
+
+export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
+	const buffer = hash(publicKey);
+	const truncatedBuffer = buffer.slice(0, BINARY_ADDRESS_LENGTH);
+
+	if (truncatedBuffer.length !== BINARY_ADDRESS_LENGTH) {
+		throw new Error('The Lisk addresses must contains exactly 20 bytes');
+	}
+
+	return truncatedBuffer;
+};
 
 export const getAddressAndPublicKeyFromPassphrase = (
 	passphrase: string,
@@ -78,11 +85,6 @@ const polymod = (uint5Array: number[]): number => {
 	return chk;
 };
 
-export const getBinaryAddressFromPublicKey = (publicKey: string): Buffer => {
-	const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-	return hash(publicKeyBuffer).slice(0, BINARY_ADDRESS_LENGTH);
-};
-
 export const createChecksum = (uint5Array: number[]): number[] => {
 	const values = uint5Array.concat([0, 0, 0, 0, 0, 0]);
 	// eslint-disable-next-line no-bitwise
@@ -99,10 +101,10 @@ export const verifyChecksum = (integerSequence: number[]): boolean =>
 	polymod(integerSequence) === 1;
 
 export const getBase32AddressFromPublicKey = (
-	publicKey: string,
+	publicKey: Buffer,
 	prefix: string,
 ): string => {
-	const binaryAddress = getBinaryAddressFromPublicKey(publicKey);
+	const binaryAddress = getAddressFromPublicKey(publicKey);
 	const byteSequence = [];
 	for (const b of binaryAddress) {
 		byteSequence.push(b);
