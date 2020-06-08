@@ -142,7 +142,7 @@ describe('Custom peer selection', () => {
 		beforeEach(() => {
 			for (const p2p of p2pNodeList) {
 				// Collect port numbers to check which peer handled which request.
-				p2p.on('requestReceived', request => {
+				p2p.on('EVENT_REQUEST_RECEIVED', request => {
 					if (!request.wasResponseSent) {
 						request.end({
 							nodePort: p2p.nodeInfo.wsPort,
@@ -180,7 +180,7 @@ describe('Custom peer selection', () => {
 			collectedMessages = [];
 			for (const p2p of p2pNodeList) {
 				// eslint-disable-next-line no-loop-func
-				p2p.on('messageReceived', message => {
+				p2p.on('EVENT_MESSAGE_RECEIVED', message => {
 					collectedMessages.push({
 						nodePort: p2p.nodeInfo.wsPort,
 						message,
