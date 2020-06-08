@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import {
@@ -165,7 +165,7 @@ describe('Delegate registration transaction class', () => {
 
 			store.chain.set(
 				'delegateUsernames',
-				codec.encode((delegatesUserNamesSchema as unknown) as Schema, {
+				codec.encode(delegatesUserNamesSchema, {
 					registeredDelegates: [
 						{
 							username: validTestTransaction.asset.username,

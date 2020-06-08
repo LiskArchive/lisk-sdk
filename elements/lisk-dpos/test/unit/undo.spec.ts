@@ -13,7 +13,7 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { Dpos, constants } from '../../src';
 import {
@@ -101,8 +101,8 @@ describe('dpos.undo()', () => {
 			};
 
 			const forgersListBinary = codec.encode(
-				(forgerListSchema as unknown) as Schema,
-				(forgerListObject as unknown) as GenericObject,
+				forgerListSchema,
+				forgerListObject,
 			);
 
 			stateStore = new StateStoreMock([generator, ...delegateAccounts], {
@@ -129,7 +129,7 @@ describe('dpos.undo()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 			const { forgersList } = codec.decode(
-				(forgerListSchema as unknown) as Schema,
+				forgerListSchema,
 				consensusState as Buffer,
 			);
 
@@ -163,8 +163,8 @@ describe('dpos.undo()', () => {
 			};
 
 			const encodedDelegateVoteWeights = codec.encode(
-				(voteWeightsSchema as unknown) as Schema,
-				(delegateWeightsObject as unknown) as GenericObject,
+				voteWeightsSchema,
+				delegateWeightsObject,
 			);
 
 			const forgerListObject = {
@@ -213,8 +213,8 @@ describe('dpos.undo()', () => {
 			};
 
 			const forgersListBinary = codec.encode(
-				(forgerListSchema as unknown) as Schema,
-				(forgerListObject as unknown) as GenericObject,
+				forgerListSchema,
+				forgerListObject,
 			);
 
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
@@ -263,7 +263,7 @@ describe('dpos.undo()', () => {
 			);
 
 			const { voteWeights } = codec.decode(
-				(voteWeightsSchema as unknown) as Schema,
+				voteWeightsSchema,
 				consensusState as Buffer,
 			);
 
@@ -287,7 +287,7 @@ describe('dpos.undo()', () => {
 			);
 
 			const { forgersList } = codec.decode(
-				(forgerListSchema as unknown) as Schema,
+				forgerListSchema,
 				consensusState as Buffer,
 			);
 
@@ -335,8 +335,8 @@ describe('dpos.undo()', () => {
 				};
 
 				const encodedDelegateVoteWeights = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(delegateWeightsObject as unknown) as GenericObject,
+					voteWeightsSchema,
+					delegateWeightsObject,
 				);
 
 				const forgerListObject = {
@@ -370,8 +370,8 @@ describe('dpos.undo()', () => {
 				};
 
 				const forgersListBinary = codec.encode(
-					(forgerListSchema as unknown) as Schema,
-					(forgerListObject as unknown) as GenericObject,
+					forgerListSchema,
+					forgerListObject,
 				);
 
 				stateStore = new StateStoreMock([...forgedDelegates], {

@@ -13,7 +13,7 @@
  */
 import { Slots } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import {
 	generateDelegateLists,
@@ -32,10 +32,9 @@ import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
-	const binaryForgerList = codec.encode(
-		(forgerListSchema as unknown) as Schema,
-		{ forgersList: list as any },
-	);
+	const binaryForgerList = codec.encode(forgerListSchema, {
+		forgersList: list,
+	});
 
 	return new StateStoreMock([], {
 		[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: binaryForgerList,

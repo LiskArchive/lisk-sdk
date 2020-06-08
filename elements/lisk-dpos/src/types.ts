@@ -135,8 +135,12 @@ export interface ChainStateUsernames {
 	readonly registeredDelegates: ChainStateRegisteredDelegate[];
 }
 
+export interface DecodedForgersList {
+	forgersList: ForgersList;
+}
+
 export interface DecodedVoteWeights {
-	voteWeights: VoteWeight[];
+	voteWeights: VoteWeights;
 }
 
 export interface DecodedUsernames {

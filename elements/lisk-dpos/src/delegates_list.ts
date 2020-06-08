@@ -13,7 +13,7 @@
  */
 
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 
 import * as Debug from 'debug';
 import {
@@ -40,6 +40,8 @@ import {
 	ForgersList,
 	StateStore,
 	VoteWeights,
+	DecodedForgersList,
+	DecodedVoteWeights,
 } from './types';
 
 // eslint-disable-next-line new-cap
@@ -69,13 +71,12 @@ export const getForgersList = async (
 		return [];
 	}
 
-	const forgerListDecoded = codec.decode(
-		(forgerListSchema as unknown) as Schema,
+	const forgerListDecoded = codec.decode<DecodedForgersList>(
+		forgerListSchema,
 		forgersList,
 	);
 
-	return ((forgerListDecoded as GenericObject)
-		.forgersList as unknown) as ForgersList;
+	return forgerListDecoded.forgersList;
 };
 
 const _setForgersList = (
@@ -84,10 +85,7 @@ const _setForgersList = (
 ): void => {
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
-		codec.encode(
-			(forgerListSchema as unknown) as Schema,
-			({ forgersList } as unknown) as GenericObject,
-		),
+		codec.encode(forgerListSchema, { forgersList }),
 	);
 };
 
@@ -101,12 +99,11 @@ export const getVoteWeights = async (
 		return [];
 	}
 
-	const voteWeightsDecoded = codec.decode(
-		(voteWeightsSchema as unknown) as Schema,
+	const voteWeightsDecoded = codec.decode<DecodedVoteWeights>(
+		voteWeightsSchema,
 		voteWeights,
 	);
-	return ((voteWeightsDecoded as GenericObject)
-		.voteWeights as unknown) as VoteWeights;
+	return voteWeightsDecoded.voteWeights;
 };
 
 const _setVoteWeights = (
@@ -115,10 +112,7 @@ const _setVoteWeights = (
 ): void => {
 	stateStore.consensus.set(
 		CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-		codec.encode(
-			(voteWeightsSchema as unknown) as Schema,
-			({ voteWeights } as unknown) as GenericObject,
-		),
+		codec.encode(voteWeightsSchema, { voteWeights }),
 	);
 };
 
@@ -271,7 +265,7 @@ export class DelegatesList {
 		this.rounds = rounds;
 		this.chain = chain;
 
-		codec.addSchema((voteWeightsSchema as unknown) as Schema);
+		codec.addSchema(voteWeightsSchema);
 	}
 
 	public async createVoteWeightsSnapshot(
@@ -292,7 +286,7 @@ export class DelegatesList {
 
 		if (usernamesBuffer) {
 			const parsedUsernames = codec.decode<DecodedUsernames>(
-				(delegatesUserNamesSchema as unknown) as Schema,
+				delegatesUserNamesSchema,
 				usernamesBuffer,
 			);
 
@@ -482,16 +476,13 @@ export class DelegatesList {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
 		}
 
-		const forgersListDecoded = codec.decode(
-			(forgerListSchema as unknown) as Schema,
+		const { forgersList } = codec.decode<DecodedForgersList>(
+			forgerListSchema,
 			forgersListBuffer,
 		);
 
-		const { forgersList } = forgersListDecoded as GenericObject;
-
-		const delegateAddresses = ((forgersList as unknown) as ForgersList).find(
-			fl => fl.round === round,
-		)?.delegates;
+		const delegateAddresses = forgersList.find(fl => fl.round === round)
+			?.delegates;
 
 		if (!delegateAddresses) {
 			throw new Error(`No delegate list found for round: ${round.toString()}`);
