@@ -88,7 +88,7 @@ describe('validator keywords', () => {
 
 		describe('dataType value validation', () => {
 			describe('string', () => {
-				it('should be return empty error if valid', () => {
+				it('should return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -140,7 +140,7 @@ describe('validator keywords', () => {
 			});
 
 			describe('bytes', () => {
-				it('should be return empty error if valid', () => {
+				it('should  return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -192,7 +192,7 @@ describe('validator keywords', () => {
 			});
 
 			describe('boolean', () => {
-				it('should be return empty error if valid', () => {
+				it('should return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -216,7 +216,7 @@ describe('validator keywords', () => {
 			});
 
 			describe('uint32', () => {
-				it('should be return empty error if valid', () => {
+				it('should return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -273,7 +273,7 @@ describe('validator keywords', () => {
 			});
 
 			describe('uint64', () => {
-				it('should be return empty error if valid', () => {
+				it('should return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -319,7 +319,7 @@ describe('validator keywords', () => {
 			});
 
 			describe('sint32', () => {
-				it('should be return empty error if valid', () => {
+				it('should return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -365,7 +365,7 @@ describe('validator keywords', () => {
 			});
 
 			describe('sint64', () => {
-				it('should be return empty error if valid', () => {
+				it('should return empty error if valid', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
@@ -387,7 +387,7 @@ describe('validator keywords', () => {
 					expect(result).toHaveLength(1);
 				});
 
-				it('should be invalid if above uint64 range', () => {
+				it('should be invalid if above sint64 range', () => {
 					const result = validator.validate(
 						{
 							...validSchema,
