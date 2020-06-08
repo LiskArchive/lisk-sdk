@@ -14,18 +14,18 @@ The following are some benchmarks for version 0.1 of this library used for encod
 
 Node version used: v12.17.0. Computer Spec: SSD, 6 Core, 16 GB RAM. No special configuration for Node.
 
-| Object Type   | Encode (ops/sec)          | Decode (ops/sec) |
-| ------------- |:-------------:| -----:|
-| Account | 75,081 | 86,908 |
-| Transfer Transaction |225,229|   276,184 |
-| Multi-signature registration (64 Members)| 23,539 | 44,231 |
-| Block (15 KB payload)| 42,349 | 91,180 |
+| Object Type                               | Encode (ops/sec) | Decode (ops/sec) |
+| ----------------------------------------- | :--------------: | ---------------: |
+| Account                                   |      75,081      |           86,908 |
+| Transfer Transaction                      |     225,229      |          276,184 |
+| Multi-signature registration (64 Members) |      23,539      |           44,231 |
+| Block (15 KB payload)                     |      42,349      |           91,180 |
 
 This and additional benchmarks can be found in the `benchmarks` folder
 
 ## License
 
-Copyright 2016-2019 Lisk Foundation
+Copyright 2016-2020 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -41,9 +41,7 @@ limitations under the License.
 
 ---
 
-Copyright © 2016-2019 Lisk Foundation
-
-Copyright © 2015 Crypti
+Copyright © 2016-2020 Lisk Foundation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
