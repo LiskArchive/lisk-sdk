@@ -19,9 +19,9 @@ import { getNetworkIdentifierWithInput } from '../../src/utils/network_identifie
 describe('network identifier utils', () => {
 	describe('getNetworkIdentifierWithInput', () => {
 		const mainnetNetworkIdentifier =
-			'9ee11e9df416b18bf69dbd1a920442e08c6ca319e69926bc843a561782ca17ee';
+			'5a59db36ca7de3cbb4bf27f95665e86952ccc66f8bf7ce8f6f6b3561b920f801';
 		const testnetNetworkIdentifier =
-			'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255';
+			'10f236f6d00a8f565bbe43c4ef0e3818f488bf4abefbe041155a3d019ef9a947';
 		const defaultNetworkIdentifier =
 			'7777777777777777777777777777777777777777777777777777777777777777';
 

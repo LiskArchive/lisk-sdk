@@ -76,10 +76,7 @@ describe('Delete block', () => {
 						data: '',
 					},
 				});
-				transaction.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [transaction]);
 				await node['_processor'].process(newBlock);
 				await node['_processor'].deleteLastBlock();

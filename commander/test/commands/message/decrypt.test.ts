@@ -22,8 +22,10 @@ import * as readerUtils from '../../../src/utils/reader';
 
 describe('message:decrypt', () => {
 	const message = 'Hello World';
-	const defaultSenderPublicKey =
-		'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
+	const defaultSenderPublicKey = Buffer.from(
+		'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0',
+		'hex',
+	);
 	const defaultNonce = '0ec64b2146336a62c9938475308411f00688f9d12c5d33a0';
 	const defaultEncryptedMessage =
 		'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e';
@@ -61,7 +63,7 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey', () => {
 		setupTest()
-			.command(['message:decrypt', defaultSenderPublicKey])
+			.command(['message:decrypt', defaultSenderPublicKey.toString('hex')])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
@@ -70,7 +72,11 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey nonce', () => {
 		setupTest()
-			.command(['message:decrypt', defaultSenderPublicKey, defaultNonce])
+			.command([
+				'message:decrypt',
+				defaultSenderPublicKey.toString('hex'),
+				defaultNonce,
+			])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No message was provided.');
 			})
@@ -81,7 +87,7 @@ describe('message:decrypt', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
-				defaultSenderPublicKey,
+				defaultSenderPublicKey.toString('hex'),
 				defaultNonce,
 				defaultEncryptedMessage,
 			])
@@ -105,7 +111,7 @@ describe('message:decrypt', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
-				defaultSenderPublicKey,
+				defaultSenderPublicKey.toString('hex'),
 				defaultNonce,
 				'--message=file:./message.txt',
 			])
@@ -136,7 +142,7 @@ describe('message:decrypt', () => {
 		setupTest()
 			.command([
 				'message:decrypt',
-				defaultSenderPublicKey,
+				defaultSenderPublicKey.toString('hex'),
 				defaultNonce,
 				'--message=file:./message.txt',
 				'--passphrase=card earn shift valley learn scorpion cage select help title control satoshi',

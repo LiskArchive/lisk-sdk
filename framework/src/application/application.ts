@@ -359,9 +359,9 @@ export class Application {
 	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			this._genesisBlock.header.transactionRoot,
+			Buffer.from(this._genesisBlock.header.transactionRoot, 'hex'),
 			this._genesisBlock.communityIdentifier,
-		);
+		).toString('base64');
 
 		const appConfigToShareWithModules = {
 			version: this.config.version,

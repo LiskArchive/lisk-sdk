@@ -22,8 +22,10 @@ import * as readerUtils from '../../../src/utils/reader';
 
 describe('message:encrypt', () => {
 	const message = 'Hello World';
-	const defaultRecipientPublicKey =
-		'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0';
+	const defaultRecipientPublicKey = Buffer.from(
+		'bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0',
+		'hex',
+	);
 	const defaultEncryptedMessage = {
 		nonce: '0ec64b2146336a62c9938475308411f00688f9d12c5d33a0',
 		message: 'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e',
@@ -62,7 +64,7 @@ describe('message:encrypt', () => {
 
 	describe('message:encrypt recipientPublicKey', () => {
 		setupTest()
-			.command(['message:encrypt', defaultRecipientPublicKey])
+			.command(['message:encrypt', defaultRecipientPublicKey.toString('hex')])
 			.catch((error: Error) => {
 				return expect(error.message).to.contain('No message was provided.');
 			})
@@ -71,7 +73,11 @@ describe('message:encrypt', () => {
 
 	describe('message:encrypt recipientPublicKey message', () => {
 		setupTest()
-			.command(['message:encrypt', defaultRecipientPublicKey, message])
+			.command([
+				'message:encrypt',
+				defaultRecipientPublicKey.toString('hex'),
+				message,
+			])
 			.it('should encrypt the message with the arg', () => {
 				expect(readerUtils.getPassphraseFromPrompt).to.be.calledWithExactly(
 					'passphrase',
@@ -87,7 +93,7 @@ describe('message:encrypt', () => {
 				);
 				return expect(printMethodStub).to.be.calledWithExactly({
 					...defaultEncryptedMessage,
-					recipientPublicKey: defaultRecipientPublicKey,
+					recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
 				});
 			});
 	});
@@ -96,7 +102,7 @@ describe('message:encrypt', () => {
 		setupTest()
 			.command([
 				'message:encrypt',
-				defaultRecipientPublicKey,
+				defaultRecipientPublicKey.toString('hex'),
 				'--message=file:./message.txt',
 			])
 			.it(
@@ -118,7 +124,7 @@ describe('message:encrypt', () => {
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({
 						...defaultEncryptedMessage,
-						recipientPublicKey: defaultRecipientPublicKey,
+						recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
 					});
 				},
 			);
@@ -128,7 +134,7 @@ describe('message:encrypt', () => {
 		setupTest()
 			.command([
 				'message:encrypt',
-				defaultRecipientPublicKey,
+				defaultRecipientPublicKey.toString('hex'),
 				'--message=file:./message.txt',
 				'--passphrase=card earn shift valley learn scorpion cage select help title control satoshi',
 			])
@@ -150,7 +156,7 @@ describe('message:encrypt', () => {
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({
 						...defaultEncryptedMessage,
-						recipientPublicKey: defaultRecipientPublicKey,
+						recipientPublicKey: defaultRecipientPublicKey.toString('hex'),
 					});
 				},
 			);

@@ -34,10 +34,7 @@ const processInput = (
 } => {
 	const { privateKey, publicKey } = getKeys(passphrase);
 	const binaryAddress = getAddressFromPublicKey(publicKey);
-	const address = getBase32AddressFromPublicKey(
-		publicKey.toString('hex'),
-		'lsk',
-	);
+	const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
 
 	return {
 		privateKey: privateKey.toString('base64'),

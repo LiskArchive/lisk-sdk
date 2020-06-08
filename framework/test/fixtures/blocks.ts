@@ -32,6 +32,7 @@ import { BlockProcessorV2 } from '../../src/application/node/block_processor_v2'
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
+	'hex',
 );
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
