@@ -30,7 +30,7 @@ export interface Schema {
 
 export interface ValidatedSchema {
 	readonly $id: string;
-	readonly $schema?: string;
+	readonly $schema: string;
 	readonly type: string;
 	readonly required?: string[];
 	properties: SchemaPair;
