@@ -13,7 +13,7 @@
  */
 import { Slots } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema } from '../../src/schemas';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
@@ -54,8 +54,8 @@ describe('dpos.isActiveDelegate', () => {
 			};
 
 			const binaryVoteWeightsList = codec.encode(
-				(voteWeightsSchema as unknown) as Schema,
-				(voteWeights as unknown) as GenericObject,
+				voteWeightsSchema,
+				voteWeights,
 			);
 
 			chainMock.dataAccess.getConsensusState.mockResolvedValue(
@@ -84,8 +84,8 @@ describe('dpos.isActiveDelegate', () => {
 				};
 
 				const binaryVoteWeightsList = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeights as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeights,
 				);
 
 				chainMock.dataAccess.getConsensusState.mockResolvedValue(
@@ -113,8 +113,8 @@ describe('dpos.isActiveDelegate', () => {
 				};
 
 				const binaryVoteWeightsList = codec.encode(
-					(voteWeightsSchema as unknown) as Schema,
-					(voteWeights as unknown) as GenericObject,
+					voteWeightsSchema,
+					voteWeights,
 				);
 
 				chainMock.dataAccess.getConsensusState.mockResolvedValue(

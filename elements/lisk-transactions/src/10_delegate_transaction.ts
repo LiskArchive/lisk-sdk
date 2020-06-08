@@ -13,7 +13,7 @@
  *
  */
 
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { BaseTransaction, StateStore } from './base_transaction';
 import { CHAIN_STATE_DELEGATE_USERNAMES, DELEGATE_NAME_FEE } from './constants';
 import { TransactionError } from './errors';
@@ -150,10 +150,7 @@ export class DelegateTransaction extends BaseTransaction {
 
 			store.chain.set(
 				CHAIN_STATE_DELEGATE_USERNAMES,
-				codec.encode(
-					(delegatesUserNamesSchema as unknown) as Schema,
-					(usernames as unknown) as GenericObject,
-				),
+				codec.encode(delegatesUserNamesSchema, usernames),
 			);
 		}
 
@@ -215,8 +212,8 @@ export class DelegateTransaction extends BaseTransaction {
 		if (!usernamesBuffer) {
 			return { registeredDelegates: [] };
 		}
-		const parsedUsernames: RegisteredDelegates = codec.decode(
-			(delegatesUserNamesSchema as unknown) as Schema,
+		const parsedUsernames = codec.decode<RegisteredDelegates>(
+			delegatesUserNamesSchema,
 			usernamesBuffer,
 		);
 
@@ -244,8 +241,8 @@ export class DelegateTransaction extends BaseTransaction {
 		};
 
 		const updatingObjectBinary = codec.encode(
-			(delegatesUserNamesSchema as unknown) as Schema,
-			(updatingObject as unknown) as GenericObject,
+			delegatesUserNamesSchema,
+			updatingObject,
 		);
 
 		store.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObjectBinary);

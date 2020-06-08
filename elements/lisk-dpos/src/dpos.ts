@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { hash } from '@liskhq/lisk-cryptography';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 import { voteWeightsSchema } from './schemas';
@@ -165,13 +165,16 @@ export class Dpos {
 		const voteWeightsBuffer = await this.chain.dataAccess.getConsensusState(
 			CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 		);
+		if (!voteWeightsBuffer) {
+			throw new Error(
+				'Invalid consensus state. Delegate vote weights should always exist',
+			);
+		}
 
-		const voteWeightsDecoded = codec.decode(
-			(voteWeightsSchema as unknown) as Schema,
-			voteWeightsBuffer as Buffer,
+		const { voteWeights } = codec.decode<DecodedVoteWeights>(
+			voteWeightsSchema,
+			voteWeightsBuffer,
 		);
-
-		const { voteWeights } = voteWeightsDecoded as DecodedVoteWeights;
 
 		const voteWeight = voteWeights.find(
 			roundRecord => roundRecord.round === relevantRound,

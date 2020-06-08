@@ -13,4 +13,4 @@
  */
 
 export * from './codec';
-export * from './types';
+export { Schema } from './types';
