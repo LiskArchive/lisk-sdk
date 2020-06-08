@@ -113,7 +113,7 @@ Check [examples](examples/) folder for a few examples to demonstrate P2P library
 
 ## License
 
-Copyright 2016-2019 Lisk Foundation
+Copyright 2016-2020 Lisk Foundation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -129,9 +129,7 @@ limitations under the License.
 
 ---
 
-Copyright © 2016-2019 Lisk Foundation
-
-Copyright © 2015 Crypti
+Copyright © 2016-2020 Lisk Foundation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
