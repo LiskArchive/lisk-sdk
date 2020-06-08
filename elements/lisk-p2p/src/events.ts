@@ -13,29 +13,32 @@
  *
  */
 // P2P general
-export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
-export const EVENT_NEW_INBOUND_PEER_CONNECTION = 'newInboundPeerConnection';
-export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
-export const EVENT_NETWORK_READY = 'network:ready';
+export const EVENT_NEW_INBOUND_PEER = 'EVENT_NEW_INBOUND_PEER';
+export const EVENT_NEW_INBOUND_PEER_CONNECTION =
+	'EVENT_NEW_INBOUND_PEER_CONNECTION';
+export const EVENT_FAILED_TO_ADD_INBOUND_PEER =
+	'EVENT_FAILED_TO_ADD_INBOUND_PEER';
+export const EVENT_NETWORK_READY = 'EVENT_NETWORK_READY';
 
 // P2P pool
-export const EVENT_REMOVE_PEER = 'removePeer';
+export const EVENT_REMOVE_PEER = 'EVENT_REMOVE_PEER';
 
 // Peer Local emitted events
-export const EVENT_REQUEST_RECEIVED = 'requestReceived';
-export const EVENT_INVALID_REQUEST_RECEIVED = 'invalidRequestReceived';
-export const EVENT_MESSAGE_RECEIVED = 'messageReceived';
-export const EVENT_INVALID_MESSAGE_RECEIVED = 'invalidMessageReceived';
-export const EVENT_BAN_PEER = 'banPeer';
-export const EVENT_DISCOVERED_PEER = 'discoveredPeer';
-export const EVENT_UPDATED_PEER_INFO = 'updatedPeerInfo';
-export const EVENT_FAILED_PEER_INFO_UPDATE = 'failedPeerInfoUpdate';
+export const EVENT_REQUEST_RECEIVED = 'EVENT_REQUEST_RECEIVED';
+export const EVENT_INVALID_REQUEST_RECEIVED = 'EVENT_INVALID_REQUEST_RECEIVED';
+export const EVENT_MESSAGE_RECEIVED = 'EVENT_MESSAGE_RECEIVED';
+export const EVENT_INVALID_MESSAGE_RECEIVED = 'EVENT_INVALID_MESSAGE_RECEIVED';
+export const EVENT_BAN_PEER = 'EVENT_BAN_PEER';
+export const EVENT_DISCOVERED_PEER = 'EVENT_DISCOVERED_PEER';
+export const EVENT_UPDATED_PEER_INFO = 'EVENT_UPDATED_PEER_INFO';
+export const EVENT_FAILED_PEER_INFO_UPDATE = 'EVENT_FAILED_PEER_INFO_UPDATE';
 export const EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT =
-	'failedToCollectPeerDetailsOnConnect';
-export const EVENT_FAILED_TO_FETCH_PEERS = 'failedToFetchPeers';
-export const EVENT_FAILED_TO_FETCH_PEER_INFO = 'failedToFetchPeerInfo';
-export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'failedToPushNodeInfo';
-export const EVENT_FAILED_TO_SEND_MESSAGE = 'failedToSendMessage';
+	'EVENT_FAILED_TO_COLLECT_PEER_DETAILS_ON_CONNECT';
+export const EVENT_FAILED_TO_FETCH_PEERS = 'EVENT_FAILED_TO_FETCH_PEERS';
+export const EVENT_FAILED_TO_FETCH_PEER_INFO =
+	'EVENT_FAILED_TO_FETCH_PEER_INFO';
+export const EVENT_FAILED_TO_PUSH_NODE_INFO = 'EVENT_FAILED_TO_PUSH_NODE_INFO';
+export const EVENT_FAILED_TO_SEND_MESSAGE = 'EVENT_FAILED_TO_SEND_MESSAGE';
 
 // Peer base
 export const REMOTE_SC_EVENT_RPC_REQUEST = 'rpc-request';
