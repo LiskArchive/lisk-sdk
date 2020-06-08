@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
@@ -138,20 +138,20 @@ export abstract class BaseTransaction {
 	/* End Getters */
 
 	public getBytes(): Buffer {
-		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
 			...this,
 			asset: this._getAssetBytes(),
-		} as unknown) as GenericObject);
+		});
 
 		return transactionBytes;
 	}
 
 	public getSigningBytes(): Buffer {
-		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, ({
+		const transactionBytes = codec.encode(BaseTransaction.BASE_SCHEMA, {
 			...this,
 			asset: this._getAssetBytes(),
 			signatures: [],
-		} as unknown) as GenericObject);
+		});
 
 		return transactionBytes;
 	}
@@ -399,10 +399,7 @@ export abstract class BaseTransaction {
 	private _getAssetBytes(): Buffer {
 		const assetSchema = (this.constructor as typeof BaseTransaction)
 			.ASSET_SCHEMA;
-		return codec.encode(
-			assetSchema as Schema,
-			(this.asset as unknown) as GenericObject,
-		);
+		return codec.encode(assetSchema as Schema, this.asset);
 	}
 
 	private _validateSchema(): ReadonlyArray<TransactionError> {
@@ -421,7 +418,7 @@ export abstract class BaseTransaction {
 
 		const assetSchemaErrors = validator.validate(
 			(this.constructor as typeof BaseTransaction).ASSET_SCHEMA,
-			(this.asset as unknown) as GenericObject,
+			this.asset,
 		);
 		const assetErrors = convertToTransactionError(
 			this.id,

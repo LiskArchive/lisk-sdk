@@ -13,11 +13,16 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
-import { Account, BlockHeader } from '../../src/types';
+import {
+	Account,
+	BlockHeader,
+	DecodedVoteWeights,
+	DecodedForgersList,
+} from '../../src/types';
 import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
@@ -99,12 +104,10 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 			);
 
-			const voteWeightsDecoded = codec.decode(
-				(voteWeightsSchema as unknown) as Schema,
+			const { voteWeights } = codec.decode<DecodedVoteWeights>(
+				voteWeightsSchema,
 				voteWeightsBuffer as Buffer,
 			);
-
-			const { voteWeights } = voteWeightsDecoded as GenericObject;
 
 			expect(voteWeights).toHaveLength(1 + DELEGATE_LIST_ROUND_OFFSET);
 			expect((voteWeights as any)[0].round).toEqual(1);
@@ -121,8 +124,8 @@ describe('dpos.apply()', () => {
 				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 			);
 
-			const { forgersList } = codec.decode(
-				(forgerListSchema as unknown) as Schema,
+			const { forgersList } = codec.decode<DecodedForgersList>(
+				forgerListSchema,
 				forgersListBuffer as Buffer,
 			);
 
@@ -168,10 +171,7 @@ describe('dpos.apply()', () => {
 			};
 			const delegates = getDelegateAccountsWithVotesReceived(103);
 
-			forgersListBinary = codec.encode(
-				(forgerListSchema as unknown) as Schema,
-				(forgerListObject as unknown) as GenericObject,
-			);
+			forgersListBinary = codec.encode(forgerListSchema, forgerListObject);
 
 			stateStore = new StateStoreMock([generator, ...delegates], {
 				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
@@ -224,10 +224,9 @@ describe('dpos.apply()', () => {
 				},
 			];
 
-			const encodedDelegateVoteWeights = codec.encode(
-				(voteWeightsSchema as unknown) as Schema,
-				({ voteWeights: delegateVoteWeights } as unknown) as GenericObject,
-			);
+			const encodedDelegateVoteWeights = codec.encode(voteWeightsSchema, {
+				voteWeights: delegateVoteWeights,
+			});
 
 			// Make 1 delegate forge twice
 			forgedDelegates.push({ ...forgedDelegates[10] });
@@ -273,7 +272,7 @@ describe('dpos.apply()', () => {
 			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
 				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
 				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-					(forgerListSchema as unknown) as Schema,
+					forgerListSchema,
 					forgersList,
 				),
 			});
@@ -325,7 +324,7 @@ describe('dpos.apply()', () => {
 			);
 
 			const { forgersList } = codec.decode(
-				(forgerListSchema as unknown) as Schema,
+				forgerListSchema,
 				forgersListBuffer as Buffer,
 			);
 
@@ -353,7 +352,7 @@ describe('dpos.apply()', () => {
 			);
 
 			const { forgersList: forgersBeforeList } = codec.decode(
-				(forgerListSchema as unknown) as Schema,
+				forgerListSchema,
 				forgersListBeforeBuffer as Buffer,
 			);
 
@@ -370,7 +369,7 @@ describe('dpos.apply()', () => {
 			);
 
 			const { forgersList } = codec.decode(
-				(forgerListSchema as unknown) as Schema,
+				forgerListSchema,
 				forgersListBuffer as Buffer,
 			);
 
