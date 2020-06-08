@@ -85,6 +85,320 @@ describe('validator keywords', () => {
 				]),
 			);
 		});
+
+		describe('dataType value validation', () => {
+			describe('string', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'string', fieldNumber: 1 } },
+						},
+						{ myProp: 'string' },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if minLength is not satisfied', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: {
+								myProp: { dataType: 'string', fieldNumber: 1, minLength: 3 },
+							},
+						},
+						{ myProp: 'ch' },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if maxLength is not satisfied', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: {
+								myProp: { dataType: 'string', fieldNumber: 1, maxLength: 3 },
+							},
+						},
+						{ myProp: 'change' },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if not string', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: {
+								myProp: { dataType: 'string', fieldNumber: 1, maxLength: 3 },
+							},
+						},
+						{ myProp: 32 },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+
+			describe('bytes', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'bytes', fieldNumber: 1 } },
+						},
+						{ myProp: Buffer.from('value') },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if minLength is not satisfied', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: {
+								myProp: { dataType: 'bytes', fieldNumber: 1, minLength: 10 },
+							},
+						},
+						{ myProp: Buffer.alloc(9) },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if maxLength is not satisfied', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: {
+								myProp: { dataType: 'bytes', fieldNumber: 1, maxLength: 10 },
+							},
+						},
+						{ myProp: Buffer.alloc(11) },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if not Buffer', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: {
+								myProp: { dataType: 'bytes', fieldNumber: 1, maxLength: 10 },
+							},
+						},
+						{ myProp: 'string' },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+
+			describe('boolean', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'boolean', fieldNumber: 1 } },
+						},
+						{ myProp: true },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if not boolean', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'boolean', fieldNumber: 1 } },
+						},
+						{ myProp: 1 },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+
+			describe('uint32', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+						},
+						{ myProp: 0 },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if not number', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+						},
+						{ myProp: 'value' },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if number has decimal', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+						},
+						{ myProp: 1.23 },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if negative', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+						},
+						{ myProp: -1 },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if above uint32 range', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint32', fieldNumber: 1 } },
+						},
+						{ myProp: 4294967296 },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+
+			describe('uint64', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+						},
+						{ myProp: BigInt(32) },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if not bigint', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+						},
+						{ myProp: 32 },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if negative', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+						},
+						{ myProp: BigInt(-32) },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if above uint64 range', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'uint64', fieldNumber: 1 } },
+						},
+						{ myProp: BigInt('18446744073709551616') },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+
+			describe('sint32', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+						},
+						{ myProp: -32 },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if not number', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+						},
+						{ myProp: 'value' },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if number has decimal', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+						},
+						{ myProp: -1.23 },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if not sint32 range', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint32', fieldNumber: 1 } },
+						},
+						{ myProp: -2147483649 },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+
+			describe('sint64', () => {
+				it('should be return empty error if valid', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
+						},
+						{ myProp: BigInt(-32) },
+					);
+					expect(result).toBeEmpty();
+				});
+
+				it('should be invalid if not bigint', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
+						},
+						{ myProp: 32 },
+					);
+					expect(result).toHaveLength(1);
+				});
+
+				it('should be invalid if above uint64 range', () => {
+					const result = validator.validate(
+						{
+							...validSchema,
+							properties: { myProp: { dataType: 'sint64', fieldNumber: 1 } },
+						},
+						{ myProp: BigInt('-9223372036854775809') },
+					);
+					expect(result).toHaveLength(1);
+				});
+			});
+		});
 	});
 
 	describe('fieldNumber', () => {
