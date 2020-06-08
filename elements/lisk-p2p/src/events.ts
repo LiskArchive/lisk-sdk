@@ -58,11 +58,11 @@ export const PROTOCOL_EVENTS_TO_RATE_LIMIT: Set<string> = new Set([
 ]);
 
 // Inbound peer
-export const EVENT_CLOSE_INBOUND = 'closeInbound';
-export const EVENT_INBOUND_SOCKET_ERROR = 'inboundSocketError';
+export const EVENT_CLOSE_INBOUND = 'EVENT_CLOSE_INBOUND';
+export const EVENT_INBOUND_SOCKET_ERROR = 'EVENT_INBOUND_SOCKET_ERROR';
 
 // Outbound peer
-export const EVENT_CONNECT_OUTBOUND = 'connectOutbound';
-export const EVENT_CONNECT_ABORT_OUTBOUND = 'connectAbortOutbound';
-export const EVENT_CLOSE_OUTBOUND = 'closeOutbound';
-export const EVENT_OUTBOUND_SOCKET_ERROR = 'outboundSocketError';
+export const EVENT_CONNECT_OUTBOUND = 'EVENT_CONNECT_OUTBOUND';
+export const EVENT_CONNECT_ABORT_OUTBOUND = 'EVENT_CONNECT_ABORT_OUTBOUND';
+export const EVENT_CLOSE_OUTBOUND = 'EVENT_CLOSE_OUTBOUND';
+export const EVENT_OUTBOUND_SOCKET_ERROR = 'EVENT_OUTBOUND_SOCKET_ERROR';
