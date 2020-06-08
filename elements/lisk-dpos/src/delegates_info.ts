@@ -32,8 +32,6 @@ const debug = Debug('lisk:dpos:delegate_info');
 interface DelegatesInfoConstructor {
 	readonly chain: Chain;
 	readonly rounds: Rounds;
-	readonly activeDelegates: number;
-	readonly standbyDelegates: number;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
 }
@@ -44,23 +42,17 @@ const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 export class DelegatesInfo {
 	private readonly chain: Chain;
 	private readonly rounds: Rounds;
-	private readonly activeDelegates: number;
-	private readonly standbyDelegates: number;
 	private readonly events: EventEmitter;
 	private readonly delegatesList: DelegatesList;
 
 	public constructor({
 		rounds,
 		chain,
-		activeDelegates,
-		standbyDelegates,
 		events,
 		delegatesList,
 	}: DelegatesInfoConstructor) {
 		this.chain = chain;
 		this.rounds = rounds;
-		this.activeDelegates = activeDelegates;
-		this.standbyDelegates = standbyDelegates;
 		this.events = events;
 		this.delegatesList = delegatesList;
 	}
@@ -119,14 +111,13 @@ export class DelegatesInfo {
 		}
 
 		const round = this.rounds.calcRound(block.height);
+		// ConsecutiveMissedBlock is calculated every block
+		await this._updateMissedBlocks(block, stateStore);
 
 		// Below event should only happen at the end of the round
 		if (!this._isLastBlockOfTheRound(block)) {
 			return false;
 		}
-
-		// Perform updates that only happens in the end of the round
-		await this._updateMissedBlocks(block, stateStore, undo);
 
 		if (undo) {
 			const previousRound = round + 1;
@@ -172,7 +163,6 @@ export class DelegatesInfo {
 	private async _updateMissedBlocks(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,
-		undo?: boolean,
 	): Promise<void> {
 		const round = this.rounds.calcRound(blockHeader.height);
 		debug('Calculating missed block', round);
@@ -182,46 +172,30 @@ export class DelegatesInfo {
 			stateStore,
 		);
 
-		const heightFrom = this.rounds.calcRoundStartHeight(round);
-		const heightTo = this.rounds.calcRoundEndHeight(round) - 1;
-
-		const blocksInRounds = await this.chain.dataAccess.getBlockHeadersByHeightBetween(
-			heightFrom,
-			heightTo,
+		const [lastBlock] = stateStore.consensus.lastBlockHeaders;
+		const missedBlocks =
+			Math.ceil(
+				(blockHeader.timestamp - lastBlock.timestamp) /
+					this.chain.slots.blockTime(),
+			) - 1;
+		const forgerAddress = getAddressFromPublicKey(
+			blockHeader.generatorPublicKey,
 		);
-
-		// The blocksInRounds does not contain the last block
-		blocksInRounds.push(blockHeader);
-
-		if (
-			blocksInRounds.length !==
-			this.activeDelegates + this.standbyDelegates
-		) {
-			throw new Error(
-				'Fetched blocks do not match the size of the active delegates',
-			);
-		}
-
-		const forgedPublicKeys = blocksInRounds.map(
-			block => block.generatorPublicKey,
+		const forgerIndex = expectedForgingAddresses.findIndex(address =>
+			address.equals(forgerAddress),
 		);
-
-		const missedBlocksDelegateAddresses = expectedForgingAddresses.filter(
-			expectedAddress =>
-				!forgedPublicKeys.find(publicKey =>
-					getAddressFromPublicKey(publicKey).equals(expectedAddress),
-				),
-		);
-
-		if (!missedBlocksDelegateAddresses.length) {
-			return;
+		// Update consecutive missed block
+		for (let i = 0; i < missedBlocks; i += 1) {
+			const rawIndex = (forgerIndex - 1 - i) % expectedForgingAddresses.length;
+			const index =
+				rawIndex >= 0 ? rawIndex : rawIndex + expectedForgingAddresses.length;
+			const missedForgerAddress = expectedForgingAddresses[index];
+			const missedForger = await stateStore.account.get(missedForgerAddress);
+			missedForger.asset.delegate.consecutiveMissedBlocks += 1;
 		}
-
-		for (const address of missedBlocksDelegateAddresses) {
-			const account = await stateStore.account.get(address);
-			account.asset.delegate.consecutiveMissedBlocks += undo ? -1 : 1;
-			stateStore.account.set(address, account);
-		}
+		// Reset consecutive missed block
+		const forger = await stateStore.account.get(forgerAddress);
+		forger.asset.delegate.consecutiveMissedBlocks = 0;
 	}
 
 	private _isLastBlockOfTheRound(block: BlockHeader): boolean {

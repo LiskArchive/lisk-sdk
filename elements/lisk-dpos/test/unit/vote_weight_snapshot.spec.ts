@@ -55,6 +55,7 @@ const convertVoteWeight = (buffer: Buffer): VoteWeights => {
 
 describe('Vote weight snapshot', () => {
 	const forgers = getDelegateAccounts(103);
+	const defaultLastBlockHeader = { timestamp: 12300 } as BlockHeader;
 
 	let dpos: Dpos;
 	let chainStub: any;
@@ -74,7 +75,29 @@ describe('Vote weight snapshot', () => {
 			},
 		};
 		dpos = new Dpos({ chain: chainStub });
-		stateStore = new StateStoreMock([], {});
+
+		const forgerListObject = {
+			forgersList: [
+				{
+					round: 1,
+					delegates: [...forgers.map(d => d.address).slice(0, 102)],
+					standby: [],
+				},
+			],
+		};
+
+		const mockedForgersList = codec.encode(forgerListSchema, forgerListObject);
+
+		stateStore = new StateStoreMock(
+			[],
+			{},
+			{
+				lastBlockHeaders: [defaultLastBlockHeader],
+				chainData: {
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+				},
+			},
+		);
 	});
 
 	describe('given genesis block', () => {
@@ -98,7 +121,11 @@ describe('Vote weight snapshot', () => {
 					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 				},
 			} as BlockHeader;
-			stateStore = new StateStoreMock([...delegates]);
+			stateStore = new StateStoreMock(
+				[...delegates],
+				{},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 		});
 
 		describe('when apply is called', () => {
@@ -144,7 +171,28 @@ describe('Vote weight snapshot', () => {
 					seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
 				},
 			} as BlockHeader;
-			stateStore = new StateStoreMock([forgers[0], ...delegates]);
+			const forgerListObject = {
+				forgersList: [
+					{
+						round: 1,
+						delegates: [...forgers.map(d => d.address).slice(0, 102)],
+						standby: [],
+					},
+				],
+			};
+			const mockedForgersList = codec.encode(
+				forgerListSchema,
+				forgerListObject,
+			);
+			stateStore = new StateStoreMock(
+				[forgers[0], ...delegates],
+				{
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+				},
+				{
+					lastBlockHeaders: [defaultLastBlockHeader],
+				},
+			);
 			jest.spyOn(stateStore.consensus, 'set');
 		});
 
@@ -280,6 +328,7 @@ describe('Vote weight snapshot', () => {
 							mockedVoteWeights,
 						),
 					},
+					{ lastBlockHeaders: [defaultLastBlockHeader] },
 				);
 
 				const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
@@ -408,6 +457,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -555,6 +605,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -696,6 +747,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -845,6 +897,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -990,6 +1043,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -1124,6 +1178,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -1266,6 +1321,7 @@ describe('Vote weight snapshot', () => {
 						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: mockedVoteWeights,
 					},
 					{
+						lastBlockHeaders: [defaultLastBlockHeader],
 						chainData: {
 							[CHAIN_STATE_DELEGATE_USERNAMES]: mockedDelegateUsernames,
 						},
@@ -1394,10 +1450,14 @@ describe('Vote weight snapshot', () => {
 					forgerListObject,
 				);
 
-				stateStore = new StateStoreMock([forgers[0]], {
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
-				});
+				stateStore = new StateStoreMock(
+					[forgers[0]],
+					{
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
+					},
+					{ lastBlockHeaders: [defaultLastBlockHeader] },
+				);
 			});
 
 			it('should remove future voteWights that is no longer valid', async () => {
