@@ -44,7 +44,7 @@ describe('P2P.sendToPeer', () => {
 			constructPeerId(targetPeer.ipAddress, targetPeer.wsPort),
 		);
 
-		p2pNodeList[1].on('messageReceived', msg => {
+		p2pNodeList[1].on('EVENT_MESSAGE_RECEIVED', msg => {
 			expect(msg).toMatchObject({
 				peerId: constructPeerId(SEED_PEER_IP, firstP2PNode.nodeInfo.wsPort),
 				event: 'foo',

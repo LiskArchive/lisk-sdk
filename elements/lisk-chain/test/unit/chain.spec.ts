@@ -361,7 +361,7 @@ describe('chain', () => {
 
 			// Assert
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
-				'NEW_BLOCK',
+				'EVENT_NEW_BLOCK',
 				{
 					accounts: fakeAccounts,
 					block,
@@ -470,7 +470,7 @@ describe('chain', () => {
 
 			// Assert
 			expect((chainInstance as any).events.emit).toHaveBeenCalledWith(
-				'NEW_BLOCK',
+				'EVENT_NEW_BLOCK',
 				{
 					accounts: fakeAccounts,
 					block,
