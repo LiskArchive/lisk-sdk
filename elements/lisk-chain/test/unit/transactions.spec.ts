@@ -112,6 +112,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -178,6 +179,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -244,6 +246,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -317,6 +320,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -391,6 +395,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -407,6 +412,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
+							'hex',
 						),
 						amount: BigInt('100'),
 						data: '',
@@ -464,6 +470,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('100'),
 						data: '',
@@ -480,6 +487,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'b28d5e34007fd8fe6d7903444eb23a60fdad3c11',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -537,6 +545,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('10000000000'),
 						data: '',
@@ -612,6 +621,7 @@ describe('blocks/transactions', () => {
 					asset: {
 						recipientAddress: Buffer.from(
 							'a6f6a0543ae470c6b056021cb2ac153368eafeec',
+							'hex',
 						),
 						amount: BigInt('100000000'),
 						data: '',
