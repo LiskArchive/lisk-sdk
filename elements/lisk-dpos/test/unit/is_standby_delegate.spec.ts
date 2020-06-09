@@ -21,7 +21,6 @@ import {
 } from '../utils/delegates';
 import {
 	ACTIVE_DELEGATES,
-	EPOCH_TIME,
 	BLOCK_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
@@ -50,7 +49,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 	beforeEach(() => {
 		// Arrange
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const slots = new Slots({ interval: BLOCK_TIME });
 		const chain = {
 			slots,
 		};

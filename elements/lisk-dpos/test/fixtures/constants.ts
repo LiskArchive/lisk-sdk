@@ -14,6 +14,5 @@
 
 export const ACTIVE_DELEGATES = 101;
 export const STANDBY_DELEGATES = 2;
-export const EPOCH_TIME = '2016-05-24T17:00:00.000Z';
 export const BLOCK_TIME = 10;
 export const DELEGATE_LIST_ROUND_OFFSET = 2;

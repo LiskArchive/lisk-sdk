@@ -16,7 +16,7 @@ import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { DelegatesList } from '../../src/delegates_list';
-import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import {
 	DEFAULT_STANDBY_THRESHOLD,
 	DEFAULT_VOTE_WEIGHT_CAP_RATE,
@@ -42,7 +42,7 @@ describe('Forger selection', () => {
 
 	beforeEach(() => {
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({ interval: BLOCK_TIME }) as any,
 			getTotalEarningAndBurnt: jest
 				.fn()
 				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),

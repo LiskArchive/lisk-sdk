@@ -16,7 +16,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema } from '../../src/schemas';
 import { getDelegateAccounts } from '../utils/round_delegates';
-import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Dpos } from '../../src';
 
@@ -34,7 +34,7 @@ describe('dpos.isActiveDelegate', () => {
 
 	beforeEach(() => {
 		// Arrange
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const slots = new Slots({ interval: BLOCK_TIME });
 		chainMock = {
 			slots,
 			dataAccess: {

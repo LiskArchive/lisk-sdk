@@ -80,14 +80,13 @@ node index.js
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `BLOCK_TIME`, `EPOCH_TIME`, `MAX_TRANSACTIONS_PER_BLOCK` and more with an optional configurations object.
+You can also define your blockchain application parameters such as `BLOCK_TIME`, `MAX_TRANSACTIONS_PER_BLOCK` and more with an optional configurations object.
 
 ```js
 const app = new Application(genesisBlockDevnet, {
     app: {
         label: 'my-blockchain-application',
         genesisConfig: {
-            EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
             BLOCK_TIME: 10,
             MAX_TRANSACTIONS_PER_BLOCK: 25,
         },

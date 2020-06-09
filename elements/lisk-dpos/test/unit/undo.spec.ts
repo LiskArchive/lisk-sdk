@@ -17,7 +17,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { Dpos, constants } from '../../src';
 import {
-	EPOCH_TIME,
 	ACTIVE_DELEGATES,
 	BLOCK_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
@@ -45,7 +44,7 @@ describe('dpos.undo()', () => {
 	beforeEach(() => {
 		// Arrange
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({ interval: BLOCK_TIME }) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

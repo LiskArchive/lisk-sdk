@@ -20,7 +20,6 @@ import forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
-	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
 	BLOCK_TIME: 10,
 };
 

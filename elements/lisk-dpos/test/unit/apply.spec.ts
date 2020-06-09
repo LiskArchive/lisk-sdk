@@ -27,7 +27,6 @@ import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
 	STANDBY_DELEGATES,
-	EPOCH_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
 import {
@@ -55,7 +54,7 @@ describe('dpos.apply()', () => {
 	beforeEach(() => {
 		// Arrange
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({ interval: BLOCK_TIME }) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

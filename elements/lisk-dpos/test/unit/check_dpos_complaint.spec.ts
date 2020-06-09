@@ -16,7 +16,6 @@ import { Dpos } from '../../src';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
-	EPOCH_TIME,
 	BLOCK_TIME,
 } from '../fixtures/constants';
 import {
@@ -42,7 +41,7 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 
 	beforeEach(() => {
 		// Arrange
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const slots = new Slots({ interval: BLOCK_TIME });
 		const chain = {
 			slots,
 		};

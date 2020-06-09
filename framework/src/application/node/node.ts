@@ -192,7 +192,6 @@ export interface NodeConstants {
 		readonly milestones: string[];
 	};
 	readonly totalAmount: string;
-	readonly epochTime: string;
 	readonly blockTime: number;
 }
 
@@ -536,8 +535,8 @@ export class Node {
 			}): Promise<handlePostTransactionReturn> =>
 				this._transport.handleEventPostTransaction(action.params),
 			getSlotNumber: (action: {
-				params: { epochTime: number | undefined };
-			}): number => this._chain.slots.getSlotNumber(action.params.epochTime),
+				params: { time: number | undefined };
+			}): number => this._chain.slots.getSlotNumber(action.params.time),
 			calcSlotRound: (action: { params: { height: number } }): number =>
 				this._dpos.rounds.calcRound(action.params.height),
 			getNodeStatus: (): NodeStatus => ({

@@ -27,7 +27,7 @@ import {
 	VoteWeights,
 	DelegateWeight,
 } from '../../src/types';
-import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
@@ -63,7 +63,7 @@ describe('Vote weight snapshot', () => {
 
 	beforeEach(() => {
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({ interval: BLOCK_TIME }) as any,
 			getTotalEarningAndBurnt: jest
 				.fn()
 				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),
