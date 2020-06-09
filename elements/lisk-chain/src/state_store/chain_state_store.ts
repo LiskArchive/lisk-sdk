@@ -14,8 +14,9 @@
 
 import { BatchChain } from '@liskhq/lisk-db';
 import { DataAccess } from '../data_access';
-import { BlockHeader } from '../types';
+import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CHAIN_STATE } from '../data_access/constants';
+import { calculateDiff } from '../diff';
 
 interface AdditionalInformation {
 	readonly lastBlockHeader: BlockHeader;
@@ -37,6 +38,7 @@ export class ChainStateStore {
 	private readonly _lastBlockHeader: BlockHeader;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _lastBlockReward: bigint;
+	private _initialValue = Buffer.alloc(0);
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -86,6 +88,7 @@ export class ChainStateStore {
 		if (dbValue === undefined) {
 			return dbValue;
 		}
+		this._initialValue = dbValue;
 		this._data[key] = dbValue;
 
 		return this._data[key];
@@ -104,13 +107,29 @@ export class ChainStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public finalize(batch: BatchChain): void {
+	public finalize(batch: BatchChain): StateDiff {
 		if (this._updatedKeys.size === 0) {
-			return;
+			return {} as StateDiff;
 		}
 
+		const stateDiff = {} as StateDiff;
+
 		for (const key of Array.from(this._updatedKeys)) {
-			batch.put(`${DB_KEY_CHAIN_STATE}:${key}`, this._data[key] as Buffer);
+			const dbKey = `${DB_KEY_CHAIN_STATE}:${key}`;
+			const updatedValue = this._data[key] as Buffer;
+			batch.put(dbKey, updatedValue);
+
+			if (this._initialValue.length) {
+				const diff = calculateDiff(this._initialValue, updatedValue);
+				stateDiff.updated.push({
+					key: dbKey,
+					value: diff,
+				});
+			} else {
+				stateDiff.created.push(dbKey)
+			}
 		}
+
+		return stateDiff;
 	}
 }
