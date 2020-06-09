@@ -92,7 +92,6 @@ interface ChainConstructor {
 		default: object;
 	};
 	// Constants
-	readonly epochTime: string;
 	readonly blockTime: number;
 	readonly networkIdentifier: Buffer;
 	readonly maxPayloadLength: number;
@@ -178,7 +177,6 @@ export class Chain {
 	private readonly _genesisBlock: Block;
 	private readonly constants: {
 		readonly stateBlockSize: number;
-		readonly epochTime: string;
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
 	};
@@ -193,7 +191,6 @@ export class Chain {
 		accountAsset,
 		registeredTransactions,
 		// Constants
-		epochTime,
 		blockTime,
 		networkIdentifier,
 		maxPayloadLength,
@@ -243,7 +240,7 @@ export class Chain {
 		this._lastBlock = genesisBlock;
 		this._networkIdentifier = networkIdentifier;
 		this._genesisBlock = genesisBlock;
-		this.slots = new Slots({ epochTime, interval: blockTime });
+		this.slots = new Slots({ interval: blockTime });
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,
@@ -260,7 +257,6 @@ export class Chain {
 		};
 		this.constants = {
 			stateBlockSize,
-			epochTime,
 			blockTime,
 			maxPayloadLength,
 		};

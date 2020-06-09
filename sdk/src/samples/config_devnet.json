@@ -6,7 +6,6 @@
 		"enabled": true
 	},
 	"genesisConfig": {
-		"epochTime": "2016-05-24T17:00:00.000Z",
 		"blockTime": 10,
 		"maxPayloadLength": 15360,
 		"rewards": {

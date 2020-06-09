@@ -146,10 +146,10 @@ export class BFT extends EventEmitter {
 		blockHeader: BlockHeader,
 		lastBlockHeader: BlockHeader,
 	): ForkStatus {
-		// Current time since Lisk Epoch
+		const SEC_IN_MS = 1000;
 		const receivedBlock = {
 			...blockHeader,
-			receivedAt: this._chain.slots.getEpochTime(),
+			receivedAt: Math.floor(Date.now() / SEC_IN_MS),
 		};
 
 		/* Cases are numbered following LIP-0014 Fork choice rule.
