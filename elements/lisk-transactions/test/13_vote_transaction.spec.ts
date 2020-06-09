@@ -170,7 +170,7 @@ describe('Vote transaction', () => {
 				(tx.asset as any).votes = [
 					...tx.asset.votes,
 					{
-						delegateAddress: Buffer.from('123L'),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt(10000000000),
 					},
 				];
@@ -191,7 +191,7 @@ describe('Vote transaction', () => {
 				(tx.asset as any).votes = [
 					...tx.asset.votes,
 					{
-						delegateAddress: Buffer.from('123L'),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt(-10000000000),
 					},
 				];
@@ -941,7 +941,7 @@ describe('Vote transaction', () => {
 						sender.address,
 					);
 					invalidSender.asset.sentVotes.unshift({
-						delegateAddress: Buffer.from('random address'),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt('1000000000'),
 					});
 					store.account.set(invalidSender.address, invalidSender);
@@ -998,7 +998,7 @@ describe('Vote transaction', () => {
 					);
 					invalidSender.asset.unlocking = [
 						{
-							delegateAddress: Buffer.from('random address'),
+							delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 							amount: BigInt(1000000000),
 							unvoteHeight: 2,
 						},
