@@ -115,7 +115,6 @@ export interface ApplicationConfig {
 		consoleLogLevel: string;
 	};
 	genesisConfig: {
-		readonly epochTime: string;
 		readonly blockTime: number;
 		readonly maxPayloadLength: number;
 		readonly reward: {

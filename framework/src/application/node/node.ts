@@ -224,7 +224,6 @@ interface NodeConstructor {
 interface NodeStatus {
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
-	readonly secondsSinceEpoch: number;
 	readonly lastBlock: string;
 	readonly chainMaxHeightFinalized: number;
 }
@@ -544,7 +543,6 @@ export class Node {
 			getNodeStatus: (): NodeStatus => ({
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
-				secondsSinceEpoch: this._chain.slots.getEpochTime(),
 				lastBlock: this._chain.dataAccess
 					.encode(this._chain.lastBlock)
 					.toString('base64'),
@@ -596,7 +594,6 @@ export class Node {
 			rewardOffset: this._options.constants.rewards.offset,
 			rewardMilestones: this._options.constants.rewards.milestones,
 			totalAmount: this._options.constants.totalAmount,
-			epochTime: this._options.constants.epochTime,
 			blockTime: this._options.constants.blockTime,
 		});
 

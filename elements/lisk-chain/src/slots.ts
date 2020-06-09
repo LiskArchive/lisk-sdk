@@ -13,36 +13,26 @@
  */
 
 interface SlotsInput {
-	readonly epochTime: string;
 	readonly interval: number;
 }
 
 const SEC_IN_MS = 1000;
 
 export class Slots {
-	private readonly _epochTime: Date;
 	private readonly _interval: number;
 
-	public constructor({ epochTime, interval }: SlotsInput) {
-		this._epochTime = new Date(epochTime);
+	public constructor({ interval }: SlotsInput) {
 		this._interval = interval;
 	}
 
-	public getEpochTime(): number {
-		return Math.floor((Date.now() - this._epochTime.getTime()) / SEC_IN_MS);
-	}
-
+	// eslint-disable-next-line class-methods-use-this
 	public getRealTime(time: number): number {
-		return (
-			Math.floor(this._epochTime.getTime() / SEC_IN_MS) * SEC_IN_MS +
-			time * SEC_IN_MS
-		);
+		return time * SEC_IN_MS;
 	}
 
-	public getSlotNumber(epochTime?: number): number {
+	public getSlotNumber(time?: number): number {
 		const parsedEpochTime =
-			epochTime === undefined ? this.getEpochTime() : epochTime;
-
+			time === undefined ? Math.floor(Date.now() / SEC_IN_MS) : time;
 		return Math.floor(parsedEpochTime / this._interval);
 	}
 
