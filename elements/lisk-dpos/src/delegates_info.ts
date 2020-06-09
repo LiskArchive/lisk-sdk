@@ -192,10 +192,12 @@ export class DelegatesInfo {
 			const missedForgerAddress = expectedForgingAddresses[index];
 			const missedForger = await stateStore.account.get(missedForgerAddress);
 			missedForger.asset.delegate.consecutiveMissedBlocks += 1;
+			stateStore.account.set(missedForgerAddress, missedForger);
 		}
 		// Reset consecutive missed block
 		const forger = await stateStore.account.get(forgerAddress);
 		forger.asset.delegate.consecutiveMissedBlocks = 0;
+		stateStore.account.set(forgerAddress, forger);
 	}
 
 	private _isLastBlockOfTheRound(block: BlockHeader): boolean {
