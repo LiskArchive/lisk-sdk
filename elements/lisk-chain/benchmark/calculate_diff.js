@@ -54,8 +54,8 @@ const diff = calculateDiff(
 );
 
 /**
- * calculateDiff x 102,134 ops/sec ±0.99% (84 runs sampled)
- * undo x 50,906 ops/sec ±0.80% (91 runs sampled)
+ * calculateDiff x 119,928 ops/sec ±1.27% (86 runs sampled)
+ * undo x 50,030 ops/sec ±0.78% (89 runs sampled)
  */
 suite
 	.add('calculateDiff', () => {
