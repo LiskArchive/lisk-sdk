@@ -98,3 +98,49 @@ export const baseAccountSchema = {
 	},
 	required: ['address', 'balance', 'publicKey', 'nonce', 'keys', 'asset'],
 };
+
+export const stateDiffSchema = {
+	$id: '/state/diff',
+	type: 'object',
+	required: ['updated', 'created'],
+	properties: {
+		updated: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				properties: {
+					key: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+					value: {
+						type: 'array',
+						fieldNumber: 2,
+						items: {
+							type: 'object',
+							fieldNumber: 1,
+							properties: {
+								code: {
+									dataType: 'string',
+									fieldNumber: 1,
+								},
+								line: {
+									dataType: 'unit32',
+									fieldNumber: 2,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		created: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				dataType: 'string',
+			},
+		},
+	},
+};
