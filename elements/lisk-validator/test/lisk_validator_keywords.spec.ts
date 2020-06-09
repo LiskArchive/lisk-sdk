@@ -162,6 +162,12 @@ describe('validator keywords', () => {
 						{ myProp: Buffer.alloc(9) },
 					);
 					expect(result).toHaveLength(1);
+					expect(result[0].message).toEqual('minLength does not satisfied');
+					expect(result[0].params).toEqual({
+						dataType: 'bytes',
+						minLength: 10,
+						length: 9,
+					});
 				});
 
 				it('should be invalid if maxLength is not satisfied', () => {
@@ -175,6 +181,12 @@ describe('validator keywords', () => {
 						{ myProp: Buffer.alloc(11) },
 					);
 					expect(result).toHaveLength(1);
+					expect(result[0].message).toEqual('maxLength does not satisfied');
+					expect(result[0].params).toEqual({
+						dataType: 'bytes',
+						maxLength: 10,
+						length: 11,
+					});
 				});
 
 				it('should be invalid if not Buffer', () => {
