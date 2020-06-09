@@ -44,6 +44,7 @@ describe('dpos.apply()', () => {
 	const delegateAccounts = getDelegateAccountsWithVotesReceived(
 		ACTIVE_DELEGATES + STANDBY_DELEGATES,
 	);
+	const defaultLastBlockHeader = { timestamp: 12300 } as BlockHeader;
 
 	let dpos: Dpos;
 	let chainStub: any;
@@ -67,7 +68,11 @@ describe('dpos.apply()', () => {
 			chain: chainStub,
 		});
 
-		stateStore = new StateStoreMock([...delegateAccounts], {});
+		stateStore = new StateStoreMock(
+			[...delegateAccounts],
+			{},
+			{ lastBlockHeaders: [defaultLastBlockHeader] },
+		);
 
 		jest
 			.spyOn(randomSeedModule, 'generateRandomSeeds')
@@ -92,7 +97,11 @@ describe('dpos.apply()', () => {
 				},
 			} as BlockHeader;
 
-			stateStore = new StateStoreMock([generator, ...delegateAccounts], {});
+			stateStore = new StateStoreMock(
+				[generator, ...delegateAccounts],
+				{},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 		});
 
 		it('should save round 1 + round offset vote weight list in the consensus state', async () => {
@@ -173,20 +182,13 @@ describe('dpos.apply()', () => {
 
 			forgersListBinary = codec.encode(forgerListSchema, forgerListObject);
 
-			stateStore = new StateStoreMock([generator, ...delegates], {
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
-			});
-		});
-
-		it('should NOT update "missedBlocks"', async () => {
-			// Act
-			await dpos.apply(block, stateStore);
-
-			const generatorAccount = await stateStore.account.get(generator.address);
-			// Assert
-			expect(generatorAccount).toEqual({
-				...generator,
-			});
+			stateStore = new StateStoreMock(
+				[generator, ...delegates],
+				{
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
+				},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 		});
 
 		it('should NOT update forgers list', async () => {
@@ -201,6 +203,256 @@ describe('dpos.apply()', () => {
 			expect((consensusState as Buffer).toString('utf8')).toEqual(
 				forgersListBinary.toString('utf8'),
 			);
+		});
+
+		describe('consecutiveMissedBlock', () => {
+			let forgedDelegates: Account[];
+			let forgersList: DecodedForgersList;
+			let delegateVoteWeights: DecodedVoteWeights;
+
+			beforeEach(() => {
+				forgedDelegates = getDelegateAccounts(103);
+				forgersList = {
+					forgersList: [
+						{
+							round: 9,
+							delegates: [...forgedDelegates.map(d => d.address)],
+							standby: [],
+						},
+					],
+				};
+				delegateVoteWeights = {
+					voteWeights: [
+						{
+							round: 10,
+							delegates: forgedDelegates.map(d => ({
+								address: d.address,
+								voteWeight: d.asset.delegate.totalVotesReceived,
+							})),
+						},
+					],
+				};
+			});
+
+			describe('When only 1 delegate forged since last block', () => {
+				// eslint-disable-next-line jest/expect-expect
+				it('should increment "consecutiveMissedBlocks" for every forgers except forging delegate', async () => {
+					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
+					// Arrange
+					const lastBlock = {
+						generatorPublicKey: forgedDelegate.publicKey,
+						height: 926,
+						timestamp: 9260,
+					} as BlockHeader;
+					block = {
+						height: 927,
+						timestamp: 10290,
+						generatorPublicKey: forgedDelegate.publicKey,
+					} as BlockHeader;
+					stateStore = new StateStoreMock(
+						[...forgedDelegates],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+					// Act
+					await dpos.apply(block, stateStore);
+
+					expect.assertions(forgedDelegates.length);
+					for (const delegate of forgedDelegates) {
+						const updatedAccount = await stateStore.account.get(
+							delegate.address,
+						);
+						if (delegate.address.equals(forgedDelegate.address)) {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(0);
+						} else {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(1);
+						}
+					}
+				});
+			});
+
+			describe('When only 2 delegate missed a block since last block', () => {
+				it('should increment "consecutiveMissedBlocks" only for forgers who missed a block', async () => {
+					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
+					// Arrange
+					const lastBlock = {
+						generatorPublicKey: forgedDelegate.publicKey,
+						height: 926,
+						timestamp: 10260,
+					} as BlockHeader;
+					block = {
+						height: 927,
+						timestamp: 10290,
+						generatorPublicKey: forgedDelegate.publicKey,
+					} as BlockHeader;
+					stateStore = new StateStoreMock(
+						[...forgedDelegates],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
+						forger => forger.equals(forgedDelegate.address),
+					);
+					const missedDelegate = [
+						forgedDelegates[forgerIndex - 1],
+						forgedDelegates[forgerIndex - 2],
+					];
+					// Act
+					await dpos.apply(block, stateStore);
+
+					expect.assertions(forgedDelegates.length);
+					for (const delegate of forgedDelegates) {
+						const updatedAccount = await stateStore.account.get(
+							delegate.address,
+						);
+						if (
+							missedDelegate.some(missedAccount =>
+								missedAccount.address.equals(delegate.address),
+							)
+						) {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(1);
+						} else {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(0);
+						}
+					}
+				});
+			});
+
+			describe('When delegate missed more than 1 blocks since last block', () => {
+				it('should increment "consecutiveMissedBlocks"  for the number of blocks that delegate missed ', async () => {
+					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
+					// Arrange
+					const lastBlock = {
+						// 6 slots are missed twice
+						generatorPublicKey:
+							forgedDelegates[forgedDelegates.length - 1 - 6].publicKey,
+						height: 926,
+						timestamp: 9200,
+					} as BlockHeader;
+					block = {
+						height: 927,
+						timestamp: 10290,
+						generatorPublicKey: forgedDelegate.publicKey,
+					} as BlockHeader;
+					stateStore = new StateStoreMock(
+						[...forgedDelegates],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
+						forger => forger.equals(forgedDelegate.address),
+					);
+					const missedMorethan1Delegates = forgedDelegates.slice(
+						forgerIndex - 5,
+						forgerIndex,
+					);
+					// Act
+					await dpos.apply(block, stateStore);
+
+					expect.assertions(forgedDelegates.length);
+					for (const delegate of forgedDelegates) {
+						const updatedAccount = await stateStore.account.get(
+							delegate.address,
+						);
+						if (delegate.address.equals(forgedDelegate.address)) {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(0);
+						} else if (
+							missedMorethan1Delegates.some(missedAccount =>
+								missedAccount.address.equals(delegate.address),
+							)
+						) {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(2);
+						} else {
+							expect(
+								updatedAccount.asset.delegate.consecutiveMissedBlocks,
+							).toEqual(1);
+						}
+					}
+				});
+			});
+
+			describe('When all delegates successfully forges a block', () => {
+				it('should NOT update "consecutiveMissedBlocks" for anyone', async () => {
+					// Arrange
+					const lastBlock = {
+						generatorPublicKey:
+							forgedDelegates[forgedDelegates.length - 2].publicKey,
+						height: 926,
+						timestamp: 10283,
+					} as BlockHeader;
+					block = {
+						height: 927,
+						timestamp: 10290,
+						generatorPublicKey:
+							forgedDelegates[forgedDelegates.length - 1].publicKey,
+					} as BlockHeader;
+					stateStore = new StateStoreMock(
+						[...forgedDelegates],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+
+					// Act
+					await dpos.apply(block, stateStore);
+					expect.assertions(forgedDelegates.length);
+					for (const delegate of forgedDelegates) {
+						const updatedAccount = await stateStore.account.get(
+							delegate.address,
+						);
+						expect(
+							updatedAccount.asset.delegate.consecutiveMissedBlocks,
+						).toEqual(0);
+					}
+				});
+			});
 		});
 	});
 
@@ -269,13 +521,17 @@ describe('dpos.apply()', () => {
 				],
 			};
 
-			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
-					forgerListSchema,
-					forgersList,
-				),
-			});
+			stateStore = new StateStoreMock(
+				[...forgedDelegates, missedDelegate],
+				{
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+						forgerListSchema,
+						forgersList,
+					),
+				},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 
 			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
 				generatorPublicKey: delegate.publicKey,
@@ -292,15 +548,6 @@ describe('dpos.apply()', () => {
 			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
 				forgedBlocks,
 			);
-		});
-
-		it('should increase "consecutiveMissedBlocks" field by "1" for the delegates who did not forge in the round', async () => {
-			// Act
-			await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-
-			// Assert
-			const account = await stateStore.account.get(missedDelegate.address);
-			expect(account.asset.delegate.consecutiveMissedBlocks).toEqual(1);
 		});
 
 		it('should save next round forgers in forgers list after applying last block of round', async () => {
@@ -409,29 +656,6 @@ describe('dpos.apply()', () => {
 				dpos.rounds,
 				expect.anything(),
 			);
-		});
-
-		describe('When all delegates successfully forges a block', () => {
-			it('should NOT update "missedBlocks" for anyone', async () => {
-				// Arrange
-				forgedDelegates = getDelegateAccounts(103);
-				const forgedBlocks = forgedDelegates.map((delegate, i) => ({
-					generatorPublicKey: delegate.publicKey,
-					height: 809 + i,
-				}));
-				forgedBlocks.splice(forgedBlocks.length - 1);
-
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
-					forgedBlocks,
-				);
-
-				// Act
-				await dpos.apply(lastBlockOfTheRoundNine, stateStore);
-				expect.assertions(forgedDelegates.length);
-				for (const delegate of forgedDelegates) {
-					expect(delegate.asset.delegate.consecutiveMissedBlocks).toEqual(0);
-				}
-			});
 		});
 	});
 });

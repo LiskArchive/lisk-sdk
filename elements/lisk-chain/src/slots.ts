@@ -32,6 +32,10 @@ export class Slots {
 		return Math.floor((Date.now() - this._epochTime.getTime()) / SEC_IN_MS);
 	}
 
+	public blockTime(): number {
+		return this._interval;
+	}
+
 	public getRealTime(time: number): number {
 		return (
 			Math.floor(this._epochTime.getTime() / SEC_IN_MS) * SEC_IN_MS +

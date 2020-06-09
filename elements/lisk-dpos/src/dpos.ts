@@ -97,8 +97,6 @@ export class Dpos {
 		this.delegatesInfo = new DelegatesInfo({
 			chain: this.chain,
 			rounds: this.rounds,
-			activeDelegates,
-			standbyDelegates,
 			events: this.events,
 			delegatesList: this.delegatesList,
 		});
