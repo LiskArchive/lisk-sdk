@@ -14,14 +14,15 @@
 /* eslint-disable max-classes-per-file */
 
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import {
 	BaseTransaction as Base,
 	TransferTransaction,
 	TransactionError,
 } from '@liskhq/lisk-transactions';
+import { validator } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { Application } from '../../../../src/application/application';
-import * as validator from '../../../../src/application/validator';
 import { constantsSchema } from '../../../../src/application/schema';
 import { SchemaValidationError } from '../../../../src/errors';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
@@ -31,6 +32,8 @@ import { createLogger } from '../../../../src/application/logger';
 import { GenesisBlockJSON } from '../../../../src/application/node/node';
 
 jest.mock('fs-extra');
+jest.mock('@liskhq/lisk-db');
+jest.mock('@liskhq/lisk-p2p');
 jest.mock('../../../../src/application/logger');
 
 const config: any = {
@@ -50,10 +53,13 @@ describe('Application', () => {
 
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
+	beforeEach(() => {
+		jest.spyOn(os, 'homedir').mockReturnValue('~');
+	});
+
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
-		validator.validator.removeSchema();
-		validator.parserAndValidator.removeSchema();
+		validator.removeSchema();
 	});
 
 	describe('#constructor', () => {
@@ -133,16 +139,13 @@ describe('Application', () => {
 		});
 
 		it('should validate the constants', () => {
-			const parseEnvArgAndValidateSpy = jest.spyOn(
-				validator,
-				'parseEnvArgAndValidate',
-			);
+			jest.spyOn(validator, 'validate');
 
 			// eslint-disable-next-line no-new
 			new Application(genesisBlock as GenesisBlockJSON, config);
 
-			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledTimes(1);
-			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledWith(
+			expect(validator.validate).toHaveBeenCalled();
+			expect(validator.validate).toHaveBeenCalledWith(
 				constantsSchema,
 				expect.any(Object),
 			);
@@ -406,11 +409,15 @@ describe('Application', () => {
 	});
 
 	describe('#_setupDirectories', () => {
-		let app: any;
+		let app: Application;
 		let dirs: any;
-		beforeEach(() => {
+		beforeEach(async () => {
 			app = new Application(genesisBlock as GenesisBlockJSON, config);
-			app.run();
+			try {
+				await app.run();
+			} catch (error) {
+				// Expected error
+			}
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			dirs = systemDirs(app.config.label, app.config.rootPath);
 		});

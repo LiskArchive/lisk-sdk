@@ -12,17 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as validator from '../../src/application/validator';
 import {
 	constantsSchema,
 	applicationConfigSchema,
 } from '../../src/application/schema';
 import { deepFreeze } from './deep_freeze';
 
-const sharedConstants = validator.parseEnvArgAndValidate(constantsSchema, {});
-const appConfig = validator.parseEnvArgAndValidate(applicationConfigSchema, {});
-
 export const constants = deepFreeze({
-	...sharedConstants,
-	...appConfig.genesisConfig,
+	...constantsSchema.default,
+	...applicationConfigSchema.default.genesisConfig,
 });

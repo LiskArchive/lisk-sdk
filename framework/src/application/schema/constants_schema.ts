@@ -23,8 +23,7 @@ export const constantsSchema = {
 	],
 	properties: {
 		activeDelegates: {
-			type: 'number',
-			format: 'oddInteger',
+			type: 'integer',
 			min: 1,
 			const: 101,
 			description: 'The default number of delegates allowed to forge a block',

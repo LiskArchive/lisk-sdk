@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as configurator from './application/default_configurator';
-
-export { Application } from './application/application';
+export { Application, ApplicationConfig } from './application/application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
 export { BaseModule } from './modules/base_module';
-export { configurator };
+export { GenesisBlockJSON } from './application/node/node';

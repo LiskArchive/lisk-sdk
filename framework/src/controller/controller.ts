@@ -13,12 +13,12 @@
  */
 
 import * as path from 'path';
+import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import { systemDirs } from '../application/system_dirs';
 import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
-import { validateModuleSpec } from '../application/validator';
 import { Logger } from '../application/logger';
 import { SocketPaths } from './types';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
@@ -64,6 +64,30 @@ interface ModuleOptions {
 export interface ModulesOptions {
 	[key: string]: ModuleOptions;
 }
+
+const validateModuleSpec = (moduleSpec: Partial<BaseModule>): void => {
+	assert(
+		(moduleSpec.constructor as typeof BaseModule).alias,
+		'Module alias is required.',
+	);
+	assert(
+		(moduleSpec.constructor as typeof BaseModule).info.name,
+		'Module name is required.',
+	);
+	assert(
+		(moduleSpec.constructor as typeof BaseModule).info.author,
+		'Module author is required.',
+	);
+	assert(
+		(moduleSpec.constructor as typeof BaseModule).info.version,
+		'Module version is required.',
+	);
+	assert(moduleSpec.defaults, 'Module default options are required.');
+	assert(moduleSpec.events, 'Module events are required.');
+	assert(moduleSpec.actions, 'Module actions are required.');
+	assert(moduleSpec.load, 'Module load action is required.');
+	assert(moduleSpec.unload, 'Module unload actions is required.');
+};
 
 export class Controller {
 	public readonly logger: Logger;

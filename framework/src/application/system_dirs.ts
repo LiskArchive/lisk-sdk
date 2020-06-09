@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as path from 'path';
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
 export const systemDirs = (appLabel: string, rootPath: string) => ({
-	root: `${rootPath}/${appLabel}/`,
-	data: `${rootPath}/${appLabel}/data`,
-	tmp: `${rootPath}/${appLabel}/tmp`,
-	logs: `${rootPath}/${appLabel}/logs`,
-	sockets: `${rootPath}/${appLabel}/tmp/sockets`,
-	pids: `${rootPath}/${appLabel}/tmp/pids`,
+	root: path.join(rootPath, appLabel),
+	data: path.join(rootPath, appLabel, 'data'),
+	tmp: path.join(rootPath, appLabel, 'tmp'),
+	logs: path.join(rootPath, appLabel, 'logs'),
+	sockets: path.join(rootPath, appLabel, 'tmp', 'sockets'),
+	pids: path.join(rootPath, appLabel, 'tmp', 'pids'),
 });

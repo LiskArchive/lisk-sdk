@@ -11,6 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// eslint-disable-next-line
+/// <reference path="../../external_types/pm2-axon/index.d.ts" />
+// eslint-disable-next-line
+/// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
 
 import { EventEmitter2 } from 'eventemitter2';
 import * as axon from 'pm2-axon';

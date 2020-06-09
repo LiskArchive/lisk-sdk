@@ -13,10 +13,10 @@
  */
 
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
-import * as os from 'os';
 import {
 	TransferTransaction,
 	DelegateTransaction,
@@ -30,21 +30,24 @@ import {
 import { Contexter } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { validator as liskValidator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
 import { Controller, ModulesOptions } from '../controller/controller';
 import { version } from '../version';
-import * as validator from './validator';
-import * as configurator from './default_configurator';
-import { genesisBlockSchema, constantsSchema } from './schema';
+import {
+	genesisBlockSchema,
+	constantsSchema,
+	mergeDeep,
+	applicationConfigSchema,
+} from './schema';
 import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
 import { Logger, createLogger } from './logger';
 
-import { DuplicateAppInstanceError } from '../errors';
+import { DuplicateAppInstanceError, SchemaValidationError } from '../errors';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 import { ActionInfoObject } from '../controller/action';
 import { NodeConstants, GenesisBlockJSON } from './node/node';
@@ -102,34 +105,34 @@ export interface ApplicationConfig {
 		enabled: boolean;
 	};
 	rootPath: string;
-	readonly forging: {
-		readonly waitThreshold: number;
-		readonly delegates: DelegateConfig[];
-		readonly force?: boolean;
-		readonly defaultPassword?: string;
+	forging: {
+		waitThreshold: number;
+		delegates: DelegateConfig[];
+		force?: boolean;
+		defaultPassword?: string;
 	};
-	readonly network: NetworkConfig;
-	readonly logger: {
+	network: NetworkConfig;
+	logger: {
 		logFileName: string;
 		fileLogLevel: string;
 		consoleLogLevel: string;
 	};
 	genesisConfig: {
-		readonly epochTime: string;
-		readonly blockTime: number;
-		readonly maxPayloadLength: number;
-		readonly reward: {
-			readonly milestones: string[];
-			readonly offset: number;
-			readonly distance: number;
+		epochTime: string;
+		blockTime: number;
+		maxPayloadLength: number;
+		reward: {
+			milestones: string[];
+			offset: number;
+			distance: number;
 		};
 	};
 	constants: {
 		[key: string]: {} | string | number | undefined;
-		readonly activeDelegates: number;
-		readonly standbyDelegates: number;
-		readonly totalAmount: string;
-		readonly delegateListRoundOffset: number;
+		activeDelegates: number;
+		standbyDelegates: number;
+		totalAmount: string;
+		delegateListRoundOffset: number;
 	};
 	modules: ModulesOptions;
 }
@@ -156,7 +159,7 @@ export class Application {
 		genesisBlock: GenesisBlockJSON,
 		config: Partial<ApplicationConfig> = {},
 	) {
-		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
+		const errors = validator.validate(genesisBlockSchema, genesisBlock);
 		if (errors.length) {
 			throw errors;
 		}
@@ -164,30 +167,37 @@ export class Application {
 
 		// Don't change the object parameters provided
 		// eslint-disable-next-line no-param-reassign
-		config.rootPath = config.rootPath?.replace('~', os.homedir);
-		let appConfig = _.cloneDeep(config);
+		const appConfig = _.cloneDeep(applicationConfigSchema.default);
 
 		appConfig.label =
-			appConfig.label ??
+			config.label ??
 			`lisk-${this._genesisBlock.header.transactionRoot.slice(0, 7)}`;
 
-		appConfig = configurator.getConfig(appConfig, {
-			failOnInvalidArg: process.env.NODE_ENV !== 'test',
-		}) as ApplicationConfig;
+		mergeDeep(appConfig, config);
+		appConfig.rootPath = appConfig.rootPath.replace('~', os.homedir());
+		const applicationConfigErrors = validator.validate(
+			applicationConfigSchema,
+			appConfig,
+		);
+		if (applicationConfigErrors.length) {
+			throw new Error(applicationConfigErrors.map(e => e.message).join(','));
+		}
 
-		// These constants are readonly we are loading up their default values
-		// In additional validating those values so any wrongly changed value
-		// by us can be catch on application startup
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const constants = validator.parseEnvArgAndValidate(constantsSchema, {});
+		const constantError = validator.validate(
+			constantsSchema,
+			constantsSchema.default,
+		);
+		if (constantError.length) {
+			throw new Error(applicationConfigErrors.map(e => e.message).join(','));
+		}
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
 		this.constants = {
-			...constants,
+			...constantsSchema.default,
 			...appConfig.genesisConfig,
 		} as NodeConstants;
-		this.config = appConfig as ApplicationConfig;
+		this.config = (appConfig as unknown) as ApplicationConfig;
 
 		// Private members
 		this._modules = {};
@@ -256,7 +266,13 @@ export class Application {
 			`A transaction type "${Transaction.TYPE}" is already registered.`,
 		);
 
-		validator.validate(transactionInterface, Transaction.prototype);
+		const schemaError = validator.validate(
+			transactionInterface,
+			Transaction.prototype,
+		);
+		if (schemaError.length) {
+			throw new SchemaValidationError((schemaError as unknown) as Error[]);
+		}
 
 		if (matcher) {
 			Object.defineProperty(Transaction.prototype, 'matcher', {

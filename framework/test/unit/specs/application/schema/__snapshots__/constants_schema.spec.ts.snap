@@ -15,9 +15,8 @@ Object {
       "activeDelegates": Object {
         "const": 101,
         "description": "The default number of delegates allowed to forge a block",
-        "format": "oddInteger",
         "min": 1,
-        "type": "number",
+        "type": "integer",
       },
       "delegateListRoundOffset": Object {
         "description": "Number of rounds before in which the list of delegates will be used for the current round - i.e. The set of active delegates that will be chosen to forge during round \`r\` will be taken from the list generated in the end of round \`r - delegateListRoundOffset\`",
