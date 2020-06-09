@@ -14,8 +14,8 @@
 import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
 import { Account, DefaultAsset } from '../account';
 import { DataAccess } from '../data_access';
-import { stateDiffSchema } from '../schema';
 import { calculateDiff } from '../diff';
+import { StateDiff } from '../types';
 import { BufferMap } from '../utils/buffer_map';
 import { BufferSet } from '../utils/buffer_set';
 import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
@@ -143,16 +143,31 @@ export class AccountStore {
 		this._updatedKeys.add(primaryValue);
 	}
 
-	public finalize(batch: BatchChain): void {
+	public finalize(batch: BatchChain): StateDiff {
+		const stateDiff = {} as StateDiff;
+
 		for (const account of this._data.values()) {
 			if (this._updatedKeys.has(account.address)) {
 				const encodedFinalAccount = this._dataAccess.encodeAccount(account);
-				const encodedInitialAccount = this._dataAccess.encodeAccount(this._initialAccountValue);
+				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(account.address)}`;
 				batch.put(
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(account.address)}`,
-					encodedAccount,
+					dbKey,
+					encodedFinalAccount,
 				);
+
+				if (Object.entries(this._initialAccountValue).length) {
+					const encodedInitialAccount = this._dataAccess.encodeAccount(this._initialAccountValue);
+					const diff = calculateDiff(encodedInitialAccount, encodedFinalAccount);
+					stateDiff.updated.push({
+						key: dbKey,
+						value: diff,
+					});
+				} else {
+					stateDiff.created.push(dbKey)
+				}
 			}
 		}
+
+		return stateDiff;
 	}
 }
