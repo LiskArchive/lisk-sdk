@@ -13,9 +13,10 @@
  */
 
 import { BatchChain } from '@liskhq/lisk-db';
-import { BlockHeader } from '../types';
+import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
+import { calculateDiff } from '../diff';
 
 interface KeyValuePair {
 	[key: string]: Buffer | undefined;
@@ -33,6 +34,7 @@ export class ConsensusStateStore {
 	private _originalUpdatedKeys: Set<string>;
 	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	private _initialValue = Buffer.alloc(0);
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -72,6 +74,7 @@ export class ConsensusStateStore {
 		if (dbValue === undefined) {
 			return dbValue;
 		}
+		this._initialValue = dbValue;
 		this._data[key] = dbValue;
 
 		return this._data[key];
@@ -90,13 +93,29 @@ export class ConsensusStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public finalize(batch: BatchChain): void {
+	public finalize(batch: BatchChain): StateDiff {
 		if (this._updatedKeys.size === 0) {
-			return;
+			return {} as StateDiff;
 		}
 
+		const stateDiff = {} as StateDiff;
+
 		for (const key of Array.from(this._updatedKeys)) {
-			batch.put(`${DB_KEY_CONSENSUS_STATE}:${key}`, this._data[key] as Buffer);
+			const dbKey = `${DB_KEY_CONSENSUS_STATE}:${key}`;
+			const updatedValue = this._data[key] as Buffer
+			batch.put(dbKey, updatedValue);
+
+			if (this._initialValue.length) {
+				const diff = calculateDiff(this._initialValue, updatedValue);
+				stateDiff.updated.push({
+					key: dbKey,
+					value: diff,
+				});
+			} else {
+				stateDiff.created.push(dbKey)
+			}
 		}
+
+		return stateDiff;
 	}
 }
