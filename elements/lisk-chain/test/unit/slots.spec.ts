@@ -16,41 +16,30 @@ import { Slots } from '../../src/slots';
 
 describe('Slots', () => {
 	const DEFAULT_BLOCK_TIME = 10;
-	const DEFAULT_EPOCH_TIME = new Date(
-		Date.UTC(2016, 4, 24, 17, 0, 0, 0),
-	).toISOString();
-	const TIME_AFTER_EPOCH = 10000;
+	const SEC_IN_MS = 1000;
+	const DEFAULT_TIME = new Date(2020, 5, 9, 11, 0, 0, 0).toISOString();
 
 	const slots = new Slots({
-		epochTime: DEFAULT_EPOCH_TIME,
 		interval: DEFAULT_BLOCK_TIME,
 	});
 
 	beforeEach(() => {
-		jest
-			.spyOn(Date, 'now')
-			.mockReturnValue(
-				new Date(DEFAULT_EPOCH_TIME).getTime() + TIME_AFTER_EPOCH,
-			);
-	});
-
-	describe('getEpochTime', () => {
-		it('should return time after epoch in second', () => {
-			expect(slots.getEpochTime()).toBe(10);
-		});
+		jest.spyOn(Date, 'now').mockReturnValue(new Date(DEFAULT_TIME).getTime());
 	});
 
 	describe('getRealTime', () => {
 		it('should return time after epoch in second', () => {
-			expect(slots.getRealTime(1000)).toBe(
-				new Date(DEFAULT_EPOCH_TIME).getTime() + 1000 * 1000,
+			expect(slots.getRealTime(new Date(DEFAULT_TIME).getTime())).toBe(
+				new Date(DEFAULT_TIME).getTime() * 1000,
 			);
 		});
 	});
 
 	describe('getSlotNumber', () => {
 		it('should return correct slot number from default epoch', () => {
-			expect(slots.getSlotNumber()).toBe(1);
+			expect(slots.getSlotNumber()).toBe(
+				new Date(DEFAULT_TIME).getTime() / SEC_IN_MS / DEFAULT_BLOCK_TIME,
+			);
 		});
 
 		it('should return correct slot number from input epoch', () => {
@@ -66,7 +55,9 @@ describe('Slots', () => {
 
 	describe('getNextSlot', () => {
 		it('should return correct next slot', () => {
-			expect(slots.getNextSlot()).toBe(2);
+			const expectedNextSlot =
+				new Date(DEFAULT_TIME).getTime() / SEC_IN_MS / DEFAULT_BLOCK_TIME + 1;
+			expect(slots.getNextSlot()).toBe(expectedNextSlot);
 		});
 	});
 
