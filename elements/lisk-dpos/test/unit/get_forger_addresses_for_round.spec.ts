@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import { delegatePublicKeys } from '../utils/round_delegates';
@@ -59,10 +59,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 			],
 		};
 
-		const forgersList = codec.encode(
-			(forgerListSchema as unknown) as Schema,
-			(forgerListObject as unknown) as GenericObject,
-		);
+		const forgersList = codec.encode(forgerListSchema, forgerListObject);
 
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)
@@ -102,10 +99,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 			],
 		};
 
-		const forgersList = codec.encode(
-			(forgerListSchema as unknown) as Schema,
-			(forgerListObject as unknown) as GenericObject,
-		);
+		const forgersList = codec.encode(forgerListSchema, forgerListObject);
 
 		when(chainStub.dataAccess.getConsensusState)
 			.calledWith(CONSENSUS_STATE_DELEGATE_FORGERS_LIST)

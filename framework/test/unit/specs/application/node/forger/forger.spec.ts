@@ -19,7 +19,7 @@ import {
 	getPrivateAndPublicKeyFromPassphrase,
 	hashOnion,
 } from '@liskhq/lisk-cryptography';
-import { codec, GenericObject } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { Forger } from '../../../../../../src/application/node/forger';
 import {
 	registeredHashOnionsStoreSchema,
@@ -902,10 +902,7 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						codec.encode(
-							usedHashOnionsStoreSchema,
-							(usedHashOnions as never) as GenericObject,
-						) as never,
+						codec.encode(usedHashOnionsStoreSchema, usedHashOnions) as never,
 					);
 
 				// Act
@@ -935,10 +932,7 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						codec.encode(
-							usedHashOnionsStoreSchema,
-							(usedHashOnion as never) as GenericObject,
-						) as never,
+						codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never,
 					);
 
 				// Act
@@ -1158,10 +1152,7 @@ describe('forger', () => {
 				when(dbStub.get)
 					.calledWith(DB_KEY_FORGER_USED_HASH_ONION)
 					.mockResolvedValue(
-						codec.encode(
-							usedHashOnionsStoreSchema,
-							(usedHashOnion as unknown) as GenericObject,
-						) as never,
+						codec.encode(usedHashOnionsStoreSchema, usedHashOnion) as never,
 					);
 
 				// Act
@@ -1210,7 +1201,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionInputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionInput as unknown) as GenericObject,
+					usedHashOnionInput,
 				);
 
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
@@ -1240,7 +1231,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionOutputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionOutput as unknown) as GenericObject,
+					usedHashOnionOutput,
 				);
 
 				when(dbStub.get)
@@ -1294,7 +1285,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionInputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionInput as unknown) as GenericObject,
+					usedHashOnionInput,
 				);
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
 					usedHashOnions: [
@@ -1323,7 +1314,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionOutputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionOutput as unknown) as GenericObject,
+					usedHashOnionOutput,
 				);
 
 				when(dbStub.get)
@@ -1368,7 +1359,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionInputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionInput as unknown) as GenericObject,
+					usedHashOnionInput,
 				);
 
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
@@ -1391,7 +1382,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionOutputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionOutput as unknown) as GenericObject,
+					usedHashOnionOutput,
 				);
 
 				when(dbStub.get)
@@ -1433,7 +1424,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionInputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionInput as unknown) as GenericObject,
+					usedHashOnionInput,
 				);
 
 				const usedHashOnionOutput: UsedHashOnionStoreObject = {
@@ -1456,7 +1447,7 @@ describe('forger', () => {
 				};
 				const usedHashOnionOutputBuffer = codec.encode(
 					usedHashOnionsStoreSchema,
-					(usedHashOnionOutput as unknown) as GenericObject,
+					usedHashOnionOutput,
 				);
 
 				when(dbStub.get)

@@ -22,11 +22,12 @@ import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
 
 import {
+	Schema,
 	CompiledSchema,
 	CompiledSchemas,
 	CompiledSchemasArray,
 	GenericObject,
-	Schema,
+	ValidatedSchema,
 	SchemaProps,
 } from './types';
 
@@ -83,18 +84,22 @@ export class Codec {
 		validateSchema(schema);
 
 		const schemaName = schema.$id;
-		this._compileSchemas[schemaName] = this._compileSchema(schema, [], []);
+		this._compileSchemas[schemaName] = this._compileSchema(
+			schema as ValidatedSchema,
+			[],
+			[],
+		);
 
 		return true;
 	}
 
-	public encode(schema: Schema, message: GenericObject): Buffer {
+	public encode(schema: Schema, message: object): Buffer {
 		if (this._compileSchemas[schema.$id] === undefined) {
 			this.addSchema(schema);
 		}
 
 		const compiledSchema = this._compileSchemas[schema.$id];
-		const res = writeObject(compiledSchema, message, []);
+		const res = writeObject(compiledSchema, message as GenericObject, []);
 		return Buffer.concat(res[0]);
 	}
 
@@ -109,7 +114,7 @@ export class Codec {
 	}
 
 	private _compileSchema(
-		schema: Schema | SchemaProps,
+		schema: ValidatedSchema | SchemaProps,
 		compiledSchema: CompiledSchemasArray,
 		dataPath: string[],
 	): CompiledSchemasArray {

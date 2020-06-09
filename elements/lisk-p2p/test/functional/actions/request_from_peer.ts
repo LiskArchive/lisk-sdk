@@ -26,7 +26,7 @@ describe('P2P.requestFromPeer', () => {
 
 		for (const p2p of p2pNodeList) {
 			// eslint-disable-next-line no-loop-func
-			p2p.on('requestReceived', request => {
+			p2p.on('EVENT_REQUEST_RECEIVED', request => {
 				if (request.procedure === 'foo') {
 					collectedMessages.push({
 						nodePort: p2p.nodeInfo.wsPort,

@@ -21,13 +21,21 @@ export interface GenericObject {
 export interface SchemaPair {
 	readonly [key: string]: SchemaProps;
 }
+
 export interface Schema {
 	readonly $id: string;
-	readonly $schema?: string;
+	readonly type: string;
+	readonly properties: object;
+}
+
+export interface ValidatedSchema {
+	readonly $id: string;
+	readonly $schema: string;
 	readonly type: string;
 	readonly required?: string[];
 	properties: SchemaPair;
 }
+
 export interface SchemaProps {
 	readonly fieldNumber: number;
 	readonly type?: string;
