@@ -15,6 +15,7 @@
 import { EventEmitter } from 'events';
 import * as socketClusterClient from 'socketcluster-client';
 import { SCServerSocket } from 'socketcluster-server';
+import { codec } from '@liskhq/lisk-codec';
 
 import {
 	DEFAULT_PRODUCTIVITY,
@@ -56,6 +57,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	ProtocolPeerInfo,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -66,6 +68,8 @@ import {
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../utils';
+
+import { peersListResponseSchema, peerInfoSchema, nodeInfoSchema } from '../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -127,6 +131,10 @@ export class Peer extends EventEmitter {
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
+		// Add peer and peerList schema
+		codec.addSchema(peersListResponseSchema);
+		codec.addSchema(peerInfoSchema);
+
 		this._peerInfo = this._initializeInternalState(
 			peerInfo,
 		) as ConnectedPeerInfo;
@@ -340,12 +348,15 @@ export class Peer extends EventEmitter {
 
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
-			const response: P2PResponsePacket = await this.request({
+			const response = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
-			});
+			}) as P2PResponsePacket;
+
+			const { success, peers } = codec.decode(peersListResponseSchema, Buffer.from((response.data as { data: string }).data, 'base64'));
+			const decodedPeers = peers.map((peer: Buffer )=> codec.decode(peerInfoSchema, peer));
 
 			const validatedPeers = validatePeerInfoList(
-				response.data,
+				{ success, peers: decodedPeers as ProtocolPeerInfo[]},
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
@@ -395,7 +406,8 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			this._updateFromProtocolPeerInfo(response.data);
+			const decodedNodeInfo = codec.decode(nodeInfoSchema, Buffer.from((response.data as { data: string}).data, 'base64'));
+			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
 
@@ -514,7 +526,8 @@ export class Peer extends EventEmitter {
 	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			this._updateFromProtocolPeerInfo(message.data);
+			const decodedNodeInfo = codec.decode(nodeInfoSchema, Buffer.from((message.data as {data: string}).data, 'base64'));
+			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
 			if (error instanceof InvalidPeerInfoError) {
