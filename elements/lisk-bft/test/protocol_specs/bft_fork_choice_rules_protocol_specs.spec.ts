@@ -45,7 +45,6 @@ describe('bft', () => {
 
 		beforeEach(() => {
 			const slots = new Slots({
-				epochTime: constants.EPOCH_TIME,
 				interval: constants.BLOCK_TIME,
 			});
 			chainStub = {
@@ -77,9 +76,6 @@ describe('bft', () => {
 			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
 					it('should have accurate fork status', () => {
-						const epochTime = testCase.config
-							? testCase.config.epochTime
-							: forkChoiceSpecs.config.epochTime;
 						const interval = testCase.config
 							? testCase.config.blockInterval
 							: forkChoiceSpecs.config.blockInterval;
@@ -87,12 +83,11 @@ describe('bft', () => {
 							? testCase.config.lastBlock
 							: forkChoiceSpecs.config.lastBlock;
 
-						(chainStub.slots as any)._epochTime = new Date(epochTime);
 						(chainStub.slots as any)._interval = interval;
 
 						Date.now = jest.fn(
 							// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,
+							() => testCase.input.receivedBlock.receivedAt * 1000,
 						);
 
 						const {
