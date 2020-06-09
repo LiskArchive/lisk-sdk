@@ -25,6 +25,10 @@ export class Slots {
 		this._interval = interval;
 	}
 
+	public blockTime(): number {
+		return this._interval;
+	}
+
 	// eslint-disable-next-line class-methods-use-this
 	public getRealTime(time: number): number {
 		return time * SEC_IN_MS;
