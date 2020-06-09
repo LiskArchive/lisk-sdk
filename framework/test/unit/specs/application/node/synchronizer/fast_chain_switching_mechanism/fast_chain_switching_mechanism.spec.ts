@@ -85,7 +85,6 @@ describe('fast_chain_switching_mechanism', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
 

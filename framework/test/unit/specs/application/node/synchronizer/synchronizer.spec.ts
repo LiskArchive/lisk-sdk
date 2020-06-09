@@ -94,7 +94,6 @@ describe('Synchronizer', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
 

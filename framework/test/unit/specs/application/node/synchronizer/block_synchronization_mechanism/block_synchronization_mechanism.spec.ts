@@ -97,7 +97,6 @@ describe('block_synchronization_mechanism', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
 
@@ -241,13 +240,11 @@ describe('block_synchronization_mechanism', () => {
 
 		highestCommonBlock = genesisBlock.header;
 		requestedBlocks = [
-			...new Array(10)
-				.fill(0)
-				.map((_, index) =>
-					createValidDefaultBlock({
-						header: { height: highestCommonBlock.height + 1 + index },
-					}),
-				),
+			...new Array(10).fill(0).map((_, index) =>
+				createValidDefaultBlock({
+					header: { height: highestCommonBlock.height + 1 + index },
+				}),
+			),
 			aBlock,
 		];
 
@@ -522,13 +519,11 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				requestedBlocks = [
-					...new Array(10)
-						.fill(0)
-						.map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: highestCommonBlock.height + 1 + index },
-							}),
-						),
+					...new Array(10).fill(0).map((_, index) =>
+						createValidDefaultBlock({
+							header: { height: highestCommonBlock.height + 1 + index },
+						}),
+					),
 					receivedBlock,
 				];
 
@@ -604,7 +599,7 @@ describe('block_synchronization_mechanism', () => {
 
 				expectApplyPenaltyAndRestartIsCalled(
 					aBlock,
-					"Peer did not provide its last block",
+					'Peer did not provide its last block',
 				);
 			});
 		});
@@ -728,13 +723,11 @@ describe('block_synchronization_mechanism', () => {
 						height: bftModule.finalizedHeight - 1,
 					}) as any; // height: 0
 					requestedBlocks = [
-						...new Array(10)
-							.fill(0)
-							.map((_, index) =>
-								createValidDefaultBlock({
-									header: { height: highestCommonBlock.height + 1 + index },
-								}),
-							),
+						...new Array(10).fill(0).map((_, index) =>
+							createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 + index },
+							}),
+						),
 						aBlock,
 					];
 
@@ -833,13 +826,11 @@ describe('block_synchronization_mechanism', () => {
 			it('should request blocks and apply them', async () => {
 				requestedBlocks = [
 					// From height 2 (highestCommonBlock.height + 1) to 9 (aBlock.height - 1)
-					...new Array(8)
-						.fill(0)
-						.map((_, index) =>
-							createValidDefaultBlock({
-								header: { height: highestCommonBlock.height + 1 + index },
-							}),
-						),
+					...new Array(8).fill(0).map((_, index) =>
+						createValidDefaultBlock({
+							header: { height: highestCommonBlock.height + 1 + index },
+						}),
+					),
 					aBlock,
 					...new Array(10) // Extra blocks. They will be truncated
 						.fill(0)
@@ -963,21 +954,17 @@ describe('block_synchronization_mechanism', () => {
 					});
 
 					requestedBlocks = [
-						...new Array(10)
-							.fill(0)
-							.map((_, index) =>
-								createValidDefaultBlock({
-									header: { height: highestCommonBlock.height + 1 + index },
-								}),
-							),
+						...new Array(10).fill(0).map((_, index) =>
+							createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 + index },
+							}),
+						),
 						aBlock,
-						...new Array(10)
-							.fill(0)
-							.map((_, index) =>
-								createValidDefaultBlock({
-									header: { height: aBlock.header.height + 1 + index },
-								}),
-							),
+						...new Array(10).fill(0).map((_, index) =>
+							createValidDefaultBlock({
+								header: { height: aBlock.header.height + 1 + index },
+							}),
+						),
 					];
 
 					const tempTableBlocks = [
@@ -1122,21 +1109,17 @@ describe('block_synchronization_mechanism', () => {
 					});
 
 					requestedBlocks = [
-						...new Array(10)
-							.fill(0)
-							.map((_, index) =>
-								createValidDefaultBlock({
-									header: { height: highestCommonBlock.height + 1 + index },
-								}),
-							),
+						...new Array(10).fill(0).map((_, index) =>
+							createValidDefaultBlock({
+								header: { height: highestCommonBlock.height + 1 + index },
+							}),
+						),
 						aBlock,
-						...new Array(10)
-							.fill(0)
-							.map((_, index) =>
-								createValidDefaultBlock({
-									header: { height: aBlock.header.height + 1 + index },
-								}),
-							),
+						...new Array(10).fill(0).map((_, index) =>
+							createValidDefaultBlock({
+								header: { height: aBlock.header.height + 1 + index },
+							}),
+						),
 					];
 
 					for (const expectedPeer of peersList.expectedSelection) {
