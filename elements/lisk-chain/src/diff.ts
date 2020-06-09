@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-type HistoryType = [string, number];
+interface DiffHistory {
+	code: string;
+	line: number;
+}
 
 interface Frontier {
 	[key: string]: {
 		x: number;
-		history: HistoryType[];
+		history: DiffHistory[];
 	};
 }
 
@@ -25,7 +28,7 @@ interface Frontier {
  * This function is an implementation of "An O(ND) Difference Algorithm and its Variations" (Myers, 1986)
  * See http://www.xmailserver.org/diff2.pdf
  *  */
-const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
+const diffAlgo = (initial: Buffer, final: Buffer): DiffHistory[] => {
 	const one = (idx: number): number => idx - 1;
 	const initialBytesLength = initial.length;
 	const finalBytesLength = final.length;
@@ -34,17 +37,17 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 	if (initialBytesLength === 0) {
 		const diff = [];
 		for (const byte of final) {
-			diff.push(['+', byte]);
+			diff.push({ code: '+', line: byte });
 		}
-		return diff as HistoryType[];
+		return diff as DiffHistory[];
 	}
 
 	if (finalBytesLength === 0) {
 		const diff = [];
 		for (const byte of initial) {
-			diff.push(['-', byte]);
+			diff.push({ code: '-', line: byte });
 		}
-		return diff as HistoryType[];
+		return diff as DiffHistory[];
 	}
 
 	/**
@@ -57,7 +60,7 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 	 */
 	for (let d = 0; d < initialBytesLength + finalBytesLength + 1; d += 1) {
 		for (let k = -d; k < d + 1; k += 2) {
-			let history: HistoryType[] = [];
+			let history: DiffHistory[] = [];
 			/**
 			 * This flag determines whether our next search will go down or right in the edit graph.
 			 * We should go down if we are on the left edge (k === -d) to make sure if the left edge is fully explored.
@@ -89,9 +92,9 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 			 * when we move away.
 			 */
 			if (y >= 0 && y <= finalBytesLength && goDown) {
-				history.push(['+', final[one(y)]]);
+				history.push({ code: '+', line: final[one(y)] });
 			} else if (x >= 0 && x <= initialBytesLength) {
-				history.push(['-', initial[one(x)]]);
+				history.push({ code: '-', line: initial[one(x)] });
 			}
 			/**
 			 * Cover as many common lines as we can to maximize it in the output.
@@ -103,7 +106,7 @@ const diffAlgo = (initial: Buffer, final: Buffer): HistoryType[] => {
 			) {
 				x += 1;
 				y += 1;
-				history.push(['=', initial[one(x)]]);
+				history.push({ code: '=', line: initial[one(x)] });
 			}
 
 			/**
@@ -205,10 +208,10 @@ const diffCommonSuffix = (buffer1: Buffer, buffer2: Buffer): number => {
 export const calculateDiff = (
 	initial: Buffer,
 	final: Buffer,
-): HistoryType[] => {
+): DiffHistory[] => {
 	// When both the buffers are equal then return all '=' history
 	if (initial.equals(final)) {
-		return [['=', initial.length]];
+		return [{ code: '=', line: initial.length }];
 	}
 	const commonPrefix = diffCommonPrefix(initial, final);
 	const strippedPrefixInitial = initial.slice(commonPrefix, initial.length);
@@ -229,15 +232,16 @@ export const calculateDiff = (
 	const longDiff = diffAlgo(strippedInitial, strippedFinal);
 
 	// Add common prefix to the reduced array in the start
-	const reducedDiff = commonPrefix > 0 ? [['=', commonPrefix]] : [];
+	const reducedDiff =
+		commonPrefix > 0 ? [{ code: '=', line: commonPrefix }] : [];
 	let count = 0;
 
-	for (const b of longDiff) {
-		if (b[0] === '+' || b[0] === '-') {
+	for (const { code, line } of longDiff) {
+		if (code === '+' || code === '-') {
 			if (count > 0) {
-				reducedDiff.push(['=', count]);
+				reducedDiff.push({ code: '=', line: count });
 			}
-			reducedDiff.push(b);
+			reducedDiff.push({ code, line });
 			count = 0;
 		} else {
 			count += 1;
@@ -245,30 +249,30 @@ export const calculateDiff = (
 	}
 	// When commonSuffix or last counts are greater zero then combine them
 	if (count > 0 || commonSuffix > 0) {
-		reducedDiff.push(['=', count + commonSuffix]);
+		reducedDiff.push({ code: '=', line: count + commonSuffix });
 	}
 
-	return reducedDiff as HistoryType[];
+	return reducedDiff as DiffHistory[];
 };
 
 /**
  * This function takes the current buffer and uses diff to revert back to its original buffer
  */
-export const undo = (finalBuffer: Buffer, diffArray: HistoryType[]): Buffer => {
+export const undo = (finalBuffer: Buffer, diffArray: DiffHistory[]): Buffer => {
 	let finalBytes = Buffer.from(finalBuffer);
 	let res = Buffer.from([]);
 
-	for (const [op, diff] of diffArray.reverse()) {
-		if (op === '=') {
+	for (const { code, line } of diffArray.reverse()) {
+		if (code === '=') {
 			const unchangedBytes = finalBytes.slice(
-				finalBytes.length - diff,
+				finalBytes.length - line,
 				finalBytes.length,
 			);
-			finalBytes = finalBytes.slice(0, finalBytes.length - diff);
+			finalBytes = finalBytes.slice(0, finalBytes.length - line);
 			res = Buffer.concat([unchangedBytes, res]);
-		} else if (op === '-') {
-			res = Buffer.concat([Buffer.from([diff]), res]);
-		} else if (op === '+') {
+		} else if (code === '-') {
+			res = Buffer.concat([Buffer.from([line]), res]);
+		} else if (code === '+') {
 			finalBytes = finalBytes.slice(0, finalBytes.length - 1);
 		} else {
 			throw new Error('Diff contains unexpected symbol');

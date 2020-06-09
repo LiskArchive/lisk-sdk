@@ -52,7 +52,7 @@ export class TransactionError extends Error {
 }
 
 interface ErrorObject {
-	readonly dataPath: string;
+	readonly dataPath?: string;
 	readonly message?: string;
 }
 
@@ -87,10 +87,10 @@ export const convertToAssetError = (
 		error =>
 			new TransactionError(
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition,@typescript-eslint/restrict-template-expressions
-				`'${error.dataPath || '.asset'}' ${error.message}`,
+				`'${error.dataPath ?? '.asset'}' ${error.message}`,
 				id,
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				error.dataPath || '.asset',
+				error.dataPath ?? '.asset',
 			),
 	);
 };
