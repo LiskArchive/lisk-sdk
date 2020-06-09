@@ -13,7 +13,7 @@
  */
 
 import * as Debug from 'debug';
-import { LiskValidationError } from '../errors';
+import { LiskValidationError, ErrorObject } from '../errors';
 import {
 	isBoolean,
 	isBytes,
@@ -51,6 +51,16 @@ interface AjvContext {
 interface KVPair {
 	[key: string]: unknown;
 }
+interface ValidateFunctionContext {
+	errors?: ErrorObject[];
+	(
+		data: Buffer | bigint | string | number,
+		dataPath?: string,
+		parentData?: object,
+		parentDataProperty?: string | number,
+		rootData?: object,
+	): boolean;
+}
 
 const compile = (
 	value: string,
@@ -73,7 +83,7 @@ const compile = (
 		]);
 	}
 
-	return (
+	const validate: ValidateFunctionContext = (
 		data: Buffer | bigint | string | number,
 		_dataPath?: string,
 		_parentData?: object,
@@ -89,12 +99,28 @@ const compile = (
 			}
 			const parent = parentSchema as KVPair;
 			if (typeof parent.minLength === 'number') {
-				if ((data as Buffer).length < parent.minLength) {
+				const { length } = data as Buffer;
+				if (length < parent.minLength) {
+					validate.errors = [
+						{
+							keyword: 'dataType',
+							message: 'minLength does not satisfied',
+							params: { dataType: value, minLength: parent.minLength, length },
+						},
+					];
 					return false;
 				}
 			}
 			if (typeof parent.maxLength === 'number') {
-				if ((data as Buffer).length > parent.maxLength) {
+				const { length } = data as Buffer;
+				if (length > parent.maxLength) {
+					validate.errors = [
+						{
+							keyword: 'dataType',
+							message: 'maxLength does not satisfied',
+							params: { dataType: value, maxLength: parent.maxLength, length },
+						},
+					];
 					return false;
 				}
 			}
@@ -118,11 +144,13 @@ const compile = (
 		// Either "dataType" or "type" can be presented in schema
 		return true;
 	};
+
+	return validate;
 };
 
 export const dataTypeKeyword = {
 	compile,
-	errors: true,
+	errors: 'full',
 	modifying: false,
 	metaSchema,
 };
