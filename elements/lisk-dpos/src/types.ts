@@ -83,7 +83,10 @@ export interface DPoSProcessingOptions {
 }
 
 export interface Chain {
-	readonly slots: { readonly getSlotNumber: (epochTime?: number) => number };
+	readonly slots: {
+		readonly getSlotNumber: (epochTime?: number) => number;
+		readonly blockTime: () => number;
+	};
 	readonly dataAccess: {
 		getConsensusState(key: string): Promise<Buffer | undefined>;
 		getBlockHeadersByHeightBetween(
