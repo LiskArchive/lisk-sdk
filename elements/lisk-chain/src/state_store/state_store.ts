@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { BatchChain } from '@liskhq/lisk-db';
-import { BlockHeader } from '../types';
+import { BlockHeader, StateDiff } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
 import { ConsensusStateStore } from './consensus_state_store';
 import { DataAccess } from '../data_access';
+import { DB_KEY_DIFF_STATE } from '../data_access/constants';
+import { stateDiffSchema } from '../schema';
 
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
@@ -61,22 +64,33 @@ export class StateStore {
 	}
 
 	public finalize(height: string, batch: BatchChain): void {
-		this.account.finalize(batch);
-		this.chain.finalize(batch);
-		this.consensus.finalize(batch);
+		const accountStateDiff = this.account.finalize(batch);
+		const chainStateDiff = this.chain.finalize(batch);
+		const consensusStateDiff = this.consensus.finalize(batch);
+		this._saveDiff(
+			height,
+			[accountStateDiff, chainStateDiff, consensusStateDiff],
+			batch,
+		);
 	}
 
-	private _saveDiff(height: string, diff: ): void() {
+	// eslint-disable-next-line class-methods-use-this
+	private _saveDiff(
+		height: string,
+		stateDiffs: Array<Readonly<StateDiff>>,
+		batch: BatchChain,
+	): void {
+		const diffToEncode = stateDiffs.reduce(
+			(acc, val) => {
+				acc.updated.push(...val.updated);
+				acc.created.push(...val.created);
+				return acc;
+			},
+			{ updated: [], created: [] },
+		);
 
+		codec.addSchema(stateDiffSchema);
+		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
+		batch.put(`${DB_KEY_DIFF_STATE}${height}`, encodedDiff);
 	}
-}
-
-interface StateDiff {
-	readonly updated: ReadonlyArray<UpdatedDiff>;
-	readonly created: ReadonlyArray<string>;
-}
-
-interface UpdatedDiff {
-	readonly key: string;
-	readonly value: ReadonlyArray<DiffHistory>;
 }
