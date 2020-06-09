@@ -14,6 +14,8 @@
 import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
 import { Account, DefaultAsset } from '../account';
 import { DataAccess } from '../data_access';
+import { stateDiffSchema } from '../schema';
+import { calculateDiff } from '../diff';
 import { BufferMap } from '../utils/buffer_map';
 import { BufferSet } from '../utils/buffer_set';
 import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
@@ -36,6 +38,7 @@ export class AccountStore {
 	private readonly _defualtAsset: object;
 	private readonly _primaryKey = 'address';
 	private readonly _name = 'Account';
+	private _initialAccountValue = {} as Account;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -81,6 +84,7 @@ export class AccountStore {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (elementFromDB) {
 			this._data.set(primaryValue, elementFromDB as Account);
+			this._initialAccountValue = elementFromDB as Account;
 
 			return (new Account(elementFromDB) as unknown) as Account<T>;
 		}
@@ -108,6 +112,7 @@ export class AccountStore {
 				primaryValue,
 			);
 			this._data.set(primaryValue, elementFromDB as Account);
+			this._initialAccountValue = elementFromDB as Account;
 
 			return (new Account(elementFromDB as Account) as unknown) as Account<T>;
 		} catch (error) {
@@ -116,6 +121,7 @@ export class AccountStore {
 			}
 		}
 
+		// If account does not exists, return default account
 		const defaultElement = Account.getDefaultAccount(
 			primaryValue,
 			cloneDeep<T>((this._defualtAsset as unknown) as T),
@@ -140,7 +146,8 @@ export class AccountStore {
 	public finalize(batch: BatchChain): void {
 		for (const account of this._data.values()) {
 			if (this._updatedKeys.has(account.address)) {
-				const encodedAccount = this._dataAccess.encodeAccount(account);
+				const encodedFinalAccount = this._dataAccess.encodeAccount(account);
+				const encodedInitialAccount = this._dataAccess.encodeAccount(this._initialAccountValue);
 				batch.put(
 					`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(account.address)}`,
 					encodedAccount,

@@ -60,9 +60,23 @@ export class StateStore {
 		this.chain.restoreSnapshot();
 	}
 
-	public finalize(batch: BatchChain): void {
+	public finalize(height: string, batch: BatchChain): void {
 		this.account.finalize(batch);
 		this.chain.finalize(batch);
 		this.consensus.finalize(batch);
 	}
+
+	private _saveDiff(height: string, diff: ): void() {
+
+	}
+}
+
+interface StateDiff {
+	readonly updated: ReadonlyArray<UpdatedDiff>;
+	readonly created: ReadonlyArray<string>;
+}
+
+interface UpdatedDiff {
+	readonly key: string;
+	readonly value: ReadonlyArray<DiffHistory>;
 }
