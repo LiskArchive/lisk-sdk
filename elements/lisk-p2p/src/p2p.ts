@@ -14,6 +14,7 @@
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
+import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -69,6 +70,7 @@ import {
 	EVENT_UPDATED_PEER_INFO,
 	REMOTE_EVENT_RPC_GET_NODE_INFO,
 	REMOTE_EVENT_RPC_GET_PEERS_LIST,
+	REMOTE_EVENT_POST_NODE_INFO,
 } from './events';
 import { P2PRequest } from './p2p_request';
 import { PeerBook } from './peer_book';
@@ -99,6 +101,11 @@ import {
 	validateNodeInfo,
 	validatePeerCompatibility,
 } from './utils';
+import {
+	peersListResponseSchema,
+	peerInfoSchema,
+	nodeInfoSchema,
+} from './schema';
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
@@ -254,6 +261,9 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
+		codec.addSchema((peersListResponseSchema as unknown) as Schema);
+		codec.addSchema((peerInfoSchema as unknown) as Schema);
+		codec.addSchema((nodeInfoSchema as unknown) as Schema);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest): void => {
@@ -275,6 +285,20 @@ export class P2P extends EventEmitter {
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolMessage = (message: P2PMessagePacket): void => {
 			// Re-emit the message for external use.
+			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
+				const decodedNodeInfo = codec.decode(
+					nodeInfoSchema,
+					Buffer.from((message.data as { data: string }).data, 'base64'),
+				);
+
+				this.emit(EVENT_MESSAGE_RECEIVED, {
+					event: message.event,
+					peerId: message.peerId,
+					data: decodedNodeInfo,
+				});
+
+				return;
+			}
 			this.emit(EVENT_MESSAGE_RECEIVED, message);
 		};
 
@@ -664,7 +688,11 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		request.end(this._nodeInfo);
+		const encodedNodeInfo = codec.encode(
+			nodeInfoSchema,
+			this._nodeInfo as GenericObject,
+		);
+		request.end(encodedNodeInfo);
 	}
 
 	private _bindHandlersToPeerPool(peerPool: PeerPool): void {
@@ -795,13 +823,20 @@ export class P2P extends EventEmitter {
 				...peer.sharedState,
 			}));
 
-		request.end({
-			success: true,
-			peers:
-				getByteSize(sanitizedPeerInfoList) < wsMaxPayload
-					? sanitizedPeerInfoList
-					: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength),
-		});
+		const peersList =
+			getByteSize(sanitizedPeerInfoList) < wsMaxPayload
+				? sanitizedPeerInfoList
+				: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength);
+		const encodedPeersList = peersList.map(peer =>
+			codec.encode(peerInfoSchema, peer as GenericObject),
+		);
+
+		request.end(
+			codec.encode(peersListResponseSchema, {
+				success: true,
+				peers: encodedPeersList,
+			} as GenericObject),
+		);
 	}
 
 	// eslint-disable-next-line class-methods-use-this

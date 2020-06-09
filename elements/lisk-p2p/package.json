@@ -40,6 +40,7 @@
 		"disableLocalIPs": "./scripts/disableTestLocalIPs.sh 2 19"
 	},
 	"dependencies": {
+		"@liskhq/lisk-codec": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
 		"lodash.shuffle": "4.2.0",
 		"semver": "7.1.3",
