@@ -81,7 +81,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects,
 					{
-						delegateAddress: Buffer.from('random addreess'),
+						delegateAddress: Buffer.from('peEQGWxQQ0i//keDjaA2KQ6DnNA=', 'base64'),
 						amount: BigInt(10000000000),
 						unvoteHeight: 2,
 					},
@@ -122,7 +122,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('random address'),
+						delegateAddress: Buffer.from('peEQGWxQQ0i//keDjaA2KQ6DnNA=', 'base64'),
 						amount: BigInt(0),
 						unvoteHeight: 2,
 					},
@@ -141,7 +141,7 @@ describe('Unlock transaction', () => {
 				(tx.asset as any).unlockObjects = [
 					...tx.asset.unlockObjects.slice(0, 19),
 					{
-						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'hex'),
+						delegateAddress: Buffer.from('rMn8F+DShl+EvPoL28ti9YpdMG8=', 'base64'),
 						amount: BigInt(999999999),
 						unvoteHeight: 2,
 					},
