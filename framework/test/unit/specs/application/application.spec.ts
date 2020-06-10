@@ -14,16 +14,15 @@
 /* eslint-disable max-classes-per-file */
 
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import {
 	BaseTransaction as Base,
 	TransferTransaction,
 	TransactionError,
 } from '@liskhq/lisk-transactions';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { Application } from '../../../../src/application/application';
-import * as validator from '../../../../src/application/validator';
-import { constantsSchema } from '../../../../src/application/schema';
-import { SchemaValidationError } from '../../../../src/errors';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
@@ -31,6 +30,8 @@ import { createLogger } from '../../../../src/application/logger';
 import { GenesisBlockJSON } from '../../../../src/application/node/node';
 
 jest.mock('fs-extra');
+jest.mock('@liskhq/lisk-db');
+jest.mock('@liskhq/lisk-p2p');
 jest.mock('../../../../src/application/logger');
 
 const config: any = {
@@ -50,10 +51,13 @@ describe('Application', () => {
 
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
+	beforeEach(() => {
+		jest.spyOn(os, 'homedir').mockReturnValue('~');
+	});
+
 	afterEach(() => {
 		// So we can start a fresh schema each time Application is instantiated
-		validator.validator.removeSchema();
-		validator.parserAndValidator.removeSchema();
+		validator.removeSchema();
 	});
 
 	describe('#constructor', () => {
@@ -132,22 +136,6 @@ describe('Application', () => {
 			expect(app.config.logger.logFileName).toBe('lisk.log');
 		});
 
-		it('should validate the constants', () => {
-			const parseEnvArgAndValidateSpy = jest.spyOn(
-				validator,
-				'parseEnvArgAndValidate',
-			);
-
-			// eslint-disable-next-line no-new
-			new Application(genesisBlock as GenesisBlockJSON, config);
-
-			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledTimes(1);
-			expect(parseEnvArgAndValidateSpy).toHaveBeenCalledWith(
-				constantsSchema,
-				expect.any(Object),
-			);
-		});
-
 		it('should merge the constants with genesisConfig and assign it to app constants', () => {
 			const customConfig = _.cloneDeep(config);
 
@@ -220,7 +208,7 @@ describe('Application', () => {
 			expect(() => {
 				// eslint-disable-next-line no-new
 				new Application(genesisBlock as GenesisBlockJSON, customConfig);
-			}).toThrow('should NOT have additional properties');
+			}).toThrow('Lisk validator found 1 error[s]');
 		});
 	});
 
@@ -248,7 +236,7 @@ describe('Application', () => {
 			// Act && Assert
 			expect(() =>
 				app.registerTransaction(TransactionWithoutBase as any),
-			).toThrow(SchemaValidationError);
+			).toThrow(LiskValidationError);
 		});
 
 		it('should throw error when transaction type is missing.', () => {
@@ -406,11 +394,15 @@ describe('Application', () => {
 	});
 
 	describe('#_setupDirectories', () => {
-		let app: any;
+		let app: Application;
 		let dirs: any;
-		beforeEach(() => {
+		beforeEach(async () => {
 			app = new Application(genesisBlock as GenesisBlockJSON, config);
-			app.run();
+			try {
+				await app.run();
+			} catch (error) {
+				// Expected error
+			}
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			dirs = systemDirs(app.config.label, app.config.rootPath);
 		});

@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const Configurator = require('./configurator');
+export * as cryptography from '@liskhq/lisk-cryptography';
+export * as transactions from '@liskhq/lisk-transactions';
+export * as validator from '@liskhq/lisk-validator';
+export * from 'lisk-framework';
 
-module.exports = Configurator;
+export { genesisBlockDevnet, configDevnet } from './samples';

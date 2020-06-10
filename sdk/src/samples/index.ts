@@ -12,29 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const cryptography = require('@liskhq/lisk-cryptography');
-const transactions = require('@liskhq/lisk-transactions');
-const validator = require('@liskhq/lisk-validator');
-const {
-	Application,
-	version,
-	systemDirs,
-	configurator,
-	BaseModule,
-} = require('lisk-framework');
-
-const samples = require('./samples');
-
-module.exports = {
-	Application,
-	version,
-	systemDirs,
-	configurator,
-	BaseModule,
-	cryptography,
-	transactions,
-	validator,
-	...samples,
-};
+export * as genesisBlockDevnet from './genesis_block_devnet.json';
+export * as configDevnet from './config_devnet.json';

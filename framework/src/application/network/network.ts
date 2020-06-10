@@ -19,6 +19,7 @@ import { lookupPeersIPs } from './utils';
 import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
+import { NetworkConfig } from '../../types';
 
 const {
 	P2P,
@@ -52,25 +53,6 @@ interface NetworkConstructor {
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly nodeDB: KVStore;
-}
-
-export interface NetworkConfig {
-	wsPort: number;
-	seedPeers: { ip: string; wsPort: number }[];
-	hostIp?: string;
-	blacklistedIPs?: string[];
-	fixedPeers?: { ip: string; wsPort: number }[];
-	whitelistedPeers?: { ip: string; wsPort: number }[];
-	peerBanTime?: number;
-	connectTimeout?: number;
-	ackTimeout?: number;
-	maxOutboundConnections?: number;
-	maxInboundConnections?: number;
-	sendPeerLimit?: number;
-	maxPeerDiscoveryResponseLength?: number;
-	maxPeerInfoSize?: number;
-	wsMaxPayload?: number;
-	advertiseAddress?: boolean;
 }
 
 interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacket {

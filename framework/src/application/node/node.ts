@@ -34,7 +34,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Sequence } from './utils/sequence';
-import { DelegateConfig, Forger, ForgingStatus } from './forger';
+import { Forger, ForgingStatus } from './forger';
 import {
 	Transport,
 	HandleRPCGetTransactionsReturn,
@@ -48,7 +48,7 @@ import {
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
 import { Logger } from '../logger';
-import { EventPostTransactionData } from '../../types';
+import { DelegateConfig, EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';

@@ -23,7 +23,7 @@ export const constantsSchema = {
 	],
 	properties: {
 		activeDelegates: {
-			type: 'number',
+			type: 'integer',
 			format: 'oddInteger',
 			min: 1,
 			const: 101,
