@@ -69,7 +69,11 @@ import {
 	validateRPCRequest,
 } from '../utils';
 
-import { peersListResponseSchema, peerInfoSchema, nodeInfoSchema } from '../schema';
+import {
+	peersListResponseSchema,
+	peerInfoSchema,
+	nodeInfoSchema,
+} from '../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -111,6 +115,14 @@ export interface PeerConfig {
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
+}
+
+interface GetPeersResponseRawData {
+	readonly data: string;
+}
+interface GetPeersResponseData {
+	readonly success: boolean;
+	readonly peers: Buffer[];
 }
 
 export class Peer extends EventEmitter {
@@ -350,13 +362,20 @@ export class Peer extends EventEmitter {
 		try {
 			const response = await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
-			}) as P2PResponsePacket;
-
-			const { success, peers } = codec.decode(peersListResponseSchema, Buffer.from((response.data as { data: string }).data, 'base64'));
-			const decodedPeers = peers.map((peer: Buffer )=> codec.decode(peerInfoSchema, peer));
+			});
+			const { data } = response.data as GetPeersResponseRawData;
+			const dataBuffer = Buffer.from(data, 'base64');
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+			const { peers } = codec.decode(
+				peersListResponseSchema,
+				dataBuffer,
+			) as GetPeersResponseData;
+			const decodedPeers = peers.map((peer: Buffer) =>
+				codec.decode(peerInfoSchema, peer),
+			);
 
 			const validatedPeers = validatePeerInfoList(
-				{ success, peers: decodedPeers as ProtocolPeerInfo[]},
+				decodedPeers,
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
@@ -406,7 +425,10 @@ export class Peer extends EventEmitter {
 			);
 		}
 		try {
-			const decodedNodeInfo = codec.decode(nodeInfoSchema, Buffer.from((response.data as { data: string}).data, 'base64'));
+			const decodedNodeInfo = codec.decode(
+				nodeInfoSchema,
+				Buffer.from((response.data as { data: string }).data, 'base64'),
+			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			this.emit(EVENT_FAILED_PEER_INFO_UPDATE, error);
@@ -526,7 +548,10 @@ export class Peer extends EventEmitter {
 	private _handleUpdatePeerInfo(message: P2PMessagePacket): void {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
-			const decodedNodeInfo = codec.decode(nodeInfoSchema, Buffer.from((message.data as {data: string}).data, 'base64'));
+			const decodedNodeInfo = codec.decode(
+				nodeInfoSchema,
+				Buffer.from((message.data as { data: string }).data, 'base64'),
+			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
 			// Apply penalty for malformed PeerInfo update
