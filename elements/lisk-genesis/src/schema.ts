@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Schema } from '@liskhq/lisk-codec';
+
 import {
 	blockSchema,
 	baseAccountSchema,
@@ -21,41 +23,39 @@ import { mergeDeep } from './utils';
 import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
 
 export const genesisAccountSchema = baseAccountSchema;
-export const genesisBlockSchema: object = mergeDeep({}, blockSchema, {
+export const genesisBlockSchema = mergeDeep({}, blockSchema, {
 	properties: {
 		payload: {
 			minLength: 0,
 			maxLength: 0,
 		},
 	},
-});
-export const genesisBlockHeaderSchema: object = mergeDeep(
-	{},
-	blockHeaderSchema,
-	{
-		properties: {
-			height: {
-				minimum: 0,
-			},
-			version: {
-				const: 0,
-			},
-			generatorPublicKey: {
-				const: EMPTY_BUFFER,
-			},
-			reward: {
-				const: BigInt(0),
-			},
-			signature: {
-				const: EMPTY_BUFFER,
-			},
-			transactionRoot: {
-				const: EMPTY_HASH,
-			},
+}) as Schema;
+
+export const genesisBlockHeaderSchema = mergeDeep({}, blockHeaderSchema, {
+	properties: {
+		height: {
+			minimum: 0,
+		},
+		version: {
+			const: 0,
+		},
+		generatorPublicKey: {
+			const: EMPTY_BUFFER,
+		},
+		reward: {
+			const: BigInt(0),
+		},
+		signature: {
+			const: EMPTY_BUFFER,
+		},
+		transactionRoot: {
+			const: EMPTY_HASH,
 		},
 	},
-);
-export const genesisBlockHeaderAssetDBSchema = {
+}) as Schema;
+
+export const genesisBlockHeaderAssetSchema = {
 	$id: '/genesis_block/header/asset',
 	type: 'object',
 	required: ['accounts', 'initDelegates', 'initRounds'],
@@ -83,4 +83,4 @@ export const genesisBlockHeaderAssetDBSchema = {
 			minimum: 3,
 		},
 	},
-};
+} as Schema;

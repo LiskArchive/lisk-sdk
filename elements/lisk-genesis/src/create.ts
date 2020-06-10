@@ -12,10 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
-import { GenesisAccountState, GenesisBlock, GenesisBlockParams } from './types';
+import {
+	GenesisAccountState,
+	GenesisBlock,
+	GenesisBlockHeaderWithoutId,
+	GenesisBlockParams,
+} from './types';
 import { validateGenesisBlock } from './validate';
+import {
+	genesisBlockHeaderAssetSchema,
+	genesisBlockHeaderSchema,
+} from './schema';
+
+const getBlockId = (header: GenesisBlockHeaderWithoutId): Buffer => {
+	const genesisBlockAssetBuffer = codec.encode(
+		genesisBlockHeaderAssetSchema,
+		header.asset,
+	);
+
+	const genesisBlockHeaderBuffer = codec.encode(genesisBlockHeaderSchema, {
+		...header,
+		...{ asset: genesisBlockAssetBuffer },
+	});
+
+	return hash(genesisBlockHeaderBuffer);
+};
 
 export const createGenesisBlock = (
 	params: GenesisBlockParams,
@@ -33,7 +58,6 @@ export const createGenesisBlock = (
 	const payload = Buffer.from(EMPTY_BUFFER);
 	const signature = Buffer.from(EMPTY_BUFFER);
 	const transactionRoot = Buffer.from(EMPTY_HASH);
-	const id = Buffer.from(EMPTY_BUFFER);
 
 	const { initDelegates } = params;
 
@@ -41,10 +65,9 @@ export const createGenesisBlock = (
 		...params.accounts,
 	].sort((a, b): number => a.address.compare(b.address));
 
-	const header = {
+	const header: GenesisBlockHeaderWithoutId = {
 		generatorPublicKey,
 		height,
-		id,
 		previousBlockID,
 		reward,
 		signature,
@@ -58,15 +81,18 @@ export const createGenesisBlock = (
 		},
 	};
 
-	const genesisBlock: GenesisBlock = {
-		header,
-		payload,
-	};
-
-	const errors = validateGenesisBlock(genesisBlock);
+	const errors = validateGenesisBlock({ header, payload });
 	if (errors.length) {
 		throw new LiskValidationError(errors);
 	}
+
+	const genesisBlock: GenesisBlock = {
+		header: {
+			...header,
+			id: getBlockId(header),
+		},
+		payload,
+	};
 
 	return genesisBlock;
 };

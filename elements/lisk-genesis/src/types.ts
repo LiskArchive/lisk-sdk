@@ -22,8 +22,12 @@ export interface GenesisBlockHeaderAsset {
 	readonly initRounds: number;
 }
 
+export type GenesisBlockHeader = BlockHeader<GenesisBlockHeaderAsset>;
+
+export type GenesisBlockHeaderWithoutId = Omit<GenesisBlockHeader, 'id'>;
+
 export interface GenesisBlock {
-	readonly header: BlockHeader<GenesisBlockHeaderAsset>;
+	readonly header: GenesisBlockHeader;
 	readonly payload: Buffer;
 }
 

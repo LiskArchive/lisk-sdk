@@ -17,12 +17,17 @@ import { GenesisBlock } from './types';
 import {
 	genesisBlockSchema,
 	genesisBlockHeaderSchema,
-	genesisBlockHeaderAssetDBSchema,
+	genesisBlockHeaderAssetSchema,
 } from './schema';
 import { bufferArrayContains, bufferArrayIdentical } from './utils';
 
 export const validateGenesisBlock = (
-	block: GenesisBlock | object,
+	block:
+		| GenesisBlock
+		| {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				[key: string]: any;
+		  },
 ): ErrorObject[] => {
 	const { header, payload } = block as GenesisBlock;
 
@@ -32,7 +37,7 @@ export const validateGenesisBlock = (
 	});
 	const headerErrors = validator.validate(genesisBlockHeaderSchema, header);
 	const assetErrors = validator.validate(
-		genesisBlockHeaderAssetDBSchema,
+		genesisBlockHeaderAssetSchema,
 		header.asset,
 	);
 	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
