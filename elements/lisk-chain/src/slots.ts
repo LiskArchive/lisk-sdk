@@ -35,9 +35,9 @@ export class Slots {
 	}
 
 	public getSlotNumber(time?: number): number {
-		const parsedEpochTime =
+		const slotTime =
 			time === undefined ? Math.floor(Date.now() / SEC_IN_MS) : time;
-		return Math.floor(parsedEpochTime / this._interval);
+		return Math.floor(slotTime / this._interval);
 	}
 
 	public getSlotTime(slot: number): number {
