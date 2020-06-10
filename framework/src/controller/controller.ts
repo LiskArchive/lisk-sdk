@@ -21,6 +21,7 @@ import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
 import { Logger } from '../application/logger';
 import { SocketPaths } from './types';
+import { ModulesOptions, ModuleOptions } from '../types';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 
 export interface ControllerOptions {
@@ -53,16 +54,6 @@ interface ControllerConfig {
 
 interface ModulesObject {
 	readonly [key: string]: InstantiableModule<BaseModule>;
-}
-
-interface ModuleOptions {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly [key: string]: any;
-	readonly loadAsChildProcess: boolean;
-}
-
-export interface ModulesOptions {
-	[key: string]: ModuleOptions;
 }
 
 const validateModuleSpec = (moduleSpec: Partial<BaseModule>): void => {

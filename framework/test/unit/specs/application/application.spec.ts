@@ -20,11 +20,10 @@ import {
 	TransferTransaction,
 	TransactionError,
 } from '@liskhq/lisk-transactions';
-import { validator } from '@liskhq/lisk-validator';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { Application } from '../../../../src/application/application';
 import { constantsSchema } from '../../../../src/application/schema';
-import { SchemaValidationError } from '../../../../src/errors';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
@@ -223,7 +222,7 @@ describe('Application', () => {
 			expect(() => {
 				// eslint-disable-next-line no-new
 				new Application(genesisBlock as GenesisBlockJSON, customConfig);
-			}).toThrow('should NOT have additional properties');
+			}).toThrow('Lisk validator found 1 error[s]');
 		});
 	});
 
@@ -251,7 +250,7 @@ describe('Application', () => {
 			// Act && Assert
 			expect(() =>
 				app.registerTransaction(TransactionWithoutBase as any),
-			).toThrow(SchemaValidationError);
+			).toThrow(LiskValidationError);
 		});
 
 		it('should throw error when transaction type is missing.', () => {

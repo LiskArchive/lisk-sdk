@@ -56,3 +56,85 @@ export interface RPCHighestCommonBlockData {
 	readonly ids: string[];
 }
 /* End P2P */
+
+export interface ModuleOptions {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	readonly [key: string]: any;
+	readonly loadAsChildProcess: boolean;
+}
+
+export interface ModulesOptions {
+	[key: string]: ModuleOptions;
+}
+
+export interface DelegateConfig {
+	readonly publicKey: string;
+	readonly encryptedPassphrase: string;
+	readonly hashOnion: {
+		readonly count: number;
+		readonly distance: number;
+		readonly hashes: string[];
+	};
+}
+
+export interface NetworkConfig {
+	wsPort: number;
+	seedPeers: { ip: string; wsPort: number }[];
+	hostIp?: string;
+	blacklistedIPs?: string[];
+	fixedPeers?: { ip: string; wsPort: number }[];
+	whitelistedPeers?: { ip: string; wsPort: number }[];
+	peerBanTime?: number;
+	connectTimeout?: number;
+	ackTimeout?: number;
+	maxOutboundConnections?: number;
+	maxInboundConnections?: number;
+	sendPeerLimit?: number;
+	maxPeerDiscoveryResponseLength?: number;
+	maxPeerInfoSize?: number;
+	wsMaxPayload?: number;
+	advertiseAddress?: boolean;
+}
+
+export interface ApplicationConfig {
+	label: string;
+	version: string;
+	protocolVersion: string;
+	networkId: string;
+	lastCommitId: string;
+	buildVersion: string;
+	ipc: {
+		enabled: boolean;
+	};
+	rootPath: string;
+	forging: {
+		waitThreshold: number;
+		delegates: DelegateConfig[];
+		force?: boolean;
+		defaultPassword?: string;
+	};
+	network: NetworkConfig;
+	logger: {
+		logFileName: string;
+		fileLogLevel: string;
+		consoleLogLevel: string;
+	};
+	genesisConfig: {
+		epochTime: string;
+		blockTime: number;
+		maxPayloadLength: number;
+		rewards: {
+			milestones: string[];
+			offset: number;
+			distance: number;
+		};
+	};
+	constants: {
+		[key: string]: {} | string | number | undefined;
+		activeDelegates: number;
+		standbyDelegates: number;
+		totalAmount: string;
+		delegateListRoundOffset: number;
+	};
+	modules: ModulesOptions;
+}

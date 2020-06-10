@@ -30,15 +30,18 @@ import {
 import { Contexter } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
+import {
+	validator,
+	LiskValidationError,
+	ErrorObject,
+} from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
-import { Controller, ModulesOptions } from '../controller/controller';
+import { Controller } from '../controller/controller';
 import { version } from '../version';
 import {
 	genesisBlockSchema,
 	constantsSchema,
-	mergeDeep,
 	applicationConfigSchema,
 } from './schema';
 import { ApplicationState } from './application_state';
@@ -46,13 +49,13 @@ import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
 import { Logger, createLogger } from './logger';
+import { mergeDeep } from './utils/merge_deep';
 
-import { DuplicateAppInstanceError, SchemaValidationError } from '../errors';
+import { DuplicateAppInstanceError } from '../errors';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 import { ActionInfoObject } from '../controller/action';
 import { NodeConstants, GenesisBlockJSON } from './node/node';
-import { DelegateConfig } from './node/forger';
-import { NetworkConfig } from './network/network';
+import { ApplicationConfig } from '../types';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -94,49 +97,6 @@ const registerProcessHooks = (app: Application): void => {
 	process.once('exit' as any, (code: number) => app.shutdown(code));
 };
 
-export interface ApplicationConfig {
-	label: string;
-	version: string;
-	protocolVersion: string;
-	networkId: string;
-	lastCommitId: string;
-	buildVersion: string;
-	ipc: {
-		enabled: boolean;
-	};
-	rootPath: string;
-	forging: {
-		waitThreshold: number;
-		delegates: DelegateConfig[];
-		force?: boolean;
-		defaultPassword?: string;
-	};
-	network: NetworkConfig;
-	logger: {
-		logFileName: string;
-		fileLogLevel: string;
-		consoleLogLevel: string;
-	};
-	genesisConfig: {
-		epochTime: string;
-		blockTime: number;
-		maxPayloadLength: number;
-		reward: {
-			milestones: string[];
-			offset: number;
-			distance: number;
-		};
-	};
-	constants: {
-		[key: string]: {} | string | number | undefined;
-		activeDelegates: number;
-		standbyDelegates: number;
-		totalAmount: string;
-		delegateListRoundOffset: number;
-	};
-	modules: ModulesOptions;
-}
-
 export class Application {
 	public config: ApplicationConfig;
 	public constants: NodeConstants;
@@ -161,7 +121,7 @@ export class Application {
 	) {
 		const errors = validator.validate(genesisBlockSchema, genesisBlock);
 		if (errors.length) {
-			throw errors;
+			throw new LiskValidationError(errors as ErrorObject[]);
 		}
 		this._genesisBlock = genesisBlock;
 
@@ -173,31 +133,31 @@ export class Application {
 			config.label ??
 			`lisk-${this._genesisBlock.header.transactionRoot.slice(0, 7)}`;
 
-		mergeDeep(appConfig, config);
-		appConfig.rootPath = appConfig.rootPath.replace('~', os.homedir());
+		const mergedConfig = mergeDeep({}, appConfig, config) as ApplicationConfig;
+		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
 		const applicationConfigErrors = validator.validate(
 			applicationConfigSchema,
-			appConfig,
+			mergedConfig,
 		);
 		if (applicationConfigErrors.length) {
-			throw new Error(applicationConfigErrors.map(e => e.message).join(','));
+			throw new LiskValidationError(applicationConfigErrors as ErrorObject[]);
 		}
 
-		const constantError = validator.validate(
+		const constantErrors = validator.validate(
 			constantsSchema,
 			constantsSchema.default,
 		);
-		if (constantError.length) {
-			throw new Error(applicationConfigErrors.map(e => e.message).join(','));
+		if (constantErrors.length) {
+			throw new LiskValidationError(constantErrors as ErrorObject[]);
 		}
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
 		this.constants = {
 			...constantsSchema.default,
-			...appConfig.genesisConfig,
-		} as NodeConstants;
-		this.config = (appConfig as unknown) as ApplicationConfig;
+			...mergedConfig.genesisConfig,
+		};
+		this.config = mergedConfig;
 
 		// Private members
 		this._modules = {};
@@ -266,12 +226,12 @@ export class Application {
 			`A transaction type "${Transaction.TYPE}" is already registered.`,
 		);
 
-		const schemaError = validator.validate(
+		const transactionSchemaErrors = validator.validate(
 			transactionInterface,
 			Transaction.prototype,
 		);
-		if (schemaError.length) {
-			throw new SchemaValidationError((schemaError as unknown) as Error[]);
+		if (transactionSchemaErrors.length) {
+			throw new LiskValidationError(transactionSchemaErrors as ErrorObject[]);
 		}
 
 		if (matcher) {

@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { Application, ApplicationConfig } from './application/application';
+export { Application } from './application/application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
 export { BaseModule } from './modules/base_module';
 export { GenesisBlockJSON } from './application/node/node';
+export * from './types';
