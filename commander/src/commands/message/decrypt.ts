@@ -45,7 +45,7 @@ const processInputs = (
 		message,
 		nonce,
 		passphrase,
-		senderPublicKey,
+		Buffer.from(senderPublicKey, 'hex'),
 	);
 };
 

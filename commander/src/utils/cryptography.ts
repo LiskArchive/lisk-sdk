@@ -26,7 +26,11 @@ export const encryptMessage = ({
 	passphrase,
 	recipient,
 }: EncryptMessageInputs): cryptography.EncryptedMessageWithNonce =>
-	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);
+	cryptography.encryptMessageWithPassphrase(
+		message,
+		passphrase,
+		Buffer.from(recipient, 'hex'),
+	);
 
 interface DecryptMessageInputs {
 	readonly cipher: string;
@@ -45,7 +49,7 @@ export const decryptMessage = ({
 		cipher,
 		nonce,
 		passphrase,
-		senderPublicKey,
+		Buffer.from(senderPublicKey, 'hex'),
 	),
 });
 

@@ -23,10 +23,15 @@ describe('crypto utils', () => {
 		const result = {
 			result: 'result',
 		};
+
+		const recipientAddress = Buffer.from(
+			'b56b53b205287d52ae63c688bf62e86ad81e8e1e5dd9aaef2e68711152b7a58a',
+			'hex',
+		);
 		const input = {
 			message: 'msg',
 			passphrase: 'random-passphrase',
-			recipient: 'recipient',
+			recipient: recipientAddress.toString('hex'),
 		};
 
 		beforeEach(() => {
@@ -42,7 +47,7 @@ describe('crypto utils', () => {
 			).to.be.calledWithExactly(
 				input.message,
 				input.passphrase,
-				input.recipient,
+				recipientAddress,
 			);
 		});
 
@@ -54,11 +59,15 @@ describe('crypto utils', () => {
 
 	describe('#decryptMessage', () => {
 		const result = 'message';
+		const senderPublicKey = Buffer.from(
+			'b56b53b205287d52ae63c688bf62e86ad81e8e1e5dd9aaef2e68711152b7a58a',
+			'hex',
+		);
 		const input = {
 			cipher: 'cipher',
 			nonce: 'nonce',
 			passphrase: 'random-passphrase',
-			senderPublicKey: 'recipient',
+			senderPublicKey: senderPublicKey.toString('hex'),
 		};
 
 		beforeEach(() => {
@@ -75,7 +84,7 @@ describe('crypto utils', () => {
 				input.cipher,
 				input.nonce,
 				input.passphrase,
-				input.senderPublicKey,
+				senderPublicKey,
 			);
 		});
 
@@ -190,13 +199,13 @@ describe('crypto utils', () => {
 	});
 
 	describe('#getAddressFromPublicKey', () => {
-		const result = 'address';
+		const result = '90215077294ac1c727b357978df9291b';
 		const input = 'publicKey';
 
 		beforeEach(() => {
 			return sandbox
 				.stub(cryptographyModule, 'getAddressFromPublicKey')
-				.returns(result);
+				.returns(Buffer.from(result, 'hex'));
 		});
 
 		it('address should equal to the result of getAddressFromPublicKey', () => {

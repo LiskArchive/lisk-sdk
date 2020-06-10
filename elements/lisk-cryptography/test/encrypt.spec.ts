@@ -33,10 +33,14 @@ describe('encrypt', () => {
 	const ENCRYPTION_VERSION = '1';
 	const defaultPassphrase =
 		'minute omit local rare sword knee banner pair rib museum shadow juice';
-	const defaultPrivateKey =
-		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
-	const defaultPublicKey =
-		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
+	const defaultPrivateKey = Buffer.from(
+		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
+		'hex',
+	);
+	const defaultPublicKey = Buffer.from(
+		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588',
+		'hex',
+	);
 	const defaultMessage = 'Some default text.';
 	const defaultPassword = 'myTotal53cr3t%&';
 	const customIterations = 12;
@@ -72,8 +76,8 @@ describe('encrypt', () => {
 			.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase')
 			.mockImplementation(() => {
 				return {
-					privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-					publicKey: Buffer.from(defaultPublicKey, 'hex'),
+					privateKey: defaultPrivateKey,
+					publicKey: defaultPublicKey,
 				};
 			});
 

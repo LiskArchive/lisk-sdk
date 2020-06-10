@@ -65,11 +65,6 @@ export const intToBuffer = (
 	return buffer;
 };
 
-export const bufferToIntAsString = (buffer: Buffer): string =>
-	buffer.length <= MAX_NUMBER_BYTE_LENGTH
-		? buffer.readIntBE(0, buffer.length).toString()
-		: buffer.readBigUInt64BE().toString();
-
 export const bufferToHex = (buffer: Buffer): string =>
 	Buffer.from(buffer).toString('hex');
 

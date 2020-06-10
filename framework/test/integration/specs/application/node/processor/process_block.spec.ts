@@ -66,10 +66,7 @@ describe('Process block', () => {
 						data: '',
 					},
 				});
-				transaction.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [transaction]);
 				await node['_processor'].process(newBlock);
 			});
@@ -136,10 +133,7 @@ describe('Process block', () => {
 						data: '',
 					},
 				});
-				transaction.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [transaction]);
 				await node['_processor'].process(newBlock);
 			});
@@ -235,10 +229,7 @@ describe('Process block', () => {
 					username: 'number1',
 				},
 			});
-			transaction.sign(
-				Buffer.from(node['_networkIdentifier'], 'hex'),
-				account.passphrase,
-			);
+			transaction.sign(node['_networkIdentifier'], account.passphrase);
 			newBlock = await nodeUtils.createBlock(node, [transaction]);
 			await node['_processor'].process(newBlock);
 		});
@@ -260,10 +251,7 @@ describe('Process block', () => {
 						username: 'number1',
 					},
 				});
-				transaction.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					account.passphrase,
-				);
+				transaction.sign(node['_networkIdentifier'], account.passphrase);
 				invalidBlock = await nodeUtils.createBlock(node, [invalidTx]);
 				try {
 					await node['_processor'].process(invalidBlock);

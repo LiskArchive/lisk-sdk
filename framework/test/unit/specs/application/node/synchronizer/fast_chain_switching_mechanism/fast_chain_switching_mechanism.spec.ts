@@ -130,7 +130,7 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
-			networkIdentifier: '',
+			networkIdentifier: defaultNetworkIdentifier,
 			forgerDB,
 			chainModule,
 			bftModule,

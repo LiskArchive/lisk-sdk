@@ -35,7 +35,7 @@ import { ForgedInfo } from './forger/data_access';
 import { DB_KEY_FORGER_PREVIOUSLY_FORGED } from './forger/constant';
 
 interface BlockProcessorInput {
-	readonly networkIdentifier: string;
+	readonly networkIdentifier: Buffer;
 	readonly chainModule: Chain;
 	readonly bftModule: BFT;
 	readonly dposModule: Dpos;
@@ -96,7 +96,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 
 	public readonly version = 2;
 
-	private readonly networkIdentifier: string;
+	private readonly networkIdentifier: Buffer;
 	private readonly chainModule: Chain;
 	private readonly bftModule: BFT;
 	private readonly dposModule: Dpos;
@@ -297,10 +297,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			true,
 		);
 		const signature = signDataWithPrivateKey(
-			Buffer.concat([
-				Buffer.from(this.networkIdentifier, 'hex'),
-				headerBytesWithoutSignature,
-			]),
+			Buffer.concat([this.networkIdentifier, headerBytesWithoutSignature]),
 			keypair.privateKey,
 		);
 		const headerBytes = this.chainModule.dataAccess.encodeBlockHeader({

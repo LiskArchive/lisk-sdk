@@ -89,9 +89,7 @@ describe('block processor v2', () => {
 		};
 
 		blockProcessor = new BlockProcessorV2({
-			networkIdentifier: defaultAdditionalData.networkIdentifier.toString(
-				'hex',
-			),
+			networkIdentifier: defaultAdditionalData.networkIdentifier,
 			chainModule: chainModuleStub,
 			bftModule: bftModuleStub,
 			dposModule: dposModuleStub,

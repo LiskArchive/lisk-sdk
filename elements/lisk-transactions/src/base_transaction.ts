@@ -83,8 +83,8 @@ export abstract class BaseTransaction {
 	protected _id: Buffer;
 
 	private _idStr?: string;
-	private readonly _senderPublicKeyStr: string;
-	private readonly _senderIdStr: Buffer;
+	private _senderPublicKeyStr?: string;
+	private _senderId?: Buffer;
 
 	public constructor(transaction: BaseTransactionInput) {
 		this._id = transaction.id ?? Buffer.alloc(0);
@@ -96,8 +96,6 @@ export abstract class BaseTransaction {
 		this.senderPublicKey = transaction.senderPublicKey;
 		this.signatures = transaction.signatures ?? [];
 		this._idStr = bufferToHex(this._id);
-		this._senderPublicKeyStr = bufferToHex(this.senderPublicKey);
-		this._senderIdStr = getAddressFromPublicKey(this.senderPublicKey);
 	}
 
 	/* Begin Getters */
@@ -125,10 +123,16 @@ export abstract class BaseTransaction {
 	}
 
 	public get senderId(): Buffer {
-		return this._senderIdStr;
+		if (!this._senderId) {
+			this._senderId = getAddressFromPublicKey(this.senderPublicKey);
+		}
+		return this._senderId;
 	}
 
 	public get senderPublicKeyStr(): string {
+		if (!this._senderPublicKeyStr) {
+			this._senderPublicKeyStr = this.senderPublicKey.toString('hex');
+		}
 		return this._senderPublicKeyStr;
 	}
 

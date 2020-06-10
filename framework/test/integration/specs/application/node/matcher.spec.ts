@@ -129,7 +129,7 @@ describe('Matcher', () => {
 				const account = nodeUtils.createAccount();
 				const tx = createRawCustomTransaction({
 					passphrase: account.passphrase,
-					networkIdentifier: Buffer.from(node['_networkIdentifier'], 'hex'),
+					networkIdentifier: node['_networkIdentifier'],
 					senderPublicKey: account.publicKey,
 					nonce: BigInt(0),
 				});
@@ -162,10 +162,7 @@ describe('Matcher', () => {
 					},
 					fee: BigInt(10000000),
 				});
-				aCustomTransation.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				aCustomTransation.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [aCustomTransation]);
 			});
 

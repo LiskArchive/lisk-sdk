@@ -131,7 +131,7 @@ describe('Synchronizer', () => {
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
-			networkIdentifier: '',
+			networkIdentifier: defaultNetworkIdentifier,
 			forgerDB,
 			chainModule,
 			bftModule,
