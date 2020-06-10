@@ -119,14 +119,13 @@ export const stateDiffSchema = {
 						fieldNumber: 2,
 						items: {
 							type: 'object',
-							fieldNumber: 1,
 							properties: {
 								code: {
 									dataType: 'string',
 									fieldNumber: 1,
 								},
 								line: {
-									dataType: 'unit32',
+									dataType: 'uint32',
 									fieldNumber: 2,
 								},
 							},

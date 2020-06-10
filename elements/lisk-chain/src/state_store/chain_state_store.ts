@@ -109,11 +109,11 @@ export class ChainStateStore {
 	}
 
 	public finalize(batch: BatchChain): StateDiff {
-		if (this._updatedKeys.size === 0) {
-			return {} as StateDiff;
-		}
+		const stateDiff = { updated: [], created: [] } as StateDiff;
 
-		const stateDiff = {} as StateDiff;
+		if (this._updatedKeys.size === 0) {
+			return stateDiff;
+		}
 
 		for (const key of Array.from(this._updatedKeys)) {
 			const dbKey = `${DB_KEY_CHAIN_STATE}:${key}`;

@@ -151,7 +151,7 @@ export class AccountStore {
 	}
 
 	public finalize(batch: BatchChain): StateDiff {
-		const stateDiff = {} as StateDiff;
+		const stateDiff = { updated: [], created: [] } as StateDiff;
 
 		for (const account of this._data.values()) {
 			if (this._updatedKeys.has(account.address)) {
