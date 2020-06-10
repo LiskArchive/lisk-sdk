@@ -90,6 +90,6 @@ export class StateStore {
 		);
 
 		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
-		batch.put(`${DB_KEY_DIFF_STATE}${height}`, encodedDiff);
+		batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
 	}
 }

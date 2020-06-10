@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,19 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { KVStore, BatchChain } from '@liskhq/lisk-db';
-import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { when } from 'jest-when';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { StateStore } from '../../../src';
-import { BlockHeader } from '../../../src/types';
 import { DataAccess } from '../../../src/data_access';
+import { BlockHeader, StateDiff } from '../../../src/types';
 import { baseAccountSchema } from '../../../src/schema';
 import {
-	createFakeDefaultAccount,
 	defaultAccountAssetSchema,
+	createFakeDefaultAccount,
 } from '../../utils/account';
 import {
-	defaultBlockHeaderAssetSchema,
 	defaultNetworkIdentifier,
+	defaultBlockHeaderAssetSchema,
 } from '../../utils/block';
 
 jest.mock('@liskhq/lisk-db');
@@ -69,62 +69,69 @@ describe('state store / chain_state', () => {
 		});
 	});
 
-	describe('lastBlockHeaders', () => {
+	describe('lastBlockHeader', () => {
 		it('should have first element as lastBlockHeader', () => {
-			expect(stateStore.consensus.lastBlockHeaders).toEqual(lastBlockHeaders);
+			expect(stateStore.chain.lastBlockHeader).toEqual({ height: 30 });
+		});
+	});
+
+	describe('networkIdentifier', () => {
+		it('should have first element as lastBlockHeader', () => {
+			expect(stateStore.chain.networkIdentifier).toEqual(
+				defaultNetworkIdentifier,
+			);
+		});
+	});
+
+	describe('lastBlockReward', () => {
+		it('should have reward given at the initialization', () => {
+			expect(stateStore.chain.lastBlockReward.toString()).toEqual('500000000');
 		});
 	});
 
 	describe('get', () => {
 		it('should get value from cache', async () => {
 			// Arrange
-			stateStore.consensus.set('key1', Buffer.from('value1'));
+			stateStore.chain.set('key1', Buffer.from('value1'));
 			when(db.get)
-				.calledWith('consensus:key1')
-				.mockResolvedValue(Buffer.from('value5') as never);
+				.calledWith('chain:key1')
+				.mockResolvedValue('value5' as never);
 			// Act & Assert
-			expect(await stateStore.consensus.get('key1')).toEqual(
-				Buffer.from('value1'),
-			);
+			expect(await stateStore.chain.get('key1')).toEqual(Buffer.from('value1'));
 		});
 
 		it('should try to get value from database if not in cache', async () => {
 			// Arrange
 			when(db.get)
-				.calledWith('consensus:key1')
-				.mockResolvedValue(Buffer.from('value5') as never);
+				.calledWith('chain:key1')
+				.mockResolvedValue('value5' as never);
 			// Act & Assert
-			expect(await stateStore.consensus.get('key1')).toEqual(
-				Buffer.from('value5'),
-			);
+			expect(await stateStore.chain.get('key1')).toEqual('value5');
 		});
 	});
 
 	describe('set', () => {
 		it('should set value to data and set the updated keys', async () => {
 			// Act
-			stateStore.consensus.set('key3', Buffer.from('value3'));
+			stateStore.chain.set('key3', Buffer.from('value3'));
 			// Assert
-			expect(await stateStore.consensus.get('key3')).toEqual(
-				Buffer.from('value3'),
-			);
-			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
+			expect(await stateStore.chain.get('key3')).toEqual(Buffer.from('value3'));
+			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
 		});
 
 		it('should set value to data and set the updated keys only once', async () => {
 			// Act
-			stateStore.consensus.set('key3', Buffer.from('value3'));
-			stateStore.consensus.set('key3', Buffer.from('value4'));
+			stateStore.chain.set('key3', Buffer.from('value3'));
+			stateStore.chain.set('key3', Buffer.from('value4'));
 			// Assert
-			expect(await stateStore.consensus.get('key3')).toEqual(
-				Buffer.from('value4'),
-			);
-			expect((stateStore.consensus as any)._updatedKeys.size).toBe(1);
+			expect(await stateStore.chain.get('key3')).toEqual(Buffer.from('value4'));
+			expect((stateStore.chain as any)._updatedKeys.size).toBe(1);
 		});
 	});
 
 	describe('finalize', () => {
 		let batchStub: BatchChain;
+		let stateDiff: StateDiff;
 
 		beforeEach(() => {
 			batchStub = { put: jest.fn() } as any;
@@ -132,26 +139,30 @@ describe('state store / chain_state', () => {
 
 		it('should not call storage if nothing is set', () => {
 			// Act
-			stateStore.consensus.finalize(batchStub);
+			stateStore.chain.finalize(batchStub);
 			// Assert
 			expect(batchStub.put).not.toHaveBeenCalled();
 		});
 
 		it('should call storage for all the updated keys', () => {
 			// Act
-			stateStore.consensus.set('key3', Buffer.from('value3'));
-			stateStore.consensus.set('key3', Buffer.from('value4'));
-			stateStore.consensus.set('key4', Buffer.from('value5'));
-			stateStore.consensus.finalize(batchStub);
+			stateStore.chain.set('key3', Buffer.from('value3'));
+			stateStore.chain.set('key3', Buffer.from('value4'));
+			stateStore.chain.set('key4', Buffer.from('value5'));
+			stateDiff = stateStore.chain.finalize(batchStub);
 			// Assert
 			expect(batchStub.put).toHaveBeenCalledWith(
-				'consensus:key3',
+				'chain:key3',
 				Buffer.from('value4'),
 			);
 			expect(batchStub.put).toHaveBeenCalledWith(
-				'consensus:key4',
+				'chain:key4',
 				Buffer.from('value5'),
 			);
+		});
+
+		it('should return state diff with created and updated values after finalize', () => {
+			expect(stateDiff).toStrictEqual({ updated: [], created: ['chain:key3', 'chain:key4'] });
 		});
 	});
 });

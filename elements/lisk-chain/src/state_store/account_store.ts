@@ -68,60 +68,60 @@ export class AccountStore {
 	}
 
 	public async get<T = DefaultAsset>(
-		primaryValue: Buffer,
+		address: Buffer,
 	): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.get(primaryValue);
+		const cachedAccount = this._data.get(address);
 
-		if (element) {
-			return (new Account(element) as unknown) as Account<T>;
+		if (cachedAccount) {
+			return (new Account(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db
-		const elementFromDB = await this._dataAccess.getAccountByAddress(
-			primaryValue,
+		const accountFromDB = await this._dataAccess.getAccountByAddress(
+			address,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (elementFromDB) {
-			this._data.set(primaryValue, elementFromDB as Account);
+		if (accountFromDB) {
+			this._data.set(address, accountFromDB as Account);
 			this._initialAccountValue.set(
-				elementFromDB.address,
-				elementFromDB as Account,
+				accountFromDB.address,
+				accountFromDB as Account,
 			);
 
-			return (new Account(elementFromDB) as unknown) as Account<T>;
+			return (new Account(accountFromDB) as unknown) as Account<T>;
 		}
 
 		// Account does not exist we can not continue
 		throw new Error(
-			`${this._name} with ${this._primaryKey} = ${primaryValue.toString(
+			`${this._name} with ${this._primaryKey} = ${address.toString(
 				'hex',
 			)} does not exist`,
 		);
 	}
 
 	public async getOrDefault<T = DefaultAsset>(
-		primaryValue: Buffer,
+		address: Buffer,
 	): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.get(primaryValue);
-		if (element) {
-			return (new Account(element) as unknown) as Account<T>;
+		const cachedAccount = this._data.get(address);
+		if (cachedAccount) {
+			return (new Account(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
 		try {
-			const elementFromDB = await this._dataAccess.getAccountByAddress(
-				primaryValue,
+			const accountFromDB = await this._dataAccess.getAccountByAddress(
+				address,
 			);
-			this._data.set(primaryValue, elementFromDB as Account);
+			this._data.set(address, accountFromDB as Account);
 			this._initialAccountValue.set(
-				elementFromDB.address,
-				elementFromDB as Account,
+				accountFromDB.address,
+				accountFromDB as Account,
 			);
 
-			return (new Account(elementFromDB as Account) as unknown) as Account<T>;
+			return (new Account(accountFromDB as Account) as unknown) as Account<T>;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -129,13 +129,14 @@ export class AccountStore {
 		}
 
 		// If account does not exists, return default account
-		const defaultElement = Account.getDefaultAccount(
-			primaryValue,
+		const defaultAccount = Account.getDefaultAccount(
+			address,
 			cloneDeep<T>((this._defualtAsset as unknown) as T),
 		);
-		this._data.set(primaryValue, (defaultElement as unknown) as Account);
+		this._data.set(address, (defaultAccount as unknown) as Account);
+		this._initialAccountValue.set(address, (defaultAccount as unknown) as Account);
 
-		return (new Account(defaultElement) as unknown) as Account<T>;
+		return (new Account(defaultAccount) as unknown) as Account<T>;
 	}
 
 	public getUpdated<T = DefaultAsset>(): ReadonlyArray<Account<T>> {
@@ -166,6 +167,7 @@ export class AccountStore {
 					const encodedInitialAccount = this._dataAccess.encodeAccount(
 						initialAccount as Account,
 					);
+
 					const diff = calculateDiff(
 						encodedInitialAccount,
 						encodedFinalAccount,

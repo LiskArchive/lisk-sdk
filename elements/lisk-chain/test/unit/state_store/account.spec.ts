@@ -14,7 +14,7 @@
 import { KVStore, BatchChain, NotFoundError } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { StateStore } from '../../../src';
+import { StateStore, StateDiff } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { Account } from '../../../src/account';
 import {
@@ -211,6 +211,37 @@ describe('state store / account', () => {
 				`accounts:address:${updatedAccount.address.toString('binary')}`,
 				expect.any(Buffer),
 			);
+		});
+	});
+
+	describe('diff', () => {
+		let existingAccount;
+		let updatedAccount: Account;
+		let batchStub: BatchChain;
+		let stateDiff: StateDiff;
+
+		beforeEach(async () => {
+			batchStub = { put: jest.fn() } as any;
+
+			existingAccount = await stateStore.account.get(accountInDB[0].key);
+			updatedAccount = new Account(existingAccount);
+			updatedAccount.balance = BigInt(999);
+
+			stateStore.account.set(updatedAccount.address, updatedAccount);
+		});
+
+		it('should return empty array for updated and keys for newly created account', async () => {
+			stateDiff = stateStore.account.finalize(batchStub);
+			const account1 = await stateStore.account.get(accountInDB[0].key);
+			const account2 = await stateStore.account.get(accountInDB[1].key);
+
+			expect(stateDiff).toStrictEqual({
+				updated: [],
+				created: [
+					`accounts:address:${account1.address.toString('binary')}`,
+					`accounts:address:${account2.address.toString('binary')}`,
+				],
+			});
 		});
 	});
 });

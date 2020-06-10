@@ -106,7 +106,7 @@ export class ConsensusStateStore {
 			const updatedValue = this._data[key] as Buffer;
 			batch.put(dbKey, updatedValue);
 
-			if (this._initialValue.length) {
+			if (this._initialValue[key] !== undefined) {
 				const diff = calculateDiff(
 					this._initialValue[key] as Buffer,
 					updatedValue,
