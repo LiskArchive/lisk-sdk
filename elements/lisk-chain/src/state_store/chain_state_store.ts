@@ -38,7 +38,7 @@ export class ChainStateStore {
 	private readonly _lastBlockHeader: BlockHeader;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _lastBlockReward: bigint;
-	private _initialValue = Buffer.alloc(0);
+	private readonly _initialValue: KeyValuePair;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -50,6 +50,7 @@ export class ChainStateStore {
 		this._lastBlockReward = additionalInformation.lastBlockReward;
 		this._data = {};
 		this._originalData = {};
+		this._initialValue = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
 	}
@@ -88,7 +89,7 @@ export class ChainStateStore {
 		if (dbValue === undefined) {
 			return dbValue;
 		}
-		this._initialValue = dbValue;
+		this._initialValue[key] = dbValue;
 		this._data[key] = dbValue;
 
 		return this._data[key];
@@ -120,13 +121,16 @@ export class ChainStateStore {
 			batch.put(dbKey, updatedValue);
 
 			if (this._initialValue.length) {
-				const diff = calculateDiff(this._initialValue, updatedValue);
+				const diff = calculateDiff(
+					this._initialValue[key] as Buffer,
+					updatedValue,
+				);
 				stateDiff.updated.push({
 					key: dbKey,
 					value: diff,
 				});
 			} else {
-				stateDiff.created.push(dbKey)
+				stateDiff.created.push(dbKey);
 			}
 		}
 

@@ -67,6 +67,7 @@ import {
 	signingBlockHeaderSchema,
 	baseAccountSchema,
 	blockHeaderSchema,
+	stateDiffSchema,
 } from './schema';
 
 interface ChainConstructor {
@@ -167,6 +168,7 @@ export class Chain {
 			},
 		};
 		codec.addSchema(accountSchema as Schema);
+		codec.addSchema(stateDiffSchema);
 		this._defaultAccountAsset = accountAsset.default;
 
 		this.dataAccess = new DataAccess({

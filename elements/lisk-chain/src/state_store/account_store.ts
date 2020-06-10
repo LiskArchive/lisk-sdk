@@ -38,7 +38,7 @@ export class AccountStore {
 	private readonly _defualtAsset: object;
 	private readonly _primaryKey = 'address';
 	private readonly _name = 'Account';
-	private _initialAccountValue = {} as Account;
+	private readonly _initialAccountValue: BufferMap<Account>;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -52,6 +52,7 @@ export class AccountStore {
 		this._originalData = new BufferMap();
 		this._originalUpdatedKeys = new BufferSet();
 		this._defualtAsset = additionalInformation.defaultAsset;
+		this._initialAccountValue = new BufferMap<Account>();
 	}
 
 	public createSnapshot(): void {
@@ -84,7 +85,10 @@ export class AccountStore {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (elementFromDB) {
 			this._data.set(primaryValue, elementFromDB as Account);
-			this._initialAccountValue = elementFromDB as Account;
+			this._initialAccountValue.set(
+				elementFromDB.address,
+				elementFromDB as Account,
+			);
 
 			return (new Account(elementFromDB) as unknown) as Account<T>;
 		}
@@ -112,7 +116,10 @@ export class AccountStore {
 				primaryValue,
 			);
 			this._data.set(primaryValue, elementFromDB as Account);
-			this._initialAccountValue = elementFromDB as Account;
+			this._initialAccountValue.set(
+				elementFromDB.address,
+				elementFromDB as Account,
+			);
 
 			return (new Account(elementFromDB as Account) as unknown) as Account<T>;
 		} catch (error) {
@@ -149,21 +156,26 @@ export class AccountStore {
 		for (const account of this._data.values()) {
 			if (this._updatedKeys.has(account.address)) {
 				const encodedFinalAccount = this._dataAccess.encodeAccount(account);
-				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(account.address)}`;
-				batch.put(
-					dbKey,
-					encodedFinalAccount,
-				);
+				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(
+					account.address,
+				)}`;
+				batch.put(dbKey, encodedFinalAccount);
 
-				if (Object.entries(this._initialAccountValue).length) {
-					const encodedInitialAccount = this._dataAccess.encodeAccount(this._initialAccountValue);
-					const diff = calculateDiff(encodedInitialAccount, encodedFinalAccount);
+				if (this._initialAccountValue.has(account.address)) {
+					const initialAccount = this._initialAccountValue.get(account.address);
+					const encodedInitialAccount = this._dataAccess.encodeAccount(
+						initialAccount as Account,
+					);
+					const diff = calculateDiff(
+						encodedInitialAccount,
+						encodedFinalAccount,
+					);
 					stateDiff.updated.push({
 						key: dbKey,
 						value: diff,
 					});
 				} else {
-					stateDiff.created.push(dbKey)
+					stateDiff.created.push(dbKey);
 				}
 			}
 		}

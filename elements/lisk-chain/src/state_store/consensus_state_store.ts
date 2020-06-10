@@ -34,7 +34,7 @@ export class ConsensusStateStore {
 	private _originalUpdatedKeys: Set<string>;
 	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
-	private _initialValue = Buffer.alloc(0);
+	private _initialValue: KeyValuePair;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -44,6 +44,7 @@ export class ConsensusStateStore {
 		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._data = {};
 		this._originalData = {};
+		this._initialValue = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
 	}
@@ -74,7 +75,7 @@ export class ConsensusStateStore {
 		if (dbValue === undefined) {
 			return dbValue;
 		}
-		this._initialValue = dbValue;
+		this._initialValue[key] = dbValue;
 		this._data[key] = dbValue;
 
 		return this._data[key];
@@ -102,17 +103,20 @@ export class ConsensusStateStore {
 
 		for (const key of Array.from(this._updatedKeys)) {
 			const dbKey = `${DB_KEY_CONSENSUS_STATE}:${key}`;
-			const updatedValue = this._data[key] as Buffer
+			const updatedValue = this._data[key] as Buffer;
 			batch.put(dbKey, updatedValue);
 
 			if (this._initialValue.length) {
-				const diff = calculateDiff(this._initialValue, updatedValue);
+				const diff = calculateDiff(
+					this._initialValue[key] as Buffer,
+					updatedValue,
+				);
 				stateDiff.updated.push({
 					key: dbKey,
 					value: diff,
 				});
 			} else {
-				stateDiff.created.push(dbKey)
+				stateDiff.created.push(dbKey);
 			}
 		}
 
