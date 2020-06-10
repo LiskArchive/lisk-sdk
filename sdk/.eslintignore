@@ -7,3 +7,4 @@ ssl
 stacktrace*
 tmp
 index.d.ts
+dist-node

@@ -36,16 +36,7 @@ import {
 	setUsedHashOnions,
 	UsedHashOnion,
 } from './data_access';
-
-export interface DelegateConfig {
-	readonly publicKey: string;
-	readonly encryptedPassphrase: string;
-	readonly hashOnion: {
-		readonly count: number;
-		readonly distance: number;
-		readonly hashes: string[];
-	};
-}
+import { DelegateConfig } from '../../../types';
 
 interface HashOnionConfig {
 	readonly count: number;

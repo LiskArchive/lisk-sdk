@@ -34,9 +34,9 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
+		"@liskhq/lisk-codec": "0.1.0",
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
 		"@liskhq/lisk-validator": "0.4.0-alpha.0",
-		"@liskhq/lisk-codec": "0.1.0",
 		"@types/node": "12.12.11",
 		"debug": "4.1.1"
 	},
@@ -59,7 +59,7 @@
 		"jest": "25.1.0",
 		"jest-extended": "0.11.5",
 		"jest-when": "2.7.0",
-		"prettier": "1.19.1",
+		"prettier": "2.0.5",
 		"randomstring": "1.1.5",
 		"source-map-support": "0.5.16",
 		"stampit": "4.3.1",

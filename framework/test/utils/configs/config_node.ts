@@ -13,7 +13,7 @@
  */
 
 import { applicationConfigSchema } from '../../../src/application/schema/application_config_schema';
-import { ApplicationConfig } from '../../../src/application/application';
+import { ApplicationConfig } from '../../../src/types';
 
 export const nodeConfig = (
 	overriddenConfigProperties: Partial<ApplicationConfig> = {},

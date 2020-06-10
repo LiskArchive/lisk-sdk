@@ -57,10 +57,6 @@ Object {
             "type": "string",
           },
           "delegates": Object {
-            "env": Object {
-              "formatter": "stringToDelegateList",
-              "variable": "LISK_FORGING_DELEGATES",
-            },
             "items": Object {
               "properties": Object {
                 "encryptedPassphrase": Object {
@@ -213,11 +209,9 @@ Object {
               "fatal",
               "none",
             ],
-            "env": "LISK_CONSOLE_LOG_LEVEL",
             "type": "string",
           },
           "fileLogLevel": Object {
-            "arg": "--log,-l",
             "enum": Array [
               "trace",
               "debug",
@@ -227,7 +221,6 @@ Object {
               "fatal",
               "none",
             ],
-            "env": "LISK_FILE_LOG_LEVEL",
             "type": "string",
           },
           "logFileName": Object {
@@ -281,8 +274,6 @@ Object {
             "type": "array",
           },
           "hostIp": Object {
-            "arg": "--address,-a",
-            "env": "LISK_ADDRESS",
             "format": "ip",
             "type": "string",
           },
@@ -304,14 +295,6 @@ Object {
             "type": "integer",
           },
           "seedPeers": Object {
-            "arg": Object {
-              "formatter": "stringToIpPortSet",
-              "name": "--peers,-x",
-            },
-            "env": Object {
-              "formatter": "stringToIpPortSet",
-              "variable": "LISK_PEERS",
-            },
             "items": Object {
               "properties": Object {
                 "ip": Object {
@@ -355,8 +338,6 @@ Object {
             "type": "integer",
           },
           "wsPort": Object {
-            "arg": "--port,-p",
-            "env": "LISK_WS_PORT",
             "maximum": 65535,
             "minimum": 1,
             "type": "integer",
