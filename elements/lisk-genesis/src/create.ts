@@ -12,30 +12,57 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-interface GeneisAccountState {
-	readonly publicKey?: Buffer;
-	readonly address: Buffer;
-	readonly balance: bigint;
-	readonly keys: ReadonlyArray<Buffer>;
-	readonly delegate?: {
-		readonly username: string;
-		readonly lastForgedHeight: bigint;
+import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
+import { GenesisAccountState, GenesisBlock, GenesisBlockParams } from './types';
+import { validateGenesisBlock } from './validate';
+
+export const createGenesisBlock = (
+	params: GenesisBlockParams,
+): GenesisBlock => {
+	// Default values
+	const initRounds = params.initRounds ?? 3;
+	const height = params.height ?? 0;
+	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
+	const previousBlockID = params.previousBlockID ?? Buffer.from(EMPTY_BUFFER);
+
+	// Constant values
+	const version = 0;
+	const generatorPublicKey = Buffer.from(EMPTY_BUFFER);
+	const reward = BigInt(0);
+	const payload = Buffer.from(EMPTY_BUFFER);
+	const signature = Buffer.from(EMPTY_BUFFER);
+	const transactionRoot = Buffer.from(EMPTY_HASH);
+	const id = Buffer.from(EMPTY_BUFFER);
+
+	const { initDelegates } = params;
+
+	const accounts: ReadonlyArray<GenesisAccountState> = [
+		...params.accounts,
+	].sort((a, b): number => a.address.compare(b.address));
+
+	const header = {
+		generatorPublicKey,
+		height,
+		id,
+		previousBlockID,
+		reward,
+		signature,
+		timestamp,
+		transactionRoot,
+		version,
+		asset: {
+			initRounds,
+			initDelegates,
+			accounts,
+		},
 	};
-}
 
-interface GenesisBlockParams {
-	// List of accounts in the genesis
-	readonly accounts: ReadonlyArray<GeneisAccountState>;
-	// List fo initial delegate addresses used during the bootstrap period to forge blocks
-	readonly initDelegates: ReadonlyArray<Buffer>;
-	// Number of rounds for bootstrap period, default is 3
-	readonly initRounds?: number;
-	readonly height?: number;
-	readonly timestamp?: number;
-	readonly previousBlockId?: Buffer;
-}
+	const genesisBlock: GenesisBlock = {
+		header,
+		payload,
+	};
 
-// eslint-disable-next-line
-export const createGenesisBlock = (_params: GenesisBlockParams) => {
-	return {};
+	validateGenesisBlock(genesisBlock);
+
+	return genesisBlock;
 };

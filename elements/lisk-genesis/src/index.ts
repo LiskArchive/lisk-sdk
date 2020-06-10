@@ -12,4 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './create';
+import { createGenesisBlock } from './create';
+import { validateGenesisBlock } from './validate';
+
+export * from './types';
+export * from './schema';
+export { createGenesisBlock, validateGenesisBlock };
