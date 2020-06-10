@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { codec } from '@liskhq/lisk-codec';
 import { SCServerSocket } from 'socketcluster-server';
 import { Peer, PeerConfig } from '../../../src/peer';
 import {
@@ -39,6 +40,11 @@ import {
 import { RPCResponseError } from '../../../src/errors';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { p2pTypes } from '../../../src';
+import {
+	peersListResponseSchema,
+	peerInfoSchema,
+	nodeInfoSchema,
+} from '../../../src/schema';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({
@@ -334,12 +340,16 @@ describe('peer/base', () => {
 
 	describe('#fetchPeers', () => {
 		it('should call request', async () => {
+			codec.addSchema(peersListResponseSchema);
+
 			const peerRequest = jest
 				.spyOn(defaultPeer as any, 'request')
 				.mockResolvedValue({
 					data: {
-						peers: [],
-						success: true,
+						data: codec.encode(peersListResponseSchema, {
+							success: true,
+							peers: Buffer.from([]),
+						}),
 					},
 				});
 
@@ -395,18 +405,14 @@ describe('peer/base', () => {
 						ipAddress: '1.1.1.1',
 						sourceAddress: '12.12.12.12',
 						wsPort: 1111,
-						sharedState: {
-							version: '1.1.1',
-						},
+						sharedState: {},
 					},
 					{
 						peerId: constructPeerId('2.2.2.2', 2222),
 						ipAddress: '2.2.2.2',
 						sourceAddress: '12.12.12.12',
 						wsPort: 2222,
-						sharedState: {
-							version: '2.2.2',
-						},
+						sharedState: {},
 					},
 				];
 				const sanitizedPeers = [
@@ -416,8 +422,11 @@ describe('peer/base', () => {
 						sourceAddress: '12.12.12.12',
 						wsPort: 1111,
 						sharedState: {
-							version: '1.1.1',
 							height: 0,
+							networkId: '',
+							os: '',
+							nonce: '',
+							protocolVersion: '',
 						},
 					},
 					{
@@ -426,20 +435,36 @@ describe('peer/base', () => {
 						sourceAddress: '12.12.12.12',
 						wsPort: 2222,
 						sharedState: {
-							version: '2.2.2',
 							height: 0,
+							networkId: '',
+							os: '',
+							nonce: '',
+							protocolVersion: '',
 						},
 					},
 				];
+				codec.addSchema(peersListResponseSchema);
+				codec.addSchema(peerInfoSchema);
+
+				const encodedPeers = peers.map(peer =>
+					codec.encode(peerInfoSchema, {
+						...peer.sharedState,
+						ipAddress: peer.ipAddress,
+						wsPort: peer.wsPort,
+					}),
+				);
+
+				const encodedPeerListResponse = codec.encode(peersListResponseSchema, {
+					peers: encodedPeers,
+					success: true,
+				});
+
+				const encodedResponse = {
+					data: encodedPeerListResponse.toString('base64'),
+				};
+
 				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: {
-						peers: peers.map(peer => ({
-							...peer.sharedState,
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-						})),
-						success: true,
-					},
+					data: encodedResponse,
 				});
 				const response = await defaultPeer.fetchPeers();
 				expect(response).toEqual(sanitizedPeers);
@@ -450,21 +475,29 @@ describe('peer/base', () => {
 					peerId: `'1.1.1.1:${1 + index}`,
 					ipAddress: '1.1.1.1',
 					wsPort: 1 + index,
-					sharedState: {
-						version: '1.1.1',
-					},
+					sharedState: {},
 				}));
 
-				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
+				const encoedMalformedPeersList = malformedPeerList.map(peer =>
+					codec.encode(peerInfoSchema, {
+						...peer.sharedState,
+						ipAddress: peer.ipAddress,
+						wsPort: peer.wsPort,
+					}),
+				);
+
+				const encodedPeerListResponse = {
 					data: {
-						peers: malformedPeerList.map(peer => ({
-							...peer.sharedState,
-							ipAddress: peer.ipAddress,
-							wsPort: peer.wsPort,
-						})),
-						success: true,
+						data: codec.encode(peersListResponseSchema, {
+							peers: encoedMalformedPeersList,
+							success: true,
+						}),
 					},
-				});
+				};
+
+				jest
+					.spyOn(defaultPeer as any, 'request')
+					.mockResolvedValue(encodedPeerListResponse);
 
 				try {
 					await defaultPeer.fetchPeers();
@@ -477,7 +510,8 @@ describe('peer/base', () => {
 				}
 			});
 
-			it('should throw apply penalty on malformed Peer', async () => {
+			// Skipping as schema validation doesn't allow custom fields and supported properties are validated before applying nodeInfo.
+			it.skip('should throw apply penalty on malformed Peer', async () => {
 				const malformedPeerList = [
 					{
 						peerId: `'1.1.1.1:5000`,
@@ -609,16 +643,19 @@ describe('peer/base', () => {
 		describe('when request() succeeds', () => {
 			describe('when _updateFromProtocolPeerInfo() fails', () => {
 				const peer = {
-					ip: '1.1.1.1',
+					ipAddress: '1.1.1.1',
 					wsPort: 1111,
-					version: '1.1.2',
 					protocolVersion: '9.2',
 					networkId: 'networkId',
 				};
 				beforeEach(() => {
-					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-						data: peer,
-					});
+					codec.addSchema(peerInfoSchema);
+					const encodedResponse = {
+						data: codec.encode(peerInfoSchema, peer),
+					};
+					jest
+						.spyOn(defaultPeer as any, 'request')
+						.mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'emit');
 				});
 
@@ -648,15 +685,19 @@ describe('peer/base', () => {
 				const peerSharedState = {
 					ipAddress: '1.1.1.1',
 					wsPort: 1111,
-					version: '1.1.2',
 					protocolVersion: '1.2',
 					networkId: 'networkId',
 				};
 
 				beforeEach(() => {
-					jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-						data: peerSharedState,
-					});
+					codec.addSchema(peerInfoSchema);
+					const encodedResponse = {
+						data: codec.encode(nodeInfoSchema, peerSharedState),
+					};
+
+					jest
+						.spyOn(defaultPeer as any, 'request')
+						.mockResolvedValue({ data: encodedResponse });
 					jest.spyOn(defaultPeer, 'updatePeerInfo');
 					jest.spyOn(defaultPeer, 'emit');
 				});
@@ -671,10 +712,12 @@ describe('peer/base', () => {
 						ipAddress: defaultPeerInfo.ipAddress,
 						wsPort: defaultPeerInfo.wsPort,
 						sharedState: {
-							version: peerSharedState.version,
 							height: 0,
 							protocolVersion: '1.2',
 							networkId: 'networkId',
+							advertiseAddress: false,
+							nonce: '',
+							os: '',
 						},
 					};
 
@@ -701,7 +744,6 @@ describe('peer/base', () => {
 						height: 0,
 						networkId: 'networkId',
 						protocolVersion: '1.2',
-						version: '1.1.2',
 					});
 				});
 			});
