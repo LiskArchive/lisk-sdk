@@ -12,28 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { strict as assert } from 'assert';
-import { EMPTY_BUFFER } from './constants';
+import { validator, ErrorObject } from '@liskhq/lisk-validator';
 import { GenesisBlock } from './types';
+import {
+	genesisBlockSchema,
+	genesisBlockHeaderSchema,
+	genesisBlockHeaderAssetDBSchema,
+} from './schema';
+import { bufferArrayContains, bufferArrayIdentical } from './utils';
 
 export const validateGenesisBlock = (
 	block: GenesisBlock | object,
-): boolean | never => {
+): ErrorObject[] => {
 	const { header, payload } = block as GenesisBlock;
 
-	assert(header.height < 0, 'Genesis block height can not be negative');
-	assert(
-		header.asset.initRounds < 3,
-		'Genesis block initial rounds can not be less than 3',
+	const payloadErrors = validator.validate(genesisBlockSchema, {
+		header: Buffer.alloc(0),
+		payload,
+	});
+	const headerErrors = validator.validate(genesisBlockHeaderSchema, header);
+	const assetErrors = validator.validate(
+		genesisBlockHeaderAssetDBSchema,
+		header.asset,
 	);
-	assert(
-		header.asset.initDelegates.length < 1,
-		'Genesis block initial delegates list can not be empty',
-	);
-	assert(
-		payload.compare(Buffer.from(EMPTY_BUFFER)) === 0,
-		'Genesis block payload must be empty.',
-	);
+	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
 
-	return true;
+	const accountAddresses = header.asset.accounts.map(a => a.address);
+	if (!bufferArrayContains(accountAddresses, [...header.asset.initDelegates])) {
+		errors.push({
+			message: 'Initial delegate addresses are not present in accounts',
+			keyword: 'initDelegates',
+			dataPath: 'header.asset.initDelegates',
+			schemaPath: 'properties.initDelegates',
+			params: { accountAddresses, initDelegates: header.asset.initDelegates },
+		});
+	}
+
+	const accountAddressesSorted = accountAddresses.sort((a, b) => a.compare(b));
+	if (!bufferArrayIdentical(accountAddresses, accountAddressesSorted)) {
+		errors.push({
+			message: 'Accounts are not sorted by address',
+			keyword: 'accounts',
+			dataPath: 'header.asset.accounts',
+			schemaPath: 'properties.accounts',
+			params: { accountAddresses },
+		});
+	}
+	return errors;
 };

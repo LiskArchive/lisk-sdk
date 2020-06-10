@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { LiskValidationError } from '@liskhq/lisk-validator';
 import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
 import { GenesisAccountState, GenesisBlock, GenesisBlockParams } from './types';
 import { validateGenesisBlock } from './validate';
@@ -62,7 +63,10 @@ export const createGenesisBlock = (
 		payload,
 	};
 
-	validateGenesisBlock(genesisBlock);
+	const errors = validateGenesisBlock(genesisBlock);
+	if (errors.length) {
+		throw new LiskValidationError(errors);
+	}
 
 	return genesisBlock;
 };

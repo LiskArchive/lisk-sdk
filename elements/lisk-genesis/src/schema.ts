@@ -17,10 +17,44 @@ import {
 	baseAccountSchema,
 	blockHeaderSchema,
 } from '@liskhq/lisk-chain';
+import { mergeDeep } from './utils';
+import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
 
-export const genesisAccountDBSchema = baseAccountSchema;
-export const genesisBlockDBSchema = blockSchema;
-export const genesisBlockHeaderDBSchema = blockHeaderSchema;
+export const genesisAccountSchema = baseAccountSchema;
+export const genesisBlockSchema: object = mergeDeep({}, blockSchema, {
+	properties: {
+		payload: {
+			minLength: 0,
+			maxLength: 0,
+		},
+	},
+});
+export const genesisBlockHeaderSchema: object = mergeDeep(
+	{},
+	blockHeaderSchema,
+	{
+		properties: {
+			height: {
+				minimum: 0,
+			},
+			version: {
+				const: 0,
+			},
+			generatorPublicKey: {
+				const: EMPTY_BUFFER,
+			},
+			reward: {
+				const: BigInt(0),
+			},
+			signature: {
+				const: EMPTY_BUFFER,
+			},
+			transactionRoot: {
+				const: EMPTY_HASH,
+			},
+		},
+	},
+);
 export const genesisBlockHeaderAssetDBSchema = {
 	$id: '/genesis_block/header/asset',
 	type: 'object',
@@ -29,9 +63,10 @@ export const genesisBlockHeaderAssetDBSchema = {
 		accounts: {
 			type: 'array',
 			items: {
-				...genesisAccountDBSchema,
+				...genesisAccountSchema,
 			},
 			fieldNumber: 1,
+			uniqueItems: true,
 		},
 		initDelegates: {
 			type: 'array',
@@ -39,10 +74,13 @@ export const genesisBlockHeaderAssetDBSchema = {
 				dataType: 'bytes',
 			},
 			fieldNumber: 2,
+			minLength: 1,
+			uniqueItems: true,
 		},
 		initRounds: {
 			dataType: 'uint32',
 			fieldNumber: 3,
+			minimum: 3,
 		},
 	},
 };
