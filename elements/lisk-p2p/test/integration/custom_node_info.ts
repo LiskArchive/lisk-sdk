@@ -16,58 +16,55 @@
 // import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 // TODO: Skipping as strict schema doesn't allow custom fields. Enable this test when users will be allowed to pass custom schema.
-// eslint-disable-next-line jest/no-disabled-tests
-// describe.skip('Custom nodeInfo', () => {
-// 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-// 	beforeEach(async () => {
-// 		const customConfig = () => ({
-// 			nodeInfo: {
-// 				modules: {
-// 					names: ['test', 'crypto'],
-// 					active: true,
-// 				},
-// 			},
-// 		});
+describe('Custom nodeInfo', () => {
+	// 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
-// 		p2pNodeList = await createNetwork({ customConfig });
-// 	});
+	// 	beforeEach(async () => {
+	// 		const customConfig = () => ({
+	// 			nodeInfo: {
+	// 				modules: {
+	// 					names: ['test', 'crypto'],
+	// 					active: true,
+	// 				},
+	// 			},
+	// 		});
 
-// 	afterEach(async () => {
-// 		await destroyNetwork(p2pNodeList);
-// 	});
+	// 		p2pNodeList = await createNetwork({ customConfig });
+	// 	});
 
-// 	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
-// 		for (const p2p of p2pNodeList) {
-// 			const { triedPeers } = (p2p as any)._peerBook;
-// 			const { newPeers } = (p2p as any)._peerBook;
+	// 	afterEach(async () => {
+	// 		await destroyNetwork(p2pNodeList);
+	// 	});
 
-// 			for (const peer of triedPeers) {
-// 				expect(peer).toMatchObject({
-// 					sharedState: {
-// 						modules: { names: expect.any(Array), active: expect.any(Boolean) },
-// 					},
-// 				});
-// 			}
-
-// 			for (const peer of newPeers) {
-// 				if (peer.modules) {
-// 					expect(peer).toMatchObject({
-// 						sharedState: {
-// 							modules: {
-// 								names: expect.any(Array),
-// 								active: expect.any(Boolean),
-// 							},
-// 						},
-// 					});
-// 				}
-// 			}
-
-// 			for (const peer of p2p.getConnectedPeers()) {
-// 				expect(peer).toMatchObject({
-// 					modules: { names: expect.any(Array), active: expect.any(Boolean) },
-// 				});
-// 			}
-// 		}
-// 	});
-// });
+	it('should have tried peers with custom test field "modules" that was passed as nodeinfo', () => {
+		// 		for (const p2p of p2pNodeList) {
+		// 			const { triedPeers } = (p2p as any)._peerBook;
+		// 			const { newPeers } = (p2p as any)._peerBook;
+		// 			for (const peer of triedPeers) {
+		// 				expect(peer).toMatchObject({
+		// 					sharedState: {
+		// 						modules: { names: expect.any(Array), active: expect.any(Boolean) },
+		// 					},
+		// 				});
+		// 			}
+		// 			for (const peer of newPeers) {
+		// 				if (peer.modules) {
+		// 					expect(peer).toMatchObject({
+		// 						sharedState: {
+		// 							modules: {
+		// 								names: expect.any(Array),
+		// 								active: expect.any(Boolean),
+		// 							},
+		// 						},
+		// 					});
+		// 				}
+		// 			}
+		// 			for (const peer of p2p.getConnectedPeers()) {
+		// 				expect(peer).toMatchObject({
+		// 					modules: { names: expect.any(Array), active: expect.any(Boolean) },
+		// 				});
+		// 			}
+		// 		}
+	});
+});

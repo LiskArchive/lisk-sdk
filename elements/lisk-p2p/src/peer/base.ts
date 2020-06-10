@@ -57,7 +57,6 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
-	ProtocolPeerInfo,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -366,7 +365,7 @@ export class Peer extends EventEmitter {
 			const { data } = response.data as GetPeersResponseRawData;
 			const dataBuffer = Buffer.from(data, 'base64');
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-			const { peers } = codec.decode(
+			const { peers, success } = codec.decode(
 				peersListResponseSchema,
 				dataBuffer,
 			) as GetPeersResponseData;
@@ -375,7 +374,7 @@ export class Peer extends EventEmitter {
 			);
 
 			const validatedPeers = validatePeerInfoList(
-				decodedPeers,
+				{ peers: decodedPeers, success },
 				this._peerConfig.maxPeerDiscoveryResponseLength,
 				this._peerConfig.maxPeerInfoSize,
 			);
