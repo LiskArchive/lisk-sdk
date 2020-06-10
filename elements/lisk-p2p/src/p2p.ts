@@ -14,7 +14,7 @@
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -261,9 +261,9 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		codec.addSchema((peersListResponseSchema as unknown) as Schema);
-		codec.addSchema((peerInfoSchema as unknown) as Schema);
-		codec.addSchema((nodeInfoSchema as unknown) as Schema);
+		codec.addSchema(peersListResponseSchema);
+		codec.addSchema(peerInfoSchema);
+		codec.addSchema(nodeInfoSchema);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest): void => {
@@ -827,13 +827,12 @@ export class P2P extends EventEmitter {
 		const encodedPeersList = peersList.map(peer =>
 			codec.encode(peerInfoSchema, peer),
 		);
+		const encodedResponse = codec.encode(peersListResponseSchema, {
+			success: true,
+			peers: encodedPeersList,
+		});
 
-		request.end(
-			codec.encode(peersListResponseSchema, {
-				success: true,
-				peers: encodedPeersList,
-			}),
-		);
+		request.end(encodedResponse);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
