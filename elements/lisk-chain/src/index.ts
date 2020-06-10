@@ -19,6 +19,7 @@ const events = { EVENT_DELETE_BLOCK, EVENT_NEW_BLOCK };
 export { Account } from './account';
 export * from './block_reward';
 export { Chain, events };
+export * from './schema';
 export { StateStore } from './state_store';
 export { Slots } from './slots';
 export * from './types';
