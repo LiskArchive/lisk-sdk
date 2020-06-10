@@ -165,3 +165,10 @@ export const ipOrFQDN = (data: string): boolean => {
 	const hostnameRegex = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
 	return isIPV4(data) || hostnameRegex.test(data);
 };
+
+export const oddInteger = (data: string | number): boolean => {
+	if (typeof data === 'number') {
+		return Number.isInteger(data) && data % 2 === 1;
+	}
+	return /^\d*[13579]$/.test(data);
+};

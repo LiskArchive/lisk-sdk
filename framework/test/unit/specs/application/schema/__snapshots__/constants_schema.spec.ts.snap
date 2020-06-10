@@ -15,6 +15,7 @@ Object {
       "activeDelegates": Object {
         "const": 101,
         "description": "The default number of delegates allowed to forge a block",
+        "format": "oddInteger",
         "min": 1,
         "type": "integer",
       },

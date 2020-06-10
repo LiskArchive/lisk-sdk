@@ -23,7 +23,6 @@ import {
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { Application } from '../../../../src/application/application';
-import { constantsSchema } from '../../../../src/application/schema';
 import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
@@ -135,19 +134,6 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config.logger.logFileName).toBe('lisk.log');
-		});
-
-		it('should validate the constants', () => {
-			jest.spyOn(validator, 'validate');
-
-			// eslint-disable-next-line no-new
-			new Application(genesisBlock as GenesisBlockJSON, config);
-
-			expect(validator.validate).toHaveBeenCalled();
-			expect(validator.validate).toHaveBeenCalledWith(
-				constantsSchema,
-				expect.any(Object),
-			);
 		});
 
 		it('should merge the constants with genesisConfig and assign it to app constants', () => {

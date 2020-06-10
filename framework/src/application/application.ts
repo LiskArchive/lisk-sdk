@@ -143,14 +143,6 @@ export class Application {
 			throw new LiskValidationError(applicationConfigErrors as ErrorObject[]);
 		}
 
-		const constantErrors = validator.validate(
-			constantsSchema,
-			constantsSchema.default,
-		);
-		if (constantErrors.length) {
-			throw new LiskValidationError(constantErrors as ErrorObject[]);
-		}
-
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
 		this.constants = {
