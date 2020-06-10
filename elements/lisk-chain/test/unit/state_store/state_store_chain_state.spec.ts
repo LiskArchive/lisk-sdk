@@ -14,18 +14,18 @@
 import { KVStore, BatchChain } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { StateStore } from '../../src';
-import { DataAccess } from '../../src/data_access';
-import { BlockHeader } from '../../src/types';
-import { baseAccountSchema } from '../../src/schema';
+import { StateStore } from '../../../src';
+import { DataAccess } from '../../../src/data_access';
+import { BlockHeader } from '../../../src/types';
+import { baseAccountSchema } from '../../../src/schema';
 import {
 	defaultAccountAssetSchema,
 	createFakeDefaultAccount,
-} from '../utils/account';
+} from '../../utils/account';
 import {
 	defaultNetworkIdentifier,
 	defaultBlockHeaderAssetSchema,
-} from '../utils/block';
+} from '../../utils/block';
 
 jest.mock('@liskhq/lisk-db');
 
