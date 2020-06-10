@@ -40,7 +40,11 @@ const processInputs = (
 	}
 
 	return {
-		...encryptMessageWithPassphrase(message, passphrase, recipientPublicKey),
+		...encryptMessageWithPassphrase(
+			message,
+			passphrase,
+			Buffer.from(recipientPublicKey, 'hex'),
+		),
 		recipientPublicKey,
 	};
 };

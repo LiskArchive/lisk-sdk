@@ -13,10 +13,10 @@
  */
 
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
-import * as os from 'os';
 import {
 	TransferTransaction,
 	DelegateTransaction,
@@ -30,26 +30,32 @@ import {
 import { Contexter } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { validator as liskValidator } from '@liskhq/lisk-validator';
+import {
+	validator,
+	LiskValidationError,
+	ErrorObject,
+} from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
-import { Controller, ModulesOptions } from '../controller/controller';
+import { Controller } from '../controller/controller';
 import { version } from '../version';
-import * as validator from './validator';
-import * as configurator from './default_configurator';
-import { genesisBlockSchema, constantsSchema } from './schema';
+import {
+	genesisBlockSchema,
+	constantsSchema,
+	applicationConfigSchema,
+} from './schema';
 import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
 import { Logger, createLogger } from './logger';
+import { mergeDeep } from './utils/merge_deep';
 
 import { DuplicateAppInstanceError } from '../errors';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 import { ActionInfoObject } from '../controller/action';
 import { NodeConstants, GenesisBlockJSON } from './node/node';
-import { DelegateConfig } from './node/forger';
-import { NetworkConfig } from './network/network';
+import { ApplicationConfig } from '../types';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -91,49 +97,6 @@ const registerProcessHooks = (app: Application): void => {
 	process.once('exit' as any, (code: number) => app.shutdown(code));
 };
 
-export interface ApplicationConfig {
-	label: string;
-	version: string;
-	protocolVersion: string;
-	networkId: string;
-	lastCommitId: string;
-	buildVersion: string;
-	ipc: {
-		enabled: boolean;
-	};
-	rootPath: string;
-	readonly forging: {
-		readonly waitThreshold: number;
-		readonly delegates: DelegateConfig[];
-		readonly force?: boolean;
-		readonly defaultPassword?: string;
-	};
-	readonly network: NetworkConfig;
-	readonly logger: {
-		logFileName: string;
-		fileLogLevel: string;
-		consoleLogLevel: string;
-	};
-	genesisConfig: {
-		readonly epochTime: string;
-		readonly blockTime: number;
-		readonly maxPayloadLength: number;
-		readonly reward: {
-			readonly milestones: string[];
-			readonly offset: number;
-			readonly distance: number;
-		};
-	};
-	constants: {
-		[key: string]: {} | string | number | undefined;
-		readonly activeDelegates: number;
-		readonly standbyDelegates: number;
-		readonly totalAmount: string;
-		readonly delegateListRoundOffset: number;
-	};
-	modules: ModulesOptions;
-}
-
 export class Application {
 	public config: ApplicationConfig;
 	public constants: NodeConstants;
@@ -156,38 +119,37 @@ export class Application {
 		genesisBlock: GenesisBlockJSON,
 		config: Partial<ApplicationConfig> = {},
 	) {
-		const errors = liskValidator.validate(genesisBlockSchema, genesisBlock);
+		const errors = validator.validate(genesisBlockSchema, genesisBlock);
 		if (errors.length) {
-			throw errors;
+			throw new LiskValidationError(errors as ErrorObject[]);
 		}
 		this._genesisBlock = genesisBlock;
 
 		// Don't change the object parameters provided
 		// eslint-disable-next-line no-param-reassign
-		config.rootPath = config.rootPath?.replace('~', os.homedir);
-		let appConfig = _.cloneDeep(config);
+		const appConfig = _.cloneDeep(applicationConfigSchema.default);
 
 		appConfig.label =
-			appConfig.label ??
+			config.label ??
 			`lisk-${this._genesisBlock.header.transactionRoot.slice(0, 7)}`;
 
-		appConfig = configurator.getConfig(appConfig, {
-			failOnInvalidArg: process.env.NODE_ENV !== 'test',
-		}) as ApplicationConfig;
-
-		// These constants are readonly we are loading up their default values
-		// In additional validating those values so any wrongly changed value
-		// by us can be catch on application startup
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const constants = validator.parseEnvArgAndValidate(constantsSchema, {});
+		const mergedConfig = mergeDeep({}, appConfig, config) as ApplicationConfig;
+		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
+		const applicationConfigErrors = validator.validate(
+			applicationConfigSchema,
+			mergedConfig,
+		);
+		if (applicationConfigErrors.length) {
+			throw new LiskValidationError(applicationConfigErrors as ErrorObject[]);
+		}
 
 		// app.genesisConfig are actually old constants
 		// we are merging these here to refactor the underlying code in other iteration
 		this.constants = {
-			...constants,
-			...appConfig.genesisConfig,
-		} as NodeConstants;
-		this.config = appConfig as ApplicationConfig;
+			...constantsSchema.default,
+			...mergedConfig.genesisConfig,
+		};
+		this.config = mergedConfig;
 
 		// Private members
 		this._modules = {};
@@ -256,7 +218,13 @@ export class Application {
 			`A transaction type "${Transaction.TYPE}" is already registered.`,
 		);
 
-		validator.validate(transactionInterface, Transaction.prototype);
+		const transactionSchemaErrors = validator.validate(
+			transactionInterface,
+			Transaction.prototype,
+		);
+		if (transactionSchemaErrors.length) {
+			throw new LiskValidationError(transactionSchemaErrors as ErrorObject[]);
+		}
 
 		if (matcher) {
 			Object.defineProperty(Transaction.prototype, 'matcher', {
@@ -359,9 +327,9 @@ export class Application {
 	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			this._genesisBlock.header.transactionRoot,
+			Buffer.from(this._genesisBlock.header.transactionRoot, 'hex'),
 			this._genesisBlock.communityIdentifier,
-		);
+		).toString('base64');
 
 		const appConfigToShareWithModules = {
 			version: this.config.version,

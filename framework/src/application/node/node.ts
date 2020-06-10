@@ -34,7 +34,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Sequence } from './utils/sequence';
-import { DelegateConfig, Forger, ForgingStatus } from './forger';
+import { Forger, ForgingStatus } from './forger';
 import {
 	Transport,
 	HandleRPCGetTransactionsReturn,
@@ -48,7 +48,7 @@ import {
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
 import { Logger } from '../logger';
-import { EventPostTransactionData } from '../../types';
+import { DelegateConfig, EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
@@ -237,7 +237,7 @@ export class Node {
 	private readonly _blockchainDB: KVStore;
 	private readonly _applicationState: ApplicationState;
 	private _sequence!: Sequence;
-	private _networkIdentifier!: string;
+	private _networkIdentifier!: Buffer;
 	private _chain!: Chain;
 	private _bft!: BFT;
 	private _dpos!: Dpos;
@@ -279,11 +279,6 @@ export class Node {
 					`forging.waitThreshold=${this._options.forging.waitThreshold} is greater or equal to genesisConfig.blockTime=${this._options.constants.blockTime}. It impacts the forging and propagation of blocks. Please use a smaller value for forging.waitThreshold`,
 				);
 			}
-
-			this._networkIdentifier = getNetworkIdentifier(
-				this._options.genesisBlock.header.transactionRoot,
-				this._options.genesisBlock.communityIdentifier,
-			);
 
 			this._sequence = new Sequence({
 				onWarning: (current: number): void => {
@@ -579,6 +574,10 @@ export class Node {
 
 	private _initModules(): void {
 		const genesisBlock = convertGenesisBlock(this._options.genesisBlock);
+		this._networkIdentifier = getNetworkIdentifier(
+			genesisBlock.header.transactionRoot,
+			this._options.genesisBlock.communityIdentifier,
+		);
 		this._chain = new Chain({
 			db: this._blockchainDB,
 			genesisBlock,
@@ -590,7 +589,7 @@ export class Node {
 			registeredBlocks: {
 				2: BlockProcessorV2.schema,
 			},
-			networkIdentifier: Buffer.from(this._networkIdentifier, 'hex'),
+			networkIdentifier: this._networkIdentifier,
 			maxPayloadLength: this._options.constants.maxPayloadLength,
 			rewardDistance: this._options.constants.rewards.distance,
 			rewardOffset: this._options.constants.rewards.offset,

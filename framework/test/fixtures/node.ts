@@ -19,7 +19,7 @@ export const cacheConfig = 'aCacheConfig';
 export const nodeOptions = {
 	rootPath: '~/.lisk',
 	label: 'default',
-	genesisBlock: genesisBlock(),
+	genesisBlock: { ...genesisBlock(), communityIdentifier: 'Lisk' },
 	network: {
 		enabled: false,
 	},

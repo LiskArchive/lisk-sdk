@@ -36,11 +36,11 @@ describe('diff', () => {
 			it('should return an array of edit history', () => {
 				const diff = calculateDiff(arr1Buffer, arr2Buffer);
 				const editHistory = [
-					['=', 1],
-					['-', 2],
-					['=', 1],
-					['+', 4],
-					['=', 2],
+					{ code: '=', line: 1 },
+					{ code: '-', line: 2 },
+					{ code: '=', line: 1 },
+					{ code: '+', line: 4 },
+					{ code: '=', line: 2 },
 				];
 				expect(diff).toEqual(editHistory);
 				expect(undo(arr2Buffer, diff)).toEqual(arr1Buffer);
@@ -48,7 +48,7 @@ describe('diff', () => {
 
 			it('should return history with only "=" operation equal to the number of values', () => {
 				const diff = calculateDiff(arr1Buffer, arr1Buffer);
-				const editHistory = [['=', 5]];
+				const editHistory = [{ code: '=', line: 5 }];
 				expect(diff).toEqual(editHistory);
 				expect(undo(arr1Buffer, diff)).toEqual(arr1Buffer);
 			});
@@ -56,11 +56,11 @@ describe('diff', () => {
 			it('should return history with "+" operators adding each new element of the new array', () => {
 				const diff = calculateDiff(Buffer.from([]), arr1Buffer);
 				const editHistory = [
-					['+', 1],
-					['+', 2],
-					['+', 3],
-					['+', 5],
-					['+', 6],
+					{ code: '+', line: 1 },
+					{ code: '+', line: 2 },
+					{ code: '+', line: 3 },
+					{ code: '+', line: 5 },
+					{ code: '+', line: 6 },
 				];
 				expect(diff).toEqual(editHistory);
 				expect(undo(arr1Buffer, diff)).toEqual(Buffer.from([]));

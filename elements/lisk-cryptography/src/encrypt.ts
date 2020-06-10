@@ -35,7 +35,7 @@ export interface EncryptedMessageWithNonce {
 export const encryptMessageWithPassphrase = (
 	message: string,
 	passphrase: string,
-	recipientPublicKey: string,
+	recipientPublicKey: Buffer,
 ): EncryptedMessageWithNonce => {
 	const {
 		privateKey: senderPrivateKeyBytes,
@@ -43,11 +43,10 @@ export const encryptMessageWithPassphrase = (
 	const convertedPrivateKey = Buffer.from(
 		convertPrivateKeyEd2Curve(senderPrivateKeyBytes),
 	);
-	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
 	const nonce = getRandomBytes(nonceSize);
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
+	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
@@ -76,7 +75,7 @@ export const decryptMessageWithPassphrase = (
 	cipherHex: string,
 	nonce: string,
 	passphrase: string,
-	senderPublicKey: string,
+	senderPublicKey: Buffer,
 ): string => {
 	const {
 		privateKey: recipientPrivateKeyBytes,
@@ -84,11 +83,10 @@ export const decryptMessageWithPassphrase = (
 	const convertedPrivateKey = Buffer.from(
 		convertPrivateKeyEd2Curve(recipientPrivateKeyBytes),
 	);
-	const senderPublicKeyBytes = hexToBuffer(senderPublicKey);
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKeyBytes);
+	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {

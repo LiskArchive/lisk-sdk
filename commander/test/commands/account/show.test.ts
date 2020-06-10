@@ -55,7 +55,7 @@ describe('account:show', () => {
 						.getKeys(passphraseInput)
 						.publicKey.toString('base64'),
 					address: cryptography.getBase32AddressFromPublicKey(
-						cryptography.getKeys(passphraseInput).publicKey.toString('hex'),
+						cryptography.getKeys(passphraseInput).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography
@@ -78,9 +78,7 @@ describe('account:show', () => {
 						.getKeys(secondDefaultMnemonic)
 						.publicKey.toString('base64'),
 					address: cryptography.getBase32AddressFromPublicKey(
-						cryptography
-							.getKeys(secondDefaultMnemonic)
-							.publicKey.toString('hex'),
+						cryptography.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography

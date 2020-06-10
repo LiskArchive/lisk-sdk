@@ -11,11 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-const path = require('path');
 const {
 	Application,
-	configurator,
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('../../dist-node');
 
@@ -28,6 +25,7 @@ const dummyBuildVersion = '#buildVersion';
 const appConfig = {
 	version: '3.0.0',
 	protocolVersion: '2.0',
+	label: 'lisk-devnet',
 	lastCommitId: dummyLastCommitId,
 	buildVersion: dummyBuildVersion,
 	ipc: {
@@ -35,37 +33,20 @@ const appConfig = {
 	},
 };
 
-// Support for PROTOCOL_VERSION only for tests
-if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-	appConfig.protocolVersion = process.env.PROTOCOL_VERSION;
-}
-
 const network = process.env.LISK_NETWORK || 'devnet';
 
 try {
-	// TODO: I would convert config.json to .JS
-	configurator.loadConfig(appConfig);
-	configurator.loadConfigFile(
-		path.resolve(__dirname, `../fixtures/config/${network}/config`),
-	);
+	// eslint-disable-next-line import/no-dynamic-require,global-require
+	const config = require(`../fixtures/config/${network}/config`);
 	// eslint-disable-next-line import/no-dynamic-require,global-require
 	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
-	if (process.env.CUSTOM_CONFIG_FILE) {
-		configurator.loadConfigFile(path.resolve(process.env.CUSTOM_CONFIG_FILE));
-	}
-
-	const config = configurator.getConfig(appConfig, { failOnInvalidArg: false });
-
-	// Support for PROTOCOL_VERSION only for tests
-	if (process.env.NODE_ENV === 'test' && process.env.PROTOCOL_VERSION) {
-		config.protocolVersion = process.env.PROTOCOL_VERSION;
-	}
-
+	const mergedConfig = {
+		...appConfig,
+		...config,
+	};
 	// To run multiple applications for same network for integration tests
-	config.label = `lisk-devnet-${config.network.wsPort}`;
-
-	app = new Application(genesisBlock, config);
+	app = new Application(genesisBlock, mergedConfig);
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();

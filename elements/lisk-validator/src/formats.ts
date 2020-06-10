@@ -13,9 +13,11 @@ import {
 	isUInt64,
 	isUInt32,
 	isSInt32,
+	isIP,
 	isValidFee,
 	isValidNonce,
 	isValidTransferAmount,
+	isIPV4,
 } from './validation';
 
 export const address = (data: string): boolean => {
@@ -125,3 +127,48 @@ const camelCaseRegex = /^[a-z]+((\d)|([A-Z0-9][a-zA-Z0-9]+))*([a-z0-9A-Z])?$/;
 
 export const camelCase = (data: string): boolean =>
 	camelCaseRegex.exec(data) !== null;
+
+export const version = (data: string): boolean =>
+	/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3}(\.[0-9]{1,3})?)?$/.test(
+		data,
+	);
+
+export const protocolVersion = (data: string): boolean =>
+	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
+
+export const path = (data: string): boolean => {
+	const pathRegExp = new RegExp('^(.?)(/[^/]+)+$');
+	return pathRegExp.test(data);
+};
+
+export const encryptedPassphrase = (data: string): boolean => {
+	// Explanation of regex structure:
+	// - 1 or more 'key=value' pairs delimited with '&'
+	// Examples:
+	// - cipherText=abcd1234
+	// - cipherText=abcd1234&iterations=10000&iv=ef012345
+	// NOTE: Maximum lengths chosen here are arbitrary
+	const keyRegExp = /[a-zA-Z0-9]{2,15}/;
+	const valueRegExp = /[a-f0-9]{1,256}/;
+	const keyValueRegExp = new RegExp(
+		`${keyRegExp.source}=${valueRegExp.source}`,
+	);
+	const encryptedPassphraseRegExp = new RegExp(
+		`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`,
+	);
+	return encryptedPassphraseRegExp.test(data);
+};
+
+export const ip = isIP;
+
+export const ipOrFQDN = (data: string): boolean => {
+	const hostnameRegex = /^[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?(\.[a-zA-Z](([-0-9a-zA-Z]+)?[0-9a-zA-Z])?)*$/;
+	return isIPV4(data) || hostnameRegex.test(data);
+};
+
+export const oddInteger = (data: string | number): boolean => {
+	if (typeof data === 'number') {
+		return Number.isInteger(data) && data % 2 === 1;
+	}
+	return /^\d*[13579]$/.test(data);
+};

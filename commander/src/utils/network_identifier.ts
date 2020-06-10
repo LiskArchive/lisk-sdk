@@ -23,7 +23,10 @@ export const getNetworkIdentifierWithInput = (
 	networkConfig: string | undefined,
 ): string => {
 	if (input !== undefined && Object.keys(NETHASHES).includes(input)) {
-		return getNetworkIdentifier(NETHASHES[input], COMMUNITY_IDENTIFIER);
+		return getNetworkIdentifier(
+			Buffer.from(NETHASHES[input], 'hex'),
+			COMMUNITY_IDENTIFIER,
+		).toString('hex');
 	}
 	if (input !== undefined) {
 		if (!isHexString(input)) {
@@ -37,7 +40,10 @@ export const getNetworkIdentifierWithInput = (
 		networkConfig !== undefined &&
 		Object.keys(NETHASHES).includes(networkConfig)
 	) {
-		return getNetworkIdentifier(NETHASHES[networkConfig], COMMUNITY_IDENTIFIER);
+		return getNetworkIdentifier(
+			Buffer.from(NETHASHES[networkConfig], 'hex'),
+			COMMUNITY_IDENTIFIER,
+		).toString('hex');
 	}
 	throw new Error('Invalid network identifier');
 };

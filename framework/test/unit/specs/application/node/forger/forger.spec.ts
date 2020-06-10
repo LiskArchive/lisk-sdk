@@ -1064,7 +1064,10 @@ describe('forger', () => {
 			it('should not wait if threshold time passed and last block not received', async () => {
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(testDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(testDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(testDelegate.privateKey, 'hex'),
+					});
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 3).getTime();
 
@@ -1088,7 +1091,10 @@ describe('forger', () => {
 			it('should not wait if threshold remaining but last block already received', async () => {
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(testDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(testDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(testDelegate.privateKey, 'hex'),
+					});
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
 				const currentTime = new Date(2019, 0, 1, 0, 0, 1).getTime();
 
@@ -1112,7 +1118,10 @@ describe('forger', () => {
 				// Arrange
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(testDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(testDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(testDelegate.privateKey, 'hex'),
+					});
 
 				// Act
 				await forgeModule.forge();
@@ -1126,7 +1135,10 @@ describe('forger', () => {
 				const targetDelegate = genesisDelegates.delegates[0];
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(targetDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(testDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(testDelegate.privateKey, 'hex'),
+					});
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
 
@@ -1177,7 +1189,10 @@ describe('forger', () => {
 				const targetDelegate = genesisDelegates.delegates[0];
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(targetDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(targetDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(targetDelegate.privateKey, 'hex'),
+					});
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
 
@@ -1335,7 +1350,10 @@ describe('forger', () => {
 				const targetDelegate = genesisDelegates.delegates[0];
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(targetDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(targetDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(targetDelegate.privateKey, 'hex'),
+					});
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
 
@@ -1403,7 +1421,10 @@ describe('forger', () => {
 				const targetDelegate = genesisDelegates.delegates[0];
 				jest
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
-					.mockResolvedValue(targetDelegate);
+					.mockResolvedValue({
+						publicKey: Buffer.from(targetDelegate.publicKey, 'hex'),
+						privateKey: Buffer.from(targetDelegate.privateKey, 'hex'),
+					});
 				(forgeModule as any)._config.forging.delegates =
 					genesisDelegates.delegates;
 				const maxCount = (forgeModule as any)._config.forging.delegates.find(

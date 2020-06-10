@@ -64,10 +64,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				fundingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const returningTx = new TransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
@@ -79,7 +76,7 @@ describe('Transaction order', () => {
 					},
 				});
 				returningTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
+					node['_networkIdentifier'],
 					accountWithoutBalance.passphrase,
 				);
 				newBlock = await nodeUtils.createBlock(node, [fundingTx, returningTx]);
@@ -112,10 +109,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				fundingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const registerDelegateTx = new DelegateTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
@@ -125,7 +119,7 @@ describe('Transaction order', () => {
 					},
 				});
 				registerDelegateTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
+					node['_networkIdentifier'],
 					newAccount.passphrase,
 				);
 				const selfVoteTx = new VoteTransaction({
@@ -141,10 +135,7 @@ describe('Transaction order', () => {
 						],
 					},
 				});
-				selfVoteTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					newAccount.passphrase,
-				);
+				selfVoteTx.sign(node['_networkIdentifier'], newAccount.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [
 					fundingTx,
 					registerDelegateTx,
@@ -180,10 +171,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				fundingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const optionalKeys = [
 					...multiSignatureMembers.map(acc => acc.publicKey),
 				];
@@ -199,7 +187,7 @@ describe('Transaction order', () => {
 					},
 				});
 				registerMultisigTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
+					node['_networkIdentifier'],
 					newAccount.passphrase,
 					[
 						newAccount.passphrase,
@@ -222,7 +210,7 @@ describe('Transaction order', () => {
 					},
 				});
 				transferTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
+					node['_networkIdentifier'],
 					undefined,
 					[newAccount.passphrase, multiSignatureMembers[0].passphrase],
 					{
@@ -265,10 +253,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				fundingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const optionalKeys = [
 					...multiSignatureMembers.map(acc => acc.publicKey),
 				];
@@ -284,7 +269,7 @@ describe('Transaction order', () => {
 					},
 				});
 				registerMultisigTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
+					node['_networkIdentifier'],
 					newAccount.passphrase,
 					[
 						newAccount.passphrase,
@@ -306,10 +291,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				transferTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					newAccount.passphrase,
-				);
+				transferTx.sign(node['_networkIdentifier'], newAccount.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [
 					fundingTx,
 					registerMultisigTx,
@@ -350,10 +332,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				fundingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				fundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				const spendingTx = new TransferTransaction({
 					nonce: BigInt(0),
 					senderPublicKey: accountWithoutBalance.publicKey,
@@ -365,7 +344,7 @@ describe('Transaction order', () => {
 					},
 				});
 				spendingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
+					node['_networkIdentifier'],
 					accountWithoutBalance.passphrase,
 				);
 				const refundingTx = new TransferTransaction({
@@ -378,10 +357,7 @@ describe('Transaction order', () => {
 						data: '',
 					},
 				});
-				refundingTx.sign(
-					Buffer.from(node['_networkIdentifier'], 'hex'),
-					genesis.passphrase,
-				);
+				refundingTx.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [
 					fundingTx,
 					spendingTx,

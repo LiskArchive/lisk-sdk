@@ -36,6 +36,8 @@ describe('dpos.undo()', () => {
 		ACTIVE_DELEGATES + STANDBY_DELEGATES,
 	);
 
+	const defaultLastBlockHeader = { timestamp: 123 } as BlockHeader;
+
 	let dpos: Dpos;
 	let chainStub: any;
 	let stateStore: StateStoreMock;
@@ -53,7 +55,11 @@ describe('dpos.undo()', () => {
 		dpos = new Dpos({
 			chain: chainStub,
 		});
-		stateStore = new StateStoreMock([...delegateAccounts], {});
+		stateStore = new StateStoreMock(
+			[...delegateAccounts],
+			{},
+			{ lastBlockHeaders: [defaultLastBlockHeader] },
+		);
 	});
 
 	describe('Given block is the genesis block (height === 1)', () => {
@@ -66,7 +72,11 @@ describe('dpos.undo()', () => {
 			genesisBlock = {
 				height: 1,
 			} as BlockHeader;
-			stateStore = new StateStoreMock([generator, ...delegateAccounts], {});
+			stateStore = new StateStoreMock(
+				[generator, ...delegateAccounts],
+				{},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 		});
 
 		it('should throw exception and NOT update "producedBlocks", "missedBlocks", "rewards", "fees", "votes"', async () => {
@@ -105,9 +115,13 @@ describe('dpos.undo()', () => {
 				forgerListObject,
 			);
 
-			stateStore = new StateStoreMock([generator, ...delegateAccounts], {
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
-			});
+			stateStore = new StateStoreMock(
+				[generator, ...delegateAccounts],
+				{
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
+				},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 		});
 
 		it('should NOT update "missedBlocks"', async () => {
@@ -217,10 +231,14 @@ describe('dpos.undo()', () => {
 				forgerListObject,
 			);
 
-			stateStore = new StateStoreMock([...forgedDelegates, missedDelegate], {
-				[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
-				[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
-			});
+			stateStore = new StateStoreMock(
+				[...forgedDelegates, missedDelegate],
+				{
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
+				},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
 
 			lastBlockOfTheRoundNine = {
 				height: 927,
@@ -374,10 +392,14 @@ describe('dpos.undo()', () => {
 					forgerListObject,
 				);
 
-				stateStore = new StateStoreMock([...forgedDelegates], {
-					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
-					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
-				});
+				stateStore = new StateStoreMock(
+					[...forgedDelegates],
+					{
+						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
+						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: forgersListBinary,
+					},
+					{ lastBlockHeaders: [defaultLastBlockHeader] },
+				);
 
 				lastBlockOfTheRoundNine = {
 					height: 927,

@@ -79,8 +79,6 @@ export const applicationConfigSchema = {
 				fileLogLevel: {
 					type: 'string',
 					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
-					env: 'LISK_FILE_LOG_LEVEL',
-					arg: '--log,-l',
 				},
 				logFileName: {
 					type: 'string',
@@ -88,7 +86,6 @@ export const applicationConfigSchema = {
 				consoleLogLevel: {
 					type: 'string',
 					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
-					env: 'LISK_CONSOLE_LOG_LEVEL',
 				},
 			},
 		},
@@ -169,10 +166,6 @@ export const applicationConfigSchema = {
 				},
 				delegates: {
 					type: 'array',
-					env: {
-						variable: 'LISK_FORGING_DELEGATES',
-						formatter: 'stringToDelegateList',
-					},
 					items: {
 						required: ['encryptedPassphrase', 'publicKey', 'hashOnion'],
 						properties: {
@@ -215,14 +208,10 @@ export const applicationConfigSchema = {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535,
-					env: 'LISK_WS_PORT',
-					arg: '--port,-p',
 				},
 				hostIp: {
 					type: 'string',
 					format: 'ip',
-					env: 'LISK_ADDRESS',
-					arg: '--address,-a',
 				},
 				seedPeers: {
 					type: 'array',
@@ -240,8 +229,6 @@ export const applicationConfigSchema = {
 							},
 						},
 					},
-					env: { variable: 'LISK_PEERS', formatter: 'stringToIpPortSet' },
-					arg: { name: '--peers,-x', formatter: 'stringToIpPortSet' }, // TODO: Need to confirm parsing logic, old logic was using network WSPort to be default port for peers, we don't have it at the time of compilation
 				},
 				blacklistedIPs: {
 					type: 'array',

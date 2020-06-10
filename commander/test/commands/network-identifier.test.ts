@@ -17,25 +17,18 @@ import * as sandbox from 'sinon';
 import { expect, test } from '@oclif/test';
 import * as config from '../../src/utils/config';
 import * as printUtils from '../../src/utils/print';
-import NetworkIdentifierCommand from '../../src/commands/network-identifier';
 
 describe('network-identifier command', () => {
 	const networkIdentifier = {
-		networkIdentifier:
-			'7dbdc2b4694bd5ab6663c4d078aa628ae032cb91ce0fe03a5077d7ef3ba2e8bc',
+		networkIdentifier: 'A2k/MSa50N8wlsTr1Z5cQq9Kfw4xPNfJage26fj1SSQ=',
 	};
 
-	const networkIdentifierStub = sandbox.stub();
 	const printMethodStub = sandbox.stub();
 
 	const setupTest = () =>
 		test
 			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(
-				NetworkIdentifierCommand,
-				sandbox.stub().returns(networkIdentifierStub),
-			)
 			.stdout();
 
 	describe('network-identifier', () => {

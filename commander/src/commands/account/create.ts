@@ -35,10 +35,7 @@ const createAccount = (): AccountInfo => {
 	const passphrase = createMnemonicPassphrase();
 	const { privateKey, publicKey } = getKeys(passphrase);
 	const binaryAddress = getAddressFromPublicKey(publicKey);
-	const address = getBase32AddressFromPublicKey(
-		publicKey.toString('hex'),
-		'lsk',
-	);
+	const address = getBase32AddressFromPublicKey(publicKey, 'lsk');
 
 	return {
 		passphrase,

@@ -232,10 +232,8 @@ export class Bus extends EventEmitter2 {
 		}
 	}
 
-	// FIXME: Function signature is different that typescript compains
-	// eslint-disable-next-line
-	// @ts-ignore
-	public once(eventName: string, cb: Listener): void {
+	public once(event: string | string[], cb: Listener): this {
+		const eventName = event as string;
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(
 				`Event ${eventName} was subscribed but not registered to the bus yet.`,
@@ -250,6 +248,7 @@ export class Bus extends EventEmitter2 {
 		if (this.config.ipc.enabled) {
 			this.subSocket?.on(eventName, cb);
 		}
+		return this;
 	}
 
 	public getActions(): ReadonlyArray<string> {
