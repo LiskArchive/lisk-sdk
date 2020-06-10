@@ -506,42 +506,4 @@ describe('chain', () => {
 			);
 		});
 	});
-
-	describe('getHighestCommonBlock', () => {
-		it('should get the block with highest height from provided ids parameter', async () => {
-			// Arrange
-			const ids = [Buffer.from('1'), Buffer.from('2')];
-			const block = createValidDefaultBlock();
-			jest
-				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByIDs')
-				.mockResolvedValue([block] as never);
-
-			// Act
-			const result = await chainInstance.getHighestCommonBlock(ids);
-
-			// Assert
-			expect(
-				chainInstance.dataAccess.getBlockHeadersByIDs,
-			).toHaveBeenCalledWith(ids);
-			expect(result).toEqual(block);
-		});
-		it('should throw error if unable to get blocks from the storage', async () => {
-			// Arrange
-			const ids = [Buffer.from('1'), Buffer.from('2')];
-			jest
-				.spyOn(chainInstance.dataAccess, 'getBlockHeadersByIDs')
-				.mockRejectedValue(new NotFoundError('data not found') as never);
-			// Act && Assert
-			expect.assertions(2);
-			try {
-				await chainInstance.getHighestCommonBlock(ids);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error).toBeInstanceOf(NotFoundError);
-			}
-			expect(
-				chainInstance.dataAccess.getBlockHeadersByIDs,
-			).toHaveBeenCalledWith(ids);
-		});
-	});
 });

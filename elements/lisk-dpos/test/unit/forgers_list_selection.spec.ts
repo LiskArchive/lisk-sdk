@@ -43,9 +43,6 @@ describe('Forger selection', () => {
 	beforeEach(() => {
 		chainStub = {
 			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
-			getTotalEarningAndBurnt: jest
-				.fn()
-				.mockReturnValue({ totalEarning: BigInt(0), totalBurnt: BigInt(0) }),
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

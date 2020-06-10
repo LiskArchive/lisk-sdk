@@ -19,7 +19,6 @@ import {
 	TransactionResponse,
 } from '@liskhq/lisk-transactions';
 
-import { DataAccess } from '../data_access';
 import { StateStore } from '../state_store';
 import {
 	Contexter,
@@ -27,12 +26,12 @@ import {
 	WriteableTransactionResponse,
 } from '../types';
 
-export const validateTransactions = () => (
+export const validateTransactions = (
 	transactions: ReadonlyArray<BaseTransaction>,
 ): ReadonlyArray<TransactionResponse> =>
 	transactions.map(transaction => transaction.validate());
 
-export const applyGenesisTransactions = () => async (
+export const applyGenesisTransactions = async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<TransactionResponse[]> => {
@@ -49,7 +48,7 @@ export const applyGenesisTransactions = () => async (
 	return transactionsResponses;
 };
 
-export const applyTransactions = () => async (
+export const applyTransactions = async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<TransactionResponse>> => {
@@ -67,36 +66,9 @@ export const applyTransactions = () => async (
 	return [...transactionsResponses];
 };
 
-export const checkPersistedTransactions = (dataAccess: DataAccess) => async (
+export const checkAllowedTransactions = (
 	transactions: ReadonlyArray<BaseTransaction>,
-): Promise<TransactionResponse[]> => {
-	if (!transactions.length) {
-		return [];
-	}
-
-	const transactionsResponses = [];
-	for (const tx of transactions) {
-		const exist = await dataAccess.isTransactionPersisted(tx.id);
-		transactionsResponses.push({
-			id: tx.id,
-			status: !exist ? TransactionStatus.OK : TransactionStatus.FAIL,
-			errors: !exist
-				? []
-				: [
-						new TransactionError(
-							`Transaction is already confirmed: ${tx.id.toString('hex')}`,
-							tx.id,
-							'.id',
-						),
-				  ],
-		});
-	}
-
-	return transactionsResponses;
-};
-
-export const checkAllowedTransactions = (contexter: Contexter) => (
-	transactions: ReadonlyArray<BaseTransaction>,
+	contexter: Contexter,
 ): ReadonlyArray<TransactionResponse> =>
 	transactions.map(transaction => {
 		const context = typeof contexter === 'function' ? contexter() : contexter;
@@ -119,7 +91,7 @@ export const checkAllowedTransactions = (contexter: Contexter) => (
 		};
 	});
 
-export const undoTransactions = () => async (
+export const undoTransactions = async (
 	transactions: ReadonlyArray<BaseTransaction>,
 	stateStore: StateStore,
 ): Promise<ReadonlyArray<TransactionResponse>> => {

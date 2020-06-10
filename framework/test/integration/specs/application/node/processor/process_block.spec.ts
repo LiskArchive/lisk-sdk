@@ -143,7 +143,7 @@ describe('Process block', () => {
 				await expect(node['_processor'].process(invalidBlock)).rejects.toEqual([
 					expect.objectContaining({
 						message: expect.stringContaining(
-							'Transaction is already confirmed',
+							'Incompatible transaction nonce for account',
 						),
 					}),
 				]);
