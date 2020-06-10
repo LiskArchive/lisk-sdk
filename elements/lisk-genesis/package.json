@@ -33,7 +33,10 @@
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@liskhq/lisk-chain": "0.1.0-alpha.0",
+		"@liskhq/lisk-validator": "0.4.0-alpha.0"
+	},
 	"devDependencies": {
 		"@types/node": "12.12.11",
 		"@types/jest": "25.1.3",
