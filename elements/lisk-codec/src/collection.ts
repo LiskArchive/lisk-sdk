@@ -31,6 +31,7 @@ import { writeString, readString } from './string';
 import { writeBytes, readBytes } from './bytes';
 import { writeBoolean, readBoolean } from './boolean';
 import { readKey } from './keys';
+import { getDefaultValue } from './utils/default_value';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const _readers : { readonly [key: string]: (value: Buffer, offset: number) => any } = {
@@ -150,10 +151,17 @@ export const readObject = (message: Buffer, offset: number, compiledSchema: Comp
 			// typeSchema is header, and we ignroe this
 			continue;
 		}
+		if (message.length <= index) {
+			// assign default value
+			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
+			continue;
+		}
 		// Takeout the root wireType and field number
 		const [key, keySize] = readUInt32(message, index);
 		const [fieldNumber] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
+			// assign default value
+			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
 			continue;
 		}
 		// Index is only incremented when the key is actually used

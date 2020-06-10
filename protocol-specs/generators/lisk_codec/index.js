@@ -150,6 +150,18 @@ const cartSampleEncodingSuite = () => ({
 	testCases: [...typesGenerators.generateCartEncodings()],
 });
 
+const peerInfoSampleEncodingSuite = () => ({
+	title: 'Encondings for a peer info object',
+	summary:
+		'Example of encoding a peer info object for p2p',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'peer_info_sample_encoding',
+	testCases: [...typesGenerators.generatePeerInfoEncodings()],
+});
+
 module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	numberEncodingsSuite,
 	booleanEncodingsSuite,
@@ -163,4 +175,5 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	accountEncodingsSuite,
 	transactionEncodingsSuite,
 	cartSampleEncodingSuite,
+	peerInfoSampleEncodingSuite,
 ]);

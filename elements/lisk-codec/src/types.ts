@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-type BaseTypes = string | number | Buffer | bigint | boolean;
+export type BaseTypes = string | number | Buffer | bigint | boolean;
 
 export interface GenericObject {
 	[key: string]: GenericObject | BaseTypes | Array<BaseTypes | GenericObject>;
