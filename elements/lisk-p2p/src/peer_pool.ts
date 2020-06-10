@@ -17,7 +17,7 @@
  * The purpose of the PeerPool is to provide a simple interface for selecting,
  * interacting with and handling aggregated events from a collection of peers.
  */
-import { codec, GenericObject } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { SCServerSocket } from 'socketcluster-server';
 
@@ -246,8 +246,9 @@ export class PeerPool extends EventEmitter {
 			this.removePeer(
 				peerId,
 				closePacket.code,
-				`Outbound peer ${peerId} disconnected with reason: ${closePacket.reason ??
-					'Unknown reason'}`,
+				`Outbound peer ${peerId} disconnected with reason: ${
+					closePacket.reason ?? 'Unknown reason'
+				}`,
 			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
@@ -257,8 +258,9 @@ export class PeerPool extends EventEmitter {
 			this.removePeer(
 				peerId,
 				closePacket.code,
-				`Inbound peer ${peerId} disconnected with reason: ${closePacket.reason ??
-					'Unknown reason'}`,
+				`Inbound peer ${peerId} disconnected with reason: ${
+					closePacket.reason ?? 'Unknown reason'
+				}`,
 			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
@@ -629,7 +631,7 @@ export class PeerPool extends EventEmitter {
 	private _applyNodeInfoOnPeer(peer: Peer): void {
 		const encodedNodeInfo = codec.encode(
 			nodeInfoSchema,
-			this._nodeInfo as GenericObject,
+			this._nodeInfo as object,
 		);
 		try {
 			peer.send({

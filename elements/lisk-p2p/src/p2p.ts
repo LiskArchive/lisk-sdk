@@ -14,7 +14,7 @@
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
-import { codec, GenericObject, Schema } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -688,10 +688,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		const encodedNodeInfo = codec.encode(
-			nodeInfoSchema,
-			this._nodeInfo as GenericObject,
-		);
+		const encodedNodeInfo = codec.encode(nodeInfoSchema, this._nodeInfo);
 		request.end(encodedNodeInfo);
 	}
 
@@ -828,14 +825,14 @@ export class P2P extends EventEmitter {
 				? sanitizedPeerInfoList
 				: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength);
 		const encodedPeersList = peersList.map(peer =>
-			codec.encode(peerInfoSchema, peer as GenericObject),
+			codec.encode(peerInfoSchema, peer),
 		);
 
 		request.end(
 			codec.encode(peersListResponseSchema, {
 				success: true,
 				peers: encodedPeersList,
-			} as GenericObject),
+			}),
 		);
 	}
 
