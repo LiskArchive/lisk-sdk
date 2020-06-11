@@ -350,13 +350,13 @@ export class Chain {
 				stateStore,
 			);
 
-			const unappliableTransactionsResponse = transactionsResponses.filter(
+			const invalidTransactionsResponse = transactionsResponses.filter(
 				transactionResponse =>
 					transactionResponse.status !== TransactionStatus.OK,
 			);
 
-			if (unappliableTransactionsResponse.length > 0) {
-				throw unappliableTransactionsResponse[0].errors;
+			if (invalidTransactionsResponse.length > 0) {
+				throw invalidTransactionsResponse[0].errors;
 			}
 		}
 		await applyFeeAndRewards(block, stateStore);
