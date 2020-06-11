@@ -13,7 +13,7 @@
  */
 
 interface SlotsInput {
-	readonly epochTime: string;
+	readonly epochTime: number;
 	readonly interval: number;
 }
 
@@ -24,7 +24,7 @@ export class Slots {
 	private readonly _interval: number;
 
 	public constructor({ epochTime, interval }: SlotsInput) {
-		this._epochTime = new Date(epochTime);
+		this._epochTime = new Date(epochTime * SEC_IN_MS);
 		this._interval = interval;
 	}
 
@@ -44,9 +44,14 @@ export class Slots {
 	}
 
 	public getSlotNumber(epochTime?: number): number {
-		const parsedEpochTime =
-			epochTime === undefined ? this.getEpochTime() : epochTime;
-
+		let parsedEpochTime = 0;
+		if (epochTime) {
+			parsedEpochTime = Math.floor(
+				(epochTime * SEC_IN_MS - this._epochTime.getTime()) / SEC_IN_MS,
+			);
+		} else {
+			parsedEpochTime = this.getEpochTime();
+		}
 		return Math.floor(parsedEpochTime / this._interval);
 	}
 

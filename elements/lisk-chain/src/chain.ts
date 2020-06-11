@@ -243,7 +243,10 @@ export class Chain {
 		this._lastBlock = genesisBlock;
 		this._networkIdentifier = networkIdentifier;
 		this._genesisBlock = genesisBlock;
-		this.slots = new Slots({ epochTime, interval: blockTime });
+		this.slots = new Slots({
+			epochTime: genesisBlock.header.timestamp,
+			interval: blockTime,
+		});
 		this.blockRewardArgs = {
 			distance: rewardDistance,
 			rewardOffset,

@@ -2,7 +2,7 @@
 	"communityIdentifier": "Lisk",
 	"header": {
 		"version": 2,
-		"timestamp": 0,
+		"timestamp": 1591801289,
 		"height": 1,
 		"previousBlockID": "",
 		"transactionRoot": "19074b69c97e6f6b86969bb62d4f15b888898b499777bda56a3a2ee642a7f20a",
@@ -14,7 +14,7 @@
 			"maxHeightPrevoted": 0
 		},
 		"signature": "9eb81604dec27d2386b7b7cdaf91c00eada99d6d3fac76ea25ef68a9eaca6f6877ed84c3b0864cec1cd1700e1f3bbffcf32dde9e26e174c75347ccf4da6eeb09",
-		"id": "fca252b7d4b5c1d7c8c890d2e3571ac16dcadbd9b0b37bb078e6a85ed40cff9b"
+		"id": "4f7e41f5744c0c2a434f13afb186b77fb4b176a5298f91ed866680ff5ef13a6d"
 	},
 	"payload": [
 		{

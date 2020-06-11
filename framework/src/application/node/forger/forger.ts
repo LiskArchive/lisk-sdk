@@ -406,7 +406,7 @@ export class Forger {
 			return;
 		}
 
-		const timestamp = this._chainModule.slots.getSlotTime(currentSlot);
+		const timestamp = Math.floor(currentTime / 1000);
 		const previousBlock = this._chainModule.lastBlock;
 		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
 
