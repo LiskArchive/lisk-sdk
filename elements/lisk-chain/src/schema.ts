@@ -136,7 +136,7 @@ export const stateDiffSchema = {
 		},
 		created: {
 			type: 'array',
-			fieldNumber: 2,
+			fieldNumber: 3, // Change this to 2 after fixing decoding bug #5426
 			items: {
 				dataType: 'string',
 			},

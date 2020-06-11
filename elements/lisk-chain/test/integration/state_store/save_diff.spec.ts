@@ -15,7 +15,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { codec } from '@liskhq/lisk-codec';
-import { KVStore } from '@liskhq/lisk-db';
+import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import {
   createFakeDefaultAccount,
   defaultAccountSchema,
@@ -195,7 +195,7 @@ describe('stateStore.finalize.saveDiff', () => {
       });
     });
 
-    it.only('should only save updated changes as diff', async () => {
+    it('should save updated changes as diff', async () => {
       // Arrange
       // Create
       stateStore.consensus.set('key1', Buffer.from('value1'));
@@ -213,7 +213,7 @@ describe('stateStore.finalize.saveDiff', () => {
         defaultAsset: createFakeDefaultAccount().asset,
       });
       const val1 = await stateStore.consensus.get('key1');
-      const val2 = await stateStore.consensus.get('key1');
+      const val2 = await stateStore.consensus.get('key2');
       const updatedVal1 = Buffer.concat([val1 as Buffer, val2 as Buffer]);
       const updatedVal2 = Buffer.concat([val2 as Buffer, val1 as Buffer]);
 
@@ -229,9 +229,92 @@ describe('stateStore.finalize.saveDiff', () => {
 
       // Assert
       expect(decodedDiff).toStrictEqual({
-        updated: [],
+        updated: [
+          {
+            "key": "consensus:key1",
+            "value": [
+              {
+                "code": "=",
+                "line": 6,
+              },
+              {
+                "code": "+",
+                "line": 118,
+              },
+              {
+                "code": "+",
+                "line": 97,
+              },
+              {
+                "code": "+",
+                "line": 108,
+              },
+              {
+                "code": "+",
+                "line": 117,
+              },
+              {
+                "code": "+",
+                "line": 101,
+              },
+              {
+                "code": "+",
+                "line": 50,
+              },
+            ],
+          },
+          {
+            "key": "consensus:key2",
+            "value": [
+              {
+                "code": "=",
+                "line": 6,
+              },
+              {
+                "code": "+",
+                "line": 118,
+              },
+              {
+                "code": "+",
+                "line": 97,
+              },
+              {
+                "code": "+",
+                "line": 108,
+              },
+              {
+                "code": "+",
+                "line": 117,
+              },
+              {
+                "code": "+",
+                "line": 101,
+              },
+              {
+                "code": "+",
+                "line": 49,
+              },
+            ],
+          }
+        ],
         created: [],
       });
+    });
+
+    it('should not save any diff if state was not changed', async () => {
+      // Arrange
+      // Create
+      const fakeHeight = '7';
+      const batch = db.batch();
+      stateStore.finalize(fakeHeight, batch);
+      await batch.write();
+
+      // Assert
+      try {
+        await db.get(`${DB_KEY_DIFF_STATE}:${fakeHeight}`);
+      } catch (error) {
+        expect(error).toBeInstanceOf(NotFoundError);
+      }
     });
   });
 });
