@@ -139,6 +139,7 @@ export class Peer extends EventEmitter {
 		this._peerConfig = peerConfig;
 
 		codec.addSchema(peerInfoSchema);
+		codec.addSchema(nodeInfoSchema);
 
 		this._peerInfo = this._initializeInternalState(
 			peerInfo,
