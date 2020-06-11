@@ -20,6 +20,13 @@ import {
 	genesisBlockHeaderAssetSchema,
 } from './schema';
 import { bufferArrayContains, bufferArrayIdentical } from './utils';
+import {
+	EMPTY_BUFFER,
+	GB_GENERATOR_PUBLIC_KEY,
+	GB_REWARD,
+	GB_SIGNATURE,
+	GB_TRANSACTION_ROOT,
+} from './constants';
 
 export const validateGenesisBlock = (
 	block:
@@ -31,15 +38,66 @@ export const validateGenesisBlock = (
 ): ErrorObject[] => {
 	const { header, payload } = block as GenesisBlock;
 
+	// Genesis block schema validation, only check payload length to be zero
 	const payloadErrors = validator.validate(genesisBlockSchema, {
-		header: Buffer.alloc(0),
+		header: EMPTY_BUFFER,
 		payload,
 	});
-	const headerErrors = validator.validate(genesisBlockHeaderSchema, header);
-	const assetErrors = validator.validate(
-		genesisBlockHeaderAssetSchema,
-		header.asset,
-	);
+
+	// Genesis block header validation
+	const headerErrors = [
+		...validator.validate(genesisBlockHeaderSchema, {
+			...header,
+			asset: EMPTY_BUFFER,
+		}),
+	];
+
+	// Custom header validation not possible with validator
+	if (header.generatorPublicKey !== GB_GENERATOR_PUBLIC_KEY) {
+		headerErrors.push({
+			message: 'generatorPublicKey must be empty buffer',
+			keyword: 'const',
+			dataPath: 'header.generatorPublicKey',
+			schemaPath: 'properties.generatorPublicKey',
+			params: { generatorPublicKey: header.generatorPublicKey },
+		});
+	}
+
+	if (header.reward !== GB_REWARD) {
+		headerErrors.push({
+			message: 'reward must be zero',
+			keyword: 'const',
+			dataPath: 'header.reward',
+			schemaPath: 'properties.reward',
+			params: { reward: header.reward },
+		});
+	}
+
+	if (header.signature !== GB_SIGNATURE) {
+		headerErrors.push({
+			message: 'signature must be empty buffer',
+			keyword: 'const',
+			dataPath: 'header.signature',
+			schemaPath: 'properties.signature',
+			params: { signature: header.signature },
+		});
+	}
+
+	if (header.transactionRoot !== GB_TRANSACTION_ROOT) {
+		headerErrors.push({
+			message: 'transactionRoot must be hash of empty buffer',
+			keyword: 'const',
+			dataPath: 'header.transactionRoot',
+			schemaPath: 'properties.transactionRoot',
+			params: { transactionRoot: header.transactionRoot },
+		});
+	}
+
+	// Genesis block asset validation
+	const assetErrors = [
+		...validator.validate(genesisBlockHeaderAssetSchema, header.asset),
+	];
+
 	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
 
 	const accountAddresses = header.asset.accounts.map(a => a.address);

@@ -13,6 +13,7 @@
  */
 
 import { Account, BlockHeader } from '@liskhq/lisk-chain';
+import { Schema } from '@liskhq/lisk-codec';
 
 export type GenesisAccountState = Account;
 
@@ -41,4 +42,31 @@ export interface GenesisBlockParams {
 	readonly height?: number;
 	readonly timestamp?: number;
 	readonly previousBlockID?: Buffer;
+	readonly accountAssetSchema?: Schema;
+}
+
+export interface DefaultAccountAsset {
+	delegate: DelegateAccountAsset;
+	sentVotes: VoteAccountAsset[];
+	unlocking: UnlockingAccountAsset[];
+}
+
+export interface DelegateAccountAsset {
+	username: string;
+	pomHeights: number[];
+	consecutiveMissedBlocks: number;
+	lastForgedHeight: number;
+	isBanned: boolean;
+	totalVotesReceived: bigint;
+}
+
+export interface VoteAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+}
+
+export interface UnlockingAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+	unvoteHeight: number;
 }

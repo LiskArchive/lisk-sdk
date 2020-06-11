@@ -24,6 +24,77 @@ import { mergeDeep } from './utils';
 export const genesisAccountSchema = baseAccountSchema;
 export const genesisBlockSchema = blockSchema;
 
+export const defaultAccountAssetSchema = {
+	$id: '/genesis_block/account/default',
+	type: 'object',
+	properties: {
+		delegate: {
+			type: 'object',
+			fieldNumber: 1,
+			properties: {
+				username: { dataType: 'string', fieldNumber: 1 },
+				pomHeights: {
+					type: 'array',
+					items: { dataType: 'uint32' },
+					fieldNumber: 2,
+				},
+				consecutiveMissedBlocks: { dataType: 'uint32', fieldNumber: 3 },
+				lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
+				isBanned: { dataType: 'boolean', fieldNumber: 5 },
+				totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
+			},
+			required: [
+				'username',
+				'pomHeights',
+				'consecutiveMissedBlocks',
+				'lastForgedHeight',
+				'isBanned',
+				'totalVotesReceived',
+			],
+		},
+		sentVotes: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				properties: {
+					delegateAddress: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					amount: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+				required: ['delegateAddress', 'amount'],
+			},
+		},
+		unlocking: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				properties: {
+					delegateAddress: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					amount: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+					unvoteHeight: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+				required: ['delegateAddress', 'amount', 'unvoteHeight'],
+			},
+		},
+	},
+};
+
 export const genesisBlockHeaderSchema = mergeDeep({}, blockHeaderSchema, {
 	properties: {
 		height: {
