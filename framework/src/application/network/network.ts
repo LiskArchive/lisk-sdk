@@ -179,6 +179,7 @@ export class Network {
 			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
+			customSchema: this._options.customSchema,
 		};
 
 		this._p2p = new P2P(p2pConfig);
