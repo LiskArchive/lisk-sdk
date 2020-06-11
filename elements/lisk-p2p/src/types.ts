@@ -13,6 +13,7 @@
  *
  */
 import { SCServerSocket } from 'socketcluster-server';
+import { Schema } from '@liskhq/lisk-codec';
 
 import { ConnectionKind, PeerKind } from './constants';
 // eslint-disable-next-line import/no-cycle
@@ -118,6 +119,11 @@ export interface IncomingPeerConnection {
 	readonly socket: SCServerSocket;
 }
 
+export interface RPCSchemas {
+	peerInfo: Schema;
+	nodeInfo: Schema;
+}
+
 export interface P2PConfig {
 	readonly blacklistedIPs?: ReadonlyArray<string>;
 	readonly seedPeers?: ReadonlyArray<ProtocolPeerInfo>;
@@ -151,6 +157,10 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
+	readonly customSchema?: {
+		peerInfo?: Schema;
+		nodeInfo?: Schema;
+	};
 }
 
 export interface PeerServerConfig {

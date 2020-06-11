@@ -14,7 +14,7 @@
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
-import { codec } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 
 import {
 	DEFAULT_BAN_TIME,
@@ -88,6 +88,7 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 	ProtocolPeerInfo,
+	RPCSchemas,
 } from './types';
 import {
 	assignInternalInfo,
@@ -174,6 +175,10 @@ const createPeerPoolConfig = (
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
+	rpcSchema: {
+		peerInfo: config?.customSchema?.peerInfo ?? peerInfoSchema,
+		nodeInfo: config?.customSchema?.nodeInfo ?? nodeInfoSchema,
+	},
 });
 
 export class P2P extends EventEmitter {
@@ -189,6 +194,7 @@ export class P2P extends EventEmitter {
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _secret: number;
+	private readonly _rpcSchema: RPCSchemas;
 	private _peerServer?: PeerServer;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
@@ -257,8 +263,13 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		codec.addSchema(peerInfoSchema);
-		codec.addSchema(nodeInfoSchema);
+
+		this._rpcSchema = {
+			peerInfo: config?.customSchema?.peerInfo ?? peerInfoSchema,
+			nodeInfo: config?.customSchema?.nodeInfo ?? nodeInfoSchema,
+		};
+		codec.addSchema(this._rpcSchema.peerInfo);
+		codec.addSchema(this._rpcSchema.nodeInfo);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest): void => {
@@ -684,7 +695,7 @@ export class P2P extends EventEmitter {
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
 		const encodedNodeInfo = codec
-			.encode(nodeInfoSchema, this._nodeInfo)
+			.encode(this._rpcSchema.nodeInfo, this._nodeInfo)
 			.toString('base64');
 		request.end(encodedNodeInfo);
 	}
@@ -818,7 +829,7 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			codec.encode(peerInfoSchema, peer).toString('base64'),
+			codec.encode(this._rpcSchema.peerInfo, peer).toString('base64'),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload
