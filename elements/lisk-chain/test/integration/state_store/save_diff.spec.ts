@@ -238,77 +238,7 @@ describe('stateStore.finalize.saveDiff', () => {
 			const decodedDiff = codec.decode(stateDiffSchema, diff);
 
 			// Assert
-			expect(decodedDiff).toStrictEqual({
-				updated: [
-					{
-						key: 'consensus:key1',
-						value: [
-							{
-								code: '=',
-								line: 6,
-							},
-							{
-								code: '+',
-								line: 118,
-							},
-							{
-								code: '+',
-								line: 97,
-							},
-							{
-								code: '+',
-								line: 108,
-							},
-							{
-								code: '+',
-								line: 117,
-							},
-							{
-								code: '+',
-								line: 101,
-							},
-							{
-								code: '+',
-								line: 50,
-							},
-						],
-					},
-					{
-						key: 'consensus:key2',
-						value: [
-							{
-								code: '=',
-								line: 6,
-							},
-							{
-								code: '+',
-								line: 118,
-							},
-							{
-								code: '+',
-								line: 97,
-							},
-							{
-								code: '+',
-								line: 108,
-							},
-							{
-								code: '+',
-								line: 117,
-							},
-							{
-								code: '+',
-								line: 101,
-							},
-							{
-								code: '+',
-								line: 49,
-							},
-						],
-					},
-				],
-				created: [],
-			});
+			expect(decodedDiff).toMatchSnapshot();
 		});
 
 		it('should not save any diff if state was not changed', async () => {
