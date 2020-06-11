@@ -12,8 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface Proof {
-	readonly dataLength: number;
-	readonly idxs: number[];
-	path: Buffer[];
-}
+export type Proof = Array<{ hash: Buffer; direction: number }>;

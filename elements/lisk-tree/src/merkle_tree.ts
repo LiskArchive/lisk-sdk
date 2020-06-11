@@ -15,6 +15,7 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import { Proof } from './types';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_INDEX_SIZE,
