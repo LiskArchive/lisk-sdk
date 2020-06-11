@@ -52,6 +52,42 @@ describe('MerkleTree', () => {
 	});
 
 	describe('generateProof', () => {
-		it.todo('should generate the expected path');
+		describe('when given a tree with two leaves', () => {
+			let merkleTree: MerkleTree;
+			const queryData = [
+				Buffer.from(
+					'ceb669e057511ef944a000b46dd2b15d2479bcdf5a58425843046e25a739cabb',
+					'hex',
+				),
+			];
+
+			beforeEach(() => {
+				const inputs = fixture.testCases[2].input.transactionIds.map(
+					hexString => Buffer.from(hexString, 'hex'),
+				);
+				merkleTree = new MerkleTree(inputs);
+			});
+
+			it('should generate the expected path hash', () => {
+				const expectedProofHash = Buffer.from(
+					'4dd4ad391dcabcc6e1c07478b13ea52b94ace83a7ed6f84559b3c25a7d5011ff',
+					'hex',
+				);
+
+				expect(
+					merkleTree
+						.generateProof(queryData)[0]
+						.hash.compare(expectedProofHash),
+				).toEqual(0);
+			});
+
+			it('should generate the expected proof path hash direction', () => {
+				const expectedProofHashDirection = 0;
+
+				expect(merkleTree.generateProof(queryData)[0].direction).toEqual(
+					expectedProofHashDirection,
+				);
+			});
+		});
 	});
 });
