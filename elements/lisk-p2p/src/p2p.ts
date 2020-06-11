@@ -101,11 +101,7 @@ import {
 	validateNodeInfo,
 	validatePeerCompatibility,
 } from './utils';
-import {
-	peersListResponseSchema,
-	peerInfoSchema,
-	nodeInfoSchema,
-} from './schema';
+import { peerInfoSchema, nodeInfoSchema } from './schema';
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
@@ -261,7 +257,6 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		codec.addSchema(peersListResponseSchema);
 		codec.addSchema(peerInfoSchema);
 		codec.addSchema(nodeInfoSchema);
 
@@ -820,19 +815,20 @@ export class P2P extends EventEmitter {
 				...peer.sharedState,
 			}));
 
-		const peersList =
-			getByteSize(sanitizedPeerInfoList) < wsMaxPayload
-				? sanitizedPeerInfoList
-				: sanitizedPeerInfoList.slice(0, safeMaxPeerInfoLength);
-		const encodedPeersList = peersList.map(peer =>
-			codec.encode(peerInfoSchema, peer),
+		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
+			codec.encode(peerInfoSchema, peer).toString('base64'),
 		);
-		const encodedResponse = codec.encode(peersListResponseSchema, {
-			success: true,
-			peers: encodedPeersList,
-		});
+		const validatedPeerList =
+			getByteSize(encodedPeersList) < wsMaxPayload
+				? encodedPeersList
+				: encodedPeersList.slice(0, safeMaxPeerInfoLength);
 
-		request.end(encodedResponse);
+		const response = {
+			success: true,
+			peers: validatedPeerList,
+		};
+
+		request.end(response);
 	}
 
 	// eslint-disable-next-line class-methods-use-this

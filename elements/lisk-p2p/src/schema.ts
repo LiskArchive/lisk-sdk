@@ -83,21 +83,3 @@ export const peerInfoSchema = {
 	},
 	required: ['ipAddress', 'wsPort'],
 };
-
-export const peersListResponseSchema = {
-	$id: '/peersList',
-	type: 'object',
-	properties: {
-		success: {
-			dataType: 'boolean',
-			fieldNumber: 1,
-		},
-		peers: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-			},
-			fieldNumber: 2,
-		},
-	},
-};

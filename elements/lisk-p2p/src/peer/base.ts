@@ -68,11 +68,7 @@ import {
 	validateRPCRequest,
 } from '../utils';
 
-import {
-	peersListResponseSchema,
-	peerInfoSchema,
-	nodeInfoSchema,
-} from '../schema';
+import { peerInfoSchema, nodeInfoSchema } from '../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -116,12 +112,11 @@ export interface PeerConfig {
 	readonly serverNodeInfo?: P2PNodeInfo;
 }
 
-interface GetPeersResponseRawData {
-	readonly data: string;
-}
 interface GetPeersResponseData {
-	readonly success: boolean;
-	readonly peers: Buffer[];
+	readonly data: {
+		readonly success: boolean;
+		readonly peers: ReadonlyArray<string>;
+	};
 }
 
 export class Peer extends EventEmitter {
@@ -142,8 +137,7 @@ export class Peer extends EventEmitter {
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
-		// Add peer and peerList schema
-		codec.addSchema(peersListResponseSchema);
+
 		codec.addSchema(peerInfoSchema);
 
 		this._peerInfo = this._initializeInternalState(
@@ -359,18 +353,13 @@ export class Peer extends EventEmitter {
 
 	public async fetchPeers(): Promise<ReadonlyArray<P2PPeerInfo>> {
 		try {
-			const response = await this.request({
+			const response = (await this.request({
 				procedure: REMOTE_EVENT_RPC_GET_PEERS_LIST,
-			});
-			const { data } = response.data as GetPeersResponseRawData;
-			const dataBuffer = Buffer.from(data, 'base64');
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-			const { peers, success } = codec.decode(
-				peersListResponseSchema,
-				dataBuffer,
-			) as GetPeersResponseData;
-			const decodedPeers = peers.map((peer: Buffer) =>
-				codec.decode(peerInfoSchema, peer),
+			})) as GetPeersResponseData;
+			const { peers, success } = response.data;
+
+			const decodedPeers = peers.map((peer: string) =>
+				codec.decode(peerInfoSchema, Buffer.from(peer, 'base64')),
 			);
 
 			const validatedPeers = validatePeerInfoList(
