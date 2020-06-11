@@ -28,7 +28,7 @@ export class Slots {
 		this._interval = interval;
 	}
 
-	public getEpochTime(): number {
+	public timeSinceGenesis(): number {
 		return Math.floor((Date.now() - this._epochTime.getTime()) / SEC_IN_MS);
 	}
 
@@ -43,15 +43,13 @@ export class Slots {
 		);
 	}
 
-	public getSlotNumber(epochTime?: number): number {
-		let parsedEpochTime = 0;
-		if (epochTime) {
-			parsedEpochTime = Math.floor(
-				(epochTime * SEC_IN_MS - this._epochTime.getTime()) / SEC_IN_MS,
-			);
-		} else {
-			parsedEpochTime = this.getEpochTime();
-		}
+	public getSlotNumber(timeStamp?: number): number {
+		const parsedEpochTime = Math.floor(
+			((timeStamp ? timeStamp * SEC_IN_MS : Date.now()) -
+				this._epochTime.getTime()) /
+				SEC_IN_MS,
+		);
+
 		return Math.floor(parsedEpochTime / this._interval);
 	}
 

@@ -539,7 +539,7 @@ export class Node {
 			getNodeStatus: (): NodeStatus => ({
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
-				secondsSinceEpoch: this._chain.slots.getEpochTime(),
+				secondsSinceEpoch: this._chain.slots.timeSinceGenesis(),
 				lastBlock: this._chain.dataAccess
 					.encode(this._chain.lastBlock)
 					.toString('base64'),
