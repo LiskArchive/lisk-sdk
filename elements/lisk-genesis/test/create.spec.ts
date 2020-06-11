@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { createGenesisBlock } from '../src';
+import { validGenesisBlockParams } from './fixtures';
+
 describe('create', () => {
 	it('should create genesis block', () => {
-		expect(true).toBeTrue();
+		expect(createGenesisBlock(validGenesisBlockParams)).toMatchSnapshot();
 	});
 });
