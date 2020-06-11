@@ -25,7 +25,8 @@ import * as blockHeaderEncoding from '../fixtures/block_header_encodings.json';
 import * as blockAssetEncoding from '../fixtures/block_asset_encodings.json';
 import * as accountEncoding from '../fixtures/account_encodings.json';
 import * as transactionEncoding from '../fixtures/transaction_encodings.json';
-import * as peerInfoDecoding from '../fixtures/peer_info_sample_encoding.json';
+import * as peerInfoEncoding from '../fixtures/peer_info_sample_encoding.json';
+import * as nestedArrayEncoding from '../fixtures/nested_array_encoding.json';
 
 describe('encode', () => {
 	describe('objects', () => {
@@ -411,7 +412,16 @@ describe('encode', () => {
 	});
 
 	describe('peer info encoding', () => {
-		for (const testCase of peerInfoDecoding.testCases) {
+		for (const testCase of peerInfoEncoding.testCases) {
+			it(testCase.description, () => {
+				const result = codec.encode(testCase.input.schema, testCase.input.object);
+				expect(result.toString('hex')).toEqual(testCase.output.value);
+			});
+		}
+	});
+
+	describe('nested array encoding', () => {
+		for (const testCase of nestedArrayEncoding.testCases) {
 			it(testCase.description, () => {
 				const result = codec.encode(testCase.input.schema, testCase.input.object);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
