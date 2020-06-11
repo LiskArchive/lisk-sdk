@@ -217,7 +217,7 @@ export class Transport {
 			Buffer.from(id, 'base64'),
 		);
 
-		const commonBlockHeader = await this._chainModule.getHighestCommonBlock(
+		const commonBlockHeader = await this._chainModule.dataAccess.getHighestCommonBlockHeader(
 			blockIDs,
 		);
 
@@ -478,9 +478,9 @@ export class Transport {
 	): Promise<Buffer> {
 		try {
 			// Composed transaction checks are all static, so it does not need state store
-			const transactionsResponses = await this._chainModule.validateTransactions(
-				[transaction],
-			);
+			const transactionsResponses = this._chainModule.validateTransactions([
+				transaction,
+			]);
 
 			if (transactionsResponses[0].errors.length > 0) {
 				throw transactionsResponses[0].errors;

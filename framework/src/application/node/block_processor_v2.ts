@@ -167,10 +167,8 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 			async ({ block }) => this.dposModule.verifyBlockForger(block.header),
 			async ({ block }) => this.bftModule.verifyNewBlock(block.header),
-			async ({ block, stateStore, skipExistingCheck }) =>
-				this.chainModule.verify(block, stateStore, {
-					skipExistingCheck: !!skipExistingCheck,
-				}),
+			async ({ block, stateStore }) =>
+				this.chainModule.verify(block, stateStore),
 		]);
 
 		this.apply.pipe([
@@ -355,7 +353,9 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 		}
 		previouslyForgedMap.set(generatorAddress, {
 			height: header.height,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			maxHeightPrevoted: header.asset.maxHeightPrevoted as number,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 			maxHeightPreviouslyForged: header.asset.maxHeightPreviouslyForged,
 		});
 
