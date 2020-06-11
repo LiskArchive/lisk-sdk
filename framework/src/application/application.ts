@@ -327,7 +327,7 @@ export class Application {
 	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			Buffer.from(this._genesisBlock.header.transactionRoot, 'hex'),
+			Buffer.from(this._genesisBlock.header.transactionRoot, 'base64'),
 			this._genesisBlock.communityIdentifier,
 		).toString('base64');
 

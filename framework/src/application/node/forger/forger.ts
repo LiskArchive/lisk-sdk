@@ -172,7 +172,7 @@ export class Forger {
 			throw new Error(`Delegate with publicKey: ${publicKey} not found`);
 		}
 
-		if (keypair.publicKey.toString('hex') !== publicKey) {
+		if (keypair.publicKey.toString('base64') !== publicKey) {
 			throw new Error('Invalid password and public key combination');
 		}
 
@@ -241,7 +241,7 @@ export class Forger {
 
 			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
-			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
+			if (keypair.publicKey.toString('base64') !== encryptedItem.publicKey) {
 				throw new Error(
 					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. Public keys do not match`,
 				);
@@ -291,7 +291,7 @@ export class Forger {
 			) {
 				this._logger.warn(
 					`Hash onion for Account ${account.address.toString(
-						'hex',
+						'base64',
 					)} is not the same as previous one. Overwriting with new hash onion`,
 				);
 				usedHashOnions = usedHashOnions.filter(
@@ -478,7 +478,7 @@ export class Forger {
 		const forgersPublicKeys: { [key: string]: boolean } = {};
 
 		for (const keypair of this._keypairs.values()) {
-			forgersPublicKeys[keypair.publicKey.toString('hex')] = true;
+			forgersPublicKeys[keypair.publicKey.toString('base64')] = true;
 		}
 
 		const fullList = forgingDelegates?.map(forger => ({
@@ -545,7 +545,9 @@ export class Forger {
 
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
 		const delegateConfig = this._config.forging.delegates?.find(d =>
-			getAddressFromPublicKey(Buffer.from(d.publicKey, 'hex')).equals(address),
+			getAddressFromPublicKey(Buffer.from(d.publicKey, 'base64')).equals(
+				address,
+			),
 		);
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(
@@ -558,7 +560,9 @@ export class Forger {
 		return {
 			count: delegateConfig.hashOnion.count,
 			distance: delegateConfig.hashOnion.distance,
-			hashes: delegateConfig.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
+			hashes: delegateConfig.hashOnion.hashes.map(h =>
+				Buffer.from(h, 'base64'),
+			),
 		};
 	}
 

@@ -121,32 +121,35 @@ export interface GenesisBlockJSON {
 const convertGenesisBlock = (genesis: GenesisBlockJSON): Block => {
 	const header = {
 		...genesis.header,
-		id: Buffer.from(genesis.header.id, 'hex'),
+		id: Buffer.from(genesis.header.id, 'base64'),
 		previousBlockID: Buffer.alloc(0),
-		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'hex'),
-		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'hex'),
+		generatorPublicKey: Buffer.from(
+			genesis.header.generatorPublicKey,
+			'base64',
+		),
+		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
 		reward: BigInt(genesis.header.reward),
-		signature: Buffer.from(genesis.header.signature, 'hex'),
+		signature: Buffer.from(genesis.header.signature, 'base64'),
 		asset: {
 			...genesis.header.asset,
-			seedReveal: Buffer.from(genesis.header.asset.seedReveal, 'hex'),
+			seedReveal: Buffer.from(genesis.header.asset.seedReveal, 'base64'),
 		},
 	};
 	const payload = genesis.payload.map(tx => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const txHeader = {
-			id: Buffer.from(tx.id, 'hex'),
+			id: Buffer.from(tx.id, 'base64'),
 			type: tx.type,
-			senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+			senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
 			nonce: BigInt(tx.nonce),
 			fee: BigInt(tx.fee),
-			signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+			signatures: tx.signatures.map(s => Buffer.from(s, 'base64')),
 		};
 		if (tx.type === 8) {
 			return new TransferTransaction({
 				...txHeader,
 				asset: {
-					recipientAddress: Buffer.from(tx.asset.recipientAddress, 'hex'),
+					recipientAddress: Buffer.from(tx.asset.recipientAddress, 'base64'),
 					data: '',
 					amount: BigInt(tx.asset.amount),
 				},
@@ -166,7 +169,7 @@ const convertGenesisBlock = (genesis: GenesisBlockJSON): Block => {
 				...txHeader,
 				asset: {
 					votes: tx.asset.votes.map(v => ({
-						delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+						delegateAddress: Buffer.from(v.delegateAddress, 'base64'),
 						amount: BigInt(v.amount),
 					})),
 				},

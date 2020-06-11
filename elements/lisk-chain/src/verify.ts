@@ -27,7 +27,9 @@ export const verifyBlockNotExists = async (
 ): Promise<void> => {
 	const isPersisted = await dataAccess.isBlockPersisted(block.header.id);
 	if (isPersisted) {
-		throw new Error(`Block ${block.header.id.toString('hex')} already exists`);
+		throw new Error(
+			`Block ${block.header.id.toString('base64')} already exists`,
+		);
 	}
 };
 
@@ -68,7 +70,7 @@ export class BlocksVerify {
 		const isPersisted = await this.dataAccess.isBlockPersisted(block.header.id);
 		if (isPersisted) {
 			throw new Error(
-				`Block ${block.header.id.toString('hex')} already exists`,
+				`Block ${block.header.id.toString('base64')} already exists`,
 			);
 		}
 		if (!block.payload.length) {
@@ -82,7 +84,7 @@ export class BlocksVerify {
 		if (persistedTransactions.length > 0) {
 			throw new Error(
 				`Transaction is already confirmed: ${persistedTransactions[0].id.toString(
-					'hex',
+					'base64',
 				)}`,
 			);
 		}
