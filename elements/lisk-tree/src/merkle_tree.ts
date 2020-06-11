@@ -163,6 +163,57 @@ export class MerkleTree {
 		return this.root;
 	}
 
+	public generateProof(_queryData: ReadonlyArray<Buffer>): Proof {
+		const queryNodes = [];
+		for (let i = 0; i < _queryData.length; i += 1) {
+			try {
+				const queryNode = this.getNode(_queryData[i]);
+				queryNodes.push(queryNode);
+			} catch (err) {
+				queryNodes.push(undefined);
+			}
+		}
+		const path: Proof = [];
+		let currentNode;
+		for (let j = 0; j < queryNodes.length; j += 1) {
+			currentNode = queryNodes[j];
+			if (!currentNode) {
+				queryNodes.splice(j, 1);
+				// eslint-disable-next-line
+				continue;
+			}
+			while (currentNode.hash !== this._root) {
+				const parentNode = this._findParent(currentNode.hash);
+				if (!parentNode) {
+					// eslint-disable-next-line
+					break;
+				}
+				let pairNode: NodeInfo;
+				let direction: number;
+				if (parentNode.leftHash.compare(currentNode.hash) === 0) {
+					pairNode = this.getNode(parentNode.rightHash);
+					direction = 0;
+				} else {
+					pairNode = this.getNode(parentNode.leftHash);
+					direction = 1;
+				}
+				if (
+					queryNodes.find(
+						nodeData => nodeData?.hash.compare(pairNode.hash) === 0,
+					)
+				) {
+					queryNodes.splice(j, 1);
+					// eslint-disable-next-line
+					continue;
+				}
+				path.push({ hash: pairNode.hash, direction });
+				currentNode = parentNode;
+			}
+		}
+
+		return path;
+	}
+
 	public clear(): void {
 		this._width = 0;
 		this._root = EMPTY_HASH;
