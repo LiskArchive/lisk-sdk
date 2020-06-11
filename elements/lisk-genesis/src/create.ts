@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { Account } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
@@ -33,15 +33,22 @@ import {
 } from './types';
 import { validateGenesisBlock } from './validate';
 import {
+	defaultAccountAssetSchema,
 	genesisBlockHeaderAssetSchema,
 	genesisBlockHeaderSchema,
 } from './schema';
+import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
-const getBlockId = (header: GenesisBlockHeaderWithoutId): Buffer => {
+const getBlockId = (
+	header: GenesisBlockHeaderWithoutId,
+	accountAssetSchema: Schema,
+): Buffer => {
 	// eslint-disable-next-line
-	console.info(JSON.stringify(genesisBlockHeaderAssetSchema as any));
 	const genesisBlockAssetBuffer = codec.encode(
-		genesisBlockHeaderAssetSchema,
+		getHeaderAssetSchemaWithAccountAsset(
+			genesisBlockHeaderAssetSchema,
+			accountAssetSchema,
+		),
 		header.asset,
 	);
 
@@ -61,6 +68,8 @@ export const createGenesisBlock = (
 	const height = params.height ?? 0;
 	const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
 	const previousBlockID = params.previousBlockID ?? Buffer.from(EMPTY_BUFFER);
+	const accountAssetSchema =
+		params.accountAssetSchema ?? defaultAccountAssetSchema;
 
 	// Constant values
 	const version = GB_VERSION;
@@ -92,7 +101,7 @@ export const createGenesisBlock = (
 		},
 	};
 
-	const errors = validateGenesisBlock({ header, payload });
+	const errors = validateGenesisBlock(accountAssetSchema, { header, payload });
 	if (errors.length) {
 		throw new LiskValidationError(errors);
 	}
@@ -100,7 +109,7 @@ export const createGenesisBlock = (
 	const genesisBlock: GenesisBlock = {
 		header: {
 			...header,
-			id: getBlockId(header),
+			id: getBlockId(header, accountAssetSchema),
 		},
 		payload,
 	};

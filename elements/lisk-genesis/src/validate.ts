@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Schema } from '@liskhq/lisk-codec';
 import { validator, ErrorObject } from '@liskhq/lisk-validator';
 import { GenesisBlock } from './types';
 import {
@@ -27,8 +28,10 @@ import {
 	GB_SIGNATURE,
 	GB_TRANSACTION_ROOT,
 } from './constants';
+import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
 export const validateGenesisBlock = (
+	accountAssetSchema: Schema,
 	block:
 		| GenesisBlock
 		| {
@@ -94,8 +97,12 @@ export const validateGenesisBlock = (
 	}
 
 	// Genesis block asset validation
+	const assetSchemaWithAccountAsset = getHeaderAssetSchemaWithAccountAsset(
+		genesisBlockHeaderAssetSchema,
+		accountAssetSchema,
+	);
 	const assetErrors = [
-		...validator.validate(genesisBlockHeaderAssetSchema, header.asset),
+		...validator.validate(assetSchemaWithAccountAsset, header.asset),
 	];
 
 	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
