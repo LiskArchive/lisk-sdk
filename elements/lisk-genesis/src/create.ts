@@ -13,9 +13,18 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { Account } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
+import {
+	EMPTY_BUFFER,
+	GB_GENERATOR_PUBLIC_KEY,
+	GB_PAYLOAD,
+	GB_REWARD,
+	GB_SIGNATURE,
+	GB_TRANSACTION_ROOT,
+	GB_VERSION,
+} from './constants';
 import {
 	GenesisAccountState,
 	GenesisBlock,
@@ -29,6 +38,8 @@ import {
 } from './schema';
 
 const getBlockId = (header: GenesisBlockHeaderWithoutId): Buffer => {
+	// eslint-disable-next-line
+	console.info(JSON.stringify(genesisBlockHeaderAssetSchema as any));
 	const genesisBlockAssetBuffer = codec.encode(
 		genesisBlockHeaderAssetSchema,
 		header.asset,
@@ -52,18 +63,18 @@ export const createGenesisBlock = (
 	const previousBlockID = params.previousBlockID ?? Buffer.from(EMPTY_BUFFER);
 
 	// Constant values
-	const version = 0;
-	const generatorPublicKey = Buffer.from(EMPTY_BUFFER);
-	const reward = BigInt(0);
-	const payload = Buffer.from(EMPTY_BUFFER);
-	const signature = Buffer.from(EMPTY_BUFFER);
-	const transactionRoot = Buffer.from(EMPTY_HASH);
+	const version = GB_VERSION;
+	const generatorPublicKey = GB_GENERATOR_PUBLIC_KEY;
+	const reward = GB_REWARD;
+	const payload = GB_PAYLOAD;
+	const signature = GB_SIGNATURE;
+	const transactionRoot = GB_TRANSACTION_ROOT;
 
 	const { initDelegates } = params;
 
-	const accounts: ReadonlyArray<GenesisAccountState> = [
-		...params.accounts,
-	].sort((a, b): number => a.address.compare(b.address));
+	const accounts: ReadonlyArray<GenesisAccountState> = params.accounts
+		.map(acc => new Account(acc))
+		.sort((a, b): number => a.address.compare(b.address));
 
 	const header: GenesisBlockHeaderWithoutId = {
 		generatorPublicKey,

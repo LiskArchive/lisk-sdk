@@ -20,17 +20,9 @@ import {
 	blockHeaderSchema,
 } from '@liskhq/lisk-chain';
 import { mergeDeep } from './utils';
-import { EMPTY_BUFFER, EMPTY_HASH } from './constants';
 
 export const genesisAccountSchema = baseAccountSchema;
-export const genesisBlockSchema = mergeDeep({}, blockSchema, {
-	properties: {
-		payload: {
-			minLength: 0,
-			maxLength: 0,
-		},
-	},
-}) as Schema;
+export const genesisBlockSchema = blockSchema;
 
 export const genesisBlockHeaderSchema = mergeDeep({}, blockHeaderSchema, {
 	properties: {
@@ -39,18 +31,6 @@ export const genesisBlockHeaderSchema = mergeDeep({}, blockHeaderSchema, {
 		},
 		version: {
 			const: 0,
-		},
-		generatorPublicKey: {
-			const: EMPTY_BUFFER,
-		},
-		reward: {
-			const: BigInt(0),
-		},
-		signature: {
-			const: EMPTY_BUFFER,
-		},
-		transactionRoot: {
-			const: EMPTY_HASH,
 		},
 	},
 }) as Schema;

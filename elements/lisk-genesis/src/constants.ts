@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const EMPTY_BUFFER = Buffer.alloc(0);
+import { hash } from '@liskhq/lisk-cryptography';
 
-// To avoid adding dependency of another package hard-coded this value
-//
-// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0031.md
-// The Merkle root of an empty dataset is equal to the hash of an empty string
-// EMPTYHASH=SHA256().
-// hash(Buffer.alloc(0)) or hash(Buffer.from('', 'hex'))
-export const EMPTY_HASH = Buffer.from(
-	'47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=',
-	'base64',
-);
+export const EMPTY_BUFFER = Buffer.alloc(0);
+export const EMPTY_HASH = hash(EMPTY_BUFFER);
+
+export const GB_VERSION = 0;
+export const GB_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
+export const GB_REWARD = BigInt(0);
+export const GB_PAYLOAD: Buffer[] = [];
+export const GB_SIGNATURE = EMPTY_BUFFER;
+export const GB_TRANSACTION_ROOT = EMPTY_HASH;

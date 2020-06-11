@@ -28,12 +28,12 @@ export type GenesisBlockHeaderWithoutId = Omit<GenesisBlockHeader, 'id'>;
 
 export interface GenesisBlock {
 	readonly header: GenesisBlockHeader;
-	readonly payload: Buffer;
+	readonly payload: Buffer[];
 }
 
 export interface GenesisBlockParams {
 	// List of accounts in the genesis
-	readonly accounts: ReadonlyArray<GenesisAccountState>;
+	readonly accounts: ReadonlyArray<Partial<GenesisAccountState>>;
 	// List fo initial delegate addresses used during the bootstrap period to forge blocks
 	readonly initDelegates: ReadonlyArray<Buffer>;
 	// Number of rounds for bootstrap period, default is 3
