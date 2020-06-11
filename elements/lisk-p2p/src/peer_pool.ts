@@ -629,10 +629,9 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer): void {
-		const encodedNodeInfo = codec.encode(
-			nodeInfoSchema,
-			this._nodeInfo as object,
-		);
+		const encodedNodeInfo = codec
+			.encode(nodeInfoSchema, this._nodeInfo as object)
+			.toString('base64');
 		try {
 			peer.send({
 				event: REMOTE_EVENT_POST_NODE_INFO,

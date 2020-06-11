@@ -40,11 +40,7 @@ import {
 import { RPCResponseError } from '../../../src/errors';
 import { getNetgroup, constructPeerId } from '../../../src/utils';
 import { p2pTypes } from '../../../src';
-import {
-	peersListResponseSchema,
-	peerInfoSchema,
-	nodeInfoSchema,
-} from '../../../src/schema';
+import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const createSocketStubInstance = () => <SCServerSocket>({
@@ -340,16 +336,12 @@ describe('peer/base', () => {
 
 	describe('#fetchPeers', () => {
 		it('should call request', async () => {
-			codec.addSchema(peersListResponseSchema);
-
 			const peerRequest = jest
 				.spyOn(defaultPeer as any, 'request')
 				.mockResolvedValue({
 					data: {
-						data: codec.encode(peersListResponseSchema, {
-							success: true,
-							peers: Buffer.from([]),
-						}),
+						success: true,
+						peers: [],
 					},
 				});
 
@@ -443,28 +435,25 @@ describe('peer/base', () => {
 						},
 					},
 				];
-				codec.addSchema(peersListResponseSchema);
 				codec.addSchema(peerInfoSchema);
 
 				const encodedPeers = peers.map(peer =>
-					codec.encode(peerInfoSchema, {
-						...peer.sharedState,
-						ipAddress: peer.ipAddress,
-						wsPort: peer.wsPort,
-					}),
+					codec
+						.encode(peerInfoSchema, {
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})
+						.toString('base64'),
 				);
 
-				const encodedPeerListResponse = codec.encode(peersListResponseSchema, {
+				const responseData = {
 					peers: encodedPeers,
 					success: true,
-				});
-
-				const encodedResponse = {
-					data: encodedPeerListResponse.toString('base64'),
 				};
 
 				jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-					data: encodedResponse,
+					data: responseData,
 				});
 				const response = await defaultPeer.fetchPeers();
 				expect(response).toEqual(sanitizedPeers);
@@ -478,26 +467,26 @@ describe('peer/base', () => {
 					sharedState: {},
 				}));
 
-				const encoedMalformedPeersList = malformedPeerList.map(peer =>
-					codec.encode(peerInfoSchema, {
-						...peer.sharedState,
-						ipAddress: peer.ipAddress,
-						wsPort: peer.wsPort,
-					}),
+				const encodedMalformedPeersList = malformedPeerList.map(peer =>
+					codec
+						.encode(peerInfoSchema, {
+							...peer.sharedState,
+							ipAddress: peer.ipAddress,
+							wsPort: peer.wsPort,
+						})
+						.toString('base64'),
 				);
 
-				const encodedPeerListResponse = {
+				const peerListResponse = {
 					data: {
-						data: codec.encode(peersListResponseSchema, {
-							peers: encoedMalformedPeersList,
-							success: true,
-						}),
+						peers: encodedMalformedPeersList,
+						success: true,
 					},
 				};
 
 				jest
 					.spyOn(defaultPeer as any, 'request')
-					.mockResolvedValue(encodedPeerListResponse);
+					.mockResolvedValue(peerListResponse);
 
 				try {
 					await defaultPeer.fetchPeers();
@@ -650,9 +639,9 @@ describe('peer/base', () => {
 				};
 				beforeEach(() => {
 					codec.addSchema(peerInfoSchema);
-					const encodedResponse = {
-						data: codec.encode(peerInfoSchema, peer),
-					};
+					const encodedResponse = codec
+						.encode(peerInfoSchema, peer)
+						.toString('base64');
 					jest
 						.spyOn(defaultPeer as any, 'request')
 						.mockResolvedValue({ data: encodedResponse });
@@ -691,9 +680,9 @@ describe('peer/base', () => {
 
 				beforeEach(() => {
 					codec.addSchema(peerInfoSchema);
-					const encodedResponse = {
-						data: codec.encode(nodeInfoSchema, peerSharedState),
-					};
+					const encodedResponse = codec
+						.encode(nodeInfoSchema, peerSharedState)
+						.toString('base64');
 
 					jest
 						.spyOn(defaultPeer as any, 'request')

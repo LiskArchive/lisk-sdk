@@ -283,7 +283,7 @@ export class P2P extends EventEmitter {
 			if (message.event === REMOTE_EVENT_POST_NODE_INFO) {
 				const decodedNodeInfo = codec.decode(
 					nodeInfoSchema,
-					Buffer.from((message.data as { data: string }).data, 'base64'),
+					Buffer.from(message.data as string, 'base64'),
 				);
 
 				this.emit(EVENT_MESSAGE_RECEIVED, {
@@ -683,7 +683,9 @@ export class P2P extends EventEmitter {
 	}
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
-		const encodedNodeInfo = codec.encode(nodeInfoSchema, this._nodeInfo);
+		const encodedNodeInfo = codec
+			.encode(nodeInfoSchema, this._nodeInfo)
+			.toString('base64');
 		request.end(encodedNodeInfo);
 	}
 

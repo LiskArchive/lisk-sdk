@@ -415,7 +415,7 @@ export class Peer extends EventEmitter {
 		try {
 			const decodedNodeInfo = codec.decode(
 				nodeInfoSchema,
-				Buffer.from((response.data as { data: string }).data, 'base64'),
+				Buffer.from(response.data as string, 'base64'),
 			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
@@ -538,7 +538,7 @@ export class Peer extends EventEmitter {
 		try {
 			const decodedNodeInfo = codec.decode(
 				nodeInfoSchema,
-				Buffer.from((message.data as { data: string }).data, 'base64'),
+				Buffer.from(message.data as string, 'base64'),
 			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
 		} catch (error) {
