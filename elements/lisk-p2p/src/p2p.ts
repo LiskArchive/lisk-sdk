@@ -14,7 +14,7 @@
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { EventEmitter } from 'events';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { codec } from '@liskhq/lisk-codec';
 
 import {
 	DEFAULT_BAN_TIME,
