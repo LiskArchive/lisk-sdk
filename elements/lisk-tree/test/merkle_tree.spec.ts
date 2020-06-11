@@ -52,6 +52,6 @@ describe('MerkleTree', () => {
 	});
 
 	describe('generateProof', () => {
-		it.todo('should generate proof that is verifiable');
+		it.todo('should generate the expected path');
 	});
 });

@@ -15,7 +15,6 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { Proof } from './types';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_INDEX_SIZE,
@@ -163,12 +162,6 @@ export class MerkleTree {
 		return this.root;
 	}
 
-	// eslint-disable-next-line
-	public generateProof(_queryData: ReadonlyArray<Buffer>): Proof {
-		// eslint-disable-next-line
-		return {} as any;
-	}
-
 	public clear(): void {
 		this._width = 0;
 		this._root = EMPTY_HASH;
@@ -182,7 +175,7 @@ export class MerkleTree {
 		return this._printNode(this.root);
 	}
 
-	public getData(): object[] {
+	public getData(): NodeInfo[] {
 		return Object.keys(this._hashToValueMap).map(key =>
 			this.getNode(Buffer.from(key, 'binary')),
 		);
@@ -325,7 +318,7 @@ export class MerkleTree {
 			return nodeValue.toString('base64');
 		}
 
-		const node = this.getNode(nodeValue);
+		const node = this.getNode(hashValue);
 
 		return [
 			hashValue.toString('base64'),
