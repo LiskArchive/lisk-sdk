@@ -315,6 +315,12 @@ export class DataAccess {
 		return new Account<T>(this.decodeAccount<T>(account));
 	}
 
+	public async getEncodedAccountByAddress(address: Buffer): Promise<Buffer> {
+		const account = await this._storage.getAccountByAddress(address);
+
+		return account;
+	}
+
 	public async getAccountsByAddress<T>(
 		arrayOfAddresses: ReadonlyArray<Buffer>,
 	): Promise<Account<T>[]> {

@@ -38,7 +38,7 @@ export class AccountStore {
 	private readonly _defualtAsset: object;
 	private readonly _primaryKey = 'address';
 	private readonly _name = 'Account';
-	private readonly _initialAccountValue: BufferMap<Account>;
+	private readonly _initialAccountValue: BufferMap<Buffer>;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -52,7 +52,7 @@ export class AccountStore {
 		this._originalData = new BufferMap();
 		this._originalUpdatedKeys = new BufferSet();
 		this._defualtAsset = additionalInformation.defaultAsset;
-		this._initialAccountValue = new BufferMap<Account>();
+		this._initialAccountValue = new BufferMap<Buffer>();
 	}
 
 	public createSnapshot(): void {
@@ -67,9 +67,7 @@ export class AccountStore {
 		this._originalUpdatedKeys = new BufferSet();
 	}
 
-	public async get<T = DefaultAsset>(
-		address: Buffer,
-	): Promise<Account<T>> {
+	public async get<T = DefaultAsset>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
 		const cachedAccount = this._data.get(address);
 
@@ -78,19 +76,17 @@ export class AccountStore {
 		}
 
 		// Account was not cached previously so we try to fetch it from db
-		const accountFromDB = await this._dataAccess.getAccountByAddress(
+		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
 			address,
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (accountFromDB) {
-			this._data.set(address, accountFromDB as Account);
-			this._initialAccountValue.set(
-				accountFromDB.address,
-				accountFromDB as Account,
-			);
+		if (encodedAccount) {
+			const account = this._getAccountInstance(encodedAccount);
 
-			return (new Account(accountFromDB) as unknown) as Account<T>;
+			this._data.set(address, account);
+			this._initialAccountValue.set(address, encodedAccount);
+			return (account as unknown) as Account<T>;
 		}
 
 		// Account does not exist we can not continue
@@ -112,16 +108,14 @@ export class AccountStore {
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
 		try {
-			const accountFromDB = await this._dataAccess.getAccountByAddress(
+			const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
 				address,
 			);
-			this._data.set(address, accountFromDB as Account);
-			this._initialAccountValue.set(
-				accountFromDB.address,
-				accountFromDB as Account,
-			);
+			const account = this._getAccountInstance(encodedAccount);
 
-			return (new Account(accountFromDB as Account) as unknown) as Account<T>;
+			this._data.set(address, account);
+			this._initialAccountValue.set(address, encodedAccount);
+			return (account as unknown) as Account<T>;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -134,7 +128,6 @@ export class AccountStore {
 			cloneDeep<T>((this._defualtAsset as unknown) as T),
 		);
 		this._data.set(address, (defaultAccount as unknown) as Account);
-		this._initialAccountValue.set(address, (defaultAccount as unknown) as Account);
 
 		return (new Account(defaultAccount) as unknown) as Account<T>;
 	}
@@ -154,24 +147,20 @@ export class AccountStore {
 	public finalize(batch: BatchChain): StateDiff {
 		const stateDiff = { updated: [], created: [] } as StateDiff;
 
-		for (const account of this._data.values()) {
-			if (this._updatedKeys.has(account.address)) {
-				const encodedFinalAccount = this._dataAccess.encodeAccount(account);
+		for (const updatedAccount of this._data.values()) {
+			if (this._updatedKeys.has(updatedAccount.address)) {
+				const encodedAccount = this._dataAccess.encodeAccount(updatedAccount);
 				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(
-					account.address,
+					updatedAccount.address,
 				)}`;
-				batch.put(dbKey, encodedFinalAccount);
+				batch.put(dbKey, encodedAccount);
 
-				if (this._initialAccountValue.has(account.address)) {
-					const initialAccount = this._initialAccountValue.get(account.address);
-					const encodedInitialAccount = this._dataAccess.encodeAccount(
-						initialAccount as Account,
+				if (this._initialAccountValue.has(updatedAccount.address)) {
+					const initialAccount = this._initialAccountValue.get(
+						updatedAccount.address,
 					);
 
-					const diff = calculateDiff(
-						encodedInitialAccount,
-						encodedFinalAccount,
-					);
+					const diff = calculateDiff(initialAccount as Buffer, encodedAccount);
 					stateDiff.updated.push({
 						key: dbKey,
 						value: diff,
@@ -183,5 +172,10 @@ export class AccountStore {
 		}
 
 		return stateDiff;
+	}
+
+	private _getAccountInstance<T>(encodedAccount: Buffer): Account {
+		const decodedAccount = this._dataAccess.decodeAccount<T>(encodedAccount);
+		return (new Account(decodedAccount) as unknown) as Account;
 	}
 }
