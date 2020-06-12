@@ -13,23 +13,23 @@
  */
 
 interface SlotsInput {
-	readonly epochTime: number;
+	readonly genesisTime: number;
 	readonly interval: number;
 }
 
 const SEC_IN_MS = 1000;
 
 export class Slots {
-	private readonly _epochTime: Date;
+	private readonly _genesisTime: Date;
 	private readonly _interval: number;
 
-	public constructor({ epochTime, interval }: SlotsInput) {
-		this._epochTime = new Date(epochTime * SEC_IN_MS);
+	public constructor({ genesisTime, interval }: SlotsInput) {
+		this._genesisTime = new Date(genesisTime * SEC_IN_MS);
 		this._interval = interval;
 	}
 
 	public timeSinceGenesis(): number {
-		return Math.floor((Date.now() - this._epochTime.getTime()) / SEC_IN_MS);
+		return Math.floor((Date.now() - this._genesisTime.getTime()) / SEC_IN_MS);
 	}
 
 	public blockTime(): number {
@@ -38,19 +38,19 @@ export class Slots {
 
 	public getRealTime(time: number): number {
 		return (
-			Math.floor(this._epochTime.getTime() / SEC_IN_MS) * SEC_IN_MS +
+			Math.floor(this._genesisTime.getTime() / SEC_IN_MS) * SEC_IN_MS +
 			time * SEC_IN_MS
 		);
 	}
 
 	public getSlotNumber(timeStamp?: number): number {
-		const parsedEpochTime = Math.floor(
+		const elapsedTime = Math.floor(
 			((timeStamp ? timeStamp * SEC_IN_MS : Date.now()) -
-				this._epochTime.getTime()) /
+				this._genesisTime.getTime()) /
 				SEC_IN_MS,
 		);
 
-		return Math.floor(parsedEpochTime / this._interval);
+		return Math.floor(elapsedTime / this._interval);
 	}
 
 	public getSlotTime(slot: number): number {

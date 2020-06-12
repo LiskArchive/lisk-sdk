@@ -120,7 +120,6 @@ export interface ApplicationConfig {
 		consoleLogLevel: string;
 	};
 	genesisConfig: {
-		epochTime: string;
 		blockTime: number;
 		maxPayloadLength: number;
 		rewards: {

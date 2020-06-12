@@ -66,7 +66,7 @@ const app = new Application(genesisBlockDevnet, configDevnet);
 app
 	.run()
 	.then(() => app.logger.info('App started...'))
-	.catch(error => {
+	.catch((error) => {
 		console.error('Faced error in application', error);
 		process.exit(1);
 	});
@@ -80,14 +80,13 @@ node index.js
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `BLOCK_TIME`, `EPOCH_TIME`, `MAX_TRANSACTIONS_PER_BLOCK` and more with an optional configurations object.
+You can also define your blockchain application parameters such as `BLOCK_TIME`, `MAX_TRANSACTIONS_PER_BLOCK` and more with an optional configurations object.
 
 ```js
 const app = new Application(genesisBlockDevnet, {
     app: {
         label: 'my-blockchain-application',
         genesisConfig: {
-            EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
             BLOCK_TIME: 10,
             MAX_TRANSACTIONS_PER_BLOCK: 25,
         },
@@ -115,7 +114,7 @@ app.registerTransaction(MyTransaction); // register the custom transaction
 app
 	.run()
 	.then(() => app.logger.info('App started...'))
-	.catch(error => {
+	.catch((error) => {
 		console.error('Faced error in application', error);
 		process.exit(1);
 	});
