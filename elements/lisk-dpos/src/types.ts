@@ -84,7 +84,7 @@ export interface DPoSProcessingOptions {
 
 export interface Chain {
 	readonly slots: {
-		readonly getSlotNumber: (genesisTime?: number) => number;
+		readonly getSlotNumber: (genesisBlockTimestamp?: number) => number;
 		readonly blockTime: () => number;
 	};
 	readonly dataAccess: {

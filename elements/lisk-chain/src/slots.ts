@@ -13,7 +13,7 @@
  */
 
 interface SlotsInput {
-	readonly genesisTime: number;
+	readonly genesisBlockTimestamp: number;
 	readonly interval: number;
 }
 
@@ -23,8 +23,8 @@ export class Slots {
 	private readonly _genesisTime: Date;
 	private readonly _interval: number;
 
-	public constructor({ genesisTime, interval }: SlotsInput) {
-		this._genesisTime = new Date(genesisTime * SEC_IN_MS);
+	public constructor({ genesisBlockTimestamp, interval }: SlotsInput) {
+		this._genesisTime = new Date(genesisBlockTimestamp * SEC_IN_MS);
 		this._interval = interval;
 	}
 

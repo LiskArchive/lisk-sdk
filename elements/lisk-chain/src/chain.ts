@@ -241,7 +241,7 @@ export class Chain {
 		this._networkIdentifier = networkIdentifier;
 		this._genesisBlock = genesisBlock;
 		this.slots = new Slots({
-			genesisTime: genesisBlock.header.timestamp,
+			genesisBlockTimestamp: genesisBlock.header.timestamp,
 			interval: blockTime,
 		});
 		this.blockRewardArgs = {
