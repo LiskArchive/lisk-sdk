@@ -30,7 +30,7 @@ export const getNetworkIdentifierWithInput = (
 	}
 	if (input !== undefined) {
 		if (!isBase64String(input)) {
-			throw new Error('Network identifier must be hex string');
+			throw new Error('Network identifier must be base64 string');
 		}
 
 		return input;

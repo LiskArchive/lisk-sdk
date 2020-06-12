@@ -73,7 +73,7 @@ Object {
                     },
                     "hashes": Object {
                       "items": Object {
-                        "format": "hex",
+                        "format": "base64",
                         "type": "string",
                       },
                       "type": "array",
@@ -87,7 +87,7 @@ Object {
                   "type": "object",
                 },
                 "publicKey": Object {
-                  "format": "publicKey",
+                  "format": "base64",
                   "type": "string",
                 },
               },
@@ -192,7 +192,7 @@ Object {
       "lastCommitId": Object {
         "description": "The version of Lisk Core that the peer node runs on.",
         "example": "968d7b5b97a5bfad8f77614dc8a9918de49f6c6e",
-        "format": "hex",
+        "format": "base64",
         "maxLength": 40,
         "minLength": 40,
         "type": "string",

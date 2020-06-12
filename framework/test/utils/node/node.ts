@@ -18,10 +18,13 @@ import { constantsConfig, nodeConfig } from '../configs';
 import { registeredTransactions } from '../registered_transactions';
 import { createMockChannel } from '../channel';
 import { Node, Options } from '../../../src/application/node/node';
-import * as genesisBlock from '../../fixtures/config/devnet/genesis_block.json';
+import { genesisBlock } from '../../fixtures/blocks';
+import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as config from '../../fixtures/config/devnet/config.json';
 import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
+import { mergeDeep } from '../../../src/application/utils/merge_deep';
+import { ApplicationConfig } from '../../../src/types';
 
 const { modules, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
@@ -41,17 +44,34 @@ export const createNode = ({
 	channel,
 	options = {},
 }: CreateNodeInput): Node => {
+	const mergedConfig = mergeDeep(
+		{},
+		nodeConfig(),
+		nodeConfigs,
+	) as ApplicationConfig;
+	const convertedDelegates = mergedConfig.forging.delegates.map(delegate => ({
+		...delegate,
+		publicKey: Buffer.from(delegate.publicKey, 'base64'),
+		hashOnion: {
+			...delegate.hashOnion,
+			hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
+		},
+	}));
 	const nodeOptions = {
-		...nodeConfig(),
-		...nodeConfigs,
+		...mergedConfig,
+		forging: {
+			...mergedConfig.forging,
+			delegates: convertedDelegates,
+		},
 		...options,
+		communityIdentifier: genesisBlockJSON.communityIdentifier,
 		constants: constantsConfig(),
-		genesisBlock,
+		genesisBlock: genesisBlock(),
 		registeredTransactions: { ...registeredTransactions },
 	};
 	return new Node({
 		channel: channel ?? (createMockChannel() as any),
-		options: nodeOptions as Options,
+		options: nodeOptions,
 		logger,
 		blockchainDB,
 		forgerDB,
