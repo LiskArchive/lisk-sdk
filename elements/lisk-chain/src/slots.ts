@@ -36,13 +36,6 @@ export class Slots {
 		return this._interval;
 	}
 
-	public getRealTime(time: number): number {
-		return (
-			Math.floor(this._genesisTime.getTime() / SEC_IN_MS) * SEC_IN_MS +
-			time * SEC_IN_MS
-		);
-	}
-
 	public getSlotNumber(timeStamp?: number): number {
 		const elapsedTime = Math.floor(
 			((timeStamp ? timeStamp * SEC_IN_MS : Date.now()) -
@@ -54,7 +47,13 @@ export class Slots {
 	}
 
 	public getSlotTime(slot: number): number {
-		return slot * this._interval;
+		const slotGensisTimeOffset = slot * this._interval;
+
+		return (
+			(Math.floor(this._genesisTime.getTime() / SEC_IN_MS) +
+				slotGensisTimeOffset) *
+			SEC_IN_MS
+		);
 	}
 
 	public getNextSlot(): number {
