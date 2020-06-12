@@ -23,6 +23,8 @@ const generateValidBlockAsset = require('./block_asset');
 const generateValidAccount = require('./account');
 const generateValidTransaction = require('./transaction');
 const generateCartEncodings = require('./cart_sample');
+const generatePeerInfoEncodings = require('./peer_sample');
+const generateNestedArrayEncodings = require('./nestest_array');
 
 module.exports = {
 	generateValidBooleanEncodings,
@@ -37,4 +39,6 @@ module.exports = {
 	generateValidAccount,
 	generateValidTransaction,
 	generateCartEncodings,
+	generatePeerInfoEncodings,
+	generateNestedArrayEncodings,
 };

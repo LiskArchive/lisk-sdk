@@ -28,7 +28,6 @@ import {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-	getTotalFees,
 	undoFeeAndRewards,
 } from './block_reward';
 import {
@@ -45,8 +44,6 @@ import {
 	applyGenesisTransactions,
 	applyTransactions,
 	checkAllowedTransactions,
-	checkPersistedTransactions,
-	composeTransactionSteps,
 	undoTransactions,
 	validateTransactions,
 } from './transactions';
@@ -64,11 +61,7 @@ import {
 	validateReward,
 	validateSignature,
 } from './validate';
-import {
-	BlocksVerify,
-	verifyBlockNotExists,
-	verifyPreviousBlockId,
-} from './verify';
+import { BlocksVerify, verifyPreviousBlockId } from './verify';
 import {
 	blockSchema,
 	signingBlockHeaderSchema,
@@ -104,59 +97,6 @@ interface ChainConstructor {
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
-
-const applyConfirmedStep = async (
-	block: Block,
-	stateStore: StateStore,
-): Promise<void> => {
-	if (block.payload.length <= 0) {
-		return;
-	}
-
-	const transactionsResponses = await applyTransactions()(
-		block.payload,
-		stateStore,
-	);
-
-	const unappliableTransactionsResponse = transactionsResponses.filter(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-
-	if (unappliableTransactionsResponse.length > 0) {
-		throw unappliableTransactionsResponse[0].errors;
-	}
-};
-
-const applyConfirmedGenesisStep = async (
-	block: Block,
-	stateStore: StateStore,
-): Promise<Block> => {
-	await applyGenesisTransactions()(block.payload, stateStore);
-
-	return block;
-};
-
-const undoConfirmedStep = async (
-	block: Block,
-	stateStore: StateStore,
-): Promise<void> => {
-	if (block.payload.length === 0) {
-		return;
-	}
-
-	const transactionsResponses = await undoTransactions()(
-		block.payload,
-		stateStore,
-	);
-
-	const unappliedTransactionResponse = transactionsResponses.find(
-		transactionResponse => transactionResponse.status !== TransactionStatus.OK,
-	);
-
-	if (unappliedTransactionResponse) {
-		throw unappliedTransactionResponse.errors;
-	}
-};
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:chain');
@@ -226,16 +166,14 @@ export class Chain {
 				},
 			},
 		};
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		codec.addSchema(accountSchema as any);
+		codec.addSchema(accountSchema as Schema);
 		this._defaultAccountAsset = accountAsset.default;
 
 		this.dataAccess = new DataAccess({
 			db,
 			registeredBlockHeaders: registeredBlocks,
 			registeredTransactions,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-explicit-any
-			accountSchema: accountSchema as any,
+			accountSchema: accountSchema as Schema,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
 		});
@@ -378,7 +316,7 @@ export class Chain {
 		);
 
 		// Validate transactions
-		const transactionsResponses = validateTransactions()(block.payload);
+		const transactionsResponses = validateTransactions(block.payload);
 		const invalidTransactionResponse = transactionsResponses.find(
 			transactionResponse =>
 				transactionResponse.status !== TransactionStatus.OK,
@@ -388,7 +326,6 @@ export class Chain {
 			throw invalidTransactionResponse.errors;
 		}
 
-		// FIXME: need to get raw payload bytes
 		const encodedPayload = Buffer.concat(
 			block.payload.map(tx => this.dataAccess.encodeTransaction(tx)),
 		);
@@ -399,45 +336,39 @@ export class Chain {
 		);
 	}
 
-	public async verify(
-		block: Block,
-		_: StateStore,
-		{ skipExistingCheck }: { readonly skipExistingCheck: boolean },
-	): Promise<void> {
+	public async verify(block: Block, _: StateStore): Promise<void> {
 		verifyPreviousBlockId(block, this._lastBlock, this._genesisBlock);
 		validateBlockSlot(block, this._lastBlock, this.slots);
-		if (!skipExistingCheck) {
-			await verifyBlockNotExists(this.dataAccess, block);
-			const transactionsResponses = await checkPersistedTransactions(
-				this.dataAccess,
-			)(block.payload);
-			const invalidPersistedResponse = transactionsResponses.find(
-				transactionResponse =>
-					transactionResponse.status !== TransactionStatus.OK,
-			);
-			if (invalidPersistedResponse) {
-				throw invalidPersistedResponse.errors;
-			}
-		}
 		await this.blocksVerify.checkTransactions(block);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async apply(
-		blockInstance: Block,
-		stateStore: StateStore,
-	): Promise<void> {
-		await applyConfirmedStep(blockInstance, stateStore);
-		await applyFeeAndRewards(blockInstance, stateStore);
+	public async apply(block: Block, stateStore: StateStore): Promise<void> {
+		if (block.payload.length > 0) {
+			const transactionsResponses = await applyTransactions(
+				block.payload,
+				stateStore,
+			);
+
+			const invalidTransactionsResponse = transactionsResponses.filter(
+				transactionResponse =>
+					transactionResponse.status !== TransactionStatus.OK,
+			);
+
+			if (invalidTransactionsResponse.length > 0) {
+				throw invalidTransactionsResponse[0].errors;
+			}
+		}
+		await applyFeeAndRewards(block, stateStore);
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	public async applyGenesis(
-		blockInstance: Block,
+		block: Block,
 		stateStore: StateStore,
 	): Promise<void> {
-		await applyConfirmedGenesisStep(blockInstance, stateStore);
-		await applyFeeAndRewards(blockInstance, stateStore);
+		await applyGenesisTransactions(block.payload, stateStore);
+		await applyFeeAndRewards(block, stateStore);
 	}
 
 	public async save(
@@ -458,12 +389,25 @@ export class Chain {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public async undo(
-		blockInstance: Block,
-		stateStore: StateStore,
-	): Promise<void> {
-		await undoFeeAndRewards(blockInstance, stateStore);
-		await undoConfirmedStep(blockInstance, stateStore);
+	public async undo(block: Block, stateStore: StateStore): Promise<void> {
+		await undoFeeAndRewards(block, stateStore);
+		if (block.payload.length === 0) {
+			return;
+		}
+
+		const transactionsResponses = await undoTransactions(
+			block.payload,
+			stateStore,
+		);
+
+		const unappliedTransactionResponse = transactionsResponses.find(
+			transactionResponse =>
+				transactionResponse.status !== TransactionStatus.OK,
+		);
+
+		if (unappliedTransactionResponse) {
+			throw unappliedTransactionResponse.errors;
+		}
 	}
 
 	public async remove(
@@ -497,25 +441,14 @@ export class Chain {
 		return this.dataAccess.isBlockPersisted(block.header.id);
 	}
 
-	public async getHighestCommonBlock(
-		ids: Buffer[],
-	): Promise<BlockHeader | undefined> {
-		const blocks = await this.dataAccess.getBlockHeadersByIDs(ids);
-		const sortedBlocks = [...blocks].sort(
-			(a: BlockHeader, b: BlockHeader) => b.height - a.height,
-		);
-		const highestCommonBlock = sortedBlocks.shift();
-
-		return highestCommonBlock;
-	}
-
 	public async filterReadyTransactions(
 		transactions: BaseTransaction[],
 		context: Contexter,
 	): Promise<BaseTransaction[]> {
 		const stateStore = await this.newStateStore();
-		const allowedTransactionsIds = checkAllowedTransactions(context)(
+		const allowedTransactionsIds = checkAllowedTransactions(
 			transactions as MatcherTransaction[],
+			context,
 		)
 			.filter(
 				transactionResponse =>
@@ -526,7 +459,7 @@ export class Chain {
 		const allowedTransactions = transactions.filter(transaction =>
 			allowedTransactionsIds.includes(transaction.id),
 		);
-		const transactionsResponses = await applyTransactions()(
+		const transactionsResponses = await applyTransactions(
 			allowedTransactions,
 			stateStore,
 		);
@@ -540,61 +473,59 @@ export class Chain {
 		return readyTransactions;
 	}
 
-	public async validateTransactions(
+	public validateTransactions(
 		transactions: BaseTransaction[],
-	): Promise<ReadonlyArray<TransactionResponse>> {
-		return composeTransactionSteps(
-			checkAllowedTransactions({
-				blockVersion: this.lastBlock.header.version,
-				blockHeight: this.lastBlock.header.height,
-				blockTimestamp: this.lastBlock.header.timestamp,
-			}),
-			validateTransactions(),
-			// Composed transaction checks are all static, so it does not need state store
-		)(transactions);
+	): ReadonlyArray<TransactionResponse> {
+		const allowedResponses = checkAllowedTransactions(transactions, {
+			blockVersion: this.lastBlock.header.version,
+			blockHeight: this.lastBlock.header.height,
+			blockTimestamp: this.lastBlock.header.timestamp,
+		});
+		const failedAllowedResponses = allowedResponses.filter(
+			res => res.status === TransactionStatus.FAIL,
+		);
+		const validTransactions = transactions.filter(tx =>
+			allowedResponses.find(
+				res => res.status === TransactionStatus.OK && res.id.equals(tx.id),
+			),
+		);
+		const validationResponses = validateTransactions(validTransactions);
+		return [...failedAllowedResponses, ...validationResponses];
 	}
 
 	public async applyTransactions(
 		transactions: BaseTransaction[],
 	): Promise<TransactionResponse[]> {
 		const stateStore = await this.newStateStore();
-
-		return composeTransactionSteps(
-			checkAllowedTransactions(() => {
-				const { version, height, timestamp } = this._lastBlock.header;
-
-				return {
-					blockVersion: version,
-					blockHeight: height,
-					blockTimestamp: timestamp,
-				};
-			}),
-			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(),
-		)(transactions, stateStore);
+		const allowedResponses = checkAllowedTransactions(transactions, () => {
+			const { version, height, timestamp } = this._lastBlock.header;
+			return {
+				blockVersion: version,
+				blockHeight: height,
+				blockTimestamp: timestamp,
+			};
+		});
+		const failedAllowedResponses = allowedResponses.filter(
+			res => res.status === TransactionStatus.FAIL,
+		);
+		const validTransactions = transactions.filter(tx =>
+			allowedResponses.find(
+				res => res.status === TransactionStatus.OK && res.id.equals(tx.id),
+			),
+		);
+		const applyResponses = await applyTransactions(
+			validTransactions,
+			stateStore,
+		);
+		return [...failedAllowedResponses, ...applyResponses];
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	public async applyTransactionsWithStateStore(
 		transactions: BaseTransaction[],
 		stateStore: StateStore,
 	): Promise<ReadonlyArray<TransactionResponse>> {
-		return composeTransactionSteps(
-			checkPersistedTransactions(this.dataAccess),
-			applyTransactions(),
-		)(transactions, stateStore);
-	}
-
-	// Temporally added because DPoS uses totalEarning to calculate the vote weight change
-	// eslint-disable-next-line class-methods-use-this
-	public getTotalEarningAndBurnt(
-		block: Block,
-	): { readonly totalEarning: bigint; readonly totalBurnt: bigint } {
-		const { totalFee, totalMinFee } = getTotalFees(block);
-
-		return {
-			totalEarning: block.header.reward + totalFee - totalMinFee,
-			totalBurnt: totalMinFee,
-		};
+		return applyTransactions(transactions, stateStore);
 	}
 
 	private async _cacheBlockHeaders(storageLastBlock: Block): Promise<void> {

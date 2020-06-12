@@ -24,7 +24,9 @@ import * as blockEncoding from '../fixtures/block_encodings.json';
 import * as blockHeaderEncoding from '../fixtures/block_header_encodings.json';
 import * as blockAssetEncoding from '../fixtures/block_asset_encodings.json';
 import * as accountEncoding from '../fixtures/account_encodings.json';
-import * as transactionDecoding from '../fixtures/transaction_encodings.json';
+import * as transactionEncoding from '../fixtures/transaction_encodings.json';
+import * as peerInfoEncoding from '../fixtures/peer_info_sample_encoding.json';
+import * as nestedArrayEncoding from '../fixtures/nested_array_encoding.json';
 
 describe('encode', () => {
 	describe('objects', () => {
@@ -354,7 +356,7 @@ describe('encode', () => {
 
 	describe('transaction encoding', () => {
 		it('Encoding of base transaction', () => {
-			const testCase = transactionDecoding.testCases[0];
+			const testCase = transactionEncoding.testCases[0];
 			const message = {
 				...testCase.input.object,
 				nonce: BigInt(testCase.input.object.nonce),
@@ -373,7 +375,7 @@ describe('encode', () => {
 		});
 
 		it('Encoding of vote transaction asset', () => {
-			const testCase = transactionDecoding.testCases[1];
+			const testCase = transactionEncoding.testCases[1];
 			const message = {
 				votes: testCase.input.object.votes?.map(v => ({
 					delegateAddress: Buffer.from(v.delegateAddress.data),
@@ -386,7 +388,7 @@ describe('encode', () => {
 		});
 
 		describe('Encoding of multi signature transaction asset', () => {
-			const testCases = transactionDecoding.testCases.slice(2, 4);
+			const testCases = transactionEncoding.testCases.slice(2, 4);
 			for (const testCase of testCases) {
 				it(testCase.description, () => {
 					const message = {
@@ -407,5 +409,23 @@ describe('encode', () => {
 				});
 			}
 		});
+	});
+
+	describe('peer info encoding', () => {
+		for (const testCase of peerInfoEncoding.testCases) {
+			it(testCase.description, () => {
+				const result = codec.encode(testCase.input.schema, testCase.input.object);
+				expect(result.toString('hex')).toEqual(testCase.output.value);
+			});
+		}
+	});
+
+	describe('nested array encoding', () => {
+		for (const testCase of nestedArrayEncoding.testCases) {
+			it(testCase.description, () => {
+				const result = codec.encode(testCase.input.schema, testCase.input.object);
+				expect(result.toString('hex')).toEqual(testCase.output.value);
+			});
+		}
 	});
 });

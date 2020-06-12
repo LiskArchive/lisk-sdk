@@ -1,0 +1,156 @@
+{
+	"title": "Encondings for a nested array",
+	"summary": "Example of encoding a nested array",
+	"config": {
+		"network": "devnet"
+	},
+	"runner": "lisk_codec",
+	"handler": "nested_array_encoding",
+	"testCases": [
+		{
+			"description": "Encoding of nested array object sample",
+			"input": {
+				"object": {
+					"updated": [
+						{
+							"key": "accounts:address:rUL46GfWGBcb9JguZCaUQhSPbhE=",
+							"value": [
+								{
+									"code": "=",
+									"line": 1
+								},
+								{
+									"code": "+",
+									"line": 333
+								}
+							]
+						}
+					],
+					"created": [
+						"chain:delegates",
+						"consensus:bft"
+					]
+				},
+				"schema": {
+					"$id": "/state/diff",
+					"type": "object",
+					"required": [
+						"updated",
+						"created"
+					],
+					"properties": {
+						"updated": {
+							"type": "array",
+							"fieldNumber": 1,
+							"items": {
+								"type": "object",
+								"properties": {
+									"key": {
+										"dataType": "string",
+										"fieldNumber": 1
+									},
+									"value": {
+										"type": "array",
+										"fieldNumber": 2,
+										"items": {
+											"type": "object",
+											"properties": {
+												"code": {
+													"dataType": "string",
+													"fieldNumber": 1
+												},
+												"line": {
+													"dataType": "uint32",
+													"fieldNumber": 2
+												}
+											}
+										}
+									}
+								}
+							}
+						},
+						"created": {
+							"type": "array",
+							"fieldNumber": 2,
+							"items": {
+								"dataType": "string"
+							}
+						}
+					}
+				}
+			},
+			"output": {
+				"value": "0a3e0a2d6163636f756e74733a616464726573733a72554c343647665747426362394a67755a436155516853506268453d12050a013d100112060a012b10cd02120f636861696e3a64656c656761746573120d636f6e73656e7375733a626674"
+			}
+		},
+		{
+			"description": "Encoding of nested array string sample",
+			"input": {
+				"object": {
+					"updated": [
+						{
+							"key": "accounts:address:rUL46GfWGBcb9JguZCaUQhSPbhE=",
+							"value": [
+								"diff1",
+								"diff2"
+							]
+						},
+						{
+							"key": "accounts:address:aaa6GfWGBcb9JguZCaUQhSPbhE=",
+							"value": [
+								"diff5",
+								"diff6",
+								"diff7",
+								"diff5"
+							]
+						}
+					],
+					"created": [
+						"chain:delegates",
+						"consensus:bft"
+					]
+				},
+				"schema": {
+					"$id": "/state/diff-string",
+					"type": "object",
+					"required": [
+						"updated",
+						"created"
+					],
+					"properties": {
+						"updated": {
+							"type": "array",
+							"fieldNumber": 1,
+							"items": {
+								"type": "object",
+								"properties": {
+									"key": {
+										"dataType": "string",
+										"fieldNumber": 1
+									},
+									"value": {
+										"type": "array",
+										"fieldNumber": 2,
+										"items": {
+											"dataType": "string"
+										}
+									}
+								}
+							}
+						},
+						"created": {
+							"type": "array",
+							"fieldNumber": 2,
+							"items": {
+								"dataType": "string"
+							}
+						}
+					}
+				}
+			},
+			"output": {
+				"value": "0a3d0a2d6163636f756e74733a616464726573733a72554c343647665747426362394a67755a436155516853506268453d12056469666631120564696666320a4a0a2c6163636f756e74733a616464726573733a6161613647665747426362394a67755a436155516853506268453d12056469666635120564696666361205646966663712056469666635120f636861696e3a64656c656761746573120d636f6e73656e7375733a626674"
+			}
+		}
+	]
+}

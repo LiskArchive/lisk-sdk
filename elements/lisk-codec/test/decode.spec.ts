@@ -24,6 +24,8 @@ import * as blockHeaderDecoding from '../fixtures/block_header_encodings.json';
 import * as blockAssetDecoding from '../fixtures/block_asset_encodings.json';
 import * as accountDecoding from '../fixtures/account_encodings.json';
 import * as transactionDecoding from '../fixtures/transaction_encodings.json';
+import * as peerInfoDecoding from '../fixtures/peer_info_sample_encoding.json';
+import * as nestedArrayDecoding from '../fixtures/nested_array_encoding.json';
 
 describe('decode', () => {
 	describe('boolean decoding', () => {
@@ -90,7 +92,11 @@ describe('decode', () => {
 			const testCase = objectDecoding.testCases[1];
 			const codec = new Codec();
 			const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
-			expect(result).toEqual({ ...testCase.input.object, value: BigInt(testCase.input.object.value) });
+			expect(result).toEqual({
+				...testCase.input.object,
+				value: BigInt(testCase.input.object.value),
+				data: Buffer.alloc(0),
+			});
 		});
 	});
 
@@ -239,5 +245,37 @@ describe('decode', () => {
 				});
 			}
 		});
+	});
+
+	describe('peer info decoding', () => {
+		it('should decode object without options', () => {
+			const testCase = peerInfoDecoding.testCases[0];
+			const codec = new Codec();
+			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+			expect(result).toEqual(testCase.input.object);
+		});
+
+		it('should decode object without optional fields', () => {
+			const testCase = peerInfoDecoding.testCases[1];
+			const codec = new Codec();
+			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+			expect(result).toEqual({
+				...testCase.input.object,
+				height: 0,
+				networkId: '',
+				nonce: '',
+				protocolVersion: '',
+			});
+		});
+	});
+
+	describe('nested array decoding', () => {
+		for (const testCase of nestedArrayDecoding.testCases.slice(1)) {
+			it(testCase.description, () => {
+				const codec = new Codec();
+				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				expect(result).toEqual(testCase.input.object);
+			});
+		}
 	});
 });

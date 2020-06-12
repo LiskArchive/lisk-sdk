@@ -151,7 +151,7 @@ describe('transport', () => {
 				loadBlocksFromLastBlockId: jest.fn(),
 				validateTransactions: jest
 					.fn()
-					.mockResolvedValue([{ status: 1, errors: [] }]),
+					.mockReturnValue([{ status: 1, errors: [] }]),
 				applyTransactions: jest
 					.fn()
 					.mockResolvedValue([{ status: 1, errors: [] }]),
@@ -344,7 +344,7 @@ describe('transport', () => {
 					[new Error()],
 				);
 
-				transportModule['_chainModule'].validateTransactions.mockResolvedValue([
+				transportModule['_chainModule'].validateTransactions.mockReturnValue([
 					{
 						errors: [invalidTrsError],
 					},
@@ -376,9 +376,7 @@ describe('transport', () => {
 						...transaction,
 						asset: {},
 					};
-					transportModule[
-						'_chainModule'
-					].validateTransactions.mockResolvedValue([
+					transportModule['_chainModule'].validateTransactions.mockReturnValue([
 						{
 							status: 1,
 							errors: [new TransactionError('invalid transaction')],

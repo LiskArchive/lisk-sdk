@@ -194,7 +194,7 @@ export class DataAccess {
 		return this._blockHeaderAdapter.decode(block);
 	}
 
-	public async getLastCommonBlockHeader(
+	public async getHighestCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<BlockHeader | undefined> {
 		const blocks = this._blocksCache.getByIDs(arrayOfBlockIds);

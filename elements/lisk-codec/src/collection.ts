@@ -31,6 +31,7 @@ import { writeString, readString } from './string';
 import { writeBytes, readBytes } from './bytes';
 import { writeBoolean, readBoolean } from './boolean';
 import { readKey } from './keys';
+import { getDefaultValue } from './utils/default_value';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const _readers : { readonly [key: string]: (value: Buffer, offset: number) => any } = {
@@ -120,7 +121,7 @@ export const writeObject = (
 }
 
 
-export const readObject = (message: Buffer, offset: number, compiledSchema: CompiledSchemasArray): [GenericObject, number] => {
+export const readObject = (message: Buffer, offset: number, compiledSchema: CompiledSchemasArray, terminateIndex?: number): [GenericObject, number] => {
 	let index = offset;
 	const result: GenericObject = {};
 	for (let i = 0; i < compiledSchema.length; i += 1) {
@@ -128,7 +129,7 @@ export const readObject = (message: Buffer, offset: number, compiledSchema: Comp
 		if (Array.isArray(typeSchema)) {
 			// Takeout the root wireType and field number
 			if (typeSchema[0].schemaProp.type === 'array') {
-				const [arr, nextOffset] = readArray(message, index, typeSchema);
+				const [arr, nextOffset] = readArray(message, index, typeSchema, terminateIndex);
 				result[typeSchema[0].propertyName] = arr;
 				index = nextOffset;
 			} else if (typeSchema[0].schemaProp.type === 'object') {
@@ -150,10 +151,17 @@ export const readObject = (message: Buffer, offset: number, compiledSchema: Comp
 			// typeSchema is header, and we ignroe this
 			continue;
 		}
+		if (message.length <= index) {
+			// assign default value
+			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
+			continue;
+		}
 		// Takeout the root wireType and field number
 		const [key, keySize] = readUInt32(message, index);
 		const [fieldNumber] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
+			// assign default value
+			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
 			continue;
 		}
 		// Index is only incremented when the key is actually used
@@ -168,7 +176,7 @@ export const readObject = (message: Buffer, offset: number, compiledSchema: Comp
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const readArray = (message: Buffer, offset: number, compiledSchema: CompiledSchemasArray): [Array<any>, number] => {
+export const readArray = (message: Buffer, offset: number, compiledSchema: CompiledSchemasArray, terminateIndex?: number): [Array<any>, number] => {
 	// Takeout the root wireType and field number
 	let index = offset;
 	if (index >= message.length) {
@@ -190,7 +198,8 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 		const [nestedTypeSchema] = typeSchema;
 		if (nestedTypeSchema.schemaProp.type === 'object') {
 			// If still the next bytes is the same key, it is still element of array
-			while (message[index] === startingByte) {
+			// Also, in case of object, inside of array, it checks the size of the object
+			while (message[index] === startingByte && index !== terminateIndex) {
 				const [, wire2KeySize] = readUInt32(message, index);
 				index += wire2KeySize;
 				// Takeout the length
@@ -202,8 +211,10 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 					result.push({});
 					continue;
 				}
+				// If array of object, it also gives the terminating index of the particular object
+				const terminatingObjectSize = index + wireType2Length;
 				// readObject returns Next offset, not index used
-				const [res, nextOffset] = readObject(message, index, typeSchema);
+				const [res, nextOffset] = readObject(message, index, typeSchema, terminatingObjectSize);
 				result.push(res);
 				index = nextOffset;
 			}
@@ -214,7 +225,8 @@ export const readArray = (message: Buffer, offset: number, compiledSchema: Compi
 	// Case for string and bytes
 	if (typeSchema.schemaProp.dataType === 'string' || typeSchema.schemaProp.dataType === 'bytes') {
 		// If still the next bytes is the same key, it is still element of array
-		while (message[index] === startingByte) {
+		// Also, in case of object inside of array, it checks the size of the object
+		while (message[index] === startingByte && index !== terminateIndex) {
 			const [, wire2KeySize] = readUInt32(message, index);
 			index += wire2KeySize;
 			// wireType2LengthSize is used while decoding string or bytes, therefore it's not subtracted unless it's zero
