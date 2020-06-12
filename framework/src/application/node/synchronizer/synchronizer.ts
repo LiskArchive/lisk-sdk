@@ -209,7 +209,7 @@ export class Synchronizer {
 		);
 
 		try {
-			const transactionsResponses = await this.chainModule.validateTransactions(
+			const transactionsResponses = this.chainModule.validateTransactions(
 				transactions,
 			);
 			const invalidTransactionResponse = transactionsResponses.find(

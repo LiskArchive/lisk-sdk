@@ -101,7 +101,7 @@ export class BlocksVerify {
 		};
 
 		const nonAllowedTxResponses = transactionsModule
-			.checkAllowedTransactions(context)(block.payload as MatcherTransaction[])
+			.checkAllowedTransactions(block.payload as MatcherTransaction[], context)
 			.find(
 				(transactionResponse: TransactionResponse) =>
 					transactionResponse.status !== TransactionStatus.OK,
