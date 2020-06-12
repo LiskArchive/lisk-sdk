@@ -36,8 +36,6 @@ export class AccountStore {
 	private _originalUpdatedKeys: BufferSet;
 	private readonly _dataAccess: DataAccess;
 	private readonly _defualtAsset: object;
-	private readonly _primaryKey = 'address';
-	private readonly _name = 'Account';
 	private readonly _initialAccountValue: BufferMap<Buffer>;
 
 	public constructor(
@@ -47,8 +45,6 @@ export class AccountStore {
 		this._dataAccess = dataAccess;
 		this._data = new BufferMap<Account>();
 		this._updatedKeys = new BufferSet();
-		this._primaryKey = 'address';
-		this._name = 'Account';
 		this._originalData = new BufferMap();
 		this._originalUpdatedKeys = new BufferSet();
 		this._defualtAsset = additionalInformation.defaultAsset;
@@ -79,22 +75,11 @@ export class AccountStore {
 		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
 			address,
 		);
+		const account = this._getAccountInstance(encodedAccount);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (encodedAccount) {
-			const account = this._getAccountInstance(encodedAccount);
-
-			this._data.set(address, account);
-			this._initialAccountValue.set(address, encodedAccount);
-			return (account as unknown) as Account<T>;
-		}
-
-		// Account does not exist we can not continue
-		throw new Error(
-			`${this._name} with ${this._primaryKey} = ${address.toString(
-				'hex',
-			)} does not exist`,
-		);
+		this._data.set(address, account);
+		this._initialAccountValue.set(address, encodedAccount);
+		return (account as unknown) as Account<T>;
 	}
 
 	public async getOrDefault<T = DefaultAsset>(
