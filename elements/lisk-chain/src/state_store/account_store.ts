@@ -35,7 +35,7 @@ export class AccountStore {
 	private _updatedKeys: BufferSet;
 	private _originalUpdatedKeys: BufferSet;
 	private readonly _dataAccess: DataAccess;
-	private readonly _defualtAsset: object;
+	private readonly _defaultAsset: object;
 	private readonly _initialAccountValue: BufferMap<Buffer>;
 
 	public constructor(
@@ -47,7 +47,7 @@ export class AccountStore {
 		this._updatedKeys = new BufferSet();
 		this._originalData = new BufferMap();
 		this._originalUpdatedKeys = new BufferSet();
-		this._defualtAsset = additionalInformation.defaultAsset;
+		this._defaultAsset = additionalInformation.defaultAsset;
 		this._initialAccountValue = new BufferMap<Buffer>();
 	}
 
@@ -110,7 +110,7 @@ export class AccountStore {
 		// If account does not exists, return default account
 		const defaultAccount = Account.getDefaultAccount(
 			address,
-			cloneDeep<T>((this._defualtAsset as unknown) as T),
+			cloneDeep<T>((this._defaultAsset as unknown) as T),
 		);
 		this._data.set(address, (defaultAccount as unknown) as Account);
 

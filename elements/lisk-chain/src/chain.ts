@@ -167,7 +167,7 @@ export class Chain {
 				},
 			},
 		};
-		codec.addSchema(accountSchema as Schema);
+		codec.addSchema(accountSchema);
 		codec.addSchema(stateDiffSchema);
 		this._defaultAccountAsset = accountAsset.default;
 
@@ -175,7 +175,7 @@ export class Chain {
 			db,
 			registeredBlockHeaders: registeredBlocks,
 			registeredTransactions,
-			accountSchema: accountSchema as Schema,
+			accountSchema,
 			minBlockHeaderCache,
 			maxBlockHeaderCache,
 		});

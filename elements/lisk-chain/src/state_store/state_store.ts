@@ -29,6 +29,26 @@ interface AdditionalInformation {
 	readonly defaultAsset: object;
 }
 
+const saveDiff = (
+	height: string,
+	stateDiffs: Array<Readonly<StateDiff>>,
+	batch: BatchChain,
+): void => {
+	const diffToEncode = stateDiffs.reduce(
+		(acc, val) => {
+			acc.updated.push(...val.updated);
+			acc.created.push(...val.created);
+			return acc;
+		},
+		{ updated: [], created: [] },
+	);
+
+	if (diffToEncode.created.length || diffToEncode.updated.length) {
+		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
+		batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
+	}
+};
+
 export class StateStore {
 	public readonly account: AccountStore;
 	public readonly chain: ChainStateStore;
@@ -67,31 +87,10 @@ export class StateStore {
 		const accountStateDiff = this.account.finalize(batch);
 		const chainStateDiff = this.chain.finalize(batch);
 		const consensusStateDiff = this.consensus.finalize(batch);
-		this._saveDiff(
+		saveDiff(
 			height,
 			[accountStateDiff, chainStateDiff, consensusStateDiff],
 			batch,
 		);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	private _saveDiff(
-		height: string,
-		stateDiffs: Array<Readonly<StateDiff>>,
-		batch: BatchChain,
-	): void {
-		const diffToEncode = stateDiffs.reduce(
-			(acc, val) => {
-				acc.updated.push(...val.updated);
-				acc.created.push(...val.created);
-				return acc;
-			},
-			{ updated: [], created: [] },
-		);
-
-		if (diffToEncode.created.length || diffToEncode.updated.length) {
-			const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
-			batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
-		}
 	}
 }
