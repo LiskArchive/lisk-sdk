@@ -176,8 +176,8 @@ const createPeerPoolConfig = (
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
 	rpcSchema: {
-		peerInfo: config?.customSchema?.peerInfo ?? peerInfoSchema,
-		nodeInfo: config?.customSchema?.nodeInfo ?? nodeInfoSchema,
+		peerInfo: config.customSchema?.peerInfo ?? peerInfoSchema,
+		nodeInfo: config.customSchema?.nodeInfo ?? nodeInfoSchema,
 	},
 });
 
@@ -265,8 +265,8 @@ export class P2P extends EventEmitter {
 		});
 
 		this._rpcSchema = {
-			peerInfo: config?.customSchema?.peerInfo ?? peerInfoSchema,
-			nodeInfo: config?.customSchema?.nodeInfo ?? nodeInfoSchema,
+			peerInfo: config.customSchema?.peerInfo ?? peerInfoSchema,
+			nodeInfo: config.customSchema?.nodeInfo ?? nodeInfoSchema,
 		};
 		codec.addSchema(this._rpcSchema.peerInfo);
 		codec.addSchema(this._rpcSchema.nodeInfo);
