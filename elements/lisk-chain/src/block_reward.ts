@@ -73,7 +73,7 @@ export const calculateSupply = (
 ): bigint => {
 	let parsedHeight = parseHeight(height);
 	const distance = Math.floor(blockRewardArgs.distance);
-	let supply = BigInt(blockRewardArgs.totalAmount);
+	let supply = blockRewardArgs.totalAmount;
 
 	if (parsedHeight < blockRewardArgs.rewardOffset) {
 		// Rewards not started yet

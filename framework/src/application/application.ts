@@ -54,8 +54,12 @@ import { mergeDeep } from './utils/merge_deep';
 import { DuplicateAppInstanceError } from '../errors';
 import { BaseModule, InstantiableModule } from '../modules/base_module';
 import { ActionInfoObject } from '../controller/action';
-import { NodeConstants, GenesisBlockJSON } from './node/node';
-import { ApplicationConfig } from '../types';
+import {
+	ApplicationConfig,
+	ApplicationConstants,
+	GenesisConfig,
+} from '../types';
+import { GenesisBlockJSON, convertGenesisBlock } from './genesis_block';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -99,7 +103,7 @@ const registerProcessHooks = (app: Application): void => {
 
 export class Application {
 	public config: ApplicationConfig;
-	public constants: NodeConstants;
+	public constants: ApplicationConstants & GenesisConfig;
 	public logger!: Logger;
 
 	private _node!: Node;
@@ -558,12 +562,30 @@ export class Application {
 	private _initNode(): Node {
 		const { modules, ...rootConfigs } = this.config;
 		const { network, ...nodeConfigs } = rootConfigs;
+		// Decode JSON into object
+		const genesisBlock = convertGenesisBlock(this._genesisBlock);
+		const convertedDelegates = nodeConfigs.forging.delegates.map(delegate => ({
+			...delegate,
+			publicKey: Buffer.from(delegate.publicKey, 'base64'),
+			hashOnion: {
+				...delegate.hashOnion,
+				hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
+			},
+		}));
 		const node = new Node({
 			channel: this._channel,
 			options: {
 				...nodeConfigs,
-				genesisBlock: this._genesisBlock,
-				constants: this.constants,
+				communityIdentifier: this._genesisBlock.communityIdentifier,
+				forging: {
+					...nodeConfigs.forging,
+					delegates: convertedDelegates,
+				},
+				genesisBlock,
+				constants: {
+					...this.constants,
+					totalAmount: BigInt(this.constants.totalAmount),
+				},
 				registeredTransactions: this.getTransactions(),
 			},
 			logger: this.logger,

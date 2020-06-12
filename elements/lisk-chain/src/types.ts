@@ -24,7 +24,7 @@ export interface Context {
 export type Contexter = (() => Context) | Context;
 
 export interface BlockRewardOptions {
-	readonly totalAmount: string;
+	readonly totalAmount: bigint;
 	readonly distance: number;
 	readonly rewardOffset: number;
 	readonly milestones: ReadonlyArray<string>;
