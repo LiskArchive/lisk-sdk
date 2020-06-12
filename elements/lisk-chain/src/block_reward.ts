@@ -121,7 +121,7 @@ export const calculateSupply = (
 	return supply;
 };
 
-export const getTotalFees = (
+const getTotalFees = (
 	block: Block,
 ): { readonly totalFee: bigint; readonly totalMinFee: bigint } =>
 	block.payload.reduce(

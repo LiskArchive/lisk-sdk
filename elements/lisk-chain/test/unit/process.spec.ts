@@ -211,9 +211,9 @@ describe('blocks/header', () => {
 					header: { previousBlockID: getRandomBytes(32) },
 				});
 				// Act & assert
-				await expect(
-					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
-				).rejects.toThrow('Invalid previous block');
+				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+					'Invalid previous block',
+				);
 			});
 		});
 
@@ -231,9 +231,9 @@ describe('blocks/header', () => {
 				});
 				expect.assertions(1);
 				// Act & Assert
-				await expect(
-					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
-				).rejects.toThrow('Invalid block timestamp');
+				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+					'Invalid block timestamp',
+				);
 			});
 
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
@@ -243,9 +243,9 @@ describe('blocks/header', () => {
 				});
 				expect.assertions(1);
 				// Act & Assert
-				await expect(
-					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
-				).rejects.toThrow('Invalid block timestamp');
+				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+					'Invalid block timestamp',
+				);
 			});
 
 			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
@@ -263,9 +263,9 @@ describe('blocks/header', () => {
 					},
 				});
 				// Act & Assert
-				await expect(
-					chainInstance.verify(block, stateStore, { skipExistingCheck: true }),
-				).rejects.toThrow('Invalid block timestamp');
+				await expect(chainInstance.verify(block, stateStore)).rejects.toThrow(
+					'Invalid block timestamp',
+				);
 			});
 		});
 
@@ -276,9 +276,7 @@ describe('blocks/header', () => {
 				// Act & assert
 				let err;
 				try {
-					await chainInstance.verify(block, stateStore, {
-						skipExistingCheck: true,
-					});
+					await chainInstance.verify(block, stateStore);
 				} catch (error) {
 					err = error;
 				}
@@ -339,9 +337,7 @@ describe('blocks/header', () => {
 
 				// Act && Assert
 				await expect(
-					chainInstance.verify(block, stateStore, {
-						skipExistingCheck: true,
-					}),
+					chainInstance.verify(block, stateStore),
 				).rejects.toMatchObject([
 					expect.objectContaining({
 						message: expect.stringContaining('is currently not allowed'),
@@ -395,107 +391,11 @@ describe('blocks/header', () => {
 				expect.assertions(1);
 				let err;
 				try {
-					await chainInstance.verify(block, stateStore, {
-						skipExistingCheck: true,
-					});
+					await chainInstance.verify(block, stateStore);
 				} catch (errors) {
 					err = errors;
 				}
 				expect(err).toBeUndefined();
-			});
-		});
-
-		describe('when skip existing check is false and block exists in database', () => {
-			beforeEach(() => {
-				// Arrage
-				const validTx = getTransferTransaction();
-				block = createValidDefaultBlock({ payload: [validTx] });
-				when(db.get)
-					.calledWith(
-						`accounts:address:${genesisAccount.address.toString('binary')}`,
-					)
-					.mockResolvedValue(
-						encodeDefaultAccount(
-							createFakeDefaultAccount({
-								address: genesisAccount.address,
-								balance: BigInt('1000000000000'),
-							}),
-						) as never,
-					);
-				(db.exists as jest.Mock).mockResolvedValue(true as never);
-			});
-
-			it('should not call apply for the transaction and throw error', async () => {
-				// Arrange
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions: { 8: TransferTransaction },
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-
-				// Act && Assert
-				await expect(
-					chainInstance.verify(block, stateStore, {
-						skipExistingCheck: false,
-					}),
-				).rejects.toThrow('already exists');
-			});
-		});
-
-		describe('when skip existing check is false and block does not exist in database but transaction does', () => {
-			beforeEach(() => {
-				const validTx = getTransferTransaction();
-				block = createValidDefaultBlock({ payload: [validTx] });
-				when(db.exists)
-					.mockResolvedValue(false as never)
-					.calledWith(`transactions:id:${validTx.id.toString('binary')}`)
-					.mockResolvedValue(true as never);
-			});
-
-			it('should not call apply for the transaction and throw error', async () => {
-				// Arrange
-				const dataAccess = new DataAccess({
-					db,
-					accountSchema: defaultAccountSchema as any,
-					registeredBlockHeaders: {
-						0: defaultBlockHeaderAssetSchema,
-						2: defaultBlockHeaderAssetSchema,
-					},
-					registeredTransactions: { 8: TransferTransaction },
-					minBlockHeaderCache: 505,
-					maxBlockHeaderCache: 309,
-				});
-				stateStore = new StateStore(dataAccess, {
-					lastBlockHeaders: [],
-					networkIdentifier: defaultNetworkIdentifier,
-					lastBlockReward: BigInt(500000000),
-					defaultAsset: createFakeDefaultAccount().asset,
-				});
-
-				// Act && Assert
-				await expect(
-					chainInstance.verify(block, stateStore, {
-						skipExistingCheck: false,
-					}),
-				).rejects.toMatchObject([
-					expect.objectContaining({
-						message: expect.stringContaining(
-							'Transaction is already confirmed',
-						),
-					}),
-				]);
 			});
 		});
 	});

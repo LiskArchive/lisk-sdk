@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
 import {
 	Status as TransactionStatus,
 	TransactionResponse,
@@ -31,7 +30,6 @@ describe('transactions', () => {
 		blockTimestamp: 123,
 	};
 
-	let dataAccessMock: any;
 	let stateStoreMock: any;
 
 	beforeEach(() => {
@@ -60,18 +58,12 @@ describe('transactions', () => {
 				add: jest.fn(),
 			},
 		};
-
-		dataAccessMock = {
-			isTransactionPersisted: jest.fn().mockResolvedValue(false),
-		};
 	});
 
 	describe('#checkAllowedTransactions', () => {
 		it('should return a proper response format', () => {
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(
-				dummyState,
-			)([trs1]);
+			const response = transactionHandlers.checkAllowedTransactions([trs1], dummyState);
 
 			// Assert
 			expect(response).toStrictEqual([
@@ -91,9 +83,7 @@ describe('transactions', () => {
 			};
 
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(
-				dummyState,
-			)([disallowedTransaction]);
+			const response = transactionHandlers.checkAllowedTransactions([disallowedTransaction], dummyState);
 
 			// Assert
 			expect(response).toHaveLength(1);
@@ -112,9 +102,7 @@ describe('transactions', () => {
 			const { matcher, ...transactionWithoutMatcherImpl } = trs1;
 
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(
-				dummyState,
-			)([transactionWithoutMatcherImpl]);
+			const response = transactionHandlers.checkAllowedTransactions([transactionWithoutMatcherImpl], dummyState);
 
 			// Assert
 			expect(response).toHaveLength(1);
@@ -134,9 +122,7 @@ describe('transactions', () => {
 			};
 
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(
-				dummyState,
-			)([allowedTransaction]);
+			const response = transactionHandlers.checkAllowedTransactions([allowedTransaction], dummyState);
 
 			// Assert
 			expect(response).toHaveLength(1);
@@ -156,8 +142,9 @@ describe('transactions', () => {
 			];
 
 			// Act
-			const response = transactionHandlers.checkAllowedTransactions(dummyState)(
+			const response = transactionHandlers.checkAllowedTransactions(
 				testTransactions,
+				dummyState,
 			);
 
 			// Assert
@@ -189,81 +176,16 @@ describe('transactions', () => {
 		});
 
 		it('should invoke validate() on each transaction', () => {
-			transactionHandlers.validateTransactions()([trs1, trs2]);
+			transactionHandlers.validateTransactions([trs1, trs2]);
 
 			expect(trs1.validate).toHaveBeenCalledTimes(1);
 			expect(trs2.validate).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return transaction responses', () => {
-			const result = transactionHandlers.validateTransactions()([trs1, trs2]);
+			const result = transactionHandlers.validateTransactions([trs1, trs2]);
 
 			expect(result).toEqual([validResponse, invalidResponse]);
-		});
-	});
-
-	describe('#checkPersistedTransactions', () => {
-		it('should resolve in empty response if called with empty array', async () => {
-			const result = await transactionHandlers.checkPersistedTransactions(
-				dataAccessMock,
-			)([]);
-
-			expect(result).toEqual([]);
-		});
-
-		it('should invoke entities.Transaction to check persistence of transactions', async () => {
-			await transactionHandlers.checkPersistedTransactions(dataAccessMock)([
-				trs1,
-				trs2,
-			]);
-
-			expect(dataAccessMock.isTransactionPersisted).toHaveBeenCalledTimes(2);
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			expect(dataAccessMock.isTransactionPersisted).toHaveBeenCalledWith(
-				trs1.id,
-			);
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			expect(dataAccessMock.isTransactionPersisted).toHaveBeenCalledWith(
-				trs2.id,
-			);
-		});
-
-		it('should return TransactionStatus.OK for non-persisted transactions', async () => {
-			// Treat trs1 as persisted transaction
-			when(dataAccessMock.isTransactionPersisted)
-				.mockResolvedValue(false as never)
-				.calledWith(trs1.id)
-				.mockResolvedValue(true as never);
-
-			const result = await transactionHandlers.checkPersistedTransactions(
-				dataAccessMock,
-			)([trs1, trs2]);
-
-			const transactionResponse = result.find(({ id }) => id === trs2.id);
-
-			expect(transactionResponse?.status).toEqual(TransactionStatus.OK);
-			expect(transactionResponse?.errors).toEqual([]);
-		});
-
-		it('should return TransactionStatus.FAIL for persisted transactions', async () => {
-			// Treat trs1 as persisted transaction
-			when(dataAccessMock.isTransactionPersisted)
-				.mockResolvedValue(false as never)
-				.calledWith(trs1.id)
-				.mockResolvedValue(true as never);
-
-			const result = await transactionHandlers.checkPersistedTransactions(
-				dataAccessMock,
-			)([trs1, trs2]);
-
-			const transactionResponse = result.find(({ id }) => id === trs1.id);
-
-			expect(transactionResponse?.status).toEqual(TransactionStatus.FAIL);
-			expect(transactionResponse?.errors).toHaveLength(1);
-			expect(transactionResponse?.errors[0].message).toEqual(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Transaction is already confirmed: ${trs1.id.toString('hex')}`,
-			);
 		});
 	});
 
@@ -283,7 +205,7 @@ describe('transactions', () => {
 		});
 
 		it('should apply all transactions', async () => {
-			await transactionHandlers.applyGenesisTransactions()(
+			await transactionHandlers.applyGenesisTransactions(
 				[trs1, trs2],
 				stateStoreMock,
 			);
@@ -298,7 +220,7 @@ describe('transactions', () => {
 				id: trs1.id,
 			});
 
-			const result = await transactionHandlers.applyGenesisTransactions()(
+			const result = await transactionHandlers.applyGenesisTransactions(
 				[trs1],
 				stateStoreMock,
 			);
@@ -307,7 +229,7 @@ describe('transactions', () => {
 		});
 
 		it('should return transaction responses and state store', async () => {
-			const result = await transactionHandlers.applyGenesisTransactions()(
+			const result = await transactionHandlers.applyGenesisTransactions(
 				[trs1, trs2],
 				stateStoreMock,
 			);
@@ -338,7 +260,7 @@ describe('transactions', () => {
 		});
 
 		it('should apply all transactions', async () => {
-			await transactionHandlers.applyTransactions()(
+			await transactionHandlers.applyTransactions(
 				[trs1, trs2],
 				stateStoreMock,
 			);
@@ -369,7 +291,7 @@ describe('transactions', () => {
 		});
 
 		it('should undo for every transaction', async () => {
-			await transactionHandlers.undoTransactions()(
+			await transactionHandlers.undoTransactions(
 				[trs1, trs2],
 				stateStoreMock,
 			);
@@ -379,7 +301,7 @@ describe('transactions', () => {
 		});
 
 		it('should return transaction responses and state store', async () => {
-			const result = await transactionHandlers.undoTransactions()(
+			const result = await transactionHandlers.undoTransactions(
 				[trs1, trs2],
 				stateStoreMock,
 			);
