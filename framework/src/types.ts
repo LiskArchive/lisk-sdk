@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { p2pTypes } from '@liskhq/lisk-p2p';
-import { Schema } from '@liskhq/lisk-codec';
 
 export interface StringKeyVal {
 	[key: string]: string;
@@ -95,7 +94,7 @@ export interface NetworkConfig {
 	maxPeerInfoSize?: number;
 	wsMaxPayload?: number;
 	advertiseAddress?: boolean;
-	customSchema?: Schema;
+	customSchema?: p2pTypes.RPCSchemas;
 }
 
 export interface ApplicationConfig {
