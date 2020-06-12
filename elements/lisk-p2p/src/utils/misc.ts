@@ -124,8 +124,13 @@ export const constructPeerId = (ipAddress: string, wsPort: number): string =>
 	`${ipAddress}:${wsPort}`;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
-export const getByteSize = (object: any): number =>
-	Buffer.byteLength(JSON.stringify(object));
+export const getByteSize = (data: Buffer | object): number => {
+	if (Buffer.isBuffer(data)) {
+		return data.length;
+	}
+
+	return Buffer.byteLength(JSON.stringify(data));
+};
 
 export const evictPeerRandomlyFromBucket = (
 	bucket: Map<string, P2PEnhancedPeerInfo>,

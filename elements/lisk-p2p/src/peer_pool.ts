@@ -17,8 +17,10 @@
  * The purpose of the PeerPool is to provide a simple interface for selecting,
  * interacting with and handling aggregated events from a collection of peers.
  */
+import { codec } from '@liskhq/lisk-codec';
 import { EventEmitter } from 'events';
 import { SCServerSocket } from 'socketcluster-server';
+
 import {
 	ConnectionKind,
 	DEFAULT_LOCALHOST_IP,
@@ -62,6 +64,7 @@ import {
 	PeerConfig,
 } from './peer';
 import { PeerBook } from './peer_book/peer_book';
+import { nodeInfoSchema } from './schema';
 import {
 	P2PClosePacket,
 	P2PMessagePacket,
@@ -206,6 +209,8 @@ export class PeerPool extends EventEmitter {
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
+		codec.addSchema(nodeInfoSchema);
+
 		this._outboundShuffleIntervalId = setInterval(() => {
 			this._evictPeer(OutboundPeer);
 		}, peerPoolConfig.outboundShuffleInterval);
@@ -241,8 +246,9 @@ export class PeerPool extends EventEmitter {
 			this.removePeer(
 				peerId,
 				closePacket.code,
-				`Outbound peer ${peerId} disconnected with reason: ${closePacket.reason ??
-					'Unknown reason'}`,
+				`Outbound peer ${peerId} disconnected with reason: ${
+					closePacket.reason ?? 'Unknown reason'
+				}`,
 			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_OUTBOUND, closePacket);
@@ -252,8 +258,9 @@ export class PeerPool extends EventEmitter {
 			this.removePeer(
 				peerId,
 				closePacket.code,
-				`Inbound peer ${peerId} disconnected with reason: ${closePacket.reason ??
-					'Unknown reason'}`,
+				`Inbound peer ${peerId} disconnected with reason: ${
+					closePacket.reason ?? 'Unknown reason'
+				}`,
 			);
 			// Re-emit the message to allow it to bubble up the class hierarchy.
 			this.emit(EVENT_CLOSE_INBOUND, closePacket);
@@ -622,10 +629,13 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _applyNodeInfoOnPeer(peer: Peer): void {
+		const encodedNodeInfo = codec
+			.encode(nodeInfoSchema, this._nodeInfo as object)
+			.toString('base64');
 		try {
 			peer.send({
 				event: REMOTE_EVENT_POST_NODE_INFO,
-				data: this._nodeInfo,
+				data: encodedNodeInfo,
 			});
 		} catch (error) {
 			this.emit(EVENT_FAILED_TO_PUSH_NODE_INFO, error);
