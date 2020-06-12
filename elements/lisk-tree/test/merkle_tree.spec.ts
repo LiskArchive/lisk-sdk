@@ -82,7 +82,7 @@ describe('MerkleTree', () => {
 			});
 
 			it('should generate the expected path hash direction', () => {
-				const expectedProofHashDirection = 0;
+				const expectedProofHashDirection = 1;
 
 				expect(merkleTree.generateProof(queryData)[0].direction).toEqual(
 					expectedProofHashDirection,
