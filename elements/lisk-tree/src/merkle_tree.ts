@@ -184,6 +184,7 @@ export class MerkleTree {
 			}
 			while (currentNode.hash !== this._root) {
 				const parentNode = this._findParent(currentNode.hash);
+				// If no parent node, we have reached the root node
 				if (!parentNode) {
 					// eslint-disable-next-line
 					break;
@@ -192,19 +193,10 @@ export class MerkleTree {
 				let direction: number;
 				if (parentNode.leftHash.compare(currentNode.hash) === 0) {
 					pairNode = this.getNode(parentNode.rightHash);
-					direction = 0;
+					direction = 1;
 				} else {
 					pairNode = this.getNode(parentNode.leftHash);
-					direction = 1;
-				}
-				if (
-					queryNodes.find(
-						nodeData => nodeData?.hash.compare(pairNode.hash) === 0,
-					)
-				) {
-					queryNodes.splice(j, 1);
-					// eslint-disable-next-line
-					continue;
+					direction = 0;
 				}
 				path.push({ hash: pairNode.hash, direction });
 				currentNode = parentNode;
