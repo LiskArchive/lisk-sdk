@@ -113,7 +113,6 @@ export const createGenesisBlock = (
 		{ accountAssetSchema, roundLength: params.roundLength },
 	);
 	if (errors.length) {
-		console.error(errors);
 		throw new LiskValidationError(errors);
 	}
 
