@@ -12,55 +12,203 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createGenesisBlock } from '../src';
+import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { createGenesisBlock, GenesisAccountState } from '../src';
 import { validGenesisBlockParams } from './fixtures';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import cloneDeep = require('lodash.clonedeep');
 
 describe('create', () => {
 	it('should create genesis block', () => {
-		expect(createGenesisBlock(validGenesisBlockParams)).toMatchSnapshot();
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
+
+		// Assert
+		expect(genesisBlock).toMatchSnapshot();
 	});
 
-	it.todo('should set "version" to zero');
-	it.todo('should set "reward" to zero');
-	it.todo('should set "transactionRoot" to empty hash');
-	it.todo('should set "generatorPublicKey" to empty buffer');
-	it.todo('should set "signature" to empty buffer');
-	it.todo('should set "payload" to empty array');
-	it.todo('should set "height" to provided height');
-	it.todo('should set "timestamp" to provided timestamp');
-	it.todo('should set "previousBlockID" to provided previousBlockID');
-	it.todo('should fail if "initRounds" is less than 3');
+	it('should set "version" to zero', () => {
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
-	describe('initDelegates', () => {
-		it.todo('should fail if "initDelegates" list is not provided');
-		it.todo(
-			'should fail if "initDelegates" list provided contains more than ROUND_LENGTH items',
-		);
-		it.todo(
-			'should fail if "initDelegates" list contains account address which is not provided in "accounts"',
-		);
-		it.todo(
-			'should fail if "initDelegates" list contains account address which is not a delegate',
-		);
-		it.todo('should sort "asset.initDelegates" list lexicographically');
+		// Assert
+		expect(genesisBlock.header.version).toEqual(0);
 	});
 
-	describe('accounts', () => {
-		it.todo('should fail if "accounts" list is not provided');
-		it.todo(
-			'should create address by "publicKey" for every account which is "address"',
+	it('should set "reward" to zero', () => {
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
+
+		// Assert
+		expect(genesisBlock.header.reward).toEqual(BigInt(0));
+	});
+
+	it('should set "transactionRoot" to empty hash', () => {
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
+
+		// Assert
+		expect(genesisBlock.header.transactionRoot).toEqual(hash(Buffer.alloc(0)));
+	});
+
+	it('should set "generatorPublicKey" to empty buffer', () => {
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
+
+		// Assert
+		expect(genesisBlock.header.generatorPublicKey).toEqual(Buffer.alloc(0));
+	});
+
+	it('should set "signature" to empty buffer', () => {
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
+
+		// Assert
+		expect(genesisBlock.header.signature).toEqual(Buffer.alloc(0));
+	});
+
+	it('should set "payload" to empty array', () => {
+		// Arrange
+		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
+
+		// Assert
+		expect(genesisBlock.payload).toEqual([]);
+	});
+
+	it('should set "height" to provided height', () => {
+		// Arrange
+		const height = 10;
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			height,
+		});
+
+		// Assert
+		expect(genesisBlock.header.height).toEqual(height);
+	});
+
+	it('should set "timestamp" to provided timestamp', () => {
+		// Arrange
+		const timestamp = 1592227157;
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			timestamp,
+		});
+
+		// Assert
+		expect(genesisBlock.header.timestamp).toEqual(timestamp);
+	});
+
+	it('should set "previousBlockID" to provided previousBlockID', () => {
+		// Arrange
+		const previousBlockID = getRandomBytes(20);
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			previousBlockID,
+		});
+
+		// Assert
+		expect(genesisBlock.header.previousBlockID).toEqual(previousBlockID);
+	});
+
+	it('should set "initRounds" ordering lexicographically', () => {
+		// Arrange
+		const initDelegates = cloneDeep(validGenesisBlockParams.initDelegates);
+		const initDelegatesSorted = cloneDeep(initDelegates);
+		const initDelegatesUnSorted = cloneDeep(initDelegates);
+		initDelegatesSorted.sort((a, b) => a.compare(b));
+		initDelegatesUnSorted.sort((a, b) => b.compare(a));
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			initDelegates: initDelegatesUnSorted,
+		});
+
+		// Assert
+		expect(genesisBlock.header.asset.initDelegates).toEqual(
+			initDelegatesSorted,
 		);
-		it.todo(
-			'should fail if "address" of any "account" does not matches to associated "publicKey"',
+	});
+
+	it('should set "accounts" ordering lexicographically by "address"', () => {
+		// Arrange
+		const accounts = cloneDeep(
+			validGenesisBlockParams.accounts,
+		) as GenesisAccountState[];
+		accounts.sort((a, b) => b.address.compare(a.address));
+
+		const accountsSortedAddresses = accounts
+			.map(a => a.address)
+			.sort((a, b) => a.compare(b));
+
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			accounts,
+		});
+
+		// Assert
+		expect(genesisBlock.header.asset.accounts.map(a => a.address)).toEqual(
+			accountsSortedAddresses,
 		);
-		it.todo(
-			'should fail "account.keys" does not validated for every account "keys.numberOfSignatures > 0"',
+	});
+
+	it('should set "accounts[].keys.mandatoryKeys" ordering lexicographically', () => {
+		// Arrange
+		const accounts = cloneDeep(
+			validGenesisBlockParams.accounts,
+		) as GenesisAccountState[];
+		accounts.sort((a, b) => a.address.compare(b.address));
+		const mandatoryKeysUnsorted = [
+			getRandomBytes(32),
+			getRandomBytes(32),
+			getRandomBytes(32),
+		].sort((a, b) => b.compare(a));
+		const mandatoryKeysSorted = cloneDeep(mandatoryKeysUnsorted).sort((a, b) =>
+			a.compare(b),
 		);
-		it.todo(
-			'should sort "asset.accounts" ordered lexicographically by account "address"',
+		accounts[0].keys = {
+			optionalKeys: [],
+			mandatoryKeys: mandatoryKeysUnsorted,
+			numberOfSignatures: 3,
+		};
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			accounts,
+		});
+
+		// Assert
+		expect(genesisBlock.header.asset.accounts[0].keys.mandatoryKeys).toEqual(
+			mandatoryKeysSorted,
 		);
-		it.todo(
-			'should fail if sum of balance of all accounts is more than "2^63-1"',
+	});
+
+	it('should set "accounts[].keys.optionalKeys" ordering lexicographically', () => {
+		// Arrange
+		const accounts = cloneDeep(
+			validGenesisBlockParams.accounts,
+		) as GenesisAccountState[];
+		accounts.sort((a, b) => a.address.compare(b.address));
+		const optionalKeysUnsorted = [
+			getRandomBytes(32),
+			getRandomBytes(32),
+			getRandomBytes(32),
+		].sort((a, b) => b.compare(a));
+		const optionalKeysSorted = cloneDeep(optionalKeysUnsorted).sort((a, b) =>
+			a.compare(b),
+		);
+		accounts[0].keys = {
+			optionalKeys: optionalKeysUnsorted,
+			mandatoryKeys: [],
+			numberOfSignatures: 3,
+		};
+		const genesisBlock = createGenesisBlock({
+			...validGenesisBlockParams,
+			accounts,
+		});
+
+		// Assert
+		expect(genesisBlock.header.asset.accounts[0].keys.optionalKeys).toEqual(
+			optionalKeysSorted,
 		);
 	});
 });

@@ -83,6 +83,11 @@ export const createGenesisBlock = (
 		.map(acc => new Account(acc))
 		.sort((a, b): number => a.address.compare(b.address));
 
+	for (const account of accounts) {
+		account.keys.mandatoryKeys.sort((a, b) => a.compare(b));
+		account.keys.optionalKeys.sort((a, b) => a.compare(b));
+	}
+
 	const initDelegates: ReadonlyArray<Buffer> = [
 		...params.initDelegates,
 	].sort((a, b): number => a.compare(b));
