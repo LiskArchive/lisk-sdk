@@ -21,7 +21,7 @@ import cloneDeep = require('lodash.clonedeep');
 
 describe('create', () => {
 	it('should create genesis block', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -29,7 +29,7 @@ describe('create', () => {
 	});
 
 	it('should set "version" to zero', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -37,7 +37,7 @@ describe('create', () => {
 	});
 
 	it('should set "reward" to zero', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -45,7 +45,7 @@ describe('create', () => {
 	});
 
 	it('should set "transactionRoot" to empty hash', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -53,7 +53,7 @@ describe('create', () => {
 	});
 
 	it('should set "generatorPublicKey" to empty buffer', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -61,7 +61,7 @@ describe('create', () => {
 	});
 
 	it('should set "signature" to empty buffer', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -69,7 +69,7 @@ describe('create', () => {
 	});
 
 	it('should set "payload" to empty array', () => {
-		// Arrange
+		// Arrange & Act
 		const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
 		// Assert
@@ -79,6 +79,8 @@ describe('create', () => {
 	it('should set "height" to provided height', () => {
 		// Arrange
 		const height = 10;
+
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			height,
@@ -103,6 +105,8 @@ describe('create', () => {
 	it('should set "previousBlockID" to provided previousBlockID', () => {
 		// Arrange
 		const previousBlockID = getRandomBytes(20);
+
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			previousBlockID,
@@ -119,6 +123,8 @@ describe('create', () => {
 		const initDelegatesUnSorted = cloneDeep(initDelegates);
 		initDelegatesSorted.sort((a, b) => a.compare(b));
 		initDelegatesUnSorted.sort((a, b) => b.compare(a));
+
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			initDelegates: initDelegatesUnSorted,
@@ -141,6 +147,7 @@ describe('create', () => {
 			.map(a => a.address)
 			.sort((a, b) => a.compare(b));
 
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			accounts,
@@ -171,6 +178,8 @@ describe('create', () => {
 			mandatoryKeys: mandatoryKeysUnsorted,
 			numberOfSignatures: 3,
 		};
+
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			accounts,
@@ -201,6 +210,8 @@ describe('create', () => {
 			mandatoryKeys: [],
 			numberOfSignatures: 3,
 		};
+
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			accounts,
