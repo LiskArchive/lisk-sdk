@@ -38,7 +38,7 @@ export class Slots {
 
 	public getSlotNumber(timeStamp?: number): number {
 		const elapsedTime = Math.floor(
-			((timeStamp ? timeStamp * SEC_IN_MS : Date.now()) -
+			((timeStamp !== undefined ? timeStamp * SEC_IN_MS : Date.now()) -
 				this._genesisTime.getTime()) /
 				SEC_IN_MS,
 		);
