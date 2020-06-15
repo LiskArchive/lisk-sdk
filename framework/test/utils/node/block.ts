@@ -33,7 +33,7 @@ export const createBlock = async (
 		: node['_chain'].lastBlock;
 	const currentSlot =
 		node['_chain'].slots.getSlotNumber(lastBlock.header.timestamp) + 1;
-	const timestamp = node['_chain'].slots.getSlotTime(currentSlot);
+	const timestamp = node['_chain'].slots.getSlotTime(currentSlot) / 1000;
 	const round = node['_dpos'].rounds.calcRound(lastBlock.header.height + 1);
 	const currentKeypair = await node['_forger'][
 		'_getDelegateKeypairForCurrentSlot'

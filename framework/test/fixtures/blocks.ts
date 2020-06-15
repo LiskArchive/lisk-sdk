@@ -64,6 +64,11 @@ export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
 	const chain = new Chain({
 		registeredBlocks: { 2: BlockProcessorV2.schema },
 		accountAsset: { schema: {}, default: {} },
+		genesisBlock: {
+			header: {
+				timestamp: 0,
+			},
+		},
 	} as any);
 	return chain.dataAccess.encodeBlockHeader(header);
 };
@@ -133,6 +138,11 @@ export const createValidDefaultBlock = (
 	const chain = new Chain({
 		registeredBlocks: { 2: BlockProcessorV2.schema },
 		accountAsset: { schema: {}, default: {} },
+		genesisBlock: {
+			header: {
+				timestamp: 0,
+			},
+		},
 	} as any);
 
 	const encodedHeaderWithoutSignature = chain.dataAccess.encodeBlockHeader(
@@ -162,6 +172,11 @@ export const encodeValidBlock = (block: Block): Buffer => {
 	const chain = new Chain({
 		registeredBlocks: { 2: BlockProcessorV2.schema },
 		accountAsset: { schema: {}, default: {} },
+		genesisBlock: {
+			header: {
+				timestamp: 0,
+			},
+		},
 	} as any);
 	return chain.dataAccess.encode(block);
 };
@@ -244,6 +259,11 @@ export const genesisBlock = (): Block => {
 	const chain = new Chain({
 		registeredBlocks: { 2: BlockProcessorV2.schema },
 		accountAsset: { schema: {}, default: {} },
+		genesisBlock: {
+			header: {
+				timestamp: 0,
+			},
+		},
 	} as any);
 	const encodedHeader = chain.dataAccess.encodeBlockHeader(block.header);
 	const id = hash(encodedHeader);
