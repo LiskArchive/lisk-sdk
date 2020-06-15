@@ -18,6 +18,7 @@ import {
 	createApplication,
 	closeApplication,
 	getPeerID,
+	waitNBlocks,
 } from '../../utils/application';
 import { createProbe } from '../../utils/probe';
 
@@ -118,6 +119,26 @@ describe('Public block related P2P endpoints', () => {
 				getPeerID(app),
 			);
 			expect(data).toBeUndefined();
+		});
+	});
+
+	describe('postBlock', () => {
+		it('should not fail if valid block is sent', async () => {
+			const { lastBlock } = app['_node']['_chain'];
+			const encodedBlock = app['_node']['_chain'].dataAccess.encode(lastBlock);
+			p2p.sendToPeer(
+				{
+					event: 'postBlock',
+					data: { block: encodedBlock.toString('base64') },
+				},
+				getPeerID(app),
+			);
+
+			await waitNBlocks(app, 1);
+			// Expect next block to be forged properly
+			expect(app['_node']['_chain'].lastBlock.header.id).not.toEqual(
+				lastBlock.header.id,
+			);
 		});
 	});
 });

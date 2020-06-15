@@ -42,11 +42,12 @@ describe('Account related actions', () => {
 
 	describe('getAccounts', () => {
 		it('should return valid encoded account', async () => {
-			const encodedAccounts: string[] = await app[
-				'_channel'
-			].invoke('app:getAccounts', {
-				address: [genesis.address.toString('base64')],
-			});
+			const encodedAccounts: string[] = await app['_channel'].invoke(
+				'app:getAccounts',
+				{
+					address: [genesis.address.toString('base64')],
+				},
+			);
 			expect(encodedAccounts).toHaveLength(1);
 			const account = app['_node']['_chain'].dataAccess.decodeAccount(
 				Buffer.from(encodedAccounts[0], 'base64'),
