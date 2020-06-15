@@ -13,9 +13,10 @@
  */
 
 import { BatchChain } from '@liskhq/lisk-db';
-import { BlockHeader } from '../types';
+import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
+import { calculateDiff } from '../diff';
 
 interface KeyValuePair {
 	[key: string]: Buffer | undefined;
@@ -33,6 +34,7 @@ export class ConsensusStateStore {
 	private _originalUpdatedKeys: Set<string>;
 	private readonly _dataAccess: DataAccess;
 	private readonly _lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	private _initialValue: KeyValuePair;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -42,6 +44,7 @@ export class ConsensusStateStore {
 		this._lastBlockHeaders = additionalInformation.lastBlockHeaders;
 		this._data = {};
 		this._originalData = {};
+		this._initialValue = {};
 		this._updatedKeys = new Set();
 		this._originalUpdatedKeys = new Set();
 	}
@@ -72,6 +75,7 @@ export class ConsensusStateStore {
 		if (dbValue === undefined) {
 			return dbValue;
 		}
+		this._initialValue[key] = dbValue;
 		this._data[key] = dbValue;
 
 		return this._data[key];
@@ -90,13 +94,32 @@ export class ConsensusStateStore {
 		this._updatedKeys.add(key);
 	}
 
-	public finalize(batch: BatchChain): void {
+	public finalize(batch: BatchChain): StateDiff {
+		const stateDiff = { updated: [], created: [] } as StateDiff;
+
 		if (this._updatedKeys.size === 0) {
-			return;
+			return stateDiff;
 		}
 
 		for (const key of Array.from(this._updatedKeys)) {
-			batch.put(`${DB_KEY_CONSENSUS_STATE}:${key}`, this._data[key] as Buffer);
+			const dbKey = `${DB_KEY_CONSENSUS_STATE}:${key}`;
+			const updatedValue = this._data[key] as Buffer;
+			batch.put(dbKey, updatedValue);
+
+			if (this._initialValue[key] !== undefined) {
+				const diff = calculateDiff(
+					this._initialValue[key] as Buffer,
+					updatedValue,
+				);
+				stateDiff.updated.push({
+					key: dbKey,
+					value: diff,
+				});
+			} else {
+				stateDiff.created.push(dbKey);
+			}
 		}
+
+		return stateDiff;
 	}
 }

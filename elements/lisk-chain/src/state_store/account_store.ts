@@ -14,6 +14,8 @@
 import { NotFoundError, BatchChain } from '@liskhq/lisk-db';
 import { Account, DefaultAsset } from '../account';
 import { DataAccess } from '../data_access';
+import { calculateDiff } from '../diff';
+import { StateDiff } from '../types';
 import { BufferMap } from '../utils/buffer_map';
 import { BufferSet } from '../utils/buffer_set';
 import { DB_KEY_ACCOUNTS_ADDRESS } from '../data_access/constants';
@@ -33,9 +35,8 @@ export class AccountStore {
 	private _updatedKeys: BufferSet;
 	private _originalUpdatedKeys: BufferSet;
 	private readonly _dataAccess: DataAccess;
-	private readonly _defualtAsset: object;
-	private readonly _primaryKey = 'address';
-	private readonly _name = 'Account';
+	private readonly _defaultAsset: object;
+	private readonly _initialAccountValue: BufferMap<Buffer>;
 
 	public constructor(
 		dataAccess: DataAccess,
@@ -44,11 +45,10 @@ export class AccountStore {
 		this._dataAccess = dataAccess;
 		this._data = new BufferMap<Account>();
 		this._updatedKeys = new BufferSet();
-		this._primaryKey = 'address';
-		this._name = 'Account';
 		this._originalData = new BufferMap();
 		this._originalUpdatedKeys = new BufferSet();
-		this._defualtAsset = additionalInformation.defaultAsset;
+		this._defaultAsset = additionalInformation.defaultAsset;
+		this._initialAccountValue = new BufferMap<Buffer>();
 	}
 
 	public createSnapshot(): void {
@@ -63,66 +63,58 @@ export class AccountStore {
 		this._originalUpdatedKeys = new BufferSet();
 	}
 
-	public async get<T = DefaultAsset>(
-		primaryValue: Buffer,
-	): Promise<Account<T>> {
+	public async get<T = DefaultAsset>(address: Buffer): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.get(primaryValue);
+		const cachedAccount = this._data.get(address);
 
-		if (element) {
-			return (new Account(element) as unknown) as Account<T>;
+		if (cachedAccount) {
+			return (new Account(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db
-		const elementFromDB = await this._dataAccess.getAccountByAddress(
-			primaryValue,
+		const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
+			address,
 		);
+		const account = this._getAccountInstance(encodedAccount);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (elementFromDB) {
-			this._data.set(primaryValue, elementFromDB as Account);
-
-			return (new Account(elementFromDB) as unknown) as Account<T>;
-		}
-
-		// Account does not exist we can not continue
-		throw new Error(
-			`${this._name} with ${this._primaryKey} = ${primaryValue.toString(
-				'hex',
-			)} does not exist`,
-		);
+		this._data.set(address, account);
+		this._initialAccountValue.set(address, encodedAccount);
+		return (account as unknown) as Account<T>;
 	}
 
 	public async getOrDefault<T = DefaultAsset>(
-		primaryValue: Buffer,
+		address: Buffer,
 	): Promise<Account<T>> {
 		// Account was cached previously so we can return it from memory
-		const element = this._data.get(primaryValue);
-		if (element) {
-			return (new Account(element) as unknown) as Account<T>;
+		const cachedAccount = this._data.get(address);
+		if (cachedAccount) {
+			return (new Account(cachedAccount) as unknown) as Account<T>;
 		}
 
 		// Account was not cached previously so we try to fetch it from db (example delegate account is voted)
 		try {
-			const elementFromDB = await this._dataAccess.getAccountByAddress(
-				primaryValue,
+			const encodedAccount = await this._dataAccess.getEncodedAccountByAddress(
+				address,
 			);
-			this._data.set(primaryValue, elementFromDB as Account);
+			const account = this._getAccountInstance(encodedAccount);
 
-			return (new Account(elementFromDB as Account) as unknown) as Account<T>;
+			this._data.set(address, account);
+			this._initialAccountValue.set(address, encodedAccount);
+			return (account as unknown) as Account<T>;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
 		}
 
-		const defaultElement = Account.getDefaultAccount(
-			primaryValue,
-			cloneDeep<T>((this._defualtAsset as unknown) as T),
+		// If account does not exists, return default account
+		const defaultAccount = Account.getDefaultAccount(
+			address,
+			cloneDeep<T>((this._defaultAsset as unknown) as T),
 		);
-		this._data.set(primaryValue, (defaultElement as unknown) as Account);
+		this._data.set(address, (defaultAccount as unknown) as Account);
 
-		return (new Account(defaultElement) as unknown) as Account<T>;
+		return (new Account(defaultAccount) as unknown) as Account<T>;
 	}
 
 	public getUpdated<T = DefaultAsset>(): ReadonlyArray<Account<T>> {
@@ -137,15 +129,38 @@ export class AccountStore {
 		this._updatedKeys.add(primaryValue);
 	}
 
-	public finalize(batch: BatchChain): void {
-		for (const account of this._data.values()) {
-			if (this._updatedKeys.has(account.address)) {
-				const encodedAccount = this._dataAccess.encodeAccount(account);
-				batch.put(
-					`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(account.address)}`,
-					encodedAccount,
-				);
+	public finalize(batch: BatchChain): StateDiff {
+		const stateDiff = { updated: [], created: [] } as StateDiff;
+
+		for (const updatedAccount of this._data.values()) {
+			if (this._updatedKeys.has(updatedAccount.address)) {
+				const encodedAccount = this._dataAccess.encodeAccount(updatedAccount);
+				const dbKey = `${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(
+					updatedAccount.address,
+				)}`;
+				batch.put(dbKey, encodedAccount);
+
+				if (this._initialAccountValue.has(updatedAccount.address)) {
+					const initialAccount = this._initialAccountValue.get(
+						updatedAccount.address,
+					);
+
+					const diff = calculateDiff(initialAccount as Buffer, encodedAccount);
+					stateDiff.updated.push({
+						key: dbKey,
+						value: diff,
+					});
+				} else {
+					stateDiff.created.push(dbKey);
+				}
 			}
 		}
+
+		return stateDiff;
+	}
+
+	private _getAccountInstance<T>(encodedAccount: Buffer): Account {
+		const decodedAccount = this._dataAccess.decodeAccount<T>(encodedAccount);
+		return (new Account(decodedAccount) as unknown) as Account;
 	}
 }
