@@ -52,7 +52,7 @@ describe('finality_manager', () => {
 			slots: {
 				getSlotNumber: jest.Mock;
 				isWithinTimeslot: jest.Mock;
-				getEpochTime: jest.Mock;
+				timeSinceGenesis: jest.Mock;
 			};
 		};
 		let dposStub: {
@@ -69,7 +69,7 @@ describe('finality_manager', () => {
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
-					getEpochTime: jest.fn(),
+					timeSinceGenesis: jest.fn(),
 				},
 			};
 

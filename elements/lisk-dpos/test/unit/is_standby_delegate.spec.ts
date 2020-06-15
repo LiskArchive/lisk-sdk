@@ -21,7 +21,6 @@ import {
 } from '../utils/delegates';
 import {
 	ACTIVE_DELEGATES,
-	EPOCH_TIME,
 	BLOCK_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
@@ -30,6 +29,10 @@ import { Dpos } from '../../src';
 import { ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
+
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 const createStateStore = (list: ForgersList = []): StateStoreMock => {
 	const binaryForgerList = codec.encode(forgerListSchema, {
@@ -50,7 +53,10 @@ describe('dpos.isStandbyDelegate', () => {
 
 	beforeEach(() => {
 		// Arrange
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const slots = new Slots({
+			genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+			interval: BLOCK_TIME,
+		});
 		const chain = {
 			slots,
 		};
