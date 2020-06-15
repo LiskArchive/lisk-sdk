@@ -85,7 +85,6 @@ describe('fast_chain_switching_mechanism', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
 
@@ -430,8 +429,9 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${dposModule.delegatesPerRound *
-							2}`,
+						`Height difference between both chains is higher than ${
+							dposModule.delegatesPerRound * 2
+						}`,
 					),
 				);
 				expect(
@@ -522,8 +522,9 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${dposModule.delegatesPerRound *
-							2}`,
+						`Height difference between both chains is higher than ${
+							dposModule.delegatesPerRound * 2
+						}`,
 					),
 				);
 				expect(

@@ -97,7 +97,6 @@ describe('block_synchronization_mechanism', () => {
 			rewardOffset: constants.rewards.offset,
 			rewardMilestones: constants.rewards.milestones,
 			totalAmount: constants.totalAmount,
-			epochTime: constants.epochTime,
 			blockTime: constants.blockTime,
 		});
 
