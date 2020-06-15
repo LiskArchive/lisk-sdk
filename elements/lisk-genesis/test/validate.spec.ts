@@ -23,7 +23,7 @@ import { mergeDeep } from '../src/utils';
 import { validGenesisBlockParams } from './fixtures';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-import shuffle = require('lodash.shuffle');
+import cloneDeep = require('lodash.clonedeep');
 
 const genesisBlock = createGenesisBlock(validGenesisBlockParams);
 
@@ -166,10 +166,14 @@ describe('validate', () => {
 	describe('asset.initDelegates', () => {
 		it('should fail if "asset.initDelegates" list is not lexicographically ordered', () => {
 			// Arrange
+			const initDelegates = cloneDeep([
+				...genesisBlock.header.asset.initDelegates,
+			]);
+			initDelegates.sort((a, b) => b.compare(a));
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
-						initDelegates: shuffle(genesisBlock.header.asset.initDelegates),
+						initDelegates,
 					},
 				},
 			}) as GenesisBlock;
@@ -259,10 +263,12 @@ describe('validate', () => {
 	describe('asset.accounts', () => {
 		it('should fail if "asset.accounts" list is not lexicographically ordered by "address"', () => {
 			// Arrange
+			const accounts = cloneDeep([...genesisBlock.header.asset.accounts]);
+			accounts.sort((a, b) => b.address.compare(a.address));
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
-						accounts: shuffle(genesisBlock.header.asset.accounts),
+						accounts,
 					},
 				},
 			}) as GenesisBlock;
@@ -324,12 +330,12 @@ describe('validate', () => {
 
 		it('should fail if sum of balance of all "asset.accounts" is greater than 2^63-1', () => {
 			// Arrange
-			const accounts = [...genesisBlock.header.asset.accounts];
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 			accounts[0].balance = BigInt(2 ** 63);
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
-						accounts: genesisBlock.header.asset.accounts,
+						accounts,
 					},
 				},
 			}) as GenesisBlock;
@@ -351,32 +357,360 @@ describe('validate', () => {
 	});
 
 	describe('asset.accounts[].keys if numberOfSignatures > 0', () => {
-		it.todo('should fail if "mandatoryKeys" are not ordered lexicographically');
+		it('should fail if "mandatoryKeys" are not ordered lexicographically', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			const mandatoryKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			mandatoryKeys.sort((a, b) => b.compare(a));
+			accounts[0].keys.numberOfSignatures = 3;
+			accounts[0].keys.mandatoryKeys = mandatoryKeys;
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
 
-		it.todo('should fail if "optionalKeys" are not ordered lexicographically');
+			// Act
+			const errors = validateGenesisBlock(gb);
 
-		it.todo('should fail if "mandatoryKeys" are not unique');
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					message: 'should be lexicographically ordered',
+					keyword: 'mandatoryKeys',
+					dataPath: '.accounts[0].keys.mandatoryKeys',
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
+					params: { mandatoryKeys },
+				}),
+			);
+		});
 
-		it.todo('should fail if "optionalKeys" are not unique');
+		it('should fail if "optionalKeys" are not ordered lexicographically', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			const optionalKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			optionalKeys.sort((a, b) => b.compare(a));
+			accounts[0].keys.numberOfSignatures = 1;
+			accounts[0].keys.optionalKeys = optionalKeys;
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
 
-		it.todo(
-			'should fail if set of "mandatoryKeys" and "optionalKeys" are not unique',
-		);
+			// Act
+			const errors = validateGenesisBlock(gb);
 
-		it.todo(
-			'should fail if set of "mandatoryKeys" and "optionalKeys" is empty',
-		);
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					message: 'should be lexicographically ordered',
+					keyword: 'optionalKeys',
+					dataPath: '.accounts[0].keys.optionalKeys',
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/optionalKeys',
+					params: { optionalKeys },
+				}),
+			);
+		});
 
-		it.todo(
-			'should fail if set of "mandatoryKeys" and "optionalKeys" contains more than 64 elements',
-		);
+		it('should fail if "mandatoryKeys" are not unique', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			let mandatoryKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			mandatoryKeys = [...mandatoryKeys, ...mandatoryKeys];
+			mandatoryKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = 3;
+			accounts[0].keys.mandatoryKeys = mandatoryKeys;
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
 
-		it.todo(
-			'should fail if "numberOfSignatures" is less than length of "mandatoryKeys"',
-		);
+			// Act
+			const errors = validateGenesisBlock(gb);
 
-		it.todo(
-			'should fail if "numberOfSignatures" is greater than length of "mandatoryKeys" + "optionalKeys"',
-		);
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.accounts[0].keys.mandatoryKeys',
+					keyword: 'uniqueItems',
+					message:
+						'should NOT have duplicate items (items ## 4 and 5 are identical)',
+					params: {
+						i: 5,
+						j: 4,
+					},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
+				}),
+			);
+		});
+
+		it('should fail if "optionalKeys" are not unique', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			let optionalKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			optionalKeys = [...optionalKeys, ...optionalKeys];
+			optionalKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = 1;
+			accounts[0].keys.optionalKeys = optionalKeys;
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb);
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.accounts[0].keys.optionalKeys',
+					keyword: 'uniqueItems',
+					message:
+						'should NOT have duplicate items (items ## 4 and 5 are identical)',
+					params: {
+						i: 5,
+						j: 4,
+					},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
+				}),
+			);
+		});
+
+		it('should fail if set of "mandatoryKeys" and "optionalKeys" are not unique', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			const commonKey = getRandomBytes(32);
+			const optionalKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+				commonKey,
+			];
+			const mandatoryKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+				commonKey,
+			];
+			mandatoryKeys.sort((a, b) => a.compare(b));
+			optionalKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures = mandatoryKeys.length;
+			accounts[0].keys.mandatoryKeys = mandatoryKeys;
+			accounts[0].keys.optionalKeys = optionalKeys;
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb);
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath:
+						'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					keyword: 'uniqueItems',
+					message:
+						'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+					params: {},
+					schemaPath: '#/properties/accounts/items/properties/keys',
+				}),
+			);
+		});
+
+		it('should fail if set of "mandatoryKeys" and "optionalKeys" is empty', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.numberOfSignatures = 1;
+			accounts[0].keys.mandatoryKeys = [];
+			accounts[0].keys.optionalKeys = [];
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb);
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.accounts[0].keys.numberOfSignatures',
+					keyword: 'max',
+					message:
+						'should be maximum of length of mandatoryKeys and optionalKeys',
+					params: {
+						max: 0,
+					},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				}),
+			);
+		});
+
+		it('should fail if set of "mandatoryKeys" and "optionalKeys" contains more than 64 elements', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.mandatoryKeys = Array(33)
+				.fill(0)
+				.map(() => getRandomBytes(32));
+			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
+
+			accounts[0].keys.optionalKeys = Array(33)
+				.fill(0)
+				.map(() => getRandomBytes(32));
+			accounts[0].keys.optionalKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.numberOfSignatures =
+				accounts[0].keys.mandatoryKeys.length;
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb);
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath:
+						'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+					keyword: 'maxItems',
+					message: 'should not have more than 64 keys',
+					params: { maxItems: 64 },
+					schemaPath: '#/properties/accounts/items/properties/keys',
+				}),
+			);
+		});
+
+		it('should fail if "numberOfSignatures" is less than length of "mandatoryKeys"', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.numberOfSignatures = 2;
+			accounts[0].keys.mandatoryKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.optionalKeys = [];
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb);
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.accounts[0].keys.numberOfSignatures',
+					keyword: 'min',
+					message: 'should be minimum of length of mandatoryKeys',
+					params: {
+						min: 3,
+					},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				}),
+			);
+		});
+
+		it('should fail if "numberOfSignatures" is greater than length of "mandatoryKeys" + "optionalKeys"', () => {
+			// Arrange
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
+			accounts[0].keys.numberOfSignatures = 7;
+			accounts[0].keys.mandatoryKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			accounts[0].keys.mandatoryKeys.sort((a, b) => a.compare(b));
+			accounts[0].keys.optionalKeys = [
+				getRandomBytes(32),
+				getRandomBytes(32),
+				getRandomBytes(32),
+			];
+			accounts[0].keys.optionalKeys.sort((a, b) => a.compare(b));
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb);
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.accounts[0].keys.numberOfSignatures',
+					keyword: 'max',
+					message:
+						'should be maximum of length of mandatoryKeys and optionalKeys',
+					params: {
+						max: 6,
+					},
+					schemaPath:
+						'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+				}),
+			);
+		});
 	});
 });

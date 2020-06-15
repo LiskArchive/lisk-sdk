@@ -24,8 +24,9 @@ import {
 } from './schema';
 import {
 	bufferArrayContains,
-	bufferArrayIdentical,
 	bufferArraySubtract,
+	bufferArrayLexicographicallyOrdered,
+	bufferArrayContainsSome,
 } from './utils';
 import {
 	EMPTY_BUFFER,
@@ -114,22 +115,10 @@ export const validateGenesisBlock = (
 	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
 
 	const initDelegates = [...header.asset.initDelegates];
-	const initDelegatesSorted = [...header.asset.initDelegates].sort((a, b) =>
-		a.compare(b),
-	);
-	if (!bufferArrayIdentical(initDelegates, initDelegatesSorted)) {
-		errors.push({
-			message: 'should be lexicographically ordered',
-			keyword: 'initDelegates',
-			dataPath: 'header.asset.initDelegates',
-			schemaPath: 'properties.initDelegates',
-			params: { initDelegates },
-		});
-	}
-
 	const accountAddresses = [];
 	const delegateAddresses = [];
 	let totalBalance = BigInt(0);
+
 	for (const account of header.asset.accounts) {
 		accountAddresses.push(account.address);
 		totalBalance += BigInt(account.balance);
@@ -155,10 +144,95 @@ export const validateGenesisBlock = (
 				});
 			}
 		}
+
+		if (!bufferArrayLexicographicallyOrdered(account.keys.mandatoryKeys)) {
+			errors.push({
+				message: 'should be lexicographically ordered',
+				keyword: 'mandatoryKeys',
+				dataPath: '.accounts[0].keys.mandatoryKeys',
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/mandatoryKeys',
+				params: { mandatoryKeys: account.keys.mandatoryKeys },
+			});
+		}
+
+		if (!bufferArrayLexicographicallyOrdered(account.keys.optionalKeys)) {
+			errors.push({
+				message: 'should be lexicographically ordered',
+				keyword: 'optionalKeys',
+				dataPath: '.accounts[0].keys.optionalKeys',
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/optionalKeys',
+				params: { optionalKeys: account.keys.optionalKeys },
+			});
+		}
+
+		if (
+			bufferArrayContainsSome(
+				account.keys.mandatoryKeys,
+				account.keys.optionalKeys,
+			)
+		) {
+			errors.push({
+				dataPath:
+					'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+				keyword: 'uniqueItems',
+				message:
+					'should NOT have duplicate items among mandatoryKeys and optionalKeys',
+				params: {},
+				schemaPath: '#/properties/accounts/items/properties/keys',
+			});
+		}
+
+		const uniqueMandatoryKeys = [...new Set([...account.keys.mandatoryKeys])];
+		const uniqueOptionalKeys = [...new Set([...account.keys.optionalKeys])];
+		const uniqueAllKeys = [
+			...new Set([...uniqueMandatoryKeys, ...uniqueOptionalKeys]),
+		];
+
+		if (uniqueAllKeys.length > 64) {
+			errors.push({
+				dataPath:
+					'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
+				keyword: 'maxItems',
+				message: 'should not have more than 64 keys',
+				params: { maxItems: 64 },
+				schemaPath: '#/properties/accounts/items/properties/keys',
+			});
+		}
+
+		if (account.keys.numberOfSignatures < uniqueMandatoryKeys.length) {
+			errors.push({
+				dataPath: '.accounts[0].keys.numberOfSignatures',
+				keyword: 'min',
+				message: `should be minimum of length of mandatoryKeys`,
+				params: { min: account.keys.mandatoryKeys.length },
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+			});
+		}
+
+		if (account.keys.numberOfSignatures > uniqueAllKeys.length) {
+			errors.push({
+				dataPath: '.accounts[0].keys.numberOfSignatures',
+				keyword: 'max',
+				message: `should be maximum of length of mandatoryKeys and optionalKeys`,
+				params: { max: uniqueAllKeys.length },
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
+			});
+		}
 	}
-	const accountAddressesSorted = [...accountAddresses].sort((a, b) =>
-		a.compare(b),
-	);
+
+	if (!bufferArrayLexicographicallyOrdered(initDelegates)) {
+		errors.push({
+			message: 'should be lexicographically ordered',
+			keyword: 'initDelegates',
+			dataPath: 'header.asset.initDelegates',
+			schemaPath: 'properties.initDelegates',
+			params: { initDelegates },
+		});
+	}
 
 	if (!bufferArrayContains(delegateAddresses, initDelegates)) {
 		errors.push({
@@ -172,7 +246,7 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	if (!bufferArrayIdentical(accountAddresses, accountAddressesSorted)) {
+	if (!bufferArrayLexicographicallyOrdered(accountAddresses)) {
 		errors.push({
 			message: 'should be lexicographically ordered',
 			keyword: 'accounts',
@@ -182,7 +256,7 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	if (totalBalance > BigInt(2 ** 63 - 1)) {
+	if (totalBalance > BigInt(2) ** BigInt(63) - BigInt(1)) {
 		errors.push({
 			message: 'total balance exceed the limit (2^63)-1',
 			keyword: 'accounts',

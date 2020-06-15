@@ -21,7 +21,20 @@ import {
 } from '@liskhq/lisk-chain';
 import { mergeDeep } from './utils';
 
-export const genesisAccountSchema = baseAccountSchema;
+export const genesisAccountSchema = mergeDeep({}, baseAccountSchema, {
+	properties: {
+		keys: {
+			properties: {
+				mandatoryKeys: {
+					uniqueItems: true,
+				},
+				optionalKeys: {
+					uniqueItems: true,
+				},
+			},
+		},
+	},
+}) as Schema;
 export const genesisBlockSchema = mergeDeep({}, blockSchema, {
 	properties: {
 		payload: {
