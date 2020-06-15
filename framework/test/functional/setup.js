@@ -11,14 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+require('../config/setup');
 
-'use strict';
-
-const base = require('../config/jest.config.base');
-
-module.exports = {
-	...base,
-	collectCoverage: false,
-	setupFilesAfterEnv: ['<rootDir>/test/functional/setup.js'],
-	testMatch: ['<rootDir>/test/functional/specs/**/*.(spec|test).ts'],
-};
+jest.setTimeout(30000);
