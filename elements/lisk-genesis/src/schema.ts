@@ -141,7 +141,7 @@ export const genesisBlockHeaderAssetSchema = {
 				dataType: 'bytes',
 			},
 			fieldNumber: 2,
-			minLength: 1,
+			minItems: 1,
 			uniqueItems: true,
 		},
 		initRounds: {

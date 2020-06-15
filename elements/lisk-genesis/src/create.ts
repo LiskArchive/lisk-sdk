@@ -103,8 +103,12 @@ export const createGenesisBlock = (
 		},
 	};
 
-	const errors = validateGenesisBlock({ header, payload }, accountAssetSchema);
+	const errors = validateGenesisBlock(
+		{ header, payload },
+		{ accountAssetSchema, roundLength: params.roundLength },
+	);
 	if (errors.length) {
+		console.error(errors);
 		throw new LiskValidationError(errors);
 	}
 

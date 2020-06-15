@@ -35,7 +35,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -54,7 +56,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -73,7 +77,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -92,7 +98,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -111,7 +119,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -130,7 +140,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -149,7 +161,9 @@ describe('validate', () => {
 		}) as GenesisBlock;
 
 		// Act
-		const errors = validateGenesisBlock(gb);
+		const errors = validateGenesisBlock(gb, {
+			roundLength: validGenesisBlockParams.roundLength,
+		});
 
 		// Assert
 		expect(errors).toHaveLength(1);
@@ -179,7 +193,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -209,7 +225,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -244,7 +262,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -255,6 +275,96 @@ describe('validate', () => {
 					dataPath: 'header.asset.initDelegates',
 					schemaPath: 'properties.initDelegates',
 					params: { invalidAddresses: [delegate.address] },
+				}),
+			);
+		});
+
+		it('should fail if "asset.initDelegates" list items are not unique', () => {
+			// Arrange
+			const initDelegates = [
+				...genesisBlock.header.asset.initDelegates,
+				genesisBlock.header.asset.initDelegates[0],
+			].sort((a, b) => a.compare(b));
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						initDelegates,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.initDelegates',
+					keyword: 'uniqueItems',
+					message:
+						'should NOT have duplicate items (items ## 0 and 1 are identical)',
+					params: {
+						i: 1,
+						j: 0,
+					},
+					schemaPath: '#/properties/initDelegates/uniqueItems',
+				}),
+			);
+		});
+
+		it('should fail if "asset.initDelegates" list is empty', () => {
+			// Arrange
+			const initDelegates: Buffer[] = [];
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						initDelegates,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.initDelegates',
+					keyword: 'minItems',
+					message: 'should NOT have fewer than 1 items',
+					params: {
+						limit: 1,
+					},
+					schemaPath: '#/properties/initDelegates/minItems',
+				}),
+			);
+		});
+
+		it('should fail if "asset.initDelegates" list items contains more than  "roundLength" items', () => {
+			// Arrange
+			const roundLength = 2;
+			const gb = mergeDeep({}, genesisBlock) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb, {
+				roundLength,
+			});
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					keyword: 'maxItems',
+					dataPath: '.initDelegates',
+					schemaPath: '#/properties/initDelegates/maxItems',
+					params: { limit: roundLength },
+					message: 'should NOT have more than 4 items',
 				}),
 			);
 		});
@@ -274,7 +384,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -309,7 +421,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -341,7 +455,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -377,7 +493,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -413,7 +531,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -450,7 +570,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -491,7 +613,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -541,7 +665,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -573,7 +699,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -615,7 +743,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -651,7 +781,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);
@@ -694,7 +826,9 @@ describe('validate', () => {
 			}) as GenesisBlock;
 
 			// Act
-			const errors = validateGenesisBlock(gb);
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
 
 			// Assert
 			expect(errors).toHaveLength(1);

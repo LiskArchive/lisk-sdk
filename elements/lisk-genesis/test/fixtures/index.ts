@@ -146,6 +146,7 @@ export const validGenesisBlockParams = {
 		'RUaQocN4ODJgB1GafOHIpqSV31CJjx69adIvvO35aJo=',
 		'base64',
 	),
+	roundLength: 103,
 	initDelegates: validDelegateAccounts.map(a => a.address) as Buffer[],
 	accounts: [...validAccounts, ...validDelegateAccounts],
 };

@@ -37,6 +37,8 @@ export interface GenesisBlockParams {
 	readonly accounts: ReadonlyArray<Partial<GenesisAccountState>>;
 	// List fo initial delegate addresses used during the bootstrap period to forge blocks
 	readonly initDelegates: ReadonlyArray<Buffer>;
+	// Number of blocks per round
+	readonly roundLength: number;
 	// Number of rounds for bootstrap period, default is 3
 	readonly initRounds?: number;
 	readonly height?: number;

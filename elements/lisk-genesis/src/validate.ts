@@ -44,7 +44,7 @@ export const validateGenesisBlock = (
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				[key: string]: any;
 		  },
-	accountAssetSchema?: Schema,
+	options: { roundLength: number; accountAssetSchema?: Schema },
 ): ErrorObject[] => {
 	const { header, payload } = block as GenesisBlock;
 
@@ -106,7 +106,7 @@ export const validateGenesisBlock = (
 	// Genesis block asset validation
 	const assetSchemaWithAccountAsset = getHeaderAssetSchemaWithAccountAsset(
 		genesisBlockHeaderAssetSchema,
-		accountAssetSchema ?? defaultAccountAssetSchema,
+		options.accountAssetSchema ?? defaultAccountAssetSchema,
 	);
 	const assetErrors = [
 		...validator.validate(assetSchemaWithAccountAsset, header.asset),
@@ -231,6 +231,16 @@ export const validateGenesisBlock = (
 			dataPath: 'header.asset.initDelegates',
 			schemaPath: 'properties.initDelegates',
 			params: { initDelegates },
+		});
+	}
+
+	if (initDelegates.length > options.roundLength) {
+		errors.push({
+			keyword: 'maxItems',
+			dataPath: '.initDelegates',
+			schemaPath: '#/properties/initDelegates/maxItems',
+			params: { limit: options.roundLength },
+			message: 'should NOT have more than 4 items',
 		});
 	}
 
