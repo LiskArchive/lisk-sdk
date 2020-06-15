@@ -53,7 +53,6 @@ export interface ProcessInput {
 	readonly block: Block;
 	readonly lastBlock: Block;
 	readonly stateStore: StateStore;
-	readonly skipExistingCheck?: boolean;
 }
 
 export abstract class BaseBlockProcessor {

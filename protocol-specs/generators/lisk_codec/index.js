@@ -162,6 +162,18 @@ const peerInfoSampleEncodingSuite = () => ({
 	testCases: [...typesGenerators.generatePeerInfoEncodings()],
 });
 
+const nestedArrayEncodingSuite = () => ({
+	title: 'Encondings for a nested array',
+	summary:
+		'Example of encoding a nested array',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'nested_array_encoding',
+	testCases: [...typesGenerators.generateNestedArrayEncodings()],
+});
+
 module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	numberEncodingsSuite,
 	booleanEncodingsSuite,
@@ -176,4 +188,5 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	transactionEncodingsSuite,
 	cartSampleEncodingSuite,
 	peerInfoSampleEncodingSuite,
+	nestedArrayEncodingSuite,
 ]);

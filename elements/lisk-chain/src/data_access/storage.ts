@@ -354,9 +354,10 @@ export class Storage {
 		stateStore: StateStore,
 		removeFromTemp = false,
 	): Promise<void> {
+		const heightStr = formatInt(height);
 		const batch = this._db.batch();
 		batch.put(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`, header);
-		batch.put(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(height)}`, id);
+		batch.put(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`, id);
 		if (payload.length > 0) {
 			const ids = [];
 			for (const { id: txID, value } of payload) {
@@ -369,9 +370,9 @@ export class Storage {
 			);
 		}
 		if (removeFromTemp) {
-			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(height)}`);
+			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`);
 		}
-		stateStore.finalize(batch);
+		stateStore.finalize(heightStr, batch);
 		await batch.write();
 	}
 
@@ -384,8 +385,9 @@ export class Storage {
 		saveToTemp = false,
 	): Promise<void> {
 		const batch = this._db.batch();
+		const heightStr = formatInt(height);
 		batch.del(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
-		batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${formatInt(height)}`);
+		batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`);
 		if (txIDs.length > 0) {
 			for (const txID of txIDs) {
 				batch.del(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`);
@@ -393,9 +395,9 @@ export class Storage {
 			batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`);
 		}
 		if (saveToTemp) {
-			batch.put(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${formatInt(height)}`, fullBlock);
+			batch.put(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`, fullBlock);
 		}
-		stateStore.finalize(batch);
+		stateStore.finalize(heightStr, batch);
 		await batch.write();
 	}
 

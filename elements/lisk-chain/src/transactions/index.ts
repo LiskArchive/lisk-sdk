@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { composeTransactionSteps } from './compose_transaction_steps';
 export {
 	validateTransactions,
 	applyTransactions,
-	checkPersistedTransactions,
 	checkAllowedTransactions,
 	undoTransactions,
 	applyGenesisTransactions,

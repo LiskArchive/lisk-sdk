@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-interface DiffHistory {
-	code: string;
-	line: number;
-}
+import { DiffHistory } from './types';
 
 interface Frontier {
 	[key: string]: {

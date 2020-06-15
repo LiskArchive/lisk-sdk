@@ -15,7 +15,8 @@
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
-describe('Custom nodeInfo', () => {
+// TODO: Skipping as strict schema doesn't allow custom fields. Enable this test when users will be allowed to pass custom schema.
+describe.skip('Custom nodeInfo', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
@@ -39,7 +40,6 @@ describe('Custom nodeInfo', () => {
 		for (const p2p of p2pNodeList) {
 			const { triedPeers } = (p2p as any)._peerBook;
 			const { newPeers } = (p2p as any)._peerBook;
-
 			for (const peer of triedPeers) {
 				expect(peer).toMatchObject({
 					sharedState: {
@@ -47,7 +47,6 @@ describe('Custom nodeInfo', () => {
 					},
 				});
 			}
-
 			for (const peer of newPeers) {
 				if (peer.modules) {
 					expect(peer).toMatchObject({
@@ -60,7 +59,6 @@ describe('Custom nodeInfo', () => {
 					});
 				}
 			}
-
 			for (const peer of p2p.getConnectedPeers()) {
 				expect(peer).toMatchObject({
 					modules: { names: expect.any(Array), active: expect.any(Boolean) },

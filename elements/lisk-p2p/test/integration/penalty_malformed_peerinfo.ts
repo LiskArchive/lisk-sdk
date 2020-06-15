@@ -19,7 +19,8 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { EVENT_BAN_PEER } = events;
 
-describe('penalty sending malformed peerInfo', () => {
+// Skipping as schema validation doesn't allow custom fields and supported properties are validated before applying nodeInfo.
+describe.skip('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
 
@@ -55,7 +56,7 @@ describe('penalty sending malformed peerInfo', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should fire ${EVENT_BAN_PEER} event`, () => {
+	it(`should fire EVENT_BAN_PEER event`, () => {
 		expect(collectedEvents.get(EVENT_BAN_PEER)).toBe('127.0.0.1:5000');
 	});
 });

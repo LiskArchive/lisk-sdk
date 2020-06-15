@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`stateStore.finalize.saveDiff finalize should save updated changes as diff 1`] = `
+Object {
+  "created": Array [],
+  "updated": Array [
+    Object {
+      "key": "consensus:key1",
+      "value": Array [
+        Object {
+          "code": "=",
+          "line": 6,
+        },
+        Object {
+          "code": "+",
+          "line": 118,
+        },
+        Object {
+          "code": "+",
+          "line": 97,
+        },
+        Object {
+          "code": "+",
+          "line": 108,
+        },
+        Object {
+          "code": "+",
+          "line": 117,
+        },
+        Object {
+          "code": "+",
+          "line": 101,
+        },
+        Object {
+          "code": "+",
+          "line": 50,
+        },
+      ],
+    },
+    Object {
+      "key": "consensus:key2",
+      "value": Array [
+        Object {
+          "code": "=",
+          "line": 6,
+        },
+        Object {
+          "code": "+",
+          "line": 118,
+        },
+        Object {
+          "code": "+",
+          "line": 97,
+        },
+        Object {
+          "code": "+",
+          "line": 108,
+        },
+        Object {
+          "code": "+",
+          "line": 117,
+        },
+        Object {
+          "code": "+",
+          "line": 101,
+        },
+        Object {
+          "code": "+",
+          "line": 49,
+        },
+      ],
+    },
+  ],
+}
+`;

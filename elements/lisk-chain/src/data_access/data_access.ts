@@ -194,7 +194,7 @@ export class DataAccess {
 		return this._blockHeaderAdapter.decode(block);
 	}
 
-	public async getLastCommonBlockHeader(
+	public async getHighestCommonBlockHeader(
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<BlockHeader | undefined> {
 		const blocks = this._blocksCache.getByIDs(arrayOfBlockIds);
@@ -313,6 +313,12 @@ export class DataAccess {
 		const account = await this._storage.getAccountByAddress(address);
 
 		return new Account<T>(this.decodeAccount<T>(account));
+	}
+
+	public async getEncodedAccountByAddress(address: Buffer): Promise<Buffer> {
+		const account = await this._storage.getAccountByAddress(address);
+
+		return account;
 	}
 
 	public async getAccountsByAddress<T>(

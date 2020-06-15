@@ -55,15 +55,15 @@ describe('Transport', () => {
 		};
 		synchronizerStub = {};
 		chainStub = {
-			getHighestCommonBlock: jest.fn(),
 			deserializeTransaction: jest
 				.fn()
 				.mockImplementation(val => ({ ...val, toJSON: () => val })),
 			validateTransactions: jest
 				.fn()
-				.mockResolvedValue([{ status: 1, errors: [] }]),
+				.mockReturnValue([{ status: 1, errors: [] }]),
 			dataAccess: {
 				getTransactionsByIDs: jest.fn(),
+				getHighestCommonBlockHeader: jest.fn(),
 				decodeTransaction: jest.fn(),
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
 			},
@@ -371,7 +371,9 @@ describe('Transport', () => {
 
 		describe('when commonBlock has not been found', () => {
 			beforeEach(() => {
-				chainStub.getHighestCommonBlock.mockResolvedValue(undefined);
+				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(
+					undefined,
+				);
 			});
 
 			it('should return null', async () => {
@@ -383,7 +385,9 @@ describe('Transport', () => {
 					validData,
 					defaultPeerId,
 				);
-				expect(chainStub.getHighestCommonBlock).toHaveBeenCalledWith(
+				expect(
+					chainStub.dataAccess.getHighestCommonBlockHeader,
+				).toHaveBeenCalledWith(
 					validData.ids.map(id => Buffer.from(id, 'base64')),
 				);
 				expect(result).toBeUndefined();
@@ -396,7 +400,9 @@ describe('Transport', () => {
 			};
 
 			beforeEach(() => {
-				chainStub.getHighestCommonBlock.mockResolvedValue(validBlock);
+				chainStub.dataAccess.getHighestCommonBlockHeader.mockResolvedValue(
+					validBlock,
+				);
 			});
 
 			it('should return the result', async () => {
@@ -408,7 +414,9 @@ describe('Transport', () => {
 					validData,
 					defaultPeerId,
 				);
-				expect(chainStub.getHighestCommonBlock).toHaveBeenCalledWith(
+				expect(
+					chainStub.dataAccess.getHighestCommonBlockHeader,
+				).toHaveBeenCalledWith(
 					validData.ids.map(id => Buffer.from(id, 'base64')),
 				);
 				expect(result).toBe(encodedBlock.toString('base64'));
@@ -617,9 +625,7 @@ describe('Transport', () => {
 					genesis.passphrase,
 				);
 				txDatabase = txDatabaseInstance;
-				when(transactionPoolStub.get)
-					.calledWith(tx.id)
-					.mockReturnValue(tx);
+				when(transactionPoolStub.get).calledWith(tx.id).mockReturnValue(tx);
 				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
 					txDatabase,
 				]);
@@ -838,7 +844,7 @@ describe('Transport', () => {
 
 			it('should not apply penalty when add fails', async () => {
 				const error = new Error('validate error');
-				transactionPoolStub.add.mockRejectedValue(error);
+				transactionPoolStub.add.mockResolvedValue({ errors: [error] });
 				await transport.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
 					defaultPeerId,
