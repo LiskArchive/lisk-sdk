@@ -341,12 +341,14 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		// Check keys are sorted lexicographically
-		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-		const sortedMandatoryKeys = [...mandatoryKeys].sort();
-		// eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-		const sortedOptionalKeys = [...optionalKeys].sort();
+		const sortedMandatoryKeys = [...mandatoryKeys].sort((a, b) =>
+			a.compare(b as Buffer),
+		);
+		const sortedOptionalKeys = [...optionalKeys].sort((a, b) =>
+			a.compare(b as Buffer),
+		);
 		for (let i = 0; i < sortedMandatoryKeys.length; i += 1) {
-			if (mandatoryKeys[i] !== sortedMandatoryKeys[i]) {
+			if (!mandatoryKeys[i].equals(sortedMandatoryKeys[i] as Buffer)) {
 				errors.push(
 					new TransactionError(
 						'Mandatory keys should be sorted lexicographically',
@@ -360,7 +362,7 @@ export class MultisignatureTransaction extends BaseTransaction {
 		}
 
 		for (let i = 0; i < sortedOptionalKeys.length; i += 1) {
-			if (optionalKeys[i] !== sortedOptionalKeys[i]) {
+			if (!optionalKeys[i].equals(sortedOptionalKeys[i] as Buffer)) {
 				errors.push(
 					new TransactionError(
 						'Optional keys should be sorted lexicographically',
