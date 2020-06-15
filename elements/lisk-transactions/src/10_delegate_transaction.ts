@@ -173,6 +173,8 @@ export class DelegateTransaction extends BaseTransaction {
 			);
 		}
 		sender.asset.delegate.username = this.asset.username;
+		sender.asset.delegate.lastForgedHeight =
+			store.chain.lastBlockHeader.height + 1;
 		store.account.set(sender.address, sender);
 
 		return errors;

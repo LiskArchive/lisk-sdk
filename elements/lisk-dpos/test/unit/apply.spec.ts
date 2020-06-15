@@ -205,7 +205,7 @@ describe('dpos.apply()', () => {
 			);
 		});
 
-		describe('consecutiveMissedBlock', () => {
+		describe('safety measure', () => {
 			let forgedDelegates: Account[];
 			let forgersList: DecodedForgersList;
 			let delegateVoteWeights: DecodedVoteWeights;
@@ -266,7 +266,7 @@ describe('dpos.apply()', () => {
 					// Act
 					await dpos.apply(block, stateStore);
 
-					expect.assertions(forgedDelegates.length);
+					expect.assertions(forgedDelegates.length + 1);
 					for (const delegate of forgedDelegates) {
 						const updatedAccount = await stateStore.account.get(
 							delegate.address,
@@ -281,6 +281,8 @@ describe('dpos.apply()', () => {
 							).toEqual(1);
 						}
 					}
+					const forger = await stateStore.account.get(forgedDelegate.address);
+					expect(forger.asset.delegate.lastForgedHeight).toEqual(block.height);
 				});
 			});
 
@@ -442,7 +444,7 @@ describe('dpos.apply()', () => {
 
 					// Act
 					await dpos.apply(block, stateStore);
-					expect.assertions(forgedDelegates.length);
+					expect.assertions(forgedDelegates.length + 1);
 					for (const delegate of forgedDelegates) {
 						const updatedAccount = await stateStore.account.get(
 							delegate.address,
@@ -451,6 +453,10 @@ describe('dpos.apply()', () => {
 							updatedAccount.asset.delegate.consecutiveMissedBlocks,
 						).toEqual(0);
 					}
+					const forger = await stateStore.account.get(
+						forgedDelegates[forgedDelegates.length - 1].address,
+					);
+					expect(forger.asset.delegate.lastForgedHeight).toEqual(block.height);
 				});
 			});
 		});
