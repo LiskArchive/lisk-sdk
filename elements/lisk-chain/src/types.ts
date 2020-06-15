@@ -65,3 +65,18 @@ export interface Block<T = any> {
 	header: BlockHeader<T>;
 	payload: ReadonlyArray<BaseTransaction>;
 }
+
+export interface DiffHistory {
+	code: string;
+	line: number;
+}
+
+export interface StateDiff {
+	readonly updated: Array<Readonly<UpdatedDiff>>;
+	readonly created: Array<Readonly<string>>;
+}
+
+interface UpdatedDiff {
+	readonly key: string;
+	readonly value: ReadonlyArray<DiffHistory>;
+}

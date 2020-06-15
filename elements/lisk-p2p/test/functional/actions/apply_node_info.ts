@@ -31,7 +31,10 @@ describe('P2P.applyNodeInfo', () => {
 		for (const p2p of p2pNodeList) {
 			// eslint-disable-next-line no-loop-func
 			p2p.on(EVENT_MESSAGE_RECEIVED, request => {
-				if (request.event === REMOTE_EVENT_POST_NODE_INFO) {
+				if (
+					request.event === REMOTE_EVENT_POST_NODE_INFO &&
+					request.peerId === '127.0.0.1:5000'
+				) {
 					collectedMessages.push({
 						nodePort: p2p.nodeInfo.wsPort,
 						request,
@@ -46,11 +49,9 @@ describe('P2P.applyNodeInfo', () => {
 			os: platform(),
 			networkId:
 				'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-			version: firstP2PNode.nodeInfo.version,
 			protocolVersion: '1.1',
 			wsPort: firstP2PNode.nodeInfo.wsPort,
 			height: 10,
-			options: firstP2PNode.nodeInfo.options,
 			nonce: 'nonce',
 			advertiseAddress: true,
 		});
@@ -86,7 +87,6 @@ describe('P2P.applyNodeInfo', () => {
 		const nodePortToMessagesMap: any = {};
 
 		const connectedPeerCount = firstP2PNode.getConnectedPeers().length;
-
 		// Each peer of firstP2PNode should receive a message.
 		expect(collectedMessages).toHaveLength(connectedPeerCount);
 

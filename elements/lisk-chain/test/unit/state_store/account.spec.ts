@@ -14,19 +14,19 @@
 import { KVStore, BatchChain, NotFoundError } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
-import { StateStore } from '../../src';
-import { DataAccess } from '../../src/data_access';
-import { Account } from '../../src/account';
+import { StateStore, StateDiff } from '../../../src';
+import { DataAccess } from '../../../src/data_access';
+import { Account } from '../../../src/account';
 import {
 	createFakeDefaultAccount,
 	encodeDefaultAccount,
 	defaultAccountAssetSchema,
-} from '../utils/account';
+} from '../../utils/account';
 import {
 	defaultBlockHeaderAssetSchema,
 	defaultNetworkIdentifier,
-} from '../utils/block';
-import { baseAccountSchema } from '../../src/schema';
+} from '../../utils/block';
+import { baseAccountSchema } from '../../../src/schema';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -42,7 +42,7 @@ describe('state store / account', () => {
 
 	const accountOnlyInDB = createFakeDefaultAccount({ balance: BigInt(333) });
 
-	const acocuntInDB = [
+	const accountInDB = [
 		...stateStoreAccounts.map(acc => ({
 			key: acc.address,
 			value: encodeDefaultAccount(acc),
@@ -85,11 +85,11 @@ describe('state store / account', () => {
 			defaultAsset: createFakeDefaultAccount().asset,
 			lastBlockReward: BigInt(500000000),
 		});
-		// Setting this as default behavior throws UnhandledPromiseRejection, so it is specifiying the non-existing account
+		// Setting this as default behavior throws UnhandledPromiseRejection, so it is specifying the non-existing account
 		const dbGetMock = when(db.get)
 			.calledWith('accounts:address:123L')
 			.mockRejectedValue(new NotFoundError('Data not found') as never);
-		for (const data of acocuntInDB) {
+		for (const data of accountInDB) {
 			dbGetMock
 				.calledWith(`accounts:address:${data.key.toString('binary')}`)
 				.mockResolvedValue(data.value as never);
@@ -102,7 +102,7 @@ describe('state store / account', () => {
 	describe('get', () => {
 		it('should get the account', async () => {
 			// Act
-			const account = await stateStore.account.get(acocuntInDB[0].key);
+			const account = await stateStore.account.get(accountInDB[0].key);
 			// Assert
 			expect(account).toStrictEqual(stateStoreAccounts[0]);
 			expect(db.get).not.toHaveBeenCalled();
@@ -110,10 +110,10 @@ describe('state store / account', () => {
 
 		it('should try to get account from db if not found in memory', async () => {
 			// Act
-			await stateStore.account.get(acocuntInDB[2].key);
+			await stateStore.account.get(accountInDB[2].key);
 			// Assert
 			expect(db.get).toHaveBeenCalledWith(
-				`accounts:address:${acocuntInDB[2].key.toString('binary')}`,
+				`accounts:address:${accountInDB[2].key.toString('binary')}`,
 			);
 		});
 
@@ -132,17 +132,17 @@ describe('state store / account', () => {
 	describe('getOrDefault', () => {
 		it('should get the account', async () => {
 			// Act
-			const account = await stateStore.account.getOrDefault(acocuntInDB[0].key);
+			const account = await stateStore.account.getOrDefault(accountInDB[0].key);
 			// Assert
 			expect(account).toStrictEqual(stateStoreAccounts[0]);
 		});
 
 		it('should try to get account from db if not found in memory', async () => {
 			// Act
-			await stateStore.account.get(acocuntInDB[2].key);
+			await stateStore.account.get(accountInDB[2].key);
 			// Assert
 			expect(db.get).toHaveBeenCalledWith(
-				`accounts:address:${acocuntInDB[2].key.toString('binary')}`,
+				`accounts:address:${accountInDB[2].key.toString('binary')}`,
 			);
 		});
 
@@ -163,28 +163,28 @@ describe('state store / account', () => {
 	describe('set', () => {
 		it('should set the updated values for the account', async () => {
 			// Act
-			const updatedAccount = await stateStore.account.get(acocuntInDB[0].key);
+			const updatedAccount = await stateStore.account.get(accountInDB[0].key);
 
 			updatedAccount.balance = BigInt(123);
 			updatedAccount.nonce = BigInt(99);
 
-			stateStore.account.set(acocuntInDB[0].key, updatedAccount);
-			const updatedAcountAfterSet = await stateStore.account.get(
-				acocuntInDB[0].key,
+			stateStore.account.set(accountInDB[0].key, updatedAccount);
+			const updatedAccountAfterSet = await stateStore.account.get(
+				accountInDB[0].key,
 			);
 			// Assert
-			expect(updatedAcountAfterSet).toStrictEqual(updatedAccount);
+			expect(updatedAccountAfterSet).toStrictEqual(updatedAccount);
 		});
 
 		it('should update the updateKeys property', async () => {
-			const existingAccount = await stateStore.account.get(acocuntInDB[0].key);
+			const existingAccount = await stateStore.account.get(accountInDB[0].key);
 			const updatedAccount = new Account(existingAccount);
 			updatedAccount.balance = BigInt(999);
 
-			stateStore.account.set(acocuntInDB[0].key, updatedAccount);
+			stateStore.account.set(accountInDB[0].key, updatedAccount);
 
 			expect(
-				stateStore.account['_updatedKeys'].has(acocuntInDB[0].key),
+				stateStore.account['_updatedKeys'].has(accountInDB[0].key),
 			).toBeTrue();
 		});
 	});
@@ -197,7 +197,7 @@ describe('state store / account', () => {
 		beforeEach(async () => {
 			batchStub = { put: jest.fn() } as any;
 
-			existingAccount = await stateStore.account.get(acocuntInDB[0].key);
+			existingAccount = await stateStore.account.get(accountInDB[0].key);
 			updatedAccount = new Account(existingAccount);
 			updatedAccount.balance = BigInt(999);
 
@@ -211,6 +211,37 @@ describe('state store / account', () => {
 				`accounts:address:${updatedAccount.address.toString('binary')}`,
 				expect.any(Buffer),
 			);
+		});
+	});
+
+	describe('diff', () => {
+		let existingAccount;
+		let updatedAccount: Account;
+		let batchStub: BatchChain;
+		let stateDiff: StateDiff;
+
+		beforeEach(async () => {
+			batchStub = { put: jest.fn() } as any;
+
+			existingAccount = await stateStore.account.get(accountInDB[0].key);
+			updatedAccount = new Account(existingAccount);
+			updatedAccount.balance = BigInt(999);
+
+			stateStore.account.set(updatedAccount.address, updatedAccount);
+		});
+
+		it('should return empty array for updated and keys for newly created account', async () => {
+			stateDiff = stateStore.account.finalize(batchStub);
+			const account1 = await stateStore.account.get(accountInDB[0].key);
+			const account2 = await stateStore.account.get(accountInDB[1].key);
+
+			expect(stateDiff).toStrictEqual({
+				updated: [],
+				created: [
+					`accounts:address:${account1.address.toString('binary')}`,
+					`accounts:address:${account2.address.toString('binary')}`,
+				],
+			});
 		});
 	});
 });

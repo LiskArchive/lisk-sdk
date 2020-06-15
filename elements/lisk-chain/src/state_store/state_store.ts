@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { BatchChain } from '@liskhq/lisk-db';
-import { BlockHeader } from '../types';
+import { BlockHeader, StateDiff } from '../types';
 import { AccountStore } from './account_store';
 import { ChainStateStore } from './chain_state_store';
 import { ConsensusStateStore } from './consensus_state_store';
 import { DataAccess } from '../data_access';
+import { DB_KEY_DIFF_STATE } from '../data_access/constants';
+import { stateDiffSchema } from '../schema';
 
 interface AdditionalInformation {
 	readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
@@ -25,6 +28,26 @@ interface AdditionalInformation {
 	readonly lastBlockReward: bigint;
 	readonly defaultAsset: object;
 }
+
+const saveDiff = (
+	height: string,
+	stateDiffs: Array<Readonly<StateDiff>>,
+	batch: BatchChain,
+): void => {
+	const diffToEncode = stateDiffs.reduce(
+		(acc, val) => {
+			acc.updated.push(...val.updated);
+			acc.created.push(...val.created);
+			return acc;
+		},
+		{ updated: [], created: [] },
+	);
+
+	if (diffToEncode.created.length || diffToEncode.updated.length) {
+		const encodedDiff = codec.encode(stateDiffSchema, diffToEncode);
+		batch.put(`${DB_KEY_DIFF_STATE}:${height}`, encodedDiff);
+	}
+};
 
 export class StateStore {
 	public readonly account: AccountStore;
@@ -60,9 +83,14 @@ export class StateStore {
 		this.chain.restoreSnapshot();
 	}
 
-	public finalize(batch: BatchChain): void {
-		this.account.finalize(batch);
-		this.chain.finalize(batch);
-		this.consensus.finalize(batch);
+	public finalize(height: string, batch: BatchChain): void {
+		const accountStateDiff = this.account.finalize(batch);
+		const chainStateDiff = this.chain.finalize(batch);
+		const consensusStateDiff = this.consensus.finalize(batch);
+		saveDiff(
+			height,
+			[accountStateDiff, chainStateDiff, consensusStateDiff],
+			batch,
+		);
 	}
 }
