@@ -112,7 +112,7 @@ export class DelegatesInfo {
 
 		const round = this.rounds.calcRound(block.height);
 		// Safety measure is calculated every block
-		await this._updateSafetyMeasure(block, stateStore);
+		await this._updateProductivity(block, stateStore);
 
 		// Below event should only happen at the end of the round
 		if (!this._isLastBlockOfTheRound(block)) {
@@ -160,7 +160,7 @@ export class DelegatesInfo {
 		return true;
 	}
 
-	private async _updateSafetyMeasure(
+	private async _updateProductivity(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,
 	): Promise<void> {

@@ -173,8 +173,11 @@ export class DelegateTransaction extends BaseTransaction {
 			);
 		}
 		sender.asset.delegate.username = this.asset.username;
-		sender.asset.delegate.lastForgedHeight =
-			store.chain.lastBlockHeader.height + 1;
+		// Genesis block does not have last block header. Remove with #5200
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		sender.asset.delegate.lastForgedHeight = store.chain.lastBlockHeader
+			? store.chain.lastBlockHeader.height + 1
+			: 1;
 		store.account.set(sender.address, sender);
 
 		return errors;

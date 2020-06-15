@@ -205,7 +205,7 @@ describe('dpos.apply()', () => {
 			);
 		});
 
-		describe('safety measure', () => {
+		describe('productivity of forgers', () => {
 			let forgedDelegates: Account[];
 			let forgersList: DecodedForgersList;
 			let delegateVoteWeights: DecodedVoteWeights;
