@@ -79,11 +79,13 @@ export const createGenesisBlock = (
 	const signature = GB_SIGNATURE;
 	const transactionRoot = GB_TRANSACTION_ROOT;
 
-	const { initDelegates } = params;
-
 	const accounts: ReadonlyArray<GenesisAccountState> = params.accounts
 		.map(acc => new Account(acc))
 		.sort((a, b): number => a.address.compare(b.address));
+
+	const initDelegates: ReadonlyArray<Buffer> = [
+		...params.initDelegates,
+	].sort((a, b): number => a.compare(b));
 
 	const header: GenesisBlockHeaderWithoutId = {
 		generatorPublicKey,
@@ -101,7 +103,7 @@ export const createGenesisBlock = (
 		},
 	};
 
-	const errors = validateGenesisBlock(accountAssetSchema, { header, payload });
+	const errors = validateGenesisBlock({ header, payload }, accountAssetSchema);
 	if (errors.length) {
 		throw new LiskValidationError(errors);
 	}

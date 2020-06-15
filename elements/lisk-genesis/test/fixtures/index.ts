@@ -130,7 +130,7 @@ const prepareAccounts = (
 		publicKey: Buffer.from(acc.publicKey, 'base64'),
 		address: Buffer.from(acc.address, 'base64'),
 		balance: BigInt(acc.balance),
-		asset: mergeDeep(defaultAccountAsset, acc.asset ?? {}),
+		asset: mergeDeep({}, defaultAccountAsset, acc.asset ?? {}),
 	}));
 };
 

@@ -13,14 +13,20 @@
  */
 
 import { Schema } from '@liskhq/lisk-codec';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator, ErrorObject } from '@liskhq/lisk-validator';
 import { GenesisBlock } from './types';
 import {
 	genesisBlockSchema,
 	genesisBlockHeaderSchema,
 	genesisBlockHeaderAssetSchema,
+	defaultAccountAssetSchema,
 } from './schema';
-import { bufferArrayContains, bufferArrayIdentical } from './utils';
+import {
+	bufferArrayContains,
+	bufferArrayIdentical,
+	bufferArraySubtract,
+} from './utils';
 import {
 	EMPTY_BUFFER,
 	GB_GENERATOR_PUBLIC_KEY,
@@ -31,13 +37,13 @@ import {
 import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
 export const validateGenesisBlock = (
-	accountAssetSchema: Schema,
 	block:
 		| GenesisBlock
 		| {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				[key: string]: any;
 		  },
+	accountAssetSchema?: Schema,
 ): ErrorObject[] => {
 	const { header, payload } = block as GenesisBlock;
 
@@ -58,48 +64,48 @@ export const validateGenesisBlock = (
 	// Custom header validation not possible with validator
 	if (header.generatorPublicKey !== GB_GENERATOR_PUBLIC_KEY) {
 		headerErrors.push({
-			message: 'generatorPublicKey must be empty buffer',
+			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.generatorPublicKey',
 			schemaPath: 'properties.generatorPublicKey',
-			params: { generatorPublicKey: header.generatorPublicKey },
+			params: { allowedValue: GB_GENERATOR_PUBLIC_KEY },
 		});
 	}
 
 	if (header.reward !== GB_REWARD) {
 		headerErrors.push({
-			message: 'reward must be zero',
+			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.reward',
 			schemaPath: 'properties.reward',
-			params: { reward: header.reward },
+			params: { allowedValue: GB_REWARD },
 		});
 	}
 
 	if (header.signature !== GB_SIGNATURE) {
 		headerErrors.push({
-			message: 'signature must be empty buffer',
+			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.signature',
 			schemaPath: 'properties.signature',
-			params: { signature: header.signature },
+			params: { allowedValue: GB_SIGNATURE },
 		});
 	}
 
 	if (header.transactionRoot !== GB_TRANSACTION_ROOT) {
 		headerErrors.push({
-			message: 'transactionRoot must be hash of empty buffer',
+			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.transactionRoot',
 			schemaPath: 'properties.transactionRoot',
-			params: { transactionRoot: header.transactionRoot },
+			params: { allowedValue: GB_TRANSACTION_ROOT },
 		});
 	}
 
 	// Genesis block asset validation
 	const assetSchemaWithAccountAsset = getHeaderAssetSchemaWithAccountAsset(
 		genesisBlockHeaderAssetSchema,
-		accountAssetSchema,
+		accountAssetSchema ?? defaultAccountAssetSchema,
 	);
 	const assetErrors = [
 		...validator.validate(assetSchemaWithAccountAsset, header.asset),
@@ -107,26 +113,84 @@ export const validateGenesisBlock = (
 
 	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
 
-	const accountAddresses = header.asset.accounts.map(a => a.address);
-	if (!bufferArrayContains(accountAddresses, [...header.asset.initDelegates])) {
+	const initDelegates = [...header.asset.initDelegates];
+	const initDelegatesSorted = [...header.asset.initDelegates].sort((a, b) =>
+		a.compare(b),
+	);
+	if (!bufferArrayIdentical(initDelegates, initDelegatesSorted)) {
 		errors.push({
-			message: 'Initial delegate addresses are not present in accounts',
+			message: 'should be lexicographically ordered',
 			keyword: 'initDelegates',
 			dataPath: 'header.asset.initDelegates',
 			schemaPath: 'properties.initDelegates',
-			params: { accountAddresses, initDelegates: header.asset.initDelegates },
+			params: { initDelegates },
 		});
 	}
 
-	const accountAddressesSorted = accountAddresses.sort((a, b) => a.compare(b));
+	const accountAddresses = [];
+	const delegateAddresses = [];
+	let totalBalance = BigInt(0);
+	for (const account of header.asset.accounts) {
+		accountAddresses.push(account.address);
+		totalBalance += BigInt(account.balance);
+
+		if (account.asset.delegate.username !== '') {
+			delegateAddresses.push(account.address);
+		}
+
+		if (account.publicKey !== undefined) {
+			const expectedAddress = getAddressFromPublicKey(account.publicKey);
+
+			if (!expectedAddress.equals(account.address)) {
+				errors.push({
+					message: 'account addresses not match with publicKey',
+					keyword: 'accounts',
+					dataPath: 'header.asset.accounts',
+					schemaPath: 'properties.accounts',
+					params: {
+						publicKey: account.publicKey,
+						givenAddress: account.address,
+						expectedAddress,
+					},
+				});
+			}
+		}
+	}
+	const accountAddressesSorted = [...accountAddresses].sort((a, b) =>
+		a.compare(b),
+	);
+
+	if (!bufferArrayContains(delegateAddresses, initDelegates)) {
+		errors.push({
+			message: 'delegate addresses are not present in accounts',
+			keyword: 'initDelegates',
+			dataPath: 'header.asset.initDelegates',
+			schemaPath: 'properties.initDelegates',
+			params: {
+				invalidAddresses: bufferArraySubtract(initDelegates, delegateAddresses),
+			},
+		});
+	}
+
 	if (!bufferArrayIdentical(accountAddresses, accountAddressesSorted)) {
 		errors.push({
-			message: 'Accounts are not sorted by address',
+			message: 'should be lexicographically ordered',
 			keyword: 'accounts',
 			dataPath: 'header.asset.accounts',
 			schemaPath: 'properties.accounts',
-			params: { accountAddresses },
+			params: { orderKey: 'address' },
 		});
 	}
+
+	if (totalBalance > BigInt(2 ** 63 - 1)) {
+		errors.push({
+			message: 'total balance exceed the limit (2^63)-1',
+			keyword: 'accounts',
+			dataPath: 'header.asset.accounts[].balance',
+			schemaPath: 'properties.accounts[].balance',
+			params: { totalBalance: totalBalance.toString() },
+		});
+	}
+
 	return errors;
 };

@@ -16,7 +16,7 @@ import { createGenesisBlock } from '../src';
 import { validGenesisBlockParams } from './fixtures';
 
 describe('create', () => {
-	it.todo('should create genesis block', () => {
+	it('should create genesis block', () => {
 		expect(createGenesisBlock(validGenesisBlockParams)).toMatchSnapshot();
 	});
 

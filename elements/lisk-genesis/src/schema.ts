@@ -22,7 +22,13 @@ import {
 import { mergeDeep } from './utils';
 
 export const genesisAccountSchema = baseAccountSchema;
-export const genesisBlockSchema = blockSchema;
+export const genesisBlockSchema = mergeDeep({}, blockSchema, {
+	properties: {
+		payload: {
+			const: [],
+		},
+	},
+}) as Schema;
 
 export const defaultAccountAssetSchema = {
 	$id: '/genesis_block/account/default',
@@ -97,9 +103,6 @@ export const defaultAccountAssetSchema = {
 
 export const genesisBlockHeaderSchema = mergeDeep({}, blockHeaderSchema, {
 	properties: {
-		height: {
-			minimum: 0,
-		},
 		version: {
 			const: 0,
 		},
