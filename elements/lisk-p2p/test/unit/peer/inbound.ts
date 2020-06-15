@@ -26,6 +26,7 @@ import {
 	REMOTE_EVENT_PING,
 } from '../../../src/events';
 import { p2pTypes } from '../../../src';
+import { peerInfoSchema, nodeInfoSchema } from '../../../src/schema';
 
 describe('peer/inbound', () => {
 	let defaultPeerInfo: p2pTypes.P2PPeerInfo;
@@ -53,6 +54,10 @@ describe('peer/inbound', () => {
 			secret: DEFAULT_RANDOM_SECRET,
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
+			rpcSchemas: {
+				nodeInfo: nodeInfoSchema,
+				peerInfo: peerInfoSchema,
+			},
 		};
 		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 		inboundSocket = <SCServerSocket>({

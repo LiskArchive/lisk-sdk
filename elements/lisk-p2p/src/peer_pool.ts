@@ -149,7 +149,7 @@ export interface PeerPoolConfig {
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
 	readonly peerBook: PeerBook;
-	readonly rpcSchema: RPCSchemas;
+	readonly rpcSchemas: RPCSchemas;
 }
 
 export class PeerPool extends EventEmitter {
@@ -192,7 +192,7 @@ export class PeerPool extends EventEmitter {
 		super();
 		this._peerMap = new Map<string, Peer>();
 		this._peerPoolConfig = peerPoolConfig;
-		this._rpcSchema = peerPoolConfig.rpcSchema;
+		this._rpcSchema = peerPoolConfig.rpcSchemas;
 		codec.addSchema(this._rpcSchema.nodeInfo);
 
 		this._peerConfig = {

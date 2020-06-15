@@ -28,6 +28,7 @@ import {
 	DEFAULT_HTTP_PATH,
 } from '../../../src/constants';
 import { P2PPeerInfo } from '../../../src/types';
+import { nodeInfoSchema, peerInfoSchema } from '../../../src/schema';
 
 describe('peer/outbound', () => {
 	let defaultPeerInfo: P2PPeerInfo;
@@ -55,6 +56,10 @@ describe('peer/outbound', () => {
 			maxPeerInfoSize: 10000,
 			maxPeerDiscoveryResponseLength: 1000,
 			wsMaxPayload: 1000,
+			rpcSchemas: {
+				nodeInfo: nodeInfoSchema,
+				peerInfo: peerInfoSchema,
+			},
 		};
 		// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 		outboundSocket = <SCClientSocket>({

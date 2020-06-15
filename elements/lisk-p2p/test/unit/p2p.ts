@@ -14,8 +14,8 @@
  */
 import { P2P } from '../../src/p2p';
 import { constructPeerId } from '../../src/utils';
-import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
 import { wait } from '../utils/helpers';
+import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
 
 describe('p2p', () => {
 	let p2pNode: P2P;

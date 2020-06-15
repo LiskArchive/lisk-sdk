@@ -175,7 +175,7 @@ const createPeerPoolConfig = (
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
-	rpcSchema: {
+	rpcSchemas: {
 		peerInfo: config.customSchema?.peerInfo ?? peerInfoSchema,
 		nodeInfo: config.customSchema?.nodeInfo ?? nodeInfoSchema,
 	},
