@@ -14,19 +14,22 @@
  */
 import { P2P } from '../../src/index';
 import { createNetwork, destroyNetwork } from '../utils/network_setup';
+import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
 
-// TODO: Skipping as strict schema doesn't allow custom fields. Enable this test when users will be allowed to pass custom schema.
-describe.skip('Custom nodeInfo', () => {
+describe('Custom nodeInfo', () => {
+	const customSchema = {
+		peerInfo: customPeerInfoSchema,
+		nodeInfo: customNodeInfoSchema,
+	};
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 
 	beforeEach(async () => {
 		const customConfig = () => ({
 			nodeInfo: {
-				modules: {
-					names: ['test', 'crypto'],
-					active: true,
-				},
+				maxHeightPreviouslyForged: 11,
+				maxHeightPrevoted: 2,
 			},
+			customSchema,
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });
@@ -43,7 +46,8 @@ describe.skip('Custom nodeInfo', () => {
 			for (const peer of triedPeers) {
 				expect(peer).toMatchObject({
 					sharedState: {
-						modules: { names: expect.any(Array), active: expect.any(Boolean) },
+						maxHeightPrevoted: 2,
+						maxHeightPreviouslyForged: 11,
 					},
 				});
 			}
@@ -51,17 +55,16 @@ describe.skip('Custom nodeInfo', () => {
 				if (peer.modules) {
 					expect(peer).toMatchObject({
 						sharedState: {
-							modules: {
-								names: expect.any(Array),
-								active: expect.any(Boolean),
-							},
+							maxHeightPrevoted: 2,
+							maxHeightPreviouslyForged: 11,
 						},
 					});
 				}
 			}
 			for (const peer of p2p.getConnectedPeers()) {
 				expect(peer).toMatchObject({
-					modules: { names: expect.any(Array), active: expect.any(Boolean) },
+					maxHeightPrevoted: 2,
+					maxHeightPreviouslyForged: 11,
 				});
 			}
 		}

@@ -19,16 +19,101 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { EVENT_BAN_PEER } = events;
 
-// Skipping as schema validation doesn't allow custom fields and supported properties are validated before applying nodeInfo.
-describe.skip('penalty sending malformed peerInfo', () => {
+const customNodeInfoSchema = {
+	$id: '/nodeInfo',
+	type: 'object',
+	properties: {
+		networkId: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		protocolVersion: {
+			dataType: 'string',
+			fieldNumber: 2,
+		},
+		wsPort: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		nonce: {
+			dataType: 'string',
+			fieldNumber: 4,
+		},
+		advertiseAddress: {
+			dataType: 'boolean',
+			fieldNumber: 5,
+		},
+		os: {
+			dataType: 'string',
+			fieldNumber: 6,
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 7,
+		},
+		invalid: {
+			dataType: 'string',
+			fieldNumber: 8,
+		},
+	},
+	required: ['networkId', 'protocolVersion', 'wsPort', 'nonce'],
+};
+
+const customPeerInfoSchema = {
+	$id: '/peerInfo',
+	type: 'object',
+	properties: {
+		ipAddress: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		wsPort: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		networkId: {
+			dataType: 'string',
+			fieldNumber: 3,
+		},
+		protocolVersion: {
+			dataType: 'string',
+			fieldNumber: 4,
+		},
+		nonce: {
+			dataType: 'string',
+			fieldNumber: 5,
+		},
+		os: {
+			dataType: 'string',
+			fieldNumber: 6,
+		},
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 7,
+		},
+		invalid: {
+			dataType: 'string',
+			fieldNumber: 8,
+		},
+	},
+	required: ['ipAddress', 'wsPort'],
+};
+
+describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
+	const customSchema = {
+		peerInfo: customPeerInfoSchema,
+		nodeInfo: customNodeInfoSchema,
+	};
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({
 			networkSize: 2,
 			customConfig: (index: number) =>
-				index === 0 ? { maxPeerInfoSize: 30248 } : {},
+				index === 0
+					? { maxPeerInfoSize: 30248, customSchema }
+					: { customSchema },
 		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
@@ -44,8 +129,7 @@ describe.skip('penalty sending malformed peerInfo', () => {
 			wsPort: p2pNodeList[0].nodeInfo.wsPort,
 			height: 10,
 			nonce: 'nonce',
-			invalidData: '1.'.repeat(13000),
-			options: p2pNodeList[0].nodeInfo.options,
+			invalid: '1.'.repeat(13000),
 			advertiseAddress: true,
 		});
 
