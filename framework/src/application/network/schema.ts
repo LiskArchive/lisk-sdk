@@ -24,13 +24,9 @@ export const customNodeInfoSchema = {
 			dataType: 'uint32',
 			fieldNumber: 8,
 		},
-		finalizedHeight: {
-			dataType: 'uint32',
-			fieldNumber: 9,
-		},
 		blockVersion: {
 			dataType: 'uint32',
-			fieldNumber: 10,
+			fieldNumber: 9,
 		},
 	},
 };
@@ -45,13 +41,9 @@ export const customPeerInfoSchema = {
 			dataType: 'uint32',
 			fieldNumber: 8,
 		},
-		finalizedHeight: {
-			dataType: 'uint32',
-			fieldNumber: 9,
-		},
 		blockVersion: {
 			dataType: 'uint32',
-			fieldNumber: 10,
+			fieldNumber: 9,
 		},
 	},
 };
