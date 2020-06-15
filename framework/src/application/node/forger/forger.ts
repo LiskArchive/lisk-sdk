@@ -345,11 +345,12 @@ export class Forger {
 	}
 
 	public async forge(): Promise<void> {
+		const MS_IN_A_SEC = 1000;
 		const currentSlot = this._chainModule.slots.getSlotNumber();
 
 		const currentSlotTime = this._chainModule.slots.getSlotTime(currentSlot);
 
-		const currentTime = new Date().getTime();
+		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
 		const waitThreshold = this._config.forging.waitThreshold * 1000;
 		const { lastBlock } = this._chainModule;
 		const lastBlockSlot = this._chainModule.slots.getSlotNumber(
@@ -407,7 +408,8 @@ export class Forger {
 			return;
 		}
 
-		const timestamp = currentSlotTime / SEC_IN_MS;
+		const timestamp = Math.floor(currentSlotTime / SEC_IN_MS);
+
 		const previousBlock = this._chainModule.lastBlock;
 		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
 
