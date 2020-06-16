@@ -377,7 +377,7 @@ export class Node {
 				},
 				'Failed to initialization node',
 			);
-			process.exit(0);
+			throw error;
 		}
 	}
 
