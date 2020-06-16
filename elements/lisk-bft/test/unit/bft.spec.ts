@@ -251,7 +251,7 @@ describe('bft', () => {
 				];
 
 				// Act & Assert
-				await expect(bft.deleteBlocks(blocks, stateStore)).rejects.toThrow(
+				await expect(bft.deleteBlocks(blocks)).rejects.toThrow(
 					'Can not delete block below or same as finalized height',
 				);
 			});
@@ -272,7 +272,7 @@ describe('bft', () => {
 				];
 
 				// Act & Assert
-				await expect(bft.deleteBlocks(blocks, stateStore)).rejects.toThrow(
+				await expect(bft.deleteBlocks(blocks)).rejects.toThrow(
 					'Can not delete block below or same as finalized height',
 				);
 			});
@@ -284,7 +284,7 @@ describe('bft', () => {
 				await bft.init(stateStore);
 				const blocks = [createFakeBlockHeader({ height: 6, version: 2 })];
 
-				await bft.deleteBlocks(blocks, stateStore);
+				bft.deleteBlocks(blocks);
 
 				// Act & Assert
 				expect(

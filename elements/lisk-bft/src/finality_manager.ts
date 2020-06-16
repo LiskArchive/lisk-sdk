@@ -35,7 +35,8 @@ const debug = Debug('lisk:bft:consensus_manager');
 
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
 	'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
-export const CONSENSUS_STATE_DELEGATE_STATE_KEY = 'bft:delegates';
+export const CONSENSUS_STATE_DELEGATES_KEY = 'bft:delegates';
+export const CONSENSUS_STATE_VOTES_KEY = 'bft:votes';
 
 export const BFTDelegatesStateSchema = {
 	type: 'object',
@@ -68,13 +69,13 @@ export const BFTDelegatesStateSchema = {
 	},
 };
 
-export const BFTStateSchema = {
+export const BFTVotesSchema = {
 	type: 'object',
-	$id: '/BFT/State',
+	$id: '/BFT/Votes',
 	title: 'Lisk BFT Delegate PreVotes, PreCommits corresponding to height',
-	required: ['state'],
+	required: ['votes'],
 	properties: {
-		state: {
+		votes: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
@@ -99,7 +100,7 @@ export const BFTStateSchema = {
 	},
 };
 
-codec.addSchema(BFTStateSchema);
+codec.addSchema(BFTVotesSchema);
 codec.addSchema(BFTDelegatesStateSchema);
 
 interface DelegatesState {
@@ -107,6 +108,13 @@ interface DelegatesState {
 	maxPreVoteHeight: number;
 	maxPreCommitHeight: number;
 }
+
+interface VotesState {
+	height: number;
+	preVotes: number;
+	preCommits: number;
+}
+
 export class FinalityManager extends EventEmitter {
 	public readonly activeDelegates: number;
 	public readonly preVoteThreshold: number;
@@ -116,13 +124,6 @@ export class FinalityManager extends EventEmitter {
 
 	public finalizedHeight: number;
 	public chainMaxHeightPrevoted: number;
-
-	private preVotes: {
-		[key: string]: number;
-	};
-	private preCommits: {
-		[key: string]: number;
-	};
 
 	private readonly _chain: Chain;
 	private readonly _dpos: DPoS;
@@ -164,9 +165,6 @@ export class FinalityManager extends EventEmitter {
 
 		// Height up to which blocks have pre-voted
 		this.chainMaxHeightPrevoted = 0;
-
-		this.preVotes = {};
-		this.preCommits = {};
 	}
 
 	public async addBlockHeader(
@@ -182,18 +180,24 @@ export class FinalityManager extends EventEmitter {
 		// Verify the integrity of the header with chain
 		this.verifyBlockHeaders(blockHeader, bftApplicableBlocks);
 
+		const bftVotes = this._getVotes(stateStore, blockHeader.height);
+
 		// Update the pre-votes and pre-commits
 		await this.updatePreVotesPreCommits(
 			blockHeader,
 			stateStore,
 			bftApplicableBlocks,
+			bftVotes,
 		);
 
 		// Update the pre-voted confirmed and finalized height
-		this.updatePreVotedAndFinalizedHeight();
+		this.updatePreVotedAndFinalizedHeight(bftVotes);
 
-		// Cleanup pre-votes and pre-commits
-		this._cleanup();
+		// Update state to save the bft votes
+		stateStore.consensus.set(
+			CONSENSUS_STATE_VOTES_KEY,
+			codec.encode(BFTVotesSchema, bftVotes),
+		);
 
 		debug('after adding block header', {
 			finalizedHeight: this.finalizedHeight,
@@ -207,6 +211,7 @@ export class FinalityManager extends EventEmitter {
 		header: BlockHeader,
 		stateStore: StateStore,
 		bftBlockHeaders: ReadonlyArray<BlockHeader>,
+		bftVotes: Array<VotesState>,
 	): Promise<boolean> {
 		debug('updatePreVotesPreCommits invoked');
 		// If delegate forged a block with higher or same height previously
@@ -232,7 +237,7 @@ export class FinalityManager extends EventEmitter {
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
 		const delegateStateBuffer = stateStore.consensus.get(
-			CONSENSUS_STATE_DELEGATE_STATE_KEY,
+			CONSENSUS_STATE_DELEGATES_KEY,
 		);
 
 		const delegatesState =
@@ -278,10 +283,11 @@ export class FinalityManager extends EventEmitter {
 
 		for (let j = minPreCommitHeight; j <= maxPreCommitHeight; j += 1) {
 			// Add pre-commit if threshold is reached
-			if (this.preVotes[j] >= this.preVoteThreshold) {
+			const bftVote = bftVotes.find(vote => vote.height === j) as VotesState;
+			if (bftVote.preVotes >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				this.preCommits[j] = (this.preCommits[j] || 0) + 1;
+				bftVote.preCommits = (bftVote.preCommits || 0) + 1;
 
 				// Keep track of the last pre-commit point
 				delegateState.maxPreCommitHeight = j;
@@ -303,40 +309,46 @@ export class FinalityManager extends EventEmitter {
 
 		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j += 1) {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			this.preVotes[j] = (this.preVotes[j] || 0) + 1;
+			const bftVote = bftVotes.find(vote => vote.height === j) as VotesState;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			bftVote.preVotes = (bftVote.preVotes || 0) + 1;
 		}
 		// Update delegate state
 		delegateState.maxPreVoteHeight = maxPreVoteHeight;
 
 		// Save the delegate state to store
 		stateStore.consensus.set(
-			CONSENSUS_STATE_DELEGATE_STATE_KEY,
+			CONSENSUS_STATE_DELEGATES_KEY,
 			codec.encode(BFTDelegatesStateSchema, delegatesState),
 		);
 
 		return true;
 	}
 
-	public updatePreVotedAndFinalizedHeight(): boolean {
+	public updatePreVotedAndFinalizedHeight(
+		bftVotes: Array<VotesState>,
+	): boolean {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
-		const highestHeightPreVoted = Object.keys(this.preVotes)
-			.reverse()
-			.find(key => this.preVotes[key] >= this.preVoteThreshold);
+		const sortedVotes = bftVotes.sort((a, b) => b.height - a.height);
+
+		const highestHeightPreVoted = sortedVotes.find(
+			(vote: VotesState) => vote.preVotes >= this.preVoteThreshold,
+		);
 
 		this.chainMaxHeightPrevoted = highestHeightPreVoted
-			? parseInt(highestHeightPreVoted, 10)
+			? highestHeightPreVoted.height
 			: this.chainMaxHeightPrevoted;
 
-		const highestHeightPreCommitted = Object.keys(this.preCommits)
-			.reverse()
-			.find(key => this.preCommits[key] >= this.preCommitThreshold);
+		const highestHeightPreCommitted = sortedVotes.find(
+			(vote: VotesState) => vote.preVotes >= this.preCommitThreshold,
+		);
 
 		// Store current finalizedHeight
 		const previouslyFinalizedHeight = this.finalizedHeight;
 
 		if (highestHeightPreCommitted) {
-			this.finalizedHeight = parseInt(highestHeightPreCommitted, 10);
+			this.finalizedHeight = highestHeightPreCommitted.height;
 		}
 
 		if (previouslyFinalizedHeight !== this.finalizedHeight) {
@@ -346,37 +358,8 @@ export class FinalityManager extends EventEmitter {
 		return true;
 	}
 
-	public async recompute(
-		recomputeUptoHeight: number,
-		stateStore: StateStore,
-	): Promise<void> {
-		this.reset();
-
-		const blockHeaders = await this.getBFTApplicableBlockHeaders(
-			recomputeUptoHeight,
-		);
-		if (!blockHeaders.length) {
-			throw new Error('Cannot find a block to recompute');
-		}
-
-		for (let i = blockHeaders.length - 1; i >= 0; i -= 1) {
-			const blockHeader = blockHeaders[i];
-			const bftBlockHeader = blockHeaders.slice(i + 1);
-			await this.updatePreVotesPreCommits(
-				blockHeader,
-				stateStore,
-				bftBlockHeader,
-			);
-		}
-		this.updatePreVotedAndFinalizedHeight();
-
-		this._cleanup();
-	}
-
 	public reset(): void {
 		this.chainMaxHeightPrevoted = 0;
-		this.preVotes = {};
-		this.preCommits = {};
 	}
 
 	public verifyBlockHeaders(
@@ -526,17 +509,23 @@ export class FinalityManager extends EventEmitter {
 		return Math.max(needleHeight + 1, searchTillHeight);
 	}
 
-	private _cleanup(): void {
-		Object.keys(this.preVotes)
-			.slice(0, this.maxHeaders * -1)
-			.forEach(key => {
-				delete this.preVotes[key];
-			});
+	// eslint-disable-next-line class-methods-use-this
+	private _getVotes(stateStore: StateStore, height: number): Array<VotesState> {
+		const bftVotesBuffer = stateStore.consensus.get(CONSENSUS_STATE_VOTES_KEY);
+		const bftVotes =
+			bftVotesBuffer === undefined
+				? [
+						{
+							height,
+							preVotes: 0,
+							preCommits: 0,
+						},
+				  ]
+				: ((codec.decode<VotesState>(
+						BFTVotesSchema,
+						(bftVotesBuffer as unknown) as Buffer,
+				  ) as unknown) as Array<VotesState>);
 
-		Object.keys(this.preCommits)
-			.slice(0, this.maxHeaders * -1)
-			.forEach(key => {
-				delete this.preCommits[key];
-			});
+		return bftVotes;
 	}
 }

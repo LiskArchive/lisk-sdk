@@ -91,18 +91,13 @@ export class BFT extends EventEmitter {
 				this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, updatedFinalizedHeight);
 			},
 		);
-		const lastBlock = await this._chain.dataAccess.getLastBlockHeader();
-		await this.finalityManager.recompute(lastBlock.height, stateStore);
 	}
 
 	public get finalityManager(): FinalityManager {
 		return this._finalityManager as FinalityManager;
 	}
 
-	public async deleteBlocks(
-		blocks: ReadonlyArray<BlockHeader>,
-		stateStore: StateStore,
-	): Promise<void> {
+	public deleteBlocks(blocks: ReadonlyArray<BlockHeader>): void {
 		assert(blocks, 'Must provide blocks which are deleted');
 		assert(Array.isArray(blocks), 'Must provide list of blocks');
 
@@ -115,10 +110,6 @@ export class BFT extends EventEmitter {
 			!blockHeights.some(h => h <= this.finalityManager.finalizedHeight),
 			'Can not delete block below or same as finalized height',
 		);
-
-		const minimumHeight = Math.min(...blockHeights);
-
-		await this.finalityManager.recompute(minimumHeight - 1, stateStore);
 	}
 
 	public async addNewBlock(
