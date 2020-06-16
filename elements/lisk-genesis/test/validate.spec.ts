@@ -282,8 +282,8 @@ describe('validate', () => {
 		it('should fail if "asset.initDelegates" list items are not unique', () => {
 			// Arrange
 			const initDelegates = [
-				...genesisBlock.header.asset.initDelegates,
-				genesisBlock.header.asset.initDelegates[0],
+				...cloneDeep(genesisBlock.header.asset.initDelegates),
+				cloneDeep(genesisBlock.header.asset.initDelegates[0]),
 			].sort((a, b) => a.compare(b));
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
@@ -304,12 +304,8 @@ describe('validate', () => {
 				expect.objectContaining({
 					dataPath: '.initDelegates',
 					keyword: 'uniqueItems',
-					message:
-						'should NOT have duplicate items (items ## 0 and 1 are identical)',
-					params: {
-						i: 1,
-						j: 0,
-					},
+					message: 'should NOT have duplicate items',
+					params: {},
 					schemaPath: '#/properties/initDelegates/uniqueItems',
 				}),
 			);
@@ -401,6 +397,39 @@ describe('validate', () => {
 			);
 		});
 
+		it('should fail if "asset.accounts" list contains duplicate account by "address"', () => {
+			// Arrange
+			const accounts = [
+				...cloneDeep(genesisBlock.header.asset.accounts),
+				cloneDeep(genesisBlock.header.asset.accounts[0]),
+			];
+			accounts.sort((a, b) => a.address.compare(b.address));
+			const gb = mergeDeep({}, genesisBlock, {
+				header: {
+					asset: {
+						accounts,
+					},
+				},
+			}) as GenesisBlock;
+
+			// Act
+			const errors = validateGenesisBlock(gb, {
+				roundLength: validGenesisBlockParams.roundLength,
+			});
+
+			// Assert
+			expect(errors).toHaveLength(1);
+			expect(errors[0]).toEqual(
+				expect.objectContaining({
+					dataPath: '.accounts',
+					keyword: 'uniqueItems',
+					message: 'should NOT have duplicate items',
+					params: {},
+					schemaPath: '#/properties/accounts/uniqueItems',
+				}),
+			);
+		});
+
 		it('should fail if "asset.accounts" list contains an "address" which does not match with "publicKey"', () => {
 			// Arrange
 			const accounts = genesisBlock.header.asset.accounts.map(acc =>
@@ -445,7 +474,7 @@ describe('validate', () => {
 		it('should fail if sum of balance of all "asset.accounts" is greater than 2^63-1', () => {
 			// Arrange
 			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			accounts[0].balance = BigInt(2 ** 63);
+			accounts[0].balance = BigInt(2) ** BigInt(63);
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
@@ -557,9 +586,12 @@ describe('validate', () => {
 				getRandomBytes(32),
 				getRandomBytes(32),
 			];
-			mandatoryKeys = [...mandatoryKeys, ...mandatoryKeys];
+			mandatoryKeys = [
+				...cloneDeep(mandatoryKeys),
+				...cloneDeep(mandatoryKeys),
+			];
 			mandatoryKeys.sort((a, b) => a.compare(b));
-			accounts[0].keys.numberOfSignatures = 3;
+			accounts[0].keys.numberOfSignatures = 6;
 			accounts[0].keys.mandatoryKeys = mandatoryKeys;
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
@@ -580,12 +612,8 @@ describe('validate', () => {
 				expect.objectContaining({
 					dataPath: '.accounts[0].keys.mandatoryKeys',
 					keyword: 'uniqueItems',
-					message:
-						'should NOT have duplicate items (items ## 4 and 5 are identical)',
-					params: {
-						i: 5,
-						j: 4,
-					},
+					message: 'should NOT have duplicate items',
+					params: {},
 					schemaPath:
 						'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
 				}),
@@ -600,7 +628,7 @@ describe('validate', () => {
 				getRandomBytes(32),
 				getRandomBytes(32),
 			];
-			optionalKeys = [...optionalKeys, ...optionalKeys];
+			optionalKeys = [...cloneDeep(optionalKeys), ...cloneDeep(optionalKeys)];
 			optionalKeys.sort((a, b) => a.compare(b));
 			accounts[0].keys.numberOfSignatures = 1;
 			accounts[0].keys.optionalKeys = optionalKeys;
@@ -623,12 +651,8 @@ describe('validate', () => {
 				expect.objectContaining({
 					dataPath: '.accounts[0].keys.optionalKeys',
 					keyword: 'uniqueItems',
-					message:
-						'should NOT have duplicate items (items ## 4 and 5 are identical)',
-					params: {
-						i: 5,
-						j: 4,
-					},
+					message: 'should NOT have duplicate items',
+					params: {},
 					schemaPath:
 						'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
 				}),

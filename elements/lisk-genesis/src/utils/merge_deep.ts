@@ -17,7 +17,7 @@ interface KVPair {
 	[key: string]: any;
 }
 
-const isIterateable = (item: unknown): item is KVPair =>
+const isIterable = (item: unknown): item is KVPair =>
 	typeof item === 'object' &&
 	item !== null &&
 	!Array.isArray(item) &&
@@ -25,13 +25,13 @@ const isIterateable = (item: unknown): item is KVPair =>
 
 export const mergeDeep = (dest: KVPair, ...srcs: KVPair[]): KVPair => {
 	const result = dest; // clone deep here
-	if (!isIterateable(result)) {
+	if (!isIterable(result)) {
 		return result;
 	}
 	for (const src of srcs) {
 		// eslint-disable-next-line no-restricted-syntax
 		for (const key in src) {
-			if (isIterateable(src[key])) {
+			if (isIterable(src[key])) {
 				if (!result[key]) {
 					result[key] = {};
 				}

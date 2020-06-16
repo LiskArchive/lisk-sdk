@@ -17,9 +17,10 @@ import { hash } from '@liskhq/lisk-cryptography';
 export const EMPTY_BUFFER = Buffer.alloc(0);
 export const EMPTY_HASH = hash(EMPTY_BUFFER);
 
-export const GB_VERSION = 0;
-export const GB_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
-export const GB_REWARD = BigInt(0);
-export const GB_PAYLOAD: Buffer[] = [];
-export const GB_SIGNATURE = EMPTY_BUFFER;
-export const GB_TRANSACTION_ROOT = EMPTY_HASH;
+export const GENESIS_BLOCK_VERSION = 0;
+export const GENESIS_BLOCK_GENERATOR_PUBLIC_KEY = EMPTY_BUFFER;
+export const GENESIS_BLOCK_REWARD = BigInt(0);
+export const GENESIS_BLOCK_PAYLOAD: Buffer[] = [];
+export const GENESIS_BLOCK_SIGNATURE = EMPTY_BUFFER;
+export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
+export const GENESIS_BLOCK_MAX_BALANCE = BigInt(2) ** BigInt(63) - BigInt(1);

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,20 +21,7 @@ import {
 } from '@liskhq/lisk-chain';
 import { mergeDeep } from './utils';
 
-export const genesisAccountSchema = mergeDeep({}, baseAccountSchema, {
-	properties: {
-		keys: {
-			properties: {
-				mandatoryKeys: {
-					uniqueItems: true,
-				},
-				optionalKeys: {
-					uniqueItems: true,
-				},
-			},
-		},
-	},
-}) as Schema;
+export const genesisAccountSchema = mergeDeep({}, baseAccountSchema) as Schema;
 export const genesisBlockSchema = mergeDeep({}, blockSchema, {
 	properties: {
 		payload: {
@@ -133,7 +120,6 @@ export const genesisBlockHeaderAssetSchema = {
 				...genesisAccountSchema,
 			},
 			fieldNumber: 1,
-			uniqueItems: true,
 		},
 		initDelegates: {
 			type: 'array',
@@ -142,7 +128,6 @@ export const genesisBlockHeaderAssetSchema = {
 			},
 			fieldNumber: 2,
 			minItems: 1,
-			uniqueItems: true,
 		},
 		initRounds: {
 			dataType: 'uint32',

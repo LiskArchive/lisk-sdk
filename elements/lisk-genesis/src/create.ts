@@ -18,12 +18,12 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	EMPTY_BUFFER,
-	GB_GENERATOR_PUBLIC_KEY,
-	GB_PAYLOAD,
-	GB_REWARD,
-	GB_SIGNATURE,
-	GB_TRANSACTION_ROOT,
-	GB_VERSION,
+	GENESIS_BLOCK_GENERATOR_PUBLIC_KEY,
+	GENESIS_BLOCK_PAYLOAD,
+	GENESIS_BLOCK_REWARD,
+	GENESIS_BLOCK_SIGNATURE,
+	GENESIS_BLOCK_TRANSACTION_ROOT,
+	GENESIS_BLOCK_VERSION,
 } from './constants';
 import {
 	GenesisAccountState,
@@ -54,7 +54,7 @@ const getBlockId = (
 
 	const genesisBlockHeaderBuffer = codec.encode(genesisBlockHeaderSchema, {
 		...header,
-		...{ asset: genesisBlockAssetBuffer },
+		asset: genesisBlockAssetBuffer,
 	});
 
 	return hash(genesisBlockHeaderBuffer);
@@ -72,12 +72,12 @@ export const createGenesisBlock = (
 		params.accountAssetSchema ?? defaultAccountAssetSchema;
 
 	// Constant values
-	const version = GB_VERSION;
-	const generatorPublicKey = GB_GENERATOR_PUBLIC_KEY;
-	const reward = GB_REWARD;
-	const payload = GB_PAYLOAD;
-	const signature = GB_SIGNATURE;
-	const transactionRoot = GB_TRANSACTION_ROOT;
+	const version = GENESIS_BLOCK_VERSION;
+	const generatorPublicKey = GENESIS_BLOCK_GENERATOR_PUBLIC_KEY;
+	const reward = GENESIS_BLOCK_REWARD;
+	const payload = GENESIS_BLOCK_PAYLOAD;
+	const signature = GENESIS_BLOCK_SIGNATURE;
+	const transactionRoot = GENESIS_BLOCK_TRANSACTION_ROOT;
 
 	const accounts: ReadonlyArray<GenesisAccountState> = params.accounts
 		.map(acc => new Account(acc))

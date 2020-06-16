@@ -25,15 +25,17 @@ import {
 import {
 	bufferArrayContains,
 	bufferArraySubtract,
-	bufferArrayLexicographicallyOrdered,
+	bufferArrayOrderByLex,
 	bufferArrayContainsSome,
+	bufferArrayUniqueItems,
 } from './utils';
 import {
 	EMPTY_BUFFER,
-	GB_GENERATOR_PUBLIC_KEY,
-	GB_REWARD,
-	GB_SIGNATURE,
-	GB_TRANSACTION_ROOT,
+	GENESIS_BLOCK_GENERATOR_PUBLIC_KEY,
+	GENESIS_BLOCK_MAX_BALANCE,
+	GENESIS_BLOCK_REWARD,
+	GENESIS_BLOCK_SIGNATURE,
+	GENESIS_BLOCK_TRANSACTION_ROOT,
 } from './constants';
 import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
@@ -63,43 +65,43 @@ export const validateGenesisBlock = (
 	];
 
 	// Custom header validation not possible with validator
-	if (header.generatorPublicKey !== GB_GENERATOR_PUBLIC_KEY) {
+	if (header.generatorPublicKey !== GENESIS_BLOCK_GENERATOR_PUBLIC_KEY) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.generatorPublicKey',
 			schemaPath: 'properties.generatorPublicKey',
-			params: { allowedValue: GB_GENERATOR_PUBLIC_KEY },
+			params: { allowedValue: GENESIS_BLOCK_GENERATOR_PUBLIC_KEY },
 		});
 	}
 
-	if (header.reward !== GB_REWARD) {
+	if (header.reward !== GENESIS_BLOCK_REWARD) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.reward',
 			schemaPath: 'properties.reward',
-			params: { allowedValue: GB_REWARD },
+			params: { allowedValue: GENESIS_BLOCK_REWARD },
 		});
 	}
 
-	if (header.signature !== GB_SIGNATURE) {
+	if (header.signature !== GENESIS_BLOCK_SIGNATURE) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.signature',
 			schemaPath: 'properties.signature',
-			params: { allowedValue: GB_SIGNATURE },
+			params: { allowedValue: GENESIS_BLOCK_SIGNATURE },
 		});
 	}
 
-	if (header.transactionRoot !== GB_TRANSACTION_ROOT) {
+	if (header.transactionRoot !== GENESIS_BLOCK_TRANSACTION_ROOT) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
 			dataPath: 'header.transactionRoot',
 			schemaPath: 'properties.transactionRoot',
-			params: { allowedValue: GB_TRANSACTION_ROOT },
+			params: { allowedValue: GENESIS_BLOCK_TRANSACTION_ROOT },
 		});
 	}
 
@@ -111,8 +113,6 @@ export const validateGenesisBlock = (
 	const assetErrors = [
 		...validator.validate(assetSchemaWithAccountAsset, header.asset),
 	];
-
-	const errors = [...payloadErrors, ...headerErrors, ...assetErrors];
 
 	const initDelegates = [...header.asset.initDelegates];
 	const accountAddresses = [];
@@ -127,11 +127,14 @@ export const validateGenesisBlock = (
 			delegateAddresses.push(account.address);
 		}
 
-		if (account.publicKey !== undefined) {
+		if (
+			account.publicKey !== undefined &&
+			!Buffer.alloc(0).equals(account.publicKey)
+		) {
 			const expectedAddress = getAddressFromPublicKey(account.publicKey);
 
 			if (!expectedAddress.equals(account.address)) {
-				errors.push({
+				assetErrors.push({
 					message: 'account addresses not match with publicKey',
 					keyword: 'accounts',
 					dataPath: 'header.asset.accounts',
@@ -145,8 +148,8 @@ export const validateGenesisBlock = (
 			}
 		}
 
-		if (!bufferArrayLexicographicallyOrdered(account.keys.mandatoryKeys)) {
-			errors.push({
+		if (!bufferArrayOrderByLex(account.keys.mandatoryKeys)) {
+			assetErrors.push({
 				message: 'should be lexicographically ordered',
 				keyword: 'mandatoryKeys',
 				dataPath: '.accounts[0].keys.mandatoryKeys',
@@ -156,8 +159,19 @@ export const validateGenesisBlock = (
 			});
 		}
 
-		if (!bufferArrayLexicographicallyOrdered(account.keys.optionalKeys)) {
-			errors.push({
+		if (!bufferArrayUniqueItems(account.keys.mandatoryKeys)) {
+			assetErrors.push({
+				dataPath: '.accounts[0].keys.mandatoryKeys',
+				keyword: 'uniqueItems',
+				message: 'should NOT have duplicate items',
+				params: {},
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/mandatoryKeys/uniqueItems',
+			});
+		}
+
+		if (!bufferArrayOrderByLex(account.keys.optionalKeys)) {
+			assetErrors.push({
 				message: 'should be lexicographically ordered',
 				keyword: 'optionalKeys',
 				dataPath: '.accounts[0].keys.optionalKeys',
@@ -167,13 +181,24 @@ export const validateGenesisBlock = (
 			});
 		}
 
+		if (!bufferArrayUniqueItems(account.keys.optionalKeys)) {
+			assetErrors.push({
+				dataPath: '.accounts[0].keys.optionalKeys',
+				keyword: 'uniqueItems',
+				message: 'should NOT have duplicate items',
+				params: {},
+				schemaPath:
+					'#/properties/accounts/items/properties/keys/properties/optionalKeys/uniqueItems',
+			});
+		}
+
 		if (
 			bufferArrayContainsSome(
 				account.keys.mandatoryKeys,
 				account.keys.optionalKeys,
 			)
 		) {
-			errors.push({
+			assetErrors.push({
 				dataPath:
 					'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 				keyword: 'uniqueItems',
@@ -184,14 +209,11 @@ export const validateGenesisBlock = (
 			});
 		}
 
-		const uniqueMandatoryKeys = [...new Set([...account.keys.mandatoryKeys])];
-		const uniqueOptionalKeys = [...new Set([...account.keys.optionalKeys])];
-		const uniqueAllKeys = [
-			...new Set([...uniqueMandatoryKeys, ...uniqueOptionalKeys]),
-		];
-
-		if (uniqueAllKeys.length > 64) {
-			errors.push({
+		if (
+			account.keys.mandatoryKeys.length + account.keys.optionalKeys.length >
+			64
+		) {
+			assetErrors.push({
 				dataPath:
 					'.accounts[0].keys.mandatoryKeys,.accounts[0].keys.optionalKeys',
 				keyword: 'maxItems',
@@ -201,8 +223,8 @@ export const validateGenesisBlock = (
 			});
 		}
 
-		if (account.keys.numberOfSignatures < uniqueMandatoryKeys.length) {
-			errors.push({
+		if (account.keys.numberOfSignatures < account.keys.mandatoryKeys.length) {
+			assetErrors.push({
 				dataPath: '.accounts[0].keys.numberOfSignatures',
 				keyword: 'min',
 				message: `should be minimum of length of mandatoryKeys`,
@@ -212,20 +234,37 @@ export const validateGenesisBlock = (
 			});
 		}
 
-		if (account.keys.numberOfSignatures > uniqueAllKeys.length) {
-			errors.push({
+		if (
+			account.keys.numberOfSignatures >
+			account.keys.mandatoryKeys.length + account.keys.optionalKeys.length
+		) {
+			assetErrors.push({
 				dataPath: '.accounts[0].keys.numberOfSignatures',
 				keyword: 'max',
 				message: `should be maximum of length of mandatoryKeys and optionalKeys`,
-				params: { max: uniqueAllKeys.length },
+				params: {
+					max:
+						account.keys.mandatoryKeys.length +
+						account.keys.optionalKeys.length,
+				},
 				schemaPath:
 					'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
 			});
 		}
 	}
 
-	if (!bufferArrayLexicographicallyOrdered(initDelegates)) {
-		errors.push({
+	if (!bufferArrayUniqueItems(initDelegates)) {
+		assetErrors.push({
+			dataPath: '.initDelegates',
+			keyword: 'uniqueItems',
+			message: 'should NOT have duplicate items',
+			params: {},
+			schemaPath: '#/properties/initDelegates/uniqueItems',
+		});
+	}
+
+	if (!bufferArrayOrderByLex(initDelegates)) {
+		assetErrors.push({
 			message: 'should be lexicographically ordered',
 			keyword: 'initDelegates',
 			dataPath: 'header.asset.initDelegates',
@@ -235,7 +274,7 @@ export const validateGenesisBlock = (
 	}
 
 	if (initDelegates.length > options.roundLength) {
-		errors.push({
+		assetErrors.push({
 			keyword: 'maxItems',
 			dataPath: '.initDelegates',
 			schemaPath: '#/properties/initDelegates/maxItems',
@@ -245,7 +284,7 @@ export const validateGenesisBlock = (
 	}
 
 	if (!bufferArrayContains(delegateAddresses, initDelegates)) {
-		errors.push({
+		assetErrors.push({
 			message: 'delegate addresses are not present in accounts',
 			keyword: 'initDelegates',
 			dataPath: 'header.asset.initDelegates',
@@ -256,8 +295,8 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	if (!bufferArrayLexicographicallyOrdered(accountAddresses)) {
-		errors.push({
+	if (!bufferArrayOrderByLex(accountAddresses)) {
+		assetErrors.push({
 			message: 'should be lexicographically ordered',
 			keyword: 'accounts',
 			dataPath: 'header.asset.accounts',
@@ -266,8 +305,18 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	if (totalBalance > BigInt(2) ** BigInt(63) - BigInt(1)) {
-		errors.push({
+	if (!bufferArrayUniqueItems(accountAddresses)) {
+		assetErrors.push({
+			dataPath: '.accounts',
+			keyword: 'uniqueItems',
+			message: 'should NOT have duplicate items',
+			params: {},
+			schemaPath: '#/properties/accounts/uniqueItems',
+		});
+	}
+
+	if (totalBalance > GENESIS_BLOCK_MAX_BALANCE) {
+		assetErrors.push({
 			message: 'total balance exceed the limit (2^63)-1',
 			keyword: 'accounts',
 			dataPath: 'header.asset.accounts[].balance',
@@ -276,5 +325,5 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	return errors;
+	return [...payloadErrors, ...headerErrors, ...assetErrors];
 };

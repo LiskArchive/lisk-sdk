@@ -14,3 +14,4 @@
 
 export * from './merge_deep';
 export * from './buffer_array';
+export { BufferSet } from '@liskhq/lisk-chain';

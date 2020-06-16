@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BufferSet } from '@liskhq/lisk-chain';
+
 export const bufferArrayIncludes = (arr: Buffer[], val: Buffer): boolean =>
 	arr.find(a => a.equals(val)) !== undefined;
 
@@ -23,18 +25,19 @@ export const bufferArrayContainsSome = (
 	arr2: Buffer[],
 ): boolean => arr2.some(val => bufferArrayIncludes(arr1, val));
 
-export const bufferArrayIdentical = (arr1: Buffer[], arr2: Buffer[]): boolean =>
+export const bufferArrayEqual = (arr1: Buffer[], arr2: Buffer[]): boolean =>
 	arr1.length === arr2.length &&
 	arr1.every((val, index) => val.equals(arr2[index]));
 
 export const bufferArraySubtract = (arr1: Buffer[], arr2: Buffer[]): Buffer[] =>
 	arr1.filter(a => !bufferArrayIncludes(arr2, a));
 
-export const bufferArrayLexicographicallyOrdered = (
-	arr1: Buffer[],
-): boolean => {
+export const bufferArrayOrderByLex = (arr1: Buffer[]): boolean => {
 	const sortedArray = [...arr1];
 	sortedArray.sort((a, b) => a.compare(b));
 
-	return bufferArrayIdentical(arr1, sortedArray);
+	return bufferArrayEqual(arr1, sortedArray);
 };
+
+export const bufferArrayUniqueItems = (arr1: Buffer[]): boolean =>
+	arr1.length === new BufferSet([...arr1]).size;
