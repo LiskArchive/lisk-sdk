@@ -1032,7 +1032,6 @@ describe('forger', () => {
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
 					.mockResolvedValue(testDelegate);
 
-				const waitThresholdMs = forgingWaitThreshold * 1000;
 				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime() / 1000;
 				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
 
@@ -1053,7 +1052,7 @@ describe('forger', () => {
 					{
 						currentSlot,
 						lastBlockSlot: changedLastBlockSlot,
-						waitThreshold: waitThresholdMs,
+						waitThreshold: forgingWaitThreshold,
 					},
 					'Slot information',
 				);
