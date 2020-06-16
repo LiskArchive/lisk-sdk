@@ -199,7 +199,10 @@ describe('Process block', () => {
 			beforeAll(async () => {
 				newBlock = await nodeUtils.createBlock(node, [], {
 					lastBlock: {
-						header: { timestamp: new Date().getTime() / 1000, height: 99 },
+						header: {
+							timestamp: Math.floor(new Date().getTime() / 1000),
+							height: 99,
+						},
 					} as Block,
 				});
 			});
