@@ -14,7 +14,7 @@
  *
  */
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { isHexString } from '@liskhq/lisk-validator';
+import { isBase64String } from '@liskhq/lisk-validator';
 
 import { COMMUNITY_IDENTIFIER, NETHASHES } from './constants';
 
@@ -24,13 +24,13 @@ export const getNetworkIdentifierWithInput = (
 ): string => {
 	if (input !== undefined && Object.keys(NETHASHES).includes(input)) {
 		return getNetworkIdentifier(
-			Buffer.from(NETHASHES[input], 'hex'),
+			Buffer.from(NETHASHES[input], 'base64'),
 			COMMUNITY_IDENTIFIER,
-		).toString('hex');
+		).toString('base64');
 	}
 	if (input !== undefined) {
-		if (!isHexString(input)) {
-			throw new Error('Network identifier must be hex string');
+		if (!isBase64String(input)) {
+			throw new Error('Network identifier must be base64 string');
 		}
 
 		return input;
@@ -41,9 +41,9 @@ export const getNetworkIdentifierWithInput = (
 		Object.keys(NETHASHES).includes(networkConfig)
 	) {
 		return getNetworkIdentifier(
-			Buffer.from(NETHASHES[networkConfig], 'hex'),
+			Buffer.from(NETHASHES[networkConfig], 'base64'),
 			COMMUNITY_IDENTIFIER,
-		).toString('hex');
+		).toString('base64');
 	}
 	throw new Error('Invalid network identifier');
 };

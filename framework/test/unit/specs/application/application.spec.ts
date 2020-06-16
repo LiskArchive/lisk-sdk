@@ -27,7 +27,7 @@ import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
 import { createLogger } from '../../../../src/application/logger';
-import { GenesisBlockJSON } from '../../../../src/application/node/node';
+import { GenesisBlockJSON } from '../../../../src/application/genesis_block';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');

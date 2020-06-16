@@ -80,7 +80,7 @@ export class Account<T = DefaultAsset> {
 		if (this._stringAddress) {
 			return this._stringAddress;
 		}
-		this._stringAddress = this.address.toString('hex');
+		this._stringAddress = this.address.toString('base64');
 		return this._stringAddress;
 	}
 

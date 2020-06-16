@@ -22,7 +22,7 @@ Object {
                 "type": "integer",
               },
               "seedReveal": Object {
-                "format": "hex",
+                "format": "base64",
                 "type": "string",
               },
             },
@@ -34,7 +34,7 @@ Object {
             "type": "object",
           },
           "generatorPublicKey": Object {
-            "format": "publicKey",
+            "format": "base64",
             "type": "string",
           },
           "height": Object {
@@ -42,13 +42,11 @@ Object {
             "type": "integer",
           },
           "id": Object {
-            "format": "hex",
-            "maxLength": 64,
-            "minLength": 64,
+            "format": "base64",
             "type": "string",
           },
           "previousBlockID": Object {
-            "format": "hex",
+            "format": "emptyString",
             "type": "string",
           },
           "reward": Object {
@@ -56,7 +54,7 @@ Object {
             "type": "string",
           },
           "signature": Object {
-            "format": "signature",
+            "format": "base64",
             "type": "string",
           },
           "timestamp": Object {
@@ -64,7 +62,7 @@ Object {
             "type": "integer",
           },
           "transactionRoot": Object {
-            "format": "hex",
+            "format": "base64",
             "type": "string",
           },
           "version": Object {
@@ -95,9 +93,7 @@ Object {
               "type": "string",
             },
             "id": Object {
-              "format": "hex",
-              "maxLength": 64,
-              "minLength": 64,
+              "format": "base64",
               "type": "string",
             },
             "nonce": Object {
@@ -105,14 +101,14 @@ Object {
               "type": "string",
             },
             "senderPublicKey": Object {
-              "format": "publicKey",
+              "format": "base64",
               "type": "string",
             },
             "signatures": Object {
               "items": Object {
                 "oneOf": Array [
                   Object {
-                    "format": "signature",
+                    "format": "base64",
                     "type": "string",
                   },
                   Object {

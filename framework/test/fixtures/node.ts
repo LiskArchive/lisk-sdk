@@ -19,7 +19,8 @@ export const cacheConfig = 'aCacheConfig';
 export const nodeOptions = {
 	rootPath: '~/.lisk',
 	label: 'default',
-	genesisBlock: { ...genesisBlock(), communityIdentifier: 'Lisk' },
+	communityIdentifier: 'Lisk',
+	genesisBlock: genesisBlock(),
 	network: {
 		enabled: false,
 	},
@@ -40,6 +41,6 @@ export const nodeOptions = {
 			offset: 2160, // Start rewards at first block of the second round
 			distance: 3000000, // Distance between each milestone
 		},
-		totalAmount: '10000000000000000',
+		totalAmount: BigInt('10000000000000000'),
 	},
 };

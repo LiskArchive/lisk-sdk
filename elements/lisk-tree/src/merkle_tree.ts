@@ -177,7 +177,7 @@ export class MerkleTree {
 
 	public toString(): string {
 		if (this._width === 0) {
-			return this.root.toString('hex');
+			return this.root.toString('base64');
 		}
 		return this._printNode(this.root);
 	}
@@ -314,13 +314,13 @@ export class MerkleTree {
 		const nodeValue = this._hashToValueMap[hashValue.toString('binary')];
 
 		if (isLeaf(nodeValue)) {
-			return nodeValue.toString('hex');
+			return nodeValue.toString('base64');
 		}
 
 		const node = this.getNode(nodeValue);
 
 		return [
-			hashValue.toString('hex'),
+			hashValue.toString('base64'),
 			`├${'─'.repeat(level)} ${this._printNode(node.leftHash, level + 1)}`,
 			`├${'─'.repeat(level)} ${this._printNode(node.rightHash, level + 1)}`,
 		].join('\n');

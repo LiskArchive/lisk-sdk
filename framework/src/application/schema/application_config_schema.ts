@@ -49,7 +49,7 @@ export const applicationConfigSchema = {
 		},
 		lastCommitId: {
 			type: 'string',
-			format: 'hex',
+			format: 'base64',
 			minLength: 40,
 			maxLength: 40,
 			example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
@@ -169,7 +169,7 @@ export const applicationConfigSchema = {
 							},
 							publicKey: {
 								type: 'string',
-								format: 'publicKey',
+								format: 'base64',
 							},
 							hashOnion: {
 								type: 'object',
@@ -185,7 +185,7 @@ export const applicationConfigSchema = {
 										type: 'array',
 										items: {
 											type: 'string',
-											format: 'hex',
+											format: 'base64',
 										},
 									},
 								},

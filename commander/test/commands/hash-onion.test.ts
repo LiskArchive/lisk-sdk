@@ -37,11 +37,11 @@ describe('hash-onion command', () => {
 			.it('should generate valid hash onion', () => {
 				const { lastArg: result } = printMethodStub.getCall(0);
 				for (let i = 0; i < result.hashes.length - 1; i += 1) {
-					let nextHash = Buffer.from(result.hashes[i + 1], 'hex');
+					let nextHash = Buffer.from(result.hashes[i + 1], 'base64');
 					for (let j = 0; j < result.distance; j += 1) {
 						nextHash = hash(nextHash).slice(0, 16);
 					}
-					expect(result.hashes[i]).to.equal(nextHash.toString('hex'));
+					expect(result.hashes[i]).to.equal(nextHash.toString('base64'));
 				}
 			});
 	});

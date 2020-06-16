@@ -92,7 +92,7 @@ interface ChainConstructor {
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
 	readonly rewardMilestones: ReadonlyArray<string>;
-	readonly totalAmount: string;
+	readonly totalAmount: bigint;
 	readonly stateBlockSize?: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;

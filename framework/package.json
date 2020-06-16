@@ -35,7 +35,7 @@
 		"build": "tsc && npm run copy-static-files",
 		"test:unit": "jest --config=./test/unit/jest.config.js",
 		"test:integration": "jest --config=./test/integration/jest.config.js",
-		"test:functional": "jest --config=./test/functional/jest.config.js --passWithNoTests"
+		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
 	"dependencies": {
 		"@liskhq/lisk-bft": "0.1.0-alpha.0",

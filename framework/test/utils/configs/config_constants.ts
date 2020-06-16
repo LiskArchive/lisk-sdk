@@ -33,6 +33,6 @@ export const constantsConfig = (
 	activeDelegates: 101,
 	standbyDelegates: 2,
 	maxPayloadLength: 15 * 1024,
-	totalAmount: '10000000000000000',
+	totalAmount: BigInt('10000000000000000'),
 	...overriddenConfigProperties,
 });

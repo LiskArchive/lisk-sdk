@@ -46,7 +46,7 @@ const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
 		throw new Error('All input for XOR should be same size');
 	}
 	const outputSize = [...bufferSizes][0];
-	const result = Buffer.alloc(outputSize, 0, 'hex');
+	const result = Buffer.alloc(outputSize, 0);
 
 	for (let i = 0; i < outputSize; i += 1) {
 		// eslint-disable-next-line no-bitwise
