@@ -38,6 +38,8 @@ interface DelegatesInfoConstructor {
 
 const _isGenesisBlock = (header: BlockHeader): boolean => header.height === 1;
 const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
+const maxConsecutiveMissedBlocks = 50;
+const maxLastForgedHeightDiff = 260000;
 
 export class DelegatesInfo {
 	private readonly chain: Chain;
@@ -192,6 +194,15 @@ export class DelegatesInfo {
 			const missedForgerAddress = expectedForgingAddresses[index];
 			const missedForger = await stateStore.account.get(missedForgerAddress);
 			missedForger.asset.delegate.consecutiveMissedBlocks += 1;
+			// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
+			if (
+				missedForger.asset.delegate.consecutiveMissedBlocks >
+					maxConsecutiveMissedBlocks &&
+				blockHeader.height - missedForger.asset.delegate.lastForgedHeight >
+					maxLastForgedHeightDiff
+			) {
+				missedForger.asset.delegate.isBanned = true;
+			}
 			stateStore.account.set(missedForgerAddress, missedForger);
 		}
 		// Reset consecutive missed block
