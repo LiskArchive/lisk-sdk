@@ -173,7 +173,6 @@ export class MerkleTree {
 		const allNodes = this.getData();
 		for (let i = 0; i < allNodes.length; i += 1) {
 			const currentNode = allNodes[i];
-			// const idx = binaryString(currentNode.nodeIndex, this._getHeight() - currentNode.layerIndex);
 			if (!(currentNode.layerIndex in structure)) {
 				structure[currentNode.layerIndex] = [currentNode];
 			} else {
@@ -186,6 +185,205 @@ export class MerkleTree {
 		}
 
 		return structure;
+	}
+
+	public generatePath(_queryData: ReadonlyArray<Buffer>): Proof {
+		if (this._width === 1) {
+			return [];
+		}
+		const treeStructure = this.getStructure();
+		const path = [];
+		// Get full node info of all query nodes
+		const queryNodes = [];
+		for (let i = 0; i < _queryData.length; i += 1) {
+			try {
+				const queryNode = this.getNode(_queryData[i]);
+				queryNodes.push(queryNode);
+			} catch (err) {
+				queryNodes.push(undefined);
+			}
+		}
+		let currentNode: NodeInfo | undefined;
+		// Iterate through query nodes in order
+		for (let j = 0; j < queryNodes.length; j += 1) {
+			currentNode = queryNodes[j];
+			// Query node does not exist in tree
+			if (!currentNode) {
+				queryNodes.splice(j, 1);
+				// eslint-disable-next-line
+				continue;
+			}
+			// Find path for query node until it reaches root hash by traversing through tree layers
+			while (currentNode.hash.compare(this._root) !== 0) {
+				// Current layer has even # of nodes
+				if (treeStructure[currentNode.layerIndex].length % 2 === 0) {
+					const pairInfo =
+						currentNode.nodeIndex % 2 === 0
+							? {
+									direction: NodeSide.RIGHT,
+									hash:
+										treeStructure[currentNode.layerIndex][
+											currentNode.nodeIndex + 1
+										].hash,
+							  }
+							: {
+									direction: NodeSide.LEFT,
+									hash:
+										treeStructure[currentNode.layerIndex][
+											currentNode.nodeIndex - 1
+										].hash,
+							  };
+					path.push(pairInfo);
+					const leftHashBuffer =
+						pairInfo.direction === NodeSide.LEFT
+							? pairInfo.hash
+							: currentNode.hash;
+					const rightHashBuffer =
+						pairInfo.direction === NodeSide.LEFT
+							? currentNode.hash
+							: pairInfo.hash;
+					const parentNodeHash = hash(
+						Buffer.concat(
+							[BRANCH_PREFIX, leftHashBuffer, rightHashBuffer],
+							BRANCH_PREFIX.length +
+								leftHashBuffer.length +
+								rightHashBuffer.length,
+						),
+					);
+					currentNode = this.getNode(parentNodeHash);
+				} else {
+					// Current layer has odd # odd of nodes
+					let currentLayer = treeStructure[currentNode.layerIndex];
+
+					// If there is only one node in the current layer
+					if (currentLayer.length === 1) {
+						// Find the next lower layer with odd number of nodes
+						let currentLayerIndex = currentNode.layerIndex - 1;
+						while (
+							currentLayerIndex >= 0 &&
+							treeStructure[currentLayerIndex].length % 2 === 0
+						) {
+							currentLayerIndex -= 1;
+						}
+						currentLayer = treeStructure[currentLayerIndex];
+						const lastNodeOfPreviousOddLayer = {
+							direction: NodeSide.RIGHT,
+							hash: currentLayer[currentLayer.length - 1].hash,
+						};
+						path.push(lastNodeOfPreviousOddLayer);
+						const parentNodeHash = hash(
+							Buffer.concat(
+								[
+									BRANCH_PREFIX,
+									currentNode.hash,
+									lastNodeOfPreviousOddLayer.hash,
+								],
+								BRANCH_PREFIX.length +
+									currentNode.hash.length +
+									lastNodeOfPreviousOddLayer.hash.length,
+							),
+						);
+						currentNode = this.getNode(parentNodeHash);
+					}
+					// If there is more than one node and the current node is not the last node in the layer
+					else if (
+						currentNode.hash.compare(
+							currentLayer[currentLayer.length - 1].hash,
+						) !== 0
+					) {
+						const pairInfo =
+							currentNode.nodeIndex % 2 === 0
+								? {
+										direction: NodeSide.RIGHT,
+										hash: currentLayer[currentNode.nodeIndex + 1].hash,
+								  }
+								: {
+										direction: NodeSide.LEFT,
+										hash: currentLayer[currentNode.nodeIndex - 1].hash,
+								  };
+						path.push(pairInfo);
+						const leftHashBuffer =
+							pairInfo.direction === NodeSide.LEFT
+								? pairInfo.hash
+								: currentNode.hash;
+						const rightHashBuffer =
+							pairInfo.direction === NodeSide.LEFT
+								? currentNode.hash
+								: pairInfo.hash;
+						const parentNodeHash = hash(
+							Buffer.concat(
+								[BRANCH_PREFIX, leftHashBuffer, rightHashBuffer],
+								BRANCH_PREFIX.length +
+									leftHashBuffer.length +
+									rightHashBuffer.length,
+							),
+						);
+						currentNode = this.getNode(parentNodeHash);
+					}
+					// If current layer has more than one node
+					else {
+						// Find the next higher layer with odd number of nodes
+						let currentUpperLayerIndex = currentNode.layerIndex + 1;
+						while (
+							currentUpperLayerIndex < this._getHeight() &&
+							treeStructure[currentUpperLayerIndex].length % 2 === 0
+						) {
+							currentUpperLayerIndex += 1;
+						}
+						currentLayer = treeStructure[currentUpperLayerIndex];
+						// Pair the last node in the layer
+						const pairInfo = {
+							direction: NodeSide.LEFT,
+							hash: currentLayer[currentLayer.length - 1].hash,
+						};
+						const parentNodeHash = hash(
+							Buffer.concat(
+								[BRANCH_PREFIX, pairInfo.hash, currentNode.hash],
+								BRANCH_PREFIX.length +
+									pairInfo.hash.length +
+									currentNode.hash.length,
+							),
+						);
+						if (parentNodeHash.toString('binary') in this._hashToValueMap) {
+							currentNode = this.getNode(parentNodeHash);
+							path.push(pairInfo);
+						} else {
+							// TODO: Optimitize
+							// If correct parent node not found, traverse down the tree instead, this happens in specific cases such as the 7 leaf tree
+							// Find the next lower layer with odd number of nodes
+							let currentLowerLayerIndex = currentNode.layerIndex - 1;
+							while (
+								currentLowerLayerIndex >= 0 &&
+								treeStructure[currentLowerLayerIndex].length % 2 === 0
+							) {
+								currentLowerLayerIndex -= 1;
+							}
+							currentLayer = treeStructure[currentLowerLayerIndex];
+							const lastNodeOfPreviousOddLayer = {
+								direction: NodeSide.RIGHT,
+								hash: currentLayer[currentLayer.length - 1].hash,
+							};
+							path.push(lastNodeOfPreviousOddLayer);
+							const lowerBranchNodeHash = hash(
+								Buffer.concat(
+									[
+										BRANCH_PREFIX,
+										currentNode.hash,
+										lastNodeOfPreviousOddLayer.hash,
+									],
+									BRANCH_PREFIX.length +
+										currentNode.hash.length +
+										lastNodeOfPreviousOddLayer.hash.length,
+								),
+							);
+							currentNode = this.getNode(lowerBranchNodeHash);
+						}
+					}
+				} // end of odd nodes
+			} // end of while not root
+		} // end of looping through query nodes
+
+		return path;
 	}
 
 	public clear(): void {
