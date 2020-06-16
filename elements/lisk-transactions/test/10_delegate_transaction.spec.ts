@@ -21,11 +21,12 @@ import {
 } from '../src/10_delegate_transaction';
 import { validDelegateAccount } from '../fixtures';
 import * as fixtures from '../fixtures/transaction_network_id_and_change_order/delegate_transaction_validate.json';
-import { Account } from '../src/types';
+import { Account, BlockHeader, AccountAsset } from '../src/types';
 import { BaseTransaction } from '../src';
 
 describe('Delegate registration transaction class', () => {
 	const testCase = fixtures.testCases[0];
+	const lastBlockHeight = 200;
 
 	let validTestTransaction: DelegateTransaction;
 	let store: StateStoreMock;
@@ -56,7 +57,9 @@ describe('Delegate registration transaction class', () => {
 
 		sender = validDelegateAccountObj;
 
-		store = new StateStoreMock([sender]);
+		store = new StateStoreMock([sender], {
+			lastBlockHeader: { height: lastBlockHeight } as BlockHeader,
+		});
 
 		jest.spyOn(store.account, 'get');
 		jest.spyOn(store.account, 'set');
@@ -201,6 +204,20 @@ describe('Delegate registration transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].dataPath).toBe('.asset.username');
+		});
+
+		it('should set lastForgedHeight to the lastBlock height + 1', async () => {
+			store.account.set(
+				sender.address,
+				defaultAccount({ address: sender.address }),
+			);
+			await (validTestTransaction as any).applyAsset(store);
+			const updatedSender = await store.account.get<AccountAsset>(
+				sender.address,
+			);
+			expect(updatedSender.asset.delegate.lastForgedHeight).toEqual(
+				lastBlockHeight + 1,
+			);
 		});
 	});
 });
