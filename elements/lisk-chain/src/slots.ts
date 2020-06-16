@@ -50,9 +50,7 @@ export class Slots {
 		const slotGensisTimeOffset = slot * this._interval;
 
 		return (
-			(Math.floor(this._genesisTime.getTime() / SEC_IN_MS) +
-				slotGensisTimeOffset) *
-			SEC_IN_MS
+			Math.floor(this._genesisTime.getTime() / SEC_IN_MS) + slotGensisTimeOffset
 		);
 	}
 

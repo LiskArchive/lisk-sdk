@@ -38,8 +38,6 @@ import {
 } from './data_access';
 import { DelegateConfig } from '../../../types';
 
-const SEC_IN_MS = 1000;
-
 interface HashOnionConfig {
 	readonly count: number;
 	readonly distance: number;
@@ -351,7 +349,8 @@ export class Forger {
 		const currentSlotTime = this._chainModule.slots.getSlotTime(currentSlot);
 
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
-		const waitThreshold = this._config.forging.waitThreshold * 1000;
+
+		const { waitThreshold } = this._config.forging;
 		const { lastBlock } = this._chainModule;
 		const lastBlockSlot = this._chainModule.slots.getSlotNumber(
 			lastBlock.header.timestamp,
@@ -408,7 +407,7 @@ export class Forger {
 			return;
 		}
 
-		const timestamp = Math.floor(currentSlotTime / SEC_IN_MS);
+		const timestamp = currentSlotTime;
 
 		const previousBlock = this._chainModule.lastBlock;
 		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
