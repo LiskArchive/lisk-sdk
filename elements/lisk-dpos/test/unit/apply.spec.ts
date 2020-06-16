@@ -205,7 +205,7 @@ describe('dpos.apply()', () => {
 			);
 		});
 
-		describe('consecutiveMissedBlock', () => {
+		describe('productivity of forgers', () => {
 			let forgedDelegates: Account[];
 			let forgersList: DecodedForgersList;
 			let delegateVoteWeights: DecodedVoteWeights;
@@ -266,7 +266,7 @@ describe('dpos.apply()', () => {
 					// Act
 					await dpos.apply(block, stateStore);
 
-					expect.assertions(forgedDelegates.length);
+					expect.assertions(forgedDelegates.length + 1);
 					for (const delegate of forgedDelegates) {
 						const updatedAccount = await stateStore.account.get(
 							delegate.address,
@@ -281,6 +281,8 @@ describe('dpos.apply()', () => {
 							).toEqual(1);
 						}
 					}
+					const forger = await stateStore.account.get(forgedDelegate.address);
+					expect(forger.asset.delegate.lastForgedHeight).toEqual(block.height);
 				});
 			});
 
@@ -442,7 +444,7 @@ describe('dpos.apply()', () => {
 
 					// Act
 					await dpos.apply(block, stateStore);
-					expect.assertions(forgedDelegates.length);
+					expect.assertions(forgedDelegates.length + 1);
 					for (const delegate of forgedDelegates) {
 						const updatedAccount = await stateStore.account.get(
 							delegate.address,
@@ -451,6 +453,238 @@ describe('dpos.apply()', () => {
 							updatedAccount.asset.delegate.consecutiveMissedBlocks,
 						).toEqual(0);
 					}
+					const forger = await stateStore.account.get(
+						forgedDelegates[forgedDelegates.length - 1].address,
+					);
+					expect(forger.asset.delegate.lastForgedHeight).toEqual(block.height);
+				});
+			});
+
+			describe('when forger missed a block has 50 consecutive missed block, but forged within 260k blocks', () => {
+				it('should not ban the missed forger', async () => {
+					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
+					// Arrange
+					const lastBlock = {
+						generatorPublicKey: forgedDelegate.publicKey,
+						height: 920006,
+						timestamp: 10000270,
+					} as BlockHeader;
+					block = {
+						height: 920007,
+						timestamp: 10000290,
+						generatorPublicKey: forgedDelegate.publicKey,
+					} as BlockHeader;
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
+						forger => forger.equals(forgedDelegate.address),
+					);
+					const missedDelegate = forgedDelegates[forgerIndex - 1];
+					forgersList = {
+						forgersList: [
+							{
+								round: 8933,
+								delegates: [...forgedDelegates.map(d => d.address)],
+								standby: [],
+							},
+						],
+					};
+					delegateVoteWeights = {
+						voteWeights: [
+							{
+								round: 10,
+								delegates: forgedDelegates.map(d => ({
+									address: d.address,
+									voteWeight: d.asset.delegate.totalVotesReceived,
+								})),
+							},
+						],
+					};
+					stateStore = new StateStoreMock(
+						[
+							...forgedDelegates.map(forger => {
+								if (forger.address.equals(missedDelegate.address)) {
+									// eslint-disable-next-line no-param-reassign
+									forger.asset.delegate.lastForgedHeight =
+										block.height - 260000 + 5000;
+									// eslint-disable-next-line no-param-reassign
+									forger.asset.delegate.consecutiveMissedBlocks = 50;
+								}
+								return forger;
+							}),
+						],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+					// Act
+					await dpos.apply(block, stateStore);
+
+					const updatedMissedForger = await stateStore.account.get(
+						missedDelegate.address,
+					);
+					expect(updatedMissedForger.asset.delegate.isBanned).toBeFalse();
+					expect(
+						updatedMissedForger.asset.delegate.consecutiveMissedBlocks,
+					).toEqual(51);
+				});
+			});
+
+			describe('when forger missed a block has not forged within 260k blocks, but does not have 50 consecutive missed block', () => {
+				it('should not ban the missed forger', async () => {
+					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
+					// Arrange
+					const lastBlock = {
+						generatorPublicKey: forgedDelegate.publicKey,
+						height: 920006,
+						timestamp: 10000270,
+					} as BlockHeader;
+					block = {
+						height: 920007,
+						timestamp: 10000290,
+						generatorPublicKey: forgedDelegate.publicKey,
+					} as BlockHeader;
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
+						forger => forger.equals(forgedDelegate.address),
+					);
+					const missedDelegate = forgedDelegates[forgerIndex - 1];
+					forgersList = {
+						forgersList: [
+							{
+								round: 8933,
+								delegates: [...forgedDelegates.map(d => d.address)],
+								standby: [],
+							},
+						],
+					};
+					delegateVoteWeights = {
+						voteWeights: [
+							{
+								round: 10,
+								delegates: forgedDelegates.map(d => ({
+									address: d.address,
+									voteWeight: d.asset.delegate.totalVotesReceived,
+								})),
+							},
+						],
+					};
+					stateStore = new StateStoreMock(
+						[
+							...forgedDelegates.map(forger => {
+								if (forger.address.equals(missedDelegate.address)) {
+									// eslint-disable-next-line no-param-reassign
+									forger.asset.delegate.lastForgedHeight =
+										block.height - 260000 - 1;
+									// eslint-disable-next-line no-param-reassign
+									forger.asset.delegate.consecutiveMissedBlocks = 40;
+								}
+								return forger;
+							}),
+						],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+					// Act
+					await dpos.apply(block, stateStore);
+
+					const updatedMissedForger = await stateStore.account.get(
+						missedDelegate.address,
+					);
+					expect(updatedMissedForger.asset.delegate.isBanned).toBeFalse();
+					expect(
+						updatedMissedForger.asset.delegate.consecutiveMissedBlocks,
+					).toEqual(41);
+				});
+			});
+
+			describe('when forger missed a block has 50 consecutive missed block, and not forged within 260k blocks', () => {
+				it('should ban the missed forger', async () => {
+					const forgedDelegate = forgedDelegates[forgedDelegates.length - 1];
+					// Arrange
+					const lastBlock = {
+						generatorPublicKey: forgedDelegate.publicKey,
+						height: 920006,
+						timestamp: 10000270,
+					} as BlockHeader;
+					block = {
+						height: 920007,
+						timestamp: 10000290,
+						generatorPublicKey: forgedDelegate.publicKey,
+					} as BlockHeader;
+					const forgerIndex = forgersList.forgersList[0].delegates.findIndex(
+						forger => forger.equals(forgedDelegate.address),
+					);
+					const missedDelegate = forgedDelegates[forgerIndex - 1];
+					forgersList = {
+						forgersList: [
+							{
+								round: 8933,
+								delegates: [...forgedDelegates.map(d => d.address)],
+								standby: [],
+							},
+						],
+					};
+					delegateVoteWeights = {
+						voteWeights: [
+							{
+								round: 10,
+								delegates: forgedDelegates.map(d => ({
+									address: d.address,
+									voteWeight: d.asset.delegate.totalVotesReceived,
+								})),
+							},
+						],
+					};
+					stateStore = new StateStoreMock(
+						[
+							...forgedDelegates.map(forger => {
+								if (forger.address.equals(missedDelegate.address)) {
+									// eslint-disable-next-line no-param-reassign
+									forger.asset.delegate.lastForgedHeight =
+										block.height - 260000 - 1;
+									// eslint-disable-next-line no-param-reassign
+									forger.asset.delegate.consecutiveMissedBlocks = 50;
+								}
+								return forger;
+							}),
+						],
+						{
+							[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+								forgerListSchema,
+								forgersList,
+							),
+							[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: codec.encode(
+								voteWeightsSchema,
+								delegateVoteWeights,
+							),
+						},
+						{ lastBlockHeaders: [lastBlock] },
+					);
+					// Act
+					await dpos.apply(block, stateStore);
+
+					const updatedMissedForger = await stateStore.account.get(
+						missedDelegate.address,
+					);
+					expect(updatedMissedForger.asset.delegate.isBanned).toBeTrue();
+					expect(
+						updatedMissedForger.asset.delegate.consecutiveMissedBlocks,
+					).toEqual(51);
 				});
 			});
 		});

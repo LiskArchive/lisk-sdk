@@ -50,7 +50,7 @@ describe('chain', () => {
 			'200000000', // Milestone 3
 			'100000000', // Milestone 4
 		],
-		totalAmount: '10000000000000000',
+		totalAmount: BigInt('10000000000000000'),
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};

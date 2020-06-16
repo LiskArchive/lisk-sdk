@@ -78,7 +78,7 @@ export const signMultiSignatureTransaction = (options: {
 		passphrase,
 	);
 
-	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'hex');
+	const networkIdentifierBytes = Buffer.from(networkIdentifier, 'base64');
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifierBytes,
 		transaction.getSigningBytes(),
