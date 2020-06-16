@@ -13,10 +13,6 @@
  *
  */
 
-// Largest possible number which can be stored in eight bytes.
-// Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
-export const MAX_EIGHT_BYTE_NUMBER = '18446744073709551615';
-export const MAX_PUBLIC_KEY_LENGTH = 32;
 export const MAX_SINT32 = 2147483647; // (2 ** (32 - 1)) + 1 * -1
 export const MIN_SINT32 = MAX_SINT32 * -1; // ((2 ** (32 - 1)) - 1) * -1
 export const MAX_UINT32 = 4294967295; // (2 ** 32) - 1

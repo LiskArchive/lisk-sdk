@@ -17,7 +17,7 @@ import {
 	reportMisbehavior,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
-import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -122,7 +122,7 @@ export default class PoMCommand extends BaseCommand {
 			header2: header2Str,
 		} = args as Args;
 
-		if (!isValidNonce(nonce)) {
+		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
@@ -132,7 +132,7 @@ export default class PoMCommand extends BaseCommand {
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 
-		if (!isValidFee(normalizedFee)) {
+		if (!isNumberString(normalizedFee) || !isUInt64(BigInt(normalizedFee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 

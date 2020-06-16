@@ -17,11 +17,8 @@ import {
 	castVotes,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
-import {
-	isValidFee,
-	isValidNonce,
-	validateAddress,
-} from '@liskhq/lisk-validator';
+import { isUInt64, isNumberString } from '@liskhq/lisk-validator';
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -57,7 +54,9 @@ interface Args {
 
 const validateAddresses = (inputs: ReadonlyArray<RawAssetVote>) => {
 	for (const rawVoteAsset of inputs) {
-		validateAddress(rawVoteAsset.delegateAddress);
+		if (hexToBuffer(rawVoteAsset.delegateAddress).length !== 20) {
+			throw new Error('Invalid address length');
+		}
 	}
 
 	return inputs;
@@ -109,7 +108,7 @@ export default class VoteCommand extends BaseCommand {
 
 		const { nonce, fee } = args as Args;
 
-		if (!isValidNonce(nonce)) {
+		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
@@ -119,7 +118,7 @@ export default class VoteCommand extends BaseCommand {
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 
-		if (!isValidFee(normalizedFee)) {
+		if (!isNumberString(normalizedFee) || !isUInt64(BigInt(normalizedFee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
@@ -149,7 +148,10 @@ export default class VoteCommand extends BaseCommand {
 				String(Math.abs(numberAmount)),
 			);
 
-			if (!isValidFee(normalizedAmount)) {
+			if (
+				!isNumberString(normalizedAmount) ||
+				!isUInt64(BigInt(normalizedAmount))
+			) {
 				throw new ValidationError(
 					'Enter a valid vote amount in number string format.',
 				);

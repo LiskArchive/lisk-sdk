@@ -18,7 +18,7 @@ import {
 	registerMultisignature,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
-import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -109,7 +109,7 @@ export default class MultisignatureCommand extends BaseCommand {
 			this.userConfig.api.network,
 		);
 
-		if (!isValidNonce(nonce)) {
+		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
@@ -119,7 +119,7 @@ export default class MultisignatureCommand extends BaseCommand {
 
 		const fee = transactionUtils.convertLSKToBeddows(feeSource);
 
-		if (!isValidFee(fee)) {
+		if (!isNumberString(fee) || !isUInt64(BigInt(fee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 

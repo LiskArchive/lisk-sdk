@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	gte as isVersionGte,
 	gtr as isGreaterThanVersionInRange,
@@ -23,33 +22,13 @@ import {
 import validator from 'validator';
 
 import {
-	MAX_EIGHT_BYTE_NUMBER,
 	MAX_SINT32,
 	MAX_SINT64,
-	MAX_PUBLIC_KEY_LENGTH,
 	MAX_UINT32,
 	MAX_UINT64,
 	MIN_SINT32,
 	MIN_SINT64,
 } from './constants';
-
-export const isNullCharacterIncluded = (input: string): boolean =>
-	new RegExp(/\0|\\u0000|\\x00/).test(input);
-
-export const isSignature = (signature: string): boolean =>
-	/^[a-f0-9]{128}$/i.test(signature);
-
-export const isGreaterThanZero = (amount: bigint): boolean =>
-	amount > BigInt(0);
-
-export const isGreaterThanMaxTransactionAmount = (amount: bigint): boolean =>
-	amount > MAX_SINT64;
-
-export const isGreaterThanMaxUInt64 = (amount: bigint): boolean =>
-	amount > MAX_UINT64;
-
-export const isGreaterThanMaxTransactionId = (id: bigint): boolean =>
-	id > BigInt(MAX_EIGHT_BYTE_NUMBER);
 
 export const isNumberString = (num: unknown): boolean => {
 	if (typeof num !== 'string') {
@@ -59,30 +38,8 @@ export const isNumberString = (num: unknown): boolean => {
 	return validator.isInt(num);
 };
 
-export const isPositiveNumberString = (num: unknown): boolean => {
-	if (typeof num !== 'string') {
-		return false;
-	}
-
-	return /^[0-9]+$/g.test(num);
-};
-
 export const isValidInteger = (num: unknown): boolean =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
-
-export const hasNoDuplicate = (values: ReadonlyArray<string>): boolean => {
-	const unique = [...new Set(values)];
-
-	return unique.length === values.length;
-};
-
-export const isStringBufferLessThan = (data: unknown, max: number): boolean => {
-	if (typeof data !== 'string') {
-		return false;
-	}
-
-	return Buffer.from(data).length <= max;
-};
 
 export const isHexString = (data: unknown): boolean => {
 	if (typeof data !== 'string') {
@@ -143,72 +100,12 @@ export const isIP = (data: string): boolean => isIPV4(data) || isIPV6(data);
 
 export const isPort = (port: string): boolean => validator.isPort(port);
 
-export const validatePublicKeysForDuplicates = (
-	publicKeys: ReadonlyArray<string>,
-): boolean =>
-	publicKeys.every((element, index) => {
-		if (publicKeys.slice(index + 1).includes(element)) {
-			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
-		}
-
-		return true;
-	});
-
 export const isStringEndsWith = (
 	target: string,
 	suffixes: ReadonlyArray<string>,
 ): boolean => suffixes.some(suffix => target.endsWith(suffix));
 
 export const isVersionMatch = isVersionGte;
-
-export const validatePublicKey = (publicKey: string): boolean => {
-	const publicKeyBuffer = hexToBuffer(publicKey);
-	if (publicKeyBuffer.length !== MAX_PUBLIC_KEY_LENGTH) {
-		throw new Error(
-			`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
-		);
-	}
-
-	return true;
-};
-
-export const validatePublicKeys = (
-	publicKeys: ReadonlyArray<string>,
-): boolean =>
-	publicKeys.every(validatePublicKey) &&
-	validatePublicKeysForDuplicates(publicKeys);
-
-const ADDRESS_LENGTH = 40;
-
-export const validateAddress = (address: string): boolean => {
-	if (address.length !== ADDRESS_LENGTH) {
-		throw new Error(
-			'Address length does not match requirements. Expected 40 characters.',
-		);
-	}
-
-	if (!isHexString(address)) {
-		throw new Error('Address is not a valid hex string.');
-	}
-
-	return true;
-};
-
-export const isValidNonTransferAmount = (data: string): boolean =>
-	isNumberString(data) && data === '0';
-
-export const isValidTransferAmount = (data: string): boolean =>
-	isNumberString(data) &&
-	isGreaterThanZero(BigInt(data)) &&
-	!isGreaterThanMaxTransactionAmount(BigInt(data));
-
-export const isValidFee = (data: string): boolean =>
-	isNumberString(data) &&
-	isGreaterThanZero(BigInt(data)) &&
-	!isGreaterThanMaxUInt64(BigInt(data));
-
-export const isValidNonce = (data: string): boolean =>
-	isNumberString(data) && !isGreaterThanMaxUInt64(BigInt(data));
 
 export const isCsv = (data: string): boolean => {
 	if (typeof data !== 'string') {
@@ -222,26 +119,6 @@ export const isCsv = (data: string): boolean => {
 	}
 
 	return false;
-};
-
-const MAX_TRANSFER_ASSET_DATA_LENGTH = 64;
-
-export const isValidTransferData = (data: string): boolean =>
-	Buffer.byteLength(data, 'utf8') <= MAX_TRANSFER_ASSET_DATA_LENGTH;
-
-const NETWORK_IDENTIFIER_LENGTH = 32;
-export const validateNetworkIdentifier = (
-	networkIdentifier: string,
-): boolean => {
-	if (!networkIdentifier) {
-		throw new Error(`Network identifier can not be empty.`);
-	}
-	const networkIdentifierBuffer = hexToBuffer(networkIdentifier);
-	if (networkIdentifierBuffer.length !== NETWORK_IDENTIFIER_LENGTH) {
-		throw new Error(`Invalid network identifier length: ${networkIdentifier}`);
-	}
-
-	return true;
 };
 
 export const isString = (data: unknown): boolean => typeof data === 'string';

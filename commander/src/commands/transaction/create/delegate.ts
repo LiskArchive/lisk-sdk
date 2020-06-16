@@ -17,7 +17,7 @@ import {
 	registerDelegate,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
-import { isValidFee, isValidNonce } from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
@@ -101,7 +101,7 @@ export default class DelegateCommand extends BaseCommand {
 			this.userConfig.api.network,
 		);
 
-		if (!isValidNonce(nonce)) {
+		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
@@ -111,7 +111,7 @@ export default class DelegateCommand extends BaseCommand {
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 
-		if (!isValidFee(normalizedFee)) {
+		if (!isNumberString(normalizedFee) || isUInt64(BigInt(normalizedFee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 

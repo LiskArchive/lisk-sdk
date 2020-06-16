@@ -46,11 +46,10 @@ Object {
             "type": "string",
           },
           "previousBlockID": Object {
-            "format": "emptyString",
             "type": "string",
           },
           "reward": Object {
-            "format": "amount",
+            "format": "uint64",
             "type": "string",
           },
           "signature": Object {
@@ -89,7 +88,7 @@ Object {
               "type": "object",
             },
             "fee": Object {
-              "format": "amount",
+              "format": "uint64",
               "type": "string",
             },
             "id": Object {
@@ -97,7 +96,7 @@ Object {
               "type": "string",
             },
             "nonce": Object {
-              "format": "amount",
+              "format": "uint64",
               "type": "string",
             },
             "senderPublicKey": Object {
@@ -106,16 +105,8 @@ Object {
             },
             "signatures": Object {
               "items": Object {
-                "oneOf": Array [
-                  Object {
-                    "format": "base64",
-                    "type": "string",
-                  },
-                  Object {
-                    "format": "emptyString",
-                    "type": "string",
-                  },
-                ],
+                "format": "base64",
+                "type": "string",
               },
               "maxItems": 64,
               "minItems": 1,

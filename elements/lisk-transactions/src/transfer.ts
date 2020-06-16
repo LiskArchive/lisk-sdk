@@ -16,14 +16,7 @@ import {
 	getAddressFromPublicKey,
 	hexToBuffer,
 } from '@liskhq/lisk-cryptography';
-import {
-	isValidFee,
-	isValidNonce,
-	isValidTransferAmount,
-	validateAddress,
-	validateNetworkIdentifier,
-	validatePublicKey,
-} from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 
 import { TransferTransaction } from './8_transfer_transaction';
 import { BYTESIZES } from './constants';
@@ -60,15 +53,15 @@ const validateInputs = ({
 	fee,
 	nonce,
 }: TransferInputs): void => {
-	if (!isValidNonce(nonce)) {
+	if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
 
-	if (!isValidFee(fee)) {
+	if (!isNumberString(fee) || !isUInt64(BigInt(fee))) {
 		throw new Error('Fee must be a valid number in string format.');
 	}
 
-	if (!isValidTransferAmount(amount)) {
+	if (!isNumberString(amount) || !isUInt64(BigInt(amount))) {
 		throw new Error('Amount must be a valid number in string format.');
 	}
 
@@ -79,11 +72,15 @@ const validateInputs = ({
 	}
 
 	if (typeof recipientAddress !== 'undefined') {
-		validateAddress(recipientAddress);
+		if (hexToBuffer(recipientAddress).length !== 20) {
+			throw new Error('Invalid recipient address length');
+		}
 	}
 
 	if (typeof recipientPublicKey !== 'undefined') {
-		validatePublicKey(recipientPublicKey);
+		if (hexToBuffer(recipientPublicKey).length !== 32) {
+			throw new Error('Invalid recipient public key length');
+		}
 	}
 
 	if (
@@ -107,7 +104,9 @@ const validateInputs = ({
 		}
 	}
 
-	validateNetworkIdentifier(networkIdentifier);
+	if (hexToBuffer(networkIdentifier).length !== 32) {
+		throw new Error('Invalid network identifier length');
+	}
 };
 
 export const transfer = (inputs: TransferInputs): Partial<TransactionJSON> => {

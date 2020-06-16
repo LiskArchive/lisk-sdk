@@ -141,7 +141,7 @@ Object {
               "milestones": Object {
                 "description": "Initial 5, and decreasing until 1",
                 "items": Object {
-                  "format": "amount",
+                  "format": "uint64",
                   "type": "string",
                 },
                 "type": "array",

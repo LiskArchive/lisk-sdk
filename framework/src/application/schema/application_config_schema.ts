@@ -123,7 +123,7 @@ export const applicationConfigSchema = {
 							type: 'array',
 							items: {
 								type: 'string',
-								format: 'amount',
+								format: 'uint64',
 							},
 							description: 'Initial 5, and decreasing until 1',
 						},
