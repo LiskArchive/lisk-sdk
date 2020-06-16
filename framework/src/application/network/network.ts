@@ -384,7 +384,7 @@ export class Network {
 				},
 				'Failed to initialize network',
 			);
-			process.exit(0);
+			throw error;
 		}
 	}
 

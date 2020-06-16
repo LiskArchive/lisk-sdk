@@ -19,6 +19,7 @@ import {
 } from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { NotFoundError } from '@liskhq/lisk-db';
 import { Logger } from '../../../../../../src/application/logger';
 import { Transport } from '../../../../../../src/application/node/transport';
 
@@ -164,7 +165,7 @@ describe('transport', () => {
 						{ height: 3, version: 1, timestamp: 1 },
 						{ height: 37, version: 1, timestamp: 1 },
 					]),
-					getTransactionsByIDs: jest.fn(),
+					getTransactionByID: jest.fn(),
 					decodeTransaction: jest.fn().mockReturnValue(transaction),
 					encode: jest.fn().mockReturnValue(encodedBlock),
 					decode: jest.fn().mockReturnValue(getGenesisBlock()),
@@ -207,7 +208,9 @@ describe('transport', () => {
 					].contains = jest.fn().mockReturnValue(false);
 					transportModule[
 						'_chainModule'
-					].dataAccess.getTransactionsByIDs = jest.fn().mockResolvedValue([]);
+					].dataAccess.getTransactionByID = jest
+						.fn()
+						.mockRejectedValue(new NotFoundError('not found'));
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -221,10 +224,13 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule._chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', () => {
-					expect(
-						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
-					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
+				it('should call transportModule._chainModule.dataAccess.getTransactionByID with query.transaction.ids as arguments', () => {
+					expect.assertions(transactionsList.length);
+					for (const tx of transactionsList) {
+						expect(
+							transportModule['_chainModule'].dataAccess.getTransactionByID,
+						).toHaveBeenCalledWith(tx.id);
+					}
 				});
 
 				it('should return array of transactions ids', () =>
@@ -243,7 +249,7 @@ describe('transport', () => {
 					].contains = jest.fn().mockReturnValue(true);
 					transportModule[
 						'_chainModule'
-					].dataAccess.getTransactionsByIDs = jest.fn();
+					].dataAccess.getTransactionByID = jest.fn();
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -257,9 +263,9 @@ describe('transport', () => {
 					}
 				});
 
-				it('should not call transportModule._chainModule.dataAccess.getTransactionsByIDs', () => {
+				it('should not call transportModule._chainModule.dataAccess.getTransactionByID', () => {
 					expect(
-						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
+						transportModule['_chainModule'].dataAccess.getTransactionByID,
 					).not.toHaveBeenCalled();
 				});
 
@@ -276,9 +282,10 @@ describe('transport', () => {
 					].contains = jest.fn().mockReturnValue(false);
 					transportModule[
 						'_chainModule'
-					].dataAccess.getTransactionsByIDs = jest
+					].dataAccess.getTransactionByID = jest
 						.fn()
-						.mockResolvedValue(transactionsList);
+						.mockResolvedValueOnce(transactionsList[0])
+						.mockResolvedValueOnce(transactionsList[1]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -292,10 +299,12 @@ describe('transport', () => {
 					}
 				});
 
-				it('should call transportModule._chainModule.dataAccess.getTransactionsByIDs with query.transaction.ids as arguments', () => {
-					expect(
-						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
-					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
+				it('should call transportModule._chainModule.dataAccess.getTransactionByID with query.transaction.ids as arguments', () => {
+					for (const transactionToCheck of transactionsList) {
+						expect(
+							transportModule['_transactionPoolModule'].contains,
+						).toHaveBeenCalledWith(transactionToCheck.id);
+					}
 				});
 
 				it('should return empty array', () => {
