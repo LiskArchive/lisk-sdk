@@ -18,20 +18,10 @@ export interface StringKeyVal {
 }
 
 /* Start P2P */
-type Modify<T, R> = Omit<T, keyof R> & R;
-export type P2PConfig = Modify<
-	p2pTypes.P2PConfig,
-	{
-		readonly advertiseAddress: boolean;
-		readonly seedPeers: ReadonlyArray<SeedPeerInfo>;
-	}
->;
-
 export interface SeedPeerInfo {
 	readonly ip: string;
 	readonly wsPort: number;
 }
-
 export interface RPCBlocksByIdData {
 	readonly blockId: string;
 }

@@ -160,7 +160,7 @@ export class Network {
 			  }))
 			: [];
 
-		const p2pConfig = {
+		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
 			nodeInfo: initialNodeInfo,
 			hostIp: this._options.hostIp,
 			blacklistedIPs,
@@ -180,7 +180,7 @@ export class Network {
 			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
-			customSchema: {
+			customRPCSchemas: {
 				peerInfo: customPeerInfoSchema,
 				nodeInfo: customNodeInfoSchema,
 			},

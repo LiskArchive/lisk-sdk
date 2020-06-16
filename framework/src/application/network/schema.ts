@@ -15,7 +15,6 @@
 import { p2pSchemas } from '@liskhq/lisk-p2p';
 
 export const customNodeInfoSchema = {
-	...p2pSchemas.nodeInfoSchema,
 	$id: '/nodeInfo/custom',
 	type: 'object',
 	properties: {
@@ -32,7 +31,6 @@ export const customNodeInfoSchema = {
 };
 
 export const customPeerInfoSchema = {
-	...p2pSchemas.peerInfoSchema,
 	$id: '/peerInfo/custom',
 	type: 'object',
 	properties: {
