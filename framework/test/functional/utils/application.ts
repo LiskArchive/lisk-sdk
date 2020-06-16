@@ -53,6 +53,8 @@ export const createApplication = async (
 };
 
 export const closeApplication = async (app: Application): Promise<void> => {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	jest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 	await app['_forgerDB'].clear();
 	await app['_blockchainDB'].clear();
 	await app.shutdown();

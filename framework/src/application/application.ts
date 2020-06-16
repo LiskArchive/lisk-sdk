@@ -317,6 +317,8 @@ export class Application {
 		} catch (error) {
 			this.logger.fatal({ err: error as Error }, 'failed to shutdown');
 		}
+
+		process.exit(errorCode);
 	}
 
 	// --------------------------------------
