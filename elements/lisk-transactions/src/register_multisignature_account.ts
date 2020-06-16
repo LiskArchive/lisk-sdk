@@ -15,10 +15,9 @@
 
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import {
-	isValidFee,
 	isValidInteger,
-	isValidNonce,
-	validateNetworkIdentifier,
+	isNumberString,
+	isUInt64,
 } from '@liskhq/lisk-validator';
 
 import { MultisignatureTransaction } from './12_multisignature_transaction';
@@ -64,11 +63,11 @@ const validateInputs = ({
 	fee,
 	nonce,
 }: ValidateMultisignatureRegistrationInput): void => {
-	if (!isValidNonce(nonce)) {
+	if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
 
-	if (!isValidFee(fee)) {
+	if (!isNumberString(fee) || !isUInt64(BigInt(fee))) {
 		throw new Error('Fee must be a valid number in string format.');
 	}
 
@@ -137,7 +136,9 @@ const validateInputs = ({
 		);
 	}
 
-	validateNetworkIdentifier(networkIdentifier);
+	if (hexToBuffer(networkIdentifier).length !== 32) {
+		throw new Error('Invalid network identifier length');
+	}
 };
 
 export const registerMultisignature = (

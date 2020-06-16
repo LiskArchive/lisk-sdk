@@ -14,7 +14,7 @@
  *
  */
 import { APIClient } from '@liskhq/lisk-api-client';
-import { validatePublicKey } from '@liskhq/lisk-validator';
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -84,7 +84,9 @@ export default class ForgingCommand extends BaseCommand {
 		} = this.parse(ForgingCommand);
 
 		const { status, publicKey } = args as Args;
-		validatePublicKey(publicKey);
+		if (hexToBuffer(publicKey).length !== 32) {
+			throw new Error('Invalid public key length');
+		}
 
 		const client = getAPIClient(this.userConfig.api);
 		const password =

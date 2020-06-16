@@ -17,12 +17,8 @@ import {
 	unlockToken,
 	utils as transactionUtils,
 } from '@liskhq/lisk-transactions';
-import {
-	isNumberString,
-	isValidFee,
-	isValidNonce,
-	validateAddress,
-} from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../../base';
@@ -69,12 +65,15 @@ const validateUnlocks = (
 	const rawAssetUnlock = [];
 	for (const unlock of unlocks) {
 		const [delegateAddress, amount, unvoteHeight] = splitInputs(unlock);
-		if (!validateAddress(delegateAddress)) {
+		if (hexToBuffer(delegateAddress).length !== 20) {
 			throw new ValidationError('Enter a valid address in LSK string format.');
 		}
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
-		if (!isValidFee(normalizedAmount)) {
+		if (
+			!isNumberString(normalizedAmount) ||
+			!isUInt64(BigInt(normalizedAmount))
+		) {
 			throw new ValidationError(
 				'Enter a valid amount in number string format.',
 			);
@@ -139,7 +138,7 @@ export default class UnlockCommand extends BaseCommand {
 
 		const { nonce, fee } = args as Args;
 
-		if (!isValidNonce(nonce)) {
+		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
@@ -149,7 +148,7 @@ export default class UnlockCommand extends BaseCommand {
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 
-		if (!isValidFee(normalizedFee)) {
+		if (!isNumberString(normalizedFee) || !isUInt64(BigInt(normalizedFee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 

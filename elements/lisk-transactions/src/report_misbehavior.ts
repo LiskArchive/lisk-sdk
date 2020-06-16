@@ -14,11 +14,7 @@
  */
 
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import {
-	isValidFee,
-	isValidNonce,
-	validateNetworkIdentifier,
-} from '@liskhq/lisk-validator';
+import { isUInt64, isNumberString } from '@liskhq/lisk-validator';
 
 import { ProofOfMisbehaviorTransaction } from './15_proof_of_misbehavior_transaction';
 import { BlockHeader, BlockHeaderJSON, TransactionJSON } from './types';
@@ -41,15 +37,17 @@ const validateInputs = ({
 	header1,
 	header2,
 }: ReportMisbehaviorInputs): void => {
-	if (!isValidNonce(nonce)) {
+	if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
 
-	if (!isValidFee(fee)) {
+	if (!isNumberString(fee) || !isUInt64(BigInt(fee))) {
 		throw new Error('Fee must be a valid number in string format.');
 	}
 
-	validateNetworkIdentifier(networkIdentifier);
+	if (hexToBuffer(networkIdentifier).length !== 32) {
+		throw new Error('Invalid network identifier length');
+	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!header1) {

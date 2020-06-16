@@ -49,7 +49,7 @@ export const genesisBlockSchema = {
 				},
 				reward: {
 					type: 'string',
-					format: 'amount',
+					format: 'uint64',
 				},
 				transactionRoot: {
 					type: 'string',
@@ -61,7 +61,6 @@ export const genesisBlockSchema = {
 				},
 				previousBlockID: {
 					type: 'string',
-					format: 'emptyString',
 				},
 				generatorPublicKey: {
 					type: 'string',
@@ -102,11 +101,11 @@ export const genesisBlockSchema = {
 					},
 					fee: {
 						type: 'string',
-						format: 'amount',
+						format: 'uint64',
 					},
 					nonce: {
 						type: 'string',
-						format: 'amount',
+						format: 'uint64',
 					},
 					senderPublicKey: {
 						type: 'string',
@@ -120,10 +119,8 @@ export const genesisBlockSchema = {
 					signatures: {
 						type: 'array',
 						items: {
-							oneOf: [
-								{ type: 'string', format: 'base64' },
-								{ type: 'string', format: 'emptyString' },
-							],
+							type: 'string',
+							format: 'base64',
 						},
 						minItems: 1,
 						maxItems: 64,
