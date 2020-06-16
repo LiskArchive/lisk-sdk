@@ -96,6 +96,25 @@ export interface NetworkConfig {
 	advertiseAddress?: boolean;
 }
 
+export interface GenesisConfig {
+	epochTime: string;
+	blockTime: number;
+	maxPayloadLength: number;
+	rewards: {
+		milestones: string[];
+		offset: number;
+		distance: number;
+	};
+}
+
+export interface ApplicationConstants {
+	[key: string]: {} | string | number | undefined;
+	activeDelegates: number;
+	standbyDelegates: number;
+	totalAmount: string;
+	delegateListRoundOffset: number;
+}
+
 export interface ApplicationConfig {
 	label: string;
 	version: string;
@@ -119,22 +138,7 @@ export interface ApplicationConfig {
 		fileLogLevel: string;
 		consoleLogLevel: string;
 	};
-	genesisConfig: {
-		epochTime: string;
-		blockTime: number;
-		maxPayloadLength: number;
-		rewards: {
-			milestones: string[];
-			offset: number;
-			distance: number;
-		};
-	};
-	constants: {
-		[key: string]: {} | string | number | undefined;
-		activeDelegates: number;
-		standbyDelegates: number;
-		totalAmount: string;
-		delegateListRoundOffset: number;
-	};
+	genesisConfig: GenesisConfig;
+	constants: ApplicationConstants;
 	modules: ModulesOptions;
 }

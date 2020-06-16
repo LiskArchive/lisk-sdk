@@ -171,25 +171,25 @@ export const genesisBlock = (): Block => {
 	const block = {
 		header: {
 			...genesisBlockJSON.header,
-			id: Buffer.from(genesisBlockJSON.header.id, 'hex'),
+			id: Buffer.from(genesisBlockJSON.header.id, 'base64'),
 			previousBlockID: Buffer.alloc(0),
 			reward: BigInt(genesisBlockJSON.header.reward),
 			transactionRoot: Buffer.from(
 				genesisBlockJSON.header.transactionRoot,
-				'hex',
+				'base64',
 			),
 			generatorPublicKey: Buffer.from(
 				genesisBlockJSON.header.generatorPublicKey,
-				'hex',
+				'base64',
 			),
-			signature: Buffer.from(genesisBlockJSON.header.signature, 'hex'),
+			signature: Buffer.from(genesisBlockJSON.header.signature, 'base64'),
 			asset: {
 				maxHeightPreviouslyForged:
 					genesisBlockJSON.header.asset.maxHeightPreviouslyForged,
 				maxHeightPrevoted: genesisBlockJSON.header.asset.maxHeightPrevoted,
 				seedReveal: Buffer.from(
 					genesisBlockJSON.header.asset.seedReveal,
-					'hex',
+					'base64',
 				),
 			},
 		},
@@ -197,15 +197,15 @@ export const genesisBlock = (): Block => {
 			if (tx.type === 8) {
 				return new TransferTransaction({
 					...tx,
-					id: Buffer.from(tx.id, 'hex'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					id: Buffer.from(tx.id, 'base64'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
 					nonce: BigInt(tx.nonce),
 					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
+					signatures: tx.signatures.map(s => Buffer.from(s, 'base64')),
 					asset: {
 						recipientAddress: Buffer.from(
 							tx.asset.recipientAddress as string,
-							'hex',
+							'base64',
 						),
 						amount: BigInt(tx.asset.amount),
 						data: '',
@@ -215,24 +215,28 @@ export const genesisBlock = (): Block => {
 			if (tx.type === 10) {
 				return new DelegateTransaction({
 					...tx,
-					id: Buffer.from(tx.id, 'hex'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					id: Buffer.from(tx.id, 'base64'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
 					nonce: BigInt(tx.nonce),
 					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map((s: string) => Buffer.from(s, 'hex')),
+					signatures: tx.signatures.map((s: string) =>
+						Buffer.from(s, 'base64'),
+					),
 				} as any);
 			}
 			if (tx.type === 13) {
 				return new VoteTransaction({
 					...tx,
-					id: Buffer.from(tx.id, 'hex'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
+					id: Buffer.from(tx.id, 'base64'),
+					senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
 					nonce: BigInt(tx.nonce),
 					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map((s: string) => Buffer.from(s, 'hex')),
+					signatures: tx.signatures.map((s: string) =>
+						Buffer.from(s, 'base64'),
+					),
 					asset: {
 						votes: tx.asset.votes?.map((v: any) => ({
-							delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
+							delegateAddress: Buffer.from(v.delegateAddress, 'base64'),
 							amount: BigInt(v.amount),
 						})),
 					},

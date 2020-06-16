@@ -90,7 +90,9 @@ export const validateBlockProperties = (
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (appliedTransactions.has(transaction.id)) {
 			throw new Error(
-				`Encountered duplicate transaction: ${transaction.id.toString('hex')}`,
+				`Encountered duplicate transaction: ${transaction.id.toString(
+					'base64',
+				)}`,
 			);
 		}
 		transactionIds.push(transaction.id);

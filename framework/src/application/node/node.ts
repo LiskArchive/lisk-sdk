@@ -26,15 +26,10 @@ import {
 	Job,
 	events as txPoolEvents,
 } from '@liskhq/lisk-transaction-pool';
-import {
-	BaseTransaction,
-	TransferTransaction,
-	VoteTransaction,
-	DelegateTransaction,
-} from '@liskhq/lisk-transactions';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Sequence } from './utils/sequence';
-import { Forger, ForgingStatus } from './forger';
+import { Forger, ForgingStatus, RegisteredDelegate } from './forger';
 import {
 	Transport,
 	HandleRPCGetTransactionsReturn,
@@ -48,7 +43,7 @@ import {
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
 import { Logger } from '../logger';
-import { DelegateConfig, EventPostTransactionData } from '../../types';
+import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
@@ -64,123 +59,6 @@ const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
 const { EVENT_ROUND_CHANGED } = dposConstants;
 const { EVENT_TRANSACTION_REMOVED } = txPoolEvents;
 
-interface Payload {
-	id: string;
-	senderPublicKey: string;
-	nonce: string;
-	fee: string;
-	signatures: string[];
-}
-
-interface TransferPayload extends Payload {
-	type: 8;
-	asset: {
-		recipientAddress: string;
-		amount: string;
-	};
-}
-
-interface DelegatePayload extends Payload {
-	type: 10;
-	asset: {
-		username: string;
-	};
-}
-
-interface VotePayload extends Payload {
-	type: 13;
-	asset: {
-		votes: {
-			delegateAddress: string;
-			amount: string;
-		}[];
-	};
-}
-
-export interface GenesisBlockJSON {
-	readonly communityIdentifier: string;
-	readonly header: {
-		readonly id: string;
-		readonly version: number;
-		readonly timestamp: number;
-		readonly height: number;
-		readonly previousBlockID: string;
-		readonly transactionRoot: string;
-		readonly generatorPublicKey: string;
-		readonly reward: string;
-		readonly asset: {
-			seedReveal: string;
-			maxHeightPreviouslyForged: number;
-			maxHeightPrevoted: number;
-		};
-		readonly signature: string;
-	};
-	readonly payload: Array<TransferPayload | DelegatePayload | VotePayload>;
-}
-
-const convertGenesisBlock = (genesis: GenesisBlockJSON): Block => {
-	const header = {
-		...genesis.header,
-		id: Buffer.from(genesis.header.id, 'hex'),
-		previousBlockID: Buffer.alloc(0),
-		generatorPublicKey: Buffer.from(genesis.header.generatorPublicKey, 'hex'),
-		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'hex'),
-		reward: BigInt(genesis.header.reward),
-		signature: Buffer.from(genesis.header.signature, 'hex'),
-		asset: {
-			...genesis.header.asset,
-			seedReveal: Buffer.from(genesis.header.asset.seedReveal, 'hex'),
-		},
-	};
-	const payload = genesis.payload.map(tx => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const txHeader = {
-			id: Buffer.from(tx.id, 'hex'),
-			type: tx.type,
-			senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-			nonce: BigInt(tx.nonce),
-			fee: BigInt(tx.fee),
-			signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-		};
-		if (tx.type === 8) {
-			return new TransferTransaction({
-				...txHeader,
-				asset: {
-					recipientAddress: Buffer.from(tx.asset.recipientAddress, 'hex'),
-					data: '',
-					amount: BigInt(tx.asset.amount),
-				},
-			});
-		}
-		if (tx.type === 10) {
-			return new DelegateTransaction({
-				...txHeader,
-				asset: {
-					username: tx.asset.username,
-				},
-			});
-		}
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (tx.type === 13) {
-			return new VoteTransaction({
-				...txHeader,
-				asset: {
-					votes: tx.asset.votes.map(v => ({
-						delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
-						amount: BigInt(v.amount),
-					})),
-				},
-			});
-		}
-		throw new Error('Unexpected payload type');
-	});
-
-	return {
-		header,
-		payload,
-	};
-};
-
 export interface NodeConstants {
 	readonly maxPayloadLength: number;
 	readonly activeDelegates: number;
@@ -191,7 +69,7 @@ export interface NodeConstants {
 		readonly offset: number;
 		readonly milestones: string[];
 	};
-	readonly totalAmount: string;
+	readonly totalAmount: bigint;
 	readonly epochTime: string;
 	readonly blockTime: number;
 }
@@ -199,9 +77,10 @@ export interface NodeConstants {
 export interface Options {
 	readonly label: string;
 	readonly rootPath: string;
+	readonly communityIdentifier: string;
 	readonly forging: {
 		readonly waitThreshold: number;
-		readonly delegates: DelegateConfig[];
+		readonly delegates: RegisteredDelegate[];
 		readonly force?: boolean;
 		readonly defaultPassword?: string;
 	};
@@ -209,7 +88,7 @@ export interface Options {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	genesisBlock: GenesisBlockJSON;
+	genesisBlock: Block;
 }
 
 interface NodeConstructor {
@@ -402,7 +281,7 @@ export class Node {
 				params: { publicKey: string; password: string; forging: boolean };
 			}): Promise<ForgingStatus> =>
 				this._forger.updateForgingStatus(
-					action.params.publicKey,
+					Buffer.from(action.params.publicKey, 'base64'),
 					action.params.password,
 					action.params.forging,
 				),
@@ -573,14 +452,13 @@ export class Node {
 	}
 
 	private _initModules(): void {
-		const genesisBlock = convertGenesisBlock(this._options.genesisBlock);
 		this._networkIdentifier = getNetworkIdentifier(
-			genesisBlock.header.transactionRoot,
-			this._options.genesisBlock.communityIdentifier,
+			this._options.genesisBlock.header.transactionRoot,
+			this._options.communityIdentifier,
 		);
 		this._chain = new Chain({
 			db: this._blockchainDB,
-			genesisBlock,
+			genesisBlock: this._options.genesisBlock,
 			registeredTransactions: this._options.registeredTransactions,
 			accountAsset: {
 				schema: accountAssetSchema,

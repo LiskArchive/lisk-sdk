@@ -289,7 +289,7 @@ export class Dpos {
 		}
 
 		debug('New block SeedReveal is not the preimage of last block', {
-			newBlockSeedReveal: newBlockSeedRevealBuffer.toString('hex'),
+			newBlockSeedReveal: newBlockSeedRevealBuffer.toString('base64'),
 			previousBlockSeedReveal,
 			delegate: blockHeader.generatorPublicKey,
 			height: blockHeader.height,

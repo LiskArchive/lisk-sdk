@@ -18,12 +18,18 @@ import { getNetworkIdentifierWithInput } from '../../src/utils/network_identifie
 
 describe('network identifier utils', () => {
 	describe('getNetworkIdentifierWithInput', () => {
-		const mainnetNetworkIdentifier =
-			'5a59db36ca7de3cbb4bf27f95665e86952ccc66f8bf7ce8f6f6b3561b920f801';
-		const testnetNetworkIdentifier =
-			'10f236f6d00a8f565bbe43c4ef0e3818f488bf4abefbe041155a3d019ef9a947';
-		const defaultNetworkIdentifier =
-			'7777777777777777777777777777777777777777777777777777777777777777';
+		const mainnetNetworkIdentifier = Buffer.from(
+			'5a59db36ca7de3cbb4bf27f95665e86952ccc66f8bf7ce8f6f6b3561b920f801',
+			'hex',
+		).toString('base64');
+		const testnetNetworkIdentifier = Buffer.from(
+			'10f236f6d00a8f565bbe43c4ef0e3818f488bf4abefbe041155a3d019ef9a947',
+			'hex',
+		).toString('base64');
+		const defaultNetworkIdentifier = Buffer.from(
+			'7777777777777777777777777777777777777777777777777777777777777777',
+			'hex',
+		).toString('base64');
 
 		describe('when input main is defined', () => {
 			it('should return mainnet network identifier', () => {
@@ -49,16 +55,18 @@ describe('network identifier utils', () => {
 			});
 		});
 
-		describe('when input network identifier is not valid hex string', () => {
+		describe('when input network identifier is not valid base64 string', () => {
 			it('should throw error', () => {
 				let error;
 				try {
-					getNetworkIdentifierWithInput('zzz', 'main');
+					getNetworkIdentifierWithInput('!!!non-base64', 'main');
 				} catch (err) {
 					error = err;
 				}
 
-				expect(error.message).to.eql('Network identifier must be hex string');
+				expect(error.message).to.eql(
+					'Network identifier must be base64 string',
+				);
 			});
 		});
 
