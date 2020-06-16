@@ -40,18 +40,17 @@ describe('Public transaction related P2P endpoints', () => {
 	});
 
 	describe('getTransactions', () => {
-		it('should be rejected if unknown transaction is queried', async () => {
-			await expect(
-				p2p.requestFromPeer(
-					{
-						procedure: 'getTransactions',
-						data: {
-							transactionIds: [getRandomBytes(32).toString('base64')],
-						},
+		it('should return empty array if unknown transaction is queried', async () => {
+			const { data } = (await p2p.requestFromPeer(
+				{
+					procedure: 'getTransactions',
+					data: {
+						transactionIds: [getRandomBytes(32).toString('base64')],
 					},
-					getPeerID(app),
-				),
-			).rejects.toThrow('does not exist');
+				},
+				getPeerID(app),
+			)) as { data: { transactions: string[] } };
+			expect(data.transactions).toHaveLength(0);
 		});
 
 		it('should return transaction if known transaction id is queried', async () => {

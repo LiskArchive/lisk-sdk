@@ -343,9 +343,17 @@ export class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase = await this._chainModule.dataAccess.getTransactionsByIDs(
-				idsNotInPool,
-			);
+			const transactionsFromDatabase: BaseTransaction[] = [];
+			for (const id of idsNotInPool) {
+				try {
+					const tx = await this._chainModule.dataAccess.getTransactionByID(id);
+					transactionsFromDatabase.push(tx);
+				} catch (error) {
+					if (!(error instanceof NotFoundError)) {
+						throw error;
+					}
+				}
+			}
 
 			return {
 				transactions: transactionsFromQueues.concat(
