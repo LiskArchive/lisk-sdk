@@ -194,7 +194,14 @@ pipeline {
 				stage('Lisk Framework Functional') {
 					agent { node { label 'lisk-framework' }}
 					steps {
-						setup(true)
+						// jest ITs seem to need special treatment
+						nvm(getNodejsVersion()) {
+							sh '''
+							npm install --global yarn
+							yarn
+							yarn build
+							'''
+						}
 						run_jest('functional')
 					}
 					post {

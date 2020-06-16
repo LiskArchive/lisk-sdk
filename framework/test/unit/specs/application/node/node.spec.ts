@@ -24,12 +24,6 @@ import {
 } from '../../../../../src/application/node/forger';
 import { cacheConfig, nodeOptions } from '../../../../fixtures/node';
 
-const setProperty = (object: object, property: string, value: any) => {
-	const originalProperty = Object.getOwnPropertyDescriptor(object, property);
-	Object.defineProperty(object, property, { value });
-	return originalProperty;
-};
-
 jest.mock('@liskhq/lisk-db');
 
 describe('Node', () => {
@@ -37,12 +31,10 @@ describe('Node', () => {
 	let subscribedEvents: any;
 	const stubs: any = {};
 	const lastBlock = { ...nodeOptions.genesisBlock };
-	const mockExit = jest.fn();
 
 	beforeEach(() => {
 		// Arrange
 		subscribedEvents = {};
-		setProperty(process, 'exit', mockExit);
 
 		jest.spyOn(Processor.prototype, 'init').mockResolvedValue(undefined);
 		jest.spyOn(Synchronizer.prototype, 'init').mockResolvedValue(undefined);
@@ -149,7 +141,7 @@ describe('Node', () => {
 			} as any);
 
 			// Act
-			await node.bootstrap();
+			await expect(node.bootstrap()).rejects.toThrow('Missing genesis block');
 
 			// Assert
 			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
@@ -176,7 +168,9 @@ describe('Node', () => {
 				logger: stubs.logger,
 			} as any);
 
-			await node.bootstrap();
+			await expect(node.bootstrap()).rejects.toThrow(
+				'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=4',
+			);
 
 			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
 			// Ignoring the error object as its non-deterministic
@@ -207,7 +201,9 @@ describe('Node', () => {
 				logger: stubs.logger,
 			} as any);
 
-			await node.bootstrap();
+			await expect(node.bootstrap()).rejects.toThrow(
+				'forging.waitThreshold=5 is greater or equal to genesisConfig.blockTime=5',
+			);
 
 			expect(node['_logger'].fatal).toHaveBeenCalledTimes(1);
 			expect(node['_logger'].fatal).toHaveBeenCalledWith(
@@ -306,9 +302,6 @@ describe('Node', () => {
 					expect.any(Object),
 					'Failed to initialization node',
 				);
-			});
-			it('should emit an event "beforeExit" on the process', () => {
-				return expect(mockExit).toHaveBeenCalledWith(0);
 			});
 		});
 	});
