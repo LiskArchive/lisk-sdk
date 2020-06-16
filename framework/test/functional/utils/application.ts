@@ -15,7 +15,7 @@ import { TransferTransaction } from '@liskhq/lisk-transactions';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
 import { Application, ApplicationConfig } from '../../../src';
-import { GenesisBlockJSON } from '../../../src/application/node/node';
+import { GenesisBlockJSON } from '../../../src/application/genesis_block';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 
