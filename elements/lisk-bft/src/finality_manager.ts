@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as assert from 'assert';
 import * as Debug from 'debug';
@@ -32,11 +33,80 @@ import {
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
 
-const keyToString = (key: Buffer): string => key.toString('binary');
-
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
 	'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
+export const CONSENSUS_STATE_DELEGATE_STATE_KEY = 'bft:delegates';
 
+export const BFTDelegatesStateSchema = {
+	type: 'object',
+	$id: '/BFT/Delegates',
+	title: 'Lisk BFT Delegate State (maxPreVoteHeight, maxPreCommitHeight)',
+	required: ['delegates'],
+	properties: {
+		delegates: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['address', 'maxPreVoteHeight', 'maxPreCommitHeight'],
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					maxPreVoteHeight: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+					maxPreCommitHeight: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
+	},
+};
+
+export const BFTStateSchema = {
+	type: 'object',
+	$id: '/BFT/State',
+	title: 'Lisk BFT Delegate PreVotes, PreCommits corresponding to height',
+	required: ['state'],
+	properties: {
+		state: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['height', 'preVotes', 'preCommits'],
+				properties: {
+					height: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					preVotes: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+					preCommits: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
+	},
+};
+
+codec.addSchema(BFTStateSchema);
+codec.addSchema(BFTDelegatesStateSchema);
+
+interface DelegatesState {
+	address: Buffer;
+	maxPreVoteHeight: number;
+	maxPreCommitHeight: number;
+}
 export class FinalityManager extends EventEmitter {
 	public readonly activeDelegates: number;
 	public readonly preVoteThreshold: number;
@@ -47,12 +117,6 @@ export class FinalityManager extends EventEmitter {
 	public finalizedHeight: number;
 	public chainMaxHeightPrevoted: number;
 
-	private state: {
-		[key: string]: {
-			maxPreVoteHeight: number;
-			maxPreCommitHeight: number;
-		};
-	};
 	private preVotes: {
 		[key: string]: number;
 	};
@@ -101,7 +165,6 @@ export class FinalityManager extends EventEmitter {
 		// Height up to which blocks have pre-voted
 		this.chainMaxHeightPrevoted = 0;
 
-		this.state = {};
 		this.preVotes = {};
 		this.preCommits = {};
 	}
@@ -168,11 +231,26 @@ export class FinalityManager extends EventEmitter {
 		}
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		const delegateState = this.state[keyToString(delegatePublicKey)] || {
-			maxPreVoteHeight: 0,
-			maxPreCommitHeight: 0,
-		};
+		const delegateStateBuffer = stateStore.consensus.get(
+			CONSENSUS_STATE_DELEGATE_STATE_KEY,
+		);
+
+		const delegatesState =
+			delegateStateBuffer === undefined
+				? [
+						{
+							address: delegateAddress,
+							maxPreVoteHeight: 0,
+							maxPreCommitHeight: 0,
+						},
+				  ]
+				: ((codec.decode<DelegatesState>(
+						BFTDelegatesStateSchema,
+						(delegateStateBuffer as unknown) as Buffer,
+				  ) as unknown) as Array<DelegatesState>);
+		const delegateState = delegatesState.find(state =>
+			state.address.equals(delegateAddress),
+		) as DelegatesState;
 
 		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(
 			header,
@@ -230,8 +308,11 @@ export class FinalityManager extends EventEmitter {
 		// Update delegate state
 		delegateState.maxPreVoteHeight = maxPreVoteHeight;
 
-		// Set the delegate state
-		this.state[keyToString(delegatePublicKey)] = delegateState;
+		// Save the delegate state to store
+		stateStore.consensus.set(
+			CONSENSUS_STATE_DELEGATE_STATE_KEY,
+			codec.encode(BFTDelegatesStateSchema, delegatesState),
+		);
 
 		return true;
 	}
@@ -293,7 +374,6 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	public reset(): void {
-		this.state = {};
 		this.chainMaxHeightPrevoted = 0;
 		this.preVotes = {};
 		this.preCommits = {};
