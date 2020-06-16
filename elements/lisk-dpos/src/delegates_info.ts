@@ -111,8 +111,8 @@ export class DelegatesInfo {
 		}
 
 		const round = this.rounds.calcRound(block.height);
-		// ConsecutiveMissedBlock is calculated every block
-		await this._updateMissedBlocks(block, stateStore);
+		// Safety measure is calculated every block
+		await this._updateProductivity(block, stateStore);
 
 		// Below event should only happen at the end of the round
 		if (!this._isLastBlockOfTheRound(block)) {
@@ -160,7 +160,7 @@ export class DelegatesInfo {
 		return true;
 	}
 
-	private async _updateMissedBlocks(
+	private async _updateProductivity(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,
 	): Promise<void> {
@@ -197,6 +197,7 @@ export class DelegatesInfo {
 		// Reset consecutive missed block
 		const forger = await stateStore.account.get(forgerAddress);
 		forger.asset.delegate.consecutiveMissedBlocks = 0;
+		forger.asset.delegate.lastForgedHeight = blockHeader.height;
 		stateStore.account.set(forgerAddress, forger);
 	}
 
