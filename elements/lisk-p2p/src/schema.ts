@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Schema } from '@liskhq/lisk-codec';
+
 export const nodeInfoSchema = {
 	$id: '/nodeInfo',
 	type: 'object',
@@ -83,3 +85,20 @@ export const peerInfoSchema = {
 	},
 	required: ['ipAddress', 'wsPort'],
 };
+
+export const defaultRPCSchemas = {
+	peerInfo: peerInfoSchema,
+	nodeInfo: nodeInfoSchema,
+};
+
+export const mergeCustomSchema = (
+	baseSchema: Schema,
+	customSchema: Schema,
+): Schema => ({
+	$id: `${baseSchema.$id}/custom`,
+	type: 'object',
+	properties: {
+		...baseSchema.properties,
+		...customSchema.properties,
+	},
+});

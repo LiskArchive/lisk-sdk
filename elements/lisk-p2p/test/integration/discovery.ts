@@ -19,7 +19,6 @@ import {
 	createNetwork,
 	destroyNetwork,
 	NETWORK_START_PORT,
-	NETWORK_PEER_COUNT,
 	SEED_PEER_IP,
 	NETWORK_CREATION_WAIT_TIME,
 } from '../utils/network_setup';
@@ -49,9 +48,9 @@ describe('Network discovery', () => {
 		let p2pNodeList: ReadonlyArray<P2P> = [];
 		let disconnectedNode: P2P;
 		const collectedEvents = new Map();
-		const ALL_NODE_PORTS: ReadonlyArray<number> = [
-			...new Array(NETWORK_PEER_COUNT).keys(),
-		].map(index => NETWORK_START_PORT + index);
+		const ALL_NODE_PORTS: ReadonlyArray<number> = [...new Array(4).keys()].map(
+			index => NETWORK_START_PORT + index,
+		);
 
 		beforeAll(async () => {
 			// To capture all the initial events set network creation time to minimum 1 ms
@@ -63,6 +62,7 @@ describe('Network discovery', () => {
 			p2pNodeList = await createNetwork({
 				networkDiscoveryWaitTime: 0,
 				customConfig,
+				networkSize: 4,
 			});
 			const firstNode = p2pNodeList[0];
 
