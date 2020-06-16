@@ -55,7 +55,7 @@ export interface Chain {
 			slotNumber: number,
 			receivedAt: number | undefined,
 		) => boolean;
-		readonly getEpochTime: (time?: number) => number;
+		readonly timeSinceGenesis: (time?: number) => number;
 	};
 }
 

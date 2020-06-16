@@ -27,7 +27,6 @@ import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
 	STANDBY_DELEGATES,
-	EPOCH_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
 import {
@@ -39,6 +38,10 @@ import {
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
+
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.apply()', () => {
 	const delegateAccounts = getDelegateAccountsWithVotesReceived(
@@ -55,7 +58,10 @@ describe('dpos.apply()', () => {
 	beforeEach(() => {
 		// Arrange
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({
+				genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+				interval: BLOCK_TIME,
+			}) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

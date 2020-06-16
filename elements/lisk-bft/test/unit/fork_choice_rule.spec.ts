@@ -23,30 +23,30 @@ import {
 } from '../../src/fork_choice_rule';
 import { BlockHeader } from '../../src/types';
 
-const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString();
+const GENESIS_BLOCK_TIME_STAMP =
+	new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).getTime() / 1000;
 const BLOCK_TIME = 10;
 
-const createBlock = (data?: Partial<BlockHeader>): BlockHeader =>
-	({
-		height: data?.height ?? 0,
-		timestamp: data?.timestamp ?? 0,
-		version: 2,
-		id: data?.id ?? Buffer.from('id'),
-		generatorPublicKey: Buffer.from('generator'),
-		previousBlockID: data?.previousBlockID ?? Buffer.from('previoud block'),
-		receivedAt: data?.receivedAt ?? 0,
-		asset: {
-			maxHeightPrevoted: data?.asset?.maxHeightPrevoted ?? 0,
-			maxHeightPreviouslyForged: data?.asset?.maxHeightPreviouslyForged ?? 0,
-		},
-	});
+const createBlock = (data?: Partial<BlockHeader>): BlockHeader => ({
+	height: data?.height ?? 0,
+	timestamp: data?.timestamp ?? 0,
+	version: 2,
+	id: data?.id ?? Buffer.from('id'),
+	generatorPublicKey: Buffer.from('generator'),
+	previousBlockID: data?.previousBlockID ?? Buffer.from('previoud block'),
+	receivedAt: data?.receivedAt ?? 0,
+	asset: {
+		maxHeightPrevoted: data?.asset?.maxHeightPrevoted ?? 0,
+		maxHeightPreviouslyForged: data?.asset?.maxHeightPreviouslyForged ?? 0,
+	},
+});
 
 describe('Fork Choice Rule', () => {
 	let slots: Slots;
 
 	beforeEach(() => {
 		slots = new Slots({
-			epochTime: EPOCH_TIME,
+			genesisBlockTimestamp: GENESIS_BLOCK_TIME_STAMP,
 			interval: BLOCK_TIME,
 		});
 	});

@@ -14,15 +14,16 @@
 
 import { Slots } from '../../src/slots';
 
+const MS_IN_A_SEC = 1000;
+
 describe('Slots', () => {
 	const DEFAULT_BLOCK_TIME = 10;
-	const DEFAULT_EPOCH_TIME = new Date(
-		Date.UTC(2016, 4, 24, 17, 0, 0, 0),
-	).toISOString();
+	const GENESIS_BLOCK_TIMESTAMP =
+		new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 	const TIME_AFTER_EPOCH = 10000;
 
 	const slots = new Slots({
-		epochTime: DEFAULT_EPOCH_TIME,
+		genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
 		interval: DEFAULT_BLOCK_TIME,
 	});
 
@@ -30,21 +31,14 @@ describe('Slots', () => {
 		jest
 			.spyOn(Date, 'now')
 			.mockReturnValue(
-				new Date(DEFAULT_EPOCH_TIME).getTime() + TIME_AFTER_EPOCH,
+				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+					TIME_AFTER_EPOCH,
 			);
 	});
 
-	describe('getEpochTime', () => {
+	describe('timeSinceGenesis', () => {
 		it('should return time after epoch in second', () => {
-			expect(slots.getEpochTime()).toBe(10);
-		});
-	});
-
-	describe('getRealTime', () => {
-		it('should return time after epoch in second', () => {
-			expect(slots.getRealTime(1000)).toBe(
-				new Date(DEFAULT_EPOCH_TIME).getTime() + 1000 * 1000,
-			);
+			expect(slots.timeSinceGenesis()).toBe(10);
 		});
 	});
 
@@ -54,13 +48,22 @@ describe('Slots', () => {
 		});
 
 		it('should return correct slot number from input epoch', () => {
-			expect(slots.getSlotNumber(20)).toBe(2);
+			const time =
+				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+				TIME_AFTER_EPOCH * 2;
+			expect(slots.getSlotNumber(time / MS_IN_A_SEC)).toBe(2);
 		});
 	});
 
 	describe('getSlotTime', () => {
 		it('should return correct time corresponds to the slot', () => {
-			expect(slots.getSlotTime(2)).toBe(20);
+			const time = Math.floor(
+				(new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+					TIME_AFTER_EPOCH * 2) /
+					MS_IN_A_SEC,
+			);
+
+			expect(slots.getSlotTime(2)).toBe(time);
 		});
 	});
 
@@ -72,19 +75,35 @@ describe('Slots', () => {
 
 	describe('isWithinTimeslot', () => {
 		it('should return true if the slot is within time', () => {
-			expect(slots.isWithinTimeslot(5, 55)).toBeTrue();
+			const time =
+				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+				TIME_AFTER_EPOCH * 5;
+			const slot = slots.getSlotNumber(time / MS_IN_A_SEC);
+			expect(slots.isWithinTimeslot(slot, time / MS_IN_A_SEC)).toBeTrue();
 		});
 
 		it('should return true if the slot is begining of the time', () => {
-			expect(slots.isWithinTimeslot(5, 50)).toBeTrue();
+			const time =
+				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+				TIME_AFTER_EPOCH * 5;
+			const slot = slots.getSlotNumber(time / MS_IN_A_SEC);
+			expect(slots.isWithinTimeslot(slot, time / MS_IN_A_SEC + 5)).toBeTrue();
 		});
 
 		it('should return true if the slot is end of the time', () => {
-			expect(slots.isWithinTimeslot(5, 59)).toBeTrue();
+			const time =
+				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+				TIME_AFTER_EPOCH * 5;
+			const slot = slots.getSlotNumber(time / MS_IN_A_SEC);
+			expect(slots.isWithinTimeslot(slot, time / MS_IN_A_SEC + 9)).toBeTrue();
 		});
 
 		it('should return false if the slot is out of the time', () => {
-			expect(slots.isWithinTimeslot(5, 49)).toBeFalse();
+			const time =
+				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+				TIME_AFTER_EPOCH * 5;
+			const slot = slots.getSlotNumber(time / MS_IN_A_SEC);
+			expect(slots.isWithinTimeslot(slot, time / MS_IN_A_SEC - 1)).toBeFalse();
 		});
 	});
 });

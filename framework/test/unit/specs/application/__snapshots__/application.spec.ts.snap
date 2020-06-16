@@ -2174,7 +2174,6 @@ Object {
   },
   "genesisConfig": Object {
     "blockTime": 10,
-    "epochTime": "2016-05-24T17:00:00.000Z",
     "maxPayloadLength": 15360,
     "rewards": Object {
       "distance": 3000000,

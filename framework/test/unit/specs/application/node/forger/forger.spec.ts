@@ -1070,15 +1070,14 @@ describe('forger', () => {
 					.spyOn(forgeModule as any, '_getDelegateKeypairForCurrentSlot')
 					.mockResolvedValue(testDelegate);
 
-				const waitThresholdMs = forgingWaitThreshold * 1000;
-				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime();
+				const currentSlotTime = new Date(2019, 0, 1, 0, 0, 0).getTime() / 1000;
 				const currentTime = new Date(2019, 0, 1, 0, 0, 2).getTime();
 
 				const dateNowMockFn = jest
 					.spyOn(Date.prototype, 'getTime')
 					.mockReturnValue(currentTime);
 
-				chainModuleStub.slots.getRealTime.mockReturnValue(currentSlotTime);
+				chainModuleStub.slots.getSlotTime.mockReturnValue(currentSlotTime);
 
 				const changedLastBlockSlot = currentSlot - 2;
 				when(getSlotNumberStub)
@@ -1091,7 +1090,7 @@ describe('forger', () => {
 					{
 						currentSlot,
 						lastBlockSlot: changedLastBlockSlot,
-						waitThreshold: waitThresholdMs,
+						waitThreshold: forgingWaitThreshold,
 					},
 					'Slot information',
 				);

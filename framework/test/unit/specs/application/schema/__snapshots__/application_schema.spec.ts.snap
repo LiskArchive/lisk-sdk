@@ -12,7 +12,6 @@ Object {
       },
       "genesisConfig": Object {
         "blockTime": 10,
-        "epochTime": "2016-05-24T17:00:00.000Z",
         "maxPayloadLength": 15360,
         "rewards": Object {
           "distance": 3000000,
@@ -123,11 +122,6 @@ Object {
             "minimum": 2,
             "type": "number",
           },
-          "epochTime": Object {
-            "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
-            "format": "date-time",
-            "type": "string",
-          },
           "maxPayloadLength": Object {
             "description": "Maximum number of transactions allowed per block",
             "maximum": 30720,
@@ -167,7 +161,6 @@ Object {
           },
         },
         "required": Array [
-          "epochTime",
           "blockTime",
           "maxPayloadLength",
           "rewards",
