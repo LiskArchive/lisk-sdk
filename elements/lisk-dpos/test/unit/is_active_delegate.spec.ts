@@ -16,9 +16,13 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema } from '../../src/schemas';
 import { getDelegateAccounts } from '../utils/round_delegates';
-import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Dpos } from '../../src';
+
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.isActiveDelegate', () => {
 	const defaultAddress = getAddressFromPublicKey(
@@ -34,7 +38,10 @@ describe('dpos.isActiveDelegate', () => {
 
 	beforeEach(() => {
 		// Arrange
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const slots = new Slots({
+			genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+			interval: BLOCK_TIME,
+		});
 		chainMock = {
 			slots,
 			dataAccess: {

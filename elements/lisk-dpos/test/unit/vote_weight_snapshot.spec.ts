@@ -27,7 +27,7 @@ import {
 	VoteWeights,
 	DelegateWeight,
 } from '../../src/types';
-import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
 import {
@@ -36,6 +36,10 @@ import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { randomBigIntWithPowerof8 } from '../utils/random_int';
+
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 const convertVoteWeight = (buffer: Buffer): VoteWeights => {
 	const { voteWeights: parsedVoteWeights } = codec.decode(
@@ -63,7 +67,10 @@ describe('Vote weight snapshot', () => {
 
 	beforeEach(() => {
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({
+				genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+				interval: BLOCK_TIME,
+			}) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

@@ -141,7 +141,6 @@ describe('Application', () => {
 
 			customConfig.genesisConfig = {
 				maxPayloadLength: 15 * 1024,
-				epochTime: '2016-05-24T17:00:00.000Z',
 				blockTime: 2,
 				rewards: {
 					milestones: [

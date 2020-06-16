@@ -88,6 +88,7 @@ import {
 	P2PResponsePacket,
 	PeerLists,
 	ProtocolPeerInfo,
+	RPCSchemas,
 } from './types';
 import {
 	assignInternalInfo,
@@ -101,7 +102,17 @@ import {
 	validateNodeInfo,
 	validatePeerCompatibility,
 } from './utils';
-import { peerInfoSchema, nodeInfoSchema } from './schema';
+import {
+	peerInfoSchema,
+	nodeInfoSchema,
+	mergeCustomSchema,
+	defaultRPCSchemas,
+} from './schema';
+
+const createRPCSchemas = (customRPCSchemas: RPCSchemas): RPCSchemas => ({
+	peerInfo: mergeCustomSchema(peerInfoSchema, customRPCSchemas.peerInfo),
+	nodeInfo: mergeCustomSchema(nodeInfoSchema, customRPCSchemas.nodeInfo),
+});
 
 const createPeerPoolConfig = (
 	config: P2PConfig,
@@ -174,6 +185,9 @@ const createPeerPoolConfig = (
 			: DEFAULT_RATE_CALCULATION_INTERVAL,
 	secret: config.secret ? config.secret : DEFAULT_RANDOM_SECRET,
 	peerBook,
+	rpcSchemas: config.customRPCSchemas
+		? createRPCSchemas(config.customRPCSchemas)
+		: defaultRPCSchemas,
 });
 
 export class P2P extends EventEmitter {
@@ -189,6 +203,7 @@ export class P2P extends EventEmitter {
 	private _nodeInfo: P2PNodeInfo;
 	private readonly _peerPool: PeerPool;
 	private readonly _secret: number;
+	private readonly _rpcSchemas: RPCSchemas;
 	private _peerServer?: PeerServer;
 
 	private readonly _handlePeerPoolRPC: (request: P2PRequest) => void;
@@ -257,8 +272,11 @@ export class P2P extends EventEmitter {
 			sanitizedPeerLists: this._sanitizedPeerLists,
 			secret: this._secret,
 		});
-		codec.addSchema(peerInfoSchema);
-		codec.addSchema(nodeInfoSchema);
+		this._rpcSchemas = config.customRPCSchemas
+			? createRPCSchemas(config.customRPCSchemas)
+			: defaultRPCSchemas;
+		codec.addSchema(this._rpcSchemas.peerInfo);
+		codec.addSchema(this._rpcSchemas.nodeInfo);
 
 		// This needs to be an arrow function so that it can be used as a listener.
 		this._handlePeerPoolRPC = (request: P2PRequest): void => {
@@ -684,7 +702,7 @@ export class P2P extends EventEmitter {
 
 	private _handleGetNodeInfo(request: P2PRequest): void {
 		const encodedNodeInfo = codec
-			.encode(nodeInfoSchema, this._nodeInfo)
+			.encode(this._rpcSchemas.nodeInfo, this._nodeInfo)
 			.toString('base64');
 		request.end(encodedNodeInfo);
 	}
@@ -818,7 +836,7 @@ export class P2P extends EventEmitter {
 			}));
 
 		const encodedPeersList = sanitizedPeerInfoList.map(peer =>
-			codec.encode(peerInfoSchema, peer).toString('base64'),
+			codec.encode(this._rpcSchemas.peerInfo, peer).toString('base64'),
 		);
 		const validatedPeerList =
 			getByteSize(encodedPeersList) < wsMaxPayload

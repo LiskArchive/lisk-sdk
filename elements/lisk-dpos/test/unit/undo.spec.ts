@@ -17,7 +17,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { Dpos, constants } from '../../src';
 import {
-	EPOCH_TIME,
 	ACTIVE_DELEGATES,
 	BLOCK_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
@@ -30,6 +29,10 @@ import {
 	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 } from '../../src/constants';
+
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.undo()', () => {
 	const delegateAccounts = getDelegateAccountsWithVotesReceived(
@@ -45,7 +48,10 @@ describe('dpos.undo()', () => {
 	beforeEach(() => {
 		// Arrange
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({
+				genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+				interval: BLOCK_TIME,
+			}) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

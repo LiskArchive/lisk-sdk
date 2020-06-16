@@ -16,7 +16,7 @@ import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
 import { DelegatesList } from '../../src/delegates_list';
-import { BLOCK_TIME, EPOCH_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import {
 	DEFAULT_STANDBY_THRESHOLD,
 	DEFAULT_VOTE_WEIGHT_CAP_RATE,
@@ -35,6 +35,10 @@ import * as forgerSelectionMoreThan2StandByScenario from '../fixtures/dpos_forge
 import { StateStoreMock } from '../utils/state_store_mock';
 import { searchBufferArray } from '../utils/search_buffer_array';
 
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
+
 describe('Forger selection', () => {
 	let delegateList: DelegatesList;
 	let chainStub: any;
@@ -42,7 +46,10 @@ describe('Forger selection', () => {
 
 	beforeEach(() => {
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({
+				genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+				interval: BLOCK_TIME,
+			}) as any,
 			dataAccess: {
 				getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
 				getConsensusState: jest.fn().mockResolvedValue(undefined),

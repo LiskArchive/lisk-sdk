@@ -20,7 +20,6 @@ import forkChoiceSpecs = require('../bft_specs/bft_fork_choice_rules.json');
 
 const constants = {
 	ACTIVE_DELEGATES: 101,
-	EPOCH_TIME: '2016-05-24T17:00:00.000Z',
 	BLOCK_TIME: 10,
 };
 
@@ -45,7 +44,7 @@ describe('bft', () => {
 
 		beforeEach(() => {
 			const slots = new Slots({
-				epochTime: constants.EPOCH_TIME,
+				genesisBlockTimestamp: 0,
 				interval: constants.BLOCK_TIME,
 			});
 			chainStub = {
@@ -77,9 +76,7 @@ describe('bft', () => {
 			forkChoiceSpecs.testCases.forEach((testCase: any) => {
 				describe(testCase.description, () => {
 					it('should have accurate fork status', () => {
-						const epochTime = testCase.config
-							? testCase.config.epochTime
-							: forkChoiceSpecs.config.epochTime;
+						const genesisBlockTimestamp = 0;
 						const interval = testCase.config
 							? testCase.config.blockInterval
 							: forkChoiceSpecs.config.blockInterval;
@@ -87,12 +84,16 @@ describe('bft', () => {
 							? testCase.config.lastBlock
 							: forkChoiceSpecs.config.lastBlock;
 
-						(chainStub.slots as any)._epochTime = new Date(epochTime);
+						(chainStub.slots as any)._genesisTime = new Date(
+							genesisBlockTimestamp,
+						);
 						(chainStub.slots as any)._interval = interval;
 
 						Date.now = jest.fn(
 							// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-							() => epochTime + testCase.input.receivedBlock.receivedAt * 1000,
+							() =>
+								genesisBlockTimestamp +
+								testCase.input.receivedBlock.receivedAt * 1000,
 						);
 
 						const {

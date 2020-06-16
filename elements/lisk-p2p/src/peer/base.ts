@@ -57,6 +57,7 @@ import {
 	P2PPeerInfo,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	RPCSchemas,
 } from '../types';
 import {
 	assignInternalInfo,
@@ -67,8 +68,6 @@ import {
 	validateProtocolMessage,
 	validateRPCRequest,
 } from '../utils';
-
-import { peerInfoSchema, nodeInfoSchema } from '../schema';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const socketErrorStatusCodes: { [key: number]: string | undefined } = {
@@ -110,6 +109,7 @@ export interface PeerConfig {
 	readonly maxPeerDiscoveryResponseLength: number;
 	readonly secret: number;
 	readonly serverNodeInfo?: P2PNodeInfo;
+	readonly rpcSchemas: RPCSchemas;
 }
 
 interface GetPeersResponseData {
@@ -120,10 +120,6 @@ interface GetPeersResponseData {
 }
 
 export class Peer extends EventEmitter {
-	protected _peerInfo: ConnectedPeerInfo;
-	protected readonly _peerConfig: PeerConfig;
-	protected _serverNodeInfo: P2PNodeInfo | undefined;
-	protected _rateInterval: number;
 	protected readonly _handleRawRPC: (
 		packet: unknown,
 		respond: (responseError?: Error, responseData?: unknown) => void,
@@ -131,15 +127,20 @@ export class Peer extends EventEmitter {
 	protected readonly _handleWSMessage: (message: string) => void;
 	protected readonly _handleRawMessage: (packet: unknown) => void;
 	protected _socket: SCServerSocketUpdated | SCClientSocket | undefined;
+	protected _peerInfo: ConnectedPeerInfo;
+	protected readonly _peerConfig: PeerConfig;
+	protected _serverNodeInfo: P2PNodeInfo | undefined;
+	protected _rateInterval: number;
+	private readonly _rpcSchemas: RPCSchemas;
 
 	private readonly _counterResetInterval: NodeJS.Timer;
 	private readonly _productivityResetInterval: NodeJS.Timer;
 	public constructor(peerInfo: P2PPeerInfo, peerConfig: PeerConfig) {
 		super();
 		this._peerConfig = peerConfig;
-
-		codec.addSchema(peerInfoSchema);
-		codec.addSchema(nodeInfoSchema);
+		this._rpcSchemas = peerConfig.rpcSchemas;
+		codec.addSchema(this._rpcSchemas.peerInfo);
+		codec.addSchema(this._rpcSchemas.nodeInfo);
 
 		this._peerInfo = this._initializeInternalState(
 			peerInfo,
@@ -360,7 +361,7 @@ export class Peer extends EventEmitter {
 			const { peers, success } = response.data;
 
 			const decodedPeers = peers.map((peer: string) =>
-				codec.decode(peerInfoSchema, Buffer.from(peer, 'base64')),
+				codec.decode(this._rpcSchemas.peerInfo, Buffer.from(peer, 'base64')),
 			);
 
 			const validatedPeers = validatePeerInfoList(
@@ -415,7 +416,7 @@ export class Peer extends EventEmitter {
 		}
 		try {
 			const decodedNodeInfo = codec.decode(
-				nodeInfoSchema,
+				this._rpcSchemas.nodeInfo,
 				Buffer.from(response.data as string, 'base64'),
 			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);
@@ -538,7 +539,7 @@ export class Peer extends EventEmitter {
 		// Update peerInfo with the latest values from the remote peer.
 		try {
 			const decodedNodeInfo = codec.decode(
-				nodeInfoSchema,
+				this._rpcSchemas.nodeInfo,
 				Buffer.from(message.data as string, 'base64'),
 			);
 			this._updateFromProtocolPeerInfo(decodedNodeInfo);

@@ -19,16 +19,39 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 
 const { EVENT_BAN_PEER } = events;
 
-// Skipping as schema validation doesn't allow custom fields and supported properties are validated before applying nodeInfo.
-describe.skip('penalty sending malformed peerInfo', () => {
+const customNodeInfoSchema = {
+	properties: {
+		invalid: {
+			dataType: 'string',
+			fieldNumber: 8,
+		},
+	},
+};
+
+const customPeerInfoSchema = {
+	properties: {
+		invalid: {
+			dataType: 'string',
+			fieldNumber: 8,
+		},
+	},
+};
+
+describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
+	const customRPCSchemas = {
+		peerInfo: customPeerInfoSchema,
+		nodeInfo: customNodeInfoSchema,
+	};
 
 	beforeEach(async () => {
 		p2pNodeList = await createNetwork({
 			networkSize: 2,
 			customConfig: (index: number) =>
-				index === 0 ? { maxPeerInfoSize: 30248 } : {},
+				index === 0
+					? { maxPeerInfoSize: 30248, customRPCSchemas }
+					: { customRPCSchemas },
 		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
@@ -44,8 +67,7 @@ describe.skip('penalty sending malformed peerInfo', () => {
 			wsPort: p2pNodeList[0].nodeInfo.wsPort,
 			height: 10,
 			nonce: 'nonce',
-			invalidData: '1.'.repeat(13000),
-			options: p2pNodeList[0].nodeInfo.options,
+			invalid: '1.'.repeat(13000),
 			advertiseAddress: true,
 		});
 

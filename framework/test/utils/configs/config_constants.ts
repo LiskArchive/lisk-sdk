@@ -17,7 +17,6 @@ import { NodeConstants } from '../../../src/application/node/node';
 export const constantsConfig = (
 	overriddenConfigProperties: Partial<NodeConstants> = {},
 ): NodeConstants => ({
-	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	blockTime: 10,
 	delegateListRoundOffset: 2,
 	rewards: {
