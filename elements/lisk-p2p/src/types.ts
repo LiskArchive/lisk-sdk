@@ -157,7 +157,7 @@ export interface P2PConfig {
 	readonly maxPeerDiscoveryResponseLength?: number;
 	readonly maxPeerInfoSize?: number;
 	readonly secret?: number;
-	readonly customSchema?: RPCSchemas;
+	readonly customRPCSchemas?: RPCSchemas;
 }
 
 export interface PeerServerConfig {

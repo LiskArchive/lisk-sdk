@@ -17,7 +17,7 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 import { customPeerInfoSchema, customNodeInfoSchema } from '../utils/schema';
 
 describe('Custom nodeInfo', () => {
-	const customSchema = {
+	const customRPCSchemas = {
 		peerInfo: customPeerInfoSchema,
 		nodeInfo: customNodeInfoSchema,
 	};
@@ -29,7 +29,7 @@ describe('Custom nodeInfo', () => {
 				maxHeightPreviouslyForged: 11,
 				maxHeightPrevoted: 2,
 			},
-			customSchema,
+			customRPCSchemas,
 		});
 
 		p2pNodeList = await createNetwork({ customConfig });

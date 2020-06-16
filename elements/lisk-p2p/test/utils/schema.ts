@@ -15,34 +15,6 @@ export const customNodeInfoSchema = {
 	$id: '/nodeInfo',
 	type: 'object',
 	properties: {
-		networkId: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-		protocolVersion: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
-		wsPort: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-		nonce: {
-			dataType: 'string',
-			fieldNumber: 4,
-		},
-		advertiseAddress: {
-			dataType: 'boolean',
-			fieldNumber: 5,
-		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 		maxHeightPrevoted: {
 			dataType: 'uint32',
 			fieldNumber: 8,
@@ -59,34 +31,6 @@ export const customPeerInfoSchema = {
 	$id: '/peerInfo',
 	type: 'object',
 	properties: {
-		ipAddress: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-		wsPort: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		networkId: {
-			dataType: 'string',
-			fieldNumber: 3,
-		},
-		protocolVersion: {
-			dataType: 'string',
-			fieldNumber: 4,
-		},
-		nonce: {
-			dataType: 'string',
-			fieldNumber: 5,
-		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 		maxHeightPrevoted: {
 			dataType: 'uint32',
 			fieldNumber: 8,

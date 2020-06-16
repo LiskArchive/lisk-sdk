@@ -20,89 +20,27 @@ import { createNetwork, destroyNetwork } from '../utils/network_setup';
 const { EVENT_BAN_PEER } = events;
 
 const customNodeInfoSchema = {
-	$id: '/nodeInfo',
-	type: 'object',
 	properties: {
-		networkId: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-		protocolVersion: {
-			dataType: 'string',
-			fieldNumber: 2,
-		},
-		wsPort: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-		nonce: {
-			dataType: 'string',
-			fieldNumber: 4,
-		},
-		advertiseAddress: {
-			dataType: 'boolean',
-			fieldNumber: 5,
-		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 		invalid: {
 			dataType: 'string',
 			fieldNumber: 8,
 		},
 	},
-	required: ['networkId', 'protocolVersion', 'wsPort', 'nonce'],
 };
 
 const customPeerInfoSchema = {
-	$id: '/peerInfo',
-	type: 'object',
 	properties: {
-		ipAddress: {
-			dataType: 'string',
-			fieldNumber: 1,
-		},
-		wsPort: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		networkId: {
-			dataType: 'string',
-			fieldNumber: 3,
-		},
-		protocolVersion: {
-			dataType: 'string',
-			fieldNumber: 4,
-		},
-		nonce: {
-			dataType: 'string',
-			fieldNumber: 5,
-		},
-		os: {
-			dataType: 'string',
-			fieldNumber: 6,
-		},
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 7,
-		},
 		invalid: {
 			dataType: 'string',
 			fieldNumber: 8,
 		},
 	},
-	required: ['ipAddress', 'wsPort'],
 };
 
 describe('penalty sending malformed peerInfo', () => {
 	let p2pNodeList: P2P[] = [];
 	const collectedEvents = new Map();
-	const customSchema = {
+	const customRPCSchemas = {
 		peerInfo: customPeerInfoSchema,
 		nodeInfo: customNodeInfoSchema,
 	};
@@ -112,8 +50,8 @@ describe('penalty sending malformed peerInfo', () => {
 			networkSize: 2,
 			customConfig: (index: number) =>
 				index === 0
-					? { maxPeerInfoSize: 30248, customSchema }
-					: { customSchema },
+					? { maxPeerInfoSize: 30248, customRPCSchemas }
+					: { customRPCSchemas },
 		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {
