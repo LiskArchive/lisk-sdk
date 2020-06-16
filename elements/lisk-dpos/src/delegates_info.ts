@@ -38,6 +38,8 @@ interface DelegatesInfoConstructor {
 
 const _isGenesisBlock = (header: BlockHeader): boolean => header.height === 1;
 const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
+const maxConsecutiveMissedBlocks = 50;
+const maxLastForgedHeightDiff = 260000;
 
 export class DelegatesInfo {
 	private readonly chain: Chain;
@@ -111,8 +113,8 @@ export class DelegatesInfo {
 		}
 
 		const round = this.rounds.calcRound(block.height);
-		// ConsecutiveMissedBlock is calculated every block
-		await this._updateMissedBlocks(block, stateStore);
+		// Safety measure is calculated every block
+		await this._updateProductivity(block, stateStore);
 
 		// Below event should only happen at the end of the round
 		if (!this._isLastBlockOfTheRound(block)) {
@@ -160,7 +162,7 @@ export class DelegatesInfo {
 		return true;
 	}
 
-	private async _updateMissedBlocks(
+	private async _updateProductivity(
 		blockHeader: BlockHeader,
 		stateStore: StateStore,
 	): Promise<void> {
@@ -192,11 +194,21 @@ export class DelegatesInfo {
 			const missedForgerAddress = expectedForgingAddresses[index];
 			const missedForger = await stateStore.account.get(missedForgerAddress);
 			missedForger.asset.delegate.consecutiveMissedBlocks += 1;
+			// Ban the missed forger if both consecutive missed block and last forged blcok diff condition are met
+			if (
+				missedForger.asset.delegate.consecutiveMissedBlocks >
+					maxConsecutiveMissedBlocks &&
+				blockHeader.height - missedForger.asset.delegate.lastForgedHeight >
+					maxLastForgedHeightDiff
+			) {
+				missedForger.asset.delegate.isBanned = true;
+			}
 			stateStore.account.set(missedForgerAddress, missedForger);
 		}
 		// Reset consecutive missed block
 		const forger = await stateStore.account.get(forgerAddress);
 		forger.asset.delegate.consecutiveMissedBlocks = 0;
+		forger.asset.delegate.lastForgedHeight = blockHeader.height;
 		stateStore.account.set(forgerAddress, forger);
 	}
 
