@@ -27,12 +27,12 @@ import {
 	NodeType,
 } from './constants';
 
-interface NodeData {
+export interface NodeData {
 	readonly value: Buffer;
 	readonly hash: Buffer;
 }
 
-interface NodeInfo {
+export interface NodeInfo {
 	readonly type: NodeType;
 	readonly hash: Buffer;
 	readonly value: Buffer;
@@ -42,7 +42,7 @@ interface NodeInfo {
 	readonly nodeIndex: number;
 }
 
-interface TreeStructure {
+export interface TreeStructure {
 	[key: number]: NodeInfo[];
 }
 
@@ -348,7 +348,7 @@ export class MerkleTree {
 							currentNode = this.getNode(parentNodeHash);
 							path.push(pairInfo);
 						} else {
-							// TODO: Optimitize
+							// TODO: Optimize
 							// If correct parent node not found, traverse down the tree instead, this happens in specific cases such as the 7 leaf tree
 							// Find the next lower layer with odd number of nodes
 							let currentLowerLayerIndex = currentNode.layerIndex - 1;

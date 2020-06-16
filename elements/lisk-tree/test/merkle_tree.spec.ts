@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MerkleTree } from '../src/merkle_tree';
+import { MerkleTree, TreeStructure } from '../src/merkle_tree';
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
 
 describe('MerkleTree', () => {
@@ -49,6 +49,24 @@ describe('MerkleTree', () => {
 				});
 			});
 		}
+	});
+
+	describe('getStructure', () => {
+		let structure: TreeStructure;
+
+		beforeEach(() => {
+			const inputs = fixture.testCases[7].input.transactionIds.map(hexString =>
+				Buffer.from(hexString, 'hex'),
+			);
+			structure = new MerkleTree(inputs).getStructure();
+		});
+
+		it(`should create the correct tree structure`, () => {
+			expect(structure[0]).toHaveLength(7);
+			expect(structure[1]).toHaveLength(3);
+			expect(structure[2]).toHaveLength(2);
+			expect(structure[3]).toHaveLength(1);
+		});
 	});
 
 	describe('generateProof', () => {
