@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MerkleTree, TreeStructure } from '../src/merkle_tree';
+import { MerkleTree, TreeStructure } from '../src/index';
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
 
 describe('MerkleTree', () => {
@@ -69,7 +69,7 @@ describe('MerkleTree', () => {
 		});
 	});
 
-	describe('generateProof', () => {
+	describe('generatePath', () => {
 		describe('when given a tree with two leaves', () => {
 			let merkleTree: MerkleTree;
 			const queryData = [
@@ -93,16 +93,18 @@ describe('MerkleTree', () => {
 				);
 
 				expect(
-					merkleTree.generatePath(queryData)[0].hash.compare(expectedProofHash),
+					(merkleTree.generatePath(queryData)[0] as any).hash.compare(
+						expectedProofHash,
+					),
 				).toEqual(0);
 			});
 
 			it('should generate the expected path hash direction', () => {
 				const expectedProofHashDirection = 1;
 
-				expect(merkleTree.generatePath(queryData)[0].direction).toEqual(
-					expectedProofHashDirection,
-				);
+				expect(
+					(merkleTree.generatePath(queryData)[0] as any).direction,
+				).toEqual(expectedProofHashDirection);
 			});
 		});
 	});

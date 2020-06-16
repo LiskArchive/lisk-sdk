@@ -19,11 +19,3 @@ export const BRANCH_PREFIX = Buffer.from('01', 'hex');
 export const LAYER_INDEX_SIZE = 1;
 export const NODE_INDEX_SIZE = 8;
 export const NODE_HASH_SIZE = 32;
-export const enum NodeType {
-	BRANCH = 'branch',
-	LEAF = 'leaf',
-}
-export const enum NodeSide {
-	LEFT = 0,
-	RIGHT,
-}

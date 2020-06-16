@@ -15,7 +15,14 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 import { hash } from '@liskhq/lisk-cryptography';
-import { Proof } from './types';
+import {
+	NodeData,
+	NodeInfo,
+	NodeSide,
+	NodeType,
+	Path,
+	TreeStructure,
+} from './types';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_INDEX_SIZE,
@@ -23,28 +30,7 @@ import {
 	EMPTY_HASH,
 	LEAF_PREFIX,
 	BRANCH_PREFIX,
-	NodeSide,
-	NodeType,
 } from './constants';
-
-export interface NodeData {
-	readonly value: Buffer;
-	readonly hash: Buffer;
-}
-
-export interface NodeInfo {
-	readonly type: NodeType;
-	readonly hash: Buffer;
-	readonly value: Buffer;
-	readonly leftHash: Buffer;
-	readonly rightHash: Buffer;
-	readonly layerIndex: number;
-	readonly nodeIndex: number;
-}
-
-export interface TreeStructure {
-	[key: number]: NodeInfo[];
-}
 
 const isLeaf = (value: Buffer): boolean =>
 	value.compare(Buffer.alloc(0)) !== 0 && value[0] === LEAF_PREFIX[0];
@@ -187,7 +173,7 @@ export class MerkleTree {
 		return structure;
 	}
 
-	public generatePath(_queryData: ReadonlyArray<Buffer>): Proof {
+	public generatePath(_queryData: ReadonlyArray<Buffer>): Path {
 		if (this._width === 1) {
 			return [];
 		}
@@ -209,7 +195,8 @@ export class MerkleTree {
 			currentNode = queryNodes[j];
 			// Query node does not exist in tree
 			if (!currentNode) {
-				queryNodes.splice(j, 1);
+				// Insert flag for unverified node
+				path.push(undefined);
 				// eslint-disable-next-line
 				continue;
 			}
@@ -266,21 +253,17 @@ export class MerkleTree {
 							currentLayerIndex -= 1;
 						}
 						currentLayer = treeStructure[currentLayerIndex];
-						const lastNodeOfPreviousOddLayer = {
+						const lastNodeOfLowerOddLayer = {
 							direction: NodeSide.RIGHT,
 							hash: currentLayer[currentLayer.length - 1].hash,
 						};
-						path.push(lastNodeOfPreviousOddLayer);
+						path.push(lastNodeOfLowerOddLayer);
 						const parentNodeHash = hash(
 							Buffer.concat(
-								[
-									BRANCH_PREFIX,
-									currentNode.hash,
-									lastNodeOfPreviousOddLayer.hash,
-								],
+								[BRANCH_PREFIX, currentNode.hash, lastNodeOfLowerOddLayer.hash],
 								BRANCH_PREFIX.length +
 									currentNode.hash.length +
-									lastNodeOfPreviousOddLayer.hash.length,
+									lastNodeOfLowerOddLayer.hash.length,
 							),
 						);
 						currentNode = this.getNode(parentNodeHash);
@@ -359,24 +342,24 @@ export class MerkleTree {
 								currentLowerLayerIndex -= 1;
 							}
 							currentLayer = treeStructure[currentLowerLayerIndex];
-							const lastNodeOfPreviousOddLayer = {
+							const lastNodeOfLowerOddLayer = {
 								direction: NodeSide.RIGHT,
 								hash: currentLayer[currentLayer.length - 1].hash,
 							};
-							path.push(lastNodeOfPreviousOddLayer);
-							const lowerBranchNodeHash = hash(
+							path.push(lastNodeOfLowerOddLayer);
+							const lowerNodeHash = hash(
 								Buffer.concat(
 									[
 										BRANCH_PREFIX,
 										currentNode.hash,
-										lastNodeOfPreviousOddLayer.hash,
+										lastNodeOfLowerOddLayer.hash,
 									],
 									BRANCH_PREFIX.length +
 										currentNode.hash.length +
-										lastNodeOfPreviousOddLayer.hash.length,
+										lastNodeOfLowerOddLayer.hash.length,
 								),
 							);
-							currentNode = this.getNode(lowerBranchNodeHash);
+							currentNode = this.getNode(lowerNodeHash);
 						}
 					}
 				} // end of odd nodes

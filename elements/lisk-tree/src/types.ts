@@ -12,4 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export type Proof = Array<{ hash: Buffer; direction: number }>;
+export const enum NodeType {
+	BRANCH = 'branch',
+	LEAF = 'leaf',
+}
+export interface NodeData {
+	readonly value: Buffer;
+	readonly hash: Buffer;
+}
+export interface NodeInfo {
+	readonly type: NodeType;
+	readonly hash: Buffer;
+	readonly value: Buffer;
+	readonly leftHash: Buffer;
+	readonly rightHash: Buffer;
+	readonly layerIndex: number;
+	readonly nodeIndex: number;
+}
+export const enum NodeSide {
+	LEFT = 0,
+	RIGHT,
+}
+export interface TreeStructure {
+	[key: number]: NodeInfo[];
+}
+export type Path = Array<{ hash: Buffer; direction: number } | undefined>;
