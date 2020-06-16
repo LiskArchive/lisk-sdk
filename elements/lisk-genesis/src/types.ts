@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, BlockHeader } from '@liskhq/lisk-chain';
+import { Account, BlockHeader, Block } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
 
 export type GenesisAccountState = Account;
@@ -27,10 +27,7 @@ export type GenesisBlockHeader = BlockHeader<GenesisBlockHeaderAsset>;
 
 export type GenesisBlockHeaderWithoutId = Omit<GenesisBlockHeader, 'id'>;
 
-export interface GenesisBlock {
-	readonly header: GenesisBlockHeader;
-	readonly payload: Buffer[];
-}
+export type GenesisBlock = Block<GenesisBlockHeaderAsset>;
 
 export interface GenesisBlockParams {
 	// List of accounts in the genesis
