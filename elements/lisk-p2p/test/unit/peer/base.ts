@@ -83,6 +83,10 @@ describe('peer/base', () => {
 				nonce: 'nonce',
 				advertiseAddress: true,
 			},
+			rpcSchemas: {
+				nodeInfo: nodeInfoSchema,
+				peerInfo: peerInfoSchema,
+			},
 		};
 		p2pDiscoveredPeerInfo = {
 			peerId: constructPeerId(
