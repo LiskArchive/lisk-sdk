@@ -23,3 +23,7 @@ export const enum NodeType {
 	BRANCH = 'branch',
 	LEAF = 'leaf',
 }
+export const enum NodeSide {
+	LEFT = 0,
+	RIGHT,
+}

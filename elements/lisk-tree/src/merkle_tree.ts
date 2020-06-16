@@ -23,6 +23,7 @@ import {
 	EMPTY_HASH,
 	LEAF_PREFIX,
 	BRANCH_PREFIX,
+	NodeSide,
 	NodeType,
 } from './constants';
 
@@ -39,6 +40,10 @@ interface NodeInfo {
 	readonly rightHash: Buffer;
 	readonly layerIndex: number;
 	readonly nodeIndex: number;
+}
+
+interface TreeStructure {
+	[key: number]: NodeInfo[];
 }
 
 const isLeaf = (value: Buffer): boolean =>
@@ -70,7 +75,7 @@ export class MerkleTree {
 		// eslint-disable-next-line
 		if (!value) {
 			throw new Error(
-				`Hash does not exist in merkle tree: ${nodeHash.toString('binary')}`,
+				`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`,
 			);
 		}
 
@@ -163,47 +168,24 @@ export class MerkleTree {
 		return this.root;
 	}
 
-	public generateProof(_queryData: ReadonlyArray<Buffer>): Proof {
-		const queryNodes = [];
-		for (let i = 0; i < _queryData.length; i += 1) {
-			try {
-				const queryNode = this.getNode(_queryData[i]);
-				queryNodes.push(queryNode);
-			} catch (err) {
-				queryNodes.push(undefined);
-			}
-		}
-		const path: Proof = [];
-		let currentNode;
-		for (let j = 0; j < queryNodes.length; j += 1) {
-			currentNode = queryNodes[j];
-			if (!currentNode) {
-				queryNodes.splice(j, 1);
-				// eslint-disable-next-line
-				continue;
-			}
-			while (currentNode.hash !== this._root) {
-				const parentNode = this._findParent(currentNode.hash);
-				// If no parent node, we have reached the root node
-				if (!parentNode) {
-					// eslint-disable-next-line
-					break;
-				}
-				let pairNode: NodeInfo;
-				let direction: number;
-				if (parentNode.leftHash.compare(currentNode.hash) === 0) {
-					pairNode = this.getNode(parentNode.rightHash);
-					direction = 1;
-				} else {
-					pairNode = this.getNode(parentNode.leftHash);
-					direction = 0;
-				}
-				path.push({ hash: pairNode.hash, direction });
-				currentNode = parentNode;
+	public getStructure(): TreeStructure {
+		const structure: { [key: number]: NodeInfo[] } = {};
+		const allNodes = this.getData();
+		for (let i = 0; i < allNodes.length; i += 1) {
+			const currentNode = allNodes[i];
+			// const idx = binaryString(currentNode.nodeIndex, this._getHeight() - currentNode.layerIndex);
+			if (!(currentNode.layerIndex in structure)) {
+				structure[currentNode.layerIndex] = [currentNode];
+			} else {
+				structure[currentNode.layerIndex].splice(
+					currentNode.nodeIndex,
+					0,
+					currentNode,
+				);
 			}
 		}
 
-		return path;
+		return structure;
 	}
 
 	public clear(): void {
