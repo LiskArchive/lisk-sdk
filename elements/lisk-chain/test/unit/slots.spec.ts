@@ -57,9 +57,12 @@ describe('Slots', () => {
 
 	describe('getSlotTime', () => {
 		it('should return correct time corresponds to the slot', () => {
-			const time =
-				new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
-				TIME_AFTER_EPOCH * 2;
+			const time = Math.floor(
+				(new Date(GENESIS_BLOCK_TIMESTAMP * MS_IN_A_SEC).getTime() +
+					TIME_AFTER_EPOCH * 2) /
+					MS_IN_A_SEC,
+			);
+
 			expect(slots.getSlotTime(2)).toBe(time);
 		});
 	});

@@ -20,16 +20,16 @@ interface SlotsInput {
 const SEC_IN_MS = 1000;
 
 export class Slots {
-	private readonly _genesisTime: Date;
+	private readonly _genesisTime: number;
 	private readonly _interval: number;
 
 	public constructor({ genesisBlockTimestamp, interval }: SlotsInput) {
-		this._genesisTime = new Date(genesisBlockTimestamp * SEC_IN_MS);
+		this._genesisTime = genesisBlockTimestamp;
 		this._interval = interval;
 	}
 
 	public timeSinceGenesis(): number {
-		return Math.floor((Date.now() - this._genesisTime.getTime()) / SEC_IN_MS);
+		return Math.floor((Date.now() - this._genesisTime * SEC_IN_MS) / SEC_IN_MS);
 	}
 
 	public blockTime(): number {
@@ -39,7 +39,7 @@ export class Slots {
 	public getSlotNumber(timeStamp?: number): number {
 		const elapsedTime = Math.floor(
 			((timeStamp !== undefined ? timeStamp * SEC_IN_MS : Date.now()) -
-				this._genesisTime.getTime()) /
+				this._genesisTime * SEC_IN_MS) /
 				SEC_IN_MS,
 		);
 
@@ -49,9 +49,7 @@ export class Slots {
 	public getSlotTime(slot: number): number {
 		const slotGensisTimeOffset = slot * this._interval;
 
-		return (
-			Math.floor(this._genesisTime.getTime() / SEC_IN_MS) + slotGensisTimeOffset
-		);
+		return this._genesisTime + slotGensisTimeOffset;
 	}
 
 	public getNextSlot(): number {
