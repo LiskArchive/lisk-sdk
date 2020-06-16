@@ -93,6 +93,8 @@ describe('create', () => {
 	it('should set "timestamp" to provided timestamp', () => {
 		// Arrange
 		const timestamp = 1592227157;
+
+		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
 			timestamp,
