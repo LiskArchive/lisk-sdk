@@ -12,13 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { p2pSchemas } from '@liskhq/lisk-p2p';
-
 export const customNodeInfoSchema = {
 	$id: '/nodeInfo/custom',
 	type: 'object',
 	properties: {
-		...p2pSchemas.nodeInfoSchema.properties,
 		maxHeightPrevoted: {
 			dataType: 'uint32',
 			fieldNumber: 8,
@@ -34,7 +31,6 @@ export const customPeerInfoSchema = {
 	$id: '/peerInfo/custom',
 	type: 'object',
 	properties: {
-		...p2pSchemas.peerInfoSchema.properties,
 		maxHeightPrevoted: {
 			dataType: 'uint32',
 			fieldNumber: 8,
