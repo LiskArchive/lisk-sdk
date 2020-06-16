@@ -12,6 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const keyString = (key: Buffer): string => key.toString('binary');
+export const customNodeInfoSchema = {
+	$id: '/nodeInfo/custom',
+	type: 'object',
+	properties: {
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 8,
+		},
+		blockVersion: {
+			dataType: 'uint32',
+			fieldNumber: 9,
+		},
+	},
+};
 
-export const keyReadbleString = (key: Buffer): string => key.toString('base64');
+export const customPeerInfoSchema = {
+	$id: '/peerInfo/custom',
+	type: 'object',
+	properties: {
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 8,
+		},
+		blockVersion: {
+			dataType: 'uint32',
+			fieldNumber: 9,
+		},
+	},
+};

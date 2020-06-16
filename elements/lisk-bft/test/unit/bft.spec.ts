@@ -68,7 +68,7 @@ describe('bft', () => {
 			slots: {
 				getSlotNumber: jest.Mock;
 				isWithinTimeslot: jest.Mock;
-				getEpochTime: jest.Mock;
+				timeSinceGenesis: jest.Mock;
 			};
 		};
 		let dposStub: {
@@ -89,7 +89,7 @@ describe('bft', () => {
 				slots: {
 					getSlotNumber: jest.fn(),
 					isWithinTimeslot: jest.fn(),
-					getEpochTime: jest.fn(),
+					timeSinceGenesis: jest.fn(),
 				},
 			};
 

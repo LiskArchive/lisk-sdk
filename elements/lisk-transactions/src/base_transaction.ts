@@ -117,7 +117,7 @@ export abstract class BaseTransaction {
 
 	public get idStr(): string {
 		if (!this._idStr) {
-			this._idStr = this._id.toString('hex');
+			this._idStr = this._id.toString('base64');
 		}
 		return this._idStr;
 	}
@@ -131,7 +131,7 @@ export abstract class BaseTransaction {
 
 	public get senderPublicKeyStr(): string {
 		if (!this._senderPublicKeyStr) {
-			this._senderPublicKeyStr = this.senderPublicKey.toString('hex');
+			this._senderPublicKeyStr = this.senderPublicKey.toString('base64');
 		}
 		return this._senderPublicKeyStr;
 	}

@@ -14,11 +14,7 @@
  */
 
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import {
-	isValidFee,
-	isValidNonce,
-	validateNetworkIdentifier,
-} from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 
 import { RawAssetVote, VoteTransaction, Vote } from './13_vote_transaction';
 import { createBaseTransaction, baseTransactionToJSON } from './utils';
@@ -38,15 +34,17 @@ const validateInputs = ({
 	networkIdentifier,
 	votes,
 }: CastVoteInputs): void => {
-	if (!isValidNonce(nonce.toString())) {
+	if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 		throw new Error('Nonce must be a valid number in string format.');
 	}
 
-	if (!isValidFee(fee.toString())) {
+	if (!isNumberString(fee) || !isUInt64(BigInt(fee))) {
 		throw new Error('Fee must be a valid number in string format.');
 	}
 
-	validateNetworkIdentifier(networkIdentifier);
+	if (hexToBuffer(networkIdentifier).length !== 32) {
+		throw new Error('Invalid network identifier length');
+	}
 
 	if (!votes.length) {
 		throw new Error('Votes must present to create transaction.');

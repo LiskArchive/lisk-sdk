@@ -262,7 +262,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Cannot apply proof-of-misbehavior. Delegate is banned.',
 					this.id,
 					'.asset.header1.generatorPublicKey',
-					this.asset.header1.generatorPublicKey.toString('hex'),
+					this.asset.header1.generatorPublicKey.toString('base64'),
 				),
 			);
 
@@ -281,7 +281,7 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 					'Cannot apply proof-of-misbehavior. Delegate is already punished. ',
 					this.id,
 					'.asset.header1.generatorPublicKey',
-					this.asset.header1.generatorPublicKey.toString('hex'),
+					this.asset.header1.generatorPublicKey.toString('base64'),
 				),
 			);
 

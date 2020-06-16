@@ -54,6 +54,7 @@ import {
 
 import { errors } from '../../src';
 import { PeerBookConfig, PeerBook } from '../../src/peer_book/peer_book';
+import { peerInfoSchema, nodeInfoSchema } from '../../src/schema';
 
 const { RequestFailError, SendFailError } = errors;
 
@@ -94,6 +95,10 @@ describe('peerPool', () => {
 		maxPeerDiscoveryResponseLength: 1000,
 		secret: DEFAULT_RANDOM_SECRET,
 		peerBook: new PeerBook(peerBookConfig),
+		rpcSchemas: {
+			nodeInfo: nodeInfoSchema,
+			peerInfo: peerInfoSchema,
+		},
 	};
 	let peerPool: PeerPool;
 	let peerInfo: P2PPeerInfo;
@@ -142,6 +147,10 @@ describe('peerPool', () => {
 			off: jest.fn(),
 			emit: jest.fn(),
 			destroy: jest.fn(),
+			_rpcSchemas: {
+				nodeInfo: nodeInfoSchema,
+				peerInfo: peerInfoSchema,
+			},
 		} as any;
 		peerPool.emit = jest.fn();
 	});
@@ -176,6 +185,10 @@ describe('peerPool', () => {
 				wsMaxPayload: peerPoolConfig.wsMaxPayload,
 				maxPeerInfoSize: peerPoolConfig.maxPeerInfoSize,
 				secret: peerPoolConfig.secret,
+				rpcSchemas: {
+					peerInfo: peerInfoSchema,
+					nodeInfo: nodeInfoSchema,
+				},
 			};
 
 			expect(actualConfig).toEqual(expectedConfig);

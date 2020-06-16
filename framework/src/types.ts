@@ -18,20 +18,10 @@ export interface StringKeyVal {
 }
 
 /* Start P2P */
-type Modify<T, R> = Omit<T, keyof R> & R;
-export type P2PConfig = Modify<
-	p2pTypes.P2PConfig,
-	{
-		readonly advertiseAddress: boolean;
-		readonly seedPeers: ReadonlyArray<SeedPeerInfo>;
-	}
->;
-
 export interface SeedPeerInfo {
 	readonly ip: string;
 	readonly wsPort: number;
 }
-
 export interface RPCBlocksByIdData {
 	readonly blockId: string;
 }
@@ -94,6 +84,26 @@ export interface NetworkConfig {
 	maxPeerInfoSize?: number;
 	wsMaxPayload?: number;
 	advertiseAddress?: boolean;
+	customSchema?: p2pTypes.RPCSchemas;
+}
+
+export interface GenesisConfig {
+	epochTime: string;
+	blockTime: number;
+	maxPayloadLength: number;
+	rewards: {
+		milestones: string[];
+		offset: number;
+		distance: number;
+	};
+}
+
+export interface ApplicationConstants {
+	[key: string]: {} | string | number | undefined;
+	activeDelegates: number;
+	standbyDelegates: number;
+	totalAmount: string;
+	delegateListRoundOffset: number;
 }
 
 export interface ApplicationConfig {
@@ -119,22 +129,7 @@ export interface ApplicationConfig {
 		fileLogLevel: string;
 		consoleLogLevel: string;
 	};
-	genesisConfig: {
-		epochTime: string;
-		blockTime: number;
-		maxPayloadLength: number;
-		rewards: {
-			milestones: string[];
-			offset: number;
-			distance: number;
-		};
-	};
-	constants: {
-		[key: string]: {} | string | number | undefined;
-		activeDelegates: number;
-		standbyDelegates: number;
-		totalAmount: string;
-		delegateListRoundOffset: number;
-	};
+	genesisConfig: GenesisConfig;
+	constants: ApplicationConstants;
 	modules: ModulesOptions;
 }

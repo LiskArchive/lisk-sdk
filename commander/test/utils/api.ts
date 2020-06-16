@@ -18,10 +18,8 @@ import { APIClient } from '@liskhq/lisk-api-client';
 import { getAPIClient } from '../../src/utils/api';
 
 describe('api utils', () => {
-	const mainnetNethash =
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-	const testnetNethash =
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+	const mainnetNethash = '7RSIlyPyTsxUhx0FjZjOkf8vlzGSB1wBVbore3CtJRE=';
+	const testnetNethash = '2j7WpFQpJ4usJmaWEonKF62GWV0zsxA3YV1Ljo8Vi7o=';
 	const mainnetNodes = [
 		'https://node01.lisk.io:443',
 		'https://node02.lisk.io:443',

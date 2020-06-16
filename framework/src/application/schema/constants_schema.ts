@@ -38,7 +38,7 @@ export const constantsSchema = {
 		},
 		totalAmount: {
 			type: 'string',
-			format: 'amount',
+			format: 'uint64',
 			const: '10000000000000000',
 			description:
 				'Total amount of LSK available in network before rewards milestone started',

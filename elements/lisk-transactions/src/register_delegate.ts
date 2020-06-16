@@ -14,7 +14,6 @@
  */
 
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
-import { validateNetworkIdentifier } from '@liskhq/lisk-validator';
 
 import { DelegateTransaction } from './10_delegate_transaction';
 import { USERNAME_MAX_LENGTH } from './constants';
@@ -54,7 +53,9 @@ const validateInputs = ({
 		);
 	}
 
-	validateNetworkIdentifier(networkIdentifier);
+	if (hexToBuffer(networkIdentifier).length !== 32) {
+		throw new Error('Invalid network identifier length');
+	}
 };
 
 export const registerDelegate = (

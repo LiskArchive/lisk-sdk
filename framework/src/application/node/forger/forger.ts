@@ -20,7 +20,7 @@ import {
 	hashOnion,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { BufferMap, Chain } from '@liskhq/lisk-chain';
+import { BufferMap, Chain, BufferSet } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';
 import { BFT } from '@liskhq/lisk-bft';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
@@ -36,7 +36,6 @@ import {
 	setUsedHashOnions,
 	UsedHashOnion,
 } from './data_access';
-import { DelegateConfig } from '../../../types';
 
 interface HashOnionConfig {
 	readonly count: number;
@@ -45,13 +44,23 @@ interface HashOnionConfig {
 }
 
 export interface ForgingStatus {
-	readonly publicKey: string;
+	readonly publicKey: Buffer;
 	readonly forging: boolean;
 }
 
 interface Keypair {
 	publicKey: Buffer;
 	privateKey: Buffer;
+}
+
+export interface RegisteredDelegate {
+	readonly publicKey: Buffer;
+	readonly encryptedPassphrase: string;
+	readonly hashOnion: {
+		readonly count: number;
+		readonly distance: number;
+		readonly hashes: Buffer[];
+	};
 }
 
 interface ForgerConstructor {
@@ -64,7 +73,7 @@ interface ForgerConstructor {
 	readonly transactionPoolModule: TransactionPool;
 	readonly chainModule: Chain;
 	readonly maxPayloadLength: number;
-	readonly forgingDelegates?: ReadonlyArray<DelegateConfig>;
+	readonly forgingDelegates?: ReadonlyArray<RegisteredDelegate>;
 	readonly forgingForce?: boolean;
 	readonly forgingDefaultPassword?: string;
 	readonly forgingWaitThreshold: number;
@@ -82,7 +91,7 @@ export class Forger {
 	private readonly _config: {
 		readonly forging: {
 			readonly force?: boolean;
-			delegates?: ReadonlyArray<DelegateConfig>;
+			delegates?: ReadonlyArray<RegisteredDelegate>;
 			readonly defaultPassword?: string;
 			readonly waitThreshold: number;
 		};
@@ -145,13 +154,13 @@ export class Forger {
 	}
 
 	public async updateForgingStatus(
-		publicKey: string,
+		publicKey: Buffer,
 		password: string,
 		forging: boolean,
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
-		const encryptedItem = encryptedList?.find(
-			item => item.publicKey === publicKey,
+		const encryptedItem = encryptedList?.find(item =>
+			item.publicKey.equals(publicKey),
 		);
 
 		let keypair: Keypair;
@@ -169,10 +178,12 @@ export class Forger {
 
 			keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 		} else {
-			throw new Error(`Delegate with publicKey: ${publicKey} not found`);
+			throw new Error(
+				`Delegate with publicKey: ${publicKey.toString('base64')} not found`,
+			);
 		}
 
-		if (keypair.publicKey.toString('hex') !== publicKey) {
+		if (!keypair.publicKey.equals(publicKey)) {
 			throw new Error('Invalid password and public key combination');
 		}
 
@@ -232,18 +243,20 @@ export class Forger {
 					this._config.forging.defaultPassword,
 				);
 			} catch (error) {
-				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${
-					encryptedItem.publicKey
-				}. ${(error as Error).message}`;
+				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey.toString(
+					'base64',
+				)}. ${(error as Error).message}`;
 				this._logger.error(decryptionError);
 				throw new Error(decryptionError);
 			}
 
 			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
-			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
+			if (!keypair.publicKey.equals(encryptedItem.publicKey)) {
 				throw new Error(
-					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. Public keys do not match`,
+					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey.toString(
+						'base64',
+					)}. Public keys do not match`,
 				);
 			}
 
@@ -291,7 +304,7 @@ export class Forger {
 			) {
 				this._logger.warn(
 					`Hash onion for Account ${account.address.toString(
-						'hex',
+						'base64',
 					)} is not the same as previous one. Overwriting with new hash onion`,
 				);
 				usedHashOnions = usedHashOnions.filter(
@@ -343,13 +356,14 @@ export class Forger {
 	}
 
 	public async forge(): Promise<void> {
+		const MS_IN_A_SEC = 1000;
 		const currentSlot = this._chainModule.slots.getSlotNumber();
-		const currentSlotTime = this._chainModule.slots.getRealTime(
-			this._chainModule.slots.getSlotTime(currentSlot),
-		);
 
-		const currentTime = new Date().getTime();
-		const waitThreshold = this._config.forging.waitThreshold * 1000;
+		const currentSlotTime = this._chainModule.slots.getSlotTime(currentSlot);
+
+		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
+
+		const { waitThreshold } = this._config.forging;
 		const { lastBlock } = this._chainModule;
 		const lastBlockSlot = this._chainModule.slots.getSlotNumber(
 			lastBlock.header.timestamp,
@@ -406,7 +420,8 @@ export class Forger {
 			return;
 		}
 
-		const timestamp = this._chainModule.slots.getSlotTime(currentSlot);
+		const timestamp = currentSlotTime;
+
 		const previousBlock = this._chainModule.lastBlock;
 		const transactions = await this._forgingStrategy?.getTransactionsForBlock();
 
@@ -420,7 +435,8 @@ export class Forger {
 			nextHeight,
 		);
 		const index = usedHashOnions.findIndex(
-			ho => ho.address === delegateAddress && ho.count === nextHashOnion.count,
+			ho =>
+				ho.address.equals(delegateAddress) && ho.count === nextHashOnion.count,
 		);
 		const nextUsedHashOnion = {
 			count: nextHashOnion.count,
@@ -475,14 +491,14 @@ export class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
 		const forgingDelegates = this._config.forging.delegates;
-		const forgersPublicKeys: { [key: string]: boolean } = {};
+		const forgersPublicKeys = new BufferSet();
 
 		for (const keypair of this._keypairs.values()) {
-			forgersPublicKeys[keypair.publicKey.toString('hex')] = true;
+			forgersPublicKeys.add(keypair.publicKey);
 		}
 
 		const fullList = forgingDelegates?.map(forger => ({
-			forging: !!forgersPublicKeys[forger.publicKey],
+			forging: forgersPublicKeys.has(forger.publicKey),
 			publicKey: forger.publicKey,
 		}));
 
@@ -545,7 +561,7 @@ export class Forger {
 
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
 		const delegateConfig = this._config.forging.delegates?.find(d =>
-			getAddressFromPublicKey(Buffer.from(d.publicKey, 'hex')).equals(address),
+			getAddressFromPublicKey(d.publicKey).equals(address),
 		);
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(
@@ -555,11 +571,7 @@ export class Forger {
 			);
 		}
 
-		return {
-			count: delegateConfig.hashOnion.count,
-			distance: delegateConfig.hashOnion.distance,
-			hashes: delegateConfig.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
-		};
+		return delegateConfig.hashOnion;
 	}
 
 	// eslint-disable-next-line class-methods-use-this

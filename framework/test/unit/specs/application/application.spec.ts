@@ -27,7 +27,7 @@ import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
 import { createLogger } from '../../../../src/application/logger';
-import { GenesisBlockJSON } from '../../../../src/application/node/node';
+import { GenesisBlockJSON } from '../../../../src/application/genesis_block';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -141,7 +141,6 @@ describe('Application', () => {
 
 			customConfig.genesisConfig = {
 				maxPayloadLength: 15 * 1024,
-				epochTime: '2016-05-24T17:00:00.000Z',
 				blockTime: 2,
 				rewards: {
 					milestones: [

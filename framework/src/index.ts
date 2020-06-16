@@ -16,5 +16,5 @@ export { Application } from './application/application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
 export { BaseModule } from './modules/base_module';
-export { GenesisBlockJSON } from './application/node/node';
+export { GenesisBlockJSON } from './application/genesis_block';
 export * from './types';

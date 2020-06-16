@@ -149,7 +149,7 @@ export class BFT extends EventEmitter {
 		// Current time since Lisk Epoch
 		const receivedBlock = {
 			...blockHeader,
-			receivedAt: this._chain.slots.getEpochTime(),
+			receivedAt: this._chain.slots.timeSinceGenesis(),
 		};
 
 		/* Cases are numbered following LIP-0014 Fork choice rule.

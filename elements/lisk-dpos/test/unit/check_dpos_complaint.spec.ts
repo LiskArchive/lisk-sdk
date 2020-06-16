@@ -16,7 +16,6 @@ import { Dpos } from '../../src';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	ACTIVE_DELEGATES,
-	EPOCH_TIME,
 	BLOCK_TIME,
 } from '../fixtures/constants';
 import {
@@ -25,6 +24,10 @@ import {
 } from '../utils/state_store_mock';
 import { BlockHeader } from '../../src/types';
 import { blockHeaders } from '../utils/block_headers';
+
+const MS_IN_A_SEC = 1000;
+const GENESIS_BLOCK_TIMESTAMP =
+	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 const createStateStore = (
 	additionalInfo: AdditionalInformation,
@@ -42,7 +45,10 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 
 	beforeEach(() => {
 		// Arrange
-		const slots = new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME });
+		const slots = new Slots({
+			genesisBlockTimestamp: GENESIS_BLOCK_TIMESTAMP,
+			interval: BLOCK_TIME,
+		});
 		const chain = {
 			slots,
 		};

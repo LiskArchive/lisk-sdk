@@ -20,6 +20,7 @@ import { Logger } from '../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { NetworkConfig } from '../../types';
+import { customPeerInfoSchema, customNodeInfoSchema } from './schema';
 
 const {
 	P2P,
@@ -159,7 +160,7 @@ export class Network {
 			  }))
 			: [];
 
-		const p2pConfig = {
+		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
 			nodeInfo: initialNodeInfo,
 			hostIp: this._options.hostIp,
 			blacklistedIPs,
@@ -179,6 +180,10 @@ export class Network {
 			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
+			customRPCSchemas: {
+				peerInfo: customPeerInfoSchema,
+				nodeInfo: customNodeInfoSchema,
+			},
 		};
 
 		this._p2p = new P2P(p2pConfig);

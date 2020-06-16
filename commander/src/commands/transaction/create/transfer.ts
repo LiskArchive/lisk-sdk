@@ -14,14 +14,13 @@
  *
  */
 import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
-import {
-	isValidFee,
-	isValidNonce,
-	validateAddress,
-} from '@liskhq/lisk-validator';
+import { isNumberString, isUInt64 } from '@liskhq/lisk-validator';
 import { flags as flagParser } from '@oclif/command';
 
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	hexToBuffer,
+} from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
@@ -124,7 +123,7 @@ export default class TransferCommand extends BaseCommand {
 			this.userConfig.api.network,
 		);
 
-		if (!isValidNonce(nonce)) {
+		if (!isNumberString(nonce) || !isUInt64(BigInt(nonce))) {
 			throw new ValidationError('Enter a valid nonce in number string format.');
 		}
 
@@ -134,11 +133,13 @@ export default class TransferCommand extends BaseCommand {
 
 		const normalizedFee = transactionUtils.convertLSKToBeddows(fee);
 
-		if (!isValidFee(normalizedFee)) {
+		if (!isNumberString(normalizedFee) || !isUInt64(BigInt(normalizedFee))) {
 			throw new ValidationError('Enter a valid fee in number string format.');
 		}
 
-		validateAddress(address);
+		if (hexToBuffer(address).length !== 20) {
+			throw new Error('Invalid address length');
+		}
 		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
 		if (noSignature) {

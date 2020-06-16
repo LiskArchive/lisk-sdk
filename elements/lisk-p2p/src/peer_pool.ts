@@ -64,7 +64,6 @@ import {
 	PeerConfig,
 } from './peer';
 import { PeerBook } from './peer_book/peer_book';
-import { nodeInfoSchema } from './schema';
 import {
 	P2PClosePacket,
 	P2PMessagePacket,
@@ -77,6 +76,7 @@ import {
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
+	RPCSchemas,
 } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -149,6 +149,7 @@ export interface PeerPoolConfig {
 	readonly rateCalculationInterval: number;
 	readonly secret: number;
 	readonly peerBook: PeerBook;
+	readonly rpcSchemas: RPCSchemas;
 }
 
 export class PeerPool extends EventEmitter {
@@ -185,11 +186,15 @@ export class PeerPool extends EventEmitter {
 	private readonly _outboundShuffleIntervalId: NodeJS.Timer | undefined;
 	private readonly _peerConfig: PeerConfig;
 	private readonly _peerBook: PeerBook;
+	private readonly _rpcSchema: RPCSchemas;
 
 	public constructor(peerPoolConfig: PeerPoolConfig) {
 		super();
 		this._peerMap = new Map<string, Peer>();
 		this._peerPoolConfig = peerPoolConfig;
+		this._rpcSchema = peerPoolConfig.rpcSchemas;
+		codec.addSchema(this._rpcSchema.nodeInfo);
+
 		this._peerConfig = {
 			connectTimeout: this._peerPoolConfig.connectTimeout,
 			ackTimeout: this._peerPoolConfig.ackTimeout,
@@ -201,6 +206,7 @@ export class PeerPool extends EventEmitter {
 			wsMaxPayload: this._peerPoolConfig.wsMaxPayload,
 			maxPeerInfoSize: this._peerPoolConfig.maxPeerInfoSize,
 			secret: this._peerPoolConfig.secret,
+			rpcSchemas: this._rpcSchema,
 		};
 		this._peerBook = peerPoolConfig.peerBook;
 		this._peerSelectForSend = peerPoolConfig.peerSelectionForSend;
@@ -209,7 +215,6 @@ export class PeerPool extends EventEmitter {
 		this._maxOutboundConnections = peerPoolConfig.maxOutboundConnections;
 		this._maxInboundConnections = peerPoolConfig.maxInboundConnections;
 		this._sendPeerLimit = peerPoolConfig.sendPeerLimit;
-		codec.addSchema(nodeInfoSchema);
 
 		this._outboundShuffleIntervalId = setInterval(() => {
 			this._evictPeer(OutboundPeer);
@@ -630,7 +635,7 @@ export class PeerPool extends EventEmitter {
 
 	private _applyNodeInfoOnPeer(peer: Peer): void {
 		const encodedNodeInfo = codec
-			.encode(nodeInfoSchema, this._nodeInfo as object)
+			.encode(this._rpcSchema.nodeInfo, this._nodeInfo as object)
 			.toString('base64');
 		try {
 			peer.send({

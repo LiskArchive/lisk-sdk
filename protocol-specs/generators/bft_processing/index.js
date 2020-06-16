@@ -345,9 +345,7 @@ const FORK_STATUS_DISCARD = 6;
 const bftForkChoiceTestSuiteGenerator = () => {
 	const blockInterval = 10;
 	const lastBlockHeight = 10;
-	const epochTime = Math.floor(new Date('2016-05-24T17:00:00.000Z').getTime());
 
-	// All times are epoch time
 	const lastBlock = {
 		id: '4787605425910193884',
 		height: lastBlockHeight,
@@ -375,7 +373,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 	const initialState = {
 		blockInterval,
 		lastBlock,
-		epochTime,
 	};
 
 	return {
@@ -467,7 +464,6 @@ const bftForkChoiceTestSuiteGenerator = () => {
 						...lastBlock,
 						...{ timestamp: lastBlock.timestamp - 5 }, // last block received in earlier slot
 					},
-					epochTime,
 					blockInterval,
 				},
 				input: {

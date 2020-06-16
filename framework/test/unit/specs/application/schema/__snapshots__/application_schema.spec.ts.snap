@@ -12,7 +12,6 @@ Object {
       },
       "genesisConfig": Object {
         "blockTime": 10,
-        "epochTime": "2016-05-24T17:00:00.000Z",
         "maxPayloadLength": 15360,
         "rewards": Object {
           "distance": 3000000,
@@ -73,7 +72,7 @@ Object {
                     },
                     "hashes": Object {
                       "items": Object {
-                        "format": "hex",
+                        "format": "base64",
                         "type": "string",
                       },
                       "type": "array",
@@ -87,7 +86,7 @@ Object {
                   "type": "object",
                 },
                 "publicKey": Object {
-                  "format": "publicKey",
+                  "format": "base64",
                   "type": "string",
                 },
               },
@@ -123,11 +122,6 @@ Object {
             "minimum": 2,
             "type": "number",
           },
-          "epochTime": Object {
-            "description": "Timestamp indicating the start of Lisk Core (\`Date.toISOString()\`)",
-            "format": "date-time",
-            "type": "string",
-          },
           "maxPayloadLength": Object {
             "description": "Maximum number of transactions allowed per block",
             "maximum": 30720,
@@ -147,7 +141,7 @@ Object {
               "milestones": Object {
                 "description": "Initial 5, and decreasing until 1",
                 "items": Object {
-                  "format": "amount",
+                  "format": "uint64",
                   "type": "string",
                 },
                 "type": "array",
@@ -167,7 +161,6 @@ Object {
           },
         },
         "required": Array [
-          "epochTime",
           "blockTime",
           "maxPayloadLength",
           "rewards",
@@ -192,7 +185,7 @@ Object {
       "lastCommitId": Object {
         "description": "The version of Lisk Core that the peer node runs on.",
         "example": "968d7b5b97a5bfad8f77614dc8a9918de49f6c6e",
-        "format": "hex",
+        "format": "base64",
         "maxLength": 40,
         "minLength": 40,
         "type": "string",

@@ -41,22 +41,19 @@ export const genesisBlockSchema = {
 				},
 				signature: {
 					type: 'string',
-					format: 'signature',
+					format: 'base64',
 				},
 				id: {
 					type: 'string',
-					format: 'hex',
-					minLength: 64,
-					maxLength: 64,
+					format: 'base64',
 				},
 				reward: {
 					type: 'string',
-					format: 'amount',
+					format: 'uint64',
 				},
-
 				transactionRoot: {
 					type: 'string',
-					format: 'hex',
+					format: 'base64',
 				},
 				timestamp: {
 					type: 'integer',
@@ -64,11 +61,10 @@ export const genesisBlockSchema = {
 				},
 				previousBlockID: {
 					type: 'string',
-					format: 'hex',
 				},
 				generatorPublicKey: {
 					type: 'string',
-					format: 'publicKey',
+					format: 'base64',
 				},
 				asset: {
 					type: 'object',
@@ -80,7 +76,7 @@ export const genesisBlockSchema = {
 					properties: {
 						seedReveal: {
 							type: 'string',
-							format: 'hex',
+							format: 'base64',
 						},
 						maxHeightPrevoted: {
 							type: 'integer',
@@ -105,15 +101,15 @@ export const genesisBlockSchema = {
 					},
 					fee: {
 						type: 'string',
-						format: 'amount',
+						format: 'uint64',
 					},
 					nonce: {
 						type: 'string',
-						format: 'amount',
+						format: 'uint64',
 					},
 					senderPublicKey: {
 						type: 'string',
-						format: 'publicKey',
+						format: 'base64',
 					},
 					asset: {
 						type: 'object',
@@ -123,19 +119,15 @@ export const genesisBlockSchema = {
 					signatures: {
 						type: 'array',
 						items: {
-							oneOf: [
-								{ type: 'string', format: 'signature' },
-								{ type: 'string', format: 'emptyString' },
-							],
+							type: 'string',
+							format: 'base64',
 						},
 						minItems: 1,
 						maxItems: 64,
 					},
 					id: {
 						type: 'string',
-						format: 'hex',
-						minLength: 64,
-						maxLength: 64,
+						format: 'base64',
 					},
 				},
 				additionalProperties: false,

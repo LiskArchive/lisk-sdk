@@ -17,7 +17,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
-import { EPOCH_TIME, BLOCK_TIME } from '../fixtures/constants';
+import { BLOCK_TIME } from '../fixtures/constants';
 import { delegatePublicKeys } from '../utils/round_delegates';
 import { BlockHeader } from '../../src/types';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
@@ -43,7 +43,10 @@ describe('dpos.verifyBlockForger()', () => {
 		const forgersList = codec.encode(forgerListSchema, forgerListObject);
 
 		chainStub = {
-			slots: new Slots({ epochTime: EPOCH_TIME, interval: BLOCK_TIME }) as any,
+			slots: new Slots({
+				genesisBlockTimestamp: 0,
+				interval: BLOCK_TIME,
+			}) as any,
 			dataAccess: {
 				getConsensusState: jest.fn().mockResolvedValue(forgersList),
 			},

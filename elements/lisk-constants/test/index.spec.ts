@@ -13,9 +13,6 @@
  *
  */
 import {
-	EPOCH_TIME,
-	EPOCH_TIME_MILLISECONDS,
-	EPOCH_TIME_SECONDS,
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_ID,
 	MAX_TRANSACTION_AMOUNT,
@@ -25,18 +22,6 @@ import {
 } from '../src';
 
 describe('lisk-constants', () => {
-	it('EPOCH_TIME should be a Date instance', () => {
-		expect(EPOCH_TIME).toBeInstanceOf(Date);
-	});
-
-	it('EPOCH_TIME_SECONDS should be an integer', () => {
-		expect(typeof EPOCH_TIME_SECONDS).toBe('number');
-	});
-
-	it('EPOCH_TIME_MILLISECONDS should be an integer', () => {
-		expect(typeof EPOCH_TIME_MILLISECONDS).toBe('number');
-	});
-
 	it('MAX_ADDRESS_NUMBER should be a string', () => {
 		expect(MAX_ADDRESS_NUMBER).toBeString();
 	});

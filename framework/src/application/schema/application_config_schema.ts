@@ -49,7 +49,7 @@ export const applicationConfigSchema = {
 		},
 		lastCommitId: {
 			type: 'string',
-			format: 'hex',
+			format: 'base64',
 			minLength: 40,
 			maxLength: 40,
 			example: '968d7b5b97a5bfad8f77614dc8a9918de49f6c6e',
@@ -92,14 +92,8 @@ export const applicationConfigSchema = {
 		genesisConfig: {
 			id: '#/config/genesisConfig',
 			type: 'object',
-			required: ['epochTime', 'blockTime', 'maxPayloadLength', 'rewards'],
+			required: ['blockTime', 'maxPayloadLength', 'rewards'],
 			properties: {
-				epochTime: {
-					type: 'string',
-					format: 'date-time',
-					description:
-						'Timestamp indicating the start of Lisk Core (`Date.toISOString()`)',
-				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
 				// TODO this recommendations need to be updated now that we changed to a byte size block
@@ -129,7 +123,7 @@ export const applicationConfigSchema = {
 							type: 'array',
 							items: {
 								type: 'string',
-								format: 'amount',
+								format: 'uint64',
 							},
 							description: 'Initial 5, and decreasing until 1',
 						},
@@ -175,7 +169,7 @@ export const applicationConfigSchema = {
 							},
 							publicKey: {
 								type: 'string',
-								format: 'publicKey',
+								format: 'base64',
 							},
 							hashOnion: {
 								type: 'object',
@@ -191,7 +185,7 @@ export const applicationConfigSchema = {
 										type: 'array',
 										items: {
 											type: 'string',
-											format: 'hex',
+											format: 'base64',
 										},
 									},
 								},
@@ -332,8 +326,6 @@ export const applicationConfigSchema = {
 			logFileName: 'lisk.log',
 		},
 		genesisConfig: {
-			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-			epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 			blockTime: 10,
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxPayloadLength: 15 * 1024, // Kilo Bytes

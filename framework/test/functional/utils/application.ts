@@ -11,11 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as os from 'os';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
 import { Application, ApplicationConfig } from '../../../src';
-import { GenesisBlockJSON } from '../../../src/application/node/node';
+import { GenesisBlockJSON } from '../../../src/application/genesis_block';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 
@@ -23,17 +26,21 @@ export const createApplication = async (
 	label: string,
 	consoleLogLevel?: string,
 ): Promise<Application> => {
+	const rootPath = '~/.lisk/functional';
 	const config = {
 		...configJSON,
-		rootPath: '~/.lisk/functional',
+		rootPath,
 		label,
 		logger: {
 			consoleLogLevel: consoleLogLevel ?? 'fatal',
 			fileLogLevel: 'fatal',
 		},
 	} as Partial<ApplicationConfig>;
-	genesisBlockJSON.header.timestamp = 128113100;
+
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
+
+	// Remoe pre-existing data
+	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
 	await Promise.race([
