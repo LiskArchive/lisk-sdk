@@ -32,7 +32,7 @@ export const createApplication = async (
 			fileLogLevel: 'fatal',
 		},
 	} as Partial<ApplicationConfig>;
-	genesisBlockJSON.header.timestamp = 128113100;
+
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
