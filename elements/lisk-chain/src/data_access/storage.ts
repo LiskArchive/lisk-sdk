@@ -361,8 +361,15 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const transactions = [];
 		for (const id of arrayOfTransactionIds) {
-			const transaction = await this.getTransactionByID(id);
-			transactions.push(transaction);
+			try {
+				const transaction = await this.getTransactionByID(id);
+				transactions.push(transaction);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 
 		return transactions;
