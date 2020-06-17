@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GenesisAccountState } from '../../src';
+import { DefaultAccountAsset, GenesisAccountState } from '../../src';
 import { mergeDeep } from '../../src/utils';
 
 const delegates = [
@@ -125,12 +125,16 @@ const prepareAccounts = (
 			};
 		};
 	}[],
-): Partial<GenesisAccountState>[] => {
+): Partial<GenesisAccountState<DefaultAccountAsset>>[] => {
 	return data.map(acc => ({
 		publicKey: Buffer.from(acc.publicKey, 'base64'),
 		address: Buffer.from(acc.address, 'base64'),
 		balance: BigInt(acc.balance),
-		asset: mergeDeep({}, defaultAccountAsset, acc.asset ?? {}),
+		asset: mergeDeep(
+			{},
+			defaultAccountAsset,
+			acc.asset ?? {},
+		) as DefaultAccountAsset,
 	}));
 };
 

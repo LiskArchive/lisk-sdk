@@ -13,7 +13,6 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { Account } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import {
@@ -26,10 +25,12 @@ import {
 	GENESIS_BLOCK_VERSION,
 } from './constants';
 import {
+	DefaultAccountAsset,
 	GenesisAccountState,
 	GenesisBlock,
 	GenesisBlockHeaderWithoutId,
 	GenesisBlockParams,
+	PartialReq,
 } from './types';
 import { validateGenesisBlock } from './validate';
 import {
@@ -39,8 +40,11 @@ import {
 } from './schema';
 import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
-const getBlockId = (
-	header: GenesisBlockHeaderWithoutId,
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import cloneDeep = require('lodash.clonedeep');
+
+const getBlockId = <T>(
+	header: GenesisBlockHeaderWithoutId<T>,
 	accountAssetSchema: Schema,
 ): Buffer => {
 	// eslint-disable-next-line
@@ -60,9 +64,34 @@ const getBlockId = (
 	return hash(genesisBlockHeaderBuffer);
 };
 
-export const createGenesisBlock = (
-	params: GenesisBlockParams,
-): GenesisBlock => {
+const createAccount = <T>(
+	account: PartialReq<GenesisAccountState<T>, 'address'>,
+): GenesisAccountState<T> => ({
+	address: account.address,
+	publicKey: account.publicKey ?? Buffer.alloc(0),
+	balance: account.balance ?? BigInt(0),
+	nonce: account.nonce ?? BigInt(0),
+	keys: account.keys
+		? {
+				mandatoryKeys: [
+					...account.keys.mandatoryKeys.sort((a, b) => a.compare(b)),
+				],
+				optionalKeys: [
+					...account.keys.optionalKeys.sort((a, b) => a.compare(b)),
+				],
+				numberOfSignatures: account.keys.numberOfSignatures,
+		  }
+		: {
+				mandatoryKeys: [],
+				optionalKeys: [],
+				numberOfSignatures: 0,
+		  },
+	asset: account.asset ? cloneDeep(account.asset) : ({} as T),
+});
+
+export const createGenesisBlock = <T = DefaultAccountAsset>(
+	params: GenesisBlockParams<T>,
+): GenesisBlock<T> => {
 	// Default values
 	const initRounds = params.initRounds ?? 3;
 	const height = params.height ?? 0;
@@ -79,20 +108,15 @@ export const createGenesisBlock = (
 	const signature = GENESIS_BLOCK_SIGNATURE;
 	const transactionRoot = GENESIS_BLOCK_TRANSACTION_ROOT;
 
-	const accounts: ReadonlyArray<GenesisAccountState> = params.accounts
-		.map(acc => new Account(acc))
+	const accounts: ReadonlyArray<GenesisAccountState<T>> = params.accounts
+		.map(createAccount)
 		.sort((a, b): number => a.address.compare(b.address));
-
-	for (const account of accounts) {
-		account.keys.mandatoryKeys.sort((a, b) => a.compare(b));
-		account.keys.optionalKeys.sort((a, b) => a.compare(b));
-	}
 
 	const initDelegates: ReadonlyArray<Buffer> = [
 		...params.initDelegates,
 	].sort((a, b): number => a.compare(b));
 
-	const header: GenesisBlockHeaderWithoutId = {
+	const header: GenesisBlockHeaderWithoutId<T> = {
 		generatorPublicKey,
 		height,
 		previousBlockID,
@@ -116,10 +140,10 @@ export const createGenesisBlock = (
 		throw new LiskValidationError(errors);
 	}
 
-	const genesisBlock: GenesisBlock = {
+	const genesisBlock: GenesisBlock<T> = {
 		header: {
 			...header,
-			id: getBlockId(header, accountAssetSchema),
+			id: getBlockId<T>(header, accountAssetSchema),
 		},
 		payload,
 	};
