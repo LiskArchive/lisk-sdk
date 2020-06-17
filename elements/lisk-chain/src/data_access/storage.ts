@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// TODO: Remove this after using lisk-codec
+/* eslint-disable no-continue */
 
 import {
 	KVStore,
@@ -56,8 +56,17 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
-			const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
-			blocks.push(block);
+			try {
+				const block = await this._db.get(
+					`${DB_KEY_BLOCKS_ID}:${keyString(id)}`,
+				);
+				blocks.push(block);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 		return blocks;
 	}
@@ -99,8 +108,15 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const blocks = [];
 		for (const height of heightList) {
-			const block = await this.getBlockHeaderByHeight(height);
-			blocks.push(block);
+			try {
+				const block = await this.getBlockHeaderByHeight(height);
+				blocks.push(block);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 		return blocks;
 	}
@@ -147,9 +163,17 @@ export class Storage {
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<RawBlock[]> {
 		const blocks = [];
+
 		for (const id of arrayOfBlockIds) {
-			const block = await this.getBlockByID(id);
-			blocks.push(block);
+			try {
+				const block = await this.getBlockByID(id);
+				blocks.push(block);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 
 		return blocks;
