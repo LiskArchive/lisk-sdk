@@ -331,8 +331,15 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const accounts = [];
 		for (const address of arrayOfAddresses) {
-			const account = await this.getAccountByAddress(address);
-			accounts.push(account);
+			try {
+				const account = await this.getAccountByAddress(address);
+				accounts.push(account);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 
 		return accounts;
