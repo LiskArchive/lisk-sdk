@@ -31,7 +31,7 @@ import {
 	StateStore,
 } from './types';
 
-export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
+export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 export const BFTFinalizedHeightCodecSchema = {
