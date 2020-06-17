@@ -65,7 +65,7 @@ export const validateGenesisBlock = (
 	];
 
 	// Custom header validation not possible with validator
-	if (header.generatorPublicKey !== GENESIS_BLOCK_GENERATOR_PUBLIC_KEY) {
+	if (!header.generatorPublicKey.equals(GENESIS_BLOCK_GENERATOR_PUBLIC_KEY)) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
@@ -85,7 +85,7 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	if (header.signature !== GENESIS_BLOCK_SIGNATURE) {
+	if (!header.signature.equals(GENESIS_BLOCK_SIGNATURE)) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
@@ -95,7 +95,7 @@ export const validateGenesisBlock = (
 		});
 	}
 
-	if (header.transactionRoot !== GENESIS_BLOCK_TRANSACTION_ROOT) {
+	if (!header.transactionRoot.equals(GENESIS_BLOCK_TRANSACTION_ROOT)) {
 		headerErrors.push({
 			message: 'should be equal to constant',
 			keyword: 'const',
@@ -127,10 +127,7 @@ export const validateGenesisBlock = (
 			delegateAddresses.push(account.address);
 		}
 
-		if (
-			account.publicKey !== undefined &&
-			!Buffer.alloc(0).equals(account.publicKey)
-		) {
+		if (!account.publicKey.equals(EMPTY_BUFFER)) {
 			const expectedAddress = getAddressFromPublicKey(account.publicKey);
 
 			if (!expectedAddress.equals(account.address)) {
