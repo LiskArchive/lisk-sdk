@@ -64,6 +64,7 @@ describe('Transport', () => {
 				.mockReturnValue([{ status: 1, errors: [] }]),
 			dataAccess: {
 				getTransactionByID: jest.fn(),
+				getTransactionsByIDs: jest.fn(),
 				getHighestCommonBlockHeader: jest.fn(),
 				decodeTransaction: jest.fn(),
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
@@ -627,7 +628,9 @@ describe('Transport', () => {
 				);
 				txDatabase = txDatabaseInstance;
 				when(transactionPoolStub.get).calledWith(tx.id).mockReturnValue(tx);
-				chainStub.dataAccess.getTransactionByID.mockResolvedValue(txDatabase);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
+					txDatabase,
+				]);
 			});
 
 			it('should call find get with the id', async () => {
@@ -645,7 +648,9 @@ describe('Transport', () => {
 			});
 
 			it('should return transaction in the pool', async () => {
-				chainStub.dataAccess.getTransactionByID.mockResolvedValue(txDatabase);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
+					txDatabase,
+				]);
 				const result = await transport.handleRPCGetTransactions(
 					{
 						transactionIds: [
