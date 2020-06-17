@@ -152,5 +152,7 @@ export const validGenesisBlockParams = {
 	),
 	roundLength: 103,
 	initDelegates: validDelegateAccounts.map(a => a.address) as Buffer[],
-	accounts: [...validAccounts, ...validDelegateAccounts],
+	accounts: [...validAccounts, ...validDelegateAccounts] as GenesisAccountState<
+		DefaultAccountAsset
+	>[],
 };
