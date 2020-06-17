@@ -12,9 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createGenesisBlock } from './create';
-import { validateGenesisBlock } from './validate';
+import { Schema } from '@liskhq/lisk-codec';
+import { mergeDeep } from './merge_deep';
 
-export * from './types';
-export * from './schema';
-export { createGenesisBlock, validateGenesisBlock };
+export const getHeaderAssetSchemaWithAccountAsset = (
+	headerSchema: Schema,
+	accountAssetSchema: Schema,
+): Schema =>
+	mergeDeep({}, headerSchema, {
+		properties: {
+			accounts: {
+				items: {
+					properties: {
+						asset: {
+							...accountAssetSchema,
+						},
+					},
+				},
+			},
+		},
+	}) as Schema;

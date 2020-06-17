@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createGenesisBlock } from './create';
-import { validateGenesisBlock } from './validate';
-
-export * from './types';
-export * from './schema';
-export { createGenesisBlock, validateGenesisBlock };
+export * from './merge_deep';
+export * from './buffer_array';
+export { BufferSet } from '@liskhq/lisk-chain';
