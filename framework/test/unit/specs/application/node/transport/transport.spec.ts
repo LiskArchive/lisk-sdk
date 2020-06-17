@@ -16,7 +16,6 @@ import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { BufferMap } from '@liskhq/lisk-transaction-pool';
-import { NotFoundError } from '@liskhq/lisk-db';
 import { Transport } from '../../../../../../src/application/node/transport';
 import { genesis } from '../../../../../fixtures';
 import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
@@ -787,9 +786,7 @@ describe('Transport', () => {
 		describe('when none of the transactions ids are known', () => {
 			beforeEach(() => {
 				transactionPoolStub.contains.mockReturnValue(false);
-				chainStub.dataAccess.getTransactionByID.mockRejectedValue(
-					new NotFoundError('not found'),
-				);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				chainStub.dataAccess.decodeTransaction
 					.mockReturnValueOnce(txInstance)
 					.mockReturnValueOnce(tx2Instance);
@@ -873,9 +870,7 @@ describe('Transport', () => {
 						data: { transactions: [tx2] },
 						peerId: defaultPeerId,
 					} as never);
-				chainStub.dataAccess.getTransactionByID.mockRejectedValue(
-					new NotFoundError('not found'),
-				);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				chainStub.dataAccess.decodeTransaction.mockReturnValue(tx2Instance);
 			});
 

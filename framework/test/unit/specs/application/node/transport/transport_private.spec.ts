@@ -19,7 +19,6 @@ import {
 } from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { NotFoundError } from '@liskhq/lisk-db';
 import { Logger } from '../../../../../../src/application/logger';
 import { Transport } from '../../../../../../src/application/node/transport';
 
@@ -166,6 +165,7 @@ describe('transport', () => {
 						{ height: 37, version: 1, timestamp: 1 },
 					]),
 					getTransactionByID: jest.fn(),
+					getTransactionsByIDs: jest.fn(),
 					decodeTransaction: jest.fn().mockReturnValue(transaction),
 					encode: jest.fn().mockReturnValue(encodedBlock),
 					decode: jest.fn().mockReturnValue(getGenesisBlock()),
@@ -208,9 +208,7 @@ describe('transport', () => {
 					].contains = jest.fn().mockReturnValue(false);
 					transportModule[
 						'_chainModule'
-					].dataAccess.getTransactionByID = jest
-						.fn()
-						.mockRejectedValue(new NotFoundError('not found'));
+					].dataAccess.getTransactionsByIDs = jest.fn().mockReturnValue([]);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
@@ -225,12 +223,9 @@ describe('transport', () => {
 				});
 
 				it('should call transportModule._chainModule.dataAccess.getTransactionByID with query.transaction.ids as arguments', () => {
-					expect.assertions(transactionsList.length);
-					for (const tx of transactionsList) {
-						expect(
-							transportModule['_chainModule'].dataAccess.getTransactionByID,
-						).toHaveBeenCalledWith(tx.id);
-					}
+					expect(
+						transportModule['_chainModule'].dataAccess.getTransactionsByIDs,
+					).toHaveBeenCalledWith(transactionsList.map(tx => tx.id));
 				});
 
 				it('should return array of transactions ids', () =>
@@ -282,10 +277,9 @@ describe('transport', () => {
 					].contains = jest.fn().mockReturnValue(false);
 					transportModule[
 						'_chainModule'
-					].dataAccess.getTransactionByID = jest
+					].dataAccess.getTransactionsByIDs = jest
 						.fn()
-						.mockResolvedValueOnce(transactionsList[0])
-						.mockResolvedValueOnce(transactionsList[1]);
+						.mockResolvedValue(transactionsList);
 					resultTransactionsIDsCheck = await transportModule._obtainUnknownTransactionIDs(
 						query.ids,
 					);
