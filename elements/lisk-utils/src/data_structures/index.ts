@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * as dataStructures from './data_structures';
-export * as jobHandlers from './job_handlers';
-export * as objects from './objects';
+export * from './buffer_map';
+export * from './buffer_set';
+export * from './max_heap';
+export * from './min_heap';

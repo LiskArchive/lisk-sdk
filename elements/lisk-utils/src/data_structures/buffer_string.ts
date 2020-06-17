@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * as dataStructures from './data_structures';
-export * as jobHandlers from './job_handlers';
-export * as objects from './objects';
+export const keyString = (key: Buffer): string => key.toString('binary');
+
+export const keyReadbleString = (key: Buffer): string => key.toString('base64');

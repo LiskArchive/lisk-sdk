@@ -10,8 +10,19 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
  */
 
-export * as dataStructures from './data_structures';
-export * as jobHandlers from './job_handlers';
-export * as objects from './objects';
+export class Node<V = object, K = number | bigint> {
+	public key: K;
+	public value: V;
+
+	public constructor(key: K, value: V) {
+		this.key = key;
+		this.value = value;
+	}
+
+	public clone(): Node<V, K> {
+		return new Node(this.key, this.value);
+	}
+}

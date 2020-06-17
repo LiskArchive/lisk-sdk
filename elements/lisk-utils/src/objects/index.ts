@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import cloneDeep = require('lodash.clonedeep');
 
-export * as dataStructures from './data_structures';
-export * as jobHandlers from './job_handlers';
-export * as objects from './objects';
+export * from './buffer_array';
+export * from './merge_deep';
+export { cloneDeep };
