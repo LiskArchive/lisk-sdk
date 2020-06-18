@@ -111,17 +111,23 @@ describe('dataAccess.transactions', () => {
 	});
 
 	describe('getAccountsByPublicKey', () => {
-		it('should throw not found error if non existent public key is specified', async () => {
-			expect.assertions(1);
-			try {
-				await dataAccess.getAccountsByPublicKey([
+		it('should not throw "not found" error if non existent public key is specified', async () => {
+			await expect(
+				dataAccess.getAccountsByPublicKey([
 					getRandomBytes(32),
 					accounts[0].publicKey,
-				]);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error).toBeInstanceOf(NotFoundError);
-			}
+				]),
+			).resolves.toEqual([accounts[0]]);
+		});
+
+		it('should return existing accounts by public keys if one invalid public specified', async () => {
+			await expect(
+				dataAccess.getAccountsByPublicKey([
+					accounts[1].publicKey,
+					getRandomBytes(32),
+					accounts[0].publicKey,
+				]),
+			).resolves.toEqual([accounts[1], accounts[0]]);
 		});
 
 		it('should return account by public keys', async () => {
@@ -135,17 +141,23 @@ describe('dataAccess.transactions', () => {
 	});
 
 	describe('getAccountsByAddress', () => {
-		it('should throw not found error if non existent address is specified', async () => {
-			expect.assertions(1);
-			try {
-				await dataAccess.getAccountsByAddress([
+		it('should not throw "not found" error if non existent address is specified', async () => {
+			await expect(
+				dataAccess.getAccountsByAddress([
 					getRandomBytes(20),
 					accounts[0].address,
-				]);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error).toBeInstanceOf(NotFoundError);
-			}
+				]),
+			).resolves.toEqual([accounts[0]]);
+		});
+
+		it('should return existing accounts by address if one invalid address specified', async () => {
+			await expect(
+				dataAccess.getAccountsByAddress([
+					accounts[1].address,
+					getRandomBytes(20),
+					accounts[0].address,
+				]),
+			).resolves.toEqual([accounts[1], accounts[0]]);
 		});
 
 		it('should return account by address', async () => {
