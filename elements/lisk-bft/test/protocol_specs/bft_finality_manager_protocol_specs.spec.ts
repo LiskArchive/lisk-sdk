@@ -11,18 +11,29 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as scenario4DelegatesMissedSlots from '../bft_specs/4_delegates_missed_slots.json';
-// import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
-// import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
-// import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_partial_switch.json';
-// import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
-import { FinalityManager } from '../../src/finality_manager';
+import * as scenario4DelegatesSimple from '../bft_specs/4_delegates_simple.json';
+import * as scenario5DelegatesSwitchedCompletely from '../bft_specs/5_delegates_switched_completely.json';
+import * as scenario7DelegatesPartialSwitch from '../bft_specs/7_delegates_partial_switch.json';
+import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_partial_switch.json';
+import {
+	FinalityManager,
+	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+	DelegateLedger,
+	BFTDelegateLedgerSchema,
+} from '../../src/finality_manager';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { convertHeader } from '../fixtures/blocks';
 
 const bftScenarios = [
 	scenario4DelegatesMissedSlots,
+	scenario4DelegatesSimple,
+	scenario5DelegatesSwitchedCompletely,
+	scenario7DelegatesPartialSwitch,
+	scenario11DelegatesPartialSwitch,
 ];
 
 describe('FinalityManager', () => {
@@ -50,6 +61,8 @@ describe('FinalityManager', () => {
 						activeDelegates: scenario.config.activeDelegates,
 					});
 
+					stateStore = new StateStoreMock();
+
 					const blockHeaders = (scenario.testCases as any).map((tc: any) =>
 						convertHeader(tc.input.blockHeader),
 					);
@@ -63,7 +76,7 @@ describe('FinalityManager', () => {
 									getAddressFromPublicKey(bh.generatorPublicKey).equals(
 										address,
 									),
-							)
+							);
 							return Promise.resolve(header.delegateMinHeightActive);
 						},
 					);
@@ -72,28 +85,52 @@ describe('FinalityManager', () => {
 				for (const testCase of scenario.testCases) {
 					// eslint-disable-next-line no-loop-func
 					it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
-
+						// Arrange
 						const blockHeaders = (scenario.testCases as any).map((tc: any) =>
 							convertHeader(tc.input.blockHeader),
 						);
-
 						blockHeaders.sort((a: any, b: any) => b.height - a.height);
-						const filteredBlockHeaders = blockHeaders.filter((bh: any) => bh.height < testCase.input.blockHeader.height);
-						console.log(filteredBlockHeaders);
-						stateStore = new StateStoreMock([], {}, { lastBlockHeaders: filteredBlockHeaders });
+						const filteredBlockHeaders = blockHeaders.filter(
+							(bh: any) => bh.height < testCase.input.blockHeader.height,
+						);
+						stateStore.consensus.lastBlockHeaders = filteredBlockHeaders;
 
+						// Act
 						await finalityManager.addBlockHeader(
 							convertHeader(testCase.input.blockHeader),
 							stateStore,
 						);
 
-						// expect((finalityManager as any).preCommits).toEqual(
-						// 	testCase.output.preCommits,
-						// );
+						// Arrange &  Assert
+						const delegateLedgerBuffer = await stateStore.consensus.get(
+							CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+						);
 
-						// expect((finalityManager as any).preVotes).toEqual(
-						// 	testCase.output.preVotes,
-						// );
+						const delegateLedger = codec.decode<DelegateLedger>(
+							BFTDelegateLedgerSchema,
+							(delegateLedgerBuffer as unknown) as Buffer,
+						);
+
+						const preCommits = delegateLedger.ledger.reduce(
+							(acc: any, curr) => {
+								if (curr.preCommits > 0) {
+									acc[curr.height] = curr.preCommits;
+								}
+								return acc;
+							},
+							{},
+						);
+
+						const preVotes = delegateLedger.ledger.reduce((acc: any, curr) => {
+							if (curr.preVotes > 0) {
+								acc[curr.height] = curr.preVotes;
+							}
+							return acc;
+						}, {});
+
+						expect(preCommits).toEqual(testCase.output.preCommits);
+
+						expect(preVotes).toEqual(testCase.output.preVotes);
 
 						expect(finalityManager.finalizedHeight).toEqual(
 							testCase.output.finalizedHeight,

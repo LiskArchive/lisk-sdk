@@ -167,7 +167,9 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 				}
 			},
 			async ({ block }) => this.dposModule.verifyBlockForger(block.header),
-			async ({ block, stateStore }) => this.bftModule.verifyNewBlock(block.header, stateStore),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			async ({ block, stateStore }) =>
+				this.bftModule.verifyNewBlock(block.header, stateStore),
 			async ({ block, stateStore }) =>
 				this.chainModule.verify(block, stateStore),
 		]);
