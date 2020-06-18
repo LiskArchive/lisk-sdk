@@ -197,11 +197,10 @@ export class MerkleTree {
 			if (!currentNode) {
 				// Insert flag for unverified node
 				path.push(undefined);
-				// eslint-disable-next-line
 				continue;
 			}
 			// Find path for query node until it reaches root hash by traversing through tree layers
-			while (currentNode.hash.compare(this._root) !== 0) {
+			while (!currentNode.hash.equals(this._root)) {
 				// Current layer has even # of nodes
 				if (treeStructure[currentNode.layerIndex].length % 2 === 0) {
 					const pairInfo =
@@ -270,9 +269,7 @@ export class MerkleTree {
 					}
 					// If there is more than one node and the current node is not the last node in the layer
 					else if (
-						currentNode.hash.compare(
-							currentLayer[currentLayer.length - 1].hash,
-						) !== 0
+						!currentNode.hash.equals(currentLayer[currentLayer.length - 1].hash)
 					) {
 						const pairInfo =
 							currentNode.nodeIndex % 2 === 0
@@ -327,7 +324,10 @@ export class MerkleTree {
 									currentNode.hash.length,
 							),
 						);
-						if (parentNodeHash.toString('binary') in this._hashToValueMap) {
+						if (
+							this._hashToValueMap[parentNodeHash.toString('binary')] !==
+							undefined
+						) {
 							currentNode = this.getNode(parentNodeHash);
 							path.push(pairInfo);
 						} else {
