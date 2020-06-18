@@ -30,10 +30,11 @@
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"format": "prettier --write '**/*'",
-		"test": "npm run test:unit",
+		"test": "jest --config=./test/unit/jest.config.js",
+		"test:coverage": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=text",
 		"copy-static-files": "copyfiles -u 1 src/**/*.{yml} ./dist-node",
 		"build": "tsc && npm run copy-static-files",
-		"test:unit": "jest --config=./test/unit/jest.config.js",
+		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
 		"test:integration": "jest --config=./test/integration/jest.config.js",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand"
 	},
