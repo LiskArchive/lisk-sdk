@@ -58,7 +58,7 @@ describe('MerkleTree', () => {
 			const inputs = fixture.testCases[7].input.transactionIds.map(hexString =>
 				Buffer.from(hexString, 'hex'),
 			);
-			structure = new MerkleTree(inputs).getStructure();
+			structure = (new MerkleTree(inputs) as any)._getStructure();
 		});
 
 		it(`should create the correct tree structure`, () => {

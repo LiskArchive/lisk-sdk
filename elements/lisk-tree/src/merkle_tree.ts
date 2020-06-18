@@ -154,30 +154,11 @@ export class MerkleTree {
 		return this.root;
 	}
 
-	public getStructure(): TreeStructure {
-		const structure: { [key: number]: NodeInfo[] } = {};
-		const allNodes = this.getData();
-		for (let i = 0; i < allNodes.length; i += 1) {
-			const currentNode = allNodes[i];
-			if (!(currentNode.layerIndex in structure)) {
-				structure[currentNode.layerIndex] = [currentNode];
-			} else {
-				structure[currentNode.layerIndex].splice(
-					currentNode.nodeIndex,
-					0,
-					currentNode,
-				);
-			}
-		}
-
-		return structure;
-	}
-
 	public generatePath(_queryData: ReadonlyArray<Buffer>): Path {
 		if (this._width === 1) {
 			return [];
 		}
-		const treeStructure = this.getStructure();
+		const treeStructure = this._getStructure();
 		const path = [];
 		// Get full node info of all query nodes
 		const queryNodes = [];
@@ -390,6 +371,25 @@ export class MerkleTree {
 
 	private _getHeight(): number {
 		return Math.ceil(Math.log2(this._width)) + 1;
+	}
+
+	private _getStructure(): TreeStructure {
+		const structure: { [key: number]: NodeInfo[] } = {};
+		const allNodes = this.getData();
+		for (let i = 0; i < allNodes.length; i += 1) {
+			const currentNode = allNodes[i];
+			if (!(currentNode.layerIndex in structure)) {
+				structure[currentNode.layerIndex] = [currentNode];
+			} else {
+				structure[currentNode.layerIndex].splice(
+					currentNode.nodeIndex,
+					0,
+					currentNode,
+				);
+			}
+		}
+
+		return structure;
 	}
 
 	private _generateLeaf(value: Buffer, nodeIndex: number): NodeData {
