@@ -48,7 +48,7 @@ export type GenesisBlockHeaderWithoutId<T> = Omit<GenesisBlockHeader<T>, 'id'>;
 
 export interface GenesisBlock<T> {
 	readonly header: GenesisBlockHeader<T>;
-	readonly payload: Buffer[];
+	readonly payload: [];
 }
 
 export interface GenesisBlockParams<T> {

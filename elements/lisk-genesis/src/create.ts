@@ -145,7 +145,7 @@ export const createGenesisBlock = <T = DefaultAccountAsset>(
 			...header,
 			id: getBlockId<T>(header, accountAssetSchema),
 		},
-		payload,
+		payload: [],
 	};
 
 	return genesisBlock;
