@@ -15,6 +15,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Storage } from '../../../src/data_access/storage';
 import {
 	createValidDefaultBlock,
@@ -23,12 +24,16 @@ import {
 	defaultBlockHeaderAssetSchema,
 } from '../../utils/block';
 import { getTransferTransaction } from '../../utils/transaction';
-import { Block } from '../../../src';
+import { Block, stateDiffSchema } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { defaultAccountSchema } from '../../utils/account';
 import { registeredTransactions } from '../../utils/registered_transactions';
 
 describe('dataAccess.blocks', () => {
+	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
+		created: [],
+		updated: [],
+	});
 	let db: KVStore;
 	let storage: Storage;
 	let dataAccess: DataAccess;
@@ -105,6 +110,7 @@ describe('dataAccess.blocks', () => {
 				`tempBlocks:height:${formatInt(blocks[3].header.height + 1)}`,
 				encodedDefaultBlock(blocks[3]),
 			);
+			batch.put(`diff:${block.header.height}`, emptyEncodedDiff);
 		}
 		await batch.write();
 		dataAccess.resetBlockHeaderCache();

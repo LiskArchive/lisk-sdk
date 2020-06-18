@@ -15,6 +15,7 @@
 import { Readable } from 'stream';
 import { when } from 'jest-when';
 import { KVStore, NotFoundError, formatInt } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Chain } from '../../src/chain';
 import { StateStore } from '../../src/state_store';
 import {
@@ -32,6 +33,7 @@ import {
 	createFakeDefaultAccount,
 } from '../utils/account';
 import { getTransferTransaction } from '../utils/transaction';
+import { stateDiffSchema } from '../../src';
 
 jest.mock('events');
 jest.mock('@liskhq/lisk-db');
@@ -54,6 +56,10 @@ describe('chain', () => {
 		blockTime: 10,
 		epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)).toISOString(),
 	};
+	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
+		created: [],
+		updated: [],
+	});
 	let genesisBlock: Block;
 	let chainInstance: Chain;
 	let db: any;
@@ -418,9 +424,15 @@ describe('chain', () => {
 			jest
 				.spyOn(chainInstance.dataAccess, 'getBlockByID')
 				.mockResolvedValue(genesisBlock as never);
+
+			const block = createValidDefaultBlock();
+			when(db.get)
+				.calledWith(`diff:${block.header.height}`)
+				.mockResolvedValue(emptyEncodedDiff as never);
+
 			const deleteBlockError = new Error('Delete block failed');
 			batchMock.write.mockRejectedValue(deleteBlockError);
-			const block = createValidDefaultBlock();
+
 			// Act & Assert
 			await expect(chainInstance.remove(block, stateStoreStub)).rejects.toEqual(
 				deleteBlockError,
@@ -433,6 +445,9 @@ describe('chain', () => {
 				.spyOn(chainInstance.dataAccess, 'getBlockByID')
 				.mockResolvedValue(genesisBlock as never);
 			const block = createValidDefaultBlock();
+			when(db.get)
+				.calledWith(`diff:${block.header.height}`)
+				.mockResolvedValue(emptyEncodedDiff as never);
 			// Act
 			await chainInstance.remove(block, stateStoreStub);
 			// Assert
@@ -449,6 +464,9 @@ describe('chain', () => {
 				.mockResolvedValue(genesisBlock as never);
 			const tx = getTransferTransaction();
 			const block = createValidDefaultBlock({ payload: [tx] });
+			when(db.get)
+				.calledWith(`diff:${block.header.height}`)
+				.mockResolvedValue(emptyEncodedDiff as never);
 			// Act
 			await chainInstance.remove(block, stateStoreStub, {
 				saveTempBlock: true,
