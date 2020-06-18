@@ -14,9 +14,9 @@
 
 module.exports = {
 	testEnvironment: 'node',
-	verbose: true,
-	collectCoverage: true,
-	coverageReporters: ['json', 'lcov', 'cobertura'],
+	verbose: false,
+	collectCoverage: false,
+	coverageReporters: ['json'],
 	rootDir: '../../',
 	globals: {
 		'ts-jest': {

@@ -122,7 +122,7 @@ pipeline {
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test --ignore lisk-{framework,commander}'
+							sh 'npx lerna run test:ci --ignore lisk-{framework,commander}'
 						}
 					}
 					post {
@@ -146,7 +146,7 @@ pipeline {
 							dir('commander') {
 								sh '''
 								rm -rf coverage_commander; mkdir -p coverage_commander
-								LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk npm test
+								LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk npm run test:ci
 								cp -r .nyc_output/* ./coverage_commander
 								'''
 								stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true

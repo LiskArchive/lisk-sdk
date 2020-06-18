@@ -45,6 +45,9 @@
 		"lint": "lerna run lint",
 		"lint:fix": "lerna run lint:fix",
 		"test": "lerna run test",
+		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk",
+		"test:framework": "lerna run test --scope=lisk-framework",
+		"test:commander": "lerna run test --scope=lisk-commander",
 		"build": "lerna run build",
 		"init": "./scripts/init.sh"
 	},
