@@ -11,10 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { writeUInt32, readUInt32 } from './varint';
+import { readUInt32 } from './varint';
 
-export const writeBytes = (bytes: Buffer): Buffer =>
-	Buffer.concat([writeUInt32(bytes.length), bytes]);
+export const writeBytes = (bytes: Buffer): Buffer => bytes;
 
 export const readBytes = (buffer: Buffer, offset: number): [Buffer, number] => {
 	const [byteLength, keySize] = readUInt32(buffer, offset);

@@ -104,17 +104,26 @@ export const writeObject = (
 				schemaProp: { dataType },
 				binaryKey,
 			} = property;
+
 			if (dataType === undefined) {
 				throw new Error(
 					'Compiled Schema is corrupted as "dataType" can not be undefined.',
 				);
 			}
 
-			const binaryValue = _writers[dataType](value);
-
 			chunks.push(binaryKey);
-			chunks.push(binaryValue);
-			simpleObjectSize += binaryKey.length + binaryValue.length;
+			let binaryValue;
+
+			if (dataType === 'bytes' || dataType === 'string') {
+				const binary = _writers[dataType](value);
+				const binaryLengthVarInt = writeUInt32(binary.length);
+				chunks.push(binaryLengthVarInt, binary);
+				simpleObjectSize += binaryKey.length + binaryLengthVarInt.length + binary.length;
+			} else {
+				binaryValue = _writers[dataType](value);
+				chunks.push(binaryValue);
+				simpleObjectSize += binaryKey.length + binaryValue.length;
+			}
 		}
 	}
 	return [chunks, simpleObjectSize]
@@ -302,9 +311,11 @@ export const writeArray = (
 			const res = _writers[typeSchema.schemaProp.dataType as string](
 				message[i],
 			);
+			const resSize = writeUInt32(res.length);
 			chunks.push(rootSchema.binaryKey);
+			chunks.push(resSize);
 			chunks.push(res);
-			totalSize += res.length + rootSchema.binaryKey.length;
+			totalSize += res.length + resSize.length + rootSchema.binaryKey.length;
 		}
 		return [chunks, totalSize];
 	}

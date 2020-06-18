@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { readBytes, writeBytes } from './bytes';
+import { readBytes } from './bytes';
 
 export const writeString = (value: string): Buffer => {
 	const stringBuffer = Buffer.from(value, 'utf8');
 
-	return writeBytes(stringBuffer);
+	return stringBuffer;
 };
 
 export const readString = (buffer: Buffer, offset: number): [string, number] => {
