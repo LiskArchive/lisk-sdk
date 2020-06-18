@@ -16,7 +16,6 @@ import { when } from 'jest-when';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { BufferMap } from '@liskhq/lisk-transaction-pool';
-import { NotFoundError } from '@liskhq/lisk-db';
 import { Transport } from '../../../../../../src/application/node/transport';
 import { genesis } from '../../../../../fixtures';
 import { devnetNetworkIdentifier as networkIdentifier } from '../../../../../utils/network_identifier';
@@ -64,6 +63,7 @@ describe('Transport', () => {
 				.mockReturnValue([{ status: 1, errors: [] }]),
 			dataAccess: {
 				getTransactionByID: jest.fn(),
+				getTransactionsByIDs: jest.fn(),
 				getHighestCommonBlockHeader: jest.fn(),
 				decodeTransaction: jest.fn(),
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
@@ -627,7 +627,9 @@ describe('Transport', () => {
 				);
 				txDatabase = txDatabaseInstance;
 				when(transactionPoolStub.get).calledWith(tx.id).mockReturnValue(tx);
-				chainStub.dataAccess.getTransactionByID.mockResolvedValue(txDatabase);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
+					txDatabase,
+				]);
 			});
 
 			it('should call find get with the id', async () => {
@@ -645,7 +647,9 @@ describe('Transport', () => {
 			});
 
 			it('should return transaction in the pool', async () => {
-				chainStub.dataAccess.getTransactionByID.mockResolvedValue(txDatabase);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([
+					txDatabase,
+				]);
 				const result = await transport.handleRPCGetTransactions(
 					{
 						transactionIds: [
@@ -782,9 +786,7 @@ describe('Transport', () => {
 		describe('when none of the transactions ids are known', () => {
 			beforeEach(() => {
 				transactionPoolStub.contains.mockReturnValue(false);
-				chainStub.dataAccess.getTransactionByID.mockRejectedValue(
-					new NotFoundError('not found'),
-				);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				chainStub.dataAccess.decodeTransaction
 					.mockReturnValueOnce(txInstance)
 					.mockReturnValueOnce(tx2Instance);
@@ -868,9 +870,7 @@ describe('Transport', () => {
 						data: { transactions: [tx2] },
 						peerId: defaultPeerId,
 					} as never);
-				chainStub.dataAccess.getTransactionByID.mockRejectedValue(
-					new NotFoundError('not found'),
-				);
+				chainStub.dataAccess.getTransactionsByIDs.mockResolvedValue([]);
 				chainStub.dataAccess.decodeTransaction.mockReturnValue(tx2Instance);
 			});
 

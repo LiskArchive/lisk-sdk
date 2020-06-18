@@ -17,7 +17,6 @@ import { Chain, Block } from '@liskhq/lisk-chain';
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { BaseTransaction, TransactionJSON } from '@liskhq/lisk-transactions';
-import { NotFoundError } from '@liskhq/lisk-db';
 import { convertErrorsToString } from '../utils/error_handlers';
 import { InvalidTransactionError } from './errors';
 import { schemas } from './schemas';
@@ -343,17 +342,9 @@ export class Transport {
 
 		if (idsNotInPool.length) {
 			// Check if any transaction that was not in the queues, is in the database instead.
-			const transactionsFromDatabase: BaseTransaction[] = [];
-			for (const id of idsNotInPool) {
-				try {
-					const tx = await this._chainModule.dataAccess.getTransactionByID(id);
-					transactionsFromDatabase.push(tx);
-				} catch (error) {
-					if (!(error instanceof NotFoundError)) {
-						throw error;
-					}
-				}
-			}
+			const transactionsFromDatabase: BaseTransaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
+				idsNotInPool,
+			);
 
 			return {
 				transactions: transactionsFromQueues.concat(
@@ -467,17 +458,9 @@ export class Transport {
 
 		if (unknownTransactionsIDs.length) {
 			// Check if any transaction exists in the database.
-			const existingTransactions: BaseTransaction[] = [];
-			for (const id of unknownTransactionsIDs) {
-				try {
-					const tx = await this._chainModule.dataAccess.getTransactionByID(id);
-					existingTransactions.push(tx);
-				} catch (error) {
-					if (!(error instanceof NotFoundError)) {
-						throw error;
-					}
-				}
-			}
+			const existingTransactions: BaseTransaction[] = await this._chainModule.dataAccess.getTransactionsByIDs(
+				unknownTransactionsIDs,
+			);
 
 			return unknownTransactionsIDs.filter(
 				id =>
