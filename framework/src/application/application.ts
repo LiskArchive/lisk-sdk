@@ -28,6 +28,11 @@ import {
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
 import { Contexter } from '@liskhq/lisk-chain';
+import {
+	validateGenesisBlock,
+	GenesisBlock,
+	DefaultAccountAsset,
+} from '@liskhq/lisk-genesis';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import {
@@ -39,11 +44,7 @@ import * as _ from 'lodash';
 import { systemDirs } from './system_dirs';
 import { Controller } from '../controller/controller';
 import { version } from '../version';
-import {
-	genesisBlockSchema,
-	constantsSchema,
-	applicationConfigSchema,
-} from './schema';
+import { constantsSchema, applicationConfigSchema } from './schema';
 import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
@@ -59,7 +60,7 @@ import {
 	ApplicationConstants,
 	GenesisConfig,
 } from '../types';
-import { GenesisBlockJSON, convertGenesisBlock } from './genesis_block';
+import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -114,7 +115,7 @@ export class Application {
 	private _modules: { [key: string]: InstantiableModule<BaseModule> };
 	private _channel!: InMemoryChannel;
 
-	private readonly _genesisBlock: GenesisBlockJSON;
+	private readonly _genesisBlock: GenesisBlock<DefaultAccountAsset>;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
@@ -123,11 +124,15 @@ export class Application {
 		genesisBlock: GenesisBlockJSON,
 		config: Partial<ApplicationConfig> = {},
 	) {
-		const errors = validator.validate(genesisBlockSchema, genesisBlock);
+		const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock);
+		// TODO: Read hard coded value from configuration or constant
+		const errors = validateGenesisBlock(parsedGenesisBlock, {
+			roundLength: 103,
+		});
 		if (errors.length) {
-			throw new LiskValidationError(errors as ErrorObject[]);
+			throw new LiskValidationError(errors);
 		}
-		this._genesisBlock = genesisBlock;
+		this._genesisBlock = parsedGenesisBlock;
 
 		// Don't change the object parameters provided
 		// eslint-disable-next-line no-param-reassign
@@ -135,7 +140,9 @@ export class Application {
 
 		appConfig.label =
 			config.label ??
-			`lisk-${this._genesisBlock.header.transactionRoot.slice(0, 7)}`;
+			`lisk-${this._genesisBlock.header.transactionRoot
+				.toString('base64')
+				.slice(0, 7)}`;
 
 		const mergedConfig = mergeDeep({}, appConfig, config) as ApplicationConfig;
 		mergedConfig.rootPath = mergedConfig.rootPath.replace('~', os.homedir());
@@ -331,8 +338,10 @@ export class Application {
 	private _compileAndValidateConfigurations(): void {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
-			Buffer.from(this._genesisBlock.header.transactionRoot, 'base64'),
-			this._genesisBlock.communityIdentifier,
+			this._genesisBlock.header.transactionRoot,
+			// TODO: Replace this attribute with configuration
+			// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
+			'Lisk',
 		).toString('base64');
 
 		const appConfigToShareWithModules = {
@@ -563,7 +572,6 @@ export class Application {
 		const { modules, ...rootConfigs } = this.config;
 		const { network, ...nodeConfigs } = rootConfigs;
 		// Decode JSON into object
-		const genesisBlock = convertGenesisBlock(this._genesisBlock);
 		const convertedDelegates = nodeConfigs.forging.delegates.map(delegate => ({
 			...delegate,
 			publicKey: Buffer.from(delegate.publicKey, 'base64'),
@@ -576,12 +584,14 @@ export class Application {
 			channel: this._channel,
 			options: {
 				...nodeConfigs,
-				communityIdentifier: this._genesisBlock.communityIdentifier,
+				// TODO: Replace this attribute with configuration
+				// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
+				communityIdentifier: 'Lisk',
 				forging: {
 					...nodeConfigs.forging,
 					delegates: convertedDelegates,
 				},
-				genesisBlock,
+				genesisBlock: this._genesisBlock,
 				constants: {
 					...this.constants,
 					totalAmount: BigInt(this.constants.totalAmount),

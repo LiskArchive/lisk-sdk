@@ -21,6 +21,7 @@ import {
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { GenesisBlock, DefaultAccountAsset } from '@liskhq/lisk-genesis';
 import {
 	TransactionPool,
 	Job,
@@ -87,7 +88,7 @@ export interface Options {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	genesisBlock: Block;
+	genesisBlock: GenesisBlock<DefaultAccountAsset>;
 }
 
 interface NodeConstructor {
