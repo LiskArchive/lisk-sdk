@@ -145,8 +145,9 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 				let expectedReward = this.chainModule.blockReward.calculateReward(
 					block.header.height,
 				);
-				const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
+				const isBFTProtocolCompliant = this.bftModule.isBFTProtocolCompliant(
 					block.header,
+					stateStore,
 				);
 				if (!isBFTProtocolCompliant) {
 					expectedReward /= BigInt(4);
@@ -166,7 +167,7 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 				}
 			},
 			async ({ block }) => this.dposModule.verifyBlockForger(block.header),
-			async ({ block }) => this.bftModule.verifyNewBlock(block.header),
+			async ({ block, stateStore }) => this.bftModule.verifyNewBlock(block.header, stateStore),
 			async ({ block, stateStore }) =>
 				this.chainModule.verify(block, stateStore),
 		]);
@@ -195,8 +196,6 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 
 		this.undo.pipe([
 			async ({ block, stateStore }) => this.chainModule.undo(block, stateStore),
-			async ({ block, stateStore }) =>
-				this.bftModule.deleteBlocks([block.header], stateStore),
 			async ({ block, stateStore }) =>
 				this.dposModule.undo(block.header, stateStore),
 		]);
@@ -276,8 +275,9 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 		};
 
-		const isBFTProtocolCompliant = await this.bftModule.isBFTProtocolCompliant(
+		const isBFTProtocolCompliant = this.bftModule.isBFTProtocolCompliant(
 			header as BlockHeader<BlockHeaderAsset>,
+			stateStore,
 		);
 
 		// Reduce reward based on BFT rules
