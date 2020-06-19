@@ -50,7 +50,6 @@ describe('block processor v2', () => {
 	beforeEach(() => {
 		chainModuleStub = {
 			newStateStore: jest.fn().mockResolvedValue({}),
-			undo: jest.fn(),
 			validateBlockHeader: jest.fn(),
 			verifyInMemory: jest.fn(),
 			blockReward: {
@@ -72,7 +71,6 @@ describe('block processor v2', () => {
 		};
 
 		dposModuleStub = {
-			undo: jest.fn(),
 			verifyBlockForger: jest.fn(),
 			isDPoSProtocolCompliant: jest.fn().mockReturnValue(true),
 		};
@@ -148,32 +146,6 @@ describe('block processor v2', () => {
 			// Assert
 			await blockProcessor.validate.run({ block } as any);
 			expect(chainModuleStub.validateBlockHeader).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	// TODO: Fix this skipped test after state store modification
-	// eslint-disable-next-line jest/no-disabled-tests
-	describe.skip('undo', () => {
-		it('should reject the promise when dpos undo fails', async () => {
-			const stateStore = new StateStore(forgerDBStub, defaultAdditionalData);
-			dposModuleStub.undo.mockRejectedValue(new Error('Invalid error'));
-			await expect(
-				blockProcessor.undo.run({
-					block: { header: { height: 1 } } as Block,
-					stateStore,
-				}),
-			).rejects.toThrow('Invalid error');
-		});
-
-		it('should reject the promise when bft deleteBlocks fails', async () => {
-			const stateStore = new StateStore(forgerDBStub, defaultAdditionalData);
-			bftModuleStub.deleteBlocks.mockRejectedValue(new Error('Invalid error'));
-			await expect(
-				blockProcessor.undo.run({
-					block: { header: { height: 1 } } as Block,
-					stateStore,
-				}),
-			).rejects.toThrow('Invalid error');
 		});
 	});
 
