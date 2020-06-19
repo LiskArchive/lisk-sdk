@@ -69,14 +69,14 @@
 		"eslint-plugin-import": "2.20.1",
 		"eslint-plugin-jest": "23.8.2",
 		"eslint-plugin-mocha": "6.3.0",
-		"husky": "4.2.3",
+		"husky": "4.2.5",
 		"istanbul-lib-coverage": "3.0.0",
 		"istanbul-lib-report": "3.0.0",
-		"istanbul-reports": "3.0.0",
+		"istanbul-reports": "3.0.2",
 		"lerna": "3.22.1",
-		"lint-staged": "10.0.8",
+		"lint-staged": "10.2.11",
 		"prettier": "2.0.5",
-		"typescript": "3.8.3",
+		"typescript": "3.9.5",
 		"yarn": "1.22.4"
 	}
 }
