@@ -69,21 +69,6 @@ export class DelegatesInfo {
 		return this._update(header, stateStore, { undo, delegateListRoundOffset });
 	}
 
-	public async undo(
-		header: BlockHeader,
-		stateStore: StateStore,
-		{ delegateListRoundOffset }: DPoSProcessingOptions,
-	): Promise<boolean> {
-		const undo = true;
-
-		// Never undo genesis block
-		if (_isGenesisBlock(header)) {
-			throw new Error('Cannot undo genesis block');
-		}
-
-		return this._update(header, stateStore, { undo, delegateListRoundOffset });
-	}
-
 	private async _update(
 		block: BlockHeader,
 		stateStore: StateStore,

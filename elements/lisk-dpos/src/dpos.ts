@@ -233,18 +233,6 @@ export class Dpos {
 		});
 	}
 
-	public async undo(
-		block: BlockHeader,
-		stateStore: StateStore,
-		{ delegateListRoundOffset }: DPoSProcessingOptions = {
-			delegateListRoundOffset: this.delegateListRoundOffset,
-		},
-	): Promise<boolean> {
-		return this.delegatesInfo.undo(block, stateStore, {
-			delegateListRoundOffset,
-		});
-	}
-
 	// This function is used in block_processor_v2 to check the dpos compliance and update/validate the reward
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async isDPoSProtocolCompliant(
