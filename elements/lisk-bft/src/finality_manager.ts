@@ -32,11 +32,14 @@ import {
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
 
+const keyToString = (key: Buffer, encoding = 'base64'): string =>
+	key.toString(encoding);
+
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
 	'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
-export const CONSENSUS_STATE_DELEGATE_LEDGER_KEY = 'bft:delegateLedger';
+export const CONSENSUS_STATE_DELEGATE_LEDGER_KEY = 'bft:votingLedger';
 
-export const BFTDelegateLedgerSchema = {
+export const BFTVotingLedgerSchema = {
 	type: 'object',
 	$id: '/BFT/Delegates',
 	title: 'Lisk BFT Delegate ledger',
@@ -89,7 +92,7 @@ export const BFTDelegateLedgerSchema = {
 	},
 };
 
-codec.addSchema(BFTDelegateLedgerSchema);
+codec.addSchema(BFTVotingLedgerSchema);
 
 interface DelegatesState {
 	address: Buffer;
@@ -103,7 +106,20 @@ interface LedgerState {
 	preCommits: number;
 }
 
-export interface DelegateLedger {
+interface LedgerMap {
+	[key: string]: { preVotes: number; preCommits: number };
+}
+
+interface DelegateMap {
+	[key: string]: { maxPreVoteHeight: number; maxPreCommitHeight: number };
+}
+
+interface VotingLedgerMap {
+	readonly delegates: DelegateMap;
+	readonly ledger: LedgerMap;
+}
+
+export interface VotingLedger {
 	readonly delegates: DelegatesState[];
 	readonly ledger: LedgerState[];
 }
@@ -212,21 +228,16 @@ export class FinalityManager extends EventEmitter {
 			return false;
 		}
 
-		const delegateLedger = await this._getDelegateLedger(stateStore);
-		const { delegates: delegatesState, ledger: ledgerState } = delegateLedger;
+		const votingLedger = await this._getVotingLedger(stateStore);
+		const { delegates: delegatesMap, ledger: ledgerMap } = votingLedger;
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
-		const delegateIndex = delegatesState.findIndex(delegate =>
-			delegate.address.equals(delegateAddress),
-		);
-		const delegateState =
-			delegateIndex !== -1
-				? delegatesState[delegateIndex]
-				: {
-						address: delegateAddress,
-						maxPreVoteHeight: 0,
-						maxPreCommitHeight: 0,
-				  };
+		const delegateAddressStr = keyToString(delegateAddress);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		const delegateState = delegatesMap[delegateAddressStr] || {
+			maxPreVoteHeight: 0,
+			maxPreCommitHeight: 0,
+		};
 
 		const minValidHeightToPreCommit = this._getMinValidHeightToPreCommit(
 			header,
@@ -255,29 +266,22 @@ export class FinalityManager extends EventEmitter {
 		for (let j = minPreCommitHeight; j <= maxPreCommitHeight; j += 1) {
 			// Add pre-commit if threshold is reached
 
-			const ledgerIndex = ledgerState.findIndex(
-				aLedger => aLedger.height === j,
-			);
-			const ledger =
-				ledgerIndex !== -1
-					? ledgerState[ledgerIndex]
-					: {
-							height: j,
-							preVotes: 0,
-							preCommits: 0,
-					  };
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			const ledgerState = ledgerMap[j] || {
+				preVotes: 0,
+				preCommits: 0,
+			};
 
-			if (ledger.preVotes >= this.preVoteThreshold) {
+			if (ledgerState.preVotes >= this.preVoteThreshold) {
 				// Increase the pre-commit for particular height
-				ledger.preCommits += 1;
+				ledgerState.preCommits += 1;
 
-				if (ledgerIndex !== -1) {
-					ledgerState[ledgerIndex] = ledger;
-				} else {
-					ledgerState[ledgerState.length] = ledger;
-				}
 				// Keep track of the last pre-commit point
 				delegateState.maxPreCommitHeight = j;
+
+				// Update ledger and delegates map
+				ledgerMap[j] = ledgerState;
+				delegatesMap[delegateAddressStr] = delegateState;
 			}
 		}
 
@@ -296,47 +300,34 @@ export class FinalityManager extends EventEmitter {
 		const maxPreVoteHeight = header.height;
 
 		for (let j = minPreVoteHeight; j <= maxPreVoteHeight; j += 1) {
-			const ledgerIndex = ledgerState.findIndex(
-				aLedger => aLedger.height === j,
-			);
-			const ledger =
-				ledgerIndex !== -1
-					? ledgerState[ledgerIndex]
-					: {
-							height: j,
-							preVotes: 0,
-							preCommits: 0,
-					  };
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			const ledgerState = ledgerMap[j] || {
+				preVotes: 0,
+				preCommits: 0,
+			};
 
-			ledger.preVotes += 1;
+			ledgerState.preVotes += 1;
 
-			if (ledgerIndex !== -1) {
-				ledgerState[ledgerIndex] = ledger;
-			} else {
-				ledgerState[ledgerState.length] = ledger;
-			}
+			// Update ledger map
+			ledgerMap[j] = ledgerState;
 		}
 
 		// Update delegate state
 		delegateState.maxPreVoteHeight = maxPreVoteHeight;
-		if (delegateIndex !== -1) {
-			delegatesState[delegateIndex] = delegateState;
-		} else {
-			delegatesState[delegatesState.length] = delegateState;
-		}
+		delegatesMap[delegateAddressStr] = delegateState;
 
 		// Remove ledger beyond maxHeaders size
-		ledgerState.sort((a, b) => a.height - b.height);
-		const cleanedLedger = ledgerState.splice(this.maxHeaders * -1);
+		Object.keys(ledgerMap)
+			.slice(0, this.maxHeaders * -1)
+			.forEach(key => {
+				delete ledgerMap[key];
+			});
 
 		// Update state to save the bft votes
-		stateStore.consensus.set(
-			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-			codec.encode(BFTDelegateLedgerSchema, {
-				delegates: delegatesState,
-				ledger: cleanedLedger,
-			}),
-		);
+		this._setVotingLedger(stateStore, {
+			delegates: delegatesMap,
+			ledger: ledgerMap,
+		});
 
 		return true;
 	}
@@ -346,27 +337,25 @@ export class FinalityManager extends EventEmitter {
 	): Promise<boolean> {
 		debug('updatePreVotedAndFinalizedHeight invoked');
 
-		const delegateLedger = await this._getDelegateLedger(stateStore);
+		const { ledger } = await this._getVotingLedger(stateStore);
 
-		delegateLedger.ledger.sort((a, b) => b.height - a.height);
-
-		const highestHeightPreVoted = delegateLedger.ledger.find(
-			(vote: LedgerState) => vote.preVotes >= this.preVoteThreshold,
-		);
+		const highestHeightPreVoted = Object.keys(ledger)
+			.reverse()
+			.find(key => ledger[key].preVotes >= this.preVoteThreshold);
 
 		this.chainMaxHeightPrevoted = highestHeightPreVoted
-			? highestHeightPreVoted.height
+			? parseInt(highestHeightPreVoted, 10)
 			: this.chainMaxHeightPrevoted;
 
-		const highestHeightPreCommitted = delegateLedger.ledger.find(
-			(vote: LedgerState) => vote.preCommits >= this.preCommitThreshold,
-		);
+		const highestHeightPreCommitted = Object.keys(ledger)
+			.reverse()
+			.find(key => ledger[key].preCommits >= this.preCommitThreshold);
 
 		// Store current finalizedHeight
 		const previouslyFinalizedHeight = this.finalizedHeight;
 
 		if (highestHeightPreCommitted) {
-			this.finalizedHeight = highestHeightPreCommitted.height;
+			this.finalizedHeight = parseInt(highestHeightPreCommitted, 10);
 		}
 
 		if (previouslyFinalizedHeight !== this.finalizedHeight) {
@@ -514,23 +503,82 @@ export class FinalityManager extends EventEmitter {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	private async _getDelegateLedger(
+	private async _getVotingLedger(
 		stateStore: StateStore,
-	): Promise<DelegateLedger> {
-		const delegateLedgerBuffer = await stateStore.consensus.get(
+	): Promise<VotingLedgerMap> {
+		const votingLedgerBuffer = await stateStore.consensus.get(
 			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
 		);
-		const delegateLedger =
-			delegateLedgerBuffer === undefined
+		const votingLedger =
+			votingLedgerBuffer === undefined
 				? {
 						ledger: [],
 						delegates: [],
 				  }
-				: codec.decode<DelegateLedger>(
-						BFTDelegateLedgerSchema,
-						(delegateLedgerBuffer as unknown) as Buffer,
+				: codec.decode<VotingLedger>(
+						BFTVotingLedgerSchema,
+						(votingLedgerBuffer as unknown) as Buffer,
 				  );
 
-		return delegateLedger;
+		const ledger = votingLedger.ledger.reduce((prev: LedgerMap, curr) => {
+			// eslint-disable-next-line no-param-reassign
+			prev[curr.height] = {
+				preVotes: curr.preVotes,
+				preCommits: curr.preCommits,
+			};
+
+			return prev;
+		}, {});
+
+		const delegates = votingLedger.delegates.reduce(
+			(prev: DelegateMap, curr) => {
+				// eslint-disable-next-line no-param-reassign
+				prev[curr.address.toString('base64')] = {
+					maxPreVoteHeight: curr.maxPreVoteHeight,
+					maxPreCommitHeight: curr.maxPreCommitHeight,
+				};
+
+				return prev;
+			},
+			{},
+		);
+
+		return { ledger, delegates };
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	private _setVotingLedger(
+		stateStore: StateStore,
+		votingLedgerMap: VotingLedgerMap,
+	): void {
+		const ledgerState = Object.keys(votingLedgerMap.ledger).reduce(
+			(prev: LedgerState[], curr) => {
+				prev.push({
+					height: parseInt(curr, 10),
+					...votingLedgerMap.ledger[curr],
+				});
+				return prev;
+			},
+			[],
+		);
+
+		const delegatesState = Object.keys(votingLedgerMap.delegates).reduce(
+			(prev: DelegatesState[], curr) => {
+				prev.push({
+					address: Buffer.from(curr, 'base64'),
+					...votingLedgerMap.delegates[curr],
+				});
+				return prev;
+			},
+			[],
+		);
+
+		stateStore.consensus.set(
+			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+			codec.encode(BFTVotingLedgerSchema, {
+				delegates: delegatesState,
+				ledger: ledgerState,
+			}),
+		);
 	}
 }

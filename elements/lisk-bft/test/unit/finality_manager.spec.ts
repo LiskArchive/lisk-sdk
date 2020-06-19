@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import {
 	FinalityManager,
 	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-	BFTDelegateLedgerSchema,
+	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
 import {
 	BFTChainDisjointError,
@@ -256,7 +256,7 @@ describe('finality_manager', () => {
 							{ finalizedHeight: 5 },
 						),
 						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
-							BFTDelegateLedgerSchema,
+							BFTVotingLedgerSchema,
 							delegateLedger,
 						),
 					},

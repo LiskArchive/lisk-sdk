@@ -18,7 +18,7 @@ import { createFakeBlockHeader } from '../fixtures/blocks';
 import {
 	FinalityManager,
 	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-	BFTDelegateLedgerSchema,
+	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
 
 import {
@@ -182,7 +182,7 @@ describe('bft', () => {
 							{ finalizedHeight: lastFinalizedHeight },
 						),
 						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
-							BFTDelegateLedgerSchema,
+							BFTVotingLedgerSchema,
 							delegateLedger,
 						),
 					},

@@ -22,8 +22,8 @@ import * as scenario11DelegatesPartialSwitch from '../bft_specs/11_delegates_par
 import {
 	FinalityManager,
 	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
-	DelegateLedger,
-	BFTDelegateLedgerSchema,
+	VotingLedger,
+	BFTVotingLedgerSchema,
 } from '../../src/finality_manager';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { convertHeader } from '../fixtures/blocks';
@@ -35,6 +35,33 @@ const bftScenarios = [
 	scenario7DelegatesPartialSwitch,
 	scenario11DelegatesPartialSwitch,
 ];
+
+const preVotesAndCommits = async (stateStore: StateStoreMock) => {
+	const delegateLedgerBuffer = await stateStore.consensus.get(
+		CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+	);
+
+	const delegateLedger = codec.decode<VotingLedger>(
+		BFTVotingLedgerSchema,
+		(delegateLedgerBuffer as unknown) as Buffer,
+	);
+
+	const preCommits = delegateLedger.ledger.reduce((acc: any, curr) => {
+		if (curr.preCommits > 0) {
+			acc[curr.height] = curr.preCommits;
+		}
+		return acc;
+	}, {});
+
+	const preVotes = delegateLedger.ledger.reduce((acc: any, curr) => {
+		if (curr.preVotes > 0) {
+			acc[curr.height] = curr.preVotes;
+		}
+		return acc;
+	}, {});
+
+	return { preCommits, preVotes };
+};
 
 describe('FinalityManager', () => {
 	let dposStub: {
@@ -102,32 +129,9 @@ describe('FinalityManager', () => {
 						);
 
 						// Arrange &  Assert
-						const delegateLedgerBuffer = await stateStore.consensus.get(
-							CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+						const { preCommits, preVotes } = await preVotesAndCommits(
+							stateStore,
 						);
-
-						const delegateLedger = codec.decode<DelegateLedger>(
-							BFTDelegateLedgerSchema,
-							(delegateLedgerBuffer as unknown) as Buffer,
-						);
-
-						const preCommits = delegateLedger.ledger.reduce(
-							(acc: any, curr) => {
-								if (curr.preCommits > 0) {
-									acc[curr.height] = curr.preCommits;
-								}
-								return acc;
-							},
-							{},
-						);
-
-						const preVotes = delegateLedger.ledger.reduce((acc: any, curr) => {
-							if (curr.preVotes > 0) {
-								acc[curr.height] = curr.preVotes;
-							}
-							return acc;
-						}, {});
-
 						const expectedPreCommits: any = { ...testCase.output.preCommits };
 
 						Object.keys(expectedPreCommits)
