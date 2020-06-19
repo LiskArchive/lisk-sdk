@@ -28,11 +28,7 @@ import {
 	BaseTransaction,
 } from '@liskhq/lisk-transactions';
 import { Contexter } from '@liskhq/lisk-chain';
-import {
-	validateGenesisBlock,
-	GenesisBlock,
-	DefaultAccountAsset,
-} from '@liskhq/lisk-genesis';
+import { validateGenesisBlock, GenesisBlock } from '@liskhq/lisk-genesis';
 import { KVStore } from '@liskhq/lisk-db';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import {
@@ -61,6 +57,7 @@ import {
 	GenesisConfig,
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
+import { AccountAsset } from './node/account';
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -115,7 +112,7 @@ export class Application {
 	private _modules: { [key: string]: InstantiableModule<BaseModule> };
 	private _channel!: InMemoryChannel;
 
-	private readonly _genesisBlock: GenesisBlock<DefaultAccountAsset>;
+	private readonly _genesisBlock: GenesisBlock<AccountAsset>;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;

@@ -15,11 +15,8 @@
 // TODO: Remove this file completely after #5354
 //  Add JSON decode and encode for the lisk-codec
 
-import {
-	GenesisAccountState,
-	DefaultAccountAsset,
-	GenesisBlock,
-} from '@liskhq/lisk-genesis';
+import { GenesisAccountState, GenesisBlock } from '@liskhq/lisk-genesis';
+import { AccountAsset } from './node/account';
 
 export interface GenesisBlockJSON {
 	header: {
@@ -71,7 +68,7 @@ export interface GenesisAccountStateJSON {
 
 const accountFromJSON = (
 	account: GenesisAccountStateJSON,
-): GenesisAccountState<DefaultAccountAsset> => ({
+): GenesisAccountState<AccountAsset> => ({
 	address: Buffer.from(account.address, 'base64'),
 	balance: BigInt(account.balance),
 	publicKey: Buffer.from(account.publicKey, 'base64'),
@@ -104,7 +101,7 @@ const accountFromJSON = (
 
 export const genesisBlockFromJSON = (
 	genesis: GenesisBlockJSON,
-): GenesisBlock<DefaultAccountAsset> => {
+): GenesisBlock<AccountAsset> => {
 	const header = {
 		...genesis.header,
 		id: Buffer.from(genesis.header.id, 'base64'),

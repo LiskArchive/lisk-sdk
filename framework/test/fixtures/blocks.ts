@@ -21,11 +21,12 @@ import {
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { Block, BlockHeader, Chain } from '@liskhq/lisk-chain';
-import { DefaultAccountAsset, GenesisBlock } from '@liskhq/lisk-genesis';
+import { GenesisBlock } from '@liskhq/lisk-genesis';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import * as genesisBlockJSON from './config/devnet/genesis_block.json';
 import { BlockProcessorV2 } from '../../src/application/node/block_processor_v2';
 import { genesisBlockFromJSON } from '../../src/application/genesis_block';
+import { AccountAsset } from '../../src/application/node/account';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -178,5 +179,5 @@ export const encodeValidBlock = (block: Block): Buffer => {
 	return chain.dataAccess.encode(block);
 };
 
-export const genesisBlock = (): GenesisBlock<DefaultAccountAsset> =>
+export const genesisBlock = (): GenesisBlock<AccountAsset> =>
 	genesisBlockFromJSON(genesisBlockJSON);
