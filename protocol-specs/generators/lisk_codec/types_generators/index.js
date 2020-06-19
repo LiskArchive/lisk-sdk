@@ -18,6 +18,7 @@ const generateValidBytesEncodings = require('./bytes');
 const generateValidObjectEncodings = require('./objects');
 const generateValidArrayEncodings = require('./arrays');
 const generateValidBlock = require('./block');
+const generateValidGenesisBlock = require('./genesis_block_asset');
 const generateValidBlockHeader = require('./block_header');
 const generateValidBlockAsset = require('./block_asset');
 const generateValidAccount = require('./account');
@@ -34,6 +35,7 @@ module.exports = {
 	generateValidObjectEncodings,
 	generateValidArrayEncodings,
 	generateValidBlock,
+	generateValidGenesisBlock,
 	generateValidBlockHeader,
 	generateValidBlockAsset,
 	generateValidAccount,
