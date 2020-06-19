@@ -142,6 +142,7 @@ describe('fast_chain_switching_mechanism', () => {
 			channel: channelMock,
 			chainModule,
 			logger: loggerMock,
+			bftModule,
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.validate = jest.fn();

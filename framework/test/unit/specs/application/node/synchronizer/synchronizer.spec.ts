@@ -143,6 +143,7 @@ describe('Synchronizer', () => {
 			channel: channelMock,
 			chainModule,
 			logger: loggerMock,
+			bftModule,
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
