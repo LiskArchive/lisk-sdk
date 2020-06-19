@@ -348,11 +348,9 @@ export class FinalityManager extends EventEmitter {
 
 		const delegateLedger = await this._getDelegateLedger(stateStore);
 
-		const sortedVotes = delegateLedger.ledger.sort(
-			(a, b) => b.height - a.height,
-		);
+		delegateLedger.ledger.sort((a, b) => b.height - a.height);
 
-		const highestHeightPreVoted = sortedVotes.find(
+		const highestHeightPreVoted = delegateLedger.ledger.find(
 			(vote: LedgerState) => vote.preVotes >= this.preVoteThreshold,
 		);
 
@@ -360,7 +358,7 @@ export class FinalityManager extends EventEmitter {
 			? highestHeightPreVoted.height
 			: this.chainMaxHeightPrevoted;
 
-		const highestHeightPreCommitted = sortedVotes.find(
+		const highestHeightPreCommitted = delegateLedger.ledger.find(
 			(vote: LedgerState) => vote.preCommits >= this.preCommitThreshold,
 		);
 

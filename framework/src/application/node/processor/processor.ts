@@ -17,7 +17,6 @@ import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
-import * as assert from 'assert';
 import { Sequence } from '../utils/sequence';
 import { Logger } from '../../logger';
 import { BaseBlockProcessor } from './base_block_processor';
@@ -401,10 +400,10 @@ export class Processor {
 	): Promise<void> {
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = await this.chainModule.newStateStore(1);
-		assert(
-			!(block.header.height <= this.bftModule.finalityManager.finalizedHeight),
-			'Can not delete block below or same as finalized height',
-		);
+		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
+			throw new Error('Can not delete block below or same as finalized height');
+		}
+
 		await processor.undo.run({
 			block,
 			stateStore,
