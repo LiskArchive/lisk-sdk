@@ -21,14 +21,12 @@ import {
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { Block, BlockHeader, Chain } from '@liskhq/lisk-chain';
-import {
-	BaseTransaction,
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-} from '@liskhq/lisk-transactions';
+import { GenesisBlock } from '@liskhq/lisk-genesis';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
 import * as genesisBlockJSON from './config/devnet/genesis_block.json';
 import { BlockProcessorV2 } from '../../src/application/node/block_processor_v2';
+import { genesisBlockFromJSON } from '../../src/application/genesis_block';
+import { AccountAsset } from '../../src/application/node/account';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -181,96 +179,5 @@ export const encodeValidBlock = (block: Block): Buffer => {
 	return chain.dataAccess.encode(block);
 };
 
-// FIXME: Update to new genesis block format
-export const genesisBlock = (): Block => {
-	const block = {
-		header: {
-			...genesisBlockJSON.header,
-			id: Buffer.from(genesisBlockJSON.header.id, 'base64'),
-			previousBlockID: Buffer.alloc(0),
-			reward: BigInt(genesisBlockJSON.header.reward),
-			transactionRoot: Buffer.from(
-				genesisBlockJSON.header.transactionRoot,
-				'base64',
-			),
-			generatorPublicKey: Buffer.from(
-				genesisBlockJSON.header.generatorPublicKey,
-				'base64',
-			),
-			signature: Buffer.from(genesisBlockJSON.header.signature, 'base64'),
-			asset: {
-				maxHeightPreviouslyForged:
-					genesisBlockJSON.header.asset.maxHeightPreviouslyForged,
-				maxHeightPrevoted: genesisBlockJSON.header.asset.maxHeightPrevoted,
-				seedReveal: Buffer.from(
-					genesisBlockJSON.header.asset.seedReveal,
-					'base64',
-				),
-			},
-		},
-		payload: genesisBlockJSON.payload.map(tx => {
-			if (tx.type === 8) {
-				return new TransferTransaction({
-					...tx,
-					id: Buffer.from(tx.id, 'base64'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
-					nonce: BigInt(tx.nonce),
-					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map(s => Buffer.from(s, 'base64')),
-					asset: {
-						recipientAddress: Buffer.from(
-							tx.asset.recipientAddress as string,
-							'base64',
-						),
-						amount: BigInt(tx.asset.amount),
-						data: '',
-					},
-				});
-			}
-			if (tx.type === 10) {
-				return new DelegateTransaction({
-					...tx,
-					id: Buffer.from(tx.id, 'base64'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
-					nonce: BigInt(tx.nonce),
-					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map((s: string) =>
-						Buffer.from(s, 'base64'),
-					),
-				} as any);
-			}
-			if (tx.type === 13) {
-				return new VoteTransaction({
-					...tx,
-					id: Buffer.from(tx.id, 'base64'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
-					nonce: BigInt(tx.nonce),
-					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map((s: string) =>
-						Buffer.from(s, 'base64'),
-					),
-					asset: {
-						votes: tx.asset.votes?.map((v: any) => ({
-							delegateAddress: Buffer.from(v.delegateAddress, 'base64'),
-							amount: BigInt(v.amount),
-						})),
-					},
-				} as any);
-			}
-			throw new Error('Unexpected transaction type');
-		}),
-	};
-	const chain = new Chain({
-		registeredBlocks: { 2: BlockProcessorV2.schema },
-		accountAsset: { schema: {}, default: {} },
-		genesisBlock: {
-			header: {
-				timestamp: 0,
-			},
-		},
-	} as any);
-	const encodedHeader = chain.dataAccess.encodeBlockHeader(block.header);
-	const id = hash(encodedHeader);
-	block.header.id = id;
-	return block;
-};
+export const genesisBlock = (): GenesisBlock<AccountAsset> =>
+	genesisBlockFromJSON(genesisBlockJSON);

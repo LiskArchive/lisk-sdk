@@ -12,51 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// TODO: Remove this file completely after #5234
+// TODO: Remove this file completely after #5354
+//  Add JSON decode and encode for the lisk-codec
 
-import { Block } from '@liskhq/lisk-chain';
-import {
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-} from '@liskhq/lisk-transactions';
-
-interface Payload {
-	id: string;
-	senderPublicKey: string;
-	nonce: string;
-	fee: string;
-	signatures: string[];
-}
-
-interface TransferPayload extends Payload {
-	type: 8;
-	asset: {
-		recipientAddress: string;
-		amount: string;
-	};
-}
-
-interface DelegatePayload extends Payload {
-	type: 10;
-	asset: {
-		username: string;
-	};
-}
-
-interface VotePayload extends Payload {
-	type: 13;
-	asset: {
-		votes: {
-			delegateAddress: string;
-			amount: string;
-		}[];
-	};
-}
+import { GenesisAccountState, GenesisBlock } from '@liskhq/lisk-genesis';
+import { AccountAsset } from './node/account';
 
 export interface GenesisBlockJSON {
-	readonly communityIdentifier: string;
-	readonly header: {
+	header: {
 		readonly id: string;
 		readonly version: number;
 		readonly timestamp: number;
@@ -65,78 +28,102 @@ export interface GenesisBlockJSON {
 		readonly transactionRoot: string;
 		readonly generatorPublicKey: string;
 		readonly reward: string;
-		readonly asset: {
-			seedReveal: string;
-			maxHeightPreviouslyForged: number;
-			maxHeightPrevoted: number;
-		};
 		readonly signature: string;
+		readonly asset: {
+			readonly accounts: GenesisAccountStateJSON[];
+			readonly initDelegates: string[];
+			readonly initRounds: number;
+		};
 	};
-	readonly payload: Array<TransferPayload | DelegatePayload | VotePayload>;
+	payload: never[];
 }
 
-export const convertGenesisBlock = (genesis: GenesisBlockJSON): Block => {
+export interface GenesisAccountStateJSON {
+	readonly address: string;
+	readonly balance: string;
+	readonly publicKey: string;
+	readonly nonce: string;
+	readonly keys: {
+		mandatoryKeys: string[];
+		optionalKeys: string[];
+		numberOfSignatures: number;
+	};
+	readonly asset: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: string;
+		};
+		sentVotes: { delegateAddress: string; amount: string }[];
+		unlocking: {
+			delegateAddress: string;
+			amount: string;
+			unvoteHeight: number;
+		}[];
+	};
+}
+
+const accountFromJSON = (
+	account: GenesisAccountStateJSON,
+): GenesisAccountState<AccountAsset> => ({
+	address: Buffer.from(account.address, 'base64'),
+	balance: BigInt(account.balance),
+	publicKey: Buffer.from(account.publicKey, 'base64'),
+	nonce: BigInt(account.nonce),
+	keys: {
+		mandatoryKeys: account.keys.mandatoryKeys.map(key =>
+			Buffer.from(key, 'base64'),
+		),
+		optionalKeys: account.keys.optionalKeys.map(key =>
+			Buffer.from(key, 'base64'),
+		),
+		numberOfSignatures: account.keys.numberOfSignatures,
+	},
+	asset: {
+		delegate: {
+			...account.asset.delegate,
+			totalVotesReceived: BigInt(account.asset.delegate.isBanned),
+		},
+		sentVotes: account.asset.sentVotes.map(vote => ({
+			delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
+			amount: BigInt(vote.amount),
+		})),
+		unlocking: account.asset.unlocking.map(unlock => ({
+			delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
+			amount: BigInt(unlock.amount),
+			unvoteHeight: unlock.unvoteHeight,
+		})),
+	},
+});
+
+export const genesisBlockFromJSON = (
+	genesis: GenesisBlockJSON,
+): GenesisBlock<AccountAsset> => {
 	const header = {
 		...genesis.header,
 		id: Buffer.from(genesis.header.id, 'base64'),
-		previousBlockID: Buffer.alloc(0),
+		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'base64'),
+		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
 		generatorPublicKey: Buffer.from(
 			genesis.header.generatorPublicKey,
 			'base64',
 		),
-		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
 		reward: BigInt(genesis.header.reward),
 		signature: Buffer.from(genesis.header.signature, 'base64'),
 		asset: {
-			...genesis.header.asset,
-			seedReveal: Buffer.from(genesis.header.asset.seedReveal, 'base64'),
+			initRounds: genesis.header.asset.initRounds,
+			initDelegates: genesis.header.asset.initDelegates.map(address =>
+				Buffer.from(address, 'base64'),
+			),
+			accounts: genesis.header.asset.accounts.map(accountFromJSON),
 		},
 	};
-	const payload = genesis.payload.map(tx => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const txHeader = {
-			id: Buffer.from(tx.id, 'base64'),
-			type: tx.type,
-			senderPublicKey: Buffer.from(tx.senderPublicKey, 'base64'),
-			nonce: BigInt(tx.nonce),
-			fee: BigInt(tx.fee),
-			signatures: tx.signatures.map(s => Buffer.from(s, 'base64')),
-		};
-		if (tx.type === 8) {
-			return new TransferTransaction({
-				...txHeader,
-				asset: {
-					recipientAddress: Buffer.from(tx.asset.recipientAddress, 'base64'),
-					data: '',
-					amount: BigInt(tx.asset.amount),
-				},
-			});
-		}
-		if (tx.type === 10) {
-			return new DelegateTransaction({
-				...txHeader,
-				asset: {
-					username: tx.asset.username,
-				},
-			});
-		}
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (tx.type === 13) {
-			return new VoteTransaction({
-				...txHeader,
-				asset: {
-					votes: tx.asset.votes.map(v => ({
-						delegateAddress: Buffer.from(v.delegateAddress, 'base64'),
-						amount: BigInt(v.amount),
-					})),
-				},
-			});
-		}
-		throw new Error('Unexpected payload type');
-	});
 
 	return {
 		header,
-		payload,
+		payload: [],
 	};
 };

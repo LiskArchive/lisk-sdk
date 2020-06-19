@@ -21,6 +21,7 @@ import {
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { GenesisBlock } from '@liskhq/lisk-genesis';
 import {
 	TransactionPool,
 	Job,
@@ -47,7 +48,11 @@ import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
-import { accountAssetSchema, defaultAccountAsset } from './account';
+import {
+	accountAssetSchema,
+	defaultAccountAsset,
+	AccountAsset,
+} from './account';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
 	EVENT_PROCESSOR_SYNC_REQUIRED,
@@ -87,7 +92,7 @@ export interface Options {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	genesisBlock: Block;
+	genesisBlock: GenesisBlock<AccountAsset>;
 }
 
 interface NodeConstructor {
