@@ -409,19 +409,4 @@ export class MultisignatureTransaction extends BaseTransaction {
 
 		return errors;
 	}
-
-	protected async undoAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
-		const sender = await store.account.get(this.senderId);
-		sender.keys = {
-			mandatoryKeys: [],
-			optionalKeys: [],
-			numberOfSignatures: 0,
-		};
-
-		store.account.set(sender.address, sender);
-
-		return [];
-	}
 }

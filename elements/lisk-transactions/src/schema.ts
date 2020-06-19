@@ -13,7 +13,7 @@
  *
  */
 export const transactionInterface = {
-	required: ['getBytes', 'validate', 'apply', 'undo', 'verifySignatures'],
+	required: ['getBytes', 'validate', 'apply', 'verifySignatures'],
 	properties: {
 		getBytes: {
 			typeof: 'function',
@@ -22,9 +22,6 @@ export const transactionInterface = {
 			typeof: 'function',
 		},
 		apply: {
-			typeof: 'function',
-		},
-		undo: {
 			typeof: 'function',
 		},
 		verifySignatures: {

@@ -370,42 +370,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async undoAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
-		const currentHeight = store.chain.lastBlockHeader.height + 1;
-
-		const senderAccount = await store.account.get(this.senderId);
-
-		/*
-			Update sender account
-		*/
-		senderAccount.balance -= this.asset.reward;
-		store.account.set(senderAccount.address, senderAccount);
-
-		/*
-			Update delegate account
-		*/
-		const delegateAddress = getAddressFromPublicKey(
-			this.asset.header1.generatorPublicKey,
-		);
-		const delegateAccount = await store.account.get<AccountAsset>(
-			delegateAddress,
-		);
-		const pomIndex = delegateAccount.asset.delegate.pomHeights.findIndex(
-			height => height === currentHeight,
-		);
-		delegateAccount.asset.delegate.pomHeights.splice(pomIndex, 1);
-		if (delegateAccount.asset.delegate.pomHeights.length < 5) {
-			delegateAccount.asset.delegate.isBanned = false;
-		}
-
-		delegateAccount.balance += this.asset.reward;
-		store.account.set(delegateAccount.address, delegateAccount);
-
-		return [];
-	}
-
 	// eslint-disable-next-line class-methods-use-this
 	private _getBlockHeaderBytes(header: BlockHeader): Buffer {
 		return codec.encode(signingBlockHeaderSchema, header);
