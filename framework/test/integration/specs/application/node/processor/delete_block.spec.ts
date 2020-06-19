@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
-import { Block } from '@liskhq/lisk-chain';
+import { KVStore, formatInt } from '@liskhq/lisk-db';
+import { Block, stateDiffSchema } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
 import { nodeUtils } from '../../../../../utils';
@@ -22,6 +23,10 @@ import { Node } from '../../../../../../src/application/node';
 
 describe('Delete block', () => {
 	const dbName = 'delete_block';
+	const emptyDiffState = codec.encode(stateDiffSchema, {
+		updated: [],
+		created: [],
+	});
 	let node: Node;
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
@@ -78,6 +83,10 @@ describe('Delete block', () => {
 				});
 				transaction.sign(node['_networkIdentifier'], genesis.passphrase);
 				newBlock = await nodeUtils.createBlock(node, [transaction]);
+				await blockchainDB.put(
+					`diff:${formatInt(newBlock.header.height)}`,
+					emptyDiffState,
+				);
 				await node['_processor'].process(newBlock);
 				await node['_processor'].deleteLastBlock();
 			});

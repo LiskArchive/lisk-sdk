@@ -110,7 +110,7 @@ describe('dataAccess.blocks', () => {
 				`tempBlocks:height:${formatInt(blocks[3].header.height + 1)}`,
 				encodedDefaultBlock(blocks[3]),
 			);
-			batch.put(`diff:${block.header.height}`, emptyEncodedDiff);
+			batch.put(`diff:${formatInt(block.header.height)}`, emptyEncodedDiff);
 		}
 		await batch.write();
 		dataAccess.resetBlockHeaderCache();

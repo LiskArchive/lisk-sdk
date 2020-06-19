@@ -427,7 +427,7 @@ describe('chain', () => {
 
 			const block = createValidDefaultBlock();
 			when(db.get)
-				.calledWith(`diff:${block.header.height}`)
+				.calledWith(`diff:${formatInt(block.header.height)}`)
 				.mockResolvedValue(emptyEncodedDiff as never);
 
 			const deleteBlockError = new Error('Delete block failed');
@@ -446,7 +446,7 @@ describe('chain', () => {
 				.mockResolvedValue(genesisBlock as never);
 			const block = createValidDefaultBlock();
 			when(db.get)
-				.calledWith(`diff:${block.header.height}`)
+				.calledWith(`diff:${formatInt(block.header.height)}`)
 				.mockResolvedValue(emptyEncodedDiff as never);
 			// Act
 			await chainInstance.remove(block, stateStoreStub);
@@ -465,7 +465,7 @@ describe('chain', () => {
 			const tx = getTransferTransaction();
 			const block = createValidDefaultBlock({ payload: [tx] });
 			when(db.get)
-				.calledWith(`diff:${block.header.height}`)
+				.calledWith(`diff:${formatInt(block.header.height)}`)
 				.mockResolvedValue(emptyEncodedDiff as never);
 			// Act
 			await chainInstance.remove(block, stateStoreStub, {
