@@ -440,12 +440,12 @@ export class Storage {
 			batch.put(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`, fullBlock);
 		}
 		// Take the diff to revert back states
-		const stateDiff = await this._getDiffByHeight(height);
+		const diffKey = `${DB_KEY_DIFF_STATE}:${heightStr}`;
+		const stateDiff = await this._db.get(diffKey);
 
-		const {
-			created: createdStates,
-			updated: updatedStates,
-		}: StateDiff = codec.decode(stateDiffSchema, stateDiff);
+		const { created: createdStates, updated: updatedStates } = codec.decode<
+			StateDiff
+		>(stateDiffSchema, stateDiff);
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
@@ -456,16 +456,10 @@ export class Storage {
 			batch.put(key, previousValue);
 		}
 		// Delete stored diff at particular height
-		batch.del(`${DB_KEY_DIFF_STATE}:${height}`);
+		batch.del(diffKey);
 
 		stateStore.finalize(heightStr, batch);
 		await batch.write();
-	}
-
-	private async _getDiffByHeight(height: number): Promise<Buffer> {
-		const diff = await this._db.get(`${DB_KEY_DIFF_STATE}:${height}`);
-
-		return diff;
 	}
 
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {
