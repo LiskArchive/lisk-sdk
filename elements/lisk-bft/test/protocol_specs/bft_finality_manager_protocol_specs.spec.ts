@@ -128,7 +128,20 @@ describe('FinalityManager', () => {
 							return acc;
 						}, {});
 
-						expect(preCommits).toEqual(testCase.output.preCommits);
+						const expectedPreCommits: any = { ...testCase.output.preCommits };
+
+						Object.keys(expectedPreCommits)
+							.filter(
+								height =>
+									parseInt(height, 10) <=
+									testCase.input.blockHeader.height -
+										finalityManager.maxHeaders,
+							)
+							.forEach(key => {
+								delete expectedPreCommits[key];
+							});
+
+						expect(preCommits).toEqual(expectedPreCommits);
 
 						expect(preVotes).toEqual(testCase.output.preVotes);
 

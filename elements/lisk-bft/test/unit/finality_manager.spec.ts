@@ -13,7 +13,11 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { FinalityManager, CONSENSUS_STATE_DELEGATE_LEDGER_KEY, BFTDelegateLedgerSchema } from '../../src/finality_manager';
+import {
+	FinalityManager,
+	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+	BFTDelegateLedgerSchema,
+} from '../../src/finality_manager';
 import {
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
@@ -23,7 +27,10 @@ import {
 import { createFakeDefaultAccount } from '../fixtures/accounts';
 import { createFakeBlockHeader } from '../fixtures/blocks';
 import { StateStoreMock } from '../utils/state_store_mock';
-import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY, BFTFinalizedHeightCodecSchema } from '../../src';
+import {
+	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+	BFTFinalizedHeightCodecSchema,
+} from '../../src';
 
 const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
@@ -241,16 +248,20 @@ describe('finality_manager', () => {
 				bftHeaders = generateValidHeaders(
 					finalityManager.processingThreshold + 1,
 				);
-				stateStore = new StateStoreMock([], {
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTFinalizedHeightCodecSchema,
-						{ finalizedHeight: 5 },
-					),
-					[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
-						BFTDelegateLedgerSchema,
-						delegateLedger,
-					),
-				}, { lastBlockHeaders: bftHeaders });
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight: 5 },
+						),
+						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+							BFTDelegateLedgerSchema,
+							delegateLedger,
+						),
+					},
+					{ lastBlockHeaders: bftHeaders },
+				);
 			});
 
 			it('should call verifyBlockHeaders with the provided header', async () => {

@@ -325,12 +325,16 @@ export class FinalityManager extends EventEmitter {
 			delegatesState[delegatesState.length] = delegateState;
 		}
 
+		// Remove ledger beyond maxHeaders size
+		ledgerState.sort((a, b) => a.height - b.height);
+		const cleanedLedger = ledgerState.splice(this.maxHeaders * -1);
+
 		// Update state to save the bft votes
 		stateStore.consensus.set(
 			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
 			codec.encode(BFTDelegateLedgerSchema, {
 				delegates: delegatesState,
-				ledger: ledgerState,
+				ledger: cleanedLedger,
 			}),
 		);
 

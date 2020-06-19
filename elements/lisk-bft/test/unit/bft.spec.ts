@@ -15,7 +15,11 @@
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { createFakeBlockHeader } from '../fixtures/blocks';
-import { FinalityManager, CONSENSUS_STATE_DELEGATE_LEDGER_KEY, BFTDelegateLedgerSchema } from '../../src/finality_manager';
+import {
+	FinalityManager,
+	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+	BFTDelegateLedgerSchema,
+} from '../../src/finality_manager';
 
 import {
 	BFT,
@@ -125,12 +129,16 @@ describe('bft', () => {
 
 			it('should set the finality height to the value from chain state', async () => {
 				const finalizedHeight = 5;
-				const stateStore = new StateStoreMock([], {
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTFinalizedHeightCodecSchema,
-						{ finalizedHeight },
-					),
-				}, { lastBlockHeaders: [lastBlock] });
+				const stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight },
+						),
+					},
+					{ lastBlockHeaders: [lastBlock] },
+				);
 				const bft = new BFT(bftParams);
 
 				await bft.init(stateStore);
@@ -142,34 +150,44 @@ describe('bft', () => {
 		describe('#addNewBlock', () => {
 			const block1 = createFakeBlockHeader({ height: 2, version: 2 });
 			const lastFinalizedHeight = 5;
-			const delegateAddress = getAddressFromPublicKey(block1.generatorPublicKey);
+			const delegateAddress = getAddressFromPublicKey(
+				block1.generatorPublicKey,
+			);
 			const delegateLedger = {
-				delegates: [{
-					address: delegateAddress,
-					maxPreVoteHeight: 1,
-					maxPreCommitHeight: 0,
-				}],
-				ledger: [{
-					height: block1.height,
-					preVotes: 1,
-					preCommits: 0,
-				}],
+				delegates: [
+					{
+						address: delegateAddress,
+						maxPreVoteHeight: 1,
+						maxPreCommitHeight: 0,
+					},
+				],
+				ledger: [
+					{
+						height: block1.height,
+						preVotes: 1,
+						preCommits: 0,
+					},
+				],
 			};
 
 			let bft: BFT;
 			let stateStore: StateStoreMock;
 
 			beforeEach(async () => {
-				stateStore = new StateStoreMock([], {
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTFinalizedHeightCodecSchema,
-						{ finalizedHeight: lastFinalizedHeight },
-					),
-					[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
-						BFTDelegateLedgerSchema,
-						delegateLedger,
-					),
-				}, { lastBlockHeaders: [lastBlock] });
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight: lastFinalizedHeight },
+						),
+						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+							BFTDelegateLedgerSchema,
+							delegateLedger,
+						),
+					},
+					{ lastBlockHeaders: [lastBlock] },
+				);
 
 				bft = new BFT(bftParams);
 				await bft.init(stateStore);
@@ -196,12 +214,16 @@ describe('bft', () => {
 		describe('#reset', () => {
 			it('should reset headers and related stats to initial state except finality', async () => {
 				// Arrange
-				const stateStore = new StateStoreMock([], {
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTFinalizedHeightCodecSchema,
-						{ finalizedHeight: 5 },
-					),
-				}, { lastBlockHeaders: [lastBlock] });
+				const stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight: 5 },
+						),
+					},
+					{ lastBlockHeaders: [lastBlock] },
+				);
 				const bft = new BFT(bftParams);
 				await bft.init(stateStore);
 				const numberOfBlocks = 500;
@@ -254,20 +276,24 @@ describe('bft', () => {
 				});
 
 				bft = new BFT(bftParams);
-				stateStore = new StateStoreMock([], {
-					[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
-						BFTFinalizedHeightCodecSchema,
-						{ finalizedHeight: 1 },
-					),
-				}, { lastBlockHeaders: blocks });
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight: 1 },
+						),
+					},
+					{ lastBlockHeaders: blocks },
+				);
 				await bft.init(stateStore);
 			});
 
 			it('should THROW if block is not provided', () => {
 				// Act & Assert
-				expect(() => bft.isBFTProtocolCompliant(undefined as any, stateStore)).toThrow(
-					'No block was provided to be verified',
-				);
+				expect(() =>
+					bft.isBFTProtocolCompliant(undefined as any, stateStore),
+				).toThrow('No block was provided to be verified');
 			});
 
 			it('should return TRUE when B.maxHeightPreviouslyForged is equal to 0', () => {
@@ -281,7 +307,9 @@ describe('bft', () => {
 				};
 
 				// Act & Assert
-				expect(bft.isBFTProtocolCompliant(block as BlockHeader, stateStore)).toBeTrue();
+				expect(
+					bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
+				).toBeTrue();
 			});
 
 			it('should return FALSE when B.maxHeightPreviouslyForged is equal to B.height', () => {
@@ -296,7 +324,7 @@ describe('bft', () => {
 				// Act & Assert
 				expect(
 					bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
-				).toBeFalse()
+				).toBeFalse();
 			});
 
 			it('should return FALSE when B.maxHeightPreviouslyForged is greater than B.height', () => {
@@ -311,7 +339,7 @@ describe('bft', () => {
 				// Act & Assert
 				expect(
 					bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
-				).toBeFalse()
+				).toBeFalse();
 			});
 
 			describe('when B.height - B.maxHeightPreviouslyForged is less than 303', () => {
@@ -328,7 +356,7 @@ describe('bft', () => {
 					// Act & Assert
 					expect(
 						bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
-					).toBeFalse()
+					).toBeFalse();
 				});
 
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', () => {
@@ -362,7 +390,7 @@ describe('bft', () => {
 					// Act & Assert
 					expect(
 						bft.isBFTProtocolCompliant(block as BlockHeader, stateStore),
-					).toBeFalse()
+					).toBeFalse();
 				});
 
 				it('should return TRUE if the block at height B.maxHeightPreviouslyForged in the current chain was forged by B.generatorPublicKey', () => {

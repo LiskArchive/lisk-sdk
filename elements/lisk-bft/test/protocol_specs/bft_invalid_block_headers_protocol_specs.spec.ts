@@ -38,7 +38,9 @@ describe('FinalityManager', () => {
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
 			it('should fail adding invalid block header', async () => {
 				// Arrange
-				stateStore.consensus.lastBlockHeaders = testCase.config.blockHeaders.map(bh => convertHeader(bh));
+				stateStore.consensus.lastBlockHeaders = testCase.config.blockHeaders.map(
+					bh => convertHeader(bh),
+				);
 
 				const finalityManager = new FinalityManager({
 					dpos: dposStub,

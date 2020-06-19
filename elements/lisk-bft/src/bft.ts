@@ -110,8 +110,14 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public verifyNewBlock(blockHeader: BlockHeader, stateStore: StateStore): boolean {
-		return this.finalityManager.verifyBlockHeaders(blockHeader, stateStore.consensus.lastBlockHeaders);
+	public verifyNewBlock(
+		blockHeader: BlockHeader,
+		stateStore: StateStore,
+	): boolean {
+		return this.finalityManager.verifyBlockHeaders(
+			blockHeader,
+			stateStore.consensus.lastBlockHeaders,
+		);
 	}
 
 	public forkChoice(
