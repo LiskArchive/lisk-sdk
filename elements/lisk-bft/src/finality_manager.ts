@@ -17,7 +17,7 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as assert from 'assert';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
-
+import { BufferMap } from './utils/buffer_map';
 import { BFT_ROUND_THRESHOLD } from './constant';
 import {
 	BFTChainDisjointError,
@@ -31,9 +31,6 @@ import {
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:bft:consensus_manager');
-
-const keyToString = (key: Buffer, encoding = 'base64'): string =>
-	key.toString(encoding);
 
 export const EVENT_BFT_FINALIZED_HEIGHT_CHANGED =
 	'EVENT_BFT_FINALIZED_HEIGHT_CHANGED';
@@ -110,12 +107,13 @@ interface LedgerMap {
 	[key: string]: { preVotes: number; preCommits: number };
 }
 
-interface DelegateMap {
-	[key: string]: { maxPreVoteHeight: number; maxPreCommitHeight: number };
+interface DelegateState {
+	maxPreVoteHeight: number;
+	maxPreCommitHeight: number;
 }
 
 interface VotingLedgerMap {
-	readonly delegates: DelegateMap;
+	readonly delegates: BufferMap<DelegateState>;
 	readonly ledger: LedgerMap;
 }
 
@@ -232,9 +230,8 @@ export class FinalityManager extends EventEmitter {
 		const { delegates: delegatesMap, ledger: ledgerMap } = votingLedger;
 
 		// Load or initialize delegate state in reference to current BlockHeaderManager block headers
-		const delegateAddressStr = keyToString(delegateAddress);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		const delegateState = delegatesMap[delegateAddressStr] || {
+		const delegateState = delegatesMap.get(delegateAddress) ?? {
 			maxPreVoteHeight: 0,
 			maxPreCommitHeight: 0,
 		};
@@ -281,7 +278,7 @@ export class FinalityManager extends EventEmitter {
 
 				// Update ledger and delegates map
 				ledgerMap[j] = ledgerState;
-				delegatesMap[delegateAddressStr] = delegateState;
+				delegatesMap.set(delegateAddress, delegateState);
 			}
 		}
 
@@ -314,7 +311,7 @@ export class FinalityManager extends EventEmitter {
 
 		// Update delegate state
 		delegateState.maxPreVoteHeight = maxPreVoteHeight;
-		delegatesMap[delegateAddressStr] = delegateState;
+		delegatesMap.set(delegateAddress, delegateState);
 
 		// Remove ledger beyond maxHeaders size
 		Object.keys(ledgerMap)
@@ -509,6 +506,7 @@ export class FinalityManager extends EventEmitter {
 		const votingLedgerBuffer = await stateStore.consensus.get(
 			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
 		);
+
 		const votingLedger =
 			votingLedgerBuffer === undefined
 				? {
@@ -531,16 +529,14 @@ export class FinalityManager extends EventEmitter {
 		}, {});
 
 		const delegates = votingLedger.delegates.reduce(
-			(prev: DelegateMap, curr) => {
-				// eslint-disable-next-line no-param-reassign
-				prev[curr.address.toString('base64')] = {
+			(prev: BufferMap<DelegateState>, curr) => {
+				prev.set(curr.address, {
 					maxPreVoteHeight: curr.maxPreVoteHeight,
 					maxPreCommitHeight: curr.maxPreCommitHeight,
-				};
-
+				});
 				return prev;
 			},
-			{},
+			new BufferMap<DelegatesState>(),
 		);
 
 		return { ledger, delegates };
@@ -551,27 +547,22 @@ export class FinalityManager extends EventEmitter {
 		stateStore: StateStore,
 		votingLedgerMap: VotingLedgerMap,
 	): void {
-		const ledgerState = Object.keys(votingLedgerMap.ledger).reduce(
-			(prev: LedgerState[], curr) => {
-				prev.push({
-					height: parseInt(curr, 10),
-					...votingLedgerMap.ledger[curr],
-				});
-				return prev;
-			},
-			[],
-		);
+		const ledgerState = [];
+		for (const height of Object.keys(votingLedgerMap.ledger)) {
+			const intHeight = parseInt(height, 10);
+			ledgerState.push({
+				height: intHeight,
+				...votingLedgerMap.ledger[intHeight],
+			});
+		}
 
-		const delegatesState = Object.keys(votingLedgerMap.delegates).reduce(
-			(prev: DelegatesState[], curr) => {
-				prev.push({
-					address: Buffer.from(curr, 'base64'),
-					...votingLedgerMap.delegates[curr],
-				});
-				return prev;
-			},
-			[],
-		);
+		const delegatesState = [];
+		for (const [key, value] of votingLedgerMap.delegates.entries()) {
+			delegatesState.push({
+				address: key,
+				...value,
+			});
+		}
 
 		stateStore.consensus.set(
 			CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
