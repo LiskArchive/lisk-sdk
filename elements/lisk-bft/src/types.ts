@@ -17,14 +17,71 @@ export interface BlockHeader {
 	readonly id: Buffer;
 	readonly height: number;
 	readonly generatorPublicKey: Buffer;
+	readonly reward: bigint;
 	readonly previousBlockID: Buffer;
 	readonly timestamp: number;
 	readonly receivedAt?: number;
 	readonly asset: {
+		readonly seedReveal: Buffer;
 		readonly maxHeightPrevoted: number;
 		readonly maxHeightPreviouslyForged: number;
 	};
 	readonly version: number;
+}
+
+export interface AccountAsset {
+	delegate: DelegateAccountAsset;
+	sentVotes: VoteAccountAsset[];
+	unlocking: UnlockingAccountAsset[];
+}
+
+export interface DelegateAccountAsset {
+	username: string;
+	pomHeights: number[];
+	consecutiveMissedBlocks: number;
+	lastForgedHeight: number;
+	isBanned: boolean;
+	totalVotesReceived: bigint;
+}
+
+export interface VoteAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+}
+
+export interface UnlockingAccountAsset {
+	delegateAddress: Buffer;
+	amount: bigint;
+	unvoteHeight: number;
+}
+
+export interface Account {
+	readonly address: Buffer;
+	readonly publicKey: Buffer;
+	balance: bigint;
+	asset: {
+		delegate: DelegateAccountAsset;
+		sentVotes: VoteAccountAsset[];
+		unlocking: UnlockingAccountAsset[];
+	};
+}
+
+export interface StateStore {
+	readonly account: {
+		readonly get: (primaryValue: Buffer) => Promise<Account>;
+		readonly getUpdated: () => ReadonlyArray<Account>;
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
+		set(key: Buffer, value: Account): void;
+	};
+	readonly consensus: {
+		readonly get: (key: string) => Promise<Buffer | undefined>;
+		readonly set: (key: string, value: Buffer) => void;
+		readonly lastBlockHeaders: ReadonlyArray<BlockHeader>;
+	};
+	readonly chain: {
+		readonly get: (key: string) => Promise<Buffer | undefined>;
+		readonly set: (key: string, value: Buffer) => void;
+	};
 }
 
 export interface DPoS {
@@ -42,13 +99,6 @@ export interface DPoS {
 }
 
 export interface Chain {
-	readonly dataAccess: {
-		readonly getBlockHeadersByHeightBetween: (
-			from: number,
-			to: number,
-		) => Promise<ReadonlyArray<BlockHeader>>;
-		readonly getLastBlockHeader: () => Promise<BlockHeader>;
-	};
 	readonly slots: {
 		readonly getSlotNumber: (timestamp: number) => number;
 		readonly isWithinTimeslot: (
@@ -66,13 +116,6 @@ export enum ForkStatus {
 	TIE_BREAK = 4,
 	DIFFERENT_CHAIN = 5,
 	DISCARD = 6,
-}
-
-export interface StateStore {
-	readonly consensus: {
-		readonly set: (key: string, value: Buffer) => void;
-		readonly get: (key: string) => Promise<Buffer | undefined>;
-	};
 }
 
 export class BFTError extends Error {}

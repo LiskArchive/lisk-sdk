@@ -575,6 +575,7 @@ export class Node {
 			channel: this._channel,
 			logger: this._logger,
 			chainModule: this._chain,
+			bftModule: this._bft,
 		});
 
 		this._transactionPool = new TransactionPool({
