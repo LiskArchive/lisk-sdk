@@ -396,12 +396,12 @@ export class Processor {
 		block: Block,
 		saveTempBlock = false,
 	): Promise<void> {
-		// Offset must be set to 1, because lastBlock is still this deleting block
-		const stateStore = await this.chainModule.newStateStore(1);
 		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 
+		// Offset must be set to 1, because lastBlock is still this deleting block
+		const stateStore = await this.chainModule.newStateStore(1);
 		await this.chainModule.remove(block, stateStore, { saveTempBlock });
 	}
 
