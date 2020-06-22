@@ -108,7 +108,7 @@ export class Codec {
 			this.addSchema(schema);
 		}
 		const compiledSchema = this._compileSchemas[schema.$id];
-		const [res] = readObject(message, 0, compiledSchema);
+		const [res] = readObject(message, 0, compiledSchema, message.length);
 
 		return (res as unknown) as T;
 	}

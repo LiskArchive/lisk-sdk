@@ -32,7 +32,9 @@ export const createFakeBlockHeader = (
 	height: header?.height ?? 489,
 	previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 	generatorPublicKey: header?.generatorPublicKey ?? getRandomBytes(32),
+	reward: BigInt(0),
 	asset: {
+		seedReveal: Buffer.alloc(0),
 		maxHeightPreviouslyForged: header?.asset?.maxHeightPreviouslyForged ?? 0,
 		maxHeightPrevoted: header?.asset?.maxHeightPrevoted ?? 0,
 	},

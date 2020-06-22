@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { FinalityManager } from '../../src/finality_manager';
+import { codec } from '@liskhq/lisk-codec';
+import {
+	FinalityManager,
+	CONSENSUS_STATE_DELEGATE_LEDGER_KEY,
+	BFTVotingLedgerSchema,
+} from '../../src/finality_manager';
 import {
 	BFTChainDisjointError,
 	BFTForkChoiceRuleError,
@@ -21,7 +26,11 @@ import {
 } from '../../src/types';
 import { createFakeDefaultAccount } from '../fixtures/accounts';
 import { createFakeBlockHeader } from '../fixtures/blocks';
-import { StateStoreMock } from './state_store_mock';
+import { StateStoreMock } from '../utils/state_store_mock';
+import {
+	CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
+	BFTFinalizedHeightCodecSchema,
+} from '../../src';
 
 const generateValidHeaders = (count: number): any[] => {
 	return [...Array(count)].map((_, index) => {
@@ -44,42 +53,18 @@ describe('finality_manager', () => {
 		const maxHeaders = 505;
 
 		let finalityManager: FinalityManager;
-		let chainStub: {
-			dataAccess: {
-				getBlockHeadersByHeightBetween: jest.Mock;
-				getLastBlockHeader: jest.Mock;
-			};
-			slots: {
-				getSlotNumber: jest.Mock;
-				isWithinTimeslot: jest.Mock;
-				timeSinceGenesis: jest.Mock;
-			};
-		};
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
 			isStandbyDelegate: jest.Mock;
 		};
 
 		beforeEach(() => {
-			chainStub = {
-				dataAccess: {
-					getBlockHeadersByHeightBetween: jest.fn(),
-					getLastBlockHeader: jest.fn(),
-				},
-				slots: {
-					getSlotNumber: jest.fn(),
-					isWithinTimeslot: jest.fn(),
-					timeSinceGenesis: jest.fn(),
-				},
-			};
-
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
 			};
 
 			finalityManager = new FinalityManager({
-				chain: chainStub,
 				dpos: dposStub,
 				finalizedHeight,
 				activeDelegates,
@@ -102,7 +87,6 @@ describe('finality_manager', () => {
 				expect(
 					() =>
 						new FinalityManager({
-							chain: chainStub,
 							dpos: dposStub,
 							finalizedHeight,
 							activeDelegates: 0,
@@ -253,16 +237,30 @@ describe('finality_manager', () => {
 		});
 
 		describe('addBlockHeader', () => {
+			const delegateLedger = {
+				delegates: [],
+				ledger: [],
+			};
 			let stateStore: StateStoreMock;
 			let bftHeaders: ReadonlyArray<BlockHeader>;
 
 			beforeEach(() => {
-				stateStore = new StateStoreMock();
 				bftHeaders = generateValidHeaders(
 					finalityManager.processingThreshold + 1,
 				);
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-					bftHeaders,
+				stateStore = new StateStoreMock(
+					[],
+					{
+						[CONSENSUS_STATE_FINALIZED_HEIGHT_KEY]: codec.encode(
+							BFTFinalizedHeightCodecSchema,
+							{ finalizedHeight: 5 },
+						),
+						[CONSENSUS_STATE_DELEGATE_LEDGER_KEY]: codec.encode(
+							BFTVotingLedgerSchema,
+							delegateLedger,
+						),
+					},
+					{ lastBlockHeaders: bftHeaders },
 				);
 			});
 
@@ -377,8 +375,5 @@ describe('finality_manager', () => {
 				}
 			});
 		});
-
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		describe('recompute', () => {});
 	});
 });

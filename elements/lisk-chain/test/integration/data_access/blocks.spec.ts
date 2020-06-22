@@ -15,6 +15,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Storage } from '../../../src/data_access/storage';
 import {
 	createValidDefaultBlock,
@@ -23,12 +24,16 @@ import {
 	defaultBlockHeaderAssetSchema,
 } from '../../utils/block';
 import { getTransferTransaction } from '../../utils/transaction';
-import { Block } from '../../../src';
+import { Block, stateDiffSchema } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { defaultAccountSchema } from '../../utils/account';
 import { registeredTransactions } from '../../utils/registered_transactions';
 
 describe('dataAccess.blocks', () => {
+	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
+		created: [],
+		updated: [],
+	});
 	let db: KVStore;
 	let storage: Storage;
 	let dataAccess: DataAccess;
@@ -58,7 +63,9 @@ describe('dataAccess.blocks', () => {
 			header: { height: 300 },
 			payload: [getTransferTransaction()],
 		});
+
 		const block301 = createValidDefaultBlock({ header: { height: 301 } });
+
 		const block302 = createValidDefaultBlock({
 			header: { height: 302 },
 			payload: [
@@ -66,7 +73,9 @@ describe('dataAccess.blocks', () => {
 				getTransferTransaction({ nonce: BigInt(2) }),
 			],
 		});
+
 		const block303 = createValidDefaultBlock({ header: { height: 303 } });
+
 		blocks = [block300, block301, block302, block303];
 		const batch = db.batch();
 		for (const block of blocks) {
@@ -101,6 +110,7 @@ describe('dataAccess.blocks', () => {
 				`tempBlocks:height:${formatInt(blocks[3].header.height + 1)}`,
 				encodedDefaultBlock(blocks[3]),
 			);
+			batch.put(`diff:${formatInt(block.header.height)}`, emptyEncodedDiff);
 		}
 		await batch.write();
 		dataAccess.resetBlockHeaderCache();
@@ -129,17 +139,23 @@ describe('dataAccess.blocks', () => {
 	});
 
 	describe('getBlockHeadersByIDs', () => {
-		it('should throw not found error if non existent ID is specified', async () => {
-			expect.assertions(1);
-			try {
-				await dataAccess.getBlockHeadersByIDs([
+		it('should not throw "not found" error if non existent ID is specified', async () => {
+			await expect(
+				dataAccess.getBlockHeadersByIDs([
 					Buffer.from('random-id'),
 					blocks[1].header.id,
-				]);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error).toBeInstanceOf(NotFoundError);
-			}
+				]),
+			).resolves.toEqual([blocks[1].header]);
+		});
+
+		it('should return existent blocks headers if non existent ID is specified', async () => {
+			const res = await dataAccess.getBlockHeadersByIDs([
+				blocks[0].header.id,
+				Buffer.from('random-id'),
+				blocks[1].header.id,
+			]);
+
+			expect(res).toEqual([blocks[0].header, blocks[1].header]);
 		});
 
 		it('should return block headers by ID', async () => {
@@ -151,6 +167,38 @@ describe('dataAccess.blocks', () => {
 
 			expect(headers[0]).toEqual(header);
 			expect(headers).toHaveLength(2);
+		});
+	});
+
+	describe('getBlocksByIDs', () => {
+		it('should not throw "not found" error if non existent ID is specified', async () => {
+			await expect(
+				dataAccess.getBlocksByIDs([
+					Buffer.from('random-id'),
+					blocks[1].header.id,
+				]),
+			).resolves.toEqual([blocks[1]]);
+		});
+
+		it('should return existent blocks if non existent ID is specified', async () => {
+			const blocksFound = await dataAccess.getBlocksByIDs([
+				blocks[0].header.id,
+				Buffer.from('random-id'),
+				blocks[1].header.id,
+			]);
+
+			expect(blocksFound).toEqual([blocks[0], blocks[1]]);
+			expect(blocksFound).toHaveLength(2);
+		});
+
+		it('should return blocks by ID', async () => {
+			const blocksFound = await dataAccess.getBlocksByIDs([
+				blocks[1].header.id,
+				blocks[0].header.id,
+			]);
+
+			expect(blocksFound).toEqual([blocks[1], blocks[0]]);
+			expect(blocksFound).toHaveLength(2);
 		});
 	});
 
@@ -168,17 +216,21 @@ describe('dataAccess.blocks', () => {
 	});
 
 	describe('getBlockHeadersWithHeights', () => {
-		it('should throw not found error if one of heights does not exist', async () => {
-			expect.assertions(1);
-			try {
-				await dataAccess.getBlockHeadersWithHeights([
-					blocks[1].header.height,
-					500,
-				]);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error).toBeInstanceOf(NotFoundError);
-			}
+		it('should not throw "not found" error if one of heights does not exist', async () => {
+			await expect(
+				dataAccess.getBlockHeadersWithHeights([blocks[1].header.height, 500]),
+			).resolves.toEqual([blocks[1].header]);
+		});
+
+		it('should return existent blocks if non existent heeight is specified', async () => {
+			const headers = await dataAccess.getBlockHeadersWithHeights([
+				blocks[1].header.height,
+				blocks[3].header.height,
+				500,
+			]);
+
+			expect(headers).toEqual([blocks[1].header, blocks[3].header]);
+			expect(headers).toHaveLength(2);
 		});
 
 		it('should return block headers by height', async () => {

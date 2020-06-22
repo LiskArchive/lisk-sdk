@@ -18,7 +18,6 @@ const base = require('../config/jest.config.base');
 
 module.exports = {
 	...base,
-	collectCoverage: false,
 	setupFilesAfterEnv: ['<rootDir>/test/functional/setup.js'],
 	testMatch: ['<rootDir>/test/functional/specs/**/*.(spec|test).ts'],
 };

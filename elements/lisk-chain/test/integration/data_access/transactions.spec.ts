@@ -77,17 +77,23 @@ describe('dataAccess.transactions', () => {
 	});
 
 	describe('getTransactionsByIDs', () => {
-		it('should throw not found error if one of ID specified does not exist', async () => {
-			expect.assertions(1);
-			try {
-				await dataAccess.getTransactionsByIDs([
+		it('should not throw "not found" error if one of ID specified does not exist', async () => {
+			await expect(
+				dataAccess.getTransactionsByIDs([
 					Buffer.from('randomId'),
 					transactions[0].id,
-				]);
-			} catch (error) {
-				// eslint-disable-next-line jest/no-try-expect
-				expect(error).toBeInstanceOf(NotFoundError);
-			}
+				]),
+			).resolves.toEqual([transactions[0]]);
+		});
+
+		it('should return existent transaction by ID when some of the IDs do not exist', async () => {
+			await expect(
+				dataAccess.getTransactionsByIDs([
+					transactions[1].id,
+					Buffer.from('randomId'),
+					transactions[0].id,
+				]),
+			).resolves.toEqual([transactions[1], transactions[0]]);
 		});
 
 		it('should return transaction by ID', async () => {

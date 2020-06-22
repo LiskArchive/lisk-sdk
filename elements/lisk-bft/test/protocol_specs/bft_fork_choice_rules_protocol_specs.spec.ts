@@ -31,10 +31,6 @@ describe('bft', () => {
 		let bftInstance: BFT;
 
 		let chainStub: {
-			dataAccess: {
-				getBlockHeadersByHeightBetween: jest.Mock;
-				getLastBlockHeader: jest.Mock;
-			};
 			slots: Slots;
 		};
 		let dposStub: {
@@ -48,10 +44,6 @@ describe('bft', () => {
 				interval: constants.BLOCK_TIME,
 			});
 			chainStub = {
-				dataAccess: {
-					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-					getLastBlockHeader: jest.fn().mockResolvedValue([]),
-				},
 				slots,
 			};
 			dposStub = {

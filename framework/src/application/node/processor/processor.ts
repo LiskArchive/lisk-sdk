@@ -13,7 +13,7 @@
  */
 
 import { cloneDeep } from 'lodash';
-import { ForkStatus } from '@liskhq/lisk-bft';
+import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { Chain, Block, BlockHeader } from '@liskhq/lisk-chain';
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { EventEmitter } from 'events';
@@ -39,6 +39,7 @@ interface ProcessorInput {
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly chainModule: Chain;
+	readonly bftModule: BFT;
 }
 
 interface CreateInput {
@@ -56,14 +57,21 @@ export class Processor {
 	private readonly channel: InMemoryChannel;
 	private readonly logger: Logger;
 	private readonly chainModule: Chain;
+	private readonly bftModule: BFT;
 	private readonly sequence: Sequence;
 	private readonly processors: { [key: string]: BaseBlockProcessor };
 	private readonly matchers: { [key: string]: Matcher };
 
-	public constructor({ channel, logger, chainModule }: ProcessorInput) {
+	public constructor({
+		channel,
+		logger,
+		chainModule,
+		bftModule,
+	}: ProcessorInput) {
 		this.channel = channel;
 		this.logger = logger;
 		this.chainModule = chainModule;
+		this.bftModule = bftModule;
 		this.sequence = new Sequence();
 		this.processors = {};
 		this.matchers = {};
@@ -392,6 +400,10 @@ export class Processor {
 	): Promise<void> {
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = await this.chainModule.newStateStore(1);
+		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
+			throw new Error('Can not delete block below or same as finalized height');
+		}
+
 		await processor.undo.run({
 			block,
 			stateStore,

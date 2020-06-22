@@ -94,6 +94,17 @@ const blockEncodingsSuite = () => ({
 	testCases: [...typesGenerators.generateValidBlock()],
 });
 
+const genesisBlockEncodingsSuite = () => ({
+	title: 'Encondings for genesis block types supported by lisk-codec',
+	summary: 'Examples of encoding block with lisk-codec',
+	config: {
+		network: 'devnet',
+	},
+	runner: 'lisk_codec',
+	handler: 'genesis_block_encodings',
+	testCases: [...typesGenerators.generateValidGenesisBlock()],
+});
+
 const blockHeaderEncodingsSuite = () => ({
 	title: 'Encondings for block header types supported by lisk-codec',
 	summary: 'Examples of encoding block header with lisk-codec',
@@ -152,8 +163,7 @@ const cartSampleEncodingSuite = () => ({
 
 const peerInfoSampleEncodingSuite = () => ({
 	title: 'Encondings for a peer info object',
-	summary:
-		'Example of encoding a peer info object for p2p',
+	summary: 'Example of encoding a peer info object for p2p',
 	config: {
 		network: 'devnet',
 	},
@@ -164,8 +174,7 @@ const peerInfoSampleEncodingSuite = () => ({
 
 const nestedArrayEncodingSuite = () => ({
 	title: 'Encondings for a nested array',
-	summary:
-		'Example of encoding a nested array',
+	summary: 'Example of encoding a nested array',
 	config: {
 		network: 'devnet',
 	},
@@ -183,6 +192,7 @@ module.exports = BaseGenerator.runGenerator('lisk_codec', [
 	arrayEncodingsSuite,
 	blockEncodingsSuite,
 	blockHeaderEncodingsSuite,
+	genesisBlockEncodingsSuite,
 	blockAssetEncodingsSuite,
 	accountEncodingsSuite,
 	transactionEncodingsSuite,
