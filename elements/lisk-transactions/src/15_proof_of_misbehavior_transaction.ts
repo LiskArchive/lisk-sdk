@@ -103,7 +103,6 @@ const proofOfMisbehaviorAssetSchema = {
 export interface PoMAsset {
 	readonly header1: BlockHeader;
 	readonly header2: BlockHeader;
-	reward: bigint;
 }
 
 export class ProofOfMisbehaviorTransaction extends BaseTransaction {
@@ -343,8 +342,6 @@ export class ProofOfMisbehaviorTransaction extends BaseTransaction {
 				: store.chain.lastBlockReward;
 
 		senderAccount.balance += reward;
-		// We store the correct reward value in the asset at apply time to allow for undoing the transaction at a later point in time
-		this.asset.reward = reward;
 
 		store.account.set(senderAccount.address, senderAccount);
 

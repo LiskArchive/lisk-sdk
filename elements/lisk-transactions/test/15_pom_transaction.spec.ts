@@ -33,9 +33,9 @@ describe('Proof-of-misbehavior transaction', () => {
 	const validProofOfMisbehaviorTransactionScenario2 = fixtures.testCases[1];
 	const validProofOfMisbehaviorTransactionScenario3 = fixtures.testCases[2];
 
-	let decodedSecnario1Transaction: BaseTransactionInput<PoMAsset>;
-	let decodedSecnario2Transaction: BaseTransactionInput<PoMAsset>;
-	let decodedSecnario3Transaction: BaseTransactionInput<PoMAsset>;
+	let decodedScenario1Transaction: BaseTransactionInput<PoMAsset>;
+	let decodedScenario2Transaction: BaseTransactionInput<PoMAsset>;
+	let decodedScenario3Transaction: BaseTransactionInput<PoMAsset>;
 
 	beforeEach(() => {
 		{
@@ -52,13 +52,13 @@ describe('Proof-of-misbehavior transaction', () => {
 				ProofOfMisbehaviorTransaction.ASSET_SCHEMA as any,
 				decodedBaseTransaction.asset as Buffer,
 			);
-			decodedSecnario1Transaction = {
+			decodedScenario1Transaction = {
 				...decodedBaseTransaction,
 				asset: decodedAsset,
 				id,
 			};
 			transactionWithScenario1 = new ProofOfMisbehaviorTransaction(
-				decodedSecnario1Transaction,
+				decodedScenario1Transaction,
 			);
 		}
 		{
@@ -75,13 +75,13 @@ describe('Proof-of-misbehavior transaction', () => {
 				ProofOfMisbehaviorTransaction.ASSET_SCHEMA as any,
 				decodedBaseTransaction.asset as Buffer,
 			);
-			decodedSecnario2Transaction = {
+			decodedScenario2Transaction = {
 				...decodedBaseTransaction,
 				asset: decodedAsset,
 				id,
 			};
 			transactionWithScenario2 = new ProofOfMisbehaviorTransaction(
-				decodedSecnario2Transaction,
+				decodedScenario2Transaction,
 			);
 		}
 		{
@@ -98,13 +98,13 @@ describe('Proof-of-misbehavior transaction', () => {
 				ProofOfMisbehaviorTransaction.ASSET_SCHEMA as any,
 				decodedBaseTransaction.asset as Buffer,
 			);
-			decodedSecnario3Transaction = {
+			decodedScenario3Transaction = {
 				...decodedBaseTransaction,
 				asset: decodedAsset,
 				id,
 			};
 			transactionWithScenario3 = new ProofOfMisbehaviorTransaction(
-				decodedSecnario3Transaction,
+				decodedScenario3Transaction,
 			);
 		}
 	});
@@ -122,7 +122,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			expect(errors).toHaveLength(0);
 		});
 
-		it('should not return errors when maxHeightPrevoted is greater than ther second maxHeightPrevoted', () => {
+		it('should not return errors when maxHeightPrevoted is greater than the second maxHeightPrevoted', () => {
 			const { errors, status } = transactionWithScenario3.validate();
 			expect(status).toBe(Status.OK);
 			expect(errors).toHaveLength(0);
@@ -130,11 +130,10 @@ describe('Proof-of-misbehavior transaction', () => {
 
 		it('should return errors when headers are not contradicting', () => {
 			const nonContradictingTransaction = new ProofOfMisbehaviorTransaction({
-				...decodedSecnario1Transaction,
+				...decodedScenario1Transaction,
 				asset: {
-					header1: decodedSecnario1Transaction.asset.header1,
-					header2: decodedSecnario1Transaction.asset.header1,
-					reward: BigInt(0),
+					header1: decodedScenario1Transaction.asset.header1,
+					header2: decodedScenario1Transaction.asset.header1,
 				},
 			});
 
@@ -192,7 +191,7 @@ describe('Proof-of-misbehavior transaction', () => {
 
 			store = new StateStoreMock([sender, delegate], {
 				lastBlockHeader: {
-					height: decodedSecnario1Transaction.asset.header1.height + 10,
+					height: decodedScenario1Transaction.asset.header1.height + 10,
 				} as any,
 				lastBlockReward: BigInt(1),
 			});
@@ -206,14 +205,13 @@ describe('Proof-of-misbehavior transaction', () => {
 
 		it('should return errors if |header1.height - h| >= 260000', async () => {
 			const invalidTransaction = new ProofOfMisbehaviorTransaction({
-				...decodedSecnario1Transaction,
+				...decodedScenario1Transaction,
 				asset: {
 					header1: {
-						...decodedSecnario1Transaction.asset.header1,
-						height: decodedSecnario1Transaction.asset.header1.height + 270000,
+						...decodedScenario1Transaction.asset.header1,
+						height: decodedScenario1Transaction.asset.header1.height + 270000,
 					},
-					header2: decodedSecnario1Transaction.asset.header2,
-					reward: BigInt(0),
+					header2: decodedScenario1Transaction.asset.header2,
 				},
 			});
 
@@ -228,14 +226,13 @@ describe('Proof-of-misbehavior transaction', () => {
 
 		it('should return errors if |header2.height - h| >= 260000', async () => {
 			const invalidTransaction = new ProofOfMisbehaviorTransaction({
-				...decodedSecnario1Transaction,
+				...decodedScenario1Transaction,
 				asset: {
-					header1: decodedSecnario1Transaction.asset.header1,
+					header1: decodedScenario1Transaction.asset.header1,
 					header2: {
-						...decodedSecnario1Transaction.asset.header2,
-						height: decodedSecnario1Transaction.asset.header2.height + 370000,
+						...decodedScenario1Transaction.asset.header2,
+						height: decodedScenario1Transaction.asset.header2.height + 370000,
 					},
-					reward: BigInt(0),
 				},
 			});
 
@@ -248,19 +245,18 @@ describe('Proof-of-misbehavior transaction', () => {
 		});
 
 		it('should return errors when headers are not properly signed', async () => {
-			const invalidSignature = decodedSecnario1Transaction.asset.header2.signature.slice(
+			const invalidSignature = decodedScenario1Transaction.asset.header2.signature.slice(
 				0,
 			);
 			invalidSignature[10] = 20;
 			const invalidTransaction = new ProofOfMisbehaviorTransaction({
-				...decodedSecnario1Transaction,
+				...decodedScenario1Transaction,
 				asset: {
-					header1: decodedSecnario1Transaction.asset.header1,
+					header1: decodedScenario1Transaction.asset.header1,
 					header2: {
-						...decodedSecnario1Transaction.asset.header2,
+						...decodedScenario1Transaction.asset.header2,
 						signature: invalidSignature,
 					},
-					reward: BigInt(0),
 				},
 			});
 
@@ -285,7 +281,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			});
 			store = new StateStoreMock([sender, nonDelegate], {
 				lastBlockHeader: {
-					height: decodedSecnario1Transaction.asset.header1.height + 10,
+					height: decodedScenario1Transaction.asset.header1.height + 10,
 				} as any,
 				lastBlockReward: BigInt(1),
 			});
@@ -309,7 +305,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			});
 			store = new StateStoreMock([sender, bannedDelegate], {
 				lastBlockHeader: {
-					height: decodedSecnario1Transaction.asset.header1.height + 10,
+					height: decodedScenario1Transaction.asset.header1.height + 10,
 				} as any,
 				lastBlockReward: BigInt(1),
 			});
@@ -329,13 +325,13 @@ describe('Proof-of-misbehavior transaction', () => {
 					...delegate.asset,
 					delegate: {
 						...delegate.asset.delegate,
-						pomHeights: [decodedSecnario1Transaction.asset.header1.height + 10],
+						pomHeights: [decodedScenario1Transaction.asset.header1.height + 10],
 					},
 				},
 			});
 			store = new StateStoreMock([sender, punishedDelegate], {
 				lastBlockHeader: {
-					height: decodedSecnario1Transaction.asset.header1.height + 10,
+					height: decodedScenario1Transaction.asset.header1.height + 10,
 				} as any,
 				lastBlockReward: BigInt(1),
 			});
@@ -348,22 +344,10 @@ describe('Proof-of-misbehavior transaction', () => {
 			);
 		});
 
-		it('should add reward to balance of the sender', async () => {
-			await transactionWithScenario1.apply(store);
-			const updatedSender = await store.account.get(sender.address);
-			const expectedBalance =
-				sender.balance +
-				transactionWithScenario1.asset.reward -
-				transactionWithScenario1.fee;
-			expect(updatedSender.balance.toString()).toEqual(
-				expectedBalance.toString(),
-			);
-		});
-
 		it('should add remaining balance of delegate to balance of the sender if delegate balance is less than last block reward', async () => {
 			store = new StateStoreMock([sender, delegate], {
 				lastBlockHeader: {
-					height: decodedSecnario1Transaction.asset.header1.height + 10,
+					height: decodedScenario1Transaction.asset.header1.height + 10,
 				} as any,
 				lastBlockReward: BigInt(delegate.balance) + BigInt(10000000000000),
 			});
@@ -373,19 +357,6 @@ describe('Proof-of-misbehavior transaction', () => {
 				sender.balance + delegate.balance - transactionWithScenario1.fee;
 
 			expect(updatedSender.balance.toString()).toEqual(
-				expectedBalance.toString(),
-			);
-		});
-
-		it('should deduct reward to balance of the misbehaving delegate', async () => {
-			await transactionWithScenario1.apply(store);
-			const updatedDelegate = await store.account.get<AccountAsset>(
-				delegate.address,
-			);
-			const expectedBalance =
-				delegate.balance - transactionWithScenario1.asset.reward;
-
-			expect(updatedDelegate.balance.toString()).toEqual(
 				expectedBalance.toString(),
 			);
 		});
@@ -412,7 +383,7 @@ describe('Proof-of-misbehavior transaction', () => {
 			});
 			store = new StateStoreMock([sender, punishedDelegate], {
 				lastBlockHeader: {
-					height: decodedSecnario1Transaction.asset.header1.height + 10,
+					height: decodedScenario1Transaction.asset.header1.height + 10,
 				} as any,
 				lastBlockReward: BigInt(1),
 			});
@@ -426,7 +397,7 @@ describe('Proof-of-misbehavior transaction', () => {
 
 		it('should not return balance related errors with valid transactions from same sender and delegate account', async () => {
 			const sameAccountTransaction = new ProofOfMisbehaviorTransaction({
-				...decodedSecnario1Transaction,
+				...decodedScenario1Transaction,
 				senderPublicKey: delegate.publicKey,
 			});
 
