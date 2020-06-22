@@ -32,6 +32,7 @@ describe('processor', () => {
 	let channelStub: any;
 	let loggerStub: any;
 	let chainModuleStub: any;
+	let bftModuleStub: any;
 	let blockProcessorV0: any;
 	let stateStoreStub: any;
 
@@ -63,6 +64,12 @@ describe('processor', () => {
 				decode: jest.fn(),
 			},
 		};
+		bftModuleStub = {
+			finalityManager: {
+				finalizedHeight: 5,
+			},
+		};
+
 		Object.defineProperty(chainModuleStub, 'lastBlock', {
 			get: jest.fn().mockReturnValue(defaultLastBlock),
 		});
@@ -70,6 +77,7 @@ describe('processor', () => {
 			channel: channelStub,
 			logger: loggerStub,
 			chainModule: chainModuleStub,
+			bftModule: bftModuleStub,
 		});
 
 		blockProcessorV0 = new FakeBlockProcessorV0();

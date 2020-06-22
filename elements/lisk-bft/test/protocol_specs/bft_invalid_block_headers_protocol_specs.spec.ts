@@ -16,21 +16,11 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as invalidBlockHeaderSpec from '../bft_specs/bft_invalid_block_headers.json';
 
 import { FinalityManager } from '../../src/finality_manager';
-import { StateStoreMock } from '../unit/state_store_mock';
+import { StateStoreMock } from '../utils/state_store_mock';
+import { convertHeader } from '../fixtures/blocks';
 
 describe('FinalityManager', () => {
 	describe('addBlockHeader', () => {
-		let chainStub: {
-			dataAccess: {
-				getBlockHeadersByHeightBetween: jest.Mock;
-				getLastBlockHeader: jest.Mock;
-			};
-			slots: {
-				getSlotNumber: jest.Mock;
-				isWithinTimeslot: jest.Mock;
-				timeSinceGenesis: jest.Mock;
-			};
-		};
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
 			isStandbyDelegate: jest.Mock;
@@ -38,17 +28,6 @@ describe('FinalityManager', () => {
 		let stateStore: StateStoreMock;
 
 		beforeEach(() => {
-			chainStub = {
-				dataAccess: {
-					getBlockHeadersByHeightBetween: jest.fn().mockResolvedValue([]),
-					getLastBlockHeader: jest.fn().mockResolvedValue([]),
-				},
-				slots: {
-					getSlotNumber: jest.fn(),
-					isWithinTimeslot: jest.fn(),
-					timeSinceGenesis: jest.fn(),
-				},
-			};
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
@@ -59,8 +38,11 @@ describe('FinalityManager', () => {
 		invalidBlockHeaderSpec.testCases.forEach(testCase => {
 			it('should fail adding invalid block header', async () => {
 				// Arrange
+				stateStore.consensus.lastBlockHeaders = testCase.config.blockHeaders.map(
+					bh => convertHeader(bh),
+				);
+
 				const finalityManager = new FinalityManager({
-					chain: chainStub,
 					dpos: dposStub,
 					finalizedHeight: invalidBlockHeaderSpec.config.finalizedHeight,
 					activeDelegates: invalidBlockHeaderSpec.config.activeDelegates,
@@ -75,9 +57,6 @@ describe('FinalityManager', () => {
 						)
 						.mockResolvedValue(blockHeader.delegateMinHeightActive);
 				}
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-					testCase.config.blockHeaders,
-				);
 
 				// Act & Assert
 				await expect(

@@ -31,7 +31,7 @@ import {
 	StateStore,
 } from './types';
 
-export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'bft:finalizedHeight';
+export const CONSENSUS_STATE_FINALIZED_HEIGHT_KEY = 'finalizedHeight';
 export const EVENT_BFT_BLOCK_FINALIZED = 'EVENT_BFT_BLOCK_FINALIZED';
 
 export const BFTFinalizedHeightCodecSchema = {
@@ -91,34 +91,10 @@ export class BFT extends EventEmitter {
 				this.emit(EVENT_BFT_FINALIZED_HEIGHT_CHANGED, updatedFinalizedHeight);
 			},
 		);
-		const lastBlock = await this._chain.dataAccess.getLastBlockHeader();
-		await this.finalityManager.recompute(lastBlock.height, stateStore);
 	}
 
 	public get finalityManager(): FinalityManager {
 		return this._finalityManager as FinalityManager;
-	}
-
-	public async deleteBlocks(
-		blocks: ReadonlyArray<BlockHeader>,
-		stateStore: StateStore,
-	): Promise<void> {
-		assert(blocks, 'Must provide blocks which are deleted');
-		assert(Array.isArray(blocks), 'Must provide list of blocks');
-
-		// We need only height to delete the blocks
-		// But for future extension we accept full blocks in BFT
-		// We may need to utilize some other attributes for internal processing
-		const blockHeights = blocks.map(({ height }) => height);
-
-		assert(
-			!blockHeights.some(h => h <= this.finalityManager.finalizedHeight),
-			'Can not delete block below or same as finalized height',
-		);
-
-		const minimumHeight = Math.min(...blockHeights);
-
-		await this.finalityManager.recompute(minimumHeight - 1, stateStore);
 	}
 
 	public async addNewBlock(
@@ -134,12 +110,14 @@ export class BFT extends EventEmitter {
 		);
 	}
 
-	public async verifyNewBlock(blockHeader: BlockHeader): Promise<boolean> {
-		const bftHeaders = await this.finalityManager.getBFTApplicableBlockHeaders(
-			blockHeader.height - 1,
+	public verifyNewBlock(
+		blockHeader: BlockHeader,
+		stateStore: StateStore,
+	): boolean {
+		return this.finalityManager.verifyBlockHeaders(
+			blockHeader,
+			stateStore.consensus.lastBlockHeaders,
 		);
-
-		return this.finalityManager.verifyBlockHeaders(blockHeader, bftHeaders);
 	}
 
 	public forkChoice(
@@ -194,9 +172,10 @@ export class BFT extends EventEmitter {
 		return ForkStatus.DISCARD;
 	}
 
-	public async isBFTProtocolCompliant(
+	public isBFTProtocolCompliant(
 		blockHeader: BlockHeader,
-	): Promise<boolean> {
+		stateStore: StateStore,
+	): boolean {
 		assert(blockHeader, 'No block was provided to be verified');
 
 		const roundsThreshold = 3;
@@ -207,11 +186,7 @@ export class BFT extends EventEmitter {
 			return true;
 		}
 
-		const bftHeaders = await this.finalityManager.getBFTApplicableBlockHeaders(
-			blockHeader.height - 1,
-		);
-
-		const maxHeightPreviouslyForgedBlock = bftHeaders.find(
+		const maxHeightPreviouslyForgedBlock = stateStore.consensus.lastBlockHeaders.find(
 			bftHeader =>
 				bftHeader.height === blockHeader.asset.maxHeightPreviouslyForged,
 		);
@@ -269,7 +244,6 @@ export class BFT extends EventEmitter {
 
 		// Initialize consensus manager
 		return new FinalityManager({
-			chain: this._chain,
 			dpos: this._dpos,
 			finalizedHeight,
 			activeDelegates: this.constants.activeDelegates,

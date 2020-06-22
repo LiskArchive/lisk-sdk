@@ -33,9 +33,11 @@ const createBlock = (data?: Partial<BlockHeader>): BlockHeader => ({
 	version: 2,
 	id: data?.id ?? Buffer.from('id'),
 	generatorPublicKey: Buffer.from('generator'),
-	previousBlockID: data?.previousBlockID ?? Buffer.from('previoud block'),
+	previousBlockID: data?.previousBlockID ?? Buffer.from('previous block'),
 	receivedAt: data?.receivedAt ?? 0,
+	reward: BigInt(0),
 	asset: {
+		seedReveal: Buffer.alloc(0),
 		maxHeightPrevoted: data?.asset?.maxHeightPrevoted ?? 0,
 		maxHeightPreviouslyForged: data?.asset?.maxHeightPreviouslyForged ?? 0,
 	},
@@ -71,6 +73,7 @@ describe('Fork Choice Rule', () => {
 			const last = createBlock({
 				height: 1,
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -80,6 +83,7 @@ describe('Fork Choice Rule', () => {
 			const current = createBlock({
 				height: last.height,
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: last.asset.maxHeightPrevoted,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -105,6 +109,7 @@ describe('Fork Choice Rule', () => {
 			const last = createBlock({
 				height: 1,
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -115,6 +120,7 @@ describe('Fork Choice Rule', () => {
 			const current = createBlock({
 				height: last.height,
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: last.asset.maxHeightPrevoted,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -160,6 +166,7 @@ describe('Fork Choice Rule', () => {
 				previousBlockID: Buffer.from('0'),
 				id: Buffer.from('1'),
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -193,6 +200,7 @@ describe('Fork Choice Rule', () => {
 				id: Buffer.from('1'),
 				timestamp: Date.now(),
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: 0,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -201,6 +209,7 @@ describe('Fork Choice Rule', () => {
 			const current = createBlock({
 				height: last.height,
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPrevoted: last.asset.maxHeightPrevoted + 1,
 					maxHeightPreviouslyForged: 0,
 				},
@@ -221,6 +230,7 @@ describe('Fork Choice Rule', () => {
 				timestamp: Date.now(),
 				generatorPublicKey: Buffer.from('abc'),
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPreviouslyForged: 0,
 					maxHeightPrevoted: 0,
 				},
@@ -228,6 +238,7 @@ describe('Fork Choice Rule', () => {
 			const current = createBlock({
 				height: last.height + 1,
 				asset: {
+					seedReveal: Buffer.alloc(0),
 					maxHeightPreviouslyForged: 0,
 					maxHeightPrevoted: last.asset.maxHeightPrevoted,
 				},
