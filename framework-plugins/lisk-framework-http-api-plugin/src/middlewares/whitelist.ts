@@ -23,9 +23,6 @@ const checkIpInList = (list: ReadonlyArray<string>, addr: string): boolean => {
 		if (ip.isV4Format(entry)) {
 			// IPv4 host entry
 			entry += '/32';
-		} else if (ip.isV6Format(entry)) {
-			// IPv6 host entry
-			entry += '/128';
 		}
 		try {
 			entry = ip.cidrSubnet(entry);

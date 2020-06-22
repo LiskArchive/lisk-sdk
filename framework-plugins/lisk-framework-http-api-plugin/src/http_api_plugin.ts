@@ -25,12 +25,13 @@ import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
 import * as controllers from './controllers';
 import * as middlewares from './middlewares';
-import * as config from './configs';
+import * as config from './defaults';
 import { Options } from './types';
 
 export class HTTPAPIPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
+	private _channel!: BaseChannel;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
@@ -60,7 +61,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		return {};
 	}
 
-	public async load(_channel: BaseChannel): Promise<void> {
+	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
 		const options = objects.mergeDeep(
 			{},
@@ -70,6 +71,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._registerMiddlewares(options);
 		this._registerControllers();
 
+		this._channel = channel;
 		this._server = this._app.listen(options.port);
 	}
 
@@ -86,6 +88,6 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	private _registerControllers(): void {
-		this._app.get('/v1/hello', controllers.helloController());
+		this._app.get('/v1/hello', controllers.helloController(this._channel));
 	}
 }
