@@ -168,7 +168,7 @@ export class Application {
 	}
 
 	public registerModule(
-		moduleKlass: InstantiableModule<BasePlugin>,
+		moduleKlass: typeof BasePlugin,
 		options = {},
 		alias?: string,
 	): void {
@@ -189,7 +189,7 @@ export class Application {
 			this.config.modules[moduleAlias] ?? {},
 			options,
 		);
-		this._modules[moduleAlias] = moduleKlass;
+		this._modules[moduleAlias] = moduleKlass as InstantiableModule<BasePlugin>;
 	}
 
 	public overrideModuleOptions(alias: string, options?: object): void {

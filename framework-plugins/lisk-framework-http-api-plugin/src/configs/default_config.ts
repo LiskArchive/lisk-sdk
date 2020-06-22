@@ -74,12 +74,7 @@ export const defaultConfig = {
 			],
 		},
 	},
-	required: [
-		'port',
-		'whiteList',
-		'cors',
-		'limits',
-	],
+	required: ['port', 'whiteList', 'cors', 'limits'],
 	default: {
 		port: 4000,
 		whiteList: ['127.0.0.1'],

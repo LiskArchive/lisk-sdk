@@ -13,6 +13,7 @@
  */
 import { Server } from 'http';
 import { BasePlugin, ModuleInfo } from 'lisk-framework';
+import { objects } from '@liskhq/lisk-utils';
 import type {
 	BaseChannel,
 	EventsArray,
@@ -33,7 +34,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
-		return 'http-api';
+		return 'http_api';
 	}
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -60,8 +61,12 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	public async load(_channel: BaseChannel): Promise<void> {
-		const options = this.options as Options;
 		this._app = express();
+		const options = objects.mergeDeep(
+			{},
+			config.defaultConfig.default,
+			this.options,
+		) as Options;
 		this._registerMiddlewares(options);
 		this._registerControllers();
 
@@ -77,7 +82,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._app.use(cors(options.cors));
 		this._app.use(express.json());
 		this._app.use(rateLimit(options.limits));
-		this._app.use(middlewares.whiteListMiddleware(options.whiteList));
+		this._app.use(middlewares.whiteListMiddleware(options));
 	}
 
 	private _registerControllers(): void {

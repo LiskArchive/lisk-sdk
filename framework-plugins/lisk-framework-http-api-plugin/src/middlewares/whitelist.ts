@@ -11,8 +11,45 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import * as ip from 'ip';
 import { Request, Response, NextFunction } from 'express';
 
-export const whiteListMiddleware = (_whiteListedIPs: ReadonlyArray<string>) => (_req: Request, _res: Response, _next: NextFunction): void => {
-}
+const defualtOption = { whiteList: [] };
+
+const checkIpInList = (list: ReadonlyArray<string>, addr: string): boolean => {
+	let entry;
+	for (const value of list) {
+		entry = value;
+		if (ip.isV4Format(entry)) {
+			// IPv4 host entry
+			entry += '/32';
+		} else if (ip.isV6Format(entry)) {
+			// IPv6 host entry
+			entry += '/128';
+		}
+		try {
+			entry = ip.cidrSubnet(entry);
+			if (entry.contains(addr)) {
+				return true;
+			}
+		} catch (err) {
+			console.error('CheckIpInList:', err.toString());
+		}
+	}
+	return false;
+};
+
+export const whiteListMiddleware = ({
+	whiteList,
+}: { whiteList: ReadonlyArray<string> } = defualtOption) => (
+	req: Request,
+	_res: Response,
+	next: NextFunction,
+): void => {
+	if (whiteList.length === 0 || checkIpInList(whiteList, req.ip)) {
+		next();
+		return;
+	}
+
+	next(new Error('Access Denied'));
+};
