@@ -27,11 +27,15 @@ import * as genesisBlockJSON from './config/devnet/genesis_block.json';
 import { BlockProcessorV2 } from '../../src/application/node/block_processor_v2';
 import { genesisBlockFromJSON } from '../../src/application/genesis_block';
 import { AccountAsset } from '../../src/application/node/account';
+import { BlockProcessorV0 } from '../../src/application/node/block_processor_v0';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
 	'hex',
 );
+
+export const genesisBlock = (): GenesisBlock<AccountAsset> =>
+	genesisBlockFromJSON(genesisBlockJSON);
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
@@ -60,7 +64,10 @@ export const defaultBlockHeaderAssetSchema = {
 
 export const encodeValidBlockHeader = (header: BlockHeader): Buffer => {
 	const chain = new Chain({
-		registeredBlocks: { 2: BlockProcessorV2.schema },
+		registeredBlocks: {
+			2: BlockProcessorV2.schema,
+			0: BlockProcessorV0.schema,
+		},
 		accountAsset: { schema: {}, default: {} },
 		genesisBlock: {
 			header: {
@@ -119,12 +126,8 @@ export const createValidDefaultBlock = (
 
 	const blockHeader = createFakeBlockHeader({
 		version: 2,
-		height: 2,
-		// FIXME: Genesis block hash calculated with the new implementation, need to update when updating genesis block
-		previousBlockID: Buffer.from(
-			'39594f0b163706bf118515c9e5a91fcfffb96f22628f1a0002deb3cee7bcf617',
-			'hex',
-		),
+		height: 1,
+		previousBlockID: genesisBlock().header.id,
 		reward: BigInt(0),
 		timestamp: 1000,
 		transactionRoot: txTree.root,
@@ -134,7 +137,10 @@ export const createValidDefaultBlock = (
 	});
 
 	const chain = new Chain({
-		registeredBlocks: { 2: BlockProcessorV2.schema },
+		registeredBlocks: {
+			2: BlockProcessorV2.schema,
+			0: BlockProcessorV0.schema,
+		},
 		accountAsset: { schema: {}, default: {} },
 		genesisBlock: {
 			header: {
@@ -168,7 +174,10 @@ export const createValidDefaultBlock = (
 
 export const encodeValidBlock = (block: Block): Buffer => {
 	const chain = new Chain({
-		registeredBlocks: { 2: BlockProcessorV2.schema },
+		registeredBlocks: {
+			2: BlockProcessorV2.schema,
+			0: BlockProcessorV0.schema,
+		},
 		accountAsset: { schema: {}, default: {} },
 		genesisBlock: {
 			header: {
@@ -178,6 +187,3 @@ export const encodeValidBlock = (block: Block): Buffer => {
 	} as any);
 	return chain.dataAccess.encode(block);
 };
-
-export const genesisBlock = (): GenesisBlock<AccountAsset> =>
-	genesisBlockFromJSON(genesisBlockJSON);

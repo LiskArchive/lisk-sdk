@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { KVStore } from '@liskhq/lisk-db';
-import { Block, Chain } from '@liskhq/lisk-chain';
+import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 
@@ -37,6 +37,7 @@ import {
 	accountAssetSchema,
 	defaultAccountAsset,
 } from '../../../../../../../src/application/node/account';
+import { BlockProcessorV0 } from '../../../../../../../src/application/node/block_processor_v0';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -48,6 +49,7 @@ describe('fast_chain_switching_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
 	let bftModule: any;
 	let blockProcessorV2;
+	let blockProcessorV0;
 	let chainModule: any;
 	let dposModule: any;
 	let processorModule: any;
@@ -94,6 +96,7 @@ describe('fast_chain_switching_mechanism', () => {
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
+			getBlockHeaderByID: jest.fn(),
 			getLastBlock: jest.fn(),
 			getBlockHeadersByHeightBetween: jest.fn(),
 			addBlockHeader: jest.fn(),
@@ -128,6 +131,12 @@ describe('fast_chain_switching_mechanism', () => {
 			get: jest.fn(() => 1),
 		});
 
+		blockProcessorV0 = new BlockProcessorV0({
+			dposModule,
+			logger: loggerMock,
+			constants,
+		});
+
 		blockProcessorV2 = new BlockProcessorV2({
 			networkIdentifier: defaultNetworkIdentifier,
 			forgerDB,
@@ -147,6 +156,10 @@ describe('fast_chain_switching_mechanism', () => {
 		processorModule.processValidated = jest.fn();
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
+		processorModule.register(blockProcessorV0, {
+			matcher: (header: BlockHeader) =>
+				header.version === genesisBlock.header.version,
+		});
 		processorModule.register(blockProcessorV2);
 
 		fastChainSwitchingMechanism = new FastChainSwitchingMechanism({
@@ -258,14 +271,14 @@ describe('fast_chain_switching_mechanism', () => {
 			const lastBlock = createValidDefaultBlock({
 				header: { height: genesisBlock.header.height + 1 },
 			});
-			when(chainModule.dataAccess.getBlockHeaderByHeight)
-				.calledWith(1)
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(genesisBlock.header.id)
 				.mockResolvedValue(genesisBlock.header as never);
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
 				.mockResolvedValue(lastBlock as never);
 			when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
-				.calledWith(1, 2)
+				.calledWith(0, 1)
 				.mockResolvedValue([lastBlock] as never);
 			when(chainModule.dataAccess.addBlockHeader)
 				.calledWith(lastBlock)

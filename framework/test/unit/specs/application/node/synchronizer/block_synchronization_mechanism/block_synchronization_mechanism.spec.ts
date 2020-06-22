@@ -42,6 +42,7 @@ import {
 
 import { peersList } from './peers';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from '../../../../../../../src/application/node/synchronizer/base_synchronizer';
+import { BlockProcessorV0 } from '../../../../../../../src/application/node/block_processor_v0';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -53,6 +54,7 @@ describe('block_synchronization_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
 
 	let bftModule: any;
+	let blockProcessorV0;
 	let blockProcessorV2;
 	let chainModule: any;
 	let dposModule: any;
@@ -87,7 +89,10 @@ describe('block_synchronization_mechanism', () => {
 			db: blockchainDB,
 			genesisBlock,
 			registeredTransactions,
-			registeredBlocks: { 2: BlockProcessorV2.schema },
+			registeredBlocks: {
+				0: BlockProcessorV0.schema,
+				2: BlockProcessorV2.schema,
+			},
 			accountAsset: {
 				schema: accountAssetSchema,
 				default: defaultAccountAsset,
@@ -106,6 +111,7 @@ describe('block_synchronization_mechanism', () => {
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
+			getBlockHeaderByID: jest.fn(),
 			getLastBlock: jest.fn(),
 			getBlockHeadersByHeightBetween: jest.fn(),
 			addBlockHeader: jest.fn(),
@@ -136,10 +142,16 @@ describe('block_synchronization_mechanism', () => {
 			chain: chainModule,
 			dpos: dposModule,
 			activeDelegates: constants.activeDelegates,
-			startingHeight: 1,
+			startingHeight: 0,
 		});
 		Object.defineProperty(bftModule, 'finalizedHeight', {
-			get: jest.fn(() => 1),
+			get: jest.fn(() => 0),
+		});
+
+		blockProcessorV0 = new BlockProcessorV0({
+			dposModule,
+			logger: loggerMock,
+			constants,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
@@ -161,6 +173,9 @@ describe('block_synchronization_mechanism', () => {
 		processorModule.processValidated = jest.fn();
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
+		processorModule.register(blockProcessorV0, {
+			matcher: (header: BlockHeader) => header.version === 0,
+		});
 		processorModule.register(blockProcessorV2);
 
 		blockSynchronizationMechanism = new BlockSynchronizationMechanism({
@@ -179,8 +194,8 @@ describe('block_synchronization_mechanism', () => {
 		});
 		// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 		// memory. The following mock fakes this to be true
-		when(chainModule.dataAccess.getBlockHeaderByHeight)
-			.calledWith(1)
+		when(chainModule.dataAccess.getBlockHeaderByID)
+			.calledWith(genesisBlock.header.id)
 			.mockResolvedValue(genesisBlock.header as never);
 		when(chainModule.dataAccess.getAccountsByPublicKey)
 			.calledWith()
@@ -191,11 +206,8 @@ describe('block_synchronization_mechanism', () => {
 			header: { height: genesisBlock.header.height + 1 },
 		});
 		when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
-			.calledWith(1, 2)
+			.calledWith(0, 1)
 			.mockResolvedValue([lastBlock] as never);
-		when(chainModule.dataAccess.getBlockHeaderByHeight)
-			.calledWith(1)
-			.mockResolvedValue(genesisBlock.header as never);
 		when(chainModule.dataAccess.getLastBlock)
 			.calledWith()
 			.mockResolvedValue(lastBlock as never);
