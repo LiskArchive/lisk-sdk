@@ -75,7 +75,10 @@ export class ApplicationState {
 		lastBlockId = this.state.lastBlockId as string,
 		blockVersion = this.state.blockVersion as number,
 	}: ApplicationStateUpdate): void {
-		assert(height, 'height is required to update application state.');
+		assert(
+			height !== undefined && height >= 0,
+			'height is required to update application state.',
+		);
 		try {
 			const newState = this.state;
 			newState.maxHeightPrevoted = maxHeightPrevoted;
