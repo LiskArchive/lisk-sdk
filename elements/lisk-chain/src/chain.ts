@@ -222,7 +222,9 @@ export class Chain {
 		// Check mem tables
 		let genesisBlock: BlockHeader;
 		try {
-			genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
+			genesisBlock = await this.dataAccess.getBlockHeaderByID(
+				this.genesisBlock.header.id,
+			);
 		} catch (error) {
 			throw new Error('Failed to load genesis block');
 		}
