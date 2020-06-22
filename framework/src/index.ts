@@ -15,6 +15,9 @@
 export { Application } from './application/application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
-export { BaseModule } from './modules/base_module';
+export { BasePlugin, ModuleInfo } from './modules/base_plugin';
+export type { BaseChannel } from './controller/channels';
+export type { EventsArray } from './controller/event';
+export type { ActionsDefinition } from './controller/action';
 export { GenesisBlockJSON } from './application/genesis_block';
 export * from './types';

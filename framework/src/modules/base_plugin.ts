@@ -32,7 +32,7 @@ export interface InstantiableModule<T, U = object> {
 	new (...args: U[]): T;
 }
 
-export abstract class BaseModule {
+export abstract class BasePlugin {
 	public readonly options: object;
 
 	protected constructor(options: object) {

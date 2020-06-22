@@ -25,14 +25,14 @@ Core Modules are shipped along with the Lisk Core distribution itself. These mod
 
 ### Custom Modules
 
-> The implementation of each module is up-to user but it must inherit from `BaseModule` class and implement its methods.
+> The implementation of each module is up-to user but it must inherit from `BasePlugin` class and implement its methods.
 
 Custom Modules can be plugged into Lisk Core and may offer new features/capabilities for the application, or replace Core modules functionalities.
 They extend the existing instance with a specific (and circumscribed) set of features.
 
 ```js
 // Exported as main file to javascript package
-export default class MyModule extends BaseModule {
+export default class MyModule extends BasePlugin {
     /**
     * Constructor of the module.
     *

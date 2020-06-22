@@ -24,6 +24,7 @@
 	"workspaces": {
 		"packages": [
 			"framework",
+			"framework-plugins/*",
 			"elements/*",
 			"commander",
 			"sdk",
