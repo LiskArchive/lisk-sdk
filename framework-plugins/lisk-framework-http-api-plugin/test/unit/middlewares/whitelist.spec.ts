@@ -11,9 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { whiteListMiddleware } from '../../../src/middlewares/whitelist';
 import { Request, Response } from 'express';
+import { whiteListMiddleware } from '../../../src/middlewares/whitelist';
 
 describe('WhiteList middleware', () => {
 	let next: jest.Mock;

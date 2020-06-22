@@ -47,6 +47,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		};
 	}
 
+	// eslint-disable-next-line class-methods-use-this
 	public get defaults(): object {
 		return config.defaultConfig;
 	}
@@ -61,6 +62,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		return {};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
 		const options = objects.mergeDeep(
@@ -72,11 +74,19 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._registerControllers();
 
 		this._channel = channel;
-		this._server = this._app.listen(options.port);
+		this._server = this._app.listen(options.port, '0.0.0.0');
 	}
 
 	public async unload(): Promise<void> {
-		this._server.close();
+		await new Promise((resolve, reject) => {
+			this._server.close(err => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve();
+			});
+		});
 	}
 
 	private _registerMiddlewares(options: Options): void {
