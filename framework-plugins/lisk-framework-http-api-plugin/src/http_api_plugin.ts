@@ -11,16 +11,26 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { Server } from 'http';
 import { BasePlugin, ModuleInfo } from 'lisk-framework';
 import type {
 	BaseChannel,
 	EventsArray,
 	ActionsDefinition,
 } from 'lisk-framework';
-import * as pJSON from '../package.json';
+import * as express from 'express';
+import type { Express } from 'express';
+import * as cors from 'cors';
+import * as rateLimit from 'express-rate-limit';
+import * as controllers from './controllers';
+import * as middlewares from './middlewares';
+import * as config from './configs';
+import { Options } from './types';
 
 export class HTTPAPIPlugin extends BasePlugin {
+	private _server!: Server;
+	private _app!: Express;
+
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get alias(): string {
 		return 'http-api';
@@ -29,10 +39,14 @@ export class HTTPAPIPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
 	public static get info(): ModuleInfo {
 		return {
-			author: pJSON.author,
-			version: pJSON.version,
-			name: pJSON.name,
+			author: '@liskhq',
+			version: '0.1.0',
+			name: '@liskhq/lisk-framework-http-api-plugin',
 		};
+	}
+
+	public get defaults(): object {
+		return config.defaultConfig;
 	}
 
 	// eslint-disable-next-line class-methods-use-this
@@ -45,9 +59,28 @@ export class HTTPAPIPlugin extends BasePlugin {
 		return {};
 	}
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
-	public async load(_channel: BaseChannel): Promise<void> {}
+	public async load(_channel: BaseChannel): Promise<void> {
+		const options = this.options as Options;
+		this._app = express();
+		this._registerMiddlewares(options);
+		this._registerControllers();
 
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
-	public async unload(): Promise<void> {}
+		this._server = this._app.listen(options.port);
+	}
+
+	public async unload(): Promise<void> {
+		this._server.close();
+	}
+
+	private _registerMiddlewares(options: Options): void {
+		// Register middlewares
+		this._app.use(cors(options.cors));
+		this._app.use(express.json());
+		this._app.use(rateLimit(options.limits));
+		this._app.use(middlewares.whiteListMiddleware(options.whiteList));
+	}
+
+	private _registerControllers(): void {
+		this._app.get('/v1/hello', controllers.helloController());
+	}
 }

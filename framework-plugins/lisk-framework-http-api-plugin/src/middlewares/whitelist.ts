@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * as cryptography from '@liskhq/lisk-cryptography';
-export * as transactions from '@liskhq/lisk-transactions';
-export * as validator from '@liskhq/lisk-validator';
-export * from '@liskhq/lisk-framework-http-api-plugin';
-export * from 'lisk-framework';
+import { Request, Response, NextFunction } from 'express';
 
-export { genesisBlockDevnet, configDevnet } from './samples';
+export const whiteListMiddleware = (_whiteListedIPs: ReadonlyArray<string>) => (_req: Request, _res: Response, _next: NextFunction): void => {
+}

@@ -1,11 +1,11 @@
-# @liskhq/{PACKAGE}
+# @liskhq/lisk-framework-http-api-plugin
 
-@liskhq/{PACKAGE} is x.
+@liskhq/lisk-framework-http-api-plugin is a plugin for lisk-framework that provides basic HTTP API endpoints to get running node information.
 
 ## Installation
 
 ```sh
-$ npm install --save @liskhq/{PACKAGE}
+$ npm install --save @liskhq/lisk-framework-http-api-plugin
 ```
 
 ## License
