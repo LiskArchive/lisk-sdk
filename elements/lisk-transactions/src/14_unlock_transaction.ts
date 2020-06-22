@@ -16,7 +16,7 @@
 import { BaseTransaction, StateStore } from './base_transaction';
 import { TransactionError } from './errors';
 import { Account, BaseTransactionInput, AccountAsset } from './types';
-import { getPunishmentPeriod, sortUnlocking } from './utils';
+import { getPunishmentPeriod } from './utils';
 
 export interface Unlock {
 	readonly delegateAddress: Buffer;
@@ -199,21 +199,5 @@ export class UnlockTransaction extends BaseTransaction {
 		}
 
 		return errors;
-	}
-
-	protected async undoAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
-		for (const unlock of this.asset.unlockObjects) {
-			const sender = await store.account.get<AccountAsset>(this.senderId);
-
-			sender.balance -= unlock.amount;
-			sender.asset.unlocking.push(unlock);
-			// Resort the unlocking since it's pushed to the end
-			sortUnlocking(sender.asset.unlocking);
-			store.account.set(sender.address, sender);
-		}
-
-		return [];
 	}
 }

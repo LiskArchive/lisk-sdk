@@ -47,8 +47,6 @@ export interface ProcessGenesisInput {
 	readonly stateStore: StateStore;
 }
 
-export type UndoInput = ProcessGenesisInput;
-
 export interface ProcessInput {
 	readonly block: Block;
 	readonly lastBlock: Block;
@@ -63,7 +61,6 @@ export abstract class BaseBlockProcessor {
 	public verify: Pipeline<ProcessInput>;
 	public apply: Pipeline<ProcessInput>;
 	public applyGenesis: Pipeline<ProcessGenesisInput>;
-	public undo: Pipeline<UndoInput>;
 
 	public constructor() {
 		this.init = new Pipeline();
@@ -79,8 +76,6 @@ export abstract class BaseBlockProcessor {
 		this.apply = new Pipeline();
 
 		this.applyGenesis = new Pipeline();
-
-		this.undo = new Pipeline();
 	}
 
 	public abstract get version(): number;

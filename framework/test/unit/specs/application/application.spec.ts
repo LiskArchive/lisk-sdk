@@ -251,10 +251,6 @@ describe('Application', () => {
 				public validateAsset(): ReadonlyArray<TransactionError> {
 					return [];
 				}
-				// eslint-disable-next-line
-				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
-					return [];
-				}
 			}
 			// Act && Assert
 			expect(() => app.registerTransaction(Sample)).toThrow(
@@ -273,10 +269,6 @@ describe('Application', () => {
 				}
 				// eslint-disable-next-line
 				public validateAsset(): ReadonlyArray<TransactionError> {
-					return [];
-				}
-				// eslint-disable-next-line
-				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
 					return [];
 				}
 			}
@@ -300,10 +292,6 @@ describe('Application', () => {
 				public validateAsset(): ReadonlyArray<TransactionError> {
 					return [];
 				}
-				// eslint-disable-next-line
-				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
-					return [];
-				}
 			}
 
 			Sample.TYPE = 10;
@@ -325,10 +313,6 @@ describe('Application', () => {
 				}
 				// eslint-disable-next-line
 				public validateAsset(): ReadonlyArray<TransactionError> {
-					return [];
-				}
-				// eslint-disable-next-line
-				public async undoAsset(): Promise<ReadonlyArray<TransactionError>> {
 					return [];
 				}
 			}
