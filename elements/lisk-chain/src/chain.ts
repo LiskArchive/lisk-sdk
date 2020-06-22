@@ -525,7 +525,7 @@ export class Chain {
 		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
 		const fromHeight = Math.max(
 			storageLastBlock.header.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
-			1,
+			0,
 		);
 		const toHeight = storageLastBlock.header.height;
 

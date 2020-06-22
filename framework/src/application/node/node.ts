@@ -183,8 +183,8 @@ export class Node {
 					},
 				}),
 				{
-					matcher: block =>
-						block.version === this._options.genesisBlock.header.version,
+					matcher: header =>
+						header.version === this._options.genesisBlock.header.version,
 				},
 			);
 

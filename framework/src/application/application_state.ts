@@ -76,7 +76,7 @@ export class ApplicationState {
 		blockVersion = this.state.blockVersion as number,
 	}: ApplicationStateUpdate): void {
 		assert(
-			height !== undefined && height >= 0,
+			!!height !== undefined && height !== null && height >= 0,
 			'height is required to update application state.',
 		);
 		try {
