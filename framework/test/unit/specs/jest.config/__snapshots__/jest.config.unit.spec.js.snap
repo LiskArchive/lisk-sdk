@@ -3,7 +3,7 @@
 exports[`config/unit/jest.config.js unit test config must match to the snapshot. 1`] = `
 Object {
   "clearMocks": true,
-  "collectCoverage": true,
+  "collectCoverage": false,
   "collectCoverageFrom": Array [
     "src/controller/**",
     "src/application/**",
@@ -11,8 +11,6 @@ Object {
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": Array [
     "json",
-    "lcov",
-    "cobertura",
   ],
   "globals": Object {
     "ts-jest": Object {
@@ -31,6 +29,6 @@ Object {
   "transform": Object {
     "^.+\\\\.(ts|tsx)$": "ts-jest",
   },
-  "verbose": true,
+  "verbose": false,
 }
 `;

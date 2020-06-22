@@ -22,6 +22,7 @@ import * as arrayDecoding from '../fixtures/arrays_encodings.json';
 import * as blockDecoding from '../fixtures/block_encodings.json';
 import * as blockHeaderDecoding from '../fixtures/block_header_encodings.json';
 import * as blockAssetDecoding from '../fixtures/block_asset_encodings.json';
+import * as genesisBlockAssetDecoding from '../fixtures/genesis_block_encodings.json';
 import * as accountDecoding from '../fixtures/account_encodings.json';
 import * as transactionDecoding from '../fixtures/transaction_encodings.json';
 import * as peerInfoDecoding from '../fixtures/peer_info_sample_encoding.json';
@@ -32,7 +33,10 @@ describe('decode', () => {
 		for (const testCase of booleanDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual(testCase.input.object);
 			});
 		}
@@ -43,7 +47,10 @@ describe('decode', () => {
 			for (const testCase of numberDecoding.testCases.slice(0, 2)) {
 				it(testCase.description, () => {
 					const codec = new Codec();
-					const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+					const result = codec.decode(
+						testCase.input.schema,
+						Buffer.from(testCase.output.value, 'hex'),
+					);
 					expect(result).toEqual(testCase.input.object);
 				});
 			}
@@ -53,8 +60,14 @@ describe('decode', () => {
 			for (const testCase of numberDecoding.testCases.slice(2, 4)) {
 				it(testCase.description, () => {
 					const codec = new Codec();
-					const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
-					expect(result).toEqual({ ...testCase.input.object, number: BigInt(testCase.input.object.number) });
+					const result = codec.decode(
+						testCase.input.schema,
+						Buffer.from(testCase.output.value, 'hex'),
+					);
+					expect(result).toEqual({
+						...testCase.input.object,
+						number: BigInt(testCase.input.object.number),
+					});
 				});
 			}
 		});
@@ -64,8 +77,14 @@ describe('decode', () => {
 		for (const testCase of bytesDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
-				expect(result).toEqual({ ...testCase.input.object, address: Buffer.from(testCase.input.object.address.data) });
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
+				expect(result).toEqual({
+					...testCase.input.object,
+					address: Buffer.from(testCase.input.object.address.data),
+				});
 			});
 		}
 	});
@@ -74,7 +93,10 @@ describe('decode', () => {
 		for (const testCase of stringDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual(testCase.input.object);
 			});
 		}
@@ -84,14 +106,24 @@ describe('decode', () => {
 		it('Encoding of object', () => {
 			const testCase = objectDecoding.testCases[0];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
-			expect(result).toEqual({ ...testCase.input.object, balance: BigInt(testCase.input.object.balance), address: Buffer.from(testCase.input.object.address?.data as number[]) });
+			const result = codec.decode(
+				testCase.input.schema as any,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
+			expect(result).toEqual({
+				...testCase.input.object,
+				balance: BigInt(testCase.input.object.balance),
+				address: Buffer.from(testCase.input.object.address?.data as number[]),
+			});
 		});
 
 		it('Encoding of object with optional property', () => {
 			const testCase = objectDecoding.testCases[1];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
+			const result = codec.decode(
+				testCase.input.schema as any,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
 			expect(result).toEqual({
 				...testCase.input.object,
 				value: BigInt(testCase.input.object.value),
@@ -103,11 +135,17 @@ describe('decode', () => {
 	describe('array decoding', () => {
 		describe('array decoding except object', () => {
 			// Index 3 is the object test, which needs special handling
-			const testCases = [...arrayDecoding.testCases.slice(0, 3), ...arrayDecoding.testCases.slice(4)];
+			const testCases = [
+				...arrayDecoding.testCases.slice(0, 3),
+				...arrayDecoding.testCases.slice(4),
+			];
 			for (const testCase of testCases) {
 				it(testCase.description, () => {
 					const codec = new Codec();
-					const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
+					const result = codec.decode(
+						testCase.input.schema as any,
+						Buffer.from(testCase.output.value, 'hex'),
+					);
 					expect(result).toEqual(testCase.input.object);
 				});
 			}
@@ -116,8 +154,17 @@ describe('decode', () => {
 		it('Encoding of array of object', () => {
 			const testCase = arrayDecoding.testCases[3];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
-			expect(result).toEqual({ ...testCase.input.object, myArray: testCase.input.object.myArray?.map(l => ({ ...l, amount: BigInt(l.amount) })) });
+			const result = codec.decode(
+				testCase.input.schema as any,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
+			expect(result).toEqual({
+				...testCase.input.object,
+				myArray: testCase.input.object.myArray?.map(l => ({
+					...l,
+					amount: BigInt(l.amount),
+				})),
+			});
 		});
 	});
 
@@ -125,7 +172,10 @@ describe('decode', () => {
 		for (const testCase of blockDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual({
 					...testCase.input.object,
 					header: Buffer.from(testCase.input.object.header.data),
@@ -139,15 +189,24 @@ describe('decode', () => {
 		for (const testCase of blockHeaderDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual({
 					...testCase.input.object,
 					reward: BigInt(testCase.input.object.reward),
 					asset: Buffer.from(testCase.input.object.asset.data),
-					transactionRoot: Buffer.from(testCase.input.object.transactionRoot.data),
+					transactionRoot: Buffer.from(
+						testCase.input.object.transactionRoot.data,
+					),
 					signature: Buffer.from(testCase.input.object.signature.data),
-					previousBlockID: Buffer.from(testCase.input.object.previousBlockID.data),
-					generatorPublicKey: Buffer.from(testCase.input.object.generatorPublicKey.data),
+					previousBlockID: Buffer.from(
+						testCase.input.object.previousBlockID.data,
+					),
+					generatorPublicKey: Buffer.from(
+						testCase.input.object.generatorPublicKey.data,
+					),
 				});
 			});
 		}
@@ -157,10 +216,66 @@ describe('decode', () => {
 		for (const testCase of blockAssetDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual({
 					...testCase.input.object,
 					seedReveal: Buffer.from(testCase.input.object.seedReveal.data),
+				});
+			});
+		}
+	});
+
+	describe('genesis block asset decoding', () => {
+		for (const testCase of genesisBlockAssetDecoding.testCases) {
+			it(testCase.description, () => {
+				const codec = new Codec();
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
+				expect(result).toEqual({
+					...testCase.input.object,
+					initDelegates: testCase.input.object.initDelegates.map(d =>
+						Buffer.from(d.data),
+					),
+					accounts: testCase.input.object.accounts.map(acc => ({
+						...acc,
+						address: Buffer.from(acc.address.data),
+						balance: BigInt(acc.balance),
+						publicKey: Buffer.from(acc.publicKey.data),
+						nonce: BigInt(acc.nonce),
+						keys: {
+							...acc.keys,
+							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) =>
+								Buffer.from(b.data),
+							),
+							optionalKeys: acc.keys.optionalKeys.map((b: any) =>
+								Buffer.from(b.data),
+							),
+						},
+						asset: {
+							...acc.asset,
+							delegate: {
+								...acc.asset.delegate,
+								totalVotesReceived: BigInt(
+									acc.asset.delegate.totalVotesReceived,
+								),
+							},
+							sentVotes: acc.asset.sentVotes.map(v => ({
+								...v,
+								delegateAddress: Buffer.from(v.delegateAddress.data),
+								amount: BigInt(v.amount),
+							})),
+							unlocking: acc.asset.unlocking.map((v: any) => ({
+								...v,
+								delegateAddress: Buffer.from(v.delegateAddress.data),
+								amount: BigInt(v.amount),
+							})),
+						},
+					})),
 				});
 			});
 		}
@@ -170,7 +285,10 @@ describe('decode', () => {
 		for (const testCase of accountDecoding.testCases) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema as any,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual({
 					...testCase.input.object,
 					address: Buffer.from(testCase.input.object.address.data),
@@ -179,14 +297,20 @@ describe('decode', () => {
 					nonce: BigInt(testCase.input.object.nonce),
 					keys: {
 						...testCase.input.object.keys,
-						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b => Buffer.from(b.data)),
-						optionalKeys: testCase.input.object.keys.optionalKeys.map((b: any) => Buffer.from(b.data)),
+						mandatoryKeys: testCase.input.object.keys.mandatoryKeys.map(b =>
+							Buffer.from(b.data),
+						),
+						optionalKeys: testCase.input.object.keys.optionalKeys.map(
+							(b: any) => Buffer.from(b.data),
+						),
 					},
 					asset: {
 						...testCase.input.object.asset,
 						delegate: {
 							...testCase.input.object.asset.delegate,
-							totalVotesReceived: BigInt(testCase.input.object.asset.delegate.totalVotesReceived),
+							totalVotesReceived: BigInt(
+								testCase.input.object.asset.delegate.totalVotesReceived,
+							),
 						},
 						sentVotes: testCase.input.object.asset.sentVotes.map(v => ({
 							...v,
@@ -208,13 +332,20 @@ describe('decode', () => {
 		it('Encoding of base transaction', () => {
 			const testCase = transactionDecoding.testCases[0];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
+			const result = codec.decode(
+				testCase.input.schema as any,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
 			expect(result).toEqual({
 				...testCase.input.object,
 				nonce: BigInt(testCase.input.object.nonce),
 				fee: BigInt(testCase.input.object.fee),
-				senderPublicKey: Buffer.from((testCase.input.object.senderPublicKey as any).data),
-				signatures: testCase.input.object.signatures?.map(v => Buffer.from(v.data)),
+				senderPublicKey: Buffer.from(
+					(testCase.input.object.senderPublicKey as any).data,
+				),
+				signatures: testCase.input.object.signatures?.map(v =>
+					Buffer.from(v.data),
+				),
 				asset: Buffer.from((testCase.input.object.asset as any).data),
 			});
 		});
@@ -222,7 +353,10 @@ describe('decode', () => {
 		it('Encoding of vote transaction asset', () => {
 			const testCase = transactionDecoding.testCases[1];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
+			const result = codec.decode(
+				testCase.input.schema as any,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
 			expect(result).toEqual({
 				votes: testCase.input.object.votes?.map(v => ({
 					delegateAddress: Buffer.from(v.delegateAddress.data),
@@ -236,11 +370,18 @@ describe('decode', () => {
 			for (const testCase of testCases) {
 				it(testCase.description, () => {
 					const codec = new Codec();
-					const result = codec.decode(testCase.input.schema as any, Buffer.from(testCase.output.value, 'hex'));
+					const result = codec.decode(
+						testCase.input.schema as any,
+						Buffer.from(testCase.output.value, 'hex'),
+					);
 					expect(result).toEqual({
-							...testCase.input.object,
-							mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k => Buffer.from(k.data)),
-							optionalKeys: testCase.input.object.optionalKeys?.map(k => Buffer.from(k.data)),
+						...testCase.input.object,
+						mandatoryKeys: testCase.input.object.mandatoryKeys?.map(k =>
+							Buffer.from(k.data),
+						),
+						optionalKeys: testCase.input.object.optionalKeys?.map(k =>
+							Buffer.from(k.data),
+						),
 					});
 				});
 			}
@@ -251,14 +392,20 @@ describe('decode', () => {
 		it('should decode object without options', () => {
 			const testCase = peerInfoDecoding.testCases[0];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+			const result = codec.decode(
+				testCase.input.schema,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
 			expect(result).toEqual(testCase.input.object);
 		});
 
 		it('should decode object without optional fields', () => {
 			const testCase = peerInfoDecoding.testCases[1];
 			const codec = new Codec();
-			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+			const result = codec.decode(
+				testCase.input.schema,
+				Buffer.from(testCase.output.value, 'hex'),
+			);
 			expect(result).toEqual({
 				...testCase.input.object,
 				height: 0,
@@ -273,7 +420,10 @@ describe('decode', () => {
 		for (const testCase of nestedArrayDecoding.testCases.slice(1)) {
 			it(testCase.description, () => {
 				const codec = new Codec();
-				const result = codec.decode(testCase.input.schema, Buffer.from(testCase.output.value, 'hex'));
+				const result = codec.decode(
+					testCase.input.schema,
+					Buffer.from(testCase.output.value, 'hex'),
+				);
 				expect(result).toEqual(testCase.input.object);
 			});
 		}

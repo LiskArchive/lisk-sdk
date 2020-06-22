@@ -23,6 +23,7 @@ import { testCases as arrayTestCases } from '../fixtures/arrays_encodings.json';
 import * as blockEncoding from '../fixtures/block_encodings.json';
 import * as blockHeaderEncoding from '../fixtures/block_header_encodings.json';
 import * as blockAssetEncoding from '../fixtures/block_asset_encodings.json';
+import * as genesisBlockAssetEncoding from '../fixtures/genesis_block_encodings.json';
 import * as accountEncoding from '../fixtures/account_encodings.json';
 import * as transactionEncoding from '../fixtures/transaction_encodings.json';
 import * as peerInfoEncoding from '../fixtures/peer_info_sample_encoding.json';
@@ -308,6 +309,58 @@ describe('encode', () => {
 		}
 	});
 
+	describe('genesis block asset encoding', () => {
+		for (const testCase of genesisBlockAssetEncoding.testCases) {
+			it(testCase.description, () => {
+				const message = {
+					...testCase.input.object,
+					initDelegates: testCase.input.object.initDelegates.map(d =>
+						Buffer.from(d.data),
+					),
+					accounts: testCase.input.object.accounts.map(acc => ({
+						...acc,
+						address: Buffer.from(acc.address.data),
+						balance: BigInt(acc.balance),
+						publicKey: Buffer.from(acc.publicKey.data),
+						nonce: BigInt(acc.nonce),
+						keys: {
+							...acc.keys,
+							mandatoryKeys: acc.keys.mandatoryKeys.map((b: any) =>
+								Buffer.from(b.data),
+							),
+							optionalKeys: acc.keys.optionalKeys.map((b: any) =>
+								Buffer.from(b.data),
+							),
+						},
+						asset: {
+							...acc.asset,
+							delegate: {
+								...acc.asset.delegate,
+								totalVotesReceived: BigInt(
+									acc.asset.delegate.totalVotesReceived,
+								),
+							},
+							sentVotes: acc.asset.sentVotes.map(v => ({
+								...v,
+								delegateAddress: Buffer.from(v.delegateAddress.data),
+								amount: BigInt(v.amount),
+							})),
+							unlocking: acc.asset.unlocking.map((v: any) => ({
+								...v,
+								delegateAddress: Buffer.from(v.delegateAddress.data),
+								amount: BigInt(v.amount),
+							})),
+						},
+					})),
+				};
+
+				const result = codec.encode(testCase.input.schema, message);
+
+				expect(result.toString('hex')).toEqual(testCase.output.value);
+			});
+		}
+	});
+
 	describe('account encoding', () => {
 		for (const testCase of accountEncoding.testCases) {
 			it(testCase.description, () => {
@@ -414,7 +467,10 @@ describe('encode', () => {
 	describe('peer info encoding', () => {
 		for (const testCase of peerInfoEncoding.testCases) {
 			it(testCase.description, () => {
-				const result = codec.encode(testCase.input.schema, testCase.input.object);
+				const result = codec.encode(
+					testCase.input.schema,
+					testCase.input.object,
+				);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
 		}
@@ -423,7 +479,10 @@ describe('encode', () => {
 	describe('nested array encoding', () => {
 		for (const testCase of nestedArrayEncoding.testCases) {
 			it(testCase.description, () => {
-				const result = codec.encode(testCase.input.schema, testCase.input.object);
+				const result = codec.encode(
+					testCase.input.schema,
+					testCase.input.object,
+				);
 				expect(result.toString('hex')).toEqual(testCase.output.value);
 			});
 		}

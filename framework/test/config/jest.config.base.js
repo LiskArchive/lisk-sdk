@@ -17,9 +17,9 @@ module.exports = {
 			tsConfig: '<rootDir>/test/tsconfig.json',
 		},
 	},
-	verbose: true,
-	collectCoverage: true,
-	coverageReporters: ['json', 'lcov', 'cobertura'],
+	verbose: false,
+	collectCoverage: false,
+	coverageReporters: ['json'],
 	rootDir: '../../',
 	setupFilesAfterEnv: ['<rootDir>/test/config/setup.js'],
 	transform: {

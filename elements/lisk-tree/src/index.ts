@@ -13,4 +13,4 @@
  */
 
 export * from './merkle_tree';
-export * from './verify_merkle_tree';
+export * from './types';

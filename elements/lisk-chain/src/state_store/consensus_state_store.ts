@@ -17,6 +17,7 @@ import { BlockHeader, StateDiff } from '../types';
 import { DB_KEY_CONSENSUS_STATE } from '../data_access/constants';
 import { DataAccess } from '../data_access';
 import { calculateDiff } from '../diff';
+import { CONSENSUS_STATE_FINALIZED_HEIGHT_KEY } from '../constants';
 
 interface KeyValuePair {
 	[key: string]: Buffer | undefined;
@@ -75,7 +76,10 @@ export class ConsensusStateStore {
 		if (dbValue === undefined) {
 			return dbValue;
 		}
-		this._initialValue[key] = dbValue;
+		// Finalized height should not be stored as part of this diff because it cannot be undo
+		if (key !== CONSENSUS_STATE_FINALIZED_HEIGHT_KEY) {
+			this._initialValue[key] = dbValue;
+		}
 		this._data[key] = dbValue;
 
 		return this._data[key];

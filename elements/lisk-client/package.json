@@ -31,6 +31,8 @@
 		"lint": "eslint --ext .js,.ts .",
 		"lint:fix": "eslint --fix --ext .js,.ts .",
 		"test": "jest",
+		"test:coverage": "jest --coverage=true --coverage-reporters=text",
+		"test:ci": "jest --coverage=true --coverage-reporters=json --verbose",
 		"test:watch": "npm test -- --watch",
 		"test:node": "npm run build:check",
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",

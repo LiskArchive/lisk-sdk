@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-// TODO: Remove this after using lisk-codec
+/* eslint-disable no-continue */
 
 import {
 	KVStore,
@@ -20,8 +20,9 @@ import {
 	getLastPrefix,
 	NotFoundError,
 } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
-import { RawBlock } from '../types';
+import { RawBlock, StateDiff, DiffHistory } from '../types';
 import { StateStore } from '../state_store';
 
 import {
@@ -33,8 +34,11 @@ import {
 	DB_KEY_ACCOUNTS_ADDRESS,
 	DB_KEY_CHAIN_STATE,
 	DB_KEY_CONSENSUS_STATE,
+	DB_KEY_DIFF_STATE,
 } from './constants';
 import { keyString } from '../utils';
+import { stateDiffSchema } from '../schema';
+import { undo } from '../diff';
 
 export class Storage {
 	private readonly _db: KVStore;
@@ -56,8 +60,17 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
-			const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
-			blocks.push(block);
+			try {
+				const block = await this._db.get(
+					`${DB_KEY_BLOCKS_ID}:${keyString(id)}`,
+				);
+				blocks.push(block);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 		return blocks;
 	}
@@ -99,8 +112,15 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const blocks = [];
 		for (const height of heightList) {
-			const block = await this.getBlockHeaderByHeight(height);
-			blocks.push(block);
+			try {
+				const block = await this.getBlockHeaderByHeight(height);
+				blocks.push(block);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 		return blocks;
 	}
@@ -147,9 +167,17 @@ export class Storage {
 		arrayOfBlockIds: ReadonlyArray<Buffer>,
 	): Promise<RawBlock[]> {
 		const blocks = [];
+
 		for (const id of arrayOfBlockIds) {
-			const block = await this.getBlockByID(id);
-			blocks.push(block);
+			try {
+				const block = await this.getBlockByID(id);
+				blocks.push(block);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 
 		return blocks;
@@ -307,8 +335,15 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const accounts = [];
 		for (const address of arrayOfAddresses) {
-			const account = await this.getAccountByAddress(address);
-			accounts.push(account);
+			try {
+				const account = await this.getAccountByAddress(address);
+				accounts.push(account);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 
 		return accounts;
@@ -330,8 +365,15 @@ export class Storage {
 	): Promise<Buffer[]> {
 		const transactions = [];
 		for (const id of arrayOfTransactionIds) {
-			const transaction = await this.getTransactionByID(id);
-			transactions.push(transaction);
+			try {
+				const transaction = await this.getTransactionByID(id);
+				transactions.push(transaction);
+			} catch (dbError) {
+				if (dbError instanceof NotFoundError) {
+					continue;
+				}
+				throw dbError;
+			}
 		}
 
 		return transactions;
@@ -397,6 +439,25 @@ export class Storage {
 		if (saveToTemp) {
 			batch.put(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`, fullBlock);
 		}
+		// Take the diff to revert back states
+		const diffKey = `${DB_KEY_DIFF_STATE}:${heightStr}`;
+		const stateDiff = await this._db.get(diffKey);
+
+		const { created: createdStates, updated: updatedStates } = codec.decode<
+			StateDiff
+		>(stateDiffSchema, stateDiff);
+		// Delete all the newly created states
+		for (const key of createdStates) {
+			batch.del(key);
+		}
+		for (const { key, value: diff } of updatedStates) {
+			const currentValue = await this._db.get(key);
+			const previousValue = undo(currentValue, diff as DiffHistory[]);
+			batch.put(key, previousValue);
+		}
+		// Delete stored diff at particular height
+		batch.del(diffKey);
+
 		stateStore.finalize(heightStr, batch);
 		await batch.write();
 	}

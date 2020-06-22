@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Proof } from './types';
-
-export const verifyProofOfInclusion = (
-	_proof: Proof,
-	_merkleRoot: Buffer,
-): boolean => true;
+export * from './buffer_map';
+export * from './buffer_set';
+export * from './max_heap';
+export * from './min_heap';
