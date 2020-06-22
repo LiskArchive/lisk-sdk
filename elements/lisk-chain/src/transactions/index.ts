@@ -17,5 +17,4 @@ export {
 	applyTransactions,
 	checkAllowedTransactions,
 	undoTransactions,
-	applyGenesisTransactions,
 } from './transactions_handlers';

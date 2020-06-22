@@ -41,7 +41,6 @@ import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
-	applyGenesisTransactions,
 	applyTransactions,
 	checkAllowedTransactions,
 	undoTransactions,
@@ -255,7 +254,7 @@ export class Chain {
 
 	public async newStateStore(skipLastHeights = 0): Promise<StateStore> {
 		const fromHeight = Math.max(
-			1,
+			0,
 			this._lastBlock.header.height -
 				this.constants.stateBlockSize -
 				skipLastHeights,
@@ -362,15 +361,6 @@ export class Chain {
 				throw invalidTransactionsResponse[0].errors;
 			}
 		}
-		await applyFeeAndRewards(block, stateStore);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	public async applyGenesis(
-		block: Block,
-		stateStore: StateStore,
-	): Promise<void> {
-		await applyGenesisTransactions(block.payload, stateStore);
 		await applyFeeAndRewards(block, stateStore);
 	}
 
