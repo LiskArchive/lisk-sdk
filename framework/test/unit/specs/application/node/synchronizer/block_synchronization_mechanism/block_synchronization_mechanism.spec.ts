@@ -361,6 +361,16 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('compute the best peer', () => {
 			it('should compute the best peer out of a list of connected peers and return it', async () => {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
+						procedure: 'getBlocksFromId',
+						peerId: expect.any(String),
+						data: { blockId: expect.any(String) },
+					})
+					.mockResolvedValue({
+						data: [encodeValidBlock(aBlock).toString('base64')],
+					} as never);
+
 				await blockSynchronizationMechanism.run(aBlock);
 
 				expect(loggerMock.trace).toHaveBeenCalledWith(
@@ -496,6 +506,16 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('request and validate the last block of the peer', () => {
 			it('should request and validate the last block of the peer and continue if block has priority (FORK_STATUS_DIFFERENT_CHAIN)', async () => {
+				when(channelMock.invokeFromNetwork)
+					.calledWith('requestFromPeer', {
+						procedure: 'getBlocksFromId',
+						peerId: expect.any(String),
+						data: { blockId: expect.any(String) },
+					})
+					.mockResolvedValue({
+						data: [encodeValidBlock(aBlock).toString('base64')],
+					} as never);
+
 				await blockSynchronizationMechanism.run(aBlock);
 
 				expect(
@@ -1143,11 +1163,15 @@ describe('block_synchronization_mechanism', () => {
 								procedure: 'getBlocksFromId',
 								peerId,
 								data: {
-									blockId: highestCommonBlock.id,
+									blockId: highestCommonBlock.id.toString('base64'),
 								},
 							})
 							.mockResolvedValue({
-								data: cloneDeep(requestedBlocks).reverse(),
+								data: [
+									cloneDeep(requestedBlocks)
+										.reverse()
+										.map(b => encodeValidBlock(b).toString('base64')),
+								],
 							} as never);
 					}
 
@@ -1161,6 +1185,15 @@ describe('block_synchronization_mechanism', () => {
 					chainModule._lastBlock = aBlock;
 
 					try {
+						when(channelMock.invokeFromNetwork)
+							.calledWith('requestFromPeer', {
+								procedure: 'getBlocksFromId',
+								peerId: expect.any(String),
+								data: { blockId: expect.any(String) },
+							})
+							.mockResolvedValue({
+								data: [encodeValidBlock(aBlock).toString('base64')],
+							} as never);
 						await blockSynchronizationMechanism.run(aBlock);
 					} catch (err) {
 						// Expected error
