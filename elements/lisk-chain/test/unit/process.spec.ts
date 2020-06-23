@@ -733,58 +733,6 @@ describe('blocks/header', () => {
 		});
 	});
 
-	describe('#applyGenesis', () => {
-		let stateStore: StateStore;
-
-		beforeEach(async () => {
-			// Arrage
-			(db.get as jest.Mock).mockRejectedValue(
-				new NotFoundError('no data found'),
-			);
-			// Act
-			const genesisBlockInstance = genesisBlock();
-			genesisBlockInstance.payload.forEach(tx => tx.validate());
-			// Act
-			const dataAccess = new DataAccess({
-				db,
-				accountSchema: defaultAccountSchema as any,
-				registeredBlockHeaders: {
-					0: defaultBlockHeaderAssetSchema,
-					2: defaultBlockHeaderAssetSchema,
-				},
-				registeredTransactions,
-				minBlockHeaderCache: 505,
-				maxBlockHeaderCache: 309,
-			});
-			stateStore = new StateStore(dataAccess, {
-				lastBlockHeaders: [],
-				networkIdentifier: defaultNetworkIdentifier,
-				lastBlockReward: BigInt(500000000),
-				defaultAsset: createFakeDefaultAccount().asset,
-			});
-			await chainInstance.applyGenesis(genesisBlockInstance, stateStore);
-		});
-
-		describe('when transactions are all valid', () => {
-			it('should call apply for the transaction', async () => {
-				const genesisAccountFromStore = await stateStore.account.get(
-					genesisAccount.address,
-				);
-				expect(genesisAccountFromStore.balance).toBe(
-					// Genesis account now sends funds to the genesis delegates
-					BigInt('9897000000000000'),
-				);
-			});
-
-			it('should not update burnt fee on chain state', async () => {
-				const genesisAccountFromStore = await stateStore.chain.get(
-					CHAIN_STATE_BURNT_FEE,
-				);
-				expect(genesisAccountFromStore?.readBigInt64BE()).toEqual(BigInt('0'));
-			});
-		});
-	});
-
 	describe('#undo', () => {
 		const reward = BigInt('500000000');
 

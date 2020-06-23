@@ -80,7 +80,6 @@ describe('chain', () => {
 				default: createFakeDefaultAccount().asset,
 			},
 			registeredBlocks: {
-				0: defaultBlockHeaderAssetSchema,
 				2: defaultBlockHeaderAssetSchema,
 			},
 			...constants,
@@ -135,11 +134,7 @@ describe('chain', () => {
 					},
 				};
 				when(db.get)
-					.calledWith(`blocks:height:${formatInt(1)}`)
-					.mockResolvedValue(mutatedGenesisBlock.header.id as never)
-					.calledWith(
-						`blocks:id:${mutatedGenesisBlock.header.id.toString('binary')}`,
-					)
+					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(
 						encodeDefaultBlockHeader(mutatedGenesisBlock.header) as never,
 					);
@@ -250,7 +245,7 @@ describe('chain', () => {
 				expect(chainInstance.lastBlock.header.id).toEqual(lastBlock.header.id);
 				expect(
 					chainInstance.dataAccess.getBlockHeadersByHeightBetween,
-				).toHaveBeenCalledWith(1, 103);
+				).toHaveBeenCalledWith(0, 103);
 			});
 		});
 	});
@@ -276,7 +271,7 @@ describe('chain', () => {
 			await chainInstance.newStateStore();
 			expect(
 				chainInstance.dataAccess.getBlockHeadersByHeightBetween,
-			).toHaveBeenCalledWith(1, 1);
+			).toHaveBeenCalledWith(0, 1);
 		});
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
