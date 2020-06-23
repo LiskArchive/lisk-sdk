@@ -20,11 +20,13 @@ import { Chain } from '../../src/chain';
 import { StateStore } from '../../src/state_store';
 import {
 	createValidDefaultBlock,
-	genesisBlock as getGenesisBlock,
+	genesisBlock,
 	defaultNetworkIdentifier,
 	defaultBlockHeaderAssetSchema,
 	encodedDefaultBlock,
 	encodeDefaultBlockHeader,
+	genesisBlockAssetSchema,
+	encodeGenesisBlockHeader,
 } from '../utils/block';
 import { registeredTransactions } from '../utils/registered_transactions';
 import { Block } from '../../src/types';
@@ -60,12 +62,10 @@ describe('chain', () => {
 		created: [],
 		updated: [],
 	});
-	let genesisBlock: Block;
 	let chainInstance: Chain;
 	let db: any;
 
 	beforeEach(() => {
-		genesisBlock = getGenesisBlock();
 		// Arrange
 		db = new KVStore('temp');
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
@@ -80,6 +80,7 @@ describe('chain', () => {
 				default: createFakeDefaultAccount().asset,
 			},
 			registeredBlocks: {
+				0: genesisBlockAssetSchema,
 				2: defaultBlockHeaderAssetSchema,
 			},
 			...constants,
@@ -196,7 +197,7 @@ describe('chain', () => {
 					.mockResolvedValue(genesisBlock.header.id as never)
 					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(
-						encodeDefaultBlockHeader(genesisBlock.header) as never,
+						encodeGenesisBlockHeader(genesisBlock.header) as never,
 					);
 				// Act & Assert
 				await expect(chainInstance.init()).resolves.toBeUndefined();
@@ -217,7 +218,7 @@ describe('chain', () => {
 					.mockResolvedValue(genesisBlock.header.id as never)
 					.calledWith(`blocks:id:${genesisBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(
-						encodeDefaultBlockHeader(genesisBlock.header) as never,
+						encodeGenesisBlockHeader(genesisBlock.header) as never,
 					)
 					.calledWith(`blocks:id:${lastBlock.header.id.toString('binary')}`)
 					.mockResolvedValue(

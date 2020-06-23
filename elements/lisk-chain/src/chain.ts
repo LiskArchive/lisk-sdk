@@ -408,7 +408,7 @@ export class Chain {
 		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		if (block.header.height === 1) {
+		if (block.header.version === this.genesisBlock.header.version) {
 			throw new Error('Cannot delete genesis block');
 		}
 		let secondLastBlock: Block;

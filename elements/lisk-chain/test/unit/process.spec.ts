@@ -73,7 +73,7 @@ describe('blocks/header', () => {
 		db = new KVStore('temp');
 		chainInstance = new Chain({
 			db,
-			genesisBlock: genesisBlock(),
+			genesisBlock,
 			networkIdentifier: defaultNetworkIdentifier,
 			registeredTransactions,
 			accountAsset: {
@@ -86,7 +86,7 @@ describe('blocks/header', () => {
 			},
 			...constants,
 		});
-		(chainInstance as any)._lastBlock = genesisBlock();
+		(chainInstance as any)._lastBlock = genesisBlock;
 
 		block = createValidDefaultBlock();
 	});
@@ -226,7 +226,7 @@ describe('blocks/header', () => {
 				block = createValidDefaultBlock({
 					header: {
 						timestamp: futureTimestamp,
-						previousBlockID: genesisBlock().header.id,
+						previousBlockID: genesisBlock.header.id,
 					},
 				});
 				expect.assertions(1);
@@ -239,7 +239,7 @@ describe('blocks/header', () => {
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
 				// Arrange
 				block = createValidDefaultBlock({
-					header: { timestamp: 0, previousBlockID: genesisBlock().header.id },
+					header: { timestamp: 0, previousBlockID: genesisBlock.header.id },
 				});
 				expect.assertions(1);
 				// Act & Assert
@@ -250,7 +250,7 @@ describe('blocks/header', () => {
 
 			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
 				(chainInstance as any)._lastBlock = {
-					...genesisBlock(),
+					...genesisBlock,
 					timestamp: 200,
 					receivedAt: new Date(),
 				};
@@ -546,7 +546,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not set the block to the last block', () => {
-				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock());
+				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock);
 			});
 		});
 
