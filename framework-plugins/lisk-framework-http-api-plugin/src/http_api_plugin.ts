@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BasePlugin, ModuleInfo } from 'lisk-framework';
+import { BasePlugin, PluginInfo } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import type {
 	BaseChannel,
@@ -28,6 +28,9 @@ import * as middlewares from './middlewares';
 import * as config from './defaults';
 import { Options } from './types';
 
+// eslint-disable-next-line
+const pJSON = require('../package.json');
+
 export class HTTPAPIPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
@@ -39,11 +42,14 @@ export class HTTPAPIPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): ModuleInfo {
+	public static get info(): PluginInfo {
 		return {
-			author: '@liskhq',
-			version: '0.1.0',
-			name: '@liskhq/lisk-framework-http-api-plugin',
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+			author: pJSON.author,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+			version: pJSON.version,
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+			name: pJSON.name,
 		};
 	}
 

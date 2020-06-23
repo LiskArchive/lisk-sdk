@@ -1,42 +1,32 @@
-# Modules
+# Plugins
 
 ### Table of contents
 
 - [Description](#description)
-  - [Core Modules](#core-modules)
-  - [Custom Modules](#custom-modules)
-- [Module Configuration](#module-configuration)
-- [Module Communication](#module-communication)
+  - [Custom Plugins](#custom-plugins)
+- [Plugin Communication](#plugin-communication)
   - [InMemory Channel](#inmemory-channel)
   - [ChildProcess Channel](#childprocess-channel)
-- [Module Lifecycle](#module-life-cycle)
+- [Plugin Lifecycle](#plugin-life-cycle)
 
 ## Description
 
-Modules are individual building blocks for Lisk Core.
+Plugins are individual building blocks for Lisk Core.
 
-### Core Modules
+### Custom Plugins
 
-Core Modules are shipped along with the Lisk Core distribution itself. These modules constitute the minimum requirements to run a functional Lisk Core instance.
+> The implementation of each plugin is up-to user but it must inherit from `BasePlugin` class and implement its methods.
 
-#### List of Core Modules
-
-- **HTTP API Module:** provides API endpoints, that enable users and other programs to communicate with the Lisk blockchain through the API.
-
-### Custom Modules
-
-> The implementation of each module is up-to user but it must inherit from `BasePlugin` class and implement its methods.
-
-Custom Modules can be plugged into Lisk Core and may offer new features/capabilities for the application, or replace Core modules functionalities.
+Custom Plugin can be plugged into Lisk Framework and may offer new features/capabilities for the application.
 They extend the existing instance with a specific (and circumscribed) set of features.
 
 ```js
 // Exported as main file to javascript package
-export default class MyModule extends BasePlugin {
+export default class MyPlugin extends BasePlugin {
     /**
-    * Constructor of the module.
+    * Constructor of the plugin.
     *
-     * @param {Object} options - An object of module options
+     * @param {Object} options - An object of plugin options
     */
     constructor(options) {
      super(options);
@@ -45,19 +35,19 @@ export default class MyModule extends BasePlugin {
     /**
     * Required.
     *
-    * A unique module identifier, that can be accessed through out the system.
-    * If some module already registered with the same alias, it will throw an error.
+    * A unique plugin identifier, that can be accessed through out the system.
+    * If some plugin already registered with the same alias, it will throw an error.
     *
-    * @return {string} alias - Return the module alias as string.
+    * @return {string} alias - Return the plugin alias as string.
     * */
-    static get alias(){ return 'moduleAlias'; },
+    static get alias(){ return 'pluginAlias'; },
 
     /**
     * Required.
     *
     * Package meta information.
     *
-    * @return {Object} info - JSON object referring the version, module name, and module author.
+    * @return {Object} info - JSON object referring the version, plugin name, and plugin author.
     */
     static get info(){
         return {
@@ -70,10 +60,10 @@ export default class MyModule extends BasePlugin {
     /**
     * Required.
     *
-    * Method which will be invoked by controller to load the module.
+    * Method which will be invoked by controller to load the plugin.
     * Make sure all loading logic get completed during the life cycle of load.
     * Controller emit an event `app:ready` which you can use to perform
-    * some activities which you want to perform when every other module is loaded.
+    * some activities which you want to perform when every other plugin is loaded.
     *
     * @param {Channel} channel - An instance of a communication channel.
     * @return {Promise<void>}
@@ -82,26 +72,26 @@ export default class MyModule extends BasePlugin {
 
 
     /**
-     * Supported configurations for the module with default values.
+     * Supported configurations for the plugin with default values.
      *
-     * @return {Object} defaults - JSON object with default options for the module.
+     * @return {Object} defaults - JSON object with default options for the plugin.
      */
     get defaults() { return {}; },
 
     /**
-     * List of valid events which this module wants to register with the controller.
-     * Each event name will be prefixed by module alias, e.g. moduleName:event1.
+     * List of valid events which this plugin wants to register with the controller.
+     * Each event name will be prefixed by plugin alias, e.g. pluginName:event1.
      * Listing an event means to register the event in the application.
-     * Any module can subscribe or publish that event in the application.
+     * Any plugin can subscribe or publish that event in the application.
      *
      * @return {Array} events - String Array of events.
      */
     get events() { return []; },
 
     /**
-     * Object of valid actions which this module want to register with the controller.
-     * Each action name will be prefixed by module alias, e.g. moduleName:action1.
-     * Source module can define the action while others can invoke that action.
+     * Object of valid actions which this plugin want to register with the controller.
+     * Each action name will be prefixed by plugin alias, e.g. pluginName:action1.
+     * Source plugin can define the action while others can invoke that action.
      *
      * @return {Object} actions - Contains all available action names as key, and the corresponding function as value.
      */
@@ -120,43 +110,32 @@ export default class MyModule extends BasePlugin {
 };
 ```
 
-## Module Configuration
+## Plugin Communication
 
-Configuration options for each module are located in `framework/src/modules/<module-name>/defaults/config.js`.
-
-Each `config.js` file consists of 2 parts:
-
-1. JSON-schema specification for all available config options
-2. Default values for the available config options for this specific module.
-
-Please don't change the default values in these files directly as they will be overwritten on software updates, instead define the custom configuration options inside your blockchain application.
-
-## Module Communication
-
-Modules communicate with each other through event-based channels.
-Modules running in different processes communicate with each other over IPC channels.
+Plugins communicate with each other through event-based channels.
+Plugins running in different processes communicate with each other over IPC channels.
 
 ### InMemory Channel
 
-Communicates with modules which reside in the same process as the [controller](../controller/README.md).
+Communicates with plugins which reside in the same process as the [controller](../controller/README.md).
 
-By default, modules will load in the same process as the controller.
+By default, plugins will load in the same process as the controller.
 
 ### Child Process Channel
 
-Communicates with modules which do not reside in the same process as the Controller.
+Communicates with plugins which do not reside in the same process as the Controller.
 
-To load a module as a child process, make sure you have `ipc` enabled in the config file and set the option `loadAsChildProcess: true` when registering the module using the Application method `registerModule`.
+To load a plugin as a child process, make sure you have `ipc` enabled in the config file and set the option `loadAsChildProcess: true` when registering the plugin using the Application method `registerPlugin`.
 
-Currently, the only Lisk native module supported is HTTP API module which will be loaded as child process if you have `ipc` enabled.
+Currently, the only Lisk native plugin supported is HTTP API plugin which will be loaded as child process if you have `ipc` enabled.
 
-## Module Life Cycle
+## Plugin Life Cycle
 
-The controller will load/unload each module one after another.
-A modules' life cycle consists of following events in the right order:
+The controller will load/unload each plugin one after another.
+A plugins' life cycle consists of following events in the right order:
 
 **Loading**
 
-- _module_:registeredToBus
-- _module_:loading:started
-- _module_:loading:finished
+- _plugin_:registeredToBus
+- _plugin_:loading:started
+- _plugin_:loading:finished

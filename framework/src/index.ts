@@ -15,7 +15,7 @@
 export { Application } from './application/application';
 export { version } from './version';
 export { systemDirs } from './application/system_dirs';
-export { BasePlugin, ModuleInfo } from './modules/base_plugin';
+export { BasePlugin, PluginInfo } from './modules/base_plugin';
 export type { BaseChannel } from './controller/channels';
 export type { EventsArray } from './controller/event';
 export type { ActionsDefinition } from './controller/action';
