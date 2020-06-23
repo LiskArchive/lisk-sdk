@@ -85,7 +85,7 @@ const accountFromJSON = (
 	asset: {
 		delegate: {
 			...account.asset.delegate,
-			totalVotesReceived: BigInt(account.asset.delegate.isBanned),
+			totalVotesReceived: BigInt(account.asset.delegate.totalVotesReceived),
 		},
 		sentVotes: account.asset.sentVotes.map(vote => ({
 			delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
