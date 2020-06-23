@@ -52,6 +52,7 @@ jest.mock('@liskhq/lisk-db');
 
 describe('block_synchronization_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
+	const finalizedHeight = genesisBlock.header.height + 1;
 
 	let bftModule: any;
 	let blockProcessorV0;
@@ -65,6 +66,7 @@ describe('block_synchronization_mechanism', () => {
 	let loggerMock: any;
 
 	let aBlock: Block;
+	let finalizedBlock: Block;
 	let requestedBlocks: Block[];
 	let highestCommonBlock: BlockHeader;
 	let blockIdsList: Buffer[];
@@ -144,8 +146,9 @@ describe('block_synchronization_mechanism', () => {
 			activeDelegates: constants.activeDelegates,
 			startingHeight: 0,
 		});
+
 		Object.defineProperty(bftModule, 'finalizedHeight', {
-			get: jest.fn(() => 0),
+			get: jest.fn(() => finalizedHeight),
 		});
 
 		blockProcessorV0 = new BlockProcessorV0({
@@ -189,6 +192,10 @@ describe('block_synchronization_mechanism', () => {
 	});
 
 	beforeEach(async () => {
+		finalizedBlock = createValidDefaultBlock({
+			header: { height: finalizedHeight, asset: { maxHeightPrevoted: 0 } },
+		});
+
 		aBlock = createValidDefaultBlock({
 			header: { height: 10, asset: { maxHeightPrevoted: 0 } },
 		});
@@ -197,17 +204,24 @@ describe('block_synchronization_mechanism', () => {
 		when(chainModule.dataAccess.getBlockHeaderByID)
 			.calledWith(genesisBlock.header.id)
 			.mockResolvedValue(genesisBlock.header as never);
+
+		when(chainModule.dataAccess.getBlockHeaderByID)
+			.calledWith(finalizedBlock.header.id)
+			.mockResolvedValue(finalizedBlock.header as never);
+
 		when(chainModule.dataAccess.getAccountsByPublicKey)
 			.calledWith()
 			.mockResolvedValue([{ publicKey: 'aPublicKey' }] as never);
 		// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 		// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
 		const lastBlock = createValidDefaultBlock({
-			header: { height: genesisBlock.header.height + 1 },
+			header: { height: finalizedHeight + 1 },
 		});
+
 		when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
-			.calledWith(0, 1)
-			.mockResolvedValue([lastBlock] as never);
+			.calledWith(genesisBlock.header.height, lastBlock.header.height)
+			.mockResolvedValue([genesisBlock, finalizedBlock, lastBlock] as never);
+
 		when(chainModule.dataAccess.getLastBlock)
 			.calledWith()
 			.mockResolvedValue(lastBlock as never);
@@ -248,10 +262,10 @@ describe('block_synchronization_mechanism', () => {
 			dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
 		);
 
-		blockList = [genesisBlock as any];
+		blockList = [finalizedBlock as any];
 		blockIdsList = [blockList[0].header.id];
 
-		highestCommonBlock = genesisBlock.header;
+		highestCommonBlock = finalizedBlock.header;
 		requestedBlocks = [
 			...new Array(10).fill(0).map((_, index) =>
 				createValidDefaultBlock({
@@ -749,7 +763,7 @@ describe('block_synchronization_mechanism', () => {
 						dposModule.rounds.calcRound(chainModule.lastBlock.header.height),
 					);
 
-					blockList = [genesisBlock];
+					blockList = [finalizedBlock];
 					blockIdsList = [blockList[0].header.id];
 
 					highestCommonBlock = createFakeBlockHeader({
