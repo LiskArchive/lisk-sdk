@@ -186,8 +186,9 @@ describe('processor', () => {
 			processor.register(blockProcessorV1);
 		});
 
-		it('should invoke processValidated for genesis block', async () => {
+		it('should invoke processValidated for genesis block if it does not exists in chain', async () => {
 			// Arrange
+			jest.spyOn(chainModuleStub, 'exists').mockResolvedValue(false);
 			jest.spyOn(processor, 'processValidated');
 
 			// Act
@@ -199,6 +200,20 @@ describe('processor', () => {
 			});
 			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 		});
+
+		it('should not invoke processValidated for genesis block if it exists in chain', async () => {
+			// Arrange
+			jest.spyOn(chainModuleStub, 'exists').mockResolvedValue(true);
+			jest.spyOn(processor, 'processValidated');
+
+			// Act
+			await processor.init();
+
+			// Assert
+			expect(processor.processValidated).not.toHaveBeenCalled();
+			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
+		});
+
 		it('should init chainModule', () => {});
 
 		describe('when processor has multiple block processor registered', () => {
