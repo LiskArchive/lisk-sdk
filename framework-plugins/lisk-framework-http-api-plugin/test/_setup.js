@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * as cryptography from '@liskhq/lisk-cryptography';
-export * as transactions from '@liskhq/lisk-transactions';
-export * as validator from '@liskhq/lisk-validator';
-export * from '@liskhq/lisk-framework-http-api-plugin';
-export * from 'lisk-framework';
+require('jest-extended');
 
-export { genesisBlockDevnet, configDevnet } from './samples';
+// @todo extend jest to have "toHaveBeenCalledOnceWith" matcher.
+
+process.env.NODE_ENV = 'test';
