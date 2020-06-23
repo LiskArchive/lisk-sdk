@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -70,15 +70,15 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 			},
 		]);
 
-		// eslint-disable-next-line @typescript-eslint/require-await
-		this.forkStatus.pipe([async (): Promise<number> => ForkStatus.VALID_BLOCK]);
-
 		this.verify.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
 			async (): Promise<void> => {
 				this.logger.info('Skipping verification of validated genesis block');
 			},
 		]);
+
+		// eslint-disable-next-line @typescript-eslint/require-await
+		this.forkStatus.pipe([async (): Promise<number> => ForkStatus.VALID_BLOCK]);
 
 		this.validate.pipe([
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -107,7 +107,7 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 		);
 
 		this.logger.debug(
-			`Applying genesis ${genesis.header.asset.accounts.length} accounts `,
+			`Applying genesis accounts: ${genesis.header.asset.accounts.length}`,
 		);
 		for (const account of genesis.header.asset.accounts) {
 			stateStore.account.set(
@@ -123,10 +123,9 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 				username: account.asset.delegate.username,
 			}));
 
-		this.logger.debug(`Applying delegate usernames from genesis accounts`);
-		this.logger.debug(delegateUsernames);
+		this.logger.debug(
+			`Applying delegate usernames from genesis accounts : ${delegateUsernames.length}`,
+		);
 		await this.dposModule.setRegisteredDelegates(stateStore, delegateUsernames);
-
-		return Promise.resolve();
 	}
 }

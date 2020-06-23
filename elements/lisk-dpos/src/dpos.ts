@@ -125,12 +125,12 @@ export class Dpos {
 		);
 
 		if (usernamesBuffer) {
-			const parsedUsernames = codec.decode<DecodedUsernames>(
+			const decodedUsernames = codec.decode<DecodedUsernames>(
 				delegatesUserNamesSchema,
 				usernamesBuffer,
 			);
 
-			return parsedUsernames.registeredDelegates;
+			return decodedUsernames.registeredDelegates;
 		}
 
 		return [];
