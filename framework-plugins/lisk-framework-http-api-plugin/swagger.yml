@@ -78,7 +78,9 @@ paths:
       parameters:
         - name: address
           in: path
-          description: Address of requesting account in base32 format
+          example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+          description: |
+            The Lisk address is the human readable representation of the accounts owners public key in base64 format.
           required: true
           schema:
             type: string
@@ -525,10 +527,9 @@ definitions:
     properties:
       address:
         type: string
-        example: lskzkfw7ofgp3uusknbetemrey4aeatgf2ntbhcds
+        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
         description: |
-          The Lisk address is the human readable representation of the accounts owners public key.
-          It is encoded to base32 as defined in LIP-0018
+          The Lisk address is the human readable representation of the accounts owners public key in base64 format.
       balance:
         type: string
         example: 1081560729258
@@ -649,10 +650,9 @@ definitions:
     properties:
       address:
         type: string
-        example: lskzkfw7ofgp3uusknbetemrey4aeatgf2ntbhcds
+        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
         description: |
-          The Lisk address is the human readable representation of the accounts owners public key.
-          It is encoded to base32 as defined in LIP-0018
+          The Lisk address is the human readable representation of the accounts owners public key in base64 format.
       totalVotesReceived:
         type: string
         example: 1081560729258
