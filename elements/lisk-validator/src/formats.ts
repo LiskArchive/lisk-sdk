@@ -51,10 +51,8 @@ export const version = isSemVer;
 export const protocolVersion = (data: string): boolean =>
 	/^(\d|[1-9]\d{1,2})\.(\d|[1-9]\d{1,2})$/.test(data);
 
-export const path = (data: string): boolean => {
-	const pathRegExp = new RegExp('^(.?)(/[^/]+)+$');
-	return pathRegExp.test(data);
-};
+export const path = (data: string): boolean =>
+	/^(.?)(\/[^/]+)+(\/?)$/.test(data);
 
 export const encryptedPassphrase = isEncryptedPassphrase;
 
