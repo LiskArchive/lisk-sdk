@@ -778,7 +778,7 @@ definitions:
       - networkID
       - lastBlockID
       - height
-      - chainMaxHeightFinalized
+      - finalizedHeight
       - syncing
       - unconfirmedTransactions
       - genesisConfig
@@ -807,7 +807,7 @@ definitions:
         description: |
           Current block height of the node.
           Represents the current number of blocks in the chain on the node.
-      chainMaxHeightFinalized:
+      finalizedHeight:
         type: integer
         example: 123
         description: |
