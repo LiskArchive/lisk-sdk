@@ -109,19 +109,22 @@ export class BlockProcessorV0 extends BaseBlockProcessor {
 		this.logger.debug(
 			`Applying genesis accounts: ${genesis.header.asset.accounts.length}`,
 		);
+
+		const delegateUsernames: { address: Buffer; username: string }[] = [];
+
 		for (const account of genesis.header.asset.accounts) {
 			stateStore.account.set(
 				account.address,
 				new Account<AccountAsset>(account),
 			);
-		}
 
-		const delegateUsernames = genesis.header.asset.accounts
-			.filter(account => account.asset.delegate.username !== '')
-			.map(account => ({
-				address: account.address,
-				username: account.asset.delegate.username,
-			}));
+			if (account.asset.delegate.username !== '') {
+				delegateUsernames.push({
+					address: account.address,
+					username: account.asset.delegate.username,
+				});
+			}
+		}
 
 		this.logger.debug(
 			`Applying delegate usernames from genesis accounts : ${delegateUsernames.length}`,
