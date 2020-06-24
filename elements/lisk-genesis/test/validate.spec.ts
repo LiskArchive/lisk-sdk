@@ -18,6 +18,7 @@ import {
 	GenesisAccountState,
 	GenesisBlock,
 	validateGenesisBlock,
+	DefaultAccountAsset,
 } from '../src';
 import { mergeDeep } from '../src/utils';
 import { validGenesisBlockParams } from './fixtures';
@@ -32,7 +33,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			header: { version: 1 },
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -53,7 +54,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			header: { reward: BigInt(1) },
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -74,7 +75,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			header: { transactionRoot: Buffer.from(getRandomBytes(20)) },
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -95,7 +96,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			header: { generatorPublicKey: Buffer.from(getRandomBytes(20)) },
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -116,7 +117,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			header: { signature: Buffer.from(getRandomBytes(20)) },
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -137,7 +138,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			payload: [Buffer.from(getRandomBytes(10))],
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -158,7 +159,7 @@ describe('validate', () => {
 		// Arrange
 		const gb = mergeDeep({}, genesisBlock, {
 			header: { asset: { initRounds: 2 } },
-		}) as GenesisBlock;
+		}) as GenesisBlock<DefaultAccountAsset>;
 
 		// Act
 		const errors = validateGenesisBlock(gb, {
@@ -190,7 +191,7 @@ describe('validate', () => {
 						initDelegates,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -222,7 +223,7 @@ describe('validate', () => {
 						initDelegates,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -251,7 +252,7 @@ describe('validate', () => {
 			);
 			const delegate = accounts.find(a => {
 				return genesisBlock.header.asset.initDelegates[0].equals(a.address);
-			}) as GenesisAccountState;
+			}) as GenesisAccountState<DefaultAccountAsset>;
 			delegate.asset.delegate.username = '';
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
@@ -259,7 +260,7 @@ describe('validate', () => {
 						accounts: accounts.sort((a, b) => a.address.compare(b.address)),
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -291,7 +292,7 @@ describe('validate', () => {
 						initDelegates,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -320,7 +321,7 @@ describe('validate', () => {
 						initDelegates,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -345,7 +346,9 @@ describe('validate', () => {
 		it('should fail if "asset.initDelegates" list items contains more than  "roundLength" items', () => {
 			// Arrange
 			const roundLength = 2;
-			const gb = mergeDeep({}, genesisBlock) as GenesisBlock;
+			const gb = mergeDeep({}, genesisBlock) as GenesisBlock<
+				DefaultAccountAsset
+			>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -377,7 +380,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -410,7 +413,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -432,22 +435,22 @@ describe('validate', () => {
 
 		it('should fail if "asset.accounts" list contains an "address" which does not match with "publicKey"', () => {
 			// Arrange
-			const accounts = genesisBlock.header.asset.accounts.map(acc =>
-				mergeDeep({}, acc),
-			);
+			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
 			const account = accounts.find(a => {
 				return a.asset.delegate.username === '';
-			}) as GenesisAccountState;
+			}) as GenesisAccountState<DefaultAccountAsset>;
 			const newAddress = getRandomBytes(20);
 			const actualAddress = account.address;
-			account.address = newAddress;
+			const newAccount = mergeDeep({}, account, { address: newAddress });
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
-						accounts: accounts.sort((a, b) => a.address.compare(b.address)),
+						accounts: [...accounts, newAccount].sort((a, b) =>
+							a.address.compare(b.address),
+						),
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -473,15 +476,21 @@ describe('validate', () => {
 
 		it('should fail if sum of balance of all "asset.accounts" is greater than 2^63-1', () => {
 			// Arrange
-			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			accounts[0].balance = BigInt(2) ** BigInt(63);
+			const [account, ...accounts] = cloneDeep(
+				genesisBlock.header.asset.accounts,
+			);
+			const newAccount = mergeDeep({}, account, {
+				balance: BigInt(2) ** BigInt(63),
+			});
 			const gb = mergeDeep({}, genesisBlock, {
 				header: {
 					asset: {
-						accounts,
+						accounts: [newAccount, ...accounts].sort((a, b) =>
+							a.address.compare(b.address),
+						),
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -519,7 +528,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -557,7 +566,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -599,7 +608,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -638,7 +647,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -686,7 +695,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -720,7 +729,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -764,7 +773,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -802,7 +811,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {
@@ -847,7 +856,7 @@ describe('validate', () => {
 						accounts,
 					},
 				},
-			}) as GenesisBlock;
+			}) as GenesisBlock<DefaultAccountAsset>;
 
 			// Act
 			const errors = validateGenesisBlock(gb, {

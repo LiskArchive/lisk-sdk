@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { KVStore } from '@liskhq/lisk-db';
-import { Block, Chain } from '@liskhq/lisk-chain';
+import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT } from '@liskhq/lisk-bft';
 import { Dpos } from '@liskhq/lisk-dpos';
 
@@ -37,6 +37,7 @@ import {
 	accountAssetSchema,
 	defaultAccountAsset,
 } from '../../../../../../../src/application/node/account';
+import { BlockProcessorV0 } from '../../../../../../../src/application/node/block_processor_v0';
 
 const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 	'../../../../../../../src/controller/channels/in_memory_channel',
@@ -46,8 +47,13 @@ jest.mock('@liskhq/lisk-db');
 
 describe('fast_chain_switching_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
+	const finalizedHeight = genesisBlock.header.height + 1;
+	let finalizedBlock: Block;
+	let lastBlock: Block;
+
 	let bftModule: any;
 	let blockProcessorV2;
+	let blockProcessorV0;
 	let chainModule: any;
 	let dposModule: any;
 	let processorModule: any;
@@ -94,6 +100,7 @@ describe('fast_chain_switching_mechanism', () => {
 			getBlockHeadersWithHeights: jest.fn(),
 			getBlockByID: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
+			getBlockHeaderByID: jest.fn(),
 			getLastBlock: jest.fn(),
 			getBlockHeadersByHeightBetween: jest.fn(),
 			addBlockHeader: jest.fn(),
@@ -122,10 +129,17 @@ describe('fast_chain_switching_mechanism', () => {
 			chain: chainModule,
 			dpos: dposModule,
 			activeDelegates: constants.activeDelegates,
-			startingHeight: 1,
+			startingHeight: 0,
 		});
+
 		Object.defineProperty(bftModule, 'finalizedHeight', {
-			get: jest.fn(() => 1),
+			get: jest.fn(() => finalizedHeight),
+		});
+
+		blockProcessorV0 = new BlockProcessorV0({
+			dposModule,
+			logger: loggerMock,
+			constants,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
@@ -147,6 +161,10 @@ describe('fast_chain_switching_mechanism', () => {
 		processorModule.processValidated = jest.fn();
 		processorModule.validate = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
+		processorModule.register(blockProcessorV0, {
+			matcher: (header: BlockHeader) =>
+				header.version === genesisBlock.header.version,
+		});
 		processorModule.register(blockProcessorV2);
 
 		fastChainSwitchingMechanism = new FastChainSwitchingMechanism({
@@ -250,29 +268,43 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		beforeEach(async () => {
+			finalizedBlock = createValidDefaultBlock({
+				header: { height: finalizedHeight },
+			});
+
 			aBlock = createValidDefaultBlock();
 			// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
 			// memory. The following mock fakes this to be true
 			// chainModule.init will load the last block from storage and store it in ._lastBlock variable. The following mock
 			// simulates the last block in storage. So the storage has 2 blocks, the genesis block + a new one.
-			const lastBlock = createValidDefaultBlock({
-				header: { height: genesisBlock.header.height + 1 },
+			lastBlock = createValidDefaultBlock({
+				header: { height: finalizedHeight + 1 },
 			});
-			when(chainModule.dataAccess.getBlockHeaderByHeight)
-				.calledWith(1)
+
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(genesisBlock.header.id)
 				.mockResolvedValue(genesisBlock.header as never);
+
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(finalizedBlock.header.id)
+				.mockResolvedValue(finalizedBlock.header as never);
+
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
 				.mockResolvedValue(lastBlock as never);
+
 			when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
-				.calledWith(1, 2)
-				.mockResolvedValue([lastBlock] as never);
+				.calledWith(genesisBlock.header.height, lastBlock.header.height)
+				.mockResolvedValue([genesisBlock, finalizedBlock, lastBlock] as never);
+
 			when(chainModule.dataAccess.addBlockHeader)
 				.calledWith(lastBlock)
 				.mockResolvedValue([] as never);
+
 			when(chainModule.dataAccess.getLastBlockHeader)
 				.calledWith()
 				.mockResolvedValue(lastBlock as never);
+
 			when(chainModule.dataAccess.getBlockHeadersWithHeights)
 				.calledWith([2, 1])
 				.mockResolvedValue([genesisBlock.header, lastBlock.header] as never);
@@ -443,10 +475,10 @@ describe('fast_chain_switching_mechanism', () => {
 			it('should abort the syncing mechanism if the difference in height between the common block and the last block is > delegatesPerRound*2 ', async () => {
 				// Arrange
 				const highestCommonBlock = createFakeBlockHeader({
-					height: 2,
+					height: lastBlock.header.height + 1,
 				});
 				// Difference in height between the common block and the last block is > delegatesPerRound*2
-				const lastBlock = createValidDefaultBlock({
+				lastBlock = createValidDefaultBlock({
 					header: {
 						height:
 							highestCommonBlock.height + dposModule.delegatesPerRound * 2 + 1,
@@ -542,11 +574,15 @@ describe('fast_chain_switching_mechanism', () => {
 						id: genesisBlock.header.id,
 					},
 					{
+						id: finalizedBlock.header.id,
+					},
+					{
 						id: chainModule.lastBlock.header.id,
 					},
 				];
+
 				const highestCommonBlock = createFakeBlockHeader({
-					height: genesisBlock.header.height,
+					height: finalizedBlock.header.height,
 				});
 
 				const requestedBlocks = [
@@ -625,7 +661,7 @@ describe('fast_chain_switching_mechanism', () => {
 					},
 				];
 				const highestCommonBlock = createFakeBlockHeader({
-					height: genesisBlock.header.height,
+					height: finalizedBlock.header.height,
 				});
 
 				const requestedBlocks = [
@@ -688,12 +724,13 @@ describe('fast_chain_switching_mechanism', () => {
 					{
 						id: genesisBlock.header.id,
 					},
+					{ id: finalizedBlock.header.id },
 					{
 						id: chainModule.lastBlock.header.id,
 					},
 				];
 				const highestCommonBlock = createFakeBlockHeader({
-					height: genesisBlock.header.height,
+					height: finalizedBlock.header.height,
 				});
 				const requestedBlocks = [
 					createValidDefaultBlock({
@@ -804,11 +841,14 @@ describe('fast_chain_switching_mechanism', () => {
 						id: genesisBlock.header.id,
 					},
 					{
+						id: finalizedBlock.header.id,
+					},
+					{
 						id: chainModule.lastBlock.header.id,
 					},
 				];
 				const highestCommonBlock = createFakeBlockHeader({
-					height: genesisBlock.header.height,
+					height: finalizedBlock.header.height,
 				});
 				const requestedBlocks = [
 					createValidDefaultBlock({

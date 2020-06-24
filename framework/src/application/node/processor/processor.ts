@@ -100,8 +100,9 @@ export class Processor {
 			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain
-		const blockProcessor = this._getBlockProcessor(genesisBlock);
-		await this._processGenesis(genesisBlock, blockProcessor);
+		if (!(await this.chainModule.exists(genesisBlock))) {
+			await this.processValidated(genesisBlock, { removeFromTempTable: true });
+		}
 		await this.chainModule.init();
 		const stateStore = await this.chainModule.newStateStore();
 		for (const processor of Object.values(this.processors)) {
@@ -367,26 +368,6 @@ export class Processor {
 
 		await this.chainModule.save(block, stateStore, {
 			removeFromTempTable,
-		});
-
-		return block;
-	}
-
-	private async _processGenesis(
-		block: Block,
-		processor: BaseBlockProcessor,
-	): Promise<Block> {
-		const stateStore = await this.chainModule.newStateStore();
-		const isPersisted = await this.chainModule.exists(block);
-		if (isPersisted) {
-			return block;
-		}
-		await processor.applyGenesis.run({
-			block,
-			stateStore,
-		});
-		await this.chainModule.save(block, stateStore, {
-			removeFromTempTable: false,
 		});
 
 		return block;

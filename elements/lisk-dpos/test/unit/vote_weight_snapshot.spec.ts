@@ -118,7 +118,8 @@ describe('Vote weight snapshot', () => {
 			genesisBlock = {
 				id: Buffer.from('genesis-block'),
 				timestamp: 10,
-				height: 1,
+				height: 0,
+				version: 0,
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				asset: {
@@ -157,7 +158,7 @@ describe('Vote weight snapshot', () => {
 
 	describe('given not the last block of a round', () => {
 		let delegates: Account[];
-		let genesisBlock: BlockHeader;
+		let block: BlockHeader;
 
 		beforeEach(() => {
 			// Arrange
@@ -165,10 +166,11 @@ describe('Vote weight snapshot', () => {
 			for (const delegate of delegates) {
 				delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 			}
-			genesisBlock = {
+			block = {
 				id: Buffer.from('random-block'),
 				timestamp: 50,
 				height: 5,
+				version: 2,
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				asset: {
@@ -203,7 +205,7 @@ describe('Vote weight snapshot', () => {
 		describe('when apply is called', () => {
 			it('should not snapshot the voteweight', async () => {
 				// Act
-				await dpos.apply(genesisBlock, stateStore);
+				await dpos.apply(block, stateStore);
 
 				// Assert
 				expect(stateStore.consensus.set).not.toHaveBeenCalled();
@@ -245,6 +247,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -383,6 +386,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -531,6 +535,7 @@ describe('Vote weight snapshot', () => {
 					id: 'random-block',
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
@@ -674,6 +679,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -824,6 +830,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -970,6 +977,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -1105,6 +1113,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -1248,6 +1257,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {

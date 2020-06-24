@@ -39,7 +39,8 @@
 		"@liskhq/lisk-cryptography": "2.5.0-alpha.0",
 		"@liskhq/lisk-chain": "0.1.0-alpha.0",
 		"@liskhq/lisk-validator": "0.4.0-alpha.0",
-		"@liskhq/lisk-codec": "0.1.0"
+		"@liskhq/lisk-codec": "0.1.0",
+		"lodash.clonedeep": "4.5.0"
 	},
 	"devDependencies": {
 		"@types/node": "12.12.11",
@@ -55,7 +56,6 @@
 		"jest": "25.1.0",
 		"jest-extended": "0.11.5",
 		"jest-when": "2.7.0",
-		"lodash.clonedeep": "4.5.0",
 		"prettier": "1.19.1",
 		"source-map-support": "0.5.16",
 		"ts-jest": "25.2.1",

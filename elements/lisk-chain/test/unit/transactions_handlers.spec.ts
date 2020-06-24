@@ -197,56 +197,6 @@ describe('transactions', () => {
 		});
 	});
 
-	describe('#applyGenesisTransactions', () => {
-		const trs1Response = {
-			status: TransactionStatus.OK,
-			id: trs1.id,
-		};
-		const trs2Response = {
-			status: TransactionStatus.OK,
-			id: trs2.id,
-		};
-
-		beforeEach(() => {
-			trs1.apply.mockReturnValue(trs1Response);
-			trs2.apply.mockReturnValue(trs2Response);
-		});
-
-		it('should apply all transactions', async () => {
-			await transactionHandlers.applyGenesisTransactions(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			expect(trs1.apply).toHaveBeenCalledTimes(1);
-			expect(trs2.apply).toHaveBeenCalledTimes(1);
-		});
-
-		it('should override the status of transaction to TransactionStatus.OK', async () => {
-			trs1.apply.mockReturnValue({
-				status: TransactionStatus.FAIL,
-				id: trs1.id,
-			});
-
-			const result = await transactionHandlers.applyGenesisTransactions(
-				[trs1],
-				stateStoreMock,
-			);
-
-			expect(result[0].status).toEqual(TransactionStatus.OK);
-		});
-
-		it('should return transaction responses and state store', async () => {
-			const result = await transactionHandlers.applyGenesisTransactions(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			// expect(result.stateStore).to.be.eql(stateStoreMock);
-			expect(result).toEqual([trs1Response, trs2Response]);
-		});
-	});
-
 	describe('#applyTransactions', () => {
 		let trs1Response: TransactionResponse;
 		let trs2Response: TransactionResponse;

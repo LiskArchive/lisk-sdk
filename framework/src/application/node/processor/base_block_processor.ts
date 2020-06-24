@@ -60,7 +60,6 @@ export abstract class BaseBlockProcessor {
 	public validate: Pipeline<ValidateInput>;
 	public verify: Pipeline<ProcessInput>;
 	public apply: Pipeline<ProcessInput>;
-	public applyGenesis: Pipeline<ProcessGenesisInput>;
 
 	public constructor() {
 		this.init = new Pipeline();
@@ -74,8 +73,6 @@ export abstract class BaseBlockProcessor {
 		this.verify = new Pipeline();
 
 		this.apply = new Pipeline();
-
-		this.applyGenesis = new Pipeline();
 	}
 
 	public abstract get version(): number;

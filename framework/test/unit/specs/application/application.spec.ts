@@ -27,7 +27,10 @@ import * as networkConfig from '../../../fixtures/config/devnet/config.json';
 import * as genesisBlock from '../../../fixtures/config/devnet/genesis_block.json';
 import { systemDirs } from '../../../../src/application/system_dirs';
 import { createLogger } from '../../../../src/application/logger';
-import { GenesisBlockJSON } from '../../../../src/application/genesis_block';
+import {
+	genesisBlockFromJSON,
+	GenesisBlockJSON,
+} from '../../../../src/application/genesis_block';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -166,9 +169,10 @@ describe('Application', () => {
 		it('should set internal variables', () => {
 			// Act
 			const app = new Application(genesisBlock as GenesisBlockJSON, config);
+			const parsedGenesisBlock = genesisBlockFromJSON(genesisBlock);
 
 			// Assert
-			expect(app['_genesisBlock']).toBe(genesisBlock);
+			expect(app['_genesisBlock']).toEqual(parsedGenesisBlock);
 			expect(app.config).toMatchSnapshot();
 			expect(app['_controller']).toBeUndefined();
 			expect(app['_node']).toBeUndefined();

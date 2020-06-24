@@ -69,7 +69,7 @@ describe('Public block related P2P endpoints', () => {
 				const decodedBlock = app['_node']['_chain'].dataAccess.decode(
 					Buffer.from(id, 'base64'),
 				);
-				expect(decodedBlock.header.height).toBeGreaterThan(1);
+				expect(decodedBlock.header.height).toBeGreaterThan(0);
 			}
 		});
 
@@ -105,7 +105,8 @@ describe('Public block related P2P endpoints', () => {
 			const decodedBlock = app['_node']['_chain'].dataAccess.decodeBlockHeader(
 				Buffer.from(data as string, 'base64'),
 			);
-			expect(decodedBlock.height).toEqual(1);
+			expect(decodedBlock.version).toEqual(0);
+			expect(decodedBlock.height).toEqual(0);
 		});
 
 		it('should return undefined', async () => {
