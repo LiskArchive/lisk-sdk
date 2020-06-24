@@ -20,7 +20,7 @@ import {
 	getURL,
 } from './utils/application';
 
-describe('Public block related P2P endpoints', () => {
+describe('Hello endpoint', () => {
 	let app: Application;
 
 	beforeAll(async () => {
