@@ -126,16 +126,6 @@ export const deleteForgersListUntilRound = async (
 	_setForgersList(stateStore, newForgersList);
 };
 
-export const deleteForgersListAfterRound = async (
-	round: number,
-	stateStore: StateStore,
-): Promise<void> => {
-	debug('Deleting list after round: ', round);
-	const forgersList = await getForgersList(stateStore);
-	const newForgersList = forgersList.filter(fl => fl.round <= round);
-	_setForgersList(stateStore, newForgersList);
-};
-
 export const deleteVoteWeightsUntilRound = async (
 	round: number,
 	stateStore: StateStore,
@@ -143,16 +133,6 @@ export const deleteVoteWeightsUntilRound = async (
 	debug('Deleting voteWeights until round: ', round);
 	const voteWeights = await getVoteWeights(stateStore);
 	const newVoteWeights = voteWeights.filter(vw => vw.round >= round);
-	_setVoteWeights(stateStore, newVoteWeights);
-};
-
-export const deleteVoteWeightsAfterRound = async (
-	round: number,
-	stateStore: StateStore,
-): Promise<void> => {
-	debug('Deleting voteWeights after round: ', round);
-	const voteWeights = await getVoteWeights(stateStore);
-	const newVoteWeights = voteWeights.filter(vw => vw.round <= round);
 	_setVoteWeights(stateStore, newVoteWeights);
 };
 

@@ -69,16 +69,3 @@ export const checkAllowedTransactions = (
 				  ],
 		};
 	});
-
-export const undoTransactions = async (
-	transactions: ReadonlyArray<BaseTransaction>,
-	stateStore: StateStore,
-): Promise<ReadonlyArray<TransactionResponse>> => {
-	const transactionsResponses = [];
-	for (const transaction of transactions) {
-		const transactionResponse = await transaction.undo(stateStore);
-		transactionsResponses.push(transactionResponse);
-	}
-
-	return transactionsResponses;
-};

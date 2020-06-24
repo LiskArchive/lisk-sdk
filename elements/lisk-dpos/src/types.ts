@@ -80,7 +80,6 @@ export interface Account {
 
 export interface DPoSProcessingOptions {
 	readonly delegateListRoundOffset: number;
-	readonly undo?: boolean;
 }
 
 export interface Chain {

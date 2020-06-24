@@ -210,6 +210,27 @@ pipeline {
 						}
 					}
 				}
+				stage('Lisk Framework Plugins') {
+					agent { node { label 'lisk-framework' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:ci --scope=@liskhq/lisk-framework-*'
+						}
+					}
+					post {
+						cleanup {
+							// Save all the test results
+							sh '''
+								rm -rf coverage_framework_plugins; mkdir -p coverage_framework_plugins
+								for f in $( find framework-plugins/*/.coverage/ -type f ); do
+								  cp $f coverage_framework_plugins/$( sha1sum $f | cut -d ' ' -f 1 )_$( basename $f )
+								done
+							'''
+							stash name: "coverage_framework_plugins", includes: "coverage_framework_plugins/*", allowEmpty: true
+						}
+					}
+				}
 			}
 		}
 	}
@@ -231,10 +252,16 @@ pipeline {
 				} catch(err) {
 					println "Could not unstash jest_unit. Continuing."
 				}
+				try {
+					unstash "coverage_framework_plugins"
+				} catch(err) {
+					println "Could not unstash framework_plugins. Continuing."
+				}
 				sh '''
 					rm -rf .nyc_output; mkdir -p .nyc_output
 					rm -rf ci_coverage; mkdir -p ci_coverage
 					cp -r coverage_elements/* ./.nyc_output
+					cp -r coverage_framework_plugins/* ./.nyc_output
 					cp -r coverage_commander/* ./.nyc_output
 					cp coverage_jest_unit/coverage-final.json ./.nyc_output/coverage-framework-unit.json
 				'''

@@ -1,0 +1,68 @@
+####################################################################################
+# Copyright © 2020 Lisk Foundation
+#
+# See the LICENSE file at the top-level directory of this distribution
+# for licensing information.
+#
+# Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+# no part of this software, including this file, may be copied, modified,
+# propagated, or distributed except according to the terms contained in the
+# LICENSE file.
+#
+# Removal or modification of this copyright notice is prohibited.
+####################################################################################
+swagger: '2.0'
+
+info:
+  title: Lisk API documentation
+  description: |
+    # Welcome!
+
+    ## Access restrictions
+    The API endpoints are by default restricted to a whitelist of IPs that can be found under `modules.http_api.access.whiteList` in the config.
+    If it is required for your API to be accessible by the public, this can be achieved by changing `modules.http_api.access.public` to `true`.
+    This will allow anyone to make requests to your Lisk Core node.
+    However some endpoints will stay private, hence this means that only a list of whitelisted IPs can successfully make API calls to that particular endpoint;
+    this includes all forging related API calls.
+    By default, only the nodes' local IP is also included in the whitelist, nevertheless it is possible to change the setting in `config` under `modules.http_api.forging.access.whiteList`.
+    For more details, see the [Lisk Core management docs](https://lisk.io/documentation/lisk-core/3.0.0/management/) or the descriptions at the respective endpoint below.
+
+    ## Requests
+    Chained filter parameters are logically connected with `AND`.
+    `HTTP` is the supported URL schema by default.
+    To enable `HTTPS`, please adjust the `modules.http_api.ssl` section in the config.
+
+    ## Responses
+    The general response format is JSON (`application/json`).
+    The responses for each API request have a common basic structure as shown below:
+    ```javascript
+    {
+        "data": {}, //Contains the requested data.
+        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`.
+        "links": {} //Will contain links to connected API calls from here, e.g. pagination links.
+    }
+    ```
+
+    ## Date formats
+    Most of the timestamp parameters are in the Lisk timestamp format, which is similar to the Unix timestamp format.
+    The **Lisk timestamp** is the number of seconds that have elapsed since the Lisk epoch time (2016-05-24T17:00:00.000Z), not counting leap seconds.
+    The **Lisk epoch time** is returned in the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format, combined with the date and time: `YYYY-MM-DDThh:mm:ssZ`.
+    For details, see the descriptions and examples at the respective endpoint.
+
+    ## Pagination
+    It is possible to easily paginate through the results by providing `limit` and `offset` parameters to the requests.
+    `limit` and `offset` can be found in the `meta`-object of the response of an API request.
+    If no limit and offset are provided they are set to 10 and 0 by default, which in turn will display the first 10 results.
+
+    ## List of endpoints
+    All possible API endpoints for Lisk Core are listed below.
+    Click on an endpoint to show the descriptions, details and examples.
+  version: '1.0.32'
+  contact:
+    email: admin@lisk.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+# All paths relative to specified basePath
+basePath: /api

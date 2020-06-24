@@ -189,12 +189,6 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 		]);
 
-		this.undo.pipe([
-			async ({ block, stateStore }) => this.chainModule.undo(block, stateStore),
-			async ({ block, stateStore }) =>
-				this.dposModule.undo(block.header, stateStore),
-		]);
-
 		this.create.pipe([
 			// Create a block with with basic block and bft properties
 			async ({ data, stateStore }) => {

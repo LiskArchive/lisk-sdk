@@ -169,34 +169,3 @@ export const applyFeeAndRewards = async (
 	stateStore.account.set(generatorAddress, generator);
 	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
 };
-
-export const undoFeeAndRewards = async (
-	block: Block,
-	stateStore: StateStore,
-): Promise<void> => {
-	const generatorAddress = getAddressFromPublicKey(
-		block.header.generatorPublicKey,
-	);
-	const generator = await stateStore.account.get(generatorAddress);
-	generator.balance -= block.header.reward;
-	// If there is no transactions, no need to give fee
-	if (!block.payload.length) {
-		stateStore.account.set(generatorAddress, generator);
-
-		return;
-	}
-	const { totalFee, totalMinFee } = getTotalFees(block);
-
-	generator.balance -= totalFee - totalMinFee;
-	const totalFeeBurntBuffer = await stateStore.chain.get(CHAIN_STATE_BURNT_FEE);
-	let totalFeeBurnt = totalFeeBurntBuffer
-		? totalFeeBurntBuffer.readBigInt64BE()
-		: BigInt(0);
-	totalFeeBurnt -= totalMinFee;
-
-	// Update state store
-	stateStore.account.set(generatorAddress, generator);
-	const updatedTotalBurntBuffer = Buffer.alloc(8);
-	updatedTotalBurntBuffer.writeBigInt64BE(totalFeeBurnt);
-	stateStore.chain.set(CHAIN_STATE_BURNT_FEE, updatedTotalBurntBuffer);
-};

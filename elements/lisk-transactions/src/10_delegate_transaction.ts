@@ -183,30 +183,6 @@ export class DelegateTransaction extends BaseTransaction {
 		return errors;
 	}
 
-	protected async undoAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
-		const sender = await store.account.get<AccountAsset>(this.senderId);
-
-		// Data format for the registered delegates
-		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernames = await this._getRegisteredDelegates(store);
-
-		const updatedRegisteredDelegates = {
-			registeredDelegates: usernames.registeredDelegates.filter(
-				delegate => delegate.username !== sender.asset.delegate.username,
-			),
-		};
-		updatedRegisteredDelegates.registeredDelegates.sort((a, b) =>
-			a.address.compare(b.address),
-		);
-		this._setRegisteredDelegates(store, updatedRegisteredDelegates);
-
-		sender.asset.delegate.username = '';
-		store.account.set(sender.address, sender);
-		return [];
-	}
-
 	// eslint-disable-next-line class-methods-use-this
 	private async _getRegisteredDelegates(
 		store: StateStore,
@@ -231,25 +207,5 @@ export class DelegateTransaction extends BaseTransaction {
 		);
 
 		return parsedUsernames as ChainUsernames;
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	private _setRegisteredDelegates(
-		store: StateStore,
-		input: ChainUsernames,
-	): void {
-		const updatingObject = {
-			registeredDelegates: input.registeredDelegates.map(value => ({
-				address: value.address,
-				username: value.username,
-			})),
-		};
-
-		const updatingObjectBinary = codec.encode(
-			delegatesUserNamesSchema,
-			updatingObject,
-		);
-
-		store.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObjectBinary);
 	}
 }

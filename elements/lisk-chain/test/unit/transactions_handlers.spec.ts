@@ -41,10 +41,6 @@ describe('transactions', () => {
 		trs1.apply = jest.fn();
 		trs2.apply = jest.fn();
 
-		// Add undo steps to transactions
-		trs1.undo = jest.fn();
-		trs2.undo = jest.fn();
-
 		stateStoreMock = {
 			createSnapshot: jest.fn(),
 			restoreSnapshot: jest.fn(),
@@ -226,44 +222,6 @@ describe('transactions', () => {
 
 			expect(trs1.apply).toHaveBeenCalledTimes(1);
 			expect(trs2.apply).toHaveBeenCalledTimes(1);
-		});
-	});
-
-	describe('#undoTransactions', () => {
-		let trs1Response: TransactionResponse;
-		let trs2Response: TransactionResponse;
-
-		beforeEach(() => {
-			trs1Response = {
-				status: TransactionStatus.OK,
-				id: trs1.id,
-				errors: [],
-			};
-			trs2Response = {
-				status: TransactionStatus.OK,
-				id: trs2.id,
-				errors: [],
-			};
-
-			trs1.undo.mockReturnValue(trs1Response);
-			trs2.undo.mockReturnValue(trs2Response);
-		});
-
-		it('should undo for every transaction', async () => {
-			await transactionHandlers.undoTransactions([trs1, trs2], stateStoreMock);
-
-			expect(trs1.undo).toHaveBeenCalledTimes(1);
-			expect(trs2.undo).toHaveBeenCalledTimes(1);
-		});
-
-		it('should return transaction responses and state store', async () => {
-			const result = await transactionHandlers.undoTransactions(
-				[trs1, trs2],
-				stateStoreMock,
-			);
-
-			// expect(result.stateStore).to.be.eql(stateStoreMock);
-			expect(result).toEqual([trs1Response, trs2Response]);
 		});
 	});
 });

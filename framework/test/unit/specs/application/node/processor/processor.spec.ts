@@ -270,19 +270,17 @@ describe('processor', () => {
 		let validateSteps: jest.Mock[];
 		let verifySteps: jest.Mock[];
 		let applySteps: jest.Mock[];
-		let undoSteps: jest.Mock[];
 
 		beforeEach(() => {
 			forkSteps = [jest.fn().mockResolvedValue(1)];
 			validateSteps = [jest.fn(), jest.fn()];
 			verifySteps = [jest.fn(), jest.fn()];
 			applySteps = [jest.fn(), jest.fn()];
-			undoSteps = [jest.fn(), jest.fn()];
+
 			blockProcessorV1.forkStatus.pipe(forkSteps);
 			blockProcessorV1.validate.pipe(validateSteps);
 			blockProcessorV1.verify.pipe(verifySteps);
 			blockProcessorV1.apply.pipe(applySteps);
-			blockProcessorV1.undo.pipe(undoSteps);
 			processor.register(blockProcessorV1, {
 				matcher: ({ height }) => height < 100,
 			});
@@ -434,15 +432,6 @@ describe('processor', () => {
 			});
 
 			it('should revert the last block', () => {
-				undoSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: defaultLastBlock,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
 				expect(chainModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
@@ -524,15 +513,6 @@ describe('processor', () => {
 			});
 
 			it('should revert the last block', () => {
-				undoSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: defaultLastBlock,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
 				expect(chainModuleStub.remove).toHaveBeenCalledWith(
 					defaultLastBlock,
 					stateStoreStub,
@@ -1071,69 +1051,15 @@ describe('processor', () => {
 	});
 
 	describe('deleteLastBlock', () => {
-		let undoSteps: jest.Mock[];
-
 		beforeEach(() => {
-			undoSteps = [jest.fn(), jest.fn()];
-			blockProcessorV1.undo.pipe(undoSteps);
 			processor.register(blockProcessorV1, {
 				matcher: ({ height }) => height < 100,
-			});
-		});
-
-		describe('when undo step fails', () => {
-			beforeEach(async () => {
-				undoSteps[0].mockRejectedValue(new Error('Invalid block'));
-				try {
-					await processor.deleteLastBlock();
-				} catch (error) {
-					// expected error
-				}
-			});
-
-			it('should not call remove of chainModule', () => {
-				expect(chainModuleStub.remove).not.toHaveBeenCalled();
-			});
-		});
-
-		describe('when removing block fails', () => {
-			beforeEach(async () => {
-				chainModuleStub.remove.mockRejectedValue(new Error('Invalid block'));
-				try {
-					await processor.deleteLastBlock();
-				} catch (error) {
-					// expected error
-				}
-			});
-
-			it('should call undo steps', () => {
-				undoSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: defaultLastBlock,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
 			});
 		});
 
 		describe('when everything is successful', () => {
 			beforeEach(async () => {
 				await processor.deleteLastBlock();
-			});
-
-			it('should call undo steps', () => {
-				undoSteps.forEach(step => {
-					expect(step).toHaveBeenCalledWith(
-						{
-							block: defaultLastBlock,
-							stateStore: stateStoreStub,
-						},
-						undefined,
-					);
-				});
 			});
 
 			it('should call remove from chainModule', () => {

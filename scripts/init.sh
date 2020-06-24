@@ -5,7 +5,8 @@ set -euo pipefail
 IFS=$'\n\t'
 
 packageName=${1:-}
-port=${2:-}
+projectName=${2:-}
+port=${3:-}
 browserPackageName=${packageName}
 
 ROOT_PACKAGE_NAME=$(jq --raw-output '.name' package.json)
@@ -19,7 +20,7 @@ if [ -z "$packageName" ] || [[ "$packageName" =~ [^a-zA-Z0-9-] ]]; then
 	exit 1
 fi
 
-packageDir="./elements/$packageName"
+packageDir="./$projectName/$packageName"
 # Just in case package folder doesn't exist yet.
 mkdir -p "$packageDir"
 mkdir -p "$packageDir/src"
