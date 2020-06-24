@@ -46,7 +46,6 @@ const findObjectByPath = (
 		if (result.properties) {
 			result = result.properties[pathArr[i]];
 		} else if (result.items) {
-			// This is ok because it's checked inside?
 			const x = (result.items as SchemaProps).properties as SchemaPair;
 			result = x[pathArr[i]];
 		}
