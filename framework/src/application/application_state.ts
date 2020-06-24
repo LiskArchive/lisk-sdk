@@ -32,7 +32,7 @@ interface ApplicationStateConstructor {
 	readonly logger: Logger;
 }
 
-interface ApplicationStateUpdate {
+export interface ApplicationStateUpdate {
 	readonly height: number;
 	readonly maxHeightPrevoted?: number;
 	readonly lastBlockId?: string;

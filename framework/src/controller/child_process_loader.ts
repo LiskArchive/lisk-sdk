@@ -54,7 +54,7 @@ process.on('message', ({ loadModule, config, moduleOptions }) => {
 			await _loadModule(config, moduleOptions);
 		}
 	};
-	internalWorker().catch(err => err);
+	internalWorker().catch((err: Error) => err);
 });
 
 // TODO: Removed after https://github.com/LiskHQ/lisk/issues/3210 is fixed

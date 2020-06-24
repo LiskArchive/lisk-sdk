@@ -38,7 +38,7 @@ export class Action {
 	public isPublic: boolean;
 	public handler?: (action: ActionInfoObject) => unknown;
 	public source?: string;
-	public params?: object;
+	public params: object;
 
 	public constructor(
 		name: string,
@@ -82,7 +82,7 @@ export class Action {
 			name: this.name,
 			module: this.module,
 			source: this.source,
-			params: this.params ?? {},
+			params: this.params,
 		};
 	}
 
