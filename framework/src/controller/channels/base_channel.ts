@@ -114,7 +114,6 @@ export abstract class BaseChannel {
 		params?: object,
 	): Promise<T>;
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	abstract async registerToBus(arg: any): Promise<void>;
+	abstract async registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;
 }

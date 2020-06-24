@@ -44,9 +44,8 @@ export class Event {
 	}
 
 	public static deserialize(data: EventInfoObject | string): Event {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const parsedEvent: EventInfoObject =
-			typeof data === 'string' ? JSON.parse(data) : data;
+			typeof data === 'string' ? (JSON.parse(data) as EventInfoObject) : data;
 
 		return new Event(
 			`${parsedEvent.module}:${parsedEvent.name}`,

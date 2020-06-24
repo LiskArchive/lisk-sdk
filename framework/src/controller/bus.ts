@@ -266,17 +266,21 @@ export class Bus extends EventEmitter2 {
 		return Object.keys(this.events);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
-		if (this.pubSocket) {
-			this.pubSocket.close();
-		}
-		if (this.subSocket) {
-			this.subSocket.close();
-		}
-		if (this.rpcSocket) {
-			this.rpcSocket.close();
-		}
+		const closeSockets = async (): Promise<void> =>
+			new Promise(() => {
+				if (this.pubSocket) {
+					this.pubSocket.close();
+				}
+				if (this.subSocket) {
+					this.subSocket.close();
+				}
+				if (this.rpcSocket) {
+					this.rpcSocket.close();
+				}
+			});
+
+		await closeSockets();
 	}
 
 	private async _resolveWhenAllSocketsBound(): Promise<void> {
@@ -325,13 +329,16 @@ export class Bus extends EventEmitter2 {
 		]);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _removeAllListeners(): Promise<void> {
-		this.subSocket?.sock.removeAllListeners('bind');
-		this.subSocket?.sock.removeAllListeners('error');
-		this.pubSocket?.sock.removeAllListeners('bind');
-		this.pubSocket?.sock.removeAllListeners('error');
-		this.rpcSocket?.removeAllListeners('bind');
-		this.rpcSocket?.removeAllListeners('error');
+		const removeAllListenersTask = async (): Promise<void> =>
+			new Promise(() => {
+				this.subSocket?.sock.removeAllListeners('bind');
+				this.subSocket?.sock.removeAllListeners('error');
+				this.pubSocket?.sock.removeAllListeners('bind');
+				this.pubSocket?.sock.removeAllListeners('error');
+				this.rpcSocket?.removeAllListeners('bind');
+				this.rpcSocket?.removeAllListeners('error');
+			});
+		await removeAllListenersTask();
 	}
 }
