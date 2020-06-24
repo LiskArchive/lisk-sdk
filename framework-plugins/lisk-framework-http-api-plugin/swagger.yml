@@ -80,7 +80,7 @@ paths:
           in: path
           example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
           description: |
-            The Lisk address is the human readable representation of the accounts owners public key in base64 format.
+            The binary address in base64 format as defined in LIP-0018.
           required: true
           schema:
             type: string
@@ -281,7 +281,7 @@ paths:
       parameters:
         - in: body
           name: transaction
-          description: Transaction object to submit to the network.
+          description: Transaction object for processing by the transaction pool.
           required: true
           schema:
             $ref: '#/definitions/Transaction'
@@ -529,7 +529,7 @@ definitions:
         type: string
         example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
         description: |
-          The Lisk address is the human readable representation of the accounts owners public key in base64 format.
+          The binary address in base64 format as defined in LIP-0018.
       balance:
         type: string
         example: 1081560729258
@@ -652,7 +652,7 @@ definitions:
         type: string
         example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
         description: |
-          The Lisk address is the human readable representation of the accounts owners public key in base64 format.
+          The binary address in base64 format as defined in LIP-0018.
       totalVotesReceived:
         type: string
         example: 1081560729258
