@@ -13,7 +13,12 @@
  */
 
 import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { createGenesisBlock, GenesisAccountState } from '../src';
+import {
+	createGenesisBlock,
+	DefaultAccountAsset,
+	GenesisAccountState,
+} from '../src';
+import { mergeDeep } from '../src/utils';
 import { validGenesisBlockParams } from './fixtures';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -140,9 +145,7 @@ describe('create', () => {
 
 	it('should set "accounts" ordering lexicographically by "address"', () => {
 		// Arrange
-		const accounts = cloneDeep(
-			validGenesisBlockParams.accounts,
-		) as GenesisAccountState[];
+		const accounts = cloneDeep(validGenesisBlockParams.accounts);
 		accounts.sort((a, b) => b.address.compare(a.address));
 
 		const accountsSortedAddresses = accounts
@@ -163,9 +166,11 @@ describe('create', () => {
 
 	it('should set "accounts[].keys.mandatoryKeys" ordering lexicographically', () => {
 		// Arrange
-		const accounts = cloneDeep(
-			validGenesisBlockParams.accounts,
-		) as GenesisAccountState[];
+		const [account, ...accounts] = cloneDeep(
+			validGenesisBlockParams.accounts.sort((a, b) =>
+				a.address.compare(b.address),
+			),
+		);
 		accounts.sort((a, b) => a.address.compare(b.address));
 		const mandatoryKeysUnsorted = [
 			getRandomBytes(32),
@@ -175,16 +180,18 @@ describe('create', () => {
 		const mandatoryKeysSorted = cloneDeep(mandatoryKeysUnsorted).sort((a, b) =>
 			a.compare(b),
 		);
-		accounts[0].keys = {
-			optionalKeys: [],
-			mandatoryKeys: mandatoryKeysUnsorted,
-			numberOfSignatures: 3,
-		};
+		const newAccount = mergeDeep(account, {
+			keys: {
+				optionalKeys: [],
+				mandatoryKeys: mandatoryKeysUnsorted,
+				numberOfSignatures: 3,
+			},
+		}) as GenesisAccountState<DefaultAccountAsset>;
 
 		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
-			accounts,
+			accounts: [newAccount, ...accounts],
 		});
 
 		// Assert
@@ -195,10 +202,11 @@ describe('create', () => {
 
 	it('should set "accounts[].keys.optionalKeys" ordering lexicographically', () => {
 		// Arrange
-		const accounts = cloneDeep(
-			validGenesisBlockParams.accounts,
-		) as GenesisAccountState[];
-		accounts.sort((a, b) => a.address.compare(b.address));
+		const [account, ...accounts] = cloneDeep(
+			validGenesisBlockParams.accounts.sort((a, b) =>
+				a.address.compare(b.address),
+			),
+		);
 		const optionalKeysUnsorted = [
 			getRandomBytes(32),
 			getRandomBytes(32),
@@ -207,16 +215,18 @@ describe('create', () => {
 		const optionalKeysSorted = cloneDeep(optionalKeysUnsorted).sort((a, b) =>
 			a.compare(b),
 		);
-		accounts[0].keys = {
-			optionalKeys: optionalKeysUnsorted,
-			mandatoryKeys: [],
-			numberOfSignatures: 3,
-		};
+		const newAccount = mergeDeep(account, {
+			keys: {
+				optionalKeys: optionalKeysUnsorted,
+				mandatoryKeys: [],
+				numberOfSignatures: 3,
+			},
+		}) as GenesisAccountState<DefaultAccountAsset>;
 
 		// Act
 		const genesisBlock = createGenesisBlock({
 			...validGenesisBlockParams,
-			accounts,
+			accounts: [newAccount, ...accounts],
 		});
 
 		// Assert

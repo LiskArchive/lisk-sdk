@@ -12,29 +12,50 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, BlockHeader } from '@liskhq/lisk-chain';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
 
-export type GenesisAccountState = Account;
+export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
+	Partial<T>,
+	Exclude<keyof T, Keys>
+> &
+	{
+		[K in Keys]: T[K];
+	};
 
-export interface GenesisBlockHeaderAsset {
-	readonly accounts: ReadonlyArray<GenesisAccountState>;
+export interface GenesisAccountState<T> {
+	readonly address: Buffer;
+	readonly balance: bigint;
+	readonly publicKey: Buffer;
+	readonly nonce: bigint;
+	readonly keys: {
+		mandatoryKeys: Buffer[];
+		optionalKeys: Buffer[];
+		numberOfSignatures: number;
+	};
+	readonly asset: T;
+}
+
+export interface GenesisBlockHeaderAsset<T> {
+	readonly accounts: ReadonlyArray<GenesisAccountState<T>>;
 	readonly initDelegates: ReadonlyArray<Buffer>;
 	readonly initRounds: number;
 }
 
-export type GenesisBlockHeader = BlockHeader<GenesisBlockHeaderAsset>;
+export type GenesisBlockHeader<T> = BlockHeader<GenesisBlockHeaderAsset<T>>;
 
-export type GenesisBlockHeaderWithoutId = Omit<GenesisBlockHeader, 'id'>;
+export type GenesisBlockHeaderWithoutId<T> = Omit<GenesisBlockHeader<T>, 'id'>;
 
-export interface GenesisBlock {
-	readonly header: GenesisBlockHeader;
-	readonly payload: Buffer[];
+export interface GenesisBlock<T> {
+	readonly header: GenesisBlockHeader<T>;
+	readonly payload: [];
 }
 
-export interface GenesisBlockParams {
+export interface GenesisBlockParams<T> {
 	// List of accounts in the genesis
-	readonly accounts: ReadonlyArray<Partial<GenesisAccountState>>;
+	readonly accounts: ReadonlyArray<
+		PartialReq<GenesisAccountState<T>, 'address'>
+	>;
 	// List fo initial delegate addresses used during the bootstrap period to forge blocks
 	readonly initDelegates: ReadonlyArray<Buffer>;
 	// Number of blocks per round

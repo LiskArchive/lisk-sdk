@@ -30,3 +30,11 @@ export class FakeBlockProcessorV1 extends BaseBlockProcessor {
 		super();
 	}
 }
+
+export class FakeBlockProcessorV2 extends BaseBlockProcessor {
+	public readonly version = 2;
+
+	public constructor() {
+		super();
+	}
+}

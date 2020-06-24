@@ -15,4 +15,3 @@
 
 export { applicationConfigSchema } from './application_config_schema';
 export { constantsSchema } from './constants_schema';
-export { genesisBlockSchema } from './genesis_block_schema';

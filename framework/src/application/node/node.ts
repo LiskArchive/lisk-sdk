@@ -21,6 +21,7 @@ import {
 import { Dpos, constants as dposConstants } from '@liskhq/lisk-dpos';
 import { EVENT_BFT_BLOCK_FINALIZED, BFT } from '@liskhq/lisk-bft';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { GenesisBlock } from '@liskhq/lisk-genesis';
 import {
 	TransactionPool,
 	Job,
@@ -42,12 +43,17 @@ import {
 } from './synchronizer';
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
+import { BlockProcessorV0 } from './block_processor_v0';
 import { Logger } from '../logger';
 import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { ApplicationState } from '../application_state';
-import { accountAssetSchema, defaultAccountAsset } from './account';
+import {
+	accountAssetSchema,
+	defaultAccountAsset,
+	AccountAsset,
+} from './account';
 import {
 	EVENT_PROCESSOR_BROADCAST_BLOCK,
 	EVENT_PROCESSOR_SYNC_REQUIRED,
@@ -87,7 +93,7 @@ export interface Options {
 	readonly registeredTransactions: {
 		readonly [key: number]: typeof BaseTransaction;
 	};
-	genesisBlock: Block;
+	genesisBlock: GenesisBlock<AccountAsset>;
 }
 
 interface NodeConstructor {
@@ -166,18 +172,33 @@ export class Node {
 
 			this._initModules();
 
-			// Prepare dependency
-			const processorDependencies = {
-				networkIdentifier: this._networkIdentifier,
-				chainModule: this._chain,
-				bftModule: this._bft,
-				dposModule: this._dpos,
-				logger: this._logger,
-				constants: this._options.constants,
-				forgerDB: this._forgerDB,
-			};
+			this._processor.register(
+				new BlockProcessorV0({
+					dposModule: this._dpos,
+					logger: this._logger,
+					constants: {
+						roundLength:
+							this._options.constants.activeDelegates +
+							this._options.constants.standbyDelegates,
+					},
+				}),
+				{
+					matcher: header =>
+						header.version === this._options.genesisBlock.header.version,
+				},
+			);
 
-			this._processor.register(new BlockProcessorV2(processorDependencies));
+			this._processor.register(
+				new BlockProcessorV2({
+					networkIdentifier: this._networkIdentifier,
+					chainModule: this._chain,
+					bftModule: this._bft,
+					dposModule: this._dpos,
+					logger: this._logger,
+					constants: this._options.constants,
+					forgerDB: this._forgerDB,
+				}),
+			);
 
 			this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 				Object.assign(this._applicationState, event.data);
@@ -464,6 +485,7 @@ export class Node {
 				default: defaultAccountAsset,
 			},
 			registeredBlocks: {
+				0: BlockProcessorV0.schema,
 				2: BlockProcessorV2.schema,
 			},
 			networkIdentifier: this._networkIdentifier,

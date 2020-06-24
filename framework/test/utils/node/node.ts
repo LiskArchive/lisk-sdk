@@ -19,7 +19,6 @@ import { registeredTransactions } from '../registered_transactions';
 import { createMockChannel } from '../channel';
 import { Node, Options } from '../../../src/application/node/node';
 import { genesisBlock } from '../../fixtures/blocks';
-import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as config from '../../fixtures/config/devnet/config.json';
 import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
@@ -64,7 +63,9 @@ export const createNode = ({
 			delegates: convertedDelegates,
 		},
 		...options,
-		communityIdentifier: genesisBlockJSON.communityIdentifier,
+		// TODO: Replace this attribute with configuration
+		// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
+		communityIdentifier: 'Lisk',
 		constants: constantsConfig(),
 		genesisBlock: genesisBlock(),
 		registeredTransactions: { ...registeredTransactions },
