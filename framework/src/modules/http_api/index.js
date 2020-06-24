@@ -13,12 +13,12 @@
  */
 
 const HttpApi = require('./http_api');
-const { BaseModule } = require('../base_module');
+const { BasePlugin } = require('../base_plugin');
 const { config: defaultConfig } = require('./defaults');
 
 /* eslint-disable class-methods-use-this */
 
-class HttpAPIModule extends BaseModule {
+class HttpAPIModule extends BasePlugin {
 	constructor(options) {
 		super(options);
 		this.httpApi = null;

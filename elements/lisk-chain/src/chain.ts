@@ -28,7 +28,6 @@ import {
 	calculateMilestone,
 	calculateReward,
 	calculateSupply,
-	undoFeeAndRewards,
 } from './block_reward';
 import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
@@ -43,7 +42,6 @@ import { StateStore } from './state_store';
 import {
 	applyTransactions,
 	checkAllowedTransactions,
-	undoTransactions,
 	validateTransactions,
 } from './transactions';
 import {
@@ -379,28 +377,6 @@ export class Chain {
 			block,
 			accounts: stateStore.account.getUpdated(),
 		});
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	public async undo(block: Block, stateStore: StateStore): Promise<void> {
-		await undoFeeAndRewards(block, stateStore);
-		if (block.payload.length === 0) {
-			return;
-		}
-
-		const transactionsResponses = await undoTransactions(
-			block.payload,
-			stateStore,
-		);
-
-		const unappliedTransactionResponse = transactionsResponses.find(
-			transactionResponse =>
-				transactionResponse.status !== TransactionStatus.OK,
-		);
-
-		if (unappliedTransactionResponse) {
-			throw unappliedTransactionResponse.errors;
-		}
 	}
 
 	public async remove(

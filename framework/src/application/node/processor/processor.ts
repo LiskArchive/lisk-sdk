@@ -205,7 +205,7 @@ export class Processor {
 					stateStore,
 				});
 				const previousLastBlock = cloneDeep(lastBlock);
-				await this._deleteBlock(lastBlock, blockProcessor);
+				await this._deleteBlock(lastBlock);
 				const newLastBlock = this.chainModule.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
@@ -327,8 +327,7 @@ export class Processor {
 				{ id: lastBlock.header.id, height: lastBlock.header.height },
 				'Deleting last block',
 			);
-			const blockProcessor = this._getBlockProcessor(lastBlock);
-			await this._deleteBlock(lastBlock, blockProcessor, saveTempBlock);
+			await this._deleteBlock(lastBlock, saveTempBlock);
 			return this.chainModule.lastBlock;
 		});
 	}
@@ -376,19 +375,14 @@ export class Processor {
 
 	private async _deleteBlock(
 		block: Block,
-		processor: BaseBlockProcessor,
 		saveTempBlock = false,
 	): Promise<void> {
-		// Offset must be set to 1, because lastBlock is still this deleting block
-		const stateStore = await this.chainModule.newStateStore(1);
 		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 
-		await processor.undo.run({
-			block,
-			stateStore,
-		});
+		// Offset must be set to 1, because lastBlock is still this deleting block
+		const stateStore = await this.chainModule.newStateStore(1);
 		await this.chainModule.remove(block, stateStore, { saveTempBlock });
 	}
 

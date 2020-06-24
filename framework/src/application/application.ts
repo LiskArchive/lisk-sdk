@@ -49,7 +49,7 @@ import { Logger, createLogger } from './logger';
 import { mergeDeep } from './utils/merge_deep';
 
 import { DuplicateAppInstanceError } from '../errors';
-import { BaseModule, InstantiableModule } from '../modules/base_module';
+import { BasePlugin, InstantiableModule } from '../modules/base_plugin';
 import { ActionInfoObject } from '../controller/action';
 import {
 	ApplicationConfig,
@@ -109,7 +109,7 @@ export class Application {
 	private _controller!: Controller;
 	private _applicationState!: ApplicationState;
 	private _transactions: { [key: number]: typeof BaseTransaction };
-	private _modules: { [key: string]: InstantiableModule<BaseModule> };
+	private _modules: { [key: string]: InstantiableModule<BasePlugin> };
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: GenesisBlock<AccountAsset>;
@@ -172,7 +172,7 @@ export class Application {
 	}
 
 	public registerModule(
-		moduleKlass: InstantiableModule<BaseModule>,
+		moduleKlass: typeof BasePlugin,
 		options = {},
 		alias?: string,
 	): void {
@@ -193,7 +193,7 @@ export class Application {
 			this.config.modules[moduleAlias] ?? {},
 			options,
 		);
-		this._modules[moduleAlias] = moduleKlass;
+		this._modules[moduleAlias] = moduleKlass as InstantiableModule<BasePlugin>;
 	}
 
 	public overrideModuleOptions(alias: string, options?: object): void {
@@ -251,11 +251,11 @@ export class Application {
 		return this._transactions[transactionType];
 	}
 
-	public getModule(alias: string): InstantiableModule<BaseModule> {
+	public getModule(alias: string): InstantiableModule<BasePlugin> {
 		return this._modules[alias];
 	}
 
-	public getModules(): { [key: string]: InstantiableModule<BaseModule> } {
+	public getModules(): { [key: string]: InstantiableModule<BasePlugin> } {
 		return this._modules;
 	}
 

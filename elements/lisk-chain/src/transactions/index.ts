@@ -16,5 +16,4 @@ export {
 	validateTransactions,
 	applyTransactions,
 	checkAllowedTransactions,
-	undoTransactions,
 } from './transactions_handlers';

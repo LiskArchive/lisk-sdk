@@ -15,6 +15,7 @@
 export * as cryptography from '@liskhq/lisk-cryptography';
 export * as transactions from '@liskhq/lisk-transactions';
 export * as validator from '@liskhq/lisk-validator';
+export * from '@liskhq/lisk-framework-http-api-plugin';
 export * from 'lisk-framework';
 
 export { genesisBlockDevnet, configDevnet } from './samples';
