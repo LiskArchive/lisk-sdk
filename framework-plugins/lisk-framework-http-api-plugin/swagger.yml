@@ -726,7 +726,7 @@ definitions:
         type: number
         example: 4368793
         description: |
-          Returns the unix timestamp in which the forger will be able to forge the next block.
+          Returns the unix timestamp in second in which the forger will be able to forge the next block.
           Each slot has a timespan of 10 seconds.
 
   Peer:
