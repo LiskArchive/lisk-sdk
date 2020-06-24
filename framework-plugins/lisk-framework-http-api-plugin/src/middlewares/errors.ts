@@ -11,6 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { Request, Response, NextFunction } from 'express';
 
-export * from './whitelist';
-export * from './errors';
+export const errorMiddleware = () => (
+	err: Error | Error[],
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
+): void => {
+	const errors = Array.isArray(err) ? err : [err];
+	for (const error of errors) {
+		// Include message property in response
+		Object.defineProperty(error, 'message', { enumerable: true });
+	}
+	res.status(500).send({ errors });
+};
