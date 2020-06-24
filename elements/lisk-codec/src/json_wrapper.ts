@@ -1,7 +1,24 @@
-/* eslint-disable */
+/*
+ * Copyright © 2020 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
 import { codec } from './codec';
-import { GenericObject, Schema, SchemaPair, SchemaProps } from './types';
+import { GenericObject, Schema, SchemaPair, SchemaProps, SchemaScalarItem } from './types';
+
+interface IteratableGenericObject extends GenericObject {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[Symbol.iterator](): Iterator<{ key: string; value: any}>
+}
 
 const _liskMessageValueToJSONValue: {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,18 +34,20 @@ const _liskMessageValueToJSONValue: {
 };
 
 const findObjectByPath = (
-	message: SchemaPair,
+	message: SchemaProps,
 	pathArr: string[],
 ): SchemaProps | undefined => {
-	let result = message;
+	let result: SchemaProps = message;
 	for (let i = 0; i < pathArr.length; i += 1) {
-		if (result[pathArr[i]] === undefined) {
+		if (!result.properties && !result.items) {
 			return undefined;
 		}
-		if (result[pathArr[i]].properties !== undefined) {
-			result = result[pathArr[i]].properties;
-		} else {
-			result = result[pathArr[i]];
+		if (result.properties) {
+			result = result.properties[pathArr[i]];
+		} else if (result.items) {
+			// This is ok because it's checked inside?
+			const x = (result.items as SchemaProps).properties as SchemaPair;
+			result = x[pathArr[i]];
 		}
 	}
 	return result;
@@ -40,7 +59,8 @@ const isObject = (item: unknown): boolean =>
 	!Array.isArray(item) &&
 	!Buffer.isBuffer(item);
 
-const iterator = function (this: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const iterator = function iterator(this: any) : { next: () => { done: boolean, value: { value: any, key: string }}} {
 	let index = 0;
 	const properties = Object.keys(this);
 	let Done = false;
@@ -58,8 +78,8 @@ const iterator = function (this: any) {
 };
 
 const recursiveTypeCast = (
-	object: GenericObject,
-	schema: Schema,
+	object: IteratableGenericObject,
+	schema: SchemaProps,
 	dataPath: string[],
 ) => {
 	for (let { key, value } of object) {
@@ -72,43 +92,44 @@ const recursiveTypeCast = (
 		} else if (Array.isArray(value)) {
 			dataPath.push(key);
 			const schemaProp = findObjectByPath(
-				schema.properties as SchemaPair,
+				schema,
 				dataPath,
 			);
 			if (
-				schemaProp.items.type !== undefined &&
+				schemaProp?.items?.type !== undefined &&
 				schemaProp.items.type === 'object'
 			) {
 				for (let i = 0; i < value.length; i += 1) {
-					dataPath.push('items');
 					const arrayObject = value[i];
 					arrayObject[Symbol.iterator] = iterator;
 					recursiveTypeCast(arrayObject, schema, dataPath);
-					dataPath.pop();
 					delete arrayObject[Symbol.iterator];
 				}
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
-					object[key][i] = _liskMessageValueToJSONValue[
-						schemaProp.items.dataType
-					](value[i]);
+					(object[key] as any)[i] = _liskMessageValueToJSONValue[(schemaProp?.items  as SchemaScalarItem).dataType](value[i]);
 				}
 			}
 			dataPath.pop();
 		} else {
 			dataPath.push(key);
-			const schemaProp = findObjectByPath(schema.properties, dataPath);
-			object[key] = _liskMessageValueToJSONValue[schemaProp.dataType](value);
-			dataPath.pop();
+			const schemaProp = findObjectByPath(schema, dataPath);
+
+			if(schemaProp === undefined) {
+				throw new Error(`Invalid schema property found. Path: ${dataPath.join(',')}`);
+			}
+
+			object[key] = _liskMessageValueToJSONValue[schemaProp.dataType as unknown as string](value);
 			delete object[(Symbol.iterator as unknown) as string];
+			dataPath.pop();
 		}
 	}
 };
 
 const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
-	const decodedMessage: GenericObject = codec.decode(schema, message);
+	const decodedMessage: IteratableGenericObject = codec.decode(schema, message);
 
-	recursiveTypeCast(decodedMessage, schema, []);
+	recursiveTypeCast(decodedMessage, schema as unknown as SchemaProps, []);
 	return decodedMessage as GenericObject;
 };
 
