@@ -36,7 +36,7 @@ interface DelegatesInfoConstructor {
 	readonly delegatesList: DelegatesList;
 }
 
-const _isGenesisBlock = (header: BlockHeader): boolean => header.height === 1;
+const _isGenesisBlock = (header: BlockHeader): boolean => header.version === 0;
 const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 const maxConsecutiveMissedBlocks = 50;
 const maxLastForgedHeightDiff = 260000;

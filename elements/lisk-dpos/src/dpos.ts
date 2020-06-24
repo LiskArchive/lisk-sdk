@@ -15,9 +15,10 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
-import { voteWeightsSchema } from './schemas';
+import { delegatesUserNamesSchema, voteWeightsSchema } from './schemas';
 
 import {
+	CHAIN_STATE_DELEGATE_USERNAMES,
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	DEFAULT_ACTIVE_DELEGATE,
 	DEFAULT_ROUND_OFFSET,
@@ -40,6 +41,7 @@ import {
 	ForgersList,
 	StateStore,
 	DecodedVoteWeights,
+	DecodedUsernames,
 } from './types';
 
 interface DposConstructor {
@@ -110,6 +112,48 @@ export class Dpos {
 		round: number,
 	): Promise<ReadonlyArray<Buffer>> {
 		return this.delegatesList.getDelegateList(round);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public async getRegisteredDelegates(
+		stateStore: StateStore,
+	): Promise<{ address: Buffer; username: string }[]> {
+		// Data format for the registered delegates
+		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
+		const usernamesBuffer = await stateStore.chain.get(
+			CHAIN_STATE_DELEGATE_USERNAMES,
+		);
+
+		if (usernamesBuffer) {
+			const decodedUsernames = codec.decode<DecodedUsernames>(
+				delegatesUserNamesSchema,
+				usernamesBuffer,
+			);
+
+			return decodedUsernames.registeredDelegates;
+		}
+
+		return [];
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
+	public async setRegisteredDelegates(
+		stateStore: StateStore,
+		delegates: { address: Buffer; username: string }[],
+	): Promise<void> {
+		const updatingObject = {
+			registeredDelegates: delegates.map(value => ({
+				address: value.address,
+				username: value.username,
+			})),
+		};
+
+		const updatingObjectBinary = codec.encode(
+			delegatesUserNamesSchema,
+			updatingObject,
+		);
+
+		stateStore.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObjectBinary);
 	}
 
 	public async onBlockFinalized(

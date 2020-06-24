@@ -41,7 +41,6 @@ import { DataAccess } from './data_access';
 import { Slots } from './slots';
 import { StateStore } from './state_store';
 import {
-	applyGenesisTransactions,
 	applyTransactions,
 	checkAllowedTransactions,
 	undoTransactions,
@@ -222,7 +221,9 @@ export class Chain {
 		// Check mem tables
 		let genesisBlock: BlockHeader;
 		try {
-			genesisBlock = await this.dataAccess.getBlockHeaderByHeight(1);
+			genesisBlock = await this.dataAccess.getBlockHeaderByID(
+				this.genesisBlock.header.id,
+			);
 		} catch (error) {
 			throw new Error('Failed to load genesis block');
 		}
@@ -253,7 +254,7 @@ export class Chain {
 
 	public async newStateStore(skipLastHeights = 0): Promise<StateStore> {
 		const fromHeight = Math.max(
-			1,
+			0,
 			this._lastBlock.header.height -
 				this.constants.stateBlockSize -
 				skipLastHeights,
@@ -363,15 +364,6 @@ export class Chain {
 		await applyFeeAndRewards(block, stateStore);
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	public async applyGenesis(
-		block: Block,
-		stateStore: StateStore,
-	): Promise<void> {
-		await applyGenesisTransactions(block.payload, stateStore);
-		await applyFeeAndRewards(block, stateStore);
-	}
-
 	public async save(
 		block: Block,
 		stateStore: StateStore,
@@ -416,7 +408,7 @@ export class Chain {
 		stateStore: StateStore,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
-		if (block.header.height === 1) {
+		if (block.header.version === this.genesisBlock.header.version) {
 			throw new Error('Cannot delete genesis block');
 		}
 		let secondLastBlock: Block;
@@ -533,7 +525,7 @@ export class Chain {
 		// Cache the block headers (size=DEFAULT_MAX_BLOCK_HEADER_CACHE)
 		const fromHeight = Math.max(
 			storageLastBlock.header.height - DEFAULT_MAX_BLOCK_HEADER_CACHE,
-			1,
+			0,
 		);
 		const toHeight = storageLastBlock.header.height;
 

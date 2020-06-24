@@ -20,33 +20,12 @@ import {
 } from '@liskhq/lisk-transactions';
 
 import { StateStore } from '../state_store';
-import {
-	Contexter,
-	MatcherTransaction,
-	WriteableTransactionResponse,
-} from '../types';
+import { Contexter, MatcherTransaction } from '../types';
 
 export const validateTransactions = (
 	transactions: ReadonlyArray<BaseTransaction>,
 ): ReadonlyArray<TransactionResponse> =>
 	transactions.map(transaction => transaction.validate());
-
-export const applyGenesisTransactions = async (
-	transactions: ReadonlyArray<BaseTransaction>,
-	stateStore: StateStore,
-): Promise<TransactionResponse[]> => {
-	const transactionsResponses: TransactionResponse[] = [];
-	for (const transaction of transactions) {
-		const transactionResponse = await transaction.apply(stateStore);
-
-		// We are overriding the status of transaction because it's from genesis block
-		(transactionResponse as WriteableTransactionResponse).status =
-			TransactionStatus.OK;
-		transactionsResponses.push(transactionResponse);
-	}
-
-	return transactionsResponses;
-};
 
 export const applyTransactions = async (
 	transactions: ReadonlyArray<BaseTransaction>,

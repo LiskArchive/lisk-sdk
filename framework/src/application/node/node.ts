@@ -43,6 +43,7 @@ import {
 } from './synchronizer';
 import { Processor } from './processor';
 import { BlockProcessorV2 } from './block_processor_v2';
+import { BlockProcessorV0 } from './block_processor_v0';
 import { Logger } from '../logger';
 import { EventPostTransactionData } from '../../types';
 import { InMemoryChannel } from '../../controller/channels';
@@ -171,18 +172,33 @@ export class Node {
 
 			this._initModules();
 
-			// Prepare dependency
-			const processorDependencies = {
-				networkIdentifier: this._networkIdentifier,
-				chainModule: this._chain,
-				bftModule: this._bft,
-				dposModule: this._dpos,
-				logger: this._logger,
-				constants: this._options.constants,
-				forgerDB: this._forgerDB,
-			};
+			this._processor.register(
+				new BlockProcessorV0({
+					dposModule: this._dpos,
+					logger: this._logger,
+					constants: {
+						roundLength:
+							this._options.constants.activeDelegates +
+							this._options.constants.standbyDelegates,
+					},
+				}),
+				{
+					matcher: header =>
+						header.version === this._options.genesisBlock.header.version,
+				},
+			);
 
-			this._processor.register(new BlockProcessorV2(processorDependencies));
+			this._processor.register(
+				new BlockProcessorV2({
+					networkIdentifier: this._networkIdentifier,
+					chainModule: this._chain,
+					bftModule: this._bft,
+					dposModule: this._dpos,
+					logger: this._logger,
+					constants: this._options.constants,
+					forgerDB: this._forgerDB,
+				}),
+			);
 
 			this._channel.subscribe('app:state:updated', (event: EventInfoObject) => {
 				Object.assign(this._applicationState, event.data);
@@ -469,6 +485,7 @@ export class Node {
 				default: defaultAccountAsset,
 			},
 			registeredBlocks: {
+				0: BlockProcessorV0.schema,
 				2: BlockProcessorV2.schema,
 			},
 			networkIdentifier: this._networkIdentifier,

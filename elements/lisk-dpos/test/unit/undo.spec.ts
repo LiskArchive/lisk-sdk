@@ -76,7 +76,8 @@ describe('dpos.undo()', () => {
 			generator = { ...delegateAccounts[0] };
 			// Arrange
 			genesisBlock = {
-				height: 1,
+				height: 0,
+				version: 0,
 			} as BlockHeader;
 			stateStore = new StateStoreMock(
 				[generator, ...delegateAccounts],

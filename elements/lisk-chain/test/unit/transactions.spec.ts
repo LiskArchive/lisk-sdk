@@ -70,7 +70,7 @@ describe('blocks/transactions', () => {
 
 		chainInstance = new Chain({
 			db,
-			genesisBlock: genesisBlock(),
+			genesisBlock,
 			networkIdentifier,
 			registeredTransactions,
 			accountAsset: {
@@ -83,7 +83,7 @@ describe('blocks/transactions', () => {
 			},
 			...constants,
 		});
-		(chainInstance as any)._lastBlock = genesisBlock();
+		(chainInstance as any)._lastBlock = genesisBlock;
 	});
 
 	describe('#filterReadyTransactions', () => {

@@ -73,7 +73,7 @@ describe('blocks/header', () => {
 		db = new KVStore('temp');
 		chainInstance = new Chain({
 			db,
-			genesisBlock: genesisBlock(),
+			genesisBlock,
 			networkIdentifier: defaultNetworkIdentifier,
 			registeredTransactions,
 			accountAsset: {
@@ -86,7 +86,7 @@ describe('blocks/header', () => {
 			},
 			...constants,
 		});
-		(chainInstance as any)._lastBlock = genesisBlock();
+		(chainInstance as any)._lastBlock = genesisBlock;
 
 		block = createValidDefaultBlock();
 	});
@@ -226,7 +226,7 @@ describe('blocks/header', () => {
 				block = createValidDefaultBlock({
 					header: {
 						timestamp: futureTimestamp,
-						previousBlockID: genesisBlock().header.id,
+						previousBlockID: genesisBlock.header.id,
 					},
 				});
 				expect.assertions(1);
@@ -239,7 +239,7 @@ describe('blocks/header', () => {
 			it('should throw when block timestamp is earlier than lastBlock timestamp', async () => {
 				// Arrange
 				block = createValidDefaultBlock({
-					header: { timestamp: 0, previousBlockID: genesisBlock().header.id },
+					header: { timestamp: 0, previousBlockID: genesisBlock.header.id },
 				});
 				expect.assertions(1);
 				// Act & Assert
@@ -250,7 +250,7 @@ describe('blocks/header', () => {
 
 			it('should throw when block timestamp is equal to the lastBlock timestamp', async () => {
 				(chainInstance as any)._lastBlock = {
-					...genesisBlock(),
+					...genesisBlock,
 					timestamp: 200,
 					receivedAt: new Date(),
 				};
@@ -546,7 +546,7 @@ describe('blocks/header', () => {
 			});
 
 			it('should not set the block to the last block', () => {
-				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock());
+				expect(chainInstance.lastBlock).toStrictEqual(genesisBlock);
 			});
 		});
 
@@ -729,58 +729,6 @@ describe('blocks/header', () => {
 				const expectedBuffer = Buffer.alloc(8);
 				expectedBuffer.writeBigInt64BE(BigInt(defaultBurntFee) + expected);
 				expect(burntFee).toEqual(expectedBuffer);
-			});
-		});
-	});
-
-	describe('#applyGenesis', () => {
-		let stateStore: StateStore;
-
-		beforeEach(async () => {
-			// Arrage
-			(db.get as jest.Mock).mockRejectedValue(
-				new NotFoundError('no data found'),
-			);
-			// Act
-			const genesisBlockInstance = genesisBlock();
-			genesisBlockInstance.payload.forEach(tx => tx.validate());
-			// Act
-			const dataAccess = new DataAccess({
-				db,
-				accountSchema: defaultAccountSchema as any,
-				registeredBlockHeaders: {
-					0: defaultBlockHeaderAssetSchema,
-					2: defaultBlockHeaderAssetSchema,
-				},
-				registeredTransactions,
-				minBlockHeaderCache: 505,
-				maxBlockHeaderCache: 309,
-			});
-			stateStore = new StateStore(dataAccess, {
-				lastBlockHeaders: [],
-				networkIdentifier: defaultNetworkIdentifier,
-				lastBlockReward: BigInt(500000000),
-				defaultAsset: createFakeDefaultAccount().asset,
-			});
-			await chainInstance.applyGenesis(genesisBlockInstance, stateStore);
-		});
-
-		describe('when transactions are all valid', () => {
-			it('should call apply for the transaction', async () => {
-				const genesisAccountFromStore = await stateStore.account.get(
-					genesisAccount.address,
-				);
-				expect(genesisAccountFromStore.balance).toBe(
-					// Genesis account now sends funds to the genesis delegates
-					BigInt('9897000000000000'),
-				);
-			});
-
-			it('should not update burnt fee on chain state', async () => {
-				const genesisAccountFromStore = await stateStore.chain.get(
-					CHAIN_STATE_BURNT_FEE,
-				);
-				expect(genesisAccountFromStore?.readBigInt64BE()).toEqual(BigInt('0'));
 			});
 		});
 	});

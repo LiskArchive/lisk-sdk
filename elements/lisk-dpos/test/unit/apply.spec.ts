@@ -95,7 +95,8 @@ describe('dpos.apply()', () => {
 			genesisBlock = {
 				id: Buffer.from('genesis-block'),
 				timestamp: 10,
-				height: 1,
+				height: 0,
+				version: 0,
 				generatorPublicKey: generator.publicKey,
 				reward: BigInt(500000000),
 				asset: {

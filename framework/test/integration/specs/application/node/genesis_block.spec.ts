@@ -13,16 +13,14 @@
  */
 
 import { KVStore } from '@liskhq/lisk-db';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { nodeUtils } from '../../../../utils';
 import { createDB, removeDB } from '../../../../utils/kv_store';
 import { Node } from '../../../../../src/application/node';
-import { genesisBlock as getGenesisBlock } from '../../../../fixtures';
-import { AccountAsset } from '../../../../../src/application/node/account';
+import { genesis, genesisBlock as getGenesisBlock } from '../../../../fixtures';
 
 describe('genesis block', () => {
 	const dbName = 'genesis_block';
-	const TRANSACTION_TYPE_DELEGATE_REGISTRATION = 10;
 	const genesisBlock = getGenesisBlock();
 	let node: Node;
 	let blockchainDB: KVStore;
@@ -31,6 +29,7 @@ describe('genesis block', () => {
 	beforeAll(async () => {
 		({ blockchainDB, forgerDB } = createDB(dbName));
 		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
+		await node['_forger'].loadDelegates();
 	});
 
 	afterAll(async () => {
@@ -46,78 +45,42 @@ describe('genesis block', () => {
 				const block = await node['_chain'].dataAccess.getBlockByID(
 					genesisBlock.header.id,
 				);
-				expect(block.header.id).toEqual(genesisBlock.header.id);
-				expect(block.header.height).toEqual(1);
+
+				expect(block.header.version).toEqual(0);
+				expect(block.header).toEqual(genesisBlock.header);
 			});
 
-			it('should have genesis transactions in database', async () => {
-				// FIXME: genesis transaction has wrong ID in JSON, this test should be removed after new genesis block
-				const block = await node['_chain'].dataAccess.getBlockByID(
-					genesisBlock.header.id,
-				);
-				const ids = genesisBlock.payload.map(t => t.id);
-				const allExist = ids.every(id =>
-					block.payload
-						.map(tx => tx.id)
-						.find(txID => txID.equals(id) !== undefined),
-				);
+			it('should save accounts from genesis block assets', async () => {
+				// Get genesis accounts
+				const genesisAccounts = genesisBlock.header.asset.accounts;
 
-				expect(allExist).toEqual(true);
-			});
-
-			it('should save accounts for the registered genesis delegates', async () => {
-				// Get accounts of delegate registeration
-				const delegateRegistrationTransactions = genesisBlock.payload.filter(
-					transaction =>
-						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
-				);
-				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
-				);
 				// Get delegate accounts in genesis block from the database
 				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						node['_chain'].dataAccess.getAccountByAddress(address),
+					genesisAccounts.map(async account =>
+						node['_chain'].dataAccess.getAccountByAddress(account.address),
 					),
 				);
-				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
-					address =>
-						accountsFromDb.find(account => address.equals(account.address)),
-				);
 
-				expect(allAccountsAreDelegate).toEqual(true);
+				expect(genesisAccounts).toEqual(accountsFromDb);
 			});
 
-			it('should have correct totalVotesReceived for genesis delegates', async () => {
-				// Initial funds for genesis delegates
-				const totalVotesReceivedOfDevnetDelegates = '1000000000000';
-				// Get accounts of delegate registeration
-				const delegateRegistrationTransactions = genesisBlock.payload.filter(
-					transaction =>
-						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
-				);
-				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
-				);
+			it('should have correct registered delegates', async () => {
+				// Get genesis accounts
+				const genesisAccounts = genesisBlock.header.asset.accounts;
+				const genesisDelegates = genesisAccounts
+					.filter(account => account.asset.delegate.username !== '')
+					.map(account => ({
+						address: account.address,
+						username: account.asset.delegate.username,
+					}));
+
 				// Get delegate accounts in genesis block from the database
-				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						node['_chain'].dataAccess.getAccountByAddress<AccountAsset>(
-							address,
-						),
-					),
-				);
-				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
-					address =>
-						accountsFromDb.find(
-							account =>
-								address.equals(account.address) &&
-								account.asset.delegate.totalVotesReceived ===
-									BigInt(totalVotesReceivedOfDevnetDelegates),
-						),
+				const stateStore = await node['_chain'].newStateStore();
+				const delegatesFromDb = await node['_dpos'].getRegisteredDelegates(
+					stateStore,
 				);
 
-				expect(allAccountsHaveCorrectVoteWeight).toEqual(true);
+				expect(delegatesFromDb).toEqual(genesisDelegates);
 			});
 
 			it('should have correct delegate list', async () => {
@@ -127,80 +90,50 @@ describe('genesis block', () => {
 		});
 	});
 
-	describe('given the application has been initialized previously', () => {
+	describe('given the application was initialized earlier', () => {
+		const account =
+			genesisBlock.header.asset.accounts[
+				genesisBlock.header.asset.accounts.length - 1
+			];
+		let newBalance: bigint;
+		let oldBalance: bigint;
+
+		beforeEach(async () => {
+			const genesisAccount = await node[
+				'_chain'
+			].dataAccess.getAccountByAddress(genesis.address);
+			const recipient = await node['_chain'].dataAccess.getAccountByAddress(
+				account.address,
+			);
+			oldBalance = account.balance;
+			newBalance = oldBalance + BigInt('100000000000');
+
+			const transaction = new TransferTransaction({
+				nonce: genesisAccount.nonce,
+				senderPublicKey: genesis.publicKey,
+				fee: BigInt('200000'),
+				asset: {
+					recipientAddress: recipient.address,
+					amount: BigInt('100000000000'),
+					data: '',
+				},
+			});
+			transaction.sign(node['_networkIdentifier'], genesis.passphrase);
+			const newBlock = await nodeUtils.createBlock(node, [transaction]);
+			await node['_processor'].process(newBlock);
+		});
+
 		describe('when chain module is bootstrapped', () => {
-			it('should have genesis transactions in database', async () => {
-				const block = await node['_chain'].dataAccess.getBlockByID(
-					genesisBlock.header.id,
-				);
-				const ids = genesisBlock.payload.map(t => t.id);
-				const allExist = ids.every(id =>
-					block.payload
-						.map(tx => tx.id)
-						.find(txID => txID.equals(id) !== undefined),
-				);
+			it('should not apply the genesis block again', async () => {
+				// Act
+				// Re-initialize the node
+				node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 
-				expect(allExist).toEqual(true);
-			});
-
-			it('should save accounts for the registered genesis delegates', async () => {
-				// Get accounts of delegate registeration
-				const delegateRegistrationTransactions = genesisBlock.payload.filter(
-					transaction =>
-						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
+				// Arrange & Assert
+				const recipient = await node['_chain'].dataAccess.getAccountByAddress(
+					account.address,
 				);
-				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
-				);
-				// Get delegate accounts in genesis block from the database
-				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						node['_chain'].dataAccess.getAccountByAddress(address),
-					),
-				);
-				const allAccountsAreDelegate = delegateAccountsAddressesInGenesisBlock.every(
-					address =>
-						accountsFromDb.find(account => address.equals(account.address)),
-				);
-
-				expect(allAccountsAreDelegate).toEqual(true);
-			});
-
-			it('should have correct vote weight for genesis delegates', async () => {
-				// Initial funds for genesis delegates
-				const totalVotesReceivedOfDevnetDelegates = '1000000000000';
-				// Get accounts of delegate registeration
-				const delegateRegistrationTransactions = genesisBlock.payload.filter(
-					transaction =>
-						transaction.type === TRANSACTION_TYPE_DELEGATE_REGISTRATION,
-				);
-				const delegateAccountsAddressesInGenesisBlock = delegateRegistrationTransactions.map(
-					transaction => getAddressFromPublicKey(transaction.senderPublicKey),
-				);
-				// Get delegate accounts in genesis block from the database
-				const accountsFromDb = await Promise.all(
-					delegateAccountsAddressesInGenesisBlock.map(async address =>
-						node['_chain'].dataAccess.getAccountByAddress<AccountAsset>(
-							address,
-						),
-					),
-				);
-				const allAccountsHaveCorrectVoteWeight = delegateAccountsAddressesInGenesisBlock.every(
-					address =>
-						accountsFromDb.find(
-							account =>
-								address.equals(account.address) &&
-								account.asset.delegate.totalVotesReceived ===
-									BigInt(totalVotesReceivedOfDevnetDelegates),
-						),
-				);
-
-				expect(allAccountsHaveCorrectVoteWeight).toEqual(true);
-			});
-
-			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
-				expect(delegateListFromChain).toMatchSnapshot();
+				expect(recipient.balance).toEqual(newBalance);
 			});
 		});
 	});

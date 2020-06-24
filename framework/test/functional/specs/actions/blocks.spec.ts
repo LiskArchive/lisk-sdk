@@ -35,7 +35,8 @@ describe('Block related actions', () => {
 			const block = app['_node']['_chain'].dataAccess.decode(
 				Buffer.from(encodedBlock as string, 'base64'),
 			);
-			expect(block.header.height).toEqual(1);
+			expect(block.header.version).toEqual(0);
+			expect(block.header.height).toEqual(0);
 		});
 	});
 
@@ -54,7 +55,8 @@ describe('Block related actions', () => {
 			const block = app['_node']['_chain'].dataAccess.decode(
 				Buffer.from(encodedBlocks[0], 'base64'),
 			);
-			expect(block.header.height).toEqual(1);
+			expect(block.header.version).toEqual(0);
+			expect(block.header.height).toEqual(0);
 		});
 	});
 

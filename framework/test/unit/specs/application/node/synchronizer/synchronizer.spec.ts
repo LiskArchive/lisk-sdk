@@ -35,6 +35,7 @@ import {
 } from '../../../../../../src/application/node/account';
 import { registeredTransactions } from '../../../../../utils/registered_transactions';
 import { genesis } from '../../../../../fixtures';
+import { BlockProcessorV0 } from '../../../../../../src/application/node/block_processor_v0';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -45,6 +46,7 @@ const { InMemoryChannel: ChannelMock } = jest.genMockFromModule(
 describe('Synchronizer', () => {
 	const genesisBlock = getGenesisBlock();
 	let bftModule;
+	let blockProcessorV0;
 	let blockProcessorV2;
 	let chainModule: any;
 	let processorModule: Processor;
@@ -109,6 +111,7 @@ describe('Synchronizer', () => {
 			isTempBlockEmpty: jest.fn(),
 			getAccountsByPublicKey: jest.fn(),
 			getBlockHeaderByHeight: jest.fn(),
+			getBlockHeaderByID: jest.fn(),
 			decode: chainModule.dataAccess.decode.bind(chainModule.dataAccess),
 			encodeBlockHeader: chainModule.dataAccess.encodeBlockHeader.bind(
 				chainModule.dataAccess,
@@ -127,6 +130,12 @@ describe('Synchronizer', () => {
 			dpos: { rounds } as any,
 			activeDelegates: constants.activeDelegates,
 			startingHeight: 1,
+		});
+
+		blockProcessorV0 = new BlockProcessorV0({
+			dposModule: dposModuleMock,
+			logger: loggerMock,
+			constants,
 		});
 
 		blockProcessorV2 = new BlockProcessorV2({
@@ -148,6 +157,9 @@ describe('Synchronizer', () => {
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
 		processorModule.register(blockProcessorV2);
+		processorModule.register(blockProcessorV0, {
+			matcher: header => header.version === genesisBlock.header.version,
+		});
 
 		syncMechanism1 = {
 			run: jest.fn().mockResolvedValue({}),
@@ -176,14 +188,14 @@ describe('Synchronizer', () => {
 			const lastBlock = createValidDefaultBlock({
 				header: { height: genesisBlock.header.height + 1 },
 			});
-			when(chainModule.dataAccess.getBlockHeaderByHeight)
-				.calledWith(1)
+			when(chainModule.dataAccess.getBlockHeaderByID)
+				.calledWith(genesisBlock.header.id)
 				.mockResolvedValue(genesisBlock.header as never);
 			when(chainModule.dataAccess.getLastBlock)
 				.calledWith()
 				.mockResolvedValue(lastBlock as never);
 			when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
-				.calledWith(1, 2)
+				.calledWith(0, 1)
 				.mockResolvedValue([lastBlock] as never);
 			when(chainModule.dataAccess.getAccountsByPublicKey)
 				.calledWith()
@@ -219,7 +231,7 @@ describe('Synchronizer', () => {
 
 				// To load storage tip block into lastBlock in memory variable
 				when(chainModule.dataAccess.getBlockHeadersByHeightBetween)
-					.calledWith(1, 4)
+					.calledWith(0, 3)
 					.mockResolvedValue([initialLastBlock] as never);
 
 				when(chainModule.dataAccess.getTempBlocks)

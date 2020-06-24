@@ -189,13 +189,6 @@ export class BlockProcessorV2 extends BaseBlockProcessor {
 			},
 		]);
 
-		this.applyGenesis.pipe([
-			async ({ block, stateStore }) =>
-				this.chainModule.applyGenesis(block, stateStore),
-			async ({ block, stateStore }) =>
-				this.dposModule.apply(block.header, stateStore),
-		]);
-
 		this.undo.pipe([
 			async ({ block, stateStore }) => this.chainModule.undo(block, stateStore),
 			async ({ block, stateStore }) =>
