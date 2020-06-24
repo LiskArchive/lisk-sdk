@@ -69,6 +69,8 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
+export const getURL = (url: string): string => `http://localhost:4000${url}`;
+
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 	const height = app['_node']['_chain'].lastBlock.header.height + n;

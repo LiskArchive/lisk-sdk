@@ -17,6 +17,7 @@ import {
 	createApplication,
 	closeApplication,
 	waitNBlocks,
+	getURL,
 } from './utils/application';
 
 describe('Public block related P2P endpoints', () => {
@@ -33,7 +34,7 @@ describe('Public block related P2P endpoints', () => {
 
 	describe('/v1/hello', () => {
 		it('should respond with hello', async () => {
-			const result = await axios.get('http://localhost:4000/v1/hello');
+			const result = await axios.get(getURL('/v1/hello'));
 			expect(result.data).toEqual({ hello: 'world' });
 		});
 	});

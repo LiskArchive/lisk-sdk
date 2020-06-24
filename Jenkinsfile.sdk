@@ -210,7 +210,7 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Plugins') {
+				stage('Lisk Framework Plugins Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
@@ -232,7 +232,7 @@ pipeline {
 					}
 				}
 
-				stage('Lisk Framework Plugins') {
+				stage('Lisk Framework Plugins Functional') {
 					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
