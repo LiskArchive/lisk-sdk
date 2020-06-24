@@ -19,8 +19,8 @@ info:
     # Welcome!
 
     ## Access restrictions
-    The API endpoints are by default restricted to a whitelist of IPs that can be found under `modules.http_api.whiteList` in the config.
-    If it is required for your API to be accessible by the public, this can be achieved by changing `modules.http_api.whiteList` to `[]`.
+    The API endpoints are by default restricted to a whitelist of IPs that can be found under `plugins.http_api.whiteList` in the config.
+    If it is required for your API to be accessible by the public, this can be achieved by changing `plugins.http_api.whiteList` to `[]`.
     This will allow anyone to make requests to your application.
 
     ## Requests
@@ -33,6 +33,7 @@ info:
     ```javascript
     {
         "data": {}, //Contains the requested data.
+        "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`.
     }
     ```
     ## List of endpoints
@@ -214,7 +215,7 @@ paths:
         200:
           description: Block requested.
           schema:
-            $ref: '#/definitions/BlockResponse'
+            $ref: '#/definitions/BlocksResponse'
         400:
           description: Malformed query or parameters.
           schema:
@@ -405,7 +406,6 @@ parameters:
     type: integer
     format: int32
     minimum: 1
-    maximum: 100
     default: 10
   offset:
     name: offset
@@ -440,6 +440,8 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/Account'
+      meta:
+        type: object
 
   DelegateResponse:
     type: object
@@ -450,6 +452,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Account'
+      meta:
+        $ref: '#/definitions/Meta'
 
   ForgersResponse:
     type: object
@@ -461,6 +465,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Forger'
+      meta:
+        type: object
 
   BlockResponse:
     type: object
@@ -479,6 +485,30 @@ definitions:
             type: array
             items:
               $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+
+  BlocksResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: array
+        items:
+          type: object
+          required:
+            - header
+            - payload
+          properties:
+            header:
+              $ref: '#/definitions/BlockHeader'
+            payload:
+              type: array
+              items:
+                $ref: '#/definitions/Transaction'
+      meta:
+        type: object
 
   TransactionResponse:
     type: object
@@ -487,6 +517,8 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/Transaction'
+      meta:
+        type: object
 
   TransactionsResponse:
     type: object
@@ -497,6 +529,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Transaction'
+      meta:
+        $ref: '#/definitions/Meta'
 
   PeersResponse:
     type: object
@@ -507,6 +541,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Peer'
+      meta:
+        $ref: '#/definitions/Meta'
 
   NodeInfoResponse:
     type: object
@@ -515,6 +551,26 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/NodeInfo'
+      meta:
+        type: object
+  
+  Meta:
+    type: object
+    required:
+      - limit
+      - offset
+    properties:
+      limit:
+        description: Limit applied to results.
+        type: integer
+        minimum: 1
+        default: 10
+      offset:
+        description: Offset value for results.
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
 
   Account:
     type: object
@@ -780,19 +836,24 @@ definitions:
           blockTime:
             type: integer
             minimum: 2
+            example: 10
             description: Block time interval in seconds.
           maxPayloadLength:
             type: integer
+            example: 15360
             description: Maximum size of transactions allowed per block.
           activeDelegates:
             type: integer
             description: Number of active delegates per round.
+            example: 101
           standbyDelegates:
             type: integer
             description: Number of standby delegates per round.
+            example: 2
           delegateListRoundOffset:
             type: integer
             description: Number of rounds before in which the list of delegates will be used for the current round.
+            example: 2
           rewards:
             type: object
             required:
@@ -805,10 +866,13 @@ definitions:
                 description: Array of rewards.
                 items:
                   type: string
+                  example: 500000000
               offset:
                 type: integer
                 minimum: 1
+                example: 2160
                 description: height in which reward distribution starts.
               distance:
                 type: integer
                 description: Distance in height between each milestone.
+                example: 3000000
