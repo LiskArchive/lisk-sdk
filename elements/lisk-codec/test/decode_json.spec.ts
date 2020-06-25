@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { decodeJSON } from '../src/json_wrapper';
+import { Codec } from '../src/index';
 import * as booleanDecoding from '../fixtures/boolean_encodings.json';
 import * as numberDecoding from '../fixtures/number_encodings.json';
 import * as bytesDecoding from '../fixtures/bytes_encodings.json';
@@ -32,7 +32,8 @@ describe('decodeJSON', () => {
 	describe('boolean decoding', () => {
 		for (const testCase of booleanDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -45,7 +46,8 @@ describe('decodeJSON', () => {
 		describe('uint32/sint32 decoding', () => {
 			for (const testCase of numberDecoding.testCases.slice(0, 2)) {
 				it(testCase.description, () => {
-					const result = decodeJSON(
+					const codec = new Codec();
+					const result = codec.decodeJSON(
 						testCase.input.schema,
 						Buffer.from(testCase.output.value, 'hex'),
 					);
@@ -57,7 +59,8 @@ describe('decodeJSON', () => {
 		describe('uint64/sint64 decoding', () => {
 			for (const testCase of numberDecoding.testCases.slice(2, 4)) {
 				it(testCase.description, () => {
-					const result = decodeJSON(
+					const codec = new Codec();
+					const result = codec.decodeJSON(
 						testCase.input.schema,
 						Buffer.from(testCase.output.value, 'hex'),
 					);
@@ -72,7 +75,8 @@ describe('decodeJSON', () => {
 	describe('bytes decoding', () => {
 		for (const testCase of bytesDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -89,7 +93,8 @@ describe('decodeJSON', () => {
 	describe('string decoding', () => {
 		for (const testCase of stringDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -101,7 +106,8 @@ describe('decodeJSON', () => {
 	describe('object decoding', () => {
 		it('Encoding of object', () => {
 			const testCase = objectDecoding.testCases[0];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema as any,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -116,7 +122,8 @@ describe('decodeJSON', () => {
 
 		it('Encoding of object with optional property', () => {
 			const testCase = objectDecoding.testCases[1];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema as any,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -137,7 +144,8 @@ describe('decodeJSON', () => {
 			];
 			for (const testCase of testCases) {
 				it(testCase.description, () => {
-					const result = decodeJSON(
+					const codec = new Codec();
+					const result = codec.decodeJSON(
 						testCase.input.schema as any,
 						Buffer.from(testCase.output.value, 'hex'),
 					);
@@ -148,7 +156,8 @@ describe('decodeJSON', () => {
 
 		it('Encoding of array of object', () => {
 			const testCase = arrayDecoding.testCases[3];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema as any,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -166,7 +175,8 @@ describe('decodeJSON', () => {
 	describe('block decoding', () => {
 		for (const testCase of blockDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -187,7 +197,8 @@ describe('decodeJSON', () => {
 	describe('block header decoding', () => {
 		for (const testCase of blockHeaderDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -217,7 +228,8 @@ describe('decodeJSON', () => {
 	describe('block asset decoding', () => {
 		for (const testCase of blockAssetDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -234,7 +246,8 @@ describe('decodeJSON', () => {
 	describe('genesis block asset decoding', () => {
 		for (const testCase of genesisBlockAssetDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -290,7 +303,8 @@ describe('decodeJSON', () => {
 	describe('account decoding', () => {
 		for (const testCase of accountDecoding.testCases) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema as any,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
@@ -344,7 +358,8 @@ describe('decodeJSON', () => {
 	describe('transaction decoding', () => {
 		it('Encoding of base transaction', () => {
 			const testCase = transactionDecoding.testCases[0];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema as any,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -366,7 +381,8 @@ describe('decodeJSON', () => {
 
 		it('Encoding of vote transaction asset', () => {
 			const testCase = transactionDecoding.testCases[1];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema as any,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -384,7 +400,8 @@ describe('decodeJSON', () => {
 			const testCases = transactionDecoding.testCases.slice(2, 4);
 			for (const testCase of testCases) {
 				it(testCase.description, () => {
-					const result = decodeJSON(
+					const codec = new Codec();
+					const result = codec.decodeJSON(
 						testCase.input.schema as any,
 						Buffer.from(testCase.output.value, 'hex'),
 					);
@@ -405,7 +422,8 @@ describe('decodeJSON', () => {
 	describe('peer info decoding', () => {
 		it('should decode object without options', () => {
 			const testCase = peerInfoDecoding.testCases[0];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -414,7 +432,8 @@ describe('decodeJSON', () => {
 
 		it('should decode object without optional fields', () => {
 			const testCase = peerInfoDecoding.testCases[1];
-			const result = decodeJSON(
+			const codec = new Codec();
+			const result = codec.decodeJSON(
 				testCase.input.schema,
 				Buffer.from(testCase.output.value, 'hex'),
 			);
@@ -431,7 +450,8 @@ describe('decodeJSON', () => {
 	describe('nested array decoding', () => {
 		for (const testCase of nestedArrayDecoding.testCases.slice(1)) {
 			it(testCase.description, () => {
-				const result = decodeJSON(
+				const codec = new Codec();
+				const result = codec.decodeJSON(
 					testCase.input.schema,
 					Buffer.from(testCase.output.value, 'hex'),
 				);
