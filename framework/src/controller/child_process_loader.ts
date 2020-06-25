@@ -48,11 +48,13 @@ const _loadModule = async (
 	channel.publish(`${moduleAlias}:loading:finished`);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-process.on('message', async ({ loadModule, config, moduleOptions }) => {
-	if (loadModule) {
-		await _loadModule(config, moduleOptions);
-	}
+process.on('message', ({ loadModule, config, moduleOptions }) => {
+	const internalWorker = async (): Promise<void> => {
+		if (loadModule) {
+			await _loadModule(config, moduleOptions);
+		}
+	};
+	internalWorker().catch((err: Error) => err);
 });
 
 // TODO: Removed after https://github.com/LiskHQ/lisk/issues/3210 is fixed

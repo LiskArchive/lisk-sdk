@@ -37,11 +37,12 @@ import {
 	ErrorObject,
 } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
+import { p2pTypes } from '@liskhq/lisk-p2p';
 import { systemDirs } from './system_dirs';
 import { Controller } from '../controller/controller';
 import { version } from '../version';
 import { constantsSchema, applicationConfigSchema } from './schema';
-import { ApplicationState } from './application_state';
+import { ApplicationState, ApplicationStateUpdate } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
@@ -55,6 +56,8 @@ import {
 	ApplicationConfig,
 	ApplicationConstants,
 	GenesisConfig,
+	P2PRequestPeerPacket,
+	EventPostTransactionData,
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
 import { AccountAsset } from './node/account';
@@ -409,23 +412,27 @@ export class Application {
 				},
 				updateApplicationState: {
 					handler: (action: ActionInfoObject) =>
-						this._applicationState.update(action.params),
+						this._applicationState.update(
+							action.params as ApplicationStateUpdate,
+						),
 				},
 				sendToNetwork: {
 					handler: (action: ActionInfoObject) =>
-						this._network.send(action.params),
+						this._network.send(action.params as p2pTypes.P2PMessagePacket),
 				},
 				broadcastToNetwork: {
 					handler: (action: ActionInfoObject) =>
-						this._network.broadcast(action.params),
+						this._network.broadcast(action.params as p2pTypes.P2PMessagePacket),
 				},
 				requestFromNetwork: {
 					handler: async (action: ActionInfoObject) =>
-						this._network.request(action.params),
+						this._network.request(action.params as p2pTypes.P2PRequestPacket),
 				},
 				requestFromPeer: {
 					handler: async (action: ActionInfoObject) =>
-						this._network.requestFromPeer(action.params),
+						this._network.requestFromPeer(
+							action.params as P2PRequestPeerPacket,
+						),
 				},
 				getConnectedPeers: {
 					handler: (_action: ActionInfoObject) =>
@@ -437,27 +444,41 @@ export class Application {
 				},
 				applyPenaltyOnPeer: {
 					handler: (action: ActionInfoObject) =>
-						this._network.applyPenalty(action.params),
+						this._network.applyPenalty(action.params as p2pTypes.P2PPenalty),
 				},
 				calculateSupply: {
 					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateSupply(action),
+						this._node.actions.calculateSupply(
+							action.params as { height: number },
+						),
 				},
 				calculateMilestone: {
 					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateMilestone(action),
+						this._node.actions.calculateMilestone(
+							action.params as { height: number },
+						),
 				},
 				calculateReward: {
 					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateReward(action),
+						this._node.actions.calculateReward(
+							action.params as { height: number },
+						),
 				},
 				getForgerAddressesForRound: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getForgerAddressesForRound(action),
+						this._node.actions.getForgerAddressesForRound(
+							action.params as { round: number },
+						),
 				},
 				updateForgingStatus: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.updateForgingStatus(action),
+						this._node.actions.updateForgingStatus(
+							action.params as {
+								publicKey: string;
+								password: string;
+								forging: boolean;
+							},
+						),
 				},
 				getForgingStatusOfAllDelegates: {
 					handler: (_action: ActionInfoObject) =>
@@ -469,20 +490,28 @@ export class Application {
 				},
 				getTransactions: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactions(action),
+						this._node.actions.getTransactions(
+							action.params as { data: unknown; peerId: string },
+						),
 					isPublic: true,
 				},
 				postTransaction: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.postTransaction(action),
+						this._node.actions.postTransaction(
+							action.params as EventPostTransactionData,
+						),
 				},
 				getSlotNumber: {
 					handler: (action: ActionInfoObject) =>
-						this._node.actions.getSlotNumber(action),
+						this._node.actions.getSlotNumber(
+							action.params as { timeStamp: number | undefined },
+						),
 				},
 				calcSlotRound: {
 					handler: (action: ActionInfoObject) =>
-						this._node.actions.calcSlotRound(action),
+						this._node.actions.calcSlotRound(
+							action.params as { height: number },
+						),
 				},
 				getNodeStatus: {
 					handler: (_action: ActionInfoObject) =>
@@ -495,45 +524,61 @@ export class Application {
 				},
 				getBlocksFromId: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksFromId(action),
+						this._node.actions.getBlocksFromId(
+							action.params as { data: unknown; peerId: string },
+						),
 					isPublic: true,
 				},
 				getHighestCommonBlock: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getHighestCommonBlock(action),
+						this._node.actions.getHighestCommonBlock(
+							action.params as { data: unknown; peerId: string },
+						),
 					isPublic: true,
 				},
 				getAccount: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccount(action),
+						this._node.actions.getAccount(action.params as { address: string }),
 				},
 				getAccounts: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getAccounts(action),
+						this._node.actions.getAccounts(
+							action.params as { address: readonly string[] },
+						),
 				},
 				getBlockByID: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByID(action),
+						this._node.actions.getBlockByID(action.params as { id: string }),
 				},
 				getBlocksByIDs: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByIDs(action),
+						this._node.actions.getBlocksByIDs(
+							action.params as { ids: readonly string[] },
+						),
 				},
 				getBlockByHeight: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlockByHeight(action),
+						this._node.actions.getBlockByHeight(
+							action.params as { height: number },
+						),
 				},
 				getBlocksByHeightBetween: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getBlocksByHeightBetween(action),
+						this._node.actions.getBlocksByHeightBetween(
+							action.params as { from: number; to: number },
+						),
 				},
 				getTransactionByID: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionByID(action),
+						this._node.actions.getTransactionByID(
+							action.params as { id: string },
+						),
 				},
 				getTransactionsByIDs: {
 					handler: async (action: ActionInfoObject) =>
-						this._node.actions.getTransactionsByIDs(action),
+						this._node.actions.getTransactionsByIDs(
+							action.params as { ids: readonly string[] },
+						),
 				},
 			},
 			{ skipInternalEvents: true },
