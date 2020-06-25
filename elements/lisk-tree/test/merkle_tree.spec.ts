@@ -11,9 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { MerkleTree, TreeStructure } from '../src/index';
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
+import { MerkleTree } from '../src/merkle_tree';
+import { Proof } from '../src/types';
+import { verifyProof } from '../src/verify_proof';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
@@ -51,61 +52,29 @@ describe('MerkleTree', () => {
 		}
 	});
 
-	describe('getStructure', () => {
-		let structure: TreeStructure;
+	describe('generateProof and verifyProof', () => {
+		for (const test of fixture.testCases.slice(2)) {
+			describe(test.description, () => {
+				it(`should generate and verify correct proof`, () => {
+					const inputs = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
+					const merkleTree = new MerkleTree(inputs);
+					const nodes = merkleTree.getData();
+					const queryData = nodes
+						.sort(() => 0.5 - Math.random())
+						.slice(0, Math.floor(Math.random() * nodes.length + 1))
+						.map(node => node.hash);
+					const proof = merkleTree.generateProof(queryData) as Proof;
+					const result = verifyProof({
+						queryData,
+						proof,
+						rootHash: merkleTree.root,
+					});
 
-		beforeEach(() => {
-			const inputs = fixture.testCases[7].input.transactionIds.map(hexString =>
-				Buffer.from(hexString, 'hex'),
-			);
-			structure = (new MerkleTree(inputs) as any)._getStructure();
-		});
-
-		it(`should create the correct tree structure`, () => {
-			expect(structure[0]).toHaveLength(7);
-			expect(structure[1]).toHaveLength(3);
-			expect(structure[2]).toHaveLength(2);
-			expect(structure[3]).toHaveLength(1);
-		});
-	});
-
-	describe('generatePath', () => {
-		describe('when given a tree with two leaves', () => {
-			let merkleTree: MerkleTree;
-			const queryData = [
-				Buffer.from(
-					'ceb669e057511ef944a000b46dd2b15d2479bcdf5a58425843046e25a739cabb',
-					'hex',
-				),
-			];
-
-			beforeEach(() => {
-				const inputs = fixture.testCases[2].input.transactionIds.map(
-					hexString => Buffer.from(hexString, 'hex'),
-				);
-				merkleTree = new MerkleTree(inputs);
+					expect(result).toBeTrue();
+				});
 			});
-
-			it('should generate the expected path hash', () => {
-				const expectedProofHash = Buffer.from(
-					'4dd4ad391dcabcc6e1c07478b13ea52b94ace83a7ed6f84559b3c25a7d5011ff',
-					'hex',
-				);
-
-				expect(
-					(merkleTree.generatePath(queryData)[0] as any).hash.compare(
-						expectedProofHash,
-					),
-				).toEqual(0);
-			});
-
-			it('should generate the expected path hash direction', () => {
-				const expectedProofHashDirection = 1;
-
-				expect(
-					(merkleTree.generatePath(queryData)[0] as any).direction,
-				).toEqual(expectedProofHashDirection);
-			});
-		});
+		}
 	});
 });

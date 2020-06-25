@@ -100,10 +100,7 @@ export const getPairLocation = (nodeInfo: {
 	let pairLocation;
 	currentLayer += direction;
 	while (currentLayer >= 0 && currentLayer <= treeHeight - 1) {
-		if (
-			layerStructure[currentLayer] % 2 !== 0 &&
-			currentLayer + 1 !== treeHeight
-		) {
+		if (layerStructure[currentLayer] % 2 !== 0) {
 			const pairNodeIndex =
 				direction === 1
 					? layerStructure[currentLayer] + direction * -1
