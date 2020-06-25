@@ -91,7 +91,8 @@ const recursiveTypeCast = (
 			value[Symbol.iterator] = iterator;
 			recursiveTypeCast(value, schema, dataPath);
 			dataPath.pop();
-			delete object[(Symbol.iterator as unknown) as string];
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			delete value[(Symbol.iterator as unknown) as string];
 		} else if (Array.isArray(value)) {
 			dataPath.push(key);
 			const schemaProp = findObjectByPath(
@@ -131,17 +132,14 @@ const recursiveTypeCast = (
 			dataPath.pop();
 		}
 	}
+	delete object[(Symbol.iterator as unknown) as string]
 };
 
-const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
+export const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
 	const decodedMessage: IteratableGenericObject = codec.decode(schema, message);
 	const decodedMessageCopy = objectUtils.cloneDeep(decodedMessage);
 	decodedMessageCopy[Symbol.iterator] = iterator;
 
 	recursiveTypeCast(decodedMessageCopy, schema as unknown as SchemaProps, []);
 	return decodedMessageCopy as GenericObject;
-};
-
-module.exports = {
-	decodeJSON,
 };
