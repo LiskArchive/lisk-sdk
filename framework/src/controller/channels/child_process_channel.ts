@@ -37,7 +37,7 @@ export const setupProcessHandlers = (channel: ChildProcessChannel): void => {
 	process.once('exit', code => channel.cleanup(code));
 };
 
-export const _rejectWhenTimeout = async (timeInMillis: number): Promise<void> =>
+export const rejectWhenTimeout = async (timeInMillis: number): Promise<void> =>
 	new Promise((_, reject) => {
 		setTimeout(() => {
 			reject(new Error('ChildProcessChannel sockets setup timeout'));
@@ -118,7 +118,7 @@ export class ChildProcessChannel extends BaseChannel {
 		await Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
-			_rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
+			rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
 		]);
 
 		await this._removeAllListeners();
@@ -349,29 +349,26 @@ export class ChildProcessChannel extends BaseChannel {
 		await Promise.race(promises);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _removeAllListeners(): Promise<void> {
-		const removeAllListenersTask = async (): Promise<void> =>
-			new Promise(() => {
-				if (this.subSocket) {
-					this.subSocket.sock.removeAllListeners('connect');
-					this.subSocket.sock.removeAllListeners('error');
-				}
+		if (this.subSocket) {
+			this.subSocket.sock.removeAllListeners('connect');
+			this.subSocket.sock.removeAllListeners('error');
+		}
 
-				if (this.pubSocket) {
-					this.pubSocket.sock.removeAllListeners('connect');
-					this.pubSocket.sock.removeAllListeners('error');
-				}
+		if (this.pubSocket) {
+			this.pubSocket.sock.removeAllListeners('connect');
+			this.pubSocket.sock.removeAllListeners('error');
+		}
 
-				if (this.busRpcSocket) {
-					this.busRpcSocket.removeAllListeners('connect');
-					this.busRpcSocket.removeAllListeners('error');
-				}
+		if (this.busRpcSocket) {
+			this.busRpcSocket.removeAllListeners('connect');
+			this.busRpcSocket.removeAllListeners('error');
+		}
 
-				if (this.rpcSocket) {
-					this.rpcSocket.removeAllListeners('bind');
-					this.rpcSocket.removeAllListeners('error');
-				}
-			});
-		await removeAllListenersTask();
+		if (this.rpcSocket) {
+			this.rpcSocket.removeAllListeners('bind');
+			this.rpcSocket.removeAllListeners('error');
+		}
 	}
 }
