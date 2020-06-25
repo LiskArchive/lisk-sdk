@@ -15,7 +15,7 @@
 import { Schema } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { validator, ErrorObject } from '@liskhq/lisk-validator';
-import { GenesisBlock } from './types';
+import { DefaultAccountAsset, GenesisBlock } from './types';
 import {
 	genesisBlockSchema,
 	genesisBlockHeaderSchema,
@@ -39,16 +39,16 @@ import {
 } from './constants';
 import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
-export const validateGenesisBlock = (
+export const validateGenesisBlock = <T = DefaultAccountAsset>(
 	block:
-		| GenesisBlock
+		| GenesisBlock<T>
 		| {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				[key: string]: any;
 		  },
 	options: { roundLength: number; accountAssetSchema?: Schema },
 ): ErrorObject[] => {
-	const { header, payload } = block as GenesisBlock;
+	const { header, payload } = block as GenesisBlock<T>;
 
 	// Genesis block schema validation, only check payload length to be zero
 	const payloadErrors = validator.validate(genesisBlockSchema, {
@@ -123,7 +123,14 @@ export const validateGenesisBlock = (
 		accountAddresses.push(account.address);
 		totalBalance += BigInt(account.balance);
 
-		if (account.asset.delegate.username !== '') {
+		// TODO: Find better way to specify generic type to make delgate asset required
+		if (
+			account.asset !== undefined &&
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
+			(account.asset as any).delegate !== undefined &&
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
+			(account.asset as any).delegate.username !== ''
+		) {
 			delegateAddresses.push(account.address);
 		}
 

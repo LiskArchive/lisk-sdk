@@ -5,7 +5,7 @@ Object {
   "header": Object {
     "asset": Object {
       "accounts": Array [
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               35,
@@ -88,7 +88,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               37,
@@ -171,7 +171,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               52,
@@ -254,7 +254,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               55,
@@ -337,7 +337,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               76,
@@ -420,7 +420,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               82,
@@ -503,7 +503,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               98,
@@ -586,7 +586,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               110,
@@ -669,7 +669,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               128,
@@ -752,7 +752,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               157,
@@ -835,7 +835,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               192,
@@ -918,7 +918,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               195,
@@ -1001,7 +1001,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               195,
@@ -1084,7 +1084,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               217,
@@ -1167,7 +1167,7 @@ Object {
             "type": "Buffer",
           },
         },
-        Account {
+        Object {
           "address": Object {
             "data": Array [
               222,

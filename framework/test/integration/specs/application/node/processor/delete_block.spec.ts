@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore, formatInt } from '@liskhq/lisk-db';
-import { Block, stateDiffSchema } from '@liskhq/lisk-chain';
+import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { Block, stateDiffSchema, Account } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransferTransaction } from '@liskhq/lisk-transactions';
 import { createDB, removeDB } from '../../../../../utils/kv_store';
@@ -60,11 +60,11 @@ describe('Delete block', () => {
 	});
 
 	describe('given there a valid block with transfer transaction is forged', () => {
-		const account = nodeUtils.createAccount();
+		const recipientAccount = nodeUtils.createAccount();
 
 		let newBlock: Block;
 		let transaction: TransferTransaction;
-		let genesisAccount;
+		let genesisAccount: Account;
 
 		describe('when deleteLastBlock is called', () => {
 			beforeEach(async () => {
@@ -76,7 +76,7 @@ describe('Delete block', () => {
 					senderPublicKey: genesis.publicKey,
 					fee: BigInt('200000'),
 					asset: {
-						recipientAddress: account.address,
+						recipientAddress: recipientAccount.address,
 						amount: BigInt('100000000000'),
 						data: '',
 					},
@@ -108,15 +108,19 @@ describe('Delete block', () => {
 					'_chain'
 				].dataAccess.getAccountByAddress(genesis.address);
 				expect(genesisAfter.balance.toString()).toEqual(
-					genesisAfter.balance.toString(),
+					genesisAccount.balance.toString(),
 				);
 			});
 
-			it('should match the recipient account to the original state', async () => {
-				const accountAfter = await node[
-					'_chain'
-				].dataAccess.getAccountByAddress(account.address);
-				expect(accountAfter.balance.toString()).toEqual('0');
+			it('should not persist virgin recipient account', async () => {
+				await expect(
+					node['_chain'].dataAccess.getAccountByAddress(
+						recipientAccount.address,
+					),
+				).rejects.toBeInstanceOf(NotFoundError);
+				await expect(
+					blockchainDB.get(`diff:${formatInt(newBlock.header.height)}`),
+				).rejects.toBeInstanceOf(NotFoundError);
 			});
 		});
 	});

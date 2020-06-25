@@ -22,7 +22,7 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 
-import { MAX_TRANSACTION_AMOUNT, MIN_FEE_PER_BYTE } from './constants';
+import { MIN_FEE_PER_BYTE } from './constants';
 import { convertToTransactionError, TransactionError } from './errors';
 import { createResponse, TransactionResponse } from './response';
 import { baseTransactionSchema } from './schema';
@@ -254,36 +254,6 @@ export abstract class BaseTransaction {
 		return createResponse(this.id, errors);
 	}
 
-	public async undo(store: StateStore): Promise<TransactionResponse> {
-		const sender = await store.account.getOrDefault(this.senderId);
-		const updatedBalance = sender.balance + this.fee;
-		sender.balance = updatedBalance;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		sender.publicKey = sender.publicKey ?? this.senderPublicKey;
-		const errors =
-			updatedBalance <= BigInt(MAX_TRANSACTION_AMOUNT)
-				? []
-				: [
-						new TransactionError(
-							'Invalid balance amount',
-							this.id,
-							'.balance',
-							sender.balance.toString(),
-							updatedBalance.toString(),
-						),
-				  ];
-
-		// Decrement account nonce
-		sender.nonce -= BigInt(1);
-
-		store.account.set(sender.address, sender);
-
-		const assetErrors = await this.undoAsset(store);
-		errors.push(...assetErrors);
-
-		return createResponse(this.id, errors);
-	}
-
 	public async verifySignatures(
 		store: StateStore,
 	): Promise<TransactionResponse> {
@@ -433,9 +403,6 @@ export abstract class BaseTransaction {
 	}
 
 	protected abstract applyAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>>;
-	protected abstract undoAsset(
 		store: StateStore,
 	): Promise<ReadonlyArray<TransactionError>>;
 }

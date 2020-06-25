@@ -100,8 +100,9 @@ export class Processor {
 			'Initializing processor',
 		);
 		// do init check for block state. We need to load the blockchain
-		const blockProcessor = this._getBlockProcessor(genesisBlock);
-		await this._processGenesis(genesisBlock, blockProcessor);
+		if (!(await this.chainModule.exists(genesisBlock))) {
+			await this.processValidated(genesisBlock, { removeFromTempTable: true });
+		}
 		await this.chainModule.init();
 		const stateStore = await this.chainModule.newStateStore();
 		for (const processor of Object.values(this.processors)) {
@@ -204,7 +205,7 @@ export class Processor {
 					stateStore,
 				});
 				const previousLastBlock = cloneDeep(lastBlock);
-				await this._deleteBlock(lastBlock, blockProcessor);
+				await this._deleteBlock(lastBlock);
 				const newLastBlock = this.chainModule.lastBlock;
 				try {
 					await this._processValidated(block, newLastBlock, blockProcessor);
@@ -326,8 +327,7 @@ export class Processor {
 				{ id: lastBlock.header.id, height: lastBlock.header.height },
 				'Deleting last block',
 			);
-			const blockProcessor = this._getBlockProcessor(lastBlock);
-			await this._deleteBlock(lastBlock, blockProcessor, saveTempBlock);
+			await this._deleteBlock(lastBlock, saveTempBlock);
 			return this.chainModule.lastBlock;
 		});
 	}
@@ -373,41 +373,16 @@ export class Processor {
 		return block;
 	}
 
-	private async _processGenesis(
-		block: Block,
-		processor: BaseBlockProcessor,
-	): Promise<Block> {
-		const stateStore = await this.chainModule.newStateStore();
-		const isPersisted = await this.chainModule.exists(block);
-		if (isPersisted) {
-			return block;
-		}
-		await processor.applyGenesis.run({
-			block,
-			stateStore,
-		});
-		await this.chainModule.save(block, stateStore, {
-			removeFromTempTable: false,
-		});
-
-		return block;
-	}
-
 	private async _deleteBlock(
 		block: Block,
-		processor: BaseBlockProcessor,
 		saveTempBlock = false,
 	): Promise<void> {
-		// Offset must be set to 1, because lastBlock is still this deleting block
-		const stateStore = await this.chainModule.newStateStore(1);
 		if (block.header.height <= this.bftModule.finalityManager.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
 
-		await processor.undo.run({
-			block,
-			stateStore,
-		});
+		// Offset must be set to 1, because lastBlock is still this deleting block
+		const stateStore = await this.chainModule.newStateStore(1);
 		await this.chainModule.remove(block, stateStore, { saveTempBlock });
 	}
 

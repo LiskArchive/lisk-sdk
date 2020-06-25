@@ -17,7 +17,7 @@ import { EventsArray } from '../controller/event';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 
-export interface ModuleInfo {
+export interface PluginInfo {
 	readonly author: string;
 	readonly version: string;
 	readonly name: string;
@@ -25,14 +25,14 @@ export interface ModuleInfo {
 
 export interface InstantiableModule<T, U = object> {
 	alias: string;
-	info: ModuleInfo;
+	info: PluginInfo;
 	defaults: object;
 	load: () => Promise<void>;
 	unload: () => Promise<void>;
 	new (...args: U[]): T;
 }
 
-export abstract class BaseModule {
+export abstract class BasePlugin {
 	public readonly options: object;
 
 	protected constructor(options: object) {
@@ -44,7 +44,7 @@ export abstract class BaseModule {
 		throw new ImplementationMissingError();
 	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public static get info(): ModuleInfo {
+	public static get info(): PluginInfo {
 		throw new ImplementationMissingError();
 	}
 

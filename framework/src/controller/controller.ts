@@ -22,7 +22,7 @@ import { Bus } from './bus';
 import { Logger } from '../application/logger';
 import { SocketPaths } from './types';
 import { ModulesOptions, ModuleOptions } from '../types';
-import { BaseModule, InstantiableModule } from '../modules/base_module';
+import { BasePlugin, InstantiableModule } from '../modules/base_plugin';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -53,24 +53,24 @@ interface ControllerConfig {
 }
 
 interface ModulesObject {
-	readonly [key: string]: InstantiableModule<BaseModule>;
+	readonly [key: string]: InstantiableModule<BasePlugin>;
 }
 
-const validateModuleSpec = (moduleSpec: Partial<BaseModule>): void => {
+const validateModuleSpec = (moduleSpec: Partial<BasePlugin>): void => {
 	assert(
-		(moduleSpec.constructor as typeof BaseModule).alias,
+		(moduleSpec.constructor as typeof BasePlugin).alias,
 		'Module alias is required.',
 	);
 	assert(
-		(moduleSpec.constructor as typeof BaseModule).info.name,
+		(moduleSpec.constructor as typeof BasePlugin).info.name,
 		'Module name is required.',
 	);
 	assert(
-		(moduleSpec.constructor as typeof BaseModule).info.author,
+		(moduleSpec.constructor as typeof BasePlugin).info.author,
 		'Module author is required.',
 	);
 	assert(
-		(moduleSpec.constructor as typeof BaseModule).info.version,
+		(moduleSpec.constructor as typeof BasePlugin).info.version,
 		'Module version is required.',
 	);
 	assert(moduleSpec.defaults, 'Module default options are required.');
@@ -86,7 +86,7 @@ export class Controller {
 	public readonly channel: InMemoryChannel;
 	public readonly config: ControllerConfig;
 	public modules: {
-		[key: string]: BaseModule;
+		[key: string]: BasePlugin;
 	};
 	public childrenList: Array<ChildProcess>;
 	public bus: Bus | undefined;
@@ -211,13 +211,13 @@ export class Controller {
 
 	private async _loadInMemoryModule(
 		alias: string,
-		Klass: InstantiableModule<BaseModule>,
+		Klass: InstantiableModule<BasePlugin>,
 		options: ModuleOptions,
 	): Promise<void> {
 		const moduleAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
 
-		const module: BaseModule = new Klass(options);
+		const module: BasePlugin = new Klass(options);
 		validateModuleSpec(module);
 
 		this.logger.info(
@@ -247,13 +247,13 @@ export class Controller {
 
 	private async _loadChildProcessModule(
 		alias: string,
-		Klass: InstantiableModule<BaseModule>,
+		Klass: InstantiableModule<BasePlugin>,
 		options: ModuleOptions,
 	): Promise<void> {
 		const moduleAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
 
-		const module: BaseModule = new Klass(options);
+		const module: BasePlugin = new Klass(options);
 		validateModuleSpec(module);
 
 		this.logger.info(

@@ -100,34 +100,4 @@ export class TransferTransaction extends BaseTransaction {
 
 		return errors;
 	}
-
-	protected async undoAsset(
-		store: StateStore,
-	): Promise<ReadonlyArray<TransactionError>> {
-		const errors: TransactionError[] = [];
-		const sender = await store.account.get(this.senderId);
-		const updatedSenderBalance = sender.balance + this.asset.amount;
-
-		if (updatedSenderBalance > BigInt(MAX_TRANSACTION_AMOUNT)) {
-			errors.push(
-				new TransactionError(
-					'Invalid amount',
-					this.id,
-					'.amount',
-					this.asset.amount.toString(),
-				),
-			);
-		}
-
-		sender.balance = updatedSenderBalance;
-		store.account.set(sender.address, sender);
-		const recipient = await store.account.getOrDefault(
-			this.asset.recipientAddress,
-		);
-		recipient.balance -= this.asset.amount;
-
-		store.account.set(recipient.address, recipient);
-
-		return errors;
-	}
 }

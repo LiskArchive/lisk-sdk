@@ -117,11 +117,11 @@ export const computeBlockHeightsList = (
 	listSizeLimit: number,
 	currentRound: number,
 ): number[] => {
-	const startingHeight = Math.max(1, (currentRound - 1) * activeDelegates);
+	const startingHeight = (currentRound - 1) * activeDelegates;
 	const heightList = new Array(listSizeLimit)
 		.fill(0)
 		.map((_, i) => startingHeight - i * activeDelegates)
-		.filter(height => height > 0);
+		.filter(height => height >= 0);
 	const heightListAfterFinalized = heightList.filter(
 		height => height > finalizedHeight,
 	);

@@ -118,7 +118,8 @@ describe('Vote weight snapshot', () => {
 			genesisBlock = {
 				id: Buffer.from('genesis-block'),
 				timestamp: 10,
-				height: 1,
+				height: 0,
+				version: 0,
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				asset: {
@@ -157,7 +158,7 @@ describe('Vote weight snapshot', () => {
 
 	describe('given not the last block of a round', () => {
 		let delegates: Account[];
-		let genesisBlock: BlockHeader;
+		let block: BlockHeader;
 
 		beforeEach(() => {
 			// Arrange
@@ -165,10 +166,11 @@ describe('Vote weight snapshot', () => {
 			for (const delegate of delegates) {
 				delegate.asset.delegate.totalVotesReceived = BigInt(10) ** BigInt(12);
 			}
-			genesisBlock = {
+			block = {
 				id: Buffer.from('random-block'),
 				timestamp: 50,
 				height: 5,
+				version: 2,
 				generatorPublicKey: forgers[0].publicKey,
 				reward: BigInt(500000000),
 				asset: {
@@ -203,7 +205,7 @@ describe('Vote weight snapshot', () => {
 		describe('when apply is called', () => {
 			it('should not snapshot the voteweight', async () => {
 				// Act
-				await dpos.apply(genesisBlock, stateStore);
+				await dpos.apply(block, stateStore);
 
 				// Assert
 				expect(stateStore.consensus.set).not.toHaveBeenCalled();
@@ -245,6 +247,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -383,6 +386,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -531,6 +535,7 @@ describe('Vote weight snapshot', () => {
 					id: 'random-block',
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					totalFee: BigInt(100000000),
@@ -674,6 +679,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -824,6 +830,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -970,6 +977,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -1105,6 +1113,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -1248,6 +1257,7 @@ describe('Vote weight snapshot', () => {
 					id: Buffer.from('random-block'),
 					timestamp: 10100,
 					height: 1030,
+					version: 2,
 					generatorPublicKey: forgers[0].publicKey,
 					reward: BigInt(500000000),
 					asset: {
@@ -1358,124 +1368,6 @@ describe('Vote weight snapshot', () => {
 				expect(voteWeights[1].delegates).toHaveLength(
 					delegates.length + additionalDelegates.length - 1,
 				);
-			});
-		});
-
-		describe('when undo is called', () => {
-			beforeEach(() => {
-				delegates = getDelegateAccounts(103);
-				block = {
-					id: 'random-block',
-					timestamp: 10100,
-					height: 1030,
-					generatorPublicKey: forgers[0].publicKey,
-					reward: BigInt(500000000),
-					asset: {
-						seedReveal: Buffer.from('00000000000000000000000000000000', 'hex'),
-					},
-				} as BlockHeader;
-				chainStub.dataAccess.getDelegates.mockResolvedValue([...delegates]);
-
-				// Setup for missed block calculation
-				const forgedBlocks = forgers
-					.map((forger, i) => ({
-						generatorPublicKey: forger.publicKey,
-						height: 928 + i,
-					}))
-					.slice(0, 102);
-				chainStub.dataAccess.getBlockHeadersByHeightBetween.mockResolvedValue(
-					forgedBlocks,
-				);
-
-				const voteWeightsObject = {
-					voteWeights: [
-						{
-							round: 11,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: BigInt(0),
-							})),
-						},
-						{
-							round: 12,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: BigInt(0),
-							})),
-						},
-						{
-							round: 13,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: BigInt(0),
-							})),
-						},
-						{
-							round: 14,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: BigInt(0),
-							})),
-						},
-						{
-							round: 15,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: BigInt(0),
-							})),
-						},
-						{
-							round: 16,
-							delegates: delegates.map(d => ({
-								address: d.address,
-								voteWeight: BigInt(0),
-							})),
-						},
-					],
-				};
-
-				const existingVoteWeights = codec.encode(
-					voteWeightsSchema,
-					voteWeightsObject,
-				);
-
-				const forgerListObject = {
-					forgersList: [
-						{
-							round: 10,
-							delegates: [...forgers.map(d => d.address).slice(0, 102)],
-							standby: [],
-						},
-					],
-				};
-
-				const mockedForgersList = codec.encode(
-					forgerListSchema,
-					forgerListObject,
-				);
-
-				stateStore = new StateStoreMock(
-					[forgers[0]],
-					{
-						[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: mockedForgersList,
-						[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: existingVoteWeights,
-					},
-					{ lastBlockHeaders: [defaultLastBlockHeader] },
-				);
-			});
-
-			it('should remove future voteWights that is no longer valid', async () => {
-				// Act
-				await dpos.undo(block, stateStore);
-
-				// Assert
-				const voteWeightsBuffer = await stateStore.consensus.get(
-					CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
-				);
-				const voteWeights = convertVoteWeight(voteWeightsBuffer as Buffer);
-				expect(voteWeights).toHaveLength(2);
-				expect(voteWeights[0].round).toEqual(11);
-				expect(voteWeights[1].round).toEqual(12);
 			});
 		});
 	});

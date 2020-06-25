@@ -21,13 +21,8 @@ import {
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import {
-	BaseTransaction,
-	TransferTransaction,
-	DelegateTransaction,
-	VoteTransaction,
-} from '@liskhq/lisk-transactions';
-import * as genesisBlockJSON from '../fixtures/genesis_block.json';
+import { BaseTransaction } from '@liskhq/lisk-transactions';
+import * as genesis from '../fixtures/genesis_block.json';
 import { Block, BlockHeader } from '../../src/types';
 import {
 	signingBlockHeaderSchema,
@@ -64,6 +59,170 @@ export const defaultBlockHeaderAssetSchema = {
 	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
 };
 
+export const genesisBlockAssetSchema = {
+	$id: 'genesisBlockAssetSchema',
+	type: 'object',
+	required: ['accounts', 'initDelegates', 'initRounds'],
+	properties: {
+		accounts: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					address: { dataType: 'bytes', fieldNumber: 1 },
+					balance: { dataType: 'uint64', fieldNumber: 2 },
+					publicKey: { dataType: 'bytes', fieldNumber: 3 },
+					nonce: { dataType: 'uint64', fieldNumber: 4 },
+					keys: {
+						fieldNumber: 5,
+						type: 'object',
+						properties: {
+							numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
+							mandatoryKeys: {
+								type: 'array',
+								items: { dataType: 'bytes' },
+								fieldNumber: 2,
+							},
+							optionalKeys: {
+								type: 'array',
+								items: { dataType: 'bytes' },
+								fieldNumber: 3,
+							},
+						},
+						required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+					},
+					asset: {
+						fieldNumber: 6,
+						type: 'object',
+						properties: {
+							delegate: {
+								type: 'object',
+								fieldNumber: 1,
+								properties: {
+									username: { dataType: 'string', fieldNumber: 1 },
+									pomHeights: {
+										type: 'array',
+										items: { dataType: 'uint32' },
+										fieldNumber: 2,
+									},
+									consecutiveMissedBlocks: {
+										dataType: 'uint32',
+										fieldNumber: 3,
+									},
+									lastForgedHeight: { dataType: 'uint32', fieldNumber: 4 },
+									isBanned: { dataType: 'boolean', fieldNumber: 5 },
+									totalVotesReceived: { dataType: 'uint64', fieldNumber: 6 },
+								},
+								required: [
+									'username',
+									'pomHeights',
+									'consecutiveMissedBlocks',
+									'lastForgedHeight',
+									'isBanned',
+									'totalVotesReceived',
+								],
+							},
+							sentVotes: {
+								type: 'array',
+								fieldNumber: 2,
+								items: {
+									type: 'object',
+									properties: {
+										delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+										amount: { dataType: 'uint64', fieldNumber: 2 },
+									},
+									required: ['delegateAddress', 'amount'],
+								},
+							},
+							unlocking: {
+								type: 'array',
+								fieldNumber: 3,
+								items: {
+									type: 'object',
+									properties: {
+										delegateAddress: { dataType: 'bytes', fieldNumber: 1 },
+										amount: { dataType: 'uint64', fieldNumber: 2 },
+										unvoteHeight: { dataType: 'uint32', fieldNumber: 3 },
+									},
+									required: ['delegateAddress', 'amount', 'unvoteHeight'],
+								},
+							},
+						},
+					},
+				},
+				required: ['address', 'balance', 'publicKey', 'nonce', 'keys', 'asset'],
+			},
+			fieldNumber: 1,
+		},
+		initDelegates: {
+			type: 'array',
+			items: { dataType: 'bytes' },
+			fieldNumber: 2,
+		},
+		initRounds: { dataType: 'uint32', fieldNumber: 3, minimum: 3 },
+	},
+};
+
+export const genesisBlock: Block = {
+	header: {
+		...genesis.header,
+		id: Buffer.from(genesis.header.id, 'base64'),
+		previousBlockID: Buffer.from(genesis.header.previousBlockID, 'base64'),
+		transactionRoot: Buffer.from(genesis.header.transactionRoot, 'base64'),
+		generatorPublicKey: Buffer.from(
+			genesis.header.generatorPublicKey,
+			'base64',
+		),
+		reward: BigInt(genesis.header.reward),
+		signature: Buffer.from(genesis.header.signature, 'base64'),
+		asset: {
+			initRounds: genesis.header.asset.initRounds,
+			initDelegates: genesis.header.asset.initDelegates.map(address =>
+				Buffer.from(address, 'base64'),
+			),
+			accounts: genesis.header.asset.accounts.map(account => ({
+				address: Buffer.from(account.address, 'base64'),
+				balance: BigInt(account.balance),
+				publicKey: Buffer.from(account.publicKey, 'base64'),
+				nonce: BigInt(account.nonce),
+				keys: {
+					mandatoryKeys: account.keys.mandatoryKeys.map(key =>
+						Buffer.from(key, 'base64'),
+					),
+					optionalKeys: account.keys.optionalKeys.map(key =>
+						Buffer.from(key, 'base64'),
+					),
+					numberOfSignatures: account.keys.numberOfSignatures,
+				},
+				asset: {
+					delegate: {
+						...account.asset.delegate,
+						totalVotesReceived: BigInt(
+							account.asset.delegate.totalVotesReceived,
+						),
+					},
+					sentVotes: account.asset.sentVotes.map(vote => ({
+						delegateAddress: Buffer.from(vote.delegateAddress, 'base64'),
+						amount: BigInt(vote.amount),
+					})),
+					unlocking: account.asset.unlocking.map(
+						(unlock: {
+							delegateAddress: string;
+							amount: string;
+							unvoteHeight: string;
+						}) => ({
+							delegateAddress: Buffer.from(unlock.delegateAddress, 'base64'),
+							amount: BigInt(unlock.amount),
+							unvoteHeight: unlock.unvoteHeight,
+						}),
+					),
+				},
+			})),
+		},
+	},
+	payload: [],
+};
+
 export const createFakeBlockHeader = <T = any>(
 	header?: Partial<BlockHeader<T>>,
 ): BlockHeader<T> => ({
@@ -78,6 +237,11 @@ export const createFakeBlockHeader = <T = any>(
 	asset: header?.asset ?? ({} as T),
 	signature: header?.signature ?? getRandomBytes(64),
 });
+
+export const encodeGenesisBlockHeader = (header: BlockHeader): Buffer => {
+	const asset = codec.encode(genesisBlockAssetSchema, header.asset);
+	return codec.encode(blockHeaderSchema, { ...header, asset });
+};
 
 export const encodeDefaultBlockHeader = (header: BlockHeader): Buffer => {
 	const asset = codec.encode(defaultBlockHeaderAssetSchema, header.asset);
@@ -112,14 +276,10 @@ export const createValidDefaultBlock = (
 
 	const blockHeader = createFakeBlockHeader({
 		version: 2,
-		height: 2,
-		// FIXME: Genesis block hash calculated with the new implementation, need to update when updating genesis block
-		previousBlockID: Buffer.from(
-			'39594f0b163706bf118515c9e5a91fcfffb96f22628f1a0002deb3cee7bcf617',
-			'hex',
-		),
+		height: 1,
+		previousBlockID: genesisBlock.header.id,
 		reward: BigInt(0),
-		timestamp: 1000,
+		timestamp: genesisBlock.header.timestamp + 10,
 		transactionRoot: txTree.root,
 		generatorPublicKey: keypair.publicKey,
 		...block?.header,
@@ -151,80 +311,4 @@ export const createValidDefaultBlock = (
 		},
 		payload,
 	};
-};
-
-// FIXME: Update to new genesis block format
-export const genesisBlock = (): Block => {
-	const block = {
-		header: {
-			id: Buffer.from(genesisBlockJSON.id, 'hex'),
-			version: genesisBlockJSON.version,
-			height: genesisBlockJSON.height,
-			previousBlockID: Buffer.from(genesisBlockJSON.id, 'hex'),
-			reward: BigInt(genesisBlockJSON.reward),
-			timestamp: genesisBlockJSON.timestamp,
-			transactionRoot: Buffer.from(genesisBlockJSON.transactionRoot, 'hex'),
-			generatorPublicKey: Buffer.from(
-				genesisBlockJSON.generatorPublicKey,
-				'hex',
-			),
-			signature: Buffer.from(genesisBlockJSON.blockSignature, 'hex'),
-			asset: {
-				maxHeightPreviouslyForged: genesisBlockJSON.maxHeightPreviouslyForged,
-				maxHeightPrevoted: genesisBlockJSON.maxHeightPrevoted,
-				seedReveal: Buffer.from(genesisBlockJSON.seedReveal, 'hex'),
-			},
-		},
-		payload: genesisBlockJSON.transactions.map(tx => {
-			if (tx.type === 8) {
-				return new TransferTransaction({
-					...tx,
-					id: Buffer.from(tx.id, 'hex'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-					nonce: BigInt(tx.nonce),
-					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-					asset: {
-						recipientAddress: Buffer.from(
-							tx.asset.recipientId as string,
-							'hex',
-						),
-						amount: BigInt(tx.asset.amount),
-						data: '',
-					},
-				});
-			}
-			if (tx.type === 10) {
-				return new DelegateTransaction({
-					...tx,
-					id: Buffer.from(tx.id, 'hex'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-					nonce: BigInt(tx.nonce),
-					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-				} as any);
-			}
-			if (tx.type === 13) {
-				return new VoteTransaction({
-					...tx,
-					id: Buffer.from(tx.id, 'hex'),
-					senderPublicKey: Buffer.from(tx.senderPublicKey, 'hex'),
-					nonce: BigInt(tx.nonce),
-					fee: BigInt(tx.fee),
-					signatures: tx.signatures.map(s => Buffer.from(s, 'hex')),
-					asset: {
-						votes: tx.asset.votes?.map(v => ({
-							delegateAddress: Buffer.from(v.delegateAddress, 'hex'),
-							amount: BigInt(v.amount),
-						})) as any,
-					},
-				});
-			}
-			throw new Error('Unexpected transaction type');
-		}),
-	};
-	const encodedHeader = encodeDefaultBlockHeader(block.header);
-	const id = hash(encodedHeader);
-	block.header.id = id;
-	return block;
 };

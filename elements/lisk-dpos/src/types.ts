@@ -32,6 +32,7 @@ export interface StateStore {
 
 export interface BlockHeader {
 	readonly height: number;
+	readonly version: number;
 	readonly generatorPublicKey: Buffer;
 	readonly reward: bigint;
 	readonly timestamp: number;
@@ -79,7 +80,6 @@ export interface Account {
 
 export interface DPoSProcessingOptions {
 	readonly delegateListRoundOffset: number;
-	readonly undo?: boolean;
 }
 
 export interface Chain {

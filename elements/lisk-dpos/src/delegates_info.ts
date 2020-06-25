@@ -16,12 +16,7 @@ import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
 import { EVENT_ROUND_CHANGED } from './constants';
-import {
-	DelegatesList,
-	deleteForgersListAfterRound,
-	deleteVoteWeightsAfterRound,
-	getForgerAddressesForRound,
-} from './delegates_list';
+import { DelegatesList, getForgerAddressesForRound } from './delegates_list';
 import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
 import { BlockHeader, Chain, DPoSProcessingOptions, StateStore } from './types';
@@ -36,7 +31,7 @@ interface DelegatesInfoConstructor {
 	readonly delegatesList: DelegatesList;
 }
 
-const _isGenesisBlock = (header: BlockHeader): boolean => header.height === 1;
+const _isGenesisBlock = (header: BlockHeader): boolean => header.version === 0;
 const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 const maxConsecutiveMissedBlocks = 50;
 const maxLastForgedHeightDiff = 260000;
@@ -64,30 +59,13 @@ export class DelegatesInfo {
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
-		const undo = false;
-
-		return this._update(header, stateStore, { undo, delegateListRoundOffset });
-	}
-
-	public async undo(
-		header: BlockHeader,
-		stateStore: StateStore,
-		{ delegateListRoundOffset }: DPoSProcessingOptions,
-	): Promise<boolean> {
-		const undo = true;
-
-		// Never undo genesis block
-		if (_isGenesisBlock(header)) {
-			throw new Error('Cannot undo genesis block');
-		}
-
-		return this._update(header, stateStore, { undo, delegateListRoundOffset });
+		return this._update(header, stateStore, { delegateListRoundOffset });
 	}
 
 	private async _update(
 		block: BlockHeader,
 		stateStore: StateStore,
-		{ delegateListRoundOffset, undo }: DPoSProcessingOptions,
+		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
 		if (_isGenesisBlock(block)) {
 			const initialRound = 1;
@@ -121,43 +99,29 @@ export class DelegatesInfo {
 			return false;
 		}
 
-		if (undo) {
-			const previousRound = round + 1;
-			this.events.emit(EVENT_ROUND_CHANGED, {
-				oldRound: previousRound,
-				newRound: round,
-			});
-			debug('Deleting delegate list after ', round + delegateListRoundOffset);
-			await deleteForgersListAfterRound(round, stateStore);
-			await deleteVoteWeightsAfterRound(
-				round + delegateListRoundOffset,
-				stateStore,
-			);
-		} else {
-			const nextRound = round + 1;
-			this.events.emit(EVENT_ROUND_CHANGED, {
-				oldRound: round,
-				newRound: nextRound,
-			});
-			debug('Creating delegate list for', round + delegateListRoundOffset);
-			// Creating voteWeight snapshot for next round + offset
-			await this.delegatesList.createVoteWeightsSnapshot(
-				block.height + 1,
-				stateStore,
-			);
+		const nextRound = round + 1;
+		this.events.emit(EVENT_ROUND_CHANGED, {
+			oldRound: round,
+			newRound: nextRound,
+		});
+		debug('Creating delegate list for', round + delegateListRoundOffset);
+		// Creating voteWeight snapshot for next round + offset
+		await this.delegatesList.createVoteWeightsSnapshot(
+			block.height + 1,
+			stateStore,
+		);
 
-			const [randomSeed1, randomSeed2] = generateRandomSeeds(
-				round,
-				this.rounds,
-				stateStore.consensus.lastBlockHeaders,
-			);
+		const [randomSeed1, randomSeed2] = generateRandomSeeds(
+			round,
+			this.rounds,
+			stateStore.consensus.lastBlockHeaders,
+		);
 
-			await this.delegatesList.updateForgersList(
-				nextRound,
-				[randomSeed1, randomSeed2],
-				stateStore,
-			);
-		}
+		await this.delegatesList.updateForgersList(
+			nextRound,
+			[randomSeed1, randomSeed2],
+			stateStore,
+		);
 
 		return true;
 	}

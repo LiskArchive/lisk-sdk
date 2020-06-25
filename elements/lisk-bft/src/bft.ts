@@ -227,7 +227,7 @@ export class BFT extends EventEmitter {
 
 		const finalizedHeightStored =
 			storedFinalizedHeightBuffer === undefined
-				? 1
+				? 0
 				: codec.decode<BFTPersistedValues>(
 						BFTFinalizedHeightCodecSchema,
 						storedFinalizedHeightBuffer,

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,10 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as genesisBlockSchema from '../../../../../src/application/schema/genesis_block_schema';
-
-describe('schema/genesis_block_schema.js', () => {
-	it('genesis block schema must match to the snapshot.', () => {
-		expect(genesisBlockSchema).toMatchSnapshot();
-	});
-});
+export interface Options {
+	readonly port: number;
+	readonly whiteList: ReadonlyArray<string>;
+	readonly cors: {
+		readonly origin: string;
+		readonly methods: string[];
+	};
+	readonly limits: {
+		readonly max: number;
+		readonly delayMs: number;
+		readonly delayAfter: number;
+		readonly windowMs: number;
+		readonly headersTimeout: number;
+		readonly serverSetTimeout: number;
+	};
+}

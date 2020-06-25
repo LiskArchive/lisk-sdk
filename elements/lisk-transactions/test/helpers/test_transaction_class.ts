@@ -29,10 +29,6 @@ export class TestTransaction extends BaseTransaction {
 	public async applyAsset(): Promise<TransactionError[]> {
 		return [];
 	}
-
-	public async undoAsset(): Promise<TransactionError[]> {
-		return [];
-	}
 }
 
 export class TestTransactionBasicImpl extends BaseTransaction {
@@ -49,10 +45,6 @@ export class TestTransactionBasicImpl extends BaseTransaction {
 	};
 
 	public async applyAsset(): Promise<TransactionError[]> {
-		return [];
-	}
-
-	public async undoAsset(): Promise<TransactionError[]> {
 		return [];
 	}
 }

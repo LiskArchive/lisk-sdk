@@ -60,11 +60,6 @@ class CustomTransationClass extends BaseTransaction {
 		return [];
 	}
 
-	// eslint-disable-next-line
-	public async undoAsset(): Promise<TransactionError[]> {
-		return [];
-	}
-
 	// eslint-disable-next-line class-methods-use-this
 	public matcher() {
 		return false;
