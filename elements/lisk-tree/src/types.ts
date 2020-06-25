@@ -29,6 +29,7 @@ export interface NodeInfo {
 	readonly layerIndex: number;
 	readonly nodeIndex: number;
 }
+
 export const enum NodeSide {
 	LEFT = 0,
 	RIGHT,
@@ -36,4 +37,18 @@ export const enum NodeSide {
 export interface TreeStructure {
 	[key: number]: NodeInfo[];
 }
-export type Path = Array<{ hash: Buffer; direction: number } | undefined>;
+export interface Proof {
+	readonly path: ReadonlyArray<{
+		hash: Buffer;
+		layerIndex: number;
+		nodeIndex: number;
+	}>;
+	readonly indexes: ReadonlyArray<{ layerIndex: number; nodeIndex: number }>;
+	readonly dataLength: number;
+}
+
+export interface NodeLocation {
+	readonly layerIndex: number;
+	readonly nodeIndex: number;
+	readonly side?: NodeSide;
+}
