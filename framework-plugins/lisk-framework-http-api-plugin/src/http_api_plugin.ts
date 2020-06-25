@@ -78,6 +78,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		) as Options;
 		this._registerMiddlewares(options);
 		this._registerControllers();
+		this._registerAfterMiddlewares(options);
 
 		this._channel = channel;
 		this._server = this._app.listen(options.port, '0.0.0.0');
@@ -101,6 +102,10 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._app.use(express.json());
 		this._app.use(rateLimit(options.limits));
 		this._app.use(middlewares.whiteListMiddleware(options));
+	}
+
+	private _registerAfterMiddlewares(_options: Options): void {
+		this._app.use(middlewares.errorMiddleware());
 	}
 
 	private _registerControllers(): void {
