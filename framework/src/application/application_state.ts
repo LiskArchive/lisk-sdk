@@ -54,7 +54,7 @@ export class ApplicationState {
 			version,
 			wsPort,
 			protocolVersion,
-			height: 1,
+			height: 0,
 			blockVersion: 0,
 			maxHeightPrevoted: 0,
 			networkId,
