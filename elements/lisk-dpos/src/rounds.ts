@@ -13,14 +13,32 @@
  */
 
 interface RoundConstructor {
+	readonly genesisHeight: number;
+	readonly initRound: number;
 	readonly blocksPerRound: number;
 }
 
 export class Rounds {
 	public readonly blocksPerRound: number;
+	public readonly initRound: number;
+	private readonly _genesisHeight: number;
 
-	public constructor({ blocksPerRound }: RoundConstructor) {
+	public constructor({
+		blocksPerRound,
+		genesisHeight,
+		initRound,
+	}: RoundConstructor) {
 		this.blocksPerRound = blocksPerRound;
+		this._genesisHeight = genesisHeight;
+		this.initRound = initRound;
+	}
+
+	public isBootstrapPeriod(height: number): boolean {
+		return height > this._genesisHeight && height <= this.lastHeightBootstrap();
+	}
+
+	public lastHeightBootstrap(): number {
+		return this.initRound * this.blocksPerRound + this._genesisHeight;
 	}
 
 	public calcRound(height: number): number {

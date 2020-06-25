@@ -21,6 +21,8 @@ export const CHAIN_STATE_DELEGATE_USERNAMES = 'delegateUsernames';
 export const DEFAULT_ACTIVE_DELEGATE = 101;
 export const DEFAULT_STANDBY_DELEGATE = 2;
 export const DEFAULT_ROUND_OFFSET = 2;
+export const DEFAULT_INIT_ROUND = 3;
+export const DEFAULT_GENESIS_HEIGHT = 0;
 // Vote weight is capped at the self-vote * DEFAULT_VOTE_WEIGHT_CAP_RATE
 export const DEFAULT_VOTE_WEIGHT_CAP_RATE = 10;
 export const DEFAULT_STANDBY_THRESHOLD = BigInt(1000) * BigInt(10) ** BigInt(8);

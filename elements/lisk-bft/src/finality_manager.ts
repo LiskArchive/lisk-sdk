@@ -205,6 +205,12 @@ export class FinalityManager extends EventEmitter {
 		bftBlockHeaders: ReadonlyArray<BlockHeader>,
 	): Promise<boolean> {
 		debug('updatePreVotesPreCommits invoked');
+
+		// If the block is in the bootstrap period, it does not have vote weight
+		if (this._dpos.isBootstrapPeriod(header.height)) {
+			return false;
+		}
+
 		// If delegate forged a block with higher or same height previously
 		// That means he is forging on other chain and we don't count any
 		// Pre-votes and pre-commits from him

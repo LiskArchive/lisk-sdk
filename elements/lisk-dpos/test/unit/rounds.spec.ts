@@ -22,6 +22,8 @@ describe('Slots', () => {
 	beforeEach(() => {
 		rounds = new Rounds({
 			blocksPerRound: ACTIVE_DELEGATES,
+			genesisHeight: 50,
+			initRound: 3,
 		});
 	});
 
@@ -37,6 +39,20 @@ describe('Slots', () => {
 			const res = rounds.calcRound(Number.MAX_VALUE);
 			expect(typeof res === 'number').toBe(true);
 			return expect(res).toBeLessThan(Number.MAX_VALUE);
+		});
+	});
+
+	describe('bootstrap period', () => {
+		it('should return true if the height is not in the bootstrap period', () => {
+			expect(rounds.isBootstrapPeriod(354)).toBeFalse();
+		});
+
+		it('should return true if the height is in bootstrap period', () => {
+			expect(rounds.isBootstrapPeriod(353)).toBeTrue();
+		});
+
+		it('should return the end height of the bootstrap period', () => {
+			expect(rounds.lastHeightBootstrap()).toEqual(353);
 		});
 	});
 });

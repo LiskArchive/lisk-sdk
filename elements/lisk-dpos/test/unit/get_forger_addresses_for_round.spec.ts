@@ -40,6 +40,7 @@ describe('dpos.getForgerAddressesForRound()', () => {
 
 		dpos = new Dpos({
 			chain: chainStub,
+			initDelegates: [],
 		});
 	});
 

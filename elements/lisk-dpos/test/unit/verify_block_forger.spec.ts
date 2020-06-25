@@ -52,8 +52,10 @@ describe('dpos.verifyBlockForger()', () => {
 			},
 		};
 
+		const initDelegates = delegatePublicKeys.map(pk => Buffer.from(pk, 'hex'));
 		dpos = new Dpos({
 			chain: chainStub,
+			initDelegates,
 		});
 	});
 

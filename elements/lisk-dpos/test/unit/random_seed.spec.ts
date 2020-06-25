@@ -54,6 +54,8 @@ describe('random_seed', () => {
 			const { config, input } = randomSeedNotPassedMiddle.testCases[0] as any;
 			rounds = new Rounds({
 				blocksPerRound: config.blocksPerRound,
+				genesisHeight: 0,
+				initRound: 3,
 			});
 			const round = rounds.calcRound(
 				input.blocks[input.blocks.length - 1].height,
@@ -75,6 +77,8 @@ describe('random_seed', () => {
 					// Arrange
 					rounds = new Rounds({
 						blocksPerRound: config.blocksPerRound,
+						genesisHeight: 0,
+						initRound: 3,
 					});
 
 					const round = rounds.calcRound(

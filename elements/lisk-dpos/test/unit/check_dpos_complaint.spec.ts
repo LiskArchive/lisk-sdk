@@ -24,6 +24,7 @@ import {
 } from '../utils/state_store_mock';
 import { BlockHeader } from '../../src/types';
 import { blockHeaders } from '../utils/block_headers';
+import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -52,11 +53,13 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 		const chain = {
 			slots,
 		};
+		const initDelegates = delegatePublicKeys.map(pk => Buffer.from(pk, 'hex'));
 
 		dpos = new Dpos({
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
+			initDelegates,
 		});
 	});
 

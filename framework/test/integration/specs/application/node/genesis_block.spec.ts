@@ -64,25 +64,6 @@ describe('genesis block', () => {
 				expect(genesisAccounts).toEqual(accountsFromDb);
 			});
 
-			it('should have correct registered delegates', async () => {
-				// Get genesis accounts
-				const genesisAccounts = genesisBlock.header.asset.accounts;
-				const genesisDelegates = genesisAccounts
-					.filter(account => account.asset.delegate.username !== '')
-					.map(account => ({
-						address: account.address,
-						username: account.asset.delegate.username,
-					}));
-
-				// Get delegate accounts in genesis block from the database
-				const stateStore = await node['_chain'].newStateStore();
-				const delegatesFromDb = await node['_dpos'].getRegisteredDelegates(
-					stateStore,
-				);
-
-				expect(delegatesFromDb).toEqual(genesisDelegates);
-			});
-
 			it('should have correct delegate list', async () => {
 				const delegateListFromChain = await nodeUtils.getDelegateList(node, 1);
 				expect(delegateListFromChain).toMatchSnapshot();

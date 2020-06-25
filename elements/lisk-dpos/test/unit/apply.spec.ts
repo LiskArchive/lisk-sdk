@@ -14,7 +14,11 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { voteWeightsSchema, forgerListSchema } from '../../src/schemas';
+import {
+	voteWeightsSchema,
+	forgerListSchema,
+	delegatesUserNamesSchema,
+} from '../../src/schemas';
 import * as randomSeedModule from '../../src/random_seed';
 import { Dpos, constants } from '../../src';
 import {
@@ -27,7 +31,6 @@ import {
 	BLOCK_TIME,
 	ACTIVE_DELEGATES,
 	STANDBY_DELEGATES,
-	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
 import {
 	getDelegateAccounts,
@@ -36,8 +39,10 @@ import {
 import {
 	CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
+	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
+import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -54,6 +59,7 @@ describe('dpos.apply()', () => {
 	let stateStore: StateStoreMock;
 	const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 	const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
+	const initDelegates = delegatePublicKeys.map(pk => Buffer.from(pk, 'hex'));
 
 	beforeEach(() => {
 		// Arrange
@@ -72,6 +78,8 @@ describe('dpos.apply()', () => {
 
 		dpos = new Dpos({
 			chain: chainStub,
+			initDelegates,
+			initRound: 1,
 		});
 
 		stateStore = new StateStoreMock(
@@ -85,7 +93,7 @@ describe('dpos.apply()', () => {
 			.mockReturnValue([randomSeed1, randomSeed2]);
 	});
 
-	describe('Given block is the genesis block (height === 1)', () => {
+	describe('Given block is the genesis block', () => {
 		let genesisBlock: BlockHeader;
 		let generator: Account;
 
@@ -111,27 +119,24 @@ describe('dpos.apply()', () => {
 			);
 		});
 
-		it('should save round 1 + round offset vote weight list in the consensus state', async () => {
+		it('save initial account usernames to the chain state', async () => {
 			// Act
 			await dpos.apply(genesisBlock, stateStore);
 
 			// Assert
-			const voteWeightsBuffer = await stateStore.consensus.get(
-				CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
+			const usernameBuffer = await stateStore.chain.get(
+				CHAIN_STATE_DELEGATE_USERNAMES,
 			);
 
-			const { voteWeights } = codec.decode<DecodedVoteWeights>(
-				voteWeightsSchema,
-				voteWeightsBuffer as Buffer,
-			);
+			const { registeredDelegates } = codec.decode<{
+				registeredDelegates: { username: string; address: Buffer }[];
+			}>(delegatesUserNamesSchema, usernameBuffer as Buffer);
 
-			expect(voteWeights).toHaveLength(1 + DELEGATE_LIST_ROUND_OFFSET);
-			expect((voteWeights as any)[0].round).toEqual(1);
-			expect((voteWeights as any)[1].round).toEqual(2);
-			expect((voteWeights as any)[2].round).toEqual(3);
+			// delegate account and generator
+			expect(registeredDelegates).toHaveLength(delegateAccounts.length + 1);
 		});
 
-		it('should save round 1 forger list in the consensus state', async () => {
+		it('should save save forgers list for init rounds', async () => {
 			// Act
 			await dpos.apply(genesisBlock, stateStore);
 
@@ -145,7 +150,7 @@ describe('dpos.apply()', () => {
 				forgersListBuffer as Buffer,
 			);
 
-			expect(forgersList).toHaveLength(1);
+			expect(forgersList).toHaveLength(dpos.rounds.initRound);
 			expect(forgersList[0].round).toEqual(1);
 		});
 
@@ -155,6 +160,107 @@ describe('dpos.apply()', () => {
 
 			// Assert
 			expect(result).toBe(false);
+		});
+	});
+
+	describe('given the last block of the bootstrap period', () => {
+		let lastBlockOfRound: BlockHeader;
+		let forgedDelegates: Account[];
+
+		beforeEach(() => {
+			forgedDelegates = getDelegateAccountsWithVotesReceived(
+				ACTIVE_DELEGATES + STANDBY_DELEGATES,
+			);
+
+			const delegateVoteWeights = [
+				{
+					round: 4,
+					delegates: forgedDelegates.map(d => ({
+						address: d.address,
+						voteWeight: d.asset.delegate.totalVotesReceived,
+					})),
+				},
+			];
+
+			const encodedDelegateVoteWeights = codec.encode(voteWeightsSchema, {
+				voteWeights: delegateVoteWeights,
+			});
+
+			const forgersList = {
+				forgersList: [
+					{
+						round: 1,
+						delegates: initDelegates,
+						standby: [],
+					},
+					{
+						round: 2,
+						delegates: initDelegates,
+						standby: [],
+					},
+					{
+						round: 3,
+						delegates: initDelegates,
+						standby: [],
+					},
+				],
+			};
+
+			stateStore = new StateStoreMock(
+				[...forgedDelegates],
+				{
+					[CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS]: encodedDelegateVoteWeights,
+					[CONSENSUS_STATE_DELEGATE_FORGERS_LIST]: codec.encode(
+						forgerListSchema,
+						forgersList,
+					),
+				},
+				{ lastBlockHeaders: [defaultLastBlockHeader] },
+			);
+
+			const forgedBlocks = forgedDelegates.map((delegate, i) => ({
+				generatorPublicKey: delegate.publicKey,
+				height: i,
+			}));
+			forgedBlocks.splice(forgedBlocks.length - 1);
+
+			lastBlockOfRound = {
+				height: 309,
+				generatorPublicKey:
+					forgedDelegates[forgedDelegates.length - 1].publicKey,
+			} as BlockHeader;
+
+			chainStub.dataAccess.getBlockHeadersByHeightBetween.mockReturnValue(
+				forgedBlocks,
+			);
+		});
+
+		it('should save next round forgers in forgers list after applying last block of round', async () => {
+			// Arrange
+			const currentRound = dpos.rounds.calcRound(lastBlockOfRound.height);
+			const nextRound = dpos.rounds.calcRound(lastBlockOfRound.height + 1);
+
+			// Act
+			await dpos.apply(lastBlockOfRound, stateStore);
+
+			// Assert
+			// make sure we calculate round number correctly
+			expect(nextRound).toBe(currentRound + 1);
+			// we must delete the delegate list before creating the new one
+			const forgersListBuffer = await stateStore.consensus.get(
+				CONSENSUS_STATE_DELEGATE_FORGERS_LIST,
+			);
+
+			const { forgersList } = codec.decode(
+				forgerListSchema,
+				forgersListBuffer as Buffer,
+			);
+
+			const forgers = forgersList.find(
+				(fl: { round: number }) => fl.round === nextRound,
+			);
+
+			expect(forgers?.round).toEqual(nextRound);
 		});
 	});
 

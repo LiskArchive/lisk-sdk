@@ -47,11 +47,9 @@ export const createApplication = async (
 		app.run(),
 		new Promise(resolve => setTimeout(resolve, 3000)),
 	]);
-	let blockHeight = 0;
 	await new Promise(resolve => {
 		app['_channel'].subscribe('app:block:new', () => {
-			blockHeight += 1;
-			if (blockHeight === 2) {
+			if (app['_node']['_chain'].lastBlock.header.height === 2) {
 				resolve();
 			}
 		});

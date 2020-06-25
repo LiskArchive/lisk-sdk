@@ -13,4 +13,3 @@
  */
 
 export const BFT_ROUND_THRESHOLD = 3;
-export const BFT_MIGRATION_ROUND_OFFSET = 2;
