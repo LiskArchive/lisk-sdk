@@ -40,6 +40,18 @@ const _liskMessageValueToJSONValue: {
 	boolean: value => value as boolean,
 };
 
+const _JSONValueToliskMessageValue: {
+	readonly [key: string]: (value: BaseTypes) => BaseTypes;
+} = {
+	uint32: value => value as number,
+	sint32: value => value as number,
+	uint64: value => BigInt(value),
+	sint64: value => BigInt(value),
+	string: value => value as string,
+	bytes: value => Buffer.from(value as string, 'base64'),
+	boolean: value => value as boolean,
+};
+
 const findObjectByPath = (
 	message: SchemaProps,
 	pathArr: string[],
@@ -92,6 +104,7 @@ const iterator = function iterator(
 };
 
 const recursiveTypeCast = (
+	mode: 'toJSON' | 'fromJSON',
 	object: IteratableGenericObject,
 	schema: SchemaProps,
 	dataPath: string[],
@@ -101,7 +114,7 @@ const recursiveTypeCast = (
 			dataPath.push(key);
 
 			(value as IteratableGenericObject)[Symbol.iterator] = iterator;
-			recursiveTypeCast(value, schema, dataPath);
+			recursiveTypeCast(mode, value, schema, dataPath);
 			dataPath.pop();
 
 			delete (value as IteratableGenericObject)[
@@ -116,16 +129,23 @@ const recursiveTypeCast = (
 					const arrayObject = value[i];
 
 					(arrayObject as IteratableGenericObject)[Symbol.iterator] = iterator;
-					recursiveTypeCast(arrayObject, schema, dataPath);
+					recursiveTypeCast(mode, arrayObject, schema, dataPath);
 
 					delete (arrayObject as IteratableGenericObject)[Symbol.iterator];
 				}
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-					(object[key] as any)[i] = _liskMessageValueToJSONValue[
-						(schemaProp?.items as SchemaScalarItem).dataType
-					](value[i]);
+					if (mode === 'toJSON') {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+						(object[key] as any)[i] = _liskMessageValueToJSONValue[
+							(schemaProp?.items as SchemaScalarItem).dataType
+						](value[i]);
+					} else {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+						(object[key] as any)[i] = _JSONValueToliskMessageValue[
+							(schemaProp?.items as SchemaScalarItem).dataType
+						](value[i]);
+					}
 				}
 			}
 			dataPath.pop();
@@ -139,9 +159,16 @@ const recursiveTypeCast = (
 				);
 			}
 
-			object[key] = _liskMessageValueToJSONValue[
-				(schemaProp.dataType as unknown) as string
-			](value);
+			if (mode === 'toJSON') {
+				object[key] = _liskMessageValueToJSONValue[
+					(schemaProp.dataType as unknown) as string
+				](value);
+			} else {
+				object[key] = _JSONValueToliskMessageValue[
+					(schemaProp.dataType as unknown) as string
+				](value);
+			}
+
 			delete object[(Symbol.iterator as unknown) as string];
 			dataPath.pop();
 		}
@@ -154,6 +181,28 @@ export const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
 	const decodedMessageCopy = objectUtils.cloneDeep(decodedMessage);
 	decodedMessageCopy[Symbol.iterator] = iterator;
 
-	recursiveTypeCast(decodedMessageCopy, (schema as unknown) as SchemaProps, []);
+	recursiveTypeCast(
+		'toJSON',
+		decodedMessageCopy,
+		(schema as unknown) as SchemaProps,
+		[],
+	);
 	return decodedMessageCopy as GenericObject;
+};
+
+export const encodeJSON = (
+	schema: Schema,
+	message: IteratableGenericObject,
+): Buffer => {
+	const messageCopy = objectUtils.cloneDeep(message);
+	messageCopy[Symbol.iterator] = iterator;
+
+	recursiveTypeCast(
+		'fromJSON',
+		messageCopy,
+		(schema as unknown) as SchemaProps,
+		[],
+	);
+
+	return codec.encode(schema, messageCopy);
 };
