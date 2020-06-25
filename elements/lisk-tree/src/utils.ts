@@ -29,4 +29,13 @@ export const generateHash = (
 			[prefix, leftHash, rightHash],
 			prefix.length + leftHash.length + rightHash.length,
 		),
-	);
+    );
+
+export const getMaxIdxAtLayer = (layer: number, datalength: number): number => {
+    let [max, r] = [datalength, 0];
+    for (let i = 0; i < layer; i += 1) {
+        // eslint-disable-next-line
+        [max, r] = [[Math.floor, Math.ceil][r % 2](max / 2), r + (max % 2)];
+    }
+    return max;
+};
