@@ -39,3 +39,12 @@ export const getMaxIdxAtLayer = (layer: number, datalength: number): number => {
     }
     return max;
 };
+
+export const getLayerStructure = (datalength: number): number[] => {
+	const structure = [];
+	for (let i = 0; i <= Math.ceil(Math.log2(datalength)); i += 1) {
+		structure.push(getMaxIdxAtLayer(i, datalength));
+	}
+
+	return structure;
+};
