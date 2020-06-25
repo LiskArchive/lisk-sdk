@@ -18,3 +18,15 @@ import { NodeLocation, NodeSide } from './types';
 
 export const isLeaf = (value: Buffer): boolean =>
 	value.compare(Buffer.alloc(0)) !== 0 && value[0] === LEAF_PREFIX[0];
+
+export const generateHash = (
+	prefix: Buffer,
+	leftHash: Buffer,
+	rightHash: Buffer,
+): Buffer =>
+	hash(
+		Buffer.concat(
+			[prefix, leftHash, rightHash],
+			prefix.length + leftHash.length + rightHash.length,
+		),
+	);
