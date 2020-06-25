@@ -133,15 +133,20 @@ export const recursiveTypeCast = (
 				}
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
+					if (schemaProp === undefined || schemaProp.items === undefined) {
+						throw new Error(
+							`Invalid schema property found. Path: ${dataPath.join(',')}`,
+						);
+					}
 					if (mode === 'toJSON') {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 						(object[key] as any)[i] = _liskMessageValueToJSONValue[
-							(schemaProp?.items as SchemaScalarItem).dataType
+							(schemaProp.items as SchemaScalarItem).dataType
 						](value[i]);
 					} else {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 						(object[key] as any)[i] = _JSONValueToliskMessageValue[
-							(schemaProp?.items as SchemaScalarItem).dataType
+							(schemaProp.items as SchemaScalarItem).dataType
 						](value[i]);
 					}
 				}
