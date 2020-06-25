@@ -14,3 +14,4 @@
 
 export * from './codec';
 export { Schema } from './types';
+export { encodeJSON, decodeJSON } from './json_wrapper';
