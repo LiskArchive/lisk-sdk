@@ -14,16 +14,22 @@
  */
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from './codec';
-import { GenericObject, Schema, SchemaPair, SchemaProps, SchemaScalarItem } from './types';
+import {
+	BaseTypes,
+	GenericObject,
+	Schema,
+	SchemaPair,
+	SchemaProps,
+	SchemaScalarItem,
+} from './types';
 
 interface IteratableGenericObject extends GenericObject {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[Symbol.iterator](): Iterator<{ key: string; value: any}>
+	[Symbol.iterator](): Iterator<{ key: string; value: any }>;
 }
 
 const _liskMessageValueToJSONValue: {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly [key: string]: (value: any) => any;
+	readonly [key: string]: (value: BaseTypes) => BaseTypes;
 } = {
 	uint32: value => value as number,
 	sint32: value => value as number,
@@ -59,14 +65,20 @@ const isObject = (item: unknown): boolean =>
 	!Array.isArray(item) &&
 	!Buffer.isBuffer(item);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const iterator = function iterator(this: any) : { next: () => { done: boolean, value: { value: any, key: string }}} {
+const iterator = function iterator(
+	this: IteratableGenericObject,
+): {
+	next: () => {
+		done: boolean;
+		value: { value: IteratableGenericObject; key: string };
+	};
+} {
 	let index = 0;
 	const properties = Object.keys(this);
 	let Done = false;
 	return {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		next: (): { done: boolean, value: { value: any, key: string } } => {
+		next: (): { done: boolean; value: { value: any; key: string } } => {
 			Done = index >= properties.length;
 			const obj = {
 				done: Done,
@@ -87,34 +99,33 @@ const recursiveTypeCast = (
 	for (const { key, value } of object) {
 		if (isObject(value)) {
 			dataPath.push(key);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			value[Symbol.iterator] = iterator;
+
+			(value as IteratableGenericObject)[Symbol.iterator] = iterator;
 			recursiveTypeCast(value, schema, dataPath);
 			dataPath.pop();
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			delete value[(Symbol.iterator as unknown) as string];
+
+			delete (value as IteratableGenericObject)[
+				(Symbol.iterator as unknown) as string
+			];
 		} else if (Array.isArray(value)) {
 			dataPath.push(key);
-			const schemaProp = findObjectByPath(
-				schema,
-				dataPath,
-			);
-			if (
-				schemaProp?.items?.type === 'object'
-			) {
+			const schemaProp = findObjectByPath(schema, dataPath);
+			if (schemaProp?.items?.type === 'object') {
 				for (let i = 0; i < value.length; i += 1) {
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 					const arrayObject = value[i];
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-					arrayObject[Symbol.iterator] = iterator;
+
+					(arrayObject as IteratableGenericObject)[Symbol.iterator] = iterator;
 					recursiveTypeCast(arrayObject, schema, dataPath);
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-					delete arrayObject[Symbol.iterator];
+
+					delete (arrayObject as IteratableGenericObject)[Symbol.iterator];
 				}
 			} else {
 				for (let i = 0; i < value.length; i += 1) {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-					(object[key] as any)[i] = _liskMessageValueToJSONValue[(schemaProp?.items as SchemaScalarItem).dataType](value[i]);
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+					(object[key] as any)[i] = _liskMessageValueToJSONValue[
+						(schemaProp?.items as SchemaScalarItem).dataType
+					](value[i]);
 				}
 			}
 			dataPath.pop();
@@ -123,16 +134,19 @@ const recursiveTypeCast = (
 			const schemaProp = findObjectByPath(schema, dataPath);
 
 			if (schemaProp === undefined) {
-				throw new Error(`Invalid schema property found. Path: ${dataPath.join(',')}`);
+				throw new Error(
+					`Invalid schema property found. Path: ${dataPath.join(',')}`,
+				);
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			object[key] = _liskMessageValueToJSONValue[schemaProp.dataType as unknown as string](value);
+			object[key] = _liskMessageValueToJSONValue[
+				(schemaProp.dataType as unknown) as string
+			](value);
 			delete object[(Symbol.iterator as unknown) as string];
 			dataPath.pop();
 		}
 	}
-	delete object[(Symbol.iterator as unknown) as string]
+	delete object[(Symbol.iterator as unknown) as string];
 };
 
 export const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
@@ -140,6 +154,6 @@ export const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
 	const decodedMessageCopy = objectUtils.cloneDeep(decodedMessage);
 	decodedMessageCopy[Symbol.iterator] = iterator;
 
-	recursiveTypeCast(decodedMessageCopy, schema as unknown as SchemaProps, []);
+	recursiveTypeCast(decodedMessageCopy, (schema as unknown) as SchemaProps, []);
 	return decodedMessageCopy as GenericObject;
 };
