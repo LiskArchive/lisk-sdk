@@ -12,18 +12,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { objects as objectUtils } from '@liskhq/lisk-utils';
-import { codec } from './codec';
+
 import {
 	BaseTypes,
 	GenericObject,
-	Schema,
 	SchemaPair,
 	SchemaProps,
 	SchemaScalarItem,
 } from './types';
 
-interface IteratableGenericObject extends GenericObject {
+export interface IteratableGenericObject extends GenericObject {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[Symbol.iterator](): Iterator<{ key: string; value: any }>;
 }
@@ -77,7 +75,7 @@ const isObject = (item: unknown): boolean =>
 	!Array.isArray(item) &&
 	!Buffer.isBuffer(item);
 
-const iterator = function iterator(
+export const iterator = function iterator(
 	this: IteratableGenericObject,
 ): {
 	next: () => {
@@ -103,7 +101,7 @@ const iterator = function iterator(
 	};
 };
 
-const recursiveTypeCast = (
+export const recursiveTypeCast = (
 	mode: 'toJSON' | 'fromJSON',
 	object: IteratableGenericObject,
 	schema: SchemaProps,
@@ -174,35 +172,4 @@ const recursiveTypeCast = (
 		}
 	}
 	delete object[(Symbol.iterator as unknown) as string];
-};
-
-export const decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
-	const decodedMessage: IteratableGenericObject = codec.decode(schema, message);
-	const decodedMessageCopy = objectUtils.cloneDeep(decodedMessage);
-	decodedMessageCopy[Symbol.iterator] = iterator;
-
-	recursiveTypeCast(
-		'toJSON',
-		decodedMessageCopy,
-		(schema as unknown) as SchemaProps,
-		[],
-	);
-	return decodedMessageCopy as GenericObject;
-};
-
-export const encodeJSON = (
-	schema: Schema,
-	message: IteratableGenericObject,
-): Buffer => {
-	const messageCopy = objectUtils.cloneDeep(message);
-	messageCopy[Symbol.iterator] = iterator;
-
-	recursiveTypeCast(
-		'fromJSON',
-		messageCopy,
-		(schema as unknown) as SchemaProps,
-		[],
-	);
-
-	return codec.encode(schema, messageCopy);
 };
