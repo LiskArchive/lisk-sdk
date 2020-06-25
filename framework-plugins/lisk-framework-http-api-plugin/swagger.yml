@@ -19,18 +19,13 @@ info:
     # Welcome!
 
     ## Access restrictions
-    The API endpoints are by default restricted to a whitelist of IPs that can be found under `modules.http_api.access.whiteList` in the config.
-    If it is required for your API to be accessible by the public, this can be achieved by changing `modules.http_api.access.public` to `true`.
-    This will allow anyone to make requests to your Lisk Core node.
-    However some endpoints will stay private, hence this means that only a list of whitelisted IPs can successfully make API calls to that particular endpoint;
-    this includes all forging related API calls.
-    By default, only the nodes' local IP is also included in the whitelist, nevertheless it is possible to change the setting in `config` under `modules.http_api.forging.access.whiteList`.
-    For more details, see the [Lisk Core management docs](https://lisk.io/documentation/lisk-core/3.0.0/management/) or the descriptions at the respective endpoint below.
+    The API endpoints are by default restricted to a whitelist of IPs that can be found under `plugins.http_api.whiteList` in the config.
+    If it is required for your API to be accessible by the public, this can be achieved by changing `plugins.http_api.whiteList` to `[]`.
+    This will allow anyone to make requests to your application.
 
     ## Requests
     Chained filter parameters are logically connected with `AND`.
     `HTTP` is the supported URL schema by default.
-    To enable `HTTPS`, please adjust the `modules.http_api.ssl` section in the config.
 
     ## Responses
     The general response format is JSON (`application/json`).
@@ -39,21 +34,8 @@ info:
     {
         "data": {}, //Contains the requested data.
         "meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`.
-        "links": {} //Will contain links to connected API calls from here, e.g. pagination links.
     }
     ```
-
-    ## Date formats
-    Most of the timestamp parameters are in the Lisk timestamp format, which is similar to the Unix timestamp format.
-    The **Lisk timestamp** is the number of seconds that have elapsed since the Lisk epoch time (2016-05-24T17:00:00.000Z), not counting leap seconds.
-    The **Lisk epoch time** is returned in the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format, combined with the date and time: `YYYY-MM-DDThh:mm:ssZ`.
-    For details, see the descriptions and examples at the respective endpoint.
-
-    ## Pagination
-    It is possible to easily paginate through the results by providing `limit` and `offset` parameters to the requests.
-    `limit` and `offset` can be found in the `meta`-object of the response of an API request.
-    If no limit and offset are provided they are set to 10 and 0 by default, which in turn will display the first 10 results.
-
     ## List of endpoints
     All possible API endpoints for Lisk Core are listed below.
     Click on an endpoint to show the descriptions, details and examples.
@@ -66,3 +48,831 @@ info:
 
 # All paths relative to specified basePath
 basePath: /api
+
+# Tags for organizing operations
+tags:
+  - name: Accounts
+    description: Account related API endpoints.
+  - name: Blocks
+    description: Block related API endpoints.
+  - name: Delegates
+    description: Delegates related API endpoints.
+  - name: Node
+    description: Node related API endpoints.
+  - name: Peers
+    description: Peers related API endpoints.
+  - name: Transactions
+    description: Transactions related API endpoints.
+
+schemes:
+  - http
+
+paths:
+  /accounts/{address}:
+    get:
+      tags:
+        - Accounts
+      summary: Requests account data.
+      description: Search for matching account in the system.
+      produces:
+        - application/json
+      parameters:
+        - name: address
+          in: path
+          example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+          description: |
+            The binary address in base64 format as defined in LIP-0018.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Account requested.
+          schema:
+            $ref: '#/definitions/AccountResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: Data not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /delegates:
+    get:
+      tags:
+        - Delegates
+      summary: Requests delegates data.
+      description: Search for a specified delegate in the system.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: Registered delegate accounts.
+          schema:
+            $ref: '#/definitions/DelegateResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /forgers:
+    get:
+      tags:
+        - Delegates
+      summary: Requests next forgers data.
+      description: |
+        Returns a list of the next forgers in this delegate round.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A list of the next forgers.
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /blocks/{id}:
+    get:
+      tags:
+        - Blocks
+      summary: Requests block data
+      description: Search for block in the system by ID.
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: id of the searching block in base64 format
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Block requested.
+          schema:
+            $ref: '#/definitions/BlockResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: Data not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /blocks:
+    get:
+      tags:
+        - Blocks
+      summary: Requests block data
+      description: Search for block in the system by height.
+      produces:
+        - application/json
+      parameters:
+        - name: height
+          in: query
+          description: height of the searching block.
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Block requested.
+          schema:
+            $ref: '#/definitions/BlocksResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: Data not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      summary: Requests transaction data
+      description: Search for transaction in the system by ID.
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: id of the searching transaction in base64 format
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Transaction requested.
+          schema:
+            $ref: '#/definitions/TransactionResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: Data not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /transactions:
+    post:
+      tags:
+        - Transactions
+      summary: Submits signed transaction for processing.
+      description: |
+        Submits signed transaction object for processing by the transaction pool.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: transaction
+          description: Transaction object for processing by the transaction pool.
+          required: true
+          schema:
+            $ref: '#/definitions/Transaction'
+      responses:
+        200:
+          description: Transaction requested.
+          schema:
+            $ref: '#/definitions/TransactionResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        404:
+          description: Data not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        409:
+          description: Some error related to processing of request.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /node/transactions:
+    get:
+      tags:
+        - Node
+        - Transactions
+      summary: Requests unprocessed transactions data.
+      description: |
+        Search for specific transactions by providing the appropriate parameters.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: Transactions list.
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /node/info:
+    get:
+      tags:
+        - Node
+      summary: Requests node information
+      description: Returns information of the running node, e.g. height.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Node info response.
+          schema:
+            $ref: '#/definitions/NodeInfoResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /peers:
+    get:
+      tags:
+        - Peers
+      summary: Requests peers data.
+      description: Search for specified peers.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - in: query
+          name: state
+          description: Current state of the network.
+          type: string
+          enum:
+            - connected
+            - disconnected
+      responses:
+        200:
+          description: List of peers.
+          schema:
+            $ref: '#/definitions/PeersResponse'
+        400:
+          description: Malformed query or parameters.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        500:
+          description: Unexpected error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+parameters:
+  limit:
+    in: query
+    name: limit
+    description: Limit applied to results.
+    type: integer
+    format: int32
+    minimum: 1
+    default: 10
+  offset:
+    name: offset
+    in: query
+    description: Offset value for results.
+    type: integer
+    format: int32
+    minimum: 0
+    default: 0
+
+definitions:
+  ErrorResponse:
+    type: object
+    required:
+      - errors
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            message:
+              description: Error message containing details of the error.
+              example: Reason of the error
+              type: string
+              minLength: 1
+
+  AccountResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        $ref: '#/definitions/Account'
+      meta:
+        type: object
+
+  DelegateResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Account'
+      meta:
+        $ref: '#/definitions/Meta'
+
+  ForgersResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        description: List of forgers.
+        type: array
+        items:
+          $ref: '#/definitions/Forger'
+      meta:
+        type: object
+
+  BlockResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        required:
+          - header
+          - payload
+        properties:
+          header:
+            $ref: '#/definitions/BlockHeader'
+          payload:
+            type: array
+            items:
+              $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+
+  BlocksResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: array
+        items:
+          type: object
+          required:
+            - header
+            - payload
+          properties:
+            header:
+              $ref: '#/definitions/BlockHeader'
+            payload:
+              type: array
+              items:
+                $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+
+  TransactionResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        $ref: '#/definitions/Transaction'
+      meta:
+        type: object
+
+  TransactionsResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+      meta:
+        $ref: '#/definitions/Meta'
+
+  PeersResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/Peer'
+      meta:
+        $ref: '#/definitions/Meta'
+
+  NodeInfoResponse:
+    type: object
+    required:
+      - data
+    properties:
+      data:
+        $ref: '#/definitions/NodeInfo'
+      meta:
+        type: object
+  
+  Meta:
+    type: object
+    required:
+      - limit
+      - offset
+    properties:
+      limit:
+        description: Limit applied to results.
+        type: integer
+        minimum: 1
+        default: 10
+      offset:
+        description: Offset value for results.
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+
+  Account:
+    type: object
+    required:
+      - address
+      - balance
+      - nonce
+      - keys
+      - asset
+    properties:
+      address:
+        type: string
+        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+        description: |
+          The binary address in base64 format as defined in LIP-0018.
+      balance:
+        type: string
+        example: 1081560729258
+        description: The current balance of the account in Beddows.
+      nonce:
+        type: string
+        example: 154
+        description: The current nonce associated to account for transaction processing.
+      keys:
+        type: object
+        properties:
+          mandatoryKeys:
+            type: array
+            description: Base64 encoded value of mandatory multi-signature account members public keys
+            items:
+              type: string
+          optionalKeys:
+            type: array
+            description: Base64 encoded value of optional multi-signature account members public keys
+            items:
+              type: string
+          numberOfSignatures:
+            type: number
+            description: Number of required signatures
+      asset:
+        type: object
+        description: Object stored in the account state as defined by the application
+
+  BlockHeader:
+    type: object
+    required:
+      - id
+      - version
+      - timestamp
+      - height
+      - previousBlockID
+      - transactionRoot
+      - generatorPublicKey
+      - reward
+      - asset
+    properties:
+      id:
+        type: string
+        description: Base64 encoded value of the unique identifier of the block.
+      version:
+        type: number
+        description: Versioning for future upgrades of the Lisk protocol.
+      timestamp:
+        type: number
+        description: Unix timestamp of block created in second
+      height:
+        type: number
+        description: |
+          Height of the network, when the block was forged.
+          The height of the network represents the number of blocks
+          that have been forged on the network since the genesis block.
+      previoudBlockID:
+        type: string
+        description: Base64 encoded value of the ID of the previous block of the chain.
+      transactionRoot:
+        type: string
+        description: Base64 encoded value of Merkle tree root of transaction IDs
+      generatorPublicKey:
+        type: string
+        description: Base64 encoded value of public key of the delegate who forged the block.
+      reward:
+        type: string
+        description: The reward for the delegate.
+      asset:
+        type: object
+        description: Object stored in the block header as defined by the application
+
+  Transaction:
+    type: object
+    required:
+      - id
+      - type
+      - nonce
+      - fee
+      - senderPublicKey
+      - asset
+      - signatures
+    properties:
+      id:
+        type: string
+        description: Base64 encoded value of the unique identifier of the transaction.
+      type:
+        type: number
+        description: Describes the Transaction type.
+      fee:
+        type: string
+        description: |
+          Transaction fee associated with this transaction.
+      nonce:
+        type: string
+        example: '1'
+        description: |
+          Unique sequence of number per account.
+      senderPublicKey:
+        type: string
+        description: |
+          Base64 encoded value of the public key of the Senders account.
+      asset:
+        type: object
+        description: Object stored per transaction type
+      signatures:
+        type: array
+        items:
+          type: string
+          description: Base64 encoded value of the signature for the transaction.
+
+  Forger:
+    type: object
+    required:
+      - address
+      - username
+      - nextForgingTime
+    properties:
+      address:
+        type: string
+        example: nQFJsJYtRL/Aip9k1a/Otigdf7U=
+        description: |
+          The binary address in base64 format as defined in LIP-0018.
+      totalVotesReceived:
+        type: string
+        example: 1081560729258
+        description: |
+          The total votes received by the delegate.
+          Represents the total amount of token that the delegates voters voted this delegate.
+      username:
+        type: string
+        example: genesis_01
+        description: |
+          The delegates username.
+          A delegate chooses the username by registering a delegate on the network.
+          It is unique and cannot be changed later.
+      nextForgingTime:
+        type: number
+        example: 4368793
+        description: |
+          Returns the unix timestamp in second in which the forger will be able to forge the next block.
+          Each slot has a timespan of 10 seconds.
+
+  Peer:
+    type: object
+    required:
+      - ipAddress
+      - port
+      - networkID
+      - state
+      - protocolVersion
+      - nonce
+      - options
+    properties:
+      ipAddress:
+        type: string
+        example: 127.0.0.1
+        description: IPv4 address of the peer node.
+      port:
+        type: integer
+        example: 8001
+        minimum: 1
+        maximum: 65535
+        description: The port the peer node uses for P2P communication.
+      protocolVersion:
+        type: string
+        example: 1.1
+        description: The protocol version of Lisk Core that the peer node runs on.
+      networkID:
+        type: string
+        example: 'k9AP5b5w2Q564keTai59g7UICcebc/oUKF8CyEI0iz4='
+        description: Base64 encoded value of the network identifier as per LIP-0009.
+      state:
+        type: string
+        example: 'connected'
+        enum:
+          - connected
+          - disconnected
+        description: |
+          The state of the peer.
+      options:
+        type: object
+        description: Optional field defined by application
+
+  NodeInfo:
+    type: object
+    required:
+      - version
+      - protocolVersion
+      - networkID
+      - lastBlockID
+      - height
+      - finalizedHeight
+      - syncing
+      - unconfirmedTransactions
+      - genesisConfig
+    properties:
+      version:
+        type: string
+        format: version
+        example: v0.8.0
+        description: The application version that the node is running on.
+      protocolVersion:
+        type: string
+        example: 1.1
+        description: The protocol version of Lisk Core that the peer node runs on.
+      networkID:
+        type: string
+        example: 'k9AP5b5w2Q564keTai59g7UICcebc/oUKF8CyEI0iz4='
+        description: Base64 encoded value of the network identifier as per LIP-0009.
+      lastBlockID:
+        description: ID of the last processed block.
+        type: string
+        example: vPFBr0ZTsyP9hUwKaQD8dW2lKBpgMWkRdgrTUUmBBCE=
+      height:
+        type: integer
+        example: 123
+        minimum: 1
+        description: |
+          Current block height of the node.
+          Represents the current number of blocks in the chain on the node.
+      finalizedHeight:
+        type: integer
+        example: 123
+        description: |
+          The largest height with precommits by at least 68 delegates.
+          See https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md
+      syncing:
+        type: boolean
+        example: false
+        description: True if the node is syncing with other peers.
+      unconfirmedTransactions:
+        type: integer
+        example: 1
+        minimum: 0
+        description: |
+          Number of unprocessed transactions in the pool.
+      genesisConfig:
+        type: object
+        required:
+          - blockTime
+          - maxPayloadLength
+          - rewards
+          - activeDelegates
+          - standbyDelegates
+          - delegateListRoundOffset
+        properties:
+          blockTime:
+            type: integer
+            minimum: 2
+            example: 10
+            description: Block time interval in seconds.
+          maxPayloadLength:
+            type: integer
+            example: 15360
+            description: Maximum size of transactions allowed per block.
+          activeDelegates:
+            type: integer
+            description: Number of active delegates per round.
+            example: 101
+          standbyDelegates:
+            type: integer
+            description: Number of standby delegates per round.
+            example: 2
+          delegateListRoundOffset:
+            type: integer
+            description: Number of rounds before in which the list of delegates will be used for the current round.
+            example: 2
+          rewards:
+            type: object
+            required:
+              - milestones
+              - offset
+              - distance
+            properties:
+              milestones:
+                type: array
+                description: Array of rewards.
+                items:
+                  type: string
+                  example: 500000000
+              offset:
+                type: integer
+                minimum: 1
+                example: 2160
+                description: height in which reward distribution starts.
+              distance:
+                type: integer
+                description: Distance in height between each milestone.
+                example: 3000000
