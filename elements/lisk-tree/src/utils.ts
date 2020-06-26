@@ -69,6 +69,7 @@ export const getPairLocation = (nodeInfo: {
 	const binary = getBinary(nodeIndex, treeHeight - layerIndex);
 	const side = [NodeSide.LEFT, NodeSide.RIGHT][binary[binary.length - 1]];
 	const pairSide = side === NodeSide.LEFT ? NodeSide.RIGHT : NodeSide.LEFT;
+
 	// If queried node is root, provide root node location
 	if (layerIndex + 1 === treeHeight) {
 		return { layerIndex: treeHeight - 1, nodeIndex: 0 };

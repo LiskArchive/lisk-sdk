@@ -54,11 +54,11 @@ export class MerkleTree {
 		return this._root;
 	}
 
-	public getNode(nodeHash: Buffer): NodeInfo | undefined {
+	public getNode(nodeHash: Buffer): NodeInfo {
 		const value = this._hashToValueMap[nodeHash.toString('binary')];
 		// eslint-disable-next-line
 		if (!value) {
-			return undefined;
+			throw Error('Hash does not exist in merkle tree.');
 		}
 
 		const type = isLeaf(value) ? NodeType.LEAF : NodeType.BRANCH;
@@ -98,7 +98,7 @@ export class MerkleTree {
 
 		// Create the appendPath
 		const appendPath: NodeInfo[] = [];
-		let currentNode = this.getNode(this._root) as NodeInfo;
+		let currentNode = this.getNode(this._root);
 
 		// If tree is fully balanced
 		if (this._width === 2 ** (this._getHeight() - 1)) {
@@ -120,17 +120,17 @@ export class MerkleTree {
 				// if layer below is odd numbered, push left child
 				currentLayerSize = this._width >> (currentLayer - 1);
 				if (currentLayerSize % 2 === 1) {
-					const leftNode = this.getNode(currentNode.leftHash) as NodeInfo;
+					const leftNode = this.getNode(currentNode.leftHash);
 					appendPath.push(leftNode);
 				}
 
 				// go to right child
-				currentNode = this.getNode(currentNode.rightHash) as NodeInfo;
+				currentNode = this.getNode(currentNode.rightHash);
 			}
 		}
 
 		const appendData = this._generateLeaf(value, this._width);
-		const appendNode = this.getNode(appendData.hash) as NodeInfo;
+		const appendNode = this.getNode(appendData.hash);
 		appendPath.push(appendNode);
 		// Loop through appendPath from the base layer
 		// Generate new branch nodes and push to appendPath
@@ -144,7 +144,7 @@ export class MerkleTree {
 				(leftNodeInfo as NodeInfo).layerIndex + 1,
 				(leftNodeInfo as NodeInfo).nodeIndex + 1,
 			);
-			appendPath.push(this.getNode(newBranchNode.hash) as NodeInfo);
+			appendPath.push(this.getNode(newBranchNode.hash));
 		}
 		this._root = appendPath[0].hash;
 		return this.root;
@@ -162,9 +162,7 @@ export class MerkleTree {
 
 		for (let i = 0; i < queryData.length; i += 1) {
 			queryNode = this.getNode(queryData[i]);
-			if (!queryNode) {
-				return undefined;
-			}
+
 			indexes.push({
 				layerIndex: queryNode.layerIndex,
 				nodeIndex: queryNode.nodeIndex,
@@ -202,7 +200,7 @@ export class MerkleTree {
 					leftHashBuffer,
 					rightHashBuffer,
 				);
-				currentNode = this.getNode(parentNodeHash) as NodeInfo;
+				currentNode = this.getNode(parentNodeHash);
 			}
 		}
 
@@ -227,8 +225,8 @@ export class MerkleTree {
 	}
 
 	public getData(): NodeInfo[] {
-		return Object.keys(this._hashToValueMap).map(
-			key => this.getNode(Buffer.from(key, 'binary')) as NodeInfo,
+		return Object.keys(this._hashToValueMap).map(key =>
+			this.getNode(Buffer.from(key, 'binary')),
 		);
 	}
 
@@ -387,7 +385,7 @@ export class MerkleTree {
 			return hashValue.toString('hex');
 		}
 
-		const node = this.getNode(hashValue) as NodeInfo;
+		const node = this.getNode(hashValue);
 
 		return [
 			hashValue.toString('hex'),
