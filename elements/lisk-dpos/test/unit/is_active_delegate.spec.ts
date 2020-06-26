@@ -55,6 +55,8 @@ describe('dpos.isActiveDelegate', () => {
 		dpos = new Dpos({
 			chain: chainMock,
 			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 		});
 	});
 

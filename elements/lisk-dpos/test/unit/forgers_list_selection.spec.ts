@@ -61,7 +61,7 @@ describe('Forger selection', () => {
 			chain: chainStub,
 			rounds: new Rounds({
 				blocksPerRound: DEFAULT_ACTIVE_DELEGATE + DEFAULT_STANDBY_DELEGATE,
-				genesisHeight: 0,
+				genesisBlockHeight: 0,
 				initRound: 0,
 			}),
 			activeDelegates: DEFAULT_ACTIVE_DELEGATE,

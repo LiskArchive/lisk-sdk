@@ -68,6 +68,8 @@ describe('dpos.isStandbyDelegate', () => {
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 			delegateListRoundOffset,
 		});
 	});
