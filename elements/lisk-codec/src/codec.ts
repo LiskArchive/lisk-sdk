@@ -121,7 +121,7 @@ export class Codec {
 	}
 
 	// For performance applications use decode() instead!
-	public decodeJSON = (schema: Schema, message: Buffer): GenericObject => {
+	public decodeJSON<T>(schema: Schema, message: Buffer): T {
 		const decodedMessage: IteratableGenericObject = this.decode(
 			schema,
 			message,
@@ -135,26 +135,23 @@ export class Codec {
 			(schema as unknown) as SchemaProps,
 			[],
 		);
-		return decodedMessageCopy as GenericObject;
-	};
+		return (decodedMessageCopy as unknown) as T;
+	}
 
 	// For performance applications use encode() instead!
-	public encodeJSON = (
-		schema: Schema,
-		message: IteratableGenericObject,
-	): Buffer => {
+	public encodeJSON(schema: Schema, message: object): Buffer {
 		const messageCopy = objectUtils.cloneDeep(message);
-		messageCopy[Symbol.iterator] = iterator;
+		(messageCopy as IteratableGenericObject)[Symbol.iterator] = iterator;
 
 		recursiveTypeCast(
 			'fromJSON',
-			messageCopy,
+			messageCopy as IteratableGenericObject,
 			(schema as unknown) as SchemaProps,
 			[],
 		);
 
 		return this.encode(schema, messageCopy);
-	};
+	}
 
 	private _compileSchema(
 		schema: ValidatedSchema | SchemaProps,
