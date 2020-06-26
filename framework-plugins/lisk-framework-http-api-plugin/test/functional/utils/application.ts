@@ -49,11 +49,9 @@ export const createApplication = async (
 		app.run(),
 		new Promise(resolve => setTimeout(resolve, 3000)),
 	]);
-	let blockHeight = 0;
 	await new Promise(resolve => {
 		app['_channel'].subscribe('app:block:new', () => {
-			blockHeight += 1;
-			if (blockHeight === 2) {
+			if (app['_node']['_chain'].lastBlock.header.height === 2) {
 				resolve();
 			}
 		});
@@ -69,7 +67,8 @@ export const closeApplication = async (app: Application): Promise<void> => {
 	await app.shutdown();
 };
 
-export const getURL = (url: string): string => `http://localhost:4000${url}`;
+export const getURL = (url: string, port = 4000): string =>
+	`http://localhost:${port}${url}`;
 
 export const waitNBlocks = async (app: Application, n = 1): Promise<void> => {
 	// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
