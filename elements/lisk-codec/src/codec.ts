@@ -28,15 +28,12 @@ import {
 	CompiledSchemas,
 	CompiledSchemasArray,
 	GenericObject,
+	IteratableGenericObject,
 	ValidatedSchema,
 	SchemaProps,
 } from './types';
 
-import {
-	iterator,
-	IteratableGenericObject,
-	recursiveTypeCast,
-} from './json_wrapper';
+import { iterator, recursiveTypeCast } from './json_wrapper';
 
 export const validateSchema = (schema: {
 	// eslint-disable-next-line

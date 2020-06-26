@@ -71,3 +71,8 @@ export interface CompiledSchemas {
 export interface Validator {
 	addMetaSchema: (schema: object, key?: string) => {};
 }
+
+export interface IteratableGenericObject extends GenericObject {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[Symbol.iterator](): Iterator<{ key: string; value: any }>;
+}

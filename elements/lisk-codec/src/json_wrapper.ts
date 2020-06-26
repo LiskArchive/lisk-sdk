@@ -15,15 +15,16 @@
 
 import {
 	BaseTypes,
-	GenericObject,
+	IteratableGenericObject,
 	SchemaPair,
 	SchemaProps,
 	SchemaScalarItem,
 } from './types';
 
-export interface IteratableGenericObject extends GenericObject {
+interface iteratorReturnValue {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[Symbol.iterator](): Iterator<{ key: string; value: any }>;
+	value: any;
+	key: string;
 }
 
 const _liskMessageValueToJSONValue: {
@@ -80,15 +81,14 @@ export const iterator = function iterator(
 ): {
 	next: () => {
 		done: boolean;
-		value: { value: IteratableGenericObject; key: string };
+		value: iteratorReturnValue;
 	};
 } {
 	let index = 0;
 	const properties = Object.keys(this);
 	let Done = false;
 	return {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		next: (): { done: boolean; value: { value: any; key: string } } => {
+		next: (): { done: boolean; value: iteratorReturnValue } => {
 			Done = index >= properties.length;
 			const obj = {
 				done: Done,
