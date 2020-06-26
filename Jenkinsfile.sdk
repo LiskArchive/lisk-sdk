@@ -210,12 +210,12 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Plugins') {
+				stage('Lisk Framework Plugins Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:ci --scope=@liskhq/lisk-framework-*'
+							sh 'npx lerna run test:unit --scope=@liskhq/lisk-framework-*'
 						}
 					}
 					post {
@@ -228,6 +228,16 @@ pipeline {
 								done
 							'''
 							stash name: "coverage_framework_plugins", includes: "coverage_framework_plugins/*", allowEmpty: true
+						}
+					}
+				}
+
+				stage('Lisk Framework Plugins Functional') {
+					agent { node { label 'lisk-framework' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-*'
 						}
 					}
 				}
