@@ -27,29 +27,39 @@ interface iteratorReturnValue {
 	key: string;
 }
 
-const _liskMessageValueToJSONValue: {
-	readonly [key: string]: (value: BaseTypes) => BaseTypes;
-} = {
-	uint32: value => value as number,
-	sint32: value => value as number,
-	uint64: value => (value as BigInt).toString(),
-	sint64: value => (value as BigInt).toString(),
-	string: value => value as string,
-	bytes: value => (value as Buffer).toString('base64'),
-	boolean: value => value as boolean,
-};
+type mapperFunction = (value: BaseTypes) => BaseTypes;
 
-const _JSONValueToliskMessageValue: {
-	readonly [key: string]: (value: BaseTypes) => BaseTypes;
-} = {
-	uint32: value => value as number,
-	sint32: value => value as number,
-	uint64: value => BigInt(value),
-	sint64: value => BigInt(value),
-	string: value => value as string,
-	bytes: value => Buffer.from(value as string, 'base64'),
-	boolean: value => value as boolean,
+interface mappersInterface {
+	toJSON: {
+		readonly [key: string]: mapperFunction;
+	};
+	fromJSON: {
+		readonly [key: string]: mapperFunction;
+	};
+}
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+const mappers: mappersInterface = {
+	toJSON: {
+		uint32: value => value as number,
+		sint32: value => value as number,
+		uint64: value => (value as BigInt).toString(),
+		sint64: value => (value as BigInt).toString(),
+		string: value => value as string,
+		bytes: value => (value as Buffer).toString('base64'),
+		boolean: value => value as boolean,
+	},
+	fromJSON: {
+		uint32: value => value as number,
+		sint32: value => value as number,
+		uint64: value => BigInt(value),
+		sint64: value => BigInt(value),
+		string: value => value as string,
+		bytes: value => Buffer.from(value as string, 'base64'),
+		boolean: value => value as boolean,
+	},
 };
+/* eslint-enable @typescript-eslint/explicit-function-return-type */
 
 const findObjectByPath = (
 	message: SchemaProps,
@@ -138,17 +148,11 @@ export const recursiveTypeCast = (
 							`Invalid schema property found. Path: ${dataPath.join(',')}`,
 						);
 					}
-					if (mode === 'toJSON') {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-						(object[key] as any)[i] = _liskMessageValueToJSONValue[
-							(schemaProp.items as SchemaScalarItem).dataType
-						](value[i]);
-					} else {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-						(object[key] as any)[i] = _JSONValueToliskMessageValue[
-							(schemaProp.items as SchemaScalarItem).dataType
-						](value[i]);
-					}
+
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+					(object[key] as any)[i] = mappers[mode][
+						(schemaProp.items as SchemaScalarItem).dataType
+					](value[i]);
 				}
 			}
 			dataPath.pop();
@@ -162,15 +166,9 @@ export const recursiveTypeCast = (
 				);
 			}
 
-			if (mode === 'toJSON') {
-				object[key] = _liskMessageValueToJSONValue[
-					(schemaProp.dataType as unknown) as string
-				](value);
-			} else {
-				object[key] = _JSONValueToliskMessageValue[
-					(schemaProp.dataType as unknown) as string
-				](value);
-			}
+			object[key] = mappers[mode][(schemaProp.dataType as unknown) as string](
+				value,
+			);
 
 			delete object[(Symbol.iterator as unknown) as string];
 			dataPath.pop();
