@@ -39,7 +39,7 @@ describe('Application State', () => {
 		protocolVersion: '1.0',
 		networkId: 'test networkId',
 		maxHeightPrevoted: 0,
-		height: 1,
+		height: 0,
 	};
 	const logger = {
 		debug: jest.fn(),

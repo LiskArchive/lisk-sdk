@@ -40,8 +40,7 @@ export const verifyPreviousBlockId = (
 ): void => {
 	const isGenesisBlock =
 		block.header.id.equals(genesisBlock.header.id) &&
-		block.header.previousBlockID.length === 0 &&
-		block.header.height === 1;
+		block.header.version === genesisBlock.header.version;
 
 	const isConsecutiveBlock =
 		lastBlock.header.height + 1 === block.header.height &&
@@ -117,6 +116,7 @@ export class BlocksVerify {
 	public matchGenesisBlock(block: BlockHeader): boolean {
 		return (
 			block.id.equals(this.genesisBlock.header.id) &&
+			block.version === this.genesisBlock.header.version &&
 			block.transactionRoot.equals(this.genesisBlock.header.transactionRoot) &&
 			block.signature.equals(this.genesisBlock.header.signature)
 		);
