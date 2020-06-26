@@ -58,7 +58,9 @@ export class MerkleTree {
 		const value = this._hashToValueMap[nodeHash.toString('binary')];
 		// eslint-disable-next-line
 		if (!value) {
-			throw Error('Hash does not exist in merkle tree.');
+			throw new Error(
+				`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`,
+			);
 		}
 
 		const type = isLeaf(value) ? NodeType.LEAF : NodeType.BRANCH;
