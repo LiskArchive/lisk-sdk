@@ -21,7 +21,7 @@ import {
 	SchemaScalarItem,
 } from './types';
 
-interface iteratorReturnValue {
+interface IteratorReturnValue {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	value: any;
 	key: string;
@@ -91,14 +91,14 @@ export const iterator = function iterator(
 ): {
 	next: () => {
 		done: boolean;
-		value: iteratorReturnValue;
+		value: IteratorReturnValue;
 	};
 } {
 	let index = 0;
 	const properties = Object.keys(this);
 	let Done = false;
 	return {
-		next: (): { done: boolean; value: iteratorReturnValue } => {
+		next: (): { done: boolean; value: IteratorReturnValue } => {
 			Done = index >= properties.length;
 			const obj = {
 				done: Done,
