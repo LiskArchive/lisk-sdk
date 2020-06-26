@@ -92,7 +92,7 @@ describe('toJSON', () => {
 			},
 		};
 
-		const res = codec.toObject(schema, jsonLikeObject);
+		const res = codec.fromJSON(schema, jsonLikeObject);
 		expect(res).toEqual(jsObject);
 	});
 });

@@ -130,7 +130,7 @@ export class Codec {
 
 	// For performance applications use encode() instead!
 	public encodeJSON(schema: Schema, message: object): Buffer {
-		const objectFromJson = this.toObject(schema, message);
+		const objectFromJson = this.fromJSON(schema, message);
 		return this.encode(schema, objectFromJson);
 	}
 
@@ -149,7 +149,7 @@ export class Codec {
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	public toObject<T = object>(schema: Schema, message: object): T {
+	public fromJSON<T = object>(schema: Schema, message: object): T {
 		const messageCopy = objectUtils.cloneDeep(message);
 		(messageCopy as IteratableGenericObject)[Symbol.iterator] = iterator;
 
