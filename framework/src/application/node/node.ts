@@ -574,7 +574,7 @@ export class Node {
 			chain: this._chain,
 			initDelegates: this._options.genesisBlock.header.asset.initDelegates,
 			initRound: this._options.genesisBlock.header.asset.initRounds,
-			genesisHeight: this._options.genesisBlock.header.height,
+			genesisBlockHeight: this._options.genesisBlock.header.height,
 			activeDelegates: this._options.constants.activeDelegates,
 			standbyDelegates: this._options.constants.standbyDelegates,
 			delegateListRoundOffset: this._options.constants.delegateListRoundOffset,

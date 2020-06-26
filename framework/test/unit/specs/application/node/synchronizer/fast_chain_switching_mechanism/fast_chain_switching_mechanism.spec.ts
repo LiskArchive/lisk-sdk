@@ -124,6 +124,8 @@ describe('fast_chain_switching_mechanism', () => {
 			standbyDelegates: constants.standbyDelegates,
 			delegateListRoundOffset: constants.delegateListRoundOffset,
 			initDelegates: genesisBlock.header.asset.initDelegates,
+			initRound: genesisBlock.header.asset.initRounds,
+			genesisBlockHeight: genesisBlock.header.height,
 		});
 
 		bftModule = new BFT({

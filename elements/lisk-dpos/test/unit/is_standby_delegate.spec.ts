@@ -61,7 +61,9 @@ describe('dpos.isStandbyDelegate', () => {
 			slots,
 		};
 
-		const initDelegates = delegatePublicKeys.map(pk => Buffer.from(pk, 'hex'));
+		const initDelegates = delegatePublicKeys.map(pk =>
+			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		);
 		dpos = new Dpos({
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,

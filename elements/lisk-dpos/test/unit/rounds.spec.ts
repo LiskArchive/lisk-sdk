@@ -22,7 +22,7 @@ describe('Slots', () => {
 	beforeEach(() => {
 		rounds = new Rounds({
 			blocksPerRound: ACTIVE_DELEGATES,
-			genesisHeight: 50,
+			genesisBlockHeight: 50,
 			initRound: 3,
 		});
 	});

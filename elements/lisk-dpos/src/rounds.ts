@@ -13,7 +13,7 @@
  */
 
 interface RoundConstructor {
-	readonly genesisHeight: number;
+	readonly genesisBlockHeight: number;
 	readonly initRound: number;
 	readonly blocksPerRound: number;
 }
@@ -25,11 +25,11 @@ export class Rounds {
 
 	public constructor({
 		blocksPerRound,
-		genesisHeight,
+		genesisBlockHeight,
 		initRound,
 	}: RoundConstructor) {
 		this.blocksPerRound = blocksPerRound;
-		this._genesisHeight = genesisHeight;
+		this._genesisHeight = genesisBlockHeight;
 		this.initRound = initRound;
 	}
 

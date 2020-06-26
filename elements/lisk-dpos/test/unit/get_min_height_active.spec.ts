@@ -14,6 +14,7 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import {
@@ -57,11 +58,15 @@ describe('dpos.getMinActiveHeight()', () => {
 			slots,
 		};
 
-		const initDelegates = delegatePublicKeys.map(pk => Buffer.from(pk, 'hex'));
+		const initDelegates = delegatePublicKeys.map(pk =>
+			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		);
 		dpos = new Dpos({
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 			delegateListRoundOffset,
 		});
 

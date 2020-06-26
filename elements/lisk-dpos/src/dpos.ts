@@ -24,8 +24,6 @@ import {
 	DEFAULT_STANDBY_DELEGATE,
 	DEFAULT_STANDBY_THRESHOLD,
 	DEFAULT_VOTE_WEIGHT_CAP_RATE,
-	DEFAULT_GENESIS_HEIGHT,
-	DEFAULT_INIT_ROUND,
 } from './constants';
 import { DelegatesInfo } from './delegates_info';
 import {
@@ -47,10 +45,10 @@ import {
 interface DposConstructor {
 	readonly chain: Chain;
 	readonly initDelegates: ReadonlyArray<Buffer>;
+	readonly initRound: number;
+	readonly genesisBlockHeight: number;
 	readonly activeDelegates?: number;
 	readonly standbyDelegates?: number;
-	readonly genesisHeight?: number;
-	readonly initRound?: number;
 	readonly standbyThreshold?: bigint;
 	readonly voteWeightCapRate?: number;
 	readonly delegateListRoundOffset?: number;
@@ -74,8 +72,8 @@ export class Dpos {
 	public constructor({
 		chain,
 		initDelegates,
-		genesisHeight = DEFAULT_GENESIS_HEIGHT,
-		initRound = DEFAULT_INIT_ROUND,
+		genesisBlockHeight,
+		initRound,
 		activeDelegates = DEFAULT_ACTIVE_DELEGATE,
 		standbyDelegates = DEFAULT_STANDBY_DELEGATE,
 		standbyThreshold = DEFAULT_STANDBY_THRESHOLD,
@@ -90,7 +88,7 @@ export class Dpos {
 		this.delegateActiveRoundLimit = 3;
 		this.chain = chain;
 		this.rounds = new Rounds({
-			genesisHeight,
+			genesisBlockHeight,
 			initRound,
 			blocksPerRound: this._delegatesPerRound,
 		});
@@ -163,10 +161,10 @@ export class Dpos {
 			delegateActiveRoundLimit,
 		);
 
-		const minBootstrapHeight = this.rounds.lastHeightBootstrap() + 1;
+		const firstNonBootstrapHeight = this.rounds.lastHeightBootstrap() + 1;
 		const minActiveHeight = this.rounds.calcRoundStartHeight(activeRounds);
 
-		return Math.max(minBootstrapHeight, minActiveHeight);
+		return Math.max(firstNonBootstrapHeight, minActiveHeight);
 	}
 
 	public async isActiveDelegate(

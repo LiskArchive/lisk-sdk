@@ -78,8 +78,8 @@ describe('Synchronizer', () => {
 
 		rounds = new Rounds({
 			blocksPerRound: constants.activeDelegates,
-			genesisHeight: genesisBlock.header.height,
 			initRound: genesisBlock.header.asset.initRounds,
+			genesisBlockHeight: genesisBlock.header.height,
 		});
 
 		const blockchainDB = new KVStore('blockchain.db');

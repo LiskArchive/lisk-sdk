@@ -224,19 +224,14 @@ export class BFT extends EventEmitter {
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 		);
 
-		const finalizedHeightStored =
+		// Choose max between stored finalized height or genesis height
+		const finalizedHeight =
 			storedFinalizedHeightBuffer === undefined
-				? 0
+				? this.constants.genesisHeight
 				: codec.decode<BFTPersistedValues>(
 						BFTFinalizedHeightCodecSchema,
 						storedFinalizedHeightBuffer,
 				  ).finalizedHeight;
-
-		// Choose max between stored finalized height or genesis height
-		const finalizedHeight = Math.max(
-			finalizedHeightStored,
-			this.constants.genesisHeight,
-		);
 
 		// Initialize consensus manager
 		return new FinalityManager({

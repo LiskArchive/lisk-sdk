@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Slots } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Dpos } from '../../src';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
@@ -53,13 +54,17 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 		const chain = {
 			slots,
 		};
-		const initDelegates = delegatePublicKeys.map(pk => Buffer.from(pk, 'hex'));
+		const initDelegates = delegatePublicKeys.map(pk =>
+			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		);
 
 		dpos = new Dpos({
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
 			delegateListRoundOffset,
 			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 		});
 	});
 
