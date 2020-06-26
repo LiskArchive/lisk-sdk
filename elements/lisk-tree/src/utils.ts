@@ -16,8 +16,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { LEAF_PREFIX } from './constants';
 import { NodeLocation, NodeSide } from './types';
 
-export const isLeaf = (value: Buffer): boolean =>
-	value.compare(Buffer.alloc(0)) !== 0 && value[0] === LEAF_PREFIX[0];
+export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
 export const generateHash = (
 	prefix: Buffer,
@@ -34,7 +33,6 @@ export const generateHash = (
 export const getMaxIdxAtLayer = (layer: number, datalength: number): number => {
 	let [max, r] = [datalength, 0];
 	for (let i = 0; i < layer; i += 1) {
-		// eslint-disable-next-line
 		[max, r] = [[Math.floor, Math.ceil][r % 2](max / 2), r + (max % 2)];
 	}
 	return max;
@@ -50,7 +48,9 @@ export const getLayerStructure = (datalength: number): number[] => {
 };
 
 export const getBinary = (num: number, length: number): number[] => {
-	if (length === 0) return [];
+	if (length === 0) {
+		return [];
+	}
 	let binaryString = num.toString(2);
 	while (binaryString.length < length) binaryString = `0${binaryString}`;
 

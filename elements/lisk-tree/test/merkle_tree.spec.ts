@@ -60,11 +60,11 @@ describe('MerkleTree', () => {
 						Buffer.from(hexString, 'hex'),
 					);
 					const merkleTree = new MerkleTree(inputs);
-					const nodes = merkleTree.getData();
+					const nodes = (merkleTree as any)._getData();
 					const queryData = nodes
 						.sort(() => 0.5 - Math.random())
 						.slice(0, Math.floor(Math.random() * nodes.length + 1))
-						.map(node => node.hash);
+						.map((node: any) => node.hash);
 					const proof = merkleTree.generateProof(queryData) as Proof;
 					const result = verifyProof({
 						queryData,

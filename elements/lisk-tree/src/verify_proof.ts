@@ -23,9 +23,9 @@ export const verifyProof = (options: {
 	const { path, indexes, dataLength } = options.proof;
 	// Create a map for efficient lookup
 	const locationToPathMap: { [key: string]: Buffer } = {};
-	path.forEach(p => {
+	for (const p of path) {
 		locationToPathMap[`${p.layerIndex}${p.nodeIndex}`] = p.hash;
-	});
+	}
 	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
 
 	for (let i = 0; i < options.queryData.length; i += 1) {

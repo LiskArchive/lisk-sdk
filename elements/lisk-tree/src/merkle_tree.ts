@@ -15,6 +15,7 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 import { hash } from '@liskhq/lisk-cryptography';
+import { dataStructures } from '@liskhq/lisk-utils';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_INDEX_SIZE,
@@ -38,7 +39,7 @@ export class MerkleTree {
 	private _width = 0;
 
 	// Object holds data in format { [hash]: value }
-	private _hashToValueMap: { [key: string]: Buffer } = {};
+	private _hashToValueMap: { [key: string]: Buffer | undefined } = {};
 
 	public constructor(initValues: Buffer[] = []) {
 		if (initValues.length === 0) {
@@ -56,7 +57,7 @@ export class MerkleTree {
 
 	public getNode(nodeHash: Buffer): NodeInfo {
 		const value = this._hashToValueMap[nodeHash.toString('binary')];
-		// eslint-disable-next-line
+
 		if (!value) {
 			throw new Error(
 				`Hash does not exist in merkle tree: ${nodeHash.toString('hex')}`,
@@ -107,7 +108,7 @@ export class MerkleTree {
 			appendPath.push(currentNode);
 		} else {
 			// We start from the root layer and traverse each layer down the tree on the right side
-			// eslint-disable-next-line
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
 			while (true) {
 				const currentLayer = currentNode.layerIndex;
 				let currentLayerSize = this._width >> currentLayer;
@@ -158,7 +159,7 @@ export class MerkleTree {
 		}
 		const treeStructure = this._getPopulatedStructure();
 		const path = [];
-		const addedPath = new Set();
+		const addedPath = new dataStructures.BufferSet();
 		const indexes = [];
 		let queryNode: NodeInfo | undefined;
 
@@ -226,7 +227,7 @@ export class MerkleTree {
 		return this._printNode(this.root);
 	}
 
-	public getData(): NodeInfo[] {
+	private _getData(): NodeInfo[] {
 		return Object.keys(this._hashToValueMap).map(key =>
 			this.getNode(Buffer.from(key, 'binary')),
 		);
@@ -299,7 +300,7 @@ export class MerkleTree {
 
 	private _getPopulatedStructure(): TreeStructure {
 		const structure: { [key: number]: NodeInfo[] } = {};
-		const allNodes = this.getData();
+		const allNodes = this._getData();
 		for (let i = 0; i < allNodes.length; i += 1) {
 			const currentNode = allNodes[i];
 			if (!(currentNode.layerIndex in structure)) {
@@ -383,7 +384,7 @@ export class MerkleTree {
 	private _printNode(hashValue: Buffer, level = 1): string {
 		const nodeValue = this._hashToValueMap[hashValue.toString('binary')];
 
-		if (isLeaf(nodeValue)) {
+		if (nodeValue && isLeaf(nodeValue)) {
 			return hashValue.toString('hex');
 		}
 
