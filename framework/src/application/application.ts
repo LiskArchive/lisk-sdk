@@ -339,9 +339,7 @@ export class Application {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
 			this._genesisBlock.header.transactionRoot,
-			// TODO: Replace this attribute with configuration
-			// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
-			'Lisk',
+			this.config.genesisConfig.communityIdentifier,
 		).toString('base64');
 
 		const appConfigToShareWithModules = {
@@ -626,9 +624,7 @@ export class Application {
 			channel: this._channel,
 			options: {
 				...nodeConfigs,
-				// TODO: Replace this attribute with configuration
-				// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
-				communityIdentifier: 'Lisk',
+				communityIdentifier: nodeConfigs.genesisConfig.communityIdentifier,
 				forging: {
 					...nodeConfigs.forging,
 					delegates: convertedDelegates,

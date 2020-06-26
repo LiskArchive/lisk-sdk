@@ -122,6 +122,10 @@ Object {
             "minimum": 2,
             "type": "number",
           },
+          "communityIdentifier": Object {
+            "description": "Community identifier used to generate network identifier",
+            "type": "string",
+          },
           "maxPayloadLength": Object {
             "description": "Maximum number of transactions allowed per block",
             "maximum": 30720,
@@ -162,6 +166,7 @@ Object {
         },
         "required": Array [
           "blockTime",
+          "communityIdentifier",
           "maxPayloadLength",
           "rewards",
         ],
