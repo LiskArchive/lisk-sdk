@@ -47,7 +47,7 @@ export const validatePreviousBlockProperty = (
 ): void => {
 	const isGenesisBlock =
 		block.header.id.equals(genesisBlock.header.id) &&
-		block.header.version === 0;
+		block.header.version === genesisBlock.header.version;
 	const propertyIsValid =
 		isGenesisBlock ||
 		(block.header.previousBlockID.length > 0 && block.header.version !== 0);
