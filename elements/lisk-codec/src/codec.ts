@@ -123,20 +123,33 @@ export class Codec {
 			schema,
 			message,
 		);
-		const decodedMessageCopy = objectUtils.cloneDeep(decodedMessage);
-		decodedMessageCopy[Symbol.iterator] = iterator;
 
-		recursiveTypeCast(
-			'toJSON',
-			decodedMessageCopy,
-			(schema as unknown) as SchemaProps,
-			[],
-		);
-		return (decodedMessageCopy as unknown) as T;
+		const jsonMessageAsObject = this.toJSON(schema, decodedMessage);
+		return (jsonMessageAsObject as unknown) as T;
 	}
 
 	// For performance applications use encode() instead!
 	public encodeJSON(schema: Schema, message: object): Buffer {
+		const objectFromJson = this.toObject(schema, message);
+		return this.encode(schema, objectFromJson);
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public toJSON<T = object>(schema: Schema, message: object): T {
+		const messageCopy = objectUtils.cloneDeep(message);
+		(messageCopy as IteratableGenericObject)[Symbol.iterator] = iterator;
+
+		recursiveTypeCast(
+			'toJSON',
+			messageCopy as IteratableGenericObject,
+			(schema as unknown) as SchemaProps,
+			[],
+		);
+		return (messageCopy as unknown) as T;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	public toObject<T = object>(schema: Schema, message: object): T {
 		const messageCopy = objectUtils.cloneDeep(message);
 		(messageCopy as IteratableGenericObject)[Symbol.iterator] = iterator;
 
@@ -146,8 +159,7 @@ export class Codec {
 			(schema as unknown) as SchemaProps,
 			[],
 		);
-
-		return this.encode(schema, messageCopy);
+		return (messageCopy as unknown) as T;
 	}
 
 	private _compileSchema(
