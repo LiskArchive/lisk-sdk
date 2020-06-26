@@ -50,6 +50,13 @@ interface ChannelInfo {
 	readonly type: string;
 }
 
+const rejectWhenTimeout = async (timeInMillis: number): Promise<void> =>
+	new Promise((_, reject) => {
+		setTimeout(() => {
+			reject(new Error('Bus sockets setup timeout'));
+		}, timeInMillis);
+	});
+
 export class Bus extends EventEmitter2 {
 	public logger: Logger;
 
@@ -120,7 +127,7 @@ export class Bus extends EventEmitter2 {
 		await Promise.race([
 			this._resolveWhenAllSocketsBound(),
 			this._rejectWhenAnySocketFailsToBind(),
-			this._rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
+			rejectWhenTimeout(SOCKET_TIMEOUT_TIME),
 		]);
 		await this._removeAllListeners();
 
@@ -316,15 +323,6 @@ export class Bus extends EventEmitter2 {
 				});
 			}),
 		]);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	private async _rejectWhenTimeout(timeInMillis: number): Promise<void> {
-		return new Promise((_, reject) => {
-			setTimeout(() => {
-				reject(new Error('Bus sockets setup timeout'));
-			}, timeInMillis);
-		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

@@ -19,12 +19,10 @@ export interface ActionInfoObject {
 	readonly module: string;
 	readonly name: string;
 	readonly source?: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly params: any;
+	readonly params: object;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ActionHandler = (action: ActionInfoObject) => any;
+export type ActionHandler = (action: ActionInfoObject) => unknown;
 
 export interface ActionsDefinition {
 	[key: string]: ActionHandler | { handler: ActionHandler; isPublic?: boolean };
@@ -38,18 +36,16 @@ export class Action {
 	public module: string;
 	public name: string;
 	public isPublic: boolean;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public handler?: (action: ActionInfoObject) => any;
+	public handler?: (action: ActionInfoObject) => unknown;
 	public source?: string;
-	public params?: object;
+	public params: object;
 
 	public constructor(
 		name: string,
 		params?: object,
 		source?: string,
 		isPublic?: boolean,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		handler?: (action: ActionInfoObject) => any,
+		handler?: (action: ActionInfoObject) => unknown,
 	) {
 		assert(
 			actionWithModuleNameReg.test(name),
@@ -71,9 +67,8 @@ export class Action {
 	}
 
 	public static deserialize(data: ActionInfoObject | string): Action {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const parsedAction: ActionInfoObject =
-			typeof data === 'string' ? JSON.parse(data) : data;
+			typeof data === 'string' ? (JSON.parse(data) as ActionInfoObject) : data;
 
 		return new Action(
 			`${parsedAction.module}:${parsedAction.name}`,

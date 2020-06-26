@@ -283,52 +283,52 @@ export class Node {
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types,@typescript-eslint/explicit-function-return-type
 	public get actions() {
 		return {
-			calculateSupply: (action: { params: { height: number } }): bigint =>
-				this._chain.blockReward.calculateSupply(action.params.height),
-			calculateMilestone: (action: { params: { height: number } }): number =>
-				this._chain.blockReward.calculateMilestone(action.params.height),
-			calculateReward: (action: { params: { height: number } }): bigint =>
-				this._chain.blockReward.calculateReward(action.params.height),
-			getForgerAddressesForRound: async (action: {
-				params: { round: number };
+			calculateSupply: (params: { height: number }): bigint =>
+				this._chain.blockReward.calculateSupply(params.height),
+			calculateMilestone: (params: { height: number }): number =>
+				this._chain.blockReward.calculateMilestone(params.height),
+			calculateReward: (params: { height: number }): bigint =>
+				this._chain.blockReward.calculateReward(params.height),
+			getForgerAddressesForRound: async (params: {
+				round: number;
 			}): Promise<readonly string[]> => {
 				const forgersAddress = await this._dpos.getForgerAddressesForRound(
-					action.params.round,
+					params.round,
 				);
 				return forgersAddress.map(a => a.toString('base64'));
 			},
-			updateForgingStatus: async (action: {
-				params: { publicKey: string; password: string; forging: boolean };
+			updateForgingStatus: async (params: {
+				publicKey: string;
+				password: string;
+				forging: boolean;
 			}): Promise<ForgingStatus> =>
 				this._forger.updateForgingStatus(
-					Buffer.from(action.params.publicKey, 'base64'),
-					action.params.password,
-					action.params.forging,
+					Buffer.from(params.publicKey, 'base64'),
+					params.password,
+					params.forging,
 				),
-			getAccount: async (action: {
-				params: { address: string };
-			}): Promise<string> => {
+			getAccount: async (params: { address: string }): Promise<string> => {
 				const account = await this._chain.dataAccess.getAccountByAddress(
-					Buffer.from(action.params.address, 'base64'),
+					Buffer.from(params.address, 'base64'),
 				);
 				return this._chain.dataAccess.encodeAccount(account).toString('base64');
 			},
-			getAccounts: async (action: {
-				params: { address: readonly string[] };
+			getAccounts: async (params: {
+				address: readonly string[];
 			}): Promise<readonly string[]> => {
 				const accounts = await this._chain.dataAccess.getAccountsByAddress(
-					action.params.address.map(address => Buffer.from(address, 'base64')),
+					params.address.map(address => Buffer.from(address, 'base64')),
 				);
 				return accounts.map(account =>
 					this._chain.dataAccess.encodeAccount(account).toString('base64'),
 				);
 			},
-			getBlockByID: async (action: {
-				params: { id: string };
+			getBlockByID: async (params: {
+				id: string;
 			}): Promise<string | undefined> => {
 				try {
 					const block = await this._chain.dataAccess.getBlockByID(
-						Buffer.from(action.params.id, 'base64'),
+						Buffer.from(params.id, 'base64'),
 					);
 					return this._chain.dataAccess.encode(block).toString('base64');
 				} catch (error) {
@@ -338,12 +338,12 @@ export class Node {
 					throw error;
 				}
 			},
-			getBlocksByIDs: async (action: {
-				params: { ids: readonly string[] };
+			getBlocksByIDs: async (params: {
+				ids: readonly string[];
 			}): Promise<readonly string[]> => {
 				const blocks = [];
 				try {
-					for (const id of action.params.ids) {
+					for (const id of params.ids) {
 						const block = await this._chain.dataAccess.getBlockByID(
 							Buffer.from(id, 'base64'),
 						);
@@ -358,12 +358,12 @@ export class Node {
 					this._chain.dataAccess.encode(block).toString('base64'),
 				);
 			},
-			getBlockByHeight: async (action: {
-				params: { height: number };
+			getBlockByHeight: async (params: {
+				height: number;
 			}): Promise<string | undefined> => {
 				try {
 					const block = await this._chain.dataAccess.getBlockByHeight(
-						action.params.height,
+						params.height,
 					);
 					return this._chain.dataAccess.encode(block).toString('base64');
 				} catch (error) {
@@ -373,34 +373,33 @@ export class Node {
 					throw error;
 				}
 			},
-			getBlocksByHeightBetween: async (action: {
-				params: { from: number; to: number };
+			getBlocksByHeightBetween: async (params: {
+				from: number;
+				to: number;
 			}): Promise<readonly string[]> => {
 				const blocks = await this._chain.dataAccess.getBlocksByHeightBetween(
-					action.params.from,
-					action.params.to,
+					params.from,
+					params.to,
 				);
 
 				return blocks.map(b =>
 					this._chain.dataAccess.encode(b).toString('base64'),
 				);
 			},
-			getTransactionByID: async (action: {
-				params: { id: string };
-			}): Promise<string> => {
+			getTransactionByID: async (params: { id: string }): Promise<string> => {
 				const transaction = await this._chain.dataAccess.getTransactionByID(
-					Buffer.from(action.params.id, 'base64'),
+					Buffer.from(params.id, 'base64'),
 				);
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				return transaction.getBytes().toString('base64');
 			},
-			getTransactionsByIDs: async (action: {
-				params: { ids: readonly string[] };
+			getTransactionsByIDs: async (params: {
+				ids: readonly string[];
 			}): Promise<string[]> => {
 				const transactions = [];
 				try {
-					for (const id of action.params.ids) {
+					for (const id of params.ids) {
 						const transaction = await this._chain.dataAccess.getTransactionByID(
 							Buffer.from(id, 'base64'),
 						);
@@ -413,28 +412,25 @@ export class Node {
 				}
 				return transactions.map(tx => tx.getBytes().toString('base64'));
 			},
-			getTransactions: async (action: {
-				params: { data: unknown; peerId: string };
+			getTransactions: async (params: {
+				data: unknown;
+				peerId: string;
 			}): Promise<HandleRPCGetTransactionsReturn> =>
-				this._transport.handleRPCGetTransactions(
-					action.params.data,
-					action.params.peerId,
-				),
+				this._transport.handleRPCGetTransactions(params.data, params.peerId),
 			getForgingStatusOfAllDelegates: (): ForgingStatus[] | undefined =>
 				this._forger.getForgingStatusOfAllDelegates(),
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool
 					.getAll()
 					.map(tx => tx.getBytes().toString('base64')),
-			postTransaction: async (action: {
-				params: EventPostTransactionData;
-			}): Promise<handlePostTransactionReturn> =>
-				this._transport.handleEventPostTransaction(action.params),
-			getSlotNumber: (action: {
-				params: { timeStamp: number | undefined };
-			}): number => this._chain.slots.getSlotNumber(action.params.timeStamp),
-			calcSlotRound: (action: { params: { height: number } }): number =>
-				this._dpos.rounds.calcRound(action.params.height),
+			postTransaction: async (
+				params: EventPostTransactionData,
+			): Promise<handlePostTransactionReturn> =>
+				this._transport.handleEventPostTransaction(params),
+			getSlotNumber: (params: { timeStamp: number | undefined }): number =>
+				this._chain.slots.getSlotNumber(params.timeStamp),
+			calcSlotRound: (params: { height: number }): number =>
+				this._dpos.rounds.calcRound(params.height),
 			getNodeStatus: (): NodeStatus => ({
 				syncing: this._synchronizer.isActive,
 				unconfirmedTransactions: this._transactionPool.getAll().length,
@@ -447,19 +443,18 @@ export class Node {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getLastBlock: async (): Promise<string> =>
 				this._chain.dataAccess.encode(this._chain.lastBlock).toString('base64'),
-			getBlocksFromId: async (action: {
-				params: { data: unknown; peerId: string };
+			getBlocksFromId: async (params: {
+				data: unknown;
+				peerId: string;
 			}): Promise<string[]> =>
-				this._transport.handleRPCGetBlocksFromId(
-					action.params.data,
-					action.params.peerId,
-				),
-			getHighestCommonBlock: async (action: {
-				params: { data: unknown; peerId: string };
+				this._transport.handleRPCGetBlocksFromId(params.data, params.peerId),
+			getHighestCommonBlock: async (params: {
+				data: unknown;
+				peerId: string;
 			}): Promise<string | undefined> =>
 				this._transport.handleRPCGetGetHighestCommonBlock(
-					action.params.data,
-					action.params.peerId,
+					params.data,
+					params.peerId,
 				),
 		};
 	}

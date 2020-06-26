@@ -78,7 +78,6 @@ export class InMemoryChannel extends BaseChannel {
 	public async invokeFromNetwork<T>(
 		remoteMethod: string,
 		params?: object,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	): Promise<T> {
 		return this.invoke(`app:${remoteMethod}`, params);
 	}
@@ -86,8 +85,7 @@ export class InMemoryChannel extends BaseChannel {
 	public async publishToNetwork(
 		actionName: string,
 		data: object,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	): Promise<any> {
+	): Promise<object> {
 		return this.invoke(`app:${actionName}`, data);
 	}
 
