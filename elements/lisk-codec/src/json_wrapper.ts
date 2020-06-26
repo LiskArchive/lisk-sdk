@@ -16,16 +16,11 @@
 import {
 	BaseTypes,
 	IteratableGenericObject,
+	IteratorReturnValue,
 	SchemaPair,
 	SchemaProps,
 	SchemaScalarItem,
 } from './types';
-
-interface IteratorReturnValue {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	value: any;
-	key: string;
-}
 
 type mapperFunction = (value: BaseTypes) => BaseTypes;
 
