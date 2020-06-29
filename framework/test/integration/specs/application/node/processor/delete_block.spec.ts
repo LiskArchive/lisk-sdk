@@ -30,11 +30,10 @@ describe('Delete block', () => {
 	let node: Node;
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
-	let nodeDB: KVStore;
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB, nodeDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB, nodeDB);
+		({ blockchainDB, forgerDB } = createDB(dbName));
+		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
 		await node['_forger'].loadDelegates();
 	});
 
