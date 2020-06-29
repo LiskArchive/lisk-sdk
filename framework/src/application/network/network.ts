@@ -458,7 +458,7 @@ export class Network {
 		return this._p2p.getDisconnectedPeers();
 	}
 
-	public applyPenalty(penaltyPacket: liskP2P.p2pTypes.P2PPenalty): void {
+	public applyPenaltyOnPeer(penaltyPacket: liskP2P.p2pTypes.P2PPenalty): void {
 		return this._p2p.applyPenalty({
 			peerId: penaltyPacket.peerId,
 			penalty: penaltyPacket.penalty,
