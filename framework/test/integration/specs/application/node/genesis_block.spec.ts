@@ -25,10 +25,11 @@ describe('genesis block', () => {
 	let node: Node;
 	let blockchainDB: KVStore;
 	let forgerDB: KVStore;
+	let nodeDB: KVStore;
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
+		({ blockchainDB, forgerDB, nodeDB } = createDB(dbName));
+		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB, nodeDB);
 		await node['_forger'].loadDelegates();
 	});
 
@@ -108,7 +109,11 @@ describe('genesis block', () => {
 			it('should not apply the genesis block again', async () => {
 				// Act
 				// Re-initialize the node
-				node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
+				node = await nodeUtils.createAndLoadNode(
+					blockchainDB,
+					forgerDB,
+					nodeDB,
+				);
 
 				// Arrange & Assert
 				const recipient = await node['_chain'].dataAccess.getAccountByAddress(
