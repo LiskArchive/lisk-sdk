@@ -39,7 +39,7 @@ export const createApplication = async (
 	} as Partial<ApplicationConfig>;
 
 	const app = new Application(genesisBlockJSON as GenesisBlockJSON, config);
-	app.registerModule(HTTPAPIPlugin);
+	app.registerPlugin(HTTPAPIPlugin);
 
 	// Remoe pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
