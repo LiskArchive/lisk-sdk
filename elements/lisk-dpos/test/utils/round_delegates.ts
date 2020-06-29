@@ -14,10 +14,7 @@
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { randomInt, randomBigIntWithPowerof8 } from './random_int';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
 import { Account } from '../../src/types';
-
-export { delegatePublicKeys };
 
 export const getDelegateAccounts = (num = 1): Account[] => {
 	const accounts = [];

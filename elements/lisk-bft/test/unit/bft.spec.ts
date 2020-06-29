@@ -92,7 +92,7 @@ describe('bft', () => {
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
-				isBootstrapPeriod: jest.fn().mockResolvedValue(false),
+				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
 			activeDelegates = 101;
 			genesisHeight = 0;

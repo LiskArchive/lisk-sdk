@@ -14,7 +14,6 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	voteWeightsSchema,
 	forgerListSchema,
@@ -43,7 +42,7 @@ import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { StateStoreMock } from '../utils/state_store_mock';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -60,8 +59,8 @@ describe('dpos.apply()', () => {
 	let stateStore: StateStoreMock;
 	const randomSeed1 = Buffer.from('283f543e68fea3c08e976ef66acd3586');
 	const randomSeed2 = Buffer.from('354c87fa7674a8061920b9daafce92af');
-	const initDelegates = delegatePublicKeys.map(pk =>
-		getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+	const initDelegates = delegateAddresses.map(addr =>
+		Buffer.from(addr, 'base64'),
 	);
 
 	beforeEach(() => {

@@ -14,7 +14,6 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import {
@@ -26,7 +25,7 @@ import { generateDelegateLists } from '../utils/delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 import { ForgersList } from '../../src/types';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -58,8 +57,8 @@ describe('dpos.getMinActiveHeight()', () => {
 			slots,
 		};
 
-		const initDelegates = delegatePublicKeys.map(pk =>
-			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
 		);
 		dpos = new Dpos({
 			chain: chain as any,

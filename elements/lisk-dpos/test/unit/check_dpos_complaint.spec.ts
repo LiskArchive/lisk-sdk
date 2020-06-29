@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Slots } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { Dpos } from '../../src';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
@@ -25,7 +24,7 @@ import {
 } from '../utils/state_store_mock';
 import { BlockHeader } from '../../src/types';
 import { blockHeaders } from '../utils/block_headers';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -54,8 +53,8 @@ describe('dpos.isDPoSProtocolCompliant()', () => {
 		const chain = {
 			slots,
 		};
-		const initDelegates = delegatePublicKeys.map(pk =>
-			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
 		);
 
 		dpos = new Dpos({

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Slots } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import {
@@ -24,7 +23,7 @@ import {
 	BLOCK_TIME,
 	DELEGATE_LIST_ROUND_OFFSET,
 } from '../fixtures/constants';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 import { Dpos } from '../../src';
 import { ForgersList } from '../../src/types';
 import { StateStoreMock } from '../utils/state_store_mock';
@@ -46,9 +45,7 @@ const createStateStore = (list: ForgersList = []): StateStoreMock => {
 
 describe('dpos.isStandbyDelegate', () => {
 	let dpos: Dpos;
-	const defaultAddress = getAddressFromPublicKey(
-		Buffer.from(delegatePublicKeys[0], 'hex'),
-	);
+	const defaultAddress = Buffer.from(delegateAddresses[0], 'base64');
 	const delegateListRoundOffset = DELEGATE_LIST_ROUND_OFFSET;
 
 	beforeEach(() => {
@@ -61,8 +58,8 @@ describe('dpos.isStandbyDelegate', () => {
 			slots,
 		};
 
-		const initDelegates = delegatePublicKeys.map(pk =>
-			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
 		);
 		dpos = new Dpos({
 			chain: chain as any,
@@ -76,9 +73,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When a block is the latest block', () => {
 		// Arrange
-		const standByAddress = getAddressFromPublicKey(
-			Buffer.from(delegatePublicKeys[1], 'hex'),
-		);
+		const standByAddress = Buffer.from(delegateAddresses[1], 'base64');
 		const activeRounds = [17, 14, 11];
 		// Height in round 17
 		const height = 17 * ACTIVE_DELEGATES;
@@ -134,9 +129,7 @@ describe('dpos.isStandbyDelegate', () => {
 
 	describe('When the latest block is 3 rounds old', () => {
 		// Arrange
-		const standByAddress = getAddressFromPublicKey(
-			Buffer.from(delegatePublicKeys[1], 'hex'),
-		);
+		const standByAddress = Buffer.from(delegateAddresses[1], 'base64');
 		const activeRounds = [16, 15, 14];
 		// Height in round 17
 		const height = 14 * ACTIVE_DELEGATES;

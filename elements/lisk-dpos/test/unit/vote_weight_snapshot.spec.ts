@@ -14,7 +14,6 @@
 
 import { Slots } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import {
 	delegatesUserNamesSchema,
 	forgerListSchema,
@@ -37,7 +36,7 @@ import {
 	CHAIN_STATE_DELEGATE_USERNAMES,
 } from '../../src/constants';
 import { randomBigIntWithPowerof8 } from '../utils/random_int';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -80,8 +79,8 @@ describe('Vote weight snapshot', () => {
 				getDelegates: jest.fn().mockResolvedValue([]),
 			},
 		};
-		const initDelegates = delegatePublicKeys.map(pk =>
-			getAddressFromPublicKey(Buffer.from(pk, 'hex')),
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
 		);
 		dpos = new Dpos({
 			chain: chainStub,
