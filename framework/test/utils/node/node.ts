@@ -24,6 +24,7 @@ import { Logger } from '../../../src/application/logger';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { mergeDeep } from '../../../src/application/utils/merge_deep';
 import { ApplicationConfig } from '../../../src/types';
+import { Network } from '../../../src/application/network';
 
 const { modules, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
@@ -31,14 +32,21 @@ const { network, ...nodeConfigs } = rootConfigs;
 interface CreateNodeInput {
 	blockchainDB: KVStore;
 	forgerDB: KVStore;
+	nodeDB: KVStore;
 	logger: Logger;
 	channel?: InMemoryChannel;
 	options?: Partial<Options>;
 }
 
+const networkConfig = {
+	seedPeers: [],
+	wsPort: 5000,
+};
+
 export const createNode = ({
 	blockchainDB,
 	forgerDB,
+	nodeDB,
 	logger,
 	channel,
 	options = {},
@@ -56,6 +64,13 @@ export const createNode = ({
 			hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'base64')),
 		},
 	}));
+	const networkModule = new Network({
+		logger,
+		applicationState: null as any,
+		channel: channel ?? (createMockChannel() as any),
+		nodeDB,
+		options: networkConfig,
+	});
 	const nodeOptions = {
 		...mergedConfig,
 		forging: {
@@ -75,6 +90,7 @@ export const createNode = ({
 		blockchainDB,
 		forgerDB,
 		applicationState: null as any,
+		networkModule,
 	});
 };
 
@@ -92,6 +108,7 @@ export const fakeLogger = {
 export const createAndLoadNode = async (
 	blockchainDB: KVStore,
 	forgerDB: KVStore,
+	nodeDB: KVStore,
 	logger: Logger = fakeLogger as Logger,
 	channel?: InMemoryChannel,
 	options?: Options,
@@ -99,6 +116,7 @@ export const createAndLoadNode = async (
 	const chainModule = createNode({
 		blockchainDB,
 		forgerDB,
+		nodeDB,
 		logger,
 		channel,
 		options,
