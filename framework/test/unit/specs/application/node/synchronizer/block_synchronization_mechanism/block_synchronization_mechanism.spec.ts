@@ -90,6 +90,7 @@ describe('block_synchronization_mechanism', () => {
 		networkMock = {
 			requestFromPeer: jest.fn(),
 			applyPenaltyOnPeer: jest.fn(),
+			getConnectedPeers: jest.fn(),
 		};
 
 		chainModule = new Chain({
@@ -258,9 +259,9 @@ describe('block_synchronization_mechanism', () => {
 		);
 		jest.spyOn(blockSynchronizationMechanism.events, 'emit');
 
-		when(channelMock.invoke)
-			.calledWith('app:getConnectedPeers')
-			.mockResolvedValue(peersList.connectedPeers as never);
+		when(networkMock.getConnectedPeers)
+			.calledWith()
+			.mockReturnValue(peersList.connectedPeers as never);
 
 		await chainModule.init();
 
@@ -439,9 +440,9 @@ describe('block_synchronization_mechanism', () => {
 				const requiredProps = ['blockVersion', 'maxHeightPrevoted', 'height'];
 
 				for (const requiredProp of requiredProps) {
-					when(channelMock.invoke)
-						.calledWith('app:getConnectedPeers')
-						.mockResolvedValueOnce(
+					when(networkMock.getConnectedPeers)
+						.calledWith()
+						.mockReturnValue(
 							peersList.connectedPeers.map(peer => {
 								const incompatiblePeer: any = cloneDeep(peer);
 								delete incompatiblePeer[requiredProp];
@@ -469,9 +470,9 @@ describe('block_synchronization_mechanism', () => {
 
 			it('should throw an error if the list of connected peers is empty', async () => {
 				// Arrange
-				when(channelMock.invoke)
-					.calledWith('app:getConnectedPeers')
-					.mockResolvedValueOnce([] as never);
+				when(networkMock.getConnectedPeers)
+					.calledWith()
+					.mockReturnValue([] as never);
 
 				// Act && Assert
 				await expect(blockSynchronizationMechanism.run(aBlock)).rejects.toThrow(
@@ -489,9 +490,9 @@ describe('block_synchronization_mechanism', () => {
 			});
 
 			it('should throw an error if the peer tip does not have priority over current tip', async () => {
-				when(channelMock.invoke)
-					.calledWith('app:getConnectedPeers')
-					.mockResolvedValueOnce([
+				when(networkMock.getConnectedPeers)
+					.calledWith()
+					.mockReturnValue([
 						...peersList.expectedSelection.map(peer => ({
 							...peer,
 							height: 0,
@@ -749,7 +750,7 @@ describe('block_synchronization_mechanism', () => {
 					}
 
 					expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(3);
-					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+					expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
 					expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 
 					expect(
@@ -985,7 +986,7 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				expect(networkMock.requestFromPeer).toHaveBeenCalledTimes(12);
-				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
+				expect(networkMock.getConnectedPeers).toHaveBeenCalledTimes(1);
 				expect(networkMock.applyPenaltyOnPeer).toHaveBeenCalledTimes(1);
 
 				expect(processorModule.processValidated).not.toHaveBeenCalled();

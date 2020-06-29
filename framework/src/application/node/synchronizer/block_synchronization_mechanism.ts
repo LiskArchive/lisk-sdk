@@ -502,9 +502,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * @link https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#block-synchronization-mechanism
 	 */
 	private async _computeBestPeer(): Promise<Peer> {
-		const peers = await this._channel.invoke<ReadonlyArray<Peer> | undefined>(
-			'app:getConnectedPeers',
-		);
+		const peers = (this._networkModule.getConnectedPeers() as unknown) as Peer[];
 
 		if (!peers || peers.length === 0) {
 			throw new Error('List of connected peers is empty');
