@@ -59,6 +59,7 @@ import {
 	EVENT_PROCESSOR_SYNC_REQUIRED,
 } from './processor/processor';
 import { EVENT_SYNCHRONIZER_SYNC_REQUIRED } from './synchronizer/base_synchronizer';
+import { Network } from '../network';
 
 const forgeInterval = 1000;
 const { EVENT_NEW_BLOCK, EVENT_DELETE_BLOCK } = chainEvents;
@@ -103,6 +104,7 @@ interface NodeConstructor {
 	readonly forgerDB: KVStore;
 	readonly blockchainDB: KVStore;
 	readonly applicationState: ApplicationState;
+	readonly networkModule: Network;
 }
 
 interface NodeStatus {
@@ -120,6 +122,7 @@ export class Node {
 	private readonly _forgerDB: KVStore;
 	private readonly _blockchainDB: KVStore;
 	private readonly _applicationState: ApplicationState;
+	private readonly _networkModule: Network;
 	private _sequence!: Sequence;
 	private _networkIdentifier!: Buffer;
 	private _chain!: Chain;
@@ -139,6 +142,7 @@ export class Node {
 		blockchainDB,
 		forgerDB,
 		applicationState,
+		networkModule,
 	}: NodeConstructor) {
 		this._channel = channel;
 		this._options = options;
@@ -146,6 +150,7 @@ export class Node {
 		this._applicationState = applicationState;
 		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
+		this._networkModule = networkModule;
 	}
 
 	public async bootstrap(): Promise<void> {
@@ -211,9 +216,9 @@ export class Node {
 			await this._synchronizer.init();
 
 			// Update Application State after processor is initialized
-			await this._channel.invoke('app:updateApplicationState', {
+			this._applicationState.update({
 				height: this._chain.lastBlock.header.height,
-				lastBlockId: this._chain.lastBlock.header.id,
+				lastBlockId: this._chain.lastBlock.header.id.toString('base64'),
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
 				maxHeightPrevoted:
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -499,6 +504,7 @@ export class Node {
 			async (eventData: {
 				block: Block;
 				accounts: Account[];
+				// eslint-disable-next-line @typescript-eslint/require-await
 			}): Promise<void> => {
 				const { block } = eventData;
 				// Publish to the outside
@@ -517,7 +523,7 @@ export class Node {
 				}
 
 				if (!this._synchronizer.isActive) {
-					await this._channel.invoke('app:updateApplicationState', {
+					this._applicationState.update({
 						height: block.header.height,
 						lastBlockId: block.header.id.toString('base64'),
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
@@ -609,6 +615,7 @@ export class Node {
 			channel: this._channel,
 			chain: this._chain,
 			processorModule: this._processor,
+			networkModule: this._networkModule,
 		});
 
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
@@ -618,6 +625,7 @@ export class Node {
 			bft: this._bft,
 			dpos: this._dpos,
 			processor: this._processor,
+			networkModule: this._networkModule,
 		});
 
 		this._synchronizer = new Synchronizer({
@@ -627,6 +635,7 @@ export class Node {
 			processorModule: this._processor,
 			transactionPoolModule: this._transactionPool,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
+			networkModule: this._networkModule,
 		});
 
 		blockSyncMechanism.events.on(
@@ -676,6 +685,7 @@ export class Node {
 			transactionPoolModule: this._transactionPool,
 			processorModule: this._processor,
 			chainModule: this._chain,
+			networkModule: this._networkModule,
 		});
 	}
 
