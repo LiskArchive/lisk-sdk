@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
-import { MerkleTree } from '../src/merkle_tree';
-import { Proof } from '../src/types';
+import { EMPTY_HASH, MerkleTree } from '../src/index';
 import { verifyProof } from '../src/verify_proof';
 
 describe('MerkleTree', () => {
@@ -53,7 +52,7 @@ describe('MerkleTree', () => {
 	});
 
 	describe('generateProof and verifyProof', () => {
-		for (const test of fixture.testCases.slice(2)) {
+		for (const test of fixture.testCases) {
 			describe(test.description, () => {
 				it(`should generate and verify correct proof`, () => {
 					const inputs = test.input.transactionIds.map(hexString =>
@@ -65,14 +64,55 @@ describe('MerkleTree', () => {
 						.sort(() => 0.5 - Math.random())
 						.slice(0, Math.floor(Math.random() * nodes.length + 1))
 						.map((node: any) => node.hash);
-					const proof = merkleTree.generateProof(queryData) as Proof;
-					const result = verifyProof({
+					const proof = merkleTree.generateProof(queryData);
+					const results = verifyProof({
 						queryData,
 						proof,
 						rootHash: merkleTree.root,
 					});
 
-					expect(result).toBeTrue();
+					expect(results.every(result => result.verified)).toBeTrue();
+				});
+
+				it(`should generate and verify invalid proof`, () => {
+					const inputs = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
+					const merkleTree = new MerkleTree(inputs);
+					const nodes = (merkleTree as any)._getData();
+					const randomizedQueryCount = Math.floor(
+						Math.random() * nodes.length + 1,
+					);
+					const invalidNodeIndex =
+						inputs.length > 0
+							? Math.floor(Math.random() * randomizedQueryCount + 1)
+							: 0;
+					const queryData =
+						inputs.length > 0
+							? nodes
+									.sort(() => 0.5 - Math.random())
+									.slice(0, randomizedQueryCount)
+									.map((node: any) => node.hash)
+							: [];
+					queryData.splice(invalidNodeIndex, 1, EMPTY_HASH);
+					const proof = merkleTree.generateProof(queryData);
+					const results = verifyProof({
+						queryData,
+						proof,
+						rootHash: merkleTree.root,
+					});
+
+					// If 0 or 1 tree, proof is always valid
+					if (inputs.length <= 1) {
+						return expect(results.every(result => result.verified)).toBeTrue();
+					}
+
+					expect(
+						results
+							.filter((_, i) => i !== invalidNodeIndex)
+							.every(result => result.verified),
+					).toBeTrue();
+					return expect(results[invalidNodeIndex].verified).toBeFalse();
 				});
 			});
 		}
