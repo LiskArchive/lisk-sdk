@@ -45,7 +45,6 @@ import {
 	validateSignature,
 	verifyMinRemainingBalance,
 	verifyMultiSignatureTransaction,
-	verifySenderPublicKey,
 } from './utils';
 
 const exposedUtils = {
@@ -57,7 +56,6 @@ const exposedUtils = {
 	verifyMinRemainingBalance,
 	validateSenderIdAndPublicKey,
 	verifyMultiSignatureTransaction,
-	verifySenderPublicKey,
 };
 
 export {

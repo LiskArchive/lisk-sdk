@@ -35,7 +35,6 @@ describe('Delegate registration transaction class', () => {
 	const validDelegateAccountObj = defaultAccount({
 		balance: BigInt(validDelegateAccount.balance),
 		address: Buffer.from(testCase.input.account.address, 'base64'),
-		publicKey: Buffer.from(testCase.input.account.publicKey, 'base64'),
 	});
 
 	beforeEach(() => {
