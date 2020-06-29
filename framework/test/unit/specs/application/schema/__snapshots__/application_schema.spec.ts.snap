@@ -123,7 +123,7 @@ Object {
             "type": "number",
           },
           "communityIdentifier": Object {
-            "description": "Community identifier used to generate network identifier",
+            "description": "The unique name of the relevant community as a string encoded in UTF-8 format",
             "type": "string",
           },
           "maxPayloadLength": Object {

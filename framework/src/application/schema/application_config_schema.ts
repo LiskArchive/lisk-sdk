@@ -110,7 +110,7 @@ export const applicationConfigSchema = {
 				communityIdentifier: {
 					type: 'string',
 					description:
-						'Community identifier used to generate network identifier',
+						'The unique name of the relevant community as a string encoded in UTF-8 format',
 				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
