@@ -34,6 +34,7 @@ import {
 import { Processor } from '../processor';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../../controller/channels';
+import { Network } from '../../network';
 
 interface FastChainSwitchingMechanismInput {
 	readonly logger: Logger;
@@ -42,6 +43,7 @@ interface FastChainSwitchingMechanismInput {
 	readonly dpos: Dpos;
 	readonly chain: Chain;
 	readonly processor: Processor;
+	readonly networkModule: Network;
 }
 
 export class FastChainSwitchingMechanism extends BaseSynchronizer {
@@ -57,8 +59,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		bft,
 		processor,
 		dpos,
+		networkModule,
 	}: FastChainSwitchingMechanismInput) {
-		super(logger, channel, chain);
+		super(logger, channel, chain, networkModule);
 		this.dpos = dpos;
 		this._chain = chain;
 		this.bft = bft;
@@ -211,8 +214,9 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 				this.dpos.delegatesPerRound * 2
 		) {
 			throw new AbortError(
-				`Height difference between both chains is higher than ${this.dpos
-					.delegatesPerRound * 2}`,
+				`Height difference between both chains is higher than ${
+					this.dpos.delegatesPerRound * 2
+				}`,
 			);
 		}
 
