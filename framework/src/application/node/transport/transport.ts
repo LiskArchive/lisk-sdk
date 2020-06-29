@@ -33,6 +33,7 @@ import {
 } from '../../../types';
 import { Broadcaster } from './broadcaster';
 import { InMemoryChannel } from '../../../controller/channels';
+import { Network } from '../../network';
 
 const DEFAULT_RATE_RESET_TIME = 10000;
 const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -50,6 +51,7 @@ export interface TransportConstructor {
 	readonly transactionPoolModule: TransactionPool;
 	readonly chainModule: Chain;
 	readonly processorModule: Processor;
+	readonly networkModule: Network;
 }
 
 export interface handlePostTransactionReturn {
@@ -78,6 +80,7 @@ export class Transport {
 	private readonly _chainModule: Chain;
 	private readonly _processorModule: Processor;
 	private readonly _broadcaster: Broadcaster;
+	private readonly _networkModule: Network;
 
 	public constructor({
 		channel,
@@ -88,6 +91,7 @@ export class Transport {
 		transactionPoolModule,
 		chainModule,
 		processorModule,
+		networkModule,
 	}: TransportConstructor) {
 		this._channel = channel;
 		this._logger = logger;
@@ -96,13 +100,14 @@ export class Transport {
 		this._transactionPoolModule = transactionPoolModule;
 		this._chainModule = chainModule;
 		this._processorModule = processorModule;
+		this._networkModule = networkModule;
 
 		this._broadcaster = new Broadcaster({
 			transactionPool: this._transactionPoolModule,
 			logger: this._logger,
-			channel: this._channel,
 			releaseLimit: DEFAULT_RELEASE_LIMIT,
 			interval: DEFAULT_RELEASE_INTERVAL,
+			networkModule: this._networkModule,
 		});
 
 		// Rate limit for certain endpoints
@@ -128,7 +133,7 @@ export class Transport {
 			return null;
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return this._channel.publishToNetwork('sendToNetwork', {
+		return this._networkModule.send({
 			event: 'postBlock',
 			data: {
 				block: this._chainModule.dataAccess.encode(block).toString('base64'),
@@ -414,10 +419,7 @@ export class Transport {
 
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(ids);
 		if (unknownTransactionIDs.length > 0) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const { data: result } = await this._channel.invokeFromNetwork<{
-				data: { transactions: string[] };
-			}>('requestFromPeer', {
+			const { data: result } = (await this._networkModule.requestFromPeer({
 				procedure: 'getTransactions',
 				data: {
 					transactionIds: unknownTransactionIDs.map(id =>
@@ -425,7 +427,10 @@ export class Transport {
 					),
 				},
 				peerId,
-			});
+			})) as {
+				data: { transactions: string[] };
+			};
+
 			try {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 				for (const transaction of result.transactions) {
