@@ -129,7 +129,6 @@ export const createFakeDefaultAccount = (
 ): Account<AccountAsset> =>
 	new Account<AccountAsset>({
 		address: account?.address ?? getRandomBytes(20),
-		publicKey: account?.publicKey ?? Buffer.alloc(0),
 		balance: account?.balance ?? BigInt(0),
 		nonce: account?.nonce ?? BigInt(0),
 		keys: {

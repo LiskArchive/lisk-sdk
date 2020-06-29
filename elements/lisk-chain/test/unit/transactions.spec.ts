@@ -610,19 +610,11 @@ describe('blocks/transactions', () => {
 						'b01c191580cbe2b28b9df8836a49f0d3a1429137',
 						'hex',
 					),
-					publicKey: Buffer.from(
-						'2104c3882088fa512df4c64033a03cac911eec7e71dc03352cc2244dfc10a74c',
-						'hex',
-					),
 				});
 				delegate1.asset.delegate.username = 'genesis_200';
 				delegate2 = createFakeDefaultAccount({
 					address: Buffer.from(
 						'e2817646f906eb0d7e2f2a9ccf5c6bf633a4c210',
-						'hex',
-					),
-					publicKey: Buffer.from(
-						'2c638a3b2fccbde21b6773a595e2abf697fbda1a5b8495f040f79a118e0b291c',
 						'hex',
 					),
 				});
