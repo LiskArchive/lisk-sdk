@@ -40,10 +40,13 @@ export interface TreeStructure {
 export interface Proof {
 	readonly path: ReadonlyArray<{
 		hash: Buffer;
-		layerIndex: number;
-		nodeIndex: number;
+		layerIndex: number | undefined;
+		nodeIndex: number | undefined;
 	}>;
-	readonly indexes: ReadonlyArray<{ layerIndex: number; nodeIndex: number }>;
+	readonly indexes: ReadonlyArray<{
+		layerIndex: number | undefined;
+		nodeIndex: number | undefined;
+	}>;
 	readonly dataLength: number;
 }
 
@@ -52,3 +55,5 @@ export interface NodeLocation {
 	readonly nodeIndex: number;
 	readonly side?: NodeSide;
 }
+
+export type VerifyResult = ReadonlyArray<{ hash: Buffer; verified: boolean }>;

@@ -11,26 +11,43 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { dataStructures } from '@liskhq/lisk-utils';
 import { BRANCH_PREFIX } from './constants';
-import { NodeSide, Proof } from './types';
+import { NodeSide, Proof, VerifyResult } from './types';
 import { generateHash, getPairLocation } from './utils';
 
 export const verifyProof = (options: {
 	queryData: ReadonlyArray<Buffer>;
 	proof: Proof;
 	rootHash: Buffer;
-}): boolean => {
+}): VerifyResult => {
 	const { path, indexes, dataLength } = options.proof;
+	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
+	const results = new dataStructures.BufferMap();
+
+	if (dataLength <= 1 || options.queryData.length === 0) {
+		return [{ hash: options.rootHash, verified: true }];
+	}
+
 	// Create a map for efficient lookup
 	const locationToPathMap: { [key: string]: Buffer } = {};
 	for (const p of path) {
-		locationToPathMap[`${p.layerIndex}${p.nodeIndex}`] = p.hash;
+		if (p.layerIndex !== undefined && p.nodeIndex !== undefined) {
+			locationToPathMap[`${p.layerIndex}${p.nodeIndex}`] = p.hash;
+		}
 	}
-	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
 
 	for (let i = 0; i < options.queryData.length; i += 1) {
-		let currentHash = options.queryData[i];
+		const queryHash = options.queryData[i];
 		let { nodeIndex, layerIndex } = indexes[i];
+
+		// Flag missing nodes
+		if (nodeIndex === undefined || layerIndex === undefined) {
+			results.set(queryHash, false);
+			continue;
+		}
+
+		let currentHash = queryHash;
 		while (layerIndex !== treeHeight) {
 			const {
 				layerIndex: pairLayerIndex,
@@ -61,9 +78,15 @@ export const verifyProof = (options: {
 					? Math.floor(pairNodeIndex / 2)
 					: Math.floor(pairNodeIndex / 2 ** (layerIndex - pairLayerIndex));
 		}
+
 		if (!currentHash.equals(options.rootHash)) {
-			return false;
+			results.set(queryHash, false);
+			continue;
 		}
+		results.set(queryHash, true);
 	}
-	return true;
+
+	return results
+		.entries()
+		.map(result => ({ hash: result[0], verified: result[1] as boolean }));
 };

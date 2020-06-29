@@ -42,9 +42,13 @@ export class MerkleTree {
 	private _hashToValueMap: { [key: string]: Buffer | undefined } = {};
 
 	public constructor(initValues: Buffer[] = []) {
-		if (initValues.length === 0) {
-			this._root = EMPTY_HASH;
-			this._hashToValueMap[this._root.toString('binary')] = Buffer.alloc(0);
+		if (initValues.length <= 1) {
+			const rootNode = initValues.length
+				? this._generateLeaf(initValues[0], 0)
+				: { hash: EMPTY_HASH, value: Buffer.alloc(0) };
+			this._root = rootNode.hash;
+			this._hashToValueMap[this._root.toString('binary')] = rootNode.value;
+			this._width = initValues.length ? 1 : 0;
 			return;
 		}
 
@@ -153,9 +157,13 @@ export class MerkleTree {
 		return this.root;
 	}
 
-	public generateProof(queryData: ReadonlyArray<Buffer>): Proof | undefined {
-		if (this._width === 1) {
-			return undefined;
+	public generateProof(queryData: ReadonlyArray<Buffer>): Proof {
+		if (this._width <= 1) {
+			return {
+				path: [],
+				indexes: [],
+				dataLength: this._width,
+			};
 		}
 		const treeStructure = this._getPopulatedStructure();
 		const path = [];
@@ -164,7 +172,20 @@ export class MerkleTree {
 		let queryNode: NodeInfo | undefined;
 
 		for (let i = 0; i < queryData.length; i += 1) {
-			queryNode = this.getNode(queryData[i]);
+			try {
+				queryNode = this.getNode(queryData[i]);
+			} catch (err) {
+				path.push({
+					hash: queryData[i],
+					layerIndex: undefined,
+					nodeIndex: undefined,
+				});
+				indexes.push({
+					layerIndex: undefined,
+					nodeIndex: undefined,
+				});
+				continue;
+			}
 
 			indexes.push({
 				layerIndex: queryNode.layerIndex,
@@ -228,9 +249,11 @@ export class MerkleTree {
 	}
 
 	private _getData(): NodeInfo[] {
-		return Object.keys(this._hashToValueMap).map(key =>
-			this.getNode(Buffer.from(key, 'binary')),
-		);
+		return this._width === 0
+			? []
+			: Object.keys(this._hashToValueMap).map(key =>
+					this.getNode(Buffer.from(key, 'binary')),
+			  );
 	}
 
 	private _getHeight(): number {
