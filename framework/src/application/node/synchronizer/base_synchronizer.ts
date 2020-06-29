@@ -21,6 +21,7 @@ import {
 	ApplyPenaltyAndRestartError,
 	ApplyPenaltyAndAbortError,
 } from './errors';
+import { Network } from '../../network';
 
 export const EVENT_SYNCHRONIZER_SYNC_REQUIRED =
 	'EVENT_SYNCHRONIZER_SYNC_REQUIRED';
@@ -31,11 +32,18 @@ export abstract class BaseSynchronizer {
 	protected _logger: Logger;
 	protected _channel: InMemoryChannel;
 	protected _chain: Chain;
+	protected _networkModule: Network;
 
-	public constructor(logger: Logger, channel: InMemoryChannel, chain: Chain) {
+	public constructor(
+		logger: Logger,
+		channel: InMemoryChannel,
+		chain: Chain,
+		network: Network,
+	) {
 		this._logger = logger;
 		this._channel = channel;
 		this._chain = chain;
+		this._networkModule = network;
 		this.events = new EventEmitter();
 	}
 
@@ -61,16 +69,17 @@ export abstract class BaseSynchronizer {
 	protected async _getLastBlockFromNetwork(
 		peerId: string,
 	): Promise<Block<BlockHeaderAsset>> {
-		const { data } = await this._channel.invokeFromNetwork<{
-			data: string | undefined;
-		}>('requestFromPeer', {
+		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getLastBlock',
 			peerId,
-		});
+		})) as {
+			data: string | undefined;
+		};
+
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndRestartError(
 				peerId,
-				"Peer did not provide its last block",
+				'Peer did not provide its last block',
 			);
 		}
 		return this._chain.dataAccess.decode<BlockHeaderAsset>(
@@ -82,19 +91,20 @@ export abstract class BaseSynchronizer {
 		peerId: string,
 		ids: Buffer[],
 	): Promise<BlockHeader<BlockHeaderAsset>> {
-		const { data } = await this._channel.invokeFromNetwork<{
-			data: string | undefined;
-		}>('requestFromPeer', {
+		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getHighestCommonBlock',
 			peerId,
 			data: {
 				ids: ids.map(id => id.toString('base64')),
 			},
-		});
+		})) as {
+			data: string | undefined;
+		};
+
 		if (!data || !data.length) {
 			throw new ApplyPenaltyAndAbortError(
 				peerId,
-				"Peer did not return a common block",
+				'Peer did not return a common block',
 			);
 		}
 		return this._chain.dataAccess.decodeBlockHeader<BlockHeaderAsset>(
@@ -106,15 +116,16 @@ export abstract class BaseSynchronizer {
 		peerId: string,
 		fromID: Buffer,
 	): Promise<Block<BlockHeaderAsset>[]> {
-		const { data } = await this._channel.invokeFromNetwork<{
-			data: string[] | undefined;
-		}>('requestFromPeer', {
+		const { data } = (await this._networkModule.requestFromPeer({
 			procedure: 'getBlocksFromId',
 			peerId,
 			data: {
 				blockId: fromID.toString('base64'),
 			},
-		}); // Note that the block matching lastFetchedID is not returned but only higher blocks.
+		})) as {
+			data: string[] | undefined;
+		}; // Note that the block matching lastFetchedID is not returned but only higher blocks.
+
 		if (!data || !data.length) {
 			throw new Error('Peer did not respond with block');
 		}
