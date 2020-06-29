@@ -161,7 +161,7 @@ export class Transport {
 				},
 				'getBlocksFromID request validation failed',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -211,7 +211,7 @@ export class Transport {
 				},
 				'getHighestCommonBlock request validation failed',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -255,7 +255,7 @@ export class Transport {
 				},
 				'Received post block broadcast request in unexpected format',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -279,11 +279,7 @@ export class Transport {
 		data: unknown = { transactionIds: [] },
 		peerId: string,
 	): Promise<HandleRPCGetTransactionsReturn> {
-		await this._addRateLimit(
-			'getTransactions',
-			peerId,
-			DEFAULT_RATE_LIMIT_FREQUENCY,
-		);
+		this._addRateLimit('getTransactions', peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
 		const errors = validator.validate(
 			schemas.getTransactionsRequest,
 			data as object,
@@ -293,7 +289,7 @@ export class Transport {
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -320,7 +316,7 @@ export class Transport {
 		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
 			const error = new Error('Received invalid request.');
 			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -391,7 +387,7 @@ export class Transport {
 		data: unknown,
 		peerId: string,
 	): Promise<null> {
-		await this._addRateLimit(
+		this._addRateLimit(
 			'postTransactionsAnnouncement',
 			peerId,
 			DEFAULT_RATE_LIMIT_FREQUENCY,
@@ -406,7 +402,7 @@ export class Transport {
 				{ err: errors, peerId },
 				'Received invalid transactions body',
 			);
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
@@ -444,7 +440,7 @@ export class Transport {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
 				if (err instanceof InvalidTransactionError) {
-					await this._channel.invoke('app:applyPenaltyOnPeer', {
+					this._networkModule.applyPenaltyOnPeer({
 						peerId,
 						penalty: 100,
 					});
@@ -535,11 +531,11 @@ export class Transport {
 		throw errors;
 	}
 
-	private async _addRateLimit(
+	private _addRateLimit(
 		procedure: string,
 		peerId: string,
 		limit: number,
-	): Promise<void> {
+	): void {
 		if (this._rateTracker[procedure] === undefined) {
 			this._rateTracker[procedure] = { [peerId]: 0 };
 		}
@@ -547,7 +543,7 @@ export class Transport {
 			? this._rateTracker[procedure][peerId] + 1
 			: 1;
 		if (this._rateTracker[procedure][peerId] > limit) {
-			await this._channel.invoke('app:applyPenaltyOnPeer', {
+			this._networkModule.applyPenaltyOnPeer({
 				peerId,
 				penalty: 10,
 			});

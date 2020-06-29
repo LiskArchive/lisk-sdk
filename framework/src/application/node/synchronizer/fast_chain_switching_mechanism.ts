@@ -91,7 +91,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 					{ err, peerId, reason: err.reason },
 					'Applying penalty to peer and aborting synchronization mechanism',
 				);
-				await this._channel.invoke('app:applyPenaltyOnPeer', {
+				this._networkModule.applyPenaltyOnPeer({
 					peerId,
 					penalty: 100,
 				});

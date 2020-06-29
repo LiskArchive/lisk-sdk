@@ -95,7 +95,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			);
 		} catch (error) {
 			if (error instanceof ApplyPenaltyAndRestartError) {
-				await this._applyPenaltyAndRestartSync(
+				this._applyPenaltyAndRestartSync(
 					error.peerId,
 					receivedBlock,
 					error.reason,

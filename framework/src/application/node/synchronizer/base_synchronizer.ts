@@ -47,16 +47,17 @@ export abstract class BaseSynchronizer {
 		this.events = new EventEmitter();
 	}
 
-	protected async _applyPenaltyAndRestartSync(
+	protected _applyPenaltyAndRestartSync(
 		peerId: string,
 		receivedBlock: Block,
 		reason: string,
-	): Promise<void> {
+	): void {
 		this._logger.info(
 			{ peerId, reason },
 			'Applying penalty to peer and restarting synchronizer',
 		);
-		await this._channel.invoke('app:applyPenaltyOnPeer', {
+
+		this._networkModule.applyPenaltyOnPeer({
 			peerId,
 			penalty: 100,
 		});
