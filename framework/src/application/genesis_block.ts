@@ -41,7 +41,6 @@ export interface GenesisBlockJSON {
 export interface GenesisAccountStateJSON {
 	readonly address: string;
 	readonly balance: string;
-	readonly publicKey: string;
 	readonly nonce: string;
 	readonly keys: {
 		mandatoryKeys: string[];
@@ -71,7 +70,6 @@ const accountFromJSON = (
 ): GenesisAccountState<AccountAsset> => ({
 	address: Buffer.from(account.address, 'base64'),
 	balance: BigInt(account.balance),
-	publicKey: Buffer.from(account.publicKey, 'base64'),
 	nonce: BigInt(account.nonce),
 	keys: {
 		mandatoryKeys: account.keys.mandatoryKeys.map(key =>

@@ -44,7 +44,7 @@ interface HashOnionConfig {
 }
 
 export interface ForgingStatus {
-	readonly publicKey: Buffer;
+	readonly address: Buffer;
 	readonly forging: boolean;
 }
 
@@ -54,7 +54,7 @@ interface Keypair {
 }
 
 export interface RegisteredDelegate {
-	readonly publicKey: Buffer;
+	readonly address: Buffer;
 	readonly encryptedPassphrase: string;
 	readonly hashOnion: {
 		readonly count: number;
@@ -159,8 +159,9 @@ export class Forger {
 		forging: boolean,
 	): Promise<ForgingStatus> {
 		const encryptedList = this._config.forging.delegates;
+		const forgerAddress = getAddressFromPublicKey(publicKey);
 		const encryptedItem = encryptedList?.find(item =>
-			item.publicKey.equals(publicKey),
+			item.address.equals(forgerAddress),
 		);
 
 		let keypair: Keypair;
@@ -208,7 +209,7 @@ export class Forger {
 			}
 
 			return {
-				publicKey,
+				address: forgerAddress,
 				forging,
 			};
 		}
@@ -243,7 +244,7 @@ export class Forger {
 					this._config.forging.defaultPassword,
 				);
 			} catch (error) {
-				const decryptionError = `Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey.toString(
+				const decryptionError = `Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
 					'base64',
 				)}. ${(error as Error).message}`;
 				this._logger.error(decryptionError);
@@ -251,12 +252,13 @@ export class Forger {
 			}
 
 			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const delegateAddress = getAddressFromPublicKey(keypair.publicKey);
 
-			if (!keypair.publicKey.equals(encryptedItem.publicKey)) {
+			if (!delegateAddress.equals(encryptedItem.address)) {
 				throw new Error(
-					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey.toString(
+					`Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
 						'base64',
-					)}. Public keys do not match`,
+					)}. Address do not match`,
 				);
 			}
 
@@ -491,15 +493,15 @@ export class Forger {
 	// eslint-disable-next-line class-methods-use-this
 	public getForgingStatusOfAllDelegates(): ForgingStatus[] | undefined {
 		const forgingDelegates = this._config.forging.delegates;
-		const forgersPublicKeys = new BufferSet();
+		const forgersAddress = new BufferSet();
 
 		for (const keypair of this._keypairs.values()) {
-			forgersPublicKeys.add(keypair.publicKey);
+			forgersAddress.add(getAddressFromPublicKey(keypair.publicKey));
 		}
 
 		const fullList = forgingDelegates?.map(forger => ({
-			forging: forgersPublicKeys.has(forger.publicKey),
-			publicKey: forger.publicKey,
+			forging: forgersAddress.has(forger.address),
+			address: forger.address,
 		}));
 
 		return fullList;
@@ -561,7 +563,7 @@ export class Forger {
 
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
 		const delegateConfig = this._config.forging.delegates?.find(d =>
-			getAddressFromPublicKey(d.publicKey).equals(address),
+			d.address.equals(address),
 		);
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(
