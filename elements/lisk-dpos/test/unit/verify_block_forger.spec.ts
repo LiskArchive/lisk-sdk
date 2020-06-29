@@ -13,14 +13,13 @@
  */
 
 import { Slots } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { forgerListSchema } from '../../src/schemas';
 import { Dpos } from '../../src';
 import { BLOCK_TIME } from '../fixtures/constants';
-import { delegatePublicKeys } from '../utils/round_delegates';
 import { BlockHeader } from '../../src/types';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 describe('dpos.verifyBlockForger()', () => {
 	let dpos: Dpos;
@@ -32,9 +31,7 @@ describe('dpos.verifyBlockForger()', () => {
 			forgersList: [
 				{
 					round: 3,
-					delegates: delegatePublicKeys.map(pk =>
-						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
-					),
+					delegates: delegateAddresses.map(addr => Buffer.from(addr, 'base64')),
 					standby: [],
 				},
 			],
@@ -52,8 +49,14 @@ describe('dpos.verifyBlockForger()', () => {
 			},
 		};
 
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
+		);
 		dpos = new Dpos({
 			chain: chainStub,
+			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 		});
 	});
 
@@ -81,9 +84,7 @@ describe('dpos.verifyBlockForger()', () => {
 			forgersList: [
 				{
 					round: 1,
-					delegates: delegatePublicKeys.map(pk =>
-						getAddressFromPublicKey(Buffer.from(pk, 'hex')),
-					),
+					delegates: delegateAddresses.map(addr => Buffer.from(addr, 'base64')),
 					standby: [],
 				},
 			],

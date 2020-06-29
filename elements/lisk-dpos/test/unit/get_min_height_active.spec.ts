@@ -25,6 +25,7 @@ import { generateDelegateLists } from '../utils/delegates';
 import { StateStoreMock } from '../utils/state_store_mock';
 import { CONSENSUS_STATE_DELEGATE_FORGERS_LIST } from '../../src/constants';
 import { ForgersList } from '../../src/types';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 
 const MS_IN_A_SEC = 1000;
 const GENESIS_BLOCK_TIMESTAMP =
@@ -56,9 +57,15 @@ describe('dpos.getMinActiveHeight()', () => {
 			slots,
 		};
 
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
+		);
 		dpos = new Dpos({
 			chain: chain as any,
 			activeDelegates: ACTIVE_DELEGATES,
+			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 			delegateListRoundOffset,
 		});
 
@@ -196,56 +203,12 @@ describe('dpos.getMinActiveHeight()', () => {
 	});
 
 	describe('Given blockchain just started and the first list is being used couple of times', () => {
-		it('should return the first block height of 1st round for activeRound = 1', async () => {
+		it('should return lastHeightBootstrap + 1', async () => {
 			// Arrange
 			const activeRounds = [3, 2, 1];
-			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(1);
+			const expectedActiveMinHeight = dpos.rounds.lastHeightBootstrap() + 1;
 			// Height in round 1
 			height = 90;
-
-			const lists = generateDelegateLists({
-				address: defaultAddress,
-				activeRounds,
-			});
-
-			// Act
-			const minActiveHeights = await dpos.getMinActiveHeight(
-				height,
-				defaultAddress,
-				createStateStore(lists),
-			);
-			// Assert
-			expect(minActiveHeights).toEqual(expectedActiveMinHeight);
-		});
-
-		it('should return the first block height of 1st round for activeRound = 2', async () => {
-			// Arrange
-			const activeRounds = [3, 2, 1];
-			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(1);
-			// Height in round 2
-			height = 150;
-
-			const lists = generateDelegateLists({
-				address: defaultAddress,
-				activeRounds,
-			});
-
-			// Act
-			const minActiveHeights = await dpos.getMinActiveHeight(
-				height,
-				defaultAddress,
-				createStateStore(lists),
-			);
-			// Assert
-			expect(minActiveHeights).toEqual(expectedActiveMinHeight);
-		});
-
-		it('should return the first block height of 1st round for activeRound = 3', async () => {
-			// Arrange
-			const activeRounds = [3, 2, 1];
-			const expectedActiveMinHeight = dpos.rounds.calcRoundStartHeight(1);
-			// Height in round 3
-			height = 250;
 
 			const lists = generateDelegateLists({
 				address: defaultAddress,

@@ -57,12 +57,12 @@ const generateBlocks = ({
 describe('bft', () => {
 	describe('BFT', () => {
 		let activeDelegates: number;
-		let startingHeight: number;
+		let genesisHeight: number;
 		let bftParams: {
 			readonly chain: Chain;
 			readonly dpos: DPoS;
 			readonly activeDelegates: number;
-			readonly startingHeight: number;
+			readonly genesisHeight: number;
 		};
 
 		let chainStub: {
@@ -75,6 +75,7 @@ describe('bft', () => {
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
 			isStandbyDelegate: jest.Mock;
+			isBootstrapPeriod: jest.Mock;
 		};
 		let lastBlock: BlockHeader;
 
@@ -91,14 +92,15 @@ describe('bft', () => {
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
+				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
 			activeDelegates = 101;
-			startingHeight = 0;
+			genesisHeight = 0;
 			bftParams = {
 				chain: chainStub,
 				dpos: dposStub,
 				activeDelegates,
-				startingHeight,
+				genesisHeight,
 			};
 		});
 
@@ -113,7 +115,7 @@ describe('bft', () => {
 				expect(bft.finalityManager).toBeUndefined();
 				expect((bft as any)._chain).toBe(chainStub);
 				expect((bft as any)._dpos).toBe(dposStub);
-				expect(bft.constants).toEqual({ activeDelegates, startingHeight });
+				expect(bft.constants).toEqual({ activeDelegates, genesisHeight });
 			});
 		});
 

@@ -123,13 +123,16 @@ describe('fast_chain_switching_mechanism', () => {
 			activeDelegates: constants.activeDelegates,
 			standbyDelegates: constants.standbyDelegates,
 			delegateListRoundOffset: constants.delegateListRoundOffset,
+			initDelegates: genesisBlock.header.asset.initDelegates,
+			initRound: genesisBlock.header.asset.initRounds,
+			genesisBlockHeight: genesisBlock.header.height,
 		});
 
 		bftModule = new BFT({
 			chain: chainModule,
 			dpos: dposModule,
 			activeDelegates: constants.activeDelegates,
-			startingHeight: 0,
+			genesisHeight: genesisBlock.header.height,
 		});
 
 		Object.defineProperty(bftModule, 'finalizedHeight', {
