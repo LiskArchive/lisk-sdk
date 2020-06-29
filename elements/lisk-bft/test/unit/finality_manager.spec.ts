@@ -56,12 +56,14 @@ describe('finality_manager', () => {
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
 			isStandbyDelegate: jest.Mock;
+			isBootstrapPeriod: jest.Mock;
 		};
 
 		beforeEach(() => {
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
+				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
 
 			finalityManager = new FinalityManager({
@@ -299,6 +301,37 @@ describe('finality_manager', () => {
 					stateStore,
 					bftHeaders,
 				);
+			});
+
+			it('should not update prevotes and precommits in case of within bootstrap period', async () => {
+				const header1 = createFakeBlockHeader({
+					height: 2,
+					asset: {
+						maxHeightPreviouslyForged: 0,
+					},
+				});
+
+				dposStub.isBootstrapPeriod.mockResolvedValue(true);
+				jest.spyOn(finalityManager, 'updatePreVotesPreCommits');
+				await finalityManager.addBlockHeader(header1, stateStore);
+
+				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledTimes(
+					1,
+				);
+				expect(finalityManager.updatePreVotesPreCommits).toHaveBeenCalledWith(
+					header1,
+					stateStore,
+					bftHeaders,
+				);
+
+				// Ignores a standby delegate from prevotes and precommit calculations
+				await expect(
+					finalityManager.updatePreVotesPreCommits(
+						header1,
+						stateStore,
+						bftHeaders,
+					),
+				).resolves.toEqual(false);
 			});
 
 			it('should not update prevotes and precommits in case of a standby delegate', async () => {

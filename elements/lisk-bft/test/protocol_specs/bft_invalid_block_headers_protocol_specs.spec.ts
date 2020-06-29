@@ -24,6 +24,7 @@ describe('FinalityManager', () => {
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
 			isStandbyDelegate: jest.Mock;
+			isBootstrapPeriod: jest.Mock;
 		};
 		let stateStore: StateStoreMock;
 
@@ -31,6 +32,7 @@ describe('FinalityManager', () => {
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
+				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
 			stateStore = new StateStoreMock();
 		});

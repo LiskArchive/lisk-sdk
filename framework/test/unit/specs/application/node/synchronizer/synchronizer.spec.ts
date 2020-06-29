@@ -76,7 +76,11 @@ describe('Synchronizer', () => {
 		};
 		channelMock = new ChannelMock();
 
-		rounds = new Rounds({ blocksPerRound: constants.activeDelegates });
+		rounds = new Rounds({
+			blocksPerRound: constants.activeDelegates,
+			initRound: genesisBlock.header.asset.initRounds,
+			genesisBlockHeight: genesisBlock.header.height,
+		});
 
 		const blockchainDB = new KVStore('blockchain.db');
 		const forgerDB = new KVStore('forger.db');
@@ -129,7 +133,7 @@ describe('Synchronizer', () => {
 			chain: chainModule,
 			dpos: { rounds } as any,
 			activeDelegates: constants.activeDelegates,
-			startingHeight: 1,
+			genesisHeight: genesisBlock.header.height,
 		});
 
 		blockProcessorV0 = new BlockProcessorV0({

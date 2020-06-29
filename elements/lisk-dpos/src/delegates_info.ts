@@ -15,24 +15,39 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
 
-import { EVENT_ROUND_CHANGED } from './constants';
-import { DelegatesList, getForgerAddressesForRound } from './delegates_list';
+import { codec } from '@liskhq/lisk-codec';
+import {
+	EVENT_ROUND_CHANGED,
+	CHAIN_STATE_DELEGATE_USERNAMES,
+} from './constants';
+import {
+	DelegatesList,
+	getForgerAddressesForRound,
+	setForgersList,
+} from './delegates_list';
 import { generateRandomSeeds } from './random_seed';
 import { Rounds } from './rounds';
-import { BlockHeader, Chain, DPoSProcessingOptions, StateStore } from './types';
+import {
+	BlockHeader,
+	Chain,
+	DPoSProcessingOptions,
+	StateStore,
+	ForgersList,
+} from './types';
+import { delegatesUserNamesSchema } from './schemas';
 
 // eslint-disable-next-line new-cap
 const debug = Debug('lisk:dpos:delegate_info');
 
 interface DelegatesInfoConstructor {
 	readonly chain: Chain;
+	readonly initDelegates: ReadonlyArray<Buffer>;
 	readonly rounds: Rounds;
 	readonly events: EventEmitter;
 	readonly delegatesList: DelegatesList;
 }
 
 const _isGenesisBlock = (header: BlockHeader): boolean => header.version === 0;
-const zeroRandomSeed = Buffer.from('00000000000000000000000000000000', 'hex');
 const maxConsecutiveMissedBlocks = 50;
 const maxLastForgedHeightDiff = 260000;
 
@@ -41,17 +56,20 @@ export class DelegatesInfo {
 	private readonly rounds: Rounds;
 	private readonly events: EventEmitter;
 	private readonly delegatesList: DelegatesList;
+	private readonly _initDelegates: ReadonlyArray<Buffer>;
 
 	public constructor({
 		rounds,
 		chain,
 		events,
 		delegatesList,
+		initDelegates,
 	}: DelegatesInfoConstructor) {
 		this.chain = chain;
 		this.rounds = rounds;
 		this.events = events;
 		this.delegatesList = delegatesList;
+		this._initDelegates = initDelegates;
 	}
 
 	public async apply(
@@ -59,7 +77,76 @@ export class DelegatesInfo {
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
+		// if genesis block just save the init delegates
+		if (_isGenesisBlock(header)) {
+			return this._applyGenesis(stateStore);
+		}
+		if (this.rounds.isBootstrapPeriod(header.height)) {
+			return this._applyBootstrap(header, stateStore);
+		}
+		// if within bootstrap period, do not update forgers list, but update voteWeights
 		return this._update(header, stateStore, { delegateListRoundOffset });
+	}
+
+	private _applyGenesis(stateStore: StateStore): boolean {
+		// Update caching for the genesis accounts
+		const accounts = stateStore.account.getUpdated();
+		const delegateUsernames: { address: Buffer; username: string }[] = [];
+		for (const account of accounts) {
+			if (account.asset.delegate.username !== '') {
+				delegateUsernames.push({
+					address: account.address,
+					username: account.asset.delegate.username,
+				});
+			}
+		}
+		const updatingObjectBinary = codec.encode(delegatesUserNamesSchema, {
+			registeredDelegates: delegateUsernames,
+		});
+		stateStore.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObjectBinary);
+
+		const forgersList: ForgersList = [];
+
+		// Create forgers list
+		for (let r = 1; r <= this.rounds.initRound; r += 1) {
+			forgersList.push({
+				round: r,
+				delegates: this._initDelegates,
+				standby: [],
+			});
+		}
+		setForgersList(stateStore, forgersList);
+		return false;
+	}
+
+	private async _applyBootstrap(
+		header: BlockHeader,
+		stateStore: StateStore,
+	): Promise<boolean> {
+		// Calculate the voteWeight regularly, but forger list already exist except the last one
+		if (!this._isLastBlockOfTheRound(header)) {
+			return false;
+		}
+		// Creating voteWeight snapshot for next round
+		await this.delegatesList.createVoteWeightsSnapshot(
+			header.height + 1,
+			stateStore,
+		);
+		// last block of the bootstap period should create the forgers list
+		if (this.rounds.lastHeightBootstrap() === header.height) {
+			const round = this.rounds.calcRound(header.height);
+			const [randomSeed1, randomSeed2] = generateRandomSeeds(
+				round,
+				this.rounds,
+				stateStore.consensus.lastBlockHeaders,
+			);
+			await this.delegatesList.updateForgersList(
+				round + 1,
+				[randomSeed1, randomSeed2],
+				stateStore,
+			);
+		}
+		return false;
 	}
 
 	private async _update(
@@ -67,29 +154,6 @@ export class DelegatesInfo {
 		stateStore: StateStore,
 		{ delegateListRoundOffset }: DPoSProcessingOptions,
 	): Promise<boolean> {
-		if (_isGenesisBlock(block)) {
-			const initialRound = 1;
-			for (
-				let i = initialRound;
-				i <= initialRound + delegateListRoundOffset;
-				i += 1
-			) {
-				// Height is 1, but to create round 1-3, round offset should start from 0 - 2
-				await this.delegatesList.createVoteWeightsSnapshot(
-					1,
-					stateStore,
-					i - 1,
-				);
-			}
-			await this.delegatesList.updateForgersList(
-				initialRound,
-				[zeroRandomSeed, zeroRandomSeed],
-				stateStore,
-			);
-
-			return false;
-		}
-
 		const round = this.rounds.calcRound(block.height);
 		// Safety measure is calculated every block
 		await this._updateProductivity(block, stateStore);

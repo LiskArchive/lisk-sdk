@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Slots } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { voteWeightsSchema } from '../../src/schemas';
 import { getDelegateAccounts } from '../utils/round_delegates';
 import { BLOCK_TIME } from '../fixtures/constants';
-import * as delegatePublicKeys from '../fixtures/delegate_publickeys.json';
+import * as delegateAddresses from '../fixtures/delegate_addresses.json';
 import { Dpos } from '../../src';
 
 const MS_IN_A_SEC = 1000;
@@ -25,9 +24,7 @@ const GENESIS_BLOCK_TIMESTAMP =
 	new Date(Date.UTC(2020, 5, 15, 0, 0, 0, 0)).getTime() / MS_IN_A_SEC;
 
 describe('dpos.isActiveDelegate', () => {
-	const defaultAddress = getAddressFromPublicKey(
-		Buffer.from(delegatePublicKeys[0], 'hex'),
-	);
+	const defaultAddress = Buffer.from(delegateAddresses[0], 'base64');
 	const delegatesAddresses = getDelegateAccounts(101).map(d => ({
 		address: d.address,
 		voteWeight: BigInt(100000000000),
@@ -48,9 +45,15 @@ describe('dpos.isActiveDelegate', () => {
 				getConsensusState: jest.fn(),
 			},
 		};
+		const initDelegates = delegateAddresses.map(addr =>
+			Buffer.from(addr, 'base64'),
+		);
 
 		dpos = new Dpos({
 			chain: chainMock,
+			initDelegates,
+			genesisBlockHeight: 0,
+			initRound: 3,
 		});
 	});
 

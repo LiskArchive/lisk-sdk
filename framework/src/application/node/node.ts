@@ -572,6 +572,9 @@ export class Node {
 
 		this._dpos = new Dpos({
 			chain: this._chain,
+			initDelegates: this._options.genesisBlock.header.asset.initDelegates,
+			initRound: this._options.genesisBlock.header.asset.initRounds,
+			genesisBlockHeight: this._options.genesisBlock.header.height,
 			activeDelegates: this._options.constants.activeDelegates,
 			standbyDelegates: this._options.constants.standbyDelegates,
 			delegateListRoundOffset: this._options.constants.delegateListRoundOffset,
@@ -581,7 +584,7 @@ export class Node {
 			dpos: this._dpos,
 			chain: this._chain,
 			activeDelegates: this._options.constants.activeDelegates,
-			startingHeight: 0, // TODO: Pass exception precedent from config or height for block version 2
+			genesisHeight: this._options.genesisBlock.header.height,
 		});
 
 		this._dpos.events.on(EVENT_ROUND_CHANGED, (data: { newRound: number }) => {

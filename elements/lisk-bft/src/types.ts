@@ -96,6 +96,7 @@ export interface DPoS {
 		height: number,
 		stateStore: StateStore,
 	): Promise<boolean>;
+	isBootstrapPeriod(height: number): boolean;
 }
 
 export interface Chain {

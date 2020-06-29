@@ -15,10 +15,9 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as Debug from 'debug';
 import { EventEmitter } from 'events';
-import { delegatesUserNamesSchema, voteWeightsSchema } from './schemas';
+import { voteWeightsSchema } from './schemas';
 
 import {
-	CHAIN_STATE_DELEGATE_USERNAMES,
 	CONSENSUS_STATE_DELEGATE_VOTE_WEIGHTS,
 	DEFAULT_ACTIVE_DELEGATE,
 	DEFAULT_ROUND_OFFSET,
@@ -41,11 +40,13 @@ import {
 	ForgersList,
 	StateStore,
 	DecodedVoteWeights,
-	DecodedUsernames,
 } from './types';
 
 interface DposConstructor {
 	readonly chain: Chain;
+	readonly initDelegates: ReadonlyArray<Buffer>;
+	readonly initRound: number;
+	readonly genesisBlockHeight: number;
 	readonly activeDelegates?: number;
 	readonly standbyDelegates?: number;
 	readonly standbyThreshold?: bigint;
@@ -70,6 +71,9 @@ export class Dpos {
 
 	public constructor({
 		chain,
+		initDelegates,
+		genesisBlockHeight,
+		initRound,
 		activeDelegates = DEFAULT_ACTIVE_DELEGATE,
 		standbyDelegates = DEFAULT_STANDBY_DELEGATE,
 		standbyThreshold = DEFAULT_STANDBY_THRESHOLD,
@@ -84,6 +88,8 @@ export class Dpos {
 		this.delegateActiveRoundLimit = 3;
 		this.chain = chain;
 		this.rounds = new Rounds({
+			genesisBlockHeight,
+			initRound,
 			blocksPerRound: this._delegatesPerRound,
 		});
 
@@ -101,6 +107,7 @@ export class Dpos {
 			rounds: this.rounds,
 			events: this.events,
 			delegatesList: this.delegatesList,
+			initDelegates,
 		});
 	}
 
@@ -112,48 +119,6 @@ export class Dpos {
 		round: number,
 	): Promise<ReadonlyArray<Buffer>> {
 		return this.delegatesList.getDelegateList(round);
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	public async getRegisteredDelegates(
-		stateStore: StateStore,
-	): Promise<{ address: Buffer; username: string }[]> {
-		// Data format for the registered delegates
-		// chain:delegateUsernames => { registeredDelegates: { username, address }[] }
-		const usernamesBuffer = await stateStore.chain.get(
-			CHAIN_STATE_DELEGATE_USERNAMES,
-		);
-
-		if (usernamesBuffer) {
-			const decodedUsernames = codec.decode<DecodedUsernames>(
-				delegatesUserNamesSchema,
-				usernamesBuffer,
-			);
-
-			return decodedUsernames.registeredDelegates;
-		}
-
-		return [];
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await,class-methods-use-this
-	public async setRegisteredDelegates(
-		stateStore: StateStore,
-		delegates: { address: Buffer; username: string }[],
-	): Promise<void> {
-		const updatingObject = {
-			registeredDelegates: delegates.map(value => ({
-				address: value.address,
-				username: value.username,
-			})),
-		};
-
-		const updatingObjectBinary = codec.encode(
-			delegatesUserNamesSchema,
-			updatingObject,
-		);
-
-		stateStore.chain.set(CHAIN_STATE_DELEGATE_USERNAMES, updatingObjectBinary);
 	}
 
 	public async onBlockFinalized(
@@ -196,7 +161,10 @@ export class Dpos {
 			delegateActiveRoundLimit,
 		);
 
-		return this.rounds.calcRoundStartHeight(activeRounds);
+		const firstNonBootstrapHeight = this.rounds.lastHeightBootstrap() + 1;
+		const minActiveHeight = this.rounds.calcRoundStartHeight(activeRounds);
+
+		return Math.max(firstNonBootstrapHeight, minActiveHeight);
 	}
 
 	public async isActiveDelegate(
@@ -235,6 +203,10 @@ export class Dpos {
 		return (
 			activeDelegateVoteWeights.findIndex(vw => vw.address.equals(address)) > -1
 		);
+	}
+
+	public isBootstrapPeriod(height: number): boolean {
+		return this.rounds.isBootstrapPeriod(height);
 	}
 
 	public async isStandbyDelegate(

@@ -16,7 +16,6 @@ import { codec } from '@liskhq/lisk-codec';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
-import { BFT_MIGRATION_ROUND_OFFSET } from './constant';
 import {
 	EVENT_BFT_FINALIZED_HEIGHT_CHANGED,
 	FinalityManager,
@@ -55,7 +54,7 @@ codec.addSchema(BFTFinalizedHeightCodecSchema);
 export class BFT extends EventEmitter {
 	public readonly constants: {
 		activeDelegates: number;
-		startingHeight: number;
+		genesisHeight: number;
 	};
 
 	private _finalityManager?: FinalityManager;
@@ -66,19 +65,19 @@ export class BFT extends EventEmitter {
 		chain,
 		dpos,
 		activeDelegates,
-		startingHeight,
+		genesisHeight,
 	}: {
 		readonly chain: Chain;
 		readonly dpos: DPoS;
 		readonly activeDelegates: number;
-		readonly startingHeight: number;
+		readonly genesisHeight: number;
 	}) {
 		super();
 		this._chain = chain;
 		this._dpos = dpos;
 		this.constants = {
 			activeDelegates,
-			startingHeight,
+			genesisHeight,
 		};
 	}
 
@@ -225,22 +224,14 @@ export class BFT extends EventEmitter {
 			CONSENSUS_STATE_FINALIZED_HEIGHT_KEY,
 		);
 
-		const finalizedHeightStored =
+		// Choose max between stored finalized height or genesis height
+		const finalizedHeight =
 			storedFinalizedHeightBuffer === undefined
-				? 0
+				? this.constants.genesisHeight
 				: codec.decode<BFTPersistedValues>(
 						BFTFinalizedHeightCodecSchema,
 						storedFinalizedHeightBuffer,
 				  ).finalizedHeight;
-
-		/* Check BFT migration height
-		 https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#backwards-compatibility */
-		const bftMigrationHeight =
-			this.constants.startingHeight -
-			this.constants.activeDelegates * BFT_MIGRATION_ROUND_OFFSET;
-
-		// Choose max between stored finalized height or migration height
-		const finalizedHeight = Math.max(finalizedHeightStored, bftMigrationHeight);
 
 		// Initialize consensus manager
 		return new FinalityManager({

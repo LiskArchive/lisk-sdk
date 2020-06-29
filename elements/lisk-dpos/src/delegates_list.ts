@@ -79,7 +79,7 @@ export const getForgersList = async (
 	return forgerListDecoded.forgersList;
 };
 
-const _setForgersList = (
+export const setForgersList = (
 	stateStore: StateStore,
 	forgersList: ForgersList,
 ): void => {
@@ -123,7 +123,7 @@ export const deleteForgersListUntilRound = async (
 	debug('Deleting list until round: ', round);
 	const forgersList = await getForgersList(stateStore);
 	const newForgersList = forgersList.filter(fl => fl.round >= round);
-	_setForgersList(stateStore, newForgersList);
+	setForgersList(stateStore, newForgersList);
 };
 
 export const deleteVoteWeightsUntilRound = async (
@@ -445,7 +445,7 @@ export class DelegatesList {
 		} else {
 			forgersList.push(forgerList);
 		}
-		_setForgersList(stateStore, forgersList);
+		setForgersList(stateStore, forgersList);
 	}
 
 	public async getDelegateList(round: number): Promise<ReadonlyArray<Buffer>> {

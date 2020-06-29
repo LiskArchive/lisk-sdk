@@ -26,7 +26,7 @@ const constants = {
 describe('bft', () => {
 	describe('forkChoice', () => {
 		let activeDelegates;
-		let startingHeight;
+		let genesisHeight;
 		let bftParams;
 		let bftInstance: BFT;
 
@@ -36,6 +36,7 @@ describe('bft', () => {
 		let dposStub: {
 			getMinActiveHeight: jest.Mock;
 			isStandbyDelegate: jest.Mock;
+			isBootstrapPeriod: jest.Mock;
 		};
 
 		beforeEach(() => {
@@ -49,16 +50,17 @@ describe('bft', () => {
 			dposStub = {
 				getMinActiveHeight: jest.fn(),
 				isStandbyDelegate: jest.fn(),
+				isBootstrapPeriod: jest.fn().mockReturnValue(false),
 			};
 
 			activeDelegates = 101;
-			startingHeight = 0;
+			genesisHeight = 0;
 
 			bftParams = {
 				chain: chainStub,
 				dpos: dposStub,
 				activeDelegates,
-				startingHeight,
+				genesisHeight,
 			};
 
 			bftInstance = new BFT(bftParams);
