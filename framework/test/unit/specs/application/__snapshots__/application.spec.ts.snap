@@ -2197,7 +2197,6 @@ Object {
     "fileLogLevel": "debug",
     "logFileName": "lisk.log",
   },
-  "modules": Object {},
   "network": Object {
     "seedPeers": Array [
       Object {
@@ -2207,6 +2206,7 @@ Object {
     ],
     "wsPort": 5000,
   },
+  "plugins": Object {},
   "protocolVersion": "1.1",
   "rootPath": "~/.lisk",
   "version": "2.1.0",

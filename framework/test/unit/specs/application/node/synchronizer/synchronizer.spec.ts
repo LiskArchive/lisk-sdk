@@ -55,7 +55,7 @@ describe('Synchronizer', () => {
 	let syncMechanism2: any;
 	let rounds;
 
-	let transactionPoolModuleStub: any;
+	let transactionPooltub: any;
 	let channelMock: any;
 	let dposModuleMock: any;
 	let loggerMock: any;

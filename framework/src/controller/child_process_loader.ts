@@ -15,12 +15,12 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { ChildProcessChannel } from './channels';
-import { InstantiableModule, BasePlugin } from '../modules/base_plugin';
+import { InstantiablePlugin, BasePlugin } from '../plugins/base_plugin';
 import { SocketPaths } from './types';
 
 const modulePath: string = process.argv[2];
 // eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
-const Klass: InstantiableModule<BasePlugin> = require(modulePath);
+const Klass: InstantiablePlugin<BasePlugin> = require(modulePath);
 
 const _loadModule = async (
 	config: {

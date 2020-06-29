@@ -20,8 +20,8 @@ jest.mock('../../../../src/controller/channels/in_memory_channel');
 import { Controller } from '../../../../src/controller/controller';
 import { Bus } from '../../../../src/controller/bus';
 
-const createMockModule = (alias?: string, loadStub?: any, unloadStub?: any) => {
-	function Module(this: any) {
+const createMockPlugin = (alias?: string, loadStub?: any, unloadStub?: any) => {
+	function Plugin(this: any) {
 		this.load = loadStub ?? jest.fn();
 		this.unload = unloadStub ?? jest.fn();
 		this.defaults = {};
@@ -29,14 +29,14 @@ const createMockModule = (alias?: string, loadStub?: any, unloadStub?: any) => {
 		this.actions = {};
 	}
 
-	Module.info = {
+	Plugin.info = {
 		name: alias ?? 'dummy',
 		version: 'dummy',
 		author: 'dummy',
 	};
-	Module.alias = alias ?? 'dummy';
+	Plugin.alias = alias ?? 'dummy';
 
-	return Module;
+	return Plugin;
 };
 describe('Controller Class', () => {
 	// Arrange
@@ -106,30 +106,30 @@ describe('Controller Class', () => {
 			expect(controller.logger).toEqual(logger);
 			expect(controller.appLabel).toEqual(appLabel);
 			expect(controller.config).toEqual(configController);
-			expect(controller.modules).toEqual({});
+			expect(controller.plugins).toEqual({});
 			expect(controller.channel).toBe(channel);
 			expect(controller.bus).toBeUndefined();
 		});
 	});
 
 	describe('#load', () => {
-		let modules: any;
+		let plugins: any;
 		let moduleOptions: any;
 
 		beforeEach(async () => {
-			modules = {
-				dummyModule1: createMockModule('dummyModule1'),
-				dummyModule2: createMockModule('dummyModule2'),
-				dummyModule3: createMockModule('dummyModule3'),
+			plugins = {
+				dummyPlugin1: createMockPlugin('dummyPlugin1'),
+				dummyPlugin2: createMockPlugin('dummyPlugin2'),
+				dummyPlugin3: createMockPlugin('dummyPlugin3'),
 			};
 
 			moduleOptions = {
-				dummyModule1: '#OPTIONS1',
-				dummyModule2: '#OPTIONS2',
-				dummyModule3: '#OPTIONS3',
+				dummyPlugin1: '#OPTIONS1',
+				dummyPlugin2: '#OPTIONS2',
+				dummyPlugin3: '#OPTIONS3',
 			};
 
-			await controller.load(modules, moduleOptions);
+			await controller.load(plugins, moduleOptions);
 		});
 
 		describe('_setupBus', () => {
@@ -160,13 +160,13 @@ describe('Controller Class', () => {
 			it.todo('should log events if level is greater than info.');
 		});
 
-		describe('_loadModules', () => {
-			it.todo('should load modules in sequence');
-			it.todo('should call validateModuleSpec function.');
+		describe('_loadPlugins', () => {
+			it.todo('should load plugins in sequence');
+			it.todo('should call validatePluginSpec function.');
 
 			describe('when creating channel', () => {
 				it.todo(
-					'should add created channel to `controller.modulesChannel` object',
+					'should add created channel to `controller.pluginsChannel` object',
 				);
 
 				it.todo(
@@ -182,7 +182,7 @@ describe('Controller Class', () => {
 				it.todo(
 					'should publish `loading:finished` event after loading module.',
 				);
-				it.todo('should add module to `controller.modules` object.');
+				it.todo('should add module to `controller.plugins` object.');
 			});
 		});
 
@@ -199,7 +199,7 @@ describe('Controller Class', () => {
 		});
 	});
 
-	describe('#unloadModules', () => {
+	describe('#unloadPlugins', () => {
 		let loadStubs: any;
 		let unloadStubs: any;
 
@@ -215,13 +215,13 @@ describe('Controller Class', () => {
 				module2: jest.fn(),
 			};
 
-			const modules: any = {
-				module1: createMockModule(
+			const plugins: any = {
+				module1: createMockPlugin(
 					'module1',
 					loadStubs.module1,
 					unloadStubs.module1,
 				),
-				module2: createMockModule(
+				module2: createMockPlugin(
 					'module2',
 					loadStubs.module2,
 					unloadStubs.module2,
@@ -236,12 +236,12 @@ describe('Controller Class', () => {
 				},
 			};
 
-			await controller.load(modules, moduleOptions);
+			await controller.load(plugins, moduleOptions);
 		});
 
-		it('should unload modules in sequence', async () => {
+		it('should unload plugins in sequence', async () => {
 			// Act
-			await controller.unloadModules();
+			await controller.unloadPlugins();
 
 			// Assert
 			expect(unloadStubs.module1).toHaveBeenCalled();
@@ -249,20 +249,20 @@ describe('Controller Class', () => {
 			expect(unloadStubs.module2).toHaveBeenCalledAfter(unloadStubs.module1);
 		});
 
-		it('should unload all modules if modules argument was not provided', async () => {
+		it('should unload all plugins if plugins argument was not provided', async () => {
 			// Act
-			await controller.unloadModules();
+			await controller.unloadPlugins();
 
 			// Assert
-			expect(controller.modules).toEqual({});
+			expect(controller.plugins).toEqual({});
 		});
 
-		it('should unload given modules if modules argument was provided', async () => {
+		it('should unload given plugins if plugins argument was provided', async () => {
 			// Act
-			await controller.unloadModules(['module2']);
+			await controller.unloadPlugins(['module2']);
 
 			// Assert
-			expect(Object.keys(controller.modules)).toEqual(['module1']);
+			expect(Object.keys(controller.plugins)).toEqual(['module1']);
 		});
 	});
 });

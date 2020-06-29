@@ -34,11 +34,11 @@ Object {
         "fileLogLevel": "info",
         "logFileName": "lisk.log",
       },
-      "modules": Object {},
       "network": Object {
         "seedPeers": Array [],
         "wsPort": 5000,
       },
+      "plugins": Object {},
       "protocolVersion": "1.1",
       "rootPath": "~/.lisk",
       "version": "0.0.0",
@@ -232,9 +232,6 @@ Object {
         ],
         "type": "object",
       },
-      "modules": Object {
-        "type": "object",
-      },
       "network": Object {
         "properties": Object {
           "ackTimeout": Object {
@@ -346,6 +343,9 @@ Object {
         ],
         "type": "object",
       },
+      "plugins": Object {
+        "type": "object",
+      },
       "protocolVersion": Object {
         "format": "protocolVersion",
         "type": "string",
@@ -370,7 +370,7 @@ Object {
       "genesisConfig",
       "forging",
       "network",
-      "modules",
+      "plugins",
     ],
     "type": "object",
   },
