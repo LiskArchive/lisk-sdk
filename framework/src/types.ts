@@ -94,6 +94,7 @@ export interface NetworkConfig {
 
 export interface GenesisConfig {
 	epochTime: string;
+	communityIdentifier: string;
 	blockTime: number;
 	maxPayloadLength: number;
 	rewards: {

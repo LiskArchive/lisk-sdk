@@ -92,7 +92,12 @@ export const applicationConfigSchema = {
 		genesisConfig: {
 			id: '#/config/genesisConfig',
 			type: 'object',
-			required: ['blockTime', 'maxPayloadLength', 'rewards'],
+			required: [
+				'blockTime',
+				'communityIdentifier',
+				'maxPayloadLength',
+				'rewards',
+			],
 			properties: {
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151
@@ -101,6 +106,11 @@ export const applicationConfigSchema = {
 					type: 'number',
 					minimum: 2,
 					description: 'Slot time interval in seconds',
+				},
+				communityIdentifier: {
+					type: 'string',
+					description:
+						'The unique name of the relevant community as a string encoded in UTF-8 format',
 				},
 				// NOTICE: blockTime and maxPayloadLength are related and it's values
 				// need to be changed together as per recommendations noted in https://github.com/LiskHQ/lisk-sdk/issues/3151

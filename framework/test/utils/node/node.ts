@@ -63,8 +63,6 @@ export const createNode = ({
 			delegates: convertedDelegates,
 		},
 		...options,
-		// TODO: Replace this attribute with configuration
-		// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
 		communityIdentifier: 'Lisk',
 		constants: constantsConfig(),
 		genesisBlock: genesisBlock(),
