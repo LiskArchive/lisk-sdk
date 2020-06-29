@@ -30,7 +30,7 @@ import {
 import { BaseTransaction } from '@liskhq/lisk-transactions';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Sequence } from './utils/sequence';
-import { Forger, ForgingStatus, RegisteredDelegate } from './forger';
+import { Forger, RegisteredDelegate } from './forger';
 import {
 	Transport,
 	HandleRPCGetTransactionsReturn,
@@ -306,12 +306,18 @@ export class Node {
 				publicKey: string;
 				password: string;
 				forging: boolean;
-			}): Promise<ForgingStatus> =>
-				this._forger.updateForgingStatus(
+			}): Promise<{ publicKey: string; forging: boolean }> => {
+				const result = await this._forger.updateForgingStatus(
 					Buffer.from(params.publicKey, 'base64'),
 					params.password,
 					params.forging,
-				),
+				);
+
+				return {
+					publicKey: result.publicKey.toString('base64'),
+					forging: result.forging,
+				};
+			},
 			getAccount: async (params: { address: string }): Promise<string> => {
 				const account = await this._chain.dataAccess.getAccountByAddress(
 					Buffer.from(params.address, 'base64'),
@@ -422,8 +428,15 @@ export class Node {
 				peerId: string;
 			}): Promise<HandleRPCGetTransactionsReturn> =>
 				this._transport.handleRPCGetTransactions(params.data, params.peerId),
-			getForgingStatusOfAllDelegates: (): ForgingStatus[] | undefined =>
-				this._forger.getForgingStatusOfAllDelegates(),
+			getForgingStatusOfAllDelegates: ():
+				| { publicKey: string; forging: boolean }[]
+				| undefined =>
+				this._forger
+					.getForgingStatusOfAllDelegates()
+					?.map(({ publicKey, forging }) => ({
+						publicKey: publicKey.toString('base64'),
+						forging,
+					})),
 			getTransactionsFromPool: (): string[] =>
 				this._transactionPool
 					.getAll()
