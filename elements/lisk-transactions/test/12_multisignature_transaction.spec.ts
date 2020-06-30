@@ -24,6 +24,7 @@ import { Account } from '../src/types';
 import { defaultAccount, StateStoreMock } from './utils/state_store_mock';
 import * as fixtures from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 describe('Multisignature transaction class', () => {
@@ -110,7 +111,7 @@ describe('Multisignature transaction class', () => {
 			const { errors } = transaction.validate();
 
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toBe(`'.numberOfSignatures' should be <= 64`);
+			expect(errors[0].message).toBe("'.numberOfSignatures' should be <= 64");
 		});
 
 		it('should return error when numberOfSignatures is less than 1', () => {
@@ -125,7 +126,7 @@ describe('Multisignature transaction class', () => {
 			const { errors } = transaction.validate();
 
 			expect(errors).toHaveLength(1);
-			expect(errors[0].message).toBe(`'.numberOfSignatures' should be >= 1`);
+			expect(errors[0].message).toBe("'.numberOfSignatures' should be >= 1");
 		});
 
 		it('should return error when mandatoryKeys has too many keys', () => {
@@ -402,7 +403,7 @@ describe('Multisignature transaction class', () => {
 			const { errors } = transaction.validate();
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`'.mandatoryKeys' should NOT have more than 64 items`,
+				"'.mandatoryKeys' should NOT have more than 64 items",
 			);
 		});
 
@@ -680,7 +681,7 @@ describe('Multisignature transaction class', () => {
 			const { errors } = transaction.validate();
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`'.optionalKeys' should NOT have more than 64 items`,
+				"'.optionalKeys' should NOT have more than 64 items",
 			);
 		});
 
@@ -760,7 +761,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`The numberOfSignatures is bigger than the count of Mandatory and Optional keys`,
+				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys',
 			);
 		});
 
@@ -777,7 +778,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`The numberOfSignatures needs to be equal or bigger than the number of Mandatory keys`,
+				'The numberOfSignatures needs to be equal or bigger than the number of Mandatory keys',
 			);
 		});
 
@@ -810,7 +811,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`Invalid combination of Mandatory and Optional keys`,
+				'Invalid combination of Mandatory and Optional keys',
 			);
 		});
 
@@ -837,7 +838,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`Mandatory keys should be sorted lexicographically`,
+				'Mandatory keys should be sorted lexicographically',
 			);
 		});
 
@@ -864,7 +865,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`Optional keys should be sorted lexicographically`,
+				'Optional keys should be sorted lexicographically',
 			);
 		});
 
@@ -1398,7 +1399,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(1);
 			expect(errors[0].message).toBe(
-				`The count of Mandatory and Optional keys should be between 1 and 64`,
+				'The count of Mandatory and Optional keys should be between 1 and 64',
 			);
 		});
 
@@ -1418,10 +1419,10 @@ describe('Multisignature transaction class', () => {
 
 			expect(errors).toHaveLength(2);
 			expect(errors[0].message).toBe(
-				`The numberOfSignatures is bigger than the count of Mandatory and Optional keys`,
+				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys',
 			);
 			expect(errors[1].message).toBe(
-				`The count of Mandatory and Optional keys should be between 1 and 64`,
+				'The count of Mandatory and Optional keys should be between 1 and 64',
 			);
 		});
 
@@ -1472,7 +1473,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 6667778476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06`,
+				'Failed to validate signature 6667778476d2d300d04cbdb8442eaa4a759999f04846d3098946f45911acbfc6592832840ef290dcc55c2b9e3e07cf5896ac5c01cd0dba740a643f0de1677f06',
 			);
 		});
 
@@ -1494,7 +1495,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 77d8d346e040bec26afd0af55845cf36aaeae0a0786b3f00a377898d6999f438848247bf776398b2ee7b6cb1b07cd75e7f9f3ac62ce65e860b275afdf1be910c`,
+				'Failed to validate signature 77d8d346e040bec26afd0af55845cf36aaeae0a0786b3f00a377898d6999f438848247bf776398b2ee7b6cb1b07cd75e7f9f3ac62ce65e860b275afdf1be910c',
 			);
 		});
 
@@ -1516,7 +1517,7 @@ describe('Multisignature transaction class', () => {
 			const result = await invalid.verifySignatures(store);
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`Failed to validate signature 4fc142101188d7a9b3f00977c910a5473de6068b4af5df777530fe073e32869e688456b5604da9d65e7e1703adfe53e895fc156f414727ea123f7e34480fa80e`,
+				'Failed to validate signature 4fc142101188d7a9b3f00977c910a5473de6068b4af5df777530fe073e32869e688456b5604da9d65e7e1703adfe53e895fc156f414727ea123f7e34480fa80e',
 			);
 		});
 
@@ -1547,7 +1548,7 @@ describe('Multisignature transaction class', () => {
 
 			expect(result.status).toBe(0);
 			expect(result.errors[0].message).toBe(
-				`A signature is required for each registered key.`,
+				'A signature is required for each registered key.',
 			);
 		});
 	});

@@ -223,7 +223,7 @@ describe('Network discovery', () => {
 					minVersion: '9.9.9',
 					os: platform(),
 					height: 10000,
-					nonce: `404`,
+					nonce: '404',
 					advertiseAddress: true,
 				},
 			});
@@ -314,7 +314,7 @@ describe('Network discovery', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should receive getPeers multiple times`, () => {
+		it('should receive getPeers multiple times', () => {
 			// thirdP2PNode should send getPeers request 3 times (1 initial discovery + 2 fallback)
 			expect(collectedEvents).toHaveLength(
 				1 +

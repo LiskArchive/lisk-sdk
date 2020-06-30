@@ -231,7 +231,7 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 			assetErrors.push({
 				dataPath: '.accounts[0].keys.numberOfSignatures',
 				keyword: 'min',
-				message: `should be minimum of length of mandatoryKeys`,
+				message: 'should be minimum of length of mandatoryKeys',
 				params: { min: account.keys.mandatoryKeys.length },
 				schemaPath:
 					'#/properties/accounts/items/properties/keys/properties/numberOfSignatures',
@@ -245,7 +245,8 @@ export const validateGenesisBlock = <T = DefaultAccountAsset>(
 			assetErrors.push({
 				dataPath: '.accounts[0].keys.numberOfSignatures',
 				keyword: 'max',
-				message: `should be maximum of length of mandatoryKeys and optionalKeys`,
+				message:
+					'should be maximum of length of mandatoryKeys and optionalKeys',
 				params: {
 					max:
 						account.keys.mandatoryKeys.length +

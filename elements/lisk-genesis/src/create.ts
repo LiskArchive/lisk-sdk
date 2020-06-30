@@ -40,7 +40,7 @@ import {
 } from './schema';
 import { getHeaderAssetSchemaWithAccountAsset } from './utils/schema';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line import/order
 import cloneDeep = require('lodash.clonedeep');
 
 const getBlockId = <T>(

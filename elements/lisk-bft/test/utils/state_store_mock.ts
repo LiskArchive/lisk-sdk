@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Account, BlockHeader } from "../../src/types";
+import { Account, BlockHeader } from '../../src/types';
 
 interface AccountStoreMock {
 	get: (address: Buffer) => Promise<Account>;

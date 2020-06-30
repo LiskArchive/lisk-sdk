@@ -78,6 +78,7 @@ describe('data_access', () => {
 
 	afterEach(() => {
 		// Clear block cache
+		// eslint-disable-next-line no-unused-expressions
 		(dataAccess as any)._blocksCache?.items?.shift();
 		jest.clearAllMocks();
 	});

@@ -142,7 +142,7 @@ export default class UpgradeCommand extends BaseCommand {
 				task: () =>
 					new Listr([
 						{
-							title: `Stop Lisk Core`,
+							title: 'Stop Lisk Core',
 							task: async () => {
 								const isRunning = await isCacheRunning(installationPath, name);
 								if (isRunning) {

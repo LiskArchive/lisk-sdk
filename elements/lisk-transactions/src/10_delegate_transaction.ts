@@ -157,7 +157,7 @@ export class DelegateTransaction extends BaseTransaction {
 		if (usernameExists) {
 			errors.push(
 				new TransactionError(
-					`Username is not unique.`,
+					'Username is not unique.',
 					this.id,
 					'.asset.username',
 				),

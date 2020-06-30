@@ -174,7 +174,7 @@ export abstract class BaseTransaction {
 		if (this.type !== (this.constructor as typeof BaseTransaction).TYPE) {
 			errors.push(
 				new TransactionError(
-					`Invalid transaction type`,
+					'Invalid transaction type',
 					this.id,
 					'.type',
 					this.type,
