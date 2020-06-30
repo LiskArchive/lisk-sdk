@@ -17,52 +17,63 @@
 // eslint-disable-next-line
 /// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import { PubSocket, PullSocket, PushSocket, SubSocket } from 'pm2-axon';
-import { EventEmitter2 } from 'eventemitter2';
+import * as axon from 'pm2-axon';
+import {
+	PubSocket,
+	PullSocket,
+	PushSocket,
+	RepSocket,
+	SubSocket,
+} from 'pm2-axon';
 import { join } from 'path';
+import { Server as RPCServer } from 'pm2-axon-rpc';
 
 export abstract class IPCSocket {
+	public pubSocket!: PushSocket | PubSocket;
+	public subSocket!: PullSocket | SubSocket;
+	public rpcServer: RPCServer;
+
 	protected readonly _eventPubSocketPath: string;
 	protected readonly _eventSubSocketPath: string;
-	protected readonly _emitter: EventEmitter2;
+	protected readonly _actionRpcSeverSocketPath: string;
 
-	protected _pubSocket!: PushSocket | PubSocket;
-	protected _subSocket!: PullSocket | SubSocket;
-
-	protected constructor(options: { socketsDir: string }) {
+	protected constructor(options: { socketsDir: string; name: string }) {
 		this._eventPubSocketPath = `unix://${join(
 			options.socketsDir,
-			'push_socket.sock',
+			'pub_socket.sock',
 		)}`;
 		this._eventSubSocketPath = `unix://${join(
 			options.socketsDir,
-			'pull_socket.sock',
+			'sub_socket.sock',
+		)}`;
+		this._actionRpcSeverSocketPath = `unix://${join(
+			options.socketsDir,
+			`${options.name}_rpc_socket.sock`,
 		)}`;
 
-		this._emitter = new EventEmitter2({
-			// set this to `true` to use wildcards
-			wildcard: true,
+		this.rpcServer = new RPCServer(axon.socket('rep') as RepSocket);
+	}
 
-			// the delimiter used to segment namespaces
-			delimiter: ':',
-
-			// the maximum amount of listeners that can be assigned to an event
-			maxListeners: 10,
-
-			// show event name in memory leak message when more than maximum amount of listeners is assigned
-			verboseMemoryLeak: true,
-		});
+	public get rpcServerSocketPath(): string {
+		return this._actionRpcSeverSocketPath;
 	}
 
 	public stop(): void {
-		this._subSocket.removeAllListeners('message');
-		this._pubSocket.close();
-		this._subSocket.close();
+		this.subSocket.removeAllListeners('message');
+		this.pubSocket.close();
+		this.subSocket.close();
+		this.rpcServer.sock.close();
 	}
 
-	public emit(eventName: string, eventValue: object): void {
-		this._pubSocket.send(eventName, eventValue);
-	}
+	public async start(): Promise<void> {
+		await new Promise((resolve, reject) => {
+			this.rpcServer.sock.on('bind', resolve);
+			this.rpcServer.sock.on('error', reject);
 
-	public abstract start(): Promise<void>;
+			this.rpcServer.sock.bind(this._actionRpcSeverSocketPath);
+		}).finally(() => {
+			this.rpcServer.sock.removeAllListeners('bind');
+			this.rpcServer.sock.removeAllListeners('error');
+		});
+	}
 }

@@ -17,25 +17,37 @@
 // eslint-disable-next-line
 /// <reference path="../../external_types/pm2-axon-rpc/index.d.ts" />
 
-import { Listener } from 'eventemitter2';
 import * as axon from 'pm2-axon';
-import { PushSocket, SubSocket } from 'pm2-axon';
+import { PushSocket, ReqSocket, SubSocket } from 'pm2-axon';
+import { Client as RPCClient } from 'pm2-axon-rpc';
 import { IPCSocket } from './ipc_socket';
 
 const CONNECTION_TIME_OUT = 2000;
 
 export class IPCSocketClient extends IPCSocket {
-	public constructor(options: { socketsDir: string }) {
+	public rpcClient!: RPCClient;
+	protected readonly _actionRPCConnectingServerSocketPath: string;
+
+	public constructor(options: {
+		socketsDir: string;
+		name: string;
+		rpcServerSocketPath: string;
+	}) {
 		super(options);
 
-		this._pubSocket = axon.socket('push', {}) as PushSocket;
-		this._subSocket = axon.socket('sub', {}) as SubSocket;
+		this._actionRPCConnectingServerSocketPath = options.rpcServerSocketPath;
+
+		this.pubSocket = axon.socket('push', {}) as PushSocket;
+		this.subSocket = axon.socket('sub', {}) as SubSocket;
+		this.rpcClient = new RPCClient(axon.socket('req') as ReqSocket);
 	}
 
 	public async start(): Promise<void> {
+		await super.start();
+
 		await new Promise((resolve, reject) => {
-			this._pubSocket.on('connect', resolve);
-			this._pubSocket.on('error', reject);
+			this.pubSocket.on('connect', resolve);
+			this.pubSocket.on('error', reject);
 			setTimeout(() => {
 				reject(
 					new Error(
@@ -46,15 +58,15 @@ export class IPCSocketClient extends IPCSocket {
 
 			// We switched the path here to establish communication
 			// The socket on which server is observing clients will publish
-			this._pubSocket.connect(this._eventSubSocketPath);
+			this.pubSocket.connect(this._eventSubSocketPath);
 		}).finally(() => {
-			this._pubSocket.removeAllListeners('connect');
-			this._pubSocket.removeAllListeners('error');
+			this.pubSocket.removeAllListeners('connect');
+			this.pubSocket.removeAllListeners('error');
 		});
 
 		await new Promise((resolve, reject) => {
-			this._subSocket.on('connect', resolve);
-			this._subSocket.on('error', reject);
+			this.subSocket.on('connect', resolve);
+			this.subSocket.on('error', reject);
 			setTimeout(() => {
 				reject(
 					new Error(
@@ -65,22 +77,27 @@ export class IPCSocketClient extends IPCSocket {
 
 			// We switched the path here to establish communication
 			// The socket on which server is publishing clients will observer
-			this._subSocket.connect(this._eventPubSocketPath);
+			this.subSocket.connect(this._eventPubSocketPath);
 		}).finally(() => {
-			this._subSocket.removeAllListeners('connect');
-			this._subSocket.removeAllListeners('error');
+			this.subSocket.removeAllListeners('connect');
+			this.subSocket.removeAllListeners('error');
 		});
 
-		this._subSocket.on('message', (eventName: string, eventValue: object) => {
-			this._emitter.emit(eventName, eventValue);
+		await new Promise((resolve, reject) => {
+			this.rpcClient.sock.on('connect', resolve);
+			this.rpcClient.sock.on('error', reject);
+			setTimeout(() => {
+				reject(
+					new Error(
+						'IPC Socket client connection timeout. Please check if IPC server is running.',
+					),
+				);
+			}, CONNECTION_TIME_OUT);
+
+			this.rpcClient.sock.connect(this._actionRPCConnectingServerSocketPath);
+		}).finally(() => {
+			this.rpcClient.sock.removeAllListeners('connect');
+			this.rpcClient.sock.removeAllListeners('error');
 		});
-	}
-
-	public on(eventName: string, cb: Listener): void {
-		this._emitter.on(eventName, cb);
-	}
-
-	public once(eventName: string, cb: Listener): void {
-		this._emitter.once(eventName, cb);
 	}
 }

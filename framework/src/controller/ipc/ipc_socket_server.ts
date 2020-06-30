@@ -22,38 +22,40 @@ import { PubSocket, PullSocket } from 'pm2-axon';
 import { IPCSocket } from './ipc_socket';
 
 export class IPCSocketServer extends IPCSocket {
-	public constructor(options: { socketsDir: string }) {
+	public constructor(options: { socketsDir: string; name: string }) {
 		super(options);
 
-		this._pubSocket = axon.socket('pub', {}) as PubSocket;
-		this._subSocket = axon.socket('pull', {}) as PullSocket;
+		this.pubSocket = axon.socket('pub', {}) as PubSocket;
+		this.subSocket = axon.socket('pull', {}) as PullSocket;
 	}
 
 	public async start(): Promise<void> {
-		await new Promise((resolve, reject) => {
-			this._pubSocket.on('bind', resolve);
-			this._pubSocket.on('error', reject);
+		await super.start();
 
-			this._pubSocket.bind(this._eventPubSocketPath);
+		await new Promise((resolve, reject) => {
+			this.pubSocket.on('bind', resolve);
+			this.pubSocket.on('error', reject);
+
+			this.pubSocket.bind(this._eventPubSocketPath);
 		}).finally(() => {
-			this._pubSocket.removeAllListeners('bind');
-			this._pubSocket.removeAllListeners('error');
+			this.pubSocket.removeAllListeners('bind');
+			this.pubSocket.removeAllListeners('error');
 		});
 
 		await new Promise((resolve, reject) => {
-			this._subSocket.on('bind', resolve);
-			this._subSocket.on('error', reject);
+			this.subSocket.on('bind', resolve);
+			this.subSocket.on('error', reject);
 
 			// We switched the path here to establish communication
 			// The socket on which server is publishing clients will observer
-			this._subSocket.bind(this._eventSubSocketPath);
+			this.subSocket.bind(this._eventSubSocketPath);
 		}).finally(() => {
-			this._subSocket.removeAllListeners('bind');
-			this._subSocket.removeAllListeners('error');
+			this.subSocket.removeAllListeners('bind');
+			this.subSocket.removeAllListeners('error');
 		});
 
-		this._subSocket.on('message', (eventName: string, eventValue: object) => {
-			this._pubSocket.send(eventName, eventValue);
+		this.subSocket.on('message', (eventName: string, eventValue: object) => {
+			this.pubSocket.send(eventName, eventValue);
 		});
 	}
 }
