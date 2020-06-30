@@ -71,10 +71,9 @@ export const baseAccountSchema = {
 	properties: {
 		address: { dataType: 'bytes', fieldNumber: 1 },
 		balance: { dataType: 'uint64', fieldNumber: 2 },
-		publicKey: { dataType: 'bytes', fieldNumber: 3 },
-		nonce: { dataType: 'uint64', fieldNumber: 4 },
+		nonce: { dataType: 'uint64', fieldNumber: 3 },
 		keys: {
-			fieldNumber: 5,
+			fieldNumber: 4,
 			type: 'object',
 			properties: {
 				numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
@@ -92,11 +91,11 @@ export const baseAccountSchema = {
 			required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 		},
 		asset: {
-			fieldNumber: 6,
+			fieldNumber: 5,
 			type: 'object',
 		},
 	},
-	required: ['address', 'balance', 'publicKey', 'nonce', 'keys', 'asset'],
+	required: ['address', 'balance', 'nonce', 'keys', 'asset'],
 };
 
 export const stateDiffSchema = {

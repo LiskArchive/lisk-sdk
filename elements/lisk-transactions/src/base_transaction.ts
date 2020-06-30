@@ -35,7 +35,6 @@ import {
 	verifyAccountNonce,
 	verifyMinRemainingBalance,
 	verifyMultiSignatureTransaction,
-	verifySenderPublicKey,
 } from './utils';
 
 // Disabling method-signature-style otherwise type is not compatible with lisk-chain
@@ -201,16 +200,6 @@ export abstract class BaseTransaction {
 		const sender = await store.account.getOrDefault(this.senderId);
 		const errors = [];
 
-		// Verify sender against publicKey
-		const senderPublicKeyError = verifySenderPublicKey(
-			this.id,
-			sender,
-			this.senderPublicKey,
-		);
-		if (senderPublicKeyError) {
-			errors.push(senderPublicKeyError);
-		}
-
 		// Verify Account Nonce
 		const accountNonceError = verifyAccountNonce(this.id, sender, this.nonce);
 		if (accountNonceError) {
@@ -225,8 +214,6 @@ export abstract class BaseTransaction {
 
 		// Update sender balance
 		sender.balance -= this.fee;
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		sender.publicKey = sender.publicKey ?? this.senderPublicKey;
 
 		// Increment sender nonce
 		sender.nonce += BigInt(1);

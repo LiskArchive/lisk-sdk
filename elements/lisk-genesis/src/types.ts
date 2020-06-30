@@ -26,7 +26,6 @@ export type PartialReq<T, Keys extends keyof T = keyof T> = Pick<
 export interface GenesisAccountState<T> {
 	readonly address: Buffer;
 	readonly balance: bigint;
-	readonly publicKey: Buffer;
 	readonly nonce: bigint;
 	readonly keys: {
 		mandatoryKeys: Buffer[];

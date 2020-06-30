@@ -61,7 +61,6 @@ describe('Multisignature transaction class', () => {
 
 		multisignatureSender = defaultAccount({
 			address: Buffer.from(defualtTestCase.input.account.address, 'base64'),
-			publicKey: Buffer.from(defualtTestCase.input.account.publicKey, 'base64'),
 		});
 
 		targetMultisigAccount = defaultAccount({

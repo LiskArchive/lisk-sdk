@@ -433,47 +433,6 @@ describe('validate', () => {
 			);
 		});
 
-		it('should fail if "asset.accounts" list contains an "address" which does not match with "publicKey"', () => {
-			// Arrange
-			const accounts = cloneDeep(genesisBlock.header.asset.accounts);
-			const account = accounts.find(a => {
-				return a.asset.delegate.username === '';
-			}) as GenesisAccountState<DefaultAccountAsset>;
-			const newAddress = getRandomBytes(20);
-			const actualAddress = account.address;
-			const newAccount = mergeDeep({}, account, { address: newAddress });
-			const gb = mergeDeep({}, genesisBlock, {
-				header: {
-					asset: {
-						accounts: [...accounts, newAccount].sort((a, b) =>
-							a.address.compare(b.address),
-						),
-					},
-				},
-			}) as GenesisBlock<DefaultAccountAsset>;
-
-			// Act
-			const errors = validateGenesisBlock(gb, {
-				roundLength: validGenesisBlockParams.roundLength,
-			});
-
-			// Assert
-			expect(errors).toHaveLength(1);
-			expect(errors[0]).toEqual(
-				expect.objectContaining({
-					message: 'account addresses not match with publicKey',
-					keyword: 'accounts',
-					dataPath: 'header.asset.accounts',
-					schemaPath: 'properties.accounts',
-					params: {
-						publicKey: account.publicKey,
-						givenAddress: newAddress,
-						expectedAddress: actualAddress,
-					},
-				}),
-			);
-		});
-
 		it('should fail if sum of balance of all "asset.accounts" is greater than 2^63-1', () => {
 			// Arrange
 			const [account, ...accounts] = cloneDeep(

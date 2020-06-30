@@ -56,10 +56,6 @@ describe('Transfer transaction class', () => {
 			id,
 		});
 		sender = defaultAccount({
-			publicKey: Buffer.from(
-				fixture.testCases[0].input.account.publicKey,
-				'base64',
-			),
 			balance: BigInt('10000000000'),
 			address: Buffer.from(
 				fixture.testCases[0].input.account.address,
@@ -97,7 +93,6 @@ describe('Transfer transaction class', () => {
 				sender.address,
 				expect.objectContaining({
 					address: sender.address,
-					publicKey: sender.publicKey,
 				}),
 			);
 			expect(store.account.getOrDefault).toHaveBeenCalledWith(
@@ -107,7 +102,6 @@ describe('Transfer transaction class', () => {
 				recipient.address,
 				expect.objectContaining({
 					address: recipient.address,
-					publicKey: recipient.publicKey,
 				}),
 			);
 		});
