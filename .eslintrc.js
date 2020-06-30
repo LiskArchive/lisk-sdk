@@ -28,7 +28,6 @@ module.exports = {
 		'@typescript-eslint/explicit-member-accessibility': ['error'],
 		'@typescript-eslint/member-delimiter-style': ['error'],
 		'@typescript-eslint/member-ordering': ['error'],
-		'@typescript-eslint/no-confusing-non-null-assertion': ['error'],
 		'@typescript-eslint/no-extraneous-class': ['error'],
 		'@typescript-eslint/no-unnecessary-boolean-literal-compare': ['error'],
 		'@typescript-eslint/no-unnecessary-qualifier': ['error'],
