@@ -95,4 +95,36 @@ describe('LiskValidationError formatter', () => {
 			throw new LiskValidationError([...validator.validate(schema, obj)]);
 		}).toThrow(expectedError);
 	});
+
+	it('should format additional property errors', () => {
+		const schema = {
+			$id: '/my-schema',
+			$schema: 'http://lisk.io/lisk-schema/schema#',
+			type: 'object',
+			properties: {
+				myProp: {
+					type: 'object',
+					properties: {
+						foo: {
+							type: 'string',
+						},
+					},
+					additionalProperties: false,
+				},
+			},
+			required: ['myProp'],
+		};
+
+		const obj = {
+			myProp: {
+				foo: 'bar',
+				bar: 'baz',
+			},
+		};
+
+		const expectedError = `Lisk validator found 1 error[s]:\nProperty '.myProp' has extraneous property 'bar'`;
+		expect(() => {
+			throw new LiskValidationError([...validator.validate(schema, obj)]);
+		}).toThrow(expectedError);
+	});
 });
