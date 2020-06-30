@@ -17,7 +17,7 @@ import { homedir } from 'os';
 import { IPCSocketServer } from '../../../../../src/controller/ipc/ipc_socket_server';
 import { IPCSocketClient } from '../../../../../src/controller/ipc/ipc_socket_client';
 
-const socketDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
+const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 describe('IPCSocketClient', () => {
 	let server: IPCSocketServer;
@@ -25,18 +25,18 @@ describe('IPCSocketClient', () => {
 
 	beforeEach(async () => {
 		server = new IPCSocketServer({
-			socketDir,
+			socketsDir,
 		});
 		client = new IPCSocketClient({
-			socketDir,
+			socketsDir,
 		});
 
 		await server.start();
 	});
 
 	afterEach(() => {
-		client.close();
-		server.close();
+		client.stop();
+		server.stop();
 	});
 
 	describe('start', () => {
@@ -47,7 +47,7 @@ describe('IPCSocketClient', () => {
 
 		it('should timeout if server is not running', async () => {
 			// Arrange
-			server.close();
+			server.stop();
 
 			// Act & Assert
 			await expect(client.start()).rejects.toThrow(
@@ -70,19 +70,83 @@ describe('IPCSocketClient', () => {
 				server.emit('myEvent', { data: 'myData' });
 			});
 		});
-	});
 
-	describe('emit', () => {
-		it('should be able to emit event to socket', async () => {
+		it('should be able to subscribe and receive events on multiple clients', async () => {
+			// Arrange
+			const client2 = new IPCSocketClient({
+				socketsDir,
+			});
+			await client.start();
+			await client2.start();
+
+			// Act & Assert
+			server.emit('myEvent', { data: 'myData' });
+			await Promise.all([
+				new Promise(resolve => {
+					client.on('myEvent', data => {
+						expect(data).toEqual({ data: 'myData' });
+						resolve();
+					});
+				}),
+
+				await new Promise(resolve => {
+					client2.on('myEvent', data => {
+						expect(data).toEqual({ data: 'myData' });
+						resolve();
+					});
+				}),
+			]);
+
+			// Cleanup
+			client2.stop();
+		});
+
+		it('should be able to subscribe and receive events from different client', async () => {
+			// Arrange
+			const client2 = new IPCSocketClient({
+				socketsDir,
+			});
+			const client3 = new IPCSocketClient({
+				socketsDir,
+			});
+			await client.start();
+			await client2.start();
+			await client3.start();
+
+			// Act & Assert
+			client.emit('myEvent', { data: 'myData' });
+			await Promise.all([
+				new Promise(resolve => {
+					client2.on('myEvent', data => {
+						expect(data).toEqual({ data: 'myData' });
+						resolve();
+					});
+				}),
+
+				await new Promise(resolve => {
+					client3.on('myEvent', data => {
+						expect(data).toEqual({ data: 'myData' });
+						resolve();
+					});
+				}),
+			]);
+
+			// Cleanup
+			client2.stop();
+			client3.stop();
+		});
+
+		it('should be able to subscribe and receive events from same client', async () => {
 			// Arrange
 			await client.start();
 
+			// Act & Assert
+			client.emit('myEvent', { data: 'myData' });
 			await new Promise(resolve => {
-				server.on('myEvent', data => {
+				client.on('myEvent', data => {
 					expect(data).toEqual({ data: 'myData' });
 					resolve();
 				});
-				client.emit('myEvent', { data: 'myData' });
 			});
 		});
 	});

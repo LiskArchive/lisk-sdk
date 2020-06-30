@@ -12,21 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { resolve } from 'path';
+import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCSocketServer } from '../../../../../src/controller/ipc/ipc_socket_server';
+
+const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 describe('IPCSocketServer', () => {
 	let server: IPCSocketServer;
 
 	beforeEach(() => {
 		server = new IPCSocketServer({
-			socketDir: resolve(`${homedir()}/.lisk/devnet/tmp/sockets`),
+			socketsDir,
 		});
 	});
 
 	afterEach(() => {
-		server.close();
+		server.stop();
 	});
 
 	describe('start', () => {
