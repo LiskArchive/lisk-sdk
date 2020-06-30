@@ -14,15 +14,15 @@
 
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
-import { IPCSocketServer } from '../../../../../src/controller/ipc/ipc_socket_server';
+import { IPCServer } from '../../../../../src/controller/ipc/ipc_server';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 describe('IPCSocketServer', () => {
-	let server: IPCSocketServer;
+	let server: IPCServer;
 
 	beforeEach(() => {
-		server = new IPCSocketServer({
+		server = new IPCServer({
 			socketsDir,
 			name: 'bus',
 		});

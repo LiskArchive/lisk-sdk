@@ -14,21 +14,21 @@
 
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
-import { IPCSocketServer } from '../../../../../src/controller/ipc/ipc_socket_server';
-import { IPCSocketClient } from '../../../../../src/controller/ipc/ipc_socket_client';
+import { IPCServer } from '../../../../../src/controller/ipc/ipc_server';
+import { IPCClient } from '../../../../../src/controller/ipc/ipc_client';
 
 const socketsDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 describe('IPCSocketClient', () => {
-	let server: IPCSocketServer;
-	let client: IPCSocketClient;
+	let server: IPCServer;
+	let client: IPCClient;
 
 	beforeEach(async () => {
-		server = new IPCSocketServer({
+		server = new IPCServer({
 			socketsDir,
 			name: 'bus',
 		});
-		client = new IPCSocketClient({
+		client = new IPCClient({
 			socketsDir,
 			name: 'client',
 			rpcServerSocketPath: server.rpcServerSocketPath,
@@ -78,7 +78,7 @@ describe('IPCSocketClient', () => {
 
 		it('should be able to subscribe and receive events on multiple clients', async () => {
 			// Arrange
-			const client2 = new IPCSocketClient({
+			const client2 = new IPCClient({
 				socketsDir,
 				name: 'client2',
 				rpcServerSocketPath: server.rpcServerSocketPath,
@@ -109,12 +109,12 @@ describe('IPCSocketClient', () => {
 
 		it('should be able to subscribe and receive events from different client', async () => {
 			// Arrange
-			const client2 = new IPCSocketClient({
+			const client2 = new IPCClient({
 				socketsDir,
 				name: 'client2',
 				rpcServerSocketPath: server.rpcServerSocketPath,
 			});
-			const client3 = new IPCSocketClient({
+			const client3 = new IPCClient({
 				socketsDir,
 				name: 'client3',
 				rpcServerSocketPath: server.rpcServerSocketPath,

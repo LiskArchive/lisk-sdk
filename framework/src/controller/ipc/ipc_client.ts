@@ -24,7 +24,7 @@ import { IPCSocket } from './ipc_socket';
 
 const CONNECTION_TIME_OUT = 2000;
 
-export class IPCSocketClient extends IPCSocket {
+export class IPCClient extends IPCSocket {
 	public rpcClient!: RPCClient;
 	protected readonly _actionRPCConnectingServerSocketPath: string;
 

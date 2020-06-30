@@ -21,7 +21,7 @@ import * as axon from 'pm2-axon';
 import { PubSocket, PullSocket } from 'pm2-axon';
 import { IPCSocket } from './ipc_socket';
 
-export class IPCSocketServer extends IPCSocket {
+export class IPCServer extends IPCSocket {
 	public constructor(options: { socketsDir: string; name: string }) {
 		super(options);
 
