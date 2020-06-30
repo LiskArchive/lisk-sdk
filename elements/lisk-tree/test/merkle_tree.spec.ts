@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { MerkleTree, TreeStructure } from '../src/index';
 import * as fixture from './fixtures/transaction_merkle_root/transaction_merkle_root.json';
+import { EMPTY_HASH, MerkleTree } from '../src/index';
+import { verifyProof } from '../src/verify_proof';
 
 describe('MerkleTree', () => {
 	describe('constructor', () => {
@@ -51,61 +51,70 @@ describe('MerkleTree', () => {
 		}
 	});
 
-	describe('getStructure', () => {
-		let structure: TreeStructure;
+	describe('generateProof and verifyProof', () => {
+		for (const test of fixture.testCases) {
+			describe(test.description, () => {
+				it(`should generate and verify correct proof`, () => {
+					const inputs = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
+					const merkleTree = new MerkleTree(inputs);
+					const nodes = (merkleTree as any)._getData();
+					const queryData = nodes
+						.sort(() => 0.5 - Math.random())
+						.slice(0, Math.floor(Math.random() * nodes.length + 1))
+						.map((node: any) => node.hash);
+					const proof = merkleTree.generateProof(queryData);
+					const results = verifyProof({
+						queryData,
+						proof,
+						rootHash: merkleTree.root,
+					});
 
-		beforeEach(() => {
-			const inputs = fixture.testCases[7].input.transactionIds.map(hexString =>
-				Buffer.from(hexString, 'hex'),
-			);
-			structure = (new MerkleTree(inputs) as any)._getStructure();
-		});
+					expect(results.every(result => result.verified)).toBeTrue();
+				});
 
-		it(`should create the correct tree structure`, () => {
-			expect(structure[0]).toHaveLength(7);
-			expect(structure[1]).toHaveLength(3);
-			expect(structure[2]).toHaveLength(2);
-			expect(structure[3]).toHaveLength(1);
-		});
-	});
+				it(`should generate and verify invalid proof`, () => {
+					const inputs = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
+					const merkleTree = new MerkleTree(inputs);
+					const nodes = (merkleTree as any)._getData();
+					const randomizedQueryCount = Math.floor(
+						Math.random() * nodes.length + 1,
+					);
+					const invalidNodeIndex =
+						inputs.length > 0
+							? Math.floor(Math.random() * randomizedQueryCount + 1)
+							: 0;
+					const queryData =
+						inputs.length > 0
+							? nodes
+									.sort(() => 0.5 - Math.random())
+									.slice(0, randomizedQueryCount)
+									.map((node: any) => node.hash)
+							: [];
+					queryData.splice(invalidNodeIndex, 1, EMPTY_HASH);
+					const proof = merkleTree.generateProof(queryData);
+					const results = verifyProof({
+						queryData,
+						proof,
+						rootHash: merkleTree.root,
+					});
 
-	describe('generatePath', () => {
-		describe('when given a tree with two leaves', () => {
-			let merkleTree: MerkleTree;
-			const queryData = [
-				Buffer.from(
-					'ceb669e057511ef944a000b46dd2b15d2479bcdf5a58425843046e25a739cabb',
-					'hex',
-				),
-			];
+					// If 0 tree, proof is always valid
+					if (inputs.length === 0) {
+						return expect(results.every(result => result.verified)).toBeTrue();
+					}
 
-			beforeEach(() => {
-				const inputs = fixture.testCases[2].input.transactionIds.map(
-					hexString => Buffer.from(hexString, 'hex'),
-				);
-				merkleTree = new MerkleTree(inputs);
+					expect(
+						results
+							.filter((_, i) => i !== invalidNodeIndex)
+							.every(result => result.verified),
+					).toBeTrue();
+					return expect(results[invalidNodeIndex].verified).toBeFalse();
+				});
 			});
-
-			it('should generate the expected path hash', () => {
-				const expectedProofHash = Buffer.from(
-					'4dd4ad391dcabcc6e1c07478b13ea52b94ace83a7ed6f84559b3c25a7d5011ff',
-					'hex',
-				);
-
-				expect(
-					(merkleTree.generatePath(queryData)[0] as any).hash.compare(
-						expectedProofHash,
-					),
-				).toEqual(0);
-			});
-
-			it('should generate the expected path hash direction', () => {
-				const expectedProofHashDirection = 1;
-
-				expect(
-					(merkleTree.generatePath(queryData)[0] as any).direction,
-				).toEqual(expectedProofHashDirection);
-			});
-		});
+		}
 	});
 });
