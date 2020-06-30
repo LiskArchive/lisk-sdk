@@ -25,7 +25,8 @@ export const verifyProof = (options: {
 	const treeHeight = Math.ceil(Math.log2(dataLength)) + 1;
 	const results = new dataStructures.BufferMap();
 
-	if (dataLength <= 1 || options.queryData.length === 0) {
+	// If tree has one empty node
+	if (dataLength === 0 || options.queryData.length === 0) {
 		return [{ hash: options.rootHash, verified: true }];
 	}
 
@@ -44,6 +45,16 @@ export const verifyProof = (options: {
 		// Flag missing nodes
 		if (nodeIndex === undefined || layerIndex === undefined) {
 			results.set(queryHash, false);
+			continue;
+		}
+
+		// If tree has only one non-empty node, directly compare it to the path
+		if (dataLength === 1) {
+			if (path.some(p => p.hash.equals(queryHash))) {
+				results.set(queryHash, true);
+			} else {
+				results.set(queryHash, false);
+			}
 			continue;
 		}
 

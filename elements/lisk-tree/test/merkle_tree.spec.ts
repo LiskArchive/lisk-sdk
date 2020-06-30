@@ -102,8 +102,8 @@ describe('MerkleTree', () => {
 						rootHash: merkleTree.root,
 					});
 
-					// If 0 or 1 tree, proof is always valid
-					if (inputs.length <= 1) {
+					// If 0 tree, proof is always valid
+					if (inputs.length === 0) {
 						return expect(results.every(result => result.verified)).toBeTrue();
 					}
 

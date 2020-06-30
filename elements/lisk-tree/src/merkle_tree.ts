@@ -158,11 +158,11 @@ export class MerkleTree {
 	}
 
 	public generateProof(queryData: ReadonlyArray<Buffer>): Proof {
-		if (this._width <= 1) {
+		if (this._width === 0) {
 			return {
 				path: [],
 				indexes: [],
-				dataLength: this._width,
+				dataLength: 0,
 			};
 		}
 		const treeStructure = this._getPopulatedStructure();
@@ -172,6 +172,7 @@ export class MerkleTree {
 		let queryNode: NodeInfo | undefined;
 
 		for (let i = 0; i < queryData.length; i += 1) {
+			// Flag missing nodes
 			try {
 				queryNode = this.getNode(queryData[i]);
 			} catch (err) {
@@ -184,6 +185,23 @@ export class MerkleTree {
 					layerIndex: undefined,
 					nodeIndex: undefined,
 				});
+				continue;
+			}
+
+			// If tree has one non-empty leaf
+			if (this._width === 1 && this._root.equals(queryNode.hash)) {
+				if (!addedPath.has(queryNode.hash)) {
+					addedPath.add(queryNode.hash);
+					path.push({
+						hash: queryNode.hash,
+						layerIndex: 0,
+						nodeIndex: 0,
+					});
+					indexes.push({
+						layerIndex: 0,
+						nodeIndex: 0,
+					});
+				}
 				continue;
 			}
 
