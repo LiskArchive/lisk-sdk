@@ -14,6 +14,7 @@
 
 // Ajv.ErrorObject makes `schemaPath` and `dataPath` required
 // While these are not if we want to infer default values from validation
+
 export interface ErrorObject {
 	keyword: string;
 	dataPath?: string;
@@ -30,46 +31,54 @@ export interface ErrorObject {
 }
 
 interface ErrorParams {
-	type?: string;
-	additionalProperty?: string;
-	allowedValue?: string;
-	dataType?: string;
-	ref?: string;
-	limit?: string;
-	maxLength?: number;
-	minLength?: number;
-	length?: number;
-	fieldNumbers?: number[];
+	[key: string]: unknown;
 }
 
 interface KeywordDataFormatters {
 	[key: string]: (error: ErrorObject) => string;
 }
 
+const errorParamToString = (
+	param: string | Buffer | BigInt | undefined | unknown,
+): string => {
+	let paramAsString = '';
+	if (typeof param === 'bigint') {
+		paramAsString = param.toString();
+	} else if (Buffer.isBuffer(param)) {
+		paramAsString = param.toString('base64');
+	} else if (param === undefined) {
+		paramAsString = '';
+	} else {
+		paramAsString = param as string;
+	}
+	return paramAsString;
+};
+
 const keywordDataFormatters: KeywordDataFormatters = {
-	// The casting to string in the last parameter of this fuction is valid as it's always present. It seems this casting is required
-	// to keep this structure instead of using type guardings
 	type: (error): string =>
 		`Property '${error.dataPath ?? ''}' should be of type '${
 			error.params.type as string
 		}'`,
 	additionalProperties: (error): string =>
-		`Property '${error.dataPath ?? ''}' has extraneous property '${
-			error.params.additionalProperty as string
-		}'`,
+		`Property '${
+			error.dataPath ?? ''
+		}' has extraneous property '${errorParamToString(
+			error.params.additionalProperty,
+		)}'`,
 	minLength: (error): string =>
-		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 	maxLength: (error): string =>
-		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 	format: (error): string =>
-		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
-	required: (error): string => `Missing property, ${error.message as string}`,
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
+	required: (error): string =>
+		`Missing property, ${errorParamToString(error.message)}`,
 	const: (error): string =>
-		`Property '${error.dataPath ?? ''}' should be '${
-			error.params.allowedValue as string
-		}'`,
+		`Property '${error.dataPath ?? ''}' should be '${errorParamToString(
+			error.params.allowedValue,
+		)}'`,
 	dataType: (error): string =>
-		`Property '${error.dataPath ?? ''}' ${error.message as string}`,
+		`Property '${error.dataPath ?? ''}' ${errorParamToString(error.message)}`,
 };
 
 export class LiskValidationError extends Error {
