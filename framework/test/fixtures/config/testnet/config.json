@@ -121,7 +121,7 @@
 		},
 		"cache": {}
 	},
-	"modules": {
+	"plugins": {
 		"http_api": {
 			"httpPort": 7000
 		}

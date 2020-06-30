@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { StateStore, Account } from '@liskhq/lisk-chain';
 import { Dpos } from '@liskhq/lisk-dpos';

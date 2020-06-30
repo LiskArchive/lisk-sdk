@@ -214,8 +214,6 @@ describe('processor', () => {
 			expect(chainModuleStub.init).toHaveBeenCalledTimes(1);
 		});
 
-		it('should init chainModule', () => {});
-
 		describe('when processor has multiple block processor registered', () => {
 			let initSteps2: jest.Mock[];
 			let blockProcessorV2;
