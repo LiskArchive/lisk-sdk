@@ -81,7 +81,7 @@ export class LiskValidationError extends Error {
 		this.errors = errors;
 		this.message = `Lisk validator found ${
 			this.errors.length
-		} error[s]:\n ${this.compileErrors().join('\n ')}`;
+		} error[s]:\n${this.compileErrors().join('\n')}`;
 	}
 
 	private compileErrors(): string[] {
