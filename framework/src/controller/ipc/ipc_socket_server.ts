@@ -18,28 +18,34 @@ import { IPCSocketClient } from './ipc_socket_client';
 export class IPCSocketServer extends IPCSocketClient {
 	public async start(): Promise<void> {
 		await new Promise((resolve, reject) => {
-			this._pubSocket.on('bind', resolve);
-			this._pubSocket.on('error', reject);
+			this._pushSocket.on('bind', resolve);
+			this._pushSocket.on('error', reject);
 
-			// We switched the path here to establish communication
-			// The socket on which server is observing clients will publish
-			this._pubSocket.bind(this._subSocketPath);
+			this._pushSocket.bind(this._eventPushSocketPath);
 		}).finally(() => {
-			this._pubSocket.removeAllListeners('bind');
-			this._pubSocket.removeAllListeners('error');
+			this._pushSocket.removeAllListeners('bind');
+			this._pushSocket.removeAllListeners('error');
 		});
 
 		await new Promise((resolve, reject) => {
-			this._subSocket.on('bind', resolve);
-			this._subSocket.on('error', reject);
-			this._subSocket.on('socket error', reject);
+			this._pullSocket.on('bind', resolve);
+			this._pullSocket.on('error', reject);
 
 			// We switched the path here to establish communication
 			// The socket on which server is publishing clients will observer
-			this._subSocket.bind(this._pubSocketPath);
+			this._pullSocket.bind(this._eventPullSocketPath);
 		}).finally(() => {
-			this._subSocket.removeAllListeners('bind');
-			this._subSocket.removeAllListeners('error');
+			this._pullSocket.removeAllListeners('bind');
+			this._pullSocket.removeAllListeners('error');
+		});
+
+		this._listenToMessages();
+	}
+
+	protected _listenToMessages(): void {
+		this._pullSocket.on('message', (eventName: string, eventValue: object) => {
+			this._pushSocket.send(eventName, eventValue);
+			this._emitter.emit(eventName, eventValue);
 		});
 	}
 }

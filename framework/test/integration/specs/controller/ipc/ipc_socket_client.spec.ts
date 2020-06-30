@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { resolve } from 'path';
+import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCSocketServer } from '../../../../../src/controller/ipc/ipc_socket_server';
 import { IPCSocketClient } from '../../../../../src/controller/ipc/ipc_socket_client';
 
-const socketDir = resolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
+const socketDir = pathResolve(`${homedir()}/.lisk/devnet/tmp/sockets`);
 
 describe('IPCSocketClient', () => {
 	let server: IPCSocketServer;
@@ -34,9 +34,9 @@ describe('IPCSocketClient', () => {
 		await server.start();
 	});
 
-	afterEach(async () => {
-		await client.close();
-		await server.close();
+	afterEach(() => {
+		client.close();
+		server.close();
 	});
 
 	describe('start', () => {
@@ -47,12 +47,43 @@ describe('IPCSocketClient', () => {
 
 		it('should timeout if server is not running', async () => {
 			// Arrange
-			await server.close();
+			server.close();
 
 			// Act & Assert
 			await expect(client.start()).rejects.toThrow(
 				'IPC Socket client connection timeout. Please check if IPC server is running.',
 			);
+		});
+	});
+
+	describe('on', () => {
+		it('should be able to subscribe and receive event', async () => {
+			// Arrange
+			await client.start();
+
+			// Act & Assert
+			await new Promise(resolve => {
+				client.on('myEvent', data => {
+					expect(data).toEqual({ data: 'myData' });
+					resolve();
+				});
+				server.emit('myEvent', { data: 'myData' });
+			});
+		});
+	});
+
+	describe('emit', () => {
+		it('should be able to emit event to socket', async () => {
+			// Arrange
+			await client.start();
+
+			await new Promise(resolve => {
+				server.on('myEvent', data => {
+					expect(data).toEqual({ data: 'myData' });
+					resolve();
+				});
+				client.emit('myEvent', { data: 'myData' });
+			});
 		});
 	});
 });

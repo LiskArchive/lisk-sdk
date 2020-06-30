@@ -25,8 +25,8 @@ describe('IPCSocketServer', () => {
 		});
 	});
 
-	afterEach(async () => {
-		await server.close();
+	afterEach(() => {
+		server.close();
 	});
 
 	describe('start', () => {
