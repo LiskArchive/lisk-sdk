@@ -21,6 +21,7 @@ import { InMemoryChannel } from '../../controller/channels';
 import { EventInfoObject } from '../../controller/event';
 import { NetworkConfig } from '../../types';
 import { customPeerInfoSchema, customNodeInfoSchema } from './schema';
+import { ApplicationState } from '../application_state';
 
 const {
 	P2P,
@@ -54,6 +55,7 @@ interface NetworkConstructor {
 	readonly channel: InMemoryChannel;
 	readonly logger: Logger;
 	readonly nodeDB: KVStore;
+	readonly applicationState: ApplicationState;
 }
 
 interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacket {
@@ -78,14 +80,22 @@ export class Network {
 	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
 	private readonly _nodeDB: KVStore;
+	private readonly _applicationState: ApplicationState;
 	private _secret: number | null;
 	private _p2p!: liskP2P.P2P;
 
-	public constructor({ options, channel, logger, nodeDB }: NetworkConstructor) {
+	public constructor({
+		options,
+		channel,
+		logger,
+		nodeDB,
+		applicationState,
+	}: NetworkConstructor) {
 		this._options = options;
 		this._channel = channel;
 		this._logger = logger;
 		this._nodeDB = nodeDB;
+		this._applicationState = applicationState;
 		this._secret = null;
 	}
 
@@ -138,7 +148,7 @@ export class Network {
 		});
 
 		const initialNodeInfo = sanitizeNodeInfo(
-			await this._channel.invoke('app:getApplicationState'),
+			this._applicationState.state as liskP2P.p2pTypes.P2PNodeInfo,
 		);
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -448,7 +458,7 @@ export class Network {
 		return this._p2p.getDisconnectedPeers();
 	}
 
-	public applyPenalty(penaltyPacket: liskP2P.p2pTypes.P2PPenalty): void {
+	public applyPenaltyOnPeer(penaltyPacket: liskP2P.p2pTypes.P2PPenalty): void {
 		return this._p2p.applyPenalty({
 			peerId: penaltyPacket.peerId,
 			penalty: penaltyPacket.penalty,

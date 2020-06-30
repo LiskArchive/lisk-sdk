@@ -14,7 +14,7 @@
 
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Logger } from '../../logger';
-import { InMemoryChannel } from '../../../controller/channels';
+import { Network } from '../../network';
 
 const ENDPOINT_BROADCAST_TRANSACTIONS = 'postTransactionsAnnouncement';
 
@@ -26,13 +26,13 @@ interface BroadcasterConfig {
 export interface BroadcasterConstructor extends BroadcasterConfig {
 	readonly transactionPool: TransactionPool;
 	readonly logger: Logger;
-	readonly channel: InMemoryChannel;
+	readonly networkModule: Network;
 }
 
 export class Broadcaster {
-	private readonly _channel: InMemoryChannel;
 	private readonly _logger: Logger;
 	private readonly _transactionPool: TransactionPool;
+	private readonly _networkModule: Network;
 	private readonly _config: BroadcasterConfig;
 	private _transactionIdQueue: Buffer[];
 
@@ -41,11 +41,11 @@ export class Broadcaster {
 		releaseLimit,
 		interval,
 		logger,
-		channel,
+		networkModule,
 	}: BroadcasterConstructor) {
-		this._channel = channel;
 		this._logger = logger;
 		this._transactionPool = transactionPool;
+		this._networkModule = networkModule;
 		this._config = {
 			releaseLimit,
 			interval,
@@ -53,9 +53,9 @@ export class Broadcaster {
 		this._transactionIdQueue = [];
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		setInterval(async () => {
+		setInterval(() => {
 			try {
-				await this._broadcast();
+				this._broadcast();
 			} catch (err) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				this._logger.error({ err }, 'Failed to broadcast information');
@@ -75,7 +75,7 @@ export class Broadcaster {
 		return true;
 	}
 
-	private async _broadcast(): Promise<void> {
+	private _broadcast(): void {
 		this._transactionIdQueue = this._transactionIdQueue.filter(id =>
 			this._transactionPool.contains(id),
 		);
@@ -85,7 +85,7 @@ export class Broadcaster {
 				this._config.releaseLimit,
 			);
 
-			await this._channel.publishToNetwork('broadcastToNetwork', {
+			this._networkModule.broadcast({
 				event: ENDPOINT_BROADCAST_TRANSACTIONS,
 				data: {
 					transactionIds: transactionIds.map(id => id.toString('base64')),
