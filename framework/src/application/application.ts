@@ -254,7 +254,7 @@ export class Application {
 		return this._transactions[transactionType];
 	}
 
-	public getModule(alias: string): InstantiablePlugin<BasePlugin> {
+	public getPlugin(alias: string): InstantiablePlugin<BasePlugin> {
 		return this._plugins[alias];
 	}
 

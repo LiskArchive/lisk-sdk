@@ -114,7 +114,7 @@ describe('Controller Class', () => {
 
 	describe('#load', () => {
 		let plugins: any;
-		let moduleOptions: any;
+		let pluginOptions: any;
 
 		beforeEach(async () => {
 			plugins = {
@@ -123,13 +123,13 @@ describe('Controller Class', () => {
 				dummyPlugin3: createMockPlugin('dummyPlugin3'),
 			};
 
-			moduleOptions = {
+			pluginOptions = {
 				dummyPlugin1: '#OPTIONS1',
 				dummyPlugin2: '#OPTIONS2',
 				dummyPlugin3: '#OPTIONS3',
 			};
 
-			await controller.load(plugins, moduleOptions);
+			await controller.load(plugins, pluginOptions);
 		});
 
 		describe('_setupBus', () => {
@@ -174,15 +174,15 @@ describe('Controller Class', () => {
 				);
 			});
 
-			describe('when creating module', () => {
+			describe('when creating plugin', () => {
 				it.todo(
-					'should publish `loading:started` event before loading module.',
+					'should publish `loading:started` event before loading plugin.',
 				);
-				it.todo('should call `module.load` method.');
+				it.todo('should call `plugin.load` method.');
 				it.todo(
-					'should publish `loading:finished` event after loading module.',
+					'should publish `loading:finished` event after loading plugin.',
 				);
-				it.todo('should add module to `controller.plugins` object.');
+				it.todo('should add plugin to `controller.plugins` object.');
 			});
 		});
 
@@ -206,37 +206,37 @@ describe('Controller Class', () => {
 		beforeEach(async () => {
 			// Arrange
 			loadStubs = {
-				module1: jest.fn(),
-				module2: jest.fn(),
+				plugin1: jest.fn(),
+				plugin2: jest.fn(),
 			};
 
 			unloadStubs = {
-				module1: jest.fn(),
-				module2: jest.fn(),
+				plugin1: jest.fn(),
+				plugin2: jest.fn(),
 			};
 
 			const plugins: any = {
-				module1: createMockPlugin(
-					'module1',
-					loadStubs.module1,
-					unloadStubs.module1,
+				plugin1: createMockPlugin(
+					'plugin1',
+					loadStubs.plugin1,
+					unloadStubs.plugin1,
 				),
-				module2: createMockPlugin(
-					'module2',
-					loadStubs.module2,
-					unloadStubs.module2,
+				plugin2: createMockPlugin(
+					'plugin2',
+					loadStubs.plugin2,
+					unloadStubs.plugin2,
 				),
 			};
-			const moduleOptions: any = {
-				module1: {
+			const pluginOptions: any = {
+				plugin1: {
 					loadAsChildProcess: false,
 				},
-				module2: {
+				plugin2: {
 					loadAsChildProcess: false,
 				},
 			};
 
-			await controller.load(plugins, moduleOptions);
+			await controller.load(plugins, pluginOptions);
 		});
 
 		it('should unload plugins in sequence', async () => {
@@ -244,9 +244,9 @@ describe('Controller Class', () => {
 			await controller.unloadPlugins();
 
 			// Assert
-			expect(unloadStubs.module1).toHaveBeenCalled();
-			expect(unloadStubs.module2).toHaveBeenCalled();
-			expect(unloadStubs.module2).toHaveBeenCalledAfter(unloadStubs.module1);
+			expect(unloadStubs.plugin1).toHaveBeenCalled();
+			expect(unloadStubs.plugin2).toHaveBeenCalled();
+			expect(unloadStubs.plugin2).toHaveBeenCalledAfter(unloadStubs.plugin1);
 		});
 
 		it('should unload all plugins if plugins argument was not provided', async () => {
@@ -259,10 +259,10 @@ describe('Controller Class', () => {
 
 		it('should unload given plugins if plugins argument was provided', async () => {
 			// Act
-			await controller.unloadPlugins(['module2']);
+			await controller.unloadPlugins(['plugin2']);
 
 			// Assert
-			expect(Object.keys(controller.plugins)).toEqual(['module1']);
+			expect(Object.keys(controller.plugins)).toEqual(['plugin1']);
 		});
 	});
 });
