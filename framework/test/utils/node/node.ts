@@ -25,7 +25,7 @@ import { InMemoryChannel } from '../../../src/controller/channels';
 import { mergeDeep } from '../../../src/application/utils/merge_deep';
 import { ApplicationConfig } from '../../../src/types';
 
-const { modules, ...rootConfigs } = config;
+const { plugins, ...rootConfigs } = config;
 const { network, ...nodeConfigs } = rootConfigs;
 
 interface CreateNodeInput {

@@ -52,14 +52,14 @@ export interface RPCHighestCommonBlockData {
 }
 /* End P2P */
 
-export interface ModuleOptions {
+export interface PluginOptions {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly [key: string]: any;
 	readonly loadAsChildProcess: boolean;
 }
 
-export interface ModulesOptions {
-	[key: string]: ModuleOptions;
+export interface PluginsOptions {
+	[key: string]: PluginOptions;
 }
 
 export interface DelegateConfig {
@@ -137,5 +137,5 @@ export interface ApplicationConfig {
 	};
 	genesisConfig: GenesisConfig;
 	constants: ApplicationConstants;
-	modules: ModulesOptions;
+	plugins: PluginsOptions;
 }

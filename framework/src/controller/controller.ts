@@ -21,8 +21,8 @@ import { InMemoryChannel } from './channels';
 import { Bus } from './bus';
 import { Logger } from '../application/logger';
 import { SocketPaths } from './types';
-import { ModulesOptions, ModuleOptions } from '../types';
-import { BasePlugin, InstantiableModule } from '../modules/base_plugin';
+import { PluginsOptions, PluginOptions } from '../types';
+import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -52,32 +52,32 @@ interface ControllerConfig {
 	};
 }
 
-interface ModulesObject {
-	readonly [key: string]: InstantiableModule<BasePlugin>;
+interface PluginsObject {
+	readonly [key: string]: InstantiablePlugin<BasePlugin>;
 }
 
-const validateModuleSpec = (moduleSpec: Partial<BasePlugin>): void => {
+const validatePluginSpec = (pluginSpec: Partial<BasePlugin>): void => {
 	assert(
-		(moduleSpec.constructor as typeof BasePlugin).alias,
-		'Module alias is required.',
+		(pluginSpec.constructor as typeof BasePlugin).alias,
+		'Plugin alias is required.',
 	);
 	assert(
-		(moduleSpec.constructor as typeof BasePlugin).info.name,
-		'Module name is required.',
+		(pluginSpec.constructor as typeof BasePlugin).info.name,
+		'Plugin name is required.',
 	);
 	assert(
-		(moduleSpec.constructor as typeof BasePlugin).info.author,
-		'Module author is required.',
+		(pluginSpec.constructor as typeof BasePlugin).info.author,
+		'Plugin author is required.',
 	);
 	assert(
-		(moduleSpec.constructor as typeof BasePlugin).info.version,
-		'Module version is required.',
+		(pluginSpec.constructor as typeof BasePlugin).info.version,
+		'Plugin version is required.',
 	);
-	assert(moduleSpec.defaults, 'Module default options are required.');
-	assert(moduleSpec.events, 'Module events are required.');
-	assert(moduleSpec.actions, 'Module actions are required.');
-	assert(moduleSpec.load, 'Module load action is required.');
-	assert(moduleSpec.unload, 'Module unload actions is required.');
+	assert(pluginSpec.defaults, 'Plugin default options are required.');
+	assert(pluginSpec.events, 'Plugin events are required.');
+	assert(pluginSpec.actions, 'Plugin actions are required.');
+	assert(pluginSpec.load, 'Plugin load action is required.');
+	assert(pluginSpec.unload, 'Plugin unload actions is required.');
 };
 
 export class Controller {
@@ -85,7 +85,7 @@ export class Controller {
 	public readonly appLabel: string;
 	public readonly channel: InMemoryChannel;
 	public readonly config: ControllerConfig;
-	public modules: {
+	public plugins: {
 		[key: string]: BasePlugin;
 	};
 	public childrenList: Array<ChildProcess>;
@@ -114,30 +114,30 @@ export class Controller {
 			},
 		};
 
-		this.modules = {};
+		this.plugins = {};
 		this.childrenList = [];
 	}
 
 	public async load(
-		modules: ModulesObject,
-		moduleOptions: ModulesOptions,
+		plugins: PluginsObject,
+		pluginOptions: PluginsOptions,
 	): Promise<void> {
 		this.logger.info('Loading controller');
 		await this._setupBus();
-		await this._loadModules(modules, moduleOptions);
+		await this._loadPlugins(plugins, pluginOptions);
 
 		this.logger.debug(this.bus?.getEvents(), 'Bus listening to events');
 		this.logger.debug(this.bus?.getActions(), 'Bus ready for actions');
 	}
 
-	public async unloadModules(
-		modules = Object.keys(this.modules),
+	public async unloadPlugins(
+		plugins = Object.keys(this.plugins),
 	): Promise<void> {
 		// To perform operations in sequence and not using bluebird
 
-		for (const alias of modules) {
-			await this.modules[alias].unload();
-			delete this.modules[alias];
+		for (const alias of plugins) {
+			await this.plugins[alias].unload();
+			delete this.plugins[alias];
 		}
 	}
 
@@ -152,10 +152,10 @@ export class Controller {
 
 		try {
 			await this.bus?.cleanup();
-			await this.unloadModules();
+			await this.unloadPlugins();
 			this.logger.info('Unload completed');
 		} catch (err) {
-			this.logger.error(err, 'Caused error during modules cleanup');
+			this.logger.error(err, 'Caused error during plugins cleanup');
 		}
 	}
 
@@ -185,91 +185,91 @@ export class Controller {
 		}
 	}
 
-	private async _loadModules(
-		modules: ModulesObject,
-		moduleOptions: ModulesOptions,
+	private async _loadPlugins(
+		plugins: PluginsObject,
+		pluginOptions: PluginsOptions,
 	): Promise<void> {
 		// To perform operations in sequence and not using bluebird
-		for (const alias of Object.keys(modules)) {
-			const klass = modules[alias];
-			const options = moduleOptions[alias];
+		for (const alias of Object.keys(plugins)) {
+			const klass = plugins[alias];
+			const options = pluginOptions[alias];
 
 			if (options.loadAsChildProcess) {
 				if (this.config.ipc.enabled) {
-					await this._loadChildProcessModule(alias, klass, options);
+					await this._loadChildProcessPlugin(alias, klass, options);
 				} else {
 					this.logger.warn(
 						`IPC is disabled. ${alias} will be loaded in-memory.`,
 					);
-					await this._loadInMemoryModule(alias, klass, options);
+					await this._loadInMemoryPlugin(alias, klass, options);
 				}
 			} else {
-				await this._loadInMemoryModule(alias, klass, options);
+				await this._loadInMemoryPlugin(alias, klass, options);
 			}
 		}
 	}
 
-	private async _loadInMemoryModule(
+	private async _loadInMemoryPlugin(
 		alias: string,
-		Klass: InstantiableModule<BasePlugin>,
-		options: ModuleOptions,
+		Klass: InstantiablePlugin<BasePlugin>,
+		options: PluginOptions,
 	): Promise<void> {
-		const moduleAlias = alias || Klass.alias;
+		const pluginAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
 
-		const module: BasePlugin = new Klass(options);
-		validateModuleSpec(module);
+		const plugin: BasePlugin = new Klass(options);
+		validatePluginSpec(plugin);
 
 		this.logger.info(
-			{ name, version, moduleAlias },
-			'Loading in-memory module',
+			{ name, version, pluginAlias },
+			'Loading in-memory plugin',
 		);
 
 		const channel = new InMemoryChannel(
-			moduleAlias,
-			module.events,
-			module.actions,
+			pluginAlias,
+			plugin.events,
+			plugin.actions,
 		);
 
 		await channel.registerToBus(this.bus as Bus);
 
-		channel.publish(`${moduleAlias}:registeredToBus`);
-		channel.publish(`${moduleAlias}:loading:started`);
+		channel.publish(`${pluginAlias}:registeredToBus`);
+		channel.publish(`${pluginAlias}:loading:started`);
 
-		await module.load(channel);
+		await plugin.load(channel);
 
-		channel.publish(`${moduleAlias}:loading:finished`);
+		channel.publish(`${pluginAlias}:loading:finished`);
 
-		this.modules[moduleAlias] = module;
+		this.plugins[pluginAlias] = plugin;
 
-		this.logger.info({ name, version, moduleAlias }, 'Loaded in-memory module');
+		this.logger.info({ name, version, pluginAlias }, 'Loaded in-memory plugin');
 	}
 
-	private async _loadChildProcessModule(
+	private async _loadChildProcessPlugin(
 		alias: string,
-		Klass: InstantiableModule<BasePlugin>,
-		options: ModuleOptions,
+		Klass: InstantiablePlugin<BasePlugin>,
+		options: PluginOptions,
 	): Promise<void> {
-		const moduleAlias = alias || Klass.alias;
+		const pluginAlias = alias || Klass.alias;
 		const { name, version } = Klass.info;
 
-		const module: BasePlugin = new Klass(options);
-		validateModuleSpec(module);
+		const plugin: BasePlugin = new Klass(options);
+		validatePluginSpec(plugin);
 
 		this.logger.info(
-			{ name, version, moduleAlias },
-			'Loading module as child process',
+			{ name, version, pluginAlias },
+			'Loading plugin as child process',
 		);
 
-		const modulePath = path.resolve(
+		const pluginPath = path.resolve(
 			__dirname,
-			'../modules',
+			'../plugins',
 			alias.replace(/([A-Z])/g, $1 => `_${$1.toLowerCase()}`),
 		);
 
 		const program = path.resolve(__dirname, 'child_process_loader.js');
 
-		const parameters = [modulePath];
+		const parameters = [pluginPath];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {
@@ -289,17 +289,17 @@ export class Controller {
 
 		// TODO: Check which config and options are actually required to avoid sending large data
 		child.send({
-			loadModule: true,
+			loadPlugin: true,
 			config: this.config,
-			moduleOptions: options,
+			pluginOptions: options,
 		});
 
 		this.childrenList.push(child);
 
 		child.on('exit', (code, signal) => {
 			this.logger.error(
-				{ name, version, moduleAlias, code, signal },
-				'Child process module exited',
+				{ name, version, pluginAlias, code, signal },
+				'Child process plugin exited',
 			);
 			// Exits the main process with a failure code
 			process.exit(1);
@@ -307,10 +307,10 @@ export class Controller {
 
 		await Promise.race([
 			new Promise(resolve => {
-				this.channel.once(`${moduleAlias}:loading:finished`, () => {
+				this.channel.once(`${pluginAlias}:loading:finished`, () => {
 					this.logger.info(
-						{ name, version, moduleAlias },
-						'Child process module ready',
+						{ name, version, pluginAlias },
+						'Child process plugin ready',
 					);
 					resolve();
 				});

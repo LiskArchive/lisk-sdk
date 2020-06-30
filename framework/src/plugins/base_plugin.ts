@@ -23,7 +23,7 @@ export interface PluginInfo {
 	readonly name: string;
 }
 
-export interface InstantiableModule<T, U = object> {
+export interface InstantiablePlugin<T, U = object> {
 	alias: string;
 	info: PluginInfo;
 	defaults: object;

@@ -22,7 +22,7 @@ export const applicationConfigSchema = {
 		'genesisConfig',
 		'forging',
 		'network',
-		'modules',
+		'plugins',
 	],
 	properties: {
 		label: {
@@ -317,7 +317,7 @@ export const applicationConfigSchema = {
 			},
 			required: ['seedPeers'],
 		},
-		modules: {
+		plugins: {
 			type: 'object',
 		},
 	},
@@ -360,6 +360,6 @@ export const applicationConfigSchema = {
 			seedPeers: [],
 			wsPort: 5000,
 		},
-		modules: {},
+		plugins: {},
 	},
 };

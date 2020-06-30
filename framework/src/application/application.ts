@@ -49,7 +49,7 @@ import { Logger, createLogger } from './logger';
 import { mergeDeep } from './utils/merge_deep';
 
 import { DuplicateAppInstanceError } from '../errors';
-import { BasePlugin, InstantiableModule } from '../modules/base_plugin';
+import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
 import { ActionInfoObject } from '../controller/action';
 import {
 	ApplicationConfig,
@@ -110,7 +110,7 @@ export class Application {
 	private _controller!: Controller;
 	private _applicationState!: ApplicationState;
 	private _transactions: { [key: number]: typeof BaseTransaction };
-	private _modules: { [key: string]: InstantiableModule<BasePlugin> };
+	private _plugins: { [key: string]: InstantiablePlugin<BasePlugin> };
 	private _channel!: InMemoryChannel;
 
 	private readonly _genesisBlock: GenesisBlock<AccountAsset>;
@@ -161,7 +161,7 @@ export class Application {
 		this.config = mergedConfig;
 
 		// Private members
-		this._modules = {};
+		this._plugins = {};
 		this._transactions = {};
 
 		this.registerTransaction(TransferTransaction);
@@ -172,39 +172,39 @@ export class Application {
 		this.registerTransaction(ProofOfMisbehaviorTransaction);
 	}
 
-	public registerModule(
-		moduleKlass: typeof BasePlugin,
+	public registerPlugin(
+		pluginKlass: typeof BasePlugin,
 		options = {},
 		alias?: string,
 	): void {
-		assert(moduleKlass, 'ModuleSpec is required');
+		assert(pluginKlass, 'ModuleSpec is required');
 		assert(
 			typeof options === 'object',
 			'Module options must be provided or set to empty object.',
 		);
-		assert(alias ?? moduleKlass.alias, 'Module alias must be provided.');
-		const moduleAlias = alias ?? moduleKlass.alias;
+		assert(alias ?? pluginKlass.alias, 'Module alias must be provided.');
+		const pluginAlias = alias ?? pluginKlass.alias;
 		assert(
-			!Object.keys(this.getModules()).includes(moduleAlias),
-			`A module with alias "${moduleAlias}" already registered.`,
+			!Object.keys(this.getPlugins()).includes(pluginAlias),
+			`A plugin with alias "${pluginAlias}" already registered.`,
 		);
 
-		this.config.modules[moduleAlias] = Object.assign(
+		this.config.plugins[pluginAlias] = Object.assign(
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			this.config.modules[moduleAlias] ?? {},
+			this.config.plugins[pluginAlias] ?? {},
 			options,
 		);
-		this._modules[moduleAlias] = moduleKlass as InstantiableModule<BasePlugin>;
+		this._plugins[pluginAlias] = pluginKlass as InstantiablePlugin<BasePlugin>;
 	}
 
 	public overrideModuleOptions(alias: string, options?: object): void {
-		const modules = this.getModules();
+		const plugins = this.getPlugins();
 		assert(
-			Object.keys(modules).includes(alias),
-			`No module ${alias} is registered`,
+			Object.keys(plugins).includes(alias),
+			`No plugin ${alias} is registered`,
 		);
-		this.config.modules[alias] = {
-			...this.config.modules[alias],
+		this.config.plugins[alias] = {
+			...this.config.plugins[alias],
 			...options,
 		};
 	}
@@ -252,16 +252,16 @@ export class Application {
 		return this._transactions[transactionType];
 	}
 
-	public getModule(alias: string): InstantiableModule<BasePlugin> {
-		return this._modules[alias];
+	public getPlugin(alias: string): InstantiablePlugin<BasePlugin> {
+		return this._plugins[alias];
 	}
 
-	public getModules(): { [key: string]: InstantiableModule<BasePlugin> } {
-		return this._modules;
+	public getPlugins(): { [key: string]: InstantiablePlugin<BasePlugin> } {
+		return this._plugins;
 	}
 
 	public async run(): Promise<void> {
-		// Freeze every module and configuration so it would not interrupt the app execution
+		// Freeze every plugin and configuration so it would not interrupt the app execution
 		this._compileAndValidateConfigurations();
 
 		Object.freeze(this._genesisBlock);
@@ -301,7 +301,7 @@ export class Application {
 		this._network = this._initNetwork();
 		this._node = this._initNode();
 
-		await this._controller.load(this.getModules(), this.config.modules);
+		await this._controller.load(this.getPlugins(), this.config.plugins);
 
 		await this._network.bootstrap();
 		await this._node.bootstrap();
@@ -334,7 +334,7 @@ export class Application {
 	// Private
 	// --------------------------------------
 	private _compileAndValidateConfigurations(): void {
-		const modules = this.getModules();
+		const plugins = this.getPlugins();
 		this.config.networkId = getNetworkIdentifier(
 			this._genesisBlock.header.transactionRoot,
 			this.config.genesisConfig.communityIdentifier,
@@ -350,12 +350,12 @@ export class Application {
 			buildVersion: this.config.buildVersion,
 		};
 
-		// TODO: move this configuration to module specific config file
+		// TODO: move this configuration to plugin specific config file
 		const childProcessModules = process.env.LISK_CHILD_PROCESS_MODULES
 			? process.env.LISK_CHILD_PROCESS_MODULES.split(',')
 			: [];
 
-		Object.keys(modules).forEach(alias => {
+		Object.keys(plugins).forEach(alias => {
 			this.overrideModuleOptions(alias, {
 				loadAsChildProcess: childProcessModules.includes(alias),
 			});
@@ -547,7 +547,7 @@ export class Application {
 	}
 
 	private _initNode(): Node {
-		const { modules, ...rootConfigs } = this.config;
+		const { plugins, ...rootConfigs } = this.config;
 		const { network, ...nodeConfigs } = rootConfigs;
 		// Decode JSON into object
 		const convertedDelegates = nodeConfigs.forging.delegates.map(delegate => ({

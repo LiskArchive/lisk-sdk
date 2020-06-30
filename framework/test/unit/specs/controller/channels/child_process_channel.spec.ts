@@ -286,7 +286,7 @@ describe('ChildProcessChannel Channel', () => {
 		const actionName = 'moduleAlias:action1';
 		const actionParams = ['param1', 'param2'];
 
-		it('should execute the action straight away if the modules are the same and action is a string', async () => {
+		it('should execute the action straight away if the plugins are the same and action is a string', async () => {
 			// Act
 			await childProcessChannel.registerToBus(socketsPath);
 			await childProcessChannel.invoke(actionName, actionParams);
@@ -295,7 +295,7 @@ describe('ChildProcessChannel Channel', () => {
 			expect(params.actions.action1.handler).toHaveBeenCalled();
 		});
 
-		it('should execute the action straight away if the modules are the same and action is an Action object', async () => {
+		it('should execute the action straight away if the plugins are the same and action is an Action object', async () => {
 			// Act
 			await childProcessChannel.registerToBus(socketsPath);
 			const action = new Action(actionName, actionParams);
