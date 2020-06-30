@@ -385,6 +385,7 @@ describe('block_synchronization_mechanism', () => {
 
 		describe('compute the best peer', () => {
 			it('should compute the best peer out of a list of connected peers and return it', async () => {
+				jest.spyOn(processorModule, 'forkStatus');
 				when(networkMock.requestFromPeer)
 					.calledWith({
 						procedure: 'getBlocksFromId',
@@ -403,6 +404,18 @@ describe('block_synchronization_mechanism', () => {
 					},
 					'List of connected peers',
 				);
+				expect(processorModule.forkStatus).toHaveBeenCalledWith({
+					header: {
+						id: Buffer.alloc(0),
+						previousBlockID: Buffer.alloc(0),
+						version: 2,
+						height: expect.any(Number),
+						asset: {
+							maxHeightPrevoted: expect.any(Number),
+						},
+					},
+					payload: [],
+				});
 				expect(loggerMock.debug).toHaveBeenCalledWith(
 					'Computing the best peer to synchronize from',
 				);
