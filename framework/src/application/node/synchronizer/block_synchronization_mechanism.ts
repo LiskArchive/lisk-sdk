@@ -571,6 +571,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			id: Buffer.alloc(0),
 			height: selectedPeers[randomPeerIndex].height,
 			version: selectedPeers[randomPeerIndex].blockVersion,
+			previousBlockID: Buffer.alloc(0),
 			asset: {
 				maxHeightPrevoted: selectedPeers[randomPeerIndex].maxHeightPrevoted,
 			},
