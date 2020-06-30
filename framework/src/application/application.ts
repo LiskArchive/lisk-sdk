@@ -37,12 +37,11 @@ import {
 	ErrorObject,
 } from '@liskhq/lisk-validator';
 import * as _ from 'lodash';
-import { p2pTypes } from '@liskhq/lisk-p2p';
 import { systemDirs } from './system_dirs';
 import { Controller } from '../controller/controller';
 import { version } from '../version';
 import { constantsSchema, applicationConfigSchema } from './schema';
-import { ApplicationState, ApplicationStateUpdate } from './application_state';
+import { ApplicationState } from './application_state';
 import { Network } from './network';
 import { Node } from './node';
 import { InMemoryChannel } from '../controller/channels';
@@ -56,7 +55,6 @@ import {
 	ApplicationConfig,
 	ApplicationConstants,
 	GenesisConfig,
-	P2PRequestPeerPacket,
 	EventPostTransactionData,
 } from '../types';
 import { GenesisBlockJSON, genesisBlockFromJSON } from './genesis_block';
@@ -339,9 +337,7 @@ export class Application {
 		const modules = this.getModules();
 		this.config.networkId = getNetworkIdentifier(
 			this._genesisBlock.header.transactionRoot,
-			// TODO: Replace this attribute with configuration
-			// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
-			'Lisk',
+			this.config.genesisConfig.communityIdentifier,
 		).toString('base64');
 
 		const appConfigToShareWithModules = {
@@ -407,33 +403,6 @@ export class Application {
 				'block:delete',
 			],
 			{
-				getApplicationState: {
-					handler: (_action: ActionInfoObject) => this._applicationState.state,
-				},
-				updateApplicationState: {
-					handler: (action: ActionInfoObject) =>
-						this._applicationState.update(
-							action.params as ApplicationStateUpdate,
-						),
-				},
-				sendToNetwork: {
-					handler: (action: ActionInfoObject) =>
-						this._network.send(action.params as p2pTypes.P2PMessagePacket),
-				},
-				broadcastToNetwork: {
-					handler: (action: ActionInfoObject) =>
-						this._network.broadcast(action.params as p2pTypes.P2PMessagePacket),
-				},
-				requestFromNetwork: {
-					handler: async (action: ActionInfoObject) =>
-						this._network.request(action.params as p2pTypes.P2PRequestPacket),
-				},
-				requestFromPeer: {
-					handler: async (action: ActionInfoObject) =>
-						this._network.requestFromPeer(
-							action.params as P2PRequestPeerPacket,
-						),
-				},
 				getConnectedPeers: {
 					handler: (_action: ActionInfoObject) =>
 						this._network.getConnectedPeers(),
@@ -441,28 +410,6 @@ export class Application {
 				getDisconnectedPeers: {
 					handler: (_action: ActionInfoObject) =>
 						this._network.getDisconnectedPeers(),
-				},
-				applyPenaltyOnPeer: {
-					handler: (action: ActionInfoObject) =>
-						this._network.applyPenalty(action.params as p2pTypes.P2PPenalty),
-				},
-				calculateSupply: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateSupply(
-							action.params as { height: number },
-						),
-				},
-				calculateMilestone: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateMilestone(
-							action.params as { height: number },
-						),
-				},
-				calculateReward: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calculateReward(
-							action.params as { height: number },
-						),
 				},
 				getForgerAddressesForRound: {
 					handler: async (action: ActionInfoObject) =>
@@ -499,18 +446,6 @@ export class Application {
 					handler: async (action: ActionInfoObject) =>
 						this._node.actions.postTransaction(
 							action.params as EventPostTransactionData,
-						),
-				},
-				getSlotNumber: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.getSlotNumber(
-							action.params as { timeStamp: number | undefined },
-						),
-				},
-				calcSlotRound: {
-					handler: (action: ActionInfoObject) =>
-						this._node.actions.calcSlotRound(
-							action.params as { height: number },
 						),
 				},
 				getNodeStatus: {
@@ -605,6 +540,7 @@ export class Application {
 			logger: this.logger,
 			channel: this._channel,
 			nodeDB: this._nodeDB,
+			applicationState: this._applicationState,
 		});
 
 		return network;
@@ -626,9 +562,7 @@ export class Application {
 			channel: this._channel,
 			options: {
 				...nodeConfigs,
-				// TODO: Replace this attribute with configuration
-				// 	https://github.com/LiskHQ/lisk-sdk/issues/5447
-				communityIdentifier: 'Lisk',
+				communityIdentifier: nodeConfigs.genesisConfig.communityIdentifier,
 				forging: {
 					...nodeConfigs.forging,
 					delegates: convertedDelegates,
@@ -644,6 +578,7 @@ export class Application {
 			forgerDB: this._forgerDB,
 			blockchainDB: this._blockchainDB,
 			applicationState: this._applicationState,
+			networkModule: this._network,
 		});
 
 		return node;

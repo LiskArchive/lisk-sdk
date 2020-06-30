@@ -7,6 +7,7 @@
 	"label": "devnet",
 	"genesisConfig": {
 		"blockTime": 10,
+		"communityIdentifier": "Lisk",
 		"maxPayloadLength": 15360,
 		"rewards": {
 			"milestones": [

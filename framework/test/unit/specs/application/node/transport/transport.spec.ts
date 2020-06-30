@@ -32,14 +32,13 @@ describe('Transport', () => {
 	let loggerStub: any;
 	let processorStub: any;
 	let channelStub: any;
+	let networkStub: any;
 
 	beforeEach(() => {
 		// Needs to reset the job registered
 		channelStub = {
 			invoke: jest.fn(),
-			invokeFromNetwork: jest.fn(),
 			publish: jest.fn(),
-			publishToNetwork: jest.fn(),
 		};
 		loggerStub = {
 			info: jest.fn(),
@@ -52,6 +51,11 @@ describe('Transport', () => {
 			get: jest.fn(),
 			getProcessableTransactions: jest.fn().mockReturnValue(new BufferMap()),
 			add: jest.fn(),
+		};
+		networkStub = {
+			requestFromPeer: jest.fn(),
+			applyPenaltyOnPeer: jest.fn(),
+			broadcast: jest.fn(),
 		};
 		synchronizerStub = {};
 		chainStub = {
@@ -78,6 +82,7 @@ describe('Transport', () => {
 			transactionPoolModule: transactionPoolStub,
 			chainModule: chainStub,
 			processorModule: processorStub,
+			networkModule: networkStub,
 		});
 		jest.spyOn(transport['_broadcaster'], 'enqueueTransactionId');
 		jest.useFakeTimers();
@@ -130,15 +135,12 @@ describe('Transport', () => {
 				tx.sign(Buffer.from(networkIdentifier, 'hex'), genesis.passphrase);
 				await transport.handleBroadcastTransaction(tx);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
-					'broadcastToNetwork',
-					{
-						event: 'postTransactionsAnnouncement',
-						data: {
-							transactionIds: [tx.id.toString('base64')],
-						},
+				expect(networkStub.broadcast).toHaveBeenCalledWith({
+					event: 'postTransactionsAnnouncement',
+					data: {
+						transactionIds: [tx.id.toString('base64')],
 					},
-				);
+				});
 			});
 		});
 
@@ -187,15 +189,12 @@ describe('Transport', () => {
 				await transport.handleBroadcastTransaction(tx);
 				transactionPoolStub.contains.mockReturnValue(false);
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.publishToNetwork).not.toHaveBeenCalledWith(
-					'broadcastToNetwork',
-					{
-						event: 'postTransactionsAnnouncement',
-						data: {
-							transactionIds: [tx.id],
-						},
+				expect(networkStub.broadcast).not.toHaveBeenCalledWith({
+					event: 'postTransactionsAnnouncement',
+					data: {
+						transactionIds: [tx.id],
 					},
-				);
+				});
 			});
 		});
 
@@ -252,15 +251,12 @@ describe('Transport', () => {
 					await transport.handleBroadcastTransaction(tx);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval);
-				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
-					'broadcastToNetwork',
-					{
-						event: 'postTransactionsAnnouncement',
-						data: {
-							transactionIds: txs.map(tx => tx.id.toString('base64')),
-						},
+				expect(networkStub.broadcast).toHaveBeenCalledWith({
+					event: 'postTransactionsAnnouncement',
+					data: {
+						transactionIds: txs.map(tx => tx.id.toString('base64')),
 					},
-				);
+				});
 			});
 		});
 
@@ -316,28 +312,22 @@ describe('Transport', () => {
 					await transport.handleBroadcastTransaction(tx);
 				}
 				jest.advanceTimersByTime(defaultBroadcastInterval * 2);
-				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
-					'broadcastToNetwork',
-					{
-						event: 'postTransactionsAnnouncement',
-						data: {
-							transactionIds: txs
-								.map(tx => tx.id.toString('base64'))
-								.splice(0, defaultReleaseLimit),
-						},
+				expect(networkStub.broadcast).toHaveBeenCalledWith({
+					event: 'postTransactionsAnnouncement',
+					data: {
+						transactionIds: txs
+							.map(tx => tx.id.toString('base64'))
+							.splice(0, defaultReleaseLimit),
 					},
-				);
-				expect(channelStub.publishToNetwork).toHaveBeenCalledWith(
-					'broadcastToNetwork',
-					{
-						event: 'postTransactionsAnnouncement',
-						data: {
-							transactionIds: txs
-								.map(tx => tx.id.toString('base64'))
-								.splice(0, defaultReleaseLimit),
-						},
+				});
+				expect(networkStub.broadcast).toHaveBeenCalledWith({
+					event: 'postTransactionsAnnouncement',
+					data: {
+						transactionIds: txs
+							.map(tx => tx.id.toString('base64'))
+							.splice(0, defaultReleaseLimit),
 					},
-				);
+				});
 			});
 		});
 	});
@@ -360,13 +350,10 @@ describe('Transport', () => {
 						message: expect.stringContaining('should have required property'),
 					}),
 				);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 100,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 100,
+				});
 			});
 		});
 
@@ -437,13 +424,10 @@ describe('Transport', () => {
 				await transport.handleRPCGetTransactions({}, defaultPeerId);
 
 				jest.advanceTimersByTime(defaultRateLimit);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 10,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 10,
+				});
 			});
 		});
 
@@ -535,13 +519,10 @@ describe('Transport', () => {
 						defaultPeerId,
 					),
 				).toReject();
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 100,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 100,
+				});
 			});
 		});
 
@@ -748,13 +729,10 @@ describe('Transport', () => {
 					defaultPeerId,
 				);
 				jest.advanceTimersByTime(defaultRateLimit);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 10,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 10,
+				});
 			});
 		});
 
@@ -763,13 +741,10 @@ describe('Transport', () => {
 				await expect(
 					transport.handleEventPostTransactionsAnnouncement({}, defaultPeerId),
 				).toReject();
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 100,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 100,
+				});
 			});
 
 			it('should throw an error', async () => {
@@ -790,8 +765,8 @@ describe('Transport', () => {
 				chainStub.dataAccess.decodeTransaction
 					.mockReturnValueOnce(txInstance)
 					.mockReturnValueOnce(tx2Instance);
-				when(channelStub.invokeFromNetwork)
-					.calledWith('requestFromPeer', expect.anything())
+				when(networkStub.requestFromPeer)
+					.calledWith(expect.anything())
 					.mockResolvedValue({
 						data: { transactions: [tx, tx2] },
 						peerId: defaultPeerId,
@@ -803,14 +778,11 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invokeFromNetwork).toHaveBeenCalledWith(
-					'requestFromPeer',
-					{
-						procedure: 'getTransactions',
-						data: { transactionIds: validTransactionsRequest.transactionIds },
-						peerId: defaultPeerId,
-					},
-				);
+				expect(networkStub.requestFromPeer).toHaveBeenCalledWith({
+					procedure: 'getTransactions',
+					data: { transactionIds: validTransactionsRequest.transactionIds },
+					peerId: defaultPeerId,
+				});
 			});
 
 			it('should handle the received transactions', async () => {
@@ -834,13 +806,10 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invoke).toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 100,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 100,
+				});
 			});
 
 			it('should not apply penalty when add fails', async () => {
@@ -850,13 +819,10 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invoke).not.toHaveBeenCalledWith(
-					'app:applyPenaltyOnPeer',
-					{
-						peerId: defaultPeerId,
-						penalty: 100,
-					},
-				);
+				expect(networkStub.applyPenaltyOnPeer).not.toHaveBeenCalledWith({
+					peerId: defaultPeerId,
+					penalty: 100,
+				});
 			});
 		});
 		describe('when some of the transactions ids are known', () => {
@@ -864,8 +830,8 @@ describe('Transport', () => {
 				when(transactionPoolStub.contains)
 					.calledWith(txInstance.id)
 					.mockReturnValue(true);
-				when(channelStub.invokeFromNetwork)
-					.calledWith('requestFromPeer', expect.anything())
+				when(networkStub.requestFromPeer)
+					.calledWith(expect.anything())
 					.mockResolvedValue({
 						data: { transactions: [tx2] },
 						peerId: defaultPeerId,
@@ -879,14 +845,11 @@ describe('Transport', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(channelStub.invokeFromNetwork).toHaveBeenCalledWith(
-					'requestFromPeer',
-					{
-						procedure: 'getTransactions',
-						data: { transactionIds: [tx2Instance.id.toString('base64')] },
-						peerId: defaultPeerId,
-					},
-				);
+				expect(networkStub.requestFromPeer).toHaveBeenCalledWith({
+					procedure: 'getTransactions',
+					data: { transactionIds: [tx2Instance.id.toString('base64')] },
+					peerId: defaultPeerId,
+				});
 			});
 
 			it('should handle the received transactions', async () => {

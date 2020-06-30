@@ -144,6 +144,7 @@ describe('Application', () => {
 
 			customConfig.genesisConfig = {
 				maxPayloadLength: 15 * 1024,
+				communityIdentifier: 'Lisk',
 				blockTime: 2,
 				rewards: {
 					milestones: [
@@ -199,8 +200,6 @@ describe('Application', () => {
 			expect(Object.keys(app.getTransactions())).toEqual(frameworkTxTypes);
 		});
 
-		// Skipped because `new Application` is mutating params.config making the other tests to fail
-		// eslint-disable-next-line jest/no-disabled-tests
 		it('should throw validation error if constants are overriden by the user', () => {
 			const customConfig = _.cloneDeep(config);
 
@@ -211,7 +210,7 @@ describe('Application', () => {
 			expect(() => {
 				// eslint-disable-next-line no-new
 				new Application(genesisBlock as GenesisBlockJSON, customConfig);
-			}).toThrow('Lisk validator found 1 error[s]');
+			}).toThrow('Lisk validator found 2 error[s]');
 		});
 	});
 
